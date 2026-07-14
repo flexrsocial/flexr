@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.orm import Session
 
@@ -22,6 +24,7 @@ def register(request: Request, payload: RegisterRequest, db: Session = Depends(g
     if existing:
         raise HTTPException(status.HTTP_409_CONFLICT, "E-Mail bereits registriert.")
 
+    consent_timestamp = datetime.utcnow()
     user = User(
         email=payload.email,
         password_hash=hash_password(payload.password),
@@ -34,6 +37,8 @@ def register(request: Request, payload: RegisterRequest, db: Session = Depends(g
         height_cm=payload.height_cm,
         weight_kg=payload.weight_kg,
         bio=payload.bio,
+        sensitive_data_consent_at=consent_timestamp,
+        withdrawal_waiver_consent_at=consent_timestamp,
     )
     db.add(user)
     db.commit()
