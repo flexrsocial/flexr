@@ -88,6 +88,14 @@ class User(Base):
     stripe_customer_id = Column(String, nullable=True)
     stripe_subscription_id = Column(String, nullable=True)
 
+    # Nachweis-Zeitstempel für zwei gesetzlich getrennt einzuholende Einwilligungen
+    # (siehe Hinweise in frontend/datenschutz.html und frontend/agb.html):
+    # Art. 9 Abs. 2 lit. a DSGVO - explizite Einwilligung zur Verarbeitung der
+    # sexuellen Orientierung (aus gender/interest ableitbar), und § 18 Abs. 1 Z 11
+    # FAGG - Verzicht auf das Rücktrittsrecht durch sofortigen Leistungsbeginn.
+    sensitive_data_consent_at = Column(DateTime, nullable=False)
+    withdrawal_waiver_consent_at = Column(DateTime, nullable=False)
+
     photos = relationship("Photo", back_populates="user", cascade="all, delete-orphan")
 
     def is_active_member(self) -> bool:

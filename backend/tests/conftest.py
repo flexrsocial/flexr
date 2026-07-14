@@ -53,6 +53,8 @@ DEFAULT_USER = {
     "gender": "mann",
     "interest": "frau",
     "gym": "John Harris Fitness",
+    "consent_sensitive_data": True,
+    "consent_withdrawal_waiver": True,
 }
 
 

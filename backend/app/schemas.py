@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Literal, Optional
 
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field, field_validator
 
 
 class RegisterRequest(BaseModel):
@@ -16,6 +16,29 @@ class RegisterRequest(BaseModel):
     height_cm: Optional[int] = Field(default=None, ge=120, le=230)
     weight_kg: Optional[int] = Field(default=None, ge=30, le=250)
     bio: Optional[str] = Field(default=None, max_length=280)
+
+    # Zwei getrennt einzuholende, aktive Einwilligungen (siehe models.py User) -
+    # müssen explizit angehakt werden, ein Default von True wäre unwirksam.
+    consent_sensitive_data: bool = Field(
+        description="Einwilligung zur Verarbeitung der sexuellen Orientierung (Art. 9 Abs. 2 lit. a DSGVO)"
+    )
+    consent_withdrawal_waiver: bool = Field(
+        description="Kenntnisnahme, dass das Rücktrittsrecht durch sofortigen Leistungsbeginn erlischt (§ 18 Abs. 1 Z 11 FAGG)"
+    )
+
+    @field_validator("consent_sensitive_data")
+    @classmethod
+    def _require_sensitive_data_consent(cls, v: bool) -> bool:
+        if not v:
+            raise ValueError("Einwilligung zur Verarbeitung sensibler Daten ist erforderlich.")
+        return v
+
+    @field_validator("consent_withdrawal_waiver")
+    @classmethod
+    def _require_withdrawal_waiver_consent(cls, v: bool) -> bool:
+        if not v:
+            raise ValueError("Kenntnisnahme zum Rücktrittsrecht ist erforderlich.")
+        return v
 
 
 class LoginRequest(BaseModel):
