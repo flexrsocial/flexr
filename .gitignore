@@ -1,0 +1,16 @@
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# venv
+backend/venv/
+
+# Secrets — nur .env.example wird versioniert
+backend/.env
+
+# Claude Code lokale Einstellungen (maschinenspezifisch)
+.claude/settings.local.json
+
+# OS
+.DS_Store

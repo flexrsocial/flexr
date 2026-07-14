@@ -1,0 +1,75 @@
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.orm import Session
+
+from ..database import get_db
+from ..models import Photo, User
+from ..schemas import AddPhotoRequest, PresignPhotoRequest, PresignPhotoResponse, ProfileOut
+from ..security import get_current_user
+from ..storage import create_presigned_upload, public_url_for
+
+router = APIRouter(prefix="/api/profiles", tags=["profiles"])
+
+
+@router.get("/me", response_model=ProfileOut)
+def get_my_profile(current_user: User = Depends(get_current_user)):
+    return current_user
+
+
+@router.post("/me/photos/presign", response_model=PresignPhotoResponse)
+def presign_photo_upload(
+    payload: PresignPhotoRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Erzeugt eine Presigned-Upload-URL (S3/R2). Der Client lädt die Bilddatei
+    direkt dorthin hoch und registriert danach den zurückgegebenen object_key
+    über POST /me/photos - es fließen keine Bilddaten durchs Backend."""
+    existing_count = db.query(Photo).filter(Photo.user_id == current_user.id).count()
+    if existing_count >= 5:
+        raise HTTPException(400, "Maximal 5 Fotos erlaubt.")
+
+    result = create_presigned_upload(current_user.id, payload.content_type)
+    return PresignPhotoResponse(**result)
+
+
+@router.post("/me/photos", response_model=ProfileOut)
+def add_photo(
+    payload: AddPhotoRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    if not payload.object_key.startswith(f"users/{current_user.id}/"):
+        raise HTTPException(400, "Ungültiger object_key.")
+
+    existing_count = db.query(Photo).filter(Photo.user_id == current_user.id).count()
+    if existing_count >= 5:
+        raise HTTPException(400, "Maximal 5 Fotos erlaubt.")
+
+    photo = Photo(
+        user_id=current_user.id,
+        url=public_url_for(payload.object_key),
+        position=existing_count,
+    )
+    db.add(photo)
+    db.commit()
+    db.refresh(current_user)
+    return current_user
+
+
+@router.delete("/me/photos/{photo_id}", response_model=ProfileOut)
+def delete_photo(
+    photo_id: str,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    photo = (
+        db.query(Photo)
+        .filter(Photo.id == photo_id, Photo.user_id == current_user.id)
+        .first()
+    )
+    if not photo:
+        raise HTTPException(404, "Foto nicht gefunden.")
+    db.delete(photo)
+    db.commit()
+    db.refresh(current_user)
+    return current_user
