@@ -6,6 +6,7 @@
 <title>FLEXR — Dating für Gym-Geher</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Work+Sans:wght@400;500;600&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="preload" as="image" href="https://images.unsplash.com/photo-1649789248266-ef1c7f744f6f?q=80&w=2400&auto=format&fit=crop">
 <style>
   :root{
     --ink:#121212;
@@ -64,9 +65,15 @@
   .sub{ color:var(--chalk-dim); font-size:14px; line-height:1.5; margin-bottom:22px; }
 
   label{ display:block; font-size:12px; color:var(--chalk-dim); margin:16px 0 6px; text-transform:uppercase; letter-spacing:0.04em; }
-  input[type=text], input[type=number], textarea, select{
+  input[type=text], input[type=number], input[type=password], input[type=email], input[type=tel], textarea, select{
     width:100%; background:var(--surface); border:1px solid var(--steel); color:var(--chalk);
     padding:12px 14px; border-radius:10px; font-size:15px; font-family:inherit;
+  }
+  input[type=password]::-ms-reveal{ display:none; }
+  input:-webkit-autofill, input:-webkit-autofill:hover, input:-webkit-autofill:focus{
+    -webkit-text-fill-color:var(--chalk);
+    -webkit-box-shadow:0 0 0 1000px var(--surface) inset;
+    transition:background-color 9999s ease-in-out 0s;
   }
   input:focus, textarea:focus, select:focus{ outline:2px solid var(--plate); outline-offset:1px; }
   textarea{ resize:vertical; min-height:80px; }
@@ -175,6 +182,98 @@
   .legal-footer a{ color:var(--chalk-dim); text-decoration:none; }
   .legal-footer a:hover{ color:var(--chalk); }
 
+  /* ---------- Landing-Modus (ausgeloggt: Login/Registrierung) ---------- */
+  body.landing{
+    background:
+      linear-gradient(180deg, rgba(18,18,18,.42) 0%, rgba(18,18,18,.72) 55%, rgba(18,18,18,.97) 100%),
+      radial-gradient(circle at 18% 8%, rgba(255,90,31,.28), transparent 55%),
+      url('https://images.unsplash.com/photo-1649789248266-ef1c7f744f6f?q=80&w=2400&auto=format&fit=crop') center 30%/cover no-repeat fixed,
+      var(--ink);
+  }
+  body.landing .app{ max-width:none; background:transparent; }
+  body.landing header.top{
+    border-bottom:none; padding:26px clamp(20px,5vw,64px) 10px;
+  }
+  body.landing .brand{ font-size:30px; text-shadow:0 2px 18px rgba(0,0,0,.6); }
+  body.landing .status-pill{ display:none; }
+  body.landing main{
+    display:grid; grid-template-columns:minmax(0,1.15fr) minmax(340px,460px);
+    gap:clamp(24px,5vw,80px); align-items:center;
+    max-width:1200px; width:100%; margin:0 auto;
+    padding:24px clamp(20px,5vw,64px) 40px;
+  }
+  body.landing .landing-hero{ display:block; }
+  .landing-hero{ display:none; }
+  .landing-hero .hero-eyebrow{
+    font-family:'JetBrains Mono', monospace; font-size:12px; letter-spacing:0.18em;
+    text-transform:uppercase; color:var(--lime); margin-bottom:14px;
+  }
+  .landing-hero h1{
+    font-size:clamp(44px,6.5vw,84px); line-height:0.98; margin-bottom:18px;
+    text-shadow:0 4px 30px rgba(0,0,0,.55);
+  }
+  .landing-hero h1 em{ font-style:normal; color:var(--plate); }
+  .landing-hero .hero-sub{
+    color:var(--chalk); font-size:clamp(15px,1.4vw,18px); line-height:1.55;
+    max-width:520px; margin-bottom:26px; text-shadow:0 2px 12px rgba(0,0,0,.65);
+  }
+  .hero-usps{ display:flex; flex-direction:column; gap:10px; margin-bottom:28px; }
+  .hero-usps li{
+    list-style:none; display:flex; align-items:center; gap:10px;
+    font-size:14.5px; color:var(--chalk);
+  }
+  .hero-usps li::before{
+    content:'▸'; color:var(--plate); font-size:16px;
+  }
+  .hero-photos{ display:flex; gap:14px; }
+  .hero-photos img{
+    width:120px; height:150px; object-fit:cover; border-radius:14px;
+    border:1px solid rgba(255,255,255,.14); box-shadow:0 16px 32px rgba(0,0,0,.45);
+  }
+  .hero-photos img:nth-child(2){ transform:translateY(14px) rotate(2deg); }
+
+  body.landing .screen{ display:none; }
+  body.landing .screen.active{
+    display:block;
+    background:rgba(24,24,24,.82); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px);
+    border:1px solid rgba(255,255,255,.10); border-radius:22px;
+    padding:26px 26px 30px; box-shadow:0 34px 70px rgba(0,0,0,.55);
+    max-height:calc(100vh - 170px); overflow-y:auto; scrollbar-width:thin;
+    animation:fade .3s ease;
+  }
+  body.landing .screen.active::-webkit-scrollbar{ width:6px; }
+  body.landing .screen.active::-webkit-scrollbar-thumb{ background:var(--steel); border-radius:3px; }
+  body.landing .screen .eyebrow, body.landing .screen .headline{ display:none; }
+
+  .auth-tabs{
+    display:none; gap:6px; background:rgba(0,0,0,.35); padding:5px;
+    border-radius:12px; margin-bottom:18px;
+  }
+  body.landing .auth-tabs{ display:flex; }
+  .auth-tab{
+    flex:1; border:none; cursor:pointer; padding:10px 0; border-radius:9px;
+    font-family:'Oswald', sans-serif; font-weight:600; font-size:14px;
+    letter-spacing:0.05em; text-transform:uppercase;
+    background:transparent; color:var(--chalk-dim);
+    transition:background .15s ease, color .15s ease;
+  }
+  .auth-tab.active{ background:var(--plate); color:#141414; }
+  .auth-tab:not(.active):hover{ color:var(--chalk); }
+
+  body.landing .legal-footer{ padding:14px 20px 22px; }
+
+  @media (max-width: 860px){
+    body.landing main{
+      grid-template-columns:1fr; gap:26px; align-items:start;
+      padding:10px 20px 40px;
+    }
+    .landing-hero h1{ font-size:clamp(38px,11vw,54px); }
+    .landing-hero .hero-sub{ margin-bottom:18px; }
+    .hero-usps{ margin-bottom:0; }
+    .hero-photos{ display:none; }
+    body.landing .screen.active{ max-height:none; overflow:visible; }
+  }
+
   .divider{ height:1px; background:var(--steel); margin:24px 0; position:relative; }
   .divider::after{ content:'●  ●  ●'; position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); background:var(--ink); padding:0 10px; color:var(--steel); font-size:8px; letter-spacing:4px; }
 
@@ -203,8 +302,31 @@
 
   <main>
 
+    <!-- LANDING-HERO (nur sichtbar im Landing-Modus, d.h. ausgeloggt) -->
+    <div class="landing-hero">
+      <div class="hero-eyebrow">Dating für Gym-People · Österreich</div>
+      <h1>Match.<br>Train.<br><em>Repeat.</em></h1>
+      <p class="hero-sub">
+        Dating für Leute, die auch montags Beintag machen. Finde Menschen,
+        die dein Training genauso ernst nehmen wie du — in deinem Gym, in deiner Stadt.
+      </p>
+      <ul class="hero-usps">
+        <li>Matches nach Gym &amp; Stadt — kein Ghosting am anderen Ende Österreichs</li>
+        <li>1 Monat gratis testen, danach 5&nbsp;€/Monat — jederzeit kündbar</li>
+        <li>Echte Profile: Melde- &amp; Blockfunktion inklusive</li>
+      </ul>
+      <div class="hero-photos">
+        <img src="https://images.unsplash.com/photo-1652363723034-e0deb0b48b15?q=75&w=400&auto=format&fit=crop" alt="Pärchen beim High-Five im Gym">
+        <img src="https://images.unsplash.com/photo-1683509602596-f04aca698097?q=75&w=400&auto=format&fit=crop" alt="Sportliches Paar mit Kurzhanteln">
+      </div>
+    </div>
+
     <!-- LOGIN -->
     <section class="screen" id="screen-login">
+      <div class="auth-tabs">
+        <button class="auth-tab active" type="button">Einloggen</button>
+        <button class="auth-tab" type="button" id="btnGoRegister">Registrieren</button>
+      </div>
       <div class="eyebrow">Willkommen zurück</div>
       <h1 class="headline">Zurück ins<br>Gym-Date.</h1>
       <p class="sub">Melde dich mit deinen Zugangsdaten an.</p>
@@ -215,11 +337,14 @@
       <input type="password" id="l-password" placeholder="••••••••">
       <div class="field-err" id="loginErr"></div>
       <button class="btn" id="btnLogin">Einloggen</button>
-      <button class="link-btn" id="btnGoRegister">Noch kein Konto? Jetzt registrieren</button>
     </section>
 
     <!-- ONBOARDING / CREATE PROFILE -->
     <section class="screen" id="screen-onboard">
+      <div class="auth-tabs">
+        <button class="auth-tab" type="button" id="btnGoLogin">Einloggen</button>
+        <button class="auth-tab active" type="button">Registrieren</button>
+      </div>
       <div class="eyebrow">Erste Wiederholung</div>
       <h1 class="headline">Dating für Leute,<br>die auch Montags<br>Beintag machen.</h1>
       <p class="sub">Erstell dein Profil. 1 Monat gratis testen, danach 5&nbsp;€/Monat. Jederzeit kündbar. Aktuell nur in Österreich verfügbar.</p>
@@ -327,7 +452,6 @@
 
       <div class="field-err" id="formErr"></div>
       <button class="btn" id="btnCreateProfile">Profil erstellen & Probemonat starten</button>
-      <button class="link-btn" id="btnGoLogin">Schon ein Konto? Einloggen</button>
     </section>
 
     <!-- SWIPE -->
@@ -425,6 +549,8 @@
   function showScreen(id){
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     $(id).classList.add('active');
+    // Ausgeloggte Auth-Screens laufen im Landing-Modus (Vollbild-Hero statt App-Spalte)
+    document.body.classList.toggle('landing', id === 'screen-login' || id === 'screen-onboard');
   }
 
   function setNavActive(name){
