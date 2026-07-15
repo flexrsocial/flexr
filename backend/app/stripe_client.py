@@ -19,5 +19,15 @@ def create_checkout_session(user_email: str, user_id: str) -> str:
     return session.url
 
 
+def create_portal_session(stripe_customer_id: str) -> str:
+    """Erstellt eine Stripe-Billing-Portal-Session, in der Nutzer:innen ihr Abo
+    selbst verwalten/kündigen können, und gibt die URL zurück."""
+    session = stripe.billing_portal.Session.create(
+        customer=stripe_customer_id,
+        return_url=f"{settings.frontend_url}/account",
+    )
+    return session.url
+
+
 def construct_webhook_event(payload: bytes, sig_header: str):
     return stripe.Webhook.construct_event(payload, sig_header, settings.stripe_webhook_secret)

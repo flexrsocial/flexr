@@ -5,7 +5,7 @@ from ..database import get_db
 from ..models import User
 from ..schemas import MembershipStatus
 from ..security import get_current_user
-from ..stripe_client import construct_webhook_event, create_checkout_session
+from ..stripe_client import construct_webhook_event, create_checkout_session, create_portal_session
 
 router = APIRouter(prefix="/api/billing", tags=["billing"])
 
@@ -23,6 +23,15 @@ def membership_status(current_user: User = Depends(get_current_user)):
 def create_checkout(current_user: User = Depends(get_current_user)):
     url = create_checkout_session(current_user.email, current_user.id)
     return {"checkout_url": url}
+
+
+@router.post("/portal")
+def create_portal(current_user: User = Depends(get_current_user)):
+    """Self-Service-Verwaltung/Kündigung des Abos über Stripes Billing Portal."""
+    if not current_user.stripe_customer_id:
+        raise HTTPException(400, "Noch kein Abo abgeschlossen.")
+    url = create_portal_session(current_user.stripe_customer_id)
+    return {"portal_url": url}
 
 
 @router.post("/webhook")

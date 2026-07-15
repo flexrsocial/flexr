@@ -358,6 +358,7 @@
         <div class="price">5&nbsp;€ <small>/ Monat</small></div>
         <p class="sub" style="margin:10px 0 0;">Erster Monat gratis. Danach automatische Verlängerung, monatlich kündbar.</p>
         <button class="btn" id="btnSubscribe">Jetzt abonnieren</button>
+        <button class="btn secondary" id="btnManageSubscription" style="display:none;">Abo verwalten / kündigen</button>
       </div>
 
       <div class="divider"></div>
@@ -669,6 +670,15 @@
   $('btnSubscribe').addEventListener('click', subscribeNow);
   $('btnSubscribe2').addEventListener('click', subscribeNow);
 
+  $('btnManageSubscription').addEventListener('click', async ()=>{
+    try{
+      const res = await api('/api/billing/portal', {method: 'POST'});
+      window.location.href = res.portal_url;
+    }catch(err){
+      toast(err.message || 'Abo-Verwaltung konnte nicht geöffnet werden.');
+    }
+  });
+
   // ---------- Nav ----------
   document.querySelectorAll('nav.bottom button').forEach(btn=>{
     btn.addEventListener('click', ()=>{
@@ -688,11 +698,13 @@
       $('acctStatusText').textContent = 'Dein Abo ist aktiv (5 €/Monat).';
       $('btnSubscribe').textContent = 'Abo aktiv ✓';
       $('btnSubscribe').disabled = true;
+      $('btnManageSubscription').style.display = 'block';
     } else {
       const daysLeft = Math.max(0, Math.ceil((new Date(membership.trial_ends_at) - Date.now())/86400000));
       $('acctStatusText').textContent = `Noch ${daysLeft} Tag(e) gratis Probemonat.`;
       $('btnSubscribe').disabled = false;
       $('btnSubscribe').textContent = 'Jetzt abonnieren';
+      $('btnManageSubscription').style.display = 'none';
     }
     renderAccountPhotoGrid();
   }

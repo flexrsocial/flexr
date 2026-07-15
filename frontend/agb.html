@@ -47,8 +47,9 @@
     (2) Digitale Dienstleistungen mit sofortigem Zugriff verlieren das 14-tägige
     Rücktrittsrecht (§ 18 FAGG) nur, wenn die Nutzer:in <b>vorab ausdrücklich zustimmt</b>,
     dass die Leistung sofort beginnt, <b>und</b> zur Kenntnis nimmt, dass sie dadurch ihr
-    Rücktrittsrecht verliert. Das ist aktuell keine eigene Checkbox im Code — bitte
-    ergänzen, bevor das Abo live geschaltet wird.
+    Rücktrittsrecht verliert. Das ist mittlerweile als eigene Pflicht-Checkbox bei der
+    Registrierung umgesetzt (serverseitig validiert, mit Zeitstempel gespeichert) —
+    die konkrete Formulierung sollte trotzdem von einer Anwaltskanzlei abgenommen werden.
   </div>
 
   <h1>Allgemeine Geschäftsbedingungen (AGB)</h1>
@@ -56,8 +57,8 @@
   <h2>1. Geltungsbereich</h2>
   <p>
     Diese AGB gelten für die Nutzung der Plattform FLEXR ("wir", "FLEXR"), betrieben von
-    <span class="placeholder">[Firma/Name, siehe Impressum]</span>, durch registrierte
-    Nutzer:innen ("Nutzer:in").
+    FLEXR (flexr.social), Rembrandtstraße 34/20, 1020 Wien (siehe Impressum), durch
+    registrierte Nutzer:innen ("Nutzer:in").
   </p>
 
   <h2>2. Registrierungsvoraussetzungen</h2>
@@ -83,12 +84,11 @@
 
   <h2>4. Preise, Probemonat, Kündigung</h2>
   <ol>
-    <li>Erster Monat ab Registrierung kostenlos (Trial). Danach
-      <span class="placeholder">[5&nbsp;€]</span>/Monat, sofern nicht vor Ablauf des
-      Probemonats gekündigt wird.</li>
+    <li>Erster Monat ab Registrierung kostenlos (Trial). Danach 5&nbsp;€/Monat, sofern
+      nicht vor Ablauf des Probemonats gekündigt wird.</li>
     <li>Automatische monatliche Verlängerung bis zur Kündigung.</li>
-    <li>Kündigung jederzeit zum Ende der laufenden Abrechnungsperiode über
-      <span class="placeholder">[Konto-Einstellungen / Stripe Billing Portal]</span>.</li>
+    <li>Kündigung jederzeit zum Ende der laufenden Abrechnungsperiode selbstständig
+      über "Abo verwalten / kündigen" im Konto-Bereich der App (Stripe Billing Portal).</li>
     <li>Zahlungsabwicklung über Stripe. Es gelten zusätzlich die
       <a href="https://stripe.com/at/privacy" target="_blank" rel="noopener">Stripe-Nutzungsbedingungen</a>.</li>
   </ol>
@@ -99,9 +99,9 @@
     von Gründen zu (§ 11 FAGG). Bei digitalen Dienstleistungen erlischt dieses Recht
     vorzeitig, wenn die Nutzer:in <b>ausdrücklich zugestimmt hat</b>, dass die
     Ausführung vor Ablauf der Rücktrittsfrist beginnt, und zur Kenntnis genommen hat,
-    dass sie dadurch ihr Rücktrittsrecht verliert (§ 18 Abs. 1 Z 11 FAGG).
-    <span class="placeholder">[Diese Zustimmung wird aktuell nicht separat eingeholt —
-    technisch/rechtlich vor Launch nachrüsten.]</span>
+    dass sie dadurch ihr Rücktrittsrecht verliert (§ 18 Abs. 1 Z 11 FAGG). Diese
+    Zustimmung wird bei der Registrierung separat per Checkbox eingeholt und mit
+    Zeitstempel gespeichert.
   </p>
 
   <h2>6. Nutzungsregeln, Melde- und Blockfunktion</h2>
