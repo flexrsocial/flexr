@@ -12,16 +12,6 @@
   a{ color:var(--plate); }
   h1{ font-size:26px; margin-bottom:4px; }
   h2{ font-size:17px; color:var(--chalk); border-bottom:1px solid var(--steel); padding-bottom:6px; margin-top:36px; }
-  .draft-banner{
-    background:rgba(227,72,72,0.12); border:1px solid var(--warn); color:#ffb3b3;
-    padding:14px 16px; border-radius:10px; font-size:13.5px; margin-bottom:20px;
-  }
-  .draft-banner b{ color:#fff; }
-  .risk-banner{
-    background:rgba(199,255,74,0.08); border:1px solid var(--lime); color:var(--lime);
-    padding:14px 16px; border-radius:10px; font-size:13.5px; margin-bottom:28px;
-  }
-  .risk-banner b{ color:#fff; }
   .placeholder{ color:var(--plate); font-family:'JetBrains Mono', monospace; }
   .back{ display:inline-block; margin-bottom:20px; font-size:13px; color:var(--chalk-dim); text-decoration:none; }
   table{ width:100%; border-collapse:collapse; margin:12px 0; font-size:13.5px; }
@@ -32,25 +22,6 @@
 <body>
 <div class="wrap">
   <a class="back" href="/">← zurück zu FLEXR</a>
-  <div class="draft-banner">
-    <b>⚠️ ENTWURF — kein rechtsgültiger Text.</b> Platzhalter
-    (<span class="placeholder">[in eckigen Klammern]</span>) müssen befüllt, der Text vor
-    Live-Schaltung von einer/einem auf Datenschutzrecht spezialisierten Rechtsanwält:in
-    (AT/DSGVO) geprüft werden.
-  </div>
-  <div class="risk-banner">
-    <b>Wichtiger inhaltlicher Hinweis (kein Platzhalter, sondern ein echtes Risiko):</b>
-    Das Feld „Interessiert an“ (gesucht: Mann/Frau) offenbart die sexuelle Orientierung
-    der Nutzer:innen. Das ist eine <b>besondere Kategorie personenbezogener Daten</b>
-    nach Art. 9 Abs. 1 DSGVO. Deren Verarbeitung ist grundsätzlich verboten, außer es
-    liegt eine Ausnahme nach Art. 9 Abs. 2 vor — hier realistischerweise
-    <b>ausdrückliche Einwilligung (lit. a)</b>. Eine Erwähnung in dieser Erklärung reicht
-    dafür <b>nicht</b>: Es braucht eine separate, aktive Einwilligungshandlung bei der
-    Registrierung (z. B. eigene Checkbox, nicht vorangehakt) plus eine geloggte
-    Zeitstempel-Speicherung der Einwilligung. Das ist mittlerweile umgesetzt (eigene
-    Pflicht-Checkbox, serverseitig validiert, Zeitstempel in der Datenbank) — die
-    konkrete Formulierung sollte trotzdem von einer Anwaltskanzlei abgenommen werden.
-  </div>
 
   <h1>Datenschutzerklärung</h1>
 
@@ -87,16 +58,17 @@
   <h2>4. Empfänger / Auftragsverarbeiter</h2>
   <table>
     <tr><th>Dienst</th><th>Zweck</th><th>Sitz / Übermittlung</th></tr>
-    <tr><td>Cloudflare R2</td><td>Speicherung von Profilfotos</td><td><span class="placeholder">[Datenstandort/Jurisdiction prüfen, ggf. EU-Region wählen]</span></td></tr>
+    <tr><td>Cloudflare R2</td><td>Speicherung von Profilfotos</td><td>Eastern Europe (EEUR) — EU, kein Drittstaatentransfer</td></tr>
     <tr><td>Stripe</td><td>Zahlungsabwicklung, Abo-Verwaltung</td><td>USA/EU, Standardvertragsklauseln (SCC)</td></tr>
-    <tr><td><span class="placeholder">[Hosting-Provider / VPS-Anbieter]</span></td><td>Serverbetrieb</td><td><span class="placeholder">[...]</span></td></tr>
+    <tr><td>Contabo GmbH, Welfenstraße 22, 81541 München, Deutschland</td><td>Serverbetrieb (VPS)</td><td>Deutschland/EU</td></tr>
   </table>
   <p>Mit allen Auftragsverarbeitern <span class="placeholder">[bestehen / müssen noch abgeschlossen werden]</span> Auftragsverarbeitungsverträge (Art. 28 DSGVO).</p>
 
   <h2>5. Speicherdauer</h2>
   <p>
     Kontodaten: bis zur Löschung des Profils durch die Nutzer:in.<br>
-    Nach Löschung: <span class="placeholder">[Frist definieren, z. B. 30 Tage Karenz vor endgültiger Löschung, danach Löschung inkl. Fotos aus R2]</span>.<br>
+    Nach Löschung: 30 Tage Karenzzeit, danach vollständige und unwiderrufliche Löschung
+    aller Daten inklusive Fotos aus Cloudflare R2.<br>
     Zahlungsbezogene Daten: gemäß gesetzlicher Aufbewahrungspflichten (i. d. R. 7 Jahre, §132 BAO).
   </p>
 
