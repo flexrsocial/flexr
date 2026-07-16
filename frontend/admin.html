@@ -156,7 +156,7 @@
 <div id="loginScreen">
   <div class="login-card">
     <div class="brand">FLE<span>X</span>R <span style="color:var(--chalk-dim); font-weight:400;">Admin</span></div>
-    <div class="sub">Interner Bereich — nur für Betreiber:innen.</div>
+    <div class="sub">Interner Bereich — nur für Betreiber.</div>
     <label>E-Mail</label>
     <input type="text" id="l-email" placeholder="admin@flexr.social">
     <label>Passwort</label>
@@ -172,7 +172,7 @@
     <div class="brand">FLE<span>X</span>R <span style="color:var(--chalk-dim); font-weight:400; font-size:14px;">Admin</span></div>
     <nav>
       <button data-view="dashboard" class="active">📊 Dashboard</button>
-      <button data-view="users">👤 Nutzer:innen</button>
+      <button data-view="users">👤 Nutzer</button>
       <button data-view="photos">🖼 Foto-Freigabe <span class="badge" id="pendingBadge" style="display:none;"></span></button>
       <button data-view="reports">⚠ Meldungen</button>
     </nav>
@@ -191,7 +191,7 @@
 
     <!-- USERS -->
     <section class="view" id="view-users">
-      <h2>Nutzer:innen</h2>
+      <h2>Nutzer</h2>
       <div class="toolbar">
         <input type="text" id="userSearch" placeholder="Suche nach E-Mail oder Name …">
         <select id="userFilterBanned">
@@ -342,7 +342,7 @@
     try{
       const stats = await api('/api/admin/stats');
       $('statGrid').innerHTML = `
-        <div class="stat-card"><div class="val">${stats.total_users}</div><div class="lbl">Nutzer:innen gesamt</div></div>
+        <div class="stat-card"><div class="val">${stats.total_users}</div><div class="lbl">Nutzer gesamt</div></div>
         <div class="stat-card"><div class="val">${stats.active_subscriptions}</div><div class="lbl">Aktive Abos</div></div>
         <div class="stat-card"><div class="val">${stats.trial_users}</div><div class="lbl">Im Probemonat</div></div>
         <div class="stat-card"><div class="val">${stats.banned_users}</div><div class="lbl">Gesperrt</div></div>
@@ -381,7 +381,7 @@
     try{
       const users = await api('/api/admin/users?' + params.toString());
       if(users.length === 0){
-        wrap.innerHTML = '<div class="empty-state">Keine Nutzer:innen gefunden.</div>';
+        wrap.innerHTML = '<div class="empty-state">Keine Nutzer gefunden.</div>';
         return;
       }
       wrap.innerHTML = `
@@ -452,18 +452,18 @@
 
     if(u.is_banned){
       $('btnUnban').addEventListener('click', async () => {
-        try{ await api(`/api/admin/users/${u.id}/unban`, {method: 'POST'}); toast('Nutzer:in entsperrt.'); closeUserModal(); loadUsers(); loadDashboard(); }
+        try{ await api(`/api/admin/users/${u.id}/unban`, {method: 'POST'}); toast('Nutzer entsperrt.'); closeUserModal(); loadUsers(); loadDashboard(); }
         catch(err){ toast(err.message); }
       });
     } else {
       $('btnBan').addEventListener('click', async () => {
-        try{ await api(`/api/admin/users/${u.id}/ban`, {method: 'POST'}); toast('Nutzer:in gesperrt.'); closeUserModal(); loadUsers(); loadDashboard(); }
+        try{ await api(`/api/admin/users/${u.id}/ban`, {method: 'POST'}); toast('Nutzer gesperrt.'); closeUserModal(); loadUsers(); loadDashboard(); }
         catch(err){ toast(err.message); }
       });
     }
     $('btnDeleteUser').addEventListener('click', async () => {
       if(!confirm(`${u.name} (${u.email}) wirklich endgültig löschen? Das kann nicht rückgängig gemacht werden.`)) return;
-      try{ await api(`/api/admin/users/${u.id}`, {method: 'DELETE'}); toast('Nutzer:in gelöscht.'); closeUserModal(); loadUsers(); loadDashboard(); }
+      try{ await api(`/api/admin/users/${u.id}`, {method: 'DELETE'}); toast('Nutzer gelöscht.'); closeUserModal(); loadUsers(); loadDashboard(); }
       catch(err){ toast(err.message); }
     });
   }
