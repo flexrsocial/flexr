@@ -2,12 +2,21 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from ..database import get_db
-from ..models import Photo, User
+from ..models import Photo, PhotoStatus, User
 from ..schemas import AddPhotoRequest, PresignPhotoRequest, PresignPhotoResponse, ProfileOut
 from ..security import get_current_user
 from ..storage import create_presigned_upload, public_url_for
 
 router = APIRouter(prefix="/api/profiles", tags=["profiles"])
+
+
+def to_public_profile(user: User) -> ProfileOut:
+    """Profil-Ansicht für andere Nutzer:innen (Swipe-Deck, Matches) - zeigt nur
+    von der Moderation freigegebene Fotos, im Unterschied zur eigenen Profilansicht
+    (/me), die alle Fotos inkl. Status zeigt."""
+    profile = ProfileOut.model_validate(user)
+    profile.photos = [p for p in profile.photos if p.status == PhotoStatus.approved.value]
+    return profile
 
 
 @router.get("/me", response_model=ProfileOut)

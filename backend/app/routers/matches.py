@@ -6,6 +6,7 @@ from ..database import get_db
 from ..models import Match, User
 from ..schemas import ProfileOut
 from ..security import require_active_membership
+from .profiles import to_public_profile
 
 router = APIRouter(prefix="/api/matches", tags=["matches"])
 
@@ -25,4 +26,5 @@ def get_matches(
     ]
     if not other_ids:
         return []
-    return db.query(User).filter(User.id.in_(other_ids)).all()
+    others = db.query(User).filter(User.id.in_(other_ids)).all()
+    return [to_public_profile(u) for u in others]

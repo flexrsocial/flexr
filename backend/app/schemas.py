@@ -55,6 +55,7 @@ class PhotoOut(BaseModel):
     id: str
     url: str
     position: int
+    status: str
 
     class Config:
         from_attributes = True
@@ -111,3 +112,79 @@ class ReportRequest(BaseModel):
 
 class BlockRequest(BaseModel):
     user_id: str
+
+
+# ---------- Admin ----------
+
+class AdminLoginRequest(BaseModel):
+    email: EmailStr
+    password: str
+
+
+class AdminTokenResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+
+
+class AdminUserListItem(BaseModel):
+    id: str
+    email: str
+    name: str
+    age: int
+    city: str
+    is_subscribed: bool
+    is_banned: bool
+    is_active: bool
+    created_at: datetime
+    photo_count: int
+
+
+class AdminUserDetailOut(BaseModel):
+    id: str
+    email: str
+    name: str
+    age: int
+    city: str
+    gender: str
+    interest: str
+    gym: str
+    bio: Optional[str]
+    is_subscribed: bool
+    is_banned: bool
+    is_active: bool
+    created_at: datetime
+    trial_ends_at: datetime
+    stripe_customer_id: Optional[str]
+    photos: list[PhotoOut] = []
+
+    class Config:
+        from_attributes = True
+
+
+class AdminStats(BaseModel):
+    total_users: int
+    active_subscriptions: int
+    trial_users: int
+    banned_users: int
+    pending_photos: int
+    open_reports: int
+
+
+class AdminReportOut(BaseModel):
+    id: str
+    reporter_id: str
+    reporter_name: str
+    reported_id: str
+    reported_name: str
+    reason: str
+    created_at: datetime
+
+
+class PhotoModerationOut(BaseModel):
+    id: str
+    url: str
+    status: str
+    position: int
+    user_id: str
+    user_name: str
+    user_email: str

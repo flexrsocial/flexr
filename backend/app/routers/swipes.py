@@ -7,6 +7,7 @@ from ..models import Block, Match, Swipe, User
 from ..rate_limit import limiter
 from ..schemas import ProfileOut, SwipeRequest, SwipeResult
 from ..security import require_active_membership
+from .profiles import to_public_profile
 
 router = APIRouter(prefix="/api/swipes", tags=["swipes"])
 
@@ -42,7 +43,7 @@ def get_deck(
         .limit(50)
         .all()
     )
-    return candidates
+    return [to_public_profile(u) for u in candidates]
 
 
 @router.post("", response_model=SwipeResult)

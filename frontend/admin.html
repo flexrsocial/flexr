@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FLEXR Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Work+Sans:wght@400;500;600&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#121212; --surface:#1c1c1c; --surface-2:#242424; --steel:#3a3a3a;
+    --chalk:#ede9e2; --chalk-dim:#a8a49b; --plate:#ff5a1f; --plate-dim:#c94515;
+    --lime:#c7ff4a; --danger:#e34848;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    background:var(--ink); color:var(--chalk); font-family:'Work Sans', sans-serif;
+    min-height:100vh; -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3{ font-family:'Oswald', sans-serif; text-transform:uppercase; letter-spacing:0.02em; }
+  .mono{ font-family:'JetBrains Mono', monospace; }
+  a{ color:var(--plate); }
+  button{ font-family:inherit; cursor:pointer; }
+
+  /* ---------- Login ---------- */
+  #loginScreen{
+    min-height:100vh; display:flex; align-items:center; justify-content:center; padding:20px;
+  }
+  .login-card{
+    width:100%; max-width:380px; background:var(--surface); border:1px solid var(--steel);
+    border-radius:18px; padding:32px 28px;
+  }
+  .login-card .brand{ font-size:22px; font-weight:700; letter-spacing:0.06em; margin-bottom:4px; }
+  .login-card .brand span{ color:var(--plate); }
+  .login-card .sub{ color:var(--chalk-dim); font-size:13px; margin-bottom:24px; }
+  label{ display:block; font-size:11px; color:var(--chalk-dim); text-transform:uppercase; letter-spacing:0.05em; margin:14px 0 6px; }
+  input, select{
+    width:100%; background:var(--ink); border:1px solid var(--steel); color:var(--chalk);
+    padding:11px 13px; border-radius:9px; font-size:14px; font-family:inherit;
+  }
+  input:focus, select:focus{ outline:2px solid var(--plate); outline-offset:1px; }
+  .btn{
+    display:inline-flex; align-items:center; justify-content:center; gap:6px;
+    padding:11px 18px; border-radius:10px; border:none; cursor:pointer;
+    font-family:'Oswald', sans-serif; font-weight:600; font-size:13px; letter-spacing:0.03em; text-transform:uppercase;
+    background:var(--plate); color:#141414; transition:background .15s ease;
+  }
+  .btn:hover{ background:#ff6c37; }
+  .btn:disabled{ opacity:0.4; cursor:not-allowed; }
+  .btn.secondary{ background:transparent; border:1px solid var(--steel); color:var(--chalk); }
+  .btn.secondary:hover{ background:var(--surface-2); }
+  .btn.danger{ background:var(--danger); color:#fff; }
+  .btn.danger:hover{ background:#ff5f5f; }
+  .btn.small{ padding:7px 12px; font-size:11px; }
+  .btn.full{ width:100%; margin-top:22px; }
+  .field-err{ color:var(--danger); font-size:12px; margin-top:8px; }
+
+  /* ---------- App shell ---------- */
+  #appScreen{ display:none; min-height:100vh; }
+  #appScreen.active{ display:flex; }
+  .sidebar{
+    width:220px; flex-shrink:0; background:var(--surface); border-right:1px solid var(--steel);
+    padding:24px 16px; display:flex; flex-direction:column;
+  }
+  .sidebar .brand{ font-size:20px; font-weight:700; letter-spacing:0.06em; padding:0 8px 24px; }
+  .sidebar .brand span{ color:var(--plate); }
+  .sidebar nav{ display:flex; flex-direction:column; gap:4px; flex:1; }
+  .sidebar nav button{
+    text-align:left; background:none; border:none; color:var(--chalk-dim);
+    padding:11px 12px; border-radius:9px; font-size:14px; display:flex; align-items:center; gap:10px;
+  }
+  .sidebar nav button:hover{ background:var(--surface-2); color:var(--chalk); }
+  .sidebar nav button.active{ background:var(--plate); color:#141414; font-weight:600; }
+  .sidebar .badge{
+    margin-left:auto; background:var(--danger); color:#fff; font-size:10px; font-weight:700;
+    border-radius:10px; padding:1px 7px; font-family:'JetBrains Mono';
+  }
+  .sidebar .logout{ margin-top:auto; }
+
+  .content{ flex:1; padding:32px 36px; overflow-y:auto; max-height:100vh; }
+  .content h2{ font-size:24px; margin-bottom:22px; }
+  .view{ display:none; }
+  .view.active{ display:block; }
+
+  /* Stats */
+  .stat-grid{ display:grid; grid-template-columns:repeat(auto-fit, minmax(160px,1fr)); gap:14px; margin-bottom:8px; }
+  .stat-card{ background:var(--surface); border:1px solid var(--steel); border-radius:14px; padding:18px 20px; }
+  .stat-card .val{ font-family:'Oswald'; font-size:32px; color:var(--plate); }
+  .stat-card .lbl{ font-size:12px; color:var(--chalk-dim); text-transform:uppercase; letter-spacing:0.04em; margin-top:4px; }
+
+  /* Toolbar */
+  .toolbar{ display:flex; gap:10px; margin-bottom:18px; flex-wrap:wrap; align-items:center; }
+  .toolbar input[type=text]{ max-width:280px; }
+  .toolbar select{ max-width:180px; }
+  .tabs{ display:flex; gap:6px; margin-bottom:18px; }
+  .tab-btn{
+    background:var(--surface); border:1px solid var(--steel); color:var(--chalk-dim);
+    padding:8px 16px; border-radius:9px; font-size:13px;
+  }
+  .tab-btn.active{ background:var(--plate); border-color:var(--plate); color:#141414; font-weight:600; }
+
+  /* Table */
+  table{ width:100%; border-collapse:collapse; background:var(--surface); border-radius:12px; overflow:hidden; }
+  th, td{ text-align:left; padding:11px 14px; font-size:13.5px; border-bottom:1px solid var(--steel); }
+  th{ color:var(--chalk-dim); font-weight:600; font-size:11px; text-transform:uppercase; letter-spacing:0.04em; background:var(--surface-2); }
+  tbody tr:hover{ background:var(--surface-2); cursor:pointer; }
+  .pill{ display:inline-block; padding:3px 9px; border-radius:20px; font-size:11px; font-family:'JetBrains Mono'; }
+  .pill.ok{ background:rgba(199,255,74,0.12); color:var(--lime); }
+  .pill.warn{ background:rgba(227,72,72,0.14); color:#ff8080; }
+  .pill.muted{ background:var(--surface-2); color:var(--chalk-dim); }
+  .row-actions{ display:flex; gap:6px; }
+  .empty-state{ text-align:center; padding:50px 20px; color:var(--chalk-dim); }
+
+  /* Photo grid */
+  .photo-mod-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(200px,1fr)); gap:16px; }
+  .photo-mod-card{ background:var(--surface); border:1px solid var(--steel); border-radius:14px; overflow:hidden; }
+  .photo-mod-card img{ width:100%; aspect-ratio:3/4; object-fit:cover; display:block; background:var(--surface-2); }
+  .photo-mod-card .meta{ padding:10px 12px; font-size:12px; color:var(--chalk-dim); }
+  .photo-mod-card .meta .nm{ color:var(--chalk); font-weight:600; font-size:13px; }
+  .photo-mod-card .actions{ display:flex; gap:6px; padding:0 12px 12px; }
+  .photo-mod-card .actions .btn{ flex:1; }
+
+  /* Modal (User-Detail) */
+  .modal-backdrop{
+    display:none; position:fixed; inset:0; z-index:100; background:rgba(0,0,0,0.6);
+    backdrop-filter:blur(3px); align-items:center; justify-content:center; padding:24px;
+  }
+  .modal-backdrop.open{ display:flex; }
+  .modal{
+    width:100%; max-width:560px; max-height:min(85vh,700px); background:var(--surface);
+    border:1px solid var(--steel); border-radius:18px; box-shadow:0 30px 60px rgba(0,0,0,.5);
+    overflow-y:auto; padding:28px 26px; position:relative;
+  }
+  .modal-close{
+    position:absolute; top:14px; right:14px; width:30px; height:30px; border-radius:50%;
+    border:1px solid var(--steel); background:var(--surface-2); color:var(--chalk); font-size:14px;
+  }
+  .modal h3{ font-size:20px; margin-bottom:4px; }
+  .modal .modal-sub{ color:var(--chalk-dim); font-size:13px; margin-bottom:18px; }
+  .detail-row{ display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid var(--steel); font-size:13.5px; }
+  .detail-row .k{ color:var(--chalk-dim); }
+  .modal .photo-strip{ display:flex; gap:8px; margin:16px 0; flex-wrap:wrap; }
+  .modal .photo-strip img{ width:64px; height:80px; object-fit:cover; border-radius:8px; border:1px solid var(--steel); }
+  .modal-actions{ display:flex; gap:10px; margin-top:20px; }
+
+  .toast{
+    position:fixed; top:18px; left:50%; transform:translateX(-50%); background:var(--surface);
+    border:1px solid var(--plate); padding:10px 18px; border-radius:10px; font-size:13px; z-index:200;
+  }
+  .loading{ color:var(--chalk-dim); font-family:'JetBrains Mono'; font-size:13px; padding:30px; text-align:center; }
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loginScreen">
+  <div class="login-card">
+    <div class="brand">FLE<span>X</span>R <span style="color:var(--chalk-dim); font-weight:400;">Admin</span></div>
+    <div class="sub">Interner Bereich — nur für Betreiber:innen.</div>
+    <label>E-Mail</label>
+    <input type="text" id="l-email" placeholder="admin@flexr.social">
+    <label>Passwort</label>
+    <input type="password" id="l-password" placeholder="••••••••">
+    <div class="field-err" id="loginErr"></div>
+    <button class="btn full" id="btnLogin">Einloggen</button>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="appScreen">
+  <aside class="sidebar">
+    <div class="brand">FLE<span>X</span>R <span style="color:var(--chalk-dim); font-weight:400; font-size:14px;">Admin</span></div>
+    <nav>
+      <button data-view="dashboard" class="active">📊 Dashboard</button>
+      <button data-view="users">👤 Nutzer:innen</button>
+      <button data-view="photos">🖼 Foto-Freigabe <span class="badge" id="pendingBadge" style="display:none;"></span></button>
+      <button data-view="reports">⚠ Meldungen</button>
+    </nav>
+    <button class="btn secondary logout" id="btnLogout">Ausloggen</button>
+  </aside>
+
+  <main class="content">
+
+    <!-- DASHBOARD -->
+    <section class="view active" id="view-dashboard">
+      <h2>Dashboard</h2>
+      <div class="stat-grid" id="statGrid">
+        <div class="loading">Lädt …</div>
+      </div>
+    </section>
+
+    <!-- USERS -->
+    <section class="view" id="view-users">
+      <h2>Nutzer:innen</h2>
+      <div class="toolbar">
+        <input type="text" id="userSearch" placeholder="Suche nach E-Mail oder Name …">
+        <select id="userFilterBanned">
+          <option value="">Alle Status</option>
+          <option value="false">Nicht gesperrt</option>
+          <option value="true">Gesperrt</option>
+        </select>
+        <select id="userFilterSubscribed">
+          <option value="">Alle Abos</option>
+          <option value="true">Abonniert</option>
+          <option value="false">Nur Trial</option>
+        </select>
+      </div>
+      <div id="usersTableWrap"><div class="loading">Lädt …</div></div>
+    </section>
+
+    <!-- PHOTOS -->
+    <section class="view" id="view-photos">
+      <h2>Foto-Freigabe</h2>
+      <div class="tabs">
+        <button class="tab-btn active" data-status="pending">Ausstehend</button>
+        <button class="tab-btn" data-status="approved">Freigegeben</button>
+        <button class="tab-btn" data-status="rejected">Abgelehnt</button>
+        <button class="tab-btn" data-status="all">Alle</button>
+      </div>
+      <div id="photoGridWrap"><div class="loading">Lädt …</div></div>
+    </section>
+
+    <!-- REPORTS -->
+    <section class="view" id="view-reports">
+      <h2>Meldungen</h2>
+      <div id="reportsTableWrap"><div class="loading">Lädt …</div></div>
+    </section>
+
+  </main>
+</div>
+
+<!-- USER DETAIL MODAL -->
+<div class="modal-backdrop" id="userModalBackdrop">
+  <div class="modal">
+    <button class="modal-close" id="userModalClose">✕</button>
+    <div id="userModalBody"><div class="loading">Lädt …</div></div>
+  </div>
+</div>
+
+<script>
+(function(){
+  const $ = (id) => document.getElementById(id);
+  const API_BASE = (location.hostname === 'localhost' || location.hostname === '127.0.0.1')
+    ? 'http://localhost:8000'
+    : '';
+
+  let token = localStorage.getItem('flexr_admin_token');
+  let currentPhotoStatus = 'pending';
+
+  function toast(msg){
+    const t = document.createElement('div');
+    t.className = 'toast';
+    t.textContent = msg;
+    document.body.appendChild(t);
+    setTimeout(() => t.remove(), 2600);
+  }
+
+  function escapeHtml(s){
+    return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  function fmtDate(iso){
+    try{ return new Date(iso).toLocaleDateString('de-AT', {day:'2-digit', month:'2-digit', year:'numeric'}); }
+    catch(e){ return iso; }
+  }
+
+  async function api(path, opts = {}){
+    const headers = Object.assign({'Content-Type': 'application/json'}, opts.headers || {});
+    if(token) headers['Authorization'] = 'Bearer ' + token;
+    const res = await fetch(API_BASE + path, Object.assign({}, opts, {headers}));
+    if(res.status === 401){
+      setToken(null);
+      showLogin();
+      throw new Error('Sitzung abgelaufen. Bitte erneut einloggen.');
+    }
+    let data = null;
+    try{ data = await res.json(); }catch(e){}
+    if(!res.ok){
+      let msg = 'Fehler (' + res.status + ')';
+      if(data && data.detail){
+        msg = Array.isArray(data.detail) ? data.detail.map(d => d.msg).join(', ') : data.detail;
+      }
+      throw new Error(msg);
+    }
+    return data;
+  }
+
+  function setToken(t){
+    token = t;
+    if(t) localStorage.setItem('flexr_admin_token', t);
+    else localStorage.removeItem('flexr_admin_token');
+  }
+
+  function showLogin(){
+    $('loginScreen').style.display = 'flex';
+    $('appScreen').classList.remove('active');
+  }
+  function showApp(){
+    $('loginScreen').style.display = 'none';
+    $('appScreen').classList.add('active');
+    loadDashboard();
+  }
+
+  // ---------- Login ----------
+  $('btnLogin').addEventListener('click', async () => {
+    const errEl = $('loginErr');
+    errEl.textContent = '';
+    const email = $('l-email').value.trim();
+    const password = $('l-password').value;
+    if(!email || !password){ errEl.textContent = 'Bitte E-Mail und Passwort eingeben.'; return; }
+    try{
+      const res = await api('/api/admin/auth/login', {method: 'POST', body: JSON.stringify({email, password})});
+      setToken(res.access_token);
+      showApp();
+    }catch(err){
+      errEl.textContent = err.message || 'Login fehlgeschlagen.';
+    }
+  });
+
+  $('btnLogout').addEventListener('click', () => {
+    setToken(null);
+    showLogin();
+  });
+
+  // ---------- Nav ----------
+  document.querySelectorAll('.sidebar nav button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.sidebar nav button').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const view = btn.dataset.view;
+      document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+      $('view-' + view).classList.add('active');
+      if(view === 'dashboard') loadDashboard();
+      if(view === 'users') loadUsers();
+      if(view === 'photos') loadPhotos();
+      if(view === 'reports') loadReports();
+    });
+  });
+
+  // ---------- Dashboard ----------
+  async function loadDashboard(){
+    try{
+      const stats = await api('/api/admin/stats');
+      $('statGrid').innerHTML = `
+        <div class="stat-card"><div class="val">${stats.total_users}</div><div class="lbl">Nutzer:innen gesamt</div></div>
+        <div class="stat-card"><div class="val">${stats.active_subscriptions}</div><div class="lbl">Aktive Abos</div></div>
+        <div class="stat-card"><div class="val">${stats.trial_users}</div><div class="lbl">Im Probemonat</div></div>
+        <div class="stat-card"><div class="val">${stats.banned_users}</div><div class="lbl">Gesperrt</div></div>
+        <div class="stat-card"><div class="val">${stats.pending_photos}</div><div class="lbl">Fotos ausstehend</div></div>
+        <div class="stat-card"><div class="val">${stats.open_reports}</div><div class="lbl">Meldungen gesamt</div></div>
+      `;
+      const badge = $('pendingBadge');
+      if(stats.pending_photos > 0){
+        badge.textContent = stats.pending_photos;
+        badge.style.display = 'inline-block';
+      } else {
+        badge.style.display = 'none';
+      }
+    }catch(err){
+      toast(err.message);
+    }
+  }
+
+  // ---------- Users ----------
+  let userSearchTimeout = null;
+  function scheduleUserReload(){
+    clearTimeout(userSearchTimeout);
+    userSearchTimeout = setTimeout(loadUsers, 300);
+  }
+  $('userSearch').addEventListener('input', scheduleUserReload);
+  $('userFilterBanned').addEventListener('change', loadUsers);
+  $('userFilterSubscribed').addEventListener('change', loadUsers);
+
+  async function loadUsers(){
+    const wrap = $('usersTableWrap');
+    const params = new URLSearchParams();
+    const q = $('userSearch').value.trim();
+    if(q) params.set('q', q);
+    if($('userFilterBanned').value) params.set('banned', $('userFilterBanned').value);
+    if($('userFilterSubscribed').value) params.set('subscribed', $('userFilterSubscribed').value);
+    try{
+      const users = await api('/api/admin/users?' + params.toString());
+      if(users.length === 0){
+        wrap.innerHTML = '<div class="empty-state">Keine Nutzer:innen gefunden.</div>';
+        return;
+      }
+      wrap.innerHTML = `
+        <table>
+          <thead><tr>
+            <th>Name</th><th>E-Mail</th><th>Alter</th><th>Stadt</th><th>Fotos</th>
+            <th>Status</th><th>Registriert</th>
+          </tr></thead>
+          <tbody>
+            ${users.map(u => `
+              <tr data-user-id="${u.id}">
+                <td>${escapeHtml(u.name)}</td>
+                <td class="mono">${escapeHtml(u.email)}</td>
+                <td>${u.age}</td>
+                <td>${escapeHtml(u.city)}</td>
+                <td>${u.photo_count}</td>
+                <td>
+                  ${u.is_banned ? '<span class="pill warn">Gesperrt</span>' : (u.is_subscribed ? '<span class="pill ok">Abo</span>' : '<span class="pill muted">Trial</span>')}
+                </td>
+                <td>${fmtDate(u.created_at)}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      `;
+      wrap.querySelectorAll('tbody tr').forEach(tr => {
+        tr.addEventListener('click', () => openUserModal(tr.dataset.userId));
+      });
+    }catch(err){
+      wrap.innerHTML = `<div class="empty-state">${escapeHtml(err.message)}</div>`;
+    }
+  }
+
+  async function openUserModal(userId){
+    $('userModalBackdrop').classList.add('open');
+    $('userModalBody').innerHTML = '<div class="loading">Lädt …</div>';
+    try{
+      const u = await api('/api/admin/users/' + userId);
+      renderUserModal(u);
+    }catch(err){
+      $('userModalBody').innerHTML = `<div class="empty-state">${escapeHtml(err.message)}</div>`;
+    }
+  }
+
+  function renderUserModal(u){
+    const statusBadge = u.is_banned
+      ? '<span class="pill warn">Gesperrt</span>'
+      : (u.is_active ? (u.is_subscribed ? '<span class="pill ok">Abo aktiv</span>' : '<span class="pill ok">Trial aktiv</span>') : '<span class="pill muted">Inaktiv</span>');
+
+    $('userModalBody').innerHTML = `
+      <h3>${escapeHtml(u.name)}, ${u.age}</h3>
+      <div class="modal-sub">${escapeHtml(u.email)} · ${escapeHtml(u.city)} ${statusBadge}</div>
+      ${u.photos.length ? `<div class="photo-strip">${u.photos.map(p => `<img src="${escapeHtml(p.url)}" title="${p.status}" style="${p.status !== 'approved' ? 'opacity:.5' : ''}">`).join('')}</div>` : '<p class="modal-sub">Keine Fotos hochgeladen.</p>'}
+      <div class="detail-row"><span class="k">Geschlecht / Interesse</span><span>${escapeHtml(u.gender)} · sucht ${escapeHtml(u.interest)}</span></div>
+      <div class="detail-row"><span class="k">Gym</span><span>${escapeHtml(u.gym)}</span></div>
+      <div class="detail-row"><span class="k">Bio</span><span>${escapeHtml(u.bio || '—')}</span></div>
+      <div class="detail-row"><span class="k">Registriert am</span><span>${fmtDate(u.created_at)}</span></div>
+      <div class="detail-row"><span class="k">Trial endet</span><span>${fmtDate(u.trial_ends_at)}</span></div>
+      <div class="detail-row"><span class="k">Stripe-Kunde</span><span class="mono">${escapeHtml(u.stripe_customer_id || '—')}</span></div>
+      <div class="modal-actions">
+        ${u.is_banned
+          ? `<button class="btn secondary" id="btnUnban">Entsperren</button>`
+          : `<button class="btn secondary" id="btnBan">Sperren</button>`}
+        <button class="btn danger" id="btnDeleteUser">Endgültig löschen</button>
+      </div>
+    `;
+
+    if(u.is_banned){
+      $('btnUnban').addEventListener('click', async () => {
+        try{ await api(`/api/admin/users/${u.id}/unban`, {method: 'POST'}); toast('Nutzer:in entsperrt.'); closeUserModal(); loadUsers(); loadDashboard(); }
+        catch(err){ toast(err.message); }
+      });
+    } else {
+      $('btnBan').addEventListener('click', async () => {
+        try{ await api(`/api/admin/users/${u.id}/ban`, {method: 'POST'}); toast('Nutzer:in gesperrt.'); closeUserModal(); loadUsers(); loadDashboard(); }
+        catch(err){ toast(err.message); }
+      });
+    }
+    $('btnDeleteUser').addEventListener('click', async () => {
+      if(!confirm(`${u.name} (${u.email}) wirklich endgültig löschen? Das kann nicht rückgängig gemacht werden.`)) return;
+      try{ await api(`/api/admin/users/${u.id}`, {method: 'DELETE'}); toast('Nutzer:in gelöscht.'); closeUserModal(); loadUsers(); loadDashboard(); }
+      catch(err){ toast(err.message); }
+    });
+  }
+
+  function closeUserModal(){
+    $('userModalBackdrop').classList.remove('open');
+  }
+  $('userModalClose').addEventListener('click', closeUserModal);
+  $('userModalBackdrop').addEventListener('click', (e) => {
+    if(e.target === $('userModalBackdrop')) closeUserModal();
+  });
+
+  // ---------- Photos ----------
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentPhotoStatus = btn.dataset.status;
+      loadPhotos();
+    });
+  });
+
+  async function loadPhotos(){
+    const wrap = $('photoGridWrap');
+    wrap.innerHTML = '<div class="loading">Lädt …</div>';
+    try{
+      const photos = await api('/api/admin/photos?status=' + currentPhotoStatus);
+      if(photos.length === 0){
+        wrap.innerHTML = '<div class="empty-state">Keine Fotos in diesem Status.</div>';
+        return;
+      }
+      wrap.innerHTML = `<div class="photo-mod-grid">${photos.map(p => `
+        <div class="photo-mod-card" data-photo-id="${p.id}">
+          <img src="${escapeHtml(p.url)}" loading="lazy">
+          <div class="meta">
+            <div class="nm">${escapeHtml(p.user_name)}</div>
+            <div class="mono">${escapeHtml(p.user_email)}</div>
+          </div>
+          <div class="actions">
+            ${p.status !== 'approved' ? `<button class="btn small" data-action="approve">Freigeben</button>` : ''}
+            ${p.status !== 'rejected' ? `<button class="btn secondary small" data-action="reject">Ablehnen</button>` : ''}
+            <button class="btn danger small" data-action="delete">Löschen</button>
+          </div>
+        </div>
+      `).join('')}</div>`;
+
+      wrap.querySelectorAll('.photo-mod-card').forEach(card => {
+        const photoId = card.dataset.photoId;
+        card.querySelectorAll('button[data-action]').forEach(btn => {
+          btn.addEventListener('click', async () => {
+            const action = btn.dataset.action;
+            try{
+              if(action === 'approve') await api(`/api/admin/photos/${photoId}/approve`, {method: 'POST'});
+              if(action === 'reject') await api(`/api/admin/photos/${photoId}/reject`, {method: 'POST'});
+              if(action === 'delete'){
+                if(!confirm('Foto wirklich löschen?')) return;
+                await api(`/api/admin/photos/${photoId}`, {method: 'DELETE'});
+              }
+              toast('Erledigt.');
+              loadPhotos();
+              loadDashboard();
+            }catch(err){ toast(err.message); }
+          });
+        });
+      });
+    }catch(err){
+      wrap.innerHTML = `<div class="empty-state">${escapeHtml(err.message)}</div>`;
+    }
+  }
+
+  // ---------- Reports ----------
+  async function loadReports(){
+    const wrap = $('reportsTableWrap');
+    try{
+      const reports = await api('/api/admin/reports');
+      if(reports.length === 0){
+        wrap.innerHTML = '<div class="empty-state">Keine Meldungen.</div>';
+        return;
+      }
+      wrap.innerHTML = `
+        <table>
+          <thead><tr><th>Gemeldet von</th><th>Gemeldete Person</th><th>Grund</th><th>Datum</th><th></th></tr></thead>
+          <tbody>
+            ${reports.map(r => `
+              <tr>
+                <td>${escapeHtml(r.reporter_name)}</td>
+                <td>${escapeHtml(r.reported_name)}</td>
+                <td>${escapeHtml(r.reason)}</td>
+                <td>${fmtDate(r.created_at)}</td>
+                <td><button class="btn small secondary" data-view-user="${r.reported_id}">Ansehen</button></td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      `;
+      wrap.querySelectorAll('button[data-view-user]').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          openUserModal(btn.dataset.viewUser);
+        });
+      });
+    }catch(err){
+      wrap.innerHTML = `<div class="empty-state">${escapeHtml(err.message)}</div>`;
+    }
+  }
+
+  // ---------- Boot ----------
+  if(token){
+    showApp();
+  } else {
+    showLogin();
+  }
+})();
+</script>
+</body>
+</html>

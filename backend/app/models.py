@@ -28,6 +28,12 @@ class Gender(str, enum.Enum):
     frau = "frau"
 
 
+class PhotoStatus(str, enum.Enum):
+    pending = "pending"
+    approved = "approved"
+    rejected = "rejected"
+
+
 # Wien-Gyms aus dem Prototyp — bei Bedarf um weitere österreichische Städte/Gyms erweitern
 GYM_CHOICES = [
     "John Harris Fitness",
@@ -96,6 +102,8 @@ class User(Base):
     sensitive_data_consent_at = Column(DateTime, nullable=False)
     withdrawal_waiver_consent_at = Column(DateTime, nullable=False)
 
+    is_banned = Column(Boolean, default=False, nullable=False)
+
     photos = relationship("Photo", back_populates="user", cascade="all, delete-orphan")
 
     def is_active_member(self) -> bool:
@@ -106,9 +114,10 @@ class Photo(Base):
     __tablename__ = "photos"
 
     id = Column(String, primary_key=True, default=gen_uuid)
-    user_id = Column(String, ForeignKey("users.id"), nullable=False)
+    user_id = Column(String, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     url = Column(Text, nullable=False)  # Objekt-Storage-URL, nicht Base64
     position = Column(Integer, default=0)  # 0-4, Reihenfolge
+    status = Column(Enum(PhotoStatus), nullable=False, default=PhotoStatus.pending)
 
     user = relationship("User", back_populates="photos")
 
@@ -118,8 +127,8 @@ class Swipe(Base):
     __table_args__ = (UniqueConstraint("from_user_id", "to_user_id", name="uq_swipe_pair"),)
 
     id = Column(String, primary_key=True, default=gen_uuid)
-    from_user_id = Column(String, ForeignKey("users.id"), nullable=False)
-    to_user_id = Column(String, ForeignKey("users.id"), nullable=False)
+    from_user_id = Column(String, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    to_user_id = Column(String, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     action = Column(String, nullable=False)  # "like" | "pass"
     created_at = Column(DateTime, default=datetime.utcnow)
 
@@ -129,8 +138,8 @@ class Match(Base):
     __table_args__ = (UniqueConstraint("user_a_id", "user_b_id", name="uq_match_pair"),)
 
     id = Column(String, primary_key=True, default=gen_uuid)
-    user_a_id = Column(String, ForeignKey("users.id"), nullable=False)
-    user_b_id = Column(String, ForeignKey("users.id"), nullable=False)
+    user_a_id = Column(String, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    user_b_id = Column(String, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
 
 
@@ -139,8 +148,8 @@ class Block(Base):
     __table_args__ = (UniqueConstraint("blocker_id", "blocked_id", name="uq_block_pair"),)
 
     id = Column(String, primary_key=True, default=gen_uuid)
-    blocker_id = Column(String, ForeignKey("users.id"), nullable=False)
-    blocked_id = Column(String, ForeignKey("users.id"), nullable=False)
+    blocker_id = Column(String, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    blocked_id = Column(String, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
 
 
@@ -148,7 +157,21 @@ class Report(Base):
     __tablename__ = "reports"
 
     id = Column(String, primary_key=True, default=gen_uuid)
-    reporter_id = Column(String, ForeignKey("users.id"), nullable=False)
-    reported_id = Column(String, ForeignKey("users.id"), nullable=False)
+    reporter_id = Column(String, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    reported_id = Column(String, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     reason = Column(String(500), nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+
+class AdminUser(Base):
+    """Getrenntes Login-System für das Admin-Tool - unabhängig vom Dating-User-Modell,
+    damit Admin-Zugänge kein vollständiges Dating-Profil (Alter/Gym/Consent etc.)
+    durchlaufen müssen."""
+
+    __tablename__ = "admin_users"
+
+    id = Column(String, primary_key=True, default=gen_uuid)
+    email = Column(String, unique=True, nullable=False, index=True)
+    password_hash = Column(String, nullable=False)
+    name = Column(String, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)

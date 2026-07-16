@@ -54,6 +54,8 @@ def login(request: Request, payload: LoginRequest, db: Session = Depends(get_db)
     user = db.query(User).filter(User.email == payload.email).first()
     if not user or not verify_password(payload.password, user.password_hash):
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "E-Mail oder Passwort falsch.")
+    if user.is_banned:
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "Account gesperrt.")
 
     token = create_access_token(user.id)
     return TokenResponse(access_token=token)

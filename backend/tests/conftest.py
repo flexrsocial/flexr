@@ -64,3 +64,25 @@ def register_user(client, email, name="Test User", **overrides):
     assert resp.status_code == 200, resp.text
     token = resp.json()["access_token"]
     return {"Authorization": f"Bearer {token}"}
+
+
+def create_admin(client, email="admin@example.com", password="adminsecret123", name="Admin"):
+    """Legt einen AdminUser direkt in der DB an (kein öffentlicher Registrierungs-
+    Endpoint vorgesehen) und loggt sich darüber ein."""
+    from app.models import AdminUser
+    from app.security import hash_password
+
+    db = TestingSessionLocal()
+    try:
+        admin = AdminUser(email=email, password_hash=hash_password(password), name=name)
+        db.add(admin)
+        db.commit()
+        db.refresh(admin)
+        admin_id = admin.id
+    finally:
+        db.close()
+
+    resp = client.post("/api/admin/auth/login", json={"email": email, "password": password})
+    assert resp.status_code == 200, resp.text
+    token = resp.json()["access_token"]
+    return {"Authorization": f"Bearer {token}"}, admin_id
