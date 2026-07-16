@@ -18,7 +18,7 @@
     position:relative; padding-left:30px; margin-bottom:10px;
   }
   ol li::before{
-    content:counter(agb-counter) "."; counter-increment:agb-counter;
+    content:counter(agb-counter, lower-alpha) ")"; counter-increment:agb-counter;
     position:absolute; left:0; top:0; color:var(--chalk); font-weight:600;
   }
 </style>

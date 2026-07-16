@@ -232,7 +232,7 @@
   .legal-modal-body ol{ list-style:none; padding-left:0; margin:0; counter-reset:legal-counter; }
   .legal-modal-body ol li{ position:relative; padding-left:26px; margin-bottom:8px; }
   .legal-modal-body ol li::before{
-    content:counter(legal-counter) "."; counter-increment:legal-counter;
+    content:counter(legal-counter, lower-alpha) ")"; counter-increment:legal-counter;
     position:absolute; left:0; top:0; color:var(--chalk); font-weight:600;
   }
 
