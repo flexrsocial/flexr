@@ -14,7 +14,6 @@ class RegisterRequest(BaseModel):
     # Städteliste mehr, ganz Österreich ist abgedeckt.
     plz: str = Field(pattern=r"^\d{4}$", description="4-stellige österreichische Postleitzahl")
     city: str = Field(min_length=1)
-    street: str = Field(min_length=1, max_length=200)
     gender: Literal["mann", "frau"]
     gym: str
     height_cm: Optional[int] = Field(default=None, ge=120, le=230)
@@ -150,7 +149,6 @@ class AdminUserDetailOut(BaseModel):
     age: int
     plz: str
     city: str
-    street: str
     gender: str
     interest: str
     gym: str

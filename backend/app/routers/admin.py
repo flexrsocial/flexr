@@ -118,7 +118,6 @@ def get_user_detail(
         age=user.age,
         plz=user.plz,
         city=user.city,
-        street=user.street,
         gender=user.gender.value,
         interest=user.interest.value,
         gym=user.gym,

@@ -51,7 +51,6 @@ DEFAULT_USER = {
     "age": 28,
     "plz": "1010",
     "city": "Wien",
-    "street": "Teststraße 1",
     "gender": "mann",
     "gym": "John Harris Fitness",
     "consent_sensitive_data": True,

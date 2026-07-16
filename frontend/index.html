@@ -77,6 +77,23 @@
   }
   input:focus, textarea:focus, select:focus{ outline:2px solid var(--plate); outline-offset:1px; }
   textarea{ resize:vertical; min-height:80px; }
+
+  .plz-combo{
+    display:flex; align-items:center;
+    background:var(--surface); border:1px solid var(--steel); border-radius:10px;
+    padding:0 14px;
+  }
+  .plz-combo input{
+    width:56px; flex-shrink:0; background:transparent !important; border:none !important;
+    color:var(--chalk); padding:12px 0; font-size:15px; font-family:inherit;
+  }
+  .plz-combo input:focus{ outline:none; }
+  .plz-combo .ort-display{
+    flex:1; padding-left:10px; margin-left:8px; border-left:1px solid var(--steel);
+    font-size:14px; color:var(--chalk-dim); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+  .plz-combo .ort-display.resolved{ color:var(--chalk); }
+  .plz-combo.focused{ outline:2px solid var(--plate); outline-offset:1px; }
   .row3{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; }
   .row2{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
 
@@ -212,6 +229,12 @@
   .legal-modal-body table{ width:100%; border-collapse:collapse; margin:12px 0; }
   .legal-modal-body th, .legal-modal-body td{ text-align:left; padding:8px 10px; border-bottom:1px solid var(--steel); vertical-align:top; }
   .legal-modal-body th{ color:var(--chalk-dim); font-weight:600; }
+  .legal-modal-body ol{ list-style:none; padding-left:0; margin:0; counter-reset:legal-counter; }
+  .legal-modal-body ol li{ position:relative; padding-left:26px; margin-bottom:8px; }
+  .legal-modal-body ol li::before{
+    content:counter(legal-counter) "."; counter-increment:legal-counter;
+    position:absolute; left:0; top:0; color:var(--chalk); font-weight:600;
+  }
 
   /* ---------- Landing-Modus (ausgeloggt: Login/Registrierung) ---------- */
   body.landing{
@@ -395,19 +418,10 @@
         </div>
         <div>
           <label>Postleitzahl</label>
-          <input type="text" id="f-plz" placeholder="1010" inputmode="numeric" maxlength="4">
-        </div>
-      </div>
-
-      <div class="row2">
-        <div>
-          <label>Ort</label>
-          <select id="f-city" disabled><option value="">— PLZ eingeben —</option></select>
-        </div>
-        <div>
-          <label>Straße &amp; Hausnr.</label>
-          <input type="text" id="f-street" list="f-street-suggestions" placeholder="Hauptstraße 12" autocomplete="off">
-          <datalist id="f-street-suggestions"></datalist>
+          <div class="plz-combo" id="plzCombo">
+            <input type="text" id="f-plz" placeholder="1010" inputmode="numeric" maxlength="4">
+            <span class="ort-display" id="ortDisplay">— PLZ eingeben —</span>
+          </div>
         </div>
       </div>
       <div class="field-err" id="plzErr"></div>
@@ -692,31 +706,35 @@
   }
 
   // ---------- Registrierung ----------
-  // ---------- PLZ/Ort/Straße-Lookup (OpenPLZ API, ganz Österreich) ----------
+  // ---------- PLZ/Ort-Lookup (OpenPLZ API, ganz Österreich) ----------
   const OPENPLZ_BASE = 'https://openplzapi.org/at';
   let plzLookupTimeout = null;
-  let streetLookupTimeout = null;
+  let resolvedCity = '';
 
-  async function lookupLocalitiesForPlz(plz){
-    const citySelect = $('f-city');
+  async function lookupLocalityForPlz(plz){
+    const ortDisplay = $('ortDisplay');
     const plzErr = $('plzErr');
     plzErr.textContent = '';
-    citySelect.innerHTML = '<option value="">Lädt …</option>';
-    citySelect.disabled = true;
+    ortDisplay.textContent = 'Lädt …';
+    ortDisplay.classList.remove('resolved');
+    resolvedCity = '';
     try{
       const res = await fetch(`${OPENPLZ_BASE}/Localities?postalCode=${encodeURIComponent(plz)}`);
       if(!res.ok) throw new Error('Lookup fehlgeschlagen');
       const localities = await res.json();
-      const names = [...new Set(localities.map(l => l.name))];
-      if(names.length === 0){
-        citySelect.innerHTML = '<option value="">— unbekannte PLZ —</option>';
+      if(localities.length === 0){
+        ortDisplay.textContent = '— unbekannte PLZ —';
         plzErr.textContent = 'Postleitzahl nicht gefunden. Bitte prüfen.';
         return;
       }
-      citySelect.innerHTML = names.map(n => `<option value="${escapeHtml(n)}">${escapeHtml(n)}</option>`).join('');
-      citySelect.disabled = false;
+      // Bevorzugt die Ortschaft, die dem Gemeindenamen entspricht (i.d.R. der
+      // Hauptort der PLZ), sonst die erste Trefferzeile.
+      const best = localities.find(l => l.name === l.municipality?.name) || localities[0];
+      resolvedCity = best.name;
+      ortDisplay.textContent = best.name;
+      ortDisplay.classList.add('resolved');
     }catch(err){
-      citySelect.innerHTML = '<option value="">— Lookup fehlgeschlagen —</option>';
+      ortDisplay.textContent = '— Lookup fehlgeschlagen —';
       plzErr.textContent = 'Ort konnte nicht ermittelt werden. Bitte später erneut versuchen.';
       console.error(err);
     }
@@ -726,29 +744,17 @@
     const plz = $('f-plz').value.trim();
     clearTimeout(plzLookupTimeout);
     if(!/^\d{4}$/.test(plz)){
-      $('f-city').innerHTML = '<option value="">— PLZ eingeben —</option>';
-      $('f-city').disabled = true;
+      $('ortDisplay').textContent = '— PLZ eingeben —';
+      $('ortDisplay').classList.remove('resolved');
       $('plzErr').textContent = '';
+      resolvedCity = '';
       return;
     }
-    plzLookupTimeout = setTimeout(() => lookupLocalitiesForPlz(plz), 300);
+    plzLookupTimeout = setTimeout(() => lookupLocalityForPlz(plz), 300);
   });
 
-  $('f-street').addEventListener('input', () => {
-    const plz = $('f-plz').value.trim();
-    const query = $('f-street').value.trim();
-    clearTimeout(streetLookupTimeout);
-    if(!/^\d{4}$/.test(plz) || query.length < 2) return;
-    streetLookupTimeout = setTimeout(async () => {
-      try{
-        const res = await fetch(`${OPENPLZ_BASE}/Streets?postalCode=${encodeURIComponent(plz)}&name=${encodeURIComponent(query)}`);
-        if(!res.ok) return;
-        const streets = await res.json();
-        const names = [...new Set(streets.map(s => s.name))].slice(0, 20);
-        $('f-street-suggestions').innerHTML = names.map(n => `<option value="${escapeHtml(n)}">`).join('');
-      }catch(err){ /* Autovervollständigung ist optional, Fehler hier egal */ }
-    }, 250);
-  });
+  $('f-plz').addEventListener('focus', () => $('plzCombo').classList.add('focused'));
+  $('f-plz').addEventListener('blur', () => $('plzCombo').classList.remove('focused'));
 
   $('btnCreateProfile').addEventListener('click', async ()=>{
     const errEl = $('formErr');
@@ -760,8 +766,7 @@
       name: $('f-name').value.trim(),
       age: parseInt($('f-age').value, 10),
       plz: $('f-plz').value.trim(),
-      city: $('f-city').value,
-      street: $('f-street').value.trim(),
+      city: resolvedCity,
       gender: $('f-gender').value,
       gym: $('f-gym').value,
       height_cm: $('f-height').value ? parseInt($('f-height').value, 10) : null,
@@ -777,10 +782,6 @@
     }
     if(!/^\d{4}$/.test(payload.plz) || !payload.city){
       errEl.textContent = 'Bitte eine gültige österreichische Postleitzahl eingeben (Ort wird automatisch ermittelt).';
-      return;
-    }
-    if(!payload.street){
-      errEl.textContent = 'Bitte Straße und Hausnummer angeben.';
       return;
     }
     if(!payload.consent_sensitive_data || !payload.consent_withdrawal_waiver){

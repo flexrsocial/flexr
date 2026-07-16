@@ -34,7 +34,6 @@ def register(request: Request, payload: RegisterRequest, db: Session = Depends(g
         age=payload.age,
         plz=payload.plz,
         city=payload.city,
-        street=payload.street,
         gender=payload.gender,
         interest=interest,
         gym=payload.gym,

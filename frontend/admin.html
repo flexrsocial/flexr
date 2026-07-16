@@ -436,7 +436,7 @@
       <div class="modal-sub">${escapeHtml(u.email)} · ${escapeHtml(u.city)} ${statusBadge}</div>
       ${u.photos.length ? `<div class="photo-strip">${u.photos.map(p => `<img src="${escapeHtml(p.url)}" title="${p.status}" style="${p.status !== 'approved' ? 'opacity:.5' : ''}">`).join('')}</div>` : '<p class="modal-sub">Keine Fotos hochgeladen.</p>'}
       <div class="detail-row"><span class="k">Geschlecht / Interesse</span><span>${escapeHtml(u.gender)} · sucht ${escapeHtml(u.interest)}</span></div>
-      <div class="detail-row"><span class="k">Adresse</span><span>${escapeHtml(u.street)}, ${escapeHtml(u.plz)} ${escapeHtml(u.city)}</span></div>
+      <div class="detail-row"><span class="k">Adresse</span><span>${escapeHtml(u.plz)} ${escapeHtml(u.city)}</span></div>
       <div class="detail-row"><span class="k">Gym</span><span>${escapeHtml(u.gym)}</span></div>
       <div class="detail-row"><span class="k">Bio</span><span>${escapeHtml(u.bio || '—')}</span></div>
       <div class="detail-row"><span class="k">Registriert am</span><span>${fmtDate(u.created_at)}</span></div>
