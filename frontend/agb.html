@@ -13,8 +13,14 @@
   h1{ font-size:26px; margin-bottom:4px; }
   h2{ font-size:17px; color:var(--chalk); border-bottom:1px solid var(--steel); padding-bottom:6px; margin-top:36px; }
   .back{ display:inline-block; margin-bottom:20px; font-size:13px; color:var(--chalk-dim); text-decoration:none; }
-  ol{ padding-left:22px; }
-  li{ margin-bottom:6px; }
+  ol{ list-style:none; padding-left:0; margin:0; counter-reset:agb-counter; }
+  ol li{
+    position:relative; padding-left:30px; margin-bottom:10px;
+  }
+  ol li::before{
+    content:counter(agb-counter) "."; counter-increment:agb-counter;
+    position:absolute; left:0; top:0; color:var(--chalk); font-weight:600;
+  }
 </style>
 </head>
 <body>
