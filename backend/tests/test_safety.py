@@ -3,10 +3,10 @@ from tests.conftest import register_user
 
 def make_pair(client):
     headers_a = register_user(
-        client, "safety.a@example.com", name="A", gender="mann", interest="frau"
+        client, "safety.a@example.com", name="A", gender="mann"
     )
     headers_b = register_user(
-        client, "safety.b@example.com", name="B", gender="frau", interest="mann"
+        client, "safety.b@example.com", name="B", gender="frau"
     )
     user_a = client.get("/api/profiles/me", headers=headers_a).json()
     user_b = client.get("/api/profiles/me", headers=headers_b).json()

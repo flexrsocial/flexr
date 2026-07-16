@@ -394,43 +394,29 @@
           <input type="number" id="f-age" placeholder="27" min="18" max="99">
         </div>
         <div>
-          <label>Standort</label>
-          <select id="f-loc">
-            <option>Wien</option>
-            <option>Graz</option>
-            <option>Linz</option>
-            <option>Salzburg</option>
-            <option>Innsbruck</option>
-            <option>Klagenfurt</option>
-            <option>Villach</option>
-            <option>Wels</option>
-            <option>St. Pölten</option>
-            <option>Dornbirn</option>
-            <option>Wiener Neustadt</option>
-            <option>Steyr</option>
-            <option>Feldkirch</option>
-            <option>Bregenz</option>
-            <option>Leonding</option>
-          </select>
+          <label>Postleitzahl</label>
+          <input type="text" id="f-plz" placeholder="1010" inputmode="numeric" maxlength="4">
         </div>
       </div>
 
       <div class="row2">
         <div>
-          <label>Geschlecht</label>
-          <select id="f-gender">
-            <option value="mann">Mann</option>
-            <option value="frau">Frau</option>
-          </select>
+          <label>Ort</label>
+          <select id="f-city" disabled><option value="">— PLZ eingeben —</option></select>
         </div>
         <div>
-          <label>Interessiert an</label>
-          <select id="f-interest">
-            <option value="frau">Frauen</option>
-            <option value="mann">Männern</option>
-          </select>
+          <label>Straße &amp; Hausnr.</label>
+          <input type="text" id="f-street" list="f-street-suggestions" placeholder="Hauptstraße 12" autocomplete="off">
+          <datalist id="f-street-suggestions"></datalist>
         </div>
       </div>
+      <div class="field-err" id="plzErr"></div>
+
+      <label>Geschlecht</label>
+      <select id="f-gender">
+        <option value="mann">Mann</option>
+        <option value="frau">Frau</option>
+      </select>
 
       <div class="row2">
         <div>
@@ -706,6 +692,64 @@
   }
 
   // ---------- Registrierung ----------
+  // ---------- PLZ/Ort/Straße-Lookup (OpenPLZ API, ganz Österreich) ----------
+  const OPENPLZ_BASE = 'https://openplzapi.org/at';
+  let plzLookupTimeout = null;
+  let streetLookupTimeout = null;
+
+  async function lookupLocalitiesForPlz(plz){
+    const citySelect = $('f-city');
+    const plzErr = $('plzErr');
+    plzErr.textContent = '';
+    citySelect.innerHTML = '<option value="">Lädt …</option>';
+    citySelect.disabled = true;
+    try{
+      const res = await fetch(`${OPENPLZ_BASE}/Localities?postalCode=${encodeURIComponent(plz)}`);
+      if(!res.ok) throw new Error('Lookup fehlgeschlagen');
+      const localities = await res.json();
+      const names = [...new Set(localities.map(l => l.name))];
+      if(names.length === 0){
+        citySelect.innerHTML = '<option value="">— unbekannte PLZ —</option>';
+        plzErr.textContent = 'Postleitzahl nicht gefunden. Bitte prüfen.';
+        return;
+      }
+      citySelect.innerHTML = names.map(n => `<option value="${escapeHtml(n)}">${escapeHtml(n)}</option>`).join('');
+      citySelect.disabled = false;
+    }catch(err){
+      citySelect.innerHTML = '<option value="">— Lookup fehlgeschlagen —</option>';
+      plzErr.textContent = 'Ort konnte nicht ermittelt werden. Bitte später erneut versuchen.';
+      console.error(err);
+    }
+  }
+
+  $('f-plz').addEventListener('input', () => {
+    const plz = $('f-plz').value.trim();
+    clearTimeout(plzLookupTimeout);
+    if(!/^\d{4}$/.test(plz)){
+      $('f-city').innerHTML = '<option value="">— PLZ eingeben —</option>';
+      $('f-city').disabled = true;
+      $('plzErr').textContent = '';
+      return;
+    }
+    plzLookupTimeout = setTimeout(() => lookupLocalitiesForPlz(plz), 300);
+  });
+
+  $('f-street').addEventListener('input', () => {
+    const plz = $('f-plz').value.trim();
+    const query = $('f-street').value.trim();
+    clearTimeout(streetLookupTimeout);
+    if(!/^\d{4}$/.test(plz) || query.length < 2) return;
+    streetLookupTimeout = setTimeout(async () => {
+      try{
+        const res = await fetch(`${OPENPLZ_BASE}/Streets?postalCode=${encodeURIComponent(plz)}&name=${encodeURIComponent(query)}`);
+        if(!res.ok) return;
+        const streets = await res.json();
+        const names = [...new Set(streets.map(s => s.name))].slice(0, 20);
+        $('f-street-suggestions').innerHTML = names.map(n => `<option value="${escapeHtml(n)}">`).join('');
+      }catch(err){ /* Autovervollständigung ist optional, Fehler hier egal */ }
+    }, 250);
+  });
+
   $('btnCreateProfile').addEventListener('click', async ()=>{
     const errEl = $('formErr');
     errEl.textContent = '';
@@ -715,9 +759,10 @@
       password: $('f-password').value,
       name: $('f-name').value.trim(),
       age: parseInt($('f-age').value, 10),
-      city: $('f-loc').value.trim(),
+      plz: $('f-plz').value.trim(),
+      city: $('f-city').value,
+      street: $('f-street').value.trim(),
       gender: $('f-gender').value,
-      interest: $('f-interest').value,
       gym: $('f-gym').value,
       height_cm: $('f-height').value ? parseInt($('f-height').value, 10) : null,
       weight_kg: $('f-weight').value ? parseInt($('f-weight').value, 10) : null,
@@ -728,6 +773,14 @@
 
     if(!payload.email || !payload.password || payload.password.length < 8 || !payload.name || !payload.age || payload.age < 18){
       errEl.textContent = 'Bitte E-Mail, Passwort (min. 8 Zeichen), Name und Alter (18+) angeben.';
+      return;
+    }
+    if(!/^\d{4}$/.test(payload.plz) || !payload.city){
+      errEl.textContent = 'Bitte eine gültige österreichische Postleitzahl eingeben (Ort wird automatisch ermittelt).';
+      return;
+    }
+    if(!payload.street){
+      errEl.textContent = 'Bitte Straße und Hausnummer angeben.';
       return;
     }
     if(!payload.consent_sensitive_data || !payload.consent_withdrawal_waiver){

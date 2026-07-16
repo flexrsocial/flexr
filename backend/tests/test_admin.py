@@ -80,10 +80,10 @@ def test_admin_ban_blocks_login_and_unban_restores(client):
 def test_admin_delete_user_cascades(client):
     admin_headers, _ = create_admin(client, email="admin5@example.com")
     headers_a = register_user(
-        client, "cascade.a@example.com", name="A", gender="mann", interest="frau"
+        client, "cascade.a@example.com", name="A", gender="mann"
     )
     headers_b = register_user(
-        client, "cascade.b@example.com", name="B", gender="frau", interest="mann"
+        client, "cascade.b@example.com", name="B", gender="frau"
     )
     user_a = client.get("/api/profiles/me", headers=headers_a).json()
     user_b = client.get("/api/profiles/me", headers=headers_b).json()
@@ -109,10 +109,10 @@ def test_admin_delete_user_cascades(client):
 def test_photo_starts_pending_and_hidden_from_deck(client):
     admin_headers, _ = create_admin(client, email="admin6@example.com")
     headers_a = register_user(
-        client, "photodeck.a@example.com", name="A", gender="mann", interest="frau"
+        client, "photodeck.a@example.com", name="A", gender="mann"
     )
     headers_b = register_user(
-        client, "photodeck.b@example.com", name="B", gender="frau", interest="mann"
+        client, "photodeck.b@example.com", name="B", gender="frau"
     )
     user_b = client.get("/api/profiles/me", headers=headers_b).json()
 
@@ -154,10 +154,10 @@ def test_photo_starts_pending_and_hidden_from_deck(client):
 def test_admin_reports_list(client):
     admin_headers, _ = create_admin(client, email="admin7@example.com")
     headers_a = register_user(
-        client, "reportlist.a@example.com", name="A", gender="mann", interest="frau"
+        client, "reportlist.a@example.com", name="A", gender="mann"
     )
     headers_b = register_user(
-        client, "reportlist.b@example.com", name="B", gender="frau", interest="mann"
+        client, "reportlist.b@example.com", name="B", gender="frau"
     )
     user_b = client.get("/api/profiles/me", headers=headers_b).json()
     client.post(

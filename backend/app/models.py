@@ -48,26 +48,6 @@ GYM_CHOICES = [
     "Anderes Studio",
 ]
 
-# Städte, in denen die App vorerst verfügbar ist (Österreich-only)
-CITY_CHOICES = [
-    "Wien",
-    "Graz",
-    "Linz",
-    "Salzburg",
-    "Innsbruck",
-    "Klagenfurt",
-    "Villach",
-    "Wels",
-    "St. Pölten",
-    "Dornbirn",
-    "Wiener Neustadt",
-    "Steyr",
-    "Feldkirch",
-    "Bregenz",
-    "Leonding",
-]
-
-
 class User(Base):
     __tablename__ = "users"
 
@@ -77,7 +57,11 @@ class User(Base):
 
     name = Column(String, nullable=False)
     age = Column(Integer, nullable=False)
-    city = Column(String, nullable=False)  # muss einer der CITY_CHOICES sein
+    # Adresse: plz/city stammen aus einer echten PLZ-Lookup (OpenPLZ API, siehe
+    # Frontend), keine feste Städteliste mehr - ganz Österreich ist abgedeckt.
+    plz = Column(String(4), nullable=False)
+    city = Column(String, nullable=False)  # aus PLZ abgeleiteter Ort/Gemeinde-Name
+    street = Column(String, nullable=False)
     gender = Column(Enum(Gender), nullable=False)
     interest = Column(Enum(Gender), nullable=False)  # sucht Mann oder Frau
     gym = Column(String, nullable=False)  # muss einer der GYM_CHOICES sein

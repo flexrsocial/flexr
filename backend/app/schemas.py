@@ -9,9 +9,13 @@ class RegisterRequest(BaseModel):
     password: str = Field(min_length=8)
     name: str = Field(min_length=1, max_length=100)
     age: int = Field(ge=18, le=99)
-    city: str
+    # Adresse: plz/city kommen aus einer echten PLZ-Lookup im Frontend (OpenPLZ
+    # API), city ist der daraus abgeleitete Ort/Gemeinde-Name - keine feste
+    # Städteliste mehr, ganz Österreich ist abgedeckt.
+    plz: str = Field(pattern=r"^\d{4}$", description="4-stellige österreichische Postleitzahl")
+    city: str = Field(min_length=1)
+    street: str = Field(min_length=1, max_length=200)
     gender: Literal["mann", "frau"]
-    interest: Literal["mann", "frau"]
     gym: str
     height_cm: Optional[int] = Field(default=None, ge=120, le=230)
     weight_kg: Optional[int] = Field(default=None, ge=30, le=250)
@@ -144,7 +148,9 @@ class AdminUserDetailOut(BaseModel):
     email: str
     name: str
     age: int
+    plz: str
     city: str
+    street: str
     gender: str
     interest: str
     gym: str

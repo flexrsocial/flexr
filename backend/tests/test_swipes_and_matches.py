@@ -4,10 +4,10 @@ from tests.conftest import register_user
 def make_pair(client):
     """Zwei zueinander passende Nutzer in derselben Stadt anlegen."""
     headers_a = register_user(
-        client, "swiper.a@example.com", name="A", gender="mann", interest="frau"
+        client, "swiper.a@example.com", name="A", gender="mann"
     )
     headers_b = register_user(
-        client, "swiper.b@example.com", name="B", gender="frau", interest="mann"
+        client, "swiper.b@example.com", name="B", gender="frau"
     )
     user_a = client.get("/api/profiles/me", headers=headers_a).json()
     user_b = client.get("/api/profiles/me", headers=headers_b).json()

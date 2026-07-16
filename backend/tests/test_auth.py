@@ -31,9 +31,10 @@ def test_register_duplicate_email(client):
             "password": "supersecret123",
             "name": "Bob Zwei",
             "age": 30,
+            "plz": "1010",
             "city": "Wien",
+            "street": "Stephansplatz 1",
             "gender": "mann",
-            "interest": "frau",
             "gym": "McFit",
             "consent_sensitive_data": True,
             "consent_withdrawal_waiver": True,
@@ -42,7 +43,7 @@ def test_register_duplicate_email(client):
     assert resp.status_code == 409
 
 
-def test_register_rejects_unsupported_city(client):
+def test_register_rejects_invalid_plz(client):
     resp = client.post(
         "/api/auth/register",
         json={
@@ -50,15 +51,16 @@ def test_register_rejects_unsupported_city(client):
             "password": "supersecret123",
             "name": "Carol",
             "age": 25,
-            "city": "Berlin",
+            "plz": "abc",
+            "city": "Wien",
+            "street": "Teststraße 1",
             "gender": "frau",
-            "interest": "mann",
             "gym": "McFit",
             "consent_sensitive_data": True,
             "consent_withdrawal_waiver": True,
         },
     )
-    assert resp.status_code == 400
+    assert resp.status_code == 422
 
 
 def test_login_wrong_password(client):
@@ -91,9 +93,10 @@ def test_register_requires_sensitive_data_consent(client):
             "password": "supersecret123",
             "name": "Erin",
             "age": 25,
+            "plz": "1010",
             "city": "Wien",
+            "street": "Teststraße 1",
             "gender": "frau",
-            "interest": "mann",
             "gym": "McFit",
             "consent_sensitive_data": False,
             "consent_withdrawal_waiver": True,
@@ -110,9 +113,10 @@ def test_register_requires_withdrawal_waiver_consent(client):
             "password": "supersecret123",
             "name": "Frank",
             "age": 25,
+            "plz": "1010",
             "city": "Wien",
+            "street": "Teststraße 1",
             "gender": "mann",
-            "interest": "frau",
             "gym": "McFit",
             "consent_sensitive_data": True,
             "consent_withdrawal_waiver": False,
@@ -128,5 +132,18 @@ def test_register_stores_consent_timestamps(client):
         user = db.query(User).filter(User.email == "grace@example.com").first()
         assert user.sensitive_data_consent_at is not None
         assert user.withdrawal_waiver_consent_at is not None
+    finally:
+        db.close()
+
+
+def test_interest_derived_from_gender(client):
+    register_user(client, "heidi@example.com", gender="mann")
+    register_user(client, "ivan@example.com", gender="frau")
+    db = TestingSessionLocal()
+    try:
+        heidi = db.query(User).filter(User.email == "heidi@example.com").first()
+        ivan = db.query(User).filter(User.email == "ivan@example.com").first()
+        assert heidi.gender.value == "mann" and heidi.interest.value == "frau"
+        assert ivan.gender.value == "frau" and ivan.interest.value == "mann"
     finally:
         db.close()

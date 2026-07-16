@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.orm import Session
 
 from ..database import get_db
-from ..models import GYM_CHOICES, CITY_CHOICES, User
+from ..models import GYM_CHOICES, User
 from ..rate_limit import limiter
 from ..schemas import LoginRequest, RegisterRequest, TokenResponse
 from ..security import create_access_token, hash_password, verify_password
@@ -15,8 +15,6 @@ router = APIRouter(prefix="/api/auth", tags=["auth"])
 @router.post("/register", response_model=TokenResponse)
 @limiter.limit("5/minute")
 def register(request: Request, payload: RegisterRequest, db: Session = Depends(get_db)):
-    if payload.city not in CITY_CHOICES:
-        raise HTTPException(400, "Standort wird aktuell nicht unterstützt (nur Österreich).")
     if payload.gym not in GYM_CHOICES:
         raise HTTPException(400, "Unbekanntes Gym.")
 
@@ -24,15 +22,21 @@ def register(request: Request, payload: RegisterRequest, db: Session = Depends(g
     if existing:
         raise HTTPException(status.HTTP_409_CONFLICT, "E-Mail bereits registriert.")
 
+    # Kein eigenes "Interessiert an"-Feld mehr - die Plattform matcht aktuell
+    # ausschließlich gegengeschlechtlich (Produktentscheidung).
+    interest = "frau" if payload.gender == "mann" else "mann"
+
     consent_timestamp = datetime.utcnow()
     user = User(
         email=payload.email,
         password_hash=hash_password(payload.password),
         name=payload.name,
         age=payload.age,
+        plz=payload.plz,
         city=payload.city,
+        street=payload.street,
         gender=payload.gender,
-        interest=payload.interest,
+        interest=interest,
         gym=payload.gym,
         height_cm=payload.height_cm,
         weight_kg=payload.weight_kg,

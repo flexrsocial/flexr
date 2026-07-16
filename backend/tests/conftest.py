@@ -49,9 +49,10 @@ def client():
 DEFAULT_USER = {
     "password": "supersecret123",
     "age": 28,
+    "plz": "1010",
     "city": "Wien",
+    "street": "Teststraße 1",
     "gender": "mann",
-    "interest": "frau",
     "gym": "John Harris Fitness",
     "consent_sensitive_data": True,
     "consent_withdrawal_waiver": True,
