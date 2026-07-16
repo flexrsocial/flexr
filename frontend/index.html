@@ -182,6 +182,37 @@
   .legal-footer a{ color:var(--chalk-dim); text-decoration:none; }
   .legal-footer a:hover{ color:var(--chalk); }
 
+  .legal-modal-backdrop{
+    display:none; position:fixed; inset:0; z-index:100;
+    background:rgba(0,0,0,0.6); backdrop-filter:blur(3px);
+    align-items:center; justify-content:center; padding:24px;
+  }
+  .legal-modal-backdrop.open{ display:flex; }
+  .legal-modal{
+    position:relative; width:100%; max-width:640px; max-height:min(80vh, 720px);
+    background:var(--surface); border:1px solid var(--steel); border-radius:18px;
+    box-shadow:0 30px 60px rgba(0,0,0,.5); overflow:hidden;
+    display:flex; flex-direction:column;
+  }
+  .legal-modal-close{
+    position:absolute; top:12px; right:12px; width:32px; height:32px; border-radius:50%;
+    border:1px solid var(--steel); background:var(--surface-2); color:var(--chalk);
+    font-size:15px; cursor:pointer; z-index:2;
+  }
+  .legal-modal-close:hover{ background:var(--ink); }
+  .legal-modal-body{
+    overflow-y:auto; padding:32px 28px 36px; font-size:15px; line-height:1.6;
+  }
+  /* Inhalt der Rechtstexte im Modal genauso lesbar wie auf der eigenen Seite */
+  .legal-modal-body h1{ font-size:22px; margin:0 0 4px; text-transform:none; letter-spacing:0; }
+  .legal-modal-body h2{ font-size:15px; color:var(--chalk); border-bottom:1px solid var(--steel); padding-bottom:6px; margin-top:28px; text-transform:none; letter-spacing:0; }
+  .legal-modal-body p, .legal-modal-body table{ font-size:14px; }
+  .legal-modal-body a{ color:var(--plate); }
+  .legal-modal-body .back{ display:none; }
+  .legal-modal-body table{ width:100%; border-collapse:collapse; margin:12px 0; }
+  .legal-modal-body th, .legal-modal-body td{ text-align:left; padding:8px 10px; border-bottom:1px solid var(--steel); vertical-align:top; }
+  .legal-modal-body th{ color:var(--chalk-dim); font-weight:600; }
+
   /* ---------- Landing-Modus (ausgeloggt: Login/Registrierung) ---------- */
   body.landing{
     background:
@@ -439,14 +470,14 @@
           <input type="checkbox" id="f-consent-sensitive">
           <span>Ich willige ein, dass meine Angaben zu Geschlecht und gesuchtem
             Geschlecht (daraus ableitbar: sexuelle Orientierung) gemäß
-            <a href="/datenschutz.html" target="_blank">Datenschutzerklärung</a>
+            <a href="/datenschutz.html" class="legal-link" data-legal-page="datenschutz.html">Datenschutzerklärung</a>
             verarbeitet werden.</span>
         </label>
         <label class="consent-label">
           <input type="checkbox" id="f-consent-withdrawal">
           <span>Ich stimme zu, dass der Zugang sofort mit Registrierung beginnt, und
             nehme zur Kenntnis, dass ich dadurch mein 14-tägiges Rücktrittsrecht
-            verliere (siehe <a href="/agb.html" target="_blank">AGB</a>, §18 FAGG).</span>
+            verliere (siehe <a href="/agb.html" class="legal-link" data-legal-page="agb.html">AGB</a>, §18 FAGG).</span>
         </label>
       </div>
 
@@ -511,10 +542,17 @@
   </main>
 
   <footer class="legal-footer">
-    <a href="/impressum.html">Impressum</a>
-    <a href="/datenschutz.html">Datenschutz</a>
-    <a href="/agb.html">AGB</a>
+    <a href="/impressum.html" class="legal-link" data-legal-page="impressum.html">Impressum</a>
+    <a href="/datenschutz.html" class="legal-link" data-legal-page="datenschutz.html">Datenschutz</a>
+    <a href="/agb.html" class="legal-link" data-legal-page="agb.html">AGB</a>
   </footer>
+
+  <div class="legal-modal-backdrop" id="legalModalBackdrop">
+    <div class="legal-modal" role="dialog" aria-modal="true">
+      <button class="legal-modal-close" id="legalModalClose" aria-label="Schließen">✕</button>
+      <div class="legal-modal-body" id="legalModalBody"><div class="loading">Lädt …</div></div>
+    </div>
+  </div>
 
   <nav class="bottom" id="bottomNav" style="display:none;">
     <button data-screen="swipe" class="active"><span class="ic">🔥</span>Swipe</button>
@@ -982,6 +1020,46 @@
       console.error(err);
     }
   }
+
+  // ---------- Rechtstexte-Modal (Impressum/Datenschutz/AGB) ----------
+  const legalCache = {};
+  const legalBackdrop = $('legalModalBackdrop');
+  const legalBody = $('legalModalBody');
+
+  async function openLegalModal(page){
+    legalBackdrop.classList.add('open');
+    legalBody.innerHTML = '<div class="loading">Lädt …</div>';
+    try{
+      if(!legalCache[page]){
+        const res = await fetch('/' + page);
+        const html = await res.text();
+        const doc = new DOMParser().parseFromString(html, 'text/html');
+        const wrap = doc.querySelector('.wrap');
+        legalCache[page] = wrap ? wrap.innerHTML : '<p>Inhalt konnte nicht geladen werden.</p>';
+      }
+      legalBody.innerHTML = legalCache[page];
+    }catch(err){
+      legalBody.innerHTML = '<p>Inhalt konnte nicht geladen werden. <a href="/' + page + '">Direkt öffnen</a>.</p>';
+    }
+  }
+
+  function closeLegalModal(){
+    legalBackdrop.classList.remove('open');
+  }
+
+  document.querySelectorAll('.legal-link').forEach(link => {
+    link.addEventListener('click', (e) => {
+      e.preventDefault();
+      openLegalModal(link.dataset.legalPage);
+    });
+  });
+  $('legalModalClose').addEventListener('click', closeLegalModal);
+  legalBackdrop.addEventListener('click', (e) => {
+    if(e.target === legalBackdrop) closeLegalModal();
+  });
+  document.addEventListener('keydown', (e) => {
+    if(e.key === 'Escape' && legalBackdrop.classList.contains('open')) closeLegalModal();
+  });
 
   // ---------- Boot ----------
   async function boot(){
