@@ -312,9 +312,15 @@
   .demo-btn.pass{ color:var(--danger); }
   .demo-btn.like{ color:var(--plate); border-color:var(--plate-dim); }
   .demo-btn:active{ transform:scale(0.92); }
-  .hero-profiles-caption{
-    font-family:'JetBrains Mono', monospace; font-size:10.5px; color:var(--chalk-dim);
-    text-transform:uppercase; letter-spacing:0.08em; margin-bottom:12px;
+  .demo-queue{ display:flex; align-items:center; gap:8px; margin-top:14px; }
+  .demo-queue-label{
+    font-family:'JetBrains Mono', monospace; font-size:9.5px; color:var(--chalk-dim);
+    text-transform:uppercase; letter-spacing:0.06em; margin-right:2px;
+  }
+  .demo-queue img{
+    width:36px; height:36px; border-radius:50%; object-fit:cover;
+    border:2px solid rgba(255,255,255,.18); box-shadow:0 6px 14px rgba(0,0,0,.4);
+    opacity:.85;
   }
 
   body.landing .screen{ display:none; }
@@ -400,8 +406,8 @@
         <li>1 Monat gratis testen, danach 5&nbsp;€/Monat — jederzeit kündbar</li>
         <li>Echte Profile: Melde- &amp; Blockfunktion inklusive</li>
       </ul>
-      <div class="hero-profiles-caption">Probier's aus — wisch wie im echten Swipe-Deck</div>
       <div class="demo-deck" id="demoDeck"></div>
+      <div class="demo-queue" id="demoQueue"></div>
       <div class="demo-actions">
         <button class="demo-btn pass" id="demoPass" type="button" aria-label="Ablehnen">✕</button>
         <button class="demo-btn like" id="demoLike" type="button" aria-label="Gefällt mir">♥</button>
@@ -1154,10 +1160,25 @@
     {name: 'Tobias', age: 29, gym: 'Holmes Place', img: 'https://images.unsplash.com/photo-1693214099505-aadb39c60c90?q=75&w=500&auto=format&fit=crop'},
     {name: 'Nina', age: 24, gym: 'FitInn', img: 'https://images.unsplash.com/photo-1595770022233-e0612bf561b4?q=75&w=500&auto=format&fit=crop'},
     {name: 'David', age: 31, gym: 'Clever Fit', img: 'https://images.unsplash.com/photo-1606335543586-137481155deb?q=75&w=500&auto=format&fit=crop'},
+    {name: 'Sophie', age: 27, gym: 'Iron Gym Wien', img: 'https://images.unsplash.com/photo-1708011108776-45ad9e625269?q=75&w=500&auto=format&fit=crop'},
+    {name: 'Marco', age: 28, gym: 'Fitness First', img: 'https://images.unsplash.com/photo-1758875568932-0eefd3e60090?q=75&w=500&auto=format&fit=crop'},
+    {name: 'Julia', age: 25, gym: 'Kraftwerk Gym', img: 'https://images.unsplash.com/photo-1536914356815-690cf1fa40e2?q=75&w=500&auto=format&fit=crop'},
+    {name: 'Christian', age: 33, gym: 'USI Wien', img: 'https://images.unsplash.com/photo-1652550616981-e4dcabc0b489?q=75&w=500&auto=format&fit=crop'},
   ];
   let demoIdx = 0;
   let demoDragState = null;
   const demoDeckEl = $('demoDeck');
+  const demoQueueEl = $('demoQueue');
+
+  function renderDemoQueue(){
+    if(!demoQueueEl) return;
+    const upcoming = [];
+    for(let i = 2; i <= 5; i++){
+      upcoming.push(demoProfiles[(demoIdx + i) % demoProfiles.length]);
+    }
+    demoQueueEl.innerHTML = '<span class="demo-queue-label">Als Nächstes</span>' +
+      upcoming.map(p => `<img src="${p.img}" alt="Beispielprofil ${escapeHtml(p.name)}" title="${escapeHtml(p.name)}, ${p.age}">`).join('');
+  }
 
   function renderDemoCard(){
     if(!demoDeckEl) return;
@@ -1183,6 +1204,7 @@
     demoDeckEl.appendChild(card);
     card.addEventListener('mousedown', onDemoDragStart);
     card.addEventListener('touchstart', onDemoDragStart, {passive: true});
+    renderDemoQueue();
   }
 
   function advanceDemo(direction){
