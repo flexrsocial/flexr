@@ -145,6 +145,8 @@
   .card .photo-index{ position:absolute; top:10px; left:10px; right:10px; display:flex; gap:4px; }
   .card .photo-index i{ flex:1; height:3px; border-radius:2px; background:rgba(255,255,255,0.25); }
   .card .photo-index i.on{ background:var(--plate); }
+  .card .photo-nav{ position:absolute; inset:0; display:flex; z-index:1; }
+  .card .photo-nav-zone{ flex:1; cursor:pointer; }
   .card .name-row{ position:absolute; bottom:10px; left:16px; right:16px; }
   .card .name-row .nm{ font-family:'Oswald'; font-size:24px; text-transform:none; }
   .card .name-row .loc{ font-size:12px; color:var(--chalk-dim); }
@@ -1165,6 +1167,11 @@
       <div class="stamp pass">NÄCHSTE</div>
       <div class="photo" style="background-image:url('${photo}')">
         <div class="photo-index">${(p.photos||[]).map((_,i)=>`<i class="${i===0?'on':''}"></i>`).join('')}</div>
+        ${(p.photos||[]).length > 1 ? `
+        <div class="photo-nav">
+          <div class="photo-nav-zone" data-dir="-1"></div>
+          <div class="photo-nav-zone" data-dir="1"></div>
+        </div>` : ''}
         <div class="name-row"><div class="nm">${escapeHtml(p.name)}, ${p.age}</div><div class="loc">${escapeHtml(p.city)} · ${escapeHtml(p.gym||'')}</div></div>
       </div>
       <div class="body">
@@ -1188,6 +1195,24 @@
       });
       reportBtn.addEventListener('click', e => { e.stopPropagation(); (handlers && handlers.onReport ? handlers.onReport : reportCurrentCard)(); });
       blockBtn.addEventListener('click', e => { e.stopPropagation(); (handlers && handlers.onBlock ? handlers.onBlock : blockCurrentCard)(); });
+    }
+
+    const navZones = el.querySelectorAll('.photo-nav-zone');
+    if(navZones.length){
+      const photoEl = el.querySelector('.photo');
+      const dots = el.querySelectorAll('.photo-index i');
+      let photoIdx = 0;
+      navZones.forEach(zone => {
+        zone.addEventListener('mousedown', e => e.stopPropagation());
+        zone.addEventListener('touchstart', e => e.stopPropagation(), {passive: true});
+        zone.addEventListener('click', e => {
+          e.stopPropagation();
+          const dir = parseInt(zone.dataset.dir, 10);
+          photoIdx = Math.max(0, Math.min(p.photos.length - 1, photoIdx + dir));
+          photoEl.style.backgroundImage = `url('${p.photos[photoIdx].url}')`;
+          dots.forEach((d, i) => d.classList.toggle('on', i === photoIdx));
+        });
+      });
     }
     return el;
   }
