@@ -12,11 +12,15 @@
     --ink:#121212;
     --surface:#1c1c1c;
     --surface-2:#242424;
+    --surface-3:#2c2c2c;
     --steel:#3a3a3a;
+    --hairline:rgba(255,255,255,.07);
     --chalk:#ede9e2;
     --chalk-dim:#a8a49b;
     --plate:#ff5a1f;
+    --plate-bright:#ff7a45;
     --plate-dim:#c94515;
+    --plate-glow:rgba(255,90,31,.35);
     --lime:#c7ff4a;
     --danger:#e34848;
     --radius:14px;
@@ -35,22 +39,33 @@
     display:flex; flex-direction:column;
     position:relative;
     background:
-      radial-gradient(circle at 15% 0%, rgba(255,90,31,0.08), transparent 45%),
+      radial-gradient(circle at 15% -4%, rgba(255,90,31,0.12), transparent 42%),
+      radial-gradient(circle at 100% 100%, rgba(255,90,31,0.05), transparent 38%),
+      repeating-linear-gradient(135deg, rgba(255,255,255,.011) 0 1px, transparent 1px 9px),
       var(--ink);
   }
   h1,h2,h3,.display{ font-family:'Oswald', sans-serif; text-transform:uppercase; letter-spacing:0.02em; }
   .mono{ font-family:'JetBrains Mono', monospace; }
+  svg.ico{ width:22px; height:22px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; display:block; }
 
   header.top{
     display:flex; align-items:center; justify-content:space-between;
     padding:18px 20px 14px;
-    border-bottom:1px solid var(--steel);
+    border-bottom:1px solid var(--hairline);
+    position:relative;
   }
+  header.top::after{
+    content:''; position:absolute; left:20px; bottom:-1px; height:2px; width:64px;
+    background:linear-gradient(90deg, var(--plate), rgba(255,90,31,0));
+    border-radius:2px;
+  }
+  body.landing header.top::after{ display:none; }
   .brand{ font-size:22px; font-weight:700; letter-spacing:0.06em; }
   .brand span{ color:var(--plate); }
   .status-pill{
     font-family:'JetBrains Mono', monospace; font-size:11px;
     padding:5px 10px; border-radius:20px; border:1px solid var(--steel); color:var(--chalk-dim);
+    background:rgba(255,255,255,.02);
   }
   .status-pill.trial{ color:var(--lime); border-color:rgba(199,255,74,0.3); }
   .status-pill.expired{ color:var(--danger); border-color:rgba(227,72,72,0.4); }
@@ -98,26 +113,35 @@
   .row2{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
 
   .btn{
-    display:inline-flex; align-items:center; justify-content:center; gap:8px;
+    display:inline-flex; align-items:center; justify-content:center; gap:9px;
     width:100%; padding:14px 18px; border-radius:12px; border:none; cursor:pointer;
-    font-family:'Oswald', sans-serif; font-weight:600; font-size:15px; letter-spacing:0.03em; text-transform:uppercase;
-    background:var(--plate); color:#141414; margin-top:22px;
-    transition:transform .1s ease, background .15s ease;
+    font-family:'Oswald', sans-serif; font-weight:600; font-size:15px; letter-spacing:0.06em; text-transform:uppercase;
+    background:linear-gradient(135deg, var(--plate-bright), var(--plate) 55%, #ef4c15);
+    color:#191008; margin-top:22px;
+    box-shadow:0 6px 20px rgba(255,90,31,.22), inset 0 1px 0 rgba(255,255,255,.28);
+    transition:transform .12s ease, box-shadow .15s ease, filter .15s ease;
   }
-  .btn:hover{ background:#ff6c37; }
-  .btn:active{ transform:scale(0.98); }
-  .btn.secondary{ background:transparent; border:1px solid var(--steel); color:var(--chalk); }
-  .btn.secondary:hover{ background:var(--surface-2); }
-  .btn:disabled{ opacity:0.4; cursor:not-allowed; }
+  .btn:hover{ filter:brightness(1.07); transform:translateY(-1px); box-shadow:0 9px 26px rgba(255,90,31,.32), inset 0 1px 0 rgba(255,255,255,.28); }
+  .btn:active{ transform:translateY(0) scale(0.98); }
+  .btn svg.ico{ width:17px; height:17px; }
+  .btn.secondary{
+    background:rgba(255,255,255,.03); border:1px solid var(--steel); color:var(--chalk);
+    box-shadow:none;
+  }
+  .btn.secondary:hover{ background:var(--surface-2); filter:none; transform:none; box-shadow:none; }
+  .btn:disabled{ opacity:0.4; cursor:not-allowed; filter:none; transform:none; box-shadow:none; }
   .btn-row{ display:flex; gap:10px; }
   .btn-row .btn{ margin-top:0; }
 
   .photo-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-top:8px; }
   .photo-slot{
-    aspect-ratio:3/4; border-radius:10px; border:1.5px dashed var(--steel);
+    aspect-ratio:3/4; border-radius:11px; border:1.5px dashed var(--steel);
     display:flex; align-items:center; justify-content:center; color:var(--chalk-dim);
-    font-size:24px; cursor:pointer; position:relative; overflow:hidden; background:var(--surface);
+    font-size:24px; cursor:pointer; position:relative; overflow:hidden;
+    background:rgba(255,255,255,.015);
+    transition:border-color .15s ease, color .15s ease;
   }
+  .photo-slot:hover{ border-color:var(--plate-dim); color:var(--plate); }
   .photo-slot img{ width:100%; height:100%; object-fit:cover; }
   .photo-slot .remove{
     position:absolute; top:4px; right:4px; background:rgba(0,0,0,0.6); color:#fff;
@@ -125,103 +149,201 @@
   }
 
   /* swipe card */
-  .deck{ position:relative; height:520px; touch-action:none; }
+  .deck{ position:relative; flex:1; min-height:430px; touch-action:none; }
   .card{
-    position:absolute; inset:0; background:var(--surface); border-radius:20px; overflow:hidden;
-    border:1px solid var(--steel); box-shadow:0 20px 40px rgba(0,0,0,0.4);
+    position:absolute; inset:0; border-radius:20px; overflow:hidden;
+    background:linear-gradient(180deg, #202020, #191919);
+    border:1px solid var(--hairline);
+    box-shadow:0 22px 46px rgba(0,0,0,0.5);
     display:flex; flex-direction:column;
     cursor:grab; user-select:none;
     transition:transform .35s cubic-bezier(.2,.8,.3,1), opacity .3s ease;
+  }
+  /* Oberste Karte (bzw. Einzelkarte im Match-Profil) bekommt den Marken-Rand,
+     wie die Demo-Karten auf der Landingpage */
+  .deck .card:last-child, .profile-card-wrap .card{
+    box-shadow:0 22px 46px rgba(0,0,0,0.55), 0 0 0 1.5px rgba(255,90,31,.3);
   }
   .card.dragging{ cursor:grabbing; transition:none; }
   .card .stamp{
     position:absolute; top:20px; padding:6px 14px; border:3px solid; border-radius:10px;
     font-family:'Oswald'; font-weight:700; font-size:20px; text-transform:uppercase;
     letter-spacing:0.04em; opacity:0; pointer-events:none; z-index:3;
+    background:rgba(10,10,10,.35); backdrop-filter:blur(2px);
   }
   .card .stamp.like{ right:16px; color:var(--lime); border-color:var(--lime); transform:rotate(-10deg); }
   .card .stamp.pass{ left:16px; color:var(--danger); border-color:var(--danger); transform:rotate(10deg); }
-  .card .photo{ height:58%; background:linear-gradient(180deg, transparent 40%, rgba(0,0,0,0.85)), var(--surface-2); background-size:cover; background-position:center; position:relative; }
-  .card .photo-index{ position:absolute; top:10px; left:10px; right:10px; display:flex; gap:4px; }
-  .card .photo-index i{ flex:1; height:3px; border-radius:2px; background:rgba(255,255,255,0.25); }
-  .card .photo-index i.on{ background:var(--plate); }
+  .card .photo{
+    height:58%; position:relative;
+    background:
+      linear-gradient(180deg, rgba(0,0,0,.38), transparent 16%, transparent 42%, rgba(0,0,0,0.88)),
+      var(--surface-2);
+    background-size:cover; background-position:center;
+  }
+  .card .photo-index{ position:absolute; top:10px; left:10px; right:10px; display:flex; gap:4px; z-index:2; }
+  .card .photo-index i{ flex:1; height:3px; border-radius:2px; background:rgba(255,255,255,0.28); }
+  .card .photo-index i.on{ background:var(--plate); box-shadow:0 0 8px var(--plate-glow); }
   .card .photo-nav{ position:absolute; inset:0; display:flex; z-index:1; }
   .card .photo-nav-zone{ flex:1; cursor:pointer; }
-  .card .name-row{ position:absolute; bottom:10px; left:16px; right:16px; }
-  .card .name-row .nm{ font-family:'Oswald'; font-size:24px; text-transform:none; }
-  .card .name-row .loc{ font-size:12px; color:var(--chalk-dim); }
-  .card .body{ padding:14px 16px; flex:1; overflow-y:auto; }
+  .card .name-row{ position:absolute; bottom:12px; left:16px; right:16px; }
+  .card .name-row .nm{ font-family:'Oswald'; font-size:26px; text-transform:none; letter-spacing:0; text-shadow:0 2px 10px rgba(0,0,0,.55); }
+  .card .name-row .loc{
+    font-family:'JetBrains Mono'; font-size:10.5px; color:var(--chalk-dim);
+    text-transform:uppercase; letter-spacing:0.07em; margin-top:3px;
+  }
+  .card .body{ padding:14px 16px; flex:1; overflow-y:auto; scrollbar-width:thin; }
   .stat-row{ display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px; }
   .stat-chip{
-    font-family:'JetBrains Mono'; font-size:11px; background:var(--surface-2); border:1px solid var(--steel);
-    padding:5px 9px; border-radius:8px; color:var(--lime);
+    font-family:'JetBrains Mono'; font-size:10.5px; letter-spacing:0.02em;
+    background:rgba(199,255,74,.07); border:1px solid rgba(199,255,74,.24);
+    padding:5px 10px; border-radius:7px; color:var(--lime);
+    display:inline-flex; align-items:center; gap:6px;
   }
-  .bio-text{ font-size:13.5px; color:var(--chalk-dim); line-height:1.5; }
+  .stat-chip svg.ico{ width:13px; height:13px; stroke-width:2.2; }
+  .bio-text{ font-size:13.5px; color:var(--chalk-dim); line-height:1.55; }
   .prs{ display:flex; gap:10px; margin-top:12px; }
-  .pr-box{ flex:1; background:var(--surface-2); border-radius:8px; padding:8px; text-align:center; }
-  .pr-box .val{ font-family:'JetBrains Mono'; font-weight:700; font-size:16px; color:var(--chalk); }
-  .pr-box .lbl{ font-size:9px; color:var(--chalk-dim); text-transform:uppercase; margin-top:2px; }
-
-  .swipe-actions{ display:flex; justify-content:center; gap:22px; margin-top:20px; }
-  .round-btn{
-    width:58px; height:58px; border-radius:50%; border:1px solid var(--steel); background:var(--surface);
-    display:flex; align-items:center; justify-content:center; font-size:24px; cursor:pointer;
+  .pr-box{
+    flex:1; background:#232323; border:1px solid var(--hairline); border-radius:9px;
+    padding:9px 8px 7px; text-align:center;
   }
+  .pr-box .val{ font-family:'JetBrains Mono'; font-weight:700; font-size:15px; color:var(--chalk); }
+  .pr-box .lbl{ font-size:8.5px; color:var(--chalk-dim); text-transform:uppercase; letter-spacing:0.1em; margin-top:3px; }
+
+  .swipe-actions{ display:flex; justify-content:center; align-items:center; gap:26px; margin:18px 0 4px; flex-shrink:0; }
+  .round-btn{
+    width:56px; height:56px; border-radius:50%; border:1px solid var(--steel);
+    background:linear-gradient(180deg, #222, #1b1b1b);
+    display:flex; align-items:center; justify-content:center; cursor:pointer;
+    transition:transform .12s ease, border-color .15s ease, box-shadow .15s ease;
+  }
+  .round-btn svg.ico{ width:24px; height:24px; }
   .round-btn.pass{ color:var(--danger); }
-  .round-btn.like{ color:var(--plate); border-color:var(--plate-dim); }
+  .round-btn.pass:hover{ border-color:var(--danger); box-shadow:0 0 18px rgba(227,72,72,.2); }
+  .round-btn.like{
+    width:64px; height:64px; color:#fff; border:none;
+    background:linear-gradient(135deg, var(--plate-bright), var(--plate) 55%, #ef4c15);
+    box-shadow:0 8px 22px rgba(255,90,31,.35), inset 0 1px 0 rgba(255,255,255,.3);
+  }
+  .round-btn.like svg.ico{ width:28px; height:28px; }
+  .round-btn.like:hover{ transform:translateY(-2px); box-shadow:0 12px 28px rgba(255,90,31,.45), inset 0 1px 0 rgba(255,255,255,.3); }
   .round-btn:active{ transform:scale(0.92); }
 
-  .empty{ text-align:center; padding:60px 20px; color:var(--chalk-dim); }
-  .empty .big{ font-size:40px; margin-bottom:10px; }
+  .empty{
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    text-align:center; padding:48px 24px; color:var(--chalk-dim); gap:4px;
+  }
+  .deck .empty{ position:absolute; inset:0; }
+  .empty .empty-icon{
+    width:68px; height:68px; border-radius:50%; border:1.5px dashed var(--steel);
+    display:flex; align-items:center; justify-content:center; color:var(--chalk-dim);
+    margin-bottom:12px; background:rgba(255,255,255,.015);
+  }
+  .empty .empty-icon svg.ico{ width:28px; height:28px; opacity:.8; }
+  .empty .empty-title{ font-family:'Oswald'; text-transform:uppercase; letter-spacing:0.04em; font-size:17px; color:var(--chalk); }
+  .empty .empty-sub{ font-size:13px; line-height:1.55; max-width:250px; }
 
   .match-item{
-    display:flex; gap:12px; align-items:center; padding:12px; background:var(--surface); border-radius:12px; margin-bottom:10px; border:1px solid var(--steel);
-    cursor:pointer; transition:background .15s ease, border-color .15s ease;
+    display:flex; gap:13px; align-items:center; padding:12px 14px;
+    background:linear-gradient(180deg, #1f1f1f, #1a1a1a);
+    border-radius:14px; margin-bottom:10px; border:1px solid var(--hairline);
+    cursor:pointer; position:relative;
+    transition:background .15s ease, border-color .15s ease, transform .15s ease;
   }
-  .match-item:hover{ background:var(--surface-2); border-color:var(--plate-dim); }
-  .match-item img{ width:56px; height:56px; border-radius:10px; object-fit:cover; background:var(--surface-2); flex-shrink:0; }
+  .match-item:hover{ border-color:rgba(255,90,31,.35); transform:translateX(2px); }
+  .match-item img{
+    width:54px; height:54px; border-radius:50%; object-fit:cover; background:var(--surface-2); flex-shrink:0;
+    border:2px solid var(--ink); box-shadow:0 0 0 1.5px var(--steel);
+  }
+  .match-item.unread img{ box-shadow:0 0 0 2px var(--plate), 0 0 12px var(--plate-glow); }
   .match-item .info{ flex:1; min-width:0; }
-  .match-item .info .nm{ font-family:'Oswald'; font-size:16px; }
-  .match-item .info .last-msg{ font-size:12px; color:var(--chalk-dim); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:2px; }
+  .match-item .info .nm{ font-family:'Oswald'; font-size:16px; letter-spacing:0.01em; }
+  .match-item .info .last-msg{ font-size:12.5px; color:var(--chalk-dim); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:3px; }
+  .match-item.unread .info .last-msg{ color:var(--chalk); font-weight:500; }
   .match-item .unread-badge{
-    background:var(--plate); color:#141414; font-family:'JetBrains Mono'; font-size:11px; font-weight:700;
-    border-radius:50%; min-width:20px; height:20px; display:flex; align-items:center; justify-content:center; padding:0 5px; flex-shrink:0;
+    background:var(--plate); color:#191008; font-family:'JetBrains Mono'; font-size:11px; font-weight:700;
+    border-radius:50%; min-width:21px; height:21px; display:flex; align-items:center; justify-content:center;
+    padding:0 5px; flex-shrink:0; box-shadow:0 0 12px var(--plate-glow);
+  }
+  .match-item .chev{
+    width:7px; height:7px; border-top:1.5px solid var(--chalk-dim); border-right:1.5px solid var(--chalk-dim);
+    transform:rotate(45deg); flex-shrink:0; margin-left:2px; opacity:.6;
   }
 
   .icon-btn{
-    width:30px; height:30px; border-radius:50%; background:var(--surface-2); border:1px solid var(--steel);
-    color:var(--chalk); display:flex; align-items:center; justify-content:center; font-size:13px; cursor:pointer; flex-shrink:0;
+    width:31px; height:31px; border-radius:50%; background:var(--surface-2); border:1px solid var(--steel);
+    color:var(--chalk-dim); display:flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0;
+    transition:color .15s ease, border-color .15s ease;
   }
-  .icon-btn:hover{ background:var(--ink); }
+  .icon-btn:hover{ color:var(--chalk); border-color:var(--chalk-dim); }
+  .icon-btn svg.ico{ width:14px; height:14px; stroke-width:2.2; }
 
-  .chat-header{ display:flex; align-items:center; gap:10px; margin-bottom:14px; flex-shrink:0; }
-  .chat-header .back-btn{ background:none; border:none; color:var(--chalk); font-size:20px; cursor:pointer; padding:4px 8px 4px 0; line-height:1; }
-  .chat-header img{ width:42px; height:42px; border-radius:10px; object-fit:cover; background:var(--surface-2); flex-shrink:0; }
-  .chat-header .nm{ font-family:'Oswald'; font-size:16px; flex:1; min-width:0; }
+  .chat-header{
+    display:flex; align-items:center; gap:11px; margin-bottom:12px; flex-shrink:0;
+    padding-bottom:12px; border-bottom:1px solid var(--hairline);
+  }
+  .chat-header .back-btn{
+    background:none; border:none; color:var(--chalk); cursor:pointer; padding:4px 6px 4px 0; line-height:1;
+    display:flex; align-items:center;
+  }
+  .chat-header .back-btn svg.ico{ width:20px; height:20px; }
+  .chat-header .back-btn:hover{ color:var(--plate); }
+  .chat-header img{
+    width:42px; height:42px; border-radius:50%; object-fit:cover; background:var(--surface-2); flex-shrink:0;
+    border:2px solid var(--ink); box-shadow:0 0 0 1.5px var(--plate-dim);
+  }
+  .chat-header .nm{ font-family:'Oswald'; font-size:16px; flex:1; min-width:0; letter-spacing:0.01em; }
   .chat-header .chat-flag-btns{ display:flex; gap:6px; }
 
   .chat-messages{
-    display:flex; flex-direction:column; gap:8px; flex:1; min-height:0; overflow-y:auto;
-    padding:4px 2px 10px; scrollbar-width:thin;
+    display:flex; flex-direction:column; gap:7px; flex:1; min-height:0; overflow-y:auto;
+    padding:6px 2px 12px; scrollbar-width:thin; scrollbar-color:var(--steel) transparent;
   }
-  .msg-bubble{ max-width:78%; padding:9px 13px; border-radius:14px; font-size:14px; line-height:1.4; word-wrap:break-word; }
-  .msg-bubble.mine{ align-self:flex-end; background:var(--plate); color:#141414; border-bottom-right-radius:4px; }
-  .msg-bubble.theirs{ align-self:flex-start; background:var(--surface-2); border:1px solid var(--steel); border-bottom-left-radius:4px; }
-  .msg-bubble .time{ display:block; font-size:9.5px; margin-top:3px; opacity:0.65; font-family:'JetBrains Mono'; }
+  .msg-bubble{ max-width:78%; padding:9px 13px; font-size:14px; line-height:1.45; word-wrap:break-word; }
+  .msg-bubble.mine{
+    align-self:flex-end; border-radius:16px 16px 5px 16px;
+    background:linear-gradient(135deg, var(--plate-bright), var(--plate));
+    color:#1c1006; box-shadow:0 4px 14px rgba(255,90,31,.15);
+  }
+  .msg-bubble.theirs{
+    align-self:flex-start; border-radius:16px 16px 16px 5px;
+    background:var(--surface-2); border:1px solid var(--hairline);
+  }
+  .msg-bubble .time{ display:block; font-size:9.5px; margin-top:4px; opacity:0.6; font-family:'JetBrains Mono'; }
+  .msg-bubble.mine .time{ text-align:right; }
   .msg-bubble .receipt{ margin-left:5px; font-weight:700; }
-  .msg-bubble .receipt.read{ color:#3fc7f4; }
-  .chat-input-row{ display:flex; gap:8px; margin-top:12px; flex-shrink:0; }
-  .chat-input-row input{ flex:1; }
-  .chat-input-row .btn{ width:auto; margin:0; padding:0 20px; }
-  .chat-empty{ text-align:center; color:var(--chalk-dim); padding:40px 0; font-size:13px; }
+  .msg-bubble .receipt.read{ color:#1e5f74; }
+  .chat-input-row{
+    display:flex; align-items:center; gap:8px; margin-top:12px; flex-shrink:0;
+    background:var(--surface); border:1px solid var(--steel); border-radius:26px;
+    padding:5px 5px 5px 16px;
+    transition:border-color .15s ease;
+  }
+  .chat-input-row:focus-within{ border-color:var(--plate); }
+  .chat-input-row input{
+    flex:1; background:transparent; border:none; padding:9px 0; font-size:14.5px;
+  }
+  .chat-input-row input:focus{ outline:none; }
+  .chat-send-btn{
+    width:40px; height:40px; border-radius:50%; border:none; cursor:pointer; flex-shrink:0;
+    display:flex; align-items:center; justify-content:center; color:#fff;
+    background:linear-gradient(135deg, var(--plate-bright), var(--plate) 60%, #ef4c15);
+    box-shadow:0 4px 14px rgba(255,90,31,.3), inset 0 1px 0 rgba(255,255,255,.28);
+    transition:transform .12s ease, filter .15s ease;
+  }
+  .chat-send-btn:hover{ filter:brightness(1.08); }
+  .chat-send-btn:active{ transform:scale(.92); }
+  .chat-send-btn svg.ico{ width:17px; height:17px; margin-left:-2px; }
 
   .profile-card-wrap{ position:relative; flex:1; min-height:320px; margin-bottom:16px; }
 
-  .card .flag-btns{ position:absolute; top:10px; right:10px; display:flex; gap:6px; z-index:2; }
+  .card .flag-btns{ position:absolute; top:22px; right:10px; display:flex; gap:6px; z-index:2; }
   .card .flag-btn{
-    width:28px; height:28px; border-radius:50%; background:rgba(0,0,0,0.55); border:1px solid rgba(255,255,255,0.25);
-    color:#fff; display:flex; align-items:center; justify-content:center; font-size:13px; cursor:pointer;
+    width:29px; height:29px; border-radius:50%; background:rgba(0,0,0,0.5); border:1px solid rgba(255,255,255,0.22);
+    color:rgba(255,255,255,.85); display:flex; align-items:center; justify-content:center; cursor:pointer;
+    backdrop-filter:blur(3px); transition:background .15s ease, color .15s ease;
   }
+  .card .flag-btn:hover{ background:rgba(0,0,0,.75); color:#fff; }
+  .card .flag-btn svg.ico{ width:14px; height:14px; stroke-width:2.2; }
   .link-btn{
     background:none; border:none; color:var(--chalk-dim); font-size:13px; text-decoration:underline;
     cursor:pointer; margin-top:14px; display:block; text-align:center; width:100%;
@@ -229,16 +351,28 @@
 
   nav.bottom{
     position:fixed; bottom:0; left:50%; transform:translateX(-50%); width:100%; max-width:430px;
-    display:flex; border-top:1px solid var(--steel); background:rgba(18,18,18,0.95); backdrop-filter:blur(6px);
+    display:flex; gap:4px; padding:5px 10px calc(7px + env(safe-area-inset-bottom, 0px));
+    border-top:1px solid var(--hairline); background:rgba(14,14,14,0.92);
+    backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
     z-index:10;
   }
   nav.bottom button{
-    flex:1; background:none; border:none; color:var(--chalk-dim); padding:12px 0 10px;
-    display:flex; flex-direction:column; align-items:center; gap:3px; font-size:10px; text-transform:uppercase; letter-spacing:0.05em; cursor:pointer;
-    font-family:'JetBrains Mono';
+    flex:1; background:none; border:none; color:var(--chalk-dim); padding:10px 0 6px;
+    display:flex; flex-direction:column; align-items:center; gap:4px;
+    font-size:9.5px; text-transform:uppercase; letter-spacing:0.08em; cursor:pointer;
+    font-family:'JetBrains Mono'; position:relative; border-radius:12px;
+    transition:color .18s ease;
   }
-  nav.bottom button .ic{ font-size:19px; }
+  nav.bottom button::before{
+    content:''; position:absolute; top:-6px; left:50%; transform:translateX(-50%) scaleX(0);
+    width:26px; height:3px; border-radius:0 0 3px 3px; background:var(--plate);
+    box-shadow:0 0 14px var(--plate-glow); transition:transform .2s ease;
+  }
+  nav.bottom button svg.ico{ transition:transform .18s ease; }
+  nav.bottom button:hover{ color:var(--chalk); }
   nav.bottom button.active{ color:var(--plate); }
+  nav.bottom button.active::before{ transform:translateX(-50%) scaleX(1); }
+  nav.bottom button.active svg.ico{ transform:translateY(-1px); }
 
   .legal-footer{
     display:none; justify-content:center; gap:16px; padding:14px 20px 84px;
@@ -422,12 +556,13 @@
   .divider{ height:1px; background:var(--steel); margin:24px 0; position:relative; }
   .divider::after{ content:'●  ●  ●'; position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); background:var(--ink); padding:0 10px; color:var(--steel); font-size:8px; letter-spacing:4px; }
 
-  .account-header{ display:flex; align-items:center; gap:14px; margin-bottom:26px; }
+  .account-header{ display:flex; align-items:center; gap:15px; margin-bottom:22px; }
   .account-avatar{
-    width:64px; height:64px; border-radius:16px; background-color:var(--surface-2); background-position:center; background-size:cover;
-    border:1px solid var(--steel); flex-shrink:0;
+    width:66px; height:66px; border-radius:50%; background-color:var(--surface-2); background-position:center; background-size:cover;
+    border:3px solid var(--ink); box-shadow:0 0 0 2px var(--plate-dim), 0 8px 20px rgba(0,0,0,.4);
+    flex-shrink:0;
     display:flex; align-items:center; justify-content:center;
-    font-family:'Oswald'; font-size:22px; color:var(--chalk-dim);
+    font-family:'Oswald'; font-size:24px; color:var(--chalk-dim);
   }
   .account-id{ flex:1; min-width:0; }
   .account-sub{ font-size:12.5px; color:var(--chalk-dim); margin-top:2px; }
@@ -445,22 +580,90 @@
   .account-section{ margin-bottom:26px; }
   .account-section-title{
     font-family:'JetBrains Mono', monospace; font-size:11px; letter-spacing:0.1em; text-transform:uppercase;
-    color:var(--chalk-dim); margin-bottom:10px; padding-bottom:8px; border-bottom:1px solid var(--steel);
+    color:var(--chalk-dim); margin-bottom:12px; padding-bottom:9px; border-bottom:1px solid var(--hairline);
+    display:flex; align-items:center; gap:8px;
+  }
+  .account-section-title::before{
+    content:''; width:3px; height:11px; background:var(--plate); border-radius:2px; flex-shrink:0;
   }
 
-  .price-card{ background:var(--surface); border:1px solid var(--plate-dim); border-radius:16px; padding:20px; text-align:center; }
-  .price-card .price{ font-family:'Oswald'; font-size:40px; color:var(--plate); }
-  .price-card .price small{ font-size:14px; color:var(--chalk-dim); }
-  .toast{
-    position:fixed; top:14px; left:50%; transform:translateX(-50%); background:var(--surface); border:1px solid var(--plate);
-    padding:10px 16px; border-radius:10px; font-size:13px; z-index:50; max-width:380px; text-align:center;
+  .price-card{
+    background:linear-gradient(180deg, rgba(255,90,31,.07), rgba(26,26,26,0) 45%), linear-gradient(180deg, #1f1f1f, #191919);
+    border:1px solid rgba(255,90,31,.35); border-radius:18px; padding:24px 20px 22px; text-align:center;
+    box-shadow:0 16px 36px rgba(0,0,0,.35);
   }
+  .price-card .price-eyebrow{
+    font-family:'JetBrains Mono'; font-size:10.5px; letter-spacing:0.18em; text-transform:uppercase;
+    color:var(--lime); margin-bottom:6px;
+  }
+  .price-card .price{ font-family:'Oswald'; font-weight:700; font-size:44px; color:var(--plate); line-height:1; }
+  .price-card .price small{ font-size:14px; color:var(--chalk-dim); font-weight:500; }
+  .price-feats{ list-style:none; margin:16px 0 2px; display:flex; flex-direction:column; gap:8px; text-align:left; }
+  .price-feats li{
+    display:flex; align-items:flex-start; gap:9px; font-size:13px; color:var(--chalk-dim); line-height:1.45;
+  }
+  .price-feats li svg.ico{ width:15px; height:15px; color:var(--lime); flex-shrink:0; margin-top:1.5px; stroke-width:2.4; }
+  .toast{
+    position:fixed; top:16px; left:50%; transform:translateX(-50%);
+    background:#1e1e1e; border:1px solid var(--hairline); border-left:3px solid var(--plate);
+    padding:11px 16px; border-radius:11px; font-size:13.5px; z-index:90; max-width:380px; text-align:left;
+    box-shadow:0 14px 34px rgba(0,0,0,.5);
+    animation:toastIn .25s ease;
+  }
+  @keyframes toastIn{ from{opacity:0; transform:translate(-50%,-10px);} to{opacity:1; transform:translate(-50%,0);} }
+
+  /* ---------- Match-Overlay (Vollbild-Moment bei beidseitigem Like) ---------- */
+  .match-overlay{
+    position:fixed; inset:0; z-index:80; display:none;
+    align-items:center; justify-content:center;
+    background:
+      radial-gradient(circle at 50% 38%, rgba(255,90,31,.16), transparent 55%),
+      rgba(9,9,9,.9);
+    backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
+  }
+  .match-overlay.open{ display:flex; }
+  .match-overlay-inner{ text-align:center; padding:30px 24px; max-width:360px; width:100%; animation:fade .3s ease; }
+  .match-eyebrow{
+    font-family:'JetBrains Mono'; font-size:11px; letter-spacing:0.22em; text-transform:uppercase;
+    color:var(--lime); margin-bottom:6px;
+  }
+  .match-title{
+    font-family:'Oswald'; font-weight:700; font-size:64px; line-height:1; text-transform:uppercase;
+    color:var(--plate); letter-spacing:0.01em;
+    text-shadow:0 0 34px var(--plate-glow), 0 4px 18px rgba(0,0,0,.6);
+    animation:matchPop .5s cubic-bezier(.2,1.6,.4,1);
+  }
+  @keyframes matchPop{ from{ transform:scale(.55) rotate(-4deg); opacity:0; } to{ transform:scale(1) rotate(0); opacity:1; } }
+  .match-avatars{ display:flex; justify-content:center; margin:26px 0 18px; }
+  .match-avatars .mav{
+    width:96px; height:96px; border-radius:50%; background-color:var(--surface-2);
+    background-size:cover; background-position:center;
+    border:3px solid var(--ink); box-shadow:0 0 0 2.5px var(--plate), 0 14px 30px rgba(0,0,0,.5);
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Oswald'; font-size:34px; color:var(--chalk-dim);
+    animation:mavIn .45s cubic-bezier(.2,1.4,.4,1) backwards;
+  }
+  .match-avatars .mav:last-child{ margin-left:-18px; animation-delay:.08s; }
+  @keyframes mavIn{ from{ transform:scale(.4); opacity:0; } to{ transform:scale(1); opacity:1; } }
+  .match-sub{ color:var(--chalk-dim); font-size:14px; line-height:1.5; margin-bottom:6px; }
+  .match-overlay .btn{ margin-top:16px; }
+  .match-overlay .btn.secondary{ margin-top:10px; }
   .field-err{ color:var(--danger); font-size:12px; margin-top:4px; }
   .consent-row{ margin-top:18px; display:flex; flex-direction:column; gap:10px; }
   .consent-label{ display:flex; gap:10px; align-items:flex-start; font-size:12px; color:var(--chalk-dim); cursor:pointer; text-transform:none; letter-spacing:normal; }
   .consent-label input[type=checkbox]{ margin-top:2px; width:16px; height:16px; flex-shrink:0; accent-color:var(--plate); }
   .consent-label a{ color:var(--chalk); }
-  .loading{ text-align:center; padding:60px 0; color:var(--chalk-dim); font-family:'JetBrains Mono'; font-size:13px; }
+  .loading{
+    text-align:center; padding:60px 0; color:var(--chalk-dim); font-family:'JetBrains Mono'; font-size:12.5px;
+    letter-spacing:0.06em; text-transform:uppercase;
+    animation:loadingPulse 1.4s ease infinite;
+  }
+  @keyframes loadingPulse{ 0%,100%{opacity:.45;} 50%{opacity:1;} }
+  main::-webkit-scrollbar{ width:6px; }
+  main::-webkit-scrollbar-thumb{ background:var(--steel); border-radius:3px; }
+  .chat-messages::-webkit-scrollbar{ width:5px; }
+  .chat-messages::-webkit-scrollbar-thumb{ background:var(--steel); border-radius:3px; }
+  #btnLogout:hover{ border-color:rgba(227,72,72,.5); color:var(--danger); background:rgba(227,72,72,.05); }
 </style>
 </head>
 <body>
@@ -617,8 +820,12 @@
       <h2 class="headline" style="font-size:22px; margin-bottom:16px;">Wer trainiert wo du bist</h2>
       <div class="deck" id="deck"><div class="loading">Lade Profile …</div></div>
       <div class="swipe-actions" id="swipeActions" style="display:none;">
-        <button class="round-btn pass" id="btnPass">✕</button>
-        <button class="round-btn like" id="btnLike">♥</button>
+        <button class="round-btn pass" id="btnPass" aria-label="Ablehnen">
+          <svg class="ico" viewBox="0 0 24 24"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/></svg>
+        </button>
+        <button class="round-btn like" id="btnLike" aria-label="Gefällt mir">
+          <svg class="ico" viewBox="0 0 24 24"><path d="M12 20.3S4.8 15.7 4.8 10.8C4.8 8 6.9 6 9.3 6c1.2 0 2.3.55 2.7 1.4C12.4 6.55 13.5 6 14.7 6c2.4 0 4.5 2 4.5 4.8 0 4.9-7.2 9.5-7.2 9.5z" fill="currentColor" stroke="none"/></svg>
+        </button>
       </div>
     </section>
 
@@ -632,28 +839,33 @@
     <!-- MATCH-PROFIL -->
     <section class="screen" id="screen-match-profile">
       <div class="chat-header">
-        <button class="back-btn" id="btnMatchProfileBack" aria-label="Zurück zu Matches">←</button>
-        <div class="nm">Profil</div>
+        <button class="back-btn" id="btnMatchProfileBack" aria-label="Zurück zu Matches"><svg class="ico" viewBox="0 0 24 24"><path d="M14.5 5 8 12l6.5 7"/></svg></button>
+        <div class="nm" id="matchProfileTitle">Profil</div>
       </div>
       <div class="profile-card-wrap" id="matchProfileCardWrap"></div>
-      <button class="btn" id="btnOpenChatFromProfile">💬 Nachricht schreiben</button>
+      <button class="btn" id="btnOpenChatFromProfile">
+        <svg class="ico" viewBox="0 0 24 24"><path d="M21 11.7a8.2 8.2 0 0 1-8.3 8.1c-1.5 0-2.9-.35-4.1-1L4 19.9l1.1-4.1a8.1 8.1 0 1 1 15.9-4.1z"/></svg>
+        Nachricht schreiben
+      </button>
     </section>
 
     <!-- CHAT -->
     <section class="screen" id="screen-chat">
       <div class="chat-header">
-        <button class="back-btn" id="btnChatBack" aria-label="Zurück zu Matches">←</button>
+        <button class="back-btn" id="btnChatBack" aria-label="Zurück zu Matches"><svg class="ico" viewBox="0 0 24 24"><path d="M14.5 5 8 12l6.5 7"/></svg></button>
         <img id="chatAvatar" src="" alt="">
         <div class="nm" id="chatName">—</div>
         <div class="chat-flag-btns">
-          <div class="icon-btn" id="btnReportChat" title="Melden">⚠</div>
-          <div class="icon-btn" id="btnBlockChat" title="Blockieren">🚫</div>
+          <div class="icon-btn" id="btnReportChat" title="Melden" aria-label="Melden"><svg class="ico" viewBox="0 0 24 24"><path d="M6 21V4.5M6 5h11.5l-2.4 3.9 2.4 3.9H6"/></svg></div>
+          <div class="icon-btn" id="btnBlockChat" title="Blockieren" aria-label="Blockieren"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.2"/><path d="M6.4 6.4l11.2 11.2"/></svg></div>
         </div>
       </div>
       <div class="chat-messages" id="chatMessages"><div class="loading">Lade Chat …</div></div>
       <div class="chat-input-row">
         <input type="text" id="chatInput" placeholder="Nachricht schreiben…" maxlength="2000">
-        <button class="btn" id="btnChatSend">Senden</button>
+        <button class="chat-send-btn" id="btnChatSend" aria-label="Senden">
+          <svg class="ico" viewBox="0 0 24 24"><path d="M21.5 2.5 11 13M21.5 2.5l-7 19-3.5-8.5-8.5-3.5 19-7z"/></svg>
+        </button>
       </div>
     </section>
 
@@ -689,13 +901,19 @@
 
     <!-- PAYWALL BLOCK -->
     <section class="screen" id="screen-paywall">
-      <div class="empty">
-        <div class="big">🔒</div>
-        <h2 class="headline" style="font-size:20px;">Probemonat vorbei</h2>
-        <p class="sub">Dein kostenloser Monat ist abgelaufen. Schalte FLEXR für 5&nbsp;€/Monat wieder frei.</p>
+      <div class="empty" style="padding-bottom:28px;">
+        <div class="empty-icon"><svg class="ico" viewBox="0 0 24 24"><rect x="5.5" y="10.5" width="13" height="9" rx="2.5"/><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5"/></svg></div>
+        <div class="empty-title">Probemonat vorbei</div>
+        <div class="empty-sub">Dein kostenloser Monat ist abgelaufen. Schalte FLEXR wieder frei.</div>
       </div>
       <div class="price-card">
+        <div class="price-eyebrow">Mitgliedschaft</div>
         <div class="price">5&nbsp;€ <small>/ Monat</small></div>
+        <ul class="price-feats">
+          <li><svg class="ico" viewBox="0 0 24 24"><path d="M5 12.5 10 17 19 7"/></svg>Unbegrenzt swipen &amp; matchen in deiner Stadt</li>
+          <li><svg class="ico" viewBox="0 0 24 24"><path d="M5 12.5 10 17 19 7"/></svg>Chat mit allen Matches inklusive</li>
+          <li><svg class="ico" viewBox="0 0 24 24"><path d="M5 12.5 10 17 19 7"/></svg>Monatlich kündbar, keine versteckten Kosten</li>
+        </ul>
         <button class="btn" id="btnSubscribe2">Jetzt abonnieren</button>
       </div>
     </section>
@@ -715,10 +933,36 @@
     </div>
   </div>
 
+  <div class="match-overlay" id="matchOverlay">
+    <div class="match-overlay-inner">
+      <div class="match-eyebrow">Beide interessiert</div>
+      <div class="match-title">Match!</div>
+      <div class="match-avatars">
+        <div class="mav" id="matchAvatarMe"></div>
+        <div class="mav" id="matchAvatarThem"></div>
+      </div>
+      <p class="match-sub" id="matchSubText">Ihr habt euch gegenseitig geliked.</p>
+      <button class="btn" id="btnMatchChat">
+        <svg class="ico" viewBox="0 0 24 24"><path d="M21 11.7a8.2 8.2 0 0 1-8.3 8.1c-1.5 0-2.9-.35-4.1-1L4 19.9l1.1-4.1a8.1 8.1 0 1 1 15.9-4.1z"/></svg>
+        Nachricht schreiben
+      </button>
+      <button class="btn secondary" id="btnMatchContinue">Weiter swipen</button>
+    </div>
+  </div>
+
   <nav class="bottom" id="bottomNav" style="display:none;">
-    <button data-screen="swipe" class="active"><span class="ic">🔥</span>Swipe</button>
-    <button data-screen="matches"><span class="ic">💪</span>Matches</button>
-    <button data-screen="account"><span class="ic">👤</span>Konto</button>
+    <button data-screen="swipe" class="active">
+      <svg class="ico" viewBox="0 0 24 24"><path d="M7 8.5v7M10.5 6.5v11M17 8.5v7M13.5 6.5v11M10.5 12h3M3.5 10v4M20.5 10v4"/></svg>
+      Swipe
+    </button>
+    <button data-screen="matches">
+      <svg class="ico" viewBox="0 0 24 24"><path d="M21 11.7a8.2 8.2 0 0 1-8.3 8.1c-1.5 0-2.9-.35-4.1-1L4 19.9l1.1-4.1a8.1 8.1 0 1 1 15.9-4.1z"/><path d="M12.7 14.7 11 12.9a1.55 1.55 0 1 1 1.7-2.4 1.55 1.55 0 1 1 1.7 2.4l-1.7 1.8z" fill="currentColor" stroke="none"/></svg>
+      Matches
+    </button>
+    <button data-screen="account">
+      <svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="8.2" r="3.4"/><path d="M5.5 19.5c1-3.4 3.5-5.1 6.5-5.1s5.5 1.7 6.5 5.1"/></svg>
+      Konto
+    </button>
   </nav>
 
 </div>
@@ -1167,8 +1411,8 @@
     el.innerHTML = `
       ${interactive ? `
       <div class="flag-btns">
-        <div class="flag-btn" id="btnReportCard" title="Melden">⚠</div>
-        <div class="flag-btn" id="btnBlockCard" title="Blockieren">🚫</div>
+        <div class="flag-btn" id="btnReportCard" title="Melden" aria-label="Melden"><svg class="ico" viewBox="0 0 24 24"><path d="M6 21V4.5M6 5h11.5l-2.4 3.9 2.4 3.9H6"/></svg></div>
+        <div class="flag-btn" id="btnBlockCard" title="Blockieren" aria-label="Blockieren"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.2"/><path d="M6.4 6.4l11.2 11.2"/></svg></div>
       </div>` : ''}
       <div class="stamp like">MATCH</div>
       <div class="stamp pass">NÄCHSTE</div>
@@ -1183,7 +1427,7 @@
       </div>
       <div class="body">
         <div class="stat-row">
-          <div class="stat-chip">🏋️ ${escapeHtml(p.gym||'Kein Gym angegeben')}</div>
+          <div class="stat-chip"><svg class="ico" viewBox="0 0 24 24"><path d="M7 8.5v7M10.5 6.5v11M17 8.5v7M13.5 6.5v11M10.5 12h3M3.5 10v4M20.5 10v4"/></svg>${escapeHtml(p.gym||'Kein Gym angegeben')}</div>
         </div>
         ${(p.height_cm || p.weight_kg) ? `
         <div class="prs">
@@ -1228,7 +1472,12 @@
     const container = $('deck');
     container.innerHTML = '';
     if(deckIdx >= deck.length){
-      container.innerHTML = `<div class="empty"><div class="big">🏋️</div>Keine neuen Profile in deiner Nähe.<br>Schau später nochmal vorbei.</div>`;
+      container.innerHTML = `
+        <div class="empty">
+          <div class="empty-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M7 8.5v7M10.5 6.5v11M17 8.5v7M13.5 6.5v11M10.5 12h3M3.5 10v4M20.5 10v4"/></svg></div>
+          <div class="empty-title">Alle Sätze absolviert</div>
+          <div class="empty-sub">Keine neuen Profile in deiner Nähe. Schau später nochmal vorbei.</div>
+        </div>`;
       $('swipeActions').style.display = 'none';
       return;
     }
@@ -1349,9 +1598,55 @@
     const target = deck[deckIdx];
     try{
       const result = await api('/api/swipes', {method: 'POST', body: JSON.stringify({to_user_id: target.id, action})});
-      if(result.matched) toast(`Match mit ${target.name}! 💪`);
+      if(result.matched) showMatchOverlay(target);
     }catch(err){ toast(err.message || 'Swipe fehlgeschlagen.'); }
   }
+
+  // ---------- Match-Overlay ----------
+  let matchOverlayProfile = null;
+
+  function fillAvatar(el, photoUrl, name){
+    if(photoUrl){
+      el.style.backgroundImage = `url('${photoUrl}')`;
+      el.textContent = '';
+    } else {
+      el.style.backgroundImage = '';
+      el.textContent = (name || '?').charAt(0).toUpperCase();
+    }
+  }
+
+  function showMatchOverlay(profile){
+    matchOverlayProfile = profile;
+    fillAvatar($('matchAvatarMe'), (myProfile.photos && myProfile.photos[0] && myProfile.photos[0].url) || '', myProfile.name);
+    fillAvatar($('matchAvatarThem'), (profile.photos && profile.photos[0] && profile.photos[0].url) || '', profile.name);
+    $('matchSubText').textContent = `Du und ${profile.name} habt euch gegenseitig geliked.`;
+    $('matchOverlay').classList.add('open');
+  }
+
+  function closeMatchOverlay(){
+    $('matchOverlay').classList.remove('open');
+    matchOverlayProfile = null;
+  }
+
+  $('btnMatchContinue').addEventListener('click', closeMatchOverlay);
+  $('btnMatchChat').addEventListener('click', async () => {
+    const profile = matchOverlayProfile;
+    closeMatchOverlay();
+    if(!profile) return;
+    try{
+      matchesCache = await api('/api/matches');
+      const match = matchesCache.find(m => m.profile.id === profile.id);
+      setNavActive('matches');
+      if(match){
+        openChat(match.match_id);
+      } else {
+        showScreen('screen-matches');
+        loadMatches();
+      }
+    }catch(err){
+      toast(err.message || 'Chat konnte nicht geöffnet werden.');
+    }
+  });
 
   $('btnLike').addEventListener('click', ()=> commitSwipe('like'));
   $('btnPass').addEventListener('click', ()=> commitSwipe('pass'));
@@ -1364,21 +1659,27 @@
     try{
       matchesCache = await api('/api/matches');
       if(matchesCache.length === 0){
-        $('matchList').innerHTML = `<div class="empty"><div class="big">🤝</div>Noch keine Matches.<br>Weiter swipen!</div>`;
+        $('matchList').innerHTML = `
+          <div class="empty">
+            <div class="empty-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M12 20.3S4.8 15.7 4.8 10.8C4.8 8 6.9 6 9.3 6c1.2 0 2.3.55 2.7 1.4C12.4 6.55 13.5 6 14.7 6c2.4 0 4.5 2 4.5 4.8 0 4.9-7.2 9.5-7.2 9.5z"/></svg></div>
+            <div class="empty-title">Noch keine Matches</div>
+            <div class="empty-sub">Weiter swipen — dein nächster Trainingspartner wartet schon.</div>
+          </div>`;
         return;
       }
       $('matchList').innerHTML = matchesCache.map(m => {
         const p = m.profile;
         const photo = (p.photos && p.photos[0] && p.photos[0].url) || '';
         const preview = m.last_message ? escapeHtml(m.last_message.content) : 'Match! Schreib die erste Nachricht.';
+        const unread = m.unread_count > 0;
         return `
-        <div class="match-item" data-match-id="${m.match_id}">
+        <div class="match-item${unread ? ' unread' : ''}" data-match-id="${m.match_id}">
           <img src="${photo}">
           <div class="info">
             <div class="nm">${escapeHtml(p.name)}, ${p.age}</div>
             <div class="last-msg">${preview}</div>
           </div>
-          ${m.unread_count > 0 ? `<div class="unread-badge">${m.unread_count}</div>` : ''}
+          ${unread ? `<div class="unread-badge">${m.unread_count}</div>` : '<div class="chev"></div>'}
         </div>`;
       }).join('');
       $('matchList').querySelectorAll('.match-item').forEach(el => {
@@ -1401,6 +1702,7 @@
     const match = findMatchById(matchId);
     if(!match) return;
     currentMatchProfileId = matchId;
+    $('matchProfileTitle').textContent = match.profile.name + ', ' + match.profile.age;
     const wrap = $('matchProfileCardWrap');
     wrap.innerHTML = '';
     const cardEl = buildCardEl(match.profile, true, {
@@ -1466,7 +1768,12 @@
     const box = $('chatMessages');
     const wasAtBottom = (box.scrollTop + box.clientHeight) >= (box.scrollHeight - 40);
     if(messages.length === 0){
-      box.innerHTML = '<div class="chat-empty">Noch keine Nachrichten. Schreib die erste!</div>';
+      box.innerHTML = `
+        <div class="empty" style="flex:1;">
+          <div class="empty-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M21.5 2.5 11 13M21.5 2.5l-7 19-3.5-8.5-8.5-3.5 19-7z"/></svg></div>
+          <div class="empty-title">Noch keine Nachrichten</div>
+          <div class="empty-sub">Schreib die erste — ihr habt schließlich gematcht.</div>
+        </div>`;
       return;
     }
     box.innerHTML = messages.map(m => {
