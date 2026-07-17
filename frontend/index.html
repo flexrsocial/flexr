@@ -281,6 +281,7 @@
   }
 
   /* Interaktive Mini-Swipe-Demo mit Beispielprofilen */
+  .demo-widget{ display:flex; flex-direction:column; align-items:center; }
   .demo-deck{
     position:relative; width:196px; height:252px; touch-action:none;
   }
@@ -318,10 +319,12 @@
     text-transform:uppercase; letter-spacing:0.06em; margin-right:2px;
   }
   .demo-queue img{
-    width:36px; height:36px; border-radius:50%; object-fit:cover;
-    border:2px solid rgba(255,255,255,.18); box-shadow:0 6px 14px rgba(0,0,0,.4);
-    opacity:.85;
+    width:38px; height:38px; border-radius:50%; object-fit:cover;
+    border:2.5px solid var(--ink);
+    box-shadow:0 0 0 2px var(--plate-dim), 0 6px 14px rgba(0,0,0,.45);
+    transition:transform .15s ease;
   }
+  .demo-queue img:hover{ transform:translateY(-2px) scale(1.06); }
 
   body.landing .screen{ display:none; }
   body.landing .screen.active{
@@ -361,7 +364,6 @@
     .landing-hero h1{ font-size:clamp(36px,10vw,50px); }
     .landing-hero .hero-sub{ margin-bottom:18px; }
     .hero-usps{ margin-bottom:0; }
-    .demo-actions{ justify-content:flex-start; }
     body.landing .screen.active{ max-height:none; overflow:visible; }
   }
 
@@ -406,11 +408,13 @@
         <li>1 Monat gratis testen, danach 5&nbsp;€/Monat — jederzeit kündbar</li>
         <li>Echte Profile: Melde- &amp; Blockfunktion inklusive</li>
       </ul>
-      <div class="demo-deck" id="demoDeck"></div>
-      <div class="demo-queue" id="demoQueue"></div>
-      <div class="demo-actions">
-        <button class="demo-btn pass" id="demoPass" type="button" aria-label="Ablehnen">✕</button>
-        <button class="demo-btn like" id="demoLike" type="button" aria-label="Gefällt mir">♥</button>
+      <div class="demo-widget">
+        <div class="demo-deck" id="demoDeck"></div>
+        <div class="demo-queue" id="demoQueue"></div>
+        <div class="demo-actions">
+          <button class="demo-btn pass" id="demoPass" type="button" aria-label="Ablehnen">✕</button>
+          <button class="demo-btn like" id="demoLike" type="button" aria-label="Gefällt mir">♥</button>
+        </div>
       </div>
     </div>
 
