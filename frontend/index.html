@@ -1186,7 +1186,7 @@
   function renderDemoQueue(){
     if(!demoQueueEl) return;
     const upcoming = [];
-    for(let i = 2; i <= 5; i++){
+    for(let i = 1; i <= 4; i++){
       upcoming.push(demoProfiles[(demoIdx + i) % demoProfiles.length]);
     }
     demoQueueEl.innerHTML = upcoming.map(p => `<img src="${p.img}" alt="Beispielprofil ${escapeHtml(p.name)}" title="${escapeHtml(p.name)}, ${p.age}">`).join('');
