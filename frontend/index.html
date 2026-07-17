@@ -307,25 +307,21 @@
   .demo-card .demo-stamp.like{ right:12px; color:var(--lime); border-color:var(--lime); transform:rotate(-10deg); }
   .demo-card .demo-stamp.pass{ left:12px; color:var(--danger); border-color:var(--danger); transform:rotate(10deg); }
 
-  /* Rechte Spalte neben der Karte: Vorschau-Stapel + Aktions-Buttons */
-  .demo-side{
-    display:flex; flex-direction:column; align-items:center; justify-content:space-between;
-    height:252px;
-  }
+  /* Rechte Spalte neben der Karte: Vorschau-Reihe + Aktions-Buttons */
+  .demo-side{ display:flex; flex-direction:column; gap:16px; }
   .demo-queue-label{
     font-family:'JetBrains Mono', monospace; font-size:9.5px; color:var(--chalk-dim);
-    text-transform:uppercase; letter-spacing:0.06em; margin-bottom:8px; text-align:center;
+    text-transform:uppercase; letter-spacing:0.06em; margin-bottom:8px;
   }
-  .demo-queue{ display:flex; flex-direction:column; align-items:center; }
+  .demo-queue{ display:flex; flex-direction:row; align-items:center; gap:6px; }
   .demo-queue img{
     width:38px; height:38px; border-radius:50%; object-fit:cover;
     border:2.5px solid var(--ink);
     box-shadow:0 0 0 2px var(--plate-dim), 0 6px 14px rgba(0,0,0,.45);
-    transition:transform .15s ease; margin-top:-16px;
+    transition:transform .15s ease;
   }
-  .demo-queue img:first-child{ margin-top:0; }
   .demo-queue img:hover{ transform:translateY(-2px) scale(1.06); z-index:1; position:relative; }
-  .demo-actions{ display:flex; flex-direction:column; gap:10px; }
+  .demo-actions{ display:flex; flex-direction:row; gap:12px; }
   .demo-btn{
     width:42px; height:42px; border-radius:50%; border:1px solid var(--steel); background:var(--surface);
     display:flex; align-items:center; justify-content:center; font-size:17px; cursor:pointer;
@@ -420,7 +416,7 @@
         <div class="demo-deck" id="demoDeck"></div>
         <div class="demo-side">
           <div>
-            <div class="demo-queue-label">Als<br>Nächstes</div>
+            <div class="demo-queue-label">Als Nächstes</div>
             <div class="demo-queue" id="demoQueue"></div>
           </div>
           <div class="demo-actions">
