@@ -281,13 +281,14 @@
   }
 
   /* Interaktive Mini-Swipe-Demo mit Beispielprofilen */
-  .demo-widget{ display:flex; flex-direction:column; align-items:center; }
+  .demo-widget{ display:flex; align-items:center; gap:22px; }
   .demo-deck{
-    position:relative; width:196px; height:252px; touch-action:none;
+    position:relative; width:196px; height:252px; touch-action:none; flex-shrink:0;
   }
   .demo-card{
     position:absolute; inset:0; border-radius:16px; overflow:hidden;
-    border:1px solid rgba(255,255,255,.16); box-shadow:0 20px 40px rgba(0,0,0,.5);
+    border:2.5px solid var(--ink);
+    box-shadow:0 0 0 2px var(--plate-dim), 0 20px 40px rgba(0,0,0,.5);
     background-size:cover; background-position:center; cursor:grab; user-select:none;
     transition:transform .35s cubic-bezier(.2,.8,.3,1), opacity .3s ease;
   }
@@ -305,7 +306,26 @@
   }
   .demo-card .demo-stamp.like{ right:12px; color:var(--lime); border-color:var(--lime); transform:rotate(-10deg); }
   .demo-card .demo-stamp.pass{ left:12px; color:var(--danger); border-color:var(--danger); transform:rotate(10deg); }
-  .demo-actions{ display:flex; justify-content:center; gap:16px; margin-top:16px; }
+
+  /* Rechte Spalte neben der Karte: Vorschau-Stapel + Aktions-Buttons */
+  .demo-side{
+    display:flex; flex-direction:column; align-items:center; justify-content:space-between;
+    height:252px;
+  }
+  .demo-queue-label{
+    font-family:'JetBrains Mono', monospace; font-size:9.5px; color:var(--chalk-dim);
+    text-transform:uppercase; letter-spacing:0.06em; margin-bottom:8px; text-align:center;
+  }
+  .demo-queue{ display:flex; flex-direction:column; align-items:center; }
+  .demo-queue img{
+    width:38px; height:38px; border-radius:50%; object-fit:cover;
+    border:2.5px solid var(--ink);
+    box-shadow:0 0 0 2px var(--plate-dim), 0 6px 14px rgba(0,0,0,.45);
+    transition:transform .15s ease; margin-top:-16px;
+  }
+  .demo-queue img:first-child{ margin-top:0; }
+  .demo-queue img:hover{ transform:translateY(-2px) scale(1.06); z-index:1; position:relative; }
+  .demo-actions{ display:flex; flex-direction:column; gap:10px; }
   .demo-btn{
     width:42px; height:42px; border-radius:50%; border:1px solid var(--steel); background:var(--surface);
     display:flex; align-items:center; justify-content:center; font-size:17px; cursor:pointer;
@@ -313,18 +333,6 @@
   .demo-btn.pass{ color:var(--danger); }
   .demo-btn.like{ color:var(--plate); border-color:var(--plate-dim); }
   .demo-btn:active{ transform:scale(0.92); }
-  .demo-queue{ display:flex; align-items:center; gap:8px; margin-top:14px; }
-  .demo-queue-label{
-    font-family:'JetBrains Mono', monospace; font-size:9.5px; color:var(--chalk-dim);
-    text-transform:uppercase; letter-spacing:0.06em; margin-right:2px;
-  }
-  .demo-queue img{
-    width:38px; height:38px; border-radius:50%; object-fit:cover;
-    border:2.5px solid var(--ink);
-    box-shadow:0 0 0 2px var(--plate-dim), 0 6px 14px rgba(0,0,0,.45);
-    transition:transform .15s ease;
-  }
-  .demo-queue img:hover{ transform:translateY(-2px) scale(1.06); }
 
   body.landing .screen{ display:none; }
   body.landing .screen.active{
@@ -410,10 +418,15 @@
       </ul>
       <div class="demo-widget">
         <div class="demo-deck" id="demoDeck"></div>
-        <div class="demo-queue" id="demoQueue"></div>
-        <div class="demo-actions">
-          <button class="demo-btn pass" id="demoPass" type="button" aria-label="Ablehnen">✕</button>
-          <button class="demo-btn like" id="demoLike" type="button" aria-label="Gefällt mir">♥</button>
+        <div class="demo-side">
+          <div>
+            <div class="demo-queue-label">Als<br>Nächstes</div>
+            <div class="demo-queue" id="demoQueue"></div>
+          </div>
+          <div class="demo-actions">
+            <button class="demo-btn pass" id="demoPass" type="button" aria-label="Ablehnen">✕</button>
+            <button class="demo-btn like" id="demoLike" type="button" aria-label="Gefällt mir">♥</button>
+          </div>
         </div>
       </div>
     </div>
@@ -1180,8 +1193,7 @@
     for(let i = 2; i <= 5; i++){
       upcoming.push(demoProfiles[(demoIdx + i) % demoProfiles.length]);
     }
-    demoQueueEl.innerHTML = '<span class="demo-queue-label">Als Nächstes</span>' +
-      upcoming.map(p => `<img src="${p.img}" alt="Beispielprofil ${escapeHtml(p.name)}" title="${escapeHtml(p.name)}, ${p.age}">`).join('');
+    demoQueueEl.innerHTML = upcoming.map(p => `<img src="${p.img}" alt="Beispielprofil ${escapeHtml(p.name)}" title="${escapeHtml(p.name)}, ${p.age}">`).join('');
   }
 
   function renderDemoCard(){
