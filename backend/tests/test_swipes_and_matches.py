@@ -40,9 +40,9 @@ def test_mutual_like_creates_match(client):
     assert second.json()["matched"] is True
 
     matches_a = client.get("/api/matches", headers=headers_a).json()
-    assert any(p["id"] == user_b["id"] for p in matches_a)
+    assert any(m["profile"]["id"] == user_b["id"] for m in matches_a)
     matches_b = client.get("/api/matches", headers=headers_b).json()
-    assert any(p["id"] == user_a["id"] for p in matches_b)
+    assert any(m["profile"]["id"] == user_a["id"] for m in matches_b)
 
 
 def test_pass_does_not_create_match(client):

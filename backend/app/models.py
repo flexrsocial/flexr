@@ -126,6 +126,17 @@ class Match(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
 
 
+class Message(Base):
+    __tablename__ = "messages"
+
+    id = Column(String, primary_key=True, default=gen_uuid)
+    match_id = Column(String, ForeignKey("matches.id", ondelete="CASCADE"), nullable=False, index=True)
+    sender_id = Column(String, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    content = Column(String(2000), nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    read_at = Column(DateTime, nullable=True)
+
+
 class Block(Base):
     __tablename__ = "blocks"
     __table_args__ = (UniqueConstraint("blocker_id", "blocked_id", name="uq_block_pair"),)

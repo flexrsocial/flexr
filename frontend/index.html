@@ -125,12 +125,22 @@
   }
 
   /* swipe card */
-  .deck{ position:relative; height:520px; }
+  .deck{ position:relative; height:520px; touch-action:none; }
   .card{
     position:absolute; inset:0; background:var(--surface); border-radius:20px; overflow:hidden;
     border:1px solid var(--steel); box-shadow:0 20px 40px rgba(0,0,0,0.4);
     display:flex; flex-direction:column;
+    cursor:grab; user-select:none;
+    transition:transform .35s cubic-bezier(.2,.8,.3,1), opacity .3s ease;
   }
+  .card.dragging{ cursor:grabbing; transition:none; }
+  .card .stamp{
+    position:absolute; top:20px; padding:6px 14px; border:3px solid; border-radius:10px;
+    font-family:'Oswald'; font-weight:700; font-size:20px; text-transform:uppercase;
+    letter-spacing:0.04em; opacity:0; pointer-events:none; z-index:3;
+  }
+  .card .stamp.like{ right:16px; color:var(--lime); border-color:var(--lime); transform:rotate(-10deg); }
+  .card .stamp.pass{ left:16px; color:var(--danger); border-color:var(--danger); transform:rotate(10deg); }
   .card .photo{ height:58%; background:linear-gradient(180deg, transparent 40%, rgba(0,0,0,0.85)), var(--surface-2); background-size:cover; background-position:center; position:relative; }
   .card .photo-index{ position:absolute; top:10px; left:10px; right:10px; display:flex; gap:4px; }
   .card .photo-index i{ flex:1; height:3px; border-radius:2px; background:rgba(255,255,255,0.25); }
@@ -164,10 +174,42 @@
 
   .match-item{
     display:flex; gap:12px; align-items:center; padding:12px; background:var(--surface); border-radius:12px; margin-bottom:10px; border:1px solid var(--steel);
+    cursor:pointer; transition:background .15s ease, border-color .15s ease;
   }
-  .match-item img{ width:56px; height:56px; border-radius:10px; object-fit:cover; background:var(--surface-2); }
+  .match-item:hover{ background:var(--surface-2); border-color:var(--plate-dim); }
+  .match-item img{ width:56px; height:56px; border-radius:10px; object-fit:cover; background:var(--surface-2); flex-shrink:0; }
+  .match-item .info{ flex:1; min-width:0; }
   .match-item .info .nm{ font-family:'Oswald'; font-size:16px; }
-  .match-item .info .contact{ font-size:12px; color:var(--lime); font-family:'JetBrains Mono'; }
+  .match-item .info .last-msg{ font-size:12px; color:var(--chalk-dim); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:2px; }
+  .match-item .unread-badge{
+    background:var(--plate); color:#141414; font-family:'JetBrains Mono'; font-size:11px; font-weight:700;
+    border-radius:50%; min-width:20px; height:20px; display:flex; align-items:center; justify-content:center; padding:0 5px; flex-shrink:0;
+  }
+
+  .icon-btn{
+    width:30px; height:30px; border-radius:50%; background:var(--surface-2); border:1px solid var(--steel);
+    color:var(--chalk); display:flex; align-items:center; justify-content:center; font-size:13px; cursor:pointer; flex-shrink:0;
+  }
+  .icon-btn:hover{ background:var(--ink); }
+
+  .chat-header{ display:flex; align-items:center; gap:10px; margin-bottom:14px; }
+  .chat-header .back-btn{ background:none; border:none; color:var(--chalk); font-size:20px; cursor:pointer; padding:4px 8px 4px 0; line-height:1; }
+  .chat-header img{ width:42px; height:42px; border-radius:10px; object-fit:cover; background:var(--surface-2); flex-shrink:0; }
+  .chat-header .nm{ font-family:'Oswald'; font-size:16px; flex:1; min-width:0; }
+  .chat-header .chat-flag-btns{ display:flex; gap:6px; }
+
+  .chat-messages{
+    display:flex; flex-direction:column; gap:8px; min-height:320px; max-height:52vh; overflow-y:auto;
+    padding:4px 2px 10px; scrollbar-width:thin;
+  }
+  .msg-bubble{ max-width:78%; padding:9px 13px; border-radius:14px; font-size:14px; line-height:1.4; word-wrap:break-word; }
+  .msg-bubble.mine{ align-self:flex-end; background:var(--plate); color:#141414; border-bottom-right-radius:4px; }
+  .msg-bubble.theirs{ align-self:flex-start; background:var(--surface-2); border:1px solid var(--steel); border-bottom-left-radius:4px; }
+  .msg-bubble .time{ display:block; font-size:9.5px; margin-top:3px; opacity:0.65; font-family:'JetBrains Mono'; }
+  .chat-input-row{ display:flex; gap:8px; margin-top:12px; }
+  .chat-input-row input{ flex:1; }
+  .chat-input-row .btn{ width:auto; margin:0; padding:0 20px; }
+  .chat-empty{ text-align:center; color:var(--chalk-dim); padding:40px 0; font-size:13px; }
 
   .card .flag-btns{ position:absolute; top:10px; right:10px; display:flex; gap:6px; z-index:2; }
   .card .flag-btn{
@@ -374,6 +416,21 @@
   .divider{ height:1px; background:var(--steel); margin:24px 0; position:relative; }
   .divider::after{ content:'●  ●  ●'; position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); background:var(--ink); padding:0 10px; color:var(--steel); font-size:8px; letter-spacing:4px; }
 
+  .account-header{ display:flex; align-items:center; gap:14px; margin-bottom:26px; }
+  .account-avatar{
+    width:64px; height:64px; border-radius:16px; background-color:var(--surface-2); background-position:center; background-size:cover;
+    border:1px solid var(--steel); flex-shrink:0;
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Oswald'; font-size:22px; color:var(--chalk-dim);
+  }
+  .account-id{ flex:1; min-width:0; }
+  .account-sub{ font-size:12.5px; color:var(--chalk-dim); margin-top:2px; }
+  .account-section{ margin-bottom:26px; }
+  .account-section-title{
+    font-family:'JetBrains Mono', monospace; font-size:11px; letter-spacing:0.1em; text-transform:uppercase;
+    color:var(--chalk-dim); margin-bottom:10px; padding-bottom:8px; border-bottom:1px solid var(--steel);
+  }
+
   .price-card{ background:var(--surface); border:1px solid var(--plate-dim); border-radius:16px; padding:20px; text-align:center; }
   .price-card .price{ font-family:'Oswald'; font-size:40px; color:var(--plate); }
   .price-card .price small{ font-size:14px; color:var(--chalk-dim); }
@@ -555,27 +612,56 @@
       <div id="matchList"><div class="loading">Lade Matches …</div></div>
     </section>
 
+    <!-- CHAT -->
+    <section class="screen" id="screen-chat">
+      <div class="chat-header">
+        <button class="back-btn" id="btnChatBack" aria-label="Zurück zu Matches">←</button>
+        <img id="chatAvatar" src="" alt="">
+        <div class="nm" id="chatName">—</div>
+        <div class="chat-flag-btns">
+          <div class="icon-btn" id="btnReportChat" title="Melden">⚠</div>
+          <div class="icon-btn" id="btnBlockChat" title="Blockieren">🚫</div>
+        </div>
+      </div>
+      <div class="chat-messages" id="chatMessages"><div class="loading">Lade Chat …</div></div>
+      <div class="chat-input-row">
+        <input type="text" id="chatInput" placeholder="Nachricht schreiben…" maxlength="2000">
+        <button class="btn" id="btnChatSend">Senden</button>
+      </div>
+    </section>
+
     <!-- ACCOUNT / PAYWALL -->
     <section class="screen" id="screen-account">
-      <div class="eyebrow">Mitgliedschaft</div>
-      <h2 class="headline" style="font-size:22px; margin-bottom:6px;" id="acctName">—</h2>
-      <p class="sub" id="acctStatusText"></p>
-
-      <div class="price-card">
-        <div class="price">5&nbsp;€ <small>/ Monat</small></div>
-        <p class="sub" style="margin:10px 0 0;">Erster Monat gratis. Danach automatische Verlängerung, monatlich kündbar.</p>
-        <button class="btn" id="btnSubscribe">Jetzt abonnieren</button>
-        <button class="btn secondary" id="btnManageSubscription" style="display:none;">Abo verwalten / kündigen</button>
+      <div class="account-header">
+        <div class="account-avatar" id="acctAvatar"></div>
+        <div class="account-id">
+          <h2 class="headline" style="font-size:20px; margin-bottom:2px;" id="acctName">—</h2>
+          <div class="account-sub" id="acctSubline"></div>
+        </div>
+        <div class="status-pill" id="acctStatusPill">—</div>
       </div>
 
-      <div class="divider"></div>
-      <label>Fotos (max. 5)</label>
-      <div class="photo-grid" id="acctPhotoGrid"></div>
-      <input type="file" id="acctPhotoInput" accept="image/*" style="display:none">
-      <div class="field-err" id="acctPhotoErr"></div>
+      <div class="account-section">
+        <div class="account-section-title">Mitgliedschaft</div>
+        <div class="price-card">
+          <div class="price">5&nbsp;€ <small>/ Monat</small></div>
+          <p class="sub" id="acctStatusText" style="margin:10px 0 0;"></p>
+          <button class="btn" id="btnSubscribe">Jetzt abonnieren</button>
+          <button class="btn secondary" id="btnManageSubscription" style="display:none;">Abo verwalten / kündigen</button>
+        </div>
+      </div>
 
-      <div class="divider"></div>
-      <button class="btn secondary" id="btnLogout">Ausloggen</button>
+      <div class="account-section">
+        <div class="account-section-title">Fotos</div>
+        <div class="photo-grid" id="acctPhotoGrid"></div>
+        <input type="file" id="acctPhotoInput" accept="image/*" style="display:none">
+        <div class="field-err" id="acctPhotoErr"></div>
+      </div>
+
+      <div class="account-section">
+        <div class="account-section-title">Konto</div>
+        <button class="btn secondary" id="btnLogout">Ausloggen</button>
+      </div>
     </section>
 
     <!-- PAYWALL BLOCK -->
@@ -890,6 +976,9 @@
   });
 
   $('btnLogout').addEventListener('click', () => {
+    stopChatPolling();
+    currentChatMatchId = null;
+    matchesCache = [];
     setToken(null);
     myProfile = null;
     membership = null;
@@ -953,6 +1042,8 @@
   document.querySelectorAll('nav.bottom button').forEach(btn=>{
     btn.addEventListener('click', ()=>{
       if(!membership || !membership.is_active){ showScreen('screen-paywall'); return; }
+      stopChatPolling();
+      currentChatMatchId = null;
       const target = btn.dataset.screen;
       setNavActive(target);
       showScreen('screen-' + target);
@@ -964,13 +1055,28 @@
 
   function renderAccount(){
     $('acctName').textContent = myProfile.name + ', ' + myProfile.age;
+    $('acctSubline').textContent = [myProfile.city, myProfile.gym].filter(Boolean).join(' · ');
+
+    const avatarEl = $('acctAvatar');
+    const avatarPhoto = (myProfile.photos && myProfile.photos[0] && myProfile.photos[0].url) || '';
+    if(avatarPhoto){
+      avatarEl.style.backgroundImage = `url('${avatarPhoto}')`;
+      avatarEl.textContent = '';
+    } else {
+      avatarEl.style.backgroundImage = '';
+      avatarEl.textContent = (myProfile.name || '?').charAt(0).toUpperCase();
+    }
+
+    const pill = $('acctStatusPill');
     if(membership.is_subscribed){
+      pill.textContent = 'Abo aktiv'; pill.className = 'status-pill trial';
       $('acctStatusText').textContent = 'Dein Abo ist aktiv (5 €/Monat).';
       $('btnSubscribe').textContent = 'Abo aktiv ✓';
       $('btnSubscribe').disabled = true;
       $('btnManageSubscription').style.display = 'block';
     } else {
       const daysLeft = Math.max(0, Math.ceil((new Date(membership.trial_ends_at) - Date.now())/86400000));
+      pill.textContent = `Testmonat: ${daysLeft}d`; pill.className = 'status-pill trial';
       $('acctStatusText').textContent = `Noch ${daysLeft} Tag(e) gratis Probemonat.`;
       $('btnSubscribe').disabled = false;
       $('btnSubscribe').textContent = 'Jetzt abonnieren';
@@ -1031,41 +1137,67 @@
     }
   }
 
+  function buildCardEl(p, interactive){
+    const el = document.createElement('div');
+    el.className = 'card';
+    const photo = (p.photos && p.photos[0] && p.photos[0].url) || '';
+    el.innerHTML = `
+      ${interactive ? `
+      <div class="flag-btns">
+        <div class="flag-btn" id="btnReportCard" title="Melden">⚠</div>
+        <div class="flag-btn" id="btnBlockCard" title="Blockieren">🚫</div>
+      </div>` : ''}
+      <div class="stamp like">MATCH</div>
+      <div class="stamp pass">NÄCHSTE</div>
+      <div class="photo" style="background-image:url('${photo}')">
+        <div class="photo-index">${(p.photos||[]).map((_,i)=>`<i class="${i===0?'on':''}"></i>`).join('')}</div>
+        <div class="name-row"><div class="nm">${escapeHtml(p.name)}, ${p.age}</div><div class="loc">${escapeHtml(p.city)} · ${escapeHtml(p.gym||'')}</div></div>
+      </div>
+      <div class="body">
+        <div class="stat-row">
+          <div class="stat-chip">🏋️ ${escapeHtml(p.gym||'Kein Gym angegeben')}</div>
+        </div>
+        ${(p.height_cm || p.weight_kg) ? `
+        <div class="prs">
+          ${p.height_cm ? `<div class="pr-box"><div class="val">${escapeHtml(p.height_cm)}cm</div><div class="lbl">Größe</div></div>` : ''}
+          ${p.weight_kg ? `<div class="pr-box"><div class="val">${escapeHtml(p.weight_kg)}kg</div><div class="lbl">Gewicht</div></div>` : ''}
+        </div>` : ''}
+        <p class="bio-text" style="margin-top:12px;">${escapeHtml(p.bio || 'Keine Bio angegeben.')}</p>
+      </div>`;
+
+    if(interactive){
+      const reportBtn = el.querySelector('#btnReportCard');
+      const blockBtn = el.querySelector('#btnBlockCard');
+      [reportBtn, blockBtn].forEach(btn => {
+        btn.addEventListener('mousedown', e => e.stopPropagation());
+        btn.addEventListener('touchstart', e => e.stopPropagation(), {passive: true});
+      });
+      reportBtn.addEventListener('click', e => { e.stopPropagation(); reportCurrentCard(); });
+      blockBtn.addEventListener('click', e => { e.stopPropagation(); blockCurrentCard(); });
+    }
+    return el;
+  }
+
   function renderCard(){
     const container = $('deck');
+    container.innerHTML = '';
     if(deckIdx >= deck.length){
       container.innerHTML = `<div class="empty"><div class="big">🏋️</div>Keine neuen Profile in deiner Nähe.<br>Schau später nochmal vorbei.</div>`;
       $('swipeActions').style.display = 'none';
       return;
     }
-    const p = deck[deckIdx];
     $('swipeActions').style.display = 'flex';
-    const photo = (p.photos && p.photos[0] && p.photos[0].url) || '';
-    container.innerHTML = `
-      <div class="card">
-        <div class="flag-btns">
-          <div class="flag-btn" id="btnReportCard" title="Melden">⚠</div>
-          <div class="flag-btn" id="btnBlockCard" title="Blockieren">🚫</div>
-        </div>
-        <div class="photo" style="background-image:url('${photo}')">
-          <div class="photo-index">${(p.photos||[]).map((_,i)=>`<i class="${i===0?'on':''}"></i>`).join('')}</div>
-          <div class="name-row"><div class="nm">${escapeHtml(p.name)}, ${p.age}</div><div class="loc">${escapeHtml(p.city)} · ${escapeHtml(p.gym||'')}</div></div>
-        </div>
-        <div class="body">
-          <div class="stat-row">
-            <div class="stat-chip">🏋️ ${escapeHtml(p.gym||'Kein Gym angegeben')}</div>
-          </div>
-          ${(p.height_cm || p.weight_kg) ? `
-          <div class="prs">
-            ${p.height_cm ? `<div class="pr-box"><div class="val">${escapeHtml(p.height_cm)}cm</div><div class="lbl">Größe</div></div>` : ''}
-            ${p.weight_kg ? `<div class="pr-box"><div class="val">${escapeHtml(p.weight_kg)}kg</div><div class="lbl">Gewicht</div></div>` : ''}
-          </div>` : ''}
-          <p class="bio-text" style="margin-top:12px;">${escapeHtml(p.bio || 'Keine Bio angegeben.')}</p>
-        </div>
-      </div>`;
 
-    $('btnReportCard').addEventListener('click', () => reportCurrentCard());
-    $('btnBlockCard').addEventListener('click', () => blockCurrentCard());
+    if(deckIdx + 1 < deck.length){
+      const behindEl = buildCardEl(deck[deckIdx + 1], false);
+      behindEl.style.transform = 'scale(0.95) translateY(10px)';
+      container.appendChild(behindEl);
+    }
+
+    const topEl = buildCardEl(deck[deckIdx], true);
+    container.appendChild(topEl);
+    topEl.addEventListener('mousedown', onCardDragStart);
+    topEl.addEventListener('touchstart', onCardDragStart, {passive: true});
   }
 
   async function reportCurrentCard(){
@@ -1091,41 +1223,225 @@
     }catch(err){ toast(err.message || 'Blockieren fehlgeschlagen.'); }
   }
 
-  async function swipe(action){
-    if(deckIdx >= deck.length) return;
+  // ---------- Swipe-Drag-Physik (gleiches Prinzip wie die Landing-Page-Demo,
+  // hier direkt an die echte API angebunden) ----------
+  let cardDragState = null;
+  let swipeLocked = false;
+
+  function onCardDragStart(e){
+    const card = e.currentTarget;
+    card.classList.add('dragging');
+    const point = e.touches ? e.touches[0] : e;
+    cardDragState = {card, startX: point.clientX, startY: point.clientY, dx: 0};
+  }
+
+  function onCardDragMove(e){
+    if(!cardDragState) return;
+    const point = e.touches ? e.touches[0] : e;
+    const dx = point.clientX - cardDragState.startX;
+    const dy = (point.clientY - cardDragState.startY) * 0.4;
+    cardDragState.dx = dx;
+    const rot = dx / 16;
+    cardDragState.card.style.transform = `translate(${dx}px, ${dy}px) rotate(${rot}deg)`;
+    const likeStamp = cardDragState.card.querySelector('.stamp.like');
+    const passStamp = cardDragState.card.querySelector('.stamp.pass');
+    const progress = Math.min(Math.abs(dx) / 100, 1);
+    if(dx > 0){ likeStamp.style.opacity = progress; passStamp.style.opacity = 0; }
+    else { passStamp.style.opacity = progress; likeStamp.style.opacity = 0; }
+  }
+
+  function onCardDragEnd(){
+    if(!cardDragState) return;
+    const {card, dx} = cardDragState;
+    card.classList.remove('dragging');
+    if(Math.abs(dx) > 100){
+      commitSwipe(dx > 0 ? 'like' : 'pass');
+    } else {
+      card.style.transition = 'transform .3s ease';
+      card.style.transform = '';
+      card.querySelector('.stamp.like').style.opacity = 0;
+      card.querySelector('.stamp.pass').style.opacity = 0;
+    }
+    cardDragState = null;
+  }
+
+  document.addEventListener('mousemove', onCardDragMove);
+  document.addEventListener('touchmove', onCardDragMove, {passive: true});
+  document.addEventListener('mouseup', onCardDragEnd);
+  document.addEventListener('touchend', onCardDragEnd);
+
+  function commitSwipe(action){
+    if(swipeLocked || deckIdx >= deck.length) return;
+    const container = $('deck');
+    const card = container.querySelector('.card:last-child');
+    if(!card) return;
+    swipeLocked = true;
+
+    const flyX = action === 'like' ? 520 : -520;
+    const rot = action === 'like' ? 24 : -24;
+    card.style.transition = 'transform .35s ease, opacity .35s ease';
+    card.style.transform = `translate(${flyX}px, -40px) rotate(${rot}deg)`;
+    card.style.opacity = '0';
+
+    swipeApiCall(action);
+    setTimeout(() => {
+      deckIdx++;
+      renderCard();
+      swipeLocked = false;
+    }, 320);
+  }
+
+  async function swipeApiCall(action){
     const target = deck[deckIdx];
     try{
       const result = await api('/api/swipes', {method: 'POST', body: JSON.stringify({to_user_id: target.id, action})});
       if(result.matched) toast(`Match mit ${target.name}! 💪`);
     }catch(err){ toast(err.message || 'Swipe fehlgeschlagen.'); }
-    deckIdx++;
-    renderCard();
   }
-  $('btnLike').addEventListener('click', ()=> swipe('like'));
-  $('btnPass').addEventListener('click', ()=> swipe('pass'));
+
+  $('btnLike').addEventListener('click', ()=> commitSwipe('like'));
+  $('btnPass').addEventListener('click', ()=> commitSwipe('pass'));
 
   // ---------- Matches ----------
+  let matchesCache = [];
+
   async function loadMatches(){
     $('matchList').innerHTML = '<div class="loading">Lade Matches …</div>';
     try{
-      const matches = await api('/api/matches');
-      if(matches.length === 0){
+      matchesCache = await api('/api/matches');
+      if(matchesCache.length === 0){
         $('matchList').innerHTML = `<div class="empty"><div class="big">🤝</div>Noch keine Matches.<br>Weiter swipen!</div>`;
         return;
       }
-      $('matchList').innerHTML = matches.map(p => `
-        <div class="match-item">
-          <img src="${(p.photos && p.photos[0] && p.photos[0].url) || ''}">
+      $('matchList').innerHTML = matchesCache.map(m => {
+        const p = m.profile;
+        const photo = (p.photos && p.photos[0] && p.photos[0].url) || '';
+        const preview = m.last_message ? escapeHtml(m.last_message.content) : 'Match! Schreib die erste Nachricht.';
+        return `
+        <div class="match-item" data-match-id="${m.match_id}">
+          <img src="${photo}">
           <div class="info">
             <div class="nm">${escapeHtml(p.name)}, ${p.age}</div>
-            <div class="contact">Match! Kontaktaufnahme folgt in App v2 (Chat kommt bald)</div>
+            <div class="last-msg">${preview}</div>
           </div>
-        </div>`).join('');
+          ${m.unread_count > 0 ? `<div class="unread-badge">${m.unread_count}</div>` : ''}
+        </div>`;
+      }).join('');
+      $('matchList').querySelectorAll('.match-item').forEach(el => {
+        el.addEventListener('click', () => openChat(el.dataset.matchId));
+      });
     }catch(err){
       $('matchList').innerHTML = '<div class="loading">Matches konnten nicht geladen werden.</div>';
       console.error(err);
     }
   }
+
+  function findMatchById(matchId){
+    return matchesCache.find(m => m.match_id === matchId);
+  }
+
+  // ---------- Chat ----------
+  let currentChatMatchId = null;
+  let chatPollInterval = null;
+
+  async function openChat(matchId){
+    currentChatMatchId = matchId;
+    const match = findMatchById(matchId);
+    if(match){
+      $('chatAvatar').src = (match.profile.photos && match.profile.photos[0] && match.profile.photos[0].url) || '';
+      $('chatName').textContent = match.profile.name + ', ' + match.profile.age;
+    }
+    showScreen('screen-chat');
+    $('chatMessages').innerHTML = '<div class="loading">Lade Chat …</div>';
+    await loadMessages();
+    startChatPolling();
+  }
+
+  function stopChatPolling(){
+    if(chatPollInterval){ clearInterval(chatPollInterval); chatPollInterval = null; }
+  }
+
+  function startChatPolling(){
+    stopChatPolling();
+    chatPollInterval = setInterval(loadMessages, 4000);
+  }
+
+  async function loadMessages(){
+    if(!currentChatMatchId) return;
+    try{
+      const messages = await api(`/api/matches/${currentChatMatchId}/messages`);
+      renderMessages(messages);
+    }catch(err){
+      console.error(err);
+    }
+  }
+
+  function renderMessages(messages){
+    const box = $('chatMessages');
+    const wasAtBottom = (box.scrollTop + box.clientHeight) >= (box.scrollHeight - 40);
+    if(messages.length === 0){
+      box.innerHTML = '<div class="chat-empty">Noch keine Nachrichten. Schreib die erste!</div>';
+      return;
+    }
+    box.innerHTML = messages.map(m => {
+      const mine = m.sender_id === myProfile.id;
+      const time = new Date(m.created_at).toLocaleTimeString('de-AT', {hour:'2-digit', minute:'2-digit'});
+      return `<div class="msg-bubble ${mine ? 'mine' : 'theirs'}">${escapeHtml(m.content)}<span class="time">${time}</span></div>`;
+    }).join('');
+    if(wasAtBottom) box.scrollTop = box.scrollHeight;
+  }
+
+  async function sendChatMessage(){
+    const input = $('chatInput');
+    const content = input.value.trim();
+    if(!content || !currentChatMatchId) return;
+    input.value = '';
+    try{
+      await api(`/api/matches/${currentChatMatchId}/messages`, {method: 'POST', body: JSON.stringify({content})});
+      await loadMessages();
+      loadMatches();
+    }catch(err){
+      toast(err.message || 'Nachricht konnte nicht gesendet werden.');
+    }
+  }
+  $('btnChatSend').addEventListener('click', sendChatMessage);
+  $('chatInput').addEventListener('keydown', e => {
+    if(e.key === 'Enter'){ e.preventDefault(); sendChatMessage(); }
+  });
+
+  $('btnChatBack').addEventListener('click', () => {
+    stopChatPolling();
+    currentChatMatchId = null;
+    showScreen('screen-matches');
+    setNavActive('matches');
+    loadMatches();
+  });
+
+  $('btnReportChat').addEventListener('click', async () => {
+    const match = findMatchById(currentChatMatchId);
+    if(!match) return;
+    const reason = prompt(`${match.profile.name} melden. Kurzer Grund:`);
+    if(!reason || !reason.trim()) return;
+    try{
+      await api('/api/reports', {method: 'POST', body: JSON.stringify({reported_user_id: match.profile.id, reason: reason.trim()})});
+      toast('Meldung gesendet. Danke für dein Feedback.');
+    }catch(err){ toast(err.message || 'Meldung fehlgeschlagen.'); }
+  });
+
+  $('btnBlockChat').addEventListener('click', async () => {
+    const match = findMatchById(currentChatMatchId);
+    if(!match) return;
+    if(!confirm(`${match.profile.name} wirklich blockieren? Ihr seht euch danach nicht mehr.`)) return;
+    try{
+      await api('/api/blocks', {method: 'POST', body: JSON.stringify({user_id: match.profile.id})});
+      toast(`${match.profile.name} blockiert.`);
+      stopChatPolling();
+      currentChatMatchId = null;
+      showScreen('screen-matches');
+      setNavActive('matches');
+      loadMatches();
+    }catch(err){ toast(err.message || 'Blockieren fehlgeschlagen.'); }
+  });
 
   // ---------- Rechtstexte-Modal (Impressum/Datenschutz/AGB) ----------
   const legalCache = {};

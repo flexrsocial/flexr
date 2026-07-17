@@ -108,6 +108,29 @@ class SwipeResult(BaseModel):
     matched: bool
 
 
+class MessageOut(BaseModel):
+    id: str
+    match_id: str
+    sender_id: str
+    content: str
+    created_at: datetime
+    read_at: Optional[datetime]
+
+    class Config:
+        from_attributes = True
+
+
+class SendMessageRequest(BaseModel):
+    content: str = Field(min_length=1, max_length=2000)
+
+
+class MatchOut(BaseModel):
+    match_id: str
+    profile: ProfileOut
+    last_message: Optional[MessageOut] = None
+    unread_count: int = 0
+
+
 class ReportRequest(BaseModel):
     reported_user_id: str
     reason: str = Field(min_length=3, max_length=500)
