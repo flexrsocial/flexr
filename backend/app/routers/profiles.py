@@ -2,8 +2,15 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from ..database import get_db
-from ..models import Photo, PhotoStatus, User
-from ..schemas import AddPhotoRequest, PresignPhotoRequest, PresignPhotoResponse, ProfileOut
+from ..models import GYM_CHOICES, Photo, PhotoStatus, User
+from ..schemas import (
+    AddPhotoRequest,
+    MyProfileOut,
+    PresignPhotoRequest,
+    PresignPhotoResponse,
+    ProfileOut,
+    UpdateProfileRequest,
+)
 from ..security import get_current_user
 from ..storage import create_presigned_upload, public_url_for
 
@@ -11,7 +18,7 @@ router = APIRouter(prefix="/api/profiles", tags=["profiles"])
 
 
 def to_public_profile(user: User) -> ProfileOut:
-    """Profil-Ansicht für andere Nutzer:innen (Swipe-Deck, Matches) - zeigt nur
+    """Profil-Ansicht für andere Nutzer (Swipe-Deck, Matches) - zeigt nur
     von der Moderation freigegebene Fotos, im Unterschied zur eigenen Profilansicht
     (/me), die alle Fotos inkl. Status zeigt."""
     profile = ProfileOut.model_validate(user)
@@ -19,8 +26,33 @@ def to_public_profile(user: User) -> ProfileOut:
     return profile
 
 
-@router.get("/me", response_model=ProfileOut)
+@router.get("/me", response_model=MyProfileOut)
 def get_my_profile(current_user: User = Depends(get_current_user)):
+    return current_user
+
+
+@router.patch("/me", response_model=MyProfileOut)
+def update_my_profile(
+    payload: UpdateProfileRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    fields = payload.model_dump(exclude_unset=True)
+
+    # PLZ und Ort gehören zusammen - der Ort kommt aus dem PLZ-Lookup im Frontend.
+    if ("plz" in fields) != ("city" in fields):
+        raise HTTPException(400, "PLZ und Ort müssen gemeinsam aktualisiert werden.")
+
+    if "gym" in fields and fields["gym"] not in GYM_CHOICES:
+        raise HTTPException(400, "Unbekanntes Gym.")
+
+    for field, value in fields.items():
+        if field == "bio" and value == "":
+            value = None  # leere Bio = Bio entfernen
+        setattr(current_user, field, value)
+
+    db.commit()
+    db.refresh(current_user)
     return current_user
 
 
@@ -41,7 +73,7 @@ def presign_photo_upload(
     return PresignPhotoResponse(**result)
 
 
-@router.post("/me/photos", response_model=ProfileOut)
+@router.post("/me/photos", response_model=MyProfileOut)
 def add_photo(
     payload: AddPhotoRequest,
     current_user: User = Depends(get_current_user),
@@ -65,7 +97,7 @@ def add_photo(
     return current_user
 
 
-@router.delete("/me/photos/{photo_id}", response_model=ProfileOut)
+@router.delete("/me/photos/{photo_id}", response_model=MyProfileOut)
 def delete_photo(
     photo_id: str,
     current_user: User = Depends(get_current_user),

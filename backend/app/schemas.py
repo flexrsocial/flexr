@@ -1,14 +1,24 @@
-from datetime import datetime
+from datetime import date, datetime
 from typing import Literal, Optional
 
 from pydantic import BaseModel, EmailStr, Field, field_validator
+
+
+def _age_from_birthdate(birthdate: date) -> int:
+    today = date.today()
+    return (
+        today.year
+        - birthdate.year
+        - ((today.month, today.day) < (birthdate.month, birthdate.day))
+    )
 
 
 class RegisterRequest(BaseModel):
     email: EmailStr
     password: str = Field(min_length=8)
     name: str = Field(min_length=1, max_length=100)
-    age: int = Field(ge=18, le=99)
+    # Geburtsdatum statt Alter - das Alter wird serverseitig laufend berechnet.
+    birthdate: date
     # Adresse: plz/city kommen aus einer echten PLZ-Lookup im Frontend (OpenPLZ
     # API), city ist der daraus abgeleitete Ort/Gemeinde-Name - keine feste
     # Städteliste mehr, ganz Österreich ist abgedeckt.
@@ -28,6 +38,16 @@ class RegisterRequest(BaseModel):
     consent_withdrawal_waiver: bool = Field(
         description="Kenntnisnahme, dass das Rücktrittsrecht durch sofortigen Leistungsbeginn erlischt (§ 18 Abs. 1 Z 11 FAGG)"
     )
+
+    @field_validator("birthdate")
+    @classmethod
+    def _require_adult(cls, v: date) -> date:
+        age = _age_from_birthdate(v)
+        if age < 18:
+            raise ValueError("Du musst mindestens 18 Jahre alt sein.")
+        if age > 99:
+            raise ValueError("Bitte ein gültiges Geburtsdatum angeben.")
+        return v
 
     @field_validator("consent_sensitive_data")
     @classmethod
@@ -91,6 +111,26 @@ class ProfileOut(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class MyProfileOut(ProfileOut):
+    """Eigene Profilansicht (/me) - enthält zusätzlich die PLZ, die anderen
+    Nutzern nicht angezeigt wird (dort nur der Ort)."""
+
+    plz: str
+    birthdate: date
+
+
+class UpdateProfileRequest(BaseModel):
+    """Editierbare Profilfelder. PLZ und Ort müssen gemeinsam kommen (der Ort
+    wird im Frontend per PLZ-Lookup ermittelt). Größe und Geburtsdatum sind
+    bewusst nicht änderbar."""
+
+    plz: Optional[str] = Field(default=None, pattern=r"^\d{4}$")
+    city: Optional[str] = Field(default=None, min_length=1)
+    weight_kg: Optional[int] = Field(default=None, ge=30, le=250)
+    gym: Optional[str] = None
+    bio: Optional[str] = Field(default=None, max_length=280)
 
 
 class MembershipStatus(BaseModel):

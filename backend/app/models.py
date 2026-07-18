@@ -1,10 +1,11 @@
 import enum
 import uuid
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 
 from sqlalchemy import (
     Boolean,
     Column,
+    Date,
     DateTime,
     Enum,
     ForeignKey,
@@ -56,7 +57,9 @@ class User(Base):
     password_hash = Column(String, nullable=False)
 
     name = Column(String, nullable=False)
-    age = Column(Integer, nullable=False)
+    # Geburtsdatum statt festem Alter - das Alter wird daraus laufend berechnet
+    # und bleibt so in allen Profilen automatisch aktuell.
+    birthdate = Column(Date, nullable=False)
     # Adresse: plz/city stammen aus einer echten PLZ-Lookup (OpenPLZ API, siehe
     # Frontend), keine feste Städteliste mehr - ganz Österreich ist abgedeckt.
     plz = Column(String(4), nullable=False)
@@ -88,6 +91,15 @@ class User(Base):
     is_banned = Column(Boolean, default=False, nullable=False)
 
     photos = relationship("Photo", back_populates="user", cascade="all, delete-orphan")
+
+    @property
+    def age(self) -> int:
+        today = date.today()
+        return (
+            today.year
+            - self.birthdate.year
+            - ((today.month, today.day) < (self.birthdate.month, self.birthdate.day))
+        )
 
     def is_active_member(self) -> bool:
         return self.is_subscribed or datetime.utcnow() < self.trial_ends_at

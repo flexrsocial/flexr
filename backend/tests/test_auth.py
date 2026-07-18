@@ -30,7 +30,7 @@ def test_register_duplicate_email(client):
             "email": "bob@example.com",
             "password": "supersecret123",
             "name": "Bob Zwei",
-            "age": 30,
+            "birthdate": "1995-03-10",
             "plz": "1010",
             "city": "Wien",
             "gender": "mann",
@@ -49,7 +49,7 @@ def test_register_rejects_invalid_plz(client):
             "email": "carol@example.com",
             "password": "supersecret123",
             "name": "Carol",
-            "age": 25,
+            "birthdate": "2000-11-02",
             "plz": "abc",
             "city": "Wien",
             "gender": "frau",
@@ -59,6 +59,39 @@ def test_register_rejects_invalid_plz(client):
         },
     )
     assert resp.status_code == 422
+
+
+def test_register_rejects_minors(client):
+    from datetime import date
+
+    seventeen = date.today().replace(year=date.today().year - 17).isoformat()
+    resp = client.post(
+        "/api/auth/register",
+        json={
+            "email": "minor@example.com",
+            "password": "supersecret123",
+            "name": "Zu Jung",
+            "birthdate": seventeen,
+            "plz": "1010",
+            "city": "Wien",
+            "gender": "mann",
+            "gym": "McFit",
+            "consent_sensitive_data": True,
+            "consent_withdrawal_waiver": True,
+        },
+    )
+    assert resp.status_code == 422
+
+
+def test_age_computed_from_birthdate(client):
+    headers = register_user(client, "aging@example.com", birthdate="1997-06-15")
+    me = client.get("/api/profiles/me", headers=headers).json()
+    from datetime import date
+
+    today = date.today()
+    expected = today.year - 1997 - ((today.month, today.day) < (6, 15))
+    assert me["age"] == expected
+    assert me["birthdate"] == "1997-06-15"
 
 
 def test_login_wrong_password(client):
@@ -90,7 +123,7 @@ def test_register_requires_sensitive_data_consent(client):
             "email": "erin@example.com",
             "password": "supersecret123",
             "name": "Erin",
-            "age": 25,
+            "birthdate": "2000-11-02",
             "plz": "1010",
             "city": "Wien",
             "gender": "frau",
@@ -109,7 +142,7 @@ def test_register_requires_withdrawal_waiver_consent(client):
             "email": "frank@example.com",
             "password": "supersecret123",
             "name": "Frank",
-            "age": 25,
+            "birthdate": "2000-11-02",
             "plz": "1010",
             "city": "Wien",
             "gender": "mann",

@@ -48,7 +48,7 @@ def client():
 
 DEFAULT_USER = {
     "password": "supersecret123",
-    "age": 28,
+    "birthdate": "1997-06-15",
     "plz": "1010",
     "city": "Wien",
     "gender": "mann",

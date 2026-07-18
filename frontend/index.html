@@ -80,10 +80,12 @@
   .sub{ color:var(--chalk-dim); font-size:14px; line-height:1.5; margin-bottom:22px; }
 
   label{ display:block; font-size:12px; color:var(--chalk-dim); margin:16px 0 6px; text-transform:uppercase; letter-spacing:0.04em; }
-  input[type=text], input[type=number], input[type=password], input[type=email], input[type=tel], textarea, select{
+  input[type=text], input[type=number], input[type=password], input[type=email], input[type=tel], input[type=date], textarea, select{
     width:100%; background:var(--surface); border:1px solid var(--steel); color:var(--chalk);
     padding:12px 14px; border-radius:10px; font-size:15px; font-family:inherit;
+    color-scheme:dark;
   }
+  input[type=date]::-webkit-calendar-picker-indicator{ filter:invert(.8); cursor:pointer; }
   input[type=password]::-ms-reveal{ display:none; }
   input:-webkit-autofill, input:-webkit-autofill:hover, input:-webkit-autofill:focus{
     -webkit-text-fill-color:var(--chalk);
@@ -742,8 +744,8 @@
 
       <div class="row2">
         <div>
-          <label>Alter</label>
-          <input type="number" id="f-age" placeholder="27" min="18" max="99">
+          <label>Geburtsdatum</label>
+          <input type="date" id="f-birthdate">
         </div>
         <div>
           <label>Postleitzahl</label>
@@ -887,6 +889,48 @@
       </div>
 
       <div class="account-section">
+        <div class="account-section-title">Profil</div>
+
+        <label>Postleitzahl</label>
+        <div class="plz-combo" id="acctPlzCombo">
+          <input type="text" id="a-plz" placeholder="1010" inputmode="numeric" maxlength="4">
+          <span class="ort-display" id="acctOrtDisplay">— PLZ eingeben —</span>
+        </div>
+        <div class="field-err" id="acctPlzErr"></div>
+
+        <div class="row2">
+          <div>
+            <label>Gewicht (kg)</label>
+            <input type="number" id="a-weight" placeholder="82" min="30" max="250">
+          </div>
+          <div>
+            <label>Körpergröße</label>
+            <input type="text" id="a-height" disabled title="Die Körpergröße ist nach der Registrierung fix.">
+          </div>
+        </div>
+
+        <label>Gym</label>
+        <select id="a-gym">
+          <option>John Harris Fitness</option>
+          <option>Holmes Place</option>
+          <option>FitInn</option>
+          <option>Clever Fit</option>
+          <option>McFit</option>
+          <option>Fitness First</option>
+          <option>Kraftwerk Gym</option>
+          <option>Iron Gym Wien</option>
+          <option>USI Wien</option>
+          <option>Anderes Studio</option>
+        </select>
+
+        <label>Bio</label>
+        <textarea id="a-bio" placeholder="Was du suchst, dein Training, gerne mit Emojis 💪" maxlength="280"></textarea>
+
+        <div class="field-err" id="acctProfileErr"></div>
+        <button class="btn secondary" id="btnSaveProfile" style="margin-top:16px;">Profil speichern</button>
+      </div>
+
+      <div class="account-section">
         <div class="account-section-title">Fotos</div>
         <div class="photo-grid" id="acctPhotoGrid"></div>
         <input type="file" id="acctPhotoInput" accept="image/*" style="display:none">
@@ -1006,6 +1050,15 @@
     return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   }
 
+  function calcAge(isoDate){
+    const b = new Date(isoDate + 'T00:00:00');
+    if(isNaN(b)) return NaN;
+    const now = new Date();
+    let age = now.getFullYear() - b.getFullYear();
+    if(now.getMonth() < b.getMonth() || (now.getMonth() === b.getMonth() && now.getDate() < b.getDate())) age--;
+    return age;
+  }
+
   // ---------- API-Helfer ----------
   function setToken(t){
     token = t;
@@ -1116,6 +1169,23 @@
   let plzLookupTimeout = null;
   let resolvedCity = '';
 
+  // Als Ort speichern wir den GEMEINDE-Namen (z.B. "Wien", "Graz"), nicht die
+  // einzelne Ortschaft ("Wien, Favoriten" / "Edelsbach bei Graz") - das Deck
+  // matcht exakt auf Stadtgleichheit, und die Gemeinde ist die sinnvolle Ebene.
+  // Heuristik: der häufigste Gemeindename unter allen Treffern der PLZ.
+  function pickMunicipality(localities){
+    const counts = {};
+    for(const l of localities){
+      const m = l.municipality && l.municipality.name;
+      if(m) counts[m] = (counts[m] || 0) + 1;
+    }
+    let best = '', bestCount = 0;
+    for(const [name, count] of Object.entries(counts)){
+      if(count > bestCount){ best = name; bestCount = count; }
+    }
+    return best || (localities[0] && localities[0].name) || '';
+  }
+
   async function lookupLocalityForPlz(plz){
     const ortDisplay = $('ortDisplay');
     const plzErr = $('plzErr');
@@ -1132,11 +1202,8 @@
         plzErr.textContent = 'Postleitzahl nicht gefunden. Bitte prüfen.';
         return;
       }
-      // Bevorzugt die Ortschaft, die dem Gemeindenamen entspricht (i.d.R. der
-      // Hauptort der PLZ), sonst die erste Trefferzeile.
-      const best = localities.find(l => l.name === l.municipality?.name) || localities[0];
-      resolvedCity = best.name;
-      ortDisplay.textContent = best.name;
+      resolvedCity = pickMunicipality(localities);
+      ortDisplay.textContent = resolvedCity;
       ortDisplay.classList.add('resolved');
     }catch(err){
       ortDisplay.textContent = '— Lookup fehlgeschlagen —';
@@ -1169,7 +1236,7 @@
       email: $('f-email').value.trim(),
       password: $('f-password').value,
       name: $('f-name').value.trim(),
-      age: parseInt($('f-age').value, 10),
+      birthdate: $('f-birthdate').value, // yyyy-mm-dd aus dem Datumsfeld
       plz: $('f-plz').value.trim(),
       city: resolvedCity,
       gender: $('f-gender').value,
@@ -1181,8 +1248,17 @@
       consent_withdrawal_waiver: $('f-consent-withdrawal').checked,
     };
 
-    if(!payload.email || !payload.password || payload.password.length < 8 || !payload.name || !payload.age || payload.age < 18){
-      errEl.textContent = 'Bitte E-Mail, Passwort (min. 8 Zeichen), Name und Alter (18+) angeben.';
+    if(!payload.email || !payload.password || payload.password.length < 8 || !payload.name || !payload.birthdate){
+      errEl.textContent = 'Bitte E-Mail, Passwort (min. 8 Zeichen), Name und Geburtsdatum angeben.';
+      return;
+    }
+    const ageFromBirthdate = calcAge(payload.birthdate);
+    if(ageFromBirthdate < 18){
+      errEl.textContent = 'Du musst mindestens 18 Jahre alt sein.';
+      return;
+    }
+    if(ageFromBirthdate > 99){
+      errEl.textContent = 'Bitte ein gültiges Geburtsdatum angeben.';
       return;
     }
     if(!/^\d{4}$/.test(payload.plz) || !payload.city){
@@ -1349,8 +1425,98 @@
       $('btnSubscribe').textContent = 'Jetzt abonnieren';
       $('btnManageSubscription').style.display = 'none';
     }
+    fillProfileForm();
     renderAccountPhotoGrid();
   }
+
+  // ---------- Profil bearbeiten (PLZ, Gewicht, Gym, Bio - Größe bleibt fix) ----------
+  let acctResolvedCity = '';
+  let acctPlzLookupTimeout = null;
+
+  function fillProfileForm(){
+    $('a-plz').value = myProfile.plz || '';
+    acctResolvedCity = myProfile.city || '';
+    $('acctOrtDisplay').textContent = acctResolvedCity || '— PLZ eingeben —';
+    $('acctOrtDisplay').classList.toggle('resolved', !!acctResolvedCity);
+    $('acctPlzErr').textContent = '';
+    $('a-weight').value = myProfile.weight_kg != null ? myProfile.weight_kg : '';
+    $('a-height').value = myProfile.height_cm != null ? myProfile.height_cm + ' cm (fix)' : 'nicht angegeben';
+    $('a-gym').value = myProfile.gym || 'Anderes Studio';
+    $('a-bio').value = myProfile.bio || '';
+    $('acctProfileErr').textContent = '';
+  }
+
+  async function lookupAcctLocality(plz){
+    const ortDisplay = $('acctOrtDisplay');
+    $('acctPlzErr').textContent = '';
+    ortDisplay.textContent = 'Lädt …';
+    ortDisplay.classList.remove('resolved');
+    acctResolvedCity = '';
+    try{
+      const res = await fetch(`${OPENPLZ_BASE}/Localities?postalCode=${encodeURIComponent(plz)}`);
+      if(!res.ok) throw new Error('Lookup fehlgeschlagen');
+      const localities = await res.json();
+      if(localities.length === 0){
+        ortDisplay.textContent = '— unbekannte PLZ —';
+        $('acctPlzErr').textContent = 'Postleitzahl nicht gefunden. Bitte prüfen.';
+        return;
+      }
+      acctResolvedCity = pickMunicipality(localities);
+      ortDisplay.textContent = acctResolvedCity;
+      ortDisplay.classList.add('resolved');
+    }catch(err){
+      ortDisplay.textContent = '— Lookup fehlgeschlagen —';
+      $('acctPlzErr').textContent = 'Ort konnte nicht ermittelt werden. Bitte später erneut versuchen.';
+      console.error(err);
+    }
+  }
+
+  $('a-plz').addEventListener('input', () => {
+    const plz = $('a-plz').value.trim();
+    clearTimeout(acctPlzLookupTimeout);
+    if(!/^\d{4}$/.test(plz)){
+      $('acctOrtDisplay').textContent = '— PLZ eingeben —';
+      $('acctOrtDisplay').classList.remove('resolved');
+      $('acctPlzErr').textContent = '';
+      acctResolvedCity = '';
+      return;
+    }
+    acctPlzLookupTimeout = setTimeout(() => lookupAcctLocality(plz), 300);
+  });
+  $('a-plz').addEventListener('focus', () => $('acctPlzCombo').classList.add('focused'));
+  $('a-plz').addEventListener('blur', () => $('acctPlzCombo').classList.remove('focused'));
+
+  $('btnSaveProfile').addEventListener('click', async () => {
+    const errEl = $('acctProfileErr');
+    errEl.textContent = '';
+
+    const plz = $('a-plz').value.trim();
+    if(!/^\d{4}$/.test(plz) || !acctResolvedCity){
+      errEl.textContent = 'Bitte eine gültige österreichische Postleitzahl eingeben (Ort wird automatisch ermittelt).';
+      return;
+    }
+
+    const payload = {
+      plz,
+      city: acctResolvedCity,
+      gym: $('a-gym').value,
+      bio: $('a-bio').value.trim(),
+    };
+    const weightVal = $('a-weight').value;
+    if(weightVal) payload.weight_kg = parseInt(weightVal, 10);
+
+    const btn = $('btnSaveProfile');
+    btn.disabled = true;
+    try{
+      myProfile = await api('/api/profiles/me', {method: 'PATCH', body: JSON.stringify(payload)});
+      renderAccount();
+      toast('Profil gespeichert ✓');
+    }catch(err){
+      errEl.textContent = err.message || 'Speichern fehlgeschlagen.';
+    }finally{
+      btn.disabled = false;
+    }
+  });
 
   function renderAccountPhotoGrid(){
     const grid = $('acctPhotoGrid');
