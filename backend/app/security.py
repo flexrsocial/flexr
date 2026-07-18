@@ -48,6 +48,14 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
         raise credentials_error
     if user.is_banned:
         raise HTTPException(status.HTTP_403_FORBIDDEN, "Account gesperrt.")
+
+    # Online-Anzeige: last_seen_at gedrosselt aktualisieren (max. 1 Schreibzugriff
+    # pro Minute), damit nicht jeder Request eine DB-Schreiboperation auslöst.
+    now = datetime.utcnow()
+    if user.last_seen_at is None or now - user.last_seen_at > timedelta(seconds=60):
+        user.last_seen_at = now
+        db.commit()
+
     return user
 
 

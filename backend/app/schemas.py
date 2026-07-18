@@ -77,6 +77,7 @@ class TokenResponse(BaseModel):
 class PhotoOut(BaseModel):
     id: str
     url: str
+    thumb_url: Optional[str] = None
     position: int
     status: str
 
@@ -95,6 +96,7 @@ class PresignPhotoResponse(BaseModel):
 
 class AddPhotoRequest(BaseModel):
     object_key: str
+    thumb_object_key: Optional[str] = None
 
 
 class ProfileOut(BaseModel):
@@ -169,6 +171,7 @@ class MatchOut(BaseModel):
     profile: ProfileOut
     last_message: Optional[MessageOut] = None
     unread_count: int = 0
+    is_online: bool = False
 
 
 class ReportRequest(BaseModel):

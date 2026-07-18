@@ -90,6 +90,10 @@ class User(Base):
 
     is_banned = Column(Boolean, default=False, nullable=False)
 
+    # Wird bei authentifizierten Requests (gedrosselt) aktualisiert - Basis für
+    # die Online-Anzeige bei Matches.
+    last_seen_at = Column(DateTime, nullable=True)
+
     photos = relationship("Photo", back_populates="user", cascade="all, delete-orphan")
 
     @property
@@ -104,6 +108,13 @@ class User(Base):
     def is_active_member(self) -> bool:
         return self.is_subscribed or datetime.utcnow() < self.trial_ends_at
 
+    def is_online(self) -> bool:
+        """Online = in den letzten 5 Minuten aktiv gewesen."""
+        return (
+            self.last_seen_at is not None
+            and datetime.utcnow() - self.last_seen_at < timedelta(minutes=5)
+        )
+
 
 class Photo(Base):
     __tablename__ = "photos"
@@ -111,6 +122,9 @@ class Photo(Base):
     id = Column(String, primary_key=True, default=gen_uuid)
     user_id = Column(String, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     url = Column(Text, nullable=False)  # Objekt-Storage-URL, nicht Base64
+    # Quadratisches Thumbnail (256px, clientseitig beim Upload erzeugt) für
+    # kleine Avatare (Match-Liste, Chat-Header) - Fallback auf url wenn NULL.
+    thumb_url = Column(Text, nullable=True)
     position = Column(Integer, default=0)  # 0-4, Reihenfolge
     status = Column(Enum(PhotoStatus), nullable=False, default=PhotoStatus.pending)
 

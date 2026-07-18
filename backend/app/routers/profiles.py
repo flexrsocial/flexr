@@ -81,6 +81,8 @@ def add_photo(
 ):
     if not payload.object_key.startswith(f"users/{current_user.id}/"):
         raise HTTPException(400, "Ungültiger object_key.")
+    if payload.thumb_object_key and not payload.thumb_object_key.startswith(f"users/{current_user.id}/"):
+        raise HTTPException(400, "Ungültiger thumb_object_key.")
 
     existing_count = db.query(Photo).filter(Photo.user_id == current_user.id).count()
     if existing_count >= 5:
@@ -89,6 +91,7 @@ def add_photo(
     photo = Photo(
         user_id=current_user.id,
         url=public_url_for(payload.object_key),
+        thumb_url=public_url_for(payload.thumb_object_key) if payload.thumb_object_key else None,
         position=existing_count,
     )
     db.add(photo)
