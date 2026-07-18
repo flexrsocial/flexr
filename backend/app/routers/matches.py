@@ -66,7 +66,7 @@ def get_matches(
                     profile=to_public_profile(users_by_id[other_id]),
                     last_message=last_message,
                     unread_count=unread_count,
-                    is_online=users_by_id[other_id].is_online(),
+                    is_online=users_by_id[other_id].is_online,
                 ),
             )
         )

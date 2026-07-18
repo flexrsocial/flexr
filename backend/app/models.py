@@ -108,8 +108,10 @@ class User(Base):
     def is_active_member(self) -> bool:
         return self.is_subscribed or datetime.utcnow() < self.trial_ends_at
 
+    @property
     def is_online(self) -> bool:
-        """Online = in den letzten 5 Minuten aktiv gewesen."""
+        """Online = in den letzten 5 Minuten aktiv gewesen. Property statt
+        Methode, damit Pydantic das Feld direkt in ProfileOut übernehmen kann."""
         return (
             self.last_seen_at is not None
             and datetime.utcnow() - self.last_seen_at < timedelta(minutes=5)

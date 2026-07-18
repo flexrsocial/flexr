@@ -109,6 +109,7 @@ class ProfileOut(BaseModel):
     height_cm: Optional[int]
     weight_kg: Optional[int]
     bio: Optional[str]
+    is_online: bool = False
     photos: list[PhotoOut] = []
 
     class Config:

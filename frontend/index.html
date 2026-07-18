@@ -219,6 +219,18 @@
     display:inline-flex; align-items:center; gap:6px;
   }
   .stat-chip svg.ico{ width:13px; height:13px; stroke-width:2.2; }
+  .stat-chip.online-chip{
+    background:rgba(255,90,31,.09); border-color:rgba(255,90,31,.35); color:var(--plate);
+  }
+  .stat-chip.online-chip .online-dot{
+    width:7px; height:7px; border-radius:50%; background:var(--plate);
+    box-shadow:0 0 8px var(--plate-glow); flex-shrink:0;
+    animation:onlinePulse 2s ease-in-out infinite;
+  }
+  @keyframes onlinePulse{
+    0%, 100%{ opacity:1; }
+    50%{ opacity:.45; }
+  }
   .bio-text{ font-size:13.5px; color:var(--chalk-dim); line-height:1.55; }
   .prs{ display:flex; gap:10px; margin-top:12px; }
   .pr-box{
@@ -1664,6 +1676,7 @@
       <div class="body">
         <div class="stat-row">
           <div class="stat-chip"><svg class="ico" viewBox="0 0 24 24"><path d="M7 8.5v7M10.5 6.5v11M17 8.5v7M13.5 6.5v11M10.5 12h3M3.5 10v4M20.5 10v4"/></svg>${escapeHtml(p.gym||'Kein Gym angegeben')}</div>
+          ${p.is_online ? '<div class="stat-chip online-chip"><span class="online-dot"></span>Online</div>' : ''}
         </div>
         ${(p.height_cm || p.weight_kg) ? `
         <div class="prs">
