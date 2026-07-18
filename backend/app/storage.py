@@ -43,5 +43,30 @@ def create_presigned_upload(user_id: str, content_type: str) -> dict:
     return {"upload_url": upload_url, "object_key": object_key}
 
 
+def create_presigned_verification_upload(user_id: str, content_type: str) -> dict:
+    """Presigned-PUT-URL für Verifizierungs-Selfies - eigener verify/-Unterpfad,
+    damit die Keys klar von Profilfotos getrennt sind."""
+    ext = CONTENT_TYPE_EXTENSIONS[content_type]
+    object_key = f"users/{user_id}/verify/{uuid.uuid4()}.{ext}"
+
+    client = get_s3_client()
+    upload_url = client.generate_presigned_url(
+        "put_object",
+        Params={
+            "Bucket": settings.s3_bucket_name,
+            "Key": object_key,
+            "ContentType": content_type,
+        },
+        ExpiresIn=300,
+    )
+    return {"upload_url": upload_url, "object_key": object_key}
+
+
+def delete_object(object_key: str) -> None:
+    """Löscht ein Objekt aus dem Storage (Selfies nach Abschluss der Prüfung)."""
+    client = get_s3_client()
+    client.delete_object(Bucket=settings.s3_bucket_name, Key=object_key)
+
+
 def public_url_for(object_key: str) -> str:
     return f"{settings.s3_public_base_url.rstrip('/')}/{object_key}"

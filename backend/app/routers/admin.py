@@ -6,7 +6,18 @@ from sqlalchemy import func, or_
 from sqlalchemy.orm import Session
 
 from ..database import get_db
-from ..models import AdminUser, Block, Match, Photo, PhotoStatus, Report, Swipe, User
+from ..models import (
+    AdminUser,
+    Block,
+    Match,
+    Photo,
+    PhotoStatus,
+    Report,
+    Swipe,
+    User,
+    VerificationRequest,
+    VerificationStatus,
+)
 from ..rate_limit import limiter
 from ..schemas import (
     AdminLoginRequest,
@@ -15,9 +26,11 @@ from ..schemas import (
     AdminTokenResponse,
     AdminUserDetailOut,
     AdminUserListItem,
+    AdminVerificationOut,
     PhotoModerationOut,
 )
 from ..security import create_admin_access_token, get_current_admin, verify_password
+from .. import storage
 
 router = APIRouter(prefix="/api/admin", tags=["admin"])
 
@@ -243,6 +256,99 @@ def delete_photo(
     db.delete(photo)
     db.commit()
     return {"deleted": True}
+
+
+import json
+from datetime import datetime as _dt
+
+
+def _delete_selfies_quietly(req: VerificationRequest) -> None:
+    """Selfies nach Abschluss der Prüfung aus dem Storage löschen (best effort,
+    ein Storage-Fehler soll die Entscheidung nicht blockieren)."""
+    if not req.selfies:
+        return
+    for entry in json.loads(req.selfies):
+        try:
+            storage.delete_object(entry["object_key"])
+        except Exception:
+            pass
+
+
+@router.get("/verifications", response_model=list[AdminVerificationOut])
+def list_verifications(
+    limit: int = Query(50, le=200),
+    offset: int = 0,
+    admin: AdminUser = Depends(get_current_admin),
+    db: Session = Depends(get_db),
+):
+    rows = (
+        db.query(VerificationRequest, User)
+        .join(User, VerificationRequest.user_id == User.id)
+        .filter(VerificationRequest.status == VerificationStatus.submitted)
+        .order_by(VerificationRequest.created_at.asc())
+        .offset(offset)
+        .limit(limit)
+        .all()
+    )
+    result = []
+    for req, user in rows:
+        selfies = json.loads(req.selfies) if req.selfies else []
+        result.append(
+            AdminVerificationOut(
+                id=req.id,
+                user_id=user.id,
+                user_name=user.name,
+                user_email=user.email,
+                prompts=json.loads(req.prompts),
+                selfie_urls=[
+                    {"prompt": s["prompt"], "url": storage.public_url_for(s["object_key"])}
+                    for s in selfies
+                ],
+                profile_photo_urls=[p.url for p in user.photos],
+                created_at=req.created_at,
+            )
+        )
+    return result
+
+
+@router.post("/verifications/{request_id}/approve")
+def approve_verification(
+    request_id: str,
+    admin: AdminUser = Depends(get_current_admin),
+    db: Session = Depends(get_db),
+):
+    req = db.query(VerificationRequest).filter(VerificationRequest.id == request_id).first()
+    if not req or req.status != VerificationStatus.submitted:
+        raise HTTPException(404, "Verifizierungsanfrage nicht gefunden.")
+    user = db.query(User).filter(User.id == req.user_id).first()
+    if not user:
+        raise HTTPException(404, "Nutzer nicht gefunden.")
+
+    _delete_selfies_quietly(req)
+    req.selfies = None  # Selfies sind gelöscht (siehe Datenschutzerklärung)
+    req.status = VerificationStatus.approved
+    req.decided_at = _dt.utcnow()
+    user.is_verified = True
+    db.commit()
+    return {"is_verified": True}
+
+
+@router.post("/verifications/{request_id}/reject")
+def reject_verification(
+    request_id: str,
+    admin: AdminUser = Depends(get_current_admin),
+    db: Session = Depends(get_db),
+):
+    req = db.query(VerificationRequest).filter(VerificationRequest.id == request_id).first()
+    if not req or req.status != VerificationStatus.submitted:
+        raise HTTPException(404, "Verifizierungsanfrage nicht gefunden.")
+
+    _delete_selfies_quietly(req)
+    req.selfies = None
+    req.status = VerificationStatus.rejected
+    req.decided_at = _dt.utcnow()
+    db.commit()
+    return {"is_verified": False}
 
 
 @router.get("/reports", response_model=list[AdminReportOut])

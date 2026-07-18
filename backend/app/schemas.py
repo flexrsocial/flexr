@@ -110,6 +110,7 @@ class ProfileOut(BaseModel):
     weight_kg: Optional[int]
     bio: Optional[str]
     is_online: bool = False
+    is_verified: bool = False
     # Entfernung zum anfragenden Nutzer in km (nur im Swipe-Deck gesetzt)
     distance_km: Optional[int] = None
     photos: list[PhotoOut] = []
@@ -188,6 +189,33 @@ class MatchOut(BaseModel):
     is_online: bool = False
 
 
+# ---------- Foto-Verifizierung ----------
+
+class VerificationSelfieIn(BaseModel):
+    prompt: str
+    object_key: str
+
+
+class VerificationSubmitRequest(BaseModel):
+    selfies: list[VerificationSelfieIn] = Field(min_length=3, max_length=3)
+
+
+class VerificationStatusOut(BaseModel):
+    status: Literal["none", "in_progress", "submitted", "approved", "rejected"]
+    prompts: Optional[list[str]] = None
+
+
+class AdminVerificationOut(BaseModel):
+    id: str
+    user_id: str
+    user_name: str
+    user_email: str
+    prompts: list[str]
+    selfie_urls: list[dict]  # [{"prompt": ..., "url": ...}]
+    profile_photo_urls: list[str]
+    created_at: datetime
+
+
 class ReportRequest(BaseModel):
     reported_user_id: str
     reason: str = Field(min_length=3, max_length=500)
@@ -217,6 +245,7 @@ class AdminUserListItem(BaseModel):
     city: str
     is_subscribed: bool
     is_banned: bool
+    is_verified: bool = False
     is_active: bool
     created_at: datetime
     photo_count: int
@@ -235,6 +264,7 @@ class AdminUserDetailOut(BaseModel):
     bio: Optional[str]
     is_subscribed: bool
     is_banned: bool
+    is_verified: bool = False
     is_active: bool
     created_at: datetime
     trial_ends_at: datetime

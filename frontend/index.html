@@ -612,6 +612,41 @@
 
   .account-section{ margin-bottom:26px; }
 
+  /* Blauer Verifizierungs-Haken */
+  .verified-badge{
+    display:inline-flex; align-items:center; justify-content:center;
+    width:1em; height:1em; border-radius:50%; background:#1d9bf0; flex-shrink:0;
+    vertical-align:-0.08em; margin-left:0.28em;
+  }
+  .verified-badge svg{ width:62%; height:62%; fill:none; stroke:#fff; stroke-width:3.4; stroke-linecap:round; stroke-linejoin:round; }
+
+  /* Verifizierungs-Screen (Live-Kamera + Posen) */
+  .verify-status-row{ display:flex; align-items:center; gap:10px; font-size:13.5px; color:var(--chalk-dim); }
+  .verify-status-row .ok{ color:#1d9bf0; font-weight:600; }
+  .verify-cam-wrap{
+    position:relative; border-radius:18px; overflow:hidden; background:var(--surface-2);
+    border:1px solid var(--steel); aspect-ratio:3/4; max-height:46vh; margin:14px 0;
+  }
+  .verify-cam-wrap video{
+    width:100%; height:100%; object-fit:cover; transform:scaleX(-1); display:block;
+  }
+  .verify-prompt{
+    font-family:'Oswald'; font-size:20px; text-transform:uppercase; letter-spacing:0.03em;
+    text-align:center; color:var(--chalk); margin:6px 0 2px;
+  }
+  .verify-step{ font-family:'JetBrains Mono'; font-size:11px; color:var(--plate); text-align:center; letter-spacing:0.1em; }
+  .verify-thumbs{ display:flex; gap:8px; justify-content:center; margin-top:12px; }
+  .verify-thumbs img{
+    width:52px; height:66px; object-fit:cover; border-radius:8px;
+    border:1px solid var(--steel);
+  }
+  .verify-thumbs .placeholder{
+    width:52px; height:66px; border-radius:8px; border:1.5px dashed var(--steel);
+    display:flex; align-items:center; justify-content:center; color:var(--chalk-dim);
+    font-family:'JetBrains Mono'; font-size:11px;
+  }
+  .verify-error{ color:var(--danger); font-size:13px; text-align:center; margin-top:10px; }
+
   /* Bio-Feld mit Emoji-Button (grauer Smiley unten rechts im Textfeld) */
   .bio-wrap{ position:relative; }
   .bio-wrap textarea{ padding-bottom:38px; }
@@ -1019,6 +1054,12 @@
       </div>
 
       <div class="account-section">
+        <div class="account-section-title">Verifizierung</div>
+        <div class="verify-status-row" id="verifyStatusRow">—</div>
+        <button class="btn secondary" id="btnStartVerify" style="margin-top:12px; display:none;">Jetzt verifizieren</button>
+      </div>
+
+      <div class="account-section">
         <div class="account-section-title">Fotos</div>
         <div class="photo-grid" id="acctPhotoGrid"></div>
         <input type="file" id="acctPhotoInput" accept="image/*" style="display:none">
@@ -1029,6 +1070,24 @@
         <div class="account-section-title">Konto</div>
         <button class="btn secondary" id="btnLogout">Ausloggen</button>
       </div>
+    </section>
+
+    <!-- FOTO-VERIFIZIERUNG (Live-Kamera, 3 zufällige Posen) -->
+    <section class="screen" id="screen-verify">
+      <div class="chat-header">
+        <button class="back-btn" id="btnVerifyBack" aria-label="Zurück zum Konto">
+          <svg class="ico" viewBox="0 0 24 24"><path d="M14.5 5 8 12l6.5 7"/></svg>
+        </button>
+        <div class="nm">Foto-Verifizierung</div>
+      </div>
+      <div class="verify-step" id="verifyStep">POSE 1 / 3</div>
+      <div class="verify-prompt" id="verifyPrompt">—</div>
+      <div class="verify-cam-wrap">
+        <video id="verifyVideo" autoplay playsinline muted></video>
+      </div>
+      <div class="verify-thumbs" id="verifyThumbs"></div>
+      <div class="verify-error" id="verifyErr"></div>
+      <button class="btn" id="btnVerifyCapture">📸 Aufnehmen</button>
     </section>
 
     <!-- PAYWALL BLOCK -->
@@ -1136,6 +1195,12 @@
 
   function escapeHtml(s){
     return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  // Blauer Verifizierungs-Haken (nach manueller Selfie-Prüfung)
+  const VERIFIED_BADGE_SVG = '<span class="verified-badge" title="Verifiziertes Profil"><svg viewBox="0 0 24 24"><path d="M5.5 12.5 10 17 18.5 7.5"/></svg></span>';
+  function verifiedBadge(p){
+    return p && p.is_verified ? VERIFIED_BADGE_SVG : '';
   }
 
   // Für kleine Avatare: Thumbnail bevorzugen, sonst Vollbild (Bestandsfotos)
@@ -1457,6 +1522,7 @@
 
   $('btnLogout').addEventListener('click', () => {
     stopChatPolling();
+    stopVerifyCamera();
     currentChatMatchId = null;
     matchesCache = [];
     setToken(null);
@@ -1563,6 +1629,7 @@
     btn.addEventListener('click', ()=>{
       if(!membership || !membership.is_active){ showScreen('screen-paywall'); return; }
       stopChatPolling();
+      stopVerifyCamera();
       currentChatMatchId = null;
       const target = btn.dataset.screen;
       setNavActive(target);
@@ -1574,7 +1641,8 @@
   });
 
   function renderAccount(){
-    $('acctName').textContent = myProfile.name + ', ' + myProfile.age;
+    $('acctName').innerHTML = escapeHtml(myProfile.name + ', ' + myProfile.age) + verifiedBadge(myProfile);
+    renderVerificationSection();
     $('acctSubline').textContent = [myProfile.city, myProfile.gym].filter(Boolean).join(' · ');
 
     const avatarEl = $('acctAvatar');
@@ -1811,7 +1879,7 @@
           <div class="photo-nav-zone" data-dir="-1"></div>
           <div class="photo-nav-zone" data-dir="1"></div>
         </div>` : ''}
-        <div class="name-row"><div class="nm">${escapeHtml(p.name)}, ${p.age}</div><div class="loc">${escapeHtml(p.city)} · ${escapeHtml(p.gym||'')}${p.distance_km != null ? ` · ${p.distance_km} km` : ''}</div></div>
+        <div class="name-row"><div class="nm">${escapeHtml(p.name)}, ${p.age}${verifiedBadge(p)}</div><div class="loc">${escapeHtml(p.city)} · ${escapeHtml(p.gym||'')}${p.distance_km != null ? ` · ${p.distance_km} km` : ''}</div></div>
       </div>
       <div class="body">
         <div class="stat-row">
@@ -2066,7 +2134,7 @@
         <div class="${cls}" data-match-id="${m.match_id}">
           <img src="${photo}" title="${m.is_online ? 'Gerade online' : ''}">
           <div class="info">
-            <div class="nm">${escapeHtml(p.name)}, ${p.age}</div>
+            <div class="nm">${escapeHtml(p.name)}, ${p.age}${verifiedBadge(p)}</div>
             <div class="last-msg">${preview}</div>
           </div>
           ${unread ? `<div class="unread-badge">${m.unread_count}</div>` : '<div class="chev"></div>'}
@@ -2118,6 +2186,145 @@
     openChat(currentMatchProfileId);
   });
 
+  // ---------- Foto-Verifizierung (blauer Haken) ----------
+  // Ablauf: Server gibt 3 zufällige Posen vor -> Selfies werden LIVE über die
+  // Kamera aufgenommen (kein Galerie-Upload = Liveness-Schutz) -> manuelle
+  // Prüfung gegen die Profilfotos -> blauer Haken.
+  let verifyState = null; // {prompts, idx, blobs[]}
+  let verifyStream = null;
+
+  async function renderVerificationSection(){
+    const row = $('verifyStatusRow');
+    const btn = $('btnStartVerify');
+    if(myProfile.is_verified){
+      row.innerHTML = `${VERIFIED_BADGE_SVG} <span class="ok">Dein Profil ist verifiziert.</span>`;
+      btn.style.display = 'none';
+      return;
+    }
+    row.textContent = 'Lade Status …';
+    btn.style.display = 'none';
+    try{
+      const st = await api('/api/verification/status');
+      if(st.status === 'submitted'){
+        row.textContent = 'Deine Selfies sind in Prüfung. Du bekommst den blauen Haken nach der Freigabe.';
+      } else if(st.status === 'rejected'){
+        row.textContent = 'Deine letzte Verifizierung wurde abgelehnt. Du kannst es erneut versuchen.';
+        btn.style.display = 'inline-flex';
+      } else {
+        row.textContent = 'Zeig mit 3 Live-Selfies, dass du wirklich du bist - und hol dir den blauen Haken.';
+        btn.style.display = 'inline-flex';
+      }
+    }catch(err){
+      row.textContent = 'Status konnte nicht geladen werden.';
+    }
+  }
+
+  function stopVerifyCamera(){
+    if(verifyStream){
+      verifyStream.getTracks().forEach(t => t.stop());
+      verifyStream = null;
+    }
+  }
+
+  function renderVerifyStep(){
+    const total = verifyState.prompts.length;
+    $('verifyStep').textContent = `POSE ${Math.min(verifyState.idx + 1, total)} / ${total}`;
+    $('verifyPrompt').textContent = verifyState.prompts[verifyState.idx] || 'Fertig!';
+    const thumbs = $('verifyThumbs');
+    thumbs.innerHTML = verifyState.prompts.map((_, i) => {
+      if(verifyState.blobs[i]) return `<img src="${URL.createObjectURL(verifyState.blobs[i])}">`;
+      return `<div class="placeholder">${i + 1}</div>`;
+    }).join('');
+  }
+
+  $('btnStartVerify').addEventListener('click', async () => {
+    try{
+      const st = await api('/api/verification/start', {method: 'POST'});
+      verifyState = {prompts: st.prompts, idx: 0, blobs: []};
+    }catch(err){
+      toast(err.message || 'Verifizierung konnte nicht gestartet werden.');
+      return;
+    }
+    showScreen('screen-verify');
+    $('verifyErr').textContent = '';
+    $('btnVerifyCapture').disabled = false;
+    renderVerifyStep();
+    try{
+      verifyStream = await navigator.mediaDevices.getUserMedia({
+        video: {facingMode: 'user', width: {ideal: 1280}, height: {ideal: 1280}},
+        audio: false,
+      });
+      $('verifyVideo').srcObject = verifyStream;
+    }catch(err){
+      $('verifyErr').textContent = 'Kamera nicht verfügbar oder Zugriff abgelehnt. Die Verifizierung braucht Live-Aufnahmen über die Kamera.';
+      $('btnVerifyCapture').disabled = true;
+      console.error(err);
+    }
+  });
+
+  $('btnVerifyBack').addEventListener('click', () => {
+    stopVerifyCamera();
+    verifyState = null;
+    showScreen('screen-account');
+    setNavActive('account');
+    renderAccount();
+  });
+
+  $('btnVerifyCapture').addEventListener('click', async () => {
+    if(!verifyState || !verifyStream) return;
+    const video = $('verifyVideo');
+    if(!video.videoWidth){ return; }
+
+    const canvas = document.createElement('canvas');
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    canvas.getContext('2d').drawImage(video, 0, 0);
+    const blob = await new Promise(res => canvas.toBlob(res, 'image/jpeg', 0.85));
+    if(!blob){ $('verifyErr').textContent = 'Aufnahme fehlgeschlagen, bitte erneut.'; return; }
+
+    verifyState.blobs[verifyState.idx] = blob;
+    verifyState.idx++;
+
+    if(verifyState.idx < verifyState.prompts.length){
+      renderVerifyStep();
+      return;
+    }
+
+    // Alle 3 Posen aufgenommen -> hochladen + einreichen
+    renderVerifyStep();
+    stopVerifyCamera();
+    const btn = $('btnVerifyCapture');
+    btn.disabled = true;
+    btn.textContent = 'Wird hochgeladen …';
+    try{
+      const selfies = [];
+      for(let i = 0; i < verifyState.prompts.length; i++){
+        const presign = await api('/api/verification/selfies/presign', {
+          method: 'POST',
+          body: JSON.stringify({content_type: 'image/jpeg'}),
+        });
+        const putRes = await fetch(presign.upload_url, {
+          method: 'PUT',
+          headers: {'Content-Type': 'image/jpeg'},
+          body: verifyState.blobs[i],
+        });
+        if(!putRes.ok) throw new Error('Selfie-Upload fehlgeschlagen.');
+        selfies.push({prompt: verifyState.prompts[i], object_key: presign.object_key});
+      }
+      await api('/api/verification/submit', {method: 'POST', body: JSON.stringify({selfies})});
+      toast('Selfies eingereicht - deine Verifizierung ist in Prüfung.');
+      verifyState = null;
+      showScreen('screen-account');
+      setNavActive('account');
+      renderAccount();
+    }catch(err){
+      $('verifyErr').textContent = err.message || 'Einreichen fehlgeschlagen. Bitte erneut versuchen.';
+    }finally{
+      btn.disabled = false;
+      btn.textContent = '📸 Aufnehmen';
+    }
+  });
+
   // ---------- Chat ----------
   let currentChatMatchId = null;
   let chatPollInterval = null;
@@ -2127,7 +2334,7 @@
     const match = findMatchById(matchId);
     if(match){
       $('chatAvatar').src = photoThumb(match.profile.photos && match.profile.photos[0]);
-      $('chatName').textContent = match.profile.name + ', ' + match.profile.age;
+      $('chatName').innerHTML = escapeHtml(match.profile.name + ', ' + match.profile.age) + verifiedBadge(match.profile);
     }
     showScreen('screen-chat');
     $('chatMessages').innerHTML = '<div class="loading">Lade Chat …</div>';

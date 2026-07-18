@@ -36,6 +36,13 @@ class PhotoStatus(str, enum.Enum):
     rejected = "rejected"
 
 
+class VerificationStatus(str, enum.Enum):
+    in_progress = "in_progress"  # Posen ausgegeben, Selfies noch nicht eingereicht
+    submitted = "submitted"      # Selfies hochgeladen, wartet auf manuelle Prüfung
+    approved = "approved"
+    rejected = "rejected"
+
+
 # Wien-Gyms aus dem Prototyp — bei Bedarf um weitere österreichische Städte/Gyms erweitern
 GYM_CHOICES = [
     "John Harris Fitness",
@@ -90,6 +97,10 @@ class User(Base):
     withdrawal_waiver_consent_at = Column(DateTime, nullable=False)
 
     is_banned = Column(Boolean, default=False, nullable=False)
+
+    # Foto-Verifizierung (blauer Haken) - wird nach manueller Prüfung der
+    # Verifizierungs-Selfies gegen die Profilfotos gesetzt.
+    is_verified = Column(Boolean, default=False, nullable=False)
 
     # Wird bei authentifizierten Requests (gedrosselt) aktualisiert - Basis für
     # die Online-Anzeige bei Matches.
@@ -203,6 +214,22 @@ class Report(Base):
     reported_id = Column(String, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     reason = Column(String(500), nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
+
+
+class VerificationRequest(Base):
+    """Foto-Verifizierung: Der Server gibt 3 zufällige Posen vor, der Nutzer
+    nimmt live über die Kamera Selfies auf, der Betreiber vergleicht sie
+    manuell mit den Profilfotos. prompts/selfies sind JSON-serialisiert."""
+
+    __tablename__ = "verification_requests"
+
+    id = Column(String, primary_key=True, default=gen_uuid)
+    user_id = Column(String, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    status = Column(Enum(VerificationStatus), nullable=False, default=VerificationStatus.in_progress)
+    prompts = Column(Text, nullable=False)   # JSON: ["Pose 1", "Pose 2", "Pose 3"]
+    selfies = Column(Text, nullable=True)    # JSON: [{"prompt": ..., "object_key": ...}]
+    created_at = Column(DateTime, default=datetime.utcnow)
+    decided_at = Column(DateTime, nullable=True)
 
 
 class AdminUser(Base):

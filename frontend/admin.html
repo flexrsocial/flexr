@@ -120,6 +120,28 @@
   .photo-mod-card .actions{ display:flex; gap:6px; padding:0 12px 12px; }
   .photo-mod-card .actions .btn{ flex:1; }
 
+  .hint{ color:var(--chalk-dim); font-size:13px; margin:-6px 0 16px; }
+  .verify-review-card{
+    background:var(--surface); border:1px solid var(--steel); border-radius:14px;
+    padding:16px; margin-bottom:16px;
+  }
+  .verify-review-card .meta{ margin-bottom:12px; }
+  .verify-review-card .meta .nm{ font-weight:600; }
+  .verify-cols{ display:grid; grid-template-columns:1fr 1fr; gap:18px; }
+  @media (max-width: 900px){ .verify-cols{ grid-template-columns:1fr; } }
+  .verify-col-title{
+    font-size:11px; text-transform:uppercase; letter-spacing:0.08em;
+    color:var(--chalk-dim); margin-bottom:8px;
+  }
+  .verify-imgs{ display:flex; gap:10px; flex-wrap:wrap; }
+  .verify-imgs figure{ margin:0; width:120px; }
+  .verify-imgs img{
+    width:120px; height:160px; object-fit:cover; border-radius:10px;
+    border:1px solid var(--steel); display:block;
+  }
+  .verify-imgs figcaption{ font-size:11px; color:var(--chalk-dim); margin-top:4px; line-height:1.3; }
+  .verify-review-card .actions{ display:flex; gap:8px; margin-top:14px; }
+
   /* Modal (User-Detail) */
   .modal-backdrop{
     display:none; position:fixed; inset:0; z-index:100; background:rgba(0,0,0,0.6);
@@ -174,6 +196,7 @@
       <button data-view="dashboard" class="active">📊 Dashboard</button>
       <button data-view="users">👤 Nutzer</button>
       <button data-view="photos">🖼 Foto-Freigabe <span class="badge" id="pendingBadge" style="display:none;"></span></button>
+      <button data-view="verifications">✓ Verifizierung</button>
       <button data-view="reports">⚠ Meldungen</button>
     </nav>
     <button class="btn secondary logout" id="btnLogout">Ausloggen</button>
@@ -218,6 +241,14 @@
         <button class="tab-btn" data-status="all">Alle</button>
       </div>
       <div id="photoGridWrap"><div class="loading">Lädt …</div></div>
+    </section>
+
+    <!-- VERIFIZIERUNGEN -->
+    <section class="view" id="view-verifications">
+      <h2>Foto-Verifizierung</h2>
+      <p class="hint">Selfies mit den angeforderten Posen gegen die Profilfotos prüfen.
+        Nach der Entscheidung werden die Selfies automatisch aus dem Storage gelöscht.</p>
+      <div id="verificationsWrap"><div class="loading">Lädt …</div></div>
     </section>
 
     <!-- REPORTS -->
@@ -333,6 +364,7 @@
       if(view === 'dashboard') loadDashboard();
       if(view === 'users') loadUsers();
       if(view === 'photos') loadPhotos();
+      if(view === 'verifications') loadVerifications();
       if(view === 'reports') loadReports();
     });
   });
@@ -525,6 +557,71 @@
               toast('Erledigt.');
               loadPhotos();
               loadDashboard();
+            }catch(err){ toast(err.message); }
+          });
+        });
+      });
+    }catch(err){
+      wrap.innerHTML = `<div class="empty-state">${escapeHtml(err.message)}</div>`;
+    }
+  }
+
+  // ---------- Verifizierungen ----------
+  async function loadVerifications(){
+    const wrap = $('verificationsWrap');
+    wrap.innerHTML = '<div class="loading">Lädt …</div>';
+    try{
+      const reqs = await api('/api/admin/verifications');
+      if(reqs.length === 0){
+        wrap.innerHTML = '<div class="empty-state">Keine offenen Verifizierungen.</div>';
+        return;
+      }
+      wrap.innerHTML = reqs.map(r => `
+        <div class="verify-review-card" data-req-id="${r.id}">
+          <div class="meta">
+            <div class="nm">${escapeHtml(r.user_name)}</div>
+            <div class="mono">${escapeHtml(r.user_email)}</div>
+          </div>
+          <div class="verify-cols">
+            <div>
+              <div class="verify-col-title">Selfies (angeforderte Posen)</div>
+              <div class="verify-imgs">
+                ${r.selfie_urls.map(s => `
+                  <figure>
+                    <img src="${escapeHtml(s.url)}" loading="lazy">
+                    <figcaption>${escapeHtml(s.prompt)}</figcaption>
+                  </figure>`).join('')}
+              </div>
+            </div>
+            <div>
+              <div class="verify-col-title">Profilfotos</div>
+              <div class="verify-imgs">
+                ${r.profile_photo_urls.length
+                  ? r.profile_photo_urls.map(u => `<figure><img src="${escapeHtml(u)}" loading="lazy"></figure>`).join('')
+                  : '<div class="mono">Keine Profilfotos</div>'}
+              </div>
+            </div>
+          </div>
+          <div class="actions">
+            <button class="btn small" data-action="approve">Verifizieren (blauer Haken)</button>
+            <button class="btn secondary small" data-action="reject">Ablehnen</button>
+          </div>
+        </div>
+      `).join('');
+
+      wrap.querySelectorAll('.verify-review-card').forEach(card => {
+        const reqId = card.dataset.reqId;
+        card.querySelectorAll('button[data-action]').forEach(btn => {
+          btn.addEventListener('click', async () => {
+            try{
+              if(btn.dataset.action === 'approve'){
+                await api(`/api/admin/verifications/${reqId}/approve`, {method: 'POST'});
+              } else {
+                if(!confirm('Verifizierung wirklich ablehnen?')) return;
+                await api(`/api/admin/verifications/${reqId}/reject`, {method: 'POST'});
+              }
+              toast('Erledigt - Selfies wurden gelöscht.');
+              loadVerifications();
             }catch(err){ toast(err.message); }
           });
         });

@@ -40,6 +40,8 @@
     <tr><td>Profildaten</td><td>Name, Alter, Stadt, Gym, Größe/Gewicht, Bio</td><td>Registrierung / Profilbearbeitung</td></tr>
     <tr><td>Präferenzdaten (Art. 9 DSGVO)</td><td>Geschlecht, gesuchtes Geschlecht (→ sexuelle Orientierung)</td><td>Registrierung</td></tr>
     <tr><td>Fotos</td><td>Profilbilder</td><td>Upload durch Nutzer, gespeichert bei Cloudflare R2</td></tr>
+    <tr><td>Standortdaten</td><td>GPS-Position (nur bei aktiver Standortfreigabe im Browser/Gerät), ersatzweise die Koordinate der angegebenen PLZ, gewählter Suchradius</td><td>Gerät (Standortfreigabe) / Registrierung</td></tr>
+    <tr><td>Verifizierungs-Selfies</td><td>Selfie-Aufnahmen mit vorgegebenen Posen für die freiwillige Profil-Verifizierung (blauer Haken)</td><td>Live-Aufnahme über die Kamera, gespeichert bei Cloudflare R2</td></tr>
     <tr><td>Nutzungsdaten</td><td>Swipes, Matches, Reports/Blocks</td><td>App-Nutzung</td></tr>
     <tr><td>Zahlungsdaten</td><td>Abo-Status, Stripe-Kunden-/Abo-ID (keine Kartendaten bei uns)</td><td>Stripe Checkout</td></tr>
     <tr><td>Technische Daten</td><td>IP-Adresse (Server-Logs), Zeitstempel</td><td>Automatisch beim Seitenaufruf</td></tr>
@@ -52,7 +54,17 @@
     Berechtigtes Interesse (Art. 6 Abs. 1 lit. f): Betrugs-/Missbrauchsprävention,
     Sicherheit (Report/Block-Funktion).<br>
     Einwilligung (Art. 6 Abs. 1 lit. a i. V. m. Art. 9 Abs. 2 lit. a): Verarbeitung der
-    sexuellen Orientierung über das Präferenzfeld (siehe Hinweis oben).
+    sexuellen Orientierung über das Präferenzfeld (siehe Hinweis oben).<br>
+    Standortdaten: Vertragserfüllung (Art. 6 Abs. 1 lit. b) für die Umkreissuche.
+    Die GPS-Position wird nur verarbeitet, wenn die Standortfreigabe am Gerät aktiv
+    ist; andernfalls wird ersatzweise die Koordinate der angegebenen PLZ verwendet.
+    Bei deaktivierter oder widerrufener Standortfreigabe wird die gespeicherte
+    GPS-Position gelöscht.<br>
+    Verifizierungs-Selfies: Einwilligung (Art. 6 Abs. 1 lit. a). Die Verifizierung
+    ist freiwillig und wird aktiv vom Nutzer gestartet. Die Selfies werden
+    ausschließlich zur Echtheitsprüfung des Profils mit den Profilfotos verglichen;
+    die Prüfung erfolgt manuell durch den Betreiber, es findet keine automatisierte
+    biometrische Auswertung statt.
   </p>
 
   <h2>4. Empfänger / Auftragsverarbeiter</h2>
@@ -69,6 +81,10 @@
     Kontodaten: bis zur Löschung des Profils durch den Nutzer.<br>
     Nach Löschung: 30 Tage Karenzzeit, danach vollständige und unwiderrufliche Löschung
     aller Daten inklusive Fotos aus Cloudflare R2.<br>
+    Verifizierungs-Selfies: werden unmittelbar nach Abschluss der Prüfung
+    (Freigabe oder Ablehnung) gelöscht.<br>
+    GPS-Standortdaten: werden bei jedem App-Start aktualisiert und bei
+    deaktivierter Standortfreigabe gelöscht.<br>
     Zahlungsbezogene Daten: gemäß gesetzlicher Aufbewahrungspflichten (i. d. R. 7 Jahre, §132 BAO).
   </p>
 
