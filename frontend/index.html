@@ -912,7 +912,6 @@
           <h2 class="headline" style="font-size:20px; margin-bottom:2px;" id="acctName">—</h2>
           <div class="account-sub" id="acctSubline"></div>
         </div>
-        <div class="status-pill" id="acctStatusPill">—</div>
       </div>
 
       <div class="account-membership-note">
@@ -1492,16 +1491,13 @@
       avatarEl.textContent = (myProfile.name || '?').charAt(0).toUpperCase();
     }
 
-    const pill = $('acctStatusPill');
     if(membership.is_subscribed){
-      pill.textContent = 'Abo aktiv'; pill.className = 'status-pill trial';
       $('acctStatusText').textContent = 'Dein Abo ist aktiv (5 €/Monat).';
       $('btnSubscribe').textContent = 'Abo aktiv ✓';
       $('btnSubscribe').disabled = true;
       $('btnManageSubscription').style.display = 'block';
     } else {
       const daysLeft = Math.max(0, Math.ceil((new Date(membership.trial_ends_at) - Date.now())/86400000));
-      pill.textContent = `Testmonat: ${daysLeft}d`; pill.className = 'status-pill trial';
       $('acctStatusText').textContent = `Noch ${daysLeft} Tag(e) gratis Probemonat.`;
       $('btnSubscribe').disabled = false;
       $('btnSubscribe').textContent = 'Jetzt abonnieren';
