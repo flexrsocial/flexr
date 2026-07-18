@@ -8,6 +8,7 @@ from sqlalchemy import (
     Date,
     DateTime,
     Enum,
+    Float,
     ForeignKey,
     Integer,
     String,
@@ -94,6 +95,12 @@ class User(Base):
     # die Online-Anzeige bei Matches.
     last_seen_at = Column(DateTime, nullable=True)
 
+    # Umkreissuche: GPS-Position vom Gerät (wenn Standortfreigabe aktiv),
+    # sonst NULL - dann greift serverseitig die PLZ-Koordinate als Fallback.
+    gps_lat = Column(Float, nullable=True)
+    gps_lon = Column(Float, nullable=True)
+    search_radius_km = Column(Integer, nullable=False, default=20)
+
     photos = relationship("Photo", back_populates="user", cascade="all, delete-orphan")
 
     @property
@@ -107,6 +114,19 @@ class User(Base):
 
     def is_active_member(self) -> bool:
         return self.is_subscribed or datetime.utcnow() < self.trial_ends_at
+
+    @property
+    def has_gps_location(self) -> bool:
+        return self.gps_lat is not None and self.gps_lon is not None
+
+    def effective_coords(self):
+        """(lat, lon) für die Umkreissuche: GPS-Position wenn vorhanden,
+        sonst PLZ-Koordinate, sonst None."""
+        if self.gps_lat is not None and self.gps_lon is not None:
+            return (self.gps_lat, self.gps_lon)
+        from .geo import coords_for_plz
+
+        return coords_for_plz(self.plz)
 
     @property
     def is_online(self) -> bool:

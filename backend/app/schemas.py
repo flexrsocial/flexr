@@ -110,6 +110,8 @@ class ProfileOut(BaseModel):
     weight_kg: Optional[int]
     bio: Optional[str]
     is_online: bool = False
+    # Entfernung zum anfragenden Nutzer in km (nur im Swipe-Deck gesetzt)
+    distance_km: Optional[int] = None
     photos: list[PhotoOut] = []
 
     class Config:
@@ -122,6 +124,9 @@ class MyProfileOut(ProfileOut):
 
     plz: str
     birthdate: date
+    search_radius_km: int = 20
+    # True wenn eine GPS-Position gespeichert ist (sonst gilt die PLZ)
+    has_gps_location: bool = False
 
 
 class UpdateProfileRequest(BaseModel):
@@ -134,6 +139,14 @@ class UpdateProfileRequest(BaseModel):
     weight_kg: Optional[int] = Field(default=None, ge=30, le=250)
     gym: Optional[str] = None
     bio: Optional[str] = Field(default=None, max_length=280)
+    search_radius_km: Optional[int] = Field(default=None, ge=2, le=250)
+
+
+class LocationUpdateRequest(BaseModel):
+    """GPS-Position vom Gerät (grob Österreich/Mitteleuropa plausibilisiert)."""
+
+    lat: float = Field(ge=-90, le=90)
+    lon: float = Field(ge=-180, le=180)
 
 
 class MembershipStatus(BaseModel):

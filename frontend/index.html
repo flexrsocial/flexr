@@ -611,6 +611,49 @@
   .membership-link:disabled{ text-decoration:none; cursor:default; opacity:0.7; }
 
   .account-section{ margin-bottom:26px; }
+
+  /* Bio-Feld mit Emoji-Button (grauer Smiley unten rechts im Textfeld) */
+  .bio-wrap{ position:relative; }
+  .bio-wrap textarea{ padding-bottom:38px; }
+  .emoji-btn{
+    position:absolute; bottom:8px; left:10px; width:28px; height:28px;
+    background:none; border:none; cursor:pointer; color:var(--chalk-dim);
+    display:flex; align-items:center; justify-content:center; border-radius:50%;
+    transition:color .15s ease, background .15s ease;
+  }
+  .emoji-btn:hover{ color:var(--chalk); background:var(--surface-2); }
+  .emoji-btn svg.ico{ width:19px; height:19px; }
+  .emoji-panel{
+    display:none; position:absolute; bottom:42px; left:6px; right:6px; z-index:5;
+    background:var(--surface-2); border:1px solid var(--steel); border-radius:12px;
+    padding:10px; box-shadow:0 14px 34px rgba(0,0,0,.5);
+    grid-template-columns:repeat(8, 1fr); gap:2px;
+    max-height:180px; overflow-y:auto; scrollbar-width:thin;
+  }
+  .emoji-panel.open{ display:grid; }
+  .emoji-panel button{
+    background:none; border:none; font-size:19px; line-height:1.6; cursor:pointer;
+    border-radius:8px; padding:2px 0;
+  }
+  .emoji-panel button:hover{ background:var(--surface-3); }
+
+  /* Suchumkreis-Regler */
+  .radius-row{ display:flex; align-items:center; gap:14px; }
+  .radius-row input[type=range]{
+    flex:1; -webkit-appearance:none; appearance:none; height:4px; border-radius:2px;
+    background:var(--steel); outline:none; padding:0; border:none;
+  }
+  .radius-row input[type=range]::-webkit-slider-thumb{
+    -webkit-appearance:none; appearance:none; width:18px; height:18px; border-radius:50%;
+    background:var(--plate); cursor:pointer; box-shadow:0 0 10px var(--plate-glow);
+    border:2px solid var(--ink);
+  }
+  .radius-row input[type=range]::-moz-range-thumb{
+    width:16px; height:16px; border-radius:50%; background:var(--plate); cursor:pointer;
+    border:2px solid var(--ink); box-shadow:0 0 10px var(--plate-glow);
+  }
+  .radius-value{ font-size:12.5px; color:var(--chalk); min-width:52px; text-align:right; }
+  .radius-hint{ font-size:11.5px; color:var(--chalk-dim); margin-top:6px; }
   .account-section-title{
     font-family:'JetBrains Mono', monospace; font-size:11px; letter-spacing:0.1em; text-transform:uppercase;
     color:var(--chalk-dim); margin-bottom:12px; padding-bottom:9px; border-bottom:1px solid var(--hairline);
@@ -955,8 +998,21 @@
           <option>Anderes Studio</option>
         </select>
 
+        <label>Suchumkreis</label>
+        <div class="radius-row">
+          <input type="range" id="a-radius" min="2" max="250" step="1" value="20">
+          <span class="radius-value mono" id="radiusValue">20 km</span>
+        </div>
+        <div class="radius-hint" id="radiusHint">Profile im Umkreis deines Standorts.</div>
+
         <label>Bio</label>
-        <textarea id="a-bio" placeholder="Was du suchst, dein Training, gerne mit Emojis 💪" maxlength="280"></textarea>
+        <div class="bio-wrap">
+          <textarea id="a-bio" placeholder="Was du suchst, dein Training, gerne mit Emojis 💪" maxlength="280"></textarea>
+          <button type="button" class="emoji-btn" id="btnEmojiToggle" aria-label="Emoji einfügen">
+            <svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M9 10h.01M15 10h.01M8.8 14.2c.8 1 1.9 1.6 3.2 1.6s2.4-.6 3.2-1.6"/></svg>
+          </button>
+          <div class="emoji-panel" id="emojiPanel"></div>
+        </div>
 
         <div class="field-err" id="acctProfileErr"></div>
         <button class="btn secondary" id="btnSaveProfile" style="margin-top:16px;">Profil speichern</button>
@@ -1439,7 +1495,47 @@
     $('bottomNav').style.display = 'flex';
     showScreen('screen-swipe');
     setNavActive('swipe');
-    loadDeck();
+    syncLocationThenLoadDeck();
+  }
+
+  // ---------- Standort (GPS mit PLZ-Fallback, wie bei Tinder) ----------
+  // Bei jedem App-Start: Standortfreigabe versuchen. Erfolg -> GPS-Position ans
+  // Backend; Ablehnung/Fehler -> gespeicherte Position löschen, dann sucht das
+  // Backend im Umkreis der eingegebenen PLZ.
+  function syncLocationThenLoadDeck(){
+    let settled = false;
+    const finish = () => { if(!settled){ settled = true; loadDeck(); } };
+
+    if(!('geolocation' in navigator)){
+      api('/api/profiles/me/location', {method: 'DELETE'})
+        .then(p => { myProfile = p; }).catch(()=>{}).finally(finish);
+      return;
+    }
+
+    // Nicht ewig auf den GPS-Dialog warten - nach 6s Deck einfach laden
+    // (die Position wird nachgereicht, sobald sie da ist).
+    const fallbackTimer = setTimeout(finish, 6000);
+
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        clearTimeout(fallbackTimer);
+        try{
+          myProfile = await api('/api/profiles/me/location', {
+            method: 'POST',
+            body: JSON.stringify({lat: pos.coords.latitude, lon: pos.coords.longitude}),
+          });
+        }catch(err){ console.error(err); }
+        finish();
+      },
+      async () => {
+        clearTimeout(fallbackTimer);
+        try{
+          myProfile = await api('/api/profiles/me/location', {method: 'DELETE'});
+        }catch(err){ console.error(err); }
+        finish();
+      },
+      {timeout: 5000, maximumAge: 300000}
+    );
   }
 
   async function subscribeNow(){
@@ -1521,8 +1617,55 @@
     $('a-height').value = myProfile.height_cm != null ? myProfile.height_cm + ' cm (fix)' : 'nicht angegeben';
     $('a-gym').value = myProfile.gym || 'Anderes Studio';
     $('a-bio').value = myProfile.bio || '';
+    $('a-radius').value = myProfile.search_radius_km || 20;
+    $('radiusValue').textContent = ($('a-radius').value) + ' km';
+    $('radiusHint').textContent = myProfile.has_gps_location
+      ? 'Profile im Umkreis deines GPS-Standorts.'
+      : 'Profile im Umkreis deiner PLZ (GPS nicht aktiv).';
     $('acctProfileErr').textContent = '';
   }
+
+  $('a-radius').addEventListener('input', () => {
+    $('radiusValue').textContent = $('a-radius').value + ' km';
+  });
+
+  // ---------- Emoji-Picker für die Bio ----------
+  const BIO_EMOJIS = [
+    '💪','🏋️','🏋️‍♀️','🤸','🏃','🏃‍♀️','🚴','🧘','🏊','🥊','⛰️','🏂',
+    '🔥','⚡','💥','🎯','🏆','🥇','💯','✨','🙌','👊','🤝','✌️',
+    '😄','😉','😎','🥳','😏','🤓','🫶','❤️','🧡','💛','😍','🥰',
+    '🍗','🥩','🥦','🍳','🥤','☕','🍕','🍺','🎵','🎬','🐶','🐱',
+    '☀️','🌙','✈️','📍','🎉','🤷','🤙','👀',
+  ];
+  const emojiPanel = $('emojiPanel');
+  emojiPanel.innerHTML = BIO_EMOJIS.map(e => `<button type="button">${e}</button>`).join('');
+
+  $('btnEmojiToggle').addEventListener('click', (e) => {
+    e.stopPropagation();
+    emojiPanel.classList.toggle('open');
+  });
+
+  emojiPanel.addEventListener('click', (e) => {
+    const btn = e.target.closest('button');
+    if(!btn) return;
+    e.stopPropagation();
+    const ta = $('a-bio');
+    const emoji = btn.textContent;
+    const start = ta.selectionStart != null ? ta.selectionStart : ta.value.length;
+    const end = ta.selectionEnd != null ? ta.selectionEnd : ta.value.length;
+    const next = ta.value.slice(0, start) + emoji + ta.value.slice(end);
+    if(next.length > 280) return; // maxlength respektieren
+    ta.value = next;
+    const pos = start + emoji.length;
+    ta.focus();
+    ta.setSelectionRange(pos, pos);
+  });
+
+  document.addEventListener('click', (e) => {
+    if(emojiPanel.classList.contains('open') && !e.target.closest('.bio-wrap')){
+      emojiPanel.classList.remove('open');
+    }
+  });
 
   async function lookupAcctLocality(plz){
     const ortDisplay = $('acctOrtDisplay');
@@ -1579,6 +1722,7 @@
       city: acctResolvedCity,
       gym: $('a-gym').value,
       bio: $('a-bio').value.trim(),
+      search_radius_km: parseInt($('a-radius').value, 10),
     };
     const weightVal = $('a-weight').value;
     if(weightVal) payload.weight_kg = parseInt(weightVal, 10);
@@ -1667,7 +1811,7 @@
           <div class="photo-nav-zone" data-dir="-1"></div>
           <div class="photo-nav-zone" data-dir="1"></div>
         </div>` : ''}
-        <div class="name-row"><div class="nm">${escapeHtml(p.name)}, ${p.age}</div><div class="loc">${escapeHtml(p.city)} · ${escapeHtml(p.gym||'')}</div></div>
+        <div class="name-row"><div class="nm">${escapeHtml(p.name)}, ${p.age}</div><div class="loc">${escapeHtml(p.city)} · ${escapeHtml(p.gym||'')}${p.distance_km != null ? ` · ${p.distance_km} km` : ''}</div></div>
       </div>
       <div class="body">
         <div class="stat-row">

@@ -5,6 +5,7 @@ from ..database import get_db
 from ..models import GYM_CHOICES, Photo, PhotoStatus, User
 from ..schemas import (
     AddPhotoRequest,
+    LocationUpdateRequest,
     MyProfileOut,
     PresignPhotoRequest,
     PresignPhotoResponse,
@@ -51,6 +52,35 @@ def update_my_profile(
             value = None  # leere Bio = Bio entfernen
         setattr(current_user, field, value)
 
+    db.commit()
+    db.refresh(current_user)
+    return current_user
+
+
+@router.post("/me/location", response_model=MyProfileOut)
+def update_my_location(
+    payload: LocationUpdateRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Speichert die GPS-Position vom Gerät. Solange eine Position gespeichert
+    ist, wird sie für die Umkreissuche verwendet (statt der PLZ-Koordinate)."""
+    current_user.gps_lat = payload.lat
+    current_user.gps_lon = payload.lon
+    db.commit()
+    db.refresh(current_user)
+    return current_user
+
+
+@router.delete("/me/location", response_model=MyProfileOut)
+def clear_my_location(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Entfernt die GPS-Position - die Umkreissuche fällt auf die PLZ zurück
+    (wird vom Frontend aufgerufen, wenn Standortfreigabe fehlt/abgelehnt ist)."""
+    current_user.gps_lat = None
+    current_user.gps_lon = None
     db.commit()
     db.refresh(current_user)
     return current_user

@@ -3,6 +3,7 @@ from sqlalchemy import and_, or_
 from sqlalchemy.orm import Session
 
 from ..database import get_db
+from ..geo import haversine_km
 from ..models import Block, Match, Swipe, User
 from ..rate_limit import limiter
 from ..schemas import ProfileOut, SwipeRequest, SwipeResult
@@ -37,13 +38,37 @@ def get_deck(
             User.id != current_user.id,
             User.gender == current_user.interest,
             User.interest == current_user.gender,
-            User.city == current_user.city,  # vorerst: nur gleiche Stadt
             ~User.id.in_(excluded_ids) if excluded_ids else True,
         )
-        .limit(50)
+        .limit(500)
         .all()
     )
-    return [to_public_profile(u) for u in candidates]
+
+    # Umkreissuche: GPS-Position (wenn freigegeben) bzw. PLZ-Koordinate,
+    # Kandidaten analog. Ohne eigene Koordinaten (unbekannte PLZ) greift
+    # als Notlösung der alte Gleiche-Stadt-Filter.
+    my_coords = current_user.effective_coords()
+    if my_coords is None:
+        nearby = [u for u in candidates if u.city == current_user.city][:50]
+        return [to_public_profile(u) for u in nearby]
+
+    radius = current_user.search_radius_km or 20
+    results = []
+    for u in candidates:
+        their_coords = u.effective_coords()
+        if their_coords is None:
+            continue
+        dist = haversine_km(my_coords[0], my_coords[1], their_coords[0], their_coords[1])
+        if dist <= radius:
+            results.append((dist, u))
+
+    results.sort(key=lambda pair: pair[0])
+    profiles = []
+    for dist, u in results[:50]:
+        profile = to_public_profile(u)
+        profile.distance_km = round(dist)
+        profiles.append(profile)
+    return profiles
 
 
 @router.post("", response_model=SwipeResult)
