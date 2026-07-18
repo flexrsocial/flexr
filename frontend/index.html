@@ -86,6 +86,23 @@
     color-scheme:dark;
   }
   input[type=date]::-webkit-calendar-picker-indicator{ filter:invert(.8); cursor:pointer; }
+  /* Solange kein Datum gewählt ist, soll "tt.mm.jjjj" wie ein Placeholder in
+     Grau erscheinen statt in heller Schriftfarbe. Da :placeholder-shown bei
+     type=date nicht zuverlässig funktioniert, wird die Klasse per JS
+     (input/change-Event) umgeschaltet, sobald ein echter Wert gesetzt ist. */
+  input[type=date].date-empty{ color:var(--chalk-dim); }
+  input[type=date].date-empty::-webkit-datetime-edit-fields-wrapper,
+  input[type=date].date-empty::-webkit-datetime-edit-text,
+  input[type=date].date-empty::-webkit-datetime-edit-day-field,
+  input[type=date].date-empty::-webkit-datetime-edit-month-field,
+  input[type=date].date-empty::-webkit-datetime-edit-year-field{
+    color:var(--chalk-dim);
+  }
+  /* Select-Platzhalter ("Wähle") grau, echte Auswahl in normaler Schriftfarbe */
+  select:invalid{ color:var(--chalk-dim); }
+  select:valid{ color:var(--chalk); }
+  select option{ color:var(--chalk); background:var(--surface); }
+  select option[disabled]{ color:var(--chalk-dim); }
   input[type=password]::-ms-reveal{ display:none; }
   input:-webkit-autofill, input:-webkit-autofill:hover, input:-webkit-autofill:focus{
     -webkit-text-fill-color:var(--chalk);
@@ -747,7 +764,7 @@
       <div class="row2">
         <div>
           <label>Geburtsdatum</label>
-          <input type="date" id="f-birthdate">
+          <input type="date" id="f-birthdate" class="date-empty">
         </div>
         <div>
           <label>Postleitzahl</label>
@@ -760,7 +777,8 @@
       <div class="field-err" id="plzErr"></div>
 
       <label>Geschlecht</label>
-      <select id="f-gender">
+      <select id="f-gender" required>
+        <option value="" disabled selected>Wähle</option>
         <option value="mann">Mann</option>
         <option value="frau">Frau</option>
       </select>
@@ -777,7 +795,8 @@
       </div>
 
       <label>Gym</label>
-      <select id="f-gym">
+      <select id="f-gym" required>
+        <option value="" disabled selected>Wähle</option>
         <option>John Harris Fitness</option>
         <option>Holmes Place</option>
         <option>FitInn</option>
@@ -1267,6 +1286,10 @@
   $('f-plz').addEventListener('focus', () => $('plzCombo').classList.add('focused'));
   $('f-plz').addEventListener('blur', () => $('plzCombo').classList.remove('focused'));
 
+  $('f-birthdate').addEventListener('input', (e) => {
+    e.target.classList.toggle('date-empty', !e.target.value);
+  });
+
   $('btnCreateProfile').addEventListener('click', async ()=>{
     const errEl = $('formErr');
     errEl.textContent = '';
@@ -1302,6 +1325,14 @@
     }
     if(!/^\d{4}$/.test(payload.plz) || !payload.city){
       errEl.textContent = 'Bitte eine gültige österreichische Postleitzahl eingeben (Ort wird automatisch ermittelt).';
+      return;
+    }
+    if(!payload.gender){
+      errEl.textContent = 'Bitte ein Geschlecht auswählen.';
+      return;
+    }
+    if(!payload.gym){
+      errEl.textContent = 'Bitte ein Gym auswählen.';
       return;
     }
     if(!payload.consent_sensitive_data || !payload.consent_withdrawal_waiver){
