@@ -658,13 +658,18 @@
   .verify-status-row{ display:flex; align-items:center; gap:10px; font-size:13.5px; color:var(--chalk-dim); }
   .verify-status-row .ok{ color:#1d9bf0; font-weight:600; }
 
-  /* Verifizierungs-Badge rechts im Konto-Header (unter dem Testmonat-Pill) */
+  /* Verifizierungs-Badge rechts im Konto-Header (unter dem Testmonat-Pill),
+     Maße exakt wie .status-pill */
   .verify-badge-wrap{ position:relative; align-self:flex-start; flex-shrink:0; }
   .verify-badge{
-    font-family:'JetBrains Mono', monospace; font-size:11px; cursor:pointer;
+    font-family:'JetBrains Mono', monospace; font-size:11px; line-height:normal; cursor:pointer;
     padding:5px 10px; border-radius:20px; border:1px solid var(--steel);
     background:rgba(255,255,255,.02); color:var(--chalk-dim);
-    display:inline-flex; align-items:center; gap:6px; white-space:nowrap;
+    display:inline-flex; align-items:center; gap:5px; white-space:nowrap;
+  }
+  .verify-badge .warn-tri{
+    width:12px; height:12px; fill:none; stroke:currentColor; stroke-width:2.2;
+    stroke-linecap:round; stroke-linejoin:round; flex-shrink:0;
   }
   .verify-badge.attention{ color:var(--plate); border-color:rgba(255,90,31,.4); }
   .verify-badge.attention:hover{ background:rgba(255,90,31,.08); }
@@ -677,7 +682,9 @@
     color:var(--chalk); box-shadow:0 14px 34px rgba(0,0,0,.5);
   }
   .verify-badge-wrap:hover .verify-tooltip{ display:block; }
-  .verify-tooltip .verified-badge svg{ width:13px; height:13px; }
+  /* Im Fließtext des Tooltips soll der Haken symmetrisch zwischen den Wörtern
+     sitzen (der Standard-margin-left des Badges wirkt sonst nur einseitig) */
+  .verify-tooltip .verified-badge{ margin:0 .1em; }
 
   /* Konto löschen */
   .btn.danger-ghost{
@@ -2360,14 +2367,14 @@
       if(st.status === 'submitted'){
         badge.className = 'verify-badge pending';
         badge.textContent = 'Prüfung läuft …';
-        tip.innerHTML = `Deine Selfies sind in Prüfung. Nach der Freigabe bekommst du den blauen Haken ${VERIFIED_BADGE_SVG} neben deinen Namen.`;
+        tip.innerHTML = `Deine Selfies sind in Prüfung. Nach der Freigabe bekommst du den blauen Haken ${VERIFIED_BADGE_SVG} neben deinem Namen.`;
       } else {
         badge.className = 'verify-badge attention';
-        badge.textContent = 'Verifizierung !';
+        badge.innerHTML = 'Verifizierung <svg class="warn-tri" viewBox="0 0 24 24"><path d="M12 3.5 21.7 20.2H2.3L12 3.5z"/><path d="M12 10v4.3M12 17.2h.01"/></svg>';
         verifyBadgeClickable = true;
         tip.innerHTML = st.status === 'rejected'
           ? `Deine letzte Verifizierung wurde abgelehnt - du kannst es erneut versuchen. Mit 3 Live-Selfies holst du dir den blauen Haken ${VERIFIED_BADGE_SVG}. Tippen zum Starten.`
-          : `Zeig mit 3 Live-Selfies, dass du wirklich du bist - und hol dir den blauen Haken ${VERIFIED_BADGE_SVG} neben deinen Namen. Tippen zum Starten.`;
+          : `Zeig mit 3 Live-Selfies, dass du wirklich du bist - und hol dir den blauen Haken ${VERIFIED_BADGE_SVG} neben deinem Namen. Tippen zum Starten.`;
       }
     }catch(err){
       badge.className = 'verify-badge pending';
