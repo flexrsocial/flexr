@@ -89,9 +89,10 @@ def unmatch(
     current_user: User = Depends(require_active_membership),
     db: Session = Depends(get_db),
 ):
-    """Match auflösen: Match und Chatverlauf werden gelöscht. Der eigene Like
-    wird auf "pass" gesetzt, damit die Person nicht sofort wieder im Deck
-    auftaucht - eine Sperre wie beim Blockieren ist das aber nicht."""
+    """Match auflösen: Match und Chatverlauf werden gelöscht. Der eigene Swipe
+    wird ebenfalls entfernt, damit die Person noch einmal ganz normal im Deck
+    erscheint und bewusst weggewischt werden kann. Eine Sperre wie beim
+    Blockieren ist das ausdrücklich nicht."""
     match = db.query(Match).filter(Match.id == match_id).first()
     if not match or current_user.id not in (match.user_a_id, match.user_b_id):
         raise HTTPException(404, "Match nicht gefunden.")
@@ -99,13 +100,9 @@ def unmatch(
     other_id = match.user_b_id if match.user_a_id == current_user.id else match.user_a_id
 
     db.query(Message).filter(Message.match_id == match_id).delete()
-    own_swipe = (
-        db.query(Swipe)
-        .filter(Swipe.from_user_id == current_user.id, Swipe.to_user_id == other_id)
-        .first()
-    )
-    if own_swipe:
-        own_swipe.action = "pass"
+    db.query(Swipe).filter(
+        Swipe.from_user_id == current_user.id, Swipe.to_user_id == other_id
+    ).delete()
     db.delete(match)
     db.commit()
     return {"unmatched": True}

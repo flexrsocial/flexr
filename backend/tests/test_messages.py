@@ -111,12 +111,30 @@ def test_unmatch_removes_match_and_messages(client):
     assert client.get(f"/api/matches/{match_id}/messages", headers=headers_a).status_code == 404
 
 
-def test_unmatch_keeps_person_out_of_deck(client):
+def test_unmatch_returns_person_to_deck(client):
+    """Nach dem Auflösen soll die Person noch einmal normal im Deck auftauchen,
+    damit man sie bewusst nach links wischen kann."""
     match_id, (headers_a, user_a), (headers_b, user_b) = make_match(client)
     client.delete(f"/api/matches/{match_id}", headers=headers_a)
 
     deck = client.get("/api/swipes/deck", headers=headers_a).json()
+    assert any(p["id"] == user_b["id"] for p in deck)
+
+
+def test_pass_after_unmatch_removes_person_for_good(client):
+    match_id, (headers_a, user_a), (headers_b, user_b) = make_match(client)
+    client.delete(f"/api/matches/{match_id}", headers=headers_a)
+
+    resp = client.post(
+        "/api/swipes", headers=headers_a, json={"to_user_id": user_b["id"], "action": "pass"}
+    )
+    assert resp.status_code == 200
+    assert resp.json()["matched"] is False
+
+    deck = client.get("/api/swipes/deck", headers=headers_a).json()
     assert all(p["id"] != user_b["id"] for p in deck)
+    # Kein Match durch den alten Like der Gegenseite
+    assert client.get("/api/matches", headers=headers_a).json() == []
 
 
 def test_unmatch_requires_participation(client):
