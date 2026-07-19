@@ -27,7 +27,6 @@ class RegisterRequest(BaseModel):
     gender: Literal["mann", "frau"]
     gym: str
     height_cm: Optional[int] = Field(default=None, ge=120, le=230)
-    weight_kg: Optional[int] = Field(default=None, ge=30, le=250)
     bio: Optional[str] = Field(default=None, max_length=280)
 
     # Zwei getrennt einzuholende, aktive Einwilligungen (siehe models.py User) -
@@ -107,7 +106,6 @@ class ProfileOut(BaseModel):
     gender: str
     gym: str
     height_cm: Optional[int]
-    weight_kg: Optional[int]
     bio: Optional[str]
     is_online: bool = False
     is_verified: bool = False
@@ -139,7 +137,6 @@ class UpdateProfileRequest(BaseModel):
 
     plz: Optional[str] = Field(default=None, pattern=r"^\d{4}$")
     city: Optional[str] = Field(default=None, min_length=1)
-    weight_kg: Optional[int] = Field(default=None, ge=30, le=250)
     gym: Optional[str] = None
     bio: Optional[str] = Field(default=None, max_length=280)
     search_radius_km: Optional[int] = Field(default=None, ge=2, le=250)

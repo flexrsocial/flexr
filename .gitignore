@@ -14,3 +14,13 @@ backend/.env
 
 # OS
 .DS_Store
+
+# Android/TWA-Build (Keystore + Build-Artefakte niemals versionieren)
+android/android.keystore
+android/*.apk
+android/*.aab
+android/build/
+android/app/
+android/gradle*
+android/.gradle/
+android/store_icon.png

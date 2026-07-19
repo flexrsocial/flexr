@@ -1,16 +1,15 @@
 from tests.conftest import register_user
 
 
-def test_update_weight_gym_bio(client):
+def test_update_gym_and_bio(client):
     headers = register_user(client, "update@example.com")
     resp = client.patch(
         "/api/profiles/me",
         headers=headers,
-        json={"weight_kg": 90, "gym": "Clever Fit", "bio": "Neue Bio 🏋️💪🔥"},
+        json={"gym": "Clever Fit", "bio": "Neue Bio 🏋️💪🔥"},
     )
     assert resp.status_code == 200, resp.text
     body = resp.json()
-    assert body["weight_kg"] == 90
     assert body["gym"] == "Clever Fit"
     assert body["bio"] == "Neue Bio 🏋️💪🔥"  # Emojis müssen erhalten bleiben
 
@@ -60,9 +59,9 @@ def test_empty_bio_clears_bio(client):
 def test_untouched_fields_stay(client):
     headers = register_user(client, "stay@example.com")
     before = client.get("/api/profiles/me", headers=headers).json()
-    resp = client.patch("/api/profiles/me", headers=headers, json={"weight_kg": 77})
+    resp = client.patch("/api/profiles/me", headers=headers, json={"bio": "Nur die Bio neu"})
     after = resp.json()
-    assert after["weight_kg"] == 77
+    assert after["bio"] == "Nur die Bio neu"
     assert after["gym"] == before["gym"]
     assert after["city"] == before["city"]
     assert after["plz"] == before["plz"]

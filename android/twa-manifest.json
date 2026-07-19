@@ -1,0 +1,34 @@
+{
+  "packageId": "social.flexr.app",
+  "host": "flexr.social",
+  "name": "FLEXR",
+  "launcherName": "FLEXR",
+  "display": "standalone",
+  "themeColor": "#121212",
+  "navigationColor": "#121212",
+  "backgroundColor": "#121212",
+  "enableNotifications": false,
+  "startUrl": "/",
+  "iconUrl": "https://flexr.social/icons/icon-512.png",
+  "maskableIconUrl": "https://flexr.social/icons/icon-maskable-512.png",
+  "splashScreenFadeOutDuration": 300,
+  "signingKey": {
+    "path": "./android.keystore",
+    "alias": "flexr"
+  },
+  "appVersionName": "1.0.0",
+  "appVersionCode": 1,
+  "shortcuts": [],
+  "generatorApp": "bubblewrap-cli",
+  "webManifestUrl": "https://flexr.social/manifest.json",
+  "fallbackType": "customtabs",
+  "features": {
+    "locationDelegation": {
+      "enabled": true
+    }
+  },
+  "enableSiteSettingsShortcut": true,
+  "isChromeOSOnly": false,
+  "orientation": "portrait",
+  "fingerprints": []
+}

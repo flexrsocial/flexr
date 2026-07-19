@@ -4,6 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>FLEXR — Dating für Gym-Geher</title>
+<meta name="theme-color" content="#121212">
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png">
+<link rel="apple-touch-icon" href="/icons/icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Work+Sans:wght@400;500;600&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
 <link rel="preload" as="image" href="https://images.unsplash.com/photo-1649789248266-ef1c7f744f6f?q=80&w=2400&auto=format&fit=crop">
@@ -575,15 +579,36 @@
 
   body.landing .legal-footer{ display:flex; padding:14px 20px 22px; }
 
+  /* ---------- Mobile Landing (isoliertes Layout) ----------
+     Am Handy zählt: schnell zur Anmeldung. Der Hero wird per display:contents
+     aufgelöst, damit seine Kinder gemeinsam mit der Login-/Registrier-Karte
+     frei angeordnet werden können: Eyebrow -> Headline -> Anmeldekarte ->
+     USPs -> kompakte Swipe-Demo. */
   @media (max-width: 860px){
+    body.landing header.top{ padding:18px 20px 2px; }
+    body.landing .brand{ font-size:26px; }
     body.landing main{
-      grid-template-columns:1fr; gap:26px; align-items:start;
-      padding:10px 20px 40px;
+      display:flex; flex-direction:column; gap:0;
+      padding:8px 18px 36px; max-width:520px;
     }
-    .landing-hero h1{ font-size:clamp(36px,10vw,50px); }
-    .landing-hero .hero-sub{ margin-bottom:18px; }
-    .hero-usps{ margin-bottom:0; }
-    body.landing .screen.active{ max-height:none; overflow:visible; }
+    body.landing .landing-hero{ display:contents; }
+    .landing-hero .hero-eyebrow{ order:1; font-size:10.5px; margin-bottom:10px; }
+    .landing-hero h1{
+      order:2; font-size:clamp(34px,10vw,44px); line-height:1.06; margin-bottom:14px;
+    }
+    .landing-hero .hero-sub{
+      order:3; font-size:14.5px; line-height:1.55; margin-bottom:18px;
+    }
+    body.landing .screen.active{
+      order:4; max-height:none; overflow:visible;
+      padding:20px 18px 24px; border-radius:18px; margin-bottom:24px;
+    }
+    .hero-usps{ order:5; gap:9px; margin-bottom:22px; }
+    .hero-usps li{ font-size:13.5px; }
+    .demo-widget{
+      order:6; justify-content:center; gap:18px; margin:0 auto;
+    }
+    .demo-queue-label{ text-align:left; }
   }
 
   .divider{ height:1px; background:var(--steel); margin:24px 0; position:relative; }
@@ -873,16 +898,8 @@
         <option value="frau">Frau</option>
       </select>
 
-      <div class="row2">
-        <div>
-          <label>Körpergröße (cm)</label>
-          <input type="number" id="f-height" placeholder="180" min="120" max="230">
-        </div>
-        <div>
-          <label>Gewicht (kg)</label>
-          <input type="number" id="f-weight" placeholder="82" min="30" max="250">
-        </div>
-      </div>
+      <label>Körpergröße (cm) — optional</label>
+      <input type="number" id="f-height" placeholder="180" min="120" max="230">
 
       <label>Gym</label>
       <select id="f-gym" required>
@@ -1008,16 +1025,8 @@
         </div>
         <div class="field-err" id="acctPlzErr"></div>
 
-        <div class="row2">
-          <div>
-            <label>Gewicht (kg)</label>
-            <input type="number" id="a-weight" placeholder="82" min="30" max="250">
-          </div>
-          <div>
-            <label>Körpergröße</label>
-            <input type="text" id="a-height" disabled title="Die Körpergröße ist nach der Registrierung fix.">
-          </div>
-        </div>
+        <label>Körpergröße</label>
+        <input type="text" id="a-height" disabled title="Die Körpergröße ist nach der Registrierung fix.">
 
         <label>Gym</label>
         <select id="a-gym">
@@ -1059,25 +1068,6 @@
         <button class="btn secondary" id="btnStartVerify" style="margin-top:12px; display:none;">Jetzt verifizieren</button>
       </div>
 
-      <div class="account-section">
-        <div class="account-section-title">Sicherheit</div>
-        <div class="verify-status-row" id="phoneStatusRow">—</div>
-        <div id="phoneFormWrap" style="display:none;">
-          <label>Handynummer</label>
-          <input type="tel" id="a-phone" placeholder="+43 676 1234567" autocomplete="tel">
-          <div class="field-err" id="phoneErr"></div>
-          <button class="btn secondary" id="btnPhoneRequest" style="margin-top:12px;">Code per SMS senden</button>
-        </div>
-        <div id="phoneCodeWrap" style="display:none;">
-          <label>Bestätigungscode (6-stellig)</label>
-          <input type="text" id="a-phone-code" inputmode="numeric" maxlength="6" placeholder="123456">
-          <div class="field-err" id="phoneCodeErr"></div>
-          <div class="btn-row" style="margin-top:12px;">
-            <button class="btn" id="btnPhoneConfirm">Bestätigen</button>
-            <button class="btn secondary" id="btnPhoneCancel">Abbrechen</button>
-          </div>
-        </div>
-      </div>
 
       <div class="account-section">
         <div class="account-section-title">Fotos</div>
@@ -1469,7 +1459,6 @@
       gender: $('f-gender').value,
       gym: $('f-gym').value,
       height_cm: $('f-height').value ? parseInt($('f-height').value, 10) : null,
-      weight_kg: $('f-weight').value ? parseInt($('f-weight').value, 10) : null,
       bio: $('f-bio').value.trim() || null,
       consent_sensitive_data: $('f-consent-sensitive').checked,
       consent_withdrawal_waiver: $('f-consent-withdrawal').checked,
@@ -1676,7 +1665,6 @@
   function renderAccount(){
     $('acctName').innerHTML = escapeHtml(myProfile.name + ', ' + myProfile.age) + verifiedBadge(myProfile);
     renderVerificationSection();
-    renderPhoneSection();
     $('acctSubline').textContent = [myProfile.city, myProfile.gym].filter(Boolean).join(' · ');
 
     const avatarEl = $('acctAvatar');
@@ -1705,7 +1693,7 @@
     renderAccountPhotoGrid();
   }
 
-  // ---------- Profil bearbeiten (PLZ, Gewicht, Gym, Bio - Größe bleibt fix) ----------
+  // ---------- Profil bearbeiten (PLZ, Gym, Bio - Größe bleibt fix) ----------
   let acctResolvedCity = '';
   let acctPlzLookupTimeout = null;
 
@@ -1715,7 +1703,6 @@
     $('acctOrtDisplay').textContent = acctResolvedCity || '— PLZ eingeben —';
     $('acctOrtDisplay').classList.toggle('resolved', !!acctResolvedCity);
     $('acctPlzErr').textContent = '';
-    $('a-weight').value = myProfile.weight_kg != null ? myProfile.weight_kg : '';
     $('a-height').value = myProfile.height_cm != null ? myProfile.height_cm + ' cm (fix)' : 'nicht angegeben';
     $('a-gym').value = myProfile.gym || 'Anderes Studio';
     $('a-bio').value = myProfile.bio || '';
@@ -1733,11 +1720,24 @@
 
   // ---------- Emoji-Picker für die Bio ----------
   const BIO_EMOJIS = [
-    '💪','🏋️','🏋️‍♀️','🤸','🏃','🏃‍♀️','🚴','🧘','🏊','🥊','⛰️','🏂',
-    '🔥','⚡','💥','🎯','🏆','🥇','💯','✨','🙌','👊','🤝','✌️',
-    '😄','😉','😎','🥳','😏','🤓','🫶','❤️','🧡','💛','😍','🥰',
-    '🍗','🥩','🥦','🍳','🥤','☕','🍕','🍺','🎵','🎬','🐶','🐱',
-    '☀️','🌙','✈️','📍','🎉','🤷','🤙','👀',
+    // Training & Sport
+    '💪','🏋️','🏋️‍♀️','🤸','🏃','🏃‍♀️','🚴','🧘','🏊','🥊','🤾','⚽',
+    '🏀','🎾','🏐','🏈','⚾','🏓','🏸','⛷️','🏂','🛹','🧗','🤼',
+    '⛰️','🥾','🚶','🏇','🤺','🎳','🪂','🏄','🚣','🤽','🥋','🥅',
+    // Energie & Erfolg
+    '🔥','⚡','💥','🎯','🏆','🥇','🥈','🥉','💯','✨','🌟','⭐',
+    '🙌','👊','🤝','✌️','👏','🤞','💫','🚀','🎖️','🏅','📈','🔝',
+    // Stimmung & Gesichter
+    '😄','😁','😉','😎','🥳','😏','🤓','🙃','😊','😜','🤪','😇',
+    '🫶','❤️','🧡','💛','💚','💙','💜','🖤','😍','🥰','😘','💕',
+    '🤗','😌','😤','🥵','😅','🤩','🫡','🤠',
+    // Essen & Trinken
+    '🍗','🥩','🥦','🍳','🥤','☕','🍕','🍺','🍔','🌮','🍣','🥗',
+    '🍎','🍌','🥑','🍫','🧋','🍦','🥞','🍝','🍷','🍹','🫐','🥜',
+    // Lifestyle & Sonstiges
+    '🎵','🎬','🎮','📚','🐶','🐱','🐺','🦁','☀️','🌙','🌈','🌊',
+    '✈️','🗺️','📍','🎉','🤷','🤙','👀','🧠','🛠️','🎸','📸','🏝️',
+    '🚗','🏍️','⛺','🎿','🃏','🎲','🧩','🪩',
   ];
   const emojiPanel = $('emojiPanel');
   emojiPanel.innerHTML = BIO_EMOJIS.map(e => `<button type="button">${e}</button>`).join('');
@@ -1826,9 +1826,6 @@
       bio: $('a-bio').value.trim(),
       search_radius_km: parseInt($('a-radius').value, 10),
     };
-    const weightVal = $('a-weight').value;
-    if(weightVal) payload.weight_kg = parseInt(weightVal, 10);
-
     const btn = $('btnSaveProfile');
     btn.disabled = true;
     try{
@@ -1920,10 +1917,9 @@
           <div class="stat-chip"><svg class="ico" viewBox="0 0 24 24"><path d="M7 8.5v7M10.5 6.5v11M17 8.5v7M13.5 6.5v11M10.5 12h3M3.5 10v4M20.5 10v4"/></svg>${escapeHtml(p.gym||'Kein Gym angegeben')}</div>
           ${p.is_online ? '<div class="stat-chip online-chip"><span class="online-dot"></span>Online</div>' : ''}
         </div>
-        ${(p.height_cm || p.weight_kg) ? `
+        ${p.height_cm ? `
         <div class="prs">
-          ${p.height_cm ? `<div class="pr-box"><div class="val">${escapeHtml(p.height_cm)}cm</div><div class="lbl">Größe</div></div>` : ''}
-          ${p.weight_kg ? `<div class="pr-box"><div class="val">${escapeHtml(p.weight_kg)}kg</div><div class="lbl">Gewicht</div></div>` : ''}
+          <div class="pr-box"><div class="val">${escapeHtml(p.height_cm)}cm</div><div class="lbl">Größe</div></div>
         </div>` : ''}
         <p class="bio-text" style="margin-top:12px;">${escapeHtml(p.bio || 'Keine Bio angegeben.')}</p>
       </div>`;
@@ -2253,70 +2249,9 @@
     }
   }
 
-  // ---------- Telefonprüfung (SMS-Code) ----------
-  function renderPhoneSection(){
-    const row = $('phoneStatusRow');
-    const form = $('phoneFormWrap');
-    const codeWrap = $('phoneCodeWrap');
-    codeWrap.style.display = 'none';
-    if(myProfile.phone_verified){
-      row.innerHTML = `<span class="ok">✓ Handynummer bestätigt</span>&nbsp;<span class="mono">${escapeHtml(myProfile.phone || '')}</span>`;
-      form.style.display = 'none';
-    } else {
-      row.textContent = 'Bestätige deine Handynummer per SMS-Code - schützt dein Konto und hilft gegen Fake-Profile.';
-      form.style.display = 'block';
-    }
-  }
-
-  $('btnPhoneRequest').addEventListener('click', async () => {
-    const errEl = $('phoneErr');
-    errEl.textContent = '';
-    const phone = $('a-phone').value.replace(/[\s\-/()]/g, '');
-    if(!/^\+[1-9]\d{6,14}$/.test(phone)){
-      errEl.textContent = 'Bitte im internationalen Format angeben, z. B. +43 676 1234567.';
-      return;
-    }
-    const btn = $('btnPhoneRequest');
-    btn.disabled = true;
-    try{
-      await api('/api/phone/request', {method: 'POST', body: JSON.stringify({phone})});
-      $('phoneFormWrap').style.display = 'none';
-      $('phoneCodeWrap').style.display = 'block';
-      $('a-phone-code').value = '';
-      $('phoneCodeErr').textContent = '';
-      toast('Code gesendet. Schau in deine SMS.');
-    }catch(err){
-      errEl.textContent = err.message || 'Code konnte nicht gesendet werden.';
-    }finally{
-      btn.disabled = false;
-    }
-  });
-
-  $('btnPhoneConfirm').addEventListener('click', async () => {
-    const errEl = $('phoneCodeErr');
-    errEl.textContent = '';
-    const code = $('a-phone-code').value.trim();
-    if(!/^\d{6}$/.test(code)){
-      errEl.textContent = 'Bitte den 6-stelligen Code eingeben.';
-      return;
-    }
-    const btn = $('btnPhoneConfirm');
-    btn.disabled = true;
-    try{
-      myProfile = await api('/api/phone/confirm', {method: 'POST', body: JSON.stringify({code})});
-      toast('Handynummer bestätigt ✓');
-      renderPhoneSection();
-    }catch(err){
-      errEl.textContent = err.message || 'Bestätigung fehlgeschlagen.';
-    }finally{
-      btn.disabled = false;
-    }
-  });
-
-  $('btnPhoneCancel').addEventListener('click', () => {
-    $('phoneCodeWrap').style.display = 'none';
-    $('phoneFormWrap').style.display = 'block';
-  });
+  // Hinweis: Die Telefonprüfung (SMS-OTP) ist im Backend fertig vorhanden
+  // (/api/phone/request + /confirm), aber bewusst ohne UI - sie wird erst
+  // aktiviert, wenn ein SMS-Versand (Twilio) eingerichtet ist.
 
   function stopVerifyCamera(){
     if(verifyStream){
@@ -2690,6 +2625,11 @@
     renderDemoCard();
     $('demoLike').addEventListener('click', () => advanceDemo('like'));
     $('demoPass').addEventListener('click', () => advanceDemo('pass'));
+  }
+
+  // ---------- PWA: Service Worker (nur über HTTPS bzw. localhost aktiv) ----------
+  if('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')){
+    navigator.serviceWorker.register('/sw.js').catch(err => console.error('SW-Registrierung fehlgeschlagen:', err));
   }
 
   // ---------- Boot ----------

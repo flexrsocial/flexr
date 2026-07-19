@@ -94,7 +94,6 @@ def register(request: Request, payload: RegisterRequest, db: Session = Depends(g
         interest=interest,
         gym=payload.gym,
         height_cm=payload.height_cm,
-        weight_kg=payload.weight_kg,
         bio=payload.bio,
         sensitive_data_consent_at=consent_timestamp,
         withdrawal_waiver_consent_at=consent_timestamp,
