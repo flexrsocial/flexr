@@ -209,8 +209,54 @@
   .card .photo-index{ position:absolute; top:10px; left:10px; right:10px; display:flex; gap:4px; z-index:2; }
   .card .photo-index i{ flex:1; height:3px; border-radius:2px; background:rgba(255,255,255,0.28); }
   .card .photo-index i.on{ background:var(--plate); box-shadow:0 0 8px var(--plate-glow); }
-  .card .photo-nav{ position:absolute; inset:0; display:flex; z-index:1; }
-  .card .photo-nav-zone{ flex:1; cursor:pointer; }
+  .card .photo{ cursor:zoom-in; }
+
+  /* Foto-Vollbild (Galerie) */
+  .lightbox{
+    display:none; position:fixed; inset:0; z-index:200;
+    background:rgba(8,8,8,.95); backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);
+    align-items:center; justify-content:center;
+    padding:60px 16px 70px;
+    animation:fade .2s ease;
+  }
+  .lightbox.open{ display:flex; }
+  .lightbox img{
+    max-width:100%; max-height:100%; object-fit:contain;
+    border-radius:12px; box-shadow:0 24px 60px rgba(0,0,0,.6);
+    user-select:none; -webkit-user-drag:none;
+  }
+  .lightbox-close{
+    position:absolute; top:16px; right:16px; z-index:2;
+    width:42px; height:42px; border-radius:50%;
+    background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.18);
+    color:var(--chalk); cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    transition:background .15s ease;
+  }
+  .lightbox-close:hover{ background:rgba(255,255,255,.16); }
+  .lightbox-close svg{ width:20px; height:20px; fill:none; stroke:currentColor; stroke-width:2.2; stroke-linecap:round; }
+  .lightbox-nav{
+    position:absolute; top:50%; transform:translateY(-50%); z-index:2;
+    width:46px; height:46px; border-radius:50%;
+    background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.18);
+    color:var(--chalk); cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    transition:background .15s ease, opacity .15s ease;
+  }
+  .lightbox-nav:hover{ background:rgba(255,255,255,.16); }
+  .lightbox-nav:disabled{ opacity:.25; cursor:default; }
+  .lightbox-nav.prev{ left:12px; }
+  .lightbox-nav.next{ right:12px; }
+  .lightbox-nav svg{ width:24px; height:24px; fill:none; stroke:currentColor; stroke-width:2.2; stroke-linecap:round; stroke-linejoin:round; }
+  .lightbox-dots{
+    position:absolute; bottom:26px; left:0; right:0;
+    display:flex; justify-content:center; gap:7px;
+  }
+  .lightbox-dots i{
+    width:7px; height:7px; border-radius:50%; background:rgba(255,255,255,.28);
+    transition:background .15s ease, transform .15s ease;
+  }
+  .lightbox-dots i.on{ background:var(--plate); transform:scale(1.25); }
   .card .name-row{ position:absolute; bottom:12px; left:16px; right:16px; }
   .card .name-row .nm{ font-family:'Oswald'; font-size:26px; text-transform:none; letter-spacing:0; text-shadow:0 2px 10px rgba(0,0,0,.55); }
   .card .name-row .loc{
@@ -1221,6 +1267,21 @@
     </div>
   </div>
 
+  <!-- FOTO-VOLLBILD (Galerie mit Pfeilen) -->
+  <div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Foto-Ansicht">
+    <button class="lightbox-close" id="lightboxClose" aria-label="Schließen">
+      <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>
+    </button>
+    <button class="lightbox-nav prev" id="lightboxPrev" aria-label="Vorheriges Foto">
+      <svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg>
+    </button>
+    <img id="lightboxImg" alt="">
+    <button class="lightbox-nav next" id="lightboxNext" aria-label="Nächstes Foto">
+      <svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg>
+    </button>
+    <div class="lightbox-dots" id="lightboxDots"></div>
+  </div>
+
   <!-- KONTO-LÖSCHEN-BESTÄTIGUNG -->
   <div class="legal-modal-backdrop" id="deleteModalBackdrop">
     <div class="legal-modal delete-modal" role="dialog" aria-modal="true">
@@ -2069,11 +2130,6 @@
       <div class="stamp pass">NÄCHSTE</div>
       <div class="photo" style="background-image:url('${photo}')">
         <div class="photo-index">${(p.photos||[]).map((_,i)=>`<i class="${i===0?'on':''}"></i>`).join('')}</div>
-        ${(p.photos||[]).length > 1 ? `
-        <div class="photo-nav">
-          <div class="photo-nav-zone" data-dir="-1"></div>
-          <div class="photo-nav-zone" data-dir="1"></div>
-        </div>` : ''}
         <div class="name-row"><div class="nm">${escapeHtml(p.name)}, ${p.age}${verifiedBadge(p)}</div><div class="loc">${escapeHtml(p.city)} · ${escapeHtml(p.gym||'')}${p.distance_km != null ? ` · ${p.distance_km} km` : ''}</div></div>
       </div>
       <div class="body">
@@ -2103,25 +2159,99 @@
       }
     }
 
-    const navZones = el.querySelectorAll('.photo-nav-zone');
-    if(navZones.length){
-      const photoEl = el.querySelector('.photo');
+    // Klick aufs Foto öffnet die Vollbild-Galerie. Ein Wisch (Swipe-Deck) darf
+    // sie nicht auslösen, deshalb wird die Mausbewegung zwischen Drücken und
+    // Klicken gemessen.
+    const photoEl = el.querySelector('.photo');
+    let currentPhotoIdx = 0;
+    if(photoEl && (p.photos || []).length){
       const dots = el.querySelectorAll('.photo-index i');
-      let photoIdx = 0;
-      navZones.forEach(zone => {
-        zone.addEventListener('mousedown', e => e.stopPropagation());
-        zone.addEventListener('touchstart', e => e.stopPropagation(), {passive: true});
-        zone.addEventListener('click', e => {
-          e.stopPropagation();
-          const dir = parseInt(zone.dataset.dir, 10);
-          photoIdx = Math.max(0, Math.min(p.photos.length - 1, photoIdx + dir));
-          photoEl.style.backgroundImage = `url('${p.photos[photoIdx].url}')`;
-          dots.forEach((d, i) => d.classList.toggle('on', i === photoIdx));
+      let downX = 0, downY = 0;
+      const rememberStart = (e) => {
+        const pt = e.touches ? e.touches[0] : e;
+        downX = pt.clientX; downY = pt.clientY;
+      };
+      photoEl.addEventListener('mousedown', rememberStart);
+      photoEl.addEventListener('touchstart', rememberStart, {passive: true});
+      photoEl.addEventListener('click', (e) => {
+        if(e.target.closest('.flag-btn')) return;
+        if(Math.abs(e.clientX - downX) > 8 || Math.abs(e.clientY - downY) > 8) return;
+        openLightbox(p.photos, currentPhotoIdx, (idx) => {
+          // Beim Schließen zeigt die Karte das zuletzt angesehene Foto
+          currentPhotoIdx = idx;
+          photoEl.style.backgroundImage = `url('${p.photos[idx].url}')`;
+          dots.forEach((d, i) => d.classList.toggle('on', i === idx));
         });
       });
     }
     return el;
   }
+
+  // ---------- Foto-Vollbild (Galerie mit Pfeilen) ----------
+  const lightboxEl = $('lightbox');
+  let lightboxPhotos = [];
+  let lightboxIdx = 0;
+  let lightboxOnClose = null;
+
+  function renderLightbox(){
+    const photo = lightboxPhotos[lightboxIdx];
+    if(!photo) return;
+    $('lightboxImg').src = photo.url;
+    $('lightboxPrev').disabled = lightboxIdx === 0;
+    $('lightboxNext').disabled = lightboxIdx === lightboxPhotos.length - 1;
+    const multi = lightboxPhotos.length > 1;
+    $('lightboxPrev').style.display = multi ? 'flex' : 'none';
+    $('lightboxNext').style.display = multi ? 'flex' : 'none';
+    $('lightboxDots').innerHTML = multi
+      ? lightboxPhotos.map((_, i) => `<i class="${i === lightboxIdx ? 'on' : ''}"></i>`).join('')
+      : '';
+  }
+
+  function openLightbox(photos, startIdx, onClose){
+    lightboxPhotos = photos || [];
+    lightboxIdx = Math.max(0, Math.min(lightboxPhotos.length - 1, startIdx || 0));
+    lightboxOnClose = onClose || null;
+    if(!lightboxPhotos.length) return;
+    renderLightbox();
+    lightboxEl.classList.add('open');
+  }
+
+  function closeLightbox(){
+    if(!lightboxEl.classList.contains('open')) return;
+    lightboxEl.classList.remove('open');
+    if(lightboxOnClose) lightboxOnClose(lightboxIdx);
+    lightboxOnClose = null;
+  }
+
+  function stepLightbox(dir){
+    const next = lightboxIdx + dir;
+    if(next < 0 || next >= lightboxPhotos.length) return;
+    lightboxIdx = next;
+    renderLightbox();
+  }
+
+  $('lightboxClose').addEventListener('click', closeLightbox);
+  $('lightboxPrev').addEventListener('click', (e) => { e.stopPropagation(); stepLightbox(-1); });
+  $('lightboxNext').addEventListener('click', (e) => { e.stopPropagation(); stepLightbox(1); });
+  // Klick auf den Hintergrund (nicht aufs Bild) schließt ebenfalls
+  lightboxEl.addEventListener('click', (e) => {
+    if(e.target === lightboxEl) closeLightbox();
+  });
+  document.addEventListener('keydown', (e) => {
+    if(!lightboxEl.classList.contains('open')) return;
+    if(e.key === 'Escape') closeLightbox();
+    if(e.key === 'ArrowLeft') stepLightbox(-1);
+    if(e.key === 'ArrowRight') stepLightbox(1);
+  });
+  // Wischen am Handy blättert durch die Galerie
+  let lbTouchX = null;
+  lightboxEl.addEventListener('touchstart', (e) => { lbTouchX = e.touches[0].clientX; }, {passive: true});
+  lightboxEl.addEventListener('touchend', (e) => {
+    if(lbTouchX === null) return;
+    const dx = e.changedTouches[0].clientX - lbTouchX;
+    if(Math.abs(dx) > 50) stepLightbox(dx > 0 ? -1 : 1);
+    lbTouchX = null;
+  });
 
   function renderCard(){
     const container = $('deck');
