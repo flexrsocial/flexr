@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
@@ -5,6 +7,7 @@ from ..database import get_db
 from ..models import GYM_CHOICES, Photo, PhotoStatus, User
 from ..schemas import (
     AddPhotoRequest,
+    DeleteAccountRequest,
     LocationUpdateRequest,
     MyProfileOut,
     PresignPhotoRequest,
@@ -62,6 +65,25 @@ def update_my_profile(
     db.commit()
     db.refresh(current_user)
     return current_user
+
+
+@router.delete("/me")
+def delete_my_account(
+    payload: DeleteAccountRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Selbstlöschung mit Passwort-Bestätigung: Konto wird sofort deaktiviert
+    (Login gesperrt, für andere unsichtbar) und nach 30 Tagen Karenzzeit
+    endgültig gelöscht (siehe Datenschutzerklärung)."""
+    from ..security import verify_password
+
+    if not verify_password(payload.password, current_user.password_hash):
+        raise HTTPException(400, "Falsches Passwort.")
+
+    current_user.deleted_at = datetime.utcnow()
+    db.commit()
+    return {"deleted": True, "purge_after_days": 30}
 
 
 @router.post("/me/location", response_model=MyProfileOut)

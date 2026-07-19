@@ -657,6 +657,39 @@
   /* Verifizierungs-Screen (Live-Kamera + Posen) */
   .verify-status-row{ display:flex; align-items:center; gap:10px; font-size:13.5px; color:var(--chalk-dim); }
   .verify-status-row .ok{ color:#1d9bf0; font-weight:600; }
+
+  /* Verifizierungs-Badge rechts im Konto-Header (unter dem Testmonat-Pill) */
+  .verify-badge-wrap{ position:relative; align-self:flex-start; flex-shrink:0; }
+  .verify-badge{
+    font-family:'JetBrains Mono', monospace; font-size:11px; cursor:pointer;
+    padding:5px 10px; border-radius:20px; border:1px solid var(--steel);
+    background:rgba(255,255,255,.02); color:var(--chalk-dim);
+    display:inline-flex; align-items:center; gap:6px; white-space:nowrap;
+  }
+  .verify-badge.attention{ color:var(--plate); border-color:rgba(255,90,31,.4); }
+  .verify-badge.attention:hover{ background:rgba(255,90,31,.08); }
+  .verify-badge.done{ color:#1d9bf0; border-color:rgba(29,155,240,.4); cursor:default; }
+  .verify-badge.pending{ cursor:default; }
+  .verify-tooltip{
+    display:none; position:absolute; top:calc(100% + 8px); right:0; z-index:30;
+    width:230px; background:var(--surface-2); border:1px solid var(--steel);
+    border-radius:12px; padding:11px 13px; font-size:12.5px; line-height:1.5;
+    color:var(--chalk); box-shadow:0 14px 34px rgba(0,0,0,.5);
+  }
+  .verify-badge-wrap:hover .verify-tooltip{ display:block; }
+  .verify-tooltip .verified-badge svg{ width:13px; height:13px; }
+
+  /* Konto löschen */
+  .btn.danger-ghost{
+    background:transparent; border:1px solid rgba(227,72,72,.35); color:var(--danger);
+    box-shadow:none; margin-top:10px;
+  }
+  .btn.danger-ghost:hover{ background:rgba(227,72,72,.08); filter:none; transform:none; box-shadow:none; }
+  .btn.danger-solid{
+    background:linear-gradient(135deg, #f05a5a, var(--danger) 60%, #c93a3a);
+    color:#1a0808; box-shadow:0 6px 20px rgba(227,72,72,.22), inset 0 1px 0 rgba(255,255,255,.25);
+  }
+  .delete-modal{ max-width:420px; }
   .verify-cam-wrap{
     position:relative; border-radius:18px; overflow:hidden; background:var(--surface-2);
     border:1px solid var(--steel); aspect-ratio:3/4; max-height:46vh; margin:14px 0;
@@ -1016,6 +1049,10 @@
           <h2 class="headline" style="font-size:20px; margin-bottom:2px;" id="acctName">—</h2>
           <div class="account-sub" id="acctSubline"></div>
         </div>
+        <div class="verify-badge-wrap">
+          <button type="button" class="verify-badge" id="verifyBadge">—</button>
+          <div class="verify-tooltip" id="verifyTooltip"></div>
+        </div>
       </div>
 
       <div class="account-membership-note">
@@ -1072,13 +1109,6 @@
       </div>
 
       <div class="account-section">
-        <div class="account-section-title">Verifizierung</div>
-        <div class="verify-status-row" id="verifyStatusRow">—</div>
-        <button class="btn secondary" id="btnStartVerify" style="margin-top:12px; display:none;">Jetzt verifizieren</button>
-      </div>
-
-
-      <div class="account-section">
         <div class="account-section-title">Fotos</div>
         <div class="photo-grid" id="acctPhotoGrid"></div>
         <input type="file" id="acctPhotoInput" accept="image/*" style="display:none">
@@ -1088,6 +1118,7 @@
       <div class="account-section">
         <div class="account-section-title">Konto</div>
         <button class="btn secondary" id="btnLogout">Ausloggen</button>
+        <button class="btn danger-ghost" id="btnDeleteAccount">Konto löschen</button>
       </div>
     </section>
 
@@ -1157,6 +1188,28 @@
         Nachricht schreiben
       </button>
       <button class="btn secondary" id="btnMatchContinue">Weiter swipen</button>
+    </div>
+  </div>
+
+  <!-- KONTO-LÖSCHEN-BESTÄTIGUNG -->
+  <div class="legal-modal-backdrop" id="deleteModalBackdrop">
+    <div class="legal-modal delete-modal" role="dialog" aria-modal="true">
+      <button class="legal-modal-close" id="deleteModalClose" aria-label="Schließen">✕</button>
+      <div class="legal-modal-body">
+        <h1 style="font-size:20px;">Konto löschen</h1>
+        <p style="margin-top:10px;">
+          Dein Konto wird sofort deaktiviert und ist für andere nicht mehr sichtbar.
+          Alle Daten inklusive Fotos werden nach <b>30 Tagen endgültig und
+          unwiderruflich gelöscht</b> (siehe Datenschutzerklärung).
+        </p>
+        <label style="margin-top:18px;">Zur Bestätigung dein Passwort</label>
+        <input type="password" id="deletePassword" placeholder="••••••••" autocomplete="current-password">
+        <div class="field-err" id="deleteErr"></div>
+        <div class="btn-row" style="margin-top:18px;">
+          <button class="btn danger-solid" id="btnConfirmDelete">Endgültig löschen</button>
+          <button class="btn secondary" id="btnCancelDelete">Abbrechen</button>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -1561,6 +1614,57 @@
     membership = null;
     $('bottomNav').style.display = 'none';
     showScreen('screen-login');
+  });
+
+  // ---------- Konto löschen (Passwort-Bestätigung, 30-Tage-Karenz) ----------
+  const deleteBackdrop = $('deleteModalBackdrop');
+
+  function closeDeleteModal(){
+    deleteBackdrop.classList.remove('open');
+    $('deletePassword').value = '';
+    $('deleteErr').textContent = '';
+  }
+
+  $('btnDeleteAccount').addEventListener('click', () => {
+    deleteBackdrop.classList.add('open');
+    $('deletePassword').value = '';
+    $('deleteErr').textContent = '';
+    $('deletePassword').focus();
+  });
+  $('deleteModalClose').addEventListener('click', closeDeleteModal);
+  $('btnCancelDelete').addEventListener('click', closeDeleteModal);
+  deleteBackdrop.addEventListener('click', (e) => {
+    if(e.target === deleteBackdrop) closeDeleteModal();
+  });
+
+  $('btnConfirmDelete').addEventListener('click', async () => {
+    const errEl = $('deleteErr');
+    errEl.textContent = '';
+    const password = $('deletePassword').value;
+    if(!password){
+      errEl.textContent = 'Bitte gib zur Bestätigung dein Passwort ein.';
+      return;
+    }
+    const btn = $('btnConfirmDelete');
+    btn.disabled = true;
+    try{
+      await api('/api/profiles/me', {method: 'DELETE', body: JSON.stringify({password})});
+      closeDeleteModal();
+      stopChatPolling();
+      stopVerifyCamera();
+      currentChatMatchId = null;
+      matchesCache = [];
+      setToken(null);
+      myProfile = null;
+      membership = null;
+      $('bottomNav').style.display = 'none';
+      showScreen('screen-login');
+      toast('Dein Konto wurde deaktiviert und wird in 30 Tagen endgültig gelöscht.');
+    }catch(err){
+      errEl.textContent = err.message || 'Löschen fehlgeschlagen.';
+    }finally{
+      btn.disabled = false;
+    }
   });
 
   // ---------- Status / Mitgliedschaft ----------
@@ -2232,31 +2336,49 @@
   let verifyState = null; // {prompts, idx, blobs[]}
   let verifyStream = null;
 
+  // Badge rechts im Konto-Header (unter dem Testmonat-Pill): Zustand + Tooltip,
+  // Klick startet die Verifizierung, solange sie noch aussteht.
+  let verifyBadgeClickable = false;
+
   async function renderVerificationSection(){
-    const row = $('verifyStatusRow');
-    const btn = $('btnStartVerify');
+    const badge = $('verifyBadge');
+    const tip = $('verifyTooltip');
+    verifyBadgeClickable = false;
+
     if(myProfile.is_verified){
-      row.innerHTML = `${VERIFIED_BADGE_SVG} <span class="ok">Dein Profil ist verifiziert.</span>`;
-      btn.style.display = 'none';
+      badge.className = 'verify-badge done';
+      badge.innerHTML = `${VERIFIED_BADGE_SVG} Verifiziert`;
+      tip.innerHTML = `${VERIFIED_BADGE_SVG} Dein Profil ist verifiziert - andere sehen den blauen Haken neben deinem Namen.`;
       return;
     }
-    row.textContent = 'Lade Status …';
-    btn.style.display = 'none';
+
+    badge.className = 'verify-badge pending';
+    badge.textContent = '…';
+    tip.textContent = 'Lade Status …';
     try{
       const st = await api('/api/verification/status');
       if(st.status === 'submitted'){
-        row.textContent = 'Deine Selfies sind in Prüfung. Du bekommst den blauen Haken nach der Freigabe.';
-      } else if(st.status === 'rejected'){
-        row.textContent = 'Deine letzte Verifizierung wurde abgelehnt. Du kannst es erneut versuchen.';
-        btn.style.display = 'inline-flex';
+        badge.className = 'verify-badge pending';
+        badge.textContent = 'Prüfung läuft …';
+        tip.innerHTML = `Deine Selfies sind in Prüfung. Nach der Freigabe bekommst du den blauen Haken ${VERIFIED_BADGE_SVG} neben deinen Namen.`;
       } else {
-        row.textContent = 'Zeig mit 3 Live-Selfies, dass du wirklich du bist - und hol dir den blauen Haken.';
-        btn.style.display = 'inline-flex';
+        badge.className = 'verify-badge attention';
+        badge.textContent = 'Verifizierung !';
+        verifyBadgeClickable = true;
+        tip.innerHTML = st.status === 'rejected'
+          ? `Deine letzte Verifizierung wurde abgelehnt - du kannst es erneut versuchen. Mit 3 Live-Selfies holst du dir den blauen Haken ${VERIFIED_BADGE_SVG}. Tippen zum Starten.`
+          : `Zeig mit 3 Live-Selfies, dass du wirklich du bist - und hol dir den blauen Haken ${VERIFIED_BADGE_SVG} neben deinen Namen. Tippen zum Starten.`;
       }
     }catch(err){
-      row.textContent = 'Status konnte nicht geladen werden.';
+      badge.className = 'verify-badge pending';
+      badge.textContent = 'Verifizierung';
+      tip.textContent = 'Status konnte nicht geladen werden.';
     }
   }
+
+  $('verifyBadge').addEventListener('click', () => {
+    if(verifyBadgeClickable) startVerification();
+  });
 
   // Hinweis: Die Telefonprüfung (SMS-OTP) ist im Backend fertig vorhanden
   // (/api/phone/request + /confirm), aber bewusst ohne UI - sie wird erst
@@ -2280,7 +2402,7 @@
     }).join('');
   }
 
-  $('btnStartVerify').addEventListener('click', async () => {
+  async function startVerification(){
     try{
       const st = await api('/api/verification/start', {method: 'POST'});
       verifyState = {prompts: st.prompts, idx: 0, blobs: []};
@@ -2303,7 +2425,7 @@
       $('btnVerifyCapture').disabled = true;
       console.error(err);
     }
-  });
+  }
 
   $('btnVerifyBack').addEventListener('click', () => {
     stopVerifyCamera();

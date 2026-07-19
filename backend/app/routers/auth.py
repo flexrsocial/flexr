@@ -111,9 +111,18 @@ def register(request: Request, payload: RegisterRequest, db: Session = Depends(g
 @router.post("/login", response_model=TokenResponse)
 @limiter.limit("10/minute")
 def login(request: Request, payload: LoginRequest, db: Session = Depends(get_db)):
+    # Opportunistischer Aufräum-Lauf: endgültige Löschung abgelaufener Konten
+    # (30-Tage-Karenz). Billige Abfrage, in der Regel null Treffer - erspart
+    # einen eigenen Cron-Job.
+    from ..cleanup import purge_deleted_users
+
+    purge_deleted_users(db)
+
     user = db.query(User).filter(User.email == payload.email).first()
     if not user or not verify_password(payload.password, user.password_hash):
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "E-Mail oder Passwort falsch.")
+    if user.deleted_at is not None:
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "Dieses Konto wurde gelöscht.")
     if user.is_banned:
         raise HTTPException(status.HTTP_403_FORBIDDEN, "Account gesperrt.")
 

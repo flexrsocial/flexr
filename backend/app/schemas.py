@@ -142,6 +142,12 @@ class UpdateProfileRequest(BaseModel):
     search_radius_km: Optional[int] = Field(default=None, ge=2, le=250)
 
 
+class DeleteAccountRequest(BaseModel):
+    """Selbstlöschung: erneute Passworteingabe als Bestätigung."""
+
+    password: str
+
+
 class LocationUpdateRequest(BaseModel):
     """GPS-Position vom Gerät (grob Österreich/Mitteleuropa plausibilisiert)."""
 

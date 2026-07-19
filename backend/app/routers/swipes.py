@@ -36,6 +36,7 @@ def get_deck(
         db.query(User)
         .filter(
             User.id != current_user.id,
+            User.deleted_at.is_(None),
             User.gender == current_user.interest,
             User.interest == current_user.gender,
             ~User.id.in_(excluded_ids) if excluded_ids else True,

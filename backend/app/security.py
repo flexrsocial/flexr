@@ -46,6 +46,8 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
     user = db.query(User).filter(User.id == user_id).first()
     if user is None:
         raise credentials_error
+    if user.deleted_at is not None:
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "Dieses Konto wurde gelöscht.")
     if user.is_banned:
         raise HTTPException(status.HTTP_403_FORBIDDEN, "Account gesperrt.")
 

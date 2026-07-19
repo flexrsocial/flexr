@@ -97,6 +97,10 @@ class User(Base):
 
     is_banned = Column(Boolean, default=False, nullable=False)
 
+    # Selbstlöschung: Konto wird sofort deaktiviert (Login gesperrt, unsichtbar),
+    # nach 30 Tagen Karenz endgültig gelöscht (siehe Datenschutzerklärung Punkt 5).
+    deleted_at = Column(DateTime, nullable=True)
+
     # Foto-Verifizierung (blauer Haken) - wird nach manueller Prüfung der
     # Verifizierungs-Selfies gegen die Profilfotos gesetzt.
     is_verified = Column(Boolean, default=False, nullable=False)

@@ -35,7 +35,12 @@ def get_matches(
         b.blocker_id for b in db.query(Block).filter(Block.blocked_id == current_user.id)
     }
 
-    users_by_id = {u.id: u for u in db.query(User).filter(User.id.in_(other_ids)).all()}
+    users_by_id = {
+        u.id: u
+        for u in db.query(User)
+        .filter(User.id.in_(other_ids), User.deleted_at.is_(None))
+        .all()
+    }
 
     result = []
     for row in rows:
