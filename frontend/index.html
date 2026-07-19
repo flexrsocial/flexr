@@ -299,6 +299,12 @@
   .match-item .info .nm{ font-family:'Oswald'; font-size:16px; letter-spacing:0.01em; }
   .match-item .info .last-msg{ font-size:12.5px; color:var(--chalk-dim); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:3px; }
   .match-item.unread .info .last-msg{ color:var(--chalk); font-weight:500; }
+  /* Ungelesene Nachrichten: Rahmen leuchtet orange wie der Online-Ring */
+  .match-item.unread{
+    border-color:var(--plate-dim);
+    box-shadow:0 0 0 1px var(--plate-dim), 0 0 14px var(--plate-glow);
+  }
+  .match-item.unread:hover{ border-color:var(--plate); }
   .match-item .unread-badge{
     background:var(--plate); color:#191008; font-family:'JetBrains Mono'; font-size:11px; font-weight:700;
     border-radius:50%; min-width:21px; height:21px; display:flex; align-items:center; justify-content:center;
@@ -409,6 +415,16 @@
     box-shadow:0 0 14px var(--plate-glow); transition:transform .2s ease;
   }
   nav.bottom button svg.ico{ transition:transform .18s ease; }
+  /* Zähler ungelesener Nachrichten rechts oben am Chat-Symbol */
+  .nav-ico-wrap{ position:relative; display:inline-flex; }
+  .nav-badge{
+    position:absolute; top:-6px; right:-9px;
+    background:var(--plate); color:#191008;
+    font-family:'JetBrains Mono'; font-size:9.5px; font-weight:700; line-height:1;
+    min-width:16px; height:16px; padding:0 4px; border-radius:9px;
+    display:flex; align-items:center; justify-content:center;
+    border:2px solid var(--ink); box-shadow:0 0 10px var(--plate-glow);
+  }
   nav.bottom button:hover{ color:var(--chalk); }
   nav.bottom button.active{ color:var(--plate); }
   nav.bottom button.active::before{ transform:translateX(-50%) scaleX(1); }
@@ -1237,7 +1253,10 @@
       Matches
     </button>
     <button data-screen="chats">
-      <svg class="ico" viewBox="0 0 24 24"><path d="M21 11.7a8.2 8.2 0 0 1-8.3 8.1c-1.5 0-2.9-.35-4.1-1L4 19.9l1.1-4.1a8.1 8.1 0 1 1 15.9-4.1z"/></svg>
+      <span class="nav-ico-wrap">
+        <svg class="ico" viewBox="0 0 24 24"><path d="M21 11.7a8.2 8.2 0 0 1-8.3 8.1c-1.5 0-2.9-.35-4.1-1L4 19.9l1.1-4.1a8.1 8.1 0 1 1 15.9-4.1z"/></svg>
+        <span class="nav-badge" id="chatsNavBadge" style="display:none;">0</span>
+      </span>
       Chats
     </button>
     <button data-screen="account">
@@ -1624,6 +1643,7 @@
 
   $('btnLogout').addEventListener('click', () => {
     stopChatPolling();
+    stopUnreadPolling();
     stopVerifyCamera();
     currentChatMatchId = null;
     matchesCache = [];
@@ -1669,6 +1689,7 @@
       await api('/api/profiles/me', {method: 'DELETE', body: JSON.stringify({password})});
       closeDeleteModal();
       stopChatPolling();
+      stopUnreadPolling();
       stopVerifyCamera();
       currentChatMatchId = null;
       matchesCache = [];
@@ -1715,6 +1736,7 @@
     showScreen('screen-swipe');
     setNavActive('swipe');
     syncLocationThenLoadDeck();
+    startUnreadPolling();
   }
 
   // ---------- Standort (GPS mit PLZ-Fallback, wie bei Tinder) ----------
@@ -1787,10 +1809,12 @@
       const target = btn.dataset.screen;
       setNavActive(target);
       showScreen('screen-' + target);
-      if(target === 'swipe') loadDeck();
+      // Swipe/Konto laden keine Matches - Badge dort separat abgleichen,
+      // damit ein gerade gelesener Chat sofort verschwindet
+      if(target === 'swipe'){ loadDeck(); refreshUnreadBadge(); }
       if(target === 'matches') loadMatches();
       if(target === 'chats') loadChats();
-      if(target === 'account') renderAccount();
+      if(target === 'account'){ renderAccount(); refreshUnreadBadge(); }
     });
   });
 
@@ -2275,6 +2299,7 @@
     if(!profile) return;
     try{
       matchesCache = await api('/api/matches');
+      renderUnreadBadge(matchesCache);
       const match = matchesCache.find(m => m.profile.id === profile.id);
       if(match){
         setNavActive('chats');
@@ -2295,10 +2320,41 @@
   // ---------- Matches ----------
   let matchesCache = [];
 
+  // ---------- Ungelesen-Zähler am Chat-Symbol in der Navigation ----------
+  let unreadPollInterval = null;
+
+  function renderUnreadBadge(matches){
+    const total = (matches || []).reduce((sum, m) => sum + (m.unread_count || 0), 0);
+    const badge = $('chatsNavBadge');
+    badge.textContent = total > 99 ? '99+' : total;
+    badge.style.display = total > 0 ? 'flex' : 'none';
+  }
+
+  async function refreshUnreadBadge(){
+    // Im offenen Chat nicht dazwischenfunken - der markiert gerade als gelesen
+    if(currentChatMatchId) return;
+    try{
+      matchesCache = await api('/api/matches');
+      renderUnreadBadge(matchesCache);
+    }catch(err){ /* stiller Hintergrund-Abgleich */ }
+  }
+
+  function startUnreadPolling(){
+    stopUnreadPolling();
+    refreshUnreadBadge();
+    unreadPollInterval = setInterval(refreshUnreadBadge, 20000);
+  }
+
+  function stopUnreadPolling(){
+    if(unreadPollInterval){ clearInterval(unreadPollInterval); unreadPollInterval = null; }
+    $('chatsNavBadge').style.display = 'none';
+  }
+
   async function loadMatches(){
     $('matchList').innerHTML = '<div class="loading">Lade Matches …</div>';
     try{
       matchesCache = await api('/api/matches');
+      renderUnreadBadge(matchesCache);
       if(matchesCache.length === 0){
         $('matchList').innerHTML = `
           <div class="empty">
@@ -2338,6 +2394,7 @@
     $('chatList').innerHTML = '<div class="loading">Lade Chats …</div>';
     try{
       matchesCache = await api('/api/matches');
+      renderUnreadBadge(matchesCache);
       const withMessages = matchesCache.filter(m => m.last_message);
       if(withMessages.length === 0){
         $('chatList').innerHTML = `
@@ -2646,6 +2703,7 @@
       await loadMessages();
       // Cache auffrischen, damit die Chatliste beim Zurückgehen aktuell ist
       matchesCache = await api('/api/matches');
+      renderUnreadBadge(matchesCache);
     }catch(err){
       toast(err.message || 'Nachricht konnte nicht gesendet werden.');
     }
