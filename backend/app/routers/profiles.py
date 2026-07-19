@@ -125,8 +125,8 @@ def presign_photo_upload(
     direkt dorthin hoch und registriert danach den zurückgegebenen object_key
     über POST /me/photos - es fließen keine Bilddaten durchs Backend."""
     existing_count = db.query(Photo).filter(Photo.user_id == current_user.id).count()
-    if existing_count >= 5:
-        raise HTTPException(400, "Maximal 5 Fotos erlaubt.")
+    if existing_count >= 6:
+        raise HTTPException(400, "Maximal 6 Fotos erlaubt.")
 
     result = create_presigned_upload(current_user.id, payload.content_type)
     return PresignPhotoResponse(**result)
@@ -144,8 +144,8 @@ def add_photo(
         raise HTTPException(400, "Ungültiger thumb_object_key.")
 
     existing_count = db.query(Photo).filter(Photo.user_id == current_user.id).count()
-    if existing_count >= 5:
-        raise HTTPException(400, "Maximal 5 Fotos erlaubt.")
+    if existing_count >= 6:
+        raise HTTPException(400, "Maximal 6 Fotos erlaubt.")
 
     photo = Photo(
         user_id=current_user.id,

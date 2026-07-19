@@ -94,3 +94,37 @@ def test_empty_message_rejected(client):
     match_id, (headers_a, _), _ = make_match(client)
     resp = client.post(f"/api/matches/{match_id}/messages", headers=headers_a, json={"content": ""})
     assert resp.status_code == 422
+
+
+def test_unmatch_removes_match_and_messages(client):
+    match_id, (headers_a, user_a), (headers_b, user_b) = make_match(client)
+    client.post(f"/api/matches/{match_id}/messages", headers=headers_a, json={"content": "Hallo!"})
+
+    resp = client.delete(f"/api/matches/{match_id}", headers=headers_a)
+    assert resp.status_code == 200
+
+    # Für beide Seiten verschwunden
+    assert client.get("/api/matches", headers=headers_a).json() == []
+    assert client.get("/api/matches", headers=headers_b).json() == []
+
+    # Chat nicht mehr erreichbar
+    assert client.get(f"/api/matches/{match_id}/messages", headers=headers_a).status_code == 404
+
+
+def test_unmatch_keeps_person_out_of_deck(client):
+    match_id, (headers_a, user_a), (headers_b, user_b) = make_match(client)
+    client.delete(f"/api/matches/{match_id}", headers=headers_a)
+
+    deck = client.get("/api/swipes/deck", headers=headers_a).json()
+    assert all(p["id"] != user_b["id"] for p in deck)
+
+
+def test_unmatch_requires_participation(client):
+    match_id, _, _ = make_match(client)
+    headers_c = register_user(client, "unmatch.outsider@example.com", name="C", gender="mann")
+    assert client.delete(f"/api/matches/{match_id}", headers=headers_c).status_code == 404
+
+
+def test_unmatch_unknown_match_404(client):
+    headers = register_user(client, "unmatch.solo@example.com")
+    assert client.delete("/api/matches/gibt-es-nicht", headers=headers).status_code == 404

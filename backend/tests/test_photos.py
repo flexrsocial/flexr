@@ -34,21 +34,22 @@ def test_cannot_register_photo_with_foreign_object_key(client):
     assert resp.status_code == 400
 
 
-def test_max_five_photos(client):
+def test_max_six_photos(client):
     headers = register_user(client, "photo3@example.com")
-    for _ in range(5):
+    for _ in range(6):
         presign = client.post(
             "/api/profiles/me/photos/presign",
             headers=headers,
             json={"content_type": "image/jpeg"},
         ).json()
-        client.post(
+        resp = client.post(
             "/api/profiles/me/photos", headers=headers, json={"object_key": presign["object_key"]}
         )
+        assert resp.status_code == 200
 
-    sixth = client.post(
+    seventh = client.post(
         "/api/profiles/me/photos/presign",
         headers=headers,
         json={"content_type": "image/jpeg"},
     )
-    assert sixth.status_code == 400
+    assert seventh.status_code == 400

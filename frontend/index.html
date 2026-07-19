@@ -6,8 +6,10 @@
 <title>FLEXR — Dating für Gym-Geher</title>
 <meta name="theme-color" content="#121212">
 <link rel="manifest" href="/manifest.json">
+<link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/icons/favicon-16.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png">
-<link rel="apple-touch-icon" href="/icons/icon-192.png">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Work+Sans:wght@400;500;600&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
 <link rel="preload" as="image" href="https://images.unsplash.com/photo-1649789248266-ef1c7f744f6f?q=80&w=2400&auto=format&fit=crop">
@@ -968,7 +970,7 @@
       <label>Bio</label>
       <textarea id="f-bio" placeholder="Was du suchst, dein Training, was auch immer..." maxlength="280"></textarea>
 
-      <label>Fotos (max. 5)</label>
+      <label>Fotos (max. 6)</label>
       <div class="photo-grid" id="photoGrid"></div>
       <input type="file" id="photoInput" accept="image/*" style="display:none">
       <div class="field-err" id="photoErr"></div>
@@ -1013,6 +1015,13 @@
       <div class="eyebrow">Trefferquote</div>
       <h2 class="headline" style="font-size:22px; margin-bottom:16px;">Deine Matches</h2>
       <div id="matchList"><div class="loading">Lade Matches …</div></div>
+    </section>
+
+    <!-- CHATS -->
+    <section class="screen" id="screen-chats">
+      <div class="eyebrow">Im Gespräch</div>
+      <h2 class="headline" style="font-size:22px; margin-bottom:16px;">Deine Chats</h2>
+      <div id="chatList"><div class="loading">Lade Chats …</div></div>
     </section>
 
     <!-- MATCH-PROFIL -->
@@ -1226,8 +1235,12 @@
       Swipe
     </button>
     <button data-screen="matches">
-      <svg class="ico" viewBox="0 0 24 24"><path d="M21 11.7a8.2 8.2 0 0 1-8.3 8.1c-1.5 0-2.9-.35-4.1-1L4 19.9l1.1-4.1a8.1 8.1 0 1 1 15.9-4.1z"/><path d="M12.7 14.7 11 12.9a1.55 1.55 0 1 1 1.7-2.4 1.55 1.55 0 1 1 1.7 2.4l-1.7 1.8z" fill="currentColor" stroke="none"/></svg>
+      <svg class="ico" viewBox="0 0 24 24"><path d="M12 20.3 4.6 13a4.7 4.7 0 0 1 6.6-6.7l.8.8.8-.8A4.7 4.7 0 0 1 19.4 13L12 20.3z"/></svg>
       Matches
+    </button>
+    <button data-screen="chats">
+      <svg class="ico" viewBox="0 0 24 24"><path d="M21 11.7a8.2 8.2 0 0 1-8.3 8.1c-1.5 0-2.9-.35-4.1-1L4 19.9l1.1-4.1a8.1 8.1 0 1 1 15.9-4.1z"/></svg>
+      Chats
     </button>
     <button data-screen="account">
       <svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="8.2" r="3.4"/><path d="M5.5 19.5c1-3.4 3.5-5.1 6.5-5.1s5.5 1.7 6.5 5.1"/></svg>
@@ -1389,7 +1402,7 @@
   function renderPhotoGrid(){
     const grid = $('photoGrid');
     grid.innerHTML = '';
-    for(let i=0;i<5;i++){
+    for(let i=0;i<6;i++){
       const slot = document.createElement('div');
       slot.className = 'photo-slot';
       if(pendingPhotos[i]){
@@ -1408,7 +1421,7 @@
     const file = e.target.files[0];
     e.target.value = '';
     if(!file) return;
-    if(pendingPhotos.length >= 5){ $('photoErr').textContent = 'Maximal 5 Fotos.'; return; }
+    if(pendingPhotos.length >= 6){ $("photoErr").textContent = "Maximal 6 Fotos."; return; }
     $('photoErr').textContent = '';
     try{
       const photo = await preparePhoto(file);
@@ -1778,6 +1791,7 @@
       showScreen('screen-' + target);
       if(target === 'swipe') loadDeck();
       if(target === 'matches') loadMatches();
+      if(target === 'chats') loadChats();
       if(target === 'account') renderAccount();
     });
   });
@@ -1841,9 +1855,11 @@
   // ---------- Emoji-Picker für die Bio ----------
   const BIO_EMOJIS = [
     // Training & Sport
-    '💪','🏋️','🏋️‍♀️','🤸','🏃','🏃‍♀️','🚴','🧘','🏊','🥊','🤾','⚽',
-    '🏀','🎾','🏐','🏈','⚾','🏓','🏸','⛷️','🏂','🛹','🧗','🤼',
+    '💪','🏋️','🏋️‍♀️','🤸','🏃','🏃‍♀️','🚴','🚵','🧘','🏊','🥊','🤾','⚽',
+    '🏀','🎾','🏐','🏈','⚾','🏓','🏸','⛷️','🏂','🛹','🧗','🧗‍♀️','🤼',
     '⛰️','🥾','🚶','🏇','🤺','🎳','🪂','🏄','🚣','🤽','🥋','🥅',
+    '🏹','⛹️','⛹️‍♀️','🤹','🕺','💃','🦵','🦶','🫀','🫁','🦿',
+    '⏱️','⌚','🧢','👟','🩳','🧦','🎽','🧊','🩹','🧴','🪢','🛼',
     // Energie & Erfolg
     '🔥','⚡','💥','🎯','🏆','🥇','🥈','🥉','💯','✨','🌟','⭐',
     '🙌','👊','🤝','✌️','👏','🤞','💫','🚀','🎖️','🏅','📈','🔝',
@@ -1854,13 +1870,17 @@
     // Essen & Trinken
     '🍗','🥩','🥦','🍳','🥤','☕','🍕','🍺','🍔','🌮','🍣','🥗',
     '🍎','🍌','🥑','🍫','🧋','🍦','🥞','🍝','🍷','🍹','🫐','🥜',
+    '🥛','🧀','🍚','🍠','🥕','🫑','🌽','🥬','🥒','🍇','🍊','🥝',
+    '🍉','🥚','🐟','🍤','🫘','🌰','💊','🧂','🥥','🍯',
     // Lifestyle & Sonstiges
     '🎵','🎬','🎮','📚','🐶','🐱','🐺','🦁','☀️','🌙','🌈','🌊',
     '✈️','🗺️','📍','🎉','🤷','🤙','👀','🧠','🛠️','🎸','📸','🏝️',
     '🚗','🏍️','⛺','🎿','🃏','🎲','🧩','🪩',
   ];
   const emojiPanel = $('emojiPanel');
-  emojiPanel.innerHTML = BIO_EMOJIS.map(e => `<button type="button">${e}</button>`).join('');
+  // Dubletten rausfiltern, falls sich in den Kategorien etwas überschneidet
+  emojiPanel.innerHTML = [...new Set(BIO_EMOJIS)]
+    .map(e => `<button type="button">${e}</button>`).join('');
 
   $('btnEmojiToggle').addEventListener('click', (e) => {
     e.stopPropagation();
@@ -1963,7 +1983,7 @@
     const grid = $('acctPhotoGrid');
     grid.innerHTML = '';
     const photos = myProfile.photos || [];
-    for(let i=0;i<5;i++){
+    for(let i=0;i<6;i++){
       const slot = document.createElement('div');
       slot.className = 'photo-slot';
       if(photos[i]){
@@ -2018,6 +2038,8 @@
     el.innerHTML = `
       ${interactive ? `
       <div class="flag-btns">
+        ${handlers && handlers.onUnmatch ? `
+        <div class="flag-btn" id="btnUnmatchCard" title="Match auflösen" aria-label="Match auflösen"><svg class="ico" viewBox="0 0 24 24"><path d="M12 20.3 4.6 13a4.7 4.7 0 0 1 6.6-6.7l.8.8.8-.8A4.7 4.7 0 0 1 19.4 13L12 20.3z"/><path d="M4 20 20 4"/></svg></div>` : ''}
         <div class="flag-btn" id="btnReportCard" title="Melden" aria-label="Melden"><svg class="ico" viewBox="0 0 24 24"><path d="M6 21V4.5M6 5h11.5l-2.4 3.9 2.4 3.9H6"/></svg></div>
         <div class="flag-btn" id="btnBlockCard" title="Blockieren" aria-label="Blockieren"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.2"/><path d="M6.4 6.4l11.2 11.2"/></svg></div>
       </div>` : ''}
@@ -2047,12 +2069,16 @@
     if(interactive){
       const reportBtn = el.querySelector('#btnReportCard');
       const blockBtn = el.querySelector('#btnBlockCard');
-      [reportBtn, blockBtn].forEach(btn => {
+      const unmatchBtn = el.querySelector('#btnUnmatchCard');
+      [reportBtn, blockBtn, unmatchBtn].filter(Boolean).forEach(btn => {
         btn.addEventListener('mousedown', e => e.stopPropagation());
         btn.addEventListener('touchstart', e => e.stopPropagation(), {passive: true});
       });
       reportBtn.addEventListener('click', e => { e.stopPropagation(); (handlers && handlers.onReport ? handlers.onReport : reportCurrentCard)(); });
       blockBtn.addEventListener('click', e => { e.stopPropagation(); (handlers && handlers.onBlock ? handlers.onBlock : blockCurrentCard)(); });
+      if(unmatchBtn){
+        unmatchBtn.addEventListener('click', e => { e.stopPropagation(); handlers.onUnmatch(); });
+      }
     }
 
     const navZones = el.querySelectorAll('.photo-nav-zone');
@@ -2119,6 +2145,15 @@
       toast(`${name} blockiert.`);
       if(onBlocked) onBlocked();
     }catch(err){ toast(err.message || 'Blockieren fehlgeschlagen.'); }
+  }
+
+  async function unmatchMatch(matchId, name, onDone){
+    if(!confirm(`Match mit ${name} wirklich auflösen? Der Chatverlauf wird gelöscht.`)) return;
+    try{
+      await api(`/api/matches/${matchId}`, {method: 'DELETE'});
+      toast(`Match mit ${name} aufgelöst.`);
+      if(onDone) onDone();
+    }catch(err){ toast(err.message || 'Auflösen fehlgeschlagen.'); }
   }
 
   function reportCurrentCard(){
@@ -2243,10 +2278,11 @@
     try{
       matchesCache = await api('/api/matches');
       const match = matchesCache.find(m => m.profile.id === profile.id);
-      setNavActive('matches');
       if(match){
-        openChat(match.match_id);
+        setNavActive('chats');
+        openChat(match.match_id, 'chats');
       } else {
+        setNavActive('matches');
         showScreen('screen-matches');
         loadMatches();
       }
@@ -2274,20 +2310,20 @@
           </div>`;
         return;
       }
+      // Matches-Screen: reine Match-Liste ohne Nachrichten-Vorschau -
+      // laufende Unterhaltungen stehen im eigenen Menüpunkt "Chats".
       $('matchList').innerHTML = matchesCache.map(m => {
         const p = m.profile;
         const photo = photoThumb(p.photos && p.photos[0]);
-        const preview = m.last_message ? escapeHtml(m.last_message.content) : 'Match! Schreib die erste Nachricht.';
-        const unread = m.unread_count > 0;
-        const cls = ['match-item', unread ? 'unread' : '', m.is_online ? 'online' : ''].filter(Boolean).join(' ');
+        const cls = ['match-item', m.is_online ? 'online' : ''].filter(Boolean).join(' ');
         return `
         <div class="${cls}" data-match-id="${m.match_id}">
           <img src="${photo}" title="${m.is_online ? 'Gerade online' : ''}">
           <div class="info">
             <div class="nm">${escapeHtml(p.name)}, ${p.age}${verifiedBadge(p)}</div>
-            <div class="last-msg">${preview}</div>
+            <div class="last-msg">${escapeHtml(p.city)}${p.distance_km != null ? ` · ${p.distance_km} km` : ''}${m.is_online ? ' · gerade online' : ''}</div>
           </div>
-          ${unread ? `<div class="unread-badge">${m.unread_count}</div>` : '<div class="chev"></div>'}
+          <div class="chev"></div>
         </div>`;
       }).join('');
       $('matchList').querySelectorAll('.match-item').forEach(el => {
@@ -2295,6 +2331,46 @@
       });
     }catch(err){
       $('matchList').innerHTML = '<div class="loading">Matches konnten nicht geladen werden.</div>';
+      console.error(err);
+    }
+  }
+
+  // ---------- Chats (nur Matches mit laufender Unterhaltung) ----------
+  async function loadChats(){
+    $('chatList').innerHTML = '<div class="loading">Lade Chats …</div>';
+    try{
+      matchesCache = await api('/api/matches');
+      const withMessages = matchesCache.filter(m => m.last_message);
+      if(withMessages.length === 0){
+        $('chatList').innerHTML = `
+          <div class="empty">
+            <div class="empty-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M21 11.7a8.2 8.2 0 0 1-8.3 8.1c-1.5 0-2.9-.35-4.1-1L4 19.9l1.1-4.1a8.1 8.1 0 1 1 15.9-4.1z"/></svg></div>
+            <div class="empty-title">Noch keine Chats</div>
+            <div class="empty-sub">Schreib einem deiner Matches die erste Nachricht.</div>
+          </div>`;
+        return;
+      }
+      $('chatList').innerHTML = withMessages.map(m => {
+        const p = m.profile;
+        const photo = photoThumb(p.photos && p.photos[0]);
+        const unread = m.unread_count > 0;
+        const cls = ['match-item', unread ? 'unread' : '', m.is_online ? 'online' : ''].filter(Boolean).join(' ');
+        const mine = m.last_message.sender_id === myProfile.id;
+        return `
+        <div class="${cls}" data-match-id="${m.match_id}">
+          <img src="${photo}" title="${m.is_online ? 'Gerade online' : ''}">
+          <div class="info">
+            <div class="nm">${escapeHtml(p.name)}, ${p.age}${verifiedBadge(p)}</div>
+            <div class="last-msg">${mine ? 'Du: ' : ''}${escapeHtml(m.last_message.content)}</div>
+          </div>
+          ${unread ? `<div class="unread-badge">${m.unread_count}</div>` : '<div class="chev"></div>'}
+        </div>`;
+      }).join('');
+      $('chatList').querySelectorAll('.match-item').forEach(el => {
+        el.addEventListener('click', () => openChat(el.dataset.matchId, 'chats'));
+      });
+    }catch(err){
+      $('chatList').innerHTML = '<div class="loading">Chats konnten nicht geladen werden.</div>';
       console.error(err);
     }
   }
@@ -2313,13 +2389,16 @@
     $('matchProfileTitle').textContent = match.profile.name + ', ' + match.profile.age;
     const wrap = $('matchProfileCardWrap');
     wrap.innerHTML = '';
+    const backToMatches = () => {
+      currentMatchProfileId = null;
+      showScreen('screen-matches');
+      setNavActive('matches');
+      loadMatches();
+    };
     const cardEl = buildCardEl(match.profile, true, {
       onReport: () => reportUser(match.profile.id, match.profile.name),
-      onBlock: () => blockUser(match.profile.id, match.profile.name, () => {
-        showScreen('screen-matches');
-        setNavActive('matches');
-        loadMatches();
-      }),
+      onBlock: () => blockUser(match.profile.id, match.profile.name, backToMatches),
+      onUnmatch: () => unmatchMatch(matchId, match.profile.name, backToMatches),
     });
     wrap.appendChild(cardEl);
     showScreen('screen-match-profile');
@@ -2333,7 +2412,7 @@
 
   $('btnOpenChatFromProfile').addEventListener('click', () => {
     if(!currentMatchProfileId) return;
-    openChat(currentMatchProfileId);
+    openChat(currentMatchProfileId, 'matches');
   });
 
   // ---------- Foto-Verifizierung (blauer Haken) ----------
@@ -2501,7 +2580,12 @@
   let currentChatMatchId = null;
   let chatPollInterval = null;
 
-  async function openChat(matchId){
+  // Merkt sich, von wo der Chat geöffnet wurde ('chats' oder 'matches'),
+  // damit der Zurück-Pfeil dorthin zurückführt.
+  let chatOrigin = 'chats';
+
+  async function openChat(matchId, origin){
+    chatOrigin = origin || 'chats';
     currentChatMatchId = matchId;
     const match = findMatchById(matchId);
     if(match){
@@ -2562,7 +2646,8 @@
     try{
       await api(`/api/matches/${currentChatMatchId}/messages`, {method: 'POST', body: JSON.stringify({content})});
       await loadMessages();
-      loadMatches();
+      // Cache auffrischen, damit die Chatliste beim Zurückgehen aktuell ist
+      matchesCache = await api('/api/matches');
     }catch(err){
       toast(err.message || 'Nachricht konnte nicht gesendet werden.');
     }
@@ -2575,9 +2660,15 @@
   $('btnChatBack').addEventListener('click', () => {
     stopChatPolling();
     currentChatMatchId = null;
-    showScreen('screen-matches');
-    setNavActive('matches');
-    loadMatches();
+    if(chatOrigin === 'matches'){
+      showScreen('screen-matches');
+      setNavActive('matches');
+      loadMatches();
+    } else {
+      showScreen('screen-chats');
+      setNavActive('chats');
+      loadChats();
+    }
   });
 
   $('btnReportChat').addEventListener('click', async () => {
@@ -2600,9 +2691,9 @@
       toast(`${match.profile.name} blockiert.`);
       stopChatPolling();
       currentChatMatchId = null;
-      showScreen('screen-matches');
-      setNavActive('matches');
-      loadMatches();
+      showScreen('screen-chats');
+      setNavActive('chats');
+      loadChats();
     }catch(err){ toast(err.message || 'Blockieren fehlgeschlagen.'); }
   });
 
