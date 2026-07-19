@@ -262,6 +262,9 @@ class Report(Base):
     reported_id = Column(String, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     reason = Column(String(500), nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
+    # Vom Admin als unbedenklich abgehakt - bleibt als Nachweis erhalten,
+    # verschwindet aber aus der offenen Meldungsliste.
+    dismissed_at = Column(DateTime, nullable=True)
 
 
 class VerificationRequest(Base):

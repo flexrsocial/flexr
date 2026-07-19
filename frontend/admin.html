@@ -117,8 +117,11 @@
   .photo-mod-card img{ width:100%; aspect-ratio:3/4; object-fit:cover; display:block; background:var(--surface-2); }
   .photo-mod-card .meta{ padding:10px 12px; font-size:12px; color:var(--chalk-dim); }
   .photo-mod-card .meta .nm{ color:var(--chalk); font-weight:600; font-size:13px; }
-  .photo-mod-card .actions{ display:flex; gap:6px; padding:0 12px 12px; }
-  .photo-mod-card .actions .btn{ flex:1; }
+  /* Drei Buttons in einer schmalen Karte: min-width:0 erlaubt das Schrumpfen
+     (sonst läuft der dritte über den Rand und wird abgeschnitten), flex-wrap
+     bricht sie bei sehr schmalen Karten sauber um. */
+  .photo-mod-card .actions{ display:flex; flex-wrap:wrap; gap:6px; padding:0 12px 12px; }
+  .photo-mod-card .actions .btn{ flex:1 1 auto; min-width:0; padding:7px 8px; white-space:nowrap; }
 
   .hint{ color:var(--chalk-dim); font-size:13px; margin:-6px 0 16px; }
   .verify-review-card{
@@ -665,7 +668,10 @@
                 <td>${escapeHtml(r.reported_name)}</td>
                 <td>${escapeHtml(r.reason)}</td>
                 <td>${fmtDate(r.created_at)}</td>
-                <td><button class="btn small secondary" data-view-user="${r.reported_id}">Ansehen</button></td>
+                <td style="white-space:nowrap;">
+                  <button class="btn small secondary" data-view-user="${r.reported_id}">Ansehen</button>
+                  <button class="btn small secondary" data-dismiss-report="${r.id}">Ignorieren</button>
+                </td>
               </tr>
             `).join('')}
           </tbody>
@@ -675,6 +681,17 @@
         btn.addEventListener('click', (e) => {
           e.stopPropagation();
           openUserModal(btn.dataset.viewUser);
+        });
+      });
+      wrap.querySelectorAll('button[data-dismiss-report]').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+          e.stopPropagation();
+          try{
+            await api(`/api/admin/reports/${btn.dataset.dismissReport}/dismiss`, {method: 'POST'});
+            toast('Meldung als unbedenklich abgehakt.');
+            loadReports();
+            loadDashboard();
+          }catch(err){ toast(err.message); }
         });
       });
     }catch(err){

@@ -62,7 +62,7 @@ def get_stats(
     )
     banned_users = db.query(func.count(User.id)).filter(User.is_banned.is_(True)).scalar()
     pending_photos = db.query(func.count(Photo.id)).filter(Photo.status == PhotoStatus.pending).scalar()
-    open_reports = db.query(func.count(Report.id)).scalar()
+    open_reports = db.query(func.count(Report.id)).filter(Report.dismissed_at.is_(None)).scalar()
     return AdminStats(
         total_users=total_users,
         active_subscriptions=active_subscriptions,
@@ -435,6 +435,7 @@ def list_reports(
         db.query(Report, reporter.c.name, reported.c.name)
         .join(reporter, Report.reporter_id == reporter.c.id)
         .join(reported, Report.reported_id == reported.c.id)
+        .filter(Report.dismissed_at.is_(None))  # abgehakte Meldungen ausblenden
         .order_by(Report.created_at.desc())
         .offset(offset)
         .limit(limit)
@@ -452,3 +453,20 @@ def list_reports(
         )
         for report, reporter_name, reported_name in rows
     ]
+
+
+@router.post("/reports/{report_id}/dismiss")
+def dismiss_report(
+    report_id: str,
+    admin: AdminUser = Depends(get_current_admin),
+    db: Session = Depends(get_db),
+):
+    """Meldung als unbedenklich abhaken: verschwindet aus der offenen Liste,
+    bleibt aber als Nachweis in der Datenbank."""
+    report = db.query(Report).filter(Report.id == report_id).first()
+    if not report:
+        raise HTTPException(404, "Meldung nicht gefunden.")
+    if report.dismissed_at is None:
+        report.dismissed_at = datetime.utcnow()
+        db.commit()
+    return {"dismissed": True}

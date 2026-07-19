@@ -172,6 +172,36 @@ def test_admin_reports_list(client):
     assert any(r["reported_id"] == user_b["id"] and r["reason"] == "Beispielgrund" for r in reports)
 
 
+def test_admin_dismiss_report(client):
+    admin_headers, _ = create_admin(client, email="admin.dismiss@example.com")
+    headers_a = register_user(client, "dismiss.a@example.com", name="A", gender="mann")
+    headers_b = register_user(client, "dismiss.b@example.com", name="B", gender="frau")
+    user_b = client.get("/api/profiles/me", headers=headers_b).json()
+    client.post(
+        "/api/reports",
+        headers=headers_a,
+        json={"reported_user_id": user_b["id"], "reason": "Nichts dran"},
+    )
+
+    reports = client.get("/api/admin/reports", headers=admin_headers).json()
+    assert len(reports) == 1
+    report_id = reports[0]["id"]
+    assert client.get("/api/admin/stats", headers=admin_headers).json()["open_reports"] == 1
+
+    resp = client.post(f"/api/admin/reports/{report_id}/dismiss", headers=admin_headers)
+    assert resp.status_code == 200
+
+    # Verschwindet aus der offenen Liste und aus dem Stats-Zähler
+    assert client.get("/api/admin/reports", headers=admin_headers).json() == []
+    assert client.get("/api/admin/stats", headers=admin_headers).json()["open_reports"] == 0
+
+
+def test_admin_dismiss_unknown_report_404(client):
+    admin_headers, _ = create_admin(client, email="admin.dismiss404@example.com")
+    resp = client.post("/api/admin/reports/gibt-es-nicht/dismiss", headers=admin_headers)
+    assert resp.status_code == 404
+
+
 def test_admin_stats(client):
     admin_headers, _ = create_admin(client, email="admin8@example.com")
     register_user(client, "stats.a@example.com")
