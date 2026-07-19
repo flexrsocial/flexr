@@ -10,16 +10,19 @@ from ..models import (
     AdminUser,
     Block,
     Match,
+    Message,
     Photo,
     PhotoStatus,
     Report,
     Swipe,
     User,
+    UserDevice,
     VerificationRequest,
     VerificationStatus,
 )
 from ..rate_limit import limiter
 from ..schemas import (
+    AdminFlaggedMessageOut,
     AdminLoginRequest,
     AdminReportOut,
     AdminStats,
@@ -124,6 +127,26 @@ def get_user_detail(
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(404, "Nutzer nicht gefunden.")
+
+    # Geräteprüfung: Geräte des Nutzers inkl. weiterer Konten auf demselben Gerät
+    devices = db.query(UserDevice).filter(UserDevice.user_id == user.id).all()
+    device_infos = []
+    for d in devices:
+        shared = (
+            db.query(User.name)
+            .join(UserDevice, UserDevice.user_id == User.id)
+            .filter(UserDevice.device_id == d.device_id, User.id != user.id)
+            .all()
+        )
+        device_infos.append(
+            {
+                "device_id": d.device_id,
+                "user_agent": d.user_agent,
+                "last_seen": d.last_seen.isoformat() if d.last_seen else None,
+                "shared_with": [name for (name,) in shared],
+            }
+        )
+
     return AdminUserDetailOut(
         id=user.id,
         email=user.email,
@@ -137,11 +160,15 @@ def get_user_detail(
         bio=user.bio,
         is_subscribed=user.is_subscribed,
         is_banned=user.is_banned,
+        is_verified=user.is_verified,
         is_active=user.is_active_member(),
         created_at=user.created_at,
         trial_ends_at=user.trial_ends_at,
         stripe_customer_id=user.stripe_customer_id,
+        phone=user.phone,
+        phone_verified=user.phone_verified,
         photos=user.photos,
+        devices=device_infos,
     )
 
 
@@ -349,6 +376,50 @@ def reject_verification(
     req.decided_at = _dt.utcnow()
     db.commit()
     return {"is_verified": False}
+
+
+@router.get("/flagged-messages", response_model=list[AdminFlaggedMessageOut])
+def list_flagged_messages(
+    limit: int = Query(50, le=200),
+    offset: int = 0,
+    admin: AdminUser = Depends(get_current_admin),
+    db: Session = Depends(get_db),
+):
+    rows = (
+        db.query(Message, User.name)
+        .join(User, Message.sender_id == User.id)
+        .filter(Message.is_flagged.is_(True))
+        .order_by(Message.created_at.desc())
+        .offset(offset)
+        .limit(limit)
+        .all()
+    )
+    return [
+        AdminFlaggedMessageOut(
+            id=msg.id,
+            sender_id=msg.sender_id,
+            sender_name=sender_name,
+            content=msg.content,
+            flag_reason=msg.flag_reason,
+            created_at=msg.created_at,
+        )
+        for msg, sender_name in rows
+    ]
+
+
+@router.post("/flagged-messages/{message_id}/clear")
+def clear_flagged_message(
+    message_id: str,
+    admin: AdminUser = Depends(get_current_admin),
+    db: Session = Depends(get_db),
+):
+    msg = db.query(Message).filter(Message.id == message_id, Message.is_flagged.is_(True)).first()
+    if not msg:
+        raise HTTPException(404, "Nachricht nicht gefunden.")
+    msg.is_flagged = False
+    msg.flag_reason = None
+    db.commit()
+    return {"cleared": True}
 
 
 @router.get("/reports", response_model=list[AdminReportOut])

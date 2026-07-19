@@ -102,6 +102,10 @@ class User(Base):
     # Verifizierungs-Selfies gegen die Profilfotos gesetzt.
     is_verified = Column(Boolean, default=False, nullable=False)
 
+    # Telefonprüfung (SMS-OTP): Nummer wird erst nach bestätigtem Code gesetzt.
+    phone = Column(String, nullable=True)
+    phone_verified_at = Column(DateTime, nullable=True)
+
     # Wird bei authentifizierten Requests (gedrosselt) aktualisiert - Basis für
     # die Online-Anzeige bei Matches.
     last_seen_at = Column(DateTime, nullable=True)
@@ -129,6 +133,10 @@ class User(Base):
     @property
     def has_gps_location(self) -> bool:
         return self.gps_lat is not None and self.gps_lon is not None
+
+    @property
+    def phone_verified(self) -> bool:
+        return self.phone_verified_at is not None
 
     def effective_coords(self):
         """(lat, lon) für die Umkreissuche: GPS-Position wenn vorhanden,
@@ -194,6 +202,43 @@ class Message(Base):
     content = Column(String(2000), nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
     read_at = Column(DateTime, nullable=True)
+
+    # Automatische Sicherheitsprüfung: auffällige Nachrichten werden zugestellt,
+    # aber fürs Admin-Review markiert (kein Auto-Block wegen False Positives).
+    is_flagged = Column(Boolean, default=False, nullable=False)
+    flag_reason = Column(String, nullable=True)
+
+
+class PhoneVerification(Base):
+    """Laufende Telefonprüfung: 6-stelliger Code (nur als Hash gespeichert),
+    10 Minuten gültig, max. 5 Fehlversuche."""
+
+    __tablename__ = "phone_verifications"
+
+    id = Column(String, primary_key=True, default=gen_uuid)
+    user_id = Column(String, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    phone = Column(String, nullable=False)
+    code_hash = Column(String, nullable=False)
+    expires_at = Column(DateTime, nullable=False)
+    attempts = Column(Integer, default=0, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+
+class UserDevice(Base):
+    """Geräteprüfung: Client erzeugt eine zufällige Geräte-ID (localStorage) und
+    sendet sie bei Registrierung/Login mit. Dient der Erkennung von
+    Mehrfachkonten und blockiert Neuregistrierungen von Geräten gesperrter
+    Nutzer (Ban-Evasion-Schutz, wie bei Tinder)."""
+
+    __tablename__ = "user_devices"
+    __table_args__ = (UniqueConstraint("user_id", "device_id", name="uq_user_device"),)
+
+    id = Column(String, primary_key=True, default=gen_uuid)
+    user_id = Column(String, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    device_id = Column(String, nullable=False, index=True)
+    user_agent = Column(String, nullable=True)
+    first_seen = Column(DateTime, default=datetime.utcnow)
+    last_seen = Column(DateTime, default=datetime.utcnow)
 
 
 class Block(Base):

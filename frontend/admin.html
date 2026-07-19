@@ -255,6 +255,10 @@
     <section class="view" id="view-reports">
       <h2>Meldungen</h2>
       <div id="reportsTableWrap"><div class="loading">Lädt …</div></div>
+      <h2 style="margin-top:32px;">Auffällige Nachrichten</h2>
+      <p class="hint">Von der automatischen Sicherheitsprüfung markierte Chat-Nachrichten
+        (Scam-Begriffe, Links). Die Nachrichten wurden zugestellt - hier nur das Review.</p>
+      <div id="flaggedTableWrap"><div class="loading">Lädt …</div></div>
     </section>
 
   </main>
@@ -474,6 +478,17 @@
       <div class="detail-row"><span class="k">Registriert am</span><span>${fmtDate(u.created_at)}</span></div>
       <div class="detail-row"><span class="k">Trial endet</span><span>${fmtDate(u.trial_ends_at)}</span></div>
       <div class="detail-row"><span class="k">Stripe-Kunde</span><span class="mono">${escapeHtml(u.stripe_customer_id || '—')}</span></div>
+      <div class="detail-row"><span class="k">Telefon</span><span>${u.phone ? `${escapeHtml(u.phone)} ${u.phone_verified ? '<span class="pill ok">bestätigt</span>' : '<span class="pill muted">unbestätigt</span>'}` : '—'}</span></div>
+      <div class="detail-row"><span class="k">Foto-Verifizierung</span><span>${u.is_verified ? '<span class="pill ok">verifiziert ✓</span>' : '<span class="pill muted">nicht verifiziert</span>'}</span></div>
+      <div class="detail-row"><span class="k">Geräte</span><span>${
+        u.devices && u.devices.length
+          ? u.devices.map(d => `<span class="mono">${escapeHtml(d.device_id.slice(0, 14))}…</span>${
+              d.shared_with.length
+                ? ` <span class="pill warn" title="Weitere Konten auf diesem Gerät">auch: ${escapeHtml(d.shared_with.join(', '))}</span>`
+                : ''
+            }`).join('<br>')
+          : '—'
+      }</span></div>
       <div class="modal-actions">
         ${u.is_banned
           ? `<button class="btn secondary" id="btnUnban">Entsperren</button>`
@@ -660,6 +675,51 @@
         btn.addEventListener('click', (e) => {
           e.stopPropagation();
           openUserModal(btn.dataset.viewUser);
+        });
+      });
+    }catch(err){
+      wrap.innerHTML = `<div class="empty-state">${escapeHtml(err.message)}</div>`;
+    }
+    loadFlaggedMessages();
+  }
+
+  async function loadFlaggedMessages(){
+    const wrap = $('flaggedTableWrap');
+    try{
+      const msgs = await api('/api/admin/flagged-messages');
+      if(msgs.length === 0){
+        wrap.innerHTML = '<div class="empty-state">Keine auffälligen Nachrichten.</div>';
+        return;
+      }
+      wrap.innerHTML = `
+        <table>
+          <thead><tr><th>Absender</th><th>Nachricht</th><th>Grund</th><th>Datum</th><th></th></tr></thead>
+          <tbody>
+            ${msgs.map(m => `
+              <tr>
+                <td>${escapeHtml(m.sender_name)}</td>
+                <td>${escapeHtml(m.content)}</td>
+                <td>${escapeHtml(m.flag_reason || '—')}</td>
+                <td>${fmtDate(m.created_at)}</td>
+                <td style="white-space:nowrap;">
+                  <button class="btn small secondary" data-view-user="${m.sender_id}">Ansehen</button>
+                  <button class="btn small secondary" data-clear-flag="${m.id}">OK</button>
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      `;
+      wrap.querySelectorAll('button[data-view-user]').forEach(btn => {
+        btn.addEventListener('click', () => openUserModal(btn.dataset.viewUser));
+      });
+      wrap.querySelectorAll('button[data-clear-flag]').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          try{
+            await api(`/api/admin/flagged-messages/${btn.dataset.clearFlag}/clear`, {method: 'POST'});
+            toast('Als unbedenklich markiert.');
+            loadFlaggedMessages();
+          }catch(err){ toast(err.message); }
         });
       });
     }catch(err){

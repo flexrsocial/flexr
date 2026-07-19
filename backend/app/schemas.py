@@ -128,6 +128,8 @@ class MyProfileOut(ProfileOut):
     search_radius_km: int = 20
     # True wenn eine GPS-Position gespeichert ist (sonst gilt die PLZ)
     has_gps_location: bool = False
+    phone: Optional[str] = None
+    phone_verified: bool = False
 
 
 class UpdateProfileRequest(BaseModel):
@@ -187,6 +189,17 @@ class MatchOut(BaseModel):
     last_message: Optional[MessageOut] = None
     unread_count: int = 0
     is_online: bool = False
+
+
+# ---------- Telefonprüfung ----------
+
+class PhoneRequestRequest(BaseModel):
+    # E.164-Format, z. B. +436761234567
+    phone: str = Field(pattern=r"^\+[1-9]\d{6,14}$")
+
+
+class PhoneConfirmRequest(BaseModel):
+    code: str = Field(pattern=r"^\d{6}$")
 
 
 # ---------- Foto-Verifizierung ----------
@@ -269,10 +282,23 @@ class AdminUserDetailOut(BaseModel):
     created_at: datetime
     trial_ends_at: datetime
     stripe_customer_id: Optional[str]
+    phone: Optional[str] = None
+    phone_verified: bool = False
     photos: list[PhotoOut] = []
+    # Geräteprüfung: [{device_id, user_agent, last_seen, shared_with: [Namen]}]
+    devices: list[dict] = []
 
     class Config:
         from_attributes = True
+
+
+class AdminFlaggedMessageOut(BaseModel):
+    id: str
+    sender_id: str
+    sender_name: str
+    content: str
+    flag_reason: Optional[str]
+    created_at: datetime
 
 
 class AdminStats(BaseModel):

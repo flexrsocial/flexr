@@ -23,6 +23,12 @@ class Settings(BaseSettings):
     s3_public_base_url: str = ""
     s3_region: str = "auto"
 
+    # SMS-Versand für die Telefonprüfung (Twilio). Ohne Zugangsdaten wird der
+    # Code nur ins Server-Log geschrieben (Entwicklungs-/Testbetrieb).
+    twilio_account_sid: str = ""
+    twilio_auth_token: str = ""
+    twilio_from_number: str = ""
+
     class Config:
         env_file = ".env"
 

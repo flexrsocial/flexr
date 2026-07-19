@@ -47,6 +47,13 @@ def update_my_profile(
     if "gym" in fields and fields["gym"] not in GYM_CHOICES:
         raise HTTPException(400, "Unbekanntes Gym.")
 
+    if "bio" in fields:
+        from ..safety_checks import check_public_text
+
+        bio_problem = check_public_text(fields["bio"])
+        if bio_problem:
+            raise HTTPException(400, bio_problem)
+
     for field, value in fields.items():
         if field == "bio" and value == "":
             value = None  # leere Bio = Bio entfernen

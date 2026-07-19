@@ -1033,13 +1033,6 @@
           <option>Anderes Studio</option>
         </select>
 
-        <label>Suchumkreis</label>
-        <div class="radius-row">
-          <input type="range" id="a-radius" min="2" max="250" step="1" value="20">
-          <span class="radius-value mono" id="radiusValue">20 km</span>
-        </div>
-        <div class="radius-hint" id="radiusHint">Profile im Umkreis deines Standorts.</div>
-
         <label>Bio</label>
         <div class="bio-wrap">
           <textarea id="a-bio" placeholder="Was du suchst, dein Training, gerne mit Emojis 💪" maxlength="280"></textarea>
@@ -1049,6 +1042,13 @@
           <div class="emoji-panel" id="emojiPanel"></div>
         </div>
 
+        <label>Suchumkreis</label>
+        <div class="radius-row">
+          <input type="range" id="a-radius" min="2" max="250" step="1" value="20">
+          <span class="radius-value mono" id="radiusValue">20 km</span>
+        </div>
+        <div class="radius-hint" id="radiusHint">Profile im Umkreis deines Standorts.</div>
+
         <div class="field-err" id="acctProfileErr"></div>
         <button class="btn secondary" id="btnSaveProfile" style="margin-top:16px;">Profil speichern</button>
       </div>
@@ -1057,6 +1057,26 @@
         <div class="account-section-title">Verifizierung</div>
         <div class="verify-status-row" id="verifyStatusRow">—</div>
         <button class="btn secondary" id="btnStartVerify" style="margin-top:12px; display:none;">Jetzt verifizieren</button>
+      </div>
+
+      <div class="account-section">
+        <div class="account-section-title">Sicherheit</div>
+        <div class="verify-status-row" id="phoneStatusRow">—</div>
+        <div id="phoneFormWrap" style="display:none;">
+          <label>Handynummer</label>
+          <input type="tel" id="a-phone" placeholder="+43 676 1234567" autocomplete="tel">
+          <div class="field-err" id="phoneErr"></div>
+          <button class="btn secondary" id="btnPhoneRequest" style="margin-top:12px;">Code per SMS senden</button>
+        </div>
+        <div id="phoneCodeWrap" style="display:none;">
+          <label>Bestätigungscode (6-stellig)</label>
+          <input type="text" id="a-phone-code" inputmode="numeric" maxlength="6" placeholder="123456">
+          <div class="field-err" id="phoneCodeErr"></div>
+          <div class="btn-row" style="margin-top:12px;">
+            <button class="btn" id="btnPhoneConfirm">Bestätigen</button>
+            <button class="btn secondary" id="btnPhoneCancel">Abbrechen</button>
+          </div>
+        </div>
       </div>
 
       <div class="account-section">
@@ -1225,9 +1245,22 @@
     else localStorage.removeItem('flexr_token');
   }
 
+  // Geräteprüfung: stabile zufällige Geräte-ID (localStorage), wird bei jedem
+  // Request mitgesendet - Basis für Mehrfachkonto-Erkennung und
+  // Ban-Evasion-Schutz im Backend.
+  function getDeviceId(){
+    let id = localStorage.getItem('flexr_device_id');
+    if(!id){
+      id = (crypto.randomUUID ? crypto.randomUUID() : Date.now() + '-' + Math.random().toString(36).slice(2, 12));
+      localStorage.setItem('flexr_device_id', id);
+    }
+    return id;
+  }
+
   async function api(path, opts = {}){
     const headers = Object.assign({'Content-Type': 'application/json'}, opts.headers || {});
     if(token) headers['Authorization'] = 'Bearer ' + token;
+    headers['X-Device-Id'] = getDeviceId();
     const res = await fetch(API_BASE + path, Object.assign({}, opts, {headers}));
     if(res.status === 401){
       setToken(null);
@@ -1643,6 +1676,7 @@
   function renderAccount(){
     $('acctName').innerHTML = escapeHtml(myProfile.name + ', ' + myProfile.age) + verifiedBadge(myProfile);
     renderVerificationSection();
+    renderPhoneSection();
     $('acctSubline').textContent = [myProfile.city, myProfile.gym].filter(Boolean).join(' · ');
 
     const avatarEl = $('acctAvatar');
@@ -2218,6 +2252,71 @@
       row.textContent = 'Status konnte nicht geladen werden.';
     }
   }
+
+  // ---------- Telefonprüfung (SMS-Code) ----------
+  function renderPhoneSection(){
+    const row = $('phoneStatusRow');
+    const form = $('phoneFormWrap');
+    const codeWrap = $('phoneCodeWrap');
+    codeWrap.style.display = 'none';
+    if(myProfile.phone_verified){
+      row.innerHTML = `<span class="ok">✓ Handynummer bestätigt</span>&nbsp;<span class="mono">${escapeHtml(myProfile.phone || '')}</span>`;
+      form.style.display = 'none';
+    } else {
+      row.textContent = 'Bestätige deine Handynummer per SMS-Code - schützt dein Konto und hilft gegen Fake-Profile.';
+      form.style.display = 'block';
+    }
+  }
+
+  $('btnPhoneRequest').addEventListener('click', async () => {
+    const errEl = $('phoneErr');
+    errEl.textContent = '';
+    const phone = $('a-phone').value.replace(/[\s\-/()]/g, '');
+    if(!/^\+[1-9]\d{6,14}$/.test(phone)){
+      errEl.textContent = 'Bitte im internationalen Format angeben, z. B. +43 676 1234567.';
+      return;
+    }
+    const btn = $('btnPhoneRequest');
+    btn.disabled = true;
+    try{
+      await api('/api/phone/request', {method: 'POST', body: JSON.stringify({phone})});
+      $('phoneFormWrap').style.display = 'none';
+      $('phoneCodeWrap').style.display = 'block';
+      $('a-phone-code').value = '';
+      $('phoneCodeErr').textContent = '';
+      toast('Code gesendet. Schau in deine SMS.');
+    }catch(err){
+      errEl.textContent = err.message || 'Code konnte nicht gesendet werden.';
+    }finally{
+      btn.disabled = false;
+    }
+  });
+
+  $('btnPhoneConfirm').addEventListener('click', async () => {
+    const errEl = $('phoneCodeErr');
+    errEl.textContent = '';
+    const code = $('a-phone-code').value.trim();
+    if(!/^\d{6}$/.test(code)){
+      errEl.textContent = 'Bitte den 6-stelligen Code eingeben.';
+      return;
+    }
+    const btn = $('btnPhoneConfirm');
+    btn.disabled = true;
+    try{
+      myProfile = await api('/api/phone/confirm', {method: 'POST', body: JSON.stringify({code})});
+      toast('Handynummer bestätigt ✓');
+      renderPhoneSection();
+    }catch(err){
+      errEl.textContent = err.message || 'Bestätigung fehlgeschlagen.';
+    }finally{
+      btn.disabled = false;
+    }
+  });
+
+  $('btnPhoneCancel').addEventListener('click', () => {
+    $('phoneCodeWrap').style.display = 'none';
+    $('phoneFormWrap').style.display = 'block';
+  });
 
   function stopVerifyCamera(){
     if(verifyStream){

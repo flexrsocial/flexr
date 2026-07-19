@@ -72,7 +72,19 @@ def send_message(
 ):
     _get_match_and_other_id(match_id, current_user, db)
 
-    message = Message(match_id=match_id, sender_id=current_user.id, content=payload.content)
+    # Automatische Sicherheitsprüfung: auffällige Nachrichten werden zugestellt,
+    # aber fürs Admin-Review markiert.
+    from ..safety_checks import scan_message
+
+    flag_reason = scan_message(payload.content)
+
+    message = Message(
+        match_id=match_id,
+        sender_id=current_user.id,
+        content=payload.content,
+        is_flagged=flag_reason is not None,
+        flag_reason=flag_reason,
+    )
     db.add(message)
     db.commit()
     db.refresh(message)
