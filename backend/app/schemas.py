@@ -26,7 +26,6 @@ class RegisterRequest(BaseModel):
     city: str = Field(min_length=1)
     gender: Literal["mann", "frau"]
     gym: str
-    height_cm: Optional[int] = Field(default=None, ge=120, le=230)
     bio: Optional[str] = Field(default=None, max_length=280)
 
     # Zwei getrennt einzuholende, aktive Einwilligungen (siehe models.py User) -
@@ -105,7 +104,6 @@ class ProfileOut(BaseModel):
     city: str
     gender: str
     gym: str
-    height_cm: Optional[int]
     bio: Optional[str]
     is_online: bool = False
     is_verified: bool = False
@@ -132,8 +130,8 @@ class MyProfileOut(ProfileOut):
 
 class UpdateProfileRequest(BaseModel):
     """Editierbare Profilfelder. PLZ und Ort müssen gemeinsam kommen (der Ort
-    wird im Frontend per PLZ-Lookup ermittelt). Größe und Geburtsdatum sind
-    bewusst nicht änderbar."""
+    wird im Frontend per PLZ-Lookup ermittelt). Das Geburtsdatum ist bewusst
+    nicht änderbar."""
 
     plz: Optional[str] = Field(default=None, pattern=r"^\d{4}$")
     city: Optional[str] = Field(default=None, min_length=1)

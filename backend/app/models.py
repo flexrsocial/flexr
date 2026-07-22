@@ -75,7 +75,6 @@ class User(Base):
     gender = Column(Enum(Gender), nullable=False)
     interest = Column(Enum(Gender), nullable=False)  # sucht Mann oder Frau
     gym = Column(String, nullable=False)  # muss einer der GYM_CHOICES sein
-    height_cm = Column(Integer, nullable=True)
     bio = Column(String(280), nullable=True)
 
     created_at = Column(DateTime, default=datetime.utcnow)

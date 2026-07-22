@@ -285,13 +285,6 @@
     50%{ opacity:.45; }
   }
   .bio-text{ font-size:13.5px; color:var(--chalk-dim); line-height:1.55; }
-  .prs{ display:flex; gap:10px; margin-top:12px; }
-  .pr-box{
-    flex:1; background:#232323; border:1px solid var(--hairline); border-radius:9px;
-    padding:9px 8px 7px; text-align:center;
-  }
-  .pr-box .val{ font-family:'JetBrains Mono'; font-weight:700; font-size:15px; color:var(--chalk); }
-  .pr-box .lbl{ font-size:8.5px; color:var(--chalk-dim); text-transform:uppercase; letter-spacing:0.1em; margin-top:3px; }
 
   .swipe-actions{ display:flex; justify-content:center; align-items:center; gap:26px; margin:18px 0 4px; flex-shrink:0; }
   .round-btn{
@@ -1009,9 +1002,6 @@
         <option value="frau">Frau</option>
       </select>
 
-      <label>Körpergröße (cm) — optional</label>
-      <input type="number" id="f-height" placeholder="180" min="120" max="230">
-
       <label>Gym</label>
       <select id="f-gym" required>
         <option value="" disabled selected>Wähle</option>
@@ -1146,9 +1136,6 @@
           <span class="ort-display" id="acctOrtDisplay">— PLZ eingeben —</span>
         </div>
         <div class="field-err" id="acctPlzErr"></div>
-
-        <label>Körpergröße</label>
-        <input type="text" id="a-height" disabled title="Die Körpergröße ist nach der Registrierung fix.">
 
         <label>Gym</label>
         <select id="a-gym">
@@ -1618,7 +1605,6 @@
       city: resolvedCity,
       gender: $('f-gender').value,
       gym: $('f-gym').value,
-      height_cm: $('f-height').value ? parseInt($('f-height').value, 10) : null,
       bio: $('f-bio').value.trim() || null,
       consent_sensitive_data: $('f-consent-sensitive').checked,
       consent_withdrawal_waiver: $('f-consent-withdrawal').checked,
@@ -1920,7 +1906,6 @@
     $('acctOrtDisplay').textContent = acctResolvedCity || '— PLZ eingeben —';
     $('acctOrtDisplay').classList.toggle('resolved', !!acctResolvedCity);
     $('acctPlzErr').textContent = '';
-    $('a-height').value = myProfile.height_cm != null ? myProfile.height_cm + ' cm (fix)' : 'nicht angegeben';
     $('a-gym').value = myProfile.gym || 'Anderes Studio';
     $('a-bio').value = myProfile.bio || '';
     $('a-radius').value = myProfile.search_radius_km || 20;
@@ -2137,10 +2122,6 @@
           <div class="stat-chip"><svg class="ico" viewBox="0 0 24 24"><path d="M7 8.5v7M10.5 6.5v11M17 8.5v7M13.5 6.5v11M10.5 12h3M3.5 10v4M20.5 10v4"/></svg>${escapeHtml(p.gym||'Kein Gym angegeben')}</div>
           ${p.is_online ? '<div class="stat-chip online-chip"><span class="online-dot"></span>Online</div>' : ''}
         </div>
-        ${p.height_cm ? `
-        <div class="prs">
-          <div class="pr-box"><div class="val">${escapeHtml(p.height_cm)}cm</div><div class="lbl">Größe</div></div>
-        </div>` : ''}
         <p class="bio-text" style="margin-top:12px;">${escapeHtml(p.bio || 'Keine Bio angegeben.')}</p>
       </div>`;
 
