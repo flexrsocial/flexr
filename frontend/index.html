@@ -18,16 +18,17 @@
 <meta property="og:url" content="https://flexr.social/">
 <meta property="og:title" content="FLEXR — Dating für Gym-People in Österreich">
 <meta property="og:description" content="Dating für Leute, die auch montags Beintag machen. Matches nach Gym und Stadt, in ganz Österreich. 1 Monat gratis testen.">
-<meta property="og:image" content="https://flexr.social/icons/icon-512.png">
-<meta property="og:image:width" content="512">
-<meta property="og:image:height" content="512">
-<meta property="og:image:alt" content="FLEXR — Match. Train. Repeat.">
+<meta property="og:image" content="https://flexr.social/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:alt" content="FLEXR — Match. Train. Repeat. Dating für Gym-People in Österreich.">
 
 <!-- Twitter / X Card -->
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="FLEXR — Dating für Gym-People in Österreich">
 <meta name="twitter:description" content="Dating für Leute, die auch montags Beintag machen. Matches nach Gym und Stadt, in ganz Österreich.">
-<meta name="twitter:image" content="https://flexr.social/icons/icon-512.png">
+<meta name="twitter:image" content="https://flexr.social/og-image.png">
 
 <!-- Strukturierte Daten für Google -->
 <script type="application/ld+json">
@@ -65,6 +66,49 @@
         "priceCurrency": "EUR",
         "description": "1 Monat gratis testen, danach 5 €/Monat, jederzeit kündbar."
       }
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Was ist FLEXR?",
+      "acceptedAnswer": { "@type": "Answer", "text": "FLEXR ist eine Dating-App für Menschen, denen Training und Gym wichtig sind. Du findest Matches nach deinem Fitnessstudio und deiner Stadt – Leute in ganz Österreich, die einen ähnlichen Lifestyle leben wie du." }
+    },
+    {
+      "@type": "Question",
+      "name": "Was kostet FLEXR?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Du testest FLEXR einen Monat gratis. Danach kostet es 5 € pro Monat, jederzeit kündbar – ohne Mindestlaufzeit." }
+    },
+    {
+      "@type": "Question",
+      "name": "In welchen Städten ist FLEXR verfügbar?",
+      "acceptedAnswer": { "@type": "Answer", "text": "FLEXR ist in ganz Österreich verfügbar. Die Matches richten sich nach deinem Gym und deinem Umkreis – von Wien über Graz, Linz und Salzburg bis Innsbruck und Klagenfurt." }
+    },
+    {
+      "@type": "Question",
+      "name": "Wie funktioniert das Matching?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Du wählst dein Gym und deinen Suchradius. FLEXR zeigt dir passende Profile in der Nähe. Liken sich zwei Personen gegenseitig, entsteht ein Match und ihr könnt im Chat schreiben." }
+    },
+    {
+      "@type": "Question",
+      "name": "Ist FLEXR sicher und seriös?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Ja. FLEXR hat eine Melde- und Blockfunktion, eine Foto-Verifizierung (blauer Haken) sowie einen automatischen Schutz im Chat, der Scam-Nachrichten und externe Links erkennt und entfernt." }
+    },
+    {
+      "@type": "Question",
+      "name": "Für wen ist FLEXR gedacht?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Für alle, die Training ernst nehmen und jemanden mit ähnlichem Lifestyle kennenlernen wollen – egal ob Kraftsport, Functional Fitness oder Ausdauer, und unabhängig vom Level." }
+    },
+    {
+      "@type": "Question",
+      "name": "Kann ich jederzeit kündigen?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Ja. Es gibt keine Mindestlaufzeit. Du kannst dein Abo jederzeit in deinem Account beenden – der Zugang bleibt bis zum Ende des bezahlten Zeitraums aktiv." }
     }
   ]
 }
@@ -764,7 +808,41 @@
       flex-wrap:wrap;
     }
     .demo-queue-label{ text-align:left; }
+    body.landing .landing-faq{ order:7; margin-top:8px; }
+    .landing-faq h2{ font-size:24px; }
   }
+
+  /* ---------- Landing-FAQ (nur ausgeloggt sichtbar, volle Breite) ---------- */
+  .landing-faq{ display:none; }
+  body.landing .landing-faq{
+    display:block; grid-column:1 / -1;
+    max-width:820px; margin:8px auto 8px; width:100%;
+    border-top:1px solid var(--hairline); padding-top:36px;
+  }
+  .landing-faq h2{
+    font-family:'Oswald', sans-serif; text-transform:uppercase; letter-spacing:0.02em;
+    font-size:30px; margin-bottom:6px; color:var(--chalk);
+  }
+  .landing-faq .faq-intro{ color:var(--chalk-dim); font-size:14.5px; margin-bottom:22px; }
+  .landing-faq details{
+    border:1px solid var(--hairline); border-radius:14px;
+    background:rgba(24,24,24,.55); margin-bottom:12px; overflow:hidden;
+  }
+  .landing-faq details[open]{ border-color:rgba(255,90,31,.35); }
+  .landing-faq summary{
+    list-style:none; cursor:pointer; padding:16px 48px 16px 18px; position:relative;
+    font-family:'Work Sans', sans-serif; font-weight:600; font-size:16px; color:var(--chalk);
+  }
+  .landing-faq summary::-webkit-details-marker{ display:none; }
+  .landing-faq summary::after{
+    content:'+'; position:absolute; right:18px; top:50%; transform:translateY(-50%);
+    font-size:24px; line-height:1; color:var(--plate); transition:transform .2s ease;
+  }
+  .landing-faq details[open] summary::after{ content:'\2212'; }
+  .landing-faq .faq-a{
+    padding:0 18px 18px; color:var(--chalk-dim); font-size:14.5px; line-height:1.6;
+  }
+  .landing-faq summary:hover{ color:var(--plate-bright); }
 
   .divider{ height:1px; background:var(--steel); margin:24px 0; position:relative; }
   .divider::after{ content:'●  ●  ●'; position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); background:var(--ink); padding:0 10px; color:var(--steel); font-size:8px; letter-spacing:4px; }
@@ -1077,6 +1155,47 @@
       <input type="password" id="l-password" placeholder="••••••••">
       <div class="field-err" id="loginErr"></div>
       <button class="btn" id="btnLogin">Einloggen</button>
+    </section>
+
+    <!-- FAQ (nur im Landing-Modus / ausgeloggt sichtbar) -->
+    <section class="landing-faq" aria-label="Häufige Fragen">
+      <h2>Häufige Fragen</h2>
+      <p class="faq-intro">Alles Wichtige zu FLEXR – der Dating-App für Gym-People in Österreich.</p>
+
+      <details>
+        <summary>Was ist FLEXR?</summary>
+        <div class="faq-a">FLEXR ist eine Dating-App für Menschen, denen Training und Gym wichtig sind. Du findest Matches nach deinem Fitnessstudio und deiner Stadt – Leute in ganz Österreich, die einen ähnlichen Lifestyle leben wie du.</div>
+      </details>
+
+      <details>
+        <summary>Was kostet FLEXR?</summary>
+        <div class="faq-a">Du testest FLEXR einen Monat gratis. Danach kostet es 5&nbsp;€ pro Monat, jederzeit kündbar – ohne Mindestlaufzeit.</div>
+      </details>
+
+      <details>
+        <summary>In welchen Städten ist FLEXR verfügbar?</summary>
+        <div class="faq-a">FLEXR ist in ganz Österreich verfügbar. Die Matches richten sich nach deinem Gym und deinem Umkreis – von Wien über Graz, Linz und Salzburg bis Innsbruck und Klagenfurt.</div>
+      </details>
+
+      <details>
+        <summary>Wie funktioniert das Matching?</summary>
+        <div class="faq-a">Du wählst dein Gym und deinen Suchradius. FLEXR zeigt dir passende Profile in der Nähe. Liken sich zwei Personen gegenseitig, entsteht ein Match und ihr könnt im Chat schreiben.</div>
+      </details>
+
+      <details>
+        <summary>Ist FLEXR sicher und seriös?</summary>
+        <div class="faq-a">Ja. FLEXR hat eine Melde- und Blockfunktion, eine Foto-Verifizierung (blauer Haken) sowie einen automatischen Schutz im Chat, der Scam-Nachrichten und externe Links erkennt und entfernt.</div>
+      </details>
+
+      <details>
+        <summary>Für wen ist FLEXR gedacht?</summary>
+        <div class="faq-a">Für alle, die Training ernst nehmen und jemanden mit ähnlichem Lifestyle kennenlernen wollen – egal ob Kraftsport, Functional Fitness oder Ausdauer, und unabhängig vom Level.</div>
+      </details>
+
+      <details>
+        <summary>Kann ich jederzeit kündigen?</summary>
+        <div class="faq-a">Ja. Es gibt keine Mindestlaufzeit. Du kannst dein Abo jederzeit in deinem Account beenden – der Zugang bleibt bis zum Ende des bezahlten Zeitraums aktiv.</div>
+      </details>
     </section>
 
     <!-- ONBOARDING / CREATE PROFILE -->
