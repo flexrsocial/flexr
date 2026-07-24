@@ -643,7 +643,11 @@
       url('https://images.unsplash.com/photo-1649789248266-ef1c7f744f6f?q=80&w=2400&auto=format&fit=crop') center 34%/cover no-repeat fixed,
       var(--ink);
   }
-  body.landing .app{ max-width:none; background:transparent; }
+  /* Landing: kein festes Viewport-Fenster - die Seite wächst mit dem Inhalt
+     und nutzt den äußeren Fenster-Scrollbalken (wie vorher). Nur eingeloggt
+     bleibt die feste Höhe mit internem Scrollen. */
+  body.landing .app{ max-width:none; background:transparent; height:auto; min-height:100dvh; }
+  body.landing main{ overflow:visible; }
   body.landing header.top{
     border-bottom:none; padding:26px clamp(20px,5vw,64px) 10px;
   }
@@ -735,7 +739,7 @@
     background:rgba(24,24,24,.82); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px);
     border:1px solid rgba(255,255,255,.10); border-radius:22px;
     padding:26px 26px 30px; box-shadow:0 34px 70px rgba(0,0,0,.55);
-    max-height:calc(100vh - 170px); overflow-y:auto; scrollbar-width:thin;
+    /* Kein internes Scrollen mehr - die ganze Landingpage scrollt außen. */
     animation:fade .3s ease;
   }
   body.landing .screen.active::-webkit-scrollbar{ width:6px; }
