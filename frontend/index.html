@@ -151,6 +151,15 @@
   /* Der Chat füllt den Screen exakt (Nachrichten scrollen intern) - kein
      zweiter Scrollbalken auf Screen-Ebene. */
   #screen-chat.active{ overflow:hidden; }
+  /* Dezenter Scrollbalken im FLEXR-Look: dünn, orange-transparent, erscheint
+     erst beim Hovern/Scrollen (Thumb sonst unsichtbar). */
+  .screen.active{ scrollbar-width:thin; scrollbar-color:transparent transparent; }
+  .screen.active:hover{ scrollbar-color:rgba(255,90,31,.45) transparent; }
+  .screen.active::-webkit-scrollbar{ width:7px; }
+  .screen.active::-webkit-scrollbar-track{ background:transparent; }
+  .screen.active::-webkit-scrollbar-thumb{ background:transparent; border-radius:20px; }
+  .screen.active:hover::-webkit-scrollbar-thumb{ background:rgba(255,90,31,.45); }
+  .screen.active::-webkit-scrollbar-thumb:hover{ background:rgba(255,90,31,.7); }
   @keyframes fade{ from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);} }
 
   .eyebrow{ font-family:'JetBrains Mono', monospace; font-size:11px; letter-spacing:0.12em; text-transform:uppercase; color:var(--plate); margin-bottom:6px; }
