@@ -216,7 +216,11 @@
   .plz-combo .ort-display.resolved{ color:var(--chalk); }
   .plz-combo.focused{ outline:2px solid var(--plate); outline-offset:1px; }
   .row3{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; }
-  .row2{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  /* minmax(0,1fr) statt 1fr: Grid-Spalten dürfen unter ihre Inhaltsbreite
+     schrumpfen (Datums-Input/PLZ-Combo), sonst wird die Karte auf schmalen
+     Handys breiter als der Viewport. */
+  .row2{ display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:10px; }
+  .row2 > div{ min-width:0; }
 
   .btn{
     display:inline-flex; align-items:center; justify-content:center; gap:9px;
