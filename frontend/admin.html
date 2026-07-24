@@ -907,6 +907,9 @@
 
   // ---------- Reports ----------
   async function loadReports(){
+    // Auffällige Nachrichten immer laden - unabhängig davon, ob es offene
+    // Meldungen gibt (sonst bliebe die Tabelle bei 0 Meldungen auf "Lädt …")
+    loadFlaggedMessages();
     const wrap = $('reportsTableWrap');
     try{
       const reports = await api('/api/admin/reports');
@@ -953,7 +956,6 @@
     }catch(err){
       wrap.innerHTML = `<div class="empty-state">${escapeHtml(err.message)}</div>`;
     }
-    loadFlaggedMessages();
   }
 
   async function loadFlaggedMessages(){
