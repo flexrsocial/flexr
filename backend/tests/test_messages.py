@@ -1,4 +1,4 @@
-from tests.conftest import register_user
+from tests.conftest import create_admin, register_user
 from tests.test_swipes_and_matches import make_pair
 
 
@@ -200,3 +200,26 @@ def test_normal_message_not_censored(client):
     # Telefonnummer bleibt erlaubt, keine Zensur
     assert "0676 1234567" in msgs_b[0]["content"]
     assert msgs_b[0]["was_censored"] is False
+
+
+def test_admin_flagged_shows_delivery_and_censor_state(client):
+    match_id, (headers_a, _), (headers_b, _) = make_match(client)
+    client.post(
+        f"/api/matches/{match_id}/messages",
+        headers=headers_a,
+        json={"content": "Gewinne jetzt auf https://scam.example.com/gewinn"},
+    )
+    # Empfänger liest die Nachricht (setzt read_at)
+    client.get(f"/api/matches/{match_id}/messages", headers=headers_b)
+
+    admin_headers, _ = create_admin(client, email="flagadmin@example.com")
+    flagged = client.get("/api/admin/flagged-messages", headers=admin_headers).json()
+    assert len(flagged) == 1
+    m = flagged[0]
+    # Original sichtbar, Empfänger-Fassung zensiert, zugestellt und gelesen
+    assert "scam.example.com" in m["content"]
+    assert "[Link entfernt]" in m["display_content"]
+    assert "scam.example.com" not in m["display_content"]
+    assert m["was_censored"] is True
+    assert m["delivered"] is True
+    assert m["read_at"] is not None

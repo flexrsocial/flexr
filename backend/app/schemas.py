@@ -346,7 +346,11 @@ class AdminFlaggedMessageOut(BaseModel):
     id: str
     sender_id: str
     sender_name: str
-    content: str
+    content: str               # Original des Absenders
+    display_content: str       # das, was der Empfänger tatsächlich gesehen hat
+    was_censored: bool         # wurde ein Link/Kontakt für den Empfänger entfernt?
+    delivered: bool = True     # Nachrichten werden zugestellt (kein Auto-Block)
+    read_at: Optional[datetime] = None  # vom Empfänger gelesen (None = ungelesen)
     flag_reason: Optional[str]
     created_at: datetime
 

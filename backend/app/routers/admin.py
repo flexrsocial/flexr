@@ -573,6 +573,11 @@ def list_flagged_messages(
             sender_id=msg.sender_id,
             sender_name=sender_name,
             content=msg.content,
+            display_content=(msg.display_content if msg.display_content is not None
+                             else msg.content),
+            was_censored=bool(msg.was_censored),
+            delivered=True,
+            read_at=msg.read_at,
             flag_reason=msg.flag_reason,
             created_at=msg.created_at,
         )

@@ -341,7 +341,10 @@
       <div id="reportsTableWrap"><div class="loading">Lädt …</div></div>
       <h2 style="margin-top:32px;">Auffällige Nachrichten</h2>
       <p class="hint">Von der automatischen Sicherheitsprüfung markierte Chat-Nachrichten
-        (Scam-Begriffe, Links). Die Nachrichten wurden zugestellt - hier nur das Review.</p>
+        (Scam-Begriffe, Links). Die Nachrichten werden <strong>zugestellt</strong> (kein
+        Auto-Block) — enthaltene Links und Kontaktdaten werden dem Empfänger jedoch
+        <strong>zensiert</strong> (durch „[Link entfernt]" / „[Kontakt entfernt]" ersetzt).
+        Die Spalte „Empfänger sah" zeigt die tatsächlich zugestellte Fassung.</p>
       <div id="flaggedTableWrap"><div class="loading">Lädt …</div></div>
     </section>
 
@@ -968,13 +971,22 @@
       }
       wrap.innerHTML = `
         <table>
-          <thead><tr><th>Absender</th><th>Nachricht</th><th>Grund</th><th>Datum</th><th></th></tr></thead>
+          <thead><tr><th>Absender</th><th>Original</th><th>Empfänger sah</th><th>Grund</th><th>Status</th><th>Datum</th><th></th></tr></thead>
           <tbody>
             ${msgs.map(m => `
               <tr>
                 <td>${escapeHtml(m.sender_name)}</td>
                 <td>${escapeHtml(m.content)}</td>
+                <td>${m.was_censored
+                      ? `${escapeHtml(m.display_content)} <span class="pill warn">zensiert</span>`
+                      : `<span style="color:var(--chalk-dim);">unverändert</span>`}</td>
                 <td>${escapeHtml(m.flag_reason || '—')}</td>
+                <td style="white-space:nowrap;">
+                  <span class="pill ok">zugestellt</span>
+                  ${m.read_at
+                      ? `<span class="pill ok">gelesen</span>`
+                      : `<span class="pill muted">ungelesen</span>`}
+                </td>
                 <td>${fmtDate(m.created_at)}</td>
                 <td style="white-space:nowrap;">
                   <button class="btn small secondary" data-view-user="${m.sender_id}">Ansehen</button>
