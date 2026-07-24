@@ -160,6 +160,11 @@
   .screen.active::-webkit-scrollbar-thumb{ background:transparent; border-radius:20px; }
   .screen.active:hover::-webkit-scrollbar-thumb{ background:rgba(255,90,31,.45); }
   .screen.active::-webkit-scrollbar-thumb:hover{ background:rgba(255,90,31,.7); }
+  /* Scrollbalken mittig in den rechten Außenrand rücken: der Scroll-Container
+     ragt per negativem Margin in den 20px-Rand, der Inhalt wird per gleichem
+     padding wieder zurückgeholt - so bleibt der Feldrand gleich, der Balken
+     sitzt aber mittig zwischen Feldrand und Hintergrundende. */
+  #screen-account.active, #screen-matches.active{ margin-right:-13px; padding-right:13px; }
   @keyframes fade{ from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);} }
 
   .eyebrow{ font-family:'JetBrains Mono', monospace; font-size:11px; letter-spacing:0.12em; text-transform:uppercase; color:var(--plate); margin-bottom:6px; }
@@ -819,11 +824,18 @@
 
   .account-header{ display:flex; align-items:center; gap:15px; margin-bottom:22px; }
   .account-avatar{
+    position:relative;
     width:66px; height:66px; border-radius:50%; background-color:var(--surface-2); background-position:center; background-size:cover;
-    border:3px solid var(--ink); box-shadow:0 0 0 2px var(--plate-dim), 0 8px 20px rgba(0,0,0,.4);
+    border:3px solid var(--ink); box-shadow:0 8px 20px rgba(0,0,0,.4);
     flex-shrink:0;
     display:flex; align-items:center; justify-content:center;
     font-family:'Oswald'; font-size:24px; color:var(--chalk-dim);
+  }
+  /* Oranger Ring als echter Border (durchgehend) - Spread-box-shadow zeigte
+     auf manchen Android-Geräten Nähte/Lücken. */
+  .account-avatar::after{
+    content:''; position:absolute; inset:-2px; border-radius:50%;
+    border:2px solid var(--plate-dim); box-sizing:border-box; pointer-events:none;
   }
   .account-id{ flex:1; min-width:0; }
   .account-sub{ font-size:12.5px; color:var(--chalk-dim); margin-top:2px; }
