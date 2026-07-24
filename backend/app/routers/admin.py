@@ -551,6 +551,25 @@ def reject_gym(
     return {"status": gym.status.value}
 
 
+@router.delete("/gyms/{gym_id}", status_code=204)
+def delete_gym(
+    gym_id: str,
+    admin: AdminUser = Depends(get_current_admin),
+    db: Session = Depends(get_db),
+):
+    """Löscht einen abgelehnten Gym-Eintrag endgültig. Nur für abgelehnte
+    Einträge erlaubt - freigegebene/offene können referenziert werden."""
+    gym = db.query(Gym).filter(Gym.id == gym_id).first()
+    if not gym:
+        raise HTTPException(404, "Gym nicht gefunden.")
+    if gym.status != GymStatus.rejected:
+        raise HTTPException(
+            400, "Nur abgelehnte Einträge können gelöscht werden.")
+    db.delete(gym)
+    db.commit()
+    return None
+
+
 @router.get("/flagged-messages", response_model=list[AdminFlaggedMessageOut])
 def list_flagged_messages(
     limit: int = Query(50, le=200),

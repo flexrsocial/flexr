@@ -98,6 +98,32 @@ def test_admin_rejects_suggestion(client):
     assert resp.status_code == 400
 
 
+def test_admin_deletes_rejected_gym(client):
+    client.post(
+        "/api/gyms/suggest",
+        json={"name": "Löschgym", "street": "Weg", "house_number": "1", "plz": "9020"},
+    )
+    admin_headers, _ = create_admin(client, email="gymdel@example.com")
+    gym_id = next(
+        g["id"] for g in client.get(
+            "/api/admin/gyms?status=pending", headers=admin_headers).json()
+        if g["name"] == "Löschgym"
+    )
+
+    # Offener Vorschlag kann NICHT gelöscht werden (nur abgelehnte)
+    assert client.delete(
+        f"/api/admin/gyms/{gym_id}", headers=admin_headers).status_code == 400
+
+    # Ablehnen -> dann löschbar
+    client.post(f"/api/admin/gyms/{gym_id}/reject", headers=admin_headers)
+    assert client.delete(
+        f"/api/admin/gyms/{gym_id}", headers=admin_headers).status_code == 204
+    # Ist danach nicht mehr in der Liste
+    assert not any(
+        g["name"] == "Löschgym" for g in client.get(
+            "/api/admin/gyms?status=rejected", headers=admin_headers).json())
+
+
 def test_admin_modifies_suggestion_then_approves(client):
     # Vorschlag mit Tippfehlern
     client.post(

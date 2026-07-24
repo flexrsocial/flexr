@@ -1118,7 +1118,13 @@
       <div class="gym-picked" id="fGymPicked"></div>
 
       <label>Bio</label>
-      <textarea id="f-bio" placeholder="Was du suchst, dein Training, was auch immer..." maxlength="280"></textarea>
+      <div class="bio-wrap">
+        <textarea id="f-bio" placeholder="Was du suchst, dein Training, gerne mit Emojis 💪" maxlength="280"></textarea>
+        <button type="button" class="emoji-btn" id="btnEmojiToggleReg" aria-label="Emoji einfügen">
+          <svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M9 10h.01M15 10h.01M8.8 14.2c.8 1 1.9 1.6 3.2 1.6s2.4-.6 3.2-1.6"/></svg>
+        </button>
+        <div class="emoji-panel" id="emojiPanelReg"></div>
+      </div>
 
       <label>Fotos (max. 6)</label>
       <div class="photo-grid" id="photoGrid"></div>
@@ -2235,6 +2241,7 @@
   }
 
   initEmojiPicker('btnEmojiToggle', 'emojiPanel', 'a-bio', '.bio-wrap', 280);
+  initEmojiPicker('btnEmojiToggleReg', 'emojiPanelReg', 'f-bio', '.bio-wrap', 280);
   initEmojiPicker('btnChatEmoji', 'chatEmojiPanel', 'chatInput', '.chat-input-row', 2000);
 
   async function lookupAcctLocality(plz){

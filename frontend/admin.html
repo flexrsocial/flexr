@@ -493,6 +493,7 @@
                   <button class="btn small secondary" data-edit-gym="${g.id}">Bearbeiten</button>
                   ${g.status !== 'approved' ? `<button class="btn small" data-approve-gym="${g.id}">Freigeben</button>` : ''}
                   ${g.status !== 'rejected' ? `<button class="btn small secondary" data-reject-gym="${g.id}">Ablehnen</button>` : ''}
+                  ${g.status === 'rejected' ? `<button class="btn small danger" data-delete-gym="${g.id}">Löschen</button>` : ''}
                 </td>
               </tr>`).join('')}
           </tbody>
@@ -509,6 +510,14 @@
         btn.addEventListener('click', async () => {
           try{ await api(`/api/admin/gyms/${btn.dataset.rejectGym}/reject`, {method: 'POST'});
             toast('Gym abgelehnt.'); loadGyms(); loadDashboard(); }
+          catch(err){ toast(err.message); }
+        });
+      });
+      wrap.querySelectorAll('button[data-delete-gym]').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          if(!confirm('Diesen abgelehnten Eintrag endgültig löschen?')) return;
+          try{ await api(`/api/admin/gyms/${btn.dataset.deleteGym}`, {method: 'DELETE'});
+            toast('Eintrag gelöscht.'); loadGyms(); loadDashboard(); }
           catch(err){ toast(err.message); }
         });
       });
