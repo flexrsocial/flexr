@@ -3312,7 +3312,7 @@
   $('btnClearChat').addEventListener('click', async () => {
     chatMenu.classList.remove('open');
     if(!currentChatMatchId) return;
-    if(!confirm('Chatverlauf wirklich leeren? Alle Nachrichten in diesem Chat werden für beide Seiten gelöscht.')) return;
+    if(!confirm('Chatverlauf wirklich leeren? Er wird nur für dich ausgeblendet – die andere Person sieht den Verlauf weiterhin.')) return;
     try{
       await api(`/api/matches/${currentChatMatchId}/messages`, {method: 'DELETE'});
       toast('Chatverlauf geleert.');

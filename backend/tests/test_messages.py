@@ -240,20 +240,24 @@ def test_muted_user_cannot_send_but_others_can(client):
         json={"content": "wieder da"}).status_code == 201
 
 
-def test_clear_messages_keeps_match(client):
+def test_clear_messages_is_per_user(client):
     match_id, (headers_a, _), (headers_b, _) = make_match(client)
     client.post(f"/api/matches/{match_id}/messages", headers=headers_a, json={"content": "hi"})
     client.post(f"/api/matches/{match_id}/messages", headers=headers_b, json={"content": "hey"})
     assert len(client.get(f"/api/matches/{match_id}/messages", headers=headers_a).json()) == 2
 
-    # Verlauf leeren -> Nachrichten weg, Match bleibt
+    # A leert -> nur A sieht leer, B behält den Verlauf; Match bleibt
     assert client.delete(f"/api/matches/{match_id}/messages", headers=headers_a).status_code == 204
     assert client.get(f"/api/matches/{match_id}/messages", headers=headers_a).json() == []
+    assert len(client.get(f"/api/matches/{match_id}/messages", headers=headers_b).json()) == 2
     assert any(m["match_id"] == match_id for m in client.get("/api/matches", headers=headers_a).json())
 
-    # Danach kann weiter geschrieben werden
-    assert client.post(f"/api/matches/{match_id}/messages", headers=headers_a,
-                       json={"content": "neu"}).status_code == 201
+    # Neue Nachricht nach dem Leeren: A sieht nur die neue, B sieht alle drei
+    client.post(f"/api/matches/{match_id}/messages", headers=headers_b, json={"content": "noch da?"})
+    a_msgs = client.get(f"/api/matches/{match_id}/messages", headers=headers_a).json()
+    b_msgs = client.get(f"/api/matches/{match_id}/messages", headers=headers_b).json()
+    assert [m["content"] for m in a_msgs] == ["noch da?"]
+    assert len(b_msgs) == 3
 
 
 def test_mute_supports_hours_and_requires_positive_duration(client):

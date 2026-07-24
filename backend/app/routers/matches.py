@@ -48,21 +48,21 @@ def get_matches(
         if other_id in blocked_ids or other_id not in users_by_id:
             continue
 
-        last_message = (
-            db.query(Message)
-            .filter(Message.match_id == row.id)
-            .order_by(Message.created_at.desc())
-            .first()
+        # Eigener "Chatverlauf leeren"-Zeitpunkt blendet ältere Nachrichten aus
+        cleared_at = row.cleared_at_for(current_user.id)
+
+        last_q = db.query(Message).filter(Message.match_id == row.id)
+        unread_q = db.query(Message).filter(
+            Message.match_id == row.id,
+            Message.sender_id == other_id,
+            Message.read_at.is_(None),
         )
-        unread_count = (
-            db.query(Message)
-            .filter(
-                Message.match_id == row.id,
-                Message.sender_id == other_id,
-                Message.read_at.is_(None),
-            )
-            .count()
-        )
+        if cleared_at is not None:
+            last_q = last_q.filter(Message.created_at > cleared_at)
+            unread_q = unread_q.filter(Message.created_at > cleared_at)
+
+        last_message = last_q.order_by(Message.created_at.desc()).first()
+        unread_count = unread_q.count()
         result.append(
             (
                 row.created_at,

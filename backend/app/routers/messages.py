@@ -60,14 +60,14 @@ def list_messages(
     current_user: User = Depends(require_active_membership),
     db: Session = Depends(get_db),
 ):
-    _, other_id = _get_match_and_other_id(match_id, current_user, db)
+    match, other_id = _get_match_and_other_id(match_id, current_user, db)
 
-    messages = (
-        db.query(Message)
-        .filter(Message.match_id == match_id)
-        .order_by(Message.created_at.asc())
-        .all()
-    )
+    query = db.query(Message).filter(Message.match_id == match_id)
+    # Eigener "Chatverlauf leeren"-Zeitpunkt blendet ältere Nachrichten aus
+    cleared_at = match.cleared_at_for(current_user.id)
+    if cleared_at is not None:
+        query = query.filter(Message.created_at > cleared_at)
+    messages = query.order_by(Message.created_at.asc()).all()
 
     unread = [m for m in messages if m.sender_id == other_id and m.read_at is None]
     if unread:
@@ -85,10 +85,12 @@ def clear_messages(
     current_user: User = Depends(require_active_membership),
     db: Session = Depends(get_db),
 ):
-    """Chatverlauf leeren: löscht alle Nachrichten dieses Chats, der Match
-    bleibt bestehen. Wirkt für beide Seiten (gemeinsamer Verlauf)."""
-    _get_match_and_other_id(match_id, current_user, db)
-    db.query(Message).filter(Message.match_id == match_id).delete()
+    """Chatverlauf leeren - nur für die leerende Seite: der bisherige Verlauf
+    wird für diesen Nutzer ausgeblendet, für die andere Seite bleibt er
+    erhalten. Nachrichten werden nicht gelöscht, nur ein 'geleert-ab'-Zeitpunkt
+    gesetzt."""
+    match, _ = _get_match_and_other_id(match_id, current_user, db)
+    match.set_cleared_at(current_user.id, datetime.utcnow())
     db.commit()
     return None
 
