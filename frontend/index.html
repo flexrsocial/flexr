@@ -3220,12 +3220,18 @@
     startChatPolling();
   }
 
+  // Server liefert naive UTC-Zeitstempel ohne Zeitzone - als UTC interpretieren,
+  // sonst wäre die (v. a. stundengenaue) Sperre um den lokalen Offset verschoben.
+  function parseServerDate(iso){
+    if(!iso) return null;
+    const hasTz = /[zZ]|[+-]\d{2}:?\d{2}$/.test(iso);
+    return new Date(hasTz ? iso : iso + 'Z');
+  }
+
   // Befristete Chat-Sperre: liefert das Enddatum, solange sie aktiv ist, sonst null
   function chatMutedUntil(){
-    const until = myProfile && myProfile.messaging_muted_until;
-    if(!until) return null;
-    const d = new Date(until);
-    return d > new Date() ? d : null;
+    const d = parseServerDate(myProfile && myProfile.messaging_muted_until);
+    return d && d > new Date() ? d : null;
   }
 
   function renderChatMuteState(){
@@ -3314,13 +3320,17 @@
       matchesCache = await api('/api/matches');
       renderUnreadBadge(matchesCache);
     }catch(err){
-      // Sperre serverseitig durchgesetzt (evtl. erst während der Sitzung gesetzt):
-      // Status übernehmen, Banner zeigen und Text wiederherstellen
-      if(err.status === 403 && err.detail && err.detail.reason === 'messaging_muted'){
-        myProfile.messaging_muted_until = err.detail.muted_until;
-        input.value = content;
-        renderChatMuteState();
-        return;
+      input.value = content;  // getippten Text nicht verlieren
+      // Chat-Sperre (evtl. erst während der Sitzung gesetzt): statt Fehler-Toast
+      // den Sperr-Hinweis im Chat zeigen. Bei jedem 403 den Profilstatus
+      // gegenprüfen, damit der Banner sicher erscheint.
+      if(err.status === 403){
+        if(err.detail && err.detail.reason === 'messaging_muted' && err.detail.muted_until){
+          myProfile.messaging_muted_until = err.detail.muted_until;
+        } else {
+          try{ const me = await api('/api/profiles/me'); if(me) myProfile = me; }catch(e){}
+        }
+        if(chatMutedUntil()){ renderChatMuteState(); return; }
       }
       toast(err.message || 'Nachricht konnte nicht gesendet werden.');
     }

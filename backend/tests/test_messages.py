@@ -240,6 +240,26 @@ def test_muted_user_cannot_send_but_others_can(client):
         json={"content": "wieder da"}).status_code == 201
 
 
+def test_mute_supports_hours_and_requires_positive_duration(client):
+    match_id, (headers_a, user_a), _ = make_match(client)
+    admin_headers, _ = create_admin(client, email="hmuteadmin@example.com")
+
+    # Stundensperre (5 Stunden) blockiert das Senden
+    r = client.post(
+        f"/api/admin/users/{user_a['id']}/mute",
+        headers=admin_headers, json={"hours": 5},
+    )
+    assert r.status_code == 200
+    assert client.post(
+        f"/api/matches/{match_id}/messages", headers=headers_a,
+        json={"content": "hi"}).status_code == 403
+
+    # Dauer 0/0 wird abgelehnt
+    assert client.post(
+        f"/api/admin/users/{user_a['id']}/mute",
+        headers=admin_headers, json={"days": 0, "hours": 0}).status_code == 422
+
+
 def test_admin_flagged_shows_delivery_and_censor_state(client):
     match_id, (headers_a, _), (headers_b, _) = make_match(client)
     client.post(

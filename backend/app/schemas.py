@@ -1,7 +1,7 @@
 from datetime import date, datetime
 from typing import Literal, Optional
 
-from pydantic import BaseModel, EmailStr, Field, field_validator
+from pydantic import BaseModel, EmailStr, Field, field_validator, model_validator
 
 
 def _age_from_birthdate(birthdate: date) -> int:
@@ -324,9 +324,16 @@ class AdminUserDetailOut(BaseModel):
 
 
 class AdminMuteRequest(BaseModel):
-    """Befristete Chat-Sperre setzen: Dauer in Tagen (1-365)."""
+    """Befristete Chat-Sperre setzen: Dauer in Tagen und/oder Stunden."""
 
-    days: int = Field(ge=1, le=365)
+    days: int = Field(default=0, ge=0, le=365)
+    hours: int = Field(default=0, ge=0, le=8760)
+
+    @model_validator(mode="after")
+    def _at_least_one(self):
+        if self.days == 0 and self.hours == 0:
+            raise ValueError("Sperrdauer muss größer als 0 sein.")
+        return self
 
 
 class AdminGymOut(BaseModel):

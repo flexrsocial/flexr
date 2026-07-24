@@ -284,7 +284,9 @@ def mute_user(
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(404, "Nutzer nicht gefunden.")
-    user.messaging_muted_until = datetime.utcnow() + timedelta(days=payload.days)
+    user.messaging_muted_until = datetime.utcnow() + timedelta(
+        days=payload.days, hours=payload.hours
+    )
     db.commit()
     return {"messaging_muted_until": user.messaging_muted_until.isoformat()}
 
