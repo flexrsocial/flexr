@@ -146,3 +146,57 @@ def test_unmatch_requires_participation(client):
 def test_unmatch_unknown_match_404(client):
     headers = register_user(client, "unmatch.solo@example.com")
     assert client.delete("/api/matches/gibt-es-nicht", headers=headers).status_code == 404
+
+
+# ---------- Chat-Zensur (Scam-/Phishing-Schutz) ----------
+
+def test_link_censored_for_recipient(client):
+    match_id, (headers_a, user_a), (headers_b, user_b) = make_match(client)
+
+    # A schickt eine Nachricht mit Link
+    resp = client.post(
+        f"/api/matches/{match_id}/messages",
+        headers=headers_a,
+        json={"content": "Schau mal hier https://scam.example.com/gewinn"},
+    )
+    assert resp.status_code == 201
+    # Absender sieht sein Original + den Zensur-Hinweis
+    body = resp.json()
+    assert "scam.example.com" in body["content"]
+    assert body["was_censored"] is True
+
+    # Empfänger B sieht die zensierte Fassung ohne Link
+    msgs_b = client.get(f"/api/matches/{match_id}/messages", headers=headers_b).json()
+    assert len(msgs_b) == 1
+    assert "scam.example.com" not in msgs_b[0]["content"]
+    assert "[Link entfernt]" in msgs_b[0]["content"]
+    assert msgs_b[0]["was_censored"] is True
+
+    # Absender A sieht in der Liste weiterhin sein Original
+    msgs_a = client.get(f"/api/matches/{match_id}/messages", headers=headers_a).json()
+    assert "scam.example.com" in msgs_a[0]["content"]
+
+
+def test_email_censored_for_recipient(client):
+    match_id, (headers_a, _), (headers_b, _) = make_match(client)
+    client.post(
+        f"/api/matches/{match_id}/messages",
+        headers=headers_a,
+        json={"content": "Schreib mir auf hallo@example.com"},
+    )
+    msgs_b = client.get(f"/api/matches/{match_id}/messages", headers=headers_b).json()
+    assert "hallo@example.com" not in msgs_b[0]["content"]
+    assert "[Kontakt entfernt]" in msgs_b[0]["content"]
+
+
+def test_normal_message_not_censored(client):
+    match_id, (headers_a, _), (headers_b, _) = make_match(client)
+    client.post(
+        f"/api/matches/{match_id}/messages",
+        headers=headers_a,
+        json={"content": "Treffen wir uns morgen um 18 Uhr im Gym? Meine Nummer: 0676 1234567"},
+    )
+    msgs_b = client.get(f"/api/matches/{match_id}/messages", headers=headers_b).json()
+    # Telefonnummer bleibt erlaubt, keine Zensur
+    assert "0676 1234567" in msgs_b[0]["content"]
+    assert msgs_b[0]["was_censored"] is False

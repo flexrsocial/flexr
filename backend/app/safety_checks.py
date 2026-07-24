@@ -69,3 +69,33 @@ def scan_message(text: str) -> Optional[str]:
     if _URL_RE.search(text):
         return "Enthält Link"
     return None
+
+
+# Vollständige URLs inkl. Pfad (für die Zensur, nicht nur die Erkennung)
+_REDACT_URL_RE = re.compile(
+    r"(?:https?://\S+"
+    r"|www\.\S+"
+    r"|\b[\w-]+\.(?:com|net|org|io|me|de|at|ch|info|xyz|club|online|shop|site|link|app|to|ly|gg|ru|tk)(?:/\S*)?)",
+    re.IGNORECASE,
+)
+_EMAIL_RE = re.compile(r"\b[\w.+-]+@[\w-]+\.[\w.-]+\b")
+
+
+def redact_message(text: str) -> tuple[str, bool]:
+    """Chat-Schutzfunktion: ersetzt externe Links und E-Mail-Adressen durch
+    einen Platzhalter, damit der Empfänger nicht auf Scam-/Phishing-Seiten oder
+    externe Kontaktkanäle gelockt werden kann. Telefonnummern bleiben erlaubt
+    (normaler Kontaktaustausch). Liefert (bereinigter_text, wurde_zensiert)."""
+    censored = False
+
+    def _sub(placeholder):
+        def inner(_m):
+            nonlocal censored
+            censored = True
+            return placeholder
+        return inner
+
+    # E-Mails zuerst - sonst würde die URL-Regex die Domain darin anfassen
+    out = _EMAIL_RE.sub(_sub("[Kontakt entfernt]"), text)
+    out = _REDACT_URL_RE.sub(_sub("[Link entfernt]"), out)
+    return out, censored

@@ -246,6 +246,12 @@ class Message(Base):
     is_flagged = Column(Boolean, default=False, nullable=False)
     flag_reason = Column(String, nullable=True)
 
+    # Chat-Schutzfunktion: content ist das Original (Absender + Admin sehen es),
+    # display_content ist die für den Empfänger zensierte Fassung (Links/Kontakt-
+    # daten ersetzt). was_censored = ob überhaupt etwas ersetzt wurde.
+    display_content = Column(String(2000), nullable=True)
+    was_censored = Column(Boolean, default=False, nullable=False)
+
 
 class PhoneVerification(Base):
     """Laufende Telefonprüfung: 6-stelliger Code (nur als Hash gespeichert),

@@ -175,6 +175,10 @@ class MessageOut(BaseModel):
     content: str
     created_at: datetime
     read_at: Optional[datetime]
+    # True wenn in dieser Nachricht Links/Kontaktdaten zensiert wurden. Für den
+    # Empfänger ist content bereits die zensierte Fassung; der Absender sieht sein
+    # Original und dazu diesen Hinweis.
+    was_censored: bool = False
 
     class Config:
         from_attributes = True

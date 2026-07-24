@@ -36,6 +36,24 @@ def _get_match_and_other_id(match_id: str, current_user: User, db: Session) -> t
     return match, other_id
 
 
+def _message_out(m: Message, viewer_id: str) -> MessageOut:
+    """Baut die Nachrichten-Ausgabe je nach Betrachter: der Absender (und Admin)
+    sieht sein Original, der Empfänger die zensierte Fassung."""
+    if m.sender_id == viewer_id:
+        shown = m.content
+    else:
+        shown = m.display_content if m.display_content is not None else m.content
+    return MessageOut(
+        id=m.id,
+        match_id=m.match_id,
+        sender_id=m.sender_id,
+        content=shown,
+        created_at=m.created_at,
+        read_at=m.read_at,
+        was_censored=m.was_censored,
+    )
+
+
 @router.get("/{match_id}/messages", response_model=list[MessageOut])
 def list_messages(
     match_id: str,
@@ -58,7 +76,7 @@ def list_messages(
             m.read_at = now
         db.commit()
 
-    return messages
+    return [_message_out(m, current_user.id) for m in messages]
 
 
 @router.post("/{match_id}/messages", response_model=MessageOut, status_code=201)
@@ -73,19 +91,24 @@ def send_message(
     _get_match_and_other_id(match_id, current_user, db)
 
     # Automatische Sicherheitsprüfung: auffällige Nachrichten werden zugestellt,
-    # aber fürs Admin-Review markiert.
-    from ..safety_checks import scan_message
+    # aber fürs Admin-Review markiert. Zusätzlich werden Links/Kontaktdaten für
+    # den Empfänger zensiert (Scam-/Phishing-Schutz).
+    from ..safety_checks import redact_message, scan_message
 
     flag_reason = scan_message(payload.content)
+    display_content, was_censored = redact_message(payload.content)
 
     message = Message(
         match_id=match_id,
         sender_id=current_user.id,
         content=payload.content,
+        display_content=display_content,
+        was_censored=was_censored,
         is_flagged=flag_reason is not None,
         flag_reason=flag_reason,
     )
     db.add(message)
     db.commit()
     db.refresh(message)
-    return message
+    # Der Absender bekommt sein Original zurück, plus den Zensur-Hinweis
+    return _message_out(message, current_user.id)

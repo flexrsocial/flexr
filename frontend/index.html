@@ -383,26 +383,44 @@
     display:flex; flex-direction:column; gap:7px; flex:1; min-height:0; overflow-y:auto;
     padding:6px 2px 12px; scrollbar-width:thin; scrollbar-color:var(--steel) transparent;
   }
-  .msg-bubble{ max-width:78%; padding:9px 13px; font-size:14px; line-height:1.45; word-wrap:break-word; }
+  .msg-wrap{ display:flex; flex-direction:column; max-width:82%; }
+  .msg-wrap.mine{ align-self:flex-end; align-items:flex-end; }
+  .msg-wrap.theirs{ align-self:flex-start; align-items:flex-start; }
+  .msg-bubble{ max-width:100%; padding:9px 13px; font-size:14px; line-height:1.45; word-wrap:break-word; }
   .msg-bubble.mine{
-    align-self:flex-end; border-radius:16px 16px 5px 16px;
+    border-radius:16px 16px 5px 16px;
     background:linear-gradient(135deg, var(--plate-bright), var(--plate));
     color:#1c1006; box-shadow:0 4px 14px rgba(255,90,31,.15);
   }
   .msg-bubble.theirs{
-    align-self:flex-start; border-radius:16px 16px 16px 5px;
+    border-radius:16px 16px 16px 5px;
     background:var(--surface-2); border:1px solid var(--hairline);
   }
   .msg-bubble .time{ display:block; font-size:9.5px; margin-top:4px; opacity:0.6; font-family:'JetBrains Mono'; }
   .msg-bubble.mine .time{ text-align:right; }
   .msg-bubble .receipt{ margin-left:5px; font-weight:700; }
   .msg-bubble .receipt.read{ color:#1e5f74; }
+  .censor-note{
+    font-size:10.5px; line-height:1.35; color:var(--chalk-dim);
+    margin-top:3px; max-width:100%; padding:0 4px;
+  }
+  .msg-wrap.mine .censor-note{ text-align:right; }
   .chat-input-row{
-    display:flex; align-items:center; gap:8px; margin-top:12px; flex-shrink:0;
+    position:relative;
+    display:flex; align-items:center; gap:6px; margin-top:12px; flex-shrink:0;
     background:var(--surface); border:1px solid var(--steel); border-radius:26px;
-    padding:5px 5px 5px 16px;
+    padding:5px 5px 5px 8px;
     transition:border-color .15s ease;
   }
+  .chat-emoji-btn{
+    width:34px; height:34px; border-radius:50%; flex-shrink:0;
+    background:none; border:none; cursor:pointer; color:var(--chalk-dim);
+    display:flex; align-items:center; justify-content:center;
+    transition:color .15s ease, background .15s ease;
+  }
+  .chat-emoji-btn:hover{ color:var(--chalk); background:var(--surface-2); }
+  .chat-emoji-btn svg.ico{ width:21px; height:21px; }
+  .chat-emoji-panel{ bottom:52px; left:8px; right:8px; }
   .chat-input-row:focus-within{ border-color:var(--plate); }
   .chat-input-row input{
     flex:1; background:transparent; border:none; padding:9px 0; font-size:14.5px;
@@ -1118,10 +1136,14 @@
       </div>
       <div class="chat-messages" id="chatMessages"><div class="loading">Lade Chat …</div></div>
       <div class="chat-input-row">
+        <button type="button" class="chat-emoji-btn" id="btnChatEmoji" aria-label="Emoji einfügen">
+          <svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M9 10h.01M15 10h.01M8.8 14.2c.8 1 1.9 1.6 3.2 1.6s2.4-.6 3.2-1.6"/></svg>
+        </button>
         <input type="text" id="chatInput" placeholder="Nachricht schreiben…" maxlength="2000">
         <button class="chat-send-btn" id="btnChatSend" aria-label="Senden">
           <svg class="ico" viewBox="0 0 24 24"><path d="M21.5 2.5 11 13M21.5 2.5l-7 19-3.5-8.5-8.5-3.5 19-7z"/></svg>
         </button>
+        <div class="emoji-panel chat-emoji-panel" id="chatEmojiPanel"></div>
       </div>
     </section>
 
@@ -2103,37 +2125,44 @@
     '✈️','🗺️','📍','🎉','🤷','🤙','👀','🧠','🛠️','🎸','📸','🏝️',
     '🚗','🏍️','⛺','🎿','🃏','🎲','🧩','🪩',
   ];
-  const emojiPanel = $('emojiPanel');
-  // Dubletten rausfiltern, falls sich in den Kategorien etwas überschneidet
-  emojiPanel.innerHTML = [...new Set(BIO_EMOJIS)]
-    .map(e => `<button type="button">${e}</button>`).join('');
+  const EMOJI_LIST = [...new Set(BIO_EMOJIS)];
 
-  $('btnEmojiToggle').addEventListener('click', (e) => {
-    e.stopPropagation();
-    emojiPanel.classList.toggle('open');
-  });
+  // Wiederverwendbarer Emoji-Picker: hängt einen Toggle-Button an ein Panel und
+  // fügt das gewählte Emoji an der Cursorposition des Zielfeldes ein.
+  function initEmojiPicker(toggleId, panelId, targetId, wrapSelector, maxLen){
+    const panel = $(panelId);
+    const target = $(targetId);
+    panel.innerHTML = EMOJI_LIST.map(e => `<button type="button">${e}</button>`).join('');
 
-  emojiPanel.addEventListener('click', (e) => {
-    const btn = e.target.closest('button');
-    if(!btn) return;
-    e.stopPropagation();
-    const ta = $('a-bio');
-    const emoji = btn.textContent;
-    const start = ta.selectionStart != null ? ta.selectionStart : ta.value.length;
-    const end = ta.selectionEnd != null ? ta.selectionEnd : ta.value.length;
-    const next = ta.value.slice(0, start) + emoji + ta.value.slice(end);
-    if(next.length > 280) return; // maxlength respektieren
-    ta.value = next;
-    const pos = start + emoji.length;
-    ta.focus();
-    ta.setSelectionRange(pos, pos);
-  });
+    $(toggleId).addEventListener('click', (e) => {
+      e.stopPropagation();
+      panel.classList.toggle('open');
+    });
 
-  document.addEventListener('click', (e) => {
-    if(emojiPanel.classList.contains('open') && !e.target.closest('.bio-wrap')){
-      emojiPanel.classList.remove('open');
-    }
-  });
+    panel.addEventListener('click', (e) => {
+      const btn = e.target.closest('button');
+      if(!btn) return;
+      e.stopPropagation();
+      const emoji = btn.textContent;
+      const start = target.selectionStart != null ? target.selectionStart : target.value.length;
+      const end = target.selectionEnd != null ? target.selectionEnd : target.value.length;
+      const next = target.value.slice(0, start) + emoji + target.value.slice(end);
+      if(maxLen && next.length > maxLen) return;
+      target.value = next;
+      const pos = start + emoji.length;
+      target.focus();
+      target.setSelectionRange(pos, pos);
+    });
+
+    document.addEventListener('click', (e) => {
+      if(panel.classList.contains('open') && !e.target.closest(wrapSelector)){
+        panel.classList.remove('open');
+      }
+    });
+  }
+
+  initEmojiPicker('btnEmojiToggle', 'emojiPanel', 'a-bio', '.bio-wrap', 280);
+  initEmojiPicker('btnChatEmoji', 'chatEmojiPanel', 'chatInput', '.chat-input-row', 2000);
 
   async function lookupAcctLocality(plz){
     const ortDisplay = $('acctOrtDisplay');
@@ -3009,7 +3038,17 @@
       const mine = m.sender_id === myProfile.id;
       const time = new Date(m.created_at).toLocaleTimeString('de-AT', {hour:'2-digit', minute:'2-digit'});
       const receipt = mine ? `<span class="receipt ${m.read_at ? 'read' : ''}">${m.read_at ? '✓✓' : '✓'}</span>` : '';
-      return `<div class="msg-bubble ${mine ? 'mine' : 'theirs'}">${escapeHtml(m.content)}<span class="time">${time}${receipt}</span></div>`;
+      // Zensur-Hinweis: Absender erfährt, dass die Nachricht geschützt wurde;
+      // Empfänger sieht den Grund für den [Link entfernt]-Platzhalter.
+      const censorNote = m.was_censored
+        ? `<div class="censor-note">🔒 ${mine
+            ? 'Zum Schutz zensiert – der Empfänger sieht keine Links/Kontaktdaten.'
+            : 'Ein Link oder Kontaktdaten wurden zu deinem Schutz entfernt.'}</div>`
+        : '';
+      return `<div class="msg-wrap ${mine ? 'mine' : 'theirs'}">
+        <div class="msg-bubble ${mine ? 'mine' : 'theirs'}">${escapeHtml(m.content)}<span class="time">${time}${receipt}</span></div>
+        ${censorNote}
+      </div>`;
     }).join('');
     if(wasAtBottom) box.scrollTop = box.scrollHeight;
   }
