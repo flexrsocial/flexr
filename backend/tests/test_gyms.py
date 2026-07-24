@@ -5,7 +5,10 @@ def test_gym_list_and_search(client):
     resp = client.get("/api/gyms")
     assert resp.status_code == 200
     gyms = resp.json()
-    assert any(g["name"] == "McFit" for g in gyms)
+    # Reine Legacy-Namen ohne Adresse tauchen nicht in der Auswahl auf ...
+    assert not any(g["name"] == "McFit" for g in gyms)
+    # ... nur Einträge mit vollständiger Adresse.
+    assert any(g["name"] == "Testgym mit Adresse" for g in gyms)
 
     resp = client.get("/api/gyms?q=Testgym")
     assert resp.status_code == 200

@@ -31,7 +31,14 @@ def list_gyms(
 ):
     """Durchsuchbare Liste aller freigegebenen Gyms (öffentlich, wird schon
     bei der Registrierung gebraucht)."""
-    query = db.query(Gym).filter(Gym.status == GymStatus.approved)
+    # Nur Einträge mit vollständiger Adresse anzeigen. Die reinen Legacy-Namen
+    # (McFit, FitInn, ... ohne Adresse) bleiben in der Tabelle, damit bestehende
+    # Profile weiter gültig sind, tauchen aber nicht mehr in der Auswahl auf.
+    query = db.query(Gym).filter(
+        Gym.status == GymStatus.approved,
+        Gym.street != "",
+        Gym.plz != "",
+    )
     term = q.strip()
     if term:
         like = f"%{term}%"
