@@ -2270,7 +2270,7 @@
         <div class="flag-btn" id="btnBlockCard" title="Blockieren" aria-label="Blockieren"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.2"/><path d="M6.4 6.4l11.2 11.2"/></svg></div>
       </div>` : ''}
       <div class="stamp like">MATCH</div>
-      <div class="stamp pass">NÄCHSTE</div>
+      <div class="stamp pass">NOPE</div>
       <div class="photo" style="background-image:url('${photo}')">
         <div class="photo-index">${(p.photos||[]).map((_,i)=>`<i class="${i===0?'on':''}"></i>`).join('')}</div>
         <div class="name-row"><div class="nm">${escapeHtml(p.name)}, ${p.age}${verifiedBadge(p)}</div><div class="loc">${escapeHtml(p.city)} · ${escapeHtml(p.gym||'')}${p.distance_km != null ? ` · ${p.distance_km} km` : ''}</div></div>
@@ -2409,7 +2409,8 @@
 
     if(deckIdx + 1 < deck.length){
       const behindEl = buildCardEl(deck[deckIdx + 1], false);
-      behindEl.style.transform = 'scale(0.95) translateY(10px)';
+      behindEl.classList.add('card-behind');
+      behindEl.style.transform = 'scale(0.92) translateY(14px)';
       container.appendChild(behindEl);
     }
 
@@ -2464,39 +2465,77 @@
   let cardDragState = null;
   let swipeLocked = false;
 
+  const SWIPE_THRESHOLD = 95;   // px Auslösegrenze
+  const MAX_ROTATION = 15;      // Grad bei voller Auslenkung
+
   function onCardDragStart(e){
+    if(swipeLocked) return;
     const card = e.currentTarget;
     card.classList.add('dragging');
     const point = e.touches ? e.touches[0] : e;
-    cardDragState = {card, startX: point.clientX, startY: point.clientY, dx: 0};
+    // Griffpunkt merken: oben angefasst -> Karte kippt anders als unten (wie
+    // ein Blatt Papier, das man an einer Ecke zieht)
+    const rect = card.getBoundingClientRect();
+    const grabAbove = (point.clientY - rect.top) < rect.height / 2;
+    cardDragState = {
+      card, startX: point.clientX, startY: point.clientY, dx: 0, dy: 0,
+      gripSign: grabAbove ? 1 : -1,
+      lastX: point.clientX, lastT: performance.now(), vx: 0,
+      behind: $('deck').querySelector('.card-behind'),
+    };
   }
 
   function onCardDragMove(e){
     if(!cardDragState) return;
     const point = e.touches ? e.touches[0] : e;
     const dx = point.clientX - cardDragState.startX;
-    const dy = (point.clientY - cardDragState.startY) * 0.4;
+    const dy = point.clientY - cardDragState.startY;
     cardDragState.dx = dx;
-    const rot = dx / 16;
-    cardDragState.card.style.transform = `translate(${dx}px, ${dy}px) rotate(${rot}deg)`;
+    cardDragState.dy = dy;
+
+    // Geschwindigkeit für den Schwung beim Loslassen
+    const now = performance.now();
+    const dt = now - cardDragState.lastT;
+    if(dt > 0) cardDragState.vx = (point.clientX - cardDragState.lastX) / dt * 16; // px/frame
+    cardDragState.lastX = point.clientX;
+    cardDragState.lastT = now;
+
+    // Rotation richtet sich nach Auslenkung UND Griffpunkt
+    const rot = Math.max(-MAX_ROTATION, Math.min(MAX_ROTATION, dx / 12)) * cardDragState.gripSign;
+    cardDragState.card.style.transform =
+      `translate(${dx}px, ${dy * 0.55}px) rotate(${rot}deg)`;
+
+    const progress = Math.min(Math.abs(dx) / SWIPE_THRESHOLD, 1);
     const likeStamp = cardDragState.card.querySelector('.stamp.like');
     const passStamp = cardDragState.card.querySelector('.stamp.pass');
-    const progress = Math.min(Math.abs(dx) / 100, 1);
     if(dx > 0){ likeStamp.style.opacity = progress; passStamp.style.opacity = 0; }
     else { passStamp.style.opacity = progress; likeStamp.style.opacity = 0; }
+
+    // Hintergrundkarte wächst zur vollen Größe, während die obere weggezogen wird
+    if(cardDragState.behind){
+      const t = 0.92 + 0.08 * progress;
+      cardDragState.behind.style.transform = `scale(${t.toFixed(3)}) translateY(${(14 * (1 - progress)).toFixed(1)}px)`;
+    }
   }
 
   function onCardDragEnd(){
     if(!cardDragState) return;
-    const {card, dx} = cardDragState;
+    const {card, dx, vx, behind} = cardDragState;
     card.classList.remove('dragging');
-    if(Math.abs(dx) > 100){
-      commitSwipe(dx > 0 ? 'like' : 'pass');
+    // Auslösen wenn weit genug gezogen ODER mit genug Schwung geworfen
+    const flung = Math.abs(vx) > 8 && Math.abs(dx) > 40;
+    if(Math.abs(dx) > SWIPE_THRESHOLD || flung){
+      commitSwipe(dx > 0 ? 'like' : 'pass', vx);
     } else {
-      card.style.transition = 'transform .3s ease';
+      // federnd zurückschnappen
+      card.style.transition = 'transform .45s cubic-bezier(.18,.9,.3,1.2)';
       card.style.transform = '';
       card.querySelector('.stamp.like').style.opacity = 0;
       card.querySelector('.stamp.pass').style.opacity = 0;
+      if(behind){
+        behind.style.transition = 'transform .45s cubic-bezier(.18,.9,.3,1.2)';
+        behind.style.transform = 'scale(0.92) translateY(14px)';
+      }
     }
     cardDragState = null;
   }
@@ -2506,17 +2545,30 @@
   document.addEventListener('mouseup', onCardDragEnd);
   document.addEventListener('touchend', onCardDragEnd);
 
-  function commitSwipe(action){
+  function commitSwipe(action, velocity){
     if(swipeLocked || deckIdx >= deck.length) return;
     const container = $('deck');
     const card = container.querySelector('.card:last-child');
     if(!card) return;
     swipeLocked = true;
 
-    const flyX = action === 'like' ? 520 : -520;
-    const rot = action === 'like' ? 24 : -24;
-    card.style.transition = 'transform .35s ease, opacity .35s ease';
-    card.style.transform = `translate(${flyX}px, -40px) rotate(${rot}deg)`;
+    const behind = container.querySelector('.card-behind');
+    if(behind){
+      // Hintergrundkarte gleitet sofort weich auf volle Größe nach vorne
+      behind.style.transition = 'transform .3s ease';
+      behind.style.transform = 'scale(1) translateY(0)';
+    }
+
+    // Wurfweite/-dauer je nach Schwung: kräftiger Wurf = schneller weg
+    const speed = Math.min(Math.abs(velocity || 0), 40);
+    const dur = Math.max(0.28, 0.42 - speed / 120);
+    const dir = action === 'like' ? 1 : -1;
+    const flyX = dir * (620 + speed * 6);
+    const rot = dir * (22 + speed * 0.3);
+    // die aktuelle Stempel-Deckung voll aufdrehen
+    card.querySelector(action === 'like' ? '.stamp.like' : '.stamp.pass').style.opacity = 1;
+    card.style.transition = `transform ${dur}s cubic-bezier(.3,.1,.4,1), opacity ${dur}s ease`;
+    card.style.transform = `translate(${flyX}px, ${-60 - speed * 2}px) rotate(${rot}deg)`;
     card.style.opacity = '0';
 
     swipeApiCall(action);
@@ -2524,7 +2576,7 @@
       deckIdx++;
       renderCard();
       swipeLocked = false;
-    }, 320);
+    }, Math.round(dur * 1000) - 20);
   }
 
   async function swipeApiCall(action){
@@ -2583,8 +2635,8 @@
     }
   });
 
-  $('btnLike').addEventListener('click', ()=> commitSwipe('like'));
-  $('btnPass').addEventListener('click', ()=> commitSwipe('pass'));
+  $('btnLike').addEventListener('click', ()=> commitSwipe('like', 0));
+  $('btnPass').addEventListener('click', ()=> commitSwipe('pass', 0));
 
   // ---------- Matches ----------
   let matchesCache = [];
@@ -3111,7 +3163,7 @@
     card.innerHTML = `
       <div class="demo-shade"></div>
       <div class="demo-stamp like">MATCH</div>
-      <div class="demo-stamp pass">NÄCHSTE</div>
+      <div class="demo-stamp pass">NOPE</div>
       <div class="demo-info"><div class="nm">${escapeHtml(p.name)}, ${p.age}</div><div class="loc">${escapeHtml(p.gym)}</div></div>
     `;
     demoDeckEl.appendChild(card);
@@ -3138,35 +3190,49 @@
     const card = e.currentTarget;
     card.classList.add('dragging');
     const point = e.touches ? e.touches[0] : e;
-    demoDragState = {card, startX: point.clientX, startY: point.clientY, dx: 0};
+    const rect = card.getBoundingClientRect();
+    const grabAbove = (point.clientY - rect.top) < rect.height / 2;
+    demoDragState = {
+      card, startX: point.clientX, startY: point.clientY, dx: 0,
+      gripSign: grabAbove ? 1 : -1,
+      behind: demoDeckEl.querySelector('.demo-card:not([data-top])'),
+    };
   }
 
   function onDemoDragMove(e){
     if(!demoDragState) return;
     const point = e.touches ? e.touches[0] : e;
     const dx = point.clientX - demoDragState.startX;
-    const dy = (point.clientY - demoDragState.startY) * 0.4;
+    const dy = (point.clientY - demoDragState.startY) * 0.5;
     demoDragState.dx = dx;
-    const rot = dx / 14;
+    const rot = Math.max(-14, Math.min(14, dx / 11)) * demoDragState.gripSign;
     demoDragState.card.style.transform = `translate(${dx}px, ${dy}px) rotate(${rot}deg)`;
     const likeStamp = demoDragState.card.querySelector('.demo-stamp.like');
     const passStamp = demoDragState.card.querySelector('.demo-stamp.pass');
     const progress = Math.min(Math.abs(dx) / 90, 1);
     if(dx > 0){ likeStamp.style.opacity = progress; passStamp.style.opacity = 0; }
     else { passStamp.style.opacity = progress; likeStamp.style.opacity = 0; }
+    if(demoDragState.behind){
+      const t = 0.94 + 0.06 * progress;
+      demoDragState.behind.style.transform = `scale(${t.toFixed(3)}) translateY(${(8 * (1 - progress)).toFixed(1)}px)`;
+    }
   }
 
   function onDemoDragEnd(){
     if(!demoDragState) return;
-    const {card, dx} = demoDragState;
+    const {card, dx, behind} = demoDragState;
     card.classList.remove('dragging');
     if(Math.abs(dx) > 80){
       advanceDemo(dx > 0 ? 'like' : 'pass');
     } else {
-      card.style.transition = 'transform .3s ease';
+      card.style.transition = 'transform .45s cubic-bezier(.18,.9,.3,1.2)';
       card.style.transform = '';
       card.querySelector('.demo-stamp.like').style.opacity = 0;
       card.querySelector('.demo-stamp.pass').style.opacity = 0;
+      if(behind){
+        behind.style.transition = 'transform .45s cubic-bezier(.18,.9,.3,1.2)';
+        behind.style.transform = 'scale(0.94) translateY(8px)';
+      }
     }
     demoDragState = null;
   }
