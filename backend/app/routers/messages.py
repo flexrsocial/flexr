@@ -90,6 +90,17 @@ def send_message(
 ):
     _get_match_and_other_id(match_id, current_user, db)
 
+    # Befristete Chat-Sperre ("Abmahnung"): Senden ist bis zum Ablauf gesperrt.
+    if current_user.is_messaging_muted:
+        raise HTTPException(
+            403,
+            {
+                "reason": "messaging_muted",
+                "muted_until": current_user.messaging_muted_until.isoformat(),
+                "message": "Deine Chat-Sperre ist noch aktiv - du kannst derzeit keine Nachrichten senden.",
+            },
+        )
+
     # Automatische Sicherheitsprüfung: auffällige Nachrichten werden zugestellt,
     # aber fürs Admin-Review markiert. Zusätzlich werden Links/Kontaktdaten für
     # den Empfänger zensiert (Scam-/Phishing-Schutz).

@@ -132,6 +132,11 @@ class User(Base):
 
     is_banned = Column(Boolean, default=False, nullable=False)
 
+    # Befristete Chat-Sperre ("Abmahnung"): der Nutzer kann sich weiter einloggen
+    # und Chats lesen, aber bis zu diesem Zeitpunkt keine Nachrichten senden.
+    # NULL = keine Sperre.
+    messaging_muted_until = Column(DateTime, nullable=True)
+
     # Selbstlöschung: Konto wird sofort deaktiviert (Login gesperrt, unsichtbar),
     # nach 30 Tagen Karenz endgültig gelöscht (siehe Datenschutzerklärung Punkt 5).
     deleted_at = Column(DateTime, nullable=True)
@@ -167,6 +172,13 @@ class User(Base):
 
     def is_active_member(self) -> bool:
         return self.is_subscribed or datetime.utcnow() < self.trial_ends_at
+
+    @property
+    def is_messaging_muted(self) -> bool:
+        return (
+            self.messaging_muted_until is not None
+            and self.messaging_muted_until > datetime.utcnow()
+        )
 
     @property
     def has_gps_location(self) -> bool:

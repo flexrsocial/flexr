@@ -32,6 +32,7 @@ from ..schemas import (
     AdminGymOut,
     AdminGymUpdate,
     AdminLoginRequest,
+    AdminMuteRequest,
     AdminReportOut,
     AdminStats,
     AdminTokenResponse,
@@ -232,6 +233,7 @@ def get_user_detail(
         is_banned=user.is_banned,
         is_verified=user.is_verified,
         is_active=user.is_active_member(),
+        messaging_muted_until=user.messaging_muted_until,
         created_at=user.created_at,
         trial_ends_at=user.trial_ends_at,
         stripe_customer_id=user.stripe_customer_id,
@@ -268,6 +270,38 @@ def unban_user(
     user.is_banned = False
     db.commit()
     return {"is_banned": False}
+
+
+@router.post("/users/{user_id}/mute")
+def mute_user(
+    user_id: str,
+    payload: AdminMuteRequest,
+    admin: AdminUser = Depends(get_current_admin),
+    db: Session = Depends(get_db),
+):
+    """Befristete Chat-Sperre ("Abmahnung"): der Nutzer kann sich weiter
+    einloggen und Chats lesen, aber bis zum Ablauf keine Nachrichten senden."""
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(404, "Nutzer nicht gefunden.")
+    user.messaging_muted_until = datetime.utcnow() + timedelta(days=payload.days)
+    db.commit()
+    return {"messaging_muted_until": user.messaging_muted_until.isoformat()}
+
+
+@router.post("/users/{user_id}/unmute")
+def unmute_user(
+    user_id: str,
+    admin: AdminUser = Depends(get_current_admin),
+    db: Session = Depends(get_db),
+):
+    """Hebt eine befristete Chat-Sperre vorzeitig auf."""
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(404, "Nutzer nicht gefunden.")
+    user.messaging_muted_until = None
+    db.commit()
+    return {"messaging_muted_until": None}
 
 
 @router.delete("/users/{user_id}")

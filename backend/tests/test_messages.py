@@ -202,6 +202,44 @@ def test_normal_message_not_censored(client):
     assert msgs_b[0]["was_censored"] is False
 
 
+def test_muted_user_cannot_send_but_others_can(client):
+    match_id, (headers_a, user_a), (headers_b, _) = make_match(client)
+    admin_headers, _ = create_admin(client, email="muteadmin@example.com")
+
+    # Admin verhängt eine 3-Tage-Chat-Sperre gegen A
+    r = client.post(
+        f"/api/admin/users/{user_a['id']}/mute",
+        headers=admin_headers, json={"days": 3},
+    )
+    assert r.status_code == 200
+
+    # A kann nicht mehr senden (403 mit Grund), kann aber weiter lesen
+    resp = client.post(
+        f"/api/matches/{match_id}/messages", headers=headers_a,
+        json={"content": "hallo"},
+    )
+    assert resp.status_code == 403
+    assert resp.json()["detail"]["reason"] == "messaging_muted"
+    assert client.get(
+        f"/api/matches/{match_id}/messages", headers=headers_a).status_code == 200
+
+    # /me spiegelt die Sperre
+    me = client.get("/api/profiles/me", headers=headers_a).json()
+    assert me["messaging_muted_until"] is not None
+
+    # B ist nicht gesperrt und kann senden
+    assert client.post(
+        f"/api/matches/{match_id}/messages", headers=headers_b,
+        json={"content": "hi"}).status_code == 201
+
+    # Nach dem Aufheben kann A wieder senden
+    assert client.post(
+        f"/api/admin/users/{user_a['id']}/unmute", headers=admin_headers).status_code == 200
+    assert client.post(
+        f"/api/matches/{match_id}/messages", headers=headers_a,
+        json={"content": "wieder da"}).status_code == 201
+
+
 def test_admin_flagged_shows_delivery_and_censor_state(client):
     match_id, (headers_a, _), (headers_b, _) = make_match(client)
     client.post(

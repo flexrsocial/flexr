@@ -126,6 +126,9 @@ class MyProfileOut(ProfileOut):
     has_gps_location: bool = False
     phone: Optional[str] = None
     phone_verified: bool = False
+    # Befristete Chat-Sperre: bis wann darf der Nutzer keine Nachrichten senden
+    # (None oder Vergangenheit = keine aktive Sperre)
+    messaging_muted_until: Optional[datetime] = None
 
 
 class UpdateProfileRequest(BaseModel):
@@ -306,6 +309,7 @@ class AdminUserDetailOut(BaseModel):
     is_banned: bool
     is_verified: bool = False
     is_active: bool
+    messaging_muted_until: Optional[datetime] = None
     created_at: datetime
     trial_ends_at: datetime
     stripe_customer_id: Optional[str]
@@ -317,6 +321,12 @@ class AdminUserDetailOut(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class AdminMuteRequest(BaseModel):
+    """Befristete Chat-Sperre setzen: Dauer in Tagen (1-365)."""
+
+    days: int = Field(ge=1, le=365)
 
 
 class AdminGymOut(BaseModel):

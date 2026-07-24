@@ -469,6 +469,15 @@
     margin-top:3px; max-width:100%; padding:0 4px;
   }
   .msg-wrap.mine .censor-note{ text-align:right; }
+  .chat-mute-banner{
+    flex-shrink:0; margin-top:12px;
+    background:rgba(227,72,72,0.12); border:1px solid rgba(227,72,72,0.4);
+    color:#ffb3b3; border-radius:14px; padding:11px 14px;
+    font-size:13px; line-height:1.45; display:flex; gap:9px; align-items:flex-start;
+  }
+  .chat-mute-banner .mute-ico{ flex-shrink:0; font-size:15px; line-height:1.2; }
+  .chat-mute-banner strong{ color:#ffd0d0; }
+  .chat-input-row.disabled{ opacity:.5; pointer-events:none; }
   .chat-input-row{
     position:relative;
     display:flex; align-items:center; gap:6px; margin-top:12px; flex-shrink:0;
@@ -1205,6 +1214,7 @@
         </div>
       </div>
       <div class="chat-messages" id="chatMessages"><div class="loading">Lade Chat …</div></div>
+      <div class="chat-mute-banner" id="chatMuteBanner" style="display:none;"></div>
       <div class="chat-input-row">
         <button type="button" class="chat-emoji-btn" id="btnChatEmoji" aria-label="Emoji einfügen">
           <svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M9 10h.01M15 10h.01M8.8 14.2c.8 1 1.9 1.6 3.2 1.6s2.4-.6 3.2-1.6"/></svg>
@@ -1547,9 +1557,14 @@
     if(!res.ok){
       let msg = 'Fehler (' + res.status + ')';
       if(data && data.detail){
-        msg = Array.isArray(data.detail) ? data.detail.map(d => d.msg).join(', ') : data.detail;
+        if(Array.isArray(data.detail)) msg = data.detail.map(d => d.msg).join(', ');
+        else if(typeof data.detail === 'object') msg = data.detail.message || msg;
+        else msg = data.detail;
       }
-      throw new Error(msg);
+      const err = new Error(msg);
+      err.status = res.status;
+      err.detail = data && data.detail;
+      throw err;
     }
     return data;
   }
@@ -3079,8 +3094,41 @@
     }
     showScreen('screen-chat');
     $('chatMessages').innerHTML = '<div class="loading">Lade Chat …</div>';
+    // Chat-Sperre-Status auffrischen (kann während der Sitzung gesetzt worden sein)
+    try{ const me = await api('/api/profiles/me'); if(me) myProfile = me; }catch(e){}
+    renderChatMuteState();
     await loadMessages();
     startChatPolling();
+  }
+
+  // Befristete Chat-Sperre: liefert das Enddatum, solange sie aktiv ist, sonst null
+  function chatMutedUntil(){
+    const until = myProfile && myProfile.messaging_muted_until;
+    if(!until) return null;
+    const d = new Date(until);
+    return d > new Date() ? d : null;
+  }
+
+  function renderChatMuteState(){
+    const banner = $('chatMuteBanner');
+    const row = document.querySelector('#screen-chat .chat-input-row');
+    const until = chatMutedUntil();
+    if(until){
+      const when = until.toLocaleString('de-AT',
+        {day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit'});
+      banner.innerHTML = `<span class="mute-ico">⚠️</span><span>Deine Chat-Funktion ist vorübergehend gesperrt. `
+        + `Du kannst bis <strong>${when} Uhr</strong> keine Nachrichten senden. `
+        + `Bitte halte dich an unsere Community-Regeln.</span>`;
+      banner.style.display = 'flex';
+      row.classList.add('disabled');
+      $('chatInput').disabled = true;
+      $('chatInput').placeholder = 'Chat vorübergehend gesperrt';
+    } else {
+      banner.style.display = 'none';
+      row.classList.remove('disabled');
+      $('chatInput').disabled = false;
+      $('chatInput').placeholder = 'Nachricht schreiben…';
+    }
   }
 
   function stopChatPolling(){
@@ -3137,6 +3185,8 @@
     const input = $('chatInput');
     const content = input.value.trim();
     if(!content || !currentChatMatchId) return;
+    // Bei aktiver Chat-Sperre gar nicht erst senden
+    if(chatMutedUntil()){ renderChatMuteState(); return; }
     input.value = '';
     try{
       await api(`/api/matches/${currentChatMatchId}/messages`, {method: 'POST', body: JSON.stringify({content})});
@@ -3145,6 +3195,14 @@
       matchesCache = await api('/api/matches');
       renderUnreadBadge(matchesCache);
     }catch(err){
+      // Sperre serverseitig durchgesetzt (evtl. erst während der Sitzung gesetzt):
+      // Status übernehmen, Banner zeigen und Text wiederherstellen
+      if(err.status === 403 && err.detail && err.detail.reason === 'messaging_muted'){
+        myProfile.messaging_muted_until = err.detail.muted_until;
+        input.value = content;
+        renderChatMuteState();
+        return;
+      }
       toast(err.message || 'Nachricht konnte nicht gesendet werden.');
     }
   }
