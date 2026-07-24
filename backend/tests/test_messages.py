@@ -240,6 +240,22 @@ def test_muted_user_cannot_send_but_others_can(client):
         json={"content": "wieder da"}).status_code == 201
 
 
+def test_clear_messages_keeps_match(client):
+    match_id, (headers_a, _), (headers_b, _) = make_match(client)
+    client.post(f"/api/matches/{match_id}/messages", headers=headers_a, json={"content": "hi"})
+    client.post(f"/api/matches/{match_id}/messages", headers=headers_b, json={"content": "hey"})
+    assert len(client.get(f"/api/matches/{match_id}/messages", headers=headers_a).json()) == 2
+
+    # Verlauf leeren -> Nachrichten weg, Match bleibt
+    assert client.delete(f"/api/matches/{match_id}/messages", headers=headers_a).status_code == 204
+    assert client.get(f"/api/matches/{match_id}/messages", headers=headers_a).json() == []
+    assert any(m["match_id"] == match_id for m in client.get("/api/matches", headers=headers_a).json())
+
+    # Danach kann weiter geschrieben werden
+    assert client.post(f"/api/matches/{match_id}/messages", headers=headers_a,
+                       json={"content": "neu"}).status_code == 201
+
+
 def test_mute_supports_hours_and_requires_positive_duration(client):
     match_id, (headers_a, user_a), _ = make_match(client)
     admin_headers, _ = create_admin(client, email="hmuteadmin@example.com")

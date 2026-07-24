@@ -79,6 +79,20 @@ def list_messages(
     return [_message_out(m, current_user.id) for m in messages]
 
 
+@router.delete("/{match_id}/messages", status_code=204)
+def clear_messages(
+    match_id: str,
+    current_user: User = Depends(require_active_membership),
+    db: Session = Depends(get_db),
+):
+    """Chatverlauf leeren: löscht alle Nachrichten dieses Chats, der Match
+    bleibt bestehen. Wirkt für beide Seiten (gemeinsamer Verlauf)."""
+    _get_match_and_other_id(match_id, current_user, db)
+    db.query(Message).filter(Message.match_id == match_id).delete()
+    db.commit()
+    return None
+
+
 @router.post("/{match_id}/messages", response_model=MessageOut, status_code=201)
 @limiter.limit("30/minute")
 def send_message(

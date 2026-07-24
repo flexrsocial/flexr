@@ -107,7 +107,10 @@
     -webkit-font-smoothing:antialiased;
   }
   .app{
-    width:100%; max-width:430px; min-height:100vh;
+    width:100%; max-width:430px;
+    /* Feste Viewport-Höhe: der Chat (und andere Screens) scrollen intern,
+       statt die ganze Seite nach unten wachsen zu lassen. */
+    height:100vh; height:100dvh;
     display:flex; flex-direction:column;
     position:relative;
     background:
@@ -442,7 +445,21 @@
     border:2px solid var(--ink); box-shadow:0 0 0 1.5px var(--plate-dim);
   }
   .chat-header .nm{ font-family:'Oswald'; font-size:16px; flex:1; min-width:0; letter-spacing:0.01em; }
-  .chat-header .chat-flag-btns{ display:flex; gap:6px; }
+  .chat-header .chat-flag-btns{ display:flex; gap:6px; align-items:center; }
+  .chat-menu-wrap{ position:relative; display:inline-flex; }
+  .chat-menu{
+    display:none; position:absolute; right:0; top:calc(100% + 8px);
+    background:var(--surface-2); border:1px solid var(--steel); border-radius:12px;
+    min-width:196px; padding:6px; z-index:40; box-shadow:0 14px 34px rgba(0,0,0,.55);
+  }
+  .chat-menu.open{ display:block; }
+  .chat-menu button{
+    display:block; width:100%; text-align:left; background:none; border:none; cursor:pointer;
+    color:var(--chalk); font-family:'Work Sans', sans-serif; font-size:14px;
+    padding:11px 12px; border-radius:8px;
+  }
+  .chat-menu button:hover{ background:var(--surface-3); }
+  .chat-menu button.danger{ color:var(--danger); }
 
   .chat-messages{
     display:flex; flex-direction:column; gap:7px; flex:1; min-height:0; overflow-y:auto;
@@ -1222,6 +1239,13 @@
         <div class="chat-flag-btns">
           <div class="icon-btn" id="btnReportChat" title="Melden" aria-label="Melden"><svg class="ico" viewBox="0 0 24 24"><path d="M6 21V4.5M6 5h11.5l-2.4 3.9 2.4 3.9H6"/></svg></div>
           <div class="icon-btn" id="btnBlockChat" title="Blockieren" aria-label="Blockieren"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.2"/><path d="M6.4 6.4l11.2 11.2"/></svg></div>
+          <div class="chat-menu-wrap">
+            <div class="icon-btn" id="btnChatMenu" title="Mehr" aria-label="Weitere Optionen"><svg class="ico" viewBox="0 0 24 24" style="fill:currentColor; stroke:none;"><circle cx="12" cy="5" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="12" cy="19" r="1.7"/></svg></div>
+            <div class="chat-menu" id="chatMenu">
+              <button type="button" id="btnClearChat">Chatverlauf leeren</button>
+              <button type="button" id="btnDeleteChat" class="danger">Chat löschen</button>
+            </div>
+          </div>
         </div>
       </div>
       <div class="chat-messages" id="chatMessages"><div class="loading">Lade Chat …</div></div>
@@ -3271,6 +3295,47 @@
       setNavActive('chats');
       loadChats();
     }catch(err){ toast(err.message || 'Blockieren fehlgeschlagen.'); }
+  });
+
+  // ---------- 3-Punkte-Menü im Chat (Verlauf leeren / Chat löschen) ----------
+  const chatMenu = $('chatMenu');
+  $('btnChatMenu').addEventListener('click', (e) => {
+    e.stopPropagation();
+    chatMenu.classList.toggle('open');
+  });
+  document.addEventListener('click', (e) => {
+    if(chatMenu.classList.contains('open') && !e.target.closest('.chat-menu-wrap')){
+      chatMenu.classList.remove('open');
+    }
+  });
+
+  $('btnClearChat').addEventListener('click', async () => {
+    chatMenu.classList.remove('open');
+    if(!currentChatMatchId) return;
+    if(!confirm('Chatverlauf wirklich leeren? Alle Nachrichten in diesem Chat werden für beide Seiten gelöscht.')) return;
+    try{
+      await api(`/api/matches/${currentChatMatchId}/messages`, {method: 'DELETE'});
+      toast('Chatverlauf geleert.');
+      await loadMessages();
+      matchesCache = await api('/api/matches');
+      renderUnreadBadge(matchesCache);
+    }catch(err){ toast(err.message || 'Leeren fehlgeschlagen.'); }
+  });
+
+  $('btnDeleteChat').addEventListener('click', async () => {
+    chatMenu.classList.remove('open');
+    const match = findMatchById(currentChatMatchId);
+    if(!match) return;
+    if(!confirm(`Chat mit ${match.profile.name} wirklich löschen? Das Match und der gesamte Verlauf werden entfernt.`)) return;
+    try{
+      await api(`/api/matches/${currentChatMatchId}`, {method: 'DELETE'});
+      toast('Chat gelöscht.');
+      stopChatPolling();
+      currentChatMatchId = null;
+      showScreen('screen-chats');
+      setNavActive('chats');
+      loadChats();
+    }catch(err){ toast(err.message || 'Löschen fehlgeschlagen.'); }
   });
 
   // ---------- Rechtstexte-Modal (Impressum/Datenschutz/AGB) ----------
