@@ -6,7 +6,7 @@ from slowapi.middleware import SlowAPIMiddleware
 
 from .config import settings
 from .rate_limit import limiter
-from .routers import admin, auth, billing, matches, messages, phone, profiles, safety, swipes, verification
+from .routers import admin, auth, billing, gyms, matches, messages, phone, profiles, safety, swipes, verification
 
 # Tabellen werden per Alembic-Migration angelegt (siehe backend/alembic/),
 # nicht mehr über Base.metadata.create_all().
@@ -34,6 +34,7 @@ app.include_router(billing.router)
 app.include_router(safety.router)
 app.include_router(verification.router)
 app.include_router(phone.router)
+app.include_router(gyms.router)
 app.include_router(admin.router)
 
 

@@ -36,6 +36,22 @@ limiter.enabled = False
 @pytest.fixture(autouse=True)
 def reset_database():
     Base.metadata.create_all(bind=engine)
+    # Gym-Seed: Registrierung validiert gegen die gyms-Tabelle (in Produktion
+    # per Migration befüllt, hier minimal für die Testfälle)
+    from app.models import Gym, GymStatus
+
+    db = TestingSessionLocal()
+    try:
+        for name in ["John Harris Fitness", "Holmes Place", "FitInn", "Clever Fit",
+                     "McFit", "Fitness First", "Kraftwerk Gym", "Iron Gym Wien",
+                     "USI Wien", "Anderes Studio"]:
+            db.add(Gym(name=name, status=GymStatus.approved))
+        db.add(Gym(name="Testgym mit Adresse", street="Teststraße",
+                   house_number="12", plz="1010", city="Wien",
+                   status=GymStatus.approved))
+        db.commit()
+    finally:
+        db.close()
     yield
     Base.metadata.drop_all(bind=engine)
 

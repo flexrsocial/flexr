@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.orm import Session
 
 from ..database import get_db
-from ..models import GYM_CHOICES, User, UserDevice
+from ..models import User, UserDevice
 from ..rate_limit import limiter
 from ..safety_checks import check_public_text, is_disposable_email
 from ..schemas import LoginRequest, RegisterRequest, TokenResponse
@@ -48,8 +48,10 @@ def record_device(db: Session, user_id: str, request: Request) -> None:
 @router.post("/register", response_model=TokenResponse)
 @limiter.limit("5/minute")
 def register(request: Request, payload: RegisterRequest, db: Session = Depends(get_db)):
-    if payload.gym not in GYM_CHOICES:
-        raise HTTPException(400, "Unbekanntes Gym.")
+    from .gyms import gym_exists_for_profile
+
+    if not gym_exists_for_profile(db, payload.gym):
+        raise HTTPException(400, "Unbekanntes Gym. Bitte aus der Liste wählen oder vorschlagen.")
 
     # Automatische Sicherheitsprüfung: Wegwerf-Adressen und unzulässige Bios
     if is_disposable_email(payload.email):

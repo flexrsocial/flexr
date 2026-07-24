@@ -192,6 +192,28 @@ class MatchOut(BaseModel):
     is_online: bool = False
 
 
+# ---------- Gyms ----------
+
+class GymOut(BaseModel):
+    id: str
+    name: str
+    street: str
+    house_number: str
+    plz: str
+    city: str
+    label: str
+
+
+class GymSuggestRequest(BaseModel):
+    """Nutzer-Vorschlag für ein fehlendes Gym."""
+
+    name: str = Field(min_length=2, max_length=120)
+    street: str = Field(min_length=2, max_length=120)
+    house_number: str = Field(min_length=1, max_length=20)
+    plz: str = Field(pattern=r"^\d{4}$")
+    city: Optional[str] = Field(default=None, max_length=100)
+
+
 # ---------- Telefonprüfung ----------
 
 class PhoneRequestRequest(BaseModel):
@@ -293,6 +315,17 @@ class AdminUserDetailOut(BaseModel):
         from_attributes = True
 
 
+class AdminGymOut(BaseModel):
+    id: str
+    name: str
+    street: str
+    house_number: str
+    plz: str
+    city: str
+    status: str
+    created_at: Optional[datetime] = None
+
+
 class AdminFlaggedMessageOut(BaseModel):
     id: str
     sender_id: str
@@ -307,8 +340,30 @@ class AdminStats(BaseModel):
     active_subscriptions: int
     trial_users: int
     banned_users: int
+    # Offene Aufgaben (Aufgaben-Panel im Dashboard)
     pending_photos: int
     open_reports: int
+    pending_verifications: int = 0
+    flagged_messages: int = 0
+    pending_gyms: int = 0
+    # Zugriffe
+    active_today: int = 0
+    new_today: int = 0
+
+
+class AdminAccessPoint(BaseModel):
+    day: str
+    count: int
+
+
+class AdminCountryStat(BaseModel):
+    country: str
+    count: int
+
+
+class AdminAccessStats(BaseModel):
+    daily: list[AdminAccessPoint]        # tagesaktive Nutzer je Tag (letzte N Tage)
+    countries: list[AdminCountryStat]    # Länderverteilung (heute aktive Nutzer)
 
 
 class AdminReportOut(BaseModel):

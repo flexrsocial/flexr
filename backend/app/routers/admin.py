@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import date, datetime, timedelta
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
@@ -9,6 +9,9 @@ from ..database import get_db
 from ..models import (
     AdminUser,
     Block,
+    DailyAccess,
+    Gym,
+    GymStatus,
     Match,
     Message,
     Photo,
@@ -22,7 +25,11 @@ from ..models import (
 )
 from ..rate_limit import limiter
 from ..schemas import (
+    AdminAccessPoint,
+    AdminAccessStats,
+    AdminCountryStat,
     AdminFlaggedMessageOut,
+    AdminGymOut,
     AdminLoginRequest,
     AdminReportOut,
     AdminStats,
@@ -63,6 +70,25 @@ def get_stats(
     banned_users = db.query(func.count(User.id)).filter(User.is_banned.is_(True)).scalar()
     pending_photos = db.query(func.count(Photo.id)).filter(Photo.status == PhotoStatus.pending).scalar()
     open_reports = db.query(func.count(Report.id)).filter(Report.dismissed_at.is_(None)).scalar()
+    pending_verifications = (
+        db.query(func.count(VerificationRequest.id))
+        .filter(VerificationRequest.status == VerificationStatus.submitted)
+        .scalar()
+    )
+    flagged_messages = db.query(func.count(Message.id)).filter(Message.is_flagged.is_(True)).scalar()
+    pending_gyms = db.query(func.count(Gym.id)).filter(Gym.status == GymStatus.pending).scalar()
+
+    today = date.today()
+    active_today = (
+        db.query(func.count(func.distinct(DailyAccess.user_id)))
+        .filter(DailyAccess.day == today)
+        .scalar()
+    )
+    new_today = (
+        db.query(func.count(User.id))
+        .filter(func.date(User.created_at) == today, User.deleted_at.is_(None))
+        .scalar()
+    )
     return AdminStats(
         total_users=total_users,
         active_subscriptions=active_subscriptions,
@@ -70,7 +96,50 @@ def get_stats(
         banned_users=banned_users,
         pending_photos=pending_photos,
         open_reports=open_reports,
+        pending_verifications=pending_verifications,
+        flagged_messages=flagged_messages,
+        pending_gyms=pending_gyms,
+        active_today=active_today,
+        new_today=new_today,
     )
+
+
+@router.get("/access-stats", response_model=AdminAccessStats)
+def get_access_stats(
+    days: int = Query(14, ge=1, le=90),
+    admin: AdminUser = Depends(get_current_admin),
+    db: Session = Depends(get_db),
+):
+    """Zugriffsstatistik: tagesaktive Nutzer je Tag (letzte `days` Tage) und
+    Länderverteilung der heute aktiven Nutzer."""
+    today = date.today()
+    start = today - timedelta(days=days - 1)
+
+    rows = (
+        db.query(DailyAccess.day, func.count(func.distinct(DailyAccess.user_id)))
+        .filter(DailyAccess.day >= start)
+        .group_by(DailyAccess.day)
+        .all()
+    )
+    counts = {d: c for d, c in rows}
+    daily = [
+        AdminAccessPoint(
+            day=(start + timedelta(days=i)).isoformat(),
+            count=counts.get(start + timedelta(days=i), 0),
+        )
+        for i in range(days)
+    ]
+
+    country_rows = (
+        db.query(DailyAccess.country, func.count(func.distinct(DailyAccess.user_id)))
+        .filter(DailyAccess.day == today)
+        .group_by(DailyAccess.country)
+        .order_by(func.count(func.distinct(DailyAccess.user_id)).desc())
+        .all()
+    )
+    countries = [AdminCountryStat(country=c or "??", count=n) for c, n in country_rows]
+
+    return AdminAccessStats(daily=daily, countries=countries)
 
 
 @router.get("/users", response_model=list[AdminUserListItem])
@@ -376,6 +445,57 @@ def reject_verification(
     req.decided_at = _dt.utcnow()
     db.commit()
     return {"is_verified": False}
+
+
+@router.get("/gyms", response_model=list[AdminGymOut])
+def list_admin_gyms(
+    status_filter: str = Query("pending", alias="status"),
+    limit: int = Query(100, le=500),
+    admin: AdminUser = Depends(get_current_admin),
+    db: Session = Depends(get_db),
+):
+    query = db.query(Gym)
+    if status_filter != "all":
+        try:
+            query = query.filter(Gym.status == GymStatus(status_filter))
+        except ValueError:
+            raise HTTPException(400, "Ungültiger Status-Filter.")
+    rows = query.order_by(Gym.created_at.desc()).limit(limit).all()
+    return [
+        AdminGymOut(
+            id=g.id, name=g.name, street=g.street, house_number=g.house_number,
+            plz=g.plz, city=g.city, status=g.status.value, created_at=g.created_at,
+        )
+        for g in rows
+    ]
+
+
+@router.post("/gyms/{gym_id}/approve")
+def approve_gym(
+    gym_id: str,
+    admin: AdminUser = Depends(get_current_admin),
+    db: Session = Depends(get_db),
+):
+    gym = db.query(Gym).filter(Gym.id == gym_id).first()
+    if not gym:
+        raise HTTPException(404, "Gym nicht gefunden.")
+    gym.status = GymStatus.approved
+    db.commit()
+    return {"status": gym.status.value}
+
+
+@router.post("/gyms/{gym_id}/reject")
+def reject_gym(
+    gym_id: str,
+    admin: AdminUser = Depends(get_current_admin),
+    db: Session = Depends(get_db),
+):
+    gym = db.query(Gym).filter(Gym.id == gym_id).first()
+    if not gym:
+        raise HTTPException(404, "Gym nicht gefunden.")
+    gym.status = GymStatus.rejected
+    db.commit()
+    return {"status": gym.status.value}
 
 
 @router.get("/flagged-messages", response_model=list[AdminFlaggedMessageOut])

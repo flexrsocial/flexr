@@ -47,8 +47,11 @@ def update_my_profile(
     if ("plz" in fields) != ("city" in fields):
         raise HTTPException(400, "PLZ und Ort müssen gemeinsam aktualisiert werden.")
 
-    if "gym" in fields and fields["gym"] not in GYM_CHOICES:
-        raise HTTPException(400, "Unbekanntes Gym.")
+    if "gym" in fields:
+        from .gyms import gym_exists_for_profile
+
+        if not gym_exists_for_profile(db, fields["gym"]):
+            raise HTTPException(400, "Unbekanntes Gym. Bitte aus der Liste wählen oder vorschlagen.")
 
     if "bio" in fields:
         from ..safety_checks import check_public_text

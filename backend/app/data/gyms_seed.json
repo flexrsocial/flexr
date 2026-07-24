@@ -1,0 +1,3390 @@
+[
+{
+"name": "Bikram Yoga",
+"street": "Maria-Theresien-Straße",
+"house_number": "32-34",
+"plz": "1010",
+"city": "Wien"
+},
+{
+"name": "doktor yoga",
+"street": "Passauer Platz",
+"house_number": "2/7",
+"plz": "1010",
+"city": "Wien"
+},
+{
+"name": "FITINN",
+"street": "Laurenzerberg",
+"house_number": "2",
+"plz": "1010",
+"city": "Wien"
+},
+{
+"name": "John Harris Fitness",
+"street": "Nibelungengasse",
+"house_number": "5",
+"plz": "1010",
+"city": "Wien"
+},
+{
+"name": "JOHN REED Fitness",
+"street": "Dominikanerbastei",
+"house_number": "15",
+"plz": "1010",
+"city": ""
+},
+{
+"name": "June",
+"street": "Reichsratsstraße",
+"house_number": "5",
+"plz": "1010",
+"city": "Wien"
+},
+{
+"name": "June",
+"street": "Schwertgasse",
+"house_number": "4",
+"plz": "1010",
+"city": "Wien"
+},
+{
+"name": "Malu",
+"street": "Neutorgasse",
+"house_number": "16",
+"plz": "1010",
+"city": "Wien"
+},
+{
+"name": "Prema",
+"street": "Augustinerstraße",
+"house_number": "18c",
+"plz": "1010",
+"city": "Wien"
+},
+{
+"name": "Bodystreet",
+"street": "Taborstraße",
+"house_number": "33",
+"plz": "1020",
+"city": "Wien"
+},
+{
+"name": "DASGYM.",
+"street": "Handelskai",
+"house_number": "340",
+"plz": "1020",
+"city": "Wien"
+},
+{
+"name": "FITINN",
+"street": "Olympiaplatz",
+"house_number": "2",
+"plz": "1020",
+"city": "Wien"
+},
+{
+"name": "Golden Ape Studio",
+"street": "Schüttelstraße",
+"house_number": "37",
+"plz": "1020",
+"city": "Wien"
+},
+{
+"name": "KMG Community Studio",
+"street": "Kleine Mohrengasse",
+"house_number": "6-8",
+"plz": "1020",
+"city": "Wien"
+},
+{
+"name": "McFit",
+"street": "Praterstraße",
+"house_number": "62-64",
+"plz": "1020",
+"city": "Wien"
+},
+{
+"name": "Atelier Innere Mitte",
+"street": "Marxergasse",
+"house_number": "17/1.25",
+"plz": "1030",
+"city": "Wien"
+},
+{
+"name": "CircleGym",
+"street": "Baumgasse",
+"house_number": "1",
+"plz": "1030",
+"city": "Wien"
+},
+{
+"name": "Clever fit",
+"street": "Markhofgasse",
+"house_number": "11-17",
+"plz": "1030",
+"city": "Wien"
+},
+{
+"name": "Fitness First",
+"street": "Schnirchgasse",
+"house_number": "13",
+"plz": "1030",
+"city": "Wien"
+},
+{
+"name": "Fitnessclub Heimlich",
+"street": "Ungargasse",
+"house_number": "4",
+"plz": "1030",
+"city": "Wien"
+},
+{
+"name": "GarageGym",
+"street": "Ungargasse",
+"house_number": "46",
+"plz": "1030",
+"city": "Wien"
+},
+{
+"name": "INJOY",
+"street": "Schnirchgasse",
+"house_number": "12",
+"plz": "1030",
+"city": "Wien"
+},
+{
+"name": "Körperformen",
+"street": "Rennweg",
+"house_number": "46-50",
+"plz": "1030",
+"city": "Wien"
+},
+{
+"name": "pink'n'blue",
+"street": "Untere Viaduktgasse",
+"house_number": "43",
+"plz": "1030",
+"city": "Wien"
+},
+{
+"name": "U-Sports Personal Training",
+"street": "Salesianergasse",
+"house_number": "16",
+"plz": "1030",
+"city": "Wien"
+},
+{
+"name": "Alkemy Yoga & Healing",
+"street": "Gußhausstraße",
+"house_number": "2",
+"plz": "1040",
+"city": "Wien"
+},
+{
+"name": "Evo",
+"street": "Margaretenstraße",
+"house_number": "11",
+"plz": "1040",
+"city": "Wien"
+},
+{
+"name": "MMA Vienna",
+"street": "Favoritenstraße",
+"house_number": "54",
+"plz": "1040",
+"city": "Wien"
+},
+{
+"name": "The Female Space",
+"street": "Waaggasse",
+"house_number": "12",
+"plz": "1040",
+"city": "Wien"
+},
+{
+"name": "Yogaloft Vienna",
+"street": "Phorusgasse",
+"house_number": "2",
+"plz": "1040",
+"city": "Wien"
+},
+{
+"name": "Barre Club",
+"street": "Schönbrunner Straße",
+"house_number": "83",
+"plz": "1050",
+"city": "Wien"
+},
+{
+"name": "Bodystreet",
+"street": "Margaretenstraße",
+"house_number": "64",
+"plz": "1050",
+"city": "Wien"
+},
+{
+"name": "FITINN",
+"street": "Hartmanngasse",
+"house_number": "1",
+"plz": "1050",
+"city": "Wien"
+},
+{
+"name": "Trainer's Gym",
+"street": "Margaretenstraße",
+"house_number": "87",
+"plz": "1050",
+"city": "Wien"
+},
+{
+"name": "Body Street",
+"street": "Barnabitengasse",
+"house_number": "6",
+"plz": "1060",
+"city": "Wien"
+},
+{
+"name": "doktor yoga",
+"street": "Gumpendorfer Straße",
+"house_number": "132",
+"plz": "1060",
+"city": "Wien"
+},
+{
+"name": "FITINN",
+"street": "Hofmühlgasse",
+"house_number": "5",
+"plz": "1060",
+"city": "Wien"
+},
+{
+"name": "Nikolaus Rohrer",
+"street": "Theobaldgasse",
+"house_number": "3",
+"plz": "1060",
+"city": "Wien"
+},
+{
+"name": "clever fit",
+"street": "Seidengasse",
+"house_number": "9-11",
+"plz": "1070",
+"city": "Wien"
+},
+{
+"name": "doktor yoga",
+"street": "Mariahilfer Straße",
+"house_number": "52",
+"plz": "1070",
+"city": "Wien"
+},
+{
+"name": "FITINN",
+"street": "Mariahilfer Straße",
+"house_number": "124",
+"plz": "1070",
+"city": "Wien"
+},
+{
+"name": "Körperstadt",
+"street": "Kaiserstraße",
+"house_number": "37",
+"plz": "1070",
+"city": "Wien"
+},
+{
+"name": "McFit",
+"street": "Mariahilfer Straße",
+"house_number": "96",
+"plz": "1070",
+"city": "Wien"
+},
+{
+"name": "Prana. Das Yoga-Studio",
+"street": "Mariahilfer Straße",
+"house_number": "82",
+"plz": "1070",
+"city": "Wien"
+},
+{
+"name": "Yoga 8",
+"street": "Albertgasse",
+"house_number": "33",
+"plz": "1080",
+"city": "Wien"
+},
+{
+"name": "FITINN",
+"street": "Roßauer Lände",
+"house_number": "47-49",
+"plz": "1090",
+"city": "Wien"
+},
+{
+"name": "FITINN",
+"street": "Alser Straße",
+"house_number": "28-30",
+"plz": "1090",
+"city": "Wien"
+},
+{
+"name": "GK Studio",
+"street": "Alserbachstraße",
+"house_number": "11",
+"plz": "1090",
+"city": "Wien"
+},
+{
+"name": "Kieser Training",
+"street": "Althanstraße",
+"house_number": "9",
+"plz": "1090",
+"city": "Wien"
+},
+{
+"name": "Mrs. Sporty",
+"street": "Porzellangasse",
+"house_number": "33a",
+"plz": "1090",
+"city": "Wien"
+},
+{
+"name": "Shaped By iB",
+"street": "Liechtensteinstraße",
+"house_number": "41",
+"plz": "1090",
+"city": ""
+},
+{
+"name": "The Wyld Thing",
+"street": "Nußdorfer Straße",
+"house_number": "4",
+"plz": "1090",
+"city": "Wien"
+},
+{
+"name": "y.lab 1090",
+"street": "Nußdorfer Straße",
+"house_number": "19",
+"plz": "1090",
+"city": "Wien"
+},
+{
+"name": "Yoga Stelle",
+"street": "Sechsschimmelgasse",
+"house_number": "10",
+"plz": "1090",
+"city": "Wien"
+},
+{
+"name": "Clever fit",
+"street": "Kundratstraße",
+"house_number": "6",
+"plz": "1100",
+"city": "Wien"
+},
+{
+"name": "FITINN",
+"street": "Favoritenstraße",
+"house_number": "88-90",
+"plz": "1100",
+"city": "Wien"
+},
+{
+"name": "FITINN",
+"street": "Ada-Christen-Gasse",
+"house_number": "12",
+"plz": "1100",
+"city": "Wien"
+},
+{
+"name": "healthfit",
+"street": "Maria-Kuhn-Gasse",
+"house_number": "11",
+"plz": "1100",
+"city": ""
+},
+{
+"name": "John Harris",
+"street": "Wiedner Gürtel",
+"house_number": "9",
+"plz": "1100",
+"city": "Wien"
+},
+{
+"name": "Kieser Training",
+"street": "Am Belvedere",
+"house_number": "10",
+"plz": "1100",
+"city": "Wien"
+},
+{
+"name": "McFit",
+"street": "Laxenburger Straße",
+"house_number": "66",
+"plz": "1100",
+"city": "Wien"
+},
+{
+"name": "McFIT",
+"street": "Triester Straße",
+"house_number": "64",
+"plz": "1100",
+"city": ""
+},
+{
+"name": "Yoga-Institut;Psychotherapie",
+"street": "Davidgasse",
+"house_number": "97",
+"plz": "1100",
+"city": "Wien"
+},
+{
+"name": "Yoga Eleven",
+"street": "Krausegasse",
+"house_number": "17/2",
+"plz": "1110",
+"city": "Wien"
+},
+{
+"name": "FITINN",
+"street": "Edelsinnstraße",
+"house_number": "4",
+"plz": "1120",
+"city": "Wien"
+},
+{
+"name": "Kieser Training",
+"street": "Grünbergstraße",
+"house_number": "15",
+"plz": "1120",
+"city": "Wien"
+},
+{
+"name": "McFit",
+"street": "Breitenfurter Straße",
+"house_number": "43-45",
+"plz": "1120",
+"city": "Wien"
+},
+{
+"name": "Institut Horizont",
+"street": "Trauttmansdorffgasse",
+"house_number": "19",
+"plz": "1130",
+"city": "Wien"
+},
+{
+"name": "MANDU",
+"street": "Auhofstraße",
+"house_number": "58",
+"plz": "1130",
+"city": "Wien"
+},
+{
+"name": "Clever fit",
+"street": "Hütteldorfer Straße",
+"house_number": "219",
+"plz": "1140",
+"city": "Wien"
+},
+{
+"name": "Fitinn",
+"street": "Deutschordenstraße",
+"house_number": "3",
+"plz": "1140",
+"city": ""
+},
+{
+"name": "Mrs. Sporty",
+"street": "Matznergasse",
+"house_number": "28",
+"plz": "1140",
+"city": "Wien"
+},
+{
+"name": "Speedfit",
+"street": "Holzhausenplatz",
+"house_number": "1",
+"plz": "1140",
+"city": "Wien"
+},
+{
+"name": "Feelgoodstudio 1150",
+"street": "Neubaugürtel",
+"house_number": "47",
+"plz": "1150",
+"city": "Wien"
+},
+{
+"name": "FITINN",
+"street": "Johnstraße",
+"house_number": "65",
+"plz": "1150",
+"city": "Wien"
+},
+{
+"name": "Team Alpha Bar HQ",
+"street": "Huglgasse",
+"house_number": "4",
+"plz": "1150",
+"city": "Wien"
+},
+{
+"name": "Ving Tsun Branko Mičić",
+"street": "Dingelstedtgasse",
+"house_number": "8",
+"plz": "1150",
+"city": "Wien"
+},
+{
+"name": "Emconi",
+"street": "Gentzgasse",
+"house_number": "41",
+"plz": "1180",
+"city": "Wien"
+},
+{
+"name": "Five Progressive Fitness",
+"street": "Theresiengasse",
+"house_number": "25",
+"plz": "1180",
+"city": "Wien"
+},
+{
+"name": "Mavie Yoga Club Wien",
+"street": "Gentzgasse",
+"house_number": "13",
+"plz": "1180",
+"city": "Wien"
+},
+{
+"name": "taob",
+"street": "Gentzgasse",
+"house_number": "150",
+"plz": "1180",
+"city": "Wien"
+},
+{
+"name": "Worxout",
+"street": "Währinger Straße",
+"house_number": "80-82",
+"plz": "1180",
+"city": "Wien"
+},
+{
+"name": "Clever fit",
+"street": "Franz-Klein-Gasse",
+"house_number": "5",
+"plz": "1190",
+"city": "Wien"
+},
+{
+"name": "CrossZone 1190",
+"street": "Heiligenstädter Straße",
+"house_number": "31",
+"plz": "1190",
+"city": "Wien"
+},
+{
+"name": "FitInn",
+"street": "Kreilplatz",
+"house_number": "1",
+"plz": "1190",
+"city": "Wien"
+},
+{
+"name": "Fitness Club FitandFight19",
+"street": "Zahnradbahnstraße",
+"house_number": "1",
+"plz": "1190",
+"city": "Wien"
+},
+{
+"name": "Mandu",
+"street": "Heiligenstädter Straße",
+"house_number": "115",
+"plz": "1190",
+"city": "Wien"
+},
+{
+"name": "Manhattan Fitness",
+"street": "Heiligenstädter Lände",
+"house_number": "17",
+"plz": "1190",
+"city": "Wien"
+},
+{
+"name": "Pilates Döbling",
+"street": "Döblinger Hauptstraße",
+"house_number": "39",
+"plz": "1190",
+"city": "Wien"
+},
+{
+"name": "Power Of Pilates",
+"street": "Cobenzlgasse",
+"house_number": "12",
+"plz": "1190",
+"city": "Wien"
+},
+{
+"name": "readyforfit",
+"street": "Billrothstraße",
+"house_number": "63",
+"plz": "1190",
+"city": "Wien"
+},
+{
+"name": "Clever fit",
+"street": "Dresdner Straße",
+"house_number": "107",
+"plz": "1200",
+"city": "Wien"
+},
+{
+"name": "Holmes Place",
+"street": "Wehlistraße",
+"house_number": "66",
+"plz": "1200",
+"city": "Wien"
+},
+{
+"name": "clever fit",
+"street": "Trillergasse",
+"house_number": "4",
+"plz": "1210",
+"city": "Wien"
+},
+{
+"name": "FitInn",
+"street": "Franz-Jonas-Platz",
+"house_number": "2-3",
+"plz": "1210",
+"city": "Wien"
+},
+{
+"name": "Fitness First",
+"street": "Brünner Straße",
+"house_number": "75",
+"plz": "1210",
+"city": "Wien"
+},
+{
+"name": "Impulsiv EMS",
+"street": "Prager Straße",
+"house_number": "6",
+"plz": "1210",
+"city": "Wien"
+},
+{
+"name": "Mrs. Sporty",
+"street": "Ostmarkgasse",
+"house_number": "2",
+"plz": "1210",
+"city": "Wien"
+},
+{
+"name": "Shape-Line",
+"street": "Angerer Straße",
+"house_number": "18-20",
+"plz": "1210",
+"city": "Wien"
+},
+{
+"name": "Clever fit",
+"street": "Gewerbeparkstraße",
+"house_number": "8/1",
+"plz": "1220",
+"city": "Wien"
+},
+{
+"name": "Fit Fabrik",
+"street": "Gewerbeparkstraße",
+"house_number": "",
+"plz": "1220",
+"city": "Wien"
+},
+{
+"name": "Fitbox",
+"street": "Donau-City-Straße",
+"house_number": "4",
+"plz": "1220",
+"city": "Wien"
+},
+{
+"name": "LOVT Fitness",
+"street": "Stadlauer Straße",
+"house_number": "64",
+"plz": "1220",
+"city": "Wien"
+},
+{
+"name": "Namasthese",
+"street": "Aspernstraße",
+"house_number": "129",
+"plz": "1220",
+"city": "Wien"
+},
+{
+"name": "Wing Tsjun",
+"street": "Zachgasse",
+"house_number": "1",
+"plz": "1220",
+"city": "Wien"
+},
+{
+"name": "Buzz",
+"street": "Dirmhirngasse",
+"house_number": "112",
+"plz": "1230",
+"city": "Wien"
+},
+{
+"name": "Fitness First",
+"street": "Sterngasse",
+"house_number": "11",
+"plz": "1230",
+"city": "Wien"
+},
+{
+"name": "Clever fit",
+"street": "Hauptstraße",
+"house_number": "13",
+"plz": "2000",
+"city": "Stockerau"
+},
+{
+"name": "Gitti City",
+"street": "Tullner Straße",
+"house_number": "41",
+"plz": "2000",
+"city": "Stockerau"
+},
+{
+"name": "Topbody",
+"street": "Wienerstraße",
+"house_number": "71",
+"plz": "2000",
+"city": "Stockerau"
+},
+{
+"name": "Topbody",
+"street": "Sparkassegasse",
+"house_number": "12-14",
+"plz": "2020",
+"city": "Hollabrunn"
+},
+{
+"name": "Topbody",
+"street": "Kremserstraße",
+"house_number": "28",
+"plz": "2070",
+"city": "Retz"
+},
+{
+"name": "Mrs. Sporty",
+"street": "Wiener Ring",
+"house_number": "15",
+"plz": "2100",
+"city": "Korneuburg"
+},
+{
+"name": "FITPOINT",
+"street": "Meisengasse",
+"house_number": "4",
+"plz": "2103",
+"city": "Langenzersdorf"
+},
+{
+"name": "Mrs. Sporty",
+"street": "Hofgartenstraße",
+"house_number": "28",
+"plz": "2120",
+"city": "Wolkersdorf im Weinviertel"
+},
+{
+"name": "Best Fitness",
+"street": "Barnabitenstraße",
+"house_number": "2",
+"plz": "2130",
+"city": "Mistelbach"
+},
+{
+"name": "DR-FIT Trainingshütte GmbH",
+"street": "Triftweg",
+"house_number": "3",
+"plz": "2130",
+"city": "Mistelbach"
+},
+{
+"name": "Mrs. Sporty",
+"street": "Bahnstraße",
+"house_number": "9",
+"plz": "2130",
+"city": "Mistelbach"
+},
+{
+"name": "Fit Fabrik Plus",
+"street": "Baumfeldstraße",
+"house_number": "4",
+"plz": "2170",
+"city": "Wetzelsdorf"
+},
+{
+"name": "Fit Fabrik Plus",
+"street": "Brünner Straße",
+"house_number": "243",
+"plz": "2201",
+"city": ""
+},
+{
+"name": "LACKNER Evi, WS-Training",
+"street": "Bahnstraße",
+"house_number": "64",
+"plz": "2223",
+"city": "Hohenruppersdorf"
+},
+{
+"name": "Mega Fitness",
+"street": "Neusiedler Straße",
+"house_number": "11",
+"plz": "2230",
+"city": "Gänserndorf"
+},
+{
+"name": "Fitness First",
+"street": "Nordring",
+"house_number": "2",
+"plz": "2334",
+"city": "Vösendorf"
+},
+{
+"name": "Everybody",
+"street": "Friedrich Schiller-Straße",
+"house_number": "94",
+"plz": "2340",
+"city": "Mödling"
+},
+{
+"name": "Yogazentrum Mödling",
+"street": "Grenzgasse",
+"house_number": "40",
+"plz": "2340",
+"city": "Mödling"
+},
+{
+"name": "Activity",
+"street": "Triesterstraße",
+"house_number": "12",
+"plz": "2351",
+"city": ""
+},
+{
+"name": "Formé Studio",
+"street": "Wiener Straße",
+"house_number": "17",
+"plz": "2351",
+"city": "Wiener Neudorf"
+},
+{
+"name": "Shanti Shanti Yoga Studio",
+"street": "Hauptstraße",
+"house_number": "31",
+"plz": "2351",
+"city": ""
+},
+{
+"name": "Patmotion",
+"street": "Mühlengasse",
+"house_number": "44/2",
+"plz": "2362",
+"city": "Biedermannsdorf"
+},
+{
+"name": "Air Fitness",
+"street": "Hintausstraße",
+"house_number": "20",
+"plz": "2452",
+"city": "Mannersdorf am Leithagebirge"
+},
+{
+"name": "Citylife Fitness & Health Club",
+"street": "Lagerstraße",
+"house_number": "8-10",
+"plz": "2460",
+"city": "Bruckneudorf"
+},
+{
+"name": "Mrs. Sporty",
+"street": "Hauptplatz",
+"house_number": "10-11/1",
+"plz": "2460",
+"city": "Bruck an der Leitha"
+},
+{
+"name": "burn-it",
+"street": "Am Triestingpark",
+"house_number": "1",
+"plz": "2482",
+"city": "Münchendorf"
+},
+{
+"name": "Soma-Bliss yoga & soulfood",
+"street": "Hauptplatz",
+"house_number": "15",
+"plz": "2483",
+"city": "Ebreichsdorf"
+},
+{
+"name": "Starfit",
+"street": "Hauptplatz",
+"house_number": "17",
+"plz": "2483",
+"city": "Ebreichsdorf"
+},
+{
+"name": "joinfitness.at",
+"street": "Kaiser Franz-Ring",
+"house_number": "5",
+"plz": "2500",
+"city": "Baden"
+},
+{
+"name": "247GYM",
+"street": "Sochorgasse",
+"house_number": "8",
+"plz": "2512",
+"city": "Traiskirchen"
+},
+{
+"name": "Fitnessland",
+"street": "Sochorgasse",
+"house_number": "3",
+"plz": "2512",
+"city": "Traiskirchen"
+},
+{
+"name": "Mrs. Sporty",
+"street": "Hauptplatz",
+"house_number": "17",
+"plz": "2514",
+"city": "Traiskirchen"
+},
+{
+"name": "Fit+ Leobersdorf",
+"street": "Hauptstraße",
+"house_number": "36",
+"plz": "2544",
+"city": "Leobersdorf"
+},
+{
+"name": "Fit Complete",
+"street": "J.-F.-Kennedy-Platz",
+"house_number": "5",
+"plz": "2560",
+"city": "Berndorf"
+},
+{
+"name": "Fitpulse",
+"street": "Wiener Neustädterstraße",
+"house_number": "103",
+"plz": "2601",
+"city": "Sollenau"
+},
+{
+"name": "Speedfit Neunkirchen",
+"street": "Semmeringstraße",
+"house_number": "6",
+"plz": "2620",
+"city": "Neunkirchen"
+},
+{
+"name": "sportsunlimited",
+"street": "Am Spitz",
+"house_number": "9",
+"plz": "2620",
+"city": "Neunkirchen"
+},
+{
+"name": "Fit & Fun",
+"street": "Hauptstraße",
+"house_number": "4",
+"plz": "2630",
+"city": "Ternitz"
+},
+{
+"name": "Fit Fabrik Plus",
+"street": "Franz-Samwald-Straße",
+"house_number": "65",
+"plz": "2630",
+"city": "Ternitz"
+},
+{
+"name": "Freizeitanlage Moving",
+"street": "Bundesstraße",
+"house_number": "13",
+"plz": "2632",
+"city": "Wimpassing im Schwarzatale"
+},
+{
+"name": "Cardio-Fitness Prandstetter",
+"street": "Wiener Straße",
+"house_number": "116",
+"plz": "2640",
+"city": "Gloggnitz"
+},
+{
+"name": "Aerial Passion | Yoga",
+"street": "Pottendorfer Straße",
+"house_number": "29",
+"plz": "2700",
+"city": "Wiener Neustadt"
+},
+{
+"name": "Clever fit",
+"street": "Pottendorfer Straße",
+"house_number": "39",
+"plz": "2700",
+"city": "Wiener Neustadt"
+},
+{
+"name": "CrossFitWN",
+"street": "Pottendorfer Straße",
+"house_number": "29",
+"plz": "2700",
+"city": "Wiener Neustadt"
+},
+{
+"name": "FITINN",
+"street": "Wiener Straße",
+"house_number": "127",
+"plz": "2700",
+"city": "Wiener Neustadt"
+},
+{
+"name": "Speedfit",
+"street": "Stadionstraße",
+"house_number": "42",
+"plz": "2700",
+"city": "Wiener Neustadt"
+},
+{
+"name": "VitalRaum OG",
+"street": "Domplatz",
+"house_number": "15",
+"plz": "2700",
+"city": "Wiener Neustadt"
+},
+{
+"name": "New Circle Body & Mind",
+"street": "Fabriksgasse",
+"house_number": "15",
+"plz": "2822",
+"city": "Bad Erlach"
+},
+{
+"name": "VitalRaum OG",
+"street": "Alleegasse",
+"house_number": "27",
+"plz": "2823",
+"city": "Pitten"
+},
+{
+"name": "Vitalmed",
+"street": "Linzer Straße",
+"house_number": "63/7",
+"plz": "3002",
+"city": "Purkersdorf"
+},
+{
+"name": "Fit2me",
+"street": "Betrg. Süd Betriebsstraße",
+"house_number": "5",
+"plz": "3071",
+"city": "Böheimkirchen"
+},
+{
+"name": "Athletic 3100",
+"street": "Mariazeller Straße",
+"house_number": "180/51",
+"plz": "3100",
+"city": "St. Pölten"
+},
+{
+"name": "INJOY",
+"street": "Porschestraße",
+"house_number": "9",
+"plz": "3100",
+"city": "St. Pölten"
+},
+{
+"name": "Mrs. Sporty",
+"street": "Josefstraße",
+"house_number": "110",
+"plz": "3100",
+"city": "St. Pölten"
+},
+{
+"name": "Shape-Line",
+"street": "Josefstraße",
+"house_number": "110-116 Top 3",
+"plz": "3100",
+"city": "St. Pölten"
+},
+{
+"name": "Clever fit",
+"street": "Dr.Doch-Gasse",
+"house_number": "3",
+"plz": "3107",
+"city": "St. Pölten"
+},
+{
+"name": "Stars Fitness GmbH",
+"street": "Dr.-Adolf-Schärf-Straße",
+"house_number": "10-12",
+"plz": "3107",
+"city": "St. Pölten"
+},
+{
+"name": "Laurus Fitness",
+"street": "Oberndorfer Ortsstraße",
+"house_number": "2",
+"plz": "3130",
+"city": "Oberndorf in der Ebene"
+},
+{
+"name": "AMA FitnessCenter und Sauna",
+"street": "Donaustraße",
+"house_number": "28",
+"plz": "3133",
+"city": "Traismauer"
+},
+{
+"name": "Happyfit",
+"street": "St.Pöltner Straße",
+"house_number": "1b",
+"plz": "3150",
+"city": "Wilhelmsburg"
+},
+{
+"name": "Park Workout Area",
+"street": "Schrambacher Straße",
+"house_number": "1",
+"plz": "3180",
+"city": "Schrambach"
+},
+{
+"name": "Fitness Reiser Scheibbs",
+"street": "Erlaufpromenade",
+"house_number": "28",
+"plz": "3270",
+"city": "Scheibbs"
+},
+{
+"name": "INJOY Amstetten",
+"street": "Hauptplatz",
+"house_number": "6",
+"plz": "3300",
+"city": "Amstetten"
+},
+{
+"name": "ARENA Fitness Club Weyer",
+"street": "Waidhofner Straße",
+"house_number": "56a",
+"plz": "3335",
+"city": "Weyer"
+},
+{
+"name": "Body aktiv",
+"street": "Unterer Stadtplatz",
+"house_number": "35",
+"plz": "3340",
+"city": "Waidhofen an der Ybbs"
+},
+{
+"name": "Energy Fitness",
+"street": "Oskar Czeija-Straße",
+"house_number": "6",
+"plz": "3340",
+"city": "Waidhofen an der Ybbs"
+},
+{
+"name": "Energy Fitness",
+"street": "Kapuzinergasse",
+"house_number": "6",
+"plz": "3340",
+"city": "Waidhofen an der Ybbs"
+},
+{
+"name": "Verena Sykora",
+"street": "Unterer Stadtplatz",
+"house_number": "35",
+"plz": "3340",
+"city": "Waidhofen an der Ybbs"
+},
+{
+"name": "Energy Fitness",
+"street": "Marktplatz",
+"house_number": "3",
+"plz": "3353",
+"city": "Seitenstetten"
+},
+{
+"name": "Energy Fitness",
+"street": "Hauptstraße",
+"house_number": "39",
+"plz": "3372",
+"city": "Blindenmarkt"
+},
+{
+"name": "BeautyFit Figurstudio",
+"street": "Kreutzergasse",
+"house_number": "6",
+"plz": "3400",
+"city": "Klosterneuburg"
+},
+{
+"name": "Der starke Franz",
+"street": "Löblichgasse",
+"house_number": "2",
+"plz": "3400",
+"city": "Klosterneuburg"
+},
+{
+"name": "Fitnesstudio Zig-Zag",
+"street": "Gewerbestraße",
+"house_number": "11",
+"plz": "3423",
+"city": "St. Andrä-Wördern"
+},
+{
+"name": "Fitness Club Tulln",
+"street": "Karl-Metz-Gasse",
+"house_number": "1a",
+"plz": "3430",
+"city": "Tulln an der Donau"
+},
+{
+"name": "gymplus – Fitnesscenter",
+"street": "Schulstraße",
+"house_number": "7",
+"plz": "3442",
+"city": "Langenrohr"
+},
+{
+"name": "Active City Fitnessclub",
+"street": "Wiener Straße",
+"house_number": "5b",
+"plz": "3500",
+"city": "Krems an der Donau"
+},
+{
+"name": "clever fit",
+"street": "Utzstraße",
+"house_number": "1",
+"plz": "3500",
+"city": "Krems an der Donau"
+},
+{
+"name": "Crossfit Donauwerft",
+"street": "Bertschingerstraße",
+"house_number": "2",
+"plz": "3500",
+"city": "Krems an der Donau"
+},
+{
+"name": "Fitness & Squash",
+"street": "An der Schütt",
+"house_number": "42",
+"plz": "3500",
+"city": "Krems an der Donau"
+},
+{
+"name": "Happy Fit Krems",
+"street": "Wiener Straße",
+"house_number": "122",
+"plz": "3500",
+"city": "Krems an der Donau"
+},
+{
+"name": "Injoy",
+"street": "Wiener Straße",
+"house_number": "86",
+"plz": "3500",
+"city": "Krems an der Donau"
+},
+{
+"name": "Kampfkunst Akademie",
+"street": "Steiner Kellergasse",
+"house_number": "3",
+"plz": "3500",
+"city": "Krems an der Donau"
+},
+{
+"name": "Mrs. Sporty",
+"street": "Schwedengasse",
+"house_number": "1c",
+"plz": "3500",
+"city": "Krems an der Donau"
+},
+{
+"name": "Q-Loungefit",
+"street": "Lerchenfelderstraße",
+"house_number": "5",
+"plz": "3500",
+"city": "Krems an der Donau"
+},
+{
+"name": "VITALCLUB Krems",
+"street": "Wiener Straße",
+"house_number": "5d",
+"plz": "3500",
+"city": "Krems an der Donau"
+},
+{
+"name": "Vitalounge / Slender You",
+"street": "Kühlhausgasse",
+"house_number": "149",
+"plz": "3511",
+"city": "Palt"
+},
+{
+"name": "Fitnessstudio Pöggstall",
+"street": "Postfeldstraße",
+"house_number": "5",
+"plz": "3650",
+"city": "Pöggstall"
+},
+{
+"name": "Topbody",
+"street": "Betriebsgebiet Nord",
+"house_number": "7",
+"plz": "3701",
+"city": "Großweikersdorf"
+},
+{
+"name": "TOPBODY Fitnesscenter Eggenburg",
+"street": "Rathausstraße",
+"house_number": "2",
+"plz": "3730",
+"city": ""
+},
+{
+"name": "Fitnesscenter Topbody",
+"street": "Franz Steurer-Straße",
+"house_number": "3",
+"plz": "3830",
+"city": "Waidhofen an der Thaya"
+},
+{
+"name": "Mrs. Sporty",
+"street": "Böhmgasse",
+"house_number": "31",
+"plz": "3830",
+"city": "Waidhofen/Thaya"
+},
+{
+"name": "Fitness und Gesundheit",
+"street": "Jägergasse",
+"house_number": "10",
+"plz": "3860",
+"city": "Heidenreichstein"
+},
+{
+"name": "INJOY",
+"street": "Franz Forstreiter-Straße",
+"house_number": "20",
+"plz": "3910",
+"city": "Zwettl-Niederösterreich"
+},
+{
+"name": "Top Fit Fitnessstudio",
+"street": "Franz Eigl-Straße",
+"house_number": "6a",
+"plz": "3910",
+"city": "Zwettl"
+},
+{
+"name": "Mrs. Sporty",
+"street": "Stadtplatz",
+"house_number": "46",
+"plz": "3950",
+"city": "Gmünd"
+},
+{
+"name": "Chili GYM",
+"street": "Gmünder Straße",
+"house_number": "446",
+"plz": "3970",
+"city": "Weitra"
+},
+{
+"name": "Clever fit",
+"street": "Dametzstraße",
+"house_number": "7",
+"plz": "4020",
+"city": "Linz"
+},
+{
+"name": "FITINN",
+"street": "Rainerstraße",
+"house_number": "6",
+"plz": "4020",
+"city": "Linz"
+},
+{
+"name": "JOHN REED Fitness",
+"street": "Hamerlingstraße",
+"house_number": "44-46",
+"plz": "4020",
+"city": ""
+},
+{
+"name": "Prinz Fitness",
+"street": "Promenade",
+"house_number": "25",
+"plz": "4020",
+"city": "Linz"
+},
+{
+"name": "Gainz4Change Fitness",
+"street": "Lunaplatz",
+"house_number": "6",
+"plz": "4030",
+"city": "Linz"
+},
+{
+"name": "HappyFit Linz Dornach",
+"street": "Freistädter Straße",
+"house_number": "336",
+"plz": "4040",
+"city": "Linz"
+},
+{
+"name": "Prinz Fitness",
+"street": "Bad Leonfeldner Straße",
+"house_number": "328",
+"plz": "4040",
+"city": "Linz"
+},
+{
+"name": "Elite Fitness",
+"street": "Peter-Ebner-Straße",
+"house_number": "3",
+"plz": "4060",
+"city": "Leonding"
+},
+{
+"name": "Fitnesscenter - City Fit",
+"street": "Stadtplatz",
+"house_number": "10",
+"plz": "4150",
+"city": "Rohrbach-Berg"
+},
+{
+"name": "Yogamoments Studio Rohrbach - Trachtenmode Schmid",
+"street": "Ehrenreiterweg",
+"house_number": "4;15",
+"plz": "4150",
+"city": "Rohrbach-Berg"
+},
+{
+"name": "Feel Well Fitness GmbH",
+"street": "Betriebsstraße",
+"house_number": "10",
+"plz": "4213",
+"city": "Unterweitersdorf"
+},
+{
+"name": "HappyFit Steyregg",
+"street": "Gewerbeallee",
+"house_number": "15d",
+"plz": "4221",
+"city": "Steyregg"
+},
+{
+"name": "Kroftstodl",
+"street": "Linzer Straße",
+"house_number": "28",
+"plz": "4222",
+"city": "St. Georgen an der Gusen"
+},
+{
+"name": "LIONFIT Hagenberg",
+"street": "Raiffeisenstraße",
+"house_number": "1",
+"plz": "4232",
+"city": "Hagenberg im Mühlkreis"
+},
+{
+"name": "Happy Fit",
+"street": "Prunnerstraße",
+"house_number": "47",
+"plz": "4240",
+"city": "Freistadt"
+},
+{
+"name": "Rückentankstelle by Rudi",
+"street": "Kaplanstraße",
+"house_number": "2",
+"plz": "4310",
+"city": "Mauthausen"
+},
+{
+"name": "HappyFit",
+"street": "Im Stadtgut",
+"house_number": "D2",
+"plz": "4407",
+"city": "Steyr-Gleink"
+},
+{
+"name": "Happy Fit",
+"street": "Dr. Karl-Renner-Straße",
+"house_number": "52",
+"plz": "4470",
+"city": "Enns"
+},
+{
+"name": "TopGym",
+"street": "Oberhauser Straße",
+"house_number": "7",
+"plz": "4470",
+"city": "Enns"
+},
+{
+"name": "Newform-Fitness",
+"street": "Gewerbestraße",
+"house_number": "7",
+"plz": "4541",
+"city": "Adlwang"
+},
+{
+"name": "HNG 90 Fitnessstudio",
+"street": "Stiftsstraße",
+"house_number": "19",
+"plz": "4553",
+"city": "Schlierbach"
+},
+{
+"name": "David",
+"street": "Sengsschmiedstraße",
+"house_number": "10",
+"plz": "4560",
+"city": "Kirchdorf an der Krems"
+},
+{
+"name": "GORILLA  Elite  Fitness & Gym",
+"street": "Dr. Wayand-Ring",
+"house_number": "43b",
+"plz": "4560",
+"city": "Kirchdorf an der Krems"
+},
+{
+"name": "Injoy Physio",
+"street": "Brunnenweg",
+"house_number": "11",
+"plz": "4560",
+"city": "Kirchdorf an der Krems"
+},
+{
+"name": "Fitnesscenter Bodygym",
+"street": "Weinzierler Brücke",
+"house_number": "1",
+"plz": "4563",
+"city": "Micheldorf in Oberösterreich"
+},
+{
+"name": "Anytime Fitness",
+"street": "Dragonerstraße",
+"house_number": "42a",
+"plz": "4600",
+"city": "Wels"
+},
+{
+"name": "BodyFit Center",
+"street": "Eisenfeldstraße",
+"house_number": "4",
+"plz": "4600",
+"city": "Wels"
+},
+{
+"name": "Clever fit",
+"street": "Löwenzahnstraße",
+"house_number": "8",
+"plz": "4600",
+"city": "Wels"
+},
+{
+"name": "Happy Fit",
+"street": "Ligusterstraße",
+"house_number": "2",
+"plz": "4600",
+"city": "Wels"
+},
+{
+"name": "Impuls EMS Training",
+"street": "Kaiser-Josef-Platz",
+"house_number": "19",
+"plz": "4600",
+"city": "Wels"
+},
+{
+"name": "PRO VITAL Fitness GmbH",
+"street": "Feldstraße",
+"house_number": "21",
+"plz": "4611",
+"city": "Buchkirchen"
+},
+{
+"name": "Delta Sportpark Marchtrenk",
+"street": "Badgasse",
+"house_number": "4",
+"plz": "4614",
+"city": "Marchtrenk"
+},
+{
+"name": "no-limit Fitnesscenter",
+"street": "Traunfeldstraße",
+"house_number": "7",
+"plz": "4663",
+"city": "Laakirchen"
+},
+{
+"name": "Purfit Laakirchen",
+"street": "Gmundner Straße",
+"house_number": "33b",
+"plz": "4663",
+"city": "Laakirchen"
+},
+{
+"name": "Tennishalle Schwanenstadt",
+"street": "Freizeitpark",
+"house_number": "3",
+"plz": "4690",
+"city": ""
+},
+{
+"name": "Happy Fit",
+"street": "Industriestraße",
+"house_number": "27",
+"plz": "4710",
+"city": "Grieskirchen"
+},
+{
+"name": "M.A.N.D.U. Grieskirchen",
+"street": "Prechtlerstraße",
+"house_number": "18",
+"plz": "4710",
+"city": "Grieskirchen"
+},
+{
+"name": "BODYGYM Schärding",
+"street": "Alfred-Kubin-Straße",
+"house_number": "3",
+"plz": "4780",
+"city": ""
+},
+{
+"name": "Heimos Fitness & Prevention",
+"street": "Im Himmelreich",
+"house_number": "2",
+"plz": "4792",
+"city": "Münzkirchen"
+},
+{
+"name": "Bodyfit Center",
+"street": "Neuhofenstraße",
+"house_number": "44",
+"plz": "4810",
+"city": "Gmunden"
+},
+{
+"name": "Mrs. Sporty",
+"street": "Vorstadt",
+"house_number": "",
+"plz": "4840",
+"city": "Vöcklabruck"
+},
+{
+"name": "Mitterlehner Training",
+"street": "Hauptstraße",
+"house_number": "12",
+"plz": "4870",
+"city": "Vöcklamarkt"
+},
+{
+"name": "Gymtec Fitness",
+"street": "Platzl",
+"house_number": "1",
+"plz": "4873",
+"city": "Frankenburg am Hausruck"
+},
+{
+"name": "Andrea Rainer",
+"street": "Berchtesgadner Straße",
+"house_number": "35B",
+"plz": "5020",
+"city": "Salzburg"
+},
+{
+"name": "Anytime Fitness",
+"street": "Vogelweiderstraße",
+"house_number": "44B",
+"plz": "5020",
+"city": ""
+},
+{
+"name": "Bodyclub",
+"street": "Innsbrucker Bundesstraße",
+"house_number": "33/2",
+"plz": "5020",
+"city": "Salzburg"
+},
+{
+"name": "Bodystreet",
+"street": "Innsbrucker Bundesstraße",
+"house_number": "47",
+"plz": "5020",
+"city": "Salzburg"
+},
+{
+"name": "Bodystreet",
+"street": "Fürbergstraße",
+"house_number": "32",
+"plz": "5020",
+"city": "Salzburg"
+},
+{
+"name": "Curves",
+"street": "Rudolf-Biebl-Straße",
+"house_number": "1",
+"plz": "5020",
+"city": "Salzburg"
+},
+{
+"name": "FITINN",
+"street": "Rainerstraße",
+"house_number": "30",
+"plz": "5020",
+"city": "Salzburg"
+},
+{
+"name": "Freiraum41",
+"street": "Auerspergstraße",
+"house_number": "41",
+"plz": "5020",
+"city": "Salzburg"
+},
+{
+"name": "Freudenthaler Alfred",
+"street": "Kleingmainer Gasse",
+"house_number": "23B",
+"plz": "5020",
+"city": "Salzburg"
+},
+{
+"name": "JOHN REED Fitness",
+"street": "Saint-Julien-Straße",
+"house_number": "5",
+"plz": "5020",
+"city": "Salzburg"
+},
+{
+"name": "Kieser Training",
+"street": "Sterneckstraße",
+"house_number": "11",
+"plz": "5020",
+"city": "Salzburg"
+},
+{
+"name": "Krien Sandra",
+"street": "Santnergasse",
+"house_number": "2",
+"plz": "5020",
+"city": "Salzburg"
+},
+{
+"name": "Maikai",
+"street": "Oberndorfer Straße",
+"house_number": "35",
+"plz": "5020",
+"city": "Salzburg"
+},
+{
+"name": "My Gym Salzburg Nord",
+"street": "Itzlinger Hauptstraße",
+"house_number": "93A",
+"plz": "5020",
+"city": "Salzburg"
+},
+{
+"name": "Nalu Reformer",
+"street": "Membergerstraße",
+"house_number": "1",
+"plz": "5020",
+"city": "Salzburg"
+},
+{
+"name": "Sportssupport",
+"street": "Siezenheimer Straße",
+"house_number": "39D",
+"plz": "5020",
+"city": "Salzburg"
+},
+{
+"name": "vita Zen Lounge",
+"street": "Alpenstraße",
+"house_number": "95-97",
+"plz": "5020",
+"city": "Salzburg"
+},
+{
+"name": "Yoga Place",
+"street": "Franz-Josef-Straße",
+"house_number": "4",
+"plz": "5020",
+"city": "Salzburg"
+},
+{
+"name": "You Pilates Yoga & More",
+"street": "Paris-Lodron-Straße",
+"house_number": "15",
+"plz": "5020",
+"city": "Salzburg"
+},
+{
+"name": "FMB BUSHIDO GYM",
+"street": "Halleiner Landesstraße",
+"house_number": "36",
+"plz": "5061",
+"city": "Elsbethen"
+},
+{
+"name": "vita club Salzburg West",
+"street": "Franz-Brötzner-Straße",
+"house_number": "9",
+"plz": "5071",
+"city": "Wals-Himmelreich"
+},
+{
+"name": "Fit&Well",
+"street": "Wiener Straße",
+"house_number": "4",
+"plz": "5202",
+"city": ""
+},
+{
+"name": "Purfit",
+"street": "Moosstraße",
+"house_number": "3c",
+"plz": "5230",
+"city": "Mattighofen"
+},
+{
+"name": "MyGym",
+"street": "Wöltinger Straße",
+"house_number": "9",
+"plz": "5580",
+"city": "Tamsweg"
+},
+{
+"name": "Feel Free – Yoga & Musik",
+"street": "Kaiser Wilhelm-Promenade",
+"house_number": "10",
+"plz": "5640",
+"city": "Bad Gastein"
+},
+{
+"name": "Active8",
+"street": "Hallenbadstraße",
+"house_number": "1",
+"plz": "5730",
+"city": "Mittersill"
+},
+{
+"name": "INJOY",
+"street": "Zellerstraße",
+"house_number": "31a",
+"plz": "5760",
+"city": "Saalfelden am Steinernen Meer"
+},
+{
+"name": "INJOY",
+"street": "Ritzenseestraße",
+"house_number": "37",
+"plz": "5760",
+"city": "Saalfelden am Steinernen Meer"
+},
+{
+"name": "Fit & Fun",
+"street": "Hochkönigstraße",
+"house_number": "27",
+"plz": "5761",
+"city": "Maria Alm am Steinernen Meer"
+},
+{
+"name": "Alfa Sports & Spa",
+"street": "Innrain",
+"house_number": "143",
+"plz": "6020",
+"city": "Innsbruck"
+},
+{
+"name": "Antaratma Yoga Shala",
+"street": "Andreas-Hofer-Straße",
+"house_number": "13",
+"plz": "6020",
+"city": "Innsbruck"
+},
+{
+"name": "Basefive",
+"street": "Universitätsstraße",
+"house_number": "5",
+"plz": "6020",
+"city": "Innsbruck"
+},
+{
+"name": "Body and Soul",
+"street": "Amraser-See-Straße",
+"house_number": "60",
+"plz": "6020",
+"city": "Innsbruck"
+},
+{
+"name": "Bodystreet",
+"street": "Schöpfstraße",
+"house_number": "6b",
+"plz": "6020",
+"city": "Innsbruck"
+},
+{
+"name": "CrossFit",
+"street": "Stadlweg",
+"house_number": "13",
+"plz": "6020",
+"city": "Innsbruck"
+},
+{
+"name": "FITINN",
+"street": "Hunoldstraße",
+"house_number": "5",
+"plz": "6020",
+"city": "Innsbruck"
+},
+{
+"name": "Happy Fitness",
+"street": "Mitterweg",
+"house_number": "21",
+"plz": "6020",
+"city": "Innsbruck"
+},
+{
+"name": "Invibe",
+"street": "Mitterweg",
+"house_number": "16",
+"plz": "6020",
+"city": "Innsbruck"
+},
+{
+"name": "INVIBE",
+"street": "Stadionstraße",
+"house_number": "1",
+"plz": "6020",
+"city": "Innsbruck"
+},
+{
+"name": "Josef P",
+"street": "Lieberstraße",
+"house_number": "2",
+"plz": "6020",
+"city": "Innsbruck"
+},
+{
+"name": "McFit",
+"street": "Brunecker Straße",
+"house_number": "3",
+"plz": "6020",
+"city": "Innsbruck"
+},
+{
+"name": "Motion Rooms",
+"street": "Matthias-Schmid-Straße",
+"house_number": "12e",
+"plz": "6020",
+"city": "Innsbruck"
+},
+{
+"name": "Olympiazentrum Tirol",
+"street": "Fürstenweg",
+"house_number": "181b",
+"plz": "6020",
+"city": "Innsbruck"
+},
+{
+"name": "Olympic Fitness",
+"street": "Josef-Wilberger-Straße",
+"house_number": "23",
+"plz": "6020",
+"city": "Innsbruck"
+},
+{
+"name": "The Flou Pilates",
+"street": "Raiffeisenplatz",
+"house_number": "3",
+"plz": "6020",
+"city": "Innsbruck"
+},
+{
+"name": "Yoga Health Innsbruck",
+"street": "Mitterweg",
+"house_number": "16",
+"plz": "6020",
+"city": "Innsbruck"
+},
+{
+"name": "Yoga Mitte",
+"street": "Resselstraße",
+"house_number": "18",
+"plz": "6020",
+"city": "Innsbruck"
+},
+{
+"name": "The Point - Fitnesscenter",
+"street": "Saline",
+"house_number": "20",
+"plz": "6060",
+"city": "Hall in Tirol"
+},
+{
+"name": "FITINN",
+"street": "Austraße",
+"house_number": "24",
+"plz": "6063",
+"city": "Rum"
+},
+{
+"name": "Wir bewegen Tirol",
+"street": "Austraße",
+"house_number": "24",
+"plz": "6063",
+"city": "Rum"
+},
+{
+"name": "Bodypoint Seefeld",
+"street": "Möserer Straße",
+"house_number": "632",
+"plz": "6100",
+"city": "Seefeld in Tirol"
+},
+{
+"name": "Easy MotionSkin Dome",
+"street": "Gewerbegebiet",
+"house_number": "47",
+"plz": "6100",
+"city": "Reith bei Seefeld"
+},
+{
+"name": "JuFlowYoga",
+"street": "Oberdorf",
+"house_number": "130a",
+"plz": "6108",
+"city": "Scharnitz"
+},
+{
+"name": "Invibe",
+"street": "Kreuzbichl",
+"house_number": "5",
+"plz": "6111",
+"city": "Volders"
+},
+{
+"name": "Vomperbeach Fitnessclub",
+"street": "Kirchboden",
+"house_number": "40",
+"plz": "6123",
+"city": "Terfens"
+},
+{
+"name": "INVIBE",
+"street": "Bahnhofstraße",
+"house_number": "16",
+"plz": "6130",
+"city": "Schwaz"
+},
+{
+"name": "Innfitness",
+"street": "Au",
+"house_number": "15",
+"plz": "6134",
+"city": "Vomp"
+},
+{
+"name": "Fit+ Fitnessstudio",
+"street": "Oberdorf",
+"house_number": "1",
+"plz": "6167",
+"city": "Neustift im Stubaital"
+},
+{
+"name": "CrossFit",
+"street": "Flößerweg",
+"house_number": "2c",
+"plz": "6170",
+"city": "Zirl"
+},
+{
+"name": "Body & Soul",
+"street": "Cytastraße",
+"house_number": "7",
+"plz": "6176",
+"city": "Völs"
+},
+{
+"name": "easyfit-med",
+"street": "Aflingerstraße",
+"house_number": "2",
+"plz": "6176",
+"city": "Völs"
+},
+{
+"name": "Fitnesscenter Alpengolf",
+"street": "Achenkirch",
+"house_number": "391",
+"plz": "6215",
+"city": "Achenkirch"
+},
+{
+"name": "Aktivwelt Mähr",
+"street": "Sankt Margarethen",
+"house_number": "154e",
+"plz": "6220",
+"city": "Buch in Tirol"
+},
+{
+"name": "Gundis Fitness",
+"street": "Herrnhausplatz",
+"house_number": "5",
+"plz": "6230",
+"city": "Brixlegg"
+},
+{
+"name": "IN MOTION",
+"street": "Pankrazbergstraße",
+"house_number": "18",
+"plz": "6263",
+"city": "Fügen"
+},
+{
+"name": "Fitnesscenter Shape",
+"street": "Zillerlände",
+"house_number": "490",
+"plz": "6290",
+"city": "Mayrhofen"
+},
+{
+"name": "Invibe",
+"street": "Salzburger Straße",
+"house_number": "32",
+"plz": "6300",
+"city": "Wörgl"
+},
+{
+"name": "Speed Fit",
+"street": "Bahnhofstraße",
+"house_number": "42",
+"plz": "6300",
+"city": "Wörgl"
+},
+{
+"name": "CrossFit Kroftlaggl",
+"street": "Bauhofstraße",
+"house_number": "5",
+"plz": "6322",
+"city": "Kirchbichl"
+},
+{
+"name": "Impuls Fitness",
+"street": "Andreas Hofer-Straße",
+"house_number": "2",
+"plz": "6330",
+"city": "Kufstein"
+},
+{
+"name": "Mrs. Sporty Club",
+"street": "Eibergstraße",
+"house_number": "5",
+"plz": "6330",
+"city": "Kufstein"
+},
+{
+"name": "NOW FIT",
+"street": "Eibergstraße",
+"house_number": "7",
+"plz": "6330",
+"city": "Kufstein"
+},
+{
+"name": "Workout Tirol",
+"street": "Kirchplatz",
+"house_number": "1",
+"plz": "6341",
+"city": "Ebbs"
+},
+{
+"name": "Workout Fitness",
+"street": "Alleestraße",
+"house_number": "1a",
+"plz": "6345",
+"city": "Kössen"
+},
+{
+"name": "Invibe",
+"street": "Jochberger Straße",
+"house_number": "98",
+"plz": "6370",
+"city": "Kitzbühel"
+},
+{
+"name": "Archeneo Fitness Treff",
+"street": "Pass-Thurn-Straße",
+"house_number": "24",
+"plz": "6372",
+"city": "Oberndorf in Tirol"
+},
+{
+"name": "Bikeacademy",
+"street": "Salzburgerstraße",
+"house_number": "15",
+"plz": "6380",
+"city": "St. Johann in Tirol"
+},
+{
+"name": "Fitness for Fun",
+"street": "Schießstandgasse",
+"house_number": "32",
+"plz": "6380",
+"city": "St. Johann in Tirol"
+},
+{
+"name": "INVIBE",
+"street": "Mauthfeld",
+"house_number": "12",
+"plz": "6380",
+"city": "St. Johann in Tirol"
+},
+{
+"name": "CROSSFIT VNKN",
+"street": "Mühlau",
+"house_number": "4",
+"plz": "6383",
+"city": "Kirchdorf in Tirol"
+},
+{
+"name": "Beauty Vibes",
+"street": "Michael-Seeber-Straße",
+"house_number": "3",
+"plz": "6410",
+"city": "Telfs"
+},
+{
+"name": "Clever fit",
+"street": "Moos",
+"house_number": "7a",
+"plz": "6410",
+"city": "Telfs"
+},
+{
+"name": "Fit&Sun",
+"street": "Sagl",
+"house_number": "2a",
+"plz": "6410",
+"city": "Telfs"
+},
+{
+"name": "Invibe Telfs",
+"street": "Obermarktstraße",
+"house_number": "41;41a",
+"plz": "6410",
+"city": "Telfs"
+},
+{
+"name": "ckever fit",
+"street": "Langgasse",
+"house_number": "19",
+"plz": "6460",
+"city": "Imst"
+},
+{
+"name": "Gollners Fitness",
+"street": "Brennbichl",
+"house_number": "10a",
+"plz": "6460",
+"city": "Imst"
+},
+{
+"name": "Invibe Tarrenz",
+"street": "Hauptstraße",
+"house_number": "78",
+"plz": "6464",
+"city": "Tarrenz"
+},
+{
+"name": "Body-Life",
+"street": "Kirchenstraße",
+"house_number": "",
+"plz": "6500",
+"city": "Landeck"
+},
+{
+"name": "Figurstudio Provitage",
+"street": "Salurnerstraße",
+"house_number": "5",
+"plz": "6500",
+"city": "Landeck"
+},
+{
+"name": "Vitadom",
+"street": "Bruggfeldstraße",
+"house_number": "7a",
+"plz": "6500",
+"city": "Landeck"
+},
+{
+"name": "Alpin Fitness Training",
+"street": "Feichten",
+"house_number": "134",
+"plz": "6524",
+"city": "Kaunertal"
+},
+{
+"name": "Easyfit Reutte",
+"street": "Bahnhofstraße",
+"house_number": "20",
+"plz": "6600",
+"city": "Reutte"
+},
+{
+"name": "Sportcenter Reutte",
+"street": "Dir. Franz Hosp-Straße",
+"house_number": "1",
+"plz": "6600",
+"city": "Reutte"
+},
+{
+"name": "enjoy Fitness",
+"street": "Wichnerstraße",
+"house_number": "11",
+"plz": "6700",
+"city": "Bludenz"
+},
+{
+"name": "Fitpark",
+"street": "Eugen-Getzner-Straße",
+"house_number": "7",
+"plz": "6710",
+"city": "Nenzing"
+},
+{
+"name": "Feelgood Fitness",
+"street": "Leusbündtweg",
+"house_number": "27",
+"plz": "6800",
+"city": "Feldkirch"
+},
+{
+"name": "FITINN",
+"street": "Königshofstraße",
+"house_number": "57",
+"plz": "6800",
+"city": "Feldkirch"
+},
+{
+"name": "Life Fitness Club 2.0",
+"street": "Grenzweg",
+"house_number": "10",
+"plz": "6800",
+"city": "Feldkirch"
+},
+{
+"name": "purfitness",
+"street": "Reichsstraße",
+"house_number": "126",
+"plz": "6800",
+"city": "Feldkirch"
+},
+{
+"name": "Zeus Body Lounge",
+"street": "Hirschgraben",
+"house_number": "4",
+"plz": "6800",
+"city": "Feldkirch"
+},
+{
+"name": "24h Fitness Frastanz",
+"street": "Sonnenberger Straße",
+"house_number": "17",
+"plz": "6820",
+"city": "Frastanz"
+},
+{
+"name": "Fitness & Vitalcenter Bitschnau",
+"street": "Im Buch",
+"house_number": "45",
+"plz": "6840",
+"city": "Götzis"
+},
+{
+"name": "Good Life Sports",
+"street": "Am Garnmarkt",
+"house_number": "17",
+"plz": "6840",
+"city": "Götzis"
+},
+{
+"name": "Begle Balance",
+"street": "Graf-Maximilian-Straße",
+"house_number": "18/2",
+"plz": "6845",
+"city": "Hohenems"
+},
+{
+"name": "Good Life Sports Hohenems",
+"street": "Erlachstraße",
+"house_number": "10",
+"plz": "6845",
+"city": "Hohenems"
+},
+{
+"name": "Iyengar Yoga West",
+"street": "Diepoldsauer Straße",
+"house_number": "5",
+"plz": "6845",
+"city": "Hohenems"
+},
+{
+"name": "Studio twenty minutes",
+"street": "Schlossbergstraße",
+"house_number": "9",
+"plz": "6845",
+"city": "Hohenems"
+},
+{
+"name": "Aure Yoga - Le Studio",
+"street": "Steinebach",
+"house_number": "7",
+"plz": "6850",
+"city": "Dornbirn"
+},
+{
+"name": "FITINN",
+"street": "Schwefel",
+"house_number": "67",
+"plz": "6850",
+"city": "Dornbirn"
+},
+{
+"name": "Good Life Sports Dornbirn",
+"street": "Marktstraße",
+"house_number": "4",
+"plz": "6850",
+"city": "Dornbirn"
+},
+{
+"name": "Magic Fit",
+"street": "Bildgasse",
+"house_number": "18",
+"plz": "6850",
+"city": "Dornbirn"
+},
+{
+"name": "Mrs. Sporty",
+"street": "Lustenauerstraße",
+"house_number": "62",
+"plz": "6850",
+"city": "Dornbirn"
+},
+{
+"name": "PowerFit",
+"street": "Schwefel",
+"house_number": "100",
+"plz": "6850",
+"city": "Dornbirn"
+},
+{
+"name": "Purfitness",
+"street": "Millennium Park",
+"house_number": "2",
+"plz": "6890",
+"city": ""
+},
+{
+"name": "Clever fit",
+"street": "Mariahilfstraße",
+"house_number": "1",
+"plz": "6900",
+"city": "Bregenz"
+},
+{
+"name": "Fitnessstudio Top-Fit",
+"street": "Mariahilfstraße",
+"house_number": "6",
+"plz": "6900",
+"city": "Bregenz"
+},
+{
+"name": "INJOY",
+"street": "Mariahilfstraße",
+"house_number": "29",
+"plz": "6900",
+"city": "Bregenz"
+},
+{
+"name": "Purfitness Fitnessclub I.",
+"street": "Rathausstraße",
+"house_number": "6",
+"plz": "6900",
+"city": "Bregenz"
+},
+{
+"name": "werkeins trainingsclub",
+"street": "Kellaweg",
+"house_number": "3",
+"plz": "6922",
+"city": "Wolfurt"
+},
+{
+"name": "Purfitness Fitnessclub II.",
+"street": "Bundesstraße",
+"house_number": "95",
+"plz": "6923",
+"city": "Lauterach"
+},
+{
+"name": "Vital Plus",
+"street": "Dammstraße",
+"house_number": "4",
+"plz": "6923",
+"city": "Lauterach"
+},
+{
+"name": "Kiing Athletic",
+"street": "Rheinstraße",
+"house_number": "2",
+"plz": "6971",
+"city": "Hard"
+},
+{
+"name": "Black Sunset CrossFit",
+"street": "Hirschfeldspitz",
+"house_number": "100",
+"plz": "7100",
+"city": "Neusiedl am See"
+},
+{
+"name": "CityLife-Fitness & Health Club",
+"street": "Untere Hauptstraße",
+"house_number": "31",
+"plz": "7100",
+"city": "Neusiedl am See"
+},
+{
+"name": "Lakeside Yoga-Yoga am See",
+"street": "Hauptplatz",
+"house_number": "29/1/2. Stock",
+"plz": "7100",
+"city": "Neusiedl am See"
+},
+{
+"name": "MedX Rückentraining",
+"street": "Obere Hauptstraße",
+"house_number": "27",
+"plz": "7100",
+"city": "Neusiedl am See"
+},
+{
+"name": "milon Fitness Resch",
+"street": "Hauptplatz",
+"house_number": "29/2/2. Stock",
+"plz": "7100",
+"city": "Neusiedl am See"
+},
+{
+"name": "Fit Fabrik Plus Parndorf",
+"street": "Gewerbestraße",
+"house_number": "9",
+"plz": "7111",
+"city": "Parndorf"
+},
+{
+"name": "BERNHARDTRAINIERT - Personal Trainer",
+"street": "Friedhofgasse",
+"house_number": "45a",
+"plz": "7121",
+"city": "Weiden am See"
+},
+{
+"name": "Petra Herzog Yoga & Mentaltraining",
+"street": "Fasangasse",
+"house_number": "11",
+"plz": "7122",
+"city": "Gols"
+},
+{
+"name": "Die Sportstätte",
+"street": "Schmalzhöhgasse",
+"house_number": "21",
+"plz": "7132",
+"city": "Frauenkirchen"
+},
+{
+"name": "Athletic Mock",
+"street": "Walbersdorf Fachmarktzentrum",
+"house_number": "4",
+"plz": "7210",
+"city": "Mattersburg"
+},
+{
+"name": "Morefit",
+"street": "Europastraße",
+"house_number": "2",
+"plz": "7400",
+"city": "Oberwart"
+},
+{
+"name": "3D Lady Fit",
+"street": "Münzgrabenstraße",
+"house_number": "84b",
+"plz": "8010",
+"city": "Graz"
+},
+{
+"name": "Bodystreet",
+"street": "Wickenburggasse",
+"house_number": "40",
+"plz": "8010",
+"city": "Graz"
+},
+{
+"name": "Casa Ananda",
+"street": "Alberstraße",
+"house_number": "9",
+"plz": "8010",
+"city": "Graz"
+},
+{
+"name": "City Yoga",
+"street": "Am Eisernen Tor",
+"house_number": "3",
+"plz": "8010",
+"city": "Graz"
+},
+{
+"name": "FITINN",
+"street": "Jakominiplatz",
+"house_number": "12",
+"plz": "8010",
+"city": "Graz"
+},
+{
+"name": "JOHN REED Fitness",
+"street": "Conrad-von-Hötzendorf-Straße",
+"house_number": "99a",
+"plz": "8010",
+"city": "Graz"
+},
+{
+"name": "LadyFit Graz",
+"street": "Leonhardstraße",
+"house_number": "125",
+"plz": "8010",
+"city": "Graz"
+},
+{
+"name": "Merkur Gym",
+"street": "Conrad-von-Hötzendorf-Straße",
+"house_number": "84",
+"plz": "8010",
+"city": "Graz"
+},
+{
+"name": "STUDIO herzfeld",
+"street": "Körösistraße",
+"house_number": "9",
+"plz": "8010",
+"city": "Graz"
+},
+{
+"name": "Studyo - Lisa Schopp",
+"street": "Waltendorfer Hauptstraße",
+"house_number": "32a",
+"plz": "8010",
+"city": "Graz"
+},
+{
+"name": "Vibes Fitness",
+"street": "Hauptplatz",
+"house_number": "17",
+"plz": "8010",
+"city": "Graz"
+},
+{
+"name": "Vibes Fitness",
+"street": "Leechgasse",
+"house_number": "25",
+"plz": "8010",
+"city": "Graz"
+},
+{
+"name": "A.F.C.",
+"street": "Augasse",
+"house_number": "34",
+"plz": "8020",
+"city": "Graz"
+},
+{
+"name": "FIT Intelligent Trainiert",
+"street": "Griesgasse",
+"house_number": "12",
+"plz": "8020",
+"city": "Graz"
+},
+{
+"name": "FIT Spot Graz",
+"street": "Lastenstraße",
+"house_number": "9a",
+"plz": "8020",
+"city": "Graz"
+},
+{
+"name": "FITINN",
+"street": "Europaplatz",
+"house_number": "5",
+"plz": "8020",
+"city": "Graz"
+},
+{
+"name": "Infra Burn",
+"street": "Mühlgasse",
+"house_number": "56",
+"plz": "8020",
+"city": "Graz"
+},
+{
+"name": "Kieser Training",
+"street": "Babenbergerstraße",
+"house_number": "2",
+"plz": "8020",
+"city": "Graz"
+},
+{
+"name": "Laolie",
+"street": "Lendkai",
+"house_number": "113",
+"plz": "8020",
+"city": "Graz"
+},
+{
+"name": "Mandu",
+"street": "Belgiergasse",
+"house_number": "4",
+"plz": "8020",
+"city": "Graz"
+},
+{
+"name": "Ultimate Gym",
+"street": "Puchstraße",
+"house_number": "17",
+"plz": "8020",
+"city": "Graz"
+},
+{
+"name": "Vibes Fitness",
+"street": "Südtiroler Platz",
+"house_number": "13",
+"plz": "8020",
+"city": "Graz"
+},
+{
+"name": "Yoga Gudi",
+"street": "Griesgasse",
+"house_number": "4",
+"plz": "8020",
+"city": "Graz"
+},
+{
+"name": "CrossFit",
+"street": "Liebenauer Hauptstraße",
+"house_number": "41",
+"plz": "8041",
+"city": "Graz"
+},
+{
+"name": "body mind spirit",
+"street": "Mariatroster Straße",
+"house_number": "382",
+"plz": "8044",
+"city": "Graz"
+},
+{
+"name": "INJOYmed Graz Ost",
+"street": "Rettenbacher Straße",
+"house_number": "4b",
+"plz": "8044",
+"city": "Graz"
+},
+{
+"name": "Curves",
+"street": "Am Arlandgrund",
+"house_number": "2",
+"plz": "8045",
+"city": "Graz"
+},
+{
+"name": "myfitness Graz-Andritz",
+"street": "Andritzer Reichsstraße",
+"house_number": "32a",
+"plz": "8045",
+"city": "Graz"
+},
+{
+"name": "Bodystreet Graz Wetzelsdorf",
+"street": "Burenstraße",
+"house_number": "88",
+"plz": "8052",
+"city": "Graz"
+},
+{
+"name": "Happy Fit",
+"street": "Triester Straße",
+"house_number": "369",
+"plz": "8055",
+"city": "Graz"
+},
+{
+"name": "Level One Fitness",
+"street": "Gewerbestraße",
+"house_number": "5a",
+"plz": "8071",
+"city": "Hausmannstätten"
+},
+{
+"name": "Mrs. Sporty",
+"street": "Kalsdorfer Straße",
+"house_number": "",
+"plz": "8072",
+"city": ""
+},
+{
+"name": "myFitness",
+"street": "Anton-Bruckner-Gasse",
+"house_number": "2",
+"plz": "8073",
+"city": "Feldkirchen bei Graz"
+},
+{
+"name": "P2 Fitness Studio",
+"street": "Pachern-Hauptstraße",
+"house_number": "94",
+"plz": "8075",
+"city": "Hart bei Graz"
+},
+{
+"name": "MTZ – Medizinisches Trainingszentrum",
+"street": "Feldbacherstraße",
+"house_number": "24",
+"plz": "8083",
+"city": "St. Stefan im Rosental"
+},
+{
+"name": "Impuls Fitness",
+"street": "Jakob-Syz-Weg 14",
+"house_number": "",
+"plz": "8101",
+"city": "Gratkorn"
+},
+{
+"name": "OverpowerGym",
+"street": "Römerpark",
+"house_number": "1",
+"plz": "8130",
+"city": "Frohnleiten"
+},
+{
+"name": "JK Sports",
+"street": "Hans-Sutter-Gasse",
+"house_number": "15",
+"plz": "8160",
+"city": "Weiz"
+},
+{
+"name": "Lifestyle Weiz",
+"street": "Marburger Straße",
+"house_number": "47",
+"plz": "8160",
+"city": "Weiz"
+},
+{
+"name": "Pole Beat - Das Pole Dance & Fitness Studio",
+"street": "Lärchenweg",
+"house_number": "2 - 4",
+"plz": "8160",
+"city": "Weiz"
+},
+{
+"name": "Feelgood Gleisdorf",
+"street": "Schillerstraße",
+"house_number": "13",
+"plz": "8200",
+"city": "Gleisdorf"
+},
+{
+"name": "morefit",
+"street": "Stadionstraße",
+"house_number": "2",
+"plz": "8200",
+"city": "Gleisdorf"
+},
+{
+"name": "Sportcorner",
+"street": "Industriestraße",
+"house_number": "28",
+"plz": "8200",
+"city": "Gleisdorf"
+},
+{
+"name": "HomeBase Fit for Life",
+"street": "Am Ökopark",
+"house_number": "19",
+"plz": "8230",
+"city": "Hartberg"
+},
+{
+"name": "MoreFit",
+"street": "Im Hatric",
+"house_number": "8",
+"plz": "8230",
+"city": "Hartberg"
+},
+{
+"name": "Gym Frey",
+"street": "Forstingerstraße",
+"house_number": "5",
+"plz": "8295",
+"city": "Sankt Johann in der Haide"
+},
+{
+"name": "Mrs. Sporty",
+"street": "Ringstraße",
+"house_number": "13",
+"plz": "8330",
+"city": "Feldbach"
+},
+{
+"name": "Noah Sports",
+"street": "Gnas",
+"house_number": "194a",
+"plz": "8342",
+"city": "Gnas"
+},
+{
+"name": "Clever fit",
+"street": "Rudolf Hans Bartsch Gasse",
+"house_number": "",
+"plz": "8430",
+"city": "Leibnitz"
+},
+{
+"name": "INJOY",
+"street": "Reichsstraße",
+"house_number": "64",
+"plz": "8430",
+"city": "Leibnitz"
+},
+{
+"name": "Top Style - Fitnesscenter",
+"street": "Augasse",
+"house_number": "46",
+"plz": "8430",
+"city": "Leibnitz"
+},
+{
+"name": "CrossFit",
+"street": "Fassoldweg",
+"house_number": "9",
+"plz": "8431",
+"city": ""
+},
+{
+"name": "MyFit",
+"street": "Gewerbepark Nord",
+"house_number": "21",
+"plz": "8431",
+"city": "Gralla"
+},
+{
+"name": "MoreFit Lieboch",
+"street": "Johann Assl-Platz",
+"house_number": "1",
+"plz": "8501",
+"city": "Lieboch"
+},
+{
+"name": "Rainer Fitness- und Gesundheitsstudio",
+"street": "Packer Straße",
+"house_number": "125",
+"plz": "8501",
+"city": "Lieboch"
+},
+{
+"name": "clever fit Deutschlandsberg",
+"street": "Marktring",
+"house_number": "1",
+"plz": "8523",
+"city": "Frauental an der Laßnitz"
+},
+{
+"name": "Boutique Fitnesstudio SteiraFIT",
+"street": "Dr.-Viktor-Verdroß-Straße",
+"house_number": "3",
+"plz": "8530",
+"city": "Deutschlandsberg"
+},
+{
+"name": "Domi's FitGarage",
+"street": "Dr.-Viktor-Verdroß-Straße",
+"house_number": "3",
+"plz": "8530",
+"city": "Deutschlandsberg"
+},
+{
+"name": "Pansi-Fit KG",
+"street": "Packerstraße",
+"house_number": "28",
+"plz": "8561",
+"city": "Söding-Sankt Johann"
+},
+{
+"name": "Apollo Fitnessstudio",
+"street": "Krottendorf",
+"house_number": "9",
+"plz": "8564",
+"city": "Krottendorf-Gaisfeld"
+},
+{
+"name": "Fitnessstudio PUMP THIS!",
+"street": "Dr.-Hubert-Kravcar-Platz",
+"house_number": "1",
+"plz": "8570",
+"city": "Voitsberg"
+},
+{
+"name": "INJOY",
+"street": "Perschlerstraße",
+"house_number": "2",
+"plz": "8580",
+"city": "Köflach"
+},
+{
+"name": "m.a.n.d.u.",
+"street": "An der Postwiese",
+"house_number": "6",
+"plz": "8600",
+"city": "Bruck an der Mur"
+},
+{
+"name": "Lifefit",
+"street": "Seestraße",
+"house_number": "2-3",
+"plz": "8642",
+"city": "Sankt Lorenzen im Mürztal"
+},
+{
+"name": "STHE Gym",
+"street": "Grazer Straße",
+"house_number": "30",
+"plz": "8680",
+"city": "Mürzzuschlag"
+},
+{
+"name": "BE FIT! Hönigsberg",
+"street": "Werkstraße",
+"house_number": "1",
+"plz": "8682",
+"city": "Mürzzuschlag"
+},
+{
+"name": "Actic Fitness",
+"street": "In der Au",
+"house_number": "3",
+"plz": "8700",
+"city": "Leoben"
+},
+{
+"name": "Fair Fitness",
+"street": "Josef Heißl-Straße",
+"house_number": "40",
+"plz": "8700",
+"city": "Leoben"
+},
+{
+"name": "fitnesswelt",
+"street": "Münzenbergstraße",
+"house_number": "2",
+"plz": "8700",
+"city": "Leoben"
+},
+{
+"name": "Sam's Gym",
+"street": "Vordernberger Straße",
+"house_number": "8",
+"plz": "8700",
+"city": "Leoben"
+},
+{
+"name": "Speedfit",
+"street": "Hauptplatz",
+"house_number": "17",
+"plz": "8700",
+"city": "Leoben"
+},
+{
+"name": "Clever fit",
+"street": "Kärntnerstraße",
+"house_number": "100",
+"plz": "8720",
+"city": "Knittefeld"
+},
+{
+"name": "Injoy Fitness",
+"street": "Austriastraße",
+"house_number": "10",
+"plz": "8720",
+"city": "Knittelfeld"
+},
+{
+"name": "LifeStyle",
+"street": "Dr.-Karl-Federhofer-Straße",
+"house_number": "21",
+"plz": "8720",
+"city": "Knittelfeld"
+},
+{
+"name": "Bixpack",
+"street": "Marktpassage",
+"house_number": "1",
+"plz": "8724",
+"city": "Spielberg"
+},
+{
+"name": "Vitanova",
+"street": "Unterer Dorfgrund",
+"house_number": "7",
+"plz": "8724",
+"city": "Spielberg"
+},
+{
+"name": "LifeQuality",
+"street": "Tulpengasse",
+"house_number": "8",
+"plz": "8740",
+"city": "Zeltweg"
+},
+{
+"name": "yogami",
+"street": "Bundesstraße",
+"house_number": "24",
+"plz": "8740",
+"city": "Zeltweg"
+},
+{
+"name": "Sportness7",
+"street": "Schulplatz",
+"house_number": "9",
+"plz": "8753",
+"city": "Fohnsdorf"
+},
+{
+"name": "Premium Fitness Schlager",
+"street": "Langefelderstraße",
+"house_number": "5",
+"plz": "8793",
+"city": "Trofaiach"
+},
+{
+"name": "SIXPACKFITNESS",
+"street": "Gewerbepark",
+"house_number": "25",
+"plz": "8811",
+"city": "Scheifling"
+},
+{
+"name": "Fair Fitness",
+"street": "Brigittenhof",
+"house_number": "6",
+"plz": "8850",
+"city": "Murau"
+},
+{
+"name": "Body Shape Liezen",
+"street": "Bahnhofweg",
+"house_number": "7",
+"plz": "8940",
+"city": "Liezen"
+},
+{
+"name": "Mrs. Sporty",
+"street": "Gesäuse Straße",
+"house_number": "21",
+"plz": "8940",
+"city": "Liezen"
+},
+{
+"name": "Atlantis Fitness & Yogaclub",
+"street": "Rosentaler Straße",
+"house_number": "119h",
+"plz": "9020",
+"city": "Klagenfurt am Wörthersee"
+},
+{
+"name": "Bettis Gymhaus",
+"street": "Pischeldorfer Straße",
+"house_number": "163",
+"plz": "9020",
+"city": "Klagenfurt am Wörthersee"
+},
+{
+"name": "FITINN",
+"street": "Schleppe-Platz",
+"house_number": "7",
+"plz": "9020",
+"city": "Klagenfurt am Wörthersee"
+},
+{
+"name": "FITINN",
+"street": "Südring",
+"house_number": "211",
+"plz": "9020",
+"city": "Klagenfurt am Wörthersee"
+},
+{
+"name": "McFit",
+"street": "Völkermarkter Straße",
+"house_number": "200",
+"plz": "9020",
+"city": "Klagenfurt am Wörthersee"
+},
+{
+"name": "Movendus",
+"street": "Herbertstraße",
+"house_number": "2",
+"plz": "9020",
+"city": "Klagenfurt am Wörthersee"
+},
+{
+"name": "Smartfit",
+"street": "Pischeldorfer Straße",
+"house_number": "216",
+"plz": "9020",
+"city": "Klagenfurt am Wörthersee"
+},
+{
+"name": "the Kitty Club",
+"street": "Villacher Ring",
+"house_number": "37",
+"plz": "9020",
+"city": "Klagenfurt am Wörthersee"
+},
+{
+"name": "Cross Fit",
+"street": "Neubruchstraße",
+"house_number": "2",
+"plz": "9100",
+"city": "Völkermarkt"
+},
+{
+"name": "Neuhauser",
+"street": "Seecorso",
+"house_number": "4",
+"plz": "9220",
+"city": "Velden am Wörther See"
+},
+{
+"name": "Nonstop Fitness",
+"street": "Industriestraße",
+"house_number": "1",
+"plz": "9241",
+"city": "Wernberg"
+},
+{
+"name": "JK Sports und Fitness Wolfsberg",
+"street": "Klagenfurter Straße",
+"house_number": "42",
+"plz": "9400",
+"city": "Wolfsberg"
+},
+{
+"name": "Bodystreet",
+"street": "Peraustraße",
+"house_number": "32",
+"plz": "9500",
+"city": "Villach"
+},
+{
+"name": "ChriSport Personal Training",
+"street": "Maria-Gailer-Straße",
+"house_number": "27",
+"plz": "9500",
+"city": "Villach"
+},
+{
+"name": "Clever fit",
+"street": "Trattengasse",
+"house_number": "28",
+"plz": "9500",
+"city": "Villach"
+},
+{
+"name": "Rund ums Herz Yoga & Ernährungsberatung",
+"street": "Kugelweg",
+"house_number": "53",
+"plz": "9500",
+"city": "Villach"
+},
+{
+"name": "Yoga im täglichen Leben - Das System",
+"street": "Stefan-Moser-Straße",
+"house_number": "4",
+"plz": "9500",
+"city": "Villach"
+},
+{
+"name": "Heidi Truntschnig",
+"street": "Alte Bundesstraße",
+"house_number": "8",
+"plz": "9544",
+"city": "Feld am See"
+},
+{
+"name": "Shiatsu & Yoga Eva Wilhelm",
+"street": "Koschatstraße",
+"house_number": "11a",
+"plz": "9800",
+"city": "Spittal an der Drau"
+},
+{
+"name": "MyGym Matrei i. O.",
+"street": "Alban-Bichler-Straße",
+"house_number": "3",
+"plz": "9971",
+"city": "Matrei in Osttirol"
+},
+{
+"name": "FitLounge",
+"street": "Andrä Idl-Straße",
+"house_number": "8",
+"plz": "9990",
+"city": "Nußdorf-Debant"
+}
+]

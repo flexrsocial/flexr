@@ -211,3 +211,22 @@ def test_admin_stats(client):
     stats = resp.json()
     assert stats["total_users"] >= 1
     assert stats["trial_users"] >= 1
+    # Neue Aufgaben-/Zugriffsfelder vorhanden
+    for key in ("pending_verifications", "flagged_messages", "pending_gyms",
+                "active_today", "new_today"):
+        assert key in stats
+
+
+def test_admin_access_stats(client):
+    admin_headers, _ = create_admin(client, email="admin.access@example.com")
+    # Ein Nutzer greift zu (Profilabruf triggert die Zugriffserfassung)
+    headers = register_user(client, "accessuser@example.com")
+    client.get("/api/profiles/me", headers=headers)
+
+    resp = client.get("/api/admin/access-stats?days=7", headers=admin_headers)
+    assert resp.status_code == 200
+    data = resp.json()
+    assert len(data["daily"]) == 7
+    # Der heutige Tag ist der letzte Eintrag und zählt den aktiven Nutzer
+    assert data["daily"][-1]["count"] >= 1
+    assert any(c["country"] == "AT" and c["count"] >= 1 for c in data["countries"])

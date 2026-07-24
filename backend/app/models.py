@@ -36,6 +36,12 @@ class PhotoStatus(str, enum.Enum):
     rejected = "rejected"
 
 
+class GymStatus(str, enum.Enum):
+    approved = "approved"
+    pending = "pending"    # von Nutzern vorgeschlagen, wartet auf Admin-Freigabe
+    rejected = "rejected"
+
+
 class VerificationStatus(str, enum.Enum):
     in_progress = "in_progress"  # Posen ausgegeben, Selfies noch nicht eingereicht
     submitted = "submitted"      # Selfies hochgeladen, wartet auf manuelle Prüfung
@@ -43,7 +49,9 @@ class VerificationStatus(str, enum.Enum):
     rejected = "rejected"
 
 
-# Wien-Gyms aus dem Prototyp — bei Bedarf um weitere österreichische Städte/Gyms erweitern
+# Legacy-Liste aus dem Prototyp - dient nur noch als Seed für die gyms-Tabelle
+# (bestehende Profile referenzieren diese Namen). Die eigentliche Gym-Liste
+# lebt in der Tabelle Gym (OSM-Import + freigegebene Nutzer-Vorschläge).
 GYM_CHOICES = [
     "John Harris Fitness",
     "Holmes Place",
@@ -56,6 +64,34 @@ GYM_CHOICES = [
     "USI Wien",
     "Anderes Studio",
 ]
+
+
+class Gym(Base):
+    """Fitnessstudios in Österreich: Basisdaten aus OpenStreetMap (Name,
+    Straße, Hausnummer, PLZ), ergänzt um Nutzer-Vorschläge, die nach
+    Admin-Freigabe in die Auswahlliste aufgenommen werden."""
+
+    __tablename__ = "gyms"
+
+    id = Column(String, primary_key=True, default=gen_uuid)
+    name = Column(String, nullable=False, index=True)
+    street = Column(String, nullable=False, default="")
+    house_number = Column(String, nullable=False, default="")
+    plz = Column(String(4), nullable=False, default="", index=True)
+    city = Column(String, nullable=False, default="")
+    status = Column(Enum(GymStatus), nullable=False, default=GymStatus.pending)
+    suggested_by = Column(
+        String, ForeignKey("users.id", ondelete="SET NULL"), nullable=True
+    )
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    @property
+    def label(self) -> str:
+        """Anzeigename inkl. Adresse, z. B. "FITINN — Johnstraße 65, 1150 Wien"."""
+        addr = f"{self.street} {self.house_number}".strip()
+        place = f"{self.plz} {self.city}".strip()
+        parts = [p for p in (addr, place) if p]
+        return f"{self.name} — {', '.join(parts)}" if parts else self.name
 
 class User(Base):
     __tablename__ = "users"
@@ -280,6 +316,23 @@ class VerificationRequest(Base):
     selfies = Column(Text, nullable=True)    # JSON: [{"prompt": ..., "object_key": ...}]
     created_at = Column(DateTime, default=datetime.utcnow)
     decided_at = Column(DateTime, nullable=True)
+
+
+class DailyAccess(Base):
+    """Ein Eintrag pro Nutzer, Tag und Ländercode - Basis für die
+    Zugriffsstatistik im Admin-Dashboard (tagesaktive Nutzer, Länderverteilung).
+    Es wird bewusst KEINE IP-Adresse gespeichert, nur der grobe Ländercode aus
+    der Geo-Zuordnung (bzw. der aus der PLZ abgeleitete Länderbezug "AT")."""
+
+    __tablename__ = "daily_access"
+    __table_args__ = (
+        UniqueConstraint("user_id", "day", "country", name="uq_daily_access"),
+    )
+
+    id = Column(String, primary_key=True, default=gen_uuid)
+    user_id = Column(String, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    day = Column(Date, nullable=False, index=True)
+    country = Column(String(2), nullable=False, default="AT")
 
 
 class AdminUser(Base):

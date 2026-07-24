@@ -777,6 +777,32 @@
   .verify-error{ color:var(--danger); font-size:13px; text-align:center; margin-top:10px; }
 
   /* Bio-Feld mit Emoji-Button (grauer Smiley unten rechts im Textfeld) */
+  /* Gym-Suchfeld mit Dropdown (echte Gyms aus der Datenbank) */
+  .gym-picker{ position:relative; }
+  .gym-results{
+    display:none; position:absolute; top:calc(100% + 4px); left:0; right:0; z-index:25;
+    background:var(--surface-2); border:1px solid var(--steel); border-radius:12px;
+    max-height:260px; overflow-y:auto; scrollbar-width:thin;
+    box-shadow:0 14px 34px rgba(0,0,0,.5);
+  }
+  .gym-results.open{ display:block; }
+  .gym-result{
+    padding:10px 14px; cursor:pointer; border-bottom:1px solid var(--hairline);
+  }
+  .gym-result:hover{ background:var(--surface-3); }
+  .gym-result .g-name{ font-size:14px; color:var(--chalk); }
+  .gym-result .g-addr{ font-size:11.5px; color:var(--chalk-dim); margin-top:2px; }
+  .gym-result.suggest-row{
+    color:var(--plate); font-size:13px; border-bottom:none;
+    display:flex; align-items:center; gap:8px;
+  }
+  .gym-result.suggest-row:hover{ background:rgba(255,90,31,.08); }
+  .gym-picked{
+    display:none; margin-top:6px; font-size:11.5px; color:var(--chalk-dim);
+    font-family:'JetBrains Mono', monospace;
+  }
+  .gym-picked.show{ display:block; }
+
   .bio-wrap{ position:relative; }
   .bio-wrap textarea{ padding-bottom:38px; }
   .emoji-btn{
@@ -1003,19 +1029,11 @@
       </select>
 
       <label>Gym</label>
-      <select id="f-gym" required>
-        <option value="" disabled selected>Wähle</option>
-        <option>John Harris Fitness</option>
-        <option>Holmes Place</option>
-        <option>FitInn</option>
-        <option>Clever Fit</option>
-        <option>McFit</option>
-        <option>Fitness First</option>
-        <option>Kraftwerk Gym</option>
-        <option>Iron Gym Wien</option>
-        <option>USI Wien</option>
-        <option>Anderes Studio</option>
-      </select>
+      <div class="gym-picker">
+        <input type="text" id="f-gym" placeholder="Gym suchen (Name, Ort oder PLZ) …" autocomplete="off">
+        <div class="gym-results" id="fGymResults"></div>
+      </div>
+      <div class="gym-picked" id="fGymPicked"></div>
 
       <label>Bio</label>
       <textarea id="f-bio" placeholder="Was du suchst, dein Training, was auch immer..." maxlength="280"></textarea>
@@ -1138,18 +1156,11 @@
         <div class="field-err" id="acctPlzErr"></div>
 
         <label>Gym</label>
-        <select id="a-gym">
-          <option>John Harris Fitness</option>
-          <option>Holmes Place</option>
-          <option>FitInn</option>
-          <option>Clever Fit</option>
-          <option>McFit</option>
-          <option>Fitness First</option>
-          <option>Kraftwerk Gym</option>
-          <option>Iron Gym Wien</option>
-          <option>USI Wien</option>
-          <option>Anderes Studio</option>
-        </select>
+        <div class="gym-picker">
+          <input type="text" id="a-gym" placeholder="Gym suchen (Name, Ort oder PLZ) …" autocomplete="off">
+          <div class="gym-results" id="aGymResults"></div>
+        </div>
+        <div class="gym-picked" id="aGymPicked"></div>
 
         <label>Bio</label>
         <div class="bio-wrap">
@@ -1267,6 +1278,40 @@
       <svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg>
     </button>
     <div class="lightbox-dots" id="lightboxDots"></div>
+  </div>
+
+  <!-- GYM-VORSCHLAG -->
+  <div class="legal-modal-backdrop" id="gymSuggestBackdrop">
+    <div class="legal-modal delete-modal" role="dialog" aria-modal="true">
+      <button class="legal-modal-close" id="gymSuggestClose" aria-label="Schließen">✕</button>
+      <div class="legal-modal-body">
+        <h1 style="font-size:20px;">Gym vorschlagen</h1>
+        <p style="margin-top:10px;">
+          Dein Gym fehlt in der Liste? Reich es mit Adresse ein - du kannst es
+          sofort für dein Profil verwenden, nach Prüfung erscheint es für alle
+          in der Auswahl.
+        </p>
+        <label style="margin-top:16px;">Name des Gyms</label>
+        <input type="text" id="sg-name" placeholder="z. B. Eisenschmiede" maxlength="120">
+        <label>Straße</label>
+        <input type="text" id="sg-street" placeholder="z. B. Hauptstraße" maxlength="120">
+        <div class="row2">
+          <div>
+            <label>Hausnummer</label>
+            <input type="text" id="sg-number" placeholder="12" maxlength="20">
+          </div>
+          <div>
+            <label>Postleitzahl</label>
+            <input type="text" id="sg-plz" placeholder="1010" inputmode="numeric" maxlength="4">
+          </div>
+        </div>
+        <div class="field-err" id="sgErr"></div>
+        <div class="btn-row" style="margin-top:18px;">
+          <button class="btn" id="btnGymSuggestSubmit">Vorschlag einreichen</button>
+          <button class="btn secondary" id="btnGymSuggestCancel">Abbrechen</button>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- KONTO-LÖSCHEN-BESTÄTIGUNG -->
@@ -1588,6 +1633,118 @@
   $('f-plz').addEventListener('focus', () => $('plzCombo').classList.add('focused'));
   $('f-plz').addEventListener('blur', () => $('plzCombo').classList.remove('focused'));
 
+  // ---------- Gym-Suchfeld (echte Gyms aus der Datenbank + Vorschlagsfunktion) ----------
+  let gymSuggestTargetInput = null;
+
+  function initGymPicker(inputId, resultsId, pickedId){
+    const input = $(inputId);
+    const results = $(resultsId);
+    const picked = $(pickedId);
+    let timer = null;
+
+    function close(){ results.classList.remove('open'); }
+
+    function render(gyms, term){
+      const rows = gyms.map(g => `
+        <div class="gym-result" data-name="${escapeHtml(g.name)}" data-label="${escapeHtml(g.label)}">
+          <div class="g-name">${escapeHtml(g.name)}</div>
+          ${(g.street || g.plz) ? `<div class="g-addr">${escapeHtml([`${g.street} ${g.house_number}`.trim(), `${g.plz} ${g.city}`.trim()].filter(Boolean).join(', '))}</div>` : ''}
+        </div>`).join('');
+      results.innerHTML = rows + `
+        <div class="gym-result suggest-row" data-suggest="1">
+          ＋ Gym nicht dabei? Jetzt vorschlagen${term ? ` („${escapeHtml(term)}")` : ''}
+        </div>`;
+      results.classList.add('open');
+
+      results.querySelectorAll('.gym-result').forEach(row => {
+        row.addEventListener('click', () => {
+          if(row.dataset.suggest){
+            gymSuggestTargetInput = {input, picked};
+            $('sg-name').value = input.value.trim();
+            $('sg-street').value = ''; $('sg-number').value = ''; $('sg-plz').value = '';
+            $('sgErr').textContent = '';
+            $('gymSuggestBackdrop').classList.add('open');
+          } else {
+            input.value = row.dataset.name;
+            picked.textContent = row.dataset.label;
+            picked.classList.add('show');
+          }
+          close();
+        });
+      });
+    }
+
+    input.addEventListener('input', () => {
+      picked.classList.remove('show');
+      clearTimeout(timer);
+      const term = input.value.trim();
+      timer = setTimeout(async () => {
+        try{
+          const gyms = await api('/api/gyms?q=' + encodeURIComponent(term));
+          render(gyms, term);
+        }catch(err){ console.error(err); }
+      }, 250);
+    });
+    input.addEventListener('focus', () => {
+      if(!results.classList.contains('open')) input.dispatchEvent(new Event('input'));
+    });
+    document.addEventListener('click', (e) => {
+      if(!e.target.closest('.gym-picker')) close();
+    });
+  }
+
+  initGymPicker('f-gym', 'fGymResults', 'fGymPicked');
+  initGymPicker('a-gym', 'aGymResults', 'aGymPicked');
+
+  function closeGymSuggest(){ $('gymSuggestBackdrop').classList.remove('open'); }
+  $('gymSuggestClose').addEventListener('click', closeGymSuggest);
+  $('btnGymSuggestCancel').addEventListener('click', closeGymSuggest);
+  $('gymSuggestBackdrop').addEventListener('click', (e) => {
+    if(e.target === $('gymSuggestBackdrop')) closeGymSuggest();
+  });
+
+  $('btnGymSuggestSubmit').addEventListener('click', async () => {
+    const errEl = $('sgErr');
+    errEl.textContent = '';
+    const name = $('sg-name').value.trim();
+    const street = $('sg-street').value.trim();
+    const number = $('sg-number').value.trim();
+    const plz = $('sg-plz').value.trim();
+    if(name.length < 2 || street.length < 2 || !number || !/^\d{4}$/.test(plz)){
+      errEl.textContent = 'Bitte Name, Straße, Hausnummer und eine gültige PLZ angeben.';
+      return;
+    }
+    // Ort zur PLZ still ermitteln (best effort)
+    let city = '';
+    try{
+      const res = await fetch(`${OPENPLZ_BASE}/Localities?postalCode=${encodeURIComponent(plz)}`);
+      if(res.ok){
+        const localities = await res.json();
+        if(localities.length) city = pickMunicipality(localities);
+      }
+    }catch(e){ /* Ort bleibt leer */ }
+
+    const btn = $('btnGymSuggestSubmit');
+    btn.disabled = true;
+    try{
+      const gym = await api('/api/gyms/suggest', {
+        method: 'POST',
+        body: JSON.stringify({name, street, house_number: number, plz, city: city || null}),
+      });
+      if(gymSuggestTargetInput){
+        gymSuggestTargetInput.input.value = gym.name;
+        gymSuggestTargetInput.picked.textContent = gym.label;
+        gymSuggestTargetInput.picked.classList.add('show');
+      }
+      closeGymSuggest();
+      toast('Danke! Vorschlag eingereicht - du kannst das Gym sofort verwenden.');
+    }catch(err){
+      errEl.textContent = err.message || 'Vorschlag konnte nicht eingereicht werden.';
+    }finally{
+      btn.disabled = false;
+    }
+  });
+
   $('f-birthdate').addEventListener('input', (e) => {
     e.target.classList.toggle('date-empty', !e.target.value);
   });
@@ -1906,7 +2063,8 @@
     $('acctOrtDisplay').textContent = acctResolvedCity || '— PLZ eingeben —';
     $('acctOrtDisplay').classList.toggle('resolved', !!acctResolvedCity);
     $('acctPlzErr').textContent = '';
-    $('a-gym').value = myProfile.gym || 'Anderes Studio';
+    $('a-gym').value = myProfile.gym || '';
+    $('aGymPicked').classList.remove('show');
     $('a-bio').value = myProfile.bio || '';
     $('a-radius').value = myProfile.search_radius_km || 20;
     $('radiusValue').textContent = ($('a-radius').value) + ' km';
