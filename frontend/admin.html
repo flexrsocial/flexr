@@ -40,6 +40,10 @@
     padding:11px 13px; border-radius:9px; font-size:14px; font-family:inherit;
   }
   input:focus, select:focus{ outline:2px solid var(--plate); outline-offset:1px; }
+  .gym-edit{ display:flex; flex-wrap:wrap; gap:8px; align-items:center; padding:4px 0; }
+  .gym-edit-input{ width:auto; flex:1 1 140px; min-width:90px; padding:8px 10px; font-size:13px; }
+  .gym-edit-input.short{ flex:0 0 80px; }
+  .gym-edit-actions{ display:flex; gap:8px; flex:1 1 100%; margin-top:4px; }
   .btn{
     display:inline-flex; align-items:center; justify-content:center; gap:6px;
     padding:11px 18px; border-radius:10px; border:none; cursor:pointer;
@@ -473,23 +477,24 @@
         wrap.innerHTML = '<div class="empty-state">Keine Gyms in diesem Status.</div>';
         return;
       }
-      const pending = currentGymStatus === 'pending';
       wrap.innerHTML = `
         <table>
           <thead><tr><th>Name</th><th>Adresse</th><th>Eingereicht</th><th></th></tr></thead>
           <tbody>
             ${gyms.map(g => `
-              <tr>
+              <tr id="gymrow-${g.id}">
                 <td>${escapeHtml(g.name)}</td>
                 <td>${escapeHtml([`${g.street} ${g.house_number}`.trim(), `${g.plz} ${g.city}`.trim()].filter(Boolean).join(', ') || '—')}</td>
                 <td>${g.created_at ? fmtDate(g.created_at) : '—'}</td>
                 <td style="white-space:nowrap;">
+                  <button class="btn small secondary" data-edit-gym="${g.id}">Bearbeiten</button>
                   ${g.status !== 'approved' ? `<button class="btn small" data-approve-gym="${g.id}">Freigeben</button>` : ''}
                   ${g.status !== 'rejected' ? `<button class="btn small secondary" data-reject-gym="${g.id}">Ablehnen</button>` : ''}
                 </td>
               </tr>`).join('')}
           </tbody>
         </table>`;
+      const gymById = Object.fromEntries(gyms.map(g => [g.id, g]));
       wrap.querySelectorAll('button[data-approve-gym]').forEach(btn => {
         btn.addEventListener('click', async () => {
           try{ await api(`/api/admin/gyms/${btn.dataset.approveGym}/approve`, {method: 'POST'});
@@ -504,9 +509,59 @@
           catch(err){ toast(err.message); }
         });
       });
+      wrap.querySelectorAll('button[data-edit-gym]').forEach(btn => {
+        btn.addEventListener('click', () => editGymRow(gymById[btn.dataset.editGym]));
+      });
     }catch(err){
       wrap.innerHTML = `<div class="empty-state">${escapeHtml(err.message)}</div>`;
     }
+  }
+
+  function editGymRow(g){
+    const row = $(`gymrow-${g.id}`);
+    if(!row) return;
+    const canApprove = g.status !== 'approved';
+    row.innerHTML = `
+      <td colspan="4">
+        <div class="gym-edit">
+          <input class="gym-edit-input" data-f="name" placeholder="Name" value="${escapeHtml(g.name)}">
+          <input class="gym-edit-input" data-f="street" placeholder="Straße" value="${escapeHtml(g.street)}">
+          <input class="gym-edit-input short" data-f="house_number" placeholder="Nr." value="${escapeHtml(g.house_number)}">
+          <input class="gym-edit-input short" data-f="plz" placeholder="PLZ" inputmode="numeric" maxlength="4" value="${escapeHtml(g.plz)}">
+          <input class="gym-edit-input" data-f="city" placeholder="Ort" value="${escapeHtml(g.city)}">
+          <div class="gym-edit-actions">
+            ${canApprove ? `<button class="btn small" data-save-approve>Speichern &amp; Freigeben</button>` : ''}
+            <button class="btn small secondary" data-save>Speichern</button>
+            <button class="btn small secondary" data-cancel>Abbrechen</button>
+          </div>
+        </div>
+      </td>`;
+
+    const collect = () => {
+      const vals = {};
+      row.querySelectorAll('.gym-edit-input').forEach(i => { vals[i.dataset.f] = i.value.trim(); });
+      return vals;
+    };
+    const validate = (v) => {
+      if(v.name.length < 2){ toast('Name ist zu kurz.'); return false; }
+      if(!/^\d{4}$/.test(v.plz)){ toast('PLZ muss 4 Ziffern haben.'); return false; }
+      return true;
+    };
+    const save = async (thenApprove) => {
+      const v = collect();
+      if(!validate(v)) return;
+      try{
+        await api(`/api/admin/gyms/${g.id}`, {method: 'PATCH', body: JSON.stringify(v)});
+        if(thenApprove) await api(`/api/admin/gyms/${g.id}/approve`, {method: 'POST'});
+        toast(thenApprove ? 'Gespeichert & freigegeben.' : 'Änderungen gespeichert.');
+        loadGyms(); loadDashboard();
+      }catch(err){ toast(err.message); }
+    };
+
+    const sa = row.querySelector('button[data-save-approve]');
+    if(sa) sa.addEventListener('click', () => save(true));
+    row.querySelector('button[data-save]').addEventListener('click', () => save(false));
+    row.querySelector('button[data-cancel]').addEventListener('click', () => loadGyms());
   }
 
   // ---------- Dashboard ----------

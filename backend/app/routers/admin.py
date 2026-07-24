@@ -30,6 +30,7 @@ from ..schemas import (
     AdminCountryStat,
     AdminFlaggedMessageOut,
     AdminGymOut,
+    AdminGymUpdate,
     AdminLoginRequest,
     AdminReportOut,
     AdminStats,
@@ -482,6 +483,58 @@ def approve_gym(
     gym.status = GymStatus.approved
     db.commit()
     return {"status": gym.status.value}
+
+
+@router.patch("/gyms/{gym_id}", response_model=AdminGymOut)
+def update_gym(
+    gym_id: str,
+    payload: AdminGymUpdate,
+    admin: AdminUser = Depends(get_current_admin),
+    db: Session = Depends(get_db),
+):
+    """Korrigiert einzelne Felder eines Gym-Eintrags (z. B. Rechtschreibung),
+    bevor er freigegeben wird. Wird der Name geändert, ziehen bestehende
+    Profile mit dem alten Namen mit, damit der Vorschlagende sein Gym behält."""
+    gym = db.query(Gym).filter(Gym.id == gym_id).first()
+    if not gym:
+        raise HTTPException(404, "Gym nicht gefunden.")
+
+    data = payload.model_dump(exclude_unset=True)
+    old_name = gym.name
+
+    if "name" in data:
+        new_name = data["name"].strip()
+        if not new_name:
+            raise HTTPException(400, "Name darf nicht leer sein.")
+        if new_name != old_name:
+            # Kollision mit einem anderen bereits vorhandenen Eintrag vermeiden
+            clash = (
+                db.query(Gym)
+                .filter(Gym.id != gym.id, Gym.name.ilike(new_name), Gym.plz == gym.plz)
+                .first()
+            )
+            if clash:
+                raise HTTPException(
+                    400, "Ein Gym mit diesem Namen und dieser PLZ existiert bereits."
+                )
+            # Profile, die den alten Namen referenzieren, mitziehen
+            db.query(User).filter(User.gym == old_name).update(
+                {User.gym: new_name}, synchronize_session=False
+            )
+        gym.name = new_name
+
+    for field in ("street", "house_number", "city"):
+        if field in data:
+            setattr(gym, field, (data[field] or "").strip())
+    if "plz" in data:
+        gym.plz = data["plz"]
+
+    db.commit()
+    db.refresh(gym)
+    return AdminGymOut(
+        id=gym.id, name=gym.name, street=gym.street, house_number=gym.house_number,
+        plz=gym.plz, city=gym.city, status=gym.status.value, created_at=gym.created_at,
+    )
 
 
 @router.post("/gyms/{gym_id}/reject")

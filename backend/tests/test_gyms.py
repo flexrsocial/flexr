@@ -98,6 +98,75 @@ def test_admin_rejects_suggestion(client):
     assert resp.status_code == 400
 
 
+def test_admin_modifies_suggestion_then_approves(client):
+    # Vorschlag mit Tippfehlern
+    client.post(
+        "/api/gyms/suggest",
+        json={"name": "Eisnschmeide Graz", "street": "herrengasse",
+              "house_number": "7", "plz": "8010", "city": "graz"},
+    )
+    admin_headers, _ = create_admin(client, email="gymmod@example.com")
+    gym_id = next(
+        g["id"] for g in client.get(
+            "/api/admin/gyms?status=pending", headers=admin_headers).json()
+        if g["name"] == "Eisnschmeide Graz"
+    )
+
+    # Admin korrigiert Rechtschreibung ...
+    resp = client.patch(
+        f"/api/admin/gyms/{gym_id}", headers=admin_headers,
+        json={"name": "Eisenschmiede Graz", "street": "Herrengasse", "city": "Graz"},
+    )
+    assert resp.status_code == 200, resp.text
+    assert resp.json()["name"] == "Eisenschmiede Graz"
+
+    # ... und gibt frei
+    assert client.post(
+        f"/api/admin/gyms/{gym_id}/approve", headers=admin_headers).status_code == 200
+    hits = client.get("/api/gyms?q=Eisenschmiede").json()
+    assert hits[0]["label"] == "Eisenschmiede Graz — Herrengasse 7, 8010 Graz"
+
+
+def test_admin_rename_cascades_to_profiles(client):
+    # Ein Nutzer schlägt ein Gym mit falschem Namen vor und registriert sich damit
+    client.post(
+        "/api/gyms/suggest",
+        json={"name": "Falschname Gym", "street": "Weg", "house_number": "1",
+              "plz": "4020", "city": "Linz"},
+    )
+    headers = register_user(client, "cascade@example.com", gym="Falschname Gym")
+    admin_headers, _ = create_admin(client, email="gymcascade@example.com")
+    gym_id = next(
+        g["id"] for g in client.get(
+            "/api/admin/gyms?status=pending", headers=admin_headers).json()
+        if g["name"] == "Falschname Gym"
+    )
+
+    # Admin benennt um - das Profil des Vorschlagenden zieht mit
+    assert client.patch(
+        f"/api/admin/gyms/{gym_id}", headers=admin_headers,
+        json={"name": "Richtigname Gym"},
+    ).status_code == 200
+    me = client.get("/api/profiles/me", headers=headers).json()
+    assert me["gym"] == "Richtigname Gym"
+
+
+def test_admin_edit_rejects_invalid_plz(client):
+    client.post(
+        "/api/gyms/suggest",
+        json={"name": "PLZ Gym", "street": "Weg", "house_number": "2", "plz": "6020"},
+    )
+    admin_headers, _ = create_admin(client, email="gymplz@example.com")
+    gym_id = next(
+        g["id"] for g in client.get(
+            "/api/admin/gyms?status=pending", headers=admin_headers).json()
+        if g["name"] == "PLZ Gym"
+    )
+    assert client.patch(
+        f"/api/admin/gyms/{gym_id}", headers=admin_headers, json={"plz": "12"}
+    ).status_code == 422
+
+
 def test_profile_update_validates_against_gym_table(client):
     headers = register_user(client, "gymupdate@example.com")
     assert client.patch(

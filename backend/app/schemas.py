@@ -330,6 +330,18 @@ class AdminGymOut(BaseModel):
     created_at: Optional[datetime] = None
 
 
+class AdminGymUpdate(BaseModel):
+    """Korrektur eines Gym-Eintrags durch den Admin (z. B. Rechtschreibung),
+    bevor er freigegeben wird. Alle Felder optional - nur Angegebenes wird
+    geändert."""
+
+    name: Optional[str] = Field(default=None, min_length=2, max_length=120)
+    street: Optional[str] = Field(default=None, max_length=120)
+    house_number: Optional[str] = Field(default=None, max_length=20)
+    plz: Optional[str] = Field(default=None, pattern=r"^\d{4}$")
+    city: Optional[str] = Field(default=None, max_length=100)
+
+
 class AdminFlaggedMessageOut(BaseModel):
     id: str
     sender_id: str
