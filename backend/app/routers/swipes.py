@@ -51,8 +51,19 @@ def get_deck(
     # als Notlösung der alte Gleiche-Stadt-Filter.
     my_coords = current_user.effective_coords()
     if my_coords is None:
-        nearby = [u for u in candidates if u.city == current_user.city][:50]
-        return [to_public_profile(u) for u in nearby]
+        profiles = []
+        for u in candidates:
+            if u.city != current_user.city:
+                continue
+            profile = to_public_profile(u)
+            # Nur Profile mit mindestens einem freigegebenen Foto erscheinen in
+            # der Suche (to_public_profile hat bereits auf freigegebene gefiltert).
+            if not profile.photos:
+                continue
+            profiles.append(profile)
+            if len(profiles) >= 50:
+                break
+        return profiles
 
     radius = current_user.search_radius_km or 20
     results = []
@@ -66,10 +77,15 @@ def get_deck(
 
     results.sort(key=lambda pair: pair[0])
     profiles = []
-    for dist, u in results[:50]:
+    for dist, u in results:
         profile = to_public_profile(u)
+        # Nur Profile mit mindestens einem freigegebenen Foto erscheinen in der Suche.
+        if not profile.photos:
+            continue
         profile.distance_km = round(dist)
         profiles.append(profile)
+        if len(profiles) >= 50:
+            break
     return profiles
 
 

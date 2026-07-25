@@ -1203,7 +1203,7 @@
         <div class="emoji-panel" id="emojiPanelReg"></div>
       </div>
 
-      <label>Fotos (max. 6)</label>
+      <label>Fotos (mind. 1, max. 6)</label>
       <div class="photo-grid" id="photoGrid"></div>
       <input type="file" id="photoInput" accept="image/*" style="display:none">
       <div class="field-err" id="photoErr"></div>
@@ -1975,6 +1975,11 @@
       errEl.textContent = 'Bitte ein Gym auswählen.';
       return;
     }
+    if(pendingPhotos.length < 1){
+      $('photoErr').textContent = 'Bitte lade mindestens ein Foto hoch.';
+      errEl.textContent = 'Bitte lade mindestens ein Foto hoch.';
+      return;
+    }
     if(!payload.consent_sensitive_data || !payload.consent_withdrawal_waiver){
       errEl.textContent = 'Bitte beide Zustimmungen ankreuzen, um fortzufahren.';
       return;
@@ -1986,12 +1991,20 @@
       const tokenRes = await api('/api/auth/register', {method: 'POST', body: JSON.stringify(payload)});
       setToken(tokenRes.access_token);
 
+      let photoFailures = 0;
       for(const p of pendingPhotos){
-        try{ await uploadPhoto(p); }catch(err){ console.error('Foto-Upload fehlgeschlagen:', err); }
+        try{ await uploadPhoto(p); }catch(err){ photoFailures++; console.error('Foto-Upload fehlgeschlagen:', err); }
       }
+      const uploadedCount = pendingPhotos.length - photoFailures;
       pendingPhotos = [];
 
-      toast('Profil erstellt. Willkommen bei FLEXR 💪');
+      if(uploadedCount === 0){
+        toast('Profil erstellt – Foto-Upload fehlgeschlagen. Bitte im Konto ein Foto hinzufügen.');
+      } else if(photoFailures > 0){
+        toast('Profil erstellt – nicht alle Fotos konnten hochgeladen werden.');
+      } else {
+        toast('Profil erstellt. Willkommen bei FLEXR 💪');
+      }
       await loadCurrentUser();
       $('bottomNav').style.display = 'flex';
       goToApp();
@@ -2384,6 +2397,10 @@
       errEl.textContent = 'Bitte eine gültige österreichische Postleitzahl eingeben (Ort wird automatisch ermittelt).';
       return;
     }
+    if((myProfile.photos || []).length === 0){
+      errEl.textContent = 'Bitte lade mindestens ein Foto hoch, bevor du speicherst.';
+      return;
+    }
 
     const payload = {
       plz,
@@ -2416,6 +2433,11 @@
         slot.innerHTML = `<img src="${photos[i].url}"><div class="remove" data-id="${photos[i].id}">✕</div>`;
         slot.querySelector('.remove').onclick = async (e)=>{
           e.stopPropagation();
+          if((myProfile.photos || []).length <= 1){
+            $('acctPhotoErr').textContent = 'Mindestens ein Foto ist erforderlich. Lade zuerst ein weiteres hoch.';
+            return;
+          }
+          $('acctPhotoErr').textContent = '';
           try{
             myProfile = await api('/api/profiles/me/photos/' + photos[i].id, {method: 'DELETE'});
             renderAccountPhotoGrid();
