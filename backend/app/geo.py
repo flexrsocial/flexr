@@ -1,8 +1,15 @@
 """Geo-Helfer für die Umkreissuche.
 
-PLZ-Koordinaten stammen aus dem GeoNames-Postleitzahlen-Datensatz für
-Österreich (https://download.geonames.org/export/zip/, Lizenz CC BY 4.0),
-aggregiert als Mittelwert je PLZ in app/data/plz_coords.json.
+PLZ-Koordinaten in app/data/plz_coords.json stammen überwiegend aus dem
+GeoNames-Postleitzahlen-Datensatz für Österreich
+(https://download.geonames.org/export/zip/, Lizenz CC BY 4.0), aggregiert als
+Mittelwert je PLZ.
+
+GeoNames verortet allerdings alle Bezirks-PLZ der Großstädte am Stadtzentrum
+(z. B. alle Wiener PLZ 1010-1230 auf denselben Punkt), wodurch die
+Intra-Stadt-Distanz 0 km wäre. Für diese 116 kollidierenden PLZ wurden die
+Koordinaten daher aus den PLZ-Gebietszentren von OpenStreetMap
+(Nominatim, © OpenStreetMap-Mitwirkende, Lizenz ODbL) übernommen.
 """
 
 import json
