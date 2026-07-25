@@ -10,18 +10,24 @@ from ..schemas import GymOut, GymSuggestRequest
 router = APIRouter(prefix="/api/gyms", tags=["gyms"])
 
 
-def gym_exists_for_profile(db: Session, gym_name: str) -> bool:
-    """Gültig als Profil-Gym: freigegebene Einträge sowie noch offene
-    Vorschläge (damit der Vorschlagende sein Gym sofort nutzen kann)."""
-    return (
+def gym_exists_for_profile(db: Session, gym_value: str) -> bool:
+    """Gültig als Profil-Gym: der volle Anzeigename mit Adresse (label) eines
+    freigegebenen bzw. noch offenen Gyms – oder, für Bestandsprofile, der
+    bloße Gym-Name ohne Adresse."""
+    value = (gym_value or "").strip()
+    if not value:
+        return False
+    # label sieht so aus: "Name — Straße 1, 1100 Wien" -> Name-Teil abspalten
+    name_part = value.split(" — ")[0].strip()
+    candidates = (
         db.query(Gym)
         .filter(
-            Gym.name == gym_name,
+            Gym.name == name_part,
             Gym.status.in_([GymStatus.approved, GymStatus.pending]),
         )
-        .first()
-        is not None
+        .all()
     )
+    return any(value in (g.name, g.label) for g in candidates)
 
 
 @router.get("", response_model=list[GymOut])

@@ -14,6 +14,27 @@ def test_update_gym_and_bio(client):
     assert body["bio"] == "Neue Bio 🏋️💪🔥"  # Emojis müssen erhalten bleiben
 
 
+def test_update_gym_stores_full_label_with_address(client):
+    """Bugfix: Beim Speichern muss der volle Anzeigename mit Adresse erhalten
+    bleiben, nicht nur der Ketten-Name (z. B. mehrere 'McFit'-Standorte)."""
+    headers = register_user(client, "gymlabel@example.com")
+    label = "Testgym mit Adresse — Teststraße 12, 1010 Wien"
+    resp = client.patch("/api/profiles/me", headers=headers, json={"gym": label})
+    assert resp.status_code == 200, resp.text
+    assert resp.json()["gym"] == label
+    # und bleibt beim erneuten Laden erhalten
+    assert client.get("/api/profiles/me", headers=headers).json()["gym"] == label
+
+
+def test_update_gym_wrong_label_rejected(client):
+    headers = register_user(client, "gymlabelbad@example.com")
+    resp = client.patch(
+        "/api/profiles/me", headers=headers,
+        json={"gym": "Testgym mit Adresse — Falschgasse 9, 9999 Nirgendwo"},
+    )
+    assert resp.status_code == 400
+
+
 def test_update_plz_and_city_together(client):
     headers = register_user(client, "move@example.com")
     resp = client.patch(

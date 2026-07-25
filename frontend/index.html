@@ -201,7 +201,13 @@
     -webkit-box-shadow:0 0 0 1000px var(--surface) inset;
     transition:background-color 9999s ease-in-out 0s;
   }
-  input:focus, textarea:focus, select:focus{ outline:2px solid var(--plate); outline-offset:1px; }
+  /* Fokus-Rahmen INNEN (inset), nicht als outline aussen: die Felder liegen
+     buendig an .screen.active (overflow-x:hidden) - eine aeussere outline wuerde
+     links/rechts abgeschnitten. Der inset box-shadow bleibt immer sichtbar. */
+  input:focus, textarea:focus, select:focus{
+    outline:none; border-color:var(--plate);
+    box-shadow:inset 0 0 0 2px var(--plate);
+  }
   textarea{ resize:vertical; min-height:80px; }
 
   .plz-combo{
@@ -1590,6 +1596,10 @@
     return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   }
 
+  // Gym wird als volles Label "Name — Straße 1, 1100 Wien" gespeichert. Für
+  // kompakte Zeilen (Header, Karten-Ortszeile) reicht der Name-Teil.
+  function gymName(s){ return String(s || '').split(' — ')[0]; }
+
   // Blauer Verifizierungs-Haken (nach manueller Selfie-Prüfung)
   const VERIFIED_BADGE_SVG = '<span class="verified-badge" title="Verifiziertes Profil"><svg viewBox="0 0 24 24"><path d="M5.5 12.5 10 17 18.5 7.5"/></svg></span>';
   function verifiedBadge(p){
@@ -1862,6 +1872,8 @@
             $('gymSuggestBackdrop').classList.add('open');
           } else {
             input.value = row.dataset.name;
+            input.dataset.label = row.dataset.label;   // volles Label zum Speichern
+            input.dataset.committed = row.dataset.name; // Marker: Auswahl gültig
             picked.textContent = row.dataset.label;
             picked.classList.add('show');
           }
@@ -1871,7 +1883,14 @@
     }
 
     input.addEventListener('input', () => {
-      picked.classList.remove('show');
+      // Nur wenn der Text von der bestätigten Auswahl abweicht, die Auswahl
+      // verwerfen. So löscht der synthetische Fokus-Event (Text unverändert)
+      // das gespeicherte Label NICHT.
+      if(input.dataset.committed !== undefined && input.value !== input.dataset.committed){
+        delete input.dataset.label;
+        delete input.dataset.committed;
+        picked.classList.remove('show');
+      }
       clearTimeout(timer);
       const term = input.value.trim();
       timer = setTimeout(async () => {
@@ -1929,6 +1948,8 @@
       });
       if(gymSuggestTargetInput){
         gymSuggestTargetInput.input.value = gym.name;
+        gymSuggestTargetInput.input.dataset.label = gym.label;
+        gymSuggestTargetInput.input.dataset.committed = gym.name;
         gymSuggestTargetInput.picked.textContent = gym.label;
         gymSuggestTargetInput.picked.classList.add('show');
       }
@@ -1957,7 +1978,7 @@
       plz: $('f-plz').value.trim(),
       city: resolvedCity,
       gender: $('f-gender').value,
-      gym: $('f-gym').value,
+      gym: $('f-gym').dataset.label || $('f-gym').value,
       bio: $('f-bio').value.trim() || null,
       consent_sensitive_data: $('f-consent-sensitive').checked,
       consent_withdrawal_waiver: $('f-consent-withdrawal').checked,
@@ -2243,7 +2264,7 @@
   function renderAccount(){
     $('acctName').innerHTML = escapeHtml(myProfile.name + ', ' + myProfile.age) + verifiedBadge(myProfile);
     renderVerificationSection();
-    $('acctSubline').textContent = [myProfile.city, myProfile.gym].filter(Boolean).join(' · ');
+    $('acctSubline').textContent = [myProfile.city, gymName(myProfile.gym)].filter(Boolean).join(' · ');
 
     const avatarEl = $('acctAvatar');
     const avatarPhoto = photoThumb(myProfile.photos && myProfile.photos[0]);
@@ -2281,8 +2302,18 @@
     $('acctOrtDisplay').textContent = acctResolvedCity || '— PLZ eingeben —';
     $('acctOrtDisplay').classList.toggle('resolved', !!acctResolvedCity);
     $('acctPlzErr').textContent = '';
-    $('a-gym').value = myProfile.gym || '';
-    $('aGymPicked').classList.remove('show');
+    const gymFull = myProfile.gym || '';
+    $('a-gym').value = gymName(gymFull);          // Name im Suchfeld
+    if(gymFull){
+      $('a-gym').dataset.label = gymFull;         // volles Label bleibt beim Speichern erhalten
+      $('a-gym').dataset.committed = gymName(gymFull);
+      $('aGymPicked').textContent = gymFull;      // Adresse als Bestätigung anzeigen
+      $('aGymPicked').classList.add('show');
+    } else {
+      delete $('a-gym').dataset.label;
+      delete $('a-gym').dataset.committed;
+      $('aGymPicked').classList.remove('show');
+    }
     $('a-bio').value = myProfile.bio || '';
     $('a-radius').value = myProfile.search_radius_km || 20;
     $('radiusValue').textContent = ($('a-radius').value) + ' km';
@@ -2418,7 +2449,7 @@
     const payload = {
       plz,
       city: acctResolvedCity,
-      gym: $('a-gym').value,
+      gym: $('a-gym').dataset.label || $('a-gym').value,
       bio: $('a-bio').value.trim(),
       search_radius_km: parseInt($('a-radius').value, 10),
     };
@@ -2535,7 +2566,7 @@
       <div class="stamp pass">NOPE</div>
       <div class="photo" style="background-image:url('${photo}')">
         <div class="photo-index">${(p.photos||[]).map((_,i)=>`<i class="${i===0?'on':''}"></i>`).join('')}</div>
-        <div class="name-row"><div class="nm">${escapeHtml(p.name)}, ${p.age}${verifiedBadge(p)}</div><div class="loc">${escapeHtml(p.city)} · ${escapeHtml(p.gym||'')}${p.distance_km != null ? ` · ${p.distance_km} km` : ''}</div></div>
+        <div class="name-row"><div class="nm">${escapeHtml(p.name)}, ${p.age}${verifiedBadge(p)}</div><div class="loc">${escapeHtml(p.city)} · ${escapeHtml(gymName(p.gym))}${p.distance_km != null ? ` · ${p.distance_km} km` : ''}</div></div>
       </div>
       <div class="body">
         <div class="stat-row">
@@ -3530,7 +3561,7 @@
       <div class="demo-shade"></div>
       <div class="demo-stamp like">MATCH</div>
       <div class="demo-stamp pass">NOPE</div>
-      <div class="demo-info"><div class="nm">${escapeHtml(p.name)}, ${p.age}</div><div class="loc">${escapeHtml(p.gym)}</div></div>
+      <div class="demo-info"><div class="nm">${escapeHtml(p.name)}, ${p.age}</div><div class="loc">${escapeHtml(gymName(p.gym))}</div></div>
     `;
     demoDeckEl.appendChild(card);
     card.addEventListener('mousedown', onDemoDragStart);
