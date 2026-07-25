@@ -262,6 +262,18 @@
     position:absolute; top:4px; right:4px; background:rgba(0,0,0,0.6); color:#fff;
     border-radius:50%; width:20px; height:20px; display:flex; align-items:center; justify-content:center; font-size:12px;
   }
+  /* Moderations-Status eines hochgeladenen Fotos (nur für den Eigentümer sichtbar) */
+  .photo-slot.pending{ border-style:solid; border-color:var(--plate-dim); }
+  .photo-slot.rejected{ border-style:solid; border-color:rgba(227,72,72,.5); }
+  .photo-slot .pstatus{
+    position:absolute; left:4px; right:4px; bottom:4px; text-align:center;
+    font-family:'JetBrains Mono'; font-size:9px; letter-spacing:0.06em; text-transform:uppercase;
+    padding:2px 3px; border-radius:6px; background:rgba(0,0,0,0.62);
+  }
+  .photo-slot.pending .pstatus{ color:var(--plate); }
+  .photo-slot.rejected .pstatus{ color:var(--danger); }
+  .photo-hint{ font-size:12px; line-height:1.5; color:var(--chalk-dim); margin-top:8px; }
+  .photo-hint.warn{ color:var(--plate); }
 
   /* swipe card */
   .deck{ position:relative; flex:1; min-height:430px; touch-action:none; }
@@ -1362,6 +1374,7 @@
       <div class="account-section">
         <div class="account-section-title">Fotos</div>
         <div class="photo-grid" id="acctPhotoGrid"></div>
+        <div class="photo-hint" id="acctPhotoHint"></div>
         <input type="file" id="acctPhotoInput" accept="image/*" style="display:none">
         <div class="field-err" id="acctPhotoErr"></div>
       </div>
@@ -2430,7 +2443,11 @@
       const slot = document.createElement('div');
       slot.className = 'photo-slot';
       if(photos[i]){
-        slot.innerHTML = `<img src="${photos[i].url}"><div class="remove" data-id="${photos[i].id}">✕</div>`;
+        const st = photos[i].status;
+        const statusCls = st === 'approved' ? '' : (st === 'rejected' ? 'rejected' : 'pending');
+        const statusLabel = st === 'approved' ? '' : (st === 'rejected' ? 'Abgelehnt' : 'In Prüfung');
+        if(statusCls) slot.classList.add(statusCls);
+        slot.innerHTML = `<img src="${photos[i].url}"><div class="remove" data-id="${photos[i].id}">✕</div>${statusLabel ? `<div class="pstatus">${statusLabel}</div>` : ''}`;
         slot.querySelector('.remove').onclick = async (e)=>{
           e.stopPropagation();
           if((myProfile.photos || []).length <= 1){
@@ -2448,6 +2465,29 @@
         slot.onclick = () => { $('acctPhotoInput').click(); };
       }
       grid.appendChild(slot);
+    }
+
+    // Sichtbarkeits-Hinweis: ein Profil erscheint erst in der Suche, sobald
+    // mindestens ein Foto von der Moderation freigegeben wurde.
+    const hint = $('acctPhotoHint');
+    const hasApproved = photos.some(p => p.status === 'approved');
+    const hasPending = photos.some(p => p.status === 'pending');
+    const hasRejected = photos.some(p => p.status === 'rejected');
+    if(photos.length === 0){
+      hint.className = 'photo-hint warn';
+      hint.textContent = 'Lade mindestens ein Foto hoch – ohne Foto ist dein Profil in der Suche nicht sichtbar.';
+    } else if(hasApproved){
+      hint.className = 'photo-hint';
+      hint.textContent = 'Dein Profil ist in der Suche sichtbar. Neue Fotos werden vor der Anzeige geprüft.';
+    } else if(hasPending){
+      hint.className = 'photo-hint warn';
+      hint.textContent = 'Deine Fotos werden gerade geprüft. Sobald mindestens eines freigegeben ist, erscheinst du in der Suche.';
+    } else if(hasRejected){
+      hint.className = 'photo-hint warn';
+      hint.textContent = 'Deine Fotos wurden abgelehnt. Bitte lade ein anderes Foto hoch, um in der Suche zu erscheinen.';
+    } else {
+      hint.className = 'photo-hint';
+      hint.textContent = '';
     }
   }
 

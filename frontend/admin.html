@@ -152,6 +152,11 @@
 
   /* Table */
   table{ width:100%; border-collapse:collapse; background:var(--surface); border-radius:12px; overflow:hidden; }
+  /* Breite Tabellen scrollen innerhalb ihres eigenen Containers, statt die
+     ganze Seite horizontal zu schieben. */
+  .table-wrap{ overflow-x:auto; -webkit-overflow-scrolling:touch; border-radius:12px; }
+  .table-wrap table{ min-width:720px; }
+  td.msg-cell{ max-width:280px; white-space:normal; word-break:break-word; }
   th, td{ text-align:left; padding:11px 14px; font-size:13.5px; border-bottom:1px solid var(--steel); }
   th{ color:var(--chalk-dim); font-weight:600; font-size:11px; text-transform:uppercase; letter-spacing:0.04em; background:var(--surface-2); }
   tbody tr:hover{ background:var(--surface-2); cursor:pointer; }
@@ -718,7 +723,7 @@
           <tbody>
             ${users.map(u => `
               <tr data-user-id="${u.id}">
-                <td>${escapeHtml(u.name)}</td>
+                <td>${escapeHtml(u.name)}${u.is_verified ? ' <span class="pill ok" title="Foto-verifiziert">✓</span>' : ''}</td>
                 <td class="mono">${escapeHtml(u.email)}</td>
                 <td>${u.age}</td>
                 <td>${escapeHtml(u.city)}</td>
@@ -1037,14 +1042,15 @@
         return;
       }
       wrap.innerHTML = `
+        <div class="table-wrap">
         <table>
           <thead><tr><th>Absender</th><th>Original</th><th>Empfänger sah</th><th>Grund</th><th>Status</th><th>Datum</th><th></th></tr></thead>
           <tbody>
             ${msgs.map(m => `
               <tr>
                 <td>${escapeHtml(m.sender_name)}</td>
-                <td>${escapeHtml(m.content)}</td>
-                <td>${m.was_censored
+                <td class="msg-cell">${escapeHtml(m.content)}</td>
+                <td class="msg-cell">${m.was_censored
                       ? `${escapeHtml(m.display_content)} <span class="pill warn">zensiert</span>`
                       : `<span style="color:var(--chalk-dim);">unverändert</span>`}</td>
                 <td>${escapeHtml(m.flag_reason || '—')}</td>
@@ -1063,6 +1069,7 @@
             `).join('')}
           </tbody>
         </table>
+        </div>
       `;
       wrap.querySelectorAll('button[data-view-user]').forEach(btn => {
         btn.addEventListener('click', () => openUserModal(btn.dataset.viewUser));
