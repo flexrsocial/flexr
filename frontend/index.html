@@ -416,13 +416,21 @@
     transition:background .15s ease, border-color .15s ease, transform .15s ease;
   }
   .match-item:hover{ border-color:rgba(255,90,31,.35); transform:translateX(2px); }
-  .match-item img{
-    width:54px; height:54px; border-radius:50%; object-fit:cover; background:var(--surface-2); flex-shrink:0;
-    border:2px solid var(--ink); box-shadow:0 0 0 1.5px var(--steel);
+  .match-item .av{
+    position:relative; width:54px; height:54px; flex-shrink:0; display:block;
+  }
+  .match-item .av img{
+    width:54px; height:54px; border-radius:50%; object-fit:cover; background:var(--surface-2);
+    border:2px solid var(--ink); box-shadow:0 0 0 1.5px var(--steel); display:block;
   }
   /* Oranger Ring = Match ist gerade online (gleiche Optik wie der eigene
-     Konto-Avatar, plus Glow) */
-  .match-item.online img{ box-shadow:0 0 0 2px var(--plate-dim), 0 0 12px var(--plate-glow); }
+     Konto-Avatar): echter Border (durchgehend), plus Glow. Spread-box-shadow
+     als Ring zeigte auf manchen Android-Geräten Nähte/Lücken. */
+  .match-item.online .av::after{
+    content:''; position:absolute; inset:-2px; border-radius:50%;
+    border:2px solid var(--plate-dim); box-sizing:border-box; pointer-events:none;
+    box-shadow:0 0 12px var(--plate-glow);
+  }
   .match-item .info{ flex:1; min-width:0; }
   .match-item .info .nm{ font-family:'Oswald'; font-size:16px; letter-spacing:0.01em; }
   .match-item .info .last-msg{ font-size:12.5px; color:var(--chalk-dim); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:3px; }
@@ -2885,7 +2893,7 @@
         const cls = ['match-item', m.is_online ? 'online' : ''].filter(Boolean).join(' ');
         return `
         <div class="${cls}" data-match-id="${m.match_id}">
-          <img src="${photo}" title="${m.is_online ? 'Gerade online' : ''}">
+          <span class="av"><img src="${photo}" title="${m.is_online ? 'Gerade online' : ''}"></span>
           <div class="info">
             <div class="nm">${escapeHtml(p.name)}, ${p.age}${verifiedBadge(p)}</div>
             <div class="last-msg">${escapeHtml(p.city)}${p.distance_km != null ? ` · ${p.distance_km} km` : ''}${m.is_online ? ' · gerade online' : ''}</div>
@@ -2926,7 +2934,7 @@
         const mine = m.last_message.sender_id === myProfile.id;
         return `
         <div class="${cls}" data-match-id="${m.match_id}">
-          <img src="${photo}" title="${m.is_online ? 'Gerade online' : ''}">
+          <span class="av"><img src="${photo}" title="${m.is_online ? 'Gerade online' : ''}"></span>
           <div class="info">
             <div class="nm">${escapeHtml(p.name)}, ${p.age}${verifiedBadge(p)}</div>
             <div class="last-msg">${mine ? 'Du: ' : ''}${escapeHtml(m.last_message.content)}</div>
