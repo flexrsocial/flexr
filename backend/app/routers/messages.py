@@ -104,7 +104,14 @@ def send_message(
     current_user: User = Depends(require_active_membership),
     db: Session = Depends(get_db),
 ):
-    _get_match_and_other_id(match_id, current_user, db)
+    _, other_id = _get_match_and_other_id(match_id, current_user, db)
+
+    # Empfänger darf kein gesperrtes oder gelöschtes Konto sein - solche Konten
+    # verschwinden aus der Match-Liste, ein direkter Sendeversuch (z. B. mit
+    # veralteter match_id) läuft sonst ins Leere.
+    other = db.query(User).filter(User.id == other_id).first()
+    if other is None or other.is_banned or other.deleted_at is not None:
+        raise HTTPException(404, "Chat nicht verfügbar.")
 
     # Befristete Chat-Sperre ("Abmahnung"): Senden ist bis zum Ablauf gesperrt.
     if current_user.is_messaging_muted:

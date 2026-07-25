@@ -181,6 +181,7 @@ def list_users(
             city=u.city,
             is_subscribed=u.is_subscribed,
             is_banned=u.is_banned,
+            is_verified=u.is_verified,
             is_active=u.is_active_member(),
             created_at=u.created_at,
             photo_count=photo_counts.get(u.id, 0),

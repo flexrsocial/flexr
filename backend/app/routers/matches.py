@@ -38,7 +38,11 @@ def get_matches(
     users_by_id = {
         u.id: u
         for u in db.query(User)
-        .filter(User.id.in_(other_ids), User.deleted_at.is_(None))
+        .filter(
+            User.id.in_(other_ids),
+            User.deleted_at.is_(None),
+            User.is_banned.is_(False),
+        )
         .all()
     }
 

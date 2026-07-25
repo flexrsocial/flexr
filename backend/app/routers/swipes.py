@@ -37,6 +37,7 @@ def get_deck(
         .filter(
             User.id != current_user.id,
             User.deleted_at.is_(None),
+            User.is_banned.is_(False),
             User.gender == current_user.interest,
             User.interest == current_user.gender,
             ~User.id.in_(excluded_ids) if excluded_ids else True,
@@ -83,7 +84,15 @@ def swipe(
     if payload.to_user_id == current_user.id:
         raise HTTPException(400, "Du kannst nicht mit dir selbst swipen.")
 
-    target_user = db.query(User).filter(User.id == payload.to_user_id).first()
+    target_user = (
+        db.query(User)
+        .filter(
+            User.id == payload.to_user_id,
+            User.deleted_at.is_(None),
+            User.is_banned.is_(False),
+        )
+        .first()
+    )
     if not target_user:
         raise HTTPException(404, "Nutzer nicht gefunden.")
 
