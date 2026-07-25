@@ -1,11 +1,15 @@
 {
-  "packageId": "social.flexr.app",
+  "packageId": "flexr.social.app",
   "host": "flexr.social",
   "name": "FLEXR",
   "launcherName": "FLEXR",
   "display": "standalone",
   "themeColor": "#121212",
+  "themeColorDark": "#000000",
   "navigationColor": "#121212",
+  "navigationColorDark": "#000000",
+  "navigationDividerColor": "#000000",
+  "navigationDividerColorDark": "#000000",
   "backgroundColor": "#121212",
   "enableNotifications": false,
   "startUrl": "/",
@@ -16,6 +20,7 @@
     "path": "./android.keystore",
     "alias": "flexr"
   },
+  "appVersion": "1.0.0",
   "appVersionName": "1.0.0",
   "appVersionCode": 1,
   "shortcuts": [],
@@ -27,8 +32,16 @@
       "enabled": true
     }
   },
+  "alphaDependencies": {
+    "enabled": false
+  },
   "enableSiteSettingsShortcut": true,
   "isChromeOSOnly": false,
+  "isMetaQuest": false,
+  "minSdkVersion": 21,
   "orientation": "portrait",
-  "fingerprints": []
+  "fingerprints": [],
+  "additionalTrustedOrigins": [],
+  "retainedBundles": [],
+  "displayOverride": []
 }

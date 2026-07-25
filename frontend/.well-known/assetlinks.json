@@ -3,9 +3,10 @@
     "relation": ["delegate_permission/common.handle_all_urls"],
     "target": {
       "namespace": "android_app",
-      "package_name": "social.flexr.app",
+      "package_name": "flexr.social.app",
       "sha256_cert_fingerprints": [
-        "PLATZHALTER-WIRD-BEIM-APP-SIGNIEREN-ERSETZT"
+        "3B:2B:6E:27:3E:87:D3:7D:F7:71:B7:2A:64:81:67:11:0A:B2:E4:55:32:DE:D7:3E:D0:F3:F0:19:40:5E:01:4A",
+        "BC:64:AD:3F:27:3E:B2:2D:38:1E:D7:CB:46:DE:67:6E:6A:1C:C6:3B:18:C9:64:FA:AB:A3:DD:A5:14:0E:79:80"
       ]
     }
   }

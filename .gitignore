@@ -17,13 +17,22 @@ backend/.env
 
 # Android/TWA-Build (Keystore + Build-Artefakte niemals versionieren)
 android/android.keystore
+android/*.keystore
 android/*.apk
 android/*.aab
+android/*.idsig
+android/KEYSTORE-CREDENTIALS.txt
 android/build/
 android/app/
 android/gradle*
 android/.gradle/
 android/store_icon.png
+android/.buildenv.sh
+android/*.log
+# Von Bubblewrap generierte Projektdateien (werden von build.sh neu erzeugt)
+android/build.gradle
+android/settings.gradle
+android/manifest-checksum.txt
 
 # Lokale Testumgebung
 backend/.env.test
