@@ -165,11 +165,12 @@
      padding wieder zurückgeholt - so bleibt der Feldrand gleich, der Balken
      sitzt aber mittig zwischen Feldrand und Hintergrundende. */
   #screen-account.active, #screen-matches.active{ margin-right:-13px; padding-right:13px; }
-  /* Auf dem Account-Screen zieht der 7px-Scrollbalken (s.o.) zusätzlich Breite
-     aus der Inhaltsbox, wodurch der Verifiziert-Badge um die Balkenbreite nach
-     links rutscht. Den Testmonat-Pill im festen Header um denselben Betrag
-     einrücken, damit beide Badges wieder exakt übereinander stehen. */
-  body[data-screen="screen-account"] .status-pill{ margin-right:7px; }
+  /* Auf dem Account-Screen zieht der Scrollbalken (real 10px Gutter) zusätzlich
+     Breite aus der Inhaltsbox, wodurch der Verifiziert-Badge um die Balkenbreite
+     nach links rutscht. Den Testmonat-Pill im festen Header um exakt diesen
+     Betrag einrücken, damit die rechten Kanten beider Badges deckungsgleich sind
+     (per Messung verifiziert: 10px -> rechte Kanten identisch). */
+  body[data-screen="screen-account"] .status-pill{ margin-right:10px; }
   @keyframes fade{ from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);} }
 
   .eyebrow{ font-family:'JetBrains Mono', monospace; font-size:11px; letter-spacing:0.12em; text-transform:uppercase; color:var(--plate); margin-bottom:6px; }
