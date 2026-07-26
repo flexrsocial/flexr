@@ -72,5 +72,8 @@ eigenständige Vollbild-App.
   TWA die Android-Standortberechtigung nutzen kann.
 - Kamera (Foto-Verifizierung) funktioniert in der TWA über die normalen
   Chrome-Berechtigungen.
-- Paket-ID: `social.flexr.app` (fix — nach der ersten Veröffentlichung nicht
-  mehr änderbar).
+- Paket-ID: Der lokale Build erzeugt `flexr.social.app` (siehe
+  `twa-manifest.json`). Frühere Builds hießen `social.flexr.app` — welcher
+  Name im Play Store liegt, entscheidet der **erste** Upload, danach ist er
+  nicht mehr änderbar. `assetlinks.json` deckt daher beide Namen ab; ohne den
+  passenden Eintrag startet die Store-App mit Browser-Leiste.
