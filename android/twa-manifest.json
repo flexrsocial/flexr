@@ -20,9 +20,9 @@
     "path": "./android.keystore",
     "alias": "flexr"
   },
-  "appVersion": "1.0.2",
-  "appVersionName": "1.0.2",
-  "appVersionCode": 3,
+  "appVersion": "1.0.3",
+  "appVersionName": "1.0.3",
+  "appVersionCode": 4,
   "shortcuts": [],
   "generatorApp": "bubblewrap-cli",
   "webManifestUrl": "https://flexr.social/manifest.json",

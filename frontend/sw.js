@@ -4,9 +4,9 @@
 // gecacht.
 // Bei jedem Icon-Wechsel gemeinsam hochzaehlen: hier, in index.html und in
 // manifest.json - sonst bleibt das alte Icon im Browser-Cache haengen.
-const CACHE = 'flexr-shell-v3';
+const CACHE = 'flexr-shell-v4';
 const SHELL = ['/', '/index.html', '/manifest.json', '/favicon.ico',
-               '/icons/icon-192.png?v=2', '/icons/icon-512.png?v=2'];
+               '/icons/icon-192.png?v=3', '/icons/icon-512.png?v=3'];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)));
