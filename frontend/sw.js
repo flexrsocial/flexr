@@ -2,7 +2,7 @@
 // Strategie: Netz zuerst (damit nie eine veraltete App-Version hängen bleibt),
 // Cache nur als Offline-Fallback für die App-Shell. API-Requests werden nie
 // gecacht.
-const CACHE = 'flexr-shell-v1';
+const CACHE = 'flexr-shell-v2';
 const SHELL = ['/', '/index.html', '/manifest.json', '/icons/icon-192.png', '/icons/icon-512.png'];
 
 self.addEventListener('install', (event) => {
