@@ -165,12 +165,14 @@
      padding wieder zurückgeholt - so bleibt der Feldrand gleich, der Balken
      sitzt aber mittig zwischen Feldrand und Hintergrundende. */
   #screen-account.active, #screen-matches.active{ margin-right:-13px; padding-right:13px; }
-  /* Auf dem Account-Screen zieht der Scrollbalken (real 10px Gutter) zusätzlich
-     Breite aus der Inhaltsbox, wodurch der Verifiziert-Badge um die Balkenbreite
-     nach links rutscht. Den Testmonat-Pill im festen Header um exakt diesen
-     Betrag einrücken, damit die rechten Kanten beider Badges deckungsgleich sind
-     (per Messung verifiziert: 10px -> rechte Kanten identisch). */
-  body[data-screen="screen-account"] .status-pill{ margin-right:10px; }
+  /* Auf dem Account-Screen zieht ein platzverbrauchender Scrollbalken Breite aus
+     der Inhaltsbox, wodurch der Verifiziert-Badge um die Balkenbreite nach links
+     rutscht. Den Testmonat-Pill im festen Header um exakt denselben Betrag
+     einrücken, damit die rechten Kanten beider Badges deckungsgleich sind.
+     Die Breite wird zur Laufzeit gemessen (--acct-scroll-gutter): Desktop ~10px,
+     Touch-Geräte mit Overlay-Scrollbalken 0px - ein fester Wert würde den Pill
+     auf Mobilgeräten sonst zu weit nach links schieben. */
+  body[data-screen="screen-account"] .status-pill{ margin-right:var(--acct-scroll-gutter, 0px); }
   @keyframes fade{ from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);} }
 
   .eyebrow{ font-family:'JetBrains Mono', monospace; font-size:11px; letter-spacing:0.12em; text-transform:uppercase; color:var(--plate); margin-bottom:6px; }
@@ -1585,6 +1587,16 @@
     setTimeout(()=> t.remove(), 2600);
   }
 
+  /* Breite des platzverbrauchenden Scrollbalkens im Account-Screen messen und als
+     CSS-Variable bereitstellen - siehe --acct-scroll-gutter im Stylesheet. Auf
+     Touch-Geräten (Overlay-Scrollbalken) ergibt das 0. */
+  function updateScrollGutter(){
+    const acct = $('screen-account');
+    if(!acct) return;
+    const gutter = acct.offsetWidth - acct.clientWidth;
+    document.documentElement.style.setProperty('--acct-scroll-gutter', gutter + 'px');
+  }
+
   function showScreen(id){
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     $(id).classList.add('active');
@@ -1593,6 +1605,16 @@
     document.body.dataset.screen = id;
     // Ausgeloggte Auth-Screens laufen im Landing-Modus (Vollbild-Hero statt App-Spalte)
     document.body.classList.toggle('landing', id === 'screen-login' || id === 'screen-onboard');
+    if(id === 'screen-account') updateScrollGutter();
+  }
+
+  /* Der Scrollbalken taucht erst auf, wenn die Profildaten den Screen füllen -
+     ein einmaliges Messen beim Screenwechsel käme zu früh. Der ResizeObserver
+     auf der Content-Box greift bei jeder Änderung (Laden, Drehen, Resize). */
+  if(window.ResizeObserver && $('screen-account')){
+    new ResizeObserver(updateScrollGutter).observe($('screen-account'));
+  } else {
+    window.addEventListener('resize', updateScrollGutter);
   }
 
   function setNavActive(name){
