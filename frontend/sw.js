@@ -2,8 +2,11 @@
 // Strategie: Netz zuerst (damit nie eine veraltete App-Version hängen bleibt),
 // Cache nur als Offline-Fallback für die App-Shell. API-Requests werden nie
 // gecacht.
-const CACHE = 'flexr-shell-v2';
-const SHELL = ['/', '/index.html', '/manifest.json', '/icons/icon-192.png', '/icons/icon-512.png'];
+// Bei jedem Icon-Wechsel gemeinsam hochzaehlen: hier, in index.html und in
+// manifest.json - sonst bleibt das alte Icon im Browser-Cache haengen.
+const CACHE = 'flexr-shell-v3';
+const SHELL = ['/', '/index.html', '/manifest.json', '/favicon.ico',
+               '/icons/icon-192.png?v=2', '/icons/icon-512.png?v=2'];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)));
