@@ -17,13 +17,13 @@ unverändert — die App spricht denselben REST-Vertrag wie das Web-Frontend.
 | | |
 |---|---|
 | applicationId | `flexr.social.app` (unverändert, Play-Store-Kontinuität) |
-| Version | `2.0.1`, versionCode **7** (TWA-Stand war 5) |
+| Version | `2.0.2`, versionCode **8** (TWA-Stand war 5) |
 | compileSdk / targetSdk / minSdk | 36 / 36 / 26 |
 | Signatur | bestehender Upload-Key `android/android.keystore`, SHA-256 `BC:64:AD:3F:…:14:0E:79:80` |
 
 **Offen: der Play-Store-Upload.** Das Bundle liegt unter
-`app/build/outputs/bundle/prodRelease/app-prod-release.aab`
-(SHA-256 `c0aa5e0f09749ef3c8eb7e981d6ceb9c42f15a075899ecf07720ac0a8f33154f`).
+`app/build/outputs/bundle/prodRelease/app-prod-release.aab`, neu zu bauen mit
+`./gradlew :app:bundleProdRelease` (siehe Build-Umgebung unten).
 
 ---
 
@@ -67,11 +67,14 @@ Marketing-Landingpage, Stripe im Custom Tab, Fused Location Provider statt
 Die Endpunkte `/api/phone/*` existieren im Backend weiter. Ein späterer Einbau
 beginnt bei einem neuen `PhoneRepository` gegen diese Endpunkte.
 
-**Das App-Icon ist aus `android/store_icon.png` pixelweise vermessen**: zwei schmale
-äußere Scheiben, zwei breite innere, durchgehender Steg. Ein früherer Nachbau mit
-sechs Balken und kurzem Mittelsteg war falsch. Das In-App-Symbol
-(`core/designsystem/icon/FlexrIcons`) nutzt dieselbe Form dünner gestrichen, weil
-die Balkenstärke des Launcher-Icons bei 22 dp zuläuft.
+**Das App-Icon ist seit 31.07.2026 das FX-Zeichen, kein Vektor mehr.** Vorlage ist
+`frontend/brand/app-icon-fx-1254.png`; wegen Verläufen und Glow lässt es sich nicht
+als `<vector>` nachbauen. Alle Größen — Android-Mipmaps, PWA-Icons, Favicon,
+Play-Store-Kachel — erzeugt `frontend/brand/build_icons.py` in einem Lauf, Details
+in `frontend/brand/README.md`. Die Hantel-Vektoren `ic_launcher_foreground.xml` und
+`ic_launcher_monochrome.xml` sind entfallen. Das In-App-Symbol
+(`core/designsystem/icon/FlexrIcons`) und der Splashscreen (`ic_splash_logo.xml`)
+zeigen weiterhin die Hantel.
 
 **Die Wortmarke folgt `frontend/brand/README.md`:** FLEX in Kreideweiß, das **R** in
 Signalrot `#E8412B`. Das orange X im HTML-Header der Web-App ist laut Markendokument

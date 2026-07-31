@@ -7,15 +7,18 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.imePadding
-import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.ime
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.union
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -36,6 +39,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -43,6 +47,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -91,11 +96,26 @@ fun ChatScreen(
         if (messages.isNotEmpty()) listState.animateScrollToItem(messages.lastIndex)
     }
 
+    // Die Tastatur schiebt sich über den Verlauf. Solange sie einfährt, den
+    // Verlauf pro Frame ans Ende nachziehen — sonst bliebe die letzte Nachricht
+    // hinter der Tastatur stehen.
+    val density = LocalDensity.current
+    val imeInsets = WindowInsets.ime
+    LaunchedEffect(listState) {
+        snapshotFlow { imeInsets.getBottom(density) }
+            .collect { imeBottom ->
+                val lastIndex = listState.layoutInfo.totalItemsCount - 1
+                if (imeBottom > 0 && lastIndex >= 0) listState.scrollToItem(lastIndex)
+            }
+    }
+
     Column(
         Modifier
             .fillMaxSize()
-            .imePadding()
-            .navigationBarsPadding()
+            // Nicht imePadding() + navigationBarsPadding(): die beiden Insets
+            // würden sich addieren, obwohl die Navigationsleiste bei offener
+            // Tastatur hinter ihr liegt. union() nimmt das größere von beiden.
+            .windowInsetsPadding(WindowInsets.ime.union(WindowInsets.navigationBars))
             .padding(horizontal = 20.dp),
     ) {
         ChatHeader(
@@ -149,7 +169,7 @@ fun ChatScreen(
             onValueChange = viewModel::onDraftChange,
             onSend = viewModel::send,
         )
-        Spacer(Modifier.height(10.dp))
+        Spacer(Modifier.height(4.dp))
     }
 
     if (showReportDialog) {
@@ -404,7 +424,7 @@ private fun ChatInputRow(
     Row(
         Modifier
             .fillMaxWidth()
-            .padding(top = 12.dp)
+            .padding(top = 8.dp)
             .clip(RoundedCornerShape(26.dp))
             .background(MaterialTheme.colorScheme.surface)
             .border(1.dp, colors.steel, RoundedCornerShape(26.dp))

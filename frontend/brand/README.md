@@ -19,6 +19,7 @@ dem R (frühere Versionen betonten das X in Orange; das ist überholt).
 | `logo-flexr-512/1024/2048.png` | Raster, transparent, dunkle Hintergründe |
 | `logo-flexr-light-1024.png` | Raster, transparent, helle Hintergründe |
 | `logo-flexr-badge-1024.png` | Raster-Badge |
+| `app-icon-fx-1254.png` | **App-Icon-Vorlage** (FX auf dunkler Kachel) — Quelle für alle Icon-Größen |
 
 SVG bevorzugen — die Buchstaben liegen als Pfade vor, es wird also keine
 installierte Schrift benötigt und die Datei skaliert verlustfrei.
@@ -49,5 +50,29 @@ backend/venv/bin/python frontend/brand/build_logo.py
 ```
 
 Proportionen (Tracking, Badge-Verhältnis) stehen als Konstanten oben im Skript.
-Das App-Icon liegt separat unter `frontend/icons/` und wird von
-`android/store/gen.py` bzw. dem Bubblewrap-Build verwendet.
+
+## App-Icon
+
+Das App-Icon ist **nicht** die Wortmarke, sondern das FX-Zeichen auf dunkler
+Kachel (`app-icon-fx-1254.png`). Es hat Verläufe und einen Glow und lässt sich
+deshalb nicht als Vektor nachbauen — alle Größen werden aus der Vorlage
+gerendert:
+
+```bash
+backend/venv/bin/python frontend/brand/build_icons.py
+```
+
+Das Skript schreibt in einem Zug:
+
+| Ziel | Inhalt |
+|---|---|
+| `android-native/…/res/mipmap-*/ic_launcher_foreground.png` | Adaptive-Icon-Vordergrund, freigestellt |
+| `android-native/…/res/mipmap-*/ic_launcher_monochrome.png` | Silhouette für Android-13-Themed-Icons |
+| `frontend/icons/icon-192.png`, `icon-512.png` | PWA/Favicon, Kachel mit runden Ecken |
+| `frontend/icons/icon-maskable-512.png` | randlos, Artwork in der 80-%-Sicherheitszone |
+| `frontend/favicon.ico` | 16–256 px in einer Datei |
+| `android/store_icon.png`, `android/store/icon-512.png` | Play-Store-Listing (gitignored) |
+
+Nach einem Icon-Wechsel die Cache-Version `?v=` in `index.html`,
+`manifest.json` und `sw.js` gemeinsam erhöhen — Chrome hält Favicons in einem
+eigenen, sehr langlebigen Cache, der nach URL schlüsselt.
