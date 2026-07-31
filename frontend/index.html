@@ -1122,7 +1122,17 @@
   #btnLogout:hover{ border-color:rgba(227,72,72,.5); color:var(--danger); background:rgba(227,72,72,.05); }
 </style>
 </head>
-<body>
+<!-- class="landing" gehoert in den Quelltext, nicht erst per JS: sonst ist der
+     Hero mit h1 und Beschreibungstext im ausgelieferten HTML display:none und
+     Suchmaschinen sehen auf der Startseite nur die Wortmarke. -->
+<body class="landing">
+<script>
+  // Direkt hinter dem <body>-Tag, weil hier noch kein Inhalt geparst und damit
+  // nichts gezeichnet ist: eingeloggte Besucher sehen den Marketing-Hero so gar
+  // nicht erst aufblitzen. Am Skriptende waere es zu spaet - boot() haengt dort
+  // an einem await auf /api/me, und der Parser hat den Hero laengst gemalt.
+  if(localStorage.getItem('flexr_token')) document.body.classList.remove('landing');
+</script>
 <div class="app" id="app">
 
   <header class="top">
