@@ -1,12 +1,13 @@
-from tests.conftest import register_user
+from tests.conftest import register_user, register_user_with_photo
 
 
 def make_pair(client):
-    """Zwei zueinander passende Nutzer in derselben Stadt anlegen."""
-    headers_a = register_user(
+    """Zwei zueinander passende Nutzer in derselben Stadt anlegen - jeweils mit
+    freigegebenem Foto, sonst tauchen sie im Deck des anderen nicht auf."""
+    headers_a = register_user_with_photo(
         client, "swiper.a@example.com", name="A", gender="mann"
     )
-    headers_b = register_user(
+    headers_b = register_user_with_photo(
         client, "swiper.b@example.com", name="B", gender="frau"
     )
     user_a = client.get("/api/profiles/me", headers=headers_a).json()

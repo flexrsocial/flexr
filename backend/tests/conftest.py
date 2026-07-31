@@ -82,6 +82,37 @@ def register_user(client, email, name="Test User", **overrides):
     return {"Authorization": f"Bearer {token}"}
 
 
+def add_approved_photo(client, headers, url="https://cdn.example.test/photo.jpg"):
+    """Gibt dem Nutzer hinter ``headers`` ein von der Moderation freigegebenes Foto.
+
+    Nötig für alle Deck-Tests: get_deck() überspringt Profile ohne freigegebenes
+    Foto. Der echte Weg (Presign -> S3-Upload -> Admin-Freigabe) funktioniert im
+    Test nicht, da kein Objekt-Storage vorhanden ist - deshalb wird die
+    Photo-Zeile direkt in die Test-DB geschrieben.
+    """
+    from app.models import Photo, PhotoStatus
+
+    user_id = client.get("/api/profiles/me", headers=headers).json()["id"]
+    db = TestingSessionLocal()
+    try:
+        position = db.query(Photo).filter(Photo.user_id == user_id).count()
+        photo = Photo(user_id=user_id, url=url, position=position, status=PhotoStatus.approved)
+        db.add(photo)
+        db.commit()
+        db.refresh(photo)
+        return photo.id
+    finally:
+        db.close()
+
+
+def register_user_with_photo(client, email, name="Test User", **overrides):
+    """Registrierung + freigegebenes Foto - so, wie ein Profil aussehen muss,
+    damit es im Swipe-Deck anderer Nutzer auftaucht."""
+    headers = register_user(client, email, name=name, **overrides)
+    add_approved_photo(client, headers)
+    return headers
+
+
 def create_admin(client, email="admin@example.com", password="adminsecret123", name="Admin"):
     """Legt einen AdminUser direkt in der DB an (kein öffentlicher Registrierungs-
     Endpoint vorgesehen) und loggt sich darüber ein."""

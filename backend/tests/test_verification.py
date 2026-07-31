@@ -1,4 +1,9 @@
-from tests.conftest import TestingSessionLocal, create_admin, register_user
+from tests.conftest import (
+    TestingSessionLocal,
+    add_approved_photo,
+    create_admin,
+    register_user,
+)
 from app.routers import admin as admin_router
 
 
@@ -133,7 +138,9 @@ def test_verified_badge_visible_in_deck(client, monkeypatch):
 
     headers_a = register_user(client, "badge.m@example.com", gender="mann")
     headers_b = register_user(client, "badge.f@example.com", name="Verifizierte", gender="frau")
-    _add_photo(client, headers_b)
+    # Freigegebenes Foto statt _add_photo: erfüllt die Foto-Voraussetzung der
+    # Verifizierung und macht das Profil zugleich im Deck sichtbar.
+    add_approved_photo(client, headers_b)
     _start_and_submit(client, headers_b)
 
     admin_headers, _ = create_admin(client, email="admin3@example.com")

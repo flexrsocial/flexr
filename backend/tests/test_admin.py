@@ -107,6 +107,10 @@ def test_admin_delete_user_cascades(client):
 
 
 def test_photo_starts_pending_and_hidden_from_deck(client):
+    """Ein frisch hochgeladenes Foto ist pending und damit unsichtbar für andere.
+    Da nur Profile mit mindestens einem freigegebenen Foto ins Deck kommen,
+    fehlt B dort komplett - bis die Moderation freigibt (und wieder, sobald sie
+    ablehnt)."""
     admin_headers, _ = create_admin(client, email="admin6@example.com")
     headers_a = register_user(
         client, "photodeck.a@example.com", name="A", gender="mann"
@@ -127,8 +131,7 @@ def test_photo_starts_pending_and_hidden_from_deck(client):
     assert add_resp.json()["photos"][0]["status"] == "pending"
 
     deck = client.get("/api/swipes/deck", headers=headers_a).json()
-    candidate = next(p for p in deck if p["id"] == user_b["id"])
-    assert candidate["photos"] == []
+    assert not any(p["id"] == user_b["id"] for p in deck)
 
     pending = client.get("/api/admin/photos", headers=admin_headers, params={"status": "pending"})
     assert pending.status_code == 200
@@ -141,14 +144,14 @@ def test_photo_starts_pending_and_hidden_from_deck(client):
     deck_after = client.get("/api/swipes/deck", headers=headers_a).json()
     candidate_after = next(p for p in deck_after if p["id"] == user_b["id"])
     assert len(candidate_after["photos"]) == 1
+    assert candidate_after["photos"][0]["id"] == photo_id
 
     reject_resp = client.post(f"/api/admin/photos/{photo_id}/reject", headers=admin_headers)
     assert reject_resp.status_code == 200
     assert reject_resp.json()["status"] == "rejected"
 
     deck_after_reject = client.get("/api/swipes/deck", headers=headers_a).json()
-    candidate_after_reject = next(p for p in deck_after_reject if p["id"] == user_b["id"])
-    assert candidate_after_reject["photos"] == []
+    assert not any(p["id"] == user_b["id"] for p in deck_after_reject)
 
 
 def test_admin_reports_list(client):

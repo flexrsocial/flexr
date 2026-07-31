@@ -1,11 +1,12 @@
-from tests.conftest import register_user
+from tests.conftest import register_user, register_user_with_photo
 
 
 def make_pair(client):
-    headers_a = register_user(
+    # Freigegebenes Foto auf beiden Seiten: das Deck zeigt nur Profile mit Foto.
+    headers_a = register_user_with_photo(
         client, "safety.a@example.com", name="A", gender="mann"
     )
-    headers_b = register_user(
+    headers_b = register_user_with_photo(
         client, "safety.b@example.com", name="B", gender="frau"
     )
     user_a = client.get("/api/profiles/me", headers=headers_a).json()

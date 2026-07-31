@@ -1,4 +1,4 @@
-from tests.conftest import register_user
+from tests.conftest import register_user, register_user_with_photo
 
 # PLZ-Koordinaten (aus dem gebündelten GeoNames-Datensatz):
 # 1010/1100 Wien ~ (48.21, 16.37), 8010 Graz ~ (47.08, 15.47) -> ~145 km Distanz
@@ -6,8 +6,8 @@ from tests.conftest import register_user
 
 def test_deck_filters_by_plz_distance(client):
     headers_a = register_user(client, "wien.m@example.com", gender="mann", plz="1010", city="Wien")
-    register_user(client, "wien.f@example.com", name="Wienerin", gender="frau", plz="1100", city="Wien")
-    register_user(client, "graz.f@example.com", name="Grazerin", gender="frau", plz="8010", city="Graz")
+    register_user_with_photo(client, "wien.f@example.com", name="Wienerin", gender="frau", plz="1100", city="Wien")
+    register_user_with_photo(client, "graz.f@example.com", name="Grazerin", gender="frau", plz="8010", city="Graz")
 
     deck = client.get("/api/swipes/deck", headers=headers_a).json()
     names = [p["name"] for p in deck]
@@ -17,7 +17,7 @@ def test_deck_filters_by_plz_distance(client):
 
 def test_deck_includes_distance_km(client):
     headers_a = register_user(client, "dist.m@example.com", gender="mann", plz="1010", city="Wien")
-    register_user(client, "dist.f@example.com", name="Nahe", gender="frau", plz="1100", city="Wien")
+    register_user_with_photo(client, "dist.f@example.com", name="Nahe", gender="frau", plz="1100", city="Wien")
 
     deck = client.get("/api/swipes/deck", headers=headers_a).json()
     assert len(deck) == 1
@@ -27,7 +27,7 @@ def test_deck_includes_distance_km(client):
 
 def test_larger_radius_includes_faraway_profiles(client):
     headers_a = register_user(client, "radius.m@example.com", gender="mann", plz="1010", city="Wien")
-    register_user(client, "radius.f@example.com", name="Grazerin", gender="frau", plz="8010", city="Graz")
+    register_user_with_photo(client, "radius.f@example.com", name="Grazerin", gender="frau", plz="8010", city="Graz")
 
     resp = client.patch("/api/profiles/me", headers=headers_a, json={"search_radius_km": 250})
     assert resp.status_code == 200
@@ -43,7 +43,7 @@ def test_larger_radius_includes_faraway_profiles(client):
 def test_gps_position_overrides_plz(client):
     # Nutzer ist lt. PLZ in Wien, per GPS aber in Graz -> sieht Grazer Profile
     headers_a = register_user(client, "gps.m@example.com", gender="mann", plz="1010", city="Wien")
-    register_user(client, "gps.f@example.com", name="Grazerin", gender="frau", plz="8010", city="Graz")
+    register_user_with_photo(client, "gps.f@example.com", name="Grazerin", gender="frau", plz="8010", city="Graz")
 
     resp = client.post(
         "/api/profiles/me/location", headers=headers_a, json={"lat": 47.08, "lon": 15.47}
@@ -57,7 +57,7 @@ def test_gps_position_overrides_plz(client):
 
 def test_clearing_gps_falls_back_to_plz(client):
     headers_a = register_user(client, "clear.m@example.com", gender="mann", plz="1010", city="Wien")
-    register_user(client, "clear.f@example.com", name="Wienerin", gender="frau", plz="1100", city="Wien")
+    register_user_with_photo(client, "clear.f@example.com", name="Wienerin", gender="frau", plz="1100", city="Wien")
 
     client.post("/api/profiles/me/location", headers=headers_a, json={"lat": 47.08, "lon": 15.47})
     deck_gps = client.get("/api/swipes/deck", headers=headers_a).json()
