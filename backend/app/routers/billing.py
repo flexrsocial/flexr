@@ -21,7 +21,13 @@ def membership_status(current_user: User = Depends(get_current_user)):
 
 @router.post("/checkout")
 def create_checkout(current_user: User = Depends(get_current_user)):
-    url = create_checkout_session(current_user.email, current_user.id)
+    # trial_ends_at wird mitgegeben, damit Stripe nur die seit der Registrierung
+    # verbliebene Gratiszeit als Trial ansetzt und danach sofort abrechnet.
+    url = create_checkout_session(
+        current_user.email,
+        current_user.id,
+        current_user.trial_ends_at,
+    )
     return {"checkout_url": url}
 
 

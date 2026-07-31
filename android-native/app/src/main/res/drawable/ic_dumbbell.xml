@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Benachrichtigungssymbol: die Markenhantel als einfarbige Silhouette.
+    Gleiche Proportionen wie das Launcher-Icon, auf 24dp gerechnet.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24"
+    android:tint="?android:attr/colorControlNormal">
+
+    <path
+        android:pathData="M3.86,6.45 V17.55 M20.14,6.45 V17.55"
+        android:strokeColor="#FFFFFFFF"
+        android:strokeWidth="1.45"
+        android:strokeLineCap="round" />
+    <path
+        android:pathData="M7.35,3.89 V20.11 M16.65,3.89 V20.11"
+        android:strokeColor="#FFFFFFFF"
+        android:strokeWidth="2.97"
+        android:strokeLineCap="round" />
+    <path
+        android:pathData="M2.84,12 H21.16"
+        android:strokeColor="#FFFFFFFF"
+        android:strokeWidth="1.69"
+        android:strokeLineCap="round" />
+</vector>
