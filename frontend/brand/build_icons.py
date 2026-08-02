@@ -12,13 +12,22 @@ SRC = os.path.join(os.path.dirname(__file__), 'app-icon-fx-1254.png')
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 
 TILE = (47, 47, 1206, 1208)          # Kachel ohne den schwarzen Rand
-# Der Kachelhintergrund ist nicht gleichmaessig (Vignette, 15..26). Der obere
-# Rand dieses Bereichs wird abgezogen, sonst bleibt beim Freistellen ein
-# sichtbarer Geisterrand der Kachel in der Vordergrundebene stehen.
-TILE_BG = np.array([27.0, 23.0, 21.0])
+# Der Kachelhintergrund ist nicht gleichmaessig: eine Vignette laeuft von 15 bis
+# etwa 35. Abgezogen wird deshalb deutlich ueber dem Mittelwert - sonst bleibt
+# beim Freistellen ein schwach sichtbarer Geisterrand der Kachel in der
+# Vordergrundebene stehen. Auf dem Launcher schneidet ihn die Maske weg, auf dem
+# Splash-Screen aber nicht zwingend. Was dabei vom aeussersten Glow verloren
+# geht, liegt bei ein bis zwei Helligkeitsstufen und ist nicht wahrnehmbar.
+TILE_BG = np.array([40.0, 34.0, 31.0])
 # Anteil der Adaptive-Icon-Flaeche (108), den die Kachel einnimmt. 83/108 laesst
 # das helle FX auf 64 Einheiten -> 89 % der 72er-Maske, kein Anschnitt.
 TILE_ON_CANVAS = 83.0 / 108.0
+
+# Der Android-12-Splash zeichnet das Symbol auf 288dp und zeigt davon nur einen
+# Kreis von 192dp Durchmesser (ohne eigene Icon-Hintergrundfarbe). Das FX ist
+# breiter als hoch; seine halbe Diagonale misst 0.4955 der Kachelbreite und muss
+# unter den Kreisradius 192/2/288 = 0.333 passen -> Kachel hoechstens 0.672.
+TILE_ON_SPLASH = 0.67
 
 
 def load_tile():
@@ -60,9 +69,9 @@ def monochrome(rgb):
     return Image.fromarray(out, 'RGBA')
 
 
-def on_canvas(layer, size):
+def on_canvas(layer, size, anteil=TILE_ON_CANVAS):
     """Ebene zentriert auf eine quadratische Adaptive-Icon-Flaeche legen."""
-    inner = max(1, round(size * TILE_ON_CANVAS))
+    inner = max(1, round(size * anteil))
     canvas = Image.new('RGBA', (size, size), (0, 0, 0, 0))
     scaled = layer.resize((inner, inner), Image.LANCZOS)
     off = (size - inner) // 2
@@ -83,6 +92,14 @@ def main():
         os.makedirs(d, exist_ok=True)
         on_canvas(fg, size).save(f'{d}/ic_launcher_foreground.png')
         on_canvas(mono, size).save(f'{d}/ic_launcher_monochrome.png')
+
+    # --- Android: Splash-Symbol (288dp-Flaeche) ---
+    # Ohne diese Dateien zeigt der Start noch die alte Hantel. Kein Vektor,
+    # aus demselben Grund wie beim Launcher-Icon.
+    for dpi, faktor in {'mdpi': 1, 'hdpi': 1.5, 'xhdpi': 2, 'xxhdpi': 3, 'xxxhdpi': 4}.items():
+        d = f'{ROOT}/android-native/app/src/main/res/drawable-{dpi}'
+        os.makedirs(d, exist_ok=True)
+        on_canvas(fg, round(288 * faktor), TILE_ON_SPLASH).save(f'{d}/ic_splash_logo.png')
 
     # --- Web: PWA-Icons ---
     icons = f'{ROOT}/frontend/icons'

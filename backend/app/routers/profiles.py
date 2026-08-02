@@ -16,7 +16,7 @@ from ..schemas import (
     UpdateProfileRequest,
 )
 from ..security import get_current_user
-from ..storage import create_presigned_upload, public_url_for
+from ..storage import create_presigned_upload, public_url_for, set_photo_cache_control
 
 router = APIRouter(prefix="/api/profiles", tags=["profiles"])
 
@@ -149,6 +149,11 @@ def add_photo(
     existing_count = db.query(Photo).filter(Photo.user_id == current_user.id).count()
     if existing_count >= 6:
         raise HTTPException(400, "Maximal 6 Fotos erlaubt.")
+
+    # Cache-Control nachtraeglich setzen - siehe set_photo_cache_control().
+    set_photo_cache_control(payload.object_key)
+    if payload.thumb_object_key:
+        set_photo_cache_control(payload.thumb_object_key)
 
     photo = Photo(
         user_id=current_user.id,

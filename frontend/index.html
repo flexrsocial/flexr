@@ -156,6 +156,9 @@
   /* Der Chat füllt den Screen exakt (Nachrichten scrollen intern) - kein
      zweiter Scrollbalken auf Screen-Ebene. */
   #screen-chat.active{ overflow:hidden; }
+  /* Ebenso der Swipe-Screen: Deck und Aktionsknoepfe teilen sich die Hoehe
+     exakt auf, es darf nichts unter die Falz rutschen. */
+  #screen-swipe.active{ overflow:hidden; }
   /* Dezenter Scrollbalken im FLEXR-Look: dünn, orange-transparent, erscheint
      erst beim Hovern/Scrollen (Thumb sonst unsichtbar). */
   .screen.active{ scrollbar-width:thin; scrollbar-color:transparent transparent; }
@@ -295,7 +298,16 @@
   .photo-hint.warn{ color:var(--plate); }
 
   /* swipe card */
-  .deck{ position:relative; flex:1; min-height:430px; touch-action:none; }
+  /* Kein festes min-height: auf einem Telefon mit sichtbarer Adresszeile
+     (unter ~750px dvh) zwingt das den Screen ins Scrollen, und Herz und X
+     rutschen hinter die feste Navigationsleiste - unerreichbar, ohne dass man
+     ahnt, dass da noch etwas ist. flex:1 laesst das Deck ohnehin wachsen, wo
+     Platz ist; das min-height konnte also nur schaden.
+     Keine Media Query als Ausnahme: @media (height) folgt dem grossen
+     Viewport und schrumpft nicht mit der eingeblendeten Adresszeile, 100dvh
+     schon - die Ausnahme wuerde ausgerechnet auf den betroffenen Geraeten
+     greifen. */
+  .deck{ position:relative; flex:1; min-height:0; touch-action:none; }
   .card{
     position:absolute; inset:0; border-radius:20px; overflow:hidden;
     background:linear-gradient(180deg, #202020, #191919);
