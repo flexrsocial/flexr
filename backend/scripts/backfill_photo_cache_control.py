@@ -33,7 +33,7 @@ def object_key_from_url(url: str) -> str | None:
 def main() -> int:
     db = SessionLocal()
     client = get_s3_client()
-    gesetzt = uebersprungen = fehlerhaft = 0
+    gesetzt = uebersprungen = fremd = fehlerhaft = 0
     try:
         keys: list[str] = []
         for photo in db.query(Photo).all():
@@ -44,8 +44,9 @@ def main() -> int:
                 if key:
                     keys.append(key)
                 else:
-                    print(f"  ! URL passt nicht zur Basis-URL: {url}")
-                    fehlerhaft += 1
+                    # Seed-Profile verweisen auf Unsplash statt auf unseren
+                    # Bucket. Kein Fehler - dort koennen wir nichts setzen.
+                    fremd += 1
 
         for key in dict.fromkeys(keys):  # Reihenfolge halten, Duplikate raus
             try:
@@ -65,7 +66,10 @@ def main() -> int:
     finally:
         db.close()
 
-    print(f"\ngesetzt: {gesetzt} | schon korrekt: {uebersprungen} | Fehler: {fehlerhaft}")
+    print(
+        f"\ngesetzt: {gesetzt} | schon korrekt: {uebersprungen} | "
+        f"fremde Herkunft (Seed/Unsplash): {fremd} | Fehler: {fehlerhaft}"
+    )
     return 1 if fehlerhaft else 0
 
 

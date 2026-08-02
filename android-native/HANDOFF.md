@@ -17,7 +17,7 @@ unverändert — die App spricht denselben REST-Vertrag wie das Web-Frontend.
 | | |
 |---|---|
 | applicationId | `flexr.social.app` (unverändert, Play-Store-Kontinuität) |
-| Version | `2.0.2`, versionCode **8** (TWA-Stand war 5) |
+| Version | `2.0.3`, versionCode **9** (TWA-Stand war 5) |
 | compileSdk / targetSdk / minSdk | 36 / 36 / 26 |
 | Signatur | bestehender Upload-Key `android/android.keystore`, SHA-256 `BC:64:AD:3F:…:14:0E:79:80` |
 
@@ -69,12 +69,25 @@ beginnt bei einem neuen `PhoneRepository` gegen diese Endpunkte.
 
 **Das App-Icon ist seit 31.07.2026 das FX-Zeichen, kein Vektor mehr.** Vorlage ist
 `frontend/brand/app-icon-fx-1254.png`; wegen Verläufen und Glow lässt es sich nicht
-als `<vector>` nachbauen. Alle Größen — Android-Mipmaps, PWA-Icons, Favicon,
-Play-Store-Kachel — erzeugt `frontend/brand/build_icons.py` in einem Lauf, Details
-in `frontend/brand/README.md`. Die Hantel-Vektoren `ic_launcher_foreground.xml` und
-`ic_launcher_monochrome.xml` sind entfallen. Das In-App-Symbol
-(`core/designsystem/icon/FlexrIcons`) und der Splashscreen (`ic_splash_logo.xml`)
-zeigen weiterhin die Hantel.
+als `<vector>` nachbauen. Alle Größen — Android-Mipmaps, Splash-Symbol, PWA-Icons,
+Favicon, Play-Store-Kachel — erzeugt `frontend/brand/build_icons.py` in einem Lauf,
+Details in `frontend/brand/README.md`. Die Hantel-Vektoren
+`ic_launcher_foreground.xml`, `ic_launcher_monochrome.xml` und `ic_splash_logo.xml`
+sind entfallen. Nur das In-App-Symbol (`core/designsystem/icon/FlexrIcons`) zeigt
+noch die Hantel.
+
+**Das Splash-Symbol ist kleiner skaliert als das Launcher-Icon.** Der
+Android-12-Splash zeigt von der 288dp-Fläche nur einen Kreis von 192dp
+Durchmesser. Das FX ist breiter als hoch; maßgeblich ist deshalb seine halbe
+Diagonale, nicht die Breite — daher `TILE_ON_SPLASH = 0.67` gegen
+`TILE_ON_CANVAS = 0.769` beim Launcher.
+
+**Coil bekommt in `FlexrApplication` einen eigenen ImageLoader mit
+`respectCacheHeaders(false)`.** Ohne den richtet sich Coil nach den
+HTTP-Cache-Headern; R2 lieferte lange gar keine, wodurch praktisch jede Anzeige
+eines Fotos ein Netz-Roundtrip war. Die Objektschlüssel sind UUIDs und werden nie
+überschrieben — ein geladenes Bild bleibt gültig. Serverseitig setzt
+`storage.set_photo_cache_control()` den Header zusätzlich.
 
 **Die Wortmarke folgt `frontend/brand/README.md`:** FLEX in Kreideweiß, das **R** in
 Signalrot `#E8412B`. Das orange X im HTML-Header der Web-App ist laut Markendokument
