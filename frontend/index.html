@@ -341,7 +341,18 @@
   .card .photo-index{ position:absolute; top:10px; left:10px; right:10px; display:flex; gap:4px; z-index:2; }
   .card .photo-index i{ flex:1; height:3px; border-radius:2px; background:rgba(255,255,255,0.28); }
   .card .photo-index i.on{ background:var(--plate); box-shadow:0 0 8px var(--plate-glow); }
-  .card .photo{ cursor:zoom-in; }
+
+  /* Tippflächen auf dem Foto: aussen blättern, in der Mitte vergrössern.
+     Sie liegen unter der Namenszeile und den Melde-Knöpfen und fangen bewusst
+     kein mousedown/touchstart ab - sonst liesse sich die Karte im oberen
+     Bereich nicht mehr wischen (der Grund, warum es die Zonen schon einmal
+     nicht mehr gab). Ein Wisch wird stattdessen an der Mausbewegung erkannt. */
+  .card .photo-nav{ position:absolute; inset:0; display:flex; z-index:1; }
+  .card .photo-nav .zone{ cursor:pointer; }
+  .card .photo-nav .zone.prev,
+  .card .photo-nav .zone.next{ flex:0 0 38%; }
+  .card .photo-nav .zone.zoom{ flex:1; cursor:zoom-in; }
+  .card .photo .name-row{ z-index:2; }
 
   /* Foto-Vollbild (Galerie) */
   .lightbox{
@@ -1089,42 +1100,6 @@
   .account-section-title::before{
     content:''; width:3px; height:11px; background:var(--plate); border-radius:2px; flex-shrink:0;
   }
-  .account-hint{ font-size:12.5px; line-height:1.5; color:var(--chalk-dim); }
-
-  /* Meine Meldungen (Art. 16 Abs. 5 DSA) */
-  .report-item{
-    border:1px solid var(--hairline); border-radius:12px; background:var(--surface-2);
-    padding:12px 14px; margin-bottom:10px;
-  }
-  .report-head{ display:flex; align-items:center; gap:8px; margin-bottom:6px; flex-wrap:wrap; }
-  .report-ref{ font-family:'JetBrains Mono', monospace; font-size:11px; color:var(--chalk-dim); }
-  .report-state{
-    font-family:'JetBrains Mono', monospace; font-size:10px; letter-spacing:.08em; text-transform:uppercase;
-    padding:3px 7px; border-radius:6px; margin-left:auto;
-  }
-  .report-state.open{ background:rgba(255,90,31,.15); color:var(--plate-bright); }
-  .report-state.done{ background:rgba(126,196,84,.15); color:var(--lime); }
-  .report-reason{ font-size:13.5px; color:var(--chalk); margin-bottom:4px; }
-  .report-note{ font-size:12.5px; color:var(--chalk-dim); line-height:1.5; }
-
-  /* Blockierte Profile */
-  .block-item{
-    display:flex; align-items:center; gap:12px; padding:9px 0;
-    border-bottom:1px solid var(--hairline);
-  }
-  .block-item:last-child{ border-bottom:none; }
-  .block-item .av{
-    width:38px; height:38px; border-radius:50%; overflow:hidden; flex-shrink:0;
-    background:var(--surface-3); display:flex; align-items:center; justify-content:center;
-    font-size:14px; color:var(--chalk-dim);
-  }
-  .block-item .av img{ width:100%; height:100%; object-fit:cover; }
-  .block-item .nm{ font-size:14px; color:var(--chalk); flex:1; }
-  .block-item button{
-    background:none; border:1px solid var(--steel); color:var(--chalk-dim);
-    border-radius:8px; padding:6px 11px; font-size:12px; cursor:pointer; font-family:inherit;
-  }
-  .block-item button:hover{ color:var(--plate); border-color:var(--plate); }
 
   .price-card{
     background:linear-gradient(180deg, rgba(255,90,31,.07), rgba(26,26,26,0) 45%), linear-gradient(180deg, #1f1f1f, #191919);
@@ -1496,19 +1471,6 @@
         <div class="photo-hint" id="acctPhotoHint"></div>
         <input type="file" id="acctPhotoInput" accept="image/*" style="display:none">
         <div class="field-err" id="acctPhotoErr"></div>
-      </div>
-
-      <!-- Art. 16 Abs. 5 DSA: Der Melder muss die Entscheidung über seine
-           Meldung erfahren. Die Empfangsbestätigung verweist wörtlich auf
-           diesen Bereich. -->
-      <div class="account-section">
-        <div class="account-section-title">Meine Meldungen</div>
-        <div id="acctReports"><div class="account-hint">Lädt …</div></div>
-      </div>
-
-      <div class="account-section">
-        <div class="account-section-title">Blockierte Profile</div>
-        <div id="acctBlocks"><div class="account-hint">Lädt …</div></div>
       </div>
 
       <div class="account-section">
@@ -2472,77 +2434,6 @@
     }
     fillProfileForm();
     renderAccountPhotoGrid();
-    loadMyReports();
-    loadBlockedProfiles();
-  }
-
-  // ---------- Meine Meldungen (Art. 16 Abs. 5 DSA) ----------
-  const REPORT_OUTCOME_LABEL = {
-    action_taken: 'Eingeschritten',
-    no_action: 'Kein Verstoß',
-  };
-
-  async function loadMyReports(){
-    const box = $('acctReports');
-    try{
-      const reports = await api('/api/reports/mine');
-      if(!reports.length){
-        box.innerHTML = '<div class="account-hint">Du hast bisher niemanden gemeldet.</div>';
-        return;
-      }
-      box.innerHTML = reports.map(r => {
-        const decided = !!r.outcome;
-        const state = decided ? (REPORT_OUTCOME_LABEL[r.outcome] || 'Entschieden') : 'In Prüfung';
-        const when = parseServerDate(r.created_at)
-          .toLocaleDateString('de-AT', {day:'2-digit', month:'2-digit', year:'numeric'});
-        const note = decided && r.decision_note
-          ? `<div class="report-note">${escapeHtml(r.decision_note)}</div>`
-          : '<div class="report-note">Wir prüfen deine Meldung innerhalb von 72 Stunden.</div>';
-        return `<div class="report-item">
-          <div class="report-head">
-            <span class="report-ref">${escapeHtml(r.reference)} · ${when}</span>
-            <span class="report-state ${decided ? 'done' : 'open'}">${escapeHtml(state)}</span>
-          </div>
-          <div class="report-reason">${escapeHtml(r.reason)}</div>
-          ${note}
-        </div>`;
-      }).join('');
-    }catch(err){
-      box.innerHTML = '<div class="account-hint">Meldungen konnten nicht geladen werden.</div>';
-    }
-  }
-
-  // ---------- Blockierte Profile (Blockierung wieder aufheben) ----------
-  async function loadBlockedProfiles(){
-    const box = $('acctBlocks');
-    try{
-      const blocked = await api('/api/blocks/profiles');
-      if(!blocked.length){
-        box.innerHTML = '<div class="account-hint">Du hast niemanden blockiert.</div>';
-        return;
-      }
-      box.innerHTML = blocked.map(b => `
-        <div class="block-item">
-          <span class="av">${b.photo_url
-            ? `<img src="${escapeHtml(b.photo_url)}" alt="">`
-            : escapeHtml((b.name || '?').charAt(0).toUpperCase())}</span>
-          <span class="nm">${escapeHtml(b.name)}</span>
-          <button type="button" data-unblock="${escapeHtml(b.id)}">Entsperren</button>
-        </div>`).join('');
-      box.querySelectorAll('[data-unblock]').forEach(btn => {
-        btn.addEventListener('click', () => unblockUser(btn.dataset.unblock));
-      });
-    }catch(err){
-      box.innerHTML = '<div class="account-hint">Blockierte Profile konnten nicht geladen werden.</div>';
-    }
-  }
-
-  async function unblockUser(userId){
-    try{
-      await api(`/api/blocks/${userId}`, {method: 'DELETE'});
-      toast('Blockierung aufgehoben.');
-      loadBlockedProfiles();
-    }catch(err){ toast(err.message || 'Entsperren fehlgeschlagen.'); }
   }
 
   // ---------- Profil bearbeiten (PLZ, Gym, Bio - Größe bleibt fix) ----------
@@ -2818,6 +2709,11 @@
       <div class="stamp like">MATCH</div>
       <div class="stamp pass">NOPE</div>
       <div class="photo" style="background-image:url('${photo}')">
+        <div class="photo-nav">
+          <div class="zone prev" data-dir="-1"></div>
+          <div class="zone zoom"></div>
+          <div class="zone next" data-dir="1"></div>
+        </div>
         <div class="photo-index">${(p.photos||[]).map((_,i)=>`<i class="${i===0?'on':''}"></i>`).join('')}</div>
         <div class="name-row"><div class="nm">${escapeHtml(p.name)}, ${p.age}${verifiedBadge(p)}</div><div class="loc">${escapeHtml(p.city)} · ${escapeHtml(gymName(p.gym))}${p.distance_km != null ? ` · ${p.distance_km} km` : ''}</div></div>
       </div>
@@ -2844,13 +2740,24 @@
       }
     }
 
-    // Klick aufs Foto öffnet die Vollbild-Galerie. Ein Wisch (Swipe-Deck) darf
-    // sie nicht auslösen, deshalb wird die Mausbewegung zwischen Drücken und
-    // Klicken gemessen.
+    // Tippen aufs Foto: aussen blättert weiter, in der Mitte öffnet sich die
+    // Vollbild-Galerie. Ein Wisch (Swipe-Deck) darf beides nicht auslösen -
+    // deshalb wird die Mausbewegung zwischen Drücken und Klicken gemessen,
+    // statt das Ereignis in den Zonen abzufangen (das würde das Wischen im
+    // oberen Kartenbereich blockieren).
     const photoEl = el.querySelector('.photo');
     let currentPhotoIdx = 0;
     if(photoEl && (p.photos || []).length){
       const dots = el.querySelectorAll('.photo-index i');
+      const photos = p.photos;
+
+      function showPhoto(idx){
+        if(idx < 0 || idx >= photos.length) return;
+        currentPhotoIdx = idx;
+        photoEl.style.backgroundImage = `url('${photos[idx].url}')`;
+        dots.forEach((d, i) => d.classList.toggle('on', i === idx));
+      }
+
       let downX = 0, downY = 0;
       const rememberStart = (e) => {
         const pt = e.touches ? e.touches[0] : e;
@@ -2861,12 +2768,14 @@
       photoEl.addEventListener('click', (e) => {
         if(e.target.closest('.flag-btn')) return;
         if(Math.abs(e.clientX - downX) > 8 || Math.abs(e.clientY - downY) > 8) return;
-        openLightbox(p.photos, currentPhotoIdx, (idx) => {
-          // Beim Schließen zeigt die Karte das zuletzt angesehene Foto
-          currentPhotoIdx = idx;
-          photoEl.style.backgroundImage = `url('${p.photos[idx].url}')`;
-          dots.forEach((d, i) => d.classList.toggle('on', i === idx));
-        });
+        const zone = e.target.closest('.photo-nav .zone');
+        // Bei nur einem Foto gibt es nichts zu blättern - dann vergrössert
+        // jeder Tipp, sonst wären zwei Drittel der Fläche wirkungslos.
+        if(zone && zone.dataset.dir && photos.length > 1){
+          showPhoto(currentPhotoIdx + parseInt(zone.dataset.dir, 10));
+          return;
+        }
+        openLightbox(photos, currentPhotoIdx, showPhoto);
       });
     }
     return el;
