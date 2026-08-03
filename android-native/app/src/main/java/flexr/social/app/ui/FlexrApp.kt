@@ -42,6 +42,7 @@ import flexr.social.app.ui.chat.ChatScreen
 import flexr.social.app.ui.legal.LegalScreen
 import flexr.social.app.ui.matches.ChatsScreen
 import flexr.social.app.ui.matches.MatchProfileScreen
+import flexr.social.app.ui.reports.MyReportsScreen
 import flexr.social.app.ui.matches.MatchesScreen
 import flexr.social.app.ui.navigation.FlexrBottomBar
 import flexr.social.app.ui.navigation.FlexrTopBar
@@ -266,6 +267,7 @@ private fun MainGraph(
                 AccountScreen(
                     onLogout = onLogout,
                     onOpenVerification = { navController.navigate(Routes.VERIFICATION) },
+                    onOpenMyReports = { navController.navigate(Routes.MY_REPORTS) },
                     onOpenLegal = { navController.navigate(Routes.legal(it)) },
                     onOpenUrl = onOpenUrl,
                     onShowMessage = onShowMessage,
@@ -299,6 +301,10 @@ private fun MainGraph(
                     onBack = { navController.popBackStack() },
                     onShowMessage = onShowMessage,
                 )
+            }
+
+            composable(Routes.MY_REPORTS) {
+                MyReportsScreen(onBack = { navController.popBackStack() })
             }
 
             composable(Routes.VERIFICATION) {

@@ -160,7 +160,11 @@ fun ChatScreen(
         }
 
         state.mutedUntil?.let { until ->
-            MuteBanner(untilLabel = ServerTime.formatDateTime(until))
+            MuteBanner(
+                untilLabel = ServerTime.formatDateTime(until),
+                reason = state.muteReason,
+                appealHint = state.appealHint,
+            )
         }
 
         ChatInputRow(
@@ -388,9 +392,14 @@ private fun MessageBubble(message: Message, isMine: Boolean) {
     }
 }
 
-/** Hinweis bei befristeter Chat-Sperre („Abmahnung"). */
+/**
+ * Hinweis bei befristeter Chat-Sperre („Abmahnung").
+ *
+ * Art. 17 DSA verlangt zu jeder Beschränkung eine Begründung und den Hinweis
+ * darauf, wie man dagegen vorgehen kann — beides steht deshalb im Banner.
+ */
 @Composable
-private fun MuteBanner(untilLabel: String) {
+private fun MuteBanner(untilLabel: String, reason: String?, appealHint: String?) {
     val colors = FlexrTheme.colors
     Row(
         Modifier
@@ -403,13 +412,28 @@ private fun MuteBanner(untilLabel: String) {
         horizontalArrangement = Arrangement.spacedBy(9.dp),
     ) {
         Text("⚠️", style = MaterialTheme.typography.bodyMedium)
-        Text(
-            text = "Deine Chat-Funktion ist vorübergehend gesperrt. Du kannst bis " +
-                "$untilLabel Uhr keine Nachrichten senden. Bitte halte dich an unsere " +
-                "Community-Regeln.",
-            style = MaterialTheme.typography.bodySmall,
-            color = Color(0xFFFFB3B3),
-        )
+        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Text(
+                text = "Deine Chat-Funktion ist vorübergehend gesperrt. Du kannst bis " +
+                    "$untilLabel Uhr keine Nachrichten senden.",
+                style = MaterialTheme.typography.bodySmall,
+                color = Color(0xFFFFB3B3),
+            )
+            if (!reason.isNullOrBlank()) {
+                Text(
+                    text = "Grund: $reason",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = colors.chalk,
+                )
+            }
+            if (!appealHint.isNullOrBlank()) {
+                Text(
+                    text = appealHint,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = colors.chalkDim,
+                )
+            }
+        }
     }
 }
 

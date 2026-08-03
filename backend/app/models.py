@@ -42,6 +42,20 @@ class GymStatus(str, enum.Enum):
     rejected = "rejected"
 
 
+class ReportOutcome(str, enum.Enum):
+    """Ergebnis einer Meldung, das dem Melder mitgeteilt wird (Art. 16 DSA)."""
+
+    no_action = "no_action"      # geprüft, kein Verstoß festgestellt
+    action_taken = "action_taken"  # Inhalt entfernt bzw. Konto gesperrt
+
+
+class ModerationAction(str, enum.Enum):
+    """Maßnahme gegen ein Konto - Grundlage der Begründung nach Art. 17 DSA."""
+
+    mute = "mute"  # befristete Chat-Sperre
+    ban = "ban"    # Kontosperre
+
+
 class VerificationStatus(str, enum.Enum):
     in_progress = "in_progress"  # Posen ausgegeben, Selfies noch nicht eingereicht
     submitted = "submitted"      # Selfies hochgeladen, wartet auf manuelle Prüfung
@@ -136,6 +150,12 @@ class User(Base):
     # und Chats lesen, aber bis zu diesem Zeitpunkt keine Nachrichten senden.
     # NULL = keine Sperre.
     messaging_muted_until = Column(DateTime, nullable=True)
+
+    # Art. 17 DSA: Jede Beschränkung braucht eine Begründung für den Betroffenen.
+    # Gilt für die letzte verhängte Maßnahme; wird beim Aufheben geleert.
+    moderation_action = Column(String(20), nullable=True)  # ModerationAction
+    moderation_reason = Column(String(500), nullable=True)
+    moderation_action_at = Column(DateTime, nullable=True)
 
     # Selbstlöschung: Konto wird sofort deaktiviert (Login gesperrt, unsichtbar),
     # nach 30 Tagen Karenz endgültig gelöscht (siehe Datenschutzerklärung Punkt 5).
@@ -330,9 +350,20 @@ class Report(Base):
     reported_id = Column(String, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     reason = Column(String(500), nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
-    # Vom Admin als unbedenklich abgehakt - bleibt als Nachweis erhalten,
-    # verschwindet aber aus der offenen Meldungsliste.
+    # Vom Admin abgeschlossen - bleibt als Nachweis erhalten, verschwindet aber
+    # aus der offenen Meldungsliste.
     dismissed_at = Column(DateTime, nullable=True)
+
+    # Art. 16 Abs. 5 DSA: Der Melder muss die Entscheidung über seine Meldung
+    # erfahren. outcome sagt, ob eingeschritten wurde, decision_note ist der
+    # Text, den der Melder zu sehen bekommt.
+    outcome = Column(String(20), nullable=True)  # None = offen, sonst ReportOutcome
+    decision_note = Column(String(500), nullable=True)
+
+    @property
+    def reference(self) -> str:
+        """Kurzes Aktenzeichen für die Empfangsbestätigung (Art. 16 Abs. 4)."""
+        return self.id.replace("-", "")[:8].upper()
 
 
 class VerificationRequest(Base):

@@ -408,6 +408,17 @@
     const d = parseUTC(iso);
     return d && d > new Date();
   }
+  // Art. 17 DSA: Jede Beschränkung braucht eine Begründung, die der Betroffene
+  // zu sehen bekommt. Gibt null zurück, wenn abgebrochen wurde.
+  function askModerationReason(what){
+    const note = prompt(
+      `Begründung für die ${what} (bekommt der Nutzer wörtlich angezeigt):`,
+      'Verstoß gegen die Nutzungsrichtlinien: ',
+    );
+    if(note === null) return null;
+    if(note.trim().length < 3){ toast('Bitte eine Begründung angeben.'); return null; }
+    return note.trim();
+  }
 
   async function api(path, opts = {}){
     const headers = Object.assign({'Content-Type': 'application/json'}, opts.headers || {});
@@ -778,6 +789,9 @@
         isMutedNow(u.messaging_muted_until)
           ? `<span class="pill warn">gesperrt bis ${fmtDateTime(u.messaging_muted_until)} Uhr</span>`
           : '<span class="pill ok">Chat frei</span>'}</span></div>
+      ${u.moderation_reason ? `
+      <div class="detail-row"><span class="k">Begründung</span><span>${escapeHtml(u.moderation_reason)}${
+        u.moderation_action_at ? ` <span class="pill muted">${fmtDate(u.moderation_action_at)}</span>` : ''}</span></div>` : ''}
       <div class="detail-row"><span class="k">Geräte</span><span>${
         u.devices && u.devices.length
           ? u.devices.map(d => `<span class="mono">${escapeHtml(d.device_id.slice(0, 14))}…</span>${
@@ -812,7 +826,10 @@
     $('btnMute').addEventListener('click', async () => {
       const val = $('muteDur').value;               // z. B. "h5" oder "d7"
       const n = parseInt(val.slice(1), 10);
-      const body = val[0] === 'h' ? {hours: n} : {days: n};
+      // Art. 17 DSA: ohne Begründung keine Sperre — der Text geht an den Nutzer.
+      const reason = askModerationReason('Chat-Sperre');
+      if(reason === null) return;
+      const body = val[0] === 'h' ? {hours: n, reason} : {days: n, reason};
       const label = val[0] === 'h'
         ? `${n} Stunde(n)` : `${n} Tag(e)`;
       try{
@@ -838,7 +855,12 @@
       });
     } else {
       $('btnBan').addEventListener('click', async () => {
-        try{ await api(`/api/admin/users/${u.id}/ban`, {method: 'POST'}); toast('Nutzer gesperrt.'); closeUserModal(); loadUsers(); loadDashboard(); }
+        const reason = askModerationReason('Kontosperre');
+        if(reason === null) return;
+        try{
+          await api(`/api/admin/users/${u.id}/ban`, {method: 'POST', body: JSON.stringify({reason})});
+          toast('Nutzer gesperrt.'); closeUserModal(); loadUsers(); loadDashboard();
+        }
         catch(err){ toast(err.message); }
       });
     }
@@ -1004,7 +1026,8 @@
                 <td>${fmtDate(r.created_at)}</td>
                 <td style="white-space:nowrap;">
                   <button class="btn small secondary" data-view-user="${r.reported_id}">Ansehen</button>
-                  <button class="btn small secondary" data-dismiss-report="${r.id}">Ignorieren</button>
+                  <button class="btn small secondary" data-decide-report="${r.id}" data-outcome="no_action">Kein Verstoß</button>
+                  <button class="btn small secondary" data-decide-report="${r.id}" data-outcome="action_taken">Eingeschritten</button>
                 </td>
               </tr>
             `).join('')}
@@ -1017,12 +1040,24 @@
           openUserModal(btn.dataset.viewUser);
         });
       });
-      wrap.querySelectorAll('button[data-dismiss-report]').forEach(btn => {
+      // Art. 16 Abs. 5 DSA: Die Meldung wird nicht still abgehakt — der
+      // Melder bekommt Ergebnis und Begründung zu sehen.
+      wrap.querySelectorAll('button[data-decide-report]').forEach(btn => {
         btn.addEventListener('click', async (e) => {
           e.stopPropagation();
+          const outcome = btn.dataset.outcome;
+          const preset = outcome === 'no_action'
+            ? 'Wir haben die Meldung geprüft und keinen Verstoß gegen die Nutzungsrichtlinien festgestellt.'
+            : 'Wir haben die Meldung geprüft und Maßnahmen gegen das gemeldete Konto ergriffen.';
+          const note = prompt('Begründung für den Melder (wird ihm wörtlich angezeigt):', preset);
+          if(note === null) return;
+          if(note.trim().length < 3){ toast('Bitte eine Begründung angeben.'); return; }
           try{
-            await api(`/api/admin/reports/${btn.dataset.dismissReport}/dismiss`, {method: 'POST'});
-            toast('Meldung als unbedenklich abgehakt.');
+            await api(`/api/admin/reports/${btn.dataset.decideReport}/decide`, {
+              method: 'POST',
+              body: JSON.stringify({outcome, decision_note: note.trim()}),
+            });
+            toast('Meldung abgeschlossen, der Melder wird informiert.');
             loadReports();
             loadDashboard();
           }catch(err){ toast(err.message); }

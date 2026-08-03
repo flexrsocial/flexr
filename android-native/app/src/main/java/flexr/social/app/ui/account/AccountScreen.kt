@@ -77,6 +77,7 @@ import flexr.social.app.ui.navigation.LegalDocument
 fun AccountScreen(
     onLogout: () -> Unit,
     onOpenVerification: () -> Unit,
+    onOpenMyReports: () -> Unit,
     onOpenLegal: (LegalDocument) -> Unit,
     onOpenUrl: (String) -> Unit,
     onShowMessage: (String) -> Unit,
@@ -360,6 +361,35 @@ fun AccountScreen(
         FlexrSecondaryButton(text = "Ausloggen", onClick = onLogout)
         Spacer(Modifier.height(10.dp))
         FlexrDangerButton(text = "Konto löschen", onClick = viewModel::showDeleteDialog)
+
+        // ---------- Sicherheit ----------
+        // Art. 16 Abs. 5 DSA: Der Melder muss nachsehen können, was aus seiner
+        // Meldung geworden ist.
+        Spacer(Modifier.height(28.dp))
+        SectionTitle("Sicherheit")
+        Column(Modifier.fillMaxWidth().padding(top = 6.dp)) {
+            Row(
+                Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(10.dp))
+                    .clickable(onClick = onOpenMyReports)
+                    .padding(vertical = 13.dp, horizontal = 4.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = "Meine Meldungen",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = colors.chalk,
+                    modifier = Modifier.weight(1f),
+                )
+                Icon(
+                    Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                    contentDescription = null,
+                    tint = colors.chalkDim,
+                    modifier = Modifier.size(20.dp),
+                )
+            }
+        }
 
         // ---------- Rechtliches ----------
         Spacer(Modifier.height(28.dp))

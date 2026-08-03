@@ -40,9 +40,8 @@ class MatchProfileViewModel @Inject constructor(
         val userId = match.value?.profile?.id ?: return
         viewModelScope.launch {
             runCatching { safetyRepository.report(userId, reason) }
-                .onSuccess {
-                    _events.send(MatchProfileEvent.Message("Meldung gesendet. Danke für dein Feedback."))
-                }
+                // Empfangsbestätigung mit Aktenzeichen (Art. 16 Abs. 4 DSA)
+                .onSuccess { _events.send(MatchProfileEvent.Message(it.message)) }
                 .onFailure {
                     _events.send(MatchProfileEvent.Message(it.message ?: "Meldung fehlgeschlagen."))
                 }

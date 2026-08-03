@@ -209,7 +209,8 @@ def test_muted_user_cannot_send_but_others_can(client):
     # Admin verhängt eine 3-Tage-Chat-Sperre gegen A
     r = client.post(
         f"/api/admin/users/{user_a['id']}/mute",
-        headers=admin_headers, json={"days": 3},
+        headers=admin_headers,
+        json={"days": 3, "reason": "Beleidigung im Chat"},
     )
     assert r.status_code == 200
 
@@ -220,6 +221,7 @@ def test_muted_user_cannot_send_but_others_can(client):
     )
     assert resp.status_code == 403
     assert resp.json()["detail"]["reason"] == "messaging_muted"
+    assert resp.json()["detail"]["moderation_reason"] == "Beleidigung im Chat"
     assert client.get(
         f"/api/matches/{match_id}/messages", headers=headers_a).status_code == 200
 
@@ -267,7 +269,8 @@ def test_mute_supports_hours_and_requires_positive_duration(client):
     # Stundensperre (5 Stunden) blockiert das Senden
     r = client.post(
         f"/api/admin/users/{user_a['id']}/mute",
-        headers=admin_headers, json={"hours": 5},
+        headers=admin_headers,
+        json={"hours": 5, "reason": "Spam an mehrere Matches"},
     )
     assert r.status_code == 200
     assert client.post(
@@ -277,7 +280,13 @@ def test_mute_supports_hours_and_requires_positive_duration(client):
     # Dauer 0/0 wird abgelehnt
     assert client.post(
         f"/api/admin/users/{user_a['id']}/mute",
-        headers=admin_headers, json={"days": 0, "hours": 0}).status_code == 422
+        headers=admin_headers,
+        json={"days": 0, "hours": 0, "reason": "Testgrund"}).status_code == 422
+
+    # Ohne Begruendung keine Sperre (Art. 17 DSA)
+    assert client.post(
+        f"/api/admin/users/{user_a['id']}/mute",
+        headers=admin_headers, json={"days": 1}).status_code == 422
 
 
 def test_admin_flagged_shows_delivery_and_censor_state(client):

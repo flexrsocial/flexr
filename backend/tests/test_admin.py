@@ -56,7 +56,11 @@ def test_admin_ban_blocks_login_and_unban_restores(client):
     users = client.get("/api/admin/users", headers=admin_headers).json()
     user_id = next(u["id"] for u in users if u["email"] == "tobeban@example.com")
 
-    ban_resp = client.post(f"/api/admin/users/{user_id}/ban", headers=admin_headers)
+    ban_resp = client.post(
+        f"/api/admin/users/{user_id}/ban",
+        headers=admin_headers,
+        json={"reason": "Fake-Profil mit fremden Fotos"},
+    )
     assert ban_resp.status_code == 200
     assert ban_resp.json()["is_banned"] is True
 
@@ -65,6 +69,10 @@ def test_admin_ban_blocks_login_and_unban_restores(client):
         json={"email": "tobeban@example.com", "password": "supersecret123"},
     )
     assert login_resp.status_code == 403
+    # Art. 17 DSA: Begruendung und Widerspruchsweg stehen im Fehler-Detail
+    detail = login_resp.json()["detail"]
+    assert detail["moderation_reason"] == "Fake-Profil mit fremden Fotos"
+    assert "widersprechen" in detail["appeal_hint"]
 
     unban_resp = client.post(f"/api/admin/users/{user_id}/unban", headers=admin_headers)
     assert unban_resp.status_code == 200
@@ -191,7 +199,11 @@ def test_admin_dismiss_report(client):
     report_id = reports[0]["id"]
     assert client.get("/api/admin/stats", headers=admin_headers).json()["open_reports"] == 1
 
-    resp = client.post(f"/api/admin/reports/{report_id}/dismiss", headers=admin_headers)
+    resp = client.post(
+        f"/api/admin/reports/{report_id}/decide",
+        headers=admin_headers,
+        json={"outcome": "no_action", "decision_note": "Geprueft, kein Verstoss."},
+    )
     assert resp.status_code == 200
 
     # Verschwindet aus der offenen Liste und aus dem Stats-Zähler
@@ -201,7 +213,11 @@ def test_admin_dismiss_report(client):
 
 def test_admin_dismiss_unknown_report_404(client):
     admin_headers, _ = create_admin(client, email="admin.dismiss404@example.com")
-    resp = client.post("/api/admin/reports/gibt-es-nicht/dismiss", headers=admin_headers)
+    resp = client.post(
+        "/api/admin/reports/gibt-es-nicht/decide",
+        headers=admin_headers,
+        json={"outcome": "no_action", "decision_note": "Existiert nicht."},
+    )
     assert resp.status_code == 404
 
 

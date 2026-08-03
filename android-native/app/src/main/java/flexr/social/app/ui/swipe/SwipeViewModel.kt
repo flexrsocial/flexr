@@ -176,7 +176,8 @@ class SwipeViewModel @Inject constructor(
     fun report(userId: String, reason: String) {
         viewModelScope.launch {
             runCatching { safetyRepository.report(userId, reason) }
-                .onSuccess { _events.send(SwipeEvent.Message("Meldung gesendet. Danke für dein Feedback.")) }
+                // Empfangsbestätigung mit Aktenzeichen (Art. 16 Abs. 4 DSA)
+                .onSuccess { _events.send(SwipeEvent.Message(it.message)) }
                 .onFailure {
                     _events.send(SwipeEvent.Message(it.message ?: "Meldung fehlgeschlagen."))
                 }

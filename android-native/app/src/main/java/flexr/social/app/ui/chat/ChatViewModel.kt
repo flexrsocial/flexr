@@ -33,6 +33,9 @@ data class ChatUiState(
     val isSending: Boolean = false,
     val isLoading: Boolean = true,
     val mutedUntil: Instant? = null,
+    /** Begründung und Widerspruchshinweis zur Sperre (Art. 17 DSA). */
+    val muteReason: String? = null,
+    val appealHint: String? = null,
 ) {
     val canSend: Boolean get() = draft.isNotBlank() && !isSending && mutedUntil == null
 }
@@ -116,7 +119,17 @@ class ChatViewModel @Inject constructor(
         viewModelScope.launch {
             val profile = runCatching { profileRepository.refresh() }.getOrNull()
                 ?: profileRepository.myProfile.value
-            _uiState.update { it.copy(mutedUntil = profile?.activeMuteUntil()) }
+            val until = profile?.activeMuteUntil()
+            _uiState.update { it.copy(mutedUntil = until) }
+            // Art. 17 DSA: Zur Sperre gehört die Begründung samt Widerspruchsweg.
+            if (until != null) {
+                val notice = runCatching { safetyRepository.moderationNotice() }.getOrNull()
+                _uiState.update {
+                    it.copy(muteReason = notice?.reason, appealHint = notice?.appealHint)
+                }
+            } else {
+                _uiState.update { it.copy(muteReason = null, appealHint = null) }
+            }
         }
     }
 
@@ -145,6 +158,8 @@ class ChatViewModel @Inject constructor(
                             isSending = false,
                             draft = content,
                             mutedUntil = apiError?.mutedUntil ?: it.mutedUntil,
+                            muteReason = apiError?.moderationReason ?: it.muteReason,
+                            appealHint = apiError?.appealHint ?: it.appealHint,
                         )
                     }
                     if (apiError?.mutedUntil == null) {
@@ -187,7 +202,9 @@ class ChatViewModel @Inject constructor(
         val userId = match.value?.profile?.id ?: return
         viewModelScope.launch {
             runCatching { safetyRepository.report(userId, reason) }
-                .onSuccess { _events.send(ChatEvent.Message("Meldung gesendet. Danke für dein Feedback.")) }
+                // Art. 16 Abs. 4 DSA: Der Melder bekommt die Bestätigung mit
+                // Aktenzeichen zu sehen, nicht nur ein "danke".
+                .onSuccess { _events.send(ChatEvent.Message(it.message)) }
                 .onFailure { _events.send(ChatEvent.Message(it.message ?: "Meldung fehlgeschlagen.")) }
         }
     }

@@ -36,6 +36,11 @@
   table{ width:100%; border-collapse:collapse; margin:12px 0; font-size:14px; }
   th,td{ text-align:left; padding:8px 10px; border-bottom:1px solid var(--steel); vertical-align:top; }
   th{ color:var(--chalk-dim); font-weight:600; }
+  .toc{ background:var(--surface); border:1px solid var(--steel); border-radius:10px; padding:14px 18px; margin:22px 0 8px; font-size:14px; }
+  .toc b{ display:block; margin-bottom:8px; font-size:12px; letter-spacing:.06em; text-transform:uppercase; color:var(--chalk-dim); }
+  .toc ol{ margin:0; padding-left:20px; }
+  .toc li{ margin-bottom:5px; }
+  h2[id]{ scroll-margin-top:16px; }
   .nav-legal{ margin-top:44px; padding-top:16px; border-top:1px solid var(--steel); font-size:13px; }
   .nav-legal a{ margin-right:16px; }
 </style>
@@ -48,7 +53,23 @@
   <p class="lead">Acceptable Use Policy — verbindliche Verhaltens- und Inhaltsregeln für alle Nutzer von FLEXR</p>
   <p class="stand">Stand: 3. August 2026</p>
 
-  <h2>1. Geltung</h2>
+  <nav class="toc" aria-label="Inhalt">
+    <b>Inhalt</b>
+    <ol>
+      <li><a href="#geltung">Geltung</a></li>
+      <li><a href="#grundregeln">Grundregeln</a></li>
+      <li><a href="#verbotene-inhalte">Verbotene Inhalte und Verhaltensweisen</a></li>
+      <li><a href="#menschenhandel">Protokoll: Menschenhandel und sexuelle Ausbeutung</a></li>
+      <li><a href="#illegale-handlungen">Protokoll: Illegale Handlungen</a></li>
+      <li><a href="#impersonation">Protokoll: Identitätsmissbrauch und Fake-Profile</a></li>
+      <li><a href="#csam">Protokoll: Schutz Minderjähriger und CSAM</a></li>
+      <li><a href="#durchsetzung">Durchsetzung</a></li>
+      <li><a href="#melden">Melden, Entscheidung und Beschwerde</a></li>
+      <li><a href="#kontakt">Kontakt und Kontaktstellen</a></li>
+    </ol>
+  </nav>
+
+  <h2 id="geltung">1. Geltung</h2>
   <p>
     Diese Nutzungsrichtlinien gelten für jede Nutzung der Plattform FLEXR, betrieben von
     flexr.social Kleinunternehmen, Johann-Schrey-Weg 260, 8232 Grafendorf, Österreich
@@ -60,7 +81,7 @@
     <a href="/strafverfolgung.html">Richtlinien für Strafverfolgungsbehörden</a>.
   </p>
 
-  <h2>2. Grundregeln</h2>
+  <h2 id="grundregeln">2. Grundregeln</h2>
   <ul>
     <li>FLEXR ist ausschließlich für Personen ab 18 Jahren. Das Geburtsdatum wird
       bei der Registrierung serverseitig geprüft; Konten unter 18 Jahren werden
@@ -75,7 +96,7 @@
       Werbung, Anwerbung und Vermittlung jeder Art sind untersagt.</li>
   </ul>
 
-  <h2>3. Verbotene Inhalte und Verhaltensweisen</h2>
+  <h2 id="verbotene-inhalte">3. Verbotene Inhalte und Verhaltensweisen</h2>
   <p>Untersagt sind insbesondere:</p>
   <ul>
     <li>Menschenhandel, Zwangsprostitution, sexuelle Ausbeutung sowie jede Form der
@@ -96,7 +117,7 @@
       etwa durch Neuanmeldung nach einem Ausschluss.</li>
   </ul>
 
-  <h2>4. Protokoll: Menschenhandel und sexuelle Ausbeutung</h2>
+  <h2 id="menschenhandel">4. Protokoll: Menschenhandel und sexuelle Ausbeutung</h2>
   <div class="box alarm">
     <span class="tag zero">Nulltoleranz</span>
     <h3>Was ausnahmslos verboten ist</h3>
@@ -149,7 +170,7 @@
       (LEFÖ-IBF) und den Opfer-Notruf 0800 112 112.</li>
   </ol>
 
-  <h2>5. Protokoll: Illegale Handlungen</h2>
+  <h2 id="illegale-handlungen">5. Protokoll: Illegale Handlungen</h2>
   <div class="box">
     <h3>Was ausnahmslos verboten ist</h3>
     <ul>
@@ -194,7 +215,7 @@
       Daten für eine eigene Anzeige, soweit datenschutzrechtlich zulässig.</li>
   </ol>
 
-  <h2>6. Protokoll: Identitätsmissbrauch und Fake-Profile</h2>
+  <h2 id="impersonation">6. Protokoll: Identitätsmissbrauch und Fake-Profile</h2>
   <div class="box">
     <h3>Was ausnahmslos verboten ist</h3>
     <ul>
@@ -240,7 +261,7 @@
       endgültige Löschung und, bei Anhaltspunkten für Betrug, eine Anzeige.</li>
   </ol>
 
-  <h2>7. Protokoll: Schutz Minderjähriger und CSAM</h2>
+  <h2 id="csam">7. Protokoll: Schutz Minderjähriger und CSAM</h2>
   <div class="box alarm">
     <span class="tag zero">Nulltoleranz</span>
     <h3>Was ausnahmslos verboten ist</h3>
@@ -298,7 +319,7 @@
     Sie <b>keine</b> Bilddateien an, sondern nur Profil-Links, Namen und Zeitpunkte.
   </p>
 
-  <h2>8. Durchsetzung</h2>
+  <h2 id="durchsetzung">8. Durchsetzung</h2>
   <table>
     <tr><th>Maßnahme</th><th>Wirkung</th><th>Typischer Anlass</th></tr>
     <tr><td>Inhalt abgelehnt</td><td>Bio oder Foto wird nicht veröffentlicht</td><td>Regelverstoß im Inhalt, ohne Täuschungsabsicht</td></tr>
@@ -312,30 +333,82 @@
     gesperrt.
   </p>
 
-  <h2>9. Melden und Beschwerde</h2>
+  <h2 id="melden">9. Melden, Entscheidung und Beschwerde</h2>
+  <p>
+    Das Meldeverfahren ist auf Art. 16 der Verordnung (EU) 2022/2065 (Gesetz über
+    digitale Dienste, DSA) ausgelegt: Melden geht elektronisch, jede Meldung wird
+    bestätigt, und der Melder erfährt, was daraus geworden ist.
+  </p>
+
+  <h3>Melden</h3>
   <ul>
     <li><b>In der App:</b> Melden- und Blockieren-Funktion in jedem Profil und in
       jedem Chat. Blockieren wirkt sofort und beidseitig.</li>
     <li><b>Per E-Mail:</b> <a href="mailto:flexr.social@proton.me">flexr.social@proton.me</a>,
-      auch ohne eigenes Konto.</li>
-    <li><b>Bearbeitung:</b> Eingang wird protokolliert; Sichtung binnen 72 Stunden,
-      bei Gefahr im Verzug sowie in den Fällen der Abschnitte 4 und 7 unverzüglich,
-      spätestens binnen 24 Stunden.</li>
-    <li><b>Beschwerde:</b> Gegen eine Sperre kann formlos per E-Mail Widerspruch
-      erhoben werden. Die Entscheidung wird von der Betreiberin erneut geprüft und
-      begründet beantwortet. Der Rechtsweg bleibt unberührt.</li>
+      auch ohne eigenes Konto — etwa wenn die eigene Identität hier missbraucht wird.
+      Hilfreich sind Profilname, Zeitpunkt und eine kurze Beschreibung.</li>
   </ul>
 
-  <h2>10. Kontakt</h2>
+  <h3>Was danach passiert</h3>
+  <ol class="steps">
+    <li><b>Empfangsbestätigung sofort:</b> Jede Meldung bekommt beim Absenden ein
+      Aktenzeichen, das in der App angezeigt wird.</li>
+    <li><b>Prüfung binnen 72 Stunden</b> — bei Gefahr im Verzug sowie in den Fällen
+      der Abschnitte 4 und 7 unverzüglich, spätestens binnen 24 Stunden. Geprüft
+      wird durch einen Menschen; es entscheidet kein Automatismus über eine Sperre.</li>
+    <li><b>Entscheidung mit Begründung:</b> Unter „Meine Meldungen" im Konto-Bereich
+      steht zu jeder Meldung, ob wir eingeschritten sind oder keinen Verstoß
+      feststellen konnten — samt Begründung im Wortlaut.</li>
+    <li><b>Widerspruch:</b> Wer mit der Entscheidung nicht einverstanden ist, kann
+      ihr formlos per E-Mail widersprechen. Wir prüfen erneut und antworten begründet.</li>
+  </ol>
+
+  <h3>Wenn wir gegen dein Konto vorgehen</h3>
+  <p>
+    Nach Art. 17 DSA bekommst du zu jeder Beschränkung eine Begründung. Bei einer
+    befristeten Chat-Sperre steht sie im Chat, bei einer Kontosperre erscheint sie
+    beim Anmeldeversuch. Beides nennt den Grund, die Dauer und den Weg zum
+    Widerspruch: formlos per E-Mail an
+    <a href="mailto:flexr.social@proton.me">flexr.social@proton.me</a>. Wir prüfen
+    die Entscheidung dann erneut und antworten begründet. Der Rechtsweg bleibt
+    unberührt; ebenso die Möglichkeit, sich an die österreichische Aufsicht für
+    digitale Dienste (Koordinator für digitale Dienste bei der KommAustria/RTR) zu
+    wenden.
+  </p>
+
+  <h3>Automatisierte Prüfung und menschliche Kontrolle</h3>
+  <p>
+    Automatisch laufen nur die in den Abschnitten 4 bis 7 beschriebenen Filter:
+    Sie weisen Profiltexte zurück, machen Links und Kontaktdaten in Nachrichten
+    unkenntlich und legen auffällige Nachrichten der Moderation vor. Jede
+    weitergehende Maßnahme — Fotofreigabe, Chat-Sperre, Kontosperre, Löschung —
+    trifft ein Mensch.
+  </p>
+
+  <h2 id="kontakt">10. Kontakt und Kontaktstellen</h2>
   <p>
     flexr.social Kleinunternehmen, Johann-Schrey-Weg 260, 8232 Grafendorf, Österreich<br>
-    E-Mail: <a href="mailto:flexr.social@proton.me">flexr.social@proton.me</a><br>
-    Anfragen von Behörden: siehe
+    E-Mail: <a href="mailto:flexr.social@proton.me">flexr.social@proton.me</a>
+  </p>
+  <p>
+    Dieselbe Adresse ist zugleich die <b>zentrale Kontaktstelle für Nutzer</b>
+    nach Art. 12 DSA und die <b>zentrale Kontaktstelle für Behörden</b> nach
+    Art. 11 DSA. Die Kommunikation läuft elektronisch per E-Mail, in
+    <b>Deutsch oder Englisch</b>. Zum Verfahren bei behördlichen Ersuchen siehe die
     <a href="/strafverfolgung.html">Richtlinien für Strafverfolgungsbehörden</a>.
+  </p>
+  <p>
+    FLEXR ist ein Kleinstunternehmen im Sinne der Empfehlung 2003/361/EG und
+    daher nach Art. 19 DSA von den zusätzlichen Pflichten für Online-Plattformen
+    (Abschnitt 3 des Kapitels III) ausgenommen. Die Pflichten für
+    Hostingdiensteanbieter — Kontaktstellen, Melde- und Abhilfeverfahren,
+    Begründung von Maßnahmen, Meldung von Straftaten — erfüllen wir wie oben
+    beschrieben.
   </p>
 
   <div class="nav-legal">
     <a href="/agb.html">AGB</a>
+    <a href="/sicherheit.html">Sicherheit</a>
     <a href="/strafverfolgung.html">Strafverfolgung</a>
     <a href="/datenschutz.html">Datenschutz</a>
     <a href="/impressum.html">Impressum</a>

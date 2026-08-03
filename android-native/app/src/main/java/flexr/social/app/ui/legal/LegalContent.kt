@@ -34,6 +34,7 @@ object LegalContent {
         LegalDocument.IMPRESSUM -> impressum
         LegalDocument.DATENSCHUTZ -> datenschutz
         LegalDocument.AGB -> agb
+        LegalDocument.SICHERHEIT -> sicherheit
         LegalDocument.NUTZUNGSRICHTLINIEN -> nutzungsrichtlinien
         LegalDocument.STRAFVERFOLGUNG -> strafverfolgung
     }
@@ -189,6 +190,18 @@ object LegalContent {
                     "Auskunftsersuchen von Behörden behandeln wir nach den Richtlinien für " +
                     "Strafverfolgungsbehörden.",
             ),
+            LegalBlock.Paragraph(
+                "Moderation, Beschwerde und Kontaktstelle (Art. 14 DSA): Inhalte werden auf " +
+                    "zwei Wegen geprüft — automatisiert durch Filter, die Profiltexte mit Links, " +
+                    "Telefonnummern oder Scam-Begriffen zurückweisen, Links und Kontaktdaten in " +
+                    "Chatnachrichten unkenntlich machen und auffällige Nachrichten zur Prüfung " +
+                    "vorlegen, und durch menschliche Prüfung, die über jede Fotofreigabe und " +
+                    "jede Maßnahme gegen ein Konto entscheidet. Über eine Beschränkung " +
+                    "informieren wir dich begründet; du kannst ihr formlos per E-Mail an " +
+                    "flexr.social@proton.me widersprechen. Dieselbe Adresse ist unsere zentrale " +
+                    "Kontaktstelle für Nutzer (Art. 12 DSA) und für Behörden (Art. 11 DSA), " +
+                    "erreichbar auf Deutsch und Englisch.",
+            ),
             LegalBlock.Heading("7. Haftungsbeschränkung"),
             LegalBlock.Paragraph(
                 "Wir haften nicht für das Verhalten, die Angaben oder die Identität anderer Nutzer. " +
@@ -208,6 +221,105 @@ object LegalContent {
                     "Für Verbraucher gelten die zwingenden Bestimmungen des Wohnsitzstaates.",
                     "OS-Plattform der EU: ec.europa.eu/consumers/odr.",
                 ),
+            ),
+        ),
+    )
+
+    // Sicherheitstipps. Inhaltsgleich mit flexr.social/sicherheit.html.
+    private val sicherheit = LegalPage(
+        document = LegalDocument.SICHERHEIT,
+        intro = "Worauf du beim Daten achten solltest — und was wir im Hintergrund tun.",
+        blocks = listOf(
+            LegalBlock.Heading("1. Vor dem ersten Treffen"),
+            LegalBlock.Bullets(
+                listOf(
+                    "Bleib bis dahin im Chat. Es gibt keinen guten Grund, sofort auf WhatsApp, " +
+                        "Telegram oder Instagram wechseln zu müssen. Wer darauf drängt, will " +
+                        "meist raus aus einem Bereich, in dem du melden und blockieren kannst.",
+                    "Sieh dir das Profil genau an: nur ein Foto, auffällig professionelle " +
+                        "Aufnahmen, keine Angaben zum Studio — das muss nichts heißen, ist aber " +
+                        "ein Grund, genauer hinzusehen. Der Verifizierungshaken bedeutet, dass " +
+                        "wir Selfies in zufällig vorgegebenen Posen mit den Profilfotos " +
+                        "verglichen haben.",
+                    "Telefoniert oder macht einen Videocall, bevor ihr euch trefft.",
+                    "Sag jemandem Bescheid, wen du triffst, wo und wie lange.",
+                ),
+            ),
+            LegalBlock.Heading("2. Beim Treffen"),
+            LegalBlock.Bullets(
+                listOf(
+                    "Trefft euch öffentlich — im Studio, im Café, im Park. Nicht bei dir oder " +
+                        "bei der anderen Person zuhause.",
+                    "Komm und geh selbstständig. Lass dich beim ersten Mal nicht abholen und " +
+                        "gib deine Adresse noch nicht heraus.",
+                    "Behalte Getränk und Handy bei dir und achte auf einen geladenen Akku.",
+                    "Trink in Maßen — du willst klar entscheiden können, wie der Abend weitergeht.",
+                    "Geh, wenn es sich falsch anfühlt. Du schuldest niemandem eine Erklärung.",
+                ),
+            ),
+            LegalBlock.Heading("3. Betrugsmaschen erkennen"),
+            LegalBlock.Note(
+                "Jede Bitte um Geld, Gutscheine, Paysafe-Codes oder Krypto ist ein " +
+                    "Betrugsversuch — auch die rührendste Notlage, auch nach Wochen Chat.",
+            ),
+            LegalBlock.Bullets(
+                listOf(
+                    "Anlagetipps: „Ich zeig dir, wie ich mit Trading verdiene\" ist die " +
+                        "häufigste Masche auf Dating-Plattformen.",
+                    "Zu schnell, zu viel: Liebeserklärungen nach drei Tagen, ständige " +
+                        "Erreichbarkeitsforderungen, Eifersucht vor dem ersten Treffen.",
+                    "Nie erreichbar: Videocalls scheitern immer, Treffen platzen kurzfristig, " +
+                        "die Person arbeitet „auf einer Bohrinsel\" oder „im Auslandseinsatz\".",
+                    "Intime Aufnahmen: Wer schnell Nacktbilder will, will sie manchmal, um dich " +
+                        "damit zu erpressen (Sextortion).",
+                    "Links: Wir entfernen Links und E-Mail-Adressen automatisch aus Nachrichten. " +
+                        "Umgeht jemand das mit „Punkt\" statt „.\", ist das ein deutliches Signal.",
+                ),
+            ),
+            LegalBlock.Paragraph(
+                "Wenn du erpresst wirst: nicht zahlen — Zahlungen führen praktisch immer zu " +
+                    "weiteren Forderungen. Kontakt abbrechen, blockieren, melden. Screenshots " +
+                    "von Profil, Chat und Zahlungsaufforderung sichern und Anzeige bei der " +
+                    "nächsten Polizeidienststelle erstatten.",
+            ),
+            LegalBlock.Heading("4. Melden und Blockieren"),
+            LegalBlock.Bullets(
+                listOf(
+                    "Blockieren wirkt sofort und beidseitig: Das Match verschwindet, Nachrichten " +
+                        "sind nicht mehr möglich, ihr seht euch nicht mehr im Deck.",
+                    "Melden geht in jedem Profil und in jedem Chat. Du bekommst ein " +
+                        "Aktenzeichen, wir prüfen binnen 72 Stunden — bei Gefahr für eine Person " +
+                        "sofort — und du siehst das Ergebnis unter „Meine Meldungen\".",
+                    "Ohne Konto erreichst du uns unter flexr.social@proton.me, etwa wenn deine " +
+                        "Fotos hier ohne dein Wissen verwendet werden.",
+                ),
+            ),
+            LegalBlock.Heading("5. Was wir tun"),
+            LegalBlock.Bullets(
+                listOf(
+                    "Jedes Foto wird von einem Menschen geprüft, bevor es jemand zu sehen bekommt.",
+                    "Profiltexte mit Links, Telefonnummern oder Scam-Begriffen werden gar nicht " +
+                        "erst veröffentlicht.",
+                    "In Nachrichten machen wir Links und E-Mail-Adressen unkenntlich und legen " +
+                        "auffällige Nachrichten der Moderation vor.",
+                    "Mindestalter 18, serverseitig aus dem Geburtsdatum geprüft.",
+                    "Verifizierung über drei zufällig vorgegebene Selfie-Posen.",
+                ),
+            ),
+            LegalBlock.Heading("6. Im Notfall"),
+            LegalBlock.Note("Bei akuter Gefahr: Polizei 133 oder Euronotruf 112."),
+            LegalBlock.KeyValues(
+                listOf(
+                    "Opfer-Notruf" to "0800 112 112 (rund um die Uhr, kostenlos)",
+                    "Frauenhelpline gegen Gewalt" to "0800 222 555",
+                    "Männerinfo" to "0800 400 777",
+                    "Rat auf Draht" to "147 (für junge Menschen)",
+                ),
+            ),
+            LegalBlock.Paragraph(
+                "Wenn dir hier auf FLEXR etwas zugestoßen ist, melde es uns zusätzlich unter " +
+                    "flexr.social@proton.me. Wir sichern die Daten zu deinem Fall, damit sie für " +
+                    "eine Anzeige verfügbar bleiben.",
             ),
         ),
     )
@@ -461,18 +573,52 @@ object LegalContent {
                 "Die Maßnahme richtet sich nach Schwere, Vorsatz und Wiederholung. In den Fällen " +
                     "der Abschnitte 4 und 7 entfällt die Abstufung: Es wird sofort gesperrt.",
             ),
-            LegalBlock.Heading("9. Melden und Beschwerde"),
+            LegalBlock.Heading("9. Melden, Entscheidung und Beschwerde"),
+            LegalBlock.Paragraph(
+                "Das Meldeverfahren ist auf Art. 16 der Verordnung (EU) 2022/2065 (DSA) " +
+                    "ausgelegt: Melden geht elektronisch, jede Meldung wird bestätigt, und der " +
+                    "Melder erfährt, was daraus geworden ist.",
+            ),
             LegalBlock.Bullets(
                 listOf(
                     "In der App: Melden- und Blockieren-Funktion in jedem Profil und in jedem " +
                         "Chat. Blockieren wirkt sofort und beidseitig.",
-                    "Per E-Mail: flexr.social@proton.me, auch ohne eigenes Konto.",
-                    "Bearbeitung: Sichtung binnen 72 Stunden, bei Gefahr im Verzug sowie in den " +
-                        "Fällen der Abschnitte 4 und 7 unverzüglich, spätestens binnen 24 Stunden.",
-                    "Beschwerde: Gegen eine Sperre kann formlos per E-Mail Widerspruch erhoben " +
-                        "werden. Die Entscheidung wird erneut geprüft und begründet beantwortet. " +
-                        "Der Rechtsweg bleibt unberührt.",
+                    "Per E-Mail: flexr.social@proton.me, auch ohne eigenes Konto — etwa wenn " +
+                        "die eigene Identität hier missbraucht wird.",
                 ),
+            ),
+            LegalBlock.Lettered(
+                listOf(
+                    "Empfangsbestätigung sofort: Jede Meldung bekommt beim Absenden ein " +
+                        "Aktenzeichen, das dir angezeigt wird.",
+                    "Prüfung binnen 72 Stunden — bei Gefahr im Verzug sowie in den Fällen der " +
+                        "Abschnitte 4 und 7 unverzüglich, spätestens binnen 24 Stunden. Es prüft " +
+                        "ein Mensch; kein Automatismus entscheidet über eine Sperre.",
+                    "Entscheidung mit Begründung: Unter „Meine Meldungen\" im Konto-Bereich " +
+                        "steht zu jeder Meldung, ob wir eingeschritten sind oder keinen Verstoß " +
+                        "feststellen konnten — samt Begründung im Wortlaut.",
+                    "Widerspruch: Wer mit der Entscheidung nicht einverstanden ist, kann ihr " +
+                        "formlos per E-Mail widersprechen. Wir prüfen erneut und antworten " +
+                        "begründet.",
+                ),
+            ),
+            LegalBlock.Paragraph(
+                "Wenn wir gegen dein Konto vorgehen, bekommst du nach Art. 17 DSA eine " +
+                    "Begründung: bei einer befristeten Chat-Sperre im Chat, bei einer " +
+                    "Kontosperre beim Anmeldeversuch. Beides nennt Grund, Dauer und den Weg zum " +
+                    "Widerspruch. Der Rechtsweg bleibt unberührt; ebenso die Möglichkeit, sich " +
+                    "an den österreichischen Koordinator für digitale Dienste (KommAustria/RTR) " +
+                    "zu wenden.",
+            ),
+            LegalBlock.Heading("10. Kontakt und Kontaktstellen"),
+            LegalBlock.Paragraph(
+                "flexr.social Kleinunternehmen, Johann-Schrey-Weg 260, 8232 Grafendorf, " +
+                    "Österreich. E-Mail: flexr.social@proton.me. Dieselbe Adresse ist die " +
+                    "zentrale Kontaktstelle für Nutzer (Art. 12 DSA) und für Behörden " +
+                    "(Art. 11 DSA), elektronisch erreichbar auf Deutsch und Englisch. FLEXR ist " +
+                    "ein Kleinstunternehmen und daher nach Art. 19 DSA von den zusätzlichen " +
+                    "Pflichten für Online-Plattformen ausgenommen; die Pflichten für " +
+                    "Hostingdienste erfüllen wir wie oben beschrieben.",
             ),
         ),
     )

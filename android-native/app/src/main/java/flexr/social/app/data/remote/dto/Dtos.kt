@@ -192,6 +192,36 @@ data class ReportRequestDto(
     val reason: String,
 )
 
+/** Empfangsbestätigung einer Meldung (Art. 16 Abs. 4 DSA). */
+@Serializable
+data class ReportAckDto(
+    val reference: String,
+    @SerialName("created_at") val createdAt: String,
+    val message: String,
+)
+
+/** Eigene Meldung samt Entscheidung (Art. 16 Abs. 5 DSA). */
+@Serializable
+data class MyReportDto(
+    val reference: String,
+    val reason: String,
+    @SerialName("created_at") val createdAt: String,
+    // null = noch in Prüfung
+    val outcome: String? = null,
+    @SerialName("decision_note") val decisionNote: String? = null,
+    @SerialName("decided_at") val decidedAt: String? = null,
+)
+
+/** Begründete Mitteilung zu einer laufenden Maßnahme (Art. 17 DSA). */
+@Serializable
+data class ModerationNoticeDto(
+    val action: String,
+    val reason: String,
+    @SerialName("action_at") val actionAt: String,
+    @SerialName("muted_until") val mutedUntil: String? = null,
+    @SerialName("appeal_hint") val appealHint: String,
+)
+
 @Serializable
 data class BlockRequestDto(@SerialName("user_id") val userId: String)
 

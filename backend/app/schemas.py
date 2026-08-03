@@ -264,6 +264,39 @@ class ReportRequest(BaseModel):
     reason: str = Field(min_length=3, max_length=500)
 
 
+class ReportAck(BaseModel):
+    """Empfangsbestätigung nach Art. 16 Abs. 4 DSA: Der Melder bekommt ein
+    Aktenzeichen und weiß, wann und wie er von der Entscheidung erfährt."""
+
+    reported: bool = True
+    reference: str
+    created_at: datetime
+    message: str
+
+
+class MyReportOut(BaseModel):
+    """Eigene Meldung samt Entscheidung (Art. 16 Abs. 5 DSA)."""
+
+    reference: str
+    reason: str
+    created_at: datetime
+    # None = noch in Prüfung
+    outcome: Optional[str] = None
+    decision_note: Optional[str] = None
+    decided_at: Optional[datetime] = None
+
+
+class ModerationNotice(BaseModel):
+    """Begründete Mitteilung zu einer Maßnahme gegen das eigene Konto
+    (Art. 17 DSA) - inklusive Hinweis auf den Rechtsbehelf."""
+
+    action: str                     # ModerationAction
+    reason: str
+    action_at: datetime
+    muted_until: Optional[datetime] = None
+    appeal_hint: str
+
+
 class BlockRequest(BaseModel):
     user_id: str
 
@@ -310,6 +343,10 @@ class AdminUserDetailOut(BaseModel):
     is_verified: bool = False
     is_active: bool
     messaging_muted_until: Optional[datetime] = None
+    # Begründung der laufenden Maßnahme (Art. 17 DSA)
+    moderation_action: Optional[str] = None
+    moderation_reason: Optional[str] = None
+    moderation_action_at: Optional[datetime] = None
     created_at: datetime
     trial_ends_at: datetime
     stripe_customer_id: Optional[str]
@@ -324,10 +361,12 @@ class AdminUserDetailOut(BaseModel):
 
 
 class AdminMuteRequest(BaseModel):
-    """Befristete Chat-Sperre setzen: Dauer in Tagen und/oder Stunden."""
+    """Befristete Chat-Sperre setzen: Dauer in Tagen und/oder Stunden.
+    Die Begründung sieht der Betroffene im Chat (Art. 17 DSA)."""
 
     days: int = Field(default=0, ge=0, le=365)
     hours: int = Field(default=0, ge=0, le=8760)
+    reason: str = Field(min_length=3, max_length=500)
 
     @model_validator(mode="after")
     def _at_least_one(self):
@@ -405,12 +444,27 @@ class AdminAccessStats(BaseModel):
 
 class AdminReportOut(BaseModel):
     id: str
+    reference: str
     reporter_id: str
     reporter_name: str
     reported_id: str
     reported_name: str
     reason: str
     created_at: datetime
+
+
+class AdminReportDecisionRequest(BaseModel):
+    """Entscheidung über eine Meldung. Der Text geht wörtlich an den Melder,
+    deshalb ist er Pflicht (Art. 16 Abs. 5 DSA)."""
+
+    outcome: Literal["no_action", "action_taken"]
+    decision_note: str = Field(min_length=3, max_length=500)
+
+
+class AdminModerationRequest(BaseModel):
+    """Begründung einer Maßnahme (Art. 17 DSA). Ohne Begründung keine Sperre."""
+
+    reason: str = Field(min_length=3, max_length=500)
 
 
 class PhotoModerationOut(BaseModel):

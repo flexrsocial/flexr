@@ -23,6 +23,9 @@ class FlexrApiException(
     override val message: String,
     /** Bei einer befristeten Chat-Sperre: bis wann sie gilt. */
     val mutedUntil: Instant? = null,
+    /** Begründung der Maßnahme und Widerspruchsweg (Art. 17 DSA). */
+    val moderationReason: String? = null,
+    val appealHint: String? = null,
 ) : Exception(message) {
 
     val isUnauthorized: Boolean get() = statusCode == 401
@@ -61,6 +64,8 @@ object ApiErrorParser {
         val detail = raw?.let { runCatching { json.parseToJsonElement(it).jsonObject["detail"] }.getOrNull() }
 
         var mutedUntil: Instant? = null
+        var moderationReason: String? = null
+        var appealHint: String? = null
         val message = when (detail) {
             is JsonPrimitive -> detail.content
             is JsonArray -> detail.mapNotNull { element ->
@@ -70,11 +75,14 @@ object ApiErrorParser {
                 if (detail["reason"]?.jsonPrimitive?.content == "messaging_muted") {
                     mutedUntil = ServerTime.parse(detail["muted_until"]?.jsonPrimitive?.content)
                 }
+                // Sperre und Ban tragen Begründung und Widerspruchshinweis mit.
+                moderationReason = detail["moderation_reason"]?.jsonPrimitive?.content
+                appealHint = detail["appeal_hint"]?.jsonPrimitive?.content
                 detail["message"]?.jsonPrimitive?.content ?: defaultMessage(code)
             }
             else -> defaultMessage(code)
         }
-        return FlexrApiException(code, message, mutedUntil)
+        return FlexrApiException(code, message, mutedUntil, moderationReason, appealHint)
     }
 
     private fun defaultMessage(code: Int): String = when (code) {

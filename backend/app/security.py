@@ -8,7 +8,8 @@ from sqlalchemy.orm import Session
 
 from .config import settings
 from .database import get_db
-from .models import AdminUser, User
+from .models import AdminUser, ModerationAction, User
+from .moderation import restriction_detail
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
@@ -49,7 +50,10 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
     if user.deleted_at is not None:
         raise HTTPException(status.HTTP_403_FORBIDDEN, "Dieses Konto wurde gelöscht.")
     if user.is_banned:
-        raise HTTPException(status.HTTP_403_FORBIDDEN, "Account gesperrt.")
+        raise HTTPException(
+            status.HTTP_403_FORBIDDEN,
+            restriction_detail(user, ModerationAction.ban),
+        )
 
     # Online-Anzeige: last_seen_at gedrosselt aktualisieren (max. 1 Schreibzugriff
     # pro Minute), damit nicht jeder Request eine DB-Schreiboperation auslöst.

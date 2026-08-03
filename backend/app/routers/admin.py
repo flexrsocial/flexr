@@ -14,6 +14,7 @@ from ..models import (
     GymStatus,
     Match,
     Message,
+    ModerationAction,
     Photo,
     PhotoStatus,
     Report,
@@ -23,6 +24,7 @@ from ..models import (
     VerificationRequest,
     VerificationStatus,
 )
+from ..moderation import apply_restriction, clear_restriction
 from ..rate_limit import limiter
 from ..schemas import (
     AdminAccessPoint,
@@ -32,7 +34,9 @@ from ..schemas import (
     AdminGymOut,
     AdminGymUpdate,
     AdminLoginRequest,
+    AdminModerationRequest,
     AdminMuteRequest,
+    AdminReportDecisionRequest,
     AdminReportOut,
     AdminStats,
     AdminTokenResponse,
@@ -235,6 +239,9 @@ def get_user_detail(
         is_verified=user.is_verified,
         is_active=user.is_active_member(),
         messaging_muted_until=user.messaging_muted_until,
+        moderation_action=user.moderation_action,
+        moderation_reason=user.moderation_reason,
+        moderation_action_at=user.moderation_action_at,
         created_at=user.created_at,
         trial_ends_at=user.trial_ends_at,
         stripe_customer_id=user.stripe_customer_id,
@@ -248,15 +255,18 @@ def get_user_detail(
 @router.post("/users/{user_id}/ban")
 def ban_user(
     user_id: str,
+    payload: AdminModerationRequest,
     admin: AdminUser = Depends(get_current_admin),
     db: Session = Depends(get_db),
 ):
+    """Kontosperre. Die Begründung ist Pflicht — der Betroffene bekommt sie
+    beim nächsten Login-Versuch zu sehen (Art. 17 DSA)."""
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(404, "Nutzer nicht gefunden.")
-    user.is_banned = True
+    apply_restriction(user, ModerationAction.ban, payload.reason)
     db.commit()
-    return {"is_banned": True}
+    return {"is_banned": True, "moderation_reason": user.moderation_reason}
 
 
 @router.post("/users/{user_id}/unban")
@@ -268,7 +278,7 @@ def unban_user(
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(404, "Nutzer nicht gefunden.")
-    user.is_banned = False
+    clear_restriction(user, ModerationAction.ban)
     db.commit()
     return {"is_banned": False}
 
@@ -281,15 +291,22 @@ def mute_user(
     db: Session = Depends(get_db),
 ):
     """Befristete Chat-Sperre ("Abmahnung"): der Nutzer kann sich weiter
-    einloggen und Chats lesen, aber bis zum Ablauf keine Nachrichten senden."""
+    einloggen und Chats lesen, aber bis zum Ablauf keine Nachrichten senden.
+    Die Begründung sieht er im Chat (Art. 17 DSA)."""
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(404, "Nutzer nicht gefunden.")
-    user.messaging_muted_until = datetime.utcnow() + timedelta(
-        days=payload.days, hours=payload.hours
+    apply_restriction(
+        user,
+        ModerationAction.mute,
+        payload.reason,
+        muted_until=datetime.utcnow() + timedelta(days=payload.days, hours=payload.hours),
     )
     db.commit()
-    return {"messaging_muted_until": user.messaging_muted_until.isoformat()}
+    return {
+        "messaging_muted_until": user.messaging_muted_until.isoformat(),
+        "moderation_reason": user.moderation_reason,
+    }
 
 
 @router.post("/users/{user_id}/unmute")
@@ -302,7 +319,7 @@ def unmute_user(
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(404, "Nutzer nicht gefunden.")
-    user.messaging_muted_until = None
+    clear_restriction(user, ModerationAction.mute)
     db.commit()
     return {"messaging_muted_until": None}
 
@@ -678,6 +695,7 @@ def list_reports(
     return [
         AdminReportOut(
             id=report.id,
+            reference=report.reference,
             reporter_id=report.reporter_id,
             reporter_name=reporter_name,
             reported_id=report.reported_id,
@@ -689,18 +707,26 @@ def list_reports(
     ]
 
 
-@router.post("/reports/{report_id}/dismiss")
-def dismiss_report(
+@router.post("/reports/{report_id}/decide")
+def decide_report(
     report_id: str,
+    payload: AdminReportDecisionRequest,
     admin: AdminUser = Depends(get_current_admin),
     db: Session = Depends(get_db),
 ):
-    """Meldung als unbedenklich abhaken: verschwindet aus der offenen Liste,
-    bleibt aber als Nachweis in der Datenbank."""
+    """Meldung abschließen. Der Begründungstext geht wörtlich an den Melder
+    (Art. 16 Abs. 5 DSA), die Meldung verschwindet aus der offenen Liste und
+    bleibt als Nachweis in der Datenbank."""
     report = db.query(Report).filter(Report.id == report_id).first()
     if not report:
         raise HTTPException(404, "Meldung nicht gefunden.")
     if report.dismissed_at is None:
         report.dismissed_at = datetime.utcnow()
-        db.commit()
-    return {"dismissed": True}
+    report.outcome = payload.outcome
+    report.decision_note = payload.decision_note
+    db.commit()
+    return {
+        "decided": True,
+        "reference": report.reference,
+        "outcome": report.outcome,
+    }

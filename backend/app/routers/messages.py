@@ -5,7 +5,8 @@ from sqlalchemy import and_, or_
 from sqlalchemy.orm import Session
 
 from ..database import get_db
-from ..models import Block, Match, Message, User
+from ..models import Block, Match, Message, ModerationAction, User
+from ..moderation import restriction_detail
 from ..rate_limit import limiter
 from ..schemas import MessageOut, SendMessageRequest
 from ..security import require_active_membership
@@ -114,14 +115,11 @@ def send_message(
         raise HTTPException(404, "Chat nicht verfügbar.")
 
     # Befristete Chat-Sperre ("Abmahnung"): Senden ist bis zum Ablauf gesperrt.
+    # Das Detail trägt Begründung und Widerspruchshinweis (Art. 17 DSA).
     if current_user.is_messaging_muted:
         raise HTTPException(
             403,
-            {
-                "reason": "messaging_muted",
-                "muted_until": current_user.messaging_muted_until.isoformat(),
-                "message": "Deine Chat-Sperre ist noch aktiv - du kannst derzeit keine Nachrichten senden.",
-            },
+            restriction_detail(current_user, ModerationAction.mute),
         )
 
     # Automatische Sicherheitsprüfung: auffällige Nachrichten werden zugestellt,

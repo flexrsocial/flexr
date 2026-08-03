@@ -5,7 +5,8 @@ from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.orm import Session
 
 from ..database import get_db
-from ..models import User, UserDevice
+from ..models import ModerationAction, User, UserDevice
+from ..moderation import restriction_detail
 from ..rate_limit import limiter
 from ..safety_checks import check_public_text, is_disposable_email
 from ..schemas import LoginRequest, RegisterRequest, TokenResponse
@@ -125,7 +126,12 @@ def login(request: Request, payload: LoginRequest, db: Session = Depends(get_db)
     if user.deleted_at is not None:
         raise HTTPException(status.HTTP_403_FORBIDDEN, "Dieses Konto wurde gelöscht.")
     if user.is_banned:
-        raise HTTPException(status.HTTP_403_FORBIDDEN, "Account gesperrt.")
+        # Art. 17 DSA: Der Gesperrte erfährt den Grund und den Widerspruchsweg.
+        # Beim Ban ist der Login der einzige Kanal - ein Token bekommt er nicht.
+        raise HTTPException(
+            status.HTTP_403_FORBIDDEN,
+            restriction_detail(user, ModerationAction.ban),
+        )
 
     record_device(db, user.id, request)
 
