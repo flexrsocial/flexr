@@ -52,21 +52,41 @@ Erwartbare Stellen, an denen es trotzdem zuerst hakt:
 
 ---
 
-## Was vor der Veröffentlichung fehlt
+## Weg zum TestFlight-Build
 
-1. **Signierung und Team.** `CODE_SIGN_STYLE = Automatic`, aber ohne
-   `DEVELOPMENT_TEAM` — das trägt man beim ersten Öffnen in Xcode ein. Ein
-   App-Store-Eintrag mit der Bundle-ID `social.flexr.app` existiert noch nicht.
-2. **Die App lief noch nie auf einem Gerät oder im Simulator.** Kernwege vor dem
-   Rollout: Registrierung inkl. Foto-Upload, Swipe, Chat, Verifizierung,
-   Rückkehr aus dem Stripe-Checkout.
-3. **App-Datenschutzangaben in App Store Connect:** Standort (grob), Kamera,
-   Fotos (nur die ausgewählten), E-Mail, Nutzungsinhalte. Kein Tracking, keine
-   Analyse-SDKs — das lässt sich sauber verneinen.
-4. **Altersfreigabe 18+** setzen; die App ist eine Dating-Plattform.
-5. **Review-Hinweis vorbereiten:** Apple verlangt für Dating-Apps in aller Regel
-   einen Testzugang. Ein Konto mit aktivem Abo (oder laufendem Probemonat) und
-   mindestens einem Match anlegen.
+Alles, was ohne Mac vorbereitet werden konnte, ist vorbereitet. Was bleibt,
+braucht zwingend Xcode und ein Apple-Developer-Konto:
+
+1. **Team-ID eintragen.** In `FLEXR.xcodeproj/project.pbxproj` steht auf
+   Projektebene `FLEXR_DEVELOPMENT_TEAM = ""`. Einmal die zehnstellige Team-ID
+   eintragen, dann signieren App- und Testziel. Alternativ in Xcode unter
+   *Signing & Capabilities*.
+2. **Übersetzen und Tests laufen lassen** (⌘U). Erster Compile-Durchgang
+   überhaupt — siehe oben.
+3. **Im Simulator durchspielen**, danach auf einem Gerät: Registrierung inkl.
+   Foto-Upload, Swipe, Chat, Verifizierung (braucht ein echtes Gerät, der
+   Simulator hat keine Kamera), Rückkehr aus dem Stripe-Checkout.
+4. **App-ID anlegen** in App Store Connect mit Bundle-ID `social.flexr.app`,
+   SKU `flexr-ios`, Verfügbarkeit Österreich. Texte in
+   [store/store-texte.md](store/store-texte.md).
+5. **Archivieren und hochladen** (*Product → Archive → Distribute App → App Store
+   Connect*). Die Exportbestimmungen sind über `ITSAppUsesNonExemptEncryption`
+   in der Info.plist bereits beantwortet, das Privacy-Manifest liegt als
+   `FLEXR/PrivacyInfo.xcprivacy` bei — ohne das weist der Upload seit Mai 2024
+   mit ITMS-91053 zurück.
+6. **App-Datenschutzangaben** in App Store Connect ausfüllen. Die Tabelle in
+   `store/store-texte.md` ist eins zu eins die Auswahl, die dort anzuklicken
+   ist, und deckungsgleich mit dem Privacy-Manifest.
+7. **Altersfreigabe 18+** setzen; die App ist eine Dating-Plattform.
+8. **Interne Tester** freischalten — dafür braucht es nichts weiter. Für
+   **externe** Tester kommt eine Beta-App-Review dazu: Beschreibung,
+   Feedback-Adresse und ein Testzugang stehen fertig in `store/store-texte.md`,
+   das Testkonto selbst muss noch angelegt werden.
+
+Screenshots braucht TestFlight nicht. Für die spätere Veröffentlichung erzeugt
+`python3 ios/store/gen.py` sie in den verlangten Größen — es sind
+Marketing-Panels mit nachgestelltem App-Screen, dieselbe Machart wie die
+Play-Store-Assets, kein Abzug der laufenden App.
 
 ### Der wahrscheinlichste Streitpunkt im Review: Stripe
 

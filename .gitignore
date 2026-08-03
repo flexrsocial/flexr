@@ -29,6 +29,8 @@ android/.gradle/
 android/store_icon.png
 # Play-Store-Marketing-Assets (generiert, nicht versioniert)
 android/store/
+# App-Store-Screenshots ebenso — der Generator und die Texte bleiben drin
+ios/store/out/
 android/.buildenv.sh
 android/*.log
 # Von Bubblewrap generierte Projektdateien (werden von build.sh neu erzeugt)
