@@ -107,7 +107,6 @@ sofort und offline sichtbar — im Web war jede Ansicht ein Ladebalken.
 
 | Thema | Web | Nativ | Grund |
 |---|---|---|---|
-| Emoji-Auswahl in Bio/Chat | eigenes Emoji-Panel | System-Tastatur | Android liefert die Emoji-Auswahl mit; ein Nachbau wäre ein Web-Relikt |
 | `prompt()` / `confirm()` | Browser-Dialoge | Material-3-Dialoge | u. a. Meldegrund mit Längenprüfung (3–500 Zeichen wie im Backend) |
 | Landingpage mit Demo-Deck | Marketing-Hero | entfällt | Store-Listing übernimmt diese Rolle; die App startet direkt beim Login |
 | Ungelesen-Zähler | Polling nur bei offener Seite | WorkManager + Systembenachrichtigung | Nachrichten erreichen den Nutzer auch bei geschlossener App |

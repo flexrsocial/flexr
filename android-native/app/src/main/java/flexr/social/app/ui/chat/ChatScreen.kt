@@ -48,14 +48,19 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import flexr.social.app.core.common.ServerTime
+import flexr.social.app.core.designsystem.component.EmojiPickerPanel
+import flexr.social.app.core.designsystem.component.EmojiToggleButton
 import flexr.social.app.core.designsystem.component.EmptyState
+import flexr.social.app.core.designsystem.component.withEmojiInserted
 import flexr.social.app.core.designsystem.component.VerifiedBadge
 import flexr.social.app.core.designsystem.icon.FlexrIcons
 import flexr.social.app.core.designsystem.theme.FlexrTheme
@@ -445,58 +450,88 @@ private fun ChatInputRow(
     onSend: () -> Unit,
 ) {
     val colors = FlexrTheme.colors
-    Row(
-        Modifier
-            .fillMaxWidth()
-            .padding(top = 8.dp)
-            .clip(RoundedCornerShape(26.dp))
-            .background(MaterialTheme.colorScheme.surface)
-            .border(1.dp, colors.steel, RoundedCornerShape(26.dp))
-            .padding(start = 16.dp, end = 5.dp, top = 5.dp, bottom = 5.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        BasicTextField(
-            value = value,
-            onValueChange = onValueChange,
-            enabled = enabled,
-            modifier = Modifier.weight(1f).padding(vertical = 10.dp),
-            textStyle = MaterialTheme.typography.bodyLarge.copy(color = colors.chalk),
-            cursorBrush = SolidColor(colors.plate),
-            maxLines = 5,
-            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Send),
-            keyboardActions = KeyboardActions(onSend = { onSend() }),
-            decorationBox = { inner ->
-                if (value.isEmpty()) {
-                    Text(
-                        text = if (enabled) "Nachricht schreiben…" else "Chat vorübergehend gesperrt",
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = colors.chalkDim,
+    var emojiOpen by remember { mutableStateOf(false) }
+    // Wie in der Bio: die Cursorposition steckt im TextFieldValue, nach außen
+    // geht nur der Text. Leert das ViewModel den Entwurf (nach dem Senden),
+    // zieht das Feld nach.
+    var field by remember { mutableStateOf(TextFieldValue(value)) }
+    if (field.text != value) {
+        field = TextFieldValue(value, TextRange(value.length))
+    }
+
+    Column(Modifier.fillMaxWidth()) {
+        EmojiPickerPanel(
+            expanded = emojiOpen && enabled,
+            onPick = { emoji ->
+                val next = field.withEmojiInserted(emoji, ChatViewModel.MAX_LENGTH)
+                field = next
+                onValueChange(next.text)
+            },
+            modifier = Modifier.padding(bottom = 8.dp),
+        )
+
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .padding(top = 8.dp)
+                .clip(RoundedCornerShape(26.dp))
+                .background(MaterialTheme.colorScheme.surface)
+                .border(1.dp, colors.steel, RoundedCornerShape(26.dp))
+                .padding(start = 6.dp, end = 5.dp, top = 5.dp, bottom = 5.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            EmojiToggleButton(
+                expanded = emojiOpen,
+                onToggle = { if (enabled) emojiOpen = !emojiOpen },
+            )
+            Spacer(Modifier.width(4.dp))
+            BasicTextField(
+                value = field,
+                onValueChange = { new ->
+                    val capped = new.copy(text = new.text.take(ChatViewModel.MAX_LENGTH))
+                    field = capped
+                    onValueChange(capped.text)
+                },
+                enabled = enabled,
+                modifier = Modifier.weight(1f).padding(vertical = 10.dp),
+                textStyle = MaterialTheme.typography.bodyLarge.copy(color = colors.chalk),
+                cursorBrush = SolidColor(colors.plate),
+                maxLines = 5,
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Send),
+                keyboardActions = KeyboardActions(onSend = { onSend() }),
+                decorationBox = { inner ->
+                    if (value.isEmpty()) {
+                        Text(
+                            text = if (enabled) "Nachricht schreiben…" else "Chat vorübergehend gesperrt",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = colors.chalkDim,
+                        )
+                    }
+                    inner()
+                },
+            )
+            Spacer(Modifier.width(6.dp))
+            Box(
+                Modifier
+                    .size(40.dp)
+                    .clip(CircleShape)
+                    .background(
+                        if (enabled && value.isNotBlank()) {
+                            Brush.linearGradient(listOf(colors.plateBright, colors.plate))
+                        } else {
+                            Brush.linearGradient(listOf(colors.surface3, colors.surface3))
+                        },
+                    ),
+                contentAlignment = Alignment.Center,
+            ) {
+                IconButton(onClick = onSend, enabled = enabled && value.isNotBlank()) {
+                    Icon(
+                        FlexrIcons.Send,
+                        contentDescription = "Senden",
+                        tint = if (enabled && value.isNotBlank()) Color.White else colors.chalkDim,
+                        modifier = Modifier.size(18.dp),
                     )
                 }
-                inner()
-            },
-        )
-        Spacer(Modifier.width(6.dp))
-        Box(
-            Modifier
-                .size(40.dp)
-                .clip(CircleShape)
-                .background(
-                    if (enabled && value.isNotBlank()) {
-                        Brush.linearGradient(listOf(colors.plateBright, colors.plate))
-                    } else {
-                        Brush.linearGradient(listOf(colors.surface3, colors.surface3))
-                    },
-                ),
-            contentAlignment = Alignment.Center,
-        ) {
-            IconButton(onClick = onSend, enabled = enabled && value.isNotBlank()) {
-                Icon(
-                    FlexrIcons.Send,
-                    contentDescription = "Senden",
-                    tint = if (enabled && value.isNotBlank()) Color.White else colors.chalkDim,
-                    modifier = Modifier.size(18.dp),
-                )
             }
         }
     }

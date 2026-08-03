@@ -244,6 +244,7 @@ fun AccountScreen(
             minHeight = 96,
             maxLength = AccountViewModel.BIO_MAX_LENGTH,
             imeAction = ImeAction.Default,
+            emojiPicker = true,
         )
 
         FieldLabel("Suchumkreis")

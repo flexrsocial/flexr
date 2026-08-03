@@ -6,6 +6,7 @@ import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Block
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.Chat
+import androidx.compose.material.icons.filled.EmojiEmotions
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.HeartBroken
@@ -91,6 +92,7 @@ object FlexrIcons {
     val Locked = Icons.Filled.Lock
     val Place = Icons.Filled.Place
     val Close = Icons.Filled.Close
+    val Emoji = Icons.Filled.EmojiEmotions
 }
 
 /** Merkt sich das Hantel-Icon über Rekompositionen hinweg. */

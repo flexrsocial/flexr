@@ -159,6 +159,7 @@ fun RegisterScreen(
             minHeight = 96,
             maxLength = RegisterUiState.BIO_MAX_LENGTH,
             imeAction = ImeAction.Default,
+            emojiPicker = true,
         )
 
         FieldLabel("Fotos (mind. 1, max. 6)")

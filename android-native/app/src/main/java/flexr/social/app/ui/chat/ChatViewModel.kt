@@ -222,8 +222,10 @@ class ChatViewModel @Inject constructor(
         }
     }
 
-    private companion object {
-        const val POLL_INTERVAL_MS = 4_000L
+    companion object {
+        /** Serverseitiges Limit einer Nachricht — die Oberfläche kappt mit. */
         const val MAX_LENGTH = 2_000
+
+        private const val POLL_INTERVAL_MS = 4_000L
     }
 }

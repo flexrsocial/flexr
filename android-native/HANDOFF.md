@@ -17,11 +17,11 @@ unverändert — die App spricht denselben REST-Vertrag wie das Web-Frontend.
 | | |
 |---|---|
 | applicationId | `flexr.social.app` (unverändert, Play-Store-Kontinuität) |
-| Version | `2.0.5`, versionCode **11** (TWA-Stand war 5) |
+| Version | `2.0.6`, versionCode **12** (TWA-Stand war 5) |
 | compileSdk / targetSdk / minSdk | 36 / 36 / 26 |
 | Signatur | bestehender Upload-Key `android/android.keystore`, SHA-256 `BC:64:AD:3F:…:14:0E:79:80` |
 
-**Offen: der Play-Store-Upload.** Das signierte Bundle für `2.0.5` liegt unter
+**Offen: der Play-Store-Upload.** Das signierte Bundle für `2.0.6` liegt unter
 `app/build/outputs/bundle/prodRelease/app-prod-release.aab` (Stand 03.08.2026,
 Signatur `META-INF/FLEXR.RSA`), neu zu bauen mit
 `./gradlew :app:bundleProdRelease` (siehe Build-Umgebung unten).
@@ -60,10 +60,19 @@ ausschließlich für Bestandsprofile.
 **Der `AuthHeaderInterceptor` hängt Header nur an `/api/`-Pfade.** Ein
 Authorization-Header auf einer Presigned-S3-URL würde die Signatur ungültig machen.
 
-**Bewusste Abweichungen vom Web** (Begründungen in der README-Tabelle): kein
-Emoji-Panel (System-Tastatur), keine Browser-Dialoge (Material-3-Dialoge), keine
-Marketing-Landingpage, Stripe im Custom Tab, Fused Location Provider statt
-`navigator.geolocation`, Android Photo Picker statt File-Input.
+**Bewusste Abweichungen vom Web** (Begründungen in der README-Tabelle): keine
+Browser-Dialoge (Material-3-Dialoge), keine Marketing-Landingpage, Stripe im
+Custom Tab, Fused Location Provider statt `navigator.geolocation`, Android Photo
+Picker statt File-Input.
+
+**Das Emoji-Panel ist seit 03.08.2026 auch nativ da** — vorher galt die
+Systemtastatur als ausreichend. Katalog und Einfügelogik liegen in
+`core/designsystem/component/EmojiPicker.kt` und spiegeln `initEmojiPicker` im
+Web-Frontend: dieselbe Liste, Einfügen an der Cursorposition, Auswahl wird
+ersetzt, Längenlimit gilt. `FlexrTextField` schaltet es über `emojiPicker = true`
+frei (Bio in Konto und Registrierung), der Chat baut es in seine Eingabezeile
+ein. Weil die Cursorposition gebraucht wird, hält das Feld intern einen
+`TextFieldValue` und gibt nach außen weiterhin nur den Text.
 
 **Die Telefonprüfung (SMS-OTP) ist bewusst draußen** — im Web ebenfalls verworfen.
 Die Endpunkte `/api/phone/*` existieren im Backend weiter. Ein späterer Einbau

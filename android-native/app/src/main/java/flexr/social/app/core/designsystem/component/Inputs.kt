@@ -23,9 +23,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
@@ -67,13 +69,29 @@ fun FlexrTextField(
     maxLength: Int? = null,
     minHeight: Int = 0,
     onImeAction: (() -> Unit)? = null,
+    /** Blendet einen Emoji-Umschalter ins Feld ein (Parität zum Web-Frontend). */
+    emojiPicker: Boolean = false,
 ) {
     val colors = FlexrTheme.colors
+    var emojiOpen by remember { mutableStateOf(false) }
+    // Für das Einfügen an der Cursorposition braucht es die Auswahl, die ein
+    // reiner String nicht hergibt. Der Zustand lebt deshalb hier; nach außen
+    // geht weiterhin nur der Text.
+    var fieldValue by remember { mutableStateOf(TextFieldValue(value)) }
+    if (fieldValue.text != value) {
+        // Änderung von außen (Vorbefüllung, Zurücksetzen): Cursor ans Ende.
+        fieldValue = TextFieldValue(value, TextRange(value.length))
+    }
+
     Column(modifier.fillMaxWidth()) {
         FieldLabel(label)
         OutlinedTextField(
-            value = value,
-            onValueChange = { new -> onValueChange(maxLength?.let { new.take(it) } ?: new) },
+            value = fieldValue,
+            onValueChange = { new ->
+                val capped = maxLength?.let { new.copy(text = new.text.take(it)) } ?: new
+                fieldValue = capped
+                onValueChange(capped.text)
+            },
             modifier = Modifier
                 .fillMaxWidth()
                 .then(if (minHeight > 0) Modifier.heightIn(min = minHeight.dp) else Modifier),
@@ -85,12 +103,29 @@ fun FlexrTextField(
             placeholder = placeholder?.let {
                 { Text(it, style = MaterialTheme.typography.bodyLarge, color = colors.chalkDim) }
             },
-            trailingIcon = trailingIcon?.let {
-                {
-                    IconButton(onClick = { onTrailingIconClick?.invoke() }) {
-                        Icon(it, contentDescription = null, tint = colors.chalkDim, modifier = Modifier.size(20.dp))
+            trailingIcon = when {
+                trailingIcon != null -> {
+                    {
+                        IconButton(onClick = { onTrailingIconClick?.invoke() }) {
+                            Icon(
+                                trailingIcon,
+                                contentDescription = null,
+                                tint = colors.chalkDim,
+                                modifier = Modifier.size(20.dp),
+                            )
+                        }
                     }
                 }
+                emojiPicker -> {
+                    {
+                        EmojiToggleButton(
+                            expanded = emojiOpen,
+                            onToggle = { emojiOpen = !emojiOpen },
+                            modifier = Modifier.padding(end = 4.dp),
+                        )
+                    }
+                }
+                else -> null
             },
             keyboardOptions = KeyboardOptions(keyboardType = keyboardType, imeAction = imeAction),
             keyboardActions = androidx.compose.foundation.text.KeyboardActions(
@@ -111,6 +146,18 @@ fun FlexrTextField(
                 unfocusedTextColor = colors.chalk,
             ),
         )
+        if (emojiPicker) {
+            EmojiPickerPanel(
+                expanded = emojiOpen,
+                onPick = { emoji ->
+                    val next = fieldValue.withEmojiInserted(emoji, maxLength)
+                    fieldValue = next
+                    onValueChange(next.text)
+                },
+                modifier = Modifier.padding(top = 6.dp),
+            )
+        }
+
         Row(Modifier.fillMaxWidth()) {
             if (supportingText != null) {
                 Text(
@@ -122,7 +169,7 @@ fun FlexrTextField(
             }
             if (maxLength != null) {
                 Text(
-                    text = "${value.length}/$maxLength",
+                    text = "${fieldValue.text.length}/$maxLength",
                     style = MaterialTheme.typography.labelSmall,
                     color = colors.chalkDim,
                     modifier = Modifier.padding(top = 8.dp),
