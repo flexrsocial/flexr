@@ -29,6 +29,8 @@ enum class LegalDocument(val title: String) {
     IMPRESSUM("Impressum"),
     DATENSCHUTZ("Datenschutzerklärung"),
     AGB("Allgemeine Geschäftsbedingungen"),
+    NUTZUNGSRICHTLINIEN("Nutzungsrichtlinien"),
+    STRAFVERFOLGUNG("Strafverfolgungsbehörden"),
 }
 
 /** Die vier Hauptbereiche der unteren Navigation. */

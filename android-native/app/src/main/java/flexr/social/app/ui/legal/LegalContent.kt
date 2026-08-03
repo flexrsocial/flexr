@@ -34,6 +34,8 @@ object LegalContent {
         LegalDocument.IMPRESSUM -> impressum
         LegalDocument.DATENSCHUTZ -> datenschutz
         LegalDocument.AGB -> agb
+        LegalDocument.NUTZUNGSRICHTLINIEN -> nutzungsrichtlinien
+        LegalDocument.STRAFVERFOLGUNG -> strafverfolgung
     }
 
     private val faq = LegalPage(
@@ -174,12 +176,18 @@ object LegalContent {
                     "sein Rücktrittsrecht verliert (§ 18 Abs. 1 Z 11 FAGG). Diese Zustimmung wird bei " +
                     "der Registrierung separat per Checkbox eingeholt und mit Zeitstempel gespeichert.",
             ),
-            LegalBlock.Heading("6. Nutzungsregeln, Melde- und Blockfunktion"),
+            LegalBlock.Heading("6. Nutzungsregeln"),
             LegalBlock.Paragraph(
-                "Untersagt sind insbesondere: Belästigung anderer Nutzer, Hochladen rechtswidriger, " +
-                    "beleidigender oder Rechte Dritter verletzender Inhalte, kommerzielle Werbung, " +
-                    "Fake-Profile. Verstöße können über die Melde-Funktion in der App gemeldet werden; " +
-                    "wir behalten uns vor, gemeldete oder blockierte Nutzer zu sperren.",
+                "Welche Inhalte und Verhaltensweisen zulässig sind, regeln abschließend die " +
+                    "Nutzungsrichtlinien (Acceptable Use Policy, im Konto-Bereich und unter " +
+                    "flexr.social/nutzungsrichtlinien.html). Sie sind Bestandteil dieses Vertrags. " +
+                    "Dort sind auch die Schutzprotokolle gegen Menschenhandel, strafbare Handlungen, " +
+                    "Identitätsmissbrauch und Darstellungen sexuellen Kindesmissbrauchs sowie das " +
+                    "Melde- und Beschwerdeverfahren beschrieben. Verstöße können über die " +
+                    "Melde-Funktion in der App gemeldet werden; wir behalten uns vor, gemeldete " +
+                    "Inhalte zu entfernen und Konten befristet oder dauerhaft zu sperren. " +
+                    "Auskunftsersuchen von Behörden behandeln wir nach den Richtlinien für " +
+                    "Strafverfolgungsbehörden.",
             ),
             LegalBlock.Heading("7. Haftungsbeschränkung"),
             LegalBlock.Paragraph(
@@ -199,6 +207,444 @@ object LegalContent {
                     "Es gilt österreichisches Recht unter Ausschluss der Verweisungsnormen des IPR.",
                     "Für Verbraucher gelten die zwingenden Bestimmungen des Wohnsitzstaates.",
                     "OS-Plattform der EU: ec.europa.eu/consumers/odr.",
+                ),
+            ),
+        ),
+    )
+
+    // Acceptable Use Policy. Inhaltsgleich mit
+    // flexr.social/nutzungsrichtlinien.html — beide Fassungen zusammen pflegen.
+    private val nutzungsrichtlinien = LegalPage(
+        document = LegalDocument.NUTZUNGSRICHTLINIEN,
+        intro = "Verbindliche Verhaltens- und Inhaltsregeln für alle Nutzer von FLEXR. " +
+            "Stand: 3. August 2026.",
+        blocks = listOf(
+            LegalBlock.Heading("1. Geltung"),
+            LegalBlock.Paragraph(
+                "Diese Nutzungsrichtlinien gelten für jede Nutzung von FLEXR, betrieben von " +
+                    "flexr.social Kleinunternehmen, Johann-Schrey-Weg 260, 8232 Grafendorf. Sie " +
+                    "ergänzen die AGB und sind Bestandteil des Nutzungsvertrags. Ein Verstoß " +
+                    "berechtigt uns zur Sperre oder Löschung des Kontos, unabhängig von einer " +
+                    "bestehenden Zahlungsverpflichtung.",
+            ),
+            LegalBlock.Heading("2. Grundregeln"),
+            LegalBlock.Bullets(
+                listOf(
+                    "FLEXR ist ausschließlich für Personen ab 18 Jahren. Das Geburtsdatum wird bei " +
+                        "der Registrierung serverseitig geprüft; Konten unter 18 Jahren werden " +
+                        "technisch nicht angelegt.",
+                    "Ein Konto pro Person. Konten dürfen nicht geteilt, verkauft, vermietet oder " +
+                        "für Dritte betrieben werden.",
+                    "Alle Angaben im Profil müssen der Wahrheit entsprechen und die eigene Person " +
+                        "betreffen.",
+                    "Jedes hochgeladene Foto muss die anmeldende Person selbst zeigen. Fotos " +
+                        "Dritter, Prominenter, aus dem Internet oder von Minderjährigen sind " +
+                        "unzulässig.",
+                    "FLEXR ist eine Kontaktplattform, kein Marktplatz. Kommerzielle Angebote, " +
+                        "Werbung, Anwerbung und Vermittlung jeder Art sind untersagt.",
+                ),
+            ),
+            LegalBlock.Heading("3. Verbotene Inhalte und Verhaltensweisen"),
+            LegalBlock.Bullets(
+                listOf(
+                    "Menschenhandel, Zwangsprostitution, sexuelle Ausbeutung sowie jede Form der " +
+                        "Anwerbung dafür (Abschnitt 4).",
+                    "Alle sonstigen strafbaren Handlungen, insbesondere Betrug, Erpressung, " +
+                        "Sextortion, Drogen- und Waffenhandel, Geldwäsche (Abschnitt 5).",
+                    "Identitätsmissbrauch, Fake-Profile, Auftreten im Namen einer anderen realen " +
+                        "oder juristischen Person (Abschnitt 6).",
+                    "Darstellungen sexuellen Kindesmissbrauchs (CSAM) und jede Sexualisierung " +
+                        "Minderjähriger (Abschnitt 7).",
+                    "Belästigung, Stalking, Drohungen, Hassrede, Diskriminierung.",
+                    "Weitergabe fremder personenbezogener Daten oder von Chatinhalten Dritter ohne " +
+                        "deren Einwilligung.",
+                    "Unaufgeforderte sexuell explizite Bilder.",
+                    "Kommerzielle Werbung, Spam, Weiterleitung auf externe Bezahl-, Cam-, Krypto- " +
+                        "oder Investmentangebote.",
+                    "Automatisierter Zugriff (Bots, Scraper) sowie Umgehung von Sperren, etwa durch " +
+                        "Neuanmeldung nach einem Ausschluss.",
+                ),
+            ),
+            LegalBlock.Heading("4. Protokoll: Menschenhandel und sexuelle Ausbeutung"),
+            LegalBlock.Note("Nulltoleranz — bei Verdacht wird ohne Abstufung sofort gesperrt."),
+            LegalBlock.Bullets(
+                listOf(
+                    "Verboten: das Anbieten, Bewerben, Vermitteln oder Nachfragen sexueller " +
+                        "Handlungen gegen Geld oder geldwerte Leistungen.",
+                    "Verboten: das Anwerben von Personen für Prostitution, Cam-Angebote, Escort-, " +
+                        "Sugar- oder Modelagenturen, auch als vorgebliches Jobangebot.",
+                    "Verboten: das Betreiben eines Profils für oder unter der Kontrolle einer " +
+                        "anderen Person (Betreuer, Manager, Agentur).",
+                    "Verboten: jede Kommunikation, die auf Zwang, Schuldknechtschaft, Einbehalten " +
+                        "von Ausweisdokumenten, Isolation oder Transport zum Zweck der Ausbeutung " +
+                        "hindeutet.",
+                ),
+            ),
+            LegalBlock.Paragraph(
+                "Erkennung: Öffentliche Profiltexte werden serverseitig geprüft — Bios mit Links, " +
+                    "Telefonnummern oder einschlägigen Begriffen werden beim Speichern abgewiesen " +
+                    "und gar nicht erst veröffentlicht. Chatnachrichten mit denselben Signalen " +
+                    "werden zugestellt, aber mit Grund markiert und der Moderation vorgelegt; " +
+                    "externe Links und E-Mail-Adressen werden dem Empfänger gegenüber automatisch " +
+                    "unkenntlich gemacht. Jedes Foto wird vor Veröffentlichung von einem Menschen " +
+                    "freigegeben; Agentur- oder Studioaufnahmen mit Werbecharakter werden " +
+                    "abgelehnt. Dazu kommen Meldungen aus Profil und Chat.",
+            ),
+            LegalBlock.Lettered(
+                listOf(
+                    "Sofortmaßnahme innerhalb von 24 Stunden nach Kenntnis: Konto gesperrt, Profil " +
+                        "nicht mehr sichtbar, laufende Chats unterbunden.",
+                    "Beweissicherung: Profil, Fotos, Chatverlauf und Zeitstempel werden vor der " +
+                        "Löschroutine gesichert.",
+                    "Manuelle Bewertung durch die Betreiberin anhand des gesicherten Materials.",
+                    "Bei erhärtetem Verdacht: Anzeige bei der zuständigen österreichischen " +
+                        "Strafverfolgungsbehörde (Bundeskriminalamt, Zentralstelle zur Bekämpfung " +
+                        "der Schlepperkriminalität und des Menschenhandels) und endgültige Löschung " +
+                        "des Kontos.",
+                    "Bei akuter Gefahr für eine Person: unverzüglich Polizeinotruf 133 bzw. 112.",
+                    "Betroffene werden auf Hilfsangebote hingewiesen, in Österreich insbesondere " +
+                        "LEFÖ-IBF und den Opfer-Notruf 0800 112 112.",
+                ),
+            ),
+            LegalBlock.Heading("5. Protokoll: Illegale Handlungen"),
+            LegalBlock.Bullets(
+                listOf(
+                    "Verboten: Betrug jeder Art, insbesondere Romance Scam, Vorschussbetrug, " +
+                        "angebliche Notlagen mit Geldforderung, gefälschte Investment- und " +
+                        "Krypto-Angebote, Weiterleitung auf Phishing-Seiten.",
+                    "Verboten: Erpressung und Sextortion, also das Androhen der Veröffentlichung " +
+                        "intimer Aufnahmen.",
+                    "Verboten: Handel mit Betäubungsmitteln, Waffen, gestohlenen Daten oder " +
+                        "gefälschten Dokumenten.",
+                    "Verboten: Geldwäsche, Weiterleitung von Zahlungen für Dritte, Missbrauch der " +
+                        "Plattform zur Anbahnung von Finanztransaktionen.",
+                    "Verboten: Zahlungsbetrug gegenüber FLEXR, insbesondere die Nutzung fremder " +
+                        "oder gestohlener Zahlungsmittel.",
+                ),
+            ),
+            LegalBlock.Paragraph(
+                "Erkennung: serverseitige Scam-Begriffsprüfung in Bios (harte Ablehnung) und in " +
+                    "Chatnachrichten (Markierung zur Prüfung), automatische Entfernung externer " +
+                    "Links und E-Mail-Adressen aus zugestellten Nachrichten, Blocklist für " +
+                    "Wegwerf-E-Mail-Adressen bei der Registrierung, Ratenbegrenzung auf allen " +
+                    "sicherheitsrelevanten Endpunkten. Die Zahlungsabwicklung läuft ausschließlich " +
+                    "über Stripe; FLEXR verarbeitet und speichert keine Kartendaten.",
+            ),
+            LegalBlock.Lettered(
+                listOf(
+                    "Meldung oder Systemmarkierung erreicht die Prüfliste der Moderation.",
+                    "Sichtung binnen 72 Stunden, bei Gefahr im Verzug unverzüglich.",
+                    "Abgestufte Maßnahme: befristete Chat-Sperre bei einmaligem, leichterem " +
+                        "Verstoß — sofortige Kontosperre bei Betrugs-, Erpressungs- oder " +
+                        "Handelsversuchen.",
+                    "Beweissicherung und Anzeige bei der Kriminalpolizei, wenn ein Anfangsverdacht " +
+                        "auf eine gerichtlich strafbare Handlung besteht.",
+                    "Geschädigte erhalten auf Anfrage die zu ihrem Fall gehörenden Daten für eine " +
+                        "eigene Anzeige, soweit datenschutzrechtlich zulässig.",
+                ),
+            ),
+            LegalBlock.Heading("6. Protokoll: Identitätsmissbrauch und Fake-Profile"),
+            LegalBlock.Bullets(
+                listOf(
+                    "Verboten: das Auftreten unter dem Namen, mit den Fotos oder mit der Identität " +
+                        "einer anderen realen Person, eines Unternehmens oder einer Behörde.",
+                    "Verboten: die Verwendung fremder, generierter oder aus dem Internet " +
+                        "entnommener Fotos.",
+                    "Verboten: falsche Angaben zu Alter, Geschlecht, Wohnort oder Studio, soweit " +
+                        "sie zur Täuschung anderer Nutzer dienen.",
+                    "Verboten: das Anlegen von Zweit- oder Ersatzkonten, insbesondere nach einer " +
+                        "Sperre.",
+                ),
+            ),
+            LegalBlock.Paragraph(
+                "Vorbeugend: Ohne mindestens ein freigegebenes Foto ist ein Profil für andere " +
+                    "nicht sichtbar. Jedes hochgeladene Foto steht zunächst auf ausstehend und " +
+                    "wird erst nach menschlicher Prüfung ausgeliefert. Bei der freiwilligen " +
+                    "Foto-Verifizierung verlangt der Server drei zufällig gezogene Posen als " +
+                    "Selfie — da die Posen erst bei der Anfrage feststehen, lassen sie sich mit " +
+                    "fremdem oder vorbereitetem Material nicht bedienen; nach der Prüfung werden " +
+                    "die Selfies gelöscht. Dazu kommen die Telefonprüfung per SMS-Einmalcode, die " +
+                    "E-Mail-Eindeutigkeit je Konto und die Sperrliste für Wegwerf-Adressen.",
+            ),
+            LegalBlock.Lettered(
+                listOf(
+                    "Meldung über die Melden-Funktion oder per E-Mail an flexr.social@proton.me — " +
+                        "auch von Betroffenen ohne eigenes Konto.",
+                    "Prüfung binnen 72 Stunden. Beanstandete Fotos werden für die Dauer der " +
+                        "Prüfung aus der Auslieferung genommen.",
+                    "Bei begründetem Verdacht fordern wir eine Foto-Verifizierung nach dem " +
+                        "Posen-Verfahren an.",
+                    "Wird sie nicht binnen sieben Tagen erbracht oder besteht sie die Prüfung " +
+                        "nicht, werden die Fotos entfernt und das Konto gesperrt.",
+                    "Bei gewerbsmäßigem oder wiederholtem Identitätsmissbrauch folgen endgültige " +
+                        "Löschung und, bei Anhaltspunkten für Betrug, eine Anzeige.",
+                ),
+            ),
+            LegalBlock.Heading("7. Protokoll: Schutz Minderjähriger und CSAM"),
+            LegalBlock.Note(
+                "Nulltoleranz — Meldungen zu diesem Bereich haben unbedingten Vorrang vor allen " +
+                    "anderen Vorgängen.",
+            ),
+            LegalBlock.Bullets(
+                listOf(
+                    "Verboten: jede Darstellung sexuellen Kindesmissbrauchs (CSAM) in " +
+                        "Profilfotos, Chatnachrichten oder Profiltexten.",
+                    "Verboten: jede Sexualisierung von Minderjährigen, auch in Text-, Zeichnungs-, " +
+                        "Comic- oder KI-generierter Form.",
+                    "Verboten: das Anbahnen sexueller Kontakte zu Minderjährigen (Grooming) sowie " +
+                        "das Erfragen oder Anbieten entsprechender Inhalte.",
+                    "Verboten: die Nutzung der Plattform durch Personen unter 18 Jahren.",
+                    "Verboten: das Hochladen von Fotos, auf denen Minderjährige erkennbar " +
+                        "abgebildet sind — auch als Beiwerk oder Familienfoto.",
+                ),
+            ),
+            LegalBlock.Paragraph(
+                "Vorbeugend: Die Registrierung verlangt ein Geburtsdatum; der Server weist jeden " +
+                    "Wert unter 18 Jahren ab, und das Alter wird laufend aus dem Geburtsdatum " +
+                    "berechnet statt als frei änderbare Zahl geführt. Kein Foto wird ohne manuelle " +
+                    "Freigabe ausgeliefert; bei Zweifeln an der Volljährigkeit der abgebildeten " +
+                    "Person wird im Zweifel gegen die Freigabe entschieden und das Konto geprüft. " +
+                    "Der Chat überträgt ausschließlich Text — die Verbreitung von Bildmaterial " +
+                    "über die Plattform ist damit auf den vorab moderierten Profilbereich " +
+                    "beschränkt.",
+            ),
+            LegalBlock.Lettered(
+                listOf(
+                    "Sofortige Entfernung des Inhalts aus der Auslieferung und sofortige Sperre " +
+                        "des Kontos — ohne vorherige Anhörung, ohne Wartefrist.",
+                    "Beweissicherung: Das Material wird gegen automatische Löschung gesperrt, der " +
+                        "Zugriff auf die Betreiberin beschränkt und ausschließlich zur Weitergabe " +
+                        "an die Strafverfolgung aufbewahrt. Es wird nicht weiter angesehen, " +
+                        "kopiert oder verbreitet.",
+                    "Meldung binnen 24 Stunden nach Kenntnis an das Bundeskriminalamt, Meldestelle " +
+                        "für Kinderpornografie und Kindersextourismus, und Anzeige bei der " +
+                        "Kriminalpolizei. Bei akuter Gefahr für ein Kind zusätzlich sofort " +
+                        "Polizeinotruf 133 bzw. 112.",
+                    "Endgültige Löschung des Kontos; ein erneuter Zugang wird dauerhaft verweigert.",
+                    "Bei einem Konto, das eine minderjährige Person betreibt: Sperre und Löschung; " +
+                        "die Daten werden nur so lange aufbewahrt, wie es zur Erfüllung einer " +
+                        "behördlichen Anordnung erforderlich ist.",
+                ),
+            ),
+            LegalBlock.Paragraph(
+                "Meldungen zu diesem Bereich bitte mit dem Betreff CSAM an " +
+                    "flexr.social@proton.me. Bitte fügen Sie keine Bilddateien an, sondern nur " +
+                    "Profil-Links, Namen und Zeitpunkte.",
+            ),
+            LegalBlock.Heading("8. Durchsetzung"),
+            LegalBlock.Table(
+                headers = listOf("Maßnahme", "Wirkung", "Anlass"),
+                rows = listOf(
+                    listOf(
+                        "Inhalt abgelehnt",
+                        "Bio oder Foto wird nicht veröffentlicht",
+                        "Regelverstoß im Inhalt, ohne Täuschungsabsicht",
+                    ),
+                    listOf(
+                        "Befristete Chat-Sperre",
+                        "Lesen möglich, Senden gesperrt",
+                        "Belästigung, Spam, erster leichterer Verstoß",
+                    ),
+                    listOf(
+                        "Kontosperre",
+                        "Kein Zugang, Profil unsichtbar",
+                        "Wiederholung, Betrug, Identitätsmissbrauch",
+                    ),
+                    listOf(
+                        "Endgültige Löschung",
+                        "Konto und Inhalte entfernt, Zugang dauerhaft verweigert",
+                        "Menschenhandel, CSAM, schwere Straftaten",
+                    ),
+                ),
+            ),
+            LegalBlock.Paragraph(
+                "Die Maßnahme richtet sich nach Schwere, Vorsatz und Wiederholung. In den Fällen " +
+                    "der Abschnitte 4 und 7 entfällt die Abstufung: Es wird sofort gesperrt.",
+            ),
+            LegalBlock.Heading("9. Melden und Beschwerde"),
+            LegalBlock.Bullets(
+                listOf(
+                    "In der App: Melden- und Blockieren-Funktion in jedem Profil und in jedem " +
+                        "Chat. Blockieren wirkt sofort und beidseitig.",
+                    "Per E-Mail: flexr.social@proton.me, auch ohne eigenes Konto.",
+                    "Bearbeitung: Sichtung binnen 72 Stunden, bei Gefahr im Verzug sowie in den " +
+                        "Fällen der Abschnitte 4 und 7 unverzüglich, spätestens binnen 24 Stunden.",
+                    "Beschwerde: Gegen eine Sperre kann formlos per E-Mail Widerspruch erhoben " +
+                        "werden. Die Entscheidung wird erneut geprüft und begründet beantwortet. " +
+                        "Der Rechtsweg bleibt unberührt.",
+                ),
+            ),
+        ),
+    )
+
+    // Law Enforcement Guidelines. Inhaltsgleich mit
+    // flexr.social/strafverfolgung.html — beide Fassungen zusammen pflegen.
+    private val strafverfolgung = LegalPage(
+        document = LegalDocument.STRAFVERFOLGUNG,
+        intro = "Verfahren für behördliche Auskunfts-, Sicherungs- und Notfallersuchen. " +
+            "Stand: 3. August 2026.",
+        blocks = listOf(
+            LegalBlock.Heading("1. Wer wir sind"),
+            LegalBlock.Paragraph(
+                "Verantwortlich für FLEXR ist flexr.social Kleinunternehmen, " +
+                    "Johann-Schrey-Weg 260, 8232 Grafendorf, Österreich. Der Dienst wird aus " +
+                    "Österreich betrieben; es gilt österreichisches Recht. FLEXR ist ein " +
+                    "Kleinunternehmen ohne eigene Rechtsabteilung — Anfragen bearbeitet die " +
+                    "Betreiberin persönlich.",
+            ),
+            LegalBlock.Heading("2. Zustellung von Anfragen"),
+            LegalBlock.Paragraph(
+                "Behördliche Ersuchen an flexr.social@proton.me, Betreff Behördenanfrage, bei " +
+                    "Gefahr im Verzug NOTFALL — Behördenanfrage. Postalisch an die oben genannte " +
+                    "Anschrift. Ersuchen sind auf Behördenpapier einzureichen; wir antworten " +
+                    "ausschließlich an eine dienstliche Adresse der ersuchenden Behörde. Anfragen " +
+                    "von Privatpersonen, Anwaltskanzleien oder Detekteien werden über dieses " +
+                    "Verfahren nicht beantwortet.",
+            ),
+            LegalBlock.Heading("3. Erforderliche Angaben"),
+            LegalBlock.Bullets(
+                listOf(
+                    "Ersuchende Behörde, Aktenzeichen, Name und dienstliche Kontaktdaten der " +
+                        "sachbearbeitenden Person.",
+                    "Rechtsgrundlage und, soweit erforderlich, gerichtliche Bewilligung bzw. " +
+                        "staatsanwaltschaftliche Anordnung.",
+                    "Möglichst genaue Bezeichnung der betroffenen Person: E-Mail-Adresse des " +
+                        "Kontos, Profilname, Telefonnummer oder Konto-ID.",
+                    "Präzise Bezeichnung der angeforderten Daten und des Zeitraums.",
+                    "Frist, bis zu der die Auskunft benötigt wird.",
+                ),
+            ),
+            LegalBlock.Heading("4. Rechtsgrundlage"),
+            LegalBlock.Bullets(
+                listOf(
+                    "Österreichische Behörden: auf Grundlage der Strafprozessordnung, insbesondere " +
+                        "auf staatsanwaltschaftliche Anordnung bzw. gerichtliche Bewilligung, sowie " +
+                        "sonstiger gesetzlicher Auskunftspflichten.",
+                    "Behörden anderer EU-Mitgliedstaaten: über die justizielle Zusammenarbeit, " +
+                        "insbesondere die Europäische Ermittlungsanordnung, sowie die europäische " +
+                        "Herausgabeanordnung (Verordnung (EU) 2023/1543), sobald anwendbar.",
+                    "Behörden aus Drittstaaten: über den Rechtshilfeweg (MLAT) unter Einbindung " +
+                        "der österreichischen Justizbehörden.",
+                    "Freiwillige Auskünfte über die gesetzlichen Pflichten hinaus erteilen wir " +
+                        "nicht — ausgenommen Notfälle nach Abschnitt 6.",
+                ),
+            ),
+            LegalBlock.Heading("5. Welche Daten überhaupt vorhanden sind"),
+            LegalBlock.Paragraph(
+                "Wir können nur herausgeben, was tatsächlich gespeichert ist. FLEXR betreibt keine " +
+                    "Vorratsdatenspeicherung und protokolliert keine Verbindungsdaten je " +
+                    "Nutzerkonto.",
+            ),
+            LegalBlock.Table(
+                headers = listOf("Datenart", "Vorhanden?", "Anmerkung"),
+                rows = listOf(
+                    listOf(
+                        "Bestandsdaten (E-Mail, Name, Geburtsdatum, PLZ/Ort, Geschlecht, Studio, " +
+                            "Registrierungszeitpunkt)",
+                        "ja",
+                        "Selbstangaben, nicht ausweisgeprüft",
+                    ),
+                    listOf("Telefonnummer", "nur wenn hinterlegt", "per SMS-Einmalcode bestätigt"),
+                    listOf("Profilfotos", "ja", "inkl. Freigabestatus"),
+                    listOf(
+                        "Verifizierungs-Selfies",
+                        "nein",
+                        "werden nach der Prüfung gelöscht",
+                    ),
+                    listOf(
+                        "Chatnachrichten (Inhalt, Zeitstempel, Absender)",
+                        "ja",
+                        "Klartext in der Datenbank, keine Ende-zu-Ende-Verschlüsselung; Original " +
+                            "und bereinigte Fassung liegen getrennt vor",
+                    ),
+                    listOf(
+                        "Matches, Swipes, Blockierungen, Meldungen",
+                        "ja",
+                        "mit Zeitstempel",
+                    ),
+                    listOf(
+                        "Systemseitig markierte Nachrichten",
+                        "ja",
+                        "inkl. Markierungsgrund",
+                    ),
+                    listOf(
+                        "Standortdaten",
+                        "eingeschränkt",
+                        "nur die zuletzt gespeicherte grobe Position für die Umkreissuche, keine " +
+                            "Bewegungshistorie",
+                    ),
+                    listOf(
+                        "IP-Adressen je Konto oder Login",
+                        "nein",
+                        "nicht kontobezogen gespeichert; kurzlebige Server-Logs können IP und " +
+                            "Zeitstempel ohne Kontozuordnung enthalten",
+                    ),
+                    listOf(
+                        "Zahlungs- und Kartendaten",
+                        "nein",
+                        "ausschließlich bei Stripe; bei uns nur die Stripe-Kennungen des Kontos",
+                    ),
+                    listOf("Passwörter", "nicht lesbar", "nur als Hash gespeichert"),
+                ),
+            ),
+            LegalBlock.Heading("6. Notfallanfragen"),
+            LegalBlock.Note(
+                "Bei unmittelbarer Gefahr für Leben oder körperliche Unversehrtheit erteilen wir " +
+                    "die zur Abwehr erforderliche Auskunft ohne vorherige gerichtliche Anordnung.",
+            ),
+            LegalBlock.Bullets(
+                listOf(
+                    "Betreff: NOTFALL — Behördenanfrage.",
+                    "Bitte schildern Sie die konkrete Gefahrenlage und die betroffene Person.",
+                    "Bitte begründen Sie, warum die Auskunft zur Abwehr erforderlich und dringlich " +
+                        "ist, und benennen Sie die benötigten Daten.",
+                    "Bitte geben Sie eine dienstliche Rückrufnummer an.",
+                    "Wir bearbeiten Notfallanfragen vorrangig, können als Kleinunternehmen aber " +
+                        "keinen Rund-um-die-Uhr-Bereitschaftsdienst zusichern.",
+                ),
+            ),
+            LegalBlock.Heading("7. Sicherungsersuchen"),
+            LegalBlock.Lettered(
+                listOf(
+                    "Ersuchen per E-Mail mit Betreff Sicherung, unter Angabe des Kontos und des " +
+                        "Zeitraums.",
+                    "Wir sichern die betroffenen Daten und bestätigen dies schriftlich.",
+                    "Die Sicherung gilt 90 Tage und wird auf Ersuchen einmalig um 90 Tage " +
+                        "verlängert.",
+                    "Geht innerhalb dieser Frist keine förmliche Anordnung ein, wird die Sicherung " +
+                        "aufgehoben und die reguläre Löschfrist läuft weiter.",
+                ),
+            ),
+            LegalBlock.Heading("8. Aufbewahrung und Löschung"),
+            LegalBlock.Bullets(
+                listOf(
+                    "Gelöschte Konten werden sofort deaktiviert und nach 30 Tagen Karenzzeit " +
+                        "endgültig gelöscht, einschließlich der Fotos im Objektspeicher. Danach " +
+                        "sind die Daten nicht wiederherstellbar.",
+                    "Ein rechtzeitiges Sicherungsersuchen hemmt die endgültige Löschung.",
+                    "Zahlungsbezogene Aufzeichnungen unterliegen den gesetzlichen " +
+                        "Aufbewahrungspflichten (in der Regel sieben Jahre, § 132 BAO).",
+                    "Material zu CSAM-Fällen wird unabhängig davon zur Übergabe an die " +
+                        "Strafverfolgung gesichert.",
+                ),
+            ),
+            LegalBlock.Heading("9. Benachrichtigung der betroffenen Person"),
+            LegalBlock.Paragraph(
+                "Datenschutzrechtlich sind wir grundsätzlich verpflichtet, betroffene Personen zu " +
+                    "informieren. Wir sehen davon ab, wenn die Behörde ein gesetzlich vorgesehenes " +
+                    "Auskunftsverbot mitteilt, eine gerichtliche Anordnung dies untersagt oder die " +
+                    "Benachrichtigung eine Ermittlung gefährden oder eine Person in Gefahr bringen " +
+                    "würde. Bitte weisen Sie im Ersuchen ausdrücklich darauf hin.",
+            ),
+            LegalBlock.Heading("10. Bearbeitung, Form und Kosten"),
+            LegalBlock.Bullets(
+                listOf(
+                    "Eingangsbestätigung in der Regel binnen drei Werktagen, Notfälle vorrangig.",
+                    "Auskünfte erteilen wir schriftlich in strukturierter Form (Text oder CSV).",
+                    "Für die Bearbeitung stellen wir keine Kosten in Rechnung.",
+                    "Wir prüfen jedes Ersuchen auf Zuständigkeit, Rechtsgrundlage und " +
+                        "Verhältnismäßigkeit und widersprechen offensichtlich unzulässigen oder " +
+                        "unverhältnismäßig weiten Ersuchen.",
                 ),
             ),
         ),
