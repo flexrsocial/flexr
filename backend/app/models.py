@@ -179,7 +179,16 @@ class User(Base):
     gps_lon = Column(Float, nullable=True)
     search_radius_km = Column(Integer, nullable=False, default=20)
 
-    photos = relationship("Photo", back_populates="user", cascade="all, delete-orphan")
+    # order_by ist Pflicht, nicht Kosmetik: Web und App nehmen photos[0] als
+    # Hauptfoto (Karte, Avatar, Chat-Kopf). Ohne feste Sortierung liefert die
+    # DB die Zeilen in beliebiger Reihenfolge - das Hauptfoto würde nach jedem
+    # Schreibzugriff springen.
+    photos = relationship(
+        "Photo",
+        back_populates="user",
+        cascade="all, delete-orphan",
+        order_by="(Photo.position, Photo.id)",
+    )
 
     @property
     def age(self) -> int:

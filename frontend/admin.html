@@ -391,7 +391,9 @@
   }
 
   function fmtDate(iso){
-    try{ return new Date(iso).toLocaleDateString('de-AT', {day:'2-digit', month:'2-digit', year:'numeric'}); }
+    // parseUTC, nicht new Date: sonst rutscht alles zwischen Mitternacht und
+    // dem lokalen UTC-Offset (im Sommer 2 Stunden) auf den Vortag.
+    try{ return parseUTC(iso).toLocaleDateString('de-AT', {day:'2-digit', month:'2-digit', year:'numeric'}); }
     catch(e){ return iso; }
   }
   // Server liefert naive UTC-Zeitstempel ohne Zeitzone - als UTC interpretieren
@@ -1016,10 +1018,11 @@
       }
       wrap.innerHTML = `
         <table>
-          <thead><tr><th>Gemeldet von</th><th>Gemeldete Person</th><th>Grund</th><th>Datum</th><th></th></tr></thead>
+          <thead><tr><th>Aktenzeichen</th><th>Gemeldet von</th><th>Gemeldete Person</th><th>Grund</th><th>Datum</th><th></th></tr></thead>
           <tbody>
             ${reports.map(r => `
               <tr>
+                <td class="mono">${escapeHtml(r.reference)}</td>
                 <td>${escapeHtml(r.reporter_name)}</td>
                 <td>${escapeHtml(r.reported_name)}</td>
                 <td>${escapeHtml(r.reason)}</td>

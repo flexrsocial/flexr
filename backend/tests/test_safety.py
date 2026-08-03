@@ -69,3 +69,28 @@ def test_list_blocks(client):
     resp = client.get("/api/blocks", headers=headers_a)
     assert resp.status_code == 200
     assert user_b["id"] in resp.json()
+
+
+def test_blocked_profiles_carry_name_and_photo(client):
+    """Ohne Name und Bild lässt sich eine Blockierung in der Oberfläche nicht
+    sinnvoll wieder aufheben - GET /api/blocks liefert nur IDs."""
+    (headers_a, user_a), (headers_b, user_b) = make_pair(client)
+    client.post("/api/blocks", headers=headers_a, json={"user_id": user_b["id"]})
+
+    resp = client.get("/api/blocks/profiles", headers=headers_a)
+    assert resp.status_code == 200
+    entries = resp.json()
+    assert len(entries) == 1
+    assert entries[0]["id"] == user_b["id"]
+    assert entries[0]["name"] == "B"
+    assert entries[0]["photo_url"]
+
+    client.delete(f"/api/blocks/{user_b['id']}", headers=headers_a)
+    assert client.get("/api/blocks/profiles", headers=headers_a).json() == []
+
+
+def test_blocked_profiles_empty_without_blocks(client):
+    headers = register_user(client, "noblocks@example.com")
+    resp = client.get("/api/blocks/profiles", headers=headers)
+    assert resp.status_code == 200
+    assert resp.json() == []

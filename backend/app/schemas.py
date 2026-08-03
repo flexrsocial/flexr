@@ -301,6 +301,16 @@ class BlockRequest(BaseModel):
     user_id: str
 
 
+class BlockedProfileOut(BaseModel):
+    """Blockiertes Profil mit Namen und Bild - GET /api/blocks liefert nur IDs
+    und bleibt unverändert (die Android-App liest es so), zum Aufheben einer
+    Blockierung braucht die Oberfläche aber etwas Wiedererkennbares."""
+
+    id: str
+    name: str
+    photo_url: Optional[str] = None
+
+
 # ---------- Admin ----------
 
 class AdminLoginRequest(BaseModel):

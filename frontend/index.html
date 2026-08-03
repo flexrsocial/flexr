@@ -1089,6 +1089,42 @@
   .account-section-title::before{
     content:''; width:3px; height:11px; background:var(--plate); border-radius:2px; flex-shrink:0;
   }
+  .account-hint{ font-size:12.5px; line-height:1.5; color:var(--chalk-dim); }
+
+  /* Meine Meldungen (Art. 16 Abs. 5 DSA) */
+  .report-item{
+    border:1px solid var(--hairline); border-radius:12px; background:var(--surface-2);
+    padding:12px 14px; margin-bottom:10px;
+  }
+  .report-head{ display:flex; align-items:center; gap:8px; margin-bottom:6px; flex-wrap:wrap; }
+  .report-ref{ font-family:'JetBrains Mono', monospace; font-size:11px; color:var(--chalk-dim); }
+  .report-state{
+    font-family:'JetBrains Mono', monospace; font-size:10px; letter-spacing:.08em; text-transform:uppercase;
+    padding:3px 7px; border-radius:6px; margin-left:auto;
+  }
+  .report-state.open{ background:rgba(255,90,31,.15); color:var(--plate-bright); }
+  .report-state.done{ background:rgba(126,196,84,.15); color:var(--lime); }
+  .report-reason{ font-size:13.5px; color:var(--chalk); margin-bottom:4px; }
+  .report-note{ font-size:12.5px; color:var(--chalk-dim); line-height:1.5; }
+
+  /* Blockierte Profile */
+  .block-item{
+    display:flex; align-items:center; gap:12px; padding:9px 0;
+    border-bottom:1px solid var(--hairline);
+  }
+  .block-item:last-child{ border-bottom:none; }
+  .block-item .av{
+    width:38px; height:38px; border-radius:50%; overflow:hidden; flex-shrink:0;
+    background:var(--surface-3); display:flex; align-items:center; justify-content:center;
+    font-size:14px; color:var(--chalk-dim);
+  }
+  .block-item .av img{ width:100%; height:100%; object-fit:cover; }
+  .block-item .nm{ font-size:14px; color:var(--chalk); flex:1; }
+  .block-item button{
+    background:none; border:1px solid var(--steel); color:var(--chalk-dim);
+    border-radius:8px; padding:6px 11px; font-size:12px; cursor:pointer; font-family:inherit;
+  }
+  .block-item button:hover{ color:var(--plate); border-color:var(--plate); }
 
   .price-card{
     background:linear-gradient(180deg, rgba(255,90,31,.07), rgba(26,26,26,0) 45%), linear-gradient(180deg, #1f1f1f, #191919);
@@ -1462,6 +1498,19 @@
         <div class="field-err" id="acctPhotoErr"></div>
       </div>
 
+      <!-- Art. 16 Abs. 5 DSA: Der Melder muss die Entscheidung über seine
+           Meldung erfahren. Die Empfangsbestätigung verweist wörtlich auf
+           diesen Bereich. -->
+      <div class="account-section">
+        <div class="account-section-title">Meine Meldungen</div>
+        <div id="acctReports"><div class="account-hint">Lädt …</div></div>
+      </div>
+
+      <div class="account-section">
+        <div class="account-section-title">Blockierte Profile</div>
+        <div id="acctBlocks"><div class="account-hint">Lädt …</div></div>
+      </div>
+
       <div class="account-section">
         <div class="account-section-title">Konto</div>
         <button class="btn secondary" id="btnLogout">Ausloggen</button>
@@ -1503,6 +1552,15 @@
           <li><svg class="ico" viewBox="0 0 24 24"><path d="M5 12.5 10 17 19 7"/></svg>Monatlich kündbar, keine versteckten Kosten</li>
         </ul>
         <button class="btn" id="btnSubscribe2">Jetzt abonnieren</button>
+      </div>
+      <!-- Ohne diese beiden Knöpfe wäre der abgelaufene Probemonat eine
+           Sackgasse: die untere Navigation ist ausgeblendet, der Konto-Screen
+           damit unerreichbar - und mit ihm Ausloggen und die Selbstlöschung,
+           auf die Punkt 5 der Datenschutzerklärung ausdrücklich verweist. -->
+      <div class="account-section" style="margin-top:24px;">
+        <div class="account-section-title">Konto</div>
+        <button class="btn secondary" id="btnLogoutPaywall">Ausloggen</button>
+        <button class="btn danger-ghost" id="btnDeleteAccountPaywall">Konto löschen</button>
       </div>
     </section>
 
@@ -1755,6 +1813,17 @@
       showScreen('screen-login');
       $('bottomNav').style.display = 'none';
       throw new Error('Sitzung abgelaufen. Bitte erneut einloggen.');
+    }
+    // 402 = Probemonat abgelaufen. Kann mitten in einer offenen Sitzung
+    // auftreten (Polling im Chat, Deck nachladen) - dann gehört der Nutzer auf
+    // den Paywall-Screen statt in eine Ansicht, die stumm nichts mehr nachlädt.
+    if(res.status === 402){
+      if(membership) membership.is_active = false;
+      stopChatPolling();
+      stopUnreadPolling();
+      $('bottomNav').style.display = 'none';
+      showScreen('screen-paywall');
+      throw new Error('Probemonat abgelaufen. Bitte Abo abschließen.');
     }
     let data = null;
     try{ data = await res.json(); }catch(e){ /* kein JSON-Body */ }
@@ -2189,7 +2258,7 @@
     });
   });
 
-  $('btnLogout').addEventListener('click', () => {
+  function doLogout(){
     stopChatPolling();
     stopUnreadPolling();
     stopVerifyCamera();
@@ -2200,7 +2269,12 @@
     membership = null;
     $('bottomNav').style.display = 'none';
     showScreen('screen-login');
-  });
+  }
+
+  // Zweimal verdrahtet: im Konto-Screen und im Paywall-Screen, der nach
+  // Ablauf des Probemonats der einzige erreichbare Screen ist.
+  $('btnLogout').addEventListener('click', doLogout);
+  $('btnLogoutPaywall').addEventListener('click', doLogout);
 
   // ---------- Konto löschen (Passwort-Bestätigung, 30-Tage-Karenz) ----------
   const deleteBackdrop = $('deleteModalBackdrop');
@@ -2211,12 +2285,15 @@
     $('deleteErr').textContent = '';
   }
 
-  $('btnDeleteAccount').addEventListener('click', () => {
+  function openDeleteModal(){
     deleteBackdrop.classList.add('open');
     $('deletePassword').value = '';
     $('deleteErr').textContent = '';
     $('deletePassword').focus();
-  });
+  }
+
+  $('btnDeleteAccount').addEventListener('click', openDeleteModal);
+  $('btnDeleteAccountPaywall').addEventListener('click', openDeleteModal);
   $('deleteModalClose').addEventListener('click', closeDeleteModal);
   $('btnCancelDelete').addEventListener('click', closeDeleteModal);
   deleteBackdrop.addEventListener('click', (e) => {
@@ -2267,7 +2344,7 @@
     if(membership.is_subscribed){
       pill.textContent = 'Abo aktiv'; pill.className = 'status-pill trial';
     } else if(membership.is_active){
-      const daysLeft = Math.max(0, Math.ceil((new Date(membership.trial_ends_at) - Date.now())/86400000));
+      const daysLeft = Math.max(0, Math.ceil((parseServerDate(membership.trial_ends_at) - Date.now())/86400000));
       pill.textContent = `Testmonat: ${daysLeft}d`; pill.className = 'status-pill trial';
     } else {
       pill.textContent = 'Abgelaufen'; pill.className = 'status-pill expired';
@@ -2387,7 +2464,7 @@
       $('btnSubscribe').disabled = true;
       $('btnManageSubscription').style.display = 'block';
     } else {
-      const daysLeft = Math.max(0, Math.ceil((new Date(membership.trial_ends_at) - Date.now())/86400000));
+      const daysLeft = Math.max(0, Math.ceil((parseServerDate(membership.trial_ends_at) - Date.now())/86400000));
       $('acctStatusText').textContent = `Noch ${daysLeft} Tag(e) gratis Probemonat.`;
       $('btnSubscribe').disabled = false;
       $('btnSubscribe').textContent = 'Jetzt abonnieren';
@@ -2395,6 +2472,77 @@
     }
     fillProfileForm();
     renderAccountPhotoGrid();
+    loadMyReports();
+    loadBlockedProfiles();
+  }
+
+  // ---------- Meine Meldungen (Art. 16 Abs. 5 DSA) ----------
+  const REPORT_OUTCOME_LABEL = {
+    action_taken: 'Eingeschritten',
+    no_action: 'Kein Verstoß',
+  };
+
+  async function loadMyReports(){
+    const box = $('acctReports');
+    try{
+      const reports = await api('/api/reports/mine');
+      if(!reports.length){
+        box.innerHTML = '<div class="account-hint">Du hast bisher niemanden gemeldet.</div>';
+        return;
+      }
+      box.innerHTML = reports.map(r => {
+        const decided = !!r.outcome;
+        const state = decided ? (REPORT_OUTCOME_LABEL[r.outcome] || 'Entschieden') : 'In Prüfung';
+        const when = parseServerDate(r.created_at)
+          .toLocaleDateString('de-AT', {day:'2-digit', month:'2-digit', year:'numeric'});
+        const note = decided && r.decision_note
+          ? `<div class="report-note">${escapeHtml(r.decision_note)}</div>`
+          : '<div class="report-note">Wir prüfen deine Meldung innerhalb von 72 Stunden.</div>';
+        return `<div class="report-item">
+          <div class="report-head">
+            <span class="report-ref">${escapeHtml(r.reference)} · ${when}</span>
+            <span class="report-state ${decided ? 'done' : 'open'}">${escapeHtml(state)}</span>
+          </div>
+          <div class="report-reason">${escapeHtml(r.reason)}</div>
+          ${note}
+        </div>`;
+      }).join('');
+    }catch(err){
+      box.innerHTML = '<div class="account-hint">Meldungen konnten nicht geladen werden.</div>';
+    }
+  }
+
+  // ---------- Blockierte Profile (Blockierung wieder aufheben) ----------
+  async function loadBlockedProfiles(){
+    const box = $('acctBlocks');
+    try{
+      const blocked = await api('/api/blocks/profiles');
+      if(!blocked.length){
+        box.innerHTML = '<div class="account-hint">Du hast niemanden blockiert.</div>';
+        return;
+      }
+      box.innerHTML = blocked.map(b => `
+        <div class="block-item">
+          <span class="av">${b.photo_url
+            ? `<img src="${escapeHtml(b.photo_url)}" alt="">`
+            : escapeHtml((b.name || '?').charAt(0).toUpperCase())}</span>
+          <span class="nm">${escapeHtml(b.name)}</span>
+          <button type="button" data-unblock="${escapeHtml(b.id)}">Entsperren</button>
+        </div>`).join('');
+      box.querySelectorAll('[data-unblock]').forEach(btn => {
+        btn.addEventListener('click', () => unblockUser(btn.dataset.unblock));
+      });
+    }catch(err){
+      box.innerHTML = '<div class="account-hint">Blockierte Profile konnten nicht geladen werden.</div>';
+    }
+  }
+
+  async function unblockUser(userId){
+    try{
+      await api(`/api/blocks/${userId}`, {method: 'DELETE'});
+      toast('Blockierung aufgehoben.');
+      loadBlockedProfiles();
+    }catch(err){ toast(err.message || 'Entsperren fehlgeschlagen.'); }
   }
 
   // ---------- Profil bearbeiten (PLZ, Gym, Bio - Größe bleibt fix) ----------
@@ -2823,8 +2971,12 @@
     const reason = prompt(`${name} melden. Kurzer Grund:`);
     if(!reason || !reason.trim()) return;
     try{
-      await api('/api/reports', {method: 'POST', body: JSON.stringify({reported_user_id: userId, reason: reason.trim()})});
-      toast('Meldung gesendet. Danke für dein Feedback.');
+      // Art. 16 Abs. 4 DSA: Das Aktenzeichen aus der Empfangsbestätigung gehört
+      // dem Melder gezeigt - er soll sich darauf berufen können.
+      const ack = await api('/api/reports', {method: 'POST', body: JSON.stringify({reported_user_id: userId, reason: reason.trim()})});
+      toast(ack && ack.reference
+        ? `Meldung eingegangen — Aktenzeichen ${ack.reference}. Das Ergebnis findest du unter „Meine Meldungen".`
+        : 'Meldung gesendet. Danke für dein Feedback.');
     }catch(err){ toast(err.message || 'Meldung fehlgeschlagen.'); }
   }
 
@@ -3370,6 +3522,7 @@
     $('chatMessages').innerHTML = '<div class="loading">Lade Chat …</div>';
     // Chat-Sperre-Status auffrischen (kann während der Sitzung gesetzt worden sein)
     try{ const me = await api('/api/profiles/me'); if(me) myProfile = me; }catch(e){}
+    await refreshModerationNotice();
     renderChatMuteState();
     await loadMessages();
     startChatPolling();
@@ -3389,6 +3542,17 @@
     return d && d > new Date() ? d : null;
   }
 
+  /* Art. 17 DSA: Die begründete Mitteilung zur laufenden Maßnahme. Wird beim
+     Öffnen eines Chats geholt und hier zwischengespeichert, damit das Banner
+     synchron gezeichnet werden kann (u. a. aus dem Polling heraus). */
+  let moderationNotice = null;
+
+  async function refreshModerationNotice(){
+    if(!chatMutedUntil()){ moderationNotice = null; return; }
+    try{ moderationNotice = await api('/api/moderation/notice'); }
+    catch(err){ moderationNotice = null; }
+  }
+
   function renderChatMuteState(){
     const banner = $('chatMuteBanner');
     const row = document.querySelector('#screen-chat .chat-input-row');
@@ -3396,9 +3560,17 @@
     if(until){
       const when = until.toLocaleString('de-AT',
         {day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit'});
+      // Ohne konkrete Begründung und Widerspruchsweg wäre die Mitteilung nach
+      // Art. 17 DSA unvollständig - beides kommt aus /api/moderation/notice.
+      const reason = moderationNotice && moderationNotice.reason
+        ? `<br><strong>Begründung:</strong> ${escapeHtml(moderationNotice.reason)}`
+        : '';
+      const appeal = moderationNotice && moderationNotice.appeal_hint
+        ? `<br>${escapeHtml(moderationNotice.appeal_hint)}`
+        : '';
       banner.innerHTML = `<span class="mute-ico">⚠️</span><span>Deine Chat-Funktion ist vorübergehend gesperrt. `
-        + `Du kannst bis <strong>${when} Uhr</strong> keine Nachrichten senden. `
-        + `Bitte halte dich an unsere Community-Regeln.</span>`;
+        + `Du kannst bis <strong>${when} Uhr</strong> keine Nachrichten senden.`
+        + `${reason}${appeal}</span>`;
       banner.style.display = 'flex';
       row.classList.add('disabled');
       $('chatInput').disabled = true;
@@ -3444,7 +3616,7 @@
     }
     box.innerHTML = messages.map(m => {
       const mine = m.sender_id === myProfile.id;
-      const time = new Date(m.created_at).toLocaleTimeString('de-AT', {hour:'2-digit', minute:'2-digit'});
+      const time = parseServerDate(m.created_at).toLocaleTimeString('de-AT', {hour:'2-digit', minute:'2-digit'});
       const receipt = mine ? `<span class="receipt ${m.read_at ? 'read' : ''}">${m.read_at ? '✓✓' : '✓'}</span>` : '';
       // Zensur-Hinweis: Absender erfährt, dass die Nachricht geschützt wurde;
       // Empfänger sieht den Grund für den [Link entfernt]-Platzhalter.

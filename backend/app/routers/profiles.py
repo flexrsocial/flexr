@@ -1,6 +1,7 @@
 from datetime import datetime
 
 from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from ..database import get_db
@@ -155,11 +156,17 @@ def add_photo(
     if payload.thumb_object_key:
         set_photo_cache_control(payload.thumb_object_key)
 
+    # Nächste freie Position aus dem Maximum ableiten, nicht aus der Anzahl:
+    # nach dem Löschen eines Fotos aus der Mitte wäre die Anzahl kleiner als die
+    # höchste vergebene Position, und zwei Fotos bekämen dieselbe Nummer.
+    max_position = (
+        db.query(func.max(Photo.position)).filter(Photo.user_id == current_user.id).scalar()
+    )
     photo = Photo(
         user_id=current_user.id,
         url=public_url_for(payload.object_key),
         thumb_url=public_url_for(payload.thumb_object_key) if payload.thumb_object_key else None,
-        position=existing_count,
+        position=0 if max_position is None else max_position + 1,
     )
     db.add(photo)
     db.commit()
@@ -181,6 +188,19 @@ def delete_photo(
     if not photo:
         raise HTTPException(404, "Foto nicht gefunden.")
     db.delete(photo)
+    db.flush()
+
+    # Lücken schließen, damit die Positionen wieder 0..n-1 durchlaufen - sonst
+    # driften sie mit jedem Löschen weiter von der Anzeigereihenfolge weg.
+    remaining = (
+        db.query(Photo)
+        .filter(Photo.user_id == current_user.id)
+        .order_by(Photo.position, Photo.id)
+        .all()
+    )
+    for index, remaining_photo in enumerate(remaining):
+        remaining_photo.position = index
+
     db.commit()
     db.refresh(current_user)
     return current_user

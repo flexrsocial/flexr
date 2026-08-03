@@ -4,10 +4,11 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 
 from ..database import get_db
-from ..models import Block, ModerationAction, Report, User
+from ..models import Block, ModerationAction, PhotoStatus, Report, User
 from ..moderation import APPEAL_HINT
 from ..rate_limit import limiter
 from ..schemas import (
+    BlockedProfileOut,
     BlockRequest,
     ModerationNotice,
     MyReportOut,
@@ -135,6 +136,35 @@ def list_blocks(
 ):
     rows = db.query(Block).filter(Block.blocker_id == current_user.id).all()
     return [row.blocked_id for row in rows]
+
+
+@router.get("/blocks/profiles", response_model=list[BlockedProfileOut])
+def list_blocked_profiles(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Blockierte Profile samt Name und Foto - Grundlage dafür, dass eine
+    Blockierung in der Oberfläche auch wieder aufgehoben werden kann."""
+    blocked_ids = [
+        row.blocked_id
+        for row in db.query(Block.blocked_id).filter(Block.blocker_id == current_user.id)
+    ]
+    if not blocked_ids:
+        return []
+
+    users = db.query(User).filter(User.id.in_(blocked_ids)).all()
+    result = []
+    for user in users:
+        approved = [p for p in user.photos if p.status == PhotoStatus.approved]
+        first = approved[0] if approved else None
+        result.append(
+            BlockedProfileOut(
+                id=user.id,
+                name=user.name,
+                photo_url=(first.thumb_url or first.url) if first else None,
+            )
+        )
+    return result
 
 
 @router.delete("/blocks/{user_id}")
