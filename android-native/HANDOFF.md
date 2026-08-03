@@ -17,11 +17,11 @@ unverändert — die App spricht denselben REST-Vertrag wie das Web-Frontend.
 | | |
 |---|---|
 | applicationId | `flexr.social.app` (unverändert, Play-Store-Kontinuität) |
-| Version | `2.0.4`, versionCode **10** (TWA-Stand war 5) |
+| Version | `2.0.5`, versionCode **11** (TWA-Stand war 5) |
 | compileSdk / targetSdk / minSdk | 36 / 36 / 26 |
 | Signatur | bestehender Upload-Key `android/android.keystore`, SHA-256 `BC:64:AD:3F:…:14:0E:79:80` |
 
-**Offen: der Play-Store-Upload.** Das signierte Bundle für `2.0.4` liegt unter
+**Offen: der Play-Store-Upload.** Das signierte Bundle für `2.0.5` liegt unter
 `app/build/outputs/bundle/prodRelease/app-prod-release.aab` (Stand 03.08.2026,
 Signatur `META-INF/FLEXR.RSA`), neu zu bauen mit
 `./gradlew :app:bundleProdRelease` (siehe Build-Umgebung unten).

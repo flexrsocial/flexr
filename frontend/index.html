@@ -703,6 +703,41 @@
   .legal-modal-body summary:hover{ color:var(--plate-bright); }
   .legal-modal-body .faq-a{ padding:0 16px 16px; color:var(--chalk-dim); font-size:14px; }
   .legal-modal-body .intro{ color:var(--chalk-dim); font-size:14px; margin:0 0 20px; }
+  /* Nutzungsrichtlinien/Sicherheit/Strafverfolgung bringen eigene Bausteine mit
+     (Boxen, Schritte, Inhaltsverzeichnis). Deren Styles stehen im <style> der
+     jeweiligen Seite und kommen beim Nachladen nicht mit — hier nachgezogen,
+     damit das Modal genauso aussieht wie die eigene Seite. */
+  .legal-modal-body h3{ font-size:14px; color:var(--chalk); margin:20px 0 6px; text-transform:none; letter-spacing:0; }
+  .legal-modal-body ul{ padding-left:20px; margin:8px 0; }
+  .legal-modal-body ul li{ margin-bottom:7px; font-size:14px; }
+  .legal-modal-body .lead{ color:var(--chalk-dim); font-size:14px; margin:0 0 2px; }
+  .legal-modal-body .stand, .legal-modal-body .en{ color:var(--chalk-dim); font-size:13px; }
+  .legal-modal-body .en{ font-style:italic; }
+  .legal-modal-body .box{ background:var(--surface-2); border:1px solid var(--steel); border-radius:12px; padding:14px 16px; margin:14px 0; }
+  .legal-modal-body .box.alarm{ border-color:var(--danger); }
+  .legal-modal-body .box h3{ margin-top:0; }
+  .legal-modal-body .tag{ display:inline-block; font-size:11px; letter-spacing:.06em; text-transform:uppercase;
+    border:1px solid var(--steel); border-radius:20px; padding:2px 9px; color:var(--chalk-dim); margin-bottom:8px; }
+  .legal-modal-body .tag.zero{ border-color:var(--danger); color:var(--danger); }
+  .legal-modal-body .flag{ color:var(--danger); font-weight:600; }
+  .legal-modal-body .emergency b{ color:var(--lime); }
+  .legal-modal-body .toc{ background:var(--surface-2); border:1px solid var(--steel); border-radius:12px; padding:14px 18px; margin:18px 0 8px; }
+  .legal-modal-body .toc b{ display:block; margin-bottom:8px; font-size:12px; letter-spacing:.06em; text-transform:uppercase; color:var(--chalk-dim); }
+  /* Nummerierte Listen (Inhalt, Ablaufschritte) gegen die a)-Zählung oben */
+  .legal-modal-body .toc ol, .legal-modal-body ol.steps{ counter-reset:legal-step; padding-left:0; margin:8px 0; }
+  .legal-modal-body .toc li, .legal-modal-body ol.steps li{ padding-left:26px; margin-bottom:7px; }
+  .legal-modal-body .toc li::before, .legal-modal-body ol.steps li::before{
+    content:counter(legal-step); counter-increment:legal-step; color:var(--plate); font-weight:700;
+  }
+  .legal-modal-body .nav-legal{ margin-top:32px; padding-top:14px; border-top:1px solid var(--steel); font-size:13px; }
+  .legal-modal-body .nav-legal a{ margin-right:16px; }
+  /* Jeder Rechtstext hat auch eine eigene, direkt aufrufbare Adresse */
+  .legal-modal-permalink{
+    display:block; margin:0 0 18px; font-size:12px; color:var(--chalk-dim);
+    word-break:break-all;
+  }
+  .legal-modal-permalink a{ color:var(--chalk-dim); text-decoration:underline; }
+  .legal-modal-permalink a:hover{ color:var(--plate); }
 
   /* ---------- Landing-Modus (ausgeloggt: Login/Registrierung) ---------- */
   body.landing{
@@ -1282,8 +1317,9 @@
       <div class="field-err" id="formErr"></div>
       <button class="btn" id="btnCreateProfile">Profil erstellen & Probemonat starten</button>
       <p class="consent-note">
-        Mit der Registrierung akzeptierst du die <a href="/agb.html">AGB</a> und die
-        <a href="/nutzungsrichtlinien.html">Nutzungsrichtlinien</a>.
+        Mit der Registrierung akzeptierst du die
+        <a href="/agb.html" class="legal-link" data-legal-page="agb.html">AGB</a> und die
+        <a href="/nutzungsrichtlinien.html" class="legal-link" data-legal-page="nutzungsrichtlinien.html">Nutzungsrichtlinien</a>.
       </p>
     </section>
 
@@ -1476,13 +1512,12 @@
     <a href="/faq.html" class="legal-link" data-legal-page="faq.html">FAQ</a>
     <a href="/impressum.html" class="legal-link" data-legal-page="impressum.html">Impressum</a>
     <a href="/datenschutz.html" class="legal-link" data-legal-page="datenschutz.html">Datenschutz</a>
-    <!-- Diese drei Seiten bewusst als echte Navigation (ohne .legal-link/Modal):
-         AGB, Nutzungsrichtlinien und Strafverfolgung müssen unter einer eigenen,
-         direkt aufrufbaren URL erreichbar sein. -->
-    <a href="/agb.html">AGB</a>
-    <a href="/nutzungsrichtlinien.html">Nutzungsrichtlinien</a>
-    <a href="/sicherheit.html">Sicherheit</a>
-    <a href="/strafverfolgung.html">Strafverfolgung</a>
+    <!-- Alle Rechtstexte öffnen im Modal, behalten aber ihre eigene, direkt
+         aufrufbare URL im href (und im Permalink oben im Modal). -->
+    <a href="/agb.html" class="legal-link" data-legal-page="agb.html">AGB</a>
+    <a href="/nutzungsrichtlinien.html" class="legal-link" data-legal-page="nutzungsrichtlinien.html">Nutzungsrichtlinien</a>
+    <a href="/sicherheit.html" class="legal-link" data-legal-page="sicherheit.html">Sicherheit</a>
+    <a href="/strafverfolgung.html" class="legal-link" data-legal-page="strafverfolgung.html">Strafverfolgung</a>
   </footer>
 
   <div class="legal-modal-backdrop" id="legalModalBackdrop">
@@ -3557,10 +3592,53 @@
         const wrap = doc.querySelector('.wrap');
         legalCache[page] = wrap ? wrap.innerHTML : '<p>Inhalt konnte nicht geladen werden.</p>';
       }
-      legalBody.innerHTML = legalCache[page];
+      // Jeder Rechtstext bleibt unter einer eigenen Adresse erreichbar - das
+      // Modal nennt sie und verlinkt sie, statt sie zu verstecken.
+      legalBody.innerHTML =
+        '<span class="legal-modal-permalink">Eigene Adresse: ' +
+        '<a href="/' + page + '" target="_blank" rel="noopener">flexr.social/' + page + '</a></span>' +
+        legalCache[page];
+      legalBody.scrollTop = 0;
+      wireLegalModalLinks(page);
     }catch(err){
       legalBody.innerHTML = '<p>Inhalt konnte nicht geladen werden. <a href="/' + page + '">Direkt öffnen</a>.</p>';
     }
+  }
+
+  /* Links innerhalb eines geladenen Rechtstextes: Sprungmarken scrollen im
+     Modal, Verweise auf andere Rechtstexte öffnen dort - nur der Permalink
+     oben und externe Ziele führen aus dem Modal heraus. */
+  /* Scrollt eine Sprungmarke im Modal an. Über die Bounding-Box statt über
+     offsetTop: der Textkörper ist nicht der offsetParent der Überschriften.
+     scrollTop direkt statt scrollTo({behavior:'smooth'}) — die Animation
+     kommt im Modal nicht an, der Sprung bliebe sonst wirkungslos. */
+  function scrollLegalModalTo(id){
+    const target = legalBody.querySelector('#' + CSS.escape(id));
+    if(!target) return;
+    const delta = target.getBoundingClientRect().top - legalBody.getBoundingClientRect().top;
+    legalBody.scrollTop = legalBody.scrollTop + delta - 12;
+  }
+
+  function wireLegalModalLinks(page){
+    legalBody.querySelectorAll('a[href^="#"]').forEach(link => {
+      link.addEventListener('click', (e) => {
+        e.preventDefault();
+        scrollLegalModalTo(link.getAttribute('href').slice(1));
+      });
+    });
+    // Alle internen Verweise, auch die mit Sprungmarke (/seite.html#abschnitt) —
+    // ein Selektor auf href$=".html" würde genau die verfehlen.
+    legalBody.querySelectorAll('a[href^="/"]').forEach(link => {
+      if(link.closest('.legal-modal-permalink')) return;
+      const href = link.getAttribute('href') || '';
+      const [target, fragment] = href.slice(1).split('#');
+      if(!target.endsWith('.html')) return;
+      link.addEventListener('click', async (e) => {
+        e.preventDefault();
+        await openLegalModal(target);
+        if(fragment) scrollLegalModalTo(fragment);
+      });
+    });
   }
 
   function closeLegalModal(){
