@@ -34,7 +34,10 @@
 	<key>FLEXRAPIBaseURL</key>
 	<string>$(FLEXR_API_BASE_URL)</string>
 
-	<!-- Startbildschirm: FX-Zeichen auf dem Markenton --ink (#121212). -->
+	<!-- Startbildschirm: FX-Zeichen auf dem Markenton „ink" (#121212).
+	     Kein doppelter Bindestrich in XML-Kommentaren — der CSS-Name der
+	     Farbe lautet zwar mit zwei vorangestellten Strichen, den verträgt
+	     ein Kommentar aber nicht. -->
 	<key>UILaunchScreen</key>
 	<dict>
 		<key>UIColorName</key>
