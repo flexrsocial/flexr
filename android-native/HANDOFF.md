@@ -1,6 +1,6 @@
 # HANDOFF — native Android-App
 
-Stand: **31.07.2026**, Commit `98265bf` (gepusht, VPS deployt, Arbeitsverzeichnis sauber).
+Stand: **03.08.2026**, Commit `4cf43dd` (gepusht, VPS deployt, Arbeitsverzeichnis sauber).
 Für Aufbau, Build-Befehle und die Migrationstabelle siehe [README.md](README.md) —
 hier steht nur, was daraus *nicht* hervorgeht.
 
@@ -17,12 +17,13 @@ unverändert — die App spricht denselben REST-Vertrag wie das Web-Frontend.
 | | |
 |---|---|
 | applicationId | `flexr.social.app` (unverändert, Play-Store-Kontinuität) |
-| Version | `2.0.3`, versionCode **9** (TWA-Stand war 5) |
+| Version | `2.0.4`, versionCode **10** (TWA-Stand war 5) |
 | compileSdk / targetSdk / minSdk | 36 / 36 / 26 |
 | Signatur | bestehender Upload-Key `android/android.keystore`, SHA-256 `BC:64:AD:3F:…:14:0E:79:80` |
 
-**Offen: der Play-Store-Upload.** Das Bundle liegt unter
-`app/build/outputs/bundle/prodRelease/app-prod-release.aab`, neu zu bauen mit
+**Offen: der Play-Store-Upload.** Das signierte Bundle für `2.0.4` liegt unter
+`app/build/outputs/bundle/prodRelease/app-prod-release.aab` (Stand 03.08.2026,
+Signatur `META-INF/FLEXR.RSA`), neu zu bauen mit
 `./gradlew :app:bundleProdRelease` (siehe Build-Umgebung unten).
 
 ---
@@ -33,10 +34,11 @@ unverändert — die App spricht denselben REST-Vertrag wie das Web-Frontend.
    aber es gab weder Emulator noch angeschlossenes Telefon. Vor dem Produktions-Rollout
    gehört ein interner Test-Track oder eine lokale Installation dazu. Kernwege:
    Registrierung inkl. Foto-Upload, Swipe, Chat, Verifizierung.
+   Auf dieser Maschine ist das nicht nachholbar: Das Bubblewrap-SDK enthält weder
+   `emulator` noch System-Images, und `adb devices` bleibt leer.
 2. **Datensicherheitserklärung in der Play Console ergänzen:** Standort (grob und
    genau) sowie Kamera. In der TWA liefen diese Berechtigungen über Chrome, die
    native App fordert sie selbst an.
-3. **Elf veraltete Backend-Tests** (siehe unten) — blockieren nichts, sollten aber weg.
 
 ---
 
@@ -114,17 +116,20 @@ Wirkt für App **und** Web-Version gleichermaßen.
 
 **Android:** `./gradlew :app:testProdDebugUnitTest` — grün.
 
-**Backend:** `venv/bin/python -m pytest` — **109 grün, 11 rot**. Die 11 Fehlschläge
-sind veraltete Tests, kein Produktfehler: `get_deck()` überspringt Profile ohne
-freigegebenes Foto (`if not profile.photos: continue`), die Tests legen über
-`conftest.register_user()` aber Nutzer ohne Fotos an — das Deck ist damit immer
-leer. Die Produktregel kam nach den Tests dazu. Betroffen sind alle Deck-Tests in
-`test_location.py` (5), `test_safety.py` (2), `test_admin.py`, `test_messages.py`,
-`test_swipes_and_matches.py`, `test_verification.py`.
+**Backend:** `venv/bin/python -m pytest` — **120 grün**. Die elf zuvor roten
+Deck-Tests hat `2f76147` an die Foto-Pflicht angepasst: `get_deck()` überspringt
+Profile ohne freigegebenes Foto (`if not profile.photos: continue`), die Tests
+legten über `conftest.register_user()` aber Nutzer ohne Fotos an — das Deck war
+damit immer leer.
 
-Der lokale `backend/venv` war beschädigt (in `site-packages` fehlten sämtliche
-`.py`-Dateien, übrig waren nur `__pycache__`-Ordner) und wurde am 31.07.2026
-komplett aus `requirements-dev.txt` neu aufgesetzt.
+**Der lokale `backend/venv` löst sich wiederholt auf.** Am 31.07.2026 fehlten in
+`site-packages` sämtliche `.py`-Dateien, am 03.08.2026 enthielt der Baum überhaupt
+keine Datei mehr, nur noch leere Verzeichnisse. Ursache ungeklärt; der venv liegt
+nicht im Git. Wiederherstellen kostet eine Minute:
+
+```bash
+cd backend && rm -rf venv && python3 -m venv venv && venv/bin/pip install -r requirements-dev.txt
+```
 
 ---
 
