@@ -2,5 +2,8 @@ User-agent: *
 Allow: /
 Disallow: /admin.html
 Disallow: /api/
+# Kurzlebige Download-Ordner (Build-Artefakte o. Ä.), Praefix statt konkretem
+# Pfad - robots.txt ist selbst oeffentlich und soll den Pfad nicht verraten.
+Disallow: /dl-
 
 Sitemap: https://flexr.social/sitemap.xml
