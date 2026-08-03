@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>de</string>
+	<key>CFBundleLocalizations</key>
+	<array>
+		<string>de</string>
+	</array>
+	<key>CFBundleDisplayName</key>
+	<string>FLEXR</string>
+	<key>CFBundleExecutable</key>
+	<string>$(EXECUTABLE_NAME)</string>
+	<key>CFBundleIdentifier</key>
+	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundleName</key>
+	<string>$(PRODUCT_NAME)</string>
+	<key>CFBundlePackageType</key>
+	<string>$(PRODUCT_BUNDLE_PACKAGE_TYPE)</string>
+	<key>CFBundleShortVersionString</key>
+	<string>$(MARKETING_VERSION)</string>
+	<key>CFBundleVersion</key>
+	<string>$(CURRENT_PROJECT_VERSION)</string>
+	<key>LSRequiresIPhoneOS</key>
+	<true/>
+
+	<!-- Basisadresse des Backends. Wird über die Build-Einstellung
+	     FLEXR_API_BASE_URL gesetzt (siehe project.pbxproj). Für einen Lauf
+	     gegen die lokale Testumgebung reicht das Startargument
+	     -FlexrAPIBaseURL http://localhost:8000/ im Schema (nur Debug). -->
+	<key>FLEXRAPIBaseURL</key>
+	<string>$(FLEXR_API_BASE_URL)</string>
+
+	<!-- Startbildschirm: FX-Zeichen auf dem Markenton --ink (#121212). -->
+	<key>UILaunchScreen</key>
+	<dict>
+		<key>UIColorName</key>
+		<string>LaunchBackground</string>
+		<key>UIImageName</key>
+		<string>SplashLogo</string>
+		<key>UIImageRespectsSafeAreaInsets</key>
+		<true/>
+	</dict>
+
+	<!-- FLEXR ist durchgehend dunkel, genau wie Web- und Android-Fassung. -->
+	<key>UIUserInterfaceStyle</key>
+	<string>Dark</string>
+	<key>UISupportedInterfaceOrientations</key>
+	<array>
+		<string>UIInterfaceOrientationPortrait</string>
+	</array>
+
+	<key>UIAppFonts</key>
+	<array>
+		<string>oswald_variable.ttf</string>
+		<string>work_sans_variable.ttf</string>
+		<string>jetbrains_mono_variable.ttf</string>
+	</array>
+
+	<!-- Umkreissuche. Ohne Freigabe greift serverseitig die PLZ-Koordinate. -->
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>FLEXR zeigt dir Profile in deinem Umkreis. Ohne Standortfreigabe wird stattdessen deine Postleitzahl verwendet.</string>
+	<!-- Foto-Verifizierung: Live-Selfies, bewusst kein Galerie-Upload. -->
+	<key>NSCameraUsageDescription</key>
+	<string>Für die Foto-Verifizierung nimmst du drei Live-Selfies auf. Ohne Kamera ist der blaue Haken nicht möglich.</string>
+
+	<!-- Rückkehr aus dem Stripe-Checkout im externen Browser. -->
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>social.flexr.checkout</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>flexr</string>
+			</array>
+		</dict>
+	</array>
+
+	<!-- Hintergrundabgleich für neue Nachrichten (Ersatz für WorkManager). -->
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>fetch</string>
+	</array>
+	<key>BGTaskSchedulerPermittedIdentifiers</key>
+	<array>
+		<string>social.flexr.app.messages.refresh</string>
+	</array>
+
+	<!-- Nur die lokale Testumgebung darf über http laufen; alles andere bleibt
+	     unter der App-Transport-Security-Vorgabe (TLS erzwungen). -->
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsLocalNetworking</key>
+		<true/>
+	</dict>
+
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
+</dict>
+</plist>
