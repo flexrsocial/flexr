@@ -2881,10 +2881,11 @@
     if(!reason || !reason.trim()) return;
     try{
       // Art. 16 Abs. 4 DSA: Das Aktenzeichen aus der Empfangsbestätigung gehört
-      // dem Melder gezeigt - er soll sich darauf berufen können.
+      // dem Melder gezeigt - er soll sich darauf berufen können. Kein Verweis
+      // auf eine Übersicht: die gibt es in der Web-Version bewusst nicht.
       const ack = await api('/api/reports', {method: 'POST', body: JSON.stringify({reported_user_id: userId, reason: reason.trim()})});
       toast(ack && ack.reference
-        ? `Meldung eingegangen — Aktenzeichen ${ack.reference}. Das Ergebnis findest du unter „Meine Meldungen".`
+        ? `Meldung eingegangen — Aktenzeichen ${ack.reference}. Wir prüfen sie innerhalb von 72 Stunden.`
         : 'Meldung gesendet. Danke für dein Feedback.');
     }catch(err){ toast(err.message || 'Meldung fehlgeschlagen.'); }
   }
