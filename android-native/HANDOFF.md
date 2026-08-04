@@ -138,7 +138,30 @@ Wirkt für App **und** Web-Version gleichermaßen.
 
 ## Zustand der Test-Suites
 
-**Android:** `./gradlew :app:testProdDebugUnitTest` — grün.
+**Android:** `./gradlew :app:testProdReleaseUnitTest` — 27 Tests, grün.
+
+Seit 04.08.2026 sind auch **ViewModels testbar**. Bausteine liegen unter
+`app/src/test/java/flexr/social/app/testing/`:
+
+| | |
+|---|---|
+| `MainDispatcherRule` | ersetzt `Dispatchers.Main`; ohne sie scheitert schon der Konstruktor jedes ViewModels |
+| `FakeFlexrApi` | alle 29 Endpunkte, jeder scheitert mit klarer Meldung — ein Test überschreibt nur, was er braucht |
+| `FakeSessionStore` | Sitzung im Arbeitsspeicher |
+| `FakeMatchDao` / `FakeMessageDao` | Room-DAOs im Arbeitsspeicher, inkl. der Sortierung |
+| `TestDaten.kt` | DTO-Bausteine mit Vorgabewerten |
+
+Getestet wird gegen die **echten** Repositories — nur die Retrofit-Schnittstelle
+und die Sitzung sind ersetzt. Damit läuft die DTO-Abbildung mit durch die Tests,
+statt von einer nachgebauten Fassade verdeckt zu werden.
+
+Dafür musste `SessionStore` zur Schnittstelle werden (Umsetzung:
+`DataStoreSessionStore`, gebunden in `di/SessionModule.kt`). Vorher hing daran
+der Android-Context, und damit war jedes Repository und jedes ViewModel darüber
+in reinen JVM-Tests nicht konstruierbar.
+
+Erster Nutzer: `SwipeViewModelTest` — der Regressionstest zum Deck-Fehler aus
+2.0.8. Gegen den Stand vor dem Fix fallen zwei seiner drei Fälle um.
 
 **Backend:** `venv/bin/python -m pytest` — **120 grün**. Die elf zuvor roten
 Deck-Tests hat `2f76147` an die Foto-Pflicht angepasst: `get_deck()` überspringt
