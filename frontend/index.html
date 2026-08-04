@@ -4,7 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>FLEXR — Dating für Gym-People in Österreich</title>
-<meta name="description" content="FLEXR ist die Dating-App für Gym-People in Österreich: Finde Matches nach Fitnessstudio und Stadt — von Menschen, die Training genauso ernst nehmen wie du. 1 Monat gratis testen, danach 5 €/Monat, jederzeit kündbar.">
+<!-- Unter 160 Zeichen bleiben: Google schneidet das Snippet in der Trefferliste
+     sonst mitten im Satz ab. Der Preis gehoert an den Anfang der zweiten
+     Haelfte, damit er auch in der gekuerzten Fassung noch vorkommt. -->
+<meta name="description" content="FLEXR ist die Dating-App für Gym-People in Österreich: Matches nach Fitnessstudio und Umkreis. 1 Monat gratis, danach 5 €/Monat, jederzeit kündbar.">
 <meta name="keywords" content="Gym Dating, Fitness Dating, Dating App Österreich, Fitnessstudio Dating, Sportler kennenlernen, Gym Singles, Dating Wien, Fitness Singles">
 <meta name="author" content="FLEXR">
 <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1">
@@ -39,9 +42,33 @@
       "@type": "Organization",
       "@id": "https://flexr.social/#organization",
       "name": "FLEXR",
+      "alternateName": ["FLEXR Dating", "flexr.social"],
+      "legalName": "flexr.social Kleinunternehmen",
       "url": "https://flexr.social/",
-      "logo": "https://flexr.social/icons/icon-512.png",
-      "description": "Dating-App für Gym-People in Österreich.",
+      "logo": {
+        "@type": "ImageObject",
+        "url": "https://flexr.social/icons/icon-512.png",
+        "width": 512,
+        "height": 512
+      },
+      "image": "https://flexr.social/og-image.png",
+      "slogan": "Match. Train. Repeat.",
+      "description": "Betreiber der Dating-App FLEXR für Gym-People in Österreich. Nicht verwandt mit gleichnamigen Fitness- oder Software-Anbietern.",
+      "email": "flexr.social@proton.me",
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": "Johann-Schrey-Weg 260",
+        "postalCode": "8232",
+        "addressLocality": "Grafendorf",
+        "addressCountry": "AT"
+      },
+      "contactPoint": {
+        "@type": "ContactPoint",
+        "contactType": "customer support",
+        "email": "flexr.social@proton.me",
+        "areaServed": "AT",
+        "availableLanguage": "German"
+      },
       "areaServed": { "@type": "Country", "name": "Österreich" }
     },
     {
@@ -54,12 +81,17 @@
     },
     {
       "@type": "SoftwareApplication",
+      "@id": "https://flexr.social/#app",
       "name": "FLEXR",
+      "alternateName": "FLEXR — Dating für Gym-People",
       "applicationCategory": "LifestyleApplication",
+      "applicationSubCategory": "Dating",
       "operatingSystem": "Web, Android",
       "url": "https://flexr.social/",
       "inLanguage": "de-AT",
-      "description": "Dating-App für Gym-People in Österreich: Matches nach Fitnessstudio und Stadt.",
+      "screenshot": "https://flexr.social/og-image.png",
+      "publisher": { "@id": "https://flexr.social/#organization" },
+      "description": "Dating-App für Gym-People in Österreich: Matches nach Fitnessstudio und Umkreis.",
       "offers": {
         "@type": "Offer",
         "price": "5.00",
@@ -71,11 +103,18 @@
 }
 </script>
 <link rel="manifest" href="/manifest.json">
-<!-- Icons mit ?v= versionieren: Chrome haelt Favicons in einem eigenen, sehr
+<!-- Icons unter /icons/ mit ?v= versionieren: nginx liefert sie "immutable" fuer
+     ein Jahr aus, und Chrome haelt Favicons zusaetzlich in einem eigenen, sehr
      langlebigen Cache, der nach URL schluesselt - ohne neue URL bleibt nach
      einem Icon-Wechsel das alte Bild im Tab stehen. Beim naechsten Icon-Wechsel
-     die Versionsnummer hier, in manifest.json und in sw.js gemeinsam erhoehen. -->
-<link rel="icon" href="/favicon.ico?v=4" sizes="any">
+     die Versionsnummer hier, in manifest.json und in sw.js gemeinsam erhoehen.
+
+     /favicon.ico bleibt bewusst OHNE Version: Google verlangt fuer das Icon in
+     der Trefferliste eine stabile URL ("don't change the URL frequently") und
+     faellt sonst auf ein altes, laengst gecachtes Bild zurueck. Das geht hier
+     gefahrlos, weil nginx alles ausserhalb von /icons/ mit "no-cache"
+     ausliefert - der Browser revalidiert die .ico also bei jedem Aufruf. -->
+<link rel="icon" href="/favicon.ico" sizes="any">
 <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png?v=4">
 <link rel="apple-touch-icon" href="/icons/icon-192.png?v=4">
 <link rel="preconnect" href="https://fonts.googleapis.com">
