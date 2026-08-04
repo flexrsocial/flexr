@@ -16,8 +16,11 @@ def test_gym_list_and_search(client):
     assert len(hits) == 1
     assert hits[0]["label"] == "Testgym mit Adresse — Teststraße 12, 1010 Wien"
 
-    # PLZ-Suche
-    assert client.get("/api/gyms?q=1010").json()[0]["name"] == "Testgym mit Adresse"
+    # PLZ-Suche (im Seed liegen mehrere Studios in 1010)
+    treffer = client.get("/api/gyms?q=1010").json()
+    assert treffer, "PLZ-Suche liefert nichts"
+    assert all(g["plz"] == "1010" for g in treffer)
+    assert any(g["name"] == "Testgym mit Adresse" for g in treffer)
 
 
 def test_register_with_unknown_gym_rejected(client):

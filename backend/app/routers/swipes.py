@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 
 from ..database import get_db
 from ..geo import haversine_km
+from ..gym_geo import coords_for_gyms
 from ..models import Block, Match, Swipe, User
 from ..rate_limit import limiter
 from ..schemas import ProfileOut, SwipeRequest, SwipeResult
@@ -46,29 +47,19 @@ def get_deck(
         .all()
     )
 
-    # Umkreissuche: GPS-Position (wenn freigegeben) bzw. PLZ-Koordinate,
-    # Kandidaten analog. Ohne eigene Koordinaten (unbekannte PLZ) greift
-    # als Notlösung der alte Gleiche-Stadt-Filter.
-    my_coords = current_user.effective_coords()
+    # Umkreissuche rund um das eingetragene Gym - nicht um den Wohnort und
+    # nicht um die aktuelle Geräteposition. Wer kein Gym mit auflösbarer
+    # Adresse hat (Bestandsprofile mit blankem Gym-Namen), nimmt an der Suche
+    # nicht teil: weder sieht er ein Deck noch erscheint er in fremden.
+    gym_coords = coords_for_gyms(db, [current_user.gym, *(u.gym for u in candidates)])
+    my_coords = gym_coords.get(current_user.gym)
     if my_coords is None:
-        profiles = []
-        for u in candidates:
-            if u.city != current_user.city:
-                continue
-            profile = to_public_profile(u)
-            # Nur Profile mit mindestens einem freigegebenen Foto erscheinen in
-            # der Suche (to_public_profile hat bereits auf freigegebene gefiltert).
-            if not profile.photos:
-                continue
-            profiles.append(profile)
-            if len(profiles) >= 50:
-                break
-        return profiles
+        return []
 
     radius = current_user.search_radius_km or 20
     results = []
     for u in candidates:
-        their_coords = u.effective_coords()
+        their_coords = gym_coords.get(u.gym)
         if their_coords is None:
             continue
         dist = haversine_km(my_coords[0], my_coords[1], their_coords[0], their_coords[1])

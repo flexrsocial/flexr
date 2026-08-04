@@ -13,7 +13,6 @@ final class SwipeModel {
     /// Profil, mit dem gerade ein Match entstanden ist (Overlay).
     var matchedWith: Profile?
     var ownAvatarURL: String?
-    var usesGPSLocation = false
     var searchRadiusKm = 20
 
     var current: Profile? { deck[safe: currentIndex] }
@@ -22,7 +21,6 @@ final class SwipeModel {
 
     @ObservationIgnored private let swipes: SwipeRepository
     @ObservationIgnored private let profiles: ProfileRepository
-    @ObservationIgnored private let location: LocationRepository
     @ObservationIgnored private let safety: SafetyRepository
     @ObservationIgnored private let matches: MatchRepository
     @ObservationIgnored private let onMessage: (String) -> Void
@@ -35,52 +33,25 @@ final class SwipeModel {
     ) {
         swipes = container.swipes
         profiles = container.profiles
-        location = container.location
         safety = container.safety
         matches = container.matches
         self.onMessage = onMessage
         self.onOpenChat = onOpenChat
     }
 
-    /// Beim Start: Standort abgleichen, dann das Deck laden.
+    /// Beim Start: eigenes Profil übernehmen (Radius und Avatar für den
+    /// Kopfbereich), dann das Deck laden.
     ///
-    /// Mit Freigabe geht die GPS-Position ans Backend, ohne Freigabe wird eine
-    /// gespeicherte Position gelöscht — dann greift die Koordinate der PLZ.
-    /// Der Abgleich darf das Laden nie blockieren, deshalb kapselt
-    /// [LocationRepository] ein eigenes Zeitlimit.
-    func syncLocationAndLoadDeck() async {
+    /// Ein Standortabgleich findet nicht mehr statt: die Umkreissuche geht von
+    /// der Adresse des eingetragenen Gyms aus, nicht von der Geräteposition.
+    func loadProfileAndDeck() async {
         isLoading = true
         error = nil
-        await syncLocation()
-        await loadDeck()
-    }
-
-    /// Berechtigung im Kontext erfragen: erst hier ist erkennbar, wofür sie
-    /// gebraucht wird (Umkreissuche) — das ist die von Apple empfohlene Praxis.
-    func requestLocationPermissionIfNeeded() async {
-        guard location.isUndetermined else { return }
-        _ = await location.requestPermission()
-    }
-
-    private func syncLocation() async {
-        do {
-            if let position = await location.currentLocation() {
-                _ = try await profiles.updateLocation(
-                    latitude: position.latitude,
-                    longitude: position.longitude
-                )
-            } else if profiles.myProfile?.hasGPSLocation == true {
-                _ = try await profiles.clearLocation()
-            }
-        } catch {
-            // Der Standort ist eine Verbesserung, keine Voraussetzung — das
-            // Deck lädt auch ohne ihn.
-        }
         if let profile = profiles.myProfile {
-            usesGPSLocation = profile.hasGPSLocation
             searchRadiusKm = profile.searchRadiusKm
             ownAvatarURL = profile.photos.first?.avatarURL
         }
+        await loadDeck()
     }
 
     func loadDeck() async {

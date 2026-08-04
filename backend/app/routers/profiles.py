@@ -96,8 +96,10 @@ def update_my_location(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    """Speichert die GPS-Position vom Gerät. Solange eine Position gespeichert
-    ist, wird sie für die Umkreissuche verwendet (statt der PLZ-Koordinate)."""
+    """Überholt. Die Umkreissuche geht seit der Umstellung vom eingetragenen
+    Gym aus (siehe gym_geo.py); die Position wird zwar noch gespeichert, aber
+    nirgends mehr ausgewertet. Der Endpunkt bleibt nur bestehen, damit Clients
+    älterer Stände keinen Fehler bekommen."""
     current_user.gps_lat = payload.lat
     current_user.gps_lon = payload.lon
     db.commit()
@@ -110,8 +112,8 @@ def clear_my_location(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    """Entfernt die GPS-Position - die Umkreissuche fällt auf die PLZ zurück
-    (wird vom Frontend aufgerufen, wenn Standortfreigabe fehlt/abgelehnt ist)."""
+    """Überholt, siehe update_my_location. Entfernt eine noch gespeicherte
+    Position; auf die Umkreissuche hat das keine Auswirkung mehr."""
     current_user.gps_lat = None
     current_user.gps_lon = None
     db.commit()

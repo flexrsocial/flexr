@@ -33,6 +33,16 @@ app.dependency_overrides[get_db] = override_get_db
 limiter.enabled = False
 
 
+# Die Umkreissuche geht von der Gym-Adresse aus (app/gym_geo.py), nicht mehr
+# vom Wohnort. Die Test-Gyms brauchen deshalb echte PLZ, und Tests, die
+# Entfernungen prüfen, variieren das Gym statt der Wohn-PLZ.
+GYM_WIEN = "John Harris Fitness — Teststraße 12, 1010 Wien"
+GYM_WIEN_2 = "FitInn — Favoritenstraße 100, 1100 Wien"
+GYM_GRAZ = "Kraftwerk Gym — Annenstraße 5, 8010 Graz"
+# Bestandsgym ohne Adresse: nimmt an der Umkreissuche nicht teil
+GYM_OHNE_ADRESSE = "Anderes Studio"
+
+
 @pytest.fixture(autouse=True)
 def reset_database():
     Base.metadata.create_all(bind=engine)
@@ -42,8 +52,17 @@ def reset_database():
 
     db = TestingSessionLocal()
     try:
-        for name in ["John Harris Fitness", "Holmes Place", "FitInn", "Clever Fit",
-                     "McFit", "Fitness First", "Kraftwerk Gym", "Iron Gym Wien",
+        for name, street, nr, plz, city in [
+            ("John Harris Fitness", "Teststraße", "12", "1010", "Wien"),
+            ("FitInn", "Favoritenstraße", "100", "1100", "Wien"),
+            ("Kraftwerk Gym", "Annenstraße", "5", "8010", "Graz"),
+            ("Holmes Place", "Millennium City", "20", "1200", "Wien"),
+        ]:
+            db.add(Gym(name=name, street=street, house_number=nr, plz=plz,
+                       city=city, status=GymStatus.approved))
+        # Ohne Adresse - Bestandsnamen, die aus der Auswahlliste und aus der
+        # Umkreissuche herausfallen
+        for name in ["McFit", "Clever Fit", "Fitness First", "Iron Gym Wien",
                      "USI Wien", "Anderes Studio"]:
             db.add(Gym(name=name, status=GymStatus.approved))
         db.add(Gym(name="Testgym mit Adresse", street="Teststraße",
@@ -68,7 +87,7 @@ DEFAULT_USER = {
     "plz": "1010",
     "city": "Wien",
     "gender": "mann",
-    "gym": "John Harris Fitness",
+    "gym": GYM_WIEN,
     "consent_sensitive_data": True,
     "consent_withdrawal_waiver": True,
 }

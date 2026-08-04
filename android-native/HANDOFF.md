@@ -17,14 +17,23 @@ unverändert — die App spricht denselben REST-Vertrag wie das Web-Frontend.
 | | |
 |---|---|
 | applicationId | `flexr.social.app` (unverändert, Play-Store-Kontinuität) |
-| Version | `2.0.6`, versionCode **12** (TWA-Stand war 5) |
+| Version | `2.0.7`, versionCode **13** (TWA-Stand war 5) |
 | compileSdk / targetSdk / minSdk | 36 / 36 / 26 |
 | Signatur | bestehender Upload-Key `android/android.keystore`, SHA-256 `BC:64:AD:3F:…:14:0E:79:80` |
 
-**Offen: der Play-Store-Upload.** Das signierte Bundle für `2.0.6` liegt unter
-`app/build/outputs/bundle/prodRelease/app-prod-release.aab` (Stand 03.08.2026,
+**Offen: der Play-Store-Upload.** Das signierte Bundle für `2.0.7` liegt unter
+`app/build/outputs/bundle/prodRelease/app-prod-release.aab` (Stand 04.08.2026,
 Signatur `META-INF/FLEXR.RSA`), neu zu bauen mit
 `./gradlew :app:bundleProdRelease` (siehe Build-Umgebung unten).
+
+**Neu in 2.0.7 — die Standortberechtigung ist weg.** Die Umkreissuche geht seit
+dieser Fassung von der Adresse des eingetragenen Gyms aus, nicht mehr von der
+Geräteposition. Entfallen sind damit `ACCESS_COARSE_LOCATION`,
+`ACCESS_FINE_LOCATION`, das Feature-Flag `android.hardware.location.gps`, die
+Abhängigkeit `play-services-location` und `LocationRepository`. Für die
+**Datensicherheitserklärung in der Play Console** heißt das: der Abschnitt
+Standort entfällt ersatzlos — das ist beim Upload mit anzupassen, sonst weicht
+die Angabe vom tatsächlichen Verhalten ab.
 
 ---
 

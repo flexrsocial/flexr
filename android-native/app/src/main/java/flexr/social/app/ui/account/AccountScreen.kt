@@ -264,11 +264,7 @@ fun AccountScreen(
             Text("${state.searchRadiusKm} km", style = MonoStyle, color = colors.chalk)
         }
         Text(
-            text = if (currentProfile?.hasGpsLocation == true) {
-                "Profile im Umkreis deines GPS-Standorts."
-            } else {
-                "Profile im Umkreis deiner PLZ (GPS nicht aktiv)."
-            },
+            text = "Profile im Umkreis deines Gyms.",
             style = MaterialTheme.typography.bodySmall,
             color = colors.chalkDim,
         )

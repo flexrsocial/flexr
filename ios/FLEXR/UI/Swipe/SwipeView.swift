@@ -30,8 +30,7 @@ struct SwipeView: View {
                 onOpenChat: onOpenChat
             )
             model = created
-            await created.requestLocationPermissionIfNeeded()
-            await created.syncLocationAndLoadDeck()
+            await created.loadProfileAndDeck()
         }
     }
 
@@ -98,9 +97,9 @@ struct SwipeView: View {
     }
 
     private func locationLabel(_ model: SwipeModel) -> String {
-        model.usesGPSLocation
-            ? "Umkreis \(model.searchRadiusKm) km · GPS-Standort"
-            : "Umkreis \(model.searchRadiusKm) km · Standort laut PLZ-Wohnort"
+        // Die Umkreissuche geht von der Adresse des eingetragenen Gyms aus,
+        // nicht vom Wohnort und nicht von der Geräteposition.
+        "Umkreis \(model.searchRadiusKm) km · Standort laut PLZ-Gym"
     }
 
     @ViewBuilder

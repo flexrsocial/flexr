@@ -4,7 +4,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import flexr.social.app.core.network.FlexrApiException
-import flexr.social.app.data.repository.LocationRepository
 import flexr.social.app.data.repository.MatchRepository
 import flexr.social.app.data.repository.ProfileRepository
 import flexr.social.app.data.repository.SafetyRepository
@@ -28,7 +27,6 @@ data class SwipeUiState(
     /** Profil, mit dem gerade ein Match entstanden ist (Overlay). */
     val matchedWith: Profile? = null,
     val ownAvatarUrl: String? = null,
-    val usesGpsLocation: Boolean = false,
     val searchRadiusKm: Int = 20,
 ) {
     val current: Profile? get() = deck.getOrNull(currentIndex)
@@ -43,14 +41,14 @@ sealed interface SwipeEvent {
 }
 
 /**
- * Swipe-Deck: Standortabgleich, Kandidatenliste, Like/Pass und die
- * Sicherheitsaktionen direkt auf der Karte.
+ * Swipe-Deck: Kandidatenliste, Like/Pass und die Sicherheitsaktionen direkt
+ * auf der Karte. Der Suchmittelpunkt kommt vom Backend aus der Adresse des
+ * eingetragenen Gyms - die App ermittelt dafür keine Position.
  */
 @HiltViewModel
 class SwipeViewModel @Inject constructor(
     private val swipeRepository: SwipeRepository,
     private val profileRepository: ProfileRepository,
-    private val locationRepository: LocationRepository,
     private val safetyRepository: SafetyRepository,
     private val matchRepository: MatchRepository,
 ) : ViewModel() {
@@ -62,45 +60,28 @@ class SwipeViewModel @Inject constructor(
     val events: Flow<SwipeEvent> = _events.receiveAsFlow()
 
     init {
-        syncLocationAndLoadDeck()
+        loadProfileAndDeck()
     }
 
     /**
-     * Bei jedem Start: Standort abgleichen, dann das Deck laden.
+     * Bei jedem Start: eigenes Profil übernehmen (Radius und Avatar für den
+     * Kopfbereich), dann das Deck laden.
      *
-     * Mit Freigabe geht die GPS-Position ans Backend, ohne Freigabe wird eine
-     * gespeicherte Position gelöscht — dann greift die Koordinate der PLZ.
-     * Der Abgleich darf das Laden nie blockieren, deshalb kapselt
-     * [LocationRepository] ein eigenes Zeitlimit.
+     * Ein Standortabgleich findet nicht mehr statt: die Umkreissuche geht von
+     * der Adresse des eingetragenen Gyms aus, nicht von der Geräteposition.
      */
-    fun syncLocationAndLoadDeck() {
+    fun loadProfileAndDeck() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
-            syncLocation()
-            loadDeck()
-        }
-    }
-
-    private suspend fun syncLocation() {
-        runCatching {
-            val location = locationRepository.currentLocation()
-            if (location != null) {
-                profileRepository.updateLocation(location.latitude, location.longitude)
-            } else if (profileRepository.myProfile.value?.hasGpsLocation == true) {
-                profileRepository.clearLocation()
-            } else {
-                profileRepository.myProfile.value
-            }
-        }.onSuccess { profile ->
-            profile?.let {
+            profileRepository.myProfile.value?.let { profile ->
                 _uiState.update { state ->
                     state.copy(
-                        usesGpsLocation = it.hasGpsLocation,
-                        searchRadiusKm = it.searchRadiusKm,
-                        ownAvatarUrl = it.photos.firstOrNull()?.avatarUrl,
+                        searchRadiusKm = profile.searchRadiusKm,
+                        ownAvatarUrl = profile.photos.firstOrNull()?.avatarUrl,
                     )
                 }
             }
+            loadDeck()
         }
     }
 
@@ -121,11 +102,6 @@ class SwipeViewModel @Inject constructor(
                     }
                 }
         }
-    }
-
-    /** Nach der Berechtigungsabfrage: Standort neu abgleichen und Deck aktualisieren. */
-    fun onLocationPermissionResult(granted: Boolean) {
-        if (granted) syncLocationAndLoadDeck() else loadDeck()
     }
 
     fun like() = swipe(isLike = true)

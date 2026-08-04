@@ -64,8 +64,6 @@
 	</array>
 
 	<!-- Umkreissuche. Ohne Freigabe greift serverseitig die PLZ-Koordinate. -->
-	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>FLEXR zeigt dir Profile in deinem Umkreis. Ohne Standortfreigabe wird stattdessen deine Postleitzahl verwendet.</string>
 	<!-- Foto-Verifizierung: Live-Selfies, bewusst kein Galerie-Upload. -->
 	<key>NSCameraUsageDescription</key>
 	<string>Für die Foto-Verifizierung nimmst du drei Live-Selfies auf. Ohne Kamera ist der blaue Haken nicht möglich.</string>

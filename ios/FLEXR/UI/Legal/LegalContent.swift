@@ -676,9 +676,9 @@ enum LegalContent {
                     ["Systemseitig markierte Nachrichten", "ja", "inkl. Markierungsgrund"],
                     [
                         "Standortdaten",
-                        "eingeschränkt",
-                        "nur die zuletzt gespeicherte grobe Position für die Umkreissuche, keine "
-                            + "Bewegungshistorie",
+                        "keine",
+                        "die Umkreissuche geht von der Adresse des gewählten Gyms aus; eine "
+                            + "Geräteposition wird nicht erhoben",
                     ],
                     [
                         "IP-Adressen je Konto oder Login",
@@ -782,9 +782,8 @@ enum LegalContent {
                     ["Fotos", "Profilbilder", "Upload durch Nutzer, gespeichert bei Cloudflare R2"],
                     [
                         "Standortdaten",
-                        "GPS-Position (nur bei aktiver Standortfreigabe am Gerät), ersatzweise die "
-                            + "Koordinate der angegebenen PLZ, gewählter Suchradius",
-                        "Gerät (Standortfreigabe) / Registrierung",
+                        "Adresse des gewählten Gyms (aus der Studioliste), gewählter Suchradius",
+                        "Profilangaben",
                     ],
                     [
                         "Verifizierungs-Selfies",
@@ -813,11 +812,9 @@ enum LegalContent {
                     + "Sicherheit (Report/Block-Funktion).",
                 "Einwilligung (Art. 6 Abs. 1 lit. a i. V. m. Art. 9 Abs. 2 lit. a): Verarbeitung "
                     + "der sexuellen Orientierung über das Präferenzfeld.",
-                "Standortdaten: Vertragserfüllung (Art. 6 Abs. 1 lit. b) für die Umkreissuche. Die "
-                    + "GPS-Position wird nur verarbeitet, wenn die Standortfreigabe am Gerät aktiv "
-                    + "ist; andernfalls wird ersatzweise die Koordinate der angegebenen PLZ "
-                    + "verwendet. Bei deaktivierter oder widerrufener Standortfreigabe wird die "
-                    + "gespeicherte GPS-Position gelöscht.",
+                "Standortdaten: Vertragserfüllung (Art. 6 Abs. 1 lit. b) für die Umkreissuche. "
+                    + "Maßgeblich ist allein die Adresse des von dir gewählten Gyms; eine "
+                    + "Positionsbestimmung am Gerät findet nicht statt.",
                 "Verifizierungs-Selfies: Einwilligung (Art. 6 Abs. 1 lit. a). Die Verifizierung "
                     + "ist freiwillig und wird aktiv vom Nutzer gestartet. Die Selfies werden "
                     + "ausschließlich zur Echtheitsprüfung des Profils mit den Profilfotos "
@@ -855,8 +852,8 @@ enum LegalContent {
                     + "Löschung aller Daten inklusive Fotos aus Cloudflare R2.",
                 "Verifizierungs-Selfies: werden unmittelbar nach Abschluss der Prüfung (Freigabe "
                     + "oder Ablehnung) gelöscht.",
-                "GPS-Standortdaten: werden bei jedem App-Start aktualisiert und bei deaktivierter "
-                    + "Standortfreigabe gelöscht.",
+                "Standortdaten: nur die Adresse des gewählten Gyms, änderbar durch Wahl eines "
+                    + "anderen Studios im Profil.",
                 "Zahlungsbezogene Daten: gemäß gesetzlicher Aufbewahrungspflichten "
                     + "(i. d. R. 7 Jahre, §132 BAO).",
             ]),

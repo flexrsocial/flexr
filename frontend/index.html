@@ -347,11 +347,18 @@
      kein mousedown/touchstart ab - sonst liesse sich die Karte im oberen
      Bereich nicht mehr wischen (der Grund, warum es die Zonen schon einmal
      nicht mehr gab). Ein Wisch wird stattdessen an der Mausbewegung erkannt. */
-  .card .photo-nav{ position:absolute; inset:0; display:flex; z-index:1; }
-  .card .photo-nav .zone{ cursor:pointer; }
-  .card .photo-nav .zone.prev,
-  .card .photo-nav .zone.next{ flex:0 0 38%; }
-  .card .photo-nav .zone.zoom{ flex:1; cursor:zoom-in; }
+  .card .photo-nav{ position:absolute; inset:0; z-index:1; }
+  .card .photo-nav .zone{ position:absolute; cursor:pointer; }
+  /* Linke und rechte Haelfte gehen ueber die volle Hoehe und stossen in der
+     Mitte aneinander - der Streifen oben bleibt dadurch durchgaengig. */
+  .card .photo-nav .zone.prev{ left:0; top:0; bottom:0; width:50%; }
+  .card .photo-nav .zone.next{ right:0; top:0; bottom:0; width:50%; }
+  /* Vergroessern nur ueber ein Feld mitten im Bild. Es liegt spaeter im
+     Markup und damit ueber den beiden Haelften, reicht aber bewusst weder an
+     den oberen Rand noch bis zur Namenszeile. */
+  .card .photo-nav .zone.zoom{ left:28%; right:28%; top:34%; bottom:26%; cursor:zoom-in; }
+  /* Reine Anzeige - Tipper sollen zu den Zonen darunter durchfallen. */
+  .card .photo-index, .card .photo .name-row{ pointer-events:none; }
   .card .photo .name-row{ z-index:2; }
 
   /* Foto-Vollbild (Galerie) */
@@ -1459,7 +1466,7 @@
           <input type="range" id="a-radius" min="2" max="250" step="1" value="20">
           <span class="radius-value mono" id="radiusValue">20 km</span>
         </div>
-        <div class="radius-hint" id="radiusHint">Profile im Umkreis deines Standorts.</div>
+        <div class="radius-hint" id="radiusHint">Profile im Umkreis deines Gyms.</div>
 
         <div class="field-err" id="acctProfileErr"></div>
         <button class="btn secondary" id="btnSaveProfile" style="margin-top:16px;">Profil speichern</button>
@@ -2322,49 +2329,13 @@
     $('bottomNav').style.display = 'flex';
     showScreen('screen-swipe');
     setNavActive('swipe');
-    syncLocationThenLoadDeck();
+    loadDeck();
     startUnreadPolling();
   }
 
-  // ---------- Standort (GPS mit PLZ-Fallback, wie bei Tinder) ----------
-  // Bei jedem App-Start: Standortfreigabe versuchen. Erfolg -> GPS-Position ans
-  // Backend; Ablehnung/Fehler -> gespeicherte Position löschen, dann sucht das
-  // Backend im Umkreis der eingegebenen PLZ.
-  function syncLocationThenLoadDeck(){
-    let settled = false;
-    const finish = () => { if(!settled){ settled = true; loadDeck(); } };
-
-    if(!('geolocation' in navigator)){
-      api('/api/profiles/me/location', {method: 'DELETE'})
-        .then(p => { myProfile = p; }).catch(()=>{}).finally(finish);
-      return;
-    }
-
-    // Nicht ewig auf den GPS-Dialog warten - nach 6s Deck einfach laden
-    // (die Position wird nachgereicht, sobald sie da ist).
-    const fallbackTimer = setTimeout(finish, 6000);
-
-    navigator.geolocation.getCurrentPosition(
-      async (pos) => {
-        clearTimeout(fallbackTimer);
-        try{
-          myProfile = await api('/api/profiles/me/location', {
-            method: 'POST',
-            body: JSON.stringify({lat: pos.coords.latitude, lon: pos.coords.longitude}),
-          });
-        }catch(err){ console.error(err); }
-        finish();
-      },
-      async () => {
-        clearTimeout(fallbackTimer);
-        try{
-          myProfile = await api('/api/profiles/me/location', {method: 'DELETE'});
-        }catch(err){ console.error(err); }
-        finish();
-      },
-      {timeout: 5000, maximumAge: 300000}
-    );
-  }
+  // Die Umkreissuche geht von der Adresse des eingetragenen Gyms aus. Eine
+  // Geräteposition wird dafür nicht mehr gebraucht - der Standortdialog beim
+  // App-Start entfällt daher ersatzlos.
 
   async function subscribeNow(){
     try{
@@ -2461,9 +2432,7 @@
     $('a-bio').value = myProfile.bio || '';
     $('a-radius').value = myProfile.search_radius_km || 20;
     $('radiusValue').textContent = ($('a-radius').value) + ' km';
-    $('radiusHint').textContent = myProfile.has_gps_location
-      ? 'Profile im Umkreis deines GPS-Standorts.'
-      : 'Profile im Umkreis deiner PLZ (GPS nicht aktiv).';
+    $('radiusHint').textContent = `Profile im Umkreis deines Gyms (${gymName(myProfile.gym)}).`;
     $('acctProfileErr').textContent = '';
   }
 
@@ -2711,8 +2680,8 @@
       <div class="photo" style="background-image:url('${photo}')">
         <div class="photo-nav">
           <div class="zone prev" data-dir="-1"></div>
-          <div class="zone zoom"></div>
           <div class="zone next" data-dir="1"></div>
+          <div class="zone zoom"></div>
         </div>
         <div class="photo-index">${(p.photos||[]).map((_,i)=>`<i class="${i===0?'on':''}"></i>`).join('')}</div>
         <div class="name-row"><div class="nm">${escapeHtml(p.name)}, ${p.age}${verifiedBadge(p)}</div><div class="loc">${escapeHtml(p.city)} · ${escapeHtml(gymName(p.gym))}${p.distance_km != null ? ` · ${p.distance_km} km` : ''}</div></div>

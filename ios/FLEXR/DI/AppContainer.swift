@@ -24,7 +24,6 @@ final class AppContainer {
     let plz: PlzRepository
     let safety: SafetyRepository
     let verification: VerificationRepository
-    let location: LocationRepository
     let notifications: MessageRefreshService
 
     init() {
@@ -56,7 +55,6 @@ final class AppContainer {
         gyms = GymRepository(api: api, plzRepository: plzRepository)
         safety = SafetyRepository(api: api)
         verification = VerificationRepository(api: api)
-        location = LocationRepository()
         notifications = MessageRefreshService(session: session, matches: matchRepository)
     }
 }

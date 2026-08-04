@@ -200,11 +200,7 @@ struct AccountView: View {
                     .flexrText(.mono)
                     .foregroundStyle(FlexrColor.chalk)
             }
-            Text(
-                model.profile?.hasGPSLocation == true
-                    ? "Profile im Umkreis deines GPS-Standorts."
-                    : "Profile im Umkreis deiner PLZ (GPS nicht aktiv)."
-            )
+            Text("Profile im Umkreis deines Gyms.")
             .flexrText(.bodySmall)
             .foregroundStyle(FlexrColor.chalkDim)
         }

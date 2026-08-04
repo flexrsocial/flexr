@@ -5,10 +5,6 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
-    <!-- Umkreissuche: GPS-Position, sonst greift die PLZ-Koordinate serverseitig. -->
-    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-
     <!-- Foto-Verifizierung: Live-Selfies, bewusst kein Galerie-Upload. -->
     <uses-permission android:name="android.permission.CAMERA" />
 
@@ -16,7 +12,6 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <uses-feature android:name="android.hardware.camera.any" android:required="false" />
-    <uses-feature android:name="android.hardware.location.gps" android:required="false" />
 
     <application
         android:name=".FlexrApplication"

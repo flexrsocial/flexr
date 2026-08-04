@@ -123,7 +123,6 @@ offline sichtbar.
 | Untere Navigation | `NavigationBar` (Material 3) | eigene Leiste | Hantel-Symbol, Orange-Akzent und Mono-Beschriftung lassen sich in `TabView` nicht abbilden |
 | Snackbar | Material-Snackbar | eigenes Toast-Overlay | iOS kennt kein Systemäquivalent |
 | Externer Browser | Chrome Custom Tab | `SFSafariViewController` | dieselbe Idee: Zahlungsdaten nie in der App |
-| Standort | Fused Location Provider | CoreLocation | Zeitlimit und „zuletzt bekannt zuerst" wie gehabt |
 | Fotoauswahl | Android Photo Picker | `PhotosPicker` | keine Mediathek-Berechtigung nötig |
 | Token-Ablage | DataStore | Keychain | ein Anmeldegeheimnis gehört nicht in die Voreinstellungen |
 | Längenprüfung | UTF-16-Einheiten | Unicode-Codepoints | zählt exakt wie Pythons `len()` im Backend |
@@ -144,14 +143,14 @@ offline sichtbar.
 
 | Berechtigung | Wofür | Wann erfragt |
 |---|---|---|
-| Standort (Bei Nutzung) | Umkreissuche | beim ersten Öffnen des Decks |
 | Kamera | Verifizierungs-Selfies | beim Start der Verifizierung |
 | Mitteilungen | neue Nachrichten | beim Einschalten im Konto |
 | Hintergrundaktualisierung | Nachrichtenabgleich | ohne Dialog, systemseitig steuerbar |
 
-Ohne Standortfreigabe wird eine gespeicherte GPS-Position gelöscht; serverseitig
-greift dann die Koordinate der Postleitzahl. Die Fotoauswahl braucht **keine**
-Berechtigung — `PhotosPicker` liefert nur die ausgewählten Bilder.
+Eine Standortberechtigung braucht die App nicht: die Umkreissuche geht
+serverseitig von der Adresse des eingetragenen Gyms aus. Die Fotoauswahl braucht
+ebenfalls **keine** Berechtigung — `PhotosPicker` liefert nur die ausgewählten
+Bilder.
 
 ---
 

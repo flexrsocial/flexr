@@ -111,7 +111,6 @@ sofort und offline sichtbar — im Web war jede Ansicht ein Ladebalken.
 | Landingpage mit Demo-Deck | Marketing-Hero | entfällt | Store-Listing übernimmt diese Rolle; die App startet direkt beim Login |
 | Ungelesen-Zähler | Polling nur bei offener Seite | WorkManager + Systembenachrichtigung | Nachrichten erreichen den Nutzer auch bei geschlossener App |
 | Stripe-Checkout | `location.href` | Chrome Custom Tab | Zahlungsdaten werden nie in der App eingegeben |
-| Standort | `navigator.geolocation` | Fused Location Provider | echte Laufzeitberechtigung, grob/fein, Zeitlimit |
 | Foto-Auswahl | `<input type=file>` | Android Photo Picker | keine Speicher-Berechtigung nötig |
 
 ### Nicht Teil der App
@@ -130,9 +129,8 @@ sofort und offline sichtbar — im Web war jede Ansicht ein Ladebalken.
 | Berechtigung | Wofür | Wann erfragt |
 |---|---|---|
 | `INTERNET` | REST-API, Foto-Upload | — |
-| `ACCESS_COARSE/FINE_LOCATION` | Umkreissuche | beim ersten Öffnen des Decks |
 | `CAMERA` | Verifizierungs-Selfies | beim Start der Verifizierung |
 | `POST_NOTIFICATIONS` | neue Nachrichten | beim Einschalten im Konto |
 
-Ohne Standortfreigabe wird eine gespeicherte GPS-Position gelöscht; serverseitig
-greift dann die Koordinate der Postleitzahl.
+Eine Standortberechtigung braucht die App nicht: die Umkreissuche geht
+serverseitig von der Adresse des eingetragenen Gyms aus.

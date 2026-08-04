@@ -1,8 +1,5 @@
 package flexr.social.app.ui.swipe
 
-import android.Manifest
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -60,24 +57,8 @@ fun SwipeScreen(
     var showReportDialog by remember { mutableStateOf(false) }
     var showBlockDialog by remember { mutableStateOf(false) }
 
-    val locationPermissionLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.RequestMultiplePermissions(),
-    ) { result ->
-        viewModel.onLocationPermissionResult(result.values.any { it })
-    }
-
-    // Standortfreigabe im Kontext erfragen: erst hier ist erkennbar, wofür sie
-    // gebraucht wird (Umkreissuche) — das ist die von Android empfohlene Praxis.
-    LaunchedEffect(Unit) {
-        if (!state.usesGpsLocation) {
-            locationPermissionLauncher.launch(
-                arrayOf(
-                    Manifest.permission.ACCESS_COARSE_LOCATION,
-                    Manifest.permission.ACCESS_FINE_LOCATION,
-                ),
-            )
-        }
-    }
+    // Keine Standortabfrage mehr: die Umkreissuche geht von der Adresse des
+    // eingetragenen Gyms aus, die Geräteposition wird dafür nicht gebraucht.
 
     LaunchedEffect(Unit) {
         viewModel.events.collect { event ->
@@ -96,11 +77,9 @@ fun SwipeScreen(
         Spacer(Modifier.height(18.dp))
         ScreenHeader(eyebrow = "Heutige Sätze", title = "Wer trainiert wo du bist")
         Text(
-            text = if (state.usesGpsLocation) {
-                "Umkreis ${state.searchRadiusKm} km · GPS-Standort"
-            } else {
-                "Umkreis ${state.searchRadiusKm} km · Standort laut PLZ-Wohnort"
-            }.uppercase(),
+            // Die Umkreissuche geht von der Adresse des eingetragenen Gyms aus,
+            // nicht mehr vom Wohnort und nicht von der Geräteposition.
+            text = "Umkreis ${state.searchRadiusKm} km · Standort laut PLZ-Gym".uppercase(),
             style = MonoStyle,
             color = FlexrTheme.colors.chalkDim,
             modifier = Modifier.padding(top = 8.dp),
