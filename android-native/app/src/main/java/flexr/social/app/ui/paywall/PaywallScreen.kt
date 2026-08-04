@@ -21,20 +21,24 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import flexr.social.app.core.designsystem.component.EmptyState
 import flexr.social.app.core.designsystem.component.Eyebrow
 import flexr.social.app.core.designsystem.component.FlexrButton
+import flexr.social.app.core.designsystem.component.FlexrDangerButton
 import flexr.social.app.core.designsystem.component.FlexrSecondaryButton
 import flexr.social.app.core.designsystem.icon.FlexrIcons
 import flexr.social.app.core.designsystem.theme.FlexrTheme
 import flexr.social.app.ui.account.AccountEvent
 import flexr.social.app.ui.account.AccountViewModel
+import flexr.social.app.ui.account.DeleteAccountDialog
 
 /**
  * Paywall nach Ablauf des Probemonats.
@@ -49,6 +53,8 @@ fun PaywallScreen(
     onShowMessage: (String) -> Unit,
     viewModel: AccountViewModel = hiltViewModel(),
 ) {
+    val state by viewModel.uiState.collectAsStateWithLifecycle()
+
     LaunchedEffect(Unit) {
         viewModel.events.collect { event ->
             when (event) {
@@ -133,6 +139,22 @@ fun PaywallScreen(
 
         Spacer(Modifier.height(24.dp))
         FlexrSecondaryButton(text = "Ausloggen", onClick = onLogout)
+        // Nach Ablauf des Probemonats ist der Konto-Screen nicht mehr
+        // navigierbar. Ohne diesen Knopf waere die Selbstloeschung damit
+        // unerreichbar - Punkt 5 der Datenschutzerklaerung sagt sie aber zu.
+        Spacer(Modifier.height(10.dp))
+        FlexrDangerButton(text = "Konto löschen", onClick = viewModel::showDeleteDialog)
         Spacer(Modifier.height(40.dp))
+    }
+
+    if (state.deleteDialogVisible) {
+        DeleteAccountDialog(
+            password = state.deletePassword,
+            error = state.deleteError,
+            isDeleting = state.isDeleting,
+            onPasswordChange = viewModel::onDeletePasswordChange,
+            onConfirm = viewModel::confirmDelete,
+            onDismiss = viewModel::hideDeleteDialog,
+        )
     }
 }

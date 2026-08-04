@@ -67,26 +67,10 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
 
 
 def _country_for_user(user: User) -> str:
-    """Grober Ländercode für die Statistik. Aus GPS-Koordinaten per
-    Bounding-Box (Österreich + direkte Nachbarn), sonst "AT" (alle Profile sind
-    per Pflicht-PLZ in Österreich). Keine IP-Speicherung."""
-    if user.gps_lat is None or user.gps_lon is None:
-        return "AT"
-    lat, lon = user.gps_lat, user.gps_lon
-    boxes = [
-        ("AT", 46.3, 49.1, 9.4, 17.2),
-        ("DE", 47.2, 55.1, 5.8, 15.1),
-        ("CH", 45.8, 47.8, 5.9, 10.5),
-        ("IT", 36.6, 47.1, 6.6, 18.6),
-        ("SI", 45.4, 46.9, 13.3, 16.6),
-        ("CZ", 48.5, 51.1, 12.0, 18.9),
-        ("SK", 47.7, 49.6, 16.8, 22.6),
-        ("HU", 45.7, 48.6, 16.1, 22.9),
-    ]
-    for code, lat0, lat1, lon0, lon1 in boxes:
-        if lat0 <= lat <= lat1 and lon0 <= lon <= lon1:
-            return code
-    return "XX"  # außerhalb der bekannten Region
+    """Grober Ländercode für die Statistik. Alle Profile sind über die
+    Pflicht-PLZ in Österreich verortet, eine Geräteposition wird nicht mehr
+    erhoben - daher konstant "AT". Keine IP-Speicherung."""
+    return "AT"
 
 
 def _record_daily_access(db: Session, user: User) -> None:

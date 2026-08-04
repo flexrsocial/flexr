@@ -55,7 +55,6 @@ extension MyProfileDTO {
             plz: plz,
             birthdate: ServerTime.parseDate(birthdate),
             searchRadiusKm: searchRadiusKm ?? 20,
-            hasGPSLocation: hasGpsLocation ?? false,
             messagingMutedUntil: ServerTime.parse(messagingMutedUntil)
         )
     }

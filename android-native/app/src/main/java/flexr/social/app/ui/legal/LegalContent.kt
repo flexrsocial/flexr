@@ -714,12 +714,6 @@ object LegalContent {
                         "inkl. Markierungsgrund",
                     ),
                     listOf(
-                        "Standortdaten",
-                        "keine",
-                        "die Umkreissuche geht von der Adresse des gewählten Gyms aus; eine " +
-                            "Geräteposition wird nicht erhoben",
-                    ),
-                    listOf(
                         "IP-Adressen je Konto oder Login",
                         "nein",
                         "nicht kontobezogen gespeichert; kurzlebige Server-Logs können IP und " +
@@ -816,7 +810,8 @@ object LegalContent {
                     listOf("Kontodaten", "E-Mail, Passwort-Hash (bcrypt, nie im Klartext)", "Registrierung"),
                     listOf(
                         "Profildaten",
-                        "Name, Geburtsdatum, Stadt, Gym, Bio",
+                        "Name, Geburtsdatum, Stadt, Gym (Studio aus der öffentlichen Liste), " +
+                            "Suchradius, Bio",
                         "Registrierung / Profilbearbeitung",
                     ),
                     listOf(
@@ -825,11 +820,6 @@ object LegalContent {
                         "Registrierung",
                     ),
                     listOf("Fotos", "Profilbilder", "Upload durch Nutzer, gespeichert bei Cloudflare R2"),
-                    listOf(
-                        "Standortdaten",
-                        "Adresse des gewählten Gyms (aus der Studioliste), gewählter Suchradius",
-                        "Profilangaben",
-                    ),
                     listOf(
                         "Verifizierungs-Selfies",
                         "Selfie-Aufnahmen mit vorgegebenen Posen für die freiwillige Profil-" +
@@ -858,9 +848,6 @@ object LegalContent {
                         "Sicherheit (Report/Block-Funktion).",
                     "Einwilligung (Art. 6 Abs. 1 lit. a i. V. m. Art. 9 Abs. 2 lit. a): Verarbeitung " +
                         "der sexuellen Orientierung über das Präferenzfeld.",
-                    "Standortdaten: Vertragserfüllung (Art. 6 Abs. 1 lit. b) für die Umkreissuche. " +
-                        "Maßgeblich ist allein die Adresse des von dir gewählten Gyms; eine " +
-                        "Positionsbestimmung am Gerät findet nicht statt.",
                     "Verifizierungs-Selfies: Einwilligung (Art. 6 Abs. 1 lit. a). Die Verifizierung " +
                         "ist freiwillig und wird aktiv vom Nutzer gestartet. Die Selfies werden " +
                         "ausschließlich zur Echtheitsprüfung des Profils mit den Profilfotos " +
@@ -900,8 +887,6 @@ object LegalContent {
                         "Löschung aller Daten inklusive Fotos aus Cloudflare R2.",
                     "Verifizierungs-Selfies: werden unmittelbar nach Abschluss der Prüfung (Freigabe " +
                         "oder Ablehnung) gelöscht.",
-                    "Standortdaten: nur die Adresse des gewählten Gyms, änderbar durch Wahl eines " +
-                        "anderen Studios im Profil.",
                     "Zahlungsbezogene Daten: gemäß gesetzlicher Aufbewahrungspflichten " +
                         "(i. d. R. 7 Jahre, §132 BAO).",
                 ),
@@ -917,7 +902,14 @@ object LegalContent {
             LegalBlock.Paragraph(
                 "Österreichische Datenschutzbehörde (DSB), Barichgasse 40–42, 1030 Wien, www.dsb.gv.at.",
             ),
-            LegalBlock.Heading("8. Kein Tracking"),
+            LegalBlock.Heading("8. Keine Standortdaten"),
+            LegalBlock.Paragraph(
+                "FLEXR erhebt keine Standortdaten. Die Umkreissuche rechnet ausschließlich mit " +
+                    "der öffentlichen Adresse des Studios, das du selbst im Profil auswählst, und " +
+                    "dem von dir eingestellten Suchradius. Die App fragt keine Geräteposition ab " +
+                    "und verlangt dafür auch keine Berechtigung.",
+            ),
+            LegalBlock.Heading("9. Kein Tracking"),
             LegalBlock.Paragraph(
                 "Die App setzt keine Analyse- oder Werbe-SDKs ein. Der Login-Token und ein zufällig " +
                     "erzeugter Gerätebezug (Mehrfachkonto-Erkennung) werden ausschließlich lokal auf " +

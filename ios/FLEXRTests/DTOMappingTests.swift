@@ -36,7 +36,7 @@ final class DTOMappingTests: XCTestCase {
              "status": "approved"}
           ],
           "plz": "1100", "birthdate": "1996-07-26", "search_radius_km": 25,
-          "has_gps_location": true, "messaging_muted_until": "2026-08-01T10:00:00"
+          "messaging_muted_until": "2026-08-01T10:00:00"
         }
         """
         let profile = try decoder.decode(MyProfileDTO.self, from: Data(json.utf8)).toDomain()
@@ -44,7 +44,6 @@ final class DTOMappingTests: XCTestCase {
         XCTAssertEqual(profile.id, "u1")
         XCTAssertEqual(profile.plz, "1100")
         XCTAssertEqual(profile.searchRadiusKm, 25)
-        XCTAssertTrue(profile.hasGPSLocation)
         XCTAssertEqual(profile.profile.distanceKm, 7)
         XCTAssertTrue(profile.profile.isVerified)
         XCTAssertEqual(profile.birthdate, ServerTime.parseDate("1996-07-26"))

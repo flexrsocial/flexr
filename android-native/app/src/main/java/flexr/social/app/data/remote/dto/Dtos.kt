@@ -77,7 +77,6 @@ data class MyProfileDto(
     val plz: String,
     val birthdate: String,
     @SerialName("search_radius_km") val searchRadiusKm: Int = 20,
-    @SerialName("has_gps_location") val hasGpsLocation: Boolean = false,
     // phone/phone_verified liefert das Backend zwar mit, die App nutzt sie
     // nicht — die Telefonprüfung ist auch im Web verworfen worden.
     @SerialName("messaging_muted_until") val messagingMutedUntil: String? = null,
@@ -94,9 +93,6 @@ data class UpdateProfileRequestDto(
 
 @Serializable
 data class DeleteAccountRequestDto(val password: String)
-
-@Serializable
-data class LocationUpdateRequestDto(val lat: Double, val lon: Double)
 
 @Serializable
 data class PresignPhotoRequestDto(@SerialName("content_type") val contentType: String)

@@ -996,6 +996,25 @@
      sitzen (der Standard-margin-left des Badges wirkt sonst nur einseitig) */
   .verify-tooltip .verified-badge{ margin:0 .1em; }
 
+  /* Erklär-"i" (Suchumkreis). Reagiert auf Hover und auf Tippen - auf
+     Touch-Geräten gibt es kein Hover, dort schaltet :focus-within um. */
+  .info-hint{ position:relative; display:inline-flex; vertical-align:middle; margin-left:6px; }
+  .info-hint button{
+    width:15px; height:15px; border-radius:50%; padding:0; cursor:help;
+    background:transparent; border:1px solid var(--chalk-dim); color:var(--chalk-dim);
+    font-family:'JetBrains Mono', monospace; font-size:10px; line-height:1;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .info-hint button:hover{ border-color:var(--plate); color:var(--plate); }
+  .info-hint .bubble{
+    display:none; position:absolute; bottom:calc(100% + 8px); left:-8px; z-index:30;
+    width:250px; background:var(--surface-2); border:1px solid var(--steel);
+    border-radius:12px; padding:11px 13px; font-size:12.5px; line-height:1.5;
+    color:var(--chalk); box-shadow:0 14px 34px rgba(0,0,0,.5); text-transform:none;
+    letter-spacing:0; font-family:'Work Sans', system-ui, sans-serif;
+  }
+  .info-hint:hover .bubble, .info-hint:focus-within .bubble{ display:block; }
+
   /* Konto löschen */
   .btn.danger-ghost{
     background:transparent; border:1px solid rgba(227,72,72,.35); color:var(--danger);
@@ -1461,7 +1480,16 @@
           <div class="emoji-panel" id="emojiPanel"></div>
         </div>
 
-        <label>Suchumkreis</label>
+        <label>Suchumkreis<span class="info-hint">
+          <button type="button" aria-label="Wie die Suche funktioniert">i</button>
+          <span class="bubble" role="tooltip">
+            <strong>So sucht FLEXR:</strong> Ausgangspunkt ist die Adresse deines
+            Gyms — nicht dein Wohnort und nicht dein aktueller Standort. Innerhalb
+            des eingestellten Umkreises siehst du alle passenden Profile, also auch
+            Leute aus anderen Studios in der Nähe. Größerer Umkreis heißt mehr
+            Profile, dafür weitere Wege.
+          </span>
+        </span></label>
         <div class="radius-row">
           <input type="range" id="a-radius" min="2" max="250" step="1" value="20">
           <span class="radius-value mono" id="radiusValue">20 km</span>

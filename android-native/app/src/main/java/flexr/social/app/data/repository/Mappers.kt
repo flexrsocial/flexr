@@ -65,7 +65,6 @@ fun MyProfileDto.toDomain() = MyProfile(
     plz = plz,
     birthdate = ServerTime.parseDate(birthdate),
     searchRadiusKm = searchRadiusKm,
-    hasGpsLocation = hasGpsLocation,
     messagingMutedUntil = ServerTime.parse(messagingMutedUntil),
 )
 

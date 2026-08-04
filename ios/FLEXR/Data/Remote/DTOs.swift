@@ -74,7 +74,6 @@ struct MyProfileDTO: Decodable {
     let plz: String
     let birthdate: String
     let searchRadiusKm: Int?
-    let hasGpsLocation: Bool?
     // phone/phone_verified liefert das Backend zwar mit, die App nutzt sie
     // nicht — die Telefonprüfung ist auch im Web verworfen worden.
     let messagingMutedUntil: String?
@@ -90,11 +89,6 @@ struct UpdateProfileRequestDTO: Encodable {
 
 struct DeleteAccountRequestDTO: Encodable {
     let password: String
-}
-
-struct LocationUpdateRequestDTO: Encodable {
-    let lat: Double
-    let lon: Double
 }
 
 struct PresignPhotoRequestDTO: Encodable {

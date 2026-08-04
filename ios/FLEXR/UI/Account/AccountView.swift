@@ -200,7 +200,11 @@ struct AccountView: View {
                     .flexrText(.mono)
                     .foregroundStyle(FlexrColor.chalk)
             }
-            Text("Profile im Umkreis deines Gyms.")
+            Text(
+                "Ausgangspunkt ist die Adresse deines Gyms — nicht dein Wohnort und nicht "
+                    + "dein aktueller Standort. Im eingestellten Umkreis siehst du auch "
+                    + "Leute aus anderen Studios in der Nähe."
+            )
             .flexrText(.bodySmall)
             .foregroundStyle(FlexrColor.chalkDim)
         }
@@ -398,7 +402,10 @@ private struct VerificationHint: View {
     }
 }
 
-private struct DeleteAccountSheet: View {
+/// Auch von der Paywall aus benutzt - nach Ablauf des Probemonats ist der
+/// Konto-Screen nicht mehr erreichbar, die Selbstlöschung muss es aber bleiben
+/// (Punkt 5 der Datenschutzerklärung). Deshalb nicht privat.
+struct DeleteAccountSheet: View {
 
     @Binding var password: String
     let error: String?

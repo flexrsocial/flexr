@@ -5,7 +5,6 @@ import flexr.social.app.core.network.apiCall
 import flexr.social.app.data.remote.FlexrApi
 import flexr.social.app.data.remote.dto.AddPhotoRequestDto
 import flexr.social.app.data.remote.dto.DeleteAccountRequestDto
-import flexr.social.app.data.remote.dto.LocationUpdateRequestDto
 import flexr.social.app.data.remote.dto.PresignPhotoRequestDto
 import flexr.social.app.data.remote.dto.UpdateProfileRequestDto
 import flexr.social.app.data.session.SessionStore
@@ -74,20 +73,8 @@ class ProfileRepository @Inject constructor(
     }
 
     /** GPS-Position speichern — sie hat für die Umkreissuche Vorrang vor der PLZ. */
-    suspend fun updateLocation(latitude: Double, longitude: Double): MyProfile {
-        val updated = apiCall {
-            api.updateLocation(LocationUpdateRequestDto(latitude, longitude))
-        }.toDomain()
-        _myProfile.value = updated
-        return updated
-    }
 
     /** Ohne Standortfreigabe: gespeicherte Position löschen, es gilt wieder die PLZ. */
-    suspend fun clearLocation(): MyProfile {
-        val updated = apiCall { api.clearLocation() }.toDomain()
-        _myProfile.value = updated
-        return updated
-    }
 
     /**
      * Lädt Vollbild und Thumbnail direkt in den Objekt-Storage und registriert

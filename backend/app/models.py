@@ -8,7 +8,6 @@ from sqlalchemy import (
     Date,
     DateTime,
     Enum,
-    Float,
     ForeignKey,
     Integer,
     String,
@@ -173,12 +172,9 @@ class User(Base):
     # die Online-Anzeige bei Matches.
     last_seen_at = Column(DateTime, nullable=True)
 
-    # Überholt: Die Umkreissuche geht vom eingetragenen Gym aus (siehe
-    # gym_geo.py), nicht mehr von der Geräteposition. Die Spalten bleiben
-    # vorerst bestehen, damit ältere Clients weiter POSTen können, ohne einen
-    # Fehler zu bekommen - ausgewertet werden sie nirgends mehr.
-    gps_lat = Column(Float, nullable=True)
-    gps_lon = Column(Float, nullable=True)
+    # Radius der Umkreissuche. Mittelpunkt ist die Adresse des eingetragenen
+    # Gyms (siehe gym_geo.py) - so tauchen auch Leute aus nahegelegenen
+    # Studios auf, nicht nur die aus dem eigenen.
     search_radius_km = Column(Integer, nullable=False, default=20)
 
     # order_by ist Pflicht, nicht Kosmetik: Web und App nehmen photos[0] als
@@ -210,10 +206,6 @@ class User(Base):
             self.messaging_muted_until is not None
             and self.messaging_muted_until > datetime.utcnow()
         )
-
-    @property
-    def has_gps_location(self) -> bool:
-        return self.gps_lat is not None and self.gps_lon is not None
 
     @property
     def phone_verified(self) -> bool:

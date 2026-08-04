@@ -122,8 +122,6 @@ class MyProfileOut(ProfileOut):
     plz: str
     birthdate: date
     search_radius_km: int = 20
-    # True wenn eine GPS-Position gespeichert ist (sonst gilt die PLZ)
-    has_gps_location: bool = False
     phone: Optional[str] = None
     phone_verified: bool = False
     # Befristete Chat-Sperre: bis wann darf der Nutzer keine Nachrichten senden
@@ -147,13 +145,6 @@ class DeleteAccountRequest(BaseModel):
     """Selbstlöschung: erneute Passworteingabe als Bestätigung."""
 
     password: str
-
-
-class LocationUpdateRequest(BaseModel):
-    """GPS-Position vom Gerät (grob Österreich/Mitteleuropa plausibilisiert)."""
-
-    lat: float = Field(ge=-90, le=90)
-    lon: float = Field(ge=-180, le=180)
 
 
 class MembershipStatus(BaseModel):

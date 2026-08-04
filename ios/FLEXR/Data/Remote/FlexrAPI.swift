@@ -36,13 +36,7 @@ struct FlexrAPI {
         try await client.send(.delete, "api/profiles/me", body: body)
     }
 
-    func updateLocation(_ body: LocationUpdateRequestDTO) async throws -> MyProfileDTO {
-        try await client.send(.post, "api/profiles/me/location", body: body)
-    }
 
-    func clearLocation() async throws -> MyProfileDTO {
-        try await client.send(.delete, "api/profiles/me/location")
-    }
 
     func presignPhoto(_ body: PresignPhotoRequestDTO) async throws -> PresignPhotoResponseDTO {
         try await client.send(.post, "api/profiles/me/photos/presign", body: body)

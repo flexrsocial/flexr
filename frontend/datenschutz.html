@@ -42,10 +42,9 @@
   <table>
     <tr><th>Kategorie</th><th>Beispiele</th><th>Quelle</th></tr>
     <tr><td>Kontodaten</td><td>E-Mail, Passwort-Hash (bcrypt, nie im Klartext)</td><td>Registrierung</td></tr>
-    <tr><td>Profildaten</td><td>Name, Geburtsdatum, Stadt, Gym, Bio</td><td>Registrierung / Profilbearbeitung</td></tr>
+    <tr><td>Profildaten</td><td>Name, Geburtsdatum, Stadt, Gym (Studio aus der öffentlichen Liste), Suchradius, Bio</td><td>Registrierung / Profilbearbeitung</td></tr>
     <tr><td>Präferenzdaten (Art. 9 DSGVO)</td><td>Geschlecht, gesuchtes Geschlecht (→ sexuelle Orientierung)</td><td>Registrierung</td></tr>
     <tr><td>Fotos</td><td>Profilbilder</td><td>Upload durch Nutzer, gespeichert bei Cloudflare R2</td></tr>
-    <tr><td>Standortdaten</td><td>Adresse des gewählten Gyms (aus der Studioliste), gewählter Suchradius</td><td>Profilangaben</td></tr>
     <tr><td>Verifizierungs-Selfies</td><td>Selfie-Aufnahmen mit vorgegebenen Posen für die freiwillige Profil-Verifizierung (blauer Haken)</td><td>Live-Aufnahme über die Kamera, gespeichert bei Cloudflare R2</td></tr>
     <tr><td>Nutzungsdaten</td><td>Swipes, Matches, Reports/Blocks</td><td>App-Nutzung</td></tr>
     <tr><td>Zahlungsdaten</td><td>Abo-Status, Stripe-Kunden-/Abo-ID (keine Kartendaten bei uns)</td><td>Stripe Checkout</td></tr>
@@ -60,9 +59,6 @@
     Sicherheit (Report/Block-Funktion).<br>
     Einwilligung (Art. 6 Abs. 1 lit. a i. V. m. Art. 9 Abs. 2 lit. a): Verarbeitung der
     sexuellen Orientierung über das Präferenzfeld (siehe Hinweis oben).<br>
-    Standortdaten: Vertragserfüllung (Art. 6 Abs. 1 lit. b) für die Umkreissuche.
-    Maßgeblich ist allein die Adresse des von dir gewählten Gyms; eine
-    Positionsbestimmung am Gerät findet nicht statt.<br>
     Verifizierungs-Selfies: Einwilligung (Art. 6 Abs. 1 lit. a). Die Verifizierung
     ist freiwillig und wird aktiv vom Nutzer gestartet. Die Selfies werden
     ausschließlich zur Echtheitsprüfung des Profils mit den Profilfotos verglichen;
@@ -86,8 +82,6 @@
     aller Daten inklusive Fotos aus Cloudflare R2.<br>
     Verifizierungs-Selfies: werden unmittelbar nach Abschluss der Prüfung
     (Freigabe oder Ablehnung) gelöscht.<br>
-    Standortdaten: nur die Adresse des gewählten Gyms, änderbar durch Wahl eines
-    anderen Studios im Profil.<br>
     Zahlungsbezogene Daten: gemäß gesetzlicher Aufbewahrungspflichten (i. d. R. 7 Jahre, §132 BAO).
   </p>
 
@@ -104,7 +98,15 @@
     <a href="https://www.dsb.gv.at" target="_blank" rel="noopener">www.dsb.gv.at</a>.
   </p>
 
-  <h2>8. Keine Cookies / Tracking (Stand aktueller Code)</h2>
+  <h2>8. Keine Standortdaten</h2>
+  <p>
+    FLEXR erhebt keine Standortdaten. Die Umkreissuche rechnet ausschließlich mit
+    der öffentlichen Adresse des Studios, das du selbst im Profil auswählst, und
+    dem von dir eingestellten Suchradius. Weder Browser noch App fragen eine
+    Geräteposition ab.
+  </p>
+
+  <h2>9. Keine Cookies / Tracking (Stand aktueller Code)</h2>
   <p>
     Der Login-Token wird im lokalen Speicher des Browsers gespeichert.
   </p>

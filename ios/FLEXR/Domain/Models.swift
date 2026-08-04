@@ -66,7 +66,6 @@ struct MyProfile: Hashable, Sendable {
     let plz: String
     let birthdate: Date?
     let searchRadiusKm: Int
-    let hasGPSLocation: Bool
     let messagingMutedUntil: Date?
 
     var id: String { profile.id }

@@ -60,21 +60,9 @@ final class ProfileRepository {
 
     /// GPS-Position speichern — sie hat für die Umkreissuche Vorrang vor der PLZ.
     @discardableResult
-    func updateLocation(latitude: Double, longitude: Double) async throws -> MyProfile {
-        let updated = try await api.updateLocation(
-            LocationUpdateRequestDTO(lat: latitude, lon: longitude)
-        ).toDomain()
-        myProfile = updated
-        return updated
-    }
 
     /// Ohne Standortfreigabe: gespeicherte Position löschen, es gilt wieder die PLZ.
     @discardableResult
-    func clearLocation() async throws -> MyProfile {
-        let updated = try await api.clearLocation().toDomain()
-        myProfile = updated
-        return updated
-    }
 
     /// Lädt Vollbild und Thumbnail direkt in den Objekt-Storage und registriert
     /// anschließend die object_keys — es fließen keine Bilddaten durchs Backend.

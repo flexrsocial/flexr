@@ -6,7 +6,6 @@ import flexr.social.app.data.remote.dto.CheckoutUrlDto
 import flexr.social.app.data.remote.dto.DeleteAccountRequestDto
 import flexr.social.app.data.remote.dto.GymDto
 import flexr.social.app.data.remote.dto.GymSuggestRequestDto
-import flexr.social.app.data.remote.dto.LocationUpdateRequestDto
 import flexr.social.app.data.remote.dto.LoginRequestDto
 import flexr.social.app.data.remote.dto.MatchDto
 import flexr.social.app.data.remote.dto.MembershipStatusDto
@@ -66,11 +65,7 @@ interface FlexrApi {
     @HTTP(method = "DELETE", path = "api/profiles/me", hasBody = true)
     suspend fun deleteMyAccount(@Body body: DeleteAccountRequestDto)
 
-    @POST("api/profiles/me/location")
-    suspend fun updateLocation(@Body body: LocationUpdateRequestDto): MyProfileDto
 
-    @DELETE("api/profiles/me/location")
-    suspend fun clearLocation(): MyProfileDto
 
     @POST("api/profiles/me/photos/presign")
     suspend fun presignPhoto(@Body body: PresignPhotoRequestDto): PresignPhotoResponseDto

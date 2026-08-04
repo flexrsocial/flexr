@@ -10,6 +10,11 @@ struct PaywallView: View {
     @Environment(AppModel.self) private var appModel
 
     @State private var externalURL: ExternalURL?
+    /// Nur für die Selbstlöschung - der Rest des Modells bleibt ungenutzt,
+    /// load() wird bewusst nicht aufgerufen.
+    @State private var accountModel: AccountModel?
+    @State private var showDeleteDialog = false
+    @State private var deletePassword = ""
 
     private let features = [
         "Unbegrenzt swipen & matchen in deinem Umkreis",
@@ -73,11 +78,41 @@ struct PaywallView: View {
                     Task { await appModel.logout() }
                 }
                 .padding(.top, 24)
+
+                // Nach Ablauf des Probemonats ist der Konto-Screen nicht mehr
+                // erreichbar. Ohne diesen Knopf wäre die Selbstlöschung damit
+                // unerreichbar - Punkt 5 der Datenschutzerklärung sagt sie zu.
+                FlexrDangerButton(title: "Konto löschen") {
+                    deletePassword = ""
+                    showDeleteDialog = true
+                }
+                .padding(.top, 10)
             }
             .padding(.horizontal, 20)
             .padding(.bottom, 40)
         }
         .externalPage($externalURL)
+        .task {
+            if accountModel == nil {
+                accountModel = AccountModel(container: container) { appModel.show($0) }
+            }
+        }
+        .sheet(isPresented: $showDeleteDialog) {
+            if let accountModel {
+                DeleteAccountSheet(
+                    password: $deletePassword,
+                    error: accountModel.deleteError,
+                    isDeleting: accountModel.isDeleting,
+                    onConfirm: {
+                        Task { await accountModel.deleteAccount(password: deletePassword) }
+                    },
+                    onDismiss: { showDeleteDialog = false }
+                )
+            }
+        }
+        .onChange(of: accountModel?.didDeleteAccount ?? false) { _, deleted in
+            if deleted { Task { await appModel.logout() } }
+        }
     }
 
     private func startCheckout() {

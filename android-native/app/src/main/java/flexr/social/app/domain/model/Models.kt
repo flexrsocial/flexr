@@ -57,7 +57,6 @@ data class MyProfile(
     val plz: String,
     val birthdate: LocalDate?,
     val searchRadiusKm: Int,
-    val hasGpsLocation: Boolean,
     val messagingMutedUntil: Instant?,
 ) {
     val id: String get() = profile.id

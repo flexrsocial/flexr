@@ -264,7 +264,9 @@ fun AccountScreen(
             Text("${state.searchRadiusKm} km", style = MonoStyle, color = colors.chalk)
         }
         Text(
-            text = "Profile im Umkreis deines Gyms.",
+            text = "Ausgangspunkt ist die Adresse deines Gyms — nicht dein Wohnort und " +
+                "nicht dein aktueller Standort. Im eingestellten Umkreis siehst du auch " +
+                "Leute aus anderen Studios in der Nähe.",
             style = MaterialTheme.typography.bodySmall,
             color = colors.chalkDim,
         )
@@ -537,8 +539,14 @@ private fun VerificationHint(
     }
 }
 
+/**
+ * Auch von der Paywall aus erreichbar - nach Ablauf des Probemonats ist der
+ * Konto-Screen nicht mehr navigierbar, die Selbstloeschung muss aber
+ * erreichbar bleiben (Punkt 5 der Datenschutzerklaerung). Deshalb internal
+ * statt private.
+ */
 @Composable
-private fun DeleteAccountDialog(
+internal fun DeleteAccountDialog(
     password: String,
     error: String?,
     isDeleting: Boolean,

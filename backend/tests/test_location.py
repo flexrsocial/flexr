@@ -67,25 +67,6 @@ def test_larger_radius_includes_faraway_gyms(client):
     assert 100 < graz["distance_km"] < 250
 
 
-def test_gps_position_no_longer_moves_the_deck(client):
-    """Die Geräteposition hat auf die Suche keinen Einfluss mehr - maßgeblich
-    ist allein das Gym."""
-    headers_a = register_user(client, "gps.m@example.com", gender="mann", gym=GYM_WIEN)
-    register_user_with_photo(client, "gps.f@example.com", name="Wienerin",
-                             gender="frau", gym=GYM_WIEN_2)
-    register_user_with_photo(client, "gps2.f@example.com", name="Grazerin",
-                             gender="frau", gym=GYM_GRAZ)
-
-    # Position mitten in Graz melden
-    resp = client.post("/api/profiles/me/location", headers=headers_a,
-                       json={"lat": 47.08, "lon": 15.47})
-    assert resp.status_code == 200
-
-    names = [p["name"] for p in client.get("/api/swipes/deck", headers=headers_a).json()]
-    assert "Wienerin" in names       # weiterhin sichtbar, Gym zählt
-    assert "Grazerin" not in names   # GPS zieht die Suche nicht nach Graz
-
-
 def test_gym_without_address_is_excluded_from_search(client):
     """Bestandsprofile mit blankem Gym-Namen haben keinen eindeutigen Punkt:
     sie sehen kein Deck und tauchen in fremden nicht auf."""
@@ -122,8 +103,3 @@ def test_radius_validation(client):
     assert client.patch("/api/profiles/me", headers=headers, json={"search_radius_km": 1}).status_code == 422
     assert client.patch("/api/profiles/me", headers=headers, json={"search_radius_km": 9999}).status_code == 422
 
-
-def test_location_validation(client):
-    headers = register_user(client, "locval.m@example.com")
-    assert client.post("/api/profiles/me/location", headers=headers, json={"lat": 91, "lon": 0}).status_code == 422
-    assert client.post("/api/profiles/me/location", headers=headers, json={"lat": 0, "lon": 181}).status_code == 422
