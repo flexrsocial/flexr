@@ -32,6 +32,23 @@ struct SwipeView: View {
             model = created
             await created.loadProfileAndDeck()
         }
+        // Der Bildschirm bleibt beim Wechsel der Tab-Leiste am Leben, `.task`
+        // läuft also nur ein einziges Mal. Ohne diese Beobachtung bliebe hier
+        // der Stand vom App-Start stehen: Wer im Konto-Tab den Umkreis ändert,
+        // bekäme weiterhin das alte Deck und die alte Kilometerangabe zu sehen.
+        // Neben dem Radius zählt das Gym mit — es ist der Mittelpunkt der Suche.
+        .onChange(of: suchkriterien) {
+            guard let model, let profil = container.profiles.myProfile else { return }
+            model.searchRadiusKm = profil.searchRadiusKm
+            model.ownAvatarURL = profil.photos.first?.avatarURL
+            Task { await model.loadDeck() }
+        }
+    }
+
+    /// Die Merkmale, die bestimmen, wen das Deck zeigt.
+    private var suchkriterien: String {
+        guard let profil = container.profiles.myProfile else { return "" }
+        return "\(profil.searchRadiusKm)|\(profil.profile.gym)"
     }
 
     @ViewBuilder

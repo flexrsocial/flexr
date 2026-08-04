@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -60,28 +61,41 @@ class SwipeViewModel @Inject constructor(
     val events: Flow<SwipeEvent> = _events.receiveAsFlow()
 
     init {
-        loadProfileAndDeck()
+        observeMyProfile()
+        loadDeck()
     }
 
     /**
-     * Bei jedem Start: eigenes Profil übernehmen (Radius und Avatar für den
-     * Kopfbereich), dann das Deck laden.
+     * Eigenes Profil laufend beobachten - Radius und Avatar für den Kopfbereich,
+     * und ein neues Deck, sobald sich die Suchkriterien ändern.
      *
-     * Ein Standortabgleich findet nicht mehr statt: die Umkreissuche geht von
-     * der Adresse des eingetragenen Gyms aus, nicht von der Geräteposition.
+     * Der Bildschirm bleibt samt ViewModel im Hintergrund erhalten, solange die
+     * untere Navigation genutzt wird (`saveState`/`restoreState` in FlexrApp).
+     * Ein einmaliges Auslesen beim Start würde deshalb den Stand vom App-Start
+     * einfrieren: Wer im Konto-Tab den Umkreis ändert, bekäme hier weiterhin
+     * das alte Deck und die alte Kilometerangabe zu sehen.
+     *
+     * Ein Standortabgleich findet nicht statt: die Umkreissuche geht von der
+     * Adresse des eingetragenen Gyms aus, nicht von der Geräteposition. Genau
+     * deshalb zählt neben dem Radius auch das Gym als Suchkriterium.
      */
-    fun loadProfileAndDeck() {
+    private fun observeMyProfile() {
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, error = null) }
-            profileRepository.myProfile.value?.let { profile ->
+            var letzteSuchkriterien: Pair<Int, String>? = null
+            profileRepository.myProfile.filterNotNull().collect { profile ->
                 _uiState.update { state ->
                     state.copy(
                         searchRadiusKm = profile.searchRadiusKm,
                         ownAvatarUrl = profile.photos.firstOrNull()?.avatarUrl,
                     )
                 }
+                val suchkriterien = profile.searchRadiusKm to profile.profile.gym
+                // Beim ersten Durchlauf nicht nachladen - das erledigt init().
+                if (letzteSuchkriterien != null && letzteSuchkriterien != suchkriterien) {
+                    loadDeck()
+                }
+                letzteSuchkriterien = suchkriterien
             }
-            loadDeck()
         }
     }
 
