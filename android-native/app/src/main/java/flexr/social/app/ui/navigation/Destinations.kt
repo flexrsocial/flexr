@@ -17,7 +17,6 @@ object Routes {
     const val MATCH_PROFILE = "matchProfile/{matchId}"
     const val CHAT = "chat/{matchId}?origin={origin}"
     const val VERIFICATION = "verification"
-    const val MY_REPORTS = "myReports"
     const val LEGAL = "legal/{document}"
 
     fun matchProfile(matchId: String) = "matchProfile/$matchId"

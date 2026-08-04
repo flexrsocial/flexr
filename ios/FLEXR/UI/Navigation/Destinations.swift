@@ -31,7 +31,6 @@ enum Route: Hashable {
     case chat(matchID: String)
     case matchProfile(matchID: String)
     case verification
-    case myReports
     case legal(LegalDocument)
 }
 

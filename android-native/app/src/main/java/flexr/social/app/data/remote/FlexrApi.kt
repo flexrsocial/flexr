@@ -12,7 +12,6 @@ import flexr.social.app.data.remote.dto.MembershipStatusDto
 import flexr.social.app.data.remote.dto.MessageDto
 import flexr.social.app.data.remote.dto.ModerationNoticeDto
 import flexr.social.app.data.remote.dto.MyProfileDto
-import flexr.social.app.data.remote.dto.MyReportDto
 import flexr.social.app.data.remote.dto.PortalUrlDto
 import flexr.social.app.data.remote.dto.PresignPhotoRequestDto
 import flexr.social.app.data.remote.dto.PresignPhotoResponseDto
@@ -119,9 +118,6 @@ interface FlexrApi {
 
     @POST("api/reports")
     suspend fun report(@Body body: ReportRequestDto): ReportAckDto
-
-    @GET("api/reports/mine")
-    suspend fun myReports(): List<MyReportDto>
 
     @GET("api/moderation/notice")
     suspend fun moderationNotice(): ModerationNoticeDto?

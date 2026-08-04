@@ -102,10 +102,6 @@ struct FlexrAPI {
         try await client.send(.post, "api/reports", body: body)
     }
 
-    func myReports() async throws -> [MyReportDTO] {
-        try await client.send(.get, "api/reports/mine")
-    }
-
     func moderationNotice() async throws -> ModerationNoticeDTO? {
         try await client.sendOptional(.get, "api/moderation/notice", as: ModerationNoticeDTO.self)
     }

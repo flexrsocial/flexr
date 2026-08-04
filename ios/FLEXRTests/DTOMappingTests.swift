@@ -128,7 +128,5 @@ final class DTOMappingTests: XCTestCase {
         XCTAssertEqual(PhotoStatus(raw: "irgendwas"), .pending)
         XCTAssertEqual(Gender(raw: nil), .mann)
         XCTAssertEqual(VerificationStatus(raw: "in_progress"), .inProgress)
-        XCTAssertEqual(ReportOutcome(raw: "action_taken"), .actionTaken)
-        XCTAssertEqual(ReportOutcome(raw: nil), .open)
     }
 }

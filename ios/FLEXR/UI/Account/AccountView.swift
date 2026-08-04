@@ -83,7 +83,6 @@ struct AccountView: View {
                 photoSection(model)
                 notificationSection(model)
                 accountSection()
-                safetySection()
                 legalSection()
             }
             .padding(.horizontal, 20)
@@ -277,15 +276,6 @@ struct AccountView: View {
                 showDeleteDialog = true
             }
             .padding(.top, 10)
-        }
-    }
-
-    /// Art. 16 Abs. 5 DSA: Der Melder muss nachsehen können, was aus seiner
-    /// Meldung geworden ist.
-    private func safetySection() -> some View {
-        VStack(alignment: .leading, spacing: 0) {
-            SectionTitle(text: "Sicherheit").padding(.top, 28)
-            NavigationRow(title: "Meine Meldungen") { onOpen(.myReports) }
         }
     }
 

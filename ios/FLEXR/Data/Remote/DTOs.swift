@@ -188,17 +188,6 @@ struct ReportAckDTO: Decodable {
     let message: String
 }
 
-/// Eigene Meldung samt Entscheidung (Art. 16 Abs. 5 DSA).
-struct MyReportDTO: Decodable {
-    let reference: String
-    let reason: String
-    let createdAt: String?
-    // nil = noch in Prüfung
-    let outcome: String?
-    let decisionNote: String?
-    let decidedAt: String?
-}
-
 /// Begründete Mitteilung zu einer laufenden Maßnahme (Art. 17 DSA).
 struct ModerationNoticeDTO: Decodable {
     let action: String?

@@ -22,20 +22,6 @@ final class SafetyRepository {
         return ReportAck(reference: ack.reference, message: ack.message)
     }
 
-    /// Eigene Meldungen samt Entscheidung der Moderation.
-    func myReports() async throws -> [MyReport] {
-        try await api.myReports().map { dto in
-            MyReport(
-                reference: dto.reference,
-                reason: dto.reason,
-                createdAt: ServerTime.parse(dto.createdAt),
-                outcome: ReportOutcome(raw: dto.outcome),
-                decisionNote: dto.decisionNote,
-                decidedAt: ServerTime.parse(dto.decidedAt)
-            )
-        }
-    }
-
     /// Laufende Beschränkung des eigenen Kontos, oder nil wenn keine besteht.
     func moderationNotice() async throws -> ModerationNotice? {
         guard let dto = try await api.moderationNotice() else { return nil }

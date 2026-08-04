@@ -137,27 +137,6 @@ data class ReportAck(
     val message: String,
 )
 
-enum class ReportOutcome { OPEN, NO_ACTION, ACTION_TAKEN;
-
-    companion object {
-        fun from(raw: String?): ReportOutcome = when (raw?.lowercase()) {
-            "no_action" -> NO_ACTION
-            "action_taken" -> ACTION_TAKEN
-            else -> OPEN
-        }
-    }
-}
-
-/** Eigene Meldung mit dem Stand der Prüfung (Art. 16 Abs. 5 DSA). */
-data class MyReport(
-    val reference: String,
-    val reason: String,
-    val createdAt: Instant?,
-    val outcome: ReportOutcome,
-    val decisionNote: String?,
-    val decidedAt: Instant?,
-)
-
 /**
  * Begründete Mitteilung zu einer Beschränkung des eigenen Kontos (Art. 17 DSA)
  * — Grund, Dauer und der Weg zum Widerspruch.

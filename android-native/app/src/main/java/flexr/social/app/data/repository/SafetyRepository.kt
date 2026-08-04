@@ -6,9 +6,7 @@ import flexr.social.app.data.remote.FlexrApi
 import flexr.social.app.data.remote.dto.BlockRequestDto
 import flexr.social.app.data.remote.dto.ReportRequestDto
 import flexr.social.app.domain.model.ModerationNotice
-import flexr.social.app.domain.model.MyReport
 import flexr.social.app.domain.model.ReportAck
-import flexr.social.app.domain.model.ReportOutcome
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -25,18 +23,6 @@ class SafetyRepository @Inject constructor(
     suspend fun report(userId: String, reason: String): ReportAck {
         val ack = apiCall { api.report(ReportRequestDto(userId, reason.trim())) }
         return ReportAck(reference = ack.reference, message = ack.message)
-    }
-
-    /** Eigene Meldungen samt Entscheidung der Moderation. */
-    suspend fun myReports(): List<MyReport> = apiCall { api.myReports() }.map { dto ->
-        MyReport(
-            reference = dto.reference,
-            reason = dto.reason,
-            createdAt = ServerTime.parse(dto.createdAt),
-            outcome = ReportOutcome.from(dto.outcome),
-            decisionNote = dto.decisionNote,
-            decidedAt = ServerTime.parse(dto.decidedAt),
-        )
     }
 
     /** Laufende Beschränkung des eigenen Kontos, oder null wenn keine besteht. */

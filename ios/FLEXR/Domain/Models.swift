@@ -155,30 +155,6 @@ struct ReportAck: Sendable {
     let message: String
 }
 
-enum ReportOutcome: Sendable {
-    case open, noAction, actionTaken
-
-    init(raw: String?) {
-        switch raw?.lowercased() {
-        case "no_action": self = .noAction
-        case "action_taken": self = .actionTaken
-        default: self = .open
-        }
-    }
-}
-
-/// Eigene Meldung mit dem Stand der Prüfung (Art. 16 Abs. 5 DSA).
-struct MyReport: Identifiable, Sendable {
-    let reference: String
-    let reason: String
-    let createdAt: Date?
-    let outcome: ReportOutcome
-    let decisionNote: String?
-    let decidedAt: Date?
-
-    var id: String { reference }
-}
-
 /// Begründete Mitteilung zu einer Beschränkung des eigenen Kontos (Art. 17 DSA)
 /// — Grund, Dauer und der Weg zum Widerspruch.
 struct ModerationNotice: Sendable {

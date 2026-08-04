@@ -32,8 +32,8 @@ android {
         applicationId = "flexr.social.app"
         minSdk = 26
         targetSdk = 36
-        versionCode = 13
-        versionName = "2.0.7"
+        versionCode = 14
+        versionName = "2.0.8"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         resourceConfigurations += listOf("de")

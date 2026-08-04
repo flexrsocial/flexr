@@ -196,18 +196,6 @@ data class ReportAckDto(
     val message: String,
 )
 
-/** Eigene Meldung samt Entscheidung (Art. 16 Abs. 5 DSA). */
-@Serializable
-data class MyReportDto(
-    val reference: String,
-    val reason: String,
-    @SerialName("created_at") val createdAt: String,
-    // null = noch in Prüfung
-    val outcome: String? = null,
-    @SerialName("decision_note") val decisionNote: String? = null,
-    @SerialName("decided_at") val decidedAt: String? = null,
-)
-
 /** Begründete Mitteilung zu einer laufenden Maßnahme (Art. 17 DSA). */
 @Serializable
 data class ModerationNoticeDto(

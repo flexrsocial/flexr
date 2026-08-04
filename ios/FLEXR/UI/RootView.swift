@@ -180,8 +180,6 @@ private struct FlexrRoutes: ViewModifier {
                     )
                 case .verification:
                     VerificationView(onBack: { pop() })
-                case .myReports:
-                    MyReportsView(onBack: { pop() })
                 case .legal(let document):
                     LegalView(document: document, onBack: { pop() })
                 }
