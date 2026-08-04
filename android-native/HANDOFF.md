@@ -17,14 +17,20 @@ unverändert — die App spricht denselben REST-Vertrag wie das Web-Frontend.
 | | |
 |---|---|
 | applicationId | `flexr.social.app` (unverändert, Play-Store-Kontinuität) |
-| Version | `2.0.8`, versionCode **14** (TWA-Stand war 5) |
+| Version | `2.0.9`, versionCode **15** (TWA-Stand war 5) |
 | compileSdk / targetSdk / minSdk | 36 / 36 / 26 |
 | Signatur | bestehender Upload-Key `android/android.keystore`, SHA-256 `BC:64:AD:3F:…:14:0E:79:80` |
 
-**Offen: der Play-Store-Upload.** Das signierte Bundle für `2.0.8` liegt unter
+**Offen: der Play-Store-Upload.** Das signierte Bundle für `2.0.9` liegt unter
 `app/build/outputs/bundle/prodRelease/app-prod-release.aab` (Stand 04.08.2026,
 Signatur `META-INF/FLEXR.RSA`), neu zu bauen mit
-`./gradlew :app:bundleProdRelease` (siehe Build-Umgebung unten).
+`./gradlew :app:bundleProdRelease` (siehe Build-Umgebung unten). Die nie
+hochgeladene `2.0.8` ist damit übersprungen.
+
+**Neu in 2.0.9.** Das Swipe-Deck folgt einer Änderung des Suchumkreises sofort.
+Bis `2.0.8` las der Swipe-Bildschirm Radius und Gym nur einmal beim Erzeugen des
+ViewModels; da ihn die untere Navigation am Leben hält (`saveState`/
+`restoreState`), blieb dieser Stand bis zum Neustart der App stehen.
 
 **Neu in 2.0.7/2.0.8 — die Standortberechtigung ist weg.** Die Umkreissuche geht seit
 dieser Fassung von der Adresse des eingetragenen Gyms aus, nicht mehr von der
