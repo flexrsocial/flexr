@@ -31,8 +31,10 @@ def test_report_returns_acknowledgement_with_reference(client):
     assert "72 Stunden" in body["message"]
 
 
-def test_reporter_sees_own_reports_and_decision(client):
-    """Art. 16 Abs. 5: Der Melder erfährt die Entscheidung samt Begründung."""
+def test_decision_is_recorded_with_reason(client):
+    """Art. 16 Abs. 5: Die Entscheidung samt Begründung wird festgehalten. Eine
+    Nutzeransicht dafür gibt es bewusst nicht mehr - der Nachweis bleibt in der
+    Datenbank und die Meldung verschwindet aus der offenen Liste."""
     admin_headers, _ = create_admin(client, email="dsa.admin@example.com")
     headers_a = register_user(client, "dsa.melder2@example.com", name="A")
     headers_b = register_user(client, "dsa.gemeldet2@example.com", name="B", gender="frau")
@@ -40,34 +42,32 @@ def test_reporter_sees_own_reports_and_decision(client):
 
     reference = _report(client, headers_a, user_b["id"]).json()["reference"]
 
-    # Solange offen: kein Ergebnis, aber die Meldung ist einsehbar
-    mine = client.get("/api/reports/mine", headers=headers_a).json()
-    assert len(mine) == 1
-    assert mine[0]["reference"] == reference
-    assert mine[0]["outcome"] is None
+    offen = client.get("/api/admin/reports", headers=admin_headers).json()
+    assert len(offen) == 1
+    assert offen[0]["reference"] == reference
 
-    report_id = client.get("/api/admin/reports", headers=admin_headers).json()[0]["id"]
-    client.post(
-        f"/api/admin/reports/{report_id}/decide",
+    resp = client.post(
+        f"/api/admin/reports/{offen[0]['id']}/decide",
         headers=admin_headers,
         json={"outcome": "action_taken", "decision_note": "Profil gesperrt, Fotos entfernt."},
     )
+    assert resp.status_code == 200
+    assert resp.json()["outcome"] == "action_taken"
 
-    mine = client.get("/api/reports/mine", headers=headers_a).json()
-    assert mine[0]["outcome"] == "action_taken"
-    assert mine[0]["decision_note"] == "Profil gesperrt, Fotos entfernt."
-    assert mine[0]["decided_at"] is not None
+    # Abgeschlossene Meldungen verschwinden aus der offenen Liste ...
+    assert client.get("/api/admin/reports", headers=admin_headers).json() == []
+    # ... bleiben aber als Nachweis erhalten.
+    from app.models import Report
+    from tests.conftest import TestingSessionLocal
 
-
-def test_reporter_only_sees_own_reports(client):
-    headers_a = register_user(client, "dsa.melder3@example.com", name="A")
-    headers_b = register_user(client, "dsa.gemeldet3@example.com", name="B", gender="frau")
-    headers_c = register_user(client, "dsa.fremd@example.com", name="C")
-    user_b = client.get("/api/profiles/me", headers=headers_b).json()
-
-    _report(client, headers_a, user_b["id"])
-
-    assert client.get("/api/reports/mine", headers=headers_c).json() == []
+    db = TestingSessionLocal()
+    try:
+        gespeichert = db.query(Report).one()
+        assert gespeichert.outcome == "action_taken"
+        assert gespeichert.decision_note == "Profil gesperrt, Fotos entfernt."
+        assert gespeichert.dismissed_at is not None
+    finally:
+        db.close()
 
 
 def test_decision_requires_a_note(client):

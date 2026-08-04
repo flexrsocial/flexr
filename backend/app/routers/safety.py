@@ -4,14 +4,12 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 
 from ..database import get_db
-from ..models import Block, ModerationAction, PhotoStatus, Report, User
+from ..models import Block, ModerationAction, Report, User
 from ..moderation import APPEAL_HINT
 from ..rate_limit import limiter
 from ..schemas import (
-    BlockedProfileOut,
     BlockRequest,
     ModerationNotice,
-    MyReportOut,
     ReportAck,
     ReportRequest,
 )
@@ -51,37 +49,10 @@ def create_report(
         message=(
             f"Deine Meldung ist eingegangen (Aktenzeichen {report.reference}). "
             "Wir prüfen sie innerhalb von 72 Stunden — bei Gefahr für eine Person "
-            "sofort. Das Ergebnis findest du danach unter „Meine Meldungen“ im "
-            "Konto-Bereich."
+            "sofort. Notiere dir das Aktenzeichen, falls du dich später darauf "
+            "berufen willst."
         ),
     )
-
-
-@router.get("/reports/mine", response_model=list[MyReportOut])
-def list_my_reports(
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
-):
-    """Art. 16 Abs. 5 DSA: Der Melder muss die Entscheidung über seine Meldung
-    erfahren — hier holt die App sie ab."""
-    rows = (
-        db.query(Report)
-        .filter(Report.reporter_id == current_user.id)
-        .order_by(Report.created_at.desc())
-        .limit(100)
-        .all()
-    )
-    return [
-        MyReportOut(
-            reference=report.reference,
-            reason=report.reason,
-            created_at=report.created_at,
-            outcome=report.outcome,
-            decision_note=report.decision_note,
-            decided_at=report.dismissed_at,
-        )
-        for report in rows
-    ]
 
 
 @router.get("/moderation/notice", response_model=Optional[ModerationNotice])
@@ -136,35 +107,6 @@ def list_blocks(
 ):
     rows = db.query(Block).filter(Block.blocker_id == current_user.id).all()
     return [row.blocked_id for row in rows]
-
-
-@router.get("/blocks/profiles", response_model=list[BlockedProfileOut])
-def list_blocked_profiles(
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
-):
-    """Blockierte Profile samt Name und Foto - Grundlage dafür, dass eine
-    Blockierung in der Oberfläche auch wieder aufgehoben werden kann."""
-    blocked_ids = [
-        row.blocked_id
-        for row in db.query(Block.blocked_id).filter(Block.blocker_id == current_user.id)
-    ]
-    if not blocked_ids:
-        return []
-
-    users = db.query(User).filter(User.id.in_(blocked_ids)).all()
-    result = []
-    for user in users:
-        approved = [p for p in user.photos if p.status == PhotoStatus.approved]
-        first = approved[0] if approved else None
-        result.append(
-            BlockedProfileOut(
-                id=user.id,
-                name=user.name,
-                photo_url=(first.thumb_url or first.url) if first else None,
-            )
-        )
-    return result
 
 
 @router.delete("/blocks/{user_id}")

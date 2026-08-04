@@ -265,18 +265,6 @@ class ReportAck(BaseModel):
     message: str
 
 
-class MyReportOut(BaseModel):
-    """Eigene Meldung samt Entscheidung (Art. 16 Abs. 5 DSA)."""
-
-    reference: str
-    reason: str
-    created_at: datetime
-    # None = noch in Prüfung
-    outcome: Optional[str] = None
-    decision_note: Optional[str] = None
-    decided_at: Optional[datetime] = None
-
-
 class ModerationNotice(BaseModel):
     """Begründete Mitteilung zu einer Maßnahme gegen das eigene Konto
     (Art. 17 DSA) - inklusive Hinweis auf den Rechtsbehelf."""
@@ -290,16 +278,6 @@ class ModerationNotice(BaseModel):
 
 class BlockRequest(BaseModel):
     user_id: str
-
-
-class BlockedProfileOut(BaseModel):
-    """Blockiertes Profil mit Namen und Bild - GET /api/blocks liefert nur IDs
-    und bleibt unverändert (die Android-App liest es so), zum Aufheben einer
-    Blockierung braucht die Oberfläche aber etwas Wiedererkennbares."""
-
-    id: str
-    name: str
-    photo_url: Optional[str] = None
 
 
 # ---------- Admin ----------
