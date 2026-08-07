@@ -1,6 +1,6 @@
 import enum
 import uuid
-from datetime import date, datetime, timedelta
+from datetime import datetime, timedelta
 
 from sqlalchemy import (
     Boolean,
@@ -16,6 +16,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import relationship
 
+from .age import age_on
 from .config import settings
 from .database import Base
 
@@ -56,10 +57,59 @@ class ModerationAction(str, enum.Enum):
 
 
 class VerificationStatus(str, enum.Enum):
-    in_progress = "in_progress"  # Posen ausgegeben, Selfies noch nicht eingereicht
-    submitted = "submitted"      # Selfies hochgeladen, wartet auf manuelle Prüfung
+    """Zustände der Alters- und Identitätsprüfung (eine Prüfung, mehrere Schritte).
+
+    Die Namen der Bestandswerte bleiben unverändert - sie stehen so im
+    Postgres-Enum und in den ausgelieferten Apps. ``submitted`` ist der
+    "pending_review"-Zustand, ``in_progress`` der Selfie-Schritt.
+    """
+
+    in_progress = "in_progress"            # Posen ausgegeben, Selfies noch nicht eingereicht
+    id_required = "id_required"            # Selfies da, Lichtbildausweis fehlt noch
+    reupload_required = "reupload_required"  # Admin fordert eine neue Aufnahme an
+    submitted = "submitted"                # alles eingereicht, wartet auf manuelle Prüfung
     approved = "approved"
     rejected = "rejected"
+
+
+# Schritte, in denen der Nutzer noch etwas beitragen muss
+VERIFICATION_OPEN_STATES = (
+    VerificationStatus.in_progress,
+    VerificationStatus.id_required,
+    VerificationStatus.reupload_required,
+    VerificationStatus.submitted,
+)
+
+
+class VerificationDocumentType(str, enum.Enum):
+    """Zugelassene amtliche Lichtbildausweise."""
+
+    id_card = "id_card"            # Personalausweis
+    passport = "passport"          # Reisepass
+    drivers_license = "drivers_license"  # Führerschein
+
+
+# Ausweise, bei denen die Rückseite für die Prüfung gebraucht wird. Beim Reisepass
+# stehen Foto, Geburtsdatum und Gültigkeit alle auf der Datenseite - eine
+# Rückseite anzufordern wäre überschüssige Datenerhebung.
+DOCUMENT_TYPES_WITH_BACK = (
+    VerificationDocumentType.id_card,
+    VerificationDocumentType.drivers_license,
+)
+
+
+class VerificationReviewReason(str, enum.Enum):
+    """Feste Prüfgründe für Ablehnung/Neu-Upload - bewusst eine kurze Liste
+    statt Freitext, damit keine sensiblen Notizen zum Ausweis entstehen."""
+
+    document_unreadable = "document_unreadable"        # Dokument unleserlich
+    details_not_visible = "details_not_visible"        # notwendige Angaben nicht sichtbar
+    person_mismatch = "person_mismatch"                # Person stimmt nicht überein
+    dob_mismatch = "dob_mismatch"                      # DOB stimmt nicht überein
+    underage = "underage"                              # unter 18
+    document_unsuitable = "document_unsuitable"        # Dokument ungeeignet
+    selfie_unusable = "selfie_unusable"                # Selfies nicht verwertbar
+    other = "other"                                    # sonstiger Prüfgrund
 
 
 # Legacy-Liste aus dem Prototyp - dient nur noch als Seed für die gyms-Tabelle
@@ -164,6 +214,29 @@ class User(Base):
     # Verifizierungs-Selfies gegen die Profilfotos gesetzt.
     is_verified = Column(Boolean, default=False, nullable=False)
 
+    # ---- Alters- und Identitätsprüfung (manuell, siehe VerificationRequest) ----
+    # Muss dieses Konto die Prüfung durchlaufen, bevor es nutzbar wird? Neue
+    # Registrierungen: ja. Bestandskonten werden von der Migration auf False
+    # gesetzt und können vom Admin gezielt nachgefordert werden (siehe
+    # POST /api/admin/users/{id}/require-verification).
+    verification_required = Column(Boolean, default=True, nullable=False)
+    # Wann die Prüfung (zuletzt) verlangt wurde. Bei neuen Registrierungen der
+    # Zeitpunkt der Anmeldung, bei Bestandskonten der Zeitpunkt der Nachforderung
+    # durch den Admin. Entscheidungen, die davor gefallen sind, blockieren einen
+    # neu angeforderten Durchlauf nicht (siehe routers/verification.py).
+    verification_required_at = Column(DateTime, nullable=True)
+    # Zeitpunkt der Freischaltung. Solange NULL und verification_required True,
+    # ist das Konto angelegt, aber nicht benutzbar (kein Deck, kein Chat, für
+    # andere unsichtbar).
+    activated_at = Column(DateTime, nullable=True)
+    # Ergebnis der Altersprüfung. Wird ausschließlich serverseitig nach
+    # Admin-Freigabe gesetzt - nie aus einem Client-Feld übernommen.
+    age_verified = Column(Boolean, default=False, nullable=False)
+    age_verified_at = Column(DateTime, nullable=True)
+    # Wie geprüft wurde. Aktuell nur "manual_id": manuelle Sichtprüfung eines
+    # vorgelegten Lichtbildausweises - ausdrücklich kein KYC-Verfahren.
+    verification_method = Column(String(20), nullable=True)
+
     # Telefonprüfung (SMS-OTP): Nummer wird erst nach bestätigtem Code gesetzt.
     phone = Column(String, nullable=True)
     phone_verified_at = Column(DateTime, nullable=True)
@@ -190,12 +263,13 @@ class User(Base):
 
     @property
     def age(self) -> int:
-        today = date.today()
-        return (
-            today.year
-            - self.birthdate.year
-            - ((today.month, today.day) < (self.birthdate.month, self.birthdate.day))
-        )
+        return age_on(self.birthdate)
+
+    @property
+    def is_account_activated(self) -> bool:
+        """Konto freigeschaltet? Bestandskonten (verification_required False)
+        sind es unverändert; neue Konten erst nach bestandener Prüfung."""
+        return not self.verification_required or self.activated_at is not None
 
     def is_active_member(self) -> bool:
         return self.is_subscribed or datetime.utcnow() < self.trial_ends_at
@@ -361,9 +435,18 @@ class Report(Base):
 
 
 class VerificationRequest(Base):
-    """Foto-Verifizierung: Der Server gibt 3 zufällige Posen vor, der Nutzer
-    nimmt live über die Kamera Selfies auf, der Betreiber vergleicht sie
-    manuell mit den Profilfotos. prompts/selfies sind JSON-serialisiert."""
+    """Alters- und Identitätsprüfung in einem Vorgang.
+
+    Schritt 1 (unverändert): Der Server gibt 3 zufällige Posen vor, der Nutzer
+    nimmt live über die Kamera Selfies auf. Schritt 2: ein amtlicher
+    Lichtbildausweis wird temporär hochgeladen. Ein Mensch vergleicht danach
+    Profilfotos, Selfie und Ausweisfoto und prüft das Geburtsdatum - es findet
+    keine automatisierte biometrische Auswertung statt.
+
+    prompts/selfies/documents sind JSON-serialisiert. selfies und documents
+    werden nach der Entscheidung geleert; die Objekte im Storage werden dabei
+    gelöscht (siehe cleanup_pending).
+    """
 
     __tablename__ = "verification_requests"
 
@@ -374,6 +457,45 @@ class VerificationRequest(Base):
     selfies = Column(Text, nullable=True)    # JSON: [{"prompt": ..., "object_key": ...}]
     created_at = Column(DateTime, default=datetime.utcnow)
     decided_at = Column(DateTime, nullable=True)
+
+    # ---- Ausweisschritt ----
+    document_type = Column(String(20), nullable=True)  # VerificationDocumentType
+    # JSON: [{"side": "front"|"back", "object_key": ...}] - Keys liegen im
+    # privaten Prefix verification-documents/, nie unter der öffentlichen
+    # Foto-Basis-URL.
+    documents = Column(Text, nullable=True)
+    submitted_at = Column(DateTime, nullable=True)  # vollständig eingereicht
+
+    # ---- Prüfung ----
+    reviewed_by = Column(
+        String, ForeignKey("admin_users.id", ondelete="SET NULL"), nullable=True
+    )
+    review_reason = Column(String(40), nullable=True)  # VerificationReviewReason
+
+    # True, wenn nach der Entscheidung noch Objekte im Storage liegen, weil das
+    # Löschen fehlgeschlagen ist. Der Vorgang gilt dann NICHT als abgearbeitet;
+    # app/cleanup.py wiederholt die Löschung.
+    cleanup_pending = Column(Boolean, default=False, nullable=False)
+
+
+class UnderageSignupAttempt(Base):
+    """Registrierungsversuch mit einem Geburtsdatum unter 18.
+
+    Bewusst datensparsam: nur die Geräte-ID (dieselbe zufällige ID wie bei der
+    Geräteprüfung) und der Zeitpunkt. Kein Name, keine E-Mail, kein
+    Geburtsdatum - für die Schutzwirkung reicht das Zählen der Versuche.
+
+    Zweck: Ein einzelner Tippfehler soll sofort korrigierbar bleiben, das
+    Durchprobieren des Altersfilters aber nicht. Ab dem zweiten Versuch
+    innerhalb des Zeitfensters wird die Registrierung von diesem Gerät
+    befristet gesperrt (siehe routers/auth.py).
+    """
+
+    __tablename__ = "underage_signup_attempts"
+
+    id = Column(String, primary_key=True, default=gen_uuid)
+    device_id = Column(String, nullable=False, index=True)
+    created_at = Column(DateTime, default=datetime.utcnow, index=True)
 
 
 class DailyAccess(Base):

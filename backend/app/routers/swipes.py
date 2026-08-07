@@ -9,6 +9,7 @@ from ..models import Block, Match, Swipe, User
 from ..rate_limit import limiter
 from ..schemas import ProfileOut, SwipeRequest, SwipeResult
 from ..security import require_active_membership
+from ..verification_service import account_visible_condition
 from .profiles import to_public_profile
 
 router = APIRouter(prefix="/api/swipes", tags=["swipes"])
@@ -39,6 +40,9 @@ def get_deck(
             User.id != current_user.id,
             User.deleted_at.is_(None),
             User.is_banned.is_(False),
+            # Nicht freigeschaltete Konten (Prüfung offen oder abgelehnt) sind
+            # für andere unsichtbar.
+            account_visible_condition(),
             User.gender == current_user.interest,
             User.interest == current_user.gender,
             ~User.id.in_(excluded_ids) if excluded_ids else True,
@@ -97,6 +101,7 @@ def swipe(
             User.id == payload.to_user_id,
             User.deleted_at.is_(None),
             User.is_banned.is_(False),
+            account_visible_condition(),
         )
         .first()
     )

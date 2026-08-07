@@ -1089,6 +1089,82 @@
   }
   .verify-error{ color:var(--danger); font-size:13px; text-align:center; margin-top:10px; }
 
+  /* ---- Alters- und Identitätsprüfung (Gate + Ausweisschritt) ---- */
+  /* Schrittanzeige über dem Inhalt: zeigt, wo im Ablauf der Nutzer steht. */
+  .vstep-bar{ display:flex; gap:6px; margin:2px 0 18px; }
+  .vstep-bar span{
+    flex:1; height:3px; border-radius:2px; background:var(--steel);
+  }
+  .vstep-bar span.done{ background:var(--plate); }
+  .vstep-bar span.active{ background:var(--chalk); }
+
+  .vcard{
+    background:var(--surface-2); border:1px solid var(--steel); border-radius:16px;
+    padding:16px 16px 14px; margin-bottom:16px;
+  }
+  .vcard h3{
+    font-family:'Oswald'; font-size:15px; text-transform:uppercase; letter-spacing:0.04em;
+    margin:0 0 8px; color:var(--chalk);
+  }
+  .vcard p{ font-size:13.5px; line-height:1.6; color:var(--chalk-dim); margin:0 0 8px; }
+  .vcard p:last-child{ margin-bottom:0; }
+  .vcard ul{ margin:0; padding-left:18px; font-size:13.5px; line-height:1.65; color:var(--chalk-dim); }
+  .vcard a{ color:var(--plate); }
+
+  /* Statusanzeige (wird geprüft / abgelehnt / neue Aufnahme nötig) */
+  .vstatus{
+    display:inline-flex; align-items:center; gap:8px; font-family:'JetBrains Mono';
+    font-size:11px; letter-spacing:0.08em; text-transform:uppercase;
+    padding:6px 12px; border-radius:20px; border:1px solid var(--steel);
+    color:var(--chalk-dim); margin-bottom:14px;
+  }
+  .vstatus.wait{ color:var(--plate); border-color:rgba(255,90,31,.4); }
+  .vstatus.bad{ color:var(--danger); border-color:rgba(227,72,72,.4); }
+  .vstatus.ok{ color:#1d9bf0; border-color:rgba(29,155,240,.4); }
+  .vstatus .dot{ width:7px; height:7px; border-radius:50%; background:currentColor; flex-shrink:0; }
+
+  /* Dokumenttyp-Auswahl: große Tap-Ziele statt <select> */
+  .doc-types{ display:grid; gap:8px; margin-bottom:16px; }
+  .doc-type{
+    display:flex; align-items:center; gap:10px; width:100%; text-align:left;
+    padding:13px 14px; border-radius:13px; border:1px solid var(--steel);
+    background:rgba(255,255,255,.02); color:var(--chalk); font-size:14.5px;
+    font-family:'Work Sans', system-ui, sans-serif; cursor:pointer;
+  }
+  .doc-type:hover{ border-color:var(--chalk-dim); }
+  .doc-type.selected{ border-color:var(--plate); background:rgba(255,90,31,.08); }
+  .doc-type .hint{ display:block; font-size:12px; color:var(--chalk-dim); margin-top:2px; }
+
+  /* Aufnahmeplätze für Vorder-/Rückseite */
+  .doc-slots{ display:grid; grid-template-columns:repeat(auto-fit, minmax(140px, 1fr)); gap:10px; margin-bottom:14px; }
+  .doc-slot{
+    position:relative; border-radius:14px; border:1.5px dashed var(--steel);
+    background:var(--surface-2); aspect-ratio:3/2; overflow:hidden; cursor:pointer;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    gap:6px; color:var(--chalk-dim); font-size:12.5px; padding:8px; text-align:center;
+  }
+  .doc-slot.filled{ border-style:solid; border-color:var(--plate); }
+  .doc-slot img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
+  .doc-slot .slot-label{
+    position:relative; z-index:2; font-family:'JetBrains Mono'; font-size:10.5px;
+    letter-spacing:0.08em; text-transform:uppercase;
+  }
+  .doc-slot.filled .slot-label{
+    position:absolute; bottom:6px; left:6px; background:rgba(0,0,0,.62);
+    padding:3px 7px; border-radius:6px; color:var(--chalk);
+  }
+  .doc-slot .slot-icon{ width:22px; height:22px; fill:none; stroke:currentColor; stroke-width:1.8; }
+
+  /* Hinweis auf Schwärzen nicht benötigter Angaben */
+  .redact-note{
+    display:flex; gap:9px; align-items:flex-start; font-size:12.5px; line-height:1.55;
+    color:var(--chalk-dim); background:rgba(255,90,31,.06);
+    border:1px solid rgba(255,90,31,.22); border-radius:12px; padding:11px 12px;
+    margin-bottom:16px;
+  }
+  .redact-note svg{ width:16px; height:16px; flex-shrink:0; margin-top:1px; fill:none;
+    stroke:var(--plate); stroke-width:1.9; stroke-linecap:round; stroke-linejoin:round; }
+
   /* Bio-Feld mit Emoji-Button (grauer Smiley unten rechts im Textfeld) */
   /* Gym-Suchfeld mit Dropdown (echte Gyms aus der Datenbank) */
   .gym-picker{ position:relative; }
@@ -1346,6 +1422,25 @@
       </div>
       <div class="field-err" id="plzErr"></div>
 
+      <!-- Altersgrenze: serverseitig geprüft (POST /api/auth/age-check). Unter 18
+           endet die Registrierung hier, weitere Schritte werden nicht angeboten. -->
+      <div class="vcard" id="ageGateBlock" style="display:none; border-color:rgba(227,72,72,.4); background:rgba(227,72,72,.06);">
+        <h3 style="color:var(--danger);">Registrierung nicht möglich</h3>
+        <p id="ageGateBlockText">Du musst mindestens 18 Jahre alt sein, um FLEXR nutzen zu können.</p>
+      </div>
+      <div class="vcard" id="ageGateNotice" style="display:none;">
+        <h3>Noch ein Schritt: Alters- und Identitätsprüfung</h3>
+        <p>Nach dem Anlegen deines Profils prüfen wir einmalig, ob du mindestens
+          18 Jahre alt bist. Dafür brauchst du <b>3 Live-Selfies</b> und eine
+          Aufnahme eines <b>amtlichen Lichtbildausweises</b>.</p>
+        <p>Die Prüfung erfolgt manuell durch einen Menschen, keine automatische
+          Gesichtserkennung. Die Aufnahmen werden nach Abschluss der Prüfung
+          gelöscht — siehe
+          <a href="/datenschutz.html" class="legal-link" data-legal-page="datenschutz.html">Datenschutzerklärung</a>.
+          Dein Konto wird erst nach bestandener Prüfung freigeschaltet; der
+          Probemonat startet erst dann.</p>
+      </div>
+
       <label>Geschlecht</label>
       <select id="f-gender" required>
         <option value="" disabled selected>Wähle</option>
@@ -1554,13 +1649,75 @@
       </div>
     </section>
 
+    <!-- ALTERS- UND IDENTITÄTSPRÜFUNG: Übersicht/Status -->
+    <section class="screen" id="screen-verify-gate">
+      <div class="eyebrow" id="vgateEyebrow">Letzter Satz</div>
+      <h1 class="headline" style="font-size:22px; margin-bottom:14px;" id="vgateTitle">Konto freischalten</h1>
+      <div class="vstep-bar" id="vgateSteps">
+        <span></span><span></span><span></span>
+      </div>
+      <div id="vgateStatusWrap"></div>
+      <div id="vgateBody"></div>
+      <button class="btn" id="btnVgatePrimary">Weiter</button>
+      <div class="account-section" style="margin-top:26px;">
+        <div class="account-section-title">Konto</div>
+        <button class="btn secondary" id="btnLogoutGate">Ausloggen</button>
+        <button class="btn danger-ghost" id="btnDeleteAccountGate">Konto löschen</button>
+      </div>
+    </section>
+
+    <!-- ALTERS- UND IDENTITÄTSPRÜFUNG: Ausweisaufnahme -->
+    <section class="screen" id="screen-verify-id">
+      <div class="chat-header">
+        <button class="back-btn" id="btnVidBack" aria-label="Zurück">
+          <svg class="ico" viewBox="0 0 24 24"><path d="M14.5 5 8 12l6.5 7"/></svg>
+        </button>
+        <div class="nm">Alter bestätigen</div>
+      </div>
+      <div class="vstep-bar">
+        <span class="done"></span><span class="done"></span><span class="active"></span>
+      </div>
+
+      <div class="vcard">
+        <h3>Warum wir das brauchen</h3>
+        <p>Um FLEXR nutzen zu können, musst du mindestens 18 Jahre alt sein. Lade
+          einmalig einen gültigen amtlichen Lichtbildausweis hoch. Wir verwenden ihn
+          ausschließlich zur Alters- und Identitätsprüfung und löschen die Aufnahme
+          nach Abschluss der Prüfung.</p>
+        <p>Die Prüfung erfolgt <b>manuell durch einen Menschen</b> — es kommt keine
+          automatische Gesichtserkennung zum Einsatz. Details in der
+          <a href="/datenschutz.html" class="legal-link" data-legal-page="datenschutz.html">Datenschutzerklärung</a>.</p>
+      </div>
+
+      <label>Dokumenttyp</label>
+      <div class="doc-types" id="vidTypes"></div>
+
+      <div class="redact-note">
+        <svg viewBox="0 0 24 24"><path d="M12 3.2 20 6.5v5.2c0 4.4-3.2 8.1-8 9.1-4.8-1-8-4.7-8-9.1V6.5L12 3.2z"/><path d="M9.5 12.2l1.8 1.8 3.4-3.6"/></svg>
+        <span>Du kannst Informationen schwärzen, die für die Altersprüfung nicht
+          benötigt werden. <b>Foto, Geburtsdatum und die zur Prüfung erforderlichen
+          Gültigkeitsinformationen müssen sichtbar bleiben.</b></span>
+      </div>
+
+      <label>Aufnahmen</label>
+      <div class="doc-slots" id="vidSlots"></div>
+      <input type="file" id="vidFileInput" accept="image/jpeg,image/png,image/webp" capture="environment" style="display:none">
+      <div class="field-err" id="vidErr"></div>
+      <button class="btn" id="btnVidSubmit">Zur Prüfung einreichen</button>
+      <p class="consent-note" id="vidConsentNote">
+        Mit dem Einreichen bestätigst du, dass es dein eigener, gültiger Ausweis ist.
+        Die Aufnahmen liegen verschlüsselt und nicht öffentlich abrufbar und werden
+        nach der Prüfung gelöscht.
+      </p>
+    </section>
+
     <!-- FOTO-VERIFIZIERUNG (Live-Kamera, 3 zufällige Posen) -->
     <section class="screen" id="screen-verify">
       <div class="chat-header">
         <button class="back-btn" id="btnVerifyBack" aria-label="Zurück zum Konto">
           <svg class="ico" viewBox="0 0 24 24"><path d="M14.5 5 8 12l6.5 7"/></svg>
         </button>
-        <div class="nm">Foto-Verifizierung</div>
+        <div class="nm">Verifizierungs-Selfies</div>
       </div>
       <div class="verify-step" id="verifyStep">POSE 1 / 3</div>
       <div class="verify-prompt" id="verifyPrompt">—</div>
@@ -1863,6 +2020,19 @@
     }
     let data = null;
     try{ data = await res.json(); }catch(e){ /* kein JSON-Body */ }
+
+    // 403 mit code "verification_required" = Konto noch nicht freigeschaltet.
+    // Kann mitten in einer Sitzung auftreten (Admin fordert die Prüfung nach) -
+    // dann gehört der Nutzer auf den Verifizierungs-Screen.
+    if(res.status === 403 && data && data.detail && data.detail.code === 'verification_required'){
+      stopChatPolling();
+      stopUnreadPolling();
+      $('bottomNav').style.display = 'none';
+      if(myProfile) myProfile.is_account_activated = false;
+      showVerificationGate();
+      throw new Error(data.detail.message);
+    }
+
     if(!res.ok){
       let msg = 'Fehler (' + res.status + ')';
       if(data && data.detail){
@@ -2153,8 +2323,57 @@
     }
   });
 
+  // ---------- Altersgrenze im Registrierungsformular ----------
+  // Verbindlich rechnet der Server (POST /api/auth/age-check und nochmals
+  // /api/auth/register). Die clientseitige Prüfung dient nur der Führung:
+  // unter 18 werden gar keine weiteren Schritte angeboten.
+  let ageGateBlocked = false;
+  let ageCheckTimeout = null;
+  let lastCheckedBirthdate = null;
+
+  function setAgeGate(state, message){
+    ageGateBlocked = state === 'blocked';
+    $('ageGateBlock').style.display = ageGateBlocked ? 'block' : 'none';
+    $('ageGateNotice').style.display = state === 'ok' ? 'block' : 'none';
+    if(message) $('ageGateBlockText').textContent = message;
+    $('btnCreateProfile').disabled = ageGateBlocked;
+  }
+
+  async function checkAgeEligibility(){
+    const value = $('f-birthdate').value;
+    if(!value){ lastCheckedBirthdate = null; setAgeGate('unknown'); return; }
+    // input und change liefern denselben Wert - nicht zweimal nachfragen
+    if(value === lastCheckedBirthdate) return;
+    lastCheckedBirthdate = value;
+    // Sofortige lokale Rückmeldung, damit das Feld nicht "hängt"
+    const localAge = calcAge(value);
+    if(!isNaN(localAge) && localAge < 18){
+      setAgeGate('blocked', 'Du musst mindestens 18 Jahre alt sein, um FLEXR nutzen zu können.');
+    }
+    try{
+      const res = await api('/api/auth/age-check', {
+        method: 'POST',
+        body: JSON.stringify({birthdate: value}),
+      });
+      setAgeGate(res.eligible ? 'ok' : 'blocked', res.message);
+    }catch(err){
+      // Gerätesperre nach mehrfachen Versuchen unter 18
+      if(err.detail && err.detail.code === 'signup_blocked'){
+        setAgeGate('blocked', err.detail.message);
+      }
+      // Sonstige Fehler (offline): die verbindliche Prüfung passiert ohnehin
+      // beim Absenden - das Formular bleibt nutzbar.
+    }
+  }
+
   $('f-birthdate').addEventListener('input', (e) => {
     e.target.classList.toggle('date-empty', !e.target.value);
+    clearTimeout(ageCheckTimeout);
+    ageCheckTimeout = setTimeout(checkAgeEligibility, 400);
+  });
+  $('f-birthdate').addEventListener('change', () => {
+    clearTimeout(ageCheckTimeout);
+    checkAgeEligibility();
   });
 
   $('btnCreateProfile').addEventListener('click', async ()=>{
@@ -2180,8 +2399,8 @@
       return;
     }
     const ageFromBirthdate = calcAge(payload.birthdate);
-    if(ageFromBirthdate < 18){
-      errEl.textContent = 'Du musst mindestens 18 Jahre alt sein.';
+    if(ageGateBlocked || ageFromBirthdate < 18){
+      errEl.textContent = 'Du musst mindestens 18 Jahre alt sein, um FLEXR nutzen zu können.';
       return;
     }
     if(ageFromBirthdate > 99){
@@ -2228,12 +2447,16 @@
       } else if(photoFailures > 0){
         toast('Profil erstellt – nicht alle Fotos konnten hochgeladen werden.');
       } else {
-        toast('Profil erstellt. Willkommen bei FLEXR 💪');
+        toast('Profil erstellt. Jetzt noch die Alters- und Identitätsprüfung 💪');
       }
       await loadCurrentUser();
-      $('bottomNav').style.display = 'flex';
       goToApp();
     }catch(err){
+      if(err.detail && (err.detail.code === 'underage' || err.detail.code === 'signup_blocked')){
+        setAgeGate('blocked', err.detail.message);
+        errEl.textContent = err.detail.message;
+        return;
+      }
       errEl.textContent = err.message || 'Registrierung fehlgeschlagen.';
     }finally{
       btn.disabled = false;
@@ -2284,6 +2507,13 @@
     setToken(null);
     myProfile = null;
     membership = null;
+    verificationStatus = null;
+    // Lokale Ausweis-Vorschauen verwerfen - sie sollen nicht über die Sitzung
+    // hinaus im Speicher der Seite liegen.
+    if(idState){
+      Object.values(idState.shots).forEach(s => URL.revokeObjectURL(s.previewUrl));
+      idState = null;
+    }
     $('bottomNav').style.display = 'none';
     showScreen('screen-login');
   }
@@ -2355,9 +2585,21 @@
     updateStatusPill();
   }
 
+  // Konto freigeschaltet? Bestandskonten sind es immer, neue erst nach
+  // bestandener Alters- und Identitätsprüfung. Maßgeblich ist der Server.
+  function accountActivated(){
+    return !myProfile || myProfile.is_account_activated !== false;
+  }
+
   function updateStatusPill(){
     const pill = $('statusPill');
     if(!membership){ pill.textContent = '—'; return; }
+    // Vor der Freischaltung läuft noch kein Probemonat - eine Restlaufzeit
+    // anzuzeigen wäre irreführend, sie startet erst mit der Freigabe.
+    if(!accountActivated()){
+      pill.textContent = 'In Prüfung'; pill.className = 'status-pill trial';
+      return;
+    }
     if(membership.is_subscribed){
       pill.textContent = 'Abo aktiv'; pill.className = 'status-pill trial';
     } else if(membership.is_active){
@@ -2369,6 +2611,13 @@
   }
 
   function goToApp(){
+    // Die Alters- und Identitätsprüfung geht der Paywall vor: Ein nicht
+    // freigeschaltetes Konto hat noch keinen laufenden Probemonat.
+    if(!accountActivated()){
+      $('bottomNav').style.display = 'none';
+      showVerificationGate();
+      return;
+    }
     if(!membership || !membership.is_active){
       showScreen('screen-paywall');
       $('bottomNav').style.display = 'none';
@@ -3265,12 +3514,179 @@
     openChat(currentMatchProfileId, 'matches');
   });
 
-  // ---------- Foto-Verifizierung (blauer Haken) ----------
-  // Ablauf: Server gibt 3 zufällige Posen vor -> Selfies werden LIVE über die
-  // Kamera aufgenommen (kein Galerie-Upload = Liveness-Schutz) -> manuelle
-  // Prüfung gegen die Profilfotos -> blauer Haken.
+  // ---------- Alters- und Identitätsprüfung ----------
+  // Ein Vorgang, zwei Schritte:
+  //   1. Server gibt 3 zufällige Posen vor -> Selfies werden LIVE über die
+  //      Kamera aufgenommen (kein Galerie-Upload = Liveness-Schutz)
+  //   2. Amtlicher Lichtbildausweis, temporär hochgeladen
+  // Danach vergleicht ein Mensch Profilfotos, Selfie und Ausweis und prüft das
+  // Geburtsdatum. Erst nach Freigabe wird das Konto freigeschaltet.
   let verifyState = null; // {prompts, idx, blobs[]}
   let verifyStream = null;
+  let verificationStatus = null; // letzte Antwort von /api/verification/status
+
+  async function loadVerificationStatus(){
+    verificationStatus = await api('/api/verification/status');
+    return verificationStatus;
+  }
+
+  // Schrittanzeige: 1 Selfies, 2 Ausweis, 3 Prüfung
+  function renderGateSteps(step){
+    $('vgateSteps').innerHTML = [1, 2, 3].map(i => {
+      if(i < step) return '<span class="done"></span>';
+      if(i === step) return '<span class="active"></span>';
+      return '<span></span>';
+    }).join('');
+  }
+
+  function gateStatusChip(kind, text){
+    return `<div class="vstatus ${kind}"><span class="dot"></span>${escapeHtml(text)}</div>`;
+  }
+
+  /* Der Verifizierungs-Screen für noch nicht freigeschaltete Konten. Er ist
+     bewusst der einzige erreichbare Screen: ohne bestandene Prüfung gibt es
+     kein Deck, keine Matches und keinen Chat. Ausloggen und Kontolöschung
+     bleiben erreichbar. */
+  async function showVerificationGate(){
+    showScreen('screen-verify-gate');
+    $('bottomNav').style.display = 'none';
+    $('vgateBody').innerHTML = '<div class="loading">Lade Status …</div>';
+    $('vgateStatusWrap').innerHTML = '';
+    $('btnVgatePrimary').style.display = 'none';
+    try{
+      await loadVerificationStatus();
+    }catch(err){
+      $('vgateBody').innerHTML = `<div class="vcard"><p>${escapeHtml(err.message || 'Status konnte nicht geladen werden.')}</p></div>`;
+      return;
+    }
+    renderVerificationGate();
+  }
+
+  function renderVerificationGate(){
+    const st = verificationStatus || {status: 'none', next_step: 'selfie'};
+    const body = $('vgateBody');
+    const statusWrap = $('vgateStatusWrap');
+    const btn = $('btnVgatePrimary');
+    btn.style.display = 'block';
+    btn.disabled = false;
+
+    if(st.status === 'submitted'){
+      // "Verification pending"
+      renderGateSteps(3);
+      $('vgateEyebrow').textContent = 'In Prüfung';
+      $('vgateTitle').textContent = 'Verifizierung wird geprüft';
+      statusWrap.innerHTML = gateStatusChip('wait', 'Prüfung läuft');
+      body.innerHTML = `
+        <div class="vcard">
+          <p>Deine Angaben wurden übermittelt. Wir prüfen jetzt, ob du mindestens
+            18 Jahre alt bist und ob die Verifizierung zu deinem Profil gehört.
+            Sobald die Prüfung abgeschlossen ist, kannst du FLEXR vollständig nutzen.</p>
+          <p>Die Aufnahmen deines Ausweises werden nach Abschluss der Prüfung gelöscht.
+            Dein Probemonat startet erst mit der Freischaltung — die Wartezeit kostet
+            dich also keine Gratiszeit.</p>
+        </div>`;
+      btn.textContent = 'Status aktualisieren';
+      return;
+    }
+
+    if(st.status === 'rejected'){
+      renderGateSteps(3);
+      $('vgateEyebrow').textContent = 'Abgeschlossen';
+      $('vgateTitle').textContent = 'Verifizierung nicht erfolgreich';
+      statusWrap.innerHTML = gateStatusChip('bad', 'Nicht freigeschaltet');
+      body.innerHTML = `
+        <div class="vcard">
+          <p>${escapeHtml(st.reason || 'Wir konnten deine Verifizierung nicht abschließen.')}</p>
+          <p>Dein Konto wurde nicht freigeschaltet. Wenn du glaubst, dass das ein
+            Fehler ist, schreib uns an
+            <a href="mailto:flexr.social@proton.me">flexr.social@proton.me</a>.</p>
+          <p>Alle Aufnahmen deines Ausweises und deine Verifizierungs-Selfies wurden gelöscht.</p>
+        </div>`;
+      btn.style.display = 'none';
+      return;
+    }
+
+    if(st.next_step === 'document'){
+      renderGateSteps(2);
+      const isReupload = st.status === 'reupload_required';
+      $('vgateEyebrow').textContent = isReupload ? 'Nachbesserung' : 'Schritt 2 von 2';
+      $('vgateTitle').textContent = isReupload
+        ? 'Wir konnten deine Verifizierung noch nicht abschließen.'
+        : 'Alter bestätigen';
+      statusWrap.innerHTML = isReupload
+        ? gateStatusChip('bad', 'Neue Aufnahme nötig')
+        : '';
+      body.innerHTML = `
+        <div class="vcard">
+          ${isReupload ? `<p>${escapeHtml(st.reason || '')}</p>` : ''}
+          <p>Deine Selfies liegen vor. Jetzt fehlt noch eine Aufnahme deines
+            amtlichen Lichtbildausweises, damit wir dein Alter bestätigen können.</p>
+        </div>`;
+      btn.textContent = isReupload ? 'Erneut hochladen' : 'Ausweis aufnehmen';
+      return;
+    }
+
+    // next_step === 'selfie' (oder noch gar nichts passiert)
+    renderGateSteps(1);
+    const isReupload = st.status === 'reupload_required';
+    $('vgateEyebrow').textContent = isReupload ? 'Nachbesserung' : 'Schritt 1 von 2';
+    $('vgateTitle').textContent = isReupload
+      ? 'Wir konnten deine Verifizierung noch nicht abschließen.'
+      : 'Konto freischalten';
+    statusWrap.innerHTML = isReupload ? gateStatusChip('bad', 'Neue Aufnahme nötig') : '';
+    body.innerHTML = `
+      <div class="vcard">
+        ${isReupload ? `<p>${escapeHtml(st.reason || '')}</p>` : ''}
+        <p>FLEXR ist ab 18. Damit hier keine Minderjährigen und keine Fake-Profile
+          landen, prüfen wir einmalig, ob du wirklich du bist und mindestens
+          18 Jahre alt.</p>
+        <h3 style="margin-top:14px;">Das brauchst du</h3>
+        <ul>
+          <li>3 Live-Selfies mit vorgegebenen Posen (Kamera öffnet sich erst, wenn du startest)</li>
+          <li>Eine Aufnahme deines Personalausweises, Reisepasses oder Führerscheins</li>
+        </ul>
+      </div>
+      <div class="vcard">
+        <h3>Was mit den Aufnahmen passiert</h3>
+        <ul>
+          <li>Ein Mensch vergleicht Profilfoto, Selfie und Ausweisfoto — keine automatische Gesichtserkennung</li>
+          <li>Die Aufnahmen sind nicht öffentlich abrufbar</li>
+          <li>Nach Abschluss der Prüfung werden sie gelöscht</li>
+        </ul>
+        <p style="margin-top:8px;">Details in der
+          <a href="/datenschutz.html" class="legal-link" data-legal-page="datenschutz.html">Datenschutzerklärung</a>.</p>
+      </div>`;
+    btn.textContent = isReupload ? 'Verifizierung wiederholen' : 'Verifizierung starten';
+  }
+
+  $('btnVgatePrimary').addEventListener('click', async () => {
+    const st = verificationStatus || {};
+    if(st.status === 'submitted'){
+      // Status neu holen - vielleicht ist die Prüfung inzwischen durch
+      const btn = $('btnVgatePrimary');
+      btn.disabled = true;
+      try{
+        await loadCurrentUser();
+        if(accountActivated()){
+          toast('Verifizierung erfolgreich - dein Konto ist freigeschaltet 💪');
+          goToApp();
+          return;
+        }
+        await showVerificationGate();
+      }finally{
+        btn.disabled = false;
+      }
+      return;
+    }
+    if(st.next_step === 'document'){
+      openIdStep();
+      return;
+    }
+    startVerification();
+  });
+
+  $('btnLogoutGate').addEventListener('click', () => doLogout());
+  $('btnDeleteAccountGate').addEventListener('click', () => openDeleteModal());
 
   // Badge rechts im Konto-Header (unter dem Testmonat-Pill): Zustand + Tooltip,
   // Klick startet die Verifizierung, solange sie noch aussteht.
@@ -3292,18 +3708,22 @@
     badge.textContent = '…';
     tip.textContent = 'Lade Status …';
     try{
-      const st = await api('/api/verification/status');
+      const st = await loadVerificationStatus();
       if(st.status === 'submitted'){
         badge.className = 'verify-badge pending';
         badge.textContent = 'Prüfung läuft …';
-        tip.innerHTML = `Deine Selfies sind in Prüfung. Nach der Freigabe bekommst du den blauen Haken ${VERIFIED_BADGE_SVG} neben deinem Namen.`;
+        tip.innerHTML = `Deine Verifizierung wird geprüft. Nach der Freigabe bekommst du den blauen Haken ${VERIFIED_BADGE_SVG} neben deinem Namen.`;
+      } else if(st.status === 'rejected'){
+        badge.className = 'verify-badge pending';
+        badge.textContent = 'Nicht verifiziert';
+        tip.innerHTML = `Deine Verifizierung konnte nicht abgeschlossen werden. Bei Fragen: flexr.social@proton.me`;
       } else {
         badge.className = 'verify-badge attention';
         badge.innerHTML = 'Verifizierung <svg class="warn-tri" viewBox="0 0 24 24"><path d="M12 3.5 21.7 20.2H2.3L12 3.5z"/><path d="M12 10v4.3M12 17.2h.01"/></svg>';
         verifyBadgeClickable = true;
-        tip.innerHTML = st.status === 'rejected'
-          ? `Deine letzte Verifizierung wurde abgelehnt - du kannst es erneut versuchen. Mit 3 Live-Selfies holst du dir den blauen Haken ${VERIFIED_BADGE_SVG}. Tippen zum Starten.`
-          : `Zeig mit 3 Live-Selfies, dass du wirklich du bist - und hol dir den blauen Haken ${VERIFIED_BADGE_SVG} neben deinem Namen. Tippen zum Starten.`;
+        tip.innerHTML = st.next_step === 'document'
+          ? `Es fehlt noch die Aufnahme deines Lichtbildausweises. Tippen zum Fortsetzen.`
+          : `Zeig mit 3 Live-Selfies und einem Lichtbildausweis, dass du wirklich du bist - und hol dir den blauen Haken ${VERIFIED_BADGE_SVG} neben deinem Namen. Tippen zum Starten.`;
       }
     }catch(err){
       badge.className = 'verify-badge pending';
@@ -3313,7 +3733,10 @@
   }
 
   $('verifyBadge').addEventListener('click', () => {
-    if(verifyBadgeClickable) startVerification();
+    if(!verifyBadgeClickable) return;
+    // Fehlt nur noch der Ausweis, direkt dorthin - sonst bei den Selfies beginnen
+    if(verificationStatus && verificationStatus.next_step === 'document') openIdStep();
+    else startVerification();
   });
 
   // Hinweis: Die Telefonprüfung (SMS-OTP) ist im Backend fertig vorhanden
@@ -3363,13 +3786,23 @@
     }
   }
 
-  $('btnVerifyBack').addEventListener('click', () => {
+  // Zurück führt dorthin, wo der Nutzer herkam: freigeschaltete Konten ins
+  // Konto, noch nicht freigeschaltete auf den Verifizierungs-Screen (der
+  // Konto-Screen ist für sie nicht erreichbar).
+  function leaveVerificationScreen(){
     stopVerifyCamera();
     verifyState = null;
+    if(!accountActivated()){
+      showVerificationGate();
+      return;
+    }
     showScreen('screen-account');
     setNavActive('account');
     renderAccount();
-  });
+  }
+
+  $('btnVerifyBack').addEventListener('click', leaveVerificationScreen);
+  $('btnVidBack').addEventListener('click', leaveVerificationScreen);
 
   $('btnVerifyCapture').addEventListener('click', async () => {
     if(!verifyState || !verifyStream) return;
@@ -3412,17 +3845,203 @@
         if(!putRes.ok) throw new Error('Selfie-Upload fehlgeschlagen.');
         selfies.push({prompt: verifyState.prompts[i], object_key: presign.object_key});
       }
-      await api('/api/verification/submit', {method: 'POST', body: JSON.stringify({selfies})});
-      toast('Selfies eingereicht - deine Verifizierung ist in Prüfung.');
+      verificationStatus = await api('/api/verification/submit', {
+        method: 'POST',
+        body: JSON.stringify({selfies}),
+      });
       verifyState = null;
-      showScreen('screen-account');
-      setNavActive('account');
-      renderAccount();
+      // Selfies sind durch - weiter zum Ausweisschritt (Schritt 2 von 2)
+      toast('Selfies gespeichert - jetzt noch das Alter bestätigen.');
+      openIdStep();
     }catch(err){
       $('verifyErr').textContent = err.message || 'Einreichen fehlgeschlagen. Bitte erneut versuchen.';
     }finally{
       btn.disabled = false;
       btn.textContent = '📸 Aufnehmen';
+    }
+  });
+
+  // ---------- Schritt 2: amtlicher Lichtbildausweis ----------
+  // Die Aufnahmen gehen per Presigned PUT direkt in einen privaten
+  // Storage-Bereich - sie laufen nicht durchs Backend und bekommen nie eine
+  // öffentliche URL. Die Kamera öffnet sich erst, wenn der Nutzer einen
+  // Aufnahmeplatz antippt (kein automatischer Zugriff).
+  const MAX_ID_BYTES = 8 * 1024 * 1024;
+  const SIDE_LABELS = {front: 'Vorderseite', back: 'Rückseite'};
+
+  let idState = null; // {types: [...], selected: 'passport', shots: {front: {blob, previewUrl}, back: ...}, activeSide}
+
+  // Ausweisaufnahme aufbereiten: auf 1600px begrenzen (Text bleibt lesbar,
+  // Datei bleibt klein) und als JPEG kodieren.
+  function prepareIdImage(file){
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const maxSide = 1600;
+          const scale = Math.min(1, maxSide / Math.max(img.width, img.height));
+          canvas.width = Math.round(img.width * scale);
+          canvas.height = Math.round(img.height * scale);
+          canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+          canvas.toBlob((blob) => {
+            if(!blob){ reject(new Error('Aufnahme konnte nicht verarbeitet werden.')); return; }
+            if(blob.size > MAX_ID_BYTES){ reject(new Error('Aufnahme zu groß. Bitte mit geringerer Auflösung erneut versuchen.')); return; }
+            resolve(blob);
+          }, 'image/jpeg', 0.9);
+        };
+        img.onerror = () => reject(new Error('Die Datei ist kein lesbares Bild.'));
+        img.src = ev.target.result;
+      };
+      reader.onerror = () => reject(new Error('Datei konnte nicht gelesen werden.'));
+      reader.readAsDataURL(file);
+    });
+  }
+
+  function idNeedsBack(){
+    if(!idState || !idState.selected) return false;
+    const type = idState.types.find(t => t.value === idState.selected);
+    return !!(type && type.needs_back);
+  }
+
+  function renderIdTypes(){
+    $('vidTypes').innerHTML = idState.types.map(t => `
+      <button type="button" class="doc-type${t.value === idState.selected ? ' selected' : ''}" data-type="${escapeHtml(t.value)}">
+        <span>${escapeHtml(t.label)}
+          <span class="hint">${t.needs_back ? 'Vorder- und Rückseite' : 'Datenseite mit Foto'}</span>
+        </span>
+      </button>`).join('');
+    $('vidTypes').querySelectorAll('.doc-type').forEach(el => {
+      el.addEventListener('click', () => {
+        idState.selected = el.dataset.type;
+        // Rückseite ist beim gewechselten Typ evtl. nicht mehr nötig
+        if(!idNeedsBack() && idState.shots.back){
+          URL.revokeObjectURL(idState.shots.back.previewUrl);
+          delete idState.shots.back;
+        }
+        renderIdTypes();
+        renderIdSlots();
+      });
+    });
+  }
+
+  function renderIdSlots(){
+    const sides = idNeedsBack() ? ['front', 'back'] : ['front'];
+    $('vidSlots').innerHTML = sides.map(side => {
+      const shot = idState.shots[side];
+      return `
+        <div class="doc-slot${shot ? ' filled' : ''}" data-side="${side}">
+          ${shot ? `<img src="${shot.previewUrl}" alt="">` : `
+            <svg class="slot-icon" viewBox="0 0 24 24"><rect x="3" y="5.5" width="18" height="13" rx="2.5"/><circle cx="8.5" cy="11" r="2"/><path d="M13.5 10h4M13.5 13.5h4"/></svg>`}
+          <span class="slot-label">${SIDE_LABELS[side]}${shot ? ' ✓' : ''}</span>
+        </div>`;
+    }).join('');
+    $('vidSlots').querySelectorAll('.doc-slot').forEach(el => {
+      el.addEventListener('click', () => {
+        idState.activeSide = el.dataset.side;
+        $('vidFileInput').value = '';
+        $('vidFileInput').click();   // Kamera/Dateiauswahl nur auf ausdrückliche Aktion
+      });
+    });
+    const ready = sides.every(side => idState.shots[side]);
+    $('btnVidSubmit').disabled = !ready;
+  }
+
+  $('vidFileInput').addEventListener('change', async (e) => {
+    const file = e.target.files && e.target.files[0];
+    if(!file || !idState) return;
+    $('vidErr').textContent = '';
+    try{
+      const blob = await prepareIdImage(file);
+      const side = idState.activeSide || 'front';
+      if(idState.shots[side]) URL.revokeObjectURL(idState.shots[side].previewUrl);
+      idState.shots[side] = {blob, previewUrl: URL.createObjectURL(blob)};
+      renderIdSlots();
+    }catch(err){
+      $('vidErr').textContent = err.message || 'Aufnahme konnte nicht verarbeitet werden.';
+    }
+  });
+
+  async function openIdStep(){
+    try{
+      const st = verificationStatus && verificationStatus.next_step === 'document'
+        ? verificationStatus
+        : await loadVerificationStatus();
+      if(st.next_step !== 'document'){
+        // Zustand hat sich geändert (z. B. Selfies verworfen) - zurück zur Übersicht
+        showVerificationGate();
+        return;
+      }
+      idState = {
+        types: st.document_types || [
+          {value: 'id_card', label: 'Personalausweis', needs_back: true},
+          {value: 'passport', label: 'Reisepass', needs_back: false},
+          {value: 'drivers_license', label: 'Führerschein', needs_back: true},
+        ],
+        selected: null,
+        shots: {},
+        activeSide: 'front',
+      };
+      idState.selected = idState.types[0].value;
+    }catch(err){
+      toast(err.message || 'Status konnte nicht geladen werden.');
+      return;
+    }
+    showScreen('screen-verify-id');
+    $('vidErr').textContent = '';
+    $('btnVidSubmit').textContent = 'Zur Prüfung einreichen';
+    renderIdTypes();
+    renderIdSlots();
+  }
+
+  async function uploadIdImage(blob){
+    const presign = await api('/api/verification/document/presign', {
+      method: 'POST',
+      body: JSON.stringify({content_type: 'image/jpeg', byte_size: blob.size}),
+    });
+    const res = await fetch(presign.upload_url, {
+      method: 'PUT',
+      headers: {'Content-Type': 'image/jpeg'},
+      body: blob,
+    });
+    if(!res.ok) throw new Error('Upload fehlgeschlagen. Bitte erneut versuchen.');
+    return presign.object_key;
+  }
+
+  $('btnVidSubmit').addEventListener('click', async () => {
+    if(!idState) return;
+    const sides = idNeedsBack() ? ['front', 'back'] : ['front'];
+    if(!sides.every(side => idState.shots[side])){
+      $('vidErr').textContent = 'Bitte alle benötigten Aufnahmen hinzufügen.';
+      return;
+    }
+    const btn = $('btnVidSubmit');
+    btn.disabled = true;
+    btn.textContent = 'Wird übermittelt …';
+    $('vidErr').textContent = '';
+    try{
+      const body = {document_type: idState.selected};
+      body.front_object_key = await uploadIdImage(idState.shots.front.blob);
+      if(sides.includes('back')){
+        body.back_object_key = await uploadIdImage(idState.shots.back.blob);
+      }
+      verificationStatus = await api('/api/verification/document/submit', {
+        method: 'POST',
+        body: JSON.stringify(body),
+      });
+      // Lokale Vorschauen sofort verwerfen - der Ausweis soll nicht im
+      // Speicher der Seite weiterleben.
+      Object.values(idState.shots).forEach(s => URL.revokeObjectURL(s.previewUrl));
+      idState = null;
+      toast('Verifizierung eingereicht - wir prüfen deine Angaben.');
+      await loadCurrentUser();
+      showVerificationGate();
+    }catch(err){
+      $('vidErr').textContent = err.message || 'Einreichen fehlgeschlagen. Bitte erneut versuchen.';
+    }finally{
+      btn.disabled = false;
+      btn.textContent = 'Zur Prüfung einreichen';
     }
   });
 

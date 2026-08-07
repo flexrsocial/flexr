@@ -199,7 +199,75 @@
     border:1px solid var(--steel); display:block;
   }
   .verify-imgs figcaption{ font-size:11px; color:var(--chalk-dim); margin-top:4px; line-height:1.3; }
-  .verify-review-card .actions{ display:flex; gap:8px; margin-top:14px; }
+  .verify-review-card .actions{ display:flex; gap:8px; margin-top:14px; flex-wrap:wrap; }
+
+  /* Accountdaten-Zeile über der Prüfung (DOB-Abgleich mit dem Ausweis) */
+  .verify-facts{
+    display:flex; flex-wrap:wrap; gap:6px 18px; margin:10px 0 14px;
+    padding:10px 12px; background:var(--ink); border:1px solid var(--steel);
+    border-radius:10px; font-size:12.5px;
+  }
+  .verify-facts .k{ color:var(--chalk-dim); margin-right:6px; }
+  .verify-facts .v{ font-family:'JetBrains Mono', monospace; }
+
+  /* Ausweisaufnahmen: querformatig, größer als die Selfie-Kacheln, weil
+     Geburtsdatum und Gültigkeit lesbar sein müssen. Klick öffnet die
+     Signed URL in voller Auflösung (Gültigkeit ca. 1 Minute). */
+  .verify-doc-imgs{ display:flex; gap:10px; flex-wrap:wrap; }
+  .verify-doc-imgs figure{ margin:0; width:260px; }
+  .verify-doc-imgs img{
+    width:260px; height:170px; object-fit:contain; background:#000;
+    border-radius:10px; border:1px solid var(--steel); display:block; cursor:zoom-in;
+  }
+  .verify-doc-imgs figcaption{ font-size:11px; color:var(--chalk-dim); margin-top:4px; }
+  .verify-doc-missing{
+    font-size:12.5px; color:var(--warn); border:1px dashed rgba(227,72,72,.45);
+    border-radius:10px; padding:10px 12px;
+  }
+
+  /* Prüfcheckliste - "Freigeben" bleibt gesperrt, bis alles bestätigt ist.
+     Der Server erzwingt dieselbe Regel noch einmal. */
+  .verify-checklist{
+    margin-top:16px; padding:12px 14px; border:1px solid var(--steel);
+    border-radius:12px; background:var(--ink);
+  }
+  .verify-checklist .title{
+    font-size:11px; text-transform:uppercase; letter-spacing:0.08em;
+    color:var(--chalk-dim); margin-bottom:10px;
+  }
+  /* Die globale Regel label{display:block; text-transform:uppercase} und
+     input{width:100%} gelten für die Formularfelder des Admin-Tools. Hier
+     brauchen wir Fließtext neben einer Checkbox - beides wird deshalb
+     ausdrücklich zurückgesetzt. */
+  .verify-checklist label{
+    display:flex; align-items:flex-start; gap:9px; font-size:13px;
+    line-height:1.45; margin:0 0 8px; cursor:pointer; color:var(--chalk);
+    text-transform:none; letter-spacing:0;
+  }
+  .verify-checklist input[type=checkbox]{
+    width:16px; height:16px; flex:0 0 16px; margin:2px 0 0; padding:0;
+    accent-color:var(--plate);
+  }
+  .verify-reason{
+    margin-top:12px; display:flex; gap:8px; align-items:center; flex-wrap:wrap;
+    font-size:13px;
+  }
+  .verify-reason label{
+    display:inline-flex; align-items:center; gap:6px; margin:0; font-size:13px;
+    text-transform:none; letter-spacing:0; color:var(--chalk-dim);
+  }
+  .verify-reason input[type=checkbox]{
+    width:16px; height:16px; flex:0 0 16px; margin:0; padding:0;
+    accent-color:var(--plate);
+  }
+  .verify-reason select{
+    width:auto; background:var(--ink); color:var(--chalk); border:1px solid var(--steel);
+    border-radius:8px; padding:6px 9px; font-size:13px;
+  }
+  .cleanup-warning{
+    background:rgba(227,72,72,.1); border:1px solid rgba(227,72,72,.4);
+    border-radius:12px; padding:12px 14px; margin-bottom:16px; font-size:13px;
+  }
 
   /* Modal (User-Detail) */
   .modal-backdrop{
@@ -338,9 +406,14 @@
 
     <!-- VERIFIZIERUNGEN -->
     <section class="view" id="view-verifications">
-      <h2>Foto-Verifizierung</h2>
-      <p class="hint">Selfies mit den angeforderten Posen gegen die Profilfotos prüfen.
-        Nach der Entscheidung werden die Selfies automatisch aus dem Storage gelöscht.</p>
+      <h2>Alters- und Identitätsprüfung</h2>
+      <p class="hint">Profilfotos, Verifizierungs-Selfies und den vorgelegten
+        Lichtbildausweis vergleichen und das Geburtsdatum abgleichen. Die Prüfung
+        erfolgt ausschließlich durch Sichtvergleich — es läuft keine automatische
+        Gesichtserkennung. Nach der Entscheidung werden Selfies und
+        Ausweisaufnahmen aus dem Storage gelöscht. Die Bildlinks sind nur wenige
+        Sekunden gültig; nach längerem Offenlassen die Seite neu laden.</p>
+      <div id="cleanupWarning"></div>
       <div id="verificationsWrap"><div class="loading">Lädt …</div></div>
     </section>
 
@@ -638,7 +711,7 @@
       // Offene Aufgaben
       const tasks = [
         [stats.pending_photos, 'Fotos freigeben', 'warten auf Prüfung', 'photos'],
-        [stats.pending_verifications, 'Verifizierungen', 'Selfies prüfen', 'verifications'],
+        [stats.pending_verifications, 'Verifizierungen', 'Alter & Identität prüfen', 'verifications'],
         [stats.open_reports, 'Meldungen', 'abzuarbeiten', 'reports'],
         [stats.flagged_messages, 'Auffällige Nachrichten', 'im Review', 'reports'],
         [stats.pending_gyms, 'Gym-Vorschläge', 'freizugeben', 'gyms'],
@@ -786,7 +859,19 @@
       <div class="detail-row"><span class="k">Trial endet</span><span>${fmtDate(u.trial_ends_at)}</span></div>
       <div class="detail-row"><span class="k">Stripe-Kunde</span><span class="mono">${escapeHtml(u.stripe_customer_id || '—')}</span></div>
       <div class="detail-row"><span class="k">Telefon</span><span>${u.phone ? `${escapeHtml(u.phone)} ${u.phone_verified ? '<span class="pill ok">bestätigt</span>' : '<span class="pill muted">unbestätigt</span>'}` : '—'}</span></div>
-      <div class="detail-row"><span class="k">Foto-Verifizierung</span><span>${u.is_verified ? '<span class="pill ok">verifiziert ✓</span>' : '<span class="pill muted">nicht verifiziert</span>'}</span></div>
+      <div class="detail-row"><span class="k">Profil-Verifizierung</span><span>${u.is_verified ? '<span class="pill ok">verifiziert ✓</span>' : '<span class="pill muted">nicht verifiziert</span>'}</span></div>
+      <div class="detail-row"><span class="k">Altersprüfung</span><span>${
+        u.age_verified
+          ? `<span class="pill ok">geprüft ✓</span> <span class="pill muted">${escapeHtml(u.verification_method || '')}${u.age_verified_at ? ' · ' + fmtDate(u.age_verified_at) : ''}</span>`
+          : '<span class="pill muted">nicht geprüft</span>'}</span></div>
+      <div class="detail-row"><span class="k">Konto freigeschaltet</span><span>${
+        u.is_account_activated
+          ? `<span class="pill ok">ja${u.activated_at ? ' · ' + fmtDate(u.activated_at) : ' (Bestandskonto)'}</span>`
+          : '<span class="pill warn">nein — Prüfung offen</span>'}
+        ${u.verification_required
+          ? ''
+          : `<button class="btn secondary small" id="btnRequireVerification" data-user="${escapeHtml(u.id)}" style="margin-left:8px;">Prüfung nachfordern</button>`}
+      </span></div>
       <div class="detail-row"><span class="k">Chat-Sperre</span><span>${
         isMutedNow(u.messaging_muted_until)
           ? `<span class="pill warn">gesperrt bis ${fmtDateTime(u.messaging_muted_until)} Uhr</span>`
@@ -840,6 +925,19 @@
         openUserModal(u.id);
       }catch(err){ toast(err.message); }
     });
+    // Bestandskonto gezielt in die neue Alters-/Identitätsprüfung holen. Das
+    // Konto ist danach bis zur bestandenen Prüfung nicht mehr nutzbar.
+    if($('btnRequireVerification')){
+      $('btnRequireVerification').addEventListener('click', async () => {
+        if(!confirm('Alters- und Identitätsprüfung nachfordern? Das Konto ist bis zur bestandenen Prüfung gesperrt.')) return;
+        try{
+          await api(`/api/admin/users/${u.id}/require-verification`, {method: 'POST'});
+          toast('Prüfung nachgefordert.');
+          openUserModal(u.id);
+        }catch(err){ toast(err.message); }
+      });
+    }
+
     if($('btnUnmute')){
       $('btnUnmute').addEventListener('click', async () => {
         try{
@@ -939,69 +1037,205 @@
     }
   }
 
-  // ---------- Verifizierungen ----------
+  // ---------- Alters- und Identitätsprüfung ----------
+  // Eine konsolidierte Ansicht pro Vorgang: Accountdaten, Profilfotos,
+  // Verifizierungs-Selfies und Ausweisaufnahmen. Freigeben ist erst möglich,
+  // wenn jeder Punkt der Checkliste bestätigt wurde (der Server prüft das
+  // ebenfalls und lehnt unvollständige Bestätigungen ab).
+  const CHECKLIST = [
+    ['selfie_matches_profile_photos', 'Selfie entspricht den Profilbildern'],
+    ['selfie_matches_document', 'Selfie entspricht der Person auf dem Ausweis'],
+    ['document_shows_min_age', 'Ausweis zeigt ein Alter von mindestens 18 Jahren'],
+    ['document_dob_matches_registration', 'Geburtsdatum auf dem Ausweis stimmt mit der Registrierung überein'],
+    ['document_legible', 'Dokument ist für die Prüfung ausreichend lesbar'],
+    ['document_plausible', 'Dokument wirkt plausibel/gültig'],
+  ];
+
+  const REASON_OPTIONS = [
+    ['document_unreadable', 'Dokument unleserlich'],
+    ['details_not_visible', 'Notwendige Angaben nicht sichtbar'],
+    ['person_mismatch', 'Person stimmt nicht überein'],
+    ['dob_mismatch', 'Geburtsdatum stimmt nicht überein'],
+    ['underage', 'Unter 18'],
+    ['document_unsuitable', 'Dokument ungeeignet'],
+    ['selfie_unusable', 'Selfies nicht verwertbar'],
+    ['other', 'Sonstiger Prüfgrund'],
+  ];
+
+  const DOC_TYPE_LABELS = {
+    id_card: 'Personalausweis',
+    passport: 'Reisepass',
+    drivers_license: 'Führerschein',
+  };
+
+  const SIDE_LABELS = {front: 'Vorderseite', back: 'Rückseite'};
+
+  // Das Geburtsdatum kommt als reines Datum ("1997-06-15"). fmtDate() hängt für
+  // Zeitstempel ein "Z" an - bei einem Datum ohne Uhrzeit lehnen strengere
+  // Browser das ab, deshalb hier eine eigene, simple Umformung.
+  function fmtDateOnly(iso){
+    const parts = String(iso || '').split('-');
+    return parts.length === 3 ? `${parts[2]}.${parts[1]}.${parts[0]}` : escapeHtml(iso || '—');
+  }
+
   async function loadVerifications(){
     const wrap = $('verificationsWrap');
     wrap.innerHTML = '<div class="loading">Lädt …</div>';
+    renderCleanupWarning();
     try{
       const reqs = await api('/api/admin/verifications');
       if(reqs.length === 0){
         wrap.innerHTML = '<div class="empty-state">Keine offenen Verifizierungen.</div>';
         return;
       }
-      wrap.innerHTML = reqs.map(r => `
-        <div class="verify-review-card" data-req-id="${r.id}">
-          <div class="meta">
-            <div class="nm">${escapeHtml(r.user_name)}</div>
-            <div class="mono">${escapeHtml(r.user_email)}</div>
-          </div>
-          <div class="verify-cols">
-            <div>
-              <div class="verify-col-title">Selfies (angeforderte Posen)</div>
-              <div class="verify-imgs">
-                ${r.selfie_urls.map(s => `
-                  <figure>
-                    <img src="${escapeHtml(s.url)}" loading="lazy">
-                    <figcaption>${escapeHtml(s.prompt)}</figcaption>
-                  </figure>`).join('')}
-              </div>
-            </div>
-            <div>
-              <div class="verify-col-title">Profilfotos</div>
-              <div class="verify-imgs">
-                ${r.profile_photo_urls.length
-                  ? r.profile_photo_urls.map(u => `<figure><img src="${escapeHtml(u)}" loading="lazy"></figure>`).join('')
-                  : '<div class="mono">Keine Profilfotos</div>'}
-              </div>
-            </div>
-          </div>
-          <div class="actions">
-            <button class="btn small" data-action="approve">Verifizieren (blauer Haken)</button>
-            <button class="btn secondary small" data-action="reject">Ablehnen</button>
-          </div>
-        </div>
-      `).join('');
-
-      wrap.querySelectorAll('.verify-review-card').forEach(card => {
-        const reqId = card.dataset.reqId;
-        card.querySelectorAll('button[data-action]').forEach(btn => {
-          btn.addEventListener('click', async () => {
-            try{
-              if(btn.dataset.action === 'approve'){
-                await api(`/api/admin/verifications/${reqId}/approve`, {method: 'POST'});
-              } else {
-                if(!confirm('Verifizierung wirklich ablehnen?')) return;
-                await api(`/api/admin/verifications/${reqId}/reject`, {method: 'POST'});
-              }
-              toast('Erledigt - Selfies wurden gelöscht.');
-              loadVerifications();
-            }catch(err){ toast(err.message); }
-          });
-        });
-      });
+      wrap.innerHTML = reqs.map(renderVerificationCard).join('');
+      wrap.querySelectorAll('.verify-review-card').forEach(wireVerificationCard);
     }catch(err){
       wrap.innerHTML = `<div class="empty-state">${escapeHtml(err.message)}</div>`;
     }
+  }
+
+  // Warnt, wenn nach einer Entscheidung noch Aufnahmen im Storage liegen
+  // (Löschung fehlgeschlagen). Der Aufräumlauf wiederholt sie beim nächsten
+  // Login eines Nutzers.
+  async function renderCleanupWarning(){
+    const box = $('cleanupWarning');
+    box.innerHTML = '';
+    try{
+      const stats = await api('/api/admin/stats');
+      if(stats.pending_verification_cleanups > 0){
+        box.innerHTML = `<div class="cleanup-warning">
+          <b>${stats.pending_verification_cleanups} entschiedene Prüfung(en) sind noch nicht aufgeräumt.</b>
+          Die Aufnahmen konnten nicht aus dem Storage gelöscht werden. Der Aufräumlauf
+          versucht es automatisch erneut — bleibt die Zahl bestehen, den
+          Storage-Zugang prüfen.
+        </div>`;
+      }
+    }catch(err){ /* Statistik ist hier nur ein Hinweis */ }
+  }
+
+  function renderVerificationCard(r){
+    const docLabel = r.document_type ? (DOC_TYPE_LABELS[r.document_type] || r.document_type) : null;
+    return `
+      <div class="verify-review-card" data-req-id="${r.id}">
+        <div class="meta">
+          <div class="nm">${escapeHtml(r.user_name)}</div>
+          <div class="mono">${escapeHtml(r.user_email)}</div>
+        </div>
+        <div class="verify-facts">
+          <span><span class="k">Account-ID</span><span class="v">${escapeHtml(r.user_id)}</span></span>
+          <span><span class="k">Angegebenes Geburtsdatum</span><span class="v">${fmtDateOnly(r.user_birthdate)}</span></span>
+          <span><span class="k">Errechnetes Alter</span><span class="v">${r.user_age}</span></span>
+          <span><span class="k">Registriert</span><span class="v">${fmtDate(r.user_registered_at)}</span></span>
+          <span><span class="k">Eingereicht</span><span class="v">${fmtDate(r.submitted_at || r.created_at)}</span></span>
+        </div>
+
+        <div class="verify-cols">
+          <div>
+            <div class="verify-col-title">Verifizierungs-Selfies (angeforderte Posen)</div>
+            <div class="verify-imgs">
+              ${r.selfie_urls.length
+                ? r.selfie_urls.map(s => `
+                  <figure>
+                    <img src="${escapeHtml(s.url)}" loading="lazy">
+                    <figcaption>${escapeHtml(s.prompt)}</figcaption>
+                  </figure>`).join('')
+                : '<div class="verify-doc-missing">Keine Selfies vorhanden.</div>'}
+            </div>
+          </div>
+          <div>
+            <div class="verify-col-title">Profilfotos</div>
+            <div class="verify-imgs">
+              ${r.profile_photo_urls.length
+                ? r.profile_photo_urls.map(u => `<figure><img src="${escapeHtml(u)}" loading="lazy"></figure>`).join('')
+                : '<div class="mono">Keine Profilfotos</div>'}
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-top:18px;">
+          <div class="verify-col-title">
+            Amtlicher Lichtbildausweis${docLabel ? ' — ' + escapeHtml(docLabel) : ''}
+          </div>
+          ${r.document_urls.length
+            ? `<div class="verify-doc-imgs">${r.document_urls.map(d => `
+                <figure>
+                  <a href="${escapeHtml(d.url)}" target="_blank" rel="noopener">
+                    <img src="${escapeHtml(d.url)}" loading="lazy">
+                  </a>
+                  <figcaption>${escapeHtml(SIDE_LABELS[d.side] || d.side)} — zum Vergrößern anklicken</figcaption>
+                </figure>`).join('')}</div>`
+            : `<div class="verify-doc-missing">Keine Ausweisaufnahme vorhanden — dieser
+                Vorgang stammt aus der Zeit vor der Ausweisprüfung. Über
+                "Neue Aufnahme anfordern" den Ausweis nachfordern.</div>`}
+        </div>
+
+        <div class="verify-checklist">
+          <div class="title">Prüfcheckliste — alle Punkte nötig</div>
+          ${CHECKLIST.map(([key, label]) => `
+            <label><input type="checkbox" data-check="${key}"> <span>${escapeHtml(label)}</span></label>
+          `).join('')}
+        </div>
+
+        <div class="verify-reason">
+          <label for="reason-${r.id}">Prüfgrund (für Ablehnung / neue Aufnahme):</label>
+          <select id="reason-${r.id}" data-reason>
+            ${REASON_OPTIONS.map(([v, l]) => `<option value="${v}">${escapeHtml(l)}</option>`).join('')}
+          </select>
+          <label>
+            <input type="checkbox" data-redo-selfie> Selfies ebenfalls neu aufnehmen lassen
+          </label>
+        </div>
+
+        <div class="actions">
+          <button class="btn small" data-action="approve" disabled>Freigeben (blauer Haken)</button>
+          <button class="btn secondary small" data-action="reupload">Neue Aufnahme anfordern</button>
+          <button class="btn secondary small" data-action="reject">Endgültig ablehnen</button>
+        </div>
+      </div>`;
+  }
+
+  function wireVerificationCard(card){
+    const reqId = card.dataset.reqId;
+    const approveBtn = card.querySelector('button[data-action="approve"]');
+    const checks = [...card.querySelectorAll('input[data-check]')];
+
+    function refreshApproveState(){
+      approveBtn.disabled = !checks.every(c => c.checked);
+    }
+    checks.forEach(c => c.addEventListener('change', refreshApproveState));
+
+    card.querySelectorAll('button[data-action]').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const action = btn.dataset.action;
+        const reasonCode = card.querySelector('select[data-reason]').value;
+        const redoSelfie = card.querySelector('input[data-redo-selfie]').checked;
+        try{
+          let result;
+          if(action === 'approve'){
+            const checklist = {};
+            checks.forEach(c => { checklist[c.dataset.check] = c.checked; });
+            result = await api(`/api/admin/verifications/${reqId}/approve`, {
+              method: 'POST', body: JSON.stringify(checklist),
+            });
+          } else if(action === 'reupload'){
+            result = await api(`/api/admin/verifications/${reqId}/request-reupload`, {
+              method: 'POST',
+              body: JSON.stringify({reason_code: reasonCode, redo_selfie: redoSelfie}),
+            });
+          } else {
+            if(!confirm('Verifizierung endgültig ablehnen? Das Konto bleibt gesperrt und kann die Prüfung nicht selbst neu starten.')) return;
+            result = await api(`/api/admin/verifications/${reqId}/reject`, {
+              method: 'POST', body: JSON.stringify({reason_code: reasonCode}),
+            });
+          }
+          toast(result && result.documents_deleted === false
+            ? 'Entschieden — ACHTUNG: Aufnahmen konnten nicht gelöscht werden, Aufräumlauf läuft nach.'
+            : 'Erledigt — Selfies und Ausweisaufnahmen wurden gelöscht.');
+          loadVerifications();
+        }catch(err){ toast(err.message); }
+      });
+    });
   }
 
   // ---------- Reports ----------

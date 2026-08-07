@@ -107,11 +107,24 @@ data class Gym(
             .joinToString(", ")
 }
 
-enum class VerificationStatus { NONE, IN_PROGRESS, SUBMITTED, APPROVED, REJECTED;
+/**
+ * Stand der Alters- und Identitätsprüfung.
+ *
+ * ID_REQUIRED und REUPLOAD_REQUIRED gehören zum Ausweisschritt, den diese App
+ * noch nicht selbst anbietet — siehe VerificationHint in AccountScreen.kt.
+ */
+enum class VerificationStatus {
+    NONE, IN_PROGRESS, ID_REQUIRED, REUPLOAD_REQUIRED, SUBMITTED, APPROVED, REJECTED;
+
+    /** Der Ausweisschritt steht noch aus. */
+    val needsDocument: Boolean
+        get() = this == ID_REQUIRED || this == REUPLOAD_REQUIRED
 
     companion object {
         fun from(raw: String?): VerificationStatus = when (raw?.lowercase()) {
             "in_progress" -> IN_PROGRESS
+            "id_required" -> ID_REQUIRED
+            "reupload_required" -> REUPLOAD_REQUIRED
             "submitted" -> SUBMITTED
             "approved" -> APPROVED
             "rejected" -> REJECTED

@@ -440,17 +440,25 @@ private fun VerificationHint(
     val label = when {
         isVerified -> "Verifiziert"
         status == VerificationStatus.SUBMITTED -> "Prüfung läuft …"
+        status.needsDocument -> "Alter bestätigen"
         else -> "Verifizierung"
     }
     val description = when {
         isVerified ->
             "Dein Profil ist verifiziert — andere sehen den blauen Haken neben deinem Namen."
         status == VerificationStatus.SUBMITTED ->
-            "Deine Selfies sind in Prüfung. Nach der Freigabe bekommst du den blauen Haken."
+            "Deine Verifizierung wird geprüft. Nach der Freigabe bekommst du den blauen Haken."
+        // Der Ausweisschritt läuft derzeit nur über flexr.social - die App holt
+        // ihn in einer eigenen Version nach.
+        status.needsDocument ->
+            "Es fehlt noch die Aufnahme deines amtlichen Lichtbildausweises. " +
+                "Diesen Schritt schließt du gerade noch unter flexr.social ab."
         status == VerificationStatus.REJECTED ->
-            "Deine letzte Verifizierung wurde abgelehnt — du kannst es erneut versuchen."
+            "Deine Verifizierung konnte nicht abgeschlossen werden. Bei Fragen: " +
+                "flexr.social@proton.me"
         else ->
-            "Zeig mit 3 Live-Selfies, dass du wirklich du bist — und hol dir den blauen Haken."
+            "Zeig mit 3 Live-Selfies und einem Lichtbildausweis, dass du wirklich du bist — " +
+                "und hol dir den blauen Haken."
     }
 
     Column(
@@ -489,17 +497,17 @@ private fun VerificationHint(
                 }
             }
 
-            status != VerificationStatus.SUBMITTED -> Row(
+            // Kein Startknopf, wenn nichts zu starten ist: in Prüfung, endgültig
+            // abgelehnt, oder der Ausweisschritt läuft (den kann die App noch nicht).
+            status != VerificationStatus.SUBMITTED &&
+                status != VerificationStatus.REJECTED &&
+                !status.needsDocument -> Row(
                 Modifier.fillMaxWidth().padding(top = 4.dp),
                 horizontalArrangement = Arrangement.End,
             ) {
                 TextButton(onClick = onStartVerification) {
                     Text(
-                        text = if (status == VerificationStatus.REJECTED) {
-                            "Erneut versuchen"
-                        } else {
-                            "Zur Verifizierung"
-                        },
+                        text = "Zur Verifizierung",
                         color = tint,
                         style = MaterialTheme.typography.labelLarge,
                     )
