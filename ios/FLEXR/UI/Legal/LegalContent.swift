@@ -125,12 +125,18 @@ enum LegalContent {
             ]),
             .heading("Anwendbare Rechtsvorschriften"),
             .keyValues([("Gewerbeordnung", "www.ris.bka.gv.at")]),
-            .heading("EU-Streitschlichtung"),
+            .heading("Verbraucherbeschwerden und Streitbeilegung"),
             .paragraph(
-                "Die Europäische Kommission stellt eine Plattform zur Online-Streitbeilegung (OS) "
-                    + "bereit: ec.europa.eu/consumers/odr. Unsere E-Mail-Adresse für "
-                    + "Verbraucherbeschwerden: flexr.social@proton.me. Wir sind freiwillig bereit, an "
-                    + "einem Streitbeilegungsverfahren vor einer Verbraucherschlichtungsstelle teilzunehmen."
+                "Unsere E-Mail-Adresse für Verbraucherbeschwerden: flexr.social@proton.me. "
+                    + "Wir sind freiwillig bereit, an einem Streitbeilegungsverfahren vor einer "
+                    + "Verbraucherschlichtungsstelle teilzunehmen."
+            ),
+            .paragraph(
+                "Die Plattform der Europäischen Kommission zur Online-Streitbeilegung "
+                    + "(„OS-Plattform\") wurde am 20. Juli 2025 eingestellt. Die Verordnung (EU) "
+                    + "Nr. 524/2013 und die daraus folgende Pflicht, auf diese Plattform zu "
+                    + "verlinken, wurden durch die Verordnung (EU) 2024/3228 aufgehoben; ein "
+                    + "entsprechender Link entfällt daher."
             ),
             .heading("Haftung für Inhalte"),
             .paragraph(
@@ -253,7 +259,10 @@ enum LegalContent {
             .lettered([
                 "Es gilt österreichisches Recht unter Ausschluss der Verweisungsnormen des IPR.",
                 "Für Verbraucher gelten die zwingenden Bestimmungen des Wohnsitzstaates.",
-                "OS-Plattform der EU: ec.europa.eu/consumers/odr.",
+                "Beschwerden richte bitte an flexr.social@proton.me; wir sind freiwillig bereit, "
+                    + "an einem Streitbeilegungsverfahren vor einer Verbraucherschlichtungsstelle "
+                    + "teilzunehmen. Die OS-Plattform der Europäischen Kommission wurde am "
+                    + "20. Juli 2025 eingestellt (siehe Impressum).",
             ]),
         ]
     )

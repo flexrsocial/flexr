@@ -265,6 +265,20 @@
   }
   textarea{ resize:vertical; min-height:80px; }
 
+  /* Felder INNERHALB eines zusammengesetzten Bedienelements (Chat-Leiste,
+     PLZ-Kombination) haben kein eigenes Aussehen: Rahmen, Rundung und
+     Fokus-Anzeige gehören dort dem umgebenden Element. Ohne dieses
+     Zurücksetzen zeichnet die Fokus-Regel oben beim Tippen einen zweiten,
+     eckigen Rahmen mitten in die Leiste. */
+  .chat-input-row input,
+  .plz-combo input{
+    background:transparent; border:none; border-radius:0;
+  }
+  .chat-input-row input:focus,
+  .plz-combo input:focus{
+    outline:none; border-color:transparent; box-shadow:none;
+  }
+
   .plz-combo{
     display:flex; align-items:center;
     background:var(--surface); border:1px solid var(--steel); border-radius:10px;
@@ -641,11 +655,19 @@
   .chat-emoji-btn:hover{ color:var(--chalk); background:var(--surface-2); }
   .chat-emoji-btn svg.ico{ width:21px; height:21px; }
   .chat-emoji-panel{ bottom:52px; left:8px; right:8px; }
-  .chat-input-row:focus-within{ border-color:var(--plate); }
-  .chat-input-row input{
-    flex:1; background:transparent; border:none; padding:9px 0; font-size:14.5px;
+  /* Fokus zeigt die Leiste als Ganzes an - ein zusätzlicher Rahmen um das
+     Textfeld wäre doppelt (siehe Reset weiter oben). */
+  .chat-input-row:focus-within{
+    border-color:var(--plate);
+    box-shadow:0 0 0 3px rgba(255,90,31,.12);
   }
-  .chat-input-row input:focus{ outline:none; }
+  .chat-input-row input{
+    /* min-width:0 erlaubt dem Feld, unter seine Inhaltsbreite zu schrumpfen -
+       sonst schiebt eine lange Nachricht den Senden-Knopf aus der Leiste. */
+    flex:1; min-width:0; width:auto;
+    padding:9px 4px; font-size:14.5px; line-height:1.4;
+  }
+  .chat-input-row input::placeholder{ color:var(--chalk-dim); }
   .chat-send-btn{
     width:40px; height:40px; border-radius:50%; border:none; cursor:pointer; flex-shrink:0;
     display:flex; align-items:center; justify-content:center; color:#fff;
