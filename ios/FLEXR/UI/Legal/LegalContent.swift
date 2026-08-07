@@ -127,9 +127,7 @@ enum LegalContent {
             .keyValues([("Gewerbeordnung", "www.ris.bka.gv.at")]),
             .heading("Verbraucherbeschwerden und Streitbeilegung"),
             .paragraph(
-                "Unsere E-Mail-Adresse für Verbraucherbeschwerden: flexr.social@proton.me. "
-                    + "Wir sind freiwillig bereit, an einem Streitbeilegungsverfahren vor einer "
-                    + "Verbraucherschlichtungsstelle teilzunehmen."
+                "Unsere E-Mail-Adresse für Verbraucherbeschwerden: flexr.social@proton.me."
             ),
             .paragraph(
                 "Die Plattform der Europäischen Kommission zur Online-Streitbeilegung "
@@ -259,10 +257,9 @@ enum LegalContent {
             .lettered([
                 "Es gilt österreichisches Recht unter Ausschluss der Verweisungsnormen des IPR.",
                 "Für Verbraucher gelten die zwingenden Bestimmungen des Wohnsitzstaates.",
-                "Beschwerden richte bitte an flexr.social@proton.me; wir sind freiwillig bereit, "
-                    + "an einem Streitbeilegungsverfahren vor einer Verbraucherschlichtungsstelle "
-                    + "teilzunehmen. Die OS-Plattform der Europäischen Kommission wurde am "
-                    + "20. Juli 2025 eingestellt (siehe Impressum).",
+                "Beschwerden richte bitte an flexr.social@proton.me. Die OS-Plattform der "
+                    + "Europäischen Kommission wurde am 20. Juli 2025 eingestellt "
+                    + "(siehe Impressum).",
             ]),
         ]
     )

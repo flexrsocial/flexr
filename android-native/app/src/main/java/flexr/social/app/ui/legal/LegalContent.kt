@@ -111,9 +111,7 @@ object LegalContent {
             LegalBlock.KeyValues(listOf("Gewerbeordnung" to "www.ris.bka.gv.at")),
             LegalBlock.Heading("Verbraucherbeschwerden und Streitbeilegung"),
             LegalBlock.Paragraph(
-                "Unsere E-Mail-Adresse für Verbraucherbeschwerden: flexr.social@proton.me. " +
-                    "Wir sind freiwillig bereit, an einem Streitbeilegungsverfahren vor einer " +
-                    "Verbraucherschlichtungsstelle teilzunehmen.",
+                "Unsere E-Mail-Adresse für Verbraucherbeschwerden: flexr.social@proton.me.",
             ),
             LegalBlock.Paragraph(
                 "Die Plattform der Europäischen Kommission zur Online-Streitbeilegung " +
@@ -249,9 +247,7 @@ object LegalContent {
                 listOf(
                     "Es gilt österreichisches Recht unter Ausschluss der Verweisungsnormen des IPR.",
                     "Für Verbraucher gelten die zwingenden Bestimmungen des Wohnsitzstaates.",
-                    "Beschwerden richte bitte an flexr.social@proton.me; wir sind freiwillig " +
-                        "bereit, an einem Streitbeilegungsverfahren vor einer " +
-                        "Verbraucherschlichtungsstelle teilzunehmen. Die OS-Plattform der " +
+                    "Beschwerden richte bitte an flexr.social@proton.me. Die OS-Plattform der " +
                         "Europäischen Kommission wurde am 20. Juli 2025 eingestellt " +
                         "(siehe Impressum).",
                 ),
