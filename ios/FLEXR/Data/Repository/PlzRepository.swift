@@ -10,12 +10,14 @@ struct InvalidPostalCodeError: LocalizedError {
     var errorDescription: String? { "Ungültige Postleitzahl." }
 }
 
-/// Ortsermittlung zur Postleitzahl über die OpenPLZ-API.
+/// Ortsermittlung zur Postleitzahl über das eigene Backend.
 ///
-/// Gespeichert wird der GEMEINDE-Name (z. B. „Wien", „Graz"), nicht die einzelne
-/// Ortschaft („Wien, Favoriten") — die Gemeinde ist die sinnvolle Ebene für die
-/// Umkreissuche. Heuristik wie im Web: der häufigste Gemeindename unter allen
-/// Treffern der PLZ.
+/// Gespeichert wird der amtliche Ortsname zur PLZ (z. B. „Wien", „Linz"), nicht
+/// die einzelne Ortschaft. Bis Version 2.0.9 fragten alle Clients dafür
+/// openplzapi.org direkt an und wählten aus dessen Ortschaftsliste die
+/// häufigste Gemeinde — das lieferte bei großen PLZ die Umlandgemeinde (4020
+/// wurde zu „Leonding" statt „Linz") und war für die Apps zeitweise gar nicht
+/// erreichbar.
 @MainActor
 final class PlzRepository {
 
@@ -39,24 +41,15 @@ final class PlzRepository {
         }
         if let cached = cache[plz] { return cached }
 
-        let localities = try await api.localities(postalCode: plz)
-        if localities.isEmpty { throw UnknownPostalCodeError() }
-
-        var counts: [String: Int] = [:]
-        for locality in localities {
-            guard let name = locality.municipality?.name else { continue }
-            counts[name, default: 0] += 1
+        let city: String
+        do {
+            city = try await api.lookupPostalCode(plz).city
+        } catch let error as FlexrAPIError where error.statusCode == 404 {
+            throw UnknownPostalCodeError()
         }
 
-        let municipality = counts.max { lhs, rhs in
-            lhs.value == rhs.value ? lhs.key > rhs.key : lhs.value < rhs.value
-        }?.key
-            ?? localities.compactMap(\.name).first
-
-        guard let municipality else { throw UnknownPostalCodeError() }
-
-        cache[plz] = municipality
-        return municipality
+        cache[plz] = city
+        return city
     }
 }
 

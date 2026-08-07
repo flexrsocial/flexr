@@ -13,6 +13,7 @@ import flexr.social.app.data.remote.dto.MembershipStatusDto
 import flexr.social.app.data.remote.dto.MessageDto
 import flexr.social.app.data.remote.dto.ModerationNoticeDto
 import flexr.social.app.data.remote.dto.MyProfileDto
+import flexr.social.app.data.remote.dto.PlzLookupDto
 import flexr.social.app.data.remote.dto.PortalUrlDto
 import flexr.social.app.data.remote.dto.PresignPhotoRequestDto
 import flexr.social.app.data.remote.dto.PresignPhotoResponseDto
@@ -119,6 +120,11 @@ open class FakeFlexrApi : FlexrApi {
 
     override suspend fun suggestGym(body: GymSuggestRequestDto): GymDto =
         nichtVorgesehen("suggestGym")
+
+    // ---------- geo.py ----------
+
+    override suspend fun lookupPostalCode(plz: String): PlzLookupDto =
+        nichtVorgesehen("lookupPostalCode")
 
     // ---------- verification.py ----------
 

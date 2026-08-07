@@ -5,51 +5,33 @@ import XCTest
 @MainActor
 final class PlzRepositoryTests: XCTestCase {
 
-    /// Ortsverzeichnis ohne Netz.
+    /// PLZ-Lookup ohne Netz.
     private final class FakeLookup: PostalCodeLookup, @unchecked Sendable {
-        private let response: [OpenPlzLocalityDTO]
+        private let response: () throws -> PlzLookupDTO
         private(set) var callCount = 0
 
-        init(_ response: [OpenPlzLocalityDTO]) {
+        init(_ response: @escaping () throws -> PlzLookupDTO) {
             self.response = response
         }
 
-        func localities(postalCode: String) async throws -> [OpenPlzLocalityDTO] {
+        func lookupPostalCode(_ plz: String) async throws -> PlzLookupDTO {
             callCount += 1
-            return response
+            return try response()
         }
     }
 
-    private func locality(_ name: String, municipality: String?) -> OpenPlzLocalityDTO {
-        OpenPlzLocalityDTO(
-            name: name,
-            postalCode: nil,
-            municipality: municipality.map { OpenPlzMunicipalityDTO(name: $0) }
-        )
-    }
-
-    func testHaeufigsteGemeindeGewinnt() async throws {
-        // Wien 1100 liefert mehrere Ortschaften, aber dieselbe Gemeinde —
-        // gespeichert wird die Gemeinde, weil darauf die Umkreissuche aufsetzt.
-        let api = FakeLookup([
-            locality("Wien, Favoriten", municipality: "Wien"),
-            locality("Wien, Innere Stadt", municipality: "Wien"),
-            locality("Irgendwo", municipality: "Andere Gemeinde"),
-        ])
+    func testOrtKommtVomBackend() async throws {
+        let api = FakeLookup { PlzLookupDTO(plz: "4020", city: "Linz") }
         let repository = PlzRepository(api: api)
-        let result = try await repository.municipality(forPostalCode: "1100")
-        XCTAssertEqual(result, "Wien")
+        let result = try await repository.municipality(forPostalCode: "4020")
+        XCTAssertEqual(result, "Linz")
     }
 
-    func testOhneGemeindenamenGreiftDerOrtsname() async throws {
-        let api = FakeLookup([locality("Grafendorf bei Hartberg", municipality: nil)])
+    func testNichtGefundenMeldetUnbekanntePlz() async {
+        let api = FakeLookup {
+            throw FlexrAPIError(statusCode: 404, message: "Postleitzahl nicht gefunden. Bitte prüfen.")
+        }
         let repository = PlzRepository(api: api)
-        let result = try await repository.municipality(forPostalCode: "8232")
-        XCTAssertEqual(result, "Grafendorf bei Hartberg")
-    }
-
-    func testLeereAntwortMeldetUnbekanntePlz() async {
-        let repository = PlzRepository(api: FakeLookup([]))
         do {
             _ = try await repository.municipality(forPostalCode: "9999")
             XCTFail("Erwartet: UnknownPostalCodeError")
@@ -58,8 +40,24 @@ final class PlzRepositoryTests: XCTestCase {
         }
     }
 
+    func testAndereFehlerBleibenUnterscheidbar() async {
+        // Netzausfall darf nicht als „PLZ gibt es nicht" beim Nutzer landen.
+        let api = FakeLookup {
+            throw FlexrAPIError(statusCode: 0, message: "Keine Internetverbindung.")
+        }
+        let repository = PlzRepository(api: api)
+        do {
+            _ = try await repository.municipality(forPostalCode: "1010")
+            XCTFail("Erwartet: FlexrAPIError")
+        } catch let error as FlexrAPIError {
+            XCTAssertEqual(error.statusCode, 0)
+        } catch {
+            XCTFail("Unerwarteter Fehler: \(error)")
+        }
+    }
+
     func testUngueltigesFormatWirdGarNichtErstAngefragt() async {
-        let api = FakeLookup([])
+        let api = FakeLookup { PlzLookupDTO(plz: "1010", city: "Wien") }
         let repository = PlzRepository(api: api)
         do {
             _ = try await repository.municipality(forPostalCode: "10")
@@ -71,7 +69,7 @@ final class PlzRepositoryTests: XCTestCase {
     }
 
     func testWiederholteAbfrageKommtAusDemCache() async throws {
-        let api = FakeLookup([locality("Graz", municipality: "Graz")])
+        let api = FakeLookup { PlzLookupDTO(plz: "8010", city: "Graz") }
         let repository = PlzRepository(api: api)
         _ = try await repository.municipality(forPostalCode: "8010")
         _ = try await repository.municipality(forPostalCode: "8010")

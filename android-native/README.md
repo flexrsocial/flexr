@@ -66,7 +66,7 @@ app/src/main/java/flexr/social/app/
 │   ├── network/                 Interceptors, Fehlerübersetzung
 │   └── browser/                 Custom Tab für Stripe
 ├── data/
-│   ├── remote/                  FlexrApi, OpenPlzApi, DTOs
+│   ├── remote/                  FlexrApi, DTOs
 │   ├── local/                   Room: Matches + Nachrichten
 │   ├── session/SessionStore     DataStore: Token, Geräte-ID, Einstellungen
 │   └── repository/              10 Repositories, die einzige Datenquelle der VMs
@@ -88,7 +88,7 @@ sofort und offline sichtbar — im Web war jede Ansicht ein Ladebalken.
 | `index.html` Login-Screen | `ui/auth/LoginScreen` + `LoginViewModel` | |
 | Onboarding-Formular | `ui/auth/RegisterScreen` + `RegisterViewModel` | Geburtsdatum über den nativen Kalenderdialog mit 18-Jahres-Grenze |
 | `preparePhoto()` (Canvas) | `core/media/ImageProcessor` | 600 px Mindestmaß, 1080 px Vollbild, 256 px Thumbnail, EXIF-Drehung |
-| PLZ-Lookup (OpenPLZ) | `data/repository/PlzRepository` | Gemeinde-Heuristik übernommen, mit Cache |
+| PLZ-Lookup | `data/repository/PlzRepository` | fragt `GET /api/geo/plz/{plz}` im eigenen Backend, mit Cache |
 | Gym-Suchfeld + Vorschlag | `ui/components/GymPicker` | speichert weiterhin das volle Label `Name — Straße 1, 1100 Wien` |
 | Swipe-Deck + Drag-Physik | `ui/swipe/SwipeCard` | Griffpunkt-Rotation, Schwellenwert und Fling-Verhalten 1:1 nachgebildet |
 | `showMatchOverlay()` | `ui/swipe/MatchOverlay` | |

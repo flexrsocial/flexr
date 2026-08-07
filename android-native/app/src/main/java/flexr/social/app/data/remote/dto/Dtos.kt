@@ -226,14 +226,7 @@ data class VerificationSelfieDto(
 @Serializable
 data class VerificationSubmitRequestDto(val selfies: List<VerificationSelfieDto>)
 
-// ---------- PLZ-Lookup (OpenPLZ API, openplzapi.org) ----------
+// ---------- PLZ-Lookup (eigenes Backend, GET /api/geo/plz/{plz}) ----------
 
 @Serializable
-data class OpenPlzLocalityDto(
-    val name: String? = null,
-    val postalCode: String? = null,
-    val municipality: OpenPlzMunicipalityDto? = null,
-)
-
-@Serializable
-data class OpenPlzMunicipalityDto(val name: String? = null)
+data class PlzLookupDto(val plz: String, val city: String)

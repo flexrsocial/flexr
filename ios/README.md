@@ -75,7 +75,7 @@ ios/
     │   ├── Network/              APIClient, Fehlerübersetzung
     │   └── Browser/              SFSafariViewController für Stripe
     ├── Data/
-    │   ├── Remote/               FlexrAPI, OpenPlzAPI, DTOs
+    │   ├── Remote/               FlexrAPI, BackendPlzAPI, DTOs
     │   ├── Local/                SwiftData: Matches + Nachrichten
     │   ├── Session/              Keychain-Token, Geräte-ID, Einstellungen
     │   └── Repository/           11 Repositories, die einzige Datenquelle der Modelle

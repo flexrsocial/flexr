@@ -19,9 +19,9 @@ class RegisterRequest(BaseModel):
     name: str = Field(min_length=1, max_length=100)
     # Geburtsdatum statt Alter - das Alter wird serverseitig laufend berechnet.
     birthdate: date
-    # Adresse: plz/city kommen aus einer echten PLZ-Lookup im Frontend (OpenPLZ
-    # API), city ist der daraus abgeleitete Ort/Gemeinde-Name - keine feste
-    # Städteliste mehr, ganz Österreich ist abgedeckt.
+    # Adresse: city ist der amtliche Ortsname zur PLZ. Der Client holt ihn über
+    # GET /api/geo/plz/{plz}; maßgeblich ist ohnehin, was der Server daraus
+    # macht (siehe routers/auth.py) - keine feste Städteliste, ganz Österreich.
     plz: str = Field(pattern=r"^\d{4}$", description="4-stellige österreichische Postleitzahl")
     city: str = Field(min_length=1)
     gender: Literal["mann", "frau"]
@@ -130,9 +130,9 @@ class MyProfileOut(ProfileOut):
 
 
 class UpdateProfileRequest(BaseModel):
-    """Editierbare Profilfelder. PLZ und Ort müssen gemeinsam kommen (der Ort
-    wird im Frontend per PLZ-Lookup ermittelt). Das Geburtsdatum ist bewusst
-    nicht änderbar."""
+    """Editierbare Profilfelder. PLZ und Ort müssen gemeinsam kommen; welcher
+    Ort gespeichert wird, entscheidet aber die PLZ (siehe routers/profiles.py).
+    Das Geburtsdatum ist bewusst nicht änderbar."""
 
     plz: Optional[str] = Field(default=None, pattern=r"^\d{4}$")
     city: Optional[str] = Field(default=None, min_length=1)
@@ -210,6 +210,13 @@ class GymSuggestRequest(BaseModel):
     house_number: str = Field(min_length=1, max_length=20)
     plz: str = Field(pattern=r"^\d{4}$")
     city: Optional[str] = Field(default=None, max_length=100)
+
+
+# ---------- Geo ----------
+
+class PlzLookupOut(BaseModel):
+    plz: str
+    city: str
 
 
 # ---------- Telefonprüfung ----------

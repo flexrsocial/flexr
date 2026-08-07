@@ -1985,26 +1985,16 @@
   }
 
   // ---------- Registrierung ----------
-  // ---------- PLZ/Ort-Lookup (OpenPLZ API, ganz Österreich) ----------
-  const OPENPLZ_BASE = 'https://openplzapi.org/at';
+  // ---------- PLZ/Ort-Lookup ----------
+  // Der Ort kommt aus dem eigenen Backend (/api/geo/plz/<plz>), das dafür das
+  // amtliche Postleitzahlenverzeichnis mitbringt. Früher fragte jeder Client
+  // openplzapi.org selbst ab; das lieferte bei großen PLZ die falsche Gemeinde
+  // (4020 -> "Leonding" statt "Linz") und war für die Apps gar nicht erreichbar.
   let plzLookupTimeout = null;
   let resolvedCity = '';
 
-  // Als Ort speichern wir den GEMEINDE-Namen (z.B. "Wien", "Graz"), nicht die
-  // einzelne Ortschaft ("Wien, Favoriten" / "Edelsbach bei Graz") - das Deck
-  // matcht exakt auf Stadtgleichheit, und die Gemeinde ist die sinnvolle Ebene.
-  // Heuristik: der häufigste Gemeindename unter allen Treffern der PLZ.
-  function pickMunicipality(localities){
-    const counts = {};
-    for(const l of localities){
-      const m = l.municipality && l.municipality.name;
-      if(m) counts[m] = (counts[m] || 0) + 1;
-    }
-    let best = '', bestCount = 0;
-    for(const [name, count] of Object.entries(counts)){
-      if(count > bestCount){ best = name; bestCount = count; }
-    }
-    return best || (localities[0] && localities[0].name) || '';
+  async function lookupCityForPlz(plz){
+    return (await api(`/api/geo/plz/${encodeURIComponent(plz)}`)).city;
   }
 
   async function lookupLocalityForPlz(plz){
@@ -2015,18 +2005,15 @@
     ortDisplay.classList.remove('resolved');
     resolvedCity = '';
     try{
-      const res = await fetch(`${OPENPLZ_BASE}/Localities?postalCode=${encodeURIComponent(plz)}`);
-      if(!res.ok) throw new Error('Lookup fehlgeschlagen');
-      const localities = await res.json();
-      if(localities.length === 0){
+      resolvedCity = await lookupCityForPlz(plz);
+      ortDisplay.textContent = resolvedCity;
+      ortDisplay.classList.add('resolved');
+    }catch(err){
+      if(err.status === 404){
         ortDisplay.textContent = '— unbekannte PLZ —';
         plzErr.textContent = 'Postleitzahl nicht gefunden. Bitte prüfen.';
         return;
       }
-      resolvedCity = pickMunicipality(localities);
-      ortDisplay.textContent = resolvedCity;
-      ortDisplay.classList.add('resolved');
-    }catch(err){
       ortDisplay.textContent = '— Lookup fehlgeschlagen —';
       plzErr.textContent = 'Ort konnte nicht ermittelt werden. Bitte später erneut versuchen.';
       console.error(err);
@@ -2141,13 +2128,7 @@
     }
     // Ort zur PLZ still ermitteln (best effort)
     let city = '';
-    try{
-      const res = await fetch(`${OPENPLZ_BASE}/Localities?postalCode=${encodeURIComponent(plz)}`);
-      if(res.ok){
-        const localities = await res.json();
-        if(localities.length) city = pickMunicipality(localities);
-      }
-    }catch(e){ /* Ort bleibt leer */ }
+    try{ city = await lookupCityForPlz(plz); }catch(e){ /* Ort bleibt leer */ }
 
     const btn = $('btnGymSuggestSubmit');
     btn.disabled = true;
@@ -2579,18 +2560,15 @@
     ortDisplay.classList.remove('resolved');
     acctResolvedCity = '';
     try{
-      const res = await fetch(`${OPENPLZ_BASE}/Localities?postalCode=${encodeURIComponent(plz)}`);
-      if(!res.ok) throw new Error('Lookup fehlgeschlagen');
-      const localities = await res.json();
-      if(localities.length === 0){
+      acctResolvedCity = await lookupCityForPlz(plz);
+      ortDisplay.textContent = acctResolvedCity;
+      ortDisplay.classList.add('resolved');
+    }catch(err){
+      if(err.status === 404){
         ortDisplay.textContent = '— unbekannte PLZ —';
         $('acctPlzErr').textContent = 'Postleitzahl nicht gefunden. Bitte prüfen.';
         return;
       }
-      acctResolvedCity = pickMunicipality(localities);
-      ortDisplay.textContent = acctResolvedCity;
-      ortDisplay.classList.add('resolved');
-    }catch(err){
       ortDisplay.textContent = '— Lookup fehlgeschlagen —';
       $('acctPlzErr').textContent = 'Ort konnte nicht ermittelt werden. Bitte später erneut versuchen.';
       console.error(err);

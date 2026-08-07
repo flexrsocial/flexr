@@ -10,6 +10,10 @@ GeoNames verortet allerdings alle Bezirks-PLZ der Großstädte am Stadtzentrum
 Intra-Stadt-Distanz 0 km wäre. Für diese 116 kollidierenden PLZ wurden die
 Koordinaten daher aus den PLZ-Gebietszentren von OpenStreetMap
 (Nominatim, © OpenStreetMap-Mitwirkende, Lizenz ODbL) übernommen.
+
+Die Ortsnamen in app/data/plz_cities.json stammen aus dem amtlichen
+Postleitzahlenverzeichnis der Österreichischen Post, bezogen über RTR Open Data
+(https://data.rtr.at, Lizenz CC BY 4.0). Erzeugt von scripts/build_plz_cities.py.
 """
 
 import json
@@ -17,16 +21,24 @@ import math
 from pathlib import Path
 from typing import Optional
 
-_DATA_FILE = Path(__file__).parent / "data" / "plz_coords.json"
+_DATA_DIR = Path(__file__).parent / "data"
 
-with open(_DATA_FILE, encoding="utf-8") as f:
+with open(_DATA_DIR / "plz_coords.json", encoding="utf-8") as f:
     _PLZ_COORDS: dict[str, list[float]] = json.load(f)
+
+with open(_DATA_DIR / "plz_cities.json", encoding="utf-8") as f:
+    _PLZ_CITIES: dict[str, str] = json.load(f)
 
 
 def coords_for_plz(plz: str) -> Optional[tuple[float, float]]:
     """Liefert (lat, lon) für eine österreichische PLZ oder None."""
     entry = _PLZ_COORDS.get(plz)
     return (entry[0], entry[1]) if entry else None
+
+
+def city_for_plz(plz: str) -> Optional[str]:
+    """Liefert den amtlichen Ortsnamen zu einer österreichischen PLZ oder None."""
+    return _PLZ_CITIES.get((plz or "").strip())
 
 
 def haversine_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:

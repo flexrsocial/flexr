@@ -1,25 +1,27 @@
 package flexr.social.app.data.repository
 
+import flexr.social.app.core.network.FlexrApiException
 import flexr.social.app.core.network.apiCall
-import flexr.social.app.data.remote.OpenPlzApi
+import flexr.social.app.data.remote.FlexrApi
 import javax.inject.Inject
-import javax.inject.Named
 import javax.inject.Singleton
 
 /** Fehler, wenn zu einer eingegebenen PLZ kein österreichischer Ort existiert. */
 class UnknownPostalCodeException : Exception("Postleitzahl nicht gefunden. Bitte prüfen.")
 
 /**
- * Ortsermittlung zur Postleitzahl über die OpenPLZ-API.
+ * Ortsermittlung zur Postleitzahl über das eigene Backend.
  *
- * Gespeichert wird der GEMEINDE-Name (z. B. „Wien", „Graz"), nicht die einzelne
- * Ortschaft („Wien, Favoriten") — die Gemeinde ist die sinnvolle Ebene für die
- * Umkreissuche. Heuristik wie im Web: der häufigste Gemeindename unter allen
- * Treffern der PLZ.
+ * Früher fragte die App dafür openplzapi.org direkt an. Das ging zweimal
+ * schief: der Dienst beantwortet Requests mit OkHttp-User-Agent mit HTTP 418,
+ * womit in der App überhaupt keine PLZ mehr auflösbar war und die
+ * Registrierung scheiterte — und seine seitenweise begrenzte Ortschaftsliste
+ * ließ die Häufigkeits-Heuristik bei großen PLZ danebengreifen (4020 wurde zu
+ * „Leonding" statt „Linz"). Das Backend liefert jetzt den amtlichen Ortsnamen.
  */
 @Singleton
 class PlzRepository @Inject constructor(
-    @Named("openPlz") private val api: OpenPlzApi,
+    private val api: FlexrApi,
 ) {
 
     private val cache = mutableMapOf<String, String>()
@@ -29,20 +31,14 @@ class PlzRepository @Inject constructor(
         require(POSTAL_CODE_PATTERN.matches(plz)) { "Ungültige Postleitzahl." }
         cache[plz]?.let { return it }
 
-        val localities = apiCall { api.localities(plz) }
-        if (localities.isEmpty()) throw UnknownPostalCodeException()
+        val city = try {
+            apiCall { api.lookupPostalCode(plz) }.city
+        } catch (exception: FlexrApiException) {
+            if (exception.statusCode == 404) throw UnknownPostalCodeException() else throw exception
+        }
 
-        val municipality = localities
-            .mapNotNull { it.municipality?.name }
-            .groupingBy { it }
-            .eachCount()
-            .maxByOrNull { it.value }
-            ?.key
-            ?: localities.firstNotNullOfOrNull { it.name }
-            ?: throw UnknownPostalCodeException()
-
-        cache[plz] = municipality
-        return municipality
+        cache[plz] = city
+        return city
     }
 
     companion object {

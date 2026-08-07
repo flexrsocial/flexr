@@ -115,13 +115,11 @@ final class DTOMappingTests: XCTestCase {
         XCTAssertEqual(String(decoding: body, as: UTF8.self), #"{"bio":"neu"}"#)
     }
 
-    /// OpenPLZ antwortet bereits in camelCase — die Umschaltung darf daran
-    /// nichts kaputt machen.
-    func testOpenPlzAntwortWirdGelesen() throws {
-        let json = #"[{"name":"Wien, Favoriten","postalCode":"1100","municipality":{"name":"Wien"}}]"#
-        let localities = try decoder.decode([OpenPlzLocalityDTO].self, from: Data(json.utf8))
-        XCTAssertEqual(localities.first?.postalCode, "1100")
-        XCTAssertEqual(localities.first?.municipality?.name, "Wien")
+    func testPlzLookupAntwortWirdGelesen() throws {
+        let json = #"{"plz":"1100","city":"Wien"}"#
+        let lookup = try decoder.decode(PlzLookupDTO.self, from: Data(json.utf8))
+        XCTAssertEqual(lookup.plz, "1100")
+        XCTAssertEqual(lookup.city, "Wien")
     }
 
     func testUnbekannteZustaendeFallenAufDenSicherenWertZurueck() {

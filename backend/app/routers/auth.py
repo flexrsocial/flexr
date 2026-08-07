@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.orm import Session
 
 from ..database import get_db
+from ..geo import city_for_plz
 from ..models import ModerationAction, User, UserDevice
 from ..moderation import restriction_detail
 from ..rate_limit import limiter
@@ -92,7 +93,9 @@ def register(request: Request, payload: RegisterRequest, db: Session = Depends(g
         name=payload.name,
         birthdate=payload.birthdate,
         plz=payload.plz,
-        city=payload.city,
+        # Der Ort ist aus der PLZ ableitbar - maßgeblich ist der amtliche Name
+        # aus dem Backend-Datensatz, nicht der vom Client geschickte Wert.
+        city=city_for_plz(payload.plz) or payload.city,
         gender=payload.gender,
         interest=interest,
         gym=payload.gym,

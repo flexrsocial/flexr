@@ -5,6 +5,7 @@ from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from ..database import get_db
+from ..geo import city_for_plz
 from ..models import GYM_CHOICES, Photo, PhotoStatus, User
 from ..schemas import (
     AddPhotoRequest,
@@ -46,6 +47,10 @@ def update_my_profile(
     # PLZ und Ort gehören zusammen - der Ort kommt aus dem PLZ-Lookup im Frontend.
     if ("plz" in fields) != ("city" in fields):
         raise HTTPException(400, "PLZ und Ort müssen gemeinsam aktualisiert werden.")
+
+    # Wie bei der Registrierung gilt der amtliche Ortsname zur PLZ.
+    if "plz" in fields:
+        fields["city"] = city_for_plz(fields["plz"]) or fields["city"]
 
     if "gym" in fields:
         from .gyms import gym_exists_for_profile

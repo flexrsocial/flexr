@@ -217,14 +217,9 @@ struct VerificationSubmitRequestDTO: Encodable {
     let selfies: [VerificationSelfieDTO]
 }
 
-// MARK: - PLZ-Lookup (OpenPLZ API, openplzapi.org)
+// MARK: - PLZ-Lookup (eigenes Backend, GET /api/geo/plz/{plz})
 
-struct OpenPlzLocalityDTO: Decodable {
-    let name: String?
-    let postalCode: String?
-    let municipality: OpenPlzMunicipalityDTO?
-}
-
-struct OpenPlzMunicipalityDTO: Decodable {
-    let name: String?
+struct PlzLookupDTO: Decodable {
+    let plz: String
+    let city: String
 }

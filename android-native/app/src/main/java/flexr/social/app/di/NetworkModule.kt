@@ -9,14 +9,12 @@ import flexr.social.app.BuildConfig
 import flexr.social.app.core.network.AuthHeaderInterceptor
 import flexr.social.app.core.network.SessionExpiryInterceptor
 import flexr.social.app.data.remote.FlexrApi
-import flexr.social.app.data.remote.OpenPlzApi
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import java.util.concurrent.TimeUnit
-import javax.inject.Named
 import javax.inject.Singleton
 
 @Module
@@ -61,14 +59,4 @@ object NetworkModule {
         .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
         .build()
         .create(FlexrApi::class.java)
-
-    @Provides
-    @Singleton
-    @Named("openPlz")
-    fun provideOpenPlzApi(client: OkHttpClient, json: Json): OpenPlzApi = Retrofit.Builder()
-        .baseUrl("https://openplzapi.org/")
-        .client(client)
-        .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
-        .build()
-        .create(OpenPlzApi::class.java)
 }

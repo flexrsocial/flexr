@@ -1,8 +1,8 @@
 package flexr.social.app.data.repository
 
-import flexr.social.app.data.remote.OpenPlzApi
-import flexr.social.app.data.remote.dto.OpenPlzLocalityDto
-import flexr.social.app.data.remote.dto.OpenPlzMunicipalityDto
+import flexr.social.app.core.network.FlexrApiException
+import flexr.social.app.data.remote.dto.PlzLookupDto
+import flexr.social.app.testing.FakeFlexrApi
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertThrows
@@ -10,52 +10,43 @@ import org.junit.Test
 
 class PlzRepositoryTest {
 
-    private class FakeOpenPlzApi(
-        private val response: List<OpenPlzLocalityDto>,
-    ) : OpenPlzApi {
+    private class FakePlzApi(private val antwort: () -> PlzLookupDto) : FakeFlexrApi() {
         var callCount = 0
-        override suspend fun localities(postalCode: String): List<OpenPlzLocalityDto> {
+        override suspend fun lookupPostalCode(plz: String): PlzLookupDto {
             callCount++
-            return response
+            return antwort()
         }
     }
 
-    private fun locality(name: String, municipality: String?) = OpenPlzLocalityDto(
-        name = name,
-        municipality = municipality?.let { OpenPlzMunicipalityDto(it) },
-    )
-
     @Test
-    fun `haeufigste gemeinde gewinnt`() = runTest {
-        // Wien 1100 liefert mehrere Ortschaften, aber dieselbe Gemeinde —
-        // gespeichert wird die Gemeinde, weil darauf die Umkreissuche aufsetzt.
-        val api = FakeOpenPlzApi(
-            listOf(
-                locality("Wien, Favoriten", "Wien"),
-                locality("Wien, Innere Stadt", "Wien"),
-                locality("Irgendwo", "Andere Gemeinde"),
-            ),
-        )
-        assertEquals("Wien", PlzRepository(api).municipalityFor("1100"))
+    fun `ort kommt vom backend`() = runTest {
+        val api = FakePlzApi { PlzLookupDto(plz = "4020", city = "Linz") }
+        assertEquals("Linz", PlzRepository(api).municipalityFor("4020"))
     }
 
     @Test
-    fun `ohne gemeindenamen greift der ortsname`() = runTest {
-        val api = FakeOpenPlzApi(listOf(locality("Grafendorf bei Hartberg", null)))
-        assertEquals("Grafendorf bei Hartberg", PlzRepository(api).municipalityFor("8232"))
-    }
-
-    @Test
-    fun `leere antwort meldet unbekannte plz`() = runTest {
-        val repository = PlzRepository(FakeOpenPlzApi(emptyList()))
+    fun `404 meldet unbekannte plz`() = runTest {
+        val api = FakePlzApi { throw FlexrApiException(404, "Postleitzahl nicht gefunden. Bitte prüfen.") }
+        val repository = PlzRepository(api)
         assertThrows(UnknownPostalCodeException::class.java) {
             kotlinx.coroutines.runBlocking { repository.municipalityFor("9999") }
         }
     }
 
     @Test
+    fun `andere fehler bleiben unterscheidbar`() = runTest {
+        // Netzausfall darf nicht als „PLZ gibt es nicht" beim Nutzer landen.
+        val api = FakePlzApi { throw FlexrApiException(0, "Keine Internetverbindung.") }
+        val repository = PlzRepository(api)
+        val fehler = assertThrows(FlexrApiException::class.java) {
+            kotlinx.coroutines.runBlocking { repository.municipalityFor("1010") }
+        }
+        assertEquals(0, fehler.statusCode)
+    }
+
+    @Test
     fun `ungueltiges format wird gar nicht erst angefragt`() = runTest {
-        val api = FakeOpenPlzApi(emptyList())
+        val api = FakePlzApi { PlzLookupDto(plz = "1010", city = "Wien") }
         val repository = PlzRepository(api)
         assertThrows(IllegalArgumentException::class.java) {
             kotlinx.coroutines.runBlocking { repository.municipalityFor("10") }
@@ -65,7 +56,7 @@ class PlzRepositoryTest {
 
     @Test
     fun `wiederholte abfrage kommt aus dem cache`() = runTest {
-        val api = FakeOpenPlzApi(listOf(locality("Graz", "Graz")))
+        val api = FakePlzApi { PlzLookupDto(plz = "8010", city = "Graz") }
         val repository = PlzRepository(api)
         repository.municipalityFor("8010")
         repository.municipalityFor("8010")

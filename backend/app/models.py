@@ -117,10 +117,10 @@ class User(Base):
     # Geburtsdatum statt festem Alter - das Alter wird daraus laufend berechnet
     # und bleibt so in allen Profilen automatisch aktuell.
     birthdate = Column(Date, nullable=False)
-    # Adresse: plz/city stammen aus einer echten PLZ-Lookup (OpenPLZ API, siehe
-    # Frontend), keine feste Städteliste mehr - ganz Österreich ist abgedeckt.
+    # Adresse: city ist der amtliche Ortsname zur PLZ (app/data/plz_cities.json,
+    # siehe geo.py) - keine feste Städteliste, ganz Österreich ist abgedeckt.
     plz = Column(String(4), nullable=False)
-    city = Column(String, nullable=False)  # aus PLZ abgeleiteter Ort/Gemeinde-Name
+    city = Column(String, nullable=False)  # aus der PLZ abgeleiteter Ortsname
     gender = Column(Enum(Gender), nullable=False)
     interest = Column(Enum(Gender), nullable=False)  # sucht Mann oder Frau
     gym = Column(String, nullable=False)  # muss einer der GYM_CHOICES sein

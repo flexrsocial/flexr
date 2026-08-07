@@ -12,6 +12,7 @@ import flexr.social.app.data.remote.dto.MembershipStatusDto
 import flexr.social.app.data.remote.dto.MessageDto
 import flexr.social.app.data.remote.dto.ModerationNoticeDto
 import flexr.social.app.data.remote.dto.MyProfileDto
+import flexr.social.app.data.remote.dto.PlzLookupDto
 import flexr.social.app.data.remote.dto.PortalUrlDto
 import flexr.social.app.data.remote.dto.PresignPhotoRequestDto
 import flexr.social.app.data.remote.dto.PresignPhotoResponseDto
@@ -138,6 +139,11 @@ interface FlexrApi {
 
     @POST("api/gyms/suggest")
     suspend fun suggestGym(@Body body: GymSuggestRequestDto): GymDto
+
+    // ---------- geo.py ----------
+
+    @GET("api/geo/plz/{plz}")
+    suspend fun lookupPostalCode(@Path("plz") plz: String): PlzLookupDto
 
     // ---------- verification.py ----------
 

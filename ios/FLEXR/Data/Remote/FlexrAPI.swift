@@ -155,18 +155,21 @@ struct FlexrAPI {
     }
 }
 
-/// Ortsverzeichnis zu einer Postleitzahl.
+/// Ortsermittlung zu einer Postleitzahl.
 ///
 /// Als Protokoll, damit [PlzRepository] im Test ohne Netz auskommt — die
 /// Entsprechung des Retrofit-Interfaces in der Android-App.
 protocol PostalCodeLookup {
-    func localities(postalCode: String) async throws -> [OpenPlzLocalityDTO]
+    func lookupPostalCode(_ plz: String) async throws -> PlzLookupDTO
 }
 
-/// Öffentliche PLZ-Datenbank (openplzapi.org) für die Ortsermittlung —
-/// dieselbe Quelle, die das Web-Frontend nutzt. Damit ist ganz Österreich
-/// abgedeckt, ohne eine gepflegte Städteliste in der App.
-struct OpenPlzAPI: PostalCodeLookup {
+/// PLZ-Lookup über das eigene Backend (GET /api/geo/plz/{plz}).
+///
+/// Früher fragten alle Clients openplzapi.org direkt an. Das war weder
+/// verlässlich (der Dienst weist manche HTTP-Clients mit 418 ab) noch korrekt
+/// (die seitenweise Ortschaftsliste ließ die Heuristik bei großen PLZ
+/// danebengreifen). Das Backend liefert den amtlichen Ortsnamen.
+struct BackendPlzAPI: PostalCodeLookup {
 
     private let client: APIClient
 
@@ -174,7 +177,7 @@ struct OpenPlzAPI: PostalCodeLookup {
         self.client = client
     }
 
-    func localities(postalCode: String) async throws -> [OpenPlzLocalityDTO] {
-        try await client.send(.get, "at/Localities", query: ["postalCode": postalCode])
+    func lookupPostalCode(_ plz: String) async throws -> PlzLookupDTO {
+        try await client.send(.get, "api/geo/plz/\(plz)")
     }
 }

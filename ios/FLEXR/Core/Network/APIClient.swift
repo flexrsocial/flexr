@@ -213,7 +213,4 @@ enum APIConfiguration {
         }
         return URL(string: "https://flexr.social/")!
     }
-
-    /// Öffentliche PLZ-Datenbank (openplzapi.org) — dieselbe Quelle wie im Web.
-    static let openPLZBaseURL = URL(string: "https://openplzapi.org/")!
 }

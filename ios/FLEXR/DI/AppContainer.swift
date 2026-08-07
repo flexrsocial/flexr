@@ -31,14 +31,9 @@ final class AppContainer {
         let store = FlexrStore()
 
         let backendClient = APIClient(baseURL: APIConfiguration.baseURL, sessionStore: session)
-        let plzClient = APIClient(
-            baseURL: APIConfiguration.openPLZBaseURL,
-            sessionStore: session,
-            reportsSessionExpiry: false
-        )
 
         let api = FlexrAPI(client: backendClient)
-        let plzRepository = PlzRepository(api: OpenPlzAPI(client: plzClient))
+        let plzRepository = PlzRepository(api: BackendPlzAPI(client: backendClient))
         let matchRepository = MatchRepository(api: api, store: store)
 
         self.session = session
