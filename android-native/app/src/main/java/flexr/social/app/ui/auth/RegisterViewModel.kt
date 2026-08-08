@@ -39,6 +39,7 @@ data class PendingPhoto(
 data class RegisterUiState(
     val email: String = "",
     val password: String = "",
+    val passwordConfirm: String = "",
     val name: String = "",
     val birthdate: LocalDate? = null,
     val postalCode: String = "",
@@ -61,10 +62,22 @@ data class RegisterUiState(
 
     val age: Int? get() = birthdate?.let { ServerTime.ageFrom(it) }
 
+    /** Zweite Eingabe deckt Tippfehler auf - vergeben wird nur, was zweimal gleich kam. */
+    val passwordsMatch: Boolean get() = password == passwordConfirm
+
+    /** Fehlerhinweis am Wiederholungsfeld, aber erst wenn dort etwas steht. */
+    val passwordConfirmError: String?
+        get() = if (passwordConfirm.isNotEmpty() && !passwordsMatch) {
+            "Die Passwörter stimmen nicht überein."
+        } else {
+            null
+        }
+
     val canSubmit: Boolean
         get() = !isSubmitting &&
             email.isNotBlank() &&
             password.length >= MIN_PASSWORD_LENGTH &&
+            passwordsMatch &&
             name.isNotBlank() &&
             birthdate != null &&
             resolvedCity != null &&
@@ -108,6 +121,8 @@ class RegisterViewModel @Inject constructor(
 
     fun onEmailChange(value: String) = _uiState.update { it.copy(email = value, error = null) }
     fun onPasswordChange(value: String) = _uiState.update { it.copy(password = value, error = null) }
+    fun onPasswordConfirmChange(value: String) =
+        _uiState.update { it.copy(passwordConfirm = value, error = null) }
     fun onNameChange(value: String) = _uiState.update { it.copy(name = value, error = null) }
     fun onGenderChange(value: Gender) = _uiState.update { it.copy(gender = value, error = null) }
     fun onBioChange(value: String) =
@@ -348,6 +363,9 @@ class RegisterViewModel @Inject constructor(
         ) {
             return "Bitte E-Mail, Passwort (min. ${RegisterUiState.MIN_PASSWORD_LENGTH} Zeichen), " +
                 "Name und Geburtsdatum angeben."
+        }
+        if (!state.passwordsMatch) {
+            return "Die beiden Passwörter stimmen nicht überein."
         }
         val age = ServerTime.ageFrom(state.birthdate)
         // Wortgleich mit der serverseitigen Antwort (backend/app/age.py) - die

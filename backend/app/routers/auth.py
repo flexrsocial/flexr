@@ -1,13 +1,14 @@
 import re
 from datetime import date, datetime, timedelta
 
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request, status
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from ..age import UNDERAGE_MESSAGE, age_on, is_adult
 from ..database import get_db
 from ..geo import city_for_plz
+from ..mailer import send_welcome_email
 from ..models import ModerationAction, UnderageSignupAttempt, User, UserDevice
 from ..moderation import restriction_detail
 from ..rate_limit import limiter
@@ -163,7 +164,12 @@ def age_check(request: Request, payload: AgeCheckRequest, db: Session = Depends(
 
 @router.post("/register", response_model=TokenResponse)
 @limiter.limit("5/minute")
-def register(request: Request, payload: RegisterRequest, db: Session = Depends(get_db)):
+def register(
+    request: Request,
+    payload: RegisterRequest,
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db),
+):
     from .gyms import gym_exists_for_profile
 
     # Altersgrenze zuerst: Sie entscheidet, ob überhaupt ein Konto entsteht.
@@ -240,6 +246,11 @@ def register(request: Request, payload: RegisterRequest, db: Session = Depends(g
     db.refresh(user)
 
     record_device(db, user.id, request)
+
+    # Willkommensmail mit der Aufforderung zur Verifizierung. Nach der Antwort,
+    # nicht davor: Ein hängender oder kaputter Mailserver darf die Registrierung
+    # weder verzögern noch scheitern lassen (siehe app/mailer.py).
+    background_tasks.add_task(send_welcome_email, user.email, user.name)
 
     token = create_access_token(user.id)
     return TokenResponse(access_token=token)
