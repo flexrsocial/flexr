@@ -169,7 +169,7 @@ private fun SelfiePendingContent(
                 color = colors.chalk,
             )
             Spacer(Modifier.height(6.dp))
-            Bullet("3 Live-Selfies mit vorgegebenen Posen — die Kamera öffnet sich erst, wenn du startest")
+            Bullet("Ein Live-Selfie in einer vorgegebenen Pose — die Kamera öffnet sich erst, wenn du startest")
             Bullet("Eine Aufnahme deines Personalausweises, Reisepasses oder Führerscheins")
         }
     }
@@ -228,7 +228,7 @@ private fun DocumentPendingContent(
                 Spacer(Modifier.height(10.dp))
             }
             Text(
-                text = "Deine Selfies liegen vor. Jetzt fehlt noch eine Aufnahme deines " +
+                text = "Dein Selfie liegt vor. Jetzt fehlt noch eine Aufnahme deines " +
                     "amtlichen Lichtbildausweises, damit wir dein Alter bestätigen können.",
                 style = MaterialTheme.typography.bodyMedium,
                 color = colors.chalkDim,
@@ -322,7 +322,7 @@ private fun RejectedContent(reason: String?) {
             )
             Spacer(Modifier.height(10.dp))
             Text(
-                text = "Alle Aufnahmen deines Ausweises und deine Verifizierungs-Selfies wurden " +
+                text = "Alle Aufnahmen deines Ausweises und dein Verifizierungs-Selfie wurden " +
                     "gelöscht.",
                 style = MaterialTheme.typography.bodyMedium,
                 color = colors.chalkDim,

@@ -1025,7 +1025,7 @@
   }
   .verified-badge svg{ width:62%; height:62%; fill:none; stroke:#fff; stroke-width:3.4; stroke-linecap:round; stroke-linejoin:round; }
 
-  /* Verifizierungs-Screen (Live-Kamera + Posen) */
+  /* Verifizierungs-Screen (Live-Kamera + Pose) */
   .verify-status-row{ display:flex; align-items:center; gap:10px; font-size:13.5px; color:var(--chalk-dim); }
   .verify-status-row .ok{ color:#1d9bf0; font-weight:600; }
 
@@ -1456,7 +1456,7 @@
       <div class="vcard" id="ageGateNotice" style="display:none;">
         <h3>Noch ein Schritt: Alters- und Identitätsprüfung</h3>
         <p>Nach dem Anlegen deines Profils prüfen wir einmalig, ob du mindestens
-          18 Jahre alt bist. Dafür brauchst du <b>3 Live-Selfies</b> und eine
+          18 Jahre alt bist. Dafür brauchst du <b>ein Live-Selfie</b> und eine
           Aufnahme eines <b>amtlichen Lichtbildausweises</b>.</p>
         <p>Die Prüfung erfolgt manuell durch einen Menschen, keine automatische
           Gesichtserkennung. Die Aufnahmen werden nach Abschluss der Prüfung
@@ -1736,13 +1736,13 @@
       </p>
     </section>
 
-    <!-- FOTO-VERIFIZIERUNG (Live-Kamera, 3 zufällige Posen) -->
+    <!-- FOTO-VERIFIZIERUNG (Live-Kamera, eine zufällige Pose) -->
     <section class="screen" id="screen-verify">
       <div class="chat-header">
         <button class="back-btn" id="btnVerifyBack" aria-label="Zurück zum Konto">
           <svg class="ico" viewBox="0 0 24 24"><path d="M14.5 5 8 12l6.5 7"/></svg>
         </button>
-        <div class="nm">Verifizierungs-Selfies</div>
+        <div class="nm">Verifizierungs-Selfie</div>
       </div>
       <div class="verify-step" id="verifyStep">POSE 1 / 3</div>
       <div class="verify-prompt" id="verifyPrompt">—</div>
@@ -3559,7 +3559,7 @@
 
   // ---------- Alters- und Identitätsprüfung ----------
   // Ein Vorgang, zwei Schritte:
-  //   1. Server gibt 3 zufällige Posen vor -> Selfies werden LIVE über die
+  //   1. Server gibt eine zufällige Pose vor -> das Selfie wird LIVE über die
   //      Kamera aufgenommen (kein Galerie-Upload = Liveness-Schutz)
   //   2. Amtlicher Lichtbildausweis, temporär hochgeladen
   // Danach vergleicht ein Mensch Profilfotos, Selfie und Ausweis und prüft das
@@ -3573,7 +3573,7 @@
     return verificationStatus;
   }
 
-  // Schrittanzeige: 1 Selfies, 2 Ausweis, 3 Prüfung
+  // Schrittanzeige: 1 Selfie, 2 Ausweis, 3 Prüfung
   function renderGateSteps(step){
     $('vgateSteps').innerHTML = [1, 2, 3].map(i => {
       if(i < step) return '<span class="done"></span>';
@@ -3643,7 +3643,7 @@
           <p>Dein Konto wurde nicht freigeschaltet. Wenn du glaubst, dass das ein
             Fehler ist, schreib uns an
             <a href="mailto:flexr.social@proton.me">flexr.social@proton.me</a>.</p>
-          <p>Alle Aufnahmen deines Ausweises und deine Verifizierungs-Selfies wurden gelöscht.</p>
+          <p>Alle Aufnahmen deines Ausweises und dein Verifizierungs-Selfie wurden gelöscht.</p>
         </div>`;
       btn.style.display = 'none';
       return;
@@ -3662,7 +3662,7 @@
       body.innerHTML = `
         <div class="vcard">
           ${isReupload ? `<p>${escapeHtml(st.reason || '')}</p>` : ''}
-          <p>Deine Selfies liegen vor. Jetzt fehlt noch eine Aufnahme deines
+          <p>Dein Selfie liegt vor. Jetzt fehlt noch eine Aufnahme deines
             amtlichen Lichtbildausweises, damit wir dein Alter bestätigen können.</p>
         </div>`;
       btn.textContent = isReupload ? 'Erneut hochladen' : 'Ausweis aufnehmen';
@@ -3685,7 +3685,7 @@
           18 Jahre alt.</p>
         <h3 style="margin-top:14px;">Das brauchst du</h3>
         <ul>
-          <li>3 Live-Selfies mit vorgegebenen Posen (Kamera öffnet sich erst, wenn du startest)</li>
+          <li>Ein Live-Selfie in einer vorgegebenen Pose (Kamera öffnet sich erst, wenn du startest)</li>
           <li>Eine Aufnahme deines Personalausweises, Reisepasses oder Führerscheins</li>
         </ul>
       </div>
@@ -3766,7 +3766,7 @@
         verifyBadgeClickable = true;
         tip.innerHTML = st.next_step === 'document'
           ? `Es fehlt noch die Aufnahme deines Lichtbildausweises. Tippen zum Fortsetzen.`
-          : `Zeig mit 3 Live-Selfies und einem Lichtbildausweis, dass du wirklich du bist - und hol dir den blauen Haken ${VERIFIED_BADGE_SVG} neben deinem Namen. Tippen zum Starten.`;
+          : `Zeig mit einem Live-Selfie und einem Lichtbildausweis, dass du wirklich du bist - und hol dir den blauen Haken ${VERIFIED_BADGE_SVG} neben deinem Namen. Tippen zum Starten.`;
       }
     }catch(err){
       badge.className = 'verify-badge pending';
@@ -3777,7 +3777,7 @@
 
   $('verifyBadge').addEventListener('click', () => {
     if(!verifyBadgeClickable) return;
-    // Fehlt nur noch der Ausweis, direkt dorthin - sonst bei den Selfies beginnen
+    // Fehlt nur noch der Ausweis, direkt dorthin - sonst beim Selfie beginnen
     if(verificationStatus && verificationStatus.next_step === 'document') openIdStep();
     else startVerification();
   });
@@ -3867,7 +3867,7 @@
       return;
     }
 
-    // Alle 3 Posen aufgenommen -> hochladen + einreichen
+    // Alle Posen aufgenommen -> hochladen + einreichen
     renderVerifyStep();
     stopVerifyCamera();
     const btn = $('btnVerifyCapture');
@@ -3894,7 +3894,7 @@
       });
       verifyState = null;
       // Selfies sind durch - weiter zum Ausweisschritt (Schritt 2 von 2)
-      toast('Selfies gespeichert - jetzt noch das Alter bestätigen.');
+      toast('Selfie gespeichert - jetzt noch das Alter bestätigen.');
       openIdStep();
     }catch(err){
       $('verifyErr').textContent = err.message || 'Einreichen fehlgeschlagen. Bitte erneut versuchen.';
@@ -4012,7 +4012,7 @@
         ? verificationStatus
         : await loadVerificationStatus();
       if(st.next_step !== 'document'){
-        // Zustand hat sich geändert (z. B. Selfies verworfen) - zurück zur Übersicht
+        // Zustand hat sich geändert (z. B. Selfie verworfen) - zurück zur Übersicht
         showVerificationGate();
         return;
       }

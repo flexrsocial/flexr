@@ -255,7 +255,10 @@ class VerificationSelfieIn(BaseModel):
 
 
 class VerificationSubmitRequest(BaseModel):
-    selfies: list[VerificationSelfieIn] = Field(min_length=3, max_length=3)
+    # Der Server verlangt genau ein Selfie (siehe routers/verification.py). Die
+    # Obergrenze bleibt bei 3, damit eine ältere App-Version die verständliche
+    # Fehlermeldung aus dem Router bekommt statt eines nackten 422.
+    selfies: list[VerificationSelfieIn] = Field(min_length=1, max_length=3)
 
 
 class VerificationStatusOut(BaseModel):

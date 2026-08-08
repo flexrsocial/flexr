@@ -39,10 +39,11 @@ sealed interface VerificationEvent {
 }
 
 /**
- * Foto-Verifizierung: drei vom Server vorgegebene Posen, live aufgenommen.
+ * Foto-Verifizierung: ein Selfie in einer vom Server vorgegebenen Pose, live
+ * aufgenommen.
  *
  * Bewusst kein Galerie-Upload — nur eine echte Person vor der Kamera kann die
- * verlangten Posen spontan liefern (Liveness-Prinzip).
+ * verlangte Pose spontan liefern (Liveness-Prinzip).
  */
 @HiltViewModel
 class VerificationViewModel @Inject constructor(
@@ -124,7 +125,7 @@ class VerificationViewModel @Inject constructor(
                 _uiState.update { it.copy(isSubmitting = false) }
                 runCatching { profileRepository.refresh() }
                 _events.send(
-                    VerificationEvent.Message("Selfies eingereicht — deine Verifizierung ist in Prüfung."),
+                    VerificationEvent.Message("Selfie eingereicht — deine Verifizierung ist in Prüfung."),
                 )
                 _events.send(VerificationEvent.Finished)
             }.onFailure { throwable ->

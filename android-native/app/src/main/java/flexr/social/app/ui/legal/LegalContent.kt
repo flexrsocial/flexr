@@ -149,8 +149,8 @@ object LegalContent {
                         "abgeschlossen werden.",
                     "Alters- und Identitätsprüfung vor der Freischaltung. Zusätzlich zur Angabe " +
                         "des Geburtsdatums ist vor der Freischaltung des Accounts eine Prüfung zu " +
-                        "durchlaufen: Der Nutzer nimmt Verifizierungs-Selfies mit vorgegebenen " +
-                        "Posen auf und lädt einmalig eine Aufnahme eines gültigen amtlichen " +
+                        "durchlaufen: Der Nutzer nimmt ein Verifizierungs-Selfie in einer " +
+                        "vorgegebenen Pose auf und lädt einmalig eine Aufnahme eines gültigen amtlichen " +
                         "Lichtbildausweises (Personalausweis, Reisepass oder Führerschein) hoch. " +
                         "Die Prüfung erfolgt manuell durch FLEXR — Profilfoto, " +
                         "Verifizierungs-Selfie und Ausweisfoto werden von einem Menschen " +
@@ -165,7 +165,7 @@ object LegalContent {
                         "nicht übereinstimmt, das Geburtsdatum abweicht oder der Nutzer noch nicht " +
                         "18 Jahre alt ist — können wir eine neue Aufnahme anfordern oder die " +
                         "Registrierung ablehnen. Die Aufnahmen des Ausweises und die " +
-                        "Verifizierungs-Selfies werden nach Abschluss der Prüfung gelöscht " +
+                        "Verifizierungs-Selfie werden nach Abschluss der Prüfung gelöscht " +
                         "(Einzelheiten in der Datenschutzerklärung).",
                     "Bei begründetem Verdacht auf Falschangaben behalten wir uns die Sperre des " +
                         "Accounts vor. Bestehende Accounts können wir zur Alters- und " +
@@ -269,7 +269,7 @@ object LegalContent {
                     "Sieh dir das Profil genau an: nur ein Foto, auffällig professionelle " +
                         "Aufnahmen, keine Angaben zum Studio — das muss nichts heißen, ist aber " +
                         "ein Grund, genauer hinzusehen. Der Verifizierungshaken bedeutet, dass " +
-                        "wir Selfies in zufällig vorgegebenen Posen mit den Profilfotos " +
+                        "wir ein Selfie in einer zufällig vorgegebenen Pose mit den Profilfotos " +
                         "verglichen haben.",
                     "Telefoniert oder macht einen Videocall, bevor ihr euch trefft.",
                     "Sag jemandem Bescheid, wen du triffst, wo und wie lange.",
@@ -333,7 +333,7 @@ object LegalContent {
                     "In Nachrichten machen wir Links und E-Mail-Adressen unkenntlich und legen " +
                         "auffällige Nachrichten der Moderation vor.",
                     "Mindestalter 18, serverseitig aus dem Geburtsdatum geprüft.",
-                    "Verifizierung über drei zufällig vorgegebene Selfie-Posen.",
+                    "Verifizierung über ein Selfie in einer zufällig vorgegebenen Pose.",
                 ),
             ),
             LegalBlock.Heading("6. Im Notfall"),
@@ -502,11 +502,11 @@ object LegalContent {
                 "Vorbeugend: Ohne mindestens ein freigegebenes Foto ist ein Profil für andere " +
                     "nicht sichtbar. Jedes hochgeladene Foto steht zunächst auf ausstehend und " +
                     "wird erst nach menschlicher Prüfung ausgeliefert. Bei der Alters- und " +
-                    "Identitätsprüfung verlangt der Server drei zufällig gezogene Posen als " +
-                    "Selfie — da die Posen erst bei der Anfrage feststehen, lassen sie sich mit " +
+                    "Identitätsprüfung verlangt der Server ein Selfie in einer zufällig " +
+                    "gezogenen Pose — da die Pose erst bei der Anfrage feststeht, lässt sie sich mit " +
                     "fremdem oder vorbereitetem Material nicht bedienen; dazu kommt der Abgleich " +
                     "mit einem vorgelegten amtlichen Lichtbildausweis. Nach der Prüfung werden " +
-                    "Selfies und Ausweisaufnahmen gelöscht. Dazu kommen die Telefonprüfung per SMS-Einmalcode, die " +
+                    "Selfie und Ausweisaufnahmen gelöscht. Dazu kommen die Telefonprüfung per SMS-Einmalcode, die " +
                     "E-Mail-Eindeutigkeit je Konto und die Sperrliste für Wegwerf-Adressen.",
             ),
             LegalBlock.Lettered(
@@ -854,8 +854,8 @@ object LegalContent {
                     ),
                     listOf("Fotos", "Profilbilder", "Upload durch Nutzer, gespeichert bei Cloudflare R2"),
                     listOf(
-                        "Verifizierungs-Selfies",
-                        "Selfie-Aufnahmen mit vorgegebenen Posen für die Alters- und " +
+                        "Verifizierungs-Selfie",
+                        "Selfie-Aufnahme in einer vorgegebenen Pose für die Alters- und " +
                             "Identitätsprüfung",
                         "Live-Aufnahme über die Kamera, temporär bei Cloudflare R2",
                     ),
@@ -906,7 +906,7 @@ object LegalContent {
             LegalBlock.Paragraph(
                 "Was geprüft wird. Vor der Freischaltung eines Accounts prüfen wir einmalig, ob " +
                     "der Nutzer mindestens 18 Jahre alt ist und ob die Verifizierung zu seinem " +
-                    "Profil gehört. Verarbeitet werden dafür: die Verifizierungs-Selfies, eine " +
+                    "Profil gehört. Verarbeitet werden dafür: das Verifizierungs-Selfie, eine " +
                     "temporäre Aufnahme eines amtlichen Lichtbildausweises, das bei der " +
                     "Registrierung angegebene Geburtsdatum sowie der Verifizierungs-Status samt " +
                     "Prüfzeitpunkt.",
@@ -966,7 +966,7 @@ object LegalContent {
                     listOf(
                         "Cloudflare R2",
                         "Speicherung von Profilfotos; temporäre Speicherung von " +
-                            "Verifizierungs-Selfies und Ausweisaufnahmen",
+                            "Verifizierungs-Selfie und Ausweisaufnahmen",
                         "Eastern Europe (EEUR) — EU, kein Drittstaatentransfer",
                     ),
                     listOf(
@@ -990,7 +990,7 @@ object LegalContent {
                     "Kontodaten: bis zur Löschung des Profils durch den Nutzer.",
                     "Nach Löschung: 30 Tage Karenzzeit, danach vollständige und unwiderrufliche " +
                         "Löschung aller Daten inklusive Fotos aus Cloudflare R2.",
-                    "Verifizierungs-Selfies: werden unmittelbar nach Abschluss der Prüfung (Freigabe " +
+                    "Verifizierungs-Selfie: wird unmittelbar nach Abschluss der Prüfung (Freigabe " +
                         "oder Ablehnung) gelöscht.",
                     "Zahlungsbezogene Daten: gemäß gesetzlicher Aufbewahrungspflichten " +
                         "(i. d. R. 7 Jahre, §132 BAO).",

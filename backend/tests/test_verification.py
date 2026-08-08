@@ -59,7 +59,7 @@ def _submit_selfies(client, headers):
     start = client.post("/api/verification/start", headers=headers)
     assert start.status_code == 200, start.text
     prompts = start.json()["prompts"]
-    assert len(prompts) == 3
+    assert len(prompts) == 1
 
     me = client.get("/api/profiles/me", headers=headers).json()
     selfies = [
@@ -143,7 +143,7 @@ def test_full_flow_pending_to_approved(client, storage_stub):
     # Konsolidierte Prüfansicht: Accountdaten, Selfies, Profilfotos, Ausweis
     assert entry["user_birthdate"] == "1997-06-15"
     assert entry["user_age"] >= 18
-    assert len(entry["selfie_urls"]) == 3
+    assert len(entry["selfie_urls"]) == 1
     assert len(entry["profile_photo_urls"]) == 1
     assert entry["document_type"] == "passport"
     assert [d["side"] for d in entry["document_urls"]] == ["front"]
@@ -166,8 +166,8 @@ def test_full_flow_pending_to_approved(client, storage_stub):
     # Konto ist freigeschaltet: Deck ist wieder erreichbar
     assert client.get("/api/swipes/deck", headers=headers).status_code == 200
 
-    # 3 Selfies + 1 Ausweisaufnahme wurden gelöscht
-    assert len(storage_stub) == 4
+    # Selfie + Ausweisaufnahme wurden gelöscht
+    assert len(storage_stub) == 2
 
     from app.models import User, VerificationRequest
 
@@ -222,7 +222,7 @@ def test_reupload_flow(client, storage_stub):
     )
     assert resp.status_code == 200
     assert resp.json()["status"] == "reupload_required"
-    # Nur die Ausweisaufnahme wurde ersetzt, die Selfies bleiben gültig
+    # Nur die Ausweisaufnahme wurde ersetzt, das Selfie bleibt gültig
     assert len(storage_stub) == 1
 
     status = client.get("/api/verification/status", headers=headers).json()
@@ -250,16 +250,16 @@ def test_reupload_with_new_selfies(client, storage_stub):
         headers=admin_headers,
         json={"reason_code": "selfie_unusable", "redo_selfie": True},
     )
-    # Selfies + Ausweis gelöscht
-    assert len(storage_stub) == 4
+    # Selfie + Ausweis gelöscht
+    assert len(storage_stub) == 2
 
     status = client.get("/api/verification/status", headers=headers).json()
     assert status["next_step"] == "selfie"
 
-    # Neustart liefert wieder Posen
+    # Neustart liefert wieder eine Pose
     restart = client.post("/api/verification/start", headers=headers)
     assert restart.status_code == 200
-    assert len(restart.json()["prompts"]) == 3
+    assert len(restart.json()["prompts"]) == 1
 
 
 def test_final_rejection_blocks_account_and_restart(client, storage_stub):
@@ -275,7 +275,7 @@ def test_final_rejection_blocks_account_and_restart(client, storage_stub):
         json={"reason_code": "underage"},
     )
     assert resp.status_code == 200
-    assert len(storage_stub) == 4  # alles gelöscht
+    assert len(storage_stub) == 2  # alles gelöscht
 
     me = client.get("/api/profiles/me", headers=headers).json()
     assert me["is_verified"] is False
@@ -353,7 +353,7 @@ def test_failed_deletion_keeps_cleanup_pending(client, monkeypatch):
         assert req.documents is None
     finally:
         db.close()
-    assert len(deleted) == 4
+    assert len(deleted) == 2
 
 
 def test_document_rejected_when_not_an_image(client, monkeypatch):
@@ -478,7 +478,7 @@ def test_nachgeforderte_verification_can_be_started_after_an_old_decision(client
     resp = client.post("/api/verification/start", headers=headers)
     assert resp.status_code == 200, resp.text
     assert resp.json()["status"] == "in_progress"
-    assert len(resp.json()["prompts"]) == 3
+    assert len(resp.json()["prompts"]) == 1
 
 
 def test_rejected_account_cannot_restart_without_admin(client, storage_stub):
@@ -508,7 +508,7 @@ def test_submit_with_wrong_prompts_rejected(client):
 
     selfies = [
         {"prompt": f"Erfundene Pose {i}", "object_key": f"users/{me['id']}/verify/s{i}.jpg"}
-        for i in range(3)
+        for i in range(1)
     ]
     resp = client.post("/api/verification/submit", headers=headers, json={"selfies": selfies})
     assert resp.status_code == 400
