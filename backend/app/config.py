@@ -29,6 +29,18 @@ class Settings(BaseSettings):
     twilio_auth_token: str = ""
     twilio_from_number: str = ""
 
+    # E-Mail-Versand (z. B. Willkommensmail). Ohne SMTP_HOST/SMTP_FROM wird die
+    # Nachricht nur ins Server-Log geschrieben (Entwicklungs-/Testbetrieb).
+    smtp_host: str = ""
+    smtp_port: int = 587
+    smtp_user: str = ""
+    smtp_password: str = ""
+    smtp_from: str = ""
+    smtp_starttls: bool = True
+    smtp_ssl: bool = False
+    mail_from_name: str = "FLEXR"
+    support_email: str = "flexr.social@proton.me"
+
     class Config:
         env_file = ".env"
 

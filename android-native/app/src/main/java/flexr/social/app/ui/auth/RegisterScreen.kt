@@ -117,6 +117,17 @@ fun RegisterScreen(
             placeholder = "Mind. 8 Zeichen",
             imeAction = ImeAction.Next,
         )
+        // Zweite Eingabe gegen Tippfehler: Ein vertipptes Passwort fällt sonst
+        // erst beim nächsten Login auf, wenn niemand mehr weiß, was drinstand.
+        FlexrPasswordField(
+            value = state.passwordConfirm,
+            onValueChange = viewModel::onPasswordConfirmChange,
+            label = "Passwort wiederholen",
+            placeholder = "Passwort erneut eingeben",
+            imeAction = ImeAction.Next,
+            isError = state.passwordConfirmError != null,
+            supportingText = state.passwordConfirmError,
+        )
         FlexrTextField(
             value = state.name,
             onValueChange = viewModel::onNameChange,
@@ -207,15 +218,25 @@ fun RegisterScreen(
         FieldError(state.error)
 
         Spacer(Modifier.height(22.dp))
+        // Bewusst immer tippbar: Ein ausgegrauter Knopf sieht aus, als wäre er
+        // verschwunden, und verrät nicht, was noch fehlt. Beim Tippen nennt
+        // viewModel.register() über validate() den konkreten Grund.
         FlexrButton(
             text = "Profil erstellen & Probemonat starten",
             onClick = {
                 keyboard?.hide()
                 viewModel.register()
             },
-            enabled = state.canSubmit,
             loading = state.isSubmitting,
         )
+        if (!state.canSubmit && !state.isSubmitting) {
+            Spacer(Modifier.height(8.dp))
+            Text(
+                text = "Noch nicht vollständig — tippe auf den Knopf, dann zeigen wir dir, was fehlt.",
+                style = MaterialTheme.typography.bodySmall,
+                color = FlexrTheme.colors.chalkDim,
+            )
+        }
         Spacer(Modifier.height(40.dp))
     }
 

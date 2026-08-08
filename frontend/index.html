@@ -1424,7 +1424,10 @@
       <label>E-Mail</label>
       <input type="text" id="f-email" placeholder="max@example.com">
       <label>Passwort</label>
-      <input type="password" id="f-password" placeholder="Mind. 8 Zeichen">
+      <input type="password" id="f-password" placeholder="Mind. 8 Zeichen" autocomplete="new-password">
+      <label>Passwort wiederholen</label>
+      <input type="password" id="f-password2" placeholder="Passwort erneut eingeben" autocomplete="new-password">
+      <div class="field-err" id="pw2Err"></div>
 
       <label>Name</label>
       <input type="text" id="f-name" placeholder="Max">
@@ -2398,6 +2401,19 @@
     checkAgeEligibility();
   });
 
+  // Zweite Passworteingabe gegen Tippfehler: Ein vertipptes Passwort fällt
+  // sonst erst beim nächsten Login auf, wenn niemand mehr weiß, was drinstand.
+  function passwordMismatch(){
+    const pw = $('f-password').value;
+    const pw2 = $('f-password2').value;
+    return pw2.length > 0 && pw !== pw2;
+  }
+  function refreshPasswordHint(){
+    $('pw2Err').textContent = passwordMismatch() ? 'Die Passwörter stimmen nicht überein.' : '';
+  }
+  $('f-password').addEventListener('input', refreshPasswordHint);
+  $('f-password2').addEventListener('input', refreshPasswordHint);
+
   $('btnCreateProfile').addEventListener('click', async ()=>{
     const errEl = $('formErr');
     errEl.textContent = '';
@@ -2418,6 +2434,11 @@
 
     if(!payload.email || !payload.password || payload.password.length < 8 || !payload.name || !payload.birthdate){
       errEl.textContent = 'Bitte E-Mail, Passwort (min. 8 Zeichen), Name und Geburtsdatum angeben.';
+      return;
+    }
+    if(payload.password !== $('f-password2').value){
+      refreshPasswordHint();
+      errEl.textContent = 'Die beiden Passwörter stimmen nicht überein.';
       return;
     }
     const ageFromBirthdate = calcAge(payload.birthdate);
