@@ -2,6 +2,8 @@ package flexr.social.app.testing
 
 import flexr.social.app.data.remote.FlexrApi
 import flexr.social.app.data.remote.dto.AddPhotoRequestDto
+import flexr.social.app.data.remote.dto.AgeCheckRequestDto
+import flexr.social.app.data.remote.dto.AgeCheckResponseDto
 import flexr.social.app.data.remote.dto.BlockRequestDto
 import flexr.social.app.data.remote.dto.CheckoutUrlDto
 import flexr.social.app.data.remote.dto.DeleteAccountRequestDto
@@ -26,6 +28,8 @@ import flexr.social.app.data.remote.dto.SwipeRequestDto
 import flexr.social.app.data.remote.dto.SwipeResultDto
 import flexr.social.app.data.remote.dto.TokenResponseDto
 import flexr.social.app.data.remote.dto.UpdateProfileRequestDto
+import flexr.social.app.data.remote.dto.VerificationDocumentPresignRequestDto
+import flexr.social.app.data.remote.dto.VerificationDocumentSubmitRequestDto
 import flexr.social.app.data.remote.dto.VerificationStatusDto
 import flexr.social.app.data.remote.dto.VerificationSubmitRequestDto
 import okhttp3.RequestBody
@@ -52,6 +56,9 @@ open class FakeFlexrApi : FlexrApi {
 
     override suspend fun login(body: LoginRequestDto): TokenResponseDto =
         nichtVorgesehen("login")
+
+    override suspend fun checkAge(body: AgeCheckRequestDto): AgeCheckResponseDto =
+        nichtVorgesehen("checkAge")
 
     // ---------- profiles.py ----------
 
@@ -140,11 +147,25 @@ open class FakeFlexrApi : FlexrApi {
     override suspend fun submitVerification(body: VerificationSubmitRequestDto): VerificationStatusDto =
         nichtVorgesehen("submitVerification")
 
+    override suspend fun presignDocument(
+        body: VerificationDocumentPresignRequestDto,
+    ): PresignPhotoResponseDto = nichtVorgesehen("presignDocument")
+
+    override suspend fun submitDocument(
+        body: VerificationDocumentSubmitRequestDto,
+    ): VerificationStatusDto = nichtVorgesehen("submitDocument")
+
+    override suspend fun discardDocuments(): VerificationStatusDto =
+        nichtVorgesehen("discardDocuments")
+
     // ---------- Objekt-Storage ----------
 
+    // Rückgabetyp ausdrücklich Unit: Ohne ihn leitet Kotlin aus
+    // nichtVorgesehen() den Typ Nothing ab, und ein Test könnte die Methode
+    // nicht mehr mit einer echten Umsetzung überschreiben.
     override suspend fun uploadToPresignedUrl(
         url: String,
         contentType: String,
         body: RequestBody,
-    ) = nichtVorgesehen("uploadToPresignedUrl")
+    ): Unit = nichtVorgesehen("uploadToPresignedUrl")
 }

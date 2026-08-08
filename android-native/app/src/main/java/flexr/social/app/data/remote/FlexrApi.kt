@@ -1,6 +1,8 @@
 package flexr.social.app.data.remote
 
 import flexr.social.app.data.remote.dto.AddPhotoRequestDto
+import flexr.social.app.data.remote.dto.AgeCheckRequestDto
+import flexr.social.app.data.remote.dto.AgeCheckResponseDto
 import flexr.social.app.data.remote.dto.BlockRequestDto
 import flexr.social.app.data.remote.dto.CheckoutUrlDto
 import flexr.social.app.data.remote.dto.DeleteAccountRequestDto
@@ -24,6 +26,8 @@ import flexr.social.app.data.remote.dto.SendMessageRequestDto
 import flexr.social.app.data.remote.dto.SwipeRequestDto
 import flexr.social.app.data.remote.dto.SwipeResultDto
 import flexr.social.app.data.remote.dto.TokenResponseDto
+import flexr.social.app.data.remote.dto.VerificationDocumentPresignRequestDto
+import flexr.social.app.data.remote.dto.VerificationDocumentSubmitRequestDto
 import flexr.social.app.data.remote.dto.VerificationStatusDto
 import flexr.social.app.data.remote.dto.VerificationSubmitRequestDto
 import okhttp3.RequestBody
@@ -52,6 +56,14 @@ interface FlexrApi {
 
     @POST("api/auth/login")
     suspend fun login(@Body body: LoginRequestDto): TokenResponseDto
+
+    /**
+     * Altersprüfung fürs Registrierungsformular. Verbindlich bleibt dieselbe
+     * Prüfung in /register — dieser Aufruf verhindert nur, dass jemand unter 18
+     * das Formular weiter ausfüllt.
+     */
+    @POST("api/auth/age-check")
+    suspend fun checkAge(@Body body: AgeCheckRequestDto): AgeCheckResponseDto
 
     // ---------- profiles.py ----------
 
@@ -158,6 +170,21 @@ interface FlexrApi {
 
     @POST("api/verification/submit")
     suspend fun submitVerification(@Body body: VerificationSubmitRequestDto): VerificationStatusDto
+
+    /** Schritt 2: amtlicher Lichtbildausweis, privat abgelegt und nur temporär. */
+    @POST("api/verification/document/presign")
+    suspend fun presignDocument(
+        @Body body: VerificationDocumentPresignRequestDto,
+    ): PresignPhotoResponseDto
+
+    @POST("api/verification/document/submit")
+    suspend fun submitDocument(
+        @Body body: VerificationDocumentSubmitRequestDto,
+    ): VerificationStatusDto
+
+    /** Eingereichte Aufnahmen zurückziehen, solange niemand geprüft hat. */
+    @DELETE("api/verification/document")
+    suspend fun discardDocuments(): VerificationStatusDto
 
     // ---------- Objekt-Storage (Presigned PUT, absolute URL) ----------
 

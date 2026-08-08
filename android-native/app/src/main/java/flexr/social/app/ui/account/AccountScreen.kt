@@ -77,6 +77,7 @@ import flexr.social.app.ui.navigation.LegalDocument
 fun AccountScreen(
     onLogout: () -> Unit,
     onOpenVerification: () -> Unit,
+    onOpenDocumentStep: () -> Unit,
     onOpenLegal: (LegalDocument) -> Unit,
     onOpenUrl: (String) -> Unit,
     onShowMessage: (String) -> Unit,
@@ -93,6 +94,7 @@ fun AccountScreen(
                 is AccountEvent.OpenUrl -> onOpenUrl(event.url)
                 AccountEvent.LoggedOut -> onLogout()
                 AccountEvent.StartVerification -> onOpenVerification()
+                AccountEvent.ContinueWithDocument -> onOpenDocumentStep()
             }
         }
     }
@@ -448,11 +450,8 @@ private fun VerificationHint(
             "Dein Profil ist verifiziert — andere sehen den blauen Haken neben deinem Namen."
         status == VerificationStatus.SUBMITTED ->
             "Deine Verifizierung wird geprüft. Nach der Freigabe bekommst du den blauen Haken."
-        // Der Ausweisschritt läuft derzeit nur über flexr.social - die App holt
-        // ihn in einer eigenen Version nach.
         status.needsDocument ->
-            "Es fehlt noch die Aufnahme deines amtlichen Lichtbildausweises. " +
-                "Diesen Schritt schließt du gerade noch unter flexr.social ab."
+            "Es fehlt noch die Aufnahme deines amtlichen Lichtbildausweises."
         status == VerificationStatus.REJECTED ->
             "Deine Verifizierung konnte nicht abgeschlossen werden. Bei Fragen: " +
                 "flexr.social@proton.me"
@@ -497,17 +496,16 @@ private fun VerificationHint(
                 }
             }
 
-            // Kein Startknopf, wenn nichts zu starten ist: in Prüfung, endgültig
-            // abgelehnt, oder der Ausweisschritt läuft (den kann die App noch nicht).
+            // Kein Startknopf, wenn nichts zu starten ist: in Prüfung oder
+            // endgültig abgelehnt.
             status != VerificationStatus.SUBMITTED &&
-                status != VerificationStatus.REJECTED &&
-                !status.needsDocument -> Row(
+                status != VerificationStatus.REJECTED -> Row(
                 Modifier.fillMaxWidth().padding(top = 4.dp),
                 horizontalArrangement = Arrangement.End,
             ) {
                 TextButton(onClick = onStartVerification) {
                     Text(
-                        text = "Zur Verifizierung",
+                        text = if (status.needsDocument) "Ausweis aufnehmen" else "Zur Verifizierung",
                         color = tint,
                         style = MaterialTheme.typography.labelLarge,
                     )

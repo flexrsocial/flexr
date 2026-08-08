@@ -1,6 +1,7 @@
 package flexr.social.app.data.repository
 
 import flexr.social.app.core.common.ServerTime
+import flexr.social.app.data.remote.dto.AgeCheckResponseDto
 import flexr.social.app.data.remote.dto.GymDto
 import flexr.social.app.data.remote.dto.MatchDto
 import flexr.social.app.data.remote.dto.MembershipStatusDto
@@ -9,6 +10,7 @@ import flexr.social.app.data.remote.dto.MyProfileDto
 import flexr.social.app.data.remote.dto.PhotoDto
 import flexr.social.app.data.remote.dto.ProfileDto
 import flexr.social.app.data.remote.dto.VerificationStatusDto
+import flexr.social.app.domain.model.AgeCheck
 import flexr.social.app.domain.model.Gender
 import flexr.social.app.domain.model.Gym
 import flexr.social.app.domain.model.MatchSummary
@@ -18,8 +20,10 @@ import flexr.social.app.domain.model.MyProfile
 import flexr.social.app.domain.model.Photo
 import flexr.social.app.domain.model.PhotoStatus
 import flexr.social.app.domain.model.Profile
+import flexr.social.app.domain.model.VerificationDocumentType
 import flexr.social.app.domain.model.VerificationState
 import flexr.social.app.domain.model.VerificationStatus
+import flexr.social.app.domain.model.VerificationStep
 import java.time.Instant
 
 /** DTO → Domain. Bewusst an einer Stelle gebündelt, damit die Übersetzung des
@@ -66,6 +70,9 @@ fun MyProfileDto.toDomain() = MyProfile(
     birthdate = ServerTime.parseDate(birthdate),
     searchRadiusKm = searchRadiusKm,
     messagingMutedUntil = ServerTime.parse(messagingMutedUntil),
+    verificationRequired = verificationRequired,
+    isAccountActivated = isAccountActivated,
+    ageVerified = ageVerified,
 )
 
 fun MembershipStatusDto.toDomain() = Membership(
@@ -105,4 +112,17 @@ fun GymDto.toDomain() = Gym(
 fun VerificationStatusDto.toDomain() = VerificationState(
     status = VerificationStatus.from(status),
     prompts = prompts.orEmpty(),
+    nextStep = VerificationStep.from(nextStep),
+    reason = reason,
+    verificationRequired = verificationRequired,
+    accountActivated = accountActivated,
+    documentTypes = documentTypes.orEmpty().map {
+        VerificationDocumentType(value = it.value, label = it.label, needsBack = it.needsBack)
+    },
+)
+
+fun AgeCheckResponseDto.toDomain() = AgeCheck(
+    eligible = eligible,
+    age = age,
+    message = message,
 )

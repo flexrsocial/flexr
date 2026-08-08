@@ -81,6 +81,19 @@ class ImageProcessor @Inject constructor(
         bytes
     }
 
+    /**
+     * Aufnahme eines Lichtbildausweises. Bewusst großzügiger als beim Selfie:
+     * Geburtsdatum und Gültigkeitsangaben müssen für die Sichtprüfung lesbar
+     * bleiben. Der Server lehnt alles über 8 MB ab — bei dieser Kantenlänge und
+     * Qualität liegt eine Aufnahme weit darunter.
+     */
+    suspend fun compressDocument(bitmap: Bitmap): ByteArray = withContext(Dispatchers.Default) {
+        val scaled = scaleToMaxEdge(bitmap, DOCUMENT_MAX_EDGE_PX)
+        val bytes = scaled.toJpeg(DOCUMENT_JPEG_QUALITY)
+        if (scaled !== bitmap) scaled.recycle()
+        bytes
+    }
+
     private data class Bounds(val width: Int, val height: Int)
 
     private fun readBounds(uri: Uri): Bounds {
@@ -171,6 +184,8 @@ class ImageProcessor @Inject constructor(
         const val MAX_EDGE_PX = 1080
         const val THUMB_PX = 256
         const val SELFIE_MAX_EDGE_PX = 1280
+        const val DOCUMENT_MAX_EDGE_PX = 1600
+        const val DOCUMENT_JPEG_QUALITY = 90
         const val JPEG_QUALITY = 85
         const val MAX_PHOTOS = 6
     }

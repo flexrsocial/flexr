@@ -50,6 +50,8 @@ import flexr.social.app.ui.navigation.Routes
 import flexr.social.app.ui.navigation.TopLevelDestination
 import flexr.social.app.ui.paywall.PaywallScreen
 import flexr.social.app.ui.swipe.SwipeScreen
+import flexr.social.app.ui.verification.DocumentScreen
+import flexr.social.app.ui.verification.VerificationGateScreen
 import flexr.social.app.ui.verification.VerificationScreen
 import kotlinx.coroutines.launch
 
@@ -92,6 +94,13 @@ fun FlexrApp(
                 AppState.LoggedOut -> AuthGraph(
                     snackbarHostState = snackbarHostState,
                     onLoggedIn = viewModel::loadSession,
+                    onShowMessage = showMessage,
+                )
+
+                is AppState.NeedsVerification -> VerificationGraph(
+                    snackbarHostState = snackbarHostState,
+                    onLogout = viewModel::logout,
+                    onVerificationSubmitted = viewModel::loadSession,
                     onShowMessage = showMessage,
                 )
 
@@ -153,6 +162,70 @@ private fun AuthGraph(
                     onOpenLegal = { navController.navigate(Routes.legal(it)) },
                 )
             }
+            legalDestination(navController)
+        }
+    }
+}
+
+// ---------- Angemeldet, aber Alters-/Identitätsprüfung offen ----------
+
+/**
+ * Eigener Graph statt einer Sperre in den einzelnen Bildschirmen: Ein Konto
+ * ohne bestandene Prüfung kann gar nicht erst auf das Deck navigieren, statt
+ * dort in einen 403 zu laufen. Die untere Navigation fehlt bewusst.
+ */
+@Composable
+private fun VerificationGraph(
+    snackbarHostState: SnackbarHostState,
+    onLogout: () -> Unit,
+    onVerificationSubmitted: () -> Unit,
+    onShowMessage: (String) -> Unit,
+) {
+    val navController = rememberNavController()
+
+    Scaffold(
+        containerColor = Color.Transparent,
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+        topBar = { FlexrTopBar(statusSlot = { StatusPill("In Prüfung") }) },
+    ) { padding ->
+        NavHost(
+            navController = navController,
+            startDestination = Routes.VERIFICATION_GATE,
+            modifier = Modifier.fillMaxSize().padding(padding),
+        ) {
+            composable(Routes.VERIFICATION_GATE) {
+                VerificationGateScreen(
+                    onStartSelfies = { navController.navigate(Routes.VERIFICATION) },
+                    onStartDocument = { navController.navigate(Routes.VERIFICATION_DOCUMENT) },
+                    onLogout = onLogout,
+                    onShowMessage = onShowMessage,
+                )
+            }
+
+            composable(Routes.VERIFICATION) {
+                VerificationScreen(
+                    // Nach den Selfies steht der Ausweis an - direkt weiter,
+                    // ohne Umweg über die Übersicht.
+                    onBack = {
+                        navController.navigate(Routes.VERIFICATION_DOCUMENT) {
+                            popUpTo(Routes.VERIFICATION_GATE)
+                        }
+                    },
+                    onShowMessage = onShowMessage,
+                )
+            }
+
+            composable(Routes.VERIFICATION_DOCUMENT) {
+                DocumentScreen(
+                    onBack = { navController.popBackStack(Routes.VERIFICATION_GATE, inclusive = false) },
+                    onSubmitted = {
+                        navController.popBackStack(Routes.VERIFICATION_GATE, inclusive = false)
+                        onVerificationSubmitted()
+                    },
+                    onShowMessage = onShowMessage,
+                )
+            }
+
             legalDestination(navController)
         }
     }
@@ -266,6 +339,7 @@ private fun MainGraph(
                 AccountScreen(
                     onLogout = onLogout,
                     onOpenVerification = { navController.navigate(Routes.VERIFICATION) },
+                    onOpenDocumentStep = { navController.navigate(Routes.VERIFICATION_DOCUMENT) },
                     onOpenLegal = { navController.navigate(Routes.legal(it)) },
                     onOpenUrl = onOpenUrl,
                     onShowMessage = onShowMessage,
@@ -304,7 +378,22 @@ private fun MainGraph(
 
             composable(Routes.VERIFICATION) {
                 VerificationScreen(
+                    // Auch bei einem bereits freigeschalteten Konto (Bestands-
+                    // konto, das sich freiwillig verifiziert) folgt auf die
+                    // Selfies der Ausweisschritt.
+                    onBack = {
+                        navController.navigate(Routes.VERIFICATION_DOCUMENT) {
+                            popUpTo(Routes.ACCOUNT)
+                        }
+                    },
+                    onShowMessage = onShowMessage,
+                )
+            }
+
+            composable(Routes.VERIFICATION_DOCUMENT) {
+                DocumentScreen(
                     onBack = { navController.popBackStack() },
+                    onSubmitted = { navController.popBackStack(Routes.ACCOUNT, inclusive = false) },
                     onShowMessage = onShowMessage,
                 )
             }

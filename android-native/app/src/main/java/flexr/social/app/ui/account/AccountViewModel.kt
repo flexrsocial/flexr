@@ -64,6 +64,9 @@ sealed interface AccountEvent {
     data class OpenUrl(val url: String) : AccountEvent
     data object LoggedOut : AccountEvent
     data object StartVerification : AccountEvent
+
+    /** Selfies liegen vor, es fehlt nur noch der Lichtbildausweis. */
+    data object ContinueWithDocument : AccountEvent
 }
 
 /**
@@ -336,8 +339,19 @@ class AccountViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Springt an die Stelle, an der die Prüfung tatsächlich weitergeht: fehlt
+     * nur noch der Ausweis, führt der Weg direkt dorthin statt zu den Selfies.
+     */
     fun startVerification() {
-        viewModelScope.launch { _events.send(AccountEvent.StartVerification) }
+        viewModelScope.launch {
+            val event = if (_uiState.value.verificationStatus.needsDocument) {
+                AccountEvent.ContinueWithDocument
+            } else {
+                AccountEvent.StartVerification
+            }
+            _events.send(event)
+        }
     }
 
     /** „Verstanden" auf dem Verifiziert-Hinweis: dauerhaft ausblenden. */

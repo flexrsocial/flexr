@@ -17,6 +17,11 @@ object Routes {
     const val MATCH_PROFILE = "matchProfile/{matchId}"
     const val CHAT = "chat/{matchId}?origin={origin}"
     const val VERIFICATION = "verification"
+
+    /** Alters- und Identitätsprüfung eines noch nicht freigeschalteten Kontos. */
+    const val VERIFICATION_GATE = "verificationGate"
+    const val VERIFICATION_DOCUMENT = "verificationDocument"
+
     const val LEGAL = "legal/{document}"
 
     fun matchProfile(matchId: String) = "matchProfile/$matchId"

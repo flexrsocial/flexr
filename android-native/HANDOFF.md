@@ -17,15 +17,37 @@ unverändert — die App spricht denselben REST-Vertrag wie das Web-Frontend.
 | | |
 |---|---|
 | applicationId | `flexr.social.app` (unverändert, Play-Store-Kontinuität) |
-| Version | `2.0.9`, versionCode **15** (TWA-Stand war 5) |
+| Version | `2.2.0`, versionCode **17** (TWA-Stand war 5) |
 | compileSdk / targetSdk / minSdk | 36 / 36 / 26 |
 | Signatur | bestehender Upload-Key `android/android.keystore`, SHA-256 `BC:64:AD:3F:…:14:0E:79:80` |
 
-**Offen: der Play-Store-Upload.** Das signierte Bundle für `2.0.9` liegt unter
-`app/build/outputs/bundle/prodRelease/app-prod-release.aab` (Stand 04.08.2026,
-Signatur `META-INF/FLEXR.RSA`), neu zu bauen mit
-`./gradlew :app:bundleProdRelease` (siehe Build-Umgebung unten). Die nie
-hochgeladene `2.0.8` ist damit übersprungen.
+**Offen: der Play-Store-Upload.** Das signierte Bundle entsteht unter
+`app/build/outputs/bundle/prodRelease/app-prod-release.aab`, zu bauen mit
+`./gradlew :app:bundleProdRelease` (siehe Build-Umgebung unten). Ohne
+`android/KEYSTORE-CREDENTIALS.txt` entfällt die Signatur stillschweigend — das
+Ergebnis ist dann nicht hochladbar, also nach dem Build gegenprüfen:
+`unzip -l app-prod-release.aab | grep META-INF` muss `FLEXR.RSA` zeigen.
+
+**Neu in 2.2.0 — die Alters- und Identitätsprüfung.** Ein neu registriertes Konto
+ist angelegt, aber nicht nutzbar, bis ein Mensch Profilfoto, Verifizierungs-Selfie
+und einen amtlichen Lichtbildausweis verglichen und das Geburtsdatum abgeglichen
+hat. Die App bildet den Ablauf vollständig ab:
+
+* `AppState.NeedsVerification` ist ein eigener Navigationsgraph — ohne
+  Freischaltung existiert die untere Navigation gar nicht, statt in einen 403 zu
+  laufen. Er steht bewusst VOR der Paywall: Der Probemonat startet erst mit der
+  Freischaltung.
+* `ui/verification/VerificationGateScreen` zeigt den Stand (Schritt 1, Schritt 2,
+  in Prüfung, Neu-Upload nötig, abgelehnt) samt Prüfgrund aus dem festen Katalog.
+  Ausloggen und Kontolöschung bleiben dort erreichbar — sonst wäre eine
+  abgelehnte Prüfung eine Sackgasse.
+* `ui/verification/DocumentScreen` nimmt den Ausweis über die **Rückkamera** auf
+  (Selfies laufen weiter über die Frontkamera). Die Kamera öffnet erst auf
+  Tippen eines Aufnahmeplatzes. Personalausweis und Führerschein verlangen
+  Vorder- und Rückseite, der Reisepass nur die Datenseite — welcher Typ was
+  braucht, sagt der Server (`document_types`), die App pflegt keine eigene Liste.
+* Die Aufnahmen gehen per Presigned PUT direkt in einen **privaten** Bereich des
+  Objekt-Storage und bekommen nie eine öffentliche Adresse.
 
 **Neu in 2.0.9.** Das Swipe-Deck folgt einer Änderung des Suchumkreises sofort.
 Bis `2.0.8` las der Swipe-Bildschirm Radius und Gym nur einmal beim Erzeugen des
@@ -51,9 +73,16 @@ die Angabe vom tatsächlichen Verhalten ab.
    Registrierung inkl. Foto-Upload, Swipe, Chat, Verifizierung.
    Auf dieser Maschine ist das nicht nachholbar: Das Bubblewrap-SDK enthält weder
    `emulator` noch System-Images, und `adb devices` bleibt leer.
-2. **Datensicherheitserklärung in der Play Console ergänzen:** Standort (grob und
-   genau) sowie Kamera. In der TWA liefen diese Berechtigungen über Chrome, die
-   native App fordert sie selbst an.
+2. **Datensicherheitserklärung in der Play Console ergänzen:** Kamera. In der TWA
+   lief diese Berechtigung über Chrome, die native App fordert sie selbst an.
+   Der Abschnitt Standort ist seit 2.0.7 ersatzlos entfallen.
+3. **Datensicherheit: die Ausweisaufnahme ist deklarationspflichtig.** Seit 2.2.0
+   überträgt die App Fotos eines amtlichen Lichtbildausweises an das eigene
+   Backend. Das ist eine Erhebung im Sinne der Play-Datensicherheit und gehört
+   angegeben — mit Zweck „Kontoverwaltung / Betrugsprävention", Angabe, dass die
+   Daten nicht geteilt werden, und dem Hinweis, dass sie nach Abschluss der
+   Prüfung gelöscht werden. Eine Einstufung als rein flüchtige Verarbeitung wäre
+   falsch: Die Aufnahmen liegen bis zur Entscheidung im Objekt-Storage.
 
 ---
 

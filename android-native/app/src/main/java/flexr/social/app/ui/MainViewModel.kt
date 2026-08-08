@@ -28,6 +28,13 @@ sealed interface AppState {
 
     data object LoggedOut : AppState
 
+    /**
+     * Konto angelegt, aber die Alters- und Identitätsprüfung ist noch nicht
+     * bestanden: nur der Verifizierungsablauf. Steht bewusst VOR der Paywall —
+     * der Probemonat startet erst mit der Freischaltung.
+     */
+    data class NeedsVerification(val profile: MyProfile) : AppState
+
     /** Angemeldet, aber Probemonat abgelaufen und kein Abo: nur die Paywall. */
     data class Locked(val membership: Membership) : AppState
 
@@ -74,12 +81,23 @@ class MainViewModel @Inject constructor(
                 val membership = billingRepository.refresh()
                 profile to membership
             }.onSuccess { (profile, membership) ->
-                _appState.value = if (membership.isActive) {
-                    notificationScheduler.schedule()
-                    AppState.Ready(profile, membership)
-                } else {
-                    notificationScheduler.cancel()
-                    AppState.Locked(membership)
+                _appState.value = when {
+                    // Ohne bestandene Prüfung gibt es kein Deck, keine Matches
+                    // und keinen Chat - unabhängig vom Abo-Status.
+                    !profile.isAccountActivated -> {
+                        notificationScheduler.cancel()
+                        AppState.NeedsVerification(profile)
+                    }
+
+                    membership.isActive -> {
+                        notificationScheduler.schedule()
+                        AppState.Ready(profile, membership)
+                    }
+
+                    else -> {
+                        notificationScheduler.cancel()
+                        AppState.Locked(membership)
+                    }
                 }
                 SessionGate.isReady = true
             }.onFailure {
