@@ -61,7 +61,10 @@ fun PaywallScreen(
                 is AccountEvent.Message -> onShowMessage(event.text)
                 is AccountEvent.OpenUrl -> onOpenUrl(event.url)
                 AccountEvent.LoggedOut -> onLogout()
+                // Auf der Paywall gibt es keinen Verifizierungsablauf - beide
+                // Ereignisse können hier gar nicht ausgelöst werden.
                 AccountEvent.StartVerification -> Unit
+                AccountEvent.ContinueWithDocument -> Unit
             }
         }
     }

@@ -58,6 +58,14 @@ data class MyProfile(
     val birthdate: LocalDate?,
     val searchRadiusKm: Int,
     val messagingMutedUntil: Instant?,
+    /**
+     * Alters- und Identitätsprüfung. Ein Konto mit verificationRequired = true
+     * und isAccountActivated = false ist angelegt, aber noch nicht nutzbar:
+     * kein Deck, keine Matches, kein Chat.
+     */
+    val verificationRequired: Boolean = false,
+    val isAccountActivated: Boolean = true,
+    val ageVerified: Boolean = false,
 ) {
     val id: String get() = profile.id
     val name: String get() = profile.name
@@ -107,11 +115,24 @@ data class Gym(
             .joinToString(", ")
 }
 
-enum class VerificationStatus { NONE, IN_PROGRESS, SUBMITTED, APPROVED, REJECTED;
+/**
+ * Stand der Alters- und Identitätsprüfung.
+ *
+ * ID_REQUIRED und REUPLOAD_REQUIRED gehören zum Ausweisschritt, den diese App
+ * noch nicht selbst anbietet — siehe VerificationHint in AccountScreen.kt.
+ */
+enum class VerificationStatus {
+    NONE, IN_PROGRESS, ID_REQUIRED, REUPLOAD_REQUIRED, SUBMITTED, APPROVED, REJECTED;
+
+    /** Der Ausweisschritt steht noch aus. */
+    val needsDocument: Boolean
+        get() = this == ID_REQUIRED || this == REUPLOAD_REQUIRED
 
     companion object {
         fun from(raw: String?): VerificationStatus = when (raw?.lowercase()) {
             "in_progress" -> IN_PROGRESS
+            "id_required" -> ID_REQUIRED
+            "reupload_required" -> REUPLOAD_REQUIRED
             "submitted" -> SUBMITTED
             "approved" -> APPROVED
             "rejected" -> REJECTED
@@ -120,9 +141,43 @@ enum class VerificationStatus { NONE, IN_PROGRESS, SUBMITTED, APPROVED, REJECTED
     }
 }
 
+/** Was der Nutzer als Nächstes beitragen muss. */
+enum class VerificationStep {
+    SELFIE, DOCUMENT, WAIT, NONE;
+
+    companion object {
+        fun from(raw: String?): VerificationStep = when (raw?.lowercase()) {
+            "selfie" -> SELFIE
+            "document" -> DOCUMENT
+            "wait" -> WAIT
+            else -> NONE
+        }
+    }
+}
+
+/** Zugelassener Ausweistyp, vom Server geliefert. */
+data class VerificationDocumentType(
+    val value: String,
+    val label: String,
+    val needsBack: Boolean,
+)
+
 data class VerificationState(
     val status: VerificationStatus,
     val prompts: List<String>,
+    val nextStep: VerificationStep = VerificationStep.NONE,
+    /** Sachlicher Grund aus festem Katalog, wenn etwas nachzuholen ist. */
+    val reason: String? = null,
+    val verificationRequired: Boolean = false,
+    val accountActivated: Boolean = true,
+    val documentTypes: List<VerificationDocumentType> = emptyList(),
+)
+
+/** Ergebnis der Altersprüfung im Registrierungsformular. */
+data class AgeCheck(
+    val eligible: Boolean,
+    val age: Int?,
+    val message: String?,
 )
 
 /** Ergebnis eines Swipes. */

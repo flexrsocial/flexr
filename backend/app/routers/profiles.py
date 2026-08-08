@@ -86,8 +86,14 @@ def delete_my_account(
     endgültig gelöscht (siehe Datenschutzerklärung)."""
     from ..security import verify_password
 
+    from ..cleanup import purge_verification_uploads_for_user
+
     if not verify_password(payload.password, current_user.password_hash):
         raise HTTPException(400, "Falsches Passwort.")
+
+    # Ausweisaufnahmen und Verifizierungs-Selfies sofort löschen - sie sollen
+    # die 30-tägige Karenzzeit nicht überdauern.
+    purge_verification_uploads_for_user(db, current_user)
 
     current_user.deleted_at = datetime.utcnow()
     db.commit()

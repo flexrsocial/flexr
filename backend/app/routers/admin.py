@@ -42,10 +42,15 @@ from ..schemas import (
     AdminTokenResponse,
     AdminUserDetailOut,
     AdminUserListItem,
+    AdminVerificationApproveRequest,
+    AdminVerificationDecisionOut,
     AdminVerificationOut,
+    AdminVerificationRejectRequest,
+    AdminVerificationReuploadRequest,
     PhotoModerationOut,
 )
 from ..security import create_admin_access_token, get_current_admin, verify_password
+from ..verification_service import activate_account, purge_uploads
 from .. import storage
 
 router = APIRouter(prefix="/api/admin", tags=["admin"])
@@ -81,6 +86,13 @@ def get_stats(
         .filter(VerificationRequest.status == VerificationStatus.submitted)
         .scalar()
     )
+    # Entschiedene Prüfungen, bei denen das Löschen der Aufnahmen fehlgeschlagen
+    # ist - solange das >0 ist, liegen noch sensible Bilder im Storage.
+    pending_verification_cleanups = (
+        db.query(func.count(VerificationRequest.id))
+        .filter(VerificationRequest.cleanup_pending.is_(True))
+        .scalar()
+    )
     flagged_messages = db.query(func.count(Message.id)).filter(Message.is_flagged.is_(True)).scalar()
     pending_gyms = db.query(func.count(Gym.id)).filter(Gym.status == GymStatus.pending).scalar()
 
@@ -103,6 +115,7 @@ def get_stats(
         pending_photos=pending_photos,
         open_reports=open_reports,
         pending_verifications=pending_verifications,
+        pending_verification_cleanups=pending_verification_cleanups,
         flagged_messages=flagged_messages,
         pending_gyms=pending_gyms,
         active_today=active_today,
@@ -187,6 +200,9 @@ def list_users(
             is_banned=u.is_banned,
             is_verified=u.is_verified,
             is_active=u.is_active_member(),
+            verification_required=u.verification_required,
+            is_account_activated=u.is_account_activated,
+            age_verified=u.age_verified,
             created_at=u.created_at,
             photo_count=photo_counts.get(u.id, 0),
         )
@@ -238,6 +254,12 @@ def get_user_detail(
         is_banned=user.is_banned,
         is_verified=user.is_verified,
         is_active=user.is_active_member(),
+        verification_required=user.verification_required,
+        is_account_activated=user.is_account_activated,
+        age_verified=user.age_verified,
+        age_verified_at=user.age_verified_at,
+        verification_method=user.verification_method,
+        activated_at=user.activated_at,
         messaging_muted_until=user.messaging_muted_until,
         moderation_action=user.moderation_action,
         moderation_reason=user.moderation_reason,
@@ -330,9 +352,14 @@ def delete_user(
     admin: AdminUser = Depends(get_current_admin),
     db: Session = Depends(get_db),
 ):
+    from ..cleanup import delete_storage_objects, storage_keys_for_user
+
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(404, "Nutzer nicht gefunden.")
+    # Fotos, Verifizierungs-Selfies und Ausweisaufnahmen mitnehmen - sonst
+    # bleiben sie als verwaiste Objekte im Storage liegen.
+    delete_storage_objects(storage_keys_for_user(db, user))
     db.delete(user)
     db.commit()
     return {"deleted": True}
@@ -413,16 +440,20 @@ import json
 from datetime import datetime as _dt
 
 
-def _delete_selfies_quietly(req: VerificationRequest) -> None:
-    """Selfies nach Abschluss der Prüfung aus dem Storage löschen (best effort,
-    ein Storage-Fehler soll die Entscheidung nicht blockieren)."""
-    if not req.selfies:
-        return
-    for entry in json.loads(req.selfies):
-        try:
-            storage.delete_object(entry["object_key"])
-        except Exception:
-            pass
+# Ausweisaufnahmen liegen in einem privaten Prefix und bekommen nie eine
+# öffentliche URL. Auch die Selfies werden signiert ausgeliefert, damit ein aus
+# dem Admin-Tool kopierter Link nach einer Minute wertlos ist
+# (storage.create_presigned_view_url).
+
+
+def _load_verification(db: Session, request_id: str) -> tuple[VerificationRequest, User]:
+    req = db.query(VerificationRequest).filter(VerificationRequest.id == request_id).first()
+    if not req or req.status != VerificationStatus.submitted:
+        raise HTTPException(404, "Verifizierungsanfrage nicht gefunden.")
+    user = db.query(User).filter(User.id == req.user_id).first()
+    if not user:
+        raise HTTPException(404, "Nutzer nicht gefunden.")
+    return req, user
 
 
 @router.get("/verifications", response_model=list[AdminVerificationOut])
@@ -432,6 +463,8 @@ def list_verifications(
     admin: AdminUser = Depends(get_current_admin),
     db: Session = Depends(get_db),
 ):
+    """Konsolidierte Prüfansicht: Accountdaten, Profilfotos, Verifizierungs-Selfies
+    und die temporären Ausweisaufnahmen eines Vorgangs an einer Stelle."""
     rows = (
         db.query(VerificationRequest, User)
         .join(User, VerificationRequest.user_id == User.id)
@@ -444,62 +477,163 @@ def list_verifications(
     result = []
     for req, user in rows:
         selfies = json.loads(req.selfies) if req.selfies else []
+        documents = json.loads(req.documents) if req.documents else []
         result.append(
             AdminVerificationOut(
                 id=req.id,
                 user_id=user.id,
                 user_name=user.name,
                 user_email=user.email,
+                user_birthdate=user.birthdate,
+                user_age=user.age,
+                user_registered_at=user.created_at,
                 prompts=json.loads(req.prompts),
                 selfie_urls=[
-                    {"prompt": s["prompt"], "url": storage.public_url_for(s["object_key"])}
+                    {"prompt": s["prompt"], "url": storage.create_presigned_view_url(s["object_key"])}
                     for s in selfies
                 ],
                 profile_photo_urls=[p.url for p in user.photos],
+                document_type=req.document_type,
+                document_urls=[
+                    {"side": d["side"], "url": storage.create_presigned_view_url(d["object_key"])}
+                    for d in documents
+                ],
                 created_at=req.created_at,
+                submitted_at=req.submitted_at,
             )
         )
     return result
 
 
-@router.post("/verifications/{request_id}/approve")
+@router.post("/verifications/{request_id}/approve", response_model=AdminVerificationDecisionOut)
 def approve_verification(
     request_id: str,
+    payload: AdminVerificationApproveRequest,
     admin: AdminUser = Depends(get_current_admin),
     db: Session = Depends(get_db),
 ):
-    req = db.query(VerificationRequest).filter(VerificationRequest.id == request_id).first()
-    if not req or req.status != VerificationStatus.submitted:
-        raise HTTPException(404, "Verifizierungsanfrage nicht gefunden.")
-    user = db.query(User).filter(User.id == req.user_id).first()
-    if not user:
-        raise HTTPException(404, "Nutzer nicht gefunden.")
+    """Freigabe nach vollständig bestätigter Prüfcheckliste.
 
-    _delete_selfies_quietly(req)
-    req.selfies = None  # Selfies sind gelöscht (siehe Datenschutzerklärung)
+    Erst hier - und nur hier - entstehen ``age_verified``, der blaue Haken und
+    die Freischaltung des Kontos. Die Checkliste wird serverseitig erzwungen
+    (siehe AdminVerificationApproveRequest).
+    """
+    req, user = _load_verification(db, request_id)
+
     req.status = VerificationStatus.approved
     req.decided_at = _dt.utcnow()
+    req.reviewed_by = admin.id
+    req.review_reason = None
+
     user.is_verified = True
+    user.age_verified = True
+    user.age_verified_at = req.decided_at
+    user.verification_method = "manual_id"
+    activate_account(user)
+
+    # Temporäre Aufnahmen löschen und das Ergebnis prüfen. Schlägt es fehl,
+    # bleibt der Vorgang als aufzuräumen markiert (cleanup_pending) und wird
+    # vom Aufräumlauf erneut versucht - er gilt nicht als erledigt.
+    deleted = purge_uploads(req)
     db.commit()
-    return {"is_verified": True}
+    return AdminVerificationDecisionOut(
+        status=req.status.value,
+        documents_deleted=deleted,
+        cleanup_pending=req.cleanup_pending,
+    )
 
 
-@router.post("/verifications/{request_id}/reject")
+@router.post("/verifications/{request_id}/reject", response_model=AdminVerificationDecisionOut)
 def reject_verification(
     request_id: str,
+    payload: AdminVerificationRejectRequest,
     admin: AdminUser = Depends(get_current_admin),
     db: Session = Depends(get_db),
 ):
-    req = db.query(VerificationRequest).filter(VerificationRequest.id == request_id).first()
-    if not req or req.status != VerificationStatus.submitted:
-        raise HTTPException(404, "Verifizierungsanfrage nicht gefunden.")
+    """Endgültige Ablehnung: Das Konto wird nicht freigeschaltet, alle
+    temporären Aufnahmen werden gelöscht. Ein Neuanlauf ist danach nur über
+    "Neue Aufnahme anfordern" möglich."""
+    req, user = _load_verification(db, request_id)
 
-    _delete_selfies_quietly(req)
-    req.selfies = None
     req.status = VerificationStatus.rejected
     req.decided_at = _dt.utcnow()
+    req.reviewed_by = admin.id
+    req.review_reason = payload.reason_code
+
+    # Eine abgelehnte Prüfung nimmt weder den blauen Haken noch eine früher
+    # bestätigte Altersprüfung zurück - beides entsteht nur bei Freigabe.
+    user.is_verified = False
+
+    deleted = purge_uploads(req)
     db.commit()
-    return {"is_verified": False}
+    return AdminVerificationDecisionOut(
+        status=req.status.value,
+        documents_deleted=deleted,
+        cleanup_pending=req.cleanup_pending,
+    )
+
+
+@router.post("/verifications/{request_id}/request-reupload", response_model=AdminVerificationDecisionOut)
+def request_verification_reupload(
+    request_id: str,
+    payload: AdminVerificationReuploadRequest,
+    admin: AdminUser = Depends(get_current_admin),
+    db: Session = Depends(get_db),
+):
+    """Neue Aufnahme anfordern (unleserlich, unvollständig, falsches Bild).
+
+    Der Vorgang bleibt offen, die ersetzten Aufnahmen werden sofort gelöscht.
+    Mit ``redo_selfie`` müssen auch die Selfies neu aufgenommen werden - dann
+    gibt der Server beim nächsten Start neue Posen aus.
+    """
+    req, _user = _load_verification(db, request_id)
+
+    req.status = VerificationStatus.reupload_required
+    req.decided_at = _dt.utcnow()
+    req.reviewed_by = admin.id
+    req.review_reason = payload.reason_code
+    req.document_type = None
+    req.submitted_at = None
+
+    deleted = purge_uploads(req, selfies=payload.redo_selfie, documents=True)
+    db.commit()
+    return AdminVerificationDecisionOut(
+        status=req.status.value,
+        documents_deleted=deleted,
+        cleanup_pending=req.cleanup_pending,
+    )
+
+
+@router.post("/users/{user_id}/require-verification")
+def require_verification(
+    user_id: str,
+    admin: AdminUser = Depends(get_current_admin),
+    db: Session = Depends(get_db),
+):
+    """Fordert die Alters- und Identitätsprüfung für ein Bestandskonto nach.
+
+    Die Migration markiert bestehende Konten bewusst nicht automatisch - hier
+    lassen sie sich gezielt (einzeln oder gestaffelt) in den neuen Ablauf
+    holen. Das Konto ist ab sofort nicht mehr nutzbar, bis die Prüfung
+    bestanden ist.
+    """
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(404, "Nutzer nicht gefunden.")
+    user.verification_required = True
+    user.activated_at = None
+    # Merkt den Zeitpunkt der Anforderung: Frühere Entscheidungen (auch eine
+    # frühere Ablehnung) blockieren den neuen Durchlauf damit nicht mehr,
+    # spätere sehr wohl.
+    user.verification_required_at = datetime.utcnow()
+    # Der blaue Haken hängt an der bestandenen Prüfung - bis zur neuen
+    # Entscheidung ist er weg.
+    user.is_verified = False
+    db.commit()
+    return {
+        "verification_required": True,
+        "is_account_activated": user.is_account_activated,
+    }
 
 
 @router.get("/gyms", response_model=list[AdminGymOut])

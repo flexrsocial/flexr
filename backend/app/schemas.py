@@ -3,14 +3,7 @@ from typing import Literal, Optional
 
 from pydantic import BaseModel, EmailStr, Field, field_validator, model_validator
 
-
-def _age_from_birthdate(birthdate: date) -> int:
-    today = date.today()
-    return (
-        today.year
-        - birthdate.year
-        - ((today.month, today.day) < (birthdate.month, birthdate.day))
-    )
+from .age import is_plausible_birthdate
 
 
 class RegisterRequest(BaseModel):
@@ -39,11 +32,12 @@ class RegisterRequest(BaseModel):
 
     @field_validator("birthdate")
     @classmethod
-    def _require_adult(cls, v: date) -> date:
-        age = _age_from_birthdate(v)
-        if age < 18:
-            raise ValueError("Du musst mindestens 18 Jahre alt sein.")
-        if age > 99:
+    def _plausible_birthdate(cls, v: date) -> date:
+        """Nur die formale Plausibilität (kein Datum in der Zukunft, kein
+        unrealistisches Alter). Die 18-Jahres-Grenze prüft der Router - sie
+        muss den Versuch protokollieren und mit einer eigenen Antwort
+        beantworten können (siehe routers/auth.py)."""
+        if not is_plausible_birthdate(v):
             raise ValueError("Bitte ein gültiges Geburtsdatum angeben.")
         return v
 
@@ -60,6 +54,23 @@ class RegisterRequest(BaseModel):
         if not v:
             raise ValueError("Kenntnisnahme zum Rücktrittsrecht ist erforderlich.")
         return v
+
+
+class AgeCheckRequest(BaseModel):
+    """Vorabprüfung des Geburtsdatums im Registrierungsformular. Verbindlich
+    ist trotzdem die Prüfung in POST /api/auth/register - dieser Endpunkt
+    verbessert nur die Führung durch das Formular."""
+
+    birthdate: date
+
+
+class AgeCheckResponse(BaseModel):
+    eligible: bool
+    age: Optional[int] = None
+    message: Optional[str] = None
+    # Was danach ansteht - der Client zeigt daraufhin den Hinweis auf die
+    # Alters-/Identitätsprüfung an, bevor irgendein Bild aufgenommen wird.
+    verification_required: bool = True
 
 
 class LoginRequest(BaseModel):
@@ -122,6 +133,12 @@ class MyProfileOut(ProfileOut):
     plz: str
     birthdate: date
     search_radius_km: int = 20
+    # Alters-/Identitätsprüfung: Muss dieses Konto sie durchlaufen, und ist es
+    # bereits freigeschaltet? Nur lesbar - gesetzt wird ausschließlich
+    # serverseitig nach der Admin-Entscheidung.
+    verification_required: bool = False
+    is_account_activated: bool = True
+    age_verified: bool = False
     phone: Optional[str] = None
     phone_verified: bool = False
     # Befristete Chat-Sperre: bis wann darf der Nutzer keine Nachrichten senden
@@ -230,7 +247,7 @@ class PhoneConfirmRequest(BaseModel):
     code: str = Field(pattern=r"^\d{6}$")
 
 
-# ---------- Foto-Verifizierung ----------
+# ---------- Alters- und Identitätsprüfung ----------
 
 class VerificationSelfieIn(BaseModel):
     prompt: str
@@ -242,8 +259,42 @@ class VerificationSubmitRequest(BaseModel):
 
 
 class VerificationStatusOut(BaseModel):
-    status: Literal["none", "in_progress", "submitted", "approved", "rejected"]
+    """Statusantwort für den Nutzer.
+
+    ``status`` behält die bisherigen Werte bei (ältere App-Versionen kennen sie
+    bereits); ``id_required`` und ``reupload_required`` sind neu. ``next_step``
+    sagt dem Client, was als Nächstes zu tun ist, ohne dass er die Statuswerte
+    interpretieren muss.
+    """
+
+    status: Literal[
+        "none", "in_progress", "id_required", "reupload_required",
+        "submitted", "approved", "rejected",
+    ]
     prompts: Optional[list[str]] = None
+    next_step: Optional[Literal["selfie", "document", "wait", "none"]] = None
+    # Sachlicher Grund, wenn eine neue Aufnahme nötig ist oder abgelehnt wurde.
+    # Fester Katalogtext, kein Freitext des Prüfers.
+    reason: Optional[str] = None
+    # Muss dieses Konto die Prüfung bestehen, bevor es nutzbar wird?
+    verification_required: bool = False
+    account_activated: bool = True
+    # Zugelassene Dokumenttypen und ob eine Rückseite gebraucht wird -
+    # damit der Client keine eigene Liste pflegen muss.
+    document_types: Optional[list[dict]] = None
+
+
+class VerificationDocumentPresignRequest(BaseModel):
+    content_type: Literal["image/jpeg", "image/png", "image/webp"]
+    # Vom Client gemeldete Dateigröße. Die verbindliche Prüfung passiert nach
+    # dem Upload gegen das tatsächliche Objekt (storage.inspect_uploaded_image).
+    byte_size: int = Field(gt=0)
+
+
+class VerificationDocumentSubmitRequest(BaseModel):
+    document_type: Literal["id_card", "passport", "drivers_license"]
+    front_object_key: str
+    back_object_key: Optional[str] = None
 
 
 class AdminVerificationOut(BaseModel):
@@ -251,10 +302,73 @@ class AdminVerificationOut(BaseModel):
     user_id: str
     user_name: str
     user_email: str
+    # Für den Abgleich mit dem Ausweis: angegebenes Geburtsdatum und das daraus
+    # errechnete Alter.
+    user_birthdate: date
+    user_age: int
+    user_registered_at: datetime
     prompts: list[str]
-    selfie_urls: list[dict]  # [{"prompt": ..., "url": ...}]
+    selfie_urls: list[dict]  # [{"prompt": ..., "url": ...}] - kurzlebige Signed URLs
     profile_photo_urls: list[str]
+    document_type: Optional[str] = None
+    # [{"side": "front"|"back", "url": ...}] - kurzlebige Signed URLs, nie öffentlich
+    document_urls: list[dict] = []
     created_at: datetime
+    submitted_at: Optional[datetime] = None
+
+
+class AdminVerificationApproveRequest(BaseModel):
+    """Prüfcheckliste. Freigabe ist erst möglich, wenn der Prüfer jeden Punkt
+    ausdrücklich bestätigt hat - der Server verlässt sich dabei nicht auf die
+    Oberfläche, sondern lehnt unvollständige Bestätigungen ab."""
+
+    selfie_matches_profile_photos: bool
+    selfie_matches_document: bool
+    document_shows_min_age: bool
+    document_dob_matches_registration: bool
+    document_legible: bool
+    document_plausible: bool
+
+    @model_validator(mode="after")
+    def _all_confirmed(self):
+        missing = [name for name, value in self.model_dump().items() if not value]
+        if missing:
+            raise ValueError(
+                "Alle Punkte der Prüfcheckliste müssen bestätigt sein: "
+                + ", ".join(missing)
+            )
+        return self
+
+
+REVIEW_REASONS = Literal[
+    "document_unreadable",
+    "details_not_visible",
+    "person_mismatch",
+    "dob_mismatch",
+    "underage",
+    "document_unsuitable",
+    "selfie_unusable",
+    "other",
+]
+
+
+class AdminVerificationRejectRequest(BaseModel):
+    reason_code: REVIEW_REASONS
+
+
+class AdminVerificationReuploadRequest(BaseModel):
+    reason_code: REVIEW_REASONS
+    # True, wenn auch die Selfies neu aufgenommen werden müssen. Die alten
+    # Aufnahmen werden dann gelöscht und neue Posen ausgegeben.
+    redo_selfie: bool = False
+
+
+class AdminVerificationDecisionOut(BaseModel):
+    status: str
+    # False, wenn nach der Entscheidung noch Aufnahmen im Storage liegen. Der
+    # Vorgang gilt dann als nicht abgeschlossen und wird erneut aufgeräumt.
+    documents_deleted: bool = True
+    cleanup_pending: bool = False
 
 
 class ReportRequest(BaseModel):
@@ -309,6 +423,10 @@ class AdminUserListItem(BaseModel):
     is_banned: bool
     is_verified: bool = False
     is_active: bool
+    # Alters-/Identitätsprüfung
+    verification_required: bool = False
+    is_account_activated: bool = True
+    age_verified: bool = False
     created_at: datetime
     photo_count: int
 
@@ -328,6 +446,13 @@ class AdminUserDetailOut(BaseModel):
     is_banned: bool
     is_verified: bool = False
     is_active: bool
+    # Alters-/Identitätsprüfung
+    verification_required: bool = False
+    is_account_activated: bool = True
+    age_verified: bool = False
+    age_verified_at: Optional[datetime] = None
+    verification_method: Optional[str] = None
+    activated_at: Optional[datetime] = None
     messaging_muted_until: Optional[datetime] = None
     # Begründung der laufenden Maßnahme (Art. 17 DSA)
     moderation_action: Optional[str] = None
@@ -406,6 +531,8 @@ class AdminStats(BaseModel):
     pending_photos: int
     open_reports: int
     pending_verifications: int = 0
+    # Entschiedene Prüfungen, bei denen das Löschen der Aufnahmen noch aussteht
+    pending_verification_cleanups: int = 0
     flagged_messages: int = 0
     pending_gyms: int = 0
     # Zugriffe

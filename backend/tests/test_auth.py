@@ -62,6 +62,9 @@ def test_register_rejects_invalid_plz(client):
 
 
 def test_register_rejects_minors(client):
+    """Die Altersgrenze prüft der Router, nicht das Schema - er muss den
+    Versuch zählen und mit einer eigenen Antwort reagieren (siehe
+    tests/test_age_gate.py)."""
     from datetime import date
 
     seventeen = date.today().replace(year=date.today().year - 17).isoformat()
@@ -80,7 +83,8 @@ def test_register_rejects_minors(client):
             "consent_withdrawal_waiver": True,
         },
     )
-    assert resp.status_code == 422
+    assert resp.status_code == 403
+    assert resp.json()["detail"]["code"] == "underage"
 
 
 def test_age_computed_from_birthdate(client):

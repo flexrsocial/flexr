@@ -83,9 +83,11 @@ enum LegalContent {
             ),
             .faq(
                 question: "Ist FLEXR sicher und seriös?",
-                answer: "Ja. FLEXR hat eine Melde- und Blockfunktion, eine Foto-Verifizierung (blauer Haken) "
-                    + "sowie einen automatischen Schutz im Chat, der Scam-Nachrichten und externe Links "
-                    + "erkennt und entfernt."
+                answer: "Ja. Jedes Konto durchläuft vor der Freischaltung eine manuelle Alters- und "
+                    + "Identitätsprüfung mit Verifizierungs-Selfie und amtlichem Lichtbildausweis. "
+                    + "Dazu kommen eine Melde- und Blockfunktion, der Verifizierungshaken im Profil "
+                    + "sowie ein automatischer Schutz im Chat, der Scam-Nachrichten und externe "
+                    + "Links erkennt und entfernt."
             ),
             .faq(
                 question: "Für wen ist FLEXR gedacht?",
@@ -123,12 +125,16 @@ enum LegalContent {
             ]),
             .heading("Anwendbare Rechtsvorschriften"),
             .keyValues([("Gewerbeordnung", "www.ris.bka.gv.at")]),
-            .heading("EU-Streitschlichtung"),
+            .heading("Verbraucherbeschwerden und Streitbeilegung"),
             .paragraph(
-                "Die Europäische Kommission stellt eine Plattform zur Online-Streitbeilegung (OS) "
-                    + "bereit: ec.europa.eu/consumers/odr. Unsere E-Mail-Adresse für "
-                    + "Verbraucherbeschwerden: flexr.social@proton.me. Wir sind freiwillig bereit, an "
-                    + "einem Streitbeilegungsverfahren vor einer Verbraucherschlichtungsstelle teilzunehmen."
+                "Unsere E-Mail-Adresse für Verbraucherbeschwerden: flexr.social@proton.me."
+            ),
+            .paragraph(
+                "Die Plattform der Europäischen Kommission zur Online-Streitbeilegung "
+                    + "(„OS-Plattform\") wurde am 20. Juli 2025 eingestellt. Die Verordnung (EU) "
+                    + "Nr. 524/2013 und die daraus folgende Pflicht, auf diese Plattform zu "
+                    + "verlinken, wurden durch die Verordnung (EU) 2024/3228 aufgehoben; ein "
+                    + "entsprechender Link entfällt daher."
             ),
             .heading("Haftung für Inhalte"),
             .paragraph(
@@ -154,11 +160,30 @@ enum LegalContent {
             ),
             .heading("2. Registrierungsvoraussetzungen"),
             .lettered([
-                "Mindestalter 18 Jahre. Mit der Registrierung bestätigt der Nutzer aktiv, "
-                    + "mindestens 18 Jahre alt zu sein. Es erfolgt aktuell keine Ausweis-/ID-"
-                    + "Verifikation, sondern eine Selbstauskunft mit serverseitiger Altersgrenze "
-                    + "(18–99 Jahre). Bei begründetem Verdacht auf Falschangabe behalten wir uns die "
-                    + "Sperre des Accounts vor.",
+                "Mindestalter 18 Jahre. Bei der Registrierung gibt der Nutzer sein Geburtsdatum "
+                    + "an; das Alter wird serverseitig berechnet (zulässig sind 18–99 Jahre). Liegt "
+                    + "es unter 18 Jahren, kann die Registrierung nicht abgeschlossen werden.",
+                "Alters- und Identitätsprüfung vor der Freischaltung. Zusätzlich zur Angabe des "
+                    + "Geburtsdatums ist vor der Freischaltung des Accounts eine Prüfung zu "
+                    + "durchlaufen: Der Nutzer nimmt Verifizierungs-Selfies mit vorgegebenen Posen "
+                    + "auf und lädt einmalig eine Aufnahme eines gültigen amtlichen "
+                    + "Lichtbildausweises (Personalausweis, Reisepass oder Führerschein) hoch. Die "
+                    + "Prüfung erfolgt manuell durch FLEXR — Profilfoto, Verifizierungs-Selfie und "
+                    + "Ausweisfoto werden von einem Menschen verglichen und das Geburtsdatum "
+                    + "abgeglichen. Eine automatisierte biometrische Gesichtserkennung findet nicht "
+                    + "statt. Es handelt sich um eine Sichtprüfung des vorgelegten Dokuments, nicht "
+                    + "um ein behördliches Identifizierungsverfahren.",
+                "Freischaltung. Der Account wird erst nach erfolgreicher Prüfung freigeschaltet; "
+                    + "erst dann sind Swipen, Matchen und Chatten möglich und erst dann beginnt der "
+                    + "Probemonat (siehe Punkt 4). Verläuft die Prüfung nicht erfolgreich — etwa "
+                    + "weil das Dokument nicht lesbar ist, die Person nicht übereinstimmt, das "
+                    + "Geburtsdatum abweicht oder der Nutzer noch nicht 18 Jahre alt ist — können "
+                    + "wir eine neue Aufnahme anfordern oder die Registrierung ablehnen. Die "
+                    + "Aufnahmen des Ausweises und die Verifizierungs-Selfies werden nach Abschluss "
+                    + "der Prüfung gelöscht (Einzelheiten in der Datenschutzerklärung).",
+                "Bei begründetem Verdacht auf Falschangaben behalten wir uns die Sperre des "
+                    + "Accounts vor. Bestehende Accounts können wir zur Alters- und "
+                    + "Identitätsprüfung nachträglich auffordern.",
                 "Nutzung aktuell nur für Personen mit Wohnsitz/Aufenthalt in Österreich "
                     + "(Postleitzahl bei der Registrierung).",
                 "Ein Account pro Person; keine Erstellung von Fake-Profilen oder Profilen für Dritte.",
@@ -232,7 +257,9 @@ enum LegalContent {
             .lettered([
                 "Es gilt österreichisches Recht unter Ausschluss der Verweisungsnormen des IPR.",
                 "Für Verbraucher gelten die zwingenden Bestimmungen des Wohnsitzstaates.",
-                "OS-Plattform der EU: ec.europa.eu/consumers/odr.",
+                "Beschwerden richte bitte an flexr.social@proton.me. Die OS-Plattform der "
+                    + "Europäischen Kommission wurde am 20. Juli 2025 eingestellt "
+                    + "(siehe Impressum).",
             ]),
         ]
     )
@@ -458,11 +485,12 @@ enum LegalContent {
             .paragraph(
                 "Vorbeugend: Ohne mindestens ein freigegebenes Foto ist ein Profil für andere "
                     + "nicht sichtbar. Jedes hochgeladene Foto steht zunächst auf ausstehend und "
-                    + "wird erst nach menschlicher Prüfung ausgeliefert. Bei der freiwilligen "
-                    + "Foto-Verifizierung verlangt der Server drei zufällig gezogene Posen als "
+                    + "wird erst nach menschlicher Prüfung ausgeliefert. Bei der Alters- und "
+                    + "Identitätsprüfung verlangt der Server drei zufällig gezogene Posen als "
                     + "Selfie — da die Posen erst bei der Anfrage feststehen, lassen sie sich mit "
-                    + "fremdem oder vorbereitetem Material nicht bedienen; nach der Prüfung werden "
-                    + "die Selfies gelöscht. Dazu kommen die Telefonprüfung per SMS-Einmalcode, die "
+                    + "fremdem oder vorbereitetem Material nicht bedienen; dazu kommt der Abgleich "
+                    + "mit einem vorgelegten amtlichen Lichtbildausweis. Nach der Prüfung werden "
+                    + "Selfies und Ausweisaufnahmen gelöscht. Dazu kommen die Telefonprüfung per SMS-Einmalcode, die "
                     + "E-Mail-Eindeutigkeit je Konto und die Sperrliste für Wegwerf-Adressen."
             ),
             .lettered([
@@ -496,7 +524,9 @@ enum LegalContent {
             .paragraph(
                 "Vorbeugend: Die Registrierung verlangt ein Geburtsdatum; der Server weist jeden "
                     + "Wert unter 18 Jahren ab, und das Alter wird laufend aus dem Geburtsdatum "
-                    + "berechnet statt als frei änderbare Zahl geführt. Kein Foto wird ohne manuelle "
+                    + "berechnet statt als frei änderbare Zahl geführt. Vor der Freischaltung des "
+                    + "Kontos prüft ein Mensch zusätzlich einen vorgelegten amtlichen "
+                    + "Lichtbildausweis gegen die Angabe bei der Registrierung. Kein Foto wird ohne manuelle "
                     + "Freigabe ausgeliefert; bei Zweifeln an der Volljährigkeit der abgebildeten "
                     + "Person wird im Zweifel gegen die Freigabe entschieden und das Konto geprüft. "
                     + "Der Chat überträgt ausschließlich Text — die Verbreitung von Bildmaterial "
@@ -777,9 +807,28 @@ enum LegalContent {
                     ["Fotos", "Profilbilder", "Upload durch Nutzer, gespeichert bei Cloudflare R2"],
                     [
                         "Verifizierungs-Selfies",
-                        "Selfie-Aufnahmen mit vorgegebenen Posen für die freiwillige Profil-"
-                            + "Verifizierung (blauer Haken)",
-                        "Live-Aufnahme über die Kamera, gespeichert bei Cloudflare R2",
+                        "Selfie-Aufnahmen mit vorgegebenen Posen für die Alters- und "
+                            + "Identitätsprüfung",
+                        "Live-Aufnahme über die Kamera, temporär bei Cloudflare R2",
+                    ],
+                    [
+                        "Ausweisaufnahmen",
+                        "Aufnahme eines amtlichen Lichtbildausweises (Personalausweis, Reisepass "
+                            + "oder Führerschein) für die Alters- und Identitätsprüfung",
+                        "Upload durch Nutzer, temporär in einem nicht öffentlich abrufbaren "
+                            + "Bereich bei Cloudflare R2",
+                    ],
+                    [
+                        "Verifizierungs-Status",
+                        "Ergebnis der Prüfung, Prüfgrund aus einer festen Liste, Zeitpunkt der "
+                            + "Prüfung und der Freischaltung, Prüfkennung",
+                        "Ergebnis der manuellen Prüfung",
+                    ],
+                    [
+                        "Registrierungsversuche unter 18",
+                        "Zufällige Geräte-ID und Zeitpunkt — kein Name, keine E-Mail, kein "
+                            + "Geburtsdatum",
+                        "Registrierungsformular",
                     ],
                     ["Nutzungsdaten", "Swipes, Matches, Reports/Blocks", "App-Nutzung"],
                     [
@@ -802,19 +851,71 @@ enum LegalContent {
                     + "Sicherheit (Report/Block-Funktion).",
                 "Einwilligung (Art. 6 Abs. 1 lit. a i. V. m. Art. 9 Abs. 2 lit. a): Verarbeitung "
                     + "der sexuellen Orientierung über das Präferenzfeld.",
-                "Verifizierungs-Selfies: Einwilligung (Art. 6 Abs. 1 lit. a). Die Verifizierung "
-                    + "ist freiwillig und wird aktiv vom Nutzer gestartet. Die Selfies werden "
-                    + "ausschließlich zur Echtheitsprüfung des Profils mit den Profilfotos "
-                    + "verglichen; die Prüfung erfolgt manuell durch den Betreiber, es findet keine "
-                    + "automatisierte biometrische Auswertung statt.",
             ]),
+            .heading("3a. Alters- und Identitätsprüfung"),
+            .paragraph(
+                "Was geprüft wird. Vor der Freischaltung eines Accounts prüfen wir einmalig, ob "
+                    + "der Nutzer mindestens 18 Jahre alt ist und ob die Verifizierung zu seinem "
+                    + "Profil gehört. Verarbeitet werden dafür: die Verifizierungs-Selfies, eine "
+                    + "temporäre Aufnahme eines amtlichen Lichtbildausweises, das bei der "
+                    + "Registrierung angegebene Geburtsdatum sowie der Verifizierungs-Status samt "
+                    + "Prüfzeitpunkt."
+            ),
+            .paragraph(
+                "Zwecke. Altersprüfung und Verhinderung von Accounts Minderjähriger, Prüfung der "
+                    + "Plausibilität von Identität und Profil sowie Missbrauchs- und "
+                    + "Fake-Profil-Prävention."
+            ),
+            .paragraph(
+                "Art der Prüfung — kein biometrisches Verfahren. Die Prüfung erfolgt "
+                    + "ausschließlich manuell: Ein Mensch vergleicht Profilbild, "
+                    + "Verifizierungs-Selfie und Ausweisfoto durch Sichtvergleich und gleicht das "
+                    + "Geburtsdatum ab. Es kommt keine automatisierte biometrische "
+                    + "Gesichtserkennung zum Einsatz, es werden keine Gesichtsmerkmale berechnet, "
+                    + "gespeichert oder mit einer Datenbank abgeglichen, und es ist kein externer "
+                    + "Identifizierungsdienstleister eingebunden. Es findet keine automatisierte "
+                    + "Entscheidung im Sinne des Art. 22 DSGVO statt."
+            ),
+            .paragraph(
+                "Datenminimierung. Es wird nur verlangt, was für die Prüfung nötig ist: Lichtbild, "
+                    + "Geburtsdatum, Dokumenttyp und die zur Plausibilitätsprüfung erforderlichen "
+                    + "Gültigkeitsangaben. Nicht benötigte Angaben auf dem Dokument dürfen vor dem "
+                    + "Hochladen geschwärzt werden. Ausweisnummer, maschinenlesbare Zone und der "
+                    + "übrige Dokumentinhalt werden nicht ausgelesen und nicht gespeichert; es wird "
+                    + "auch keine zusätzliche Kopie des Geburtsdatums aus dem Ausweis angelegt."
+            ),
+            .paragraph(
+                "Zugriff und Speicherort. Die Ausweisaufnahmen liegen in einem eigenen, nicht "
+                    + "öffentlich abrufbaren Bereich des Objektspeichers. Sie erhalten keine "
+                    + "öffentliche Adresse; für die Prüfung werden ausschließlich Links mit sehr "
+                    + "kurzer Gültigkeit erzeugt, die nur angemeldeten Prüfern angezeigt werden."
+            ),
+            .paragraph(
+                "Rechtsgrundlage. Die Prüfung ist Voraussetzung für die Nutzung von FLEXR und "
+                    + "dient der Einhaltung des Mindestalters sowie der Sicherheit der Plattform "
+                    + "(Art. 6 Abs. 1 lit. b und lit. f DSGVO). Für die Aufnahmen von Gesicht und "
+                    + "Ausweis holen wir zusätzlich eine ausdrückliche Einwilligung ein, die vor "
+                    + "der Aufnahme erteilt wird (Art. 6 Abs. 1 lit. a DSGVO); ohne sie kann der "
+                    + "Account nicht freigeschaltet werden. Die Einwilligung kann jederzeit mit "
+                    + "Wirkung für die Zukunft widerrufen werden — noch nicht geprüfte Aufnahmen "
+                    + "lassen sich in der App selbst zurückziehen und werden dann sofort gelöscht."
+            ),
+            .paragraph(
+                "Registrierungsversuche unter 18. Wird bei der Registrierung ein Geburtsdatum "
+                    + "unter 18 Jahren angegeben, halten wir zum Schutz vor systematischem "
+                    + "Ausprobieren der Altersgrenze fest, dass ein solcher Versuch stattgefunden "
+                    + "hat — gespeichert werden dabei nur die zufällige Geräte-ID und der "
+                    + "Zeitpunkt, keine Namens-, Kontakt- oder Geburtsdaten. Diese Einträge werden "
+                    + "nur für ein kurzes Zeitfenster ausgewertet."
+            ),
             .heading("4. Empfänger / Auftragsverarbeiter"),
             .table(
                 headers: ["Dienst", "Zweck", "Sitz / Übermittlung"],
                 rows: [
                     [
                         "Cloudflare R2",
-                        "Speicherung von Profilfotos",
+                        "Speicherung von Profilfotos; temporäre Speicherung von " +
+                            "Verifizierungs-Selfies und Ausweisaufnahmen",
                         "Eastern Europe (EEUR) — EU, kein Drittstaatentransfer",
                     ],
                     [
@@ -837,8 +938,21 @@ enum LegalContent {
                 "Kontodaten: bis zur Löschung des Profils durch den Nutzer.",
                 "Nach Löschung: 30 Tage Karenzzeit, danach vollständige und unwiderrufliche "
                     + "Löschung aller Daten inklusive Fotos aus Cloudflare R2.",
-                "Verifizierungs-Selfies: werden unmittelbar nach Abschluss der Prüfung (Freigabe "
-                    + "oder Ablehnung) gelöscht.",
+                "Verifizierungs-Selfies und Ausweisaufnahmen: werden unmittelbar nach Abschluss "
+                    + "der Prüfung gelöscht — bei Freigabe ebenso wie bei Ablehnung. Fordern wir "
+                    + "eine neue Aufnahme an, wird die ersetzte Aufnahme sofort gelöscht. "
+                    + "Aufnahmen aus abgebrochenen Registrierungen, die nie zur Prüfung "
+                    + "eingereicht wurden, werden spätestens nach 14 Tagen automatisch entfernt; "
+                    + "löscht ein Nutzer sein Konto, werden sie sofort gelöscht und überdauern die "
+                    + "30-tägige Karenzzeit nicht. Schlägt eine Löschung technisch fehl, bleibt "
+                    + "der Vorgang als offen markiert und wird automatisch erneut gelöscht. Es "
+                    + "verbleibt keine dauerhafte Kopie des Ausweises.",
+                "Verifizierungs-Status: Das Ergebnis der Prüfung, der Prüfgrund aus einer festen "
+                    + "Liste, die Zeitpunkte und eine Prüfkennung bleiben als Nachweis erhalten, "
+                    + "dass die Altersprüfung stattgefunden hat — ohne die geprüften Bilder und "
+                    + "ohne Ausweisdaten. Sie werden mit dem Konto gelöscht.",
+                "Registrierungsversuche unter 18: Geräte-ID und Zeitpunkt, nur für ein kurzes "
+                    + "Zeitfenster relevant.",
                 "Zahlungsbezogene Daten: gemäß gesetzlicher Aufbewahrungspflichten "
                     + "(i. d. R. 7 Jahre, §132 BAO).",
             ]),

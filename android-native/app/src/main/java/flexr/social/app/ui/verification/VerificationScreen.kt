@@ -52,6 +52,7 @@ import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
+import flexr.social.app.core.common.SecureScreen
 import flexr.social.app.core.designsystem.component.Eyebrow
 import flexr.social.app.core.designsystem.component.FieldError
 import flexr.social.app.core.designsystem.component.FlexrButton
@@ -73,6 +74,10 @@ fun VerificationScreen(
     viewModel: VerificationViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+
+    // Verifizierungs-Selfies gehören genauso wenig in den Recents-Cache.
+    SecureScreen()
+
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     val colors = FlexrTheme.colors

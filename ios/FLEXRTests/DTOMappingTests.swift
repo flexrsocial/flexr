@@ -126,5 +126,11 @@ final class DTOMappingTests: XCTestCase {
         XCTAssertEqual(PhotoStatus(raw: "irgendwas"), .pending)
         XCTAssertEqual(Gender(raw: nil), .mann)
         XCTAssertEqual(VerificationStatus(raw: "in_progress"), .inProgress)
+        // Schritte der Alters- und Identitätsprüfung
+        XCTAssertEqual(VerificationStatus(raw: "id_required"), .idRequired)
+        XCTAssertEqual(VerificationStatus(raw: "reupload_required"), .reuploadRequired)
+        XCTAssertTrue(VerificationStatus(raw: "id_required").needsDocument)
+        XCTAssertFalse(VerificationStatus(raw: "submitted").needsDocument)
+        XCTAssertEqual(VerificationStatus(raw: "irgendwas"), .none)
     }
 }

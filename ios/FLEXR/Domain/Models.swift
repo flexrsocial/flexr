@@ -124,18 +124,27 @@ struct Gym: Identifiable, Hashable, Sendable {
     }
 }
 
+/// Stand der Alters- und Identitätsprüfung.
+///
+/// `idRequired` und `reuploadRequired` gehören zum Ausweisschritt, den diese App
+/// noch nicht selbst anbietet — siehe VerificationHint in AccountView.swift.
 enum VerificationStatus: String, Sendable {
-    case none, inProgress, submitted, approved, rejected
+    case none, inProgress, idRequired, reuploadRequired, submitted, approved, rejected
 
     init(raw: String?) {
         switch raw?.lowercased() {
         case "in_progress": self = .inProgress
+        case "id_required": self = .idRequired
+        case "reupload_required": self = .reuploadRequired
         case "submitted": self = .submitted
         case "approved": self = .approved
         case "rejected": self = .rejected
         default: self = .none
         }
     }
+
+    /// Der Ausweisschritt steht noch aus.
+    var needsDocument: Bool { self == .idRequired || self == .reuploadRequired }
 }
 
 struct VerificationState: Sendable {

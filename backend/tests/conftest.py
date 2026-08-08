@@ -93,12 +93,47 @@ DEFAULT_USER = {
 }
 
 
-def register_user(client, email, name="Test User", **overrides):
+def register_raw(client, email, name="Test User", **overrides):
+    """Registrierung ohne Freischaltung - das Konto steht danach vor der
+    Alters- und Identitätsprüfung und kann noch nicht swipen/chatten."""
     payload = {**DEFAULT_USER, "email": email, "name": name, **overrides}
     resp = client.post("/api/auth/register", json=payload)
     assert resp.status_code == 200, resp.text
     token = resp.json()["access_token"]
     return {"Authorization": f"Bearer {token}"}
+
+
+def activate_user(client, headers):
+    """Setzt ein Konto auf "Prüfung bestanden", ohne den ganzen Ablauf zu
+    durchlaufen.
+
+    Alle Tests außerhalb von test_verification.py prüfen andere Funktionen und
+    brauchen ein nutzbares Konto. Der echte Weg (Selfies -> Ausweis ->
+    Admin-Freigabe) verlangt einen Objekt-Storage, den es im Test nicht gibt -
+    deshalb wird der Zustand direkt in die Test-DB geschrieben, analog zu
+    add_approved_photo().
+    """
+    from datetime import datetime
+
+    from app.models import User
+
+    user_id = client.get("/api/profiles/me", headers=headers).json()["id"]
+    db = TestingSessionLocal()
+    try:
+        user = db.query(User).filter(User.id == user_id).first()
+        user.activated_at = datetime.utcnow()
+        db.commit()
+    finally:
+        db.close()
+    return user_id
+
+
+def register_user(client, email, name="Test User", **overrides):
+    """Registrierung inklusive bestandener Verifizierung - der Normalfall für
+    alle Tests, die nicht die Verifizierung selbst prüfen."""
+    headers = register_raw(client, email, name=name, **overrides)
+    activate_user(client, headers)
+    return headers
 
 
 def add_approved_photo(client, headers, url="https://cdn.example.test/photo.jpg"):

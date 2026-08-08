@@ -307,11 +307,13 @@ class RegisterViewModel @Inject constructor(
                 )
             }.onSuccess {
                 val failures = uploadPhotos(state.photos)
+                // Das Konto ist damit angelegt, aber noch nicht freigeschaltet:
+                // Als Nächstes steht die Alters- und Identitätsprüfung an.
                 val notice = when {
                     failures == state.photos.size ->
                         "Profil erstellt — Foto-Upload fehlgeschlagen. Bitte im Konto ein Foto hinzufügen."
                     failures > 0 -> "Profil erstellt — nicht alle Fotos konnten hochgeladen werden."
-                    else -> "Profil erstellt. Willkommen bei FLEXR 💪"
+                    else -> "Profil erstellt. Jetzt noch die Alters- und Identitätsprüfung 💪"
                 }
                 _uiState.update {
                     it.copy(isSubmitting = false, success = true, successNotice = notice)
@@ -348,7 +350,11 @@ class RegisterViewModel @Inject constructor(
                 "Name und Geburtsdatum angeben."
         }
         val age = ServerTime.ageFrom(state.birthdate)
-        if (age < RegisterUiState.MIN_AGE) return "Du musst mindestens 18 Jahre alt sein."
+        // Wortgleich mit der serverseitigen Antwort (backend/app/age.py) - die
+        // Grenze prüft verbindlich der Server, hier geht es nur um die Führung.
+        if (age < RegisterUiState.MIN_AGE) {
+            return "Du musst mindestens 18 Jahre alt sein, um FLEXR nutzen zu können."
+        }
         if (age > RegisterUiState.MAX_AGE) return "Bitte ein gültiges Geburtsdatum angeben."
         if (state.resolvedCity == null) {
             return "Bitte eine gültige österreichische Postleitzahl eingeben (Ort wird automatisch ermittelt)."

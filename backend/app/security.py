@@ -93,7 +93,32 @@ def _record_daily_access(db: Session, user: User) -> None:
         db.add(DailyAccess(user_id=user.id, day=today, country=country))
 
 
-def require_active_membership(user: User = Depends(get_current_user)) -> User:
+def require_activated_account(user: User = Depends(get_current_user)) -> User:
+    """Sperrt alle Dating-Funktionen, solange die Alters- und Identitätsprüfung
+    nicht bestanden ist.
+
+    Betrifft Deck, Swipes, Matches und Chat. Profil, Fotos, Verifizierung und
+    Abo-Status bleiben erreichbar - sonst käme der Nutzer nicht durch die
+    Prüfung und nicht an seine Kontolöschung.
+
+    Das Fehlerdetail ist ein Objekt mit ``code``, damit die Clients gezielt auf
+    den Verifizierungsbildschirm leiten können, statt einen Text zu vergleichen.
+    """
+    if not user.is_account_activated:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail={
+                "code": "verification_required",
+                "message": (
+                    "Dein Konto ist noch nicht freigeschaltet. Schließe zuerst die "
+                    "Alters- und Identitätsprüfung ab."
+                ),
+            },
+        )
+    return user
+
+
+def require_active_membership(user: User = Depends(require_activated_account)) -> User:
     if not user.is_active_member():
         raise HTTPException(
             status_code=status.HTTP_402_PAYMENT_REQUIRED,

@@ -335,6 +335,7 @@ private struct VerificationHint: View {
     private var label: String {
         if isVerified { return "Verifiziert" }
         if status == .submitted { return "Prüfung läuft …" }
+        if status.needsDocument { return "Alter bestätigen" }
         return "Verifizierung"
     }
 
@@ -344,12 +345,24 @@ private struct VerificationHint: View {
         }
         switch status {
         case .submitted:
-            return "Deine Selfies sind in Prüfung. Nach der Freigabe bekommst du den blauen Haken."
+            return "Deine Verifizierung wird geprüft. Nach der Freigabe bekommst du den blauen Haken."
+        case .idRequired, .reuploadRequired:
+            // Der Ausweisschritt läuft derzeit nur über flexr.social - die App
+            // holt ihn in einer eigenen Version nach.
+            return "Es fehlt noch die Aufnahme deines amtlichen Lichtbildausweises. "
+                + "Diesen Schritt schließt du gerade noch unter flexr.social ab."
         case .rejected:
-            return "Deine letzte Verifizierung wurde abgelehnt — du kannst es erneut versuchen."
+            return "Deine Verifizierung konnte nicht abgeschlossen werden. "
+                + "Bei Fragen: flexr.social@proton.me"
         default:
-            return "Zeig mit 3 Live-Selfies, dass du wirklich du bist — und hol dir den blauen Haken."
+            return "Zeig mit 3 Live-Selfies und einem Lichtbildausweis, dass du wirklich du bist "
+                + "— und hol dir den blauen Haken."
         }
+    }
+
+    /// Ein Startknopf ergibt nur Sinn, wenn es etwas zu starten gibt.
+    private var canStart: Bool {
+        !isVerified && status != .submitted && status != .rejected && !status.needsDocument
     }
 
     var body: some View {
@@ -374,15 +387,12 @@ private struct VerificationHint: View {
                         .flexrText(.labelLarge)
                         .foregroundStyle(tint)
                 }
-            } else if status != .submitted {
+            } else if canStart {
                 HStack {
                     Spacer()
-                    Button(
-                        status == .rejected ? "Erneut versuchen" : "Zur Verifizierung",
-                        action: onStartVerification
-                    )
-                    .flexrText(.labelLarge)
-                    .foregroundStyle(tint)
+                    Button("Zur Verifizierung", action: onStartVerification)
+                        .flexrText(.labelLarge)
+                        .foregroundStyle(tint)
                 }
             }
         }

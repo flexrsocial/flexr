@@ -45,7 +45,10 @@
     <tr><td>Profildaten</td><td>Name, Geburtsdatum, Stadt, Gym (Studio aus der öffentlichen Liste), Suchradius, Bio</td><td>Registrierung / Profilbearbeitung</td></tr>
     <tr><td>Präferenzdaten (Art. 9 DSGVO)</td><td>Geschlecht, gesuchtes Geschlecht (→ sexuelle Orientierung)</td><td>Registrierung</td></tr>
     <tr><td>Fotos</td><td>Profilbilder</td><td>Upload durch Nutzer, gespeichert bei Cloudflare R2</td></tr>
-    <tr><td>Verifizierungs-Selfies</td><td>Selfie-Aufnahmen mit vorgegebenen Posen für die freiwillige Profil-Verifizierung (blauer Haken)</td><td>Live-Aufnahme über die Kamera, gespeichert bei Cloudflare R2</td></tr>
+    <tr><td>Verifizierungs-Selfies</td><td>Selfie-Aufnahmen mit vorgegebenen Posen für die Alters- und Identitätsprüfung</td><td>Live-Aufnahme über die Kamera, temporär bei Cloudflare R2</td></tr>
+    <tr><td>Ausweisaufnahmen</td><td>Aufnahme eines amtlichen Lichtbildausweises (Personalausweis, Reisepass oder Führerschein) für die Alters- und Identitätsprüfung</td><td>Upload durch Nutzer, temporär in einem nicht öffentlich abrufbaren Bereich bei Cloudflare R2</td></tr>
+    <tr><td>Verifizierungs-Status</td><td>Ergebnis der Prüfung (offen / in Prüfung / freigegeben / abgelehnt), Prüfgrund aus einer festen Liste, Zeitpunkt der Prüfung und der Freischaltung, Prüfkennung</td><td>Ergebnis der manuellen Prüfung</td></tr>
+    <tr><td>Registrierungsversuche unter 18</td><td>Zufällige Geräte-ID und Zeitpunkt — kein Name, keine E-Mail, kein Geburtsdatum</td><td>Registrierungsformular</td></tr>
     <tr><td>Nutzungsdaten</td><td>Swipes, Matches, Reports/Blocks</td><td>App-Nutzung</td></tr>
     <tr><td>Zahlungsdaten</td><td>Abo-Status, Stripe-Kunden-/Abo-ID (keine Kartendaten bei uns)</td><td>Stripe Checkout</td></tr>
     <tr><td>Technische Daten</td><td>IP-Adresse (Server-Logs), Zeitstempel</td><td>Automatisch beim Seitenaufruf</td></tr>
@@ -58,18 +61,68 @@
     Berechtigtes Interesse (Art. 6 Abs. 1 lit. f): Betrugs-/Missbrauchsprävention,
     Sicherheit (Report/Block-Funktion).<br>
     Einwilligung (Art. 6 Abs. 1 lit. a i. V. m. Art. 9 Abs. 2 lit. a): Verarbeitung der
-    sexuellen Orientierung über das Präferenzfeld (siehe Hinweis oben).<br>
-    Verifizierungs-Selfies: Einwilligung (Art. 6 Abs. 1 lit. a). Die Verifizierung
-    ist freiwillig und wird aktiv vom Nutzer gestartet. Die Selfies werden
-    ausschließlich zur Echtheitsprüfung des Profils mit den Profilfotos verglichen;
-    die Prüfung erfolgt manuell durch den Betreiber, es findet keine automatisierte
-    biometrische Auswertung statt.
+    sexuellen Orientierung über das Präferenzfeld (siehe Hinweis oben).
+  </p>
+
+  <h2>3a. Alters- und Identitätsprüfung</h2>
+  <p>
+    <b>Was geprüft wird.</b> Vor der Freischaltung eines Accounts prüfen wir einmalig,
+    ob der Nutzer mindestens 18 Jahre alt ist und ob die Verifizierung zu seinem Profil
+    gehört. Verarbeitet werden dafür: die Verifizierungs-Selfies, eine temporäre
+    Aufnahme eines amtlichen Lichtbildausweises, das bei der Registrierung angegebene
+    Geburtsdatum sowie der Verifizierungs-Status samt Prüfzeitpunkt.
+  </p>
+  <p>
+    <b>Zwecke.</b> Altersprüfung und Verhinderung von Accounts Minderjähriger,
+    Prüfung der Plausibilität von Identität und Profil sowie Missbrauchs- und
+    Fake-Profil-Prävention.
+  </p>
+  <p>
+    <b>Art der Prüfung — kein biometrisches Verfahren.</b> Die Prüfung erfolgt
+    ausschließlich manuell: Ein Mensch vergleicht Profilbild, Verifizierungs-Selfie
+    und Ausweisfoto durch Sichtvergleich und gleicht das Geburtsdatum ab. Es kommt
+    <b>keine automatisierte biometrische Gesichtserkennung</b> zum Einsatz, es werden
+    keine Gesichtsmerkmale berechnet, gespeichert oder mit einer Datenbank abgeglichen,
+    und es ist kein externer Identifizierungsdienstleister eingebunden. Es findet
+    keine automatisierte Entscheidung im Sinne des Art. 22 DSGVO statt.
+  </p>
+  <p>
+    <b>Datenminimierung.</b> Es wird nur verlangt, was für die Prüfung nötig ist:
+    Lichtbild, Geburtsdatum, Dokumenttyp und die zur Plausibilitätsprüfung
+    erforderlichen Gültigkeitsangaben. Nicht benötigte Angaben auf dem Dokument
+    dürfen vor dem Hochladen geschwärzt werden. Ausweisnummer, maschinenlesbare
+    Zone und der übrige Dokumentinhalt werden nicht ausgelesen und nicht gespeichert;
+    es wird auch keine zusätzliche Kopie des Geburtsdatums aus dem Ausweis angelegt.
+  </p>
+  <p>
+    <b>Zugriff und Speicherort.</b> Die Ausweisaufnahmen liegen in einem eigenen,
+    nicht öffentlich abrufbaren Bereich des Objektspeichers. Sie erhalten keine
+    öffentliche Adresse; für die Prüfung werden ausschließlich Links mit sehr kurzer
+    Gültigkeit erzeugt, die nur angemeldeten Prüfern angezeigt werden.
+  </p>
+  <p>
+    <b>Rechtsgrundlage.</b> Die Prüfung ist Voraussetzung für die Nutzung von FLEXR
+    und dient der Einhaltung des Mindestalters sowie der Sicherheit der Plattform
+    (Art. 6 Abs. 1 lit. b und lit. f DSGVO). Für die Aufnahmen von Gesicht und
+    Ausweis holen wir zusätzlich eine ausdrückliche Einwilligung ein, die vor der
+    Aufnahme erteilt wird (Art. 6 Abs. 1 lit. a DSGVO); ohne sie kann der Account
+    nicht freigeschaltet werden. Die Einwilligung kann jederzeit mit Wirkung für die
+    Zukunft widerrufen werden — noch nicht geprüfte Aufnahmen lassen sich in der App
+    selbst zurückziehen und werden dann sofort gelöscht.
+  </p>
+  <p>
+    <b>Registrierungsversuche unter 18.</b> Wird bei der Registrierung ein
+    Geburtsdatum unter 18 Jahren angegeben, halten wir zum Schutz vor
+    systematischem Ausprobieren der Altersgrenze fest, dass ein solcher Versuch
+    stattgefunden hat — gespeichert werden dabei nur die zufällige Geräte-ID und
+    der Zeitpunkt, keine Namens-, Kontakt- oder Geburtsdaten. Diese Einträge werden
+    nur für ein kurzes Zeitfenster ausgewertet.
   </p>
 
   <h2>4. Empfänger / Auftragsverarbeiter</h2>
   <table>
     <tr><th>Dienst</th><th>Zweck</th><th>Sitz / Übermittlung</th></tr>
-    <tr><td>Cloudflare R2</td><td>Speicherung von Profilfotos</td><td>Eastern Europe (EEUR) — EU, kein Drittstaatentransfer</td></tr>
+    <tr><td>Cloudflare R2</td><td>Speicherung von Profilfotos; temporäre Speicherung von Verifizierungs-Selfies und Ausweisaufnahmen</td><td>Eastern Europe (EEUR) — EU, kein Drittstaatentransfer</td></tr>
     <tr><td>Stripe</td><td>Zahlungsabwicklung, Abo-Verwaltung</td><td>USA/EU, Standardvertragsklauseln (SCC)</td></tr>
     <tr><td>Contabo GmbH, Welfenstraße 22, 81541 München, Deutschland</td><td>Serverbetrieb (VPS)</td><td>Deutschland/EU</td></tr>
   </table>
@@ -80,8 +133,21 @@
     Kontodaten: bis zur Löschung des Profils durch den Nutzer.<br>
     Nach Löschung: 30 Tage Karenzzeit, danach vollständige und unwiderrufliche Löschung
     aller Daten inklusive Fotos aus Cloudflare R2.<br>
-    Verifizierungs-Selfies: werden unmittelbar nach Abschluss der Prüfung
-    (Freigabe oder Ablehnung) gelöscht.<br>
+    Verifizierungs-Selfies und Ausweisaufnahmen: werden unmittelbar nach Abschluss
+    der Prüfung gelöscht — bei Freigabe ebenso wie bei Ablehnung. Fordern wir eine
+    neue Aufnahme an, wird die ersetzte Aufnahme sofort gelöscht. Aufnahmen aus
+    abgebrochenen Registrierungen, die nie zur Prüfung eingereicht wurden, werden
+    spätestens nach 14 Tagen automatisch entfernt; löscht ein Nutzer sein Konto,
+    werden sie sofort gelöscht und überdauern die 30-tägige Karenzzeit nicht. Schlägt
+    eine Löschung technisch fehl, bleibt der Vorgang als offen markiert und wird
+    automatisch erneut gelöscht. <b>Es verbleibt keine dauerhafte Kopie des
+    Ausweises.</b><br>
+    Verifizierungs-Status: Das Ergebnis der Prüfung, der Prüfgrund aus einer festen
+    Liste, die Zeitpunkte und eine Prüfkennung bleiben als Nachweis erhalten, dass
+    die Altersprüfung stattgefunden hat — ohne die geprüften Bilder und ohne
+    Ausweisdaten. Sie werden mit dem Konto gelöscht.<br>
+    Registrierungsversuche unter 18: Geräte-ID und Zeitpunkt, nur für ein kurzes
+    Zeitfenster relevant.<br>
     Zahlungsbezogene Daten: gemäß gesetzlicher Aufbewahrungspflichten (i. d. R. 7 Jahre, §132 BAO).
   </p>
 

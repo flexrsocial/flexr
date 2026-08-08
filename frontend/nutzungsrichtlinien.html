@@ -85,7 +85,8 @@
   <ul>
     <li>FLEXR ist ausschließlich für Personen ab 18 Jahren. Das Geburtsdatum wird
       bei der Registrierung serverseitig geprüft; Konten unter 18 Jahren werden
-      technisch nicht angelegt.</li>
+      technisch nicht angelegt. Vor der Freischaltung eines Kontos wird das Alter
+      zusätzlich manuell anhand eines amtlichen Lichtbildausweises geprüft.</li>
     <li>Ein Konto pro Person. Konten dürfen nicht geteilt, verkauft, vermietet
       oder für Dritte betrieben werden.</li>
     <li>Alle Angaben im Profil müssen der Wahrheit entsprechen und die eigene
@@ -234,12 +235,15 @@
       für andere nicht sichtbar.</li>
     <li><b>Manuelle Freigabe:</b> Jedes hochgeladene Foto steht zunächst auf
       „ausstehend" und wird erst nach menschlicher Prüfung ausgeliefert.</li>
-    <li><b>Freiwillige Foto-Verifizierung:</b> Der Server verlangt drei zufällig aus
-      einem größeren Pool gezogene Posen als Selfie. Da die Posen erst bei der
-      Anfrage feststehen, lassen sie sich mit fremdem oder vorbereitetem Material
-      nicht bedienen. Nach manueller Prüfung gegen die Profilfotos erhält das
-      Profil einen Verifizierungshaken; die Selfies werden anschließend aus dem
-      Speicher gelöscht.</li>
+    <li><b>Verpflichtende Alters- und Identitätsprüfung:</b> Der Server verlangt drei
+      zufällig aus einem größeren Pool gezogene Posen als Selfie. Da die Posen erst
+      bei der Anfrage feststehen, lassen sie sich mit fremdem oder vorbereitetem
+      Material nicht bedienen. Dazu kommt eine einmalige Aufnahme eines amtlichen
+      Lichtbildausweises. Ein Mensch vergleicht Profilfoto, Selfie und Ausweisfoto
+      und gleicht das Geburtsdatum ab — ohne automatische Gesichtserkennung. Erst
+      nach bestandener Prüfung wird das Konto freigeschaltet und das Profil erhält
+      den Verifizierungshaken; Selfies und Ausweisaufnahmen werden anschließend aus
+      dem Speicher gelöscht.</li>
     <li><b>Telefonprüfung</b> per SMS-Einmalcode (Code nur als Hash gespeichert,
       10 Minuten gültig, maximal fünf Fehlversuche).</li>
     <li><b>E-Mail-Eindeutigkeit</b> je Konto und Sperrliste für Wegwerf-Adressen.</li>
@@ -282,7 +286,11 @@
   <ul>
     <li><b>Altersgrenze technisch erzwungen:</b> Die Registrierung verlangt ein
       Geburtsdatum; der Server weist jeden Wert unter 18 Jahren ab. Das Alter wird
-      laufend aus dem Geburtsdatum berechnet, nicht als frei änderbare Zahl geführt.</li>
+      laufend aus dem Geburtsdatum berechnet, nicht als frei änderbare Zahl geführt.
+      Vor der Freischaltung prüft ein Mensch das Geburtsdatum zusätzlich anhand
+      eines vorgelegten amtlichen Lichtbildausweises; stimmt es nicht mit der
+      Angabe bei der Registrierung überein oder liegt es unter 18 Jahren, wird das
+      Konto nicht freigeschaltet.</li>
     <li><b>Vollständige Vorabmoderation aller Bilder:</b> Kein Foto wird ohne
       manuelle Freigabe an andere Nutzer ausgeliefert. Bei Zweifeln an der
       Volljährigkeit der abgebildeten Person wird das Foto abgelehnt und das Konto

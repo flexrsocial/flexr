@@ -29,6 +29,18 @@ data class RegisterRequestDto(
 @Serializable
 data class LoginRequestDto(val email: String, val password: String)
 
+/** Vorabprüfung des Geburtsdatums im Registrierungsformular. */
+@Serializable
+data class AgeCheckRequestDto(val birthdate: String)
+
+@Serializable
+data class AgeCheckResponseDto(
+    val eligible: Boolean,
+    val age: Int? = null,
+    val message: String? = null,
+    @SerialName("verification_required") val verificationRequired: Boolean = true,
+)
+
 @Serializable
 data class TokenResponseDto(
     @SerialName("access_token") val accessToken: String,
@@ -80,6 +92,12 @@ data class MyProfileDto(
     // phone/phone_verified liefert das Backend zwar mit, die App nutzt sie
     // nicht — die Telefonprüfung ist auch im Web verworfen worden.
     @SerialName("messaging_muted_until") val messagingMutedUntil: String? = null,
+    // Alters- und Identitätsprüfung. Bestandskonten liefern verification_required
+    // = false; Defaults hier so gewählt, dass ein älteres Backend ohne diese
+    // Felder ein nutzbares Konto ergibt.
+    @SerialName("verification_required") val verificationRequired: Boolean = false,
+    @SerialName("is_account_activated") val isAccountActivated: Boolean = true,
+    @SerialName("age_verified") val ageVerified: Boolean = false,
 )
 
 @Serializable
@@ -209,12 +227,39 @@ data class ModerationNoticeDto(
 @Serializable
 data class BlockRequestDto(@SerialName("user_id") val userId: String)
 
-// ---------- Foto-Verifizierung ----------
+// ---------- Alters- und Identitätsprüfung ----------
 
 @Serializable
 data class VerificationStatusDto(
     val status: String,
     val prompts: List<String>? = null,
+    /** Was als Nächstes zu tun ist: selfie | document | wait | none. */
+    @SerialName("next_step") val nextStep: String? = null,
+    /** Sachlicher Grund aus dem festen Katalog, wenn etwas nachzuholen ist. */
+    val reason: String? = null,
+    @SerialName("verification_required") val verificationRequired: Boolean = false,
+    @SerialName("account_activated") val accountActivated: Boolean = true,
+    @SerialName("document_types") val documentTypes: List<VerificationDocumentTypeDto>? = null,
+)
+
+@Serializable
+data class VerificationDocumentTypeDto(
+    val value: String,
+    val label: String,
+    @SerialName("needs_back") val needsBack: Boolean = false,
+)
+
+@Serializable
+data class VerificationDocumentPresignRequestDto(
+    @SerialName("content_type") val contentType: String,
+    @SerialName("byte_size") val byteSize: Int,
+)
+
+@Serializable
+data class VerificationDocumentSubmitRequestDto(
+    @SerialName("document_type") val documentType: String,
+    @SerialName("front_object_key") val frontObjectKey: String,
+    @SerialName("back_object_key") val backObjectKey: String? = null,
 )
 
 @Serializable
