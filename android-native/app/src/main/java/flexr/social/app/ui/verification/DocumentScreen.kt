@@ -57,6 +57,7 @@ import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
+import flexr.social.app.core.common.SecureScreen
 import flexr.social.app.core.designsystem.component.Eyebrow
 import flexr.social.app.core.designsystem.component.FieldError
 import flexr.social.app.core.designsystem.component.FlexrButton
@@ -82,6 +83,10 @@ fun DocumentScreen(
     viewModel: DocumentViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+
+    // Kein Screenshot und keine Vorschau im App-Umschalter, solange ein
+    // Ausweis auf dem Bildschirm liegt.
+    SecureScreen()
 
     LaunchedEffect(Unit) {
         viewModel.events.collect { event ->
