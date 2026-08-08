@@ -14,7 +14,6 @@ import androidx.camera.view.LifecycleCameraController
 import androidx.camera.view.PreviewView
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -30,7 +29,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
@@ -50,7 +48,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -125,8 +122,9 @@ fun VerificationScreen(
         onDispose { cameraController.unbind() }
     }
 
-    // Auslösen hängt an zwei Stellen (runder Auslöser über der Vorschau und
-    // Knopf darunter) - deshalb einmal beschrieben.
+    // Ausgelöst wird ausschließlich über den Knopf unter der Vorschau - ein
+    // zweiter Auslöser im Bild sah nach Kamera-App aus, reagierte über der
+    // PreviewView aber nicht zuverlässig.
     val capture: () -> Unit = {
         cameraController.takePicture(
             ContextCompat.getMainExecutor(context),
@@ -145,9 +143,9 @@ fun VerificationScreen(
     }
     val canCapture = hasCameraPermission && !state.isSubmitting && !state.isComplete
 
-    // Scrollbar: Vorschau, Kacheln und Auslöser passen auf kleinen Displays
-    // sonst nicht gemeinsam auf den Schirm - und ein Auslöser, den man nicht
-    // erreicht, ist keiner.
+    // Scrollbar: Vorschau und Auslöser passen auf kleinen Displays sonst nicht
+    // gemeinsam auf den Schirm - und ein Auslöser, den man nicht erreicht, ist
+    // keiner.
     Column(
         Modifier
             .fillMaxSize()
@@ -172,12 +170,17 @@ fun VerificationScreen(
         Box(Modifier.fillMaxWidth().height(1.dp).background(colors.hairline))
 
         if (state.isStarting) {
-            LoadingState(label = "Posen werden geladen …")
+            LoadingState(label = "Verifizierung wird vorbereitet …")
             return@Column
         }
 
         Spacer(Modifier.height(18.dp))
-        Eyebrow("Pose ${(state.currentIndex + 1).coerceAtMost(state.total)} / ${state.total}")
+        // Genau ein Selfie ist der Normalfall - dann ist eine Zählung nur Lärm.
+        if (state.total > 1) {
+            Eyebrow("Pose ${(state.currentIndex + 1).coerceAtMost(state.total)} / ${state.total}")
+        } else {
+            Eyebrow("Verifizierungs-Selfie")
+        }
         Text(
             text = state.currentPrompt ?: "Fertig!",
             style = MaterialTheme.typography.headlineMedium,
@@ -208,15 +211,6 @@ fun VerificationScreen(
                         }
                     },
                 )
-                // Auslöser liegt dort, wo ihn jeder von der Kamera-App kennt:
-                // groß und rund, unten mittig über der Vorschau.
-                ShutterButton(
-                    enabled = canCapture,
-                    onClick = capture,
-                    modifier = Modifier
-                        .align(Alignment.BottomCenter)
-                        .padding(bottom = 16.dp),
-                )
             } else {
                 Text(
                     text = "Kamerazugriff wird benötigt.",
@@ -230,7 +224,7 @@ fun VerificationScreen(
         if (canCapture) {
             Spacer(Modifier.height(10.dp))
             Text(
-                text = "Pose einnehmen und auf den Auslöser tippen.",
+                text = "Gesicht mittig im Rahmen halten und unten auf „Aufnehmen“ tippen.",
                 style = MaterialTheme.typography.bodyMedium,
                 color = colors.chalkDim,
                 textAlign = TextAlign.Center,
@@ -238,32 +232,39 @@ fun VerificationScreen(
             )
         }
 
-        Spacer(Modifier.height(14.dp))
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-            repeat(state.total) { index ->
-                val aufnahme = state.captures.getOrNull(index)
-                Box(
-                    Modifier
-                        .weight(1f)
-                        .aspectRatio(1f)
-                        .clip(RoundedCornerShape(10.dp))
-                        .background(colors.surface2)
-                        .border(1.dp, colors.steel, RoundedCornerShape(10.dp)),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    if (aufnahme != null) {
-                        AsyncImage(
-                            model = aufnahme,
-                            contentDescription = "Aufnahme ${index + 1}",
-                            contentScale = ContentScale.Crop,
-                            modifier = Modifier.fillMaxSize(),
-                        )
-                    } else {
-                        Text(
-                            text = "${index + 1}",
-                            style = MaterialTheme.typography.titleMedium,
-                            color = colors.chalkDim,
-                        )
+        // Kachelreihe zeigt den Fortschritt über mehrere Posen. Bei genau einem
+        // Selfie gibt es keinen Fortschritt zu zeigen.
+        if (state.total > 1) {
+            Spacer(Modifier.height(14.dp))
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                repeat(state.total) { index ->
+                    val aufnahme = state.captures.getOrNull(index)
+                    Box(
+                        Modifier
+                            .weight(1f)
+                            .aspectRatio(1f)
+                            .clip(RoundedCornerShape(10.dp))
+                            .background(colors.surface2)
+                            .border(1.dp, colors.steel, RoundedCornerShape(10.dp)),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        if (aufnahme != null) {
+                            AsyncImage(
+                                model = aufnahme,
+                                contentDescription = "Aufnahme ${index + 1}",
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier.fillMaxSize(),
+                            )
+                        } else {
+                            Text(
+                                text = "${index + 1}",
+                                style = MaterialTheme.typography.titleMedium,
+                                color = colors.chalkDim,
+                            )
+                        }
                     }
                 }
             }
@@ -299,47 +300,12 @@ fun VerificationScreen(
 
         Spacer(Modifier.height(12.dp))
         Text(
-            text = "Die Selfies werden ausschließlich manuell mit deinen Profilfotos verglichen " +
+            text = "Das Selfie wird ausschließlich manuell mit deinen Profilfotos verglichen " +
                 "und nach der Prüfung gelöscht. Keine automatisierte biometrische Auswertung.",
             style = MaterialTheme.typography.bodySmall,
             color = colors.chalkDim,
         )
         Spacer(Modifier.height(24.dp))
-    }
-}
-
-/**
- * Runder Auslöser im Stil einer Kamera-App: weißer Ring, gefüllte Mitte.
- *
- * Der Knopf sitzt direkt in der Vorschau, damit gar nicht erst die Frage
- * aufkommt, womit man auslöst.
- */
-@Composable
-private fun ShutterButton(enabled: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier) {
-    val colors = FlexrTheme.colors
-    Box(
-        modifier = modifier
-            .size(72.dp)
-            .clip(CircleShape)
-            .background(Color.Black.copy(alpha = 0.28f))
-            .border(3.dp, Color.White.copy(alpha = if (enabled) 0.9f else 0.35f), CircleShape)
-            .clickable(enabled = enabled, onClick = onClick),
-        contentAlignment = Alignment.Center,
-    ) {
-        Box(
-            Modifier
-                .size(52.dp)
-                .clip(CircleShape)
-                .background(if (enabled) colors.plate else colors.steel),
-            contentAlignment = Alignment.Center,
-        ) {
-            Icon(
-                FlexrIcons.Camera,
-                contentDescription = "Foto aufnehmen",
-                tint = colors.plateInk,
-                modifier = Modifier.size(24.dp),
-            )
-        }
     }
 }
 

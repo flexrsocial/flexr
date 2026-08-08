@@ -456,7 +456,7 @@ private fun VerificationHint(
             "Deine Verifizierung konnte nicht abgeschlossen werden. Bei Fragen: " +
                 "flexr.social@proton.me"
         else ->
-            "Zeig mit 3 Live-Selfies und einem Lichtbildausweis, dass du wirklich du bist — " +
+            "Zeig mit einem Live-Selfie und einem Lichtbildausweis, dass du wirklich du bist — " +
                 "und hol dir den blauen Haken."
     }
 

@@ -16,9 +16,9 @@ import javax.inject.Singleton
 /**
  * Alters- und Identitätsprüfung — ein Vorgang in zwei Schritten.
  *
- * Schritt 1: Der Server gibt drei zufällige Posen vor, die Selfies entstehen
- * live über die Kamera — kein Galerie-Upload. Das ist der Liveness-Schutz: nur
- * eine echte Person vor der Kamera kann die verlangten Posen spontan liefern.
+ * Schritt 1: Der Server gibt eine zufällige Pose vor, das Selfie entsteht live
+ * über die Kamera — kein Galerie-Upload. Das ist der Liveness-Schutz: nur eine
+ * echte Person vor der Kamera kann die verlangte Pose spontan liefern.
  *
  * Schritt 2: eine Aufnahme des amtlichen Lichtbildausweises. Danach vergleicht
  * ein Mensch Profilfoto, Selfie und Ausweisfoto und gleicht das Geburtsdatum
@@ -34,9 +34,9 @@ class VerificationRepository @Inject constructor(
     suspend fun start(): VerificationState = apiCall { api.startVerification() }.toDomain()
 
     /**
-     * Lädt die drei Aufnahmen hoch und reicht sie ein. Die Reihenfolge muss
-     * exakt der ausgegebenen Posenliste entsprechen, sonst weist das Backend
-     * die Einreichung zurück.
+     * Lädt die Aufnahmen hoch und reicht sie ein. Sie müssen exakt der
+     * ausgegebenen Posenliste entsprechen, sonst weist das Backend die
+     * Einreichung zurück.
      */
     suspend fun submit(selfies: List<Pair<String, ByteArray>>): VerificationState {
         val uploaded = selfies.map { (prompt, bytes) ->

@@ -2,7 +2,7 @@
 
 Ein einziger Vorgang in zwei Schritten:
 
-    1. Live-Selfies mit vom Server vorgegebenen Posen (bestehender Schritt)
+    1. Ein Live-Selfie in einer vom Server vorgegebenen Pose (bestehender Schritt)
     2. Amtlicher Lichtbildausweis, temporär in einem privaten Storage-Bereich
 
 Danach entscheidet ein Mensch (siehe routers/admin.py). Es gibt keine
@@ -50,18 +50,17 @@ logger = logging.getLogger("flexr.verification")
 
 router = APIRouter(prefix="/api/verification", tags=["verification"])
 
-# Posen-Pool: Der Server wählt zufällig 3 aus - dadurch kann niemand vorbereitete
-# Fotos verwenden (Liveness-Prinzip: nur eine echte Person vor der Kamera kann
-# die verlangten Posen spontan liefern).
+# Posen-Pool: Der Server verlangt genau ein Selfie und zieht die Pose dafür
+# zufällig - dadurch kann niemand ein vorbereitetes Foto verwenden
+# (Liveness-Prinzip: nur eine echte Person vor der Kamera kann die verlangte
+# Pose spontan liefern). Bewusst nur Blickrichtung und Mimik, keine Handgesten:
+# die waren in der Aufnahme umständlich und haben nichts dazugewonnen.
+SELFIE_PROMPT_COUNT = 1
 POSE_PROMPTS = [
     "Schau nach links",
     "Schau nach rechts",
     "Schau nach oben",
     "Lächle breit in die Kamera",
-    "Halte einen Daumen hoch neben dein Gesicht",
-    "Zeig ein Peace-Zeichen neben deinem Gesicht",
-    "Leg eine Hand flach auf deinen Kopf",
-    "Zeig mit dem Finger auf die Kamera",
 ]
 
 
@@ -138,13 +137,15 @@ def start_verification(
         if latest.selfies:
             # Neu-Upload angefordert, aber nur für den Ausweis - Selfies gelten
             return _status_out(current_user, latest)
-        # Neu-Upload inkl. Selfies: neue Posen für denselben Vorgang
-        latest.prompts = json.dumps(random.sample(POSE_PROMPTS, 3), ensure_ascii=False)
+        # Neu-Upload inkl. Selfie: neue Pose für denselben Vorgang
+        latest.prompts = json.dumps(
+            random.sample(POSE_PROMPTS, SELFIE_PROMPT_COUNT), ensure_ascii=False
+        )
         latest.status = VerificationStatus.in_progress
         db.commit()
         return _status_out(current_user, latest)
 
-    prompts = random.sample(POSE_PROMPTS, 3)
+    prompts = random.sample(POSE_PROMPTS, SELFIE_PROMPT_COUNT)
     req = VerificationRequest(
         user_id=current_user.id,
         status=VerificationStatus.in_progress,

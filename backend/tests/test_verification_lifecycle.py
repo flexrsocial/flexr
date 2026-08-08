@@ -126,7 +126,7 @@ def test_abandoned_verification_is_cleaned_up(client, storage_stub):
         assert db.query(VerificationRequest).filter(VerificationRequest.id == req_id).first() is None
     finally:
         db.close()
-    assert len(storage_stub) == 4
+    assert len(storage_stub) == 2
 
 
 def test_submitted_verification_is_not_cleaned_up(client, storage_stub):
@@ -157,7 +157,7 @@ def test_self_deletion_removes_verification_files_immediately(client, storage_st
         "DELETE", "/api/profiles/me", headers=headers, json={"password": "supersecret123"}
     )
     assert resp.status_code == 200
-    assert len(storage_stub) == 4
+    assert len(storage_stub) == 2
 
     db = TestingSessionLocal()
     try:
@@ -180,10 +180,10 @@ def test_admin_deletion_removes_verification_files(client, storage_stub, monkeyp
     admin_headers, _ = create_admin(client, email="admin.del@example.com")
     resp = client.delete(f"/api/admin/users/{user_id}", headers=admin_headers)
     assert resp.status_code == 200
-    # 3 Selfies + 1 Ausweisaufnahme (die Profilfoto-URL zeigt auf die
+    # Selfie + Ausweisaufnahme (die Profilfoto-URL zeigt auf die
     # Test-Basis-URL und liefert ebenfalls einen Schlüssel)
     assert any(k.startswith("verification-documents/") for k in deleted)
-    assert sum(1 for k in deleted if "/verify/" in k) == 3
+    assert sum(1 for k in deleted if "/verify/" in k) == 1
 
 
 def test_purge_after_grace_period_removes_verification_files(client, storage_stub, monkeypatch):
