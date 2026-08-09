@@ -89,13 +89,17 @@ class VerificationDocumentType(str, enum.Enum):
     drivers_license = "drivers_license"  # Führerschein
 
 
-# Ausweise, bei denen die Rückseite für die Prüfung gebraucht wird. Beim Reisepass
-# stehen Foto, Geburtsdatum und Gültigkeit alle auf der Datenseite - eine
-# Rückseite anzufordern wäre überschüssige Datenerhebung.
-DOCUMENT_TYPES_WITH_BACK = (
-    VerificationDocumentType.id_card,
-    VerificationDocumentType.drivers_license,
-)
+# Ausweise, bei denen die Rückseite für die Prüfung gebraucht wird.
+#
+# Seit 9.8.2026 ist die Liste leer: Foto, Geburtsdatum und Gültigkeit stehen bei
+# allen drei zugelassenen Dokumenten auf der Vorder- bzw. Datenseite, und der
+# Prüfer braucht für die Altersprüfung nichts von der Rückseite. Eine Aufnahme
+# anzufordern, die niemand ansieht, wäre überschüssige Datenerhebung.
+#
+# Der Mechanismus bleibt: needs_back kommt weiter vom Server, Web und App
+# richten sich danach - ein Dokumenttyp mit Rückseite ließe sich also ohne
+# Client-Änderung wieder aufnehmen.
+DOCUMENT_TYPES_WITH_BACK: tuple[VerificationDocumentType, ...] = ()
 
 
 class VerificationReviewReason(str, enum.Enum):

@@ -55,7 +55,6 @@ import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
-import flexr.social.app.core.common.SecureScreen
 import flexr.social.app.core.designsystem.component.Eyebrow
 import flexr.social.app.core.designsystem.component.FieldError
 import flexr.social.app.core.designsystem.component.FlexrButton
@@ -80,9 +79,6 @@ fun VerificationScreen(
     viewModel: VerificationViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-
-    // Verifizierungs-Selfies gehören genauso wenig in den Recents-Cache.
-    SecureScreen()
 
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -225,10 +221,14 @@ fun VerificationScreen(
         Box(
             Modifier
                 .align(Alignment.CenterHorizontally)
-                .fillMaxWidth()
-                // Deckelt die Vorschau auf großen Schriftgrößen und kleinen
-                // Displays, damit Hinweis und Auslöser darunter ohne Scrollen
-                // erreichbar bleiben.
+                // Kein fillMaxWidth: das nagelt die Breite fest, und dann kann
+                // aspectRatio das Seitenverhältnis nicht mehr einhalten, ohne
+                // die Höhengrenze zu reißen. Compose gibt in dem Fall auf und
+                // nimmt die eingehenden Constraints - heraus kam ein Rahmen
+                // über die volle Breite mit 300 dp Höhe, also quer statt
+                // hochkant, und ein entsprechend beschnittenes Kamerabild.
+                // Ohne die feste Breite ergibt sich sauber 225 x 300 dp,
+                // mittig.
                 .heightIn(max = 300.dp)
                 .aspectRatio(3f / 4f)
                 .clip(RoundedCornerShape(18.dp))

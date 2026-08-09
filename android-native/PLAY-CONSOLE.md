@@ -69,10 +69,12 @@ Kamera verlangt wird.
 
 * **Kein Cloud-Backup, kein Gerätetransfer** — `allowBackup="false"` und
   `res/xml/data_extraction_rules.xml` schließen alle Domains aus.
-* **Kein Screenshot, keine Recents-Vorschau** während Selfie- und
-  Ausweisaufnahme (`core/common/SecureScreen.kt`, `FLAG_SECURE`). Ohne das läge
-  ein Abbild des Ausweises im System-Cache des Geräts — außerhalb unserer
-  Kontrolle und außerhalb der Löschzusage.
+* **Screenshots sind zugelassen.** Bis 2.2.4 lief die Verifizierung mit
+  `FLAG_SECURE`; das ist auf Wunsch des Betreibers entfernt, weil sich die
+  Bildschirme sonst nicht dokumentieren lassen. Preis dafür: Android legt beim
+  Wechsel in den Hintergrund wieder ein Abbild im Recents-Cache ab, bei der
+  Ausweisaufnahme also ein Bild des Ausweises auf der Geräteplatte. Das liegt
+  außerhalb unserer Löschzusage und betrifft nur das Gerät des Nutzers selbst.
 * **Kein Galerie-Zugriff:** Die Aufnahmen entstehen live über CameraX, es gibt
   keinen Bildauswahl-Dialog und keine Speicherberechtigung.
 * **Direkter Upload in den privaten Bereich** des Objekt-Storage über Presigned

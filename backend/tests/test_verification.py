@@ -186,10 +186,17 @@ def test_full_flow_pending_to_approved(client, storage_stub):
         db.close()
 
 
-def test_id_card_requires_back_side(client, storage_stub):
+def test_no_document_type_asks_for_a_back_side(client, storage_stub):
+    """Seit 9.8.2026 reicht bei allen Dokumenten die Vorderseite.
+
+    Auch beim Personalausweis, der früher beides verlangt hat.
+    """
     headers = register_raw(client, "idcard@example.com")
     _add_photo(client, headers)
     _submit_selfies(client, headers)
+
+    status = client.get("/api/verification/status", headers=headers).json()
+    assert [t["needs_back"] for t in status["document_types"]] == [False, False, False]
 
     front_key = client.post(
         "/api/verification/document/presign",
@@ -201,11 +208,7 @@ def test_id_card_requires_back_side(client, storage_stub):
         headers=headers,
         json={"document_type": "id_card", "front_object_key": front_key},
     )
-    assert resp.status_code == 400
-    assert "Rückseite" in resp.json()["detail"]
-
-    # Mit Rückseite geht es durch
-    _submit_document(client, headers, document_type="id_card", back=True)
+    assert resp.status_code == 200, resp.text
 
 
 def test_reupload_flow(client, storage_stub):
