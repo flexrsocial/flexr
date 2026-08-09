@@ -12,7 +12,7 @@ dieselbe; die Feldnamen und Längenbegrenzungen sind die von App Store Connect.
 > FLEXR ist Dating für Gym-People in Österreich. In dieser Testfassung geht es
 > um die Kernwege: Profil anlegen samt Foto, Umkreis und Gym einstellen, durch
 > Profile wischen, bei einem Match schreiben, optional das Profil per
-> Selfie-Posen verifizieren.
+> Selfie verifizieren.
 >
 > Bitte gebt Rückmeldung zu: Ladezeiten der Fotos, Verhalten der Wischgeste,
 > Zustellung der Chatnachrichten und allem, was sich auf eurem Gerät falsch

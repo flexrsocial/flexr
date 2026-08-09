@@ -181,7 +181,7 @@ fun VerificationScreen(
             return@Column
         }
 
-        // Ohne Posen läuft kein Vorgang: Der Server hat den Start abgelehnt (etwa
+        // Ohne Anweisung läuft kein Vorgang: Der Server hat den Start abgelehnt (etwa
         // weil das Profilfoto noch nicht durch war) oder der Selfie-Schritt liegt
         // bereits hinter dem Konto. Hier stand vorher eine scharfgeschaltete
         // Kamera samt Überschrift "Fertig!", die auf nichts reagiert hat.
@@ -211,7 +211,7 @@ fun VerificationScreen(
         Spacer(Modifier.height(18.dp))
         // Genau ein Selfie ist der Normalfall - dann ist eine Zählung nur Lärm.
         if (state.total > 1) {
-            Eyebrow("Pose ${(state.currentIndex + 1).coerceAtMost(state.total)} / ${state.total}")
+            Eyebrow("Aufnahme ${(state.currentIndex + 1).coerceAtMost(state.total)} / ${state.total}")
         } else {
             Eyebrow("Verifizierungs-Selfie")
         }
@@ -273,7 +273,7 @@ fun VerificationScreen(
             )
         }
 
-        // Kachelreihe zeigt den Fortschritt über mehrere Posen. Bei genau einem
+        // Kachelreihe zeigt den Fortschritt über mehrere Aufnahmen. Bei genau einem
         // Selfie gibt es keinen Fortschritt zu zeigen.
         if (state.total > 1) {
             Spacer(Modifier.height(14.dp))

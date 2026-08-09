@@ -64,7 +64,7 @@ class VerificationStatus(str, enum.Enum):
     "pending_review"-Zustand, ``in_progress`` der Selfie-Schritt.
     """
 
-    in_progress = "in_progress"            # Posen ausgegeben, Selfies noch nicht eingereicht
+    in_progress = "in_progress"            # Anweisung ausgegeben, Selfie noch nicht eingereicht
     id_required = "id_required"            # Selfies da, Lichtbildausweis fehlt noch
     reupload_required = "reupload_required"  # Admin fordert eine neue Aufnahme an
     submitted = "submitted"                # alles eingereicht, wartet auf manuelle Prüfung
@@ -437,8 +437,8 @@ class Report(Base):
 class VerificationRequest(Base):
     """Alters- und Identitätsprüfung in einem Vorgang.
 
-    Schritt 1 (unverändert): Der Server gibt 3 zufällige Posen vor, der Nutzer
-    nimmt live über die Kamera Selfies auf. Schritt 2: ein amtlicher
+    Schritt 1: Der Server gibt die Anweisung vor ("Schau direkt in die Kamera"),
+    der Nutzer nimmt das Selfie live über die Kamera auf. Schritt 2: ein amtlicher
     Lichtbildausweis wird temporär hochgeladen. Ein Mensch vergleicht danach
     Profilfotos, Selfie und Ausweisfoto und prüft das Geburtsdatum - es findet
     keine automatisierte biometrische Auswertung statt.
@@ -453,7 +453,7 @@ class VerificationRequest(Base):
     id = Column(String, primary_key=True, default=gen_uuid)
     user_id = Column(String, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
     status = Column(Enum(VerificationStatus), nullable=False, default=VerificationStatus.in_progress)
-    prompts = Column(Text, nullable=False)   # JSON: ["Pose 1", "Pose 2", "Pose 3"]
+    prompts = Column(Text, nullable=False)   # JSON: ["Schau direkt in die Kamera"]
     selfies = Column(Text, nullable=True)    # JSON: [{"prompt": ..., "object_key": ...}]
     created_at = Column(DateTime, default=datetime.utcnow)
     decided_at = Column(DateTime, nullable=True)

@@ -106,7 +106,7 @@ offline sichtbar.
 | `ui/matches/*` | `UI/Matches/*` | plus Zum-Aktualisieren-Ziehen |
 | `ui/chat/*` | `UI/Chat/*` | 4-s-Abgleich, optimistisches Senden, Lesebestätigung, Zensur-Hinweis, Chat-Sperre |
 | `ui/account/*` | `UI/Account/*` | Profil, Fotos, Radius, Abo, Verifizierung, Löschung |
-| `ui/verification/*` | `UI/Verification/*` | AVFoundation statt CameraX, Frontkamera, drei Live-Posen |
+| `ui/verification/*` | `UI/Verification/*` | AVFoundation statt CameraX, Frontkamera, ein Live-Frontselfie |
 | `ui/paywall`, `ui/reports`, `ui/legal` | dito | Rechtstexte als strukturierte Daten, offline |
 | `data/session/SessionStore` | dito | Token im Keychain, Rest in UserDefaults |
 | Retrofit + 2 Interceptoren | `Core/Network/APIClient` | Header nur auf `/api/`, 401 meldet die Sitzung ab |
