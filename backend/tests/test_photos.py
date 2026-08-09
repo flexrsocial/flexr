@@ -104,3 +104,42 @@ def test_photo_order_is_stable(client):
     after = client.get("/api/profiles/me", headers=headers).json()["photos"]
     assert after[0]["url"] == second_url
     assert [p["position"] for p in after] == [0, 1, 2]
+
+
+def test_deleted_photo_is_removed_from_storage(client, monkeypatch):
+    """Ein gelöschtes Foto muss auch als Datei verschwinden.
+
+    Fotos liegen unter einer öffentlichen URL. Ohne das Löschen im Storage wäre
+    das Bild weiter abrufbar - nur eben nicht mehr im Profil sichtbar.
+    """
+    from app.config import settings
+
+    monkeypatch.setattr(settings, "s3_public_base_url", "https://cdn.example/flexr")
+    deleted: list[str] = []
+    monkeypatch.setattr("app.cleanup.delete_storage_objects", lambda keys: deleted.extend(keys))
+
+    headers = register_user(client, "photodel@example.com")
+    photo = _add_photo(client, headers)["photos"][0]
+
+    resp = client.delete(f"/api/profiles/me/photos/{photo['id']}", headers=headers)
+    assert resp.status_code == 200
+    assert deleted == [photo["url"].removeprefix("https://cdn.example/flexr/")]
+
+
+def test_admin_deleted_photo_is_removed_from_storage(client, monkeypatch):
+    """Was die Moderation entfernt, darf nicht unter seiner URL erreichbar bleiben."""
+    from app.config import settings
+
+    from tests.conftest import create_admin
+
+    monkeypatch.setattr(settings, "s3_public_base_url", "https://cdn.example/flexr")
+    deleted: list[str] = []
+    monkeypatch.setattr("app.cleanup.delete_storage_objects", lambda keys: deleted.extend(keys))
+
+    headers = register_user(client, "photomod@example.com")
+    photo = _add_photo(client, headers)["photos"][0]
+
+    admin_headers, _ = create_admin(client, email="admin.photo@example.com")
+    resp = client.delete(f"/api/admin/photos/{photo['id']}", headers=admin_headers)
+    assert resp.status_code == 200
+    assert deleted == [photo["url"].removeprefix("https://cdn.example/flexr/")]

@@ -3566,6 +3566,7 @@
   // Geburtsdatum. Erst nach Freigabe wird das Konto freigeschaltet.
   let verifyState = null; // {prompts, idx, blobs[]}
   let verifyStream = null;
+  const CAPTURE_LABEL = '📸 Aufnehmen';
   let verificationStatus = null; // letzte Antwort von /api/verification/status
 
   async function loadVerificationStatus(){
@@ -3795,10 +3796,18 @@
 
   function renderVerifyStep(){
     const total = verifyState.prompts.length;
-    $('verifyStep').textContent = `POSE ${Math.min(verifyState.idx + 1, total)} / ${total}`;
+    // Genau ein Selfie ist der Normalfall - "POSE 1 / 1" und eine Kachelreihe
+    // mit einem Feld sind dann nur Lärm. Bei mehreren Posen zeigen beide den
+    // Fortschritt (die Anzahl gibt der Server vor). Gleiches Verhalten wie in
+    // der App.
+    const mehrere = total > 1;
+    $('verifyStep').textContent = mehrere
+      ? `POSE ${Math.min(verifyState.idx + 1, total)} / ${total}`
+      : 'VERIFIZIERUNGS-SELFIE';
     $('verifyPrompt').textContent = verifyState.prompts[verifyState.idx] || 'Fertig!';
     const thumbs = $('verifyThumbs');
-    thumbs.innerHTML = verifyState.prompts.map((_, i) => {
+    thumbs.style.display = mehrere ? '' : 'none';
+    thumbs.innerHTML = !mehrere ? '' : verifyState.prompts.map((_, i) => {
       if(verifyState.blobs[i]) return `<img src="${URL.createObjectURL(verifyState.blobs[i])}">`;
       return `<div class="placeholder">${i + 1}</div>`;
     }).join('');
@@ -3823,6 +3832,7 @@
     showScreen('screen-verify');
     $('verifyErr').textContent = '';
     $('btnVerifyCapture').disabled = false;
+    $('btnVerifyCapture').textContent = CAPTURE_LABEL;
     renderVerifyStep();
     try{
       verifyStream = await navigator.mediaDevices.getUserMedia({
@@ -3855,8 +3865,58 @@
   $('btnVerifyBack').addEventListener('click', leaveVerificationScreen);
   $('btnVidBack').addEventListener('click', leaveVerificationScreen);
 
+  /* Aufnahmen hochladen und einreichen. Steht getrennt vom Auslöser, weil das
+     Einreichen wiederholbar sein muss: Die Kamera ist zu diesem Zeitpunkt
+     bereits aus, ein zweiter Auslöser-Klick würde also nichts mehr aufnehmen.
+     Die Blobs bleiben deshalb erhalten, bis das Einreichen durch ist. */
+  async function submitSelfies(){
+    const btn = $('btnVerifyCapture');
+    btn.disabled = true;
+    btn.textContent = 'Wird hochgeladen …';
+    $('verifyErr').textContent = '';
+    try{
+      const selfies = [];
+      for(let i = 0; i < verifyState.prompts.length; i++){
+        const presign = await api('/api/verification/selfies/presign', {
+          method: 'POST',
+          body: JSON.stringify({content_type: 'image/jpeg'}),
+        });
+        const putRes = await fetch(presign.upload_url, {
+          method: 'PUT',
+          headers: {'Content-Type': 'image/jpeg'},
+          body: verifyState.blobs[i],
+        });
+        if(!putRes.ok) throw new Error('Selfie-Upload fehlgeschlagen.');
+        selfies.push({prompt: verifyState.prompts[i], object_key: presign.object_key});
+      }
+      verificationStatus = await api('/api/verification/submit', {
+        method: 'POST',
+        body: JSON.stringify({selfies}),
+      });
+      verifyState = null;
+      btn.textContent = CAPTURE_LABEL;
+      // Selfies sind durch - weiter zum Ausweisschritt (Schritt 2 von 2)
+      toast('Selfie gespeichert - jetzt noch das Alter bestätigen.');
+      openIdStep();
+    }catch(err){
+      $('verifyErr').textContent = err.message || 'Einreichen fehlgeschlagen. Bitte erneut versuchen.';
+      btn.textContent = 'Einreichen wiederholen';
+    }finally{
+      btn.disabled = false;
+    }
+  }
+
   $('btnVerifyCapture').addEventListener('click', async () => {
-    if(!verifyState || !verifyStream) return;
+    if(!verifyState) return;
+
+    // Aufnahme liegt vor, nur das Einreichen ist gescheitert: Der Knopf
+    // wiederholt jetzt den Upload statt einer Aufnahme.
+    if(verifyState.idx >= verifyState.prompts.length){
+      await submitSelfies();
+      return;
+    }
+
+    if(!verifyStream) return;
     const video = $('verifyVideo');
     if(!video.videoWidth){ return; }
 
@@ -3878,38 +3938,7 @@
     // Alle Posen aufgenommen -> hochladen + einreichen
     renderVerifyStep();
     stopVerifyCamera();
-    const btn = $('btnVerifyCapture');
-    btn.disabled = true;
-    btn.textContent = 'Wird hochgeladen …';
-    try{
-      const selfies = [];
-      for(let i = 0; i < verifyState.prompts.length; i++){
-        const presign = await api('/api/verification/selfies/presign', {
-          method: 'POST',
-          body: JSON.stringify({content_type: 'image/jpeg'}),
-        });
-        const putRes = await fetch(presign.upload_url, {
-          method: 'PUT',
-          headers: {'Content-Type': 'image/jpeg'},
-          body: verifyState.blobs[i],
-        });
-        if(!putRes.ok) throw new Error('Selfie-Upload fehlgeschlagen.');
-        selfies.push({prompt: verifyState.prompts[i], object_key: presign.object_key});
-      }
-      verificationStatus = await api('/api/verification/submit', {
-        method: 'POST',
-        body: JSON.stringify({selfies}),
-      });
-      verifyState = null;
-      // Selfies sind durch - weiter zum Ausweisschritt (Schritt 2 von 2)
-      toast('Selfie gespeichert - jetzt noch das Alter bestätigen.');
-      openIdStep();
-    }catch(err){
-      $('verifyErr').textContent = err.message || 'Einreichen fehlgeschlagen. Bitte erneut versuchen.';
-    }finally{
-      btn.disabled = false;
-      btn.textContent = '📸 Aufnehmen';
-    }
+    await submitSelfies();
   });
 
   // ---------- Schritt 2: amtlicher Lichtbildausweis ----------
