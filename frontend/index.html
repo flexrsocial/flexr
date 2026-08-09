@@ -1132,6 +1132,12 @@
   .vcard p:last-child{ margin-bottom:0; }
   .vcard ul{ margin:0; padding-left:18px; font-size:13.5px; line-height:1.65; color:var(--chalk-dim); }
   .vcard a{ color:var(--plate); }
+  /* Die beiden Hinweiskästen im Registrierungsformular stehen zwischen zwei
+     Feldern. Ohne eigenen Abstand nach oben kleben sie an der PLZ-Zeile,
+     während darunter die 16px vom nächsten Label stehen - das sah schief aus.
+     Der Wert kollabiert mit dem Label-Abstand, oben und unten sind es also
+     dieselben 16px. */
+  #ageGateNotice, #ageGateBlock{ margin-top:16px; }
 
   /* Statusanzeige (wird geprüft / abgelehnt / neue Aufnahme nötig) */
   .vstatus{
