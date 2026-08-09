@@ -10,7 +10,10 @@ import flexr.social.app.data.remote.dto.RegisterRequestDto
 import flexr.social.app.data.session.SessionStore
 import flexr.social.app.domain.model.Gender
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import java.time.LocalDate
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -31,10 +34,33 @@ class AuthRepository @Inject constructor(
     sessionExpiryInterceptor: SessionExpiryInterceptor,
 ) {
 
-    val isLoggedIn: Flow<Boolean> = sessionStore.isLoggedIn
+    /**
+     * Läuft gerade eine Registrierung samt Erstupload der Profilfotos?
+     *
+     * Das Token wird schon von `register()` gespeichert, die Fotos gehen aber
+     * erst danach raus - dazwischen ist das Konto zwar angemeldet, hat aber
+     * noch kein Foto. Wer in diesem Moment auf den Verifizierungsschirm
+     * geschickt wird, bekommt vom Server ein 400 („Lade zuerst mindestens ein
+     * Profilfoto hoch"), obwohl gleich alles da ist.
+     */
+    private val registrationInFlight = MutableStateFlow(false)
+
+    /**
+     * Angemeldet **und** einsatzbereit. Während der Registrierung bleibt das
+     * bewusst `false`, bis die Fotos oben sind - siehe [registrationInFlight].
+     */
+    val isLoggedIn: Flow<Boolean> =
+        combine(sessionStore.isLoggedIn, registrationInFlight) { loggedIn, inFlight ->
+            loggedIn && !inFlight
+        }.distinctUntilChanged()
 
     /** Feuert, sobald das Backend eine Anmeldung als abgelaufen zurückweist (401). */
     val sessionExpired: SharedFlow<Unit> = sessionExpiryInterceptor.events
+
+    /** Klammer um Registrierung + Erstupload. Immer mit `try`/`finally` benutzen. */
+    fun beginRegistration() { registrationInFlight.value = true }
+
+    fun finishRegistration() { registrationInFlight.value = false }
 
     suspend fun register(
         email: String,

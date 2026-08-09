@@ -306,41 +306,50 @@ class RegisterViewModel @Inject constructor(
 
         _uiState.update { it.copy(isSubmitting = true, error = null) }
         viewModelScope.launch {
-            runCatching {
-                authRepository.register(
-                    email = state.email,
-                    password = state.password,
-                    name = state.name,
-                    birthdate = requireNotNull(state.birthdate),
-                    plz = state.postalCode,
-                    city = requireNotNull(state.resolvedCity),
-                    gender = requireNotNull(state.gender),
-                    gymLabel = requireNotNull(state.gymPicker.selectedLabel),
-                    bio = state.bio,
-                    consentSensitiveData = state.consentSensitiveData,
-                    consentWithdrawalWaiver = state.consentWithdrawalWaiver,
-                )
-            }.onSuccess {
-                val failures = uploadPhotos(state.photos)
-                // Das Konto ist damit angelegt, aber noch nicht freigeschaltet:
-                // Als Nächstes steht die Alters- und Identitätsprüfung an.
-                val notice = when {
-                    failures == state.photos.size ->
-                        "Profil erstellt — Foto-Upload fehlgeschlagen. Bitte im Konto ein Foto hinzufügen."
-                    failures > 0 -> "Profil erstellt — nicht alle Fotos konnten hochgeladen werden."
-                    else -> "Profil erstellt. Jetzt noch die Alters- und Identitätsprüfung 💪"
-                }
-                _uiState.update {
-                    it.copy(isSubmitting = false, success = true, successNotice = notice)
-                }
-            }.onFailure { throwable ->
-                _uiState.update {
-                    it.copy(
-                        isSubmitting = false,
-                        error = (throwable as? FlexrApiException)?.message
-                            ?: "Registrierung fehlgeschlagen.",
+            // Bis die Fotos oben sind, gilt das Konto app-intern noch nicht als
+            // angemeldet: sonst schaltet MainViewModel schon auf den
+            // Verifizierungsschirm um, während der Upload noch läuft, und der
+            // Server lehnt den Start mangels Profilfoto ab.
+            authRepository.beginRegistration()
+            try {
+                runCatching {
+                    authRepository.register(
+                        email = state.email,
+                        password = state.password,
+                        name = state.name,
+                        birthdate = requireNotNull(state.birthdate),
+                        plz = state.postalCode,
+                        city = requireNotNull(state.resolvedCity),
+                        gender = requireNotNull(state.gender),
+                        gymLabel = requireNotNull(state.gymPicker.selectedLabel),
+                        bio = state.bio,
+                        consentSensitiveData = state.consentSensitiveData,
+                        consentWithdrawalWaiver = state.consentWithdrawalWaiver,
                     )
+                }.onSuccess {
+                    val failures = uploadPhotos(state.photos)
+                    // Das Konto ist damit angelegt, aber noch nicht freigeschaltet:
+                    // Als Nächstes steht die Alters- und Identitätsprüfung an.
+                    val notice = when {
+                        failures == state.photos.size ->
+                            "Profil erstellt — Foto-Upload fehlgeschlagen. Bitte im Konto ein Foto hinzufügen."
+                        failures > 0 -> "Profil erstellt — nicht alle Fotos konnten hochgeladen werden."
+                        else -> "Profil erstellt. Jetzt noch die Alters- und Identitätsprüfung 💪"
+                    }
+                    _uiState.update {
+                        it.copy(isSubmitting = false, success = true, successNotice = notice)
+                    }
+                }.onFailure { throwable ->
+                    _uiState.update {
+                        it.copy(
+                            isSubmitting = false,
+                            error = (throwable as? FlexrApiException)?.message
+                                ?: "Registrierung fehlgeschlagen.",
+                        )
+                    }
                 }
+            } finally {
+                authRepository.finishRegistration()
             }
         }
     }
