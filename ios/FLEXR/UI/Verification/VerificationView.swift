@@ -1,16 +1,15 @@
 import SwiftUI
 
-/// Foto-Verifizierung: drei vom Server vorgegebene Posen, live aufgenommen.
+/// Foto-Verifizierung: ein Selfie, frontal in die Kamera, live aufgenommen.
 ///
-/// Bewusst kein Galerie-Upload — nur eine echte Person vor der Kamera kann die
-/// verlangten Posen spontan liefern (Liveness-Prinzip).
+/// Bewusst kein Galerie-Upload — die Aufnahme muss vor der Kamera entstehen.
 @MainActor
 @Observable
 final class VerificationModel {
 
     var prompts: [String] = []
     var currentIndex = 0
-    /// Aufgenommene Selfies als JPEG, in der Reihenfolge der Posen.
+    /// Aufgenommene Selfies als JPEG, in der Reihenfolge der Anweisungen.
     var captures: [Data] = []
     var isStarting = true
     var isSubmitting = false
@@ -101,7 +100,7 @@ struct VerificationView: View {
             if let model {
                 content(model)
             } else {
-                LoadingStateView(label: "Posen werden geladen …")
+                LoadingStateView(label: "Wird vorbereitet …")
             }
         }
         .task {
@@ -125,9 +124,9 @@ struct VerificationView: View {
             BackHeader(title: "Foto-Verifizierung", onBack: onBack)
 
             if model.isStarting {
-                LoadingStateView(label: "Posen werden geladen …")
+                LoadingStateView(label: "Wird vorbereitet …")
             } else {
-                Eyebrow(text: "Pose \(min(model.currentIndex + 1, max(model.total, 1))) / \(model.total)")
+                Eyebrow(text: "Aufnahme \(min(model.currentIndex + 1, max(model.total, 1))) / \(model.total)")
                     .padding(.top, 18)
                 Text(model.currentPrompt ?? "Fertig!")
                     .flexrText(.headlineMedium)

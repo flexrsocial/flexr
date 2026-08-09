@@ -48,9 +48,9 @@ final class SafetyRepository {
 
 /// Foto-Verifizierung (blauer Haken).
 ///
-/// Der Server gibt drei zufällige Posen vor, die Selfies entstehen live über die
+/// Der Server gibt die Anweisung vor ("Schau direkt in die Kamera"), das Selfie entsteht live über die
 /// Kamera — kein Galerie-Upload. Das ist der Liveness-Schutz: nur eine echte
-/// Person vor der Kamera kann die verlangten Posen spontan liefern.
+/// Person vor der Kamera kann die Aufnahme liefern.
 @MainActor
 final class VerificationRepository {
 
@@ -71,7 +71,7 @@ final class VerificationRepository {
     }
 
     /// Lädt die drei Aufnahmen hoch und reicht sie ein. Die Reihenfolge muss
-    /// exakt der ausgegebenen Posenliste entsprechen, sonst weist das Backend
+    /// exakt der ausgegebenen Anweisungsliste entsprechen, sonst weist das Backend
     /// die Einreichung zurück.
     func submit(selfies: [(prompt: String, data: Data)]) async throws -> VerificationState {
         var uploaded: [VerificationSelfieDTO] = []

@@ -2,7 +2,7 @@
 
 Ein einziger Vorgang in zwei Schritten:
 
-    1. Ein Live-Selfie in einer vom Server vorgegebenen Pose (bestehender Schritt)
+    1. Ein Live-Selfie, frontal in die Kamera (bestehender Schritt)
     2. Amtlicher Lichtbildausweis, temporär in einem privaten Storage-Bereich
 
 Danach entscheidet ein Mensch (siehe routers/admin.py). Es gibt keine
@@ -15,7 +15,6 @@ Admin-Router.
 
 import json
 import logging
-import random
 from datetime import datetime
 
 from fastapi import APIRouter, Depends, HTTPException, Request
@@ -50,18 +49,16 @@ logger = logging.getLogger("flexr.verification")
 
 router = APIRouter(prefix="/api/verification", tags=["verification"])
 
-# Posen-Pool: Der Server verlangt genau ein Selfie und zieht die Pose dafür
-# zufällig - dadurch kann niemand ein vorbereitetes Foto verwenden
-# (Liveness-Prinzip: nur eine echte Person vor der Kamera kann die verlangte
-# Pose spontan liefern). Bewusst nur Blickrichtung und Mimik, keine Handgesten:
-# die waren in der Aufnahme umständlich und haben nichts dazugewonnen.
-SELFIE_PROMPT_COUNT = 1
-POSE_PROMPTS = [
-    "Schau nach links",
-    "Schau nach rechts",
-    "Schau nach oben",
-    "Lächle breit in die Kamera",
-]
+# Der Vorgang verlangt genau ein Selfie, frontal in die Kamera. Früher zog der
+# Server die Pose dafür zufällig aus einem Pool ("Schau nach links", "Lächle
+# breit" ...) - als Liveness-Schutz gegen vorbereitete Fotos. Das ist am
+# 9.8.2026 auf Wunsch gestrichen worden: die Echtheit entscheidet ohnehin ein
+# Mensch beim Abgleich mit dem Ausweis.
+#
+# Die Antwort bleibt bewusst eine *Liste* von Anweisungen (heute mit genau
+# einem Eintrag) - so bleiben die ausgelieferten App-Versionen kompatibel und
+# ein Posen-Pool ließe sich ohne Client-Änderung wieder einführen.
+SELFIE_PROMPTS = ["Schau direkt in die Kamera"]
 
 
 def _status_out(user: User, req: VerificationRequest | None) -> VerificationStatusOut:
@@ -132,24 +129,21 @@ def start_verification(
             raise HTTPException(400, "Deine Verifizierung ist bereits in Prüfung.")
         if latest.status in (VerificationStatus.in_progress, VerificationStatus.id_required):
             # Laufender Vorgang: unveränderten Stand zurückgeben (bei
-            # in_progress also dieselben Posen)
+            # in_progress also dieselbe Anweisung)
             return _status_out(current_user, latest)
         if latest.selfies:
             # Neu-Upload angefordert, aber nur für den Ausweis - Selfies gelten
             return _status_out(current_user, latest)
-        # Neu-Upload inkl. Selfie: neue Pose für denselben Vorgang
-        latest.prompts = json.dumps(
-            random.sample(POSE_PROMPTS, SELFIE_PROMPT_COUNT), ensure_ascii=False
-        )
+        # Neu-Upload inkl. Selfie: derselbe Vorgang beginnt von vorn
+        latest.prompts = json.dumps(SELFIE_PROMPTS, ensure_ascii=False)
         latest.status = VerificationStatus.in_progress
         db.commit()
         return _status_out(current_user, latest)
 
-    prompts = random.sample(POSE_PROMPTS, SELFIE_PROMPT_COUNT)
     req = VerificationRequest(
         user_id=current_user.id,
         status=VerificationStatus.in_progress,
-        prompts=json.dumps(prompts, ensure_ascii=False),
+        prompts=json.dumps(SELFIE_PROMPTS, ensure_ascii=False),
     )
     db.add(req)
     db.commit()
@@ -188,7 +182,7 @@ def submit_verification(
     expected_prompts = json.loads(active.prompts)
     submitted_prompts = [s.prompt for s in payload.selfies]
     if submitted_prompts != expected_prompts:
-        raise HTTPException(400, "Die Selfies passen nicht zu den angeforderten Posen.")
+        raise HTTPException(400, "Die Aufnahmen passen nicht zu den angeforderten Selfies.")
 
     prefix = f"users/{current_user.id}/verify/"
     for s in payload.selfies:

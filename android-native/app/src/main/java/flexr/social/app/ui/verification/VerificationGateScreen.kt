@@ -169,7 +169,7 @@ private fun SelfiePendingContent(
                 color = colors.chalk,
             )
             Spacer(Modifier.height(6.dp))
-            Bullet("Ein Live-Selfie in einer vorgegebenen Pose — die Kamera öffnet sich erst, wenn du startest")
+            Bullet("Ein Live-Selfie, frontal in die Kamera — die Kamera öffnet sich erst, wenn du startest")
             Bullet("Eine Aufnahme deines Personalausweises, Reisepasses oder Führerscheins")
         }
     }

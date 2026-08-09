@@ -96,7 +96,7 @@ sofort und offline sichtbar — im Web war jede Ansicht ein Ladebalken.
 | Chat inkl. 4-s-Polling | `ui/chat/*` | optimistisches Senden, Lesebestätigung, Zensur-Hinweis, Chat-Sperre |
 | Match-Profil | `ui/matches/MatchProfileScreen` | |
 | Konto-Screen | `ui/account/*` | Profil, Fotos, Radius, Abo, Verifizierung, Löschung |
-| Foto-Verifizierung (getUserMedia) | `ui/verification/*` | CameraX, Frontkamera, drei Live-Posen |
+| Foto-Verifizierung (getUserMedia) | `ui/verification/*` | CameraX, Frontkamera, ein Live-Frontselfie |
 | Paywall | `ui/paywall/PaywallScreen` | |
 | `impressum/agb/datenschutz/faq.html` | `ui/legal/LegalContent` | als strukturierte Compose-Daten, offline verfügbar |
 | `localStorage` (Token, Geräte-ID) | `data/session/SessionStore` | DataStore, vom Cloud-Backup ausgenommen |

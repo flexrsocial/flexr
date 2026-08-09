@@ -362,7 +362,7 @@ class AdminVerificationRejectRequest(BaseModel):
 class AdminVerificationReuploadRequest(BaseModel):
     reason_code: REVIEW_REASONS
     # True, wenn auch die Selfies neu aufgenommen werden müssen. Die alten
-    # Aufnahmen werden dann gelöscht und neue Posen ausgegeben.
+    # Aufnahmen werden dann gelöscht und der Selfie-Schritt beginnt von vorn.
     redo_selfie: bool = False
 
 

@@ -22,7 +22,7 @@ import javax.inject.Inject
 data class VerificationUiState(
     val prompts: List<String> = emptyList(),
     val currentIndex: Int = 0,
-    /** Aufgenommene Selfies als JPEG, in der Reihenfolge der Posen. */
+    /** Aufgenommene Selfies als JPEG, in der Reihenfolge der Anweisungen. */
     val captures: List<ByteArray> = emptyList(),
     val isStarting: Boolean = true,
     val isSubmitting: Boolean = false,
@@ -40,11 +40,9 @@ sealed interface VerificationEvent {
 }
 
 /**
- * Foto-Verifizierung: ein Selfie in einer vom Server vorgegebenen Pose, live
- * aufgenommen.
+ * Foto-Verifizierung: ein Selfie, frontal in die Kamera, live aufgenommen.
  *
- * Bewusst kein Galerie-Upload — nur eine echte Person vor der Kamera kann die
- * verlangte Pose spontan liefern (Liveness-Prinzip).
+ * Bewusst kein Galerie-Upload — die Aufnahme muss vor der Kamera entstehen.
  */
 @HiltViewModel
 class VerificationViewModel @Inject constructor(
@@ -74,7 +72,7 @@ class VerificationViewModel @Inject constructor(
                             currentIndex = 0,
                             captures = emptyList(),
                             isStarting = false,
-                            // Der Server antwortet ohne Posen, wenn der
+                            // Der Server antwortet ohne Anweisung, wenn der
                             // Selfie-Schritt schon hinter dem Konto liegt. Dann
                             // ist dieser Bildschirm nur noch eine Sackgasse -
                             // also sagen, was stattdessen ansteht.
@@ -112,7 +110,7 @@ class VerificationViewModel @Inject constructor(
     }
 
     fun onCaptured(bitmap: Bitmap) {
-        // Ohne laufenden Vorgang gibt es keine Pose, der die Aufnahme zugeordnet
+        // Ohne laufenden Vorgang gibt es keine Anweisung, der die Aufnahme zugeordnet
         // werden könnte - sie würde nur stumm im Speicher landen.
         if (_uiState.value.prompts.isEmpty()) return
         viewModelScope.launch {

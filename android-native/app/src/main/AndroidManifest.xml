@@ -7,8 +7,8 @@
 
     <!-- Alters- und Identitätsprüfung: Live-Selfies (Frontkamera) und die
          Aufnahme des amtlichen Lichtbildausweises (Rückkamera). Bewusst kein
-         Galerie-Upload — nur eine echte Person vor der Kamera kann die
-         verlangten Posen spontan liefern. Beide Bildschirme laufen mit
+         Galerie-Upload — die Aufnahmen müssen vor der Kamera entstehen.
+         Beide Bildschirme laufen mit
          FLAG_SECURE (siehe core/common/SecureScreen.kt). -->
     <uses-permission android:name="android.permission.CAMERA" />
 

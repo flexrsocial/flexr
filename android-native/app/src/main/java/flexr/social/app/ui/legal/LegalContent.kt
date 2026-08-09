@@ -149,8 +149,8 @@ object LegalContent {
                         "abgeschlossen werden.",
                     "Alters- und Identitätsprüfung vor der Freischaltung. Zusätzlich zur Angabe " +
                         "des Geburtsdatums ist vor der Freischaltung des Accounts eine Prüfung zu " +
-                        "durchlaufen: Der Nutzer nimmt ein Verifizierungs-Selfie in einer " +
-                        "vorgegebenen Pose auf und lädt einmalig eine Aufnahme eines gültigen amtlichen " +
+                        "durchlaufen: Der Nutzer nimmt ein Verifizierungs-Selfie live über die " +
+                        "Kamera auf und lädt einmalig eine Aufnahme eines gültigen amtlichen " +
                         "Lichtbildausweises (Personalausweis, Reisepass oder Führerschein) hoch. " +
                         "Die Prüfung erfolgt manuell durch FLEXR — Profilfoto, " +
                         "Verifizierungs-Selfie und Ausweisfoto werden von einem Menschen " +
@@ -269,7 +269,7 @@ object LegalContent {
                     "Sieh dir das Profil genau an: nur ein Foto, auffällig professionelle " +
                         "Aufnahmen, keine Angaben zum Studio — das muss nichts heißen, ist aber " +
                         "ein Grund, genauer hinzusehen. Der Verifizierungshaken bedeutet, dass " +
-                        "wir ein Selfie in einer zufällig vorgegebenen Pose mit den Profilfotos " +
+                        "wir ein live aufgenommenes Selfie mit den Profilfotos " +
                         "verglichen haben.",
                     "Telefoniert oder macht einen Videocall, bevor ihr euch trefft.",
                     "Sag jemandem Bescheid, wen du triffst, wo und wie lange.",
@@ -333,7 +333,7 @@ object LegalContent {
                     "In Nachrichten machen wir Links und E-Mail-Adressen unkenntlich und legen " +
                         "auffällige Nachrichten der Moderation vor.",
                     "Mindestalter 18, serverseitig aus dem Geburtsdatum geprüft.",
-                    "Verifizierung über ein Selfie in einer zufällig vorgegebenen Pose.",
+                    "Verifizierung über ein live aufgenommenes Selfie.",
                 ),
             ),
             LegalBlock.Heading("6. Im Notfall"),
@@ -502,9 +502,9 @@ object LegalContent {
                 "Vorbeugend: Ohne mindestens ein freigegebenes Foto ist ein Profil für andere " +
                     "nicht sichtbar. Jedes hochgeladene Foto steht zunächst auf ausstehend und " +
                     "wird erst nach menschlicher Prüfung ausgeliefert. Bei der Alters- und " +
-                    "Identitätsprüfung verlangt der Server ein Selfie in einer zufällig " +
-                    "gezogenen Pose — da die Pose erst bei der Anfrage feststeht, lässt sie sich mit " +
-                    "fremdem oder vorbereitetem Material nicht bedienen; dazu kommt der Abgleich " +
+                    "Identitätsprüfung verlangt der Server ein Selfie, das live über die " +
+                    "Kamera entsteht — ein vorhandenes Bild aus der Galerie lässt sich dafür " +
+                    "nicht auswählen; dazu kommt der Abgleich " +
                     "mit einem vorgelegten amtlichen Lichtbildausweis. Nach der Prüfung werden " +
                     "Selfie und Ausweisaufnahmen gelöscht. Dazu kommen die Telefonprüfung per SMS-Einmalcode, die " +
                     "E-Mail-Eindeutigkeit je Konto und die Sperrliste für Wegwerf-Adressen.",
@@ -516,7 +516,7 @@ object LegalContent {
                     "Prüfung binnen 72 Stunden. Beanstandete Fotos werden für die Dauer der " +
                         "Prüfung aus der Auslieferung genommen.",
                     "Bei begründetem Verdacht fordern wir eine Foto-Verifizierung nach dem " +
-                        "Posen-Verfahren an.",
+                        "oben beschriebenen Verfahren an.",
                     "Wird sie nicht binnen sieben Tagen erbracht oder besteht sie die Prüfung " +
                         "nicht, werden die Fotos entfernt und das Konto gesperrt.",
                     "Bei gewerbsmäßigem oder wiederholtem Identitätsmissbrauch folgen endgültige " +
@@ -855,8 +855,7 @@ object LegalContent {
                     listOf("Fotos", "Profilbilder", "Upload durch Nutzer, gespeichert bei Cloudflare R2"),
                     listOf(
                         "Verifizierungs-Selfie",
-                        "Selfie-Aufnahme in einer vorgegebenen Pose für die Alters- und " +
-                            "Identitätsprüfung",
+                        "Selfie-Aufnahme für die Alters- und Identitätsprüfung",
                         "Live-Aufnahme über die Kamera, temporär bei Cloudflare R2",
                     ),
                     listOf(
