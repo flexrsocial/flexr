@@ -3994,7 +3994,7 @@
     $('vidTypes').innerHTML = idState.types.map(t => `
       <button type="button" class="doc-type${t.value === idState.selected ? ' selected' : ''}" data-type="${escapeHtml(t.value)}">
         <span>${escapeHtml(t.label)}
-          <span class="hint">${t.needs_back ? 'Vorder- und Rückseite' : 'Datenseite mit Foto'}</span>
+          <span class="hint">${t.needs_back ? 'Vorder- und Rückseite' : 'Seite mit Foto und Geburtsdatum'}</span>
         </span>
       </button>`).join('');
     $('vidTypes').querySelectorAll('.doc-type').forEach(el => {
@@ -4060,9 +4060,9 @@
       }
       idState = {
         types: st.document_types || [
-          {value: 'id_card', label: 'Personalausweis', needs_back: true},
+          {value: 'id_card', label: 'Personalausweis', needs_back: false},
           {value: 'passport', label: 'Reisepass', needs_back: false},
-          {value: 'drivers_license', label: 'Führerschein', needs_back: true},
+          {value: 'drivers_license', label: 'Führerschein', needs_back: false},
         ],
         selected: null,
         shots: {},
