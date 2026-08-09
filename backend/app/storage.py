@@ -160,6 +160,31 @@ def _sniff_image_type(head_bytes: bytes) -> str | None:
     return None
 
 
+def list_object_keys(prefix: str) -> list[str]:
+    """Alle Objektschlüssel unter einem Prefix.
+
+    Gebraucht wird das für Uploads, die es nie in die Datenbank geschafft haben:
+    Presigned PUTs laufen am Backend vorbei, und wenn der Client danach abbricht
+    (Netzfehler beim Einreichen, App geschlossen), kennt kein Datensatz den
+    Schlüssel mehr. Solche Objekte finden sich nur noch über ihren Prefix.
+
+    Fehler werden geschluckt und leer beantwortet - ein Aufräumlauf, der nicht
+    listen kann, darf den aufrufenden Vorgang nicht scheitern lassen.
+    """
+    if not prefix or not settings.s3_bucket_name:
+        return []
+    keys: list[str] = []
+    try:
+        client = get_s3_client()
+        paginator = client.get_paginator("list_objects_v2")
+        for page in paginator.paginate(Bucket=settings.s3_bucket_name, Prefix=prefix):
+            keys.extend(item["Key"] for item in page.get("Contents", []))
+    except Exception:
+        logger.warning("Objekte unter %s konnten nicht aufgelistet werden", prefix)
+        return []
+    return keys
+
+
 def delete_objects_verified(object_keys: list[str]) -> list[str]:
     """Löscht Objekte und prüft, ob sie danach wirklich weg sind.
 
