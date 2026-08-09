@@ -45,6 +45,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
@@ -238,7 +239,9 @@ fun VerificationScreen(
         ) {
             if (hasCameraPermission) {
                 AndroidView(
-                    modifier = Modifier.fillMaxSize(),
+                    // clipToBounds als Gürtel zum Hosenträger: was der Rahmen
+                    // nicht fasst, wird abgeschnitten statt daneben gezeichnet.
+                    modifier = Modifier.fillMaxSize().clipToBounds(),
                     factory = { viewContext ->
                         PreviewView(viewContext).apply {
                             // COMPATIBLE zeichnet über eine TextureView im Fenster.
@@ -247,7 +250,12 @@ fun VerificationScreen(
                             // weder an die runden Ecken noch an die Grenzen des
                             // Rahmens und legt sich über den Text daneben.
                             implementationMode = PreviewView.ImplementationMode.COMPATIBLE
-                            scaleType = PreviewView.ScaleType.FILL_CENTER
+                            // FIT_CENTER wie beim Ausweisschirm, der nie
+                            // aufgefallen ist. FILL_CENTER skaliert das Bild, bis
+                            // die kürzere Seite den Rahmen füllt - der Überstand
+                            // der längeren Seite lag oben und unten außerhalb des
+                            // Rahmens und hat den Text darüber verdeckt.
+                            scaleType = PreviewView.ScaleType.FIT_CENTER
                             controller = cameraController
                         }
                     },
