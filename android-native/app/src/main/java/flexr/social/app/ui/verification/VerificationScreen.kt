@@ -72,6 +72,9 @@ import flexr.social.app.core.designsystem.theme.FlexrTheme
  */
 @Composable
 fun VerificationScreen(
+    /** Selfie ist eingereicht - weiter zum Ausweisschritt. */
+    onFinished: () -> Unit,
+    /** Abbruch durch den Nutzer - zurück zur Übersicht, nicht weiter im Ablauf. */
     onBack: () -> Unit,
     onShowMessage: (String) -> Unit,
     viewModel: VerificationViewModel = hiltViewModel(),
@@ -106,7 +109,7 @@ fun VerificationScreen(
         viewModel.events.collect { event ->
             when (event) {
                 is VerificationEvent.Message -> onShowMessage(event.text)
-                VerificationEvent.Finished -> onBack()
+                VerificationEvent.Finished -> onFinished()
             }
         }
     }
@@ -126,20 +129,24 @@ fun VerificationScreen(
     // zweiter Auslöser im Bild sah nach Kamera-App aus, reagierte über der
     // PreviewView aber nicht zuverlässig.
     val capture: () -> Unit = {
-        cameraController.takePicture(
-            ContextCompat.getMainExecutor(context),
-            object : ImageCapture.OnImageCapturedCallback() {
-                override fun onCaptureSuccess(image: ImageProxy) {
-                    val bitmap = image.toUprightBitmap()
-                    image.close()
-                    viewModel.onCaptured(bitmap)
-                }
+        // takePicture wirft, wenn die Kamera noch nicht gebunden ist - ohne
+        // runCatching stürbe die App beim Tippen statt etwas zu sagen.
+        runCatching {
+            cameraController.takePicture(
+                ContextCompat.getMainExecutor(context),
+                object : ImageCapture.OnImageCapturedCallback() {
+                    override fun onCaptureSuccess(image: ImageProxy) {
+                        val bitmap = image.toUprightBitmap()
+                        image.close()
+                        viewModel.onCaptured(bitmap)
+                    }
 
-                override fun onError(exception: ImageCaptureException) {
-                    onShowMessage("Aufnahme fehlgeschlagen, bitte erneut.")
-                }
-            },
-        )
+                    override fun onError(exception: ImageCaptureException) {
+                        onShowMessage("Aufnahme fehlgeschlagen, bitte erneut.")
+                    }
+                },
+            )
+        }.onFailure { onShowMessage("Die Kamera ist noch nicht bereit, bitte gleich erneut.") }
     }
     val canCapture = hasCameraPermission && !state.isSubmitting && !state.isComplete
 
@@ -174,6 +181,33 @@ fun VerificationScreen(
             return@Column
         }
 
+        // Ohne Posen läuft kein Vorgang: Der Server hat den Start abgelehnt (etwa
+        // weil das Profilfoto noch nicht durch war) oder der Selfie-Schritt liegt
+        // bereits hinter dem Konto. Hier stand vorher eine scharfgeschaltete
+        // Kamera samt Überschrift "Fertig!", die auf nichts reagiert hat.
+        if (state.prompts.isEmpty()) {
+            Spacer(Modifier.height(18.dp))
+            Eyebrow("Nicht gestartet")
+            Text(
+                text = "Die Verifizierung kann gerade nicht beginnen.",
+                style = MaterialTheme.typography.headlineMedium,
+                color = colors.chalk,
+            )
+            Spacer(Modifier.height(12.dp))
+            Text(
+                text = state.error
+                    ?: "Bitte versuche es gleich noch einmal.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = colors.chalkDim,
+            )
+            Spacer(Modifier.height(18.dp))
+            FlexrButton(text = "Erneut versuchen", onClick = viewModel::start)
+            Spacer(Modifier.height(8.dp))
+            FlexrSecondaryButton(text = "Zurück", onClick = onBack)
+            Spacer(Modifier.height(24.dp))
+            return@Column
+        }
+
         Spacer(Modifier.height(18.dp))
         // Genau ein Selfie ist der Normalfall - dann ist eine Zählung nur Lärm.
         if (state.total > 1) {
@@ -182,7 +216,7 @@ fun VerificationScreen(
             Eyebrow("Verifizierungs-Selfie")
         }
         Text(
-            text = state.currentPrompt ?: "Fertig!",
+            text = state.currentPrompt ?: "Aufnahme wird eingereicht …",
             style = MaterialTheme.typography.headlineMedium,
             color = colors.chalk,
         )
@@ -193,8 +227,9 @@ fun VerificationScreen(
                 .align(Alignment.CenterHorizontally)
                 .fillMaxWidth()
                 // Deckelt die Vorschau auf großen Schriftgrößen und kleinen
-                // Displays, damit darunter noch etwas Platz bleibt.
-                .heightIn(max = 380.dp)
+                // Displays, damit Hinweis und Auslöser darunter ohne Scrollen
+                // erreichbar bleiben.
+                .heightIn(max = 300.dp)
                 .aspectRatio(3f / 4f)
                 .clip(RoundedCornerShape(18.dp))
                 .background(colors.surface2)
@@ -206,6 +241,12 @@ fun VerificationScreen(
                     modifier = Modifier.fillMaxSize(),
                     factory = { viewContext ->
                         PreviewView(viewContext).apply {
+                            // COMPATIBLE zeichnet über eine TextureView im Fenster.
+                            // Die Voreinstellung PERFORMANCE nutzt eine SurfaceView,
+                            // die das System getrennt zusammensetzt - die hält sich
+                            // weder an die runden Ecken noch an die Grenzen des
+                            // Rahmens und legt sich über den Text daneben.
+                            implementationMode = PreviewView.ImplementationMode.COMPATIBLE
                             scaleType = PreviewView.ScaleType.FILL_CENTER
                             controller = cameraController
                         }

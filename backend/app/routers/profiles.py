@@ -161,6 +161,8 @@ def delete_photo(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+    from ..cleanup import delete_storage_objects, storage_keys_for_photo
+
     photo = (
         db.query(Photo)
         .filter(Photo.id == photo_id, Photo.user_id == current_user.id)
@@ -168,6 +170,10 @@ def delete_photo(
     )
     if not photo:
         raise HTTPException(404, "Foto nicht gefunden.")
+    # Die Bilddatei mitnehmen: Fotos liegen unter einer öffentlichen URL, die
+    # ohne diesen Schritt weiter ausliefert - das Foto wäre nur aus dem Profil
+    # verschwunden, nicht aus dem Netz.
+    delete_storage_objects(storage_keys_for_photo(photo))
     db.delete(photo)
     db.flush()
 

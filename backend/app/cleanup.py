@@ -25,6 +25,7 @@ from .storage import get_s3_client
 from .verification_service import (
     ORPHAN_RETENTION_DAYS,
     object_keys_for,
+    orphan_keys_for,
     purge_uploads,
 )
 
@@ -52,6 +53,21 @@ def delete_storage_objects(keys: list[str]) -> None:
         logger.exception("Objekt-Storage-Aufräumen fehlgeschlagen")
 
 
+def storage_keys_for_photo(photo: Photo) -> list[str]:
+    """Objektschlüssel eines Fotos: Original und - falls vorhanden - Thumbnail.
+
+    Wird beim Löschen eines einzelnen Fotos gebraucht (durch den Nutzer oder
+    die Moderation): ohne diesen Schritt bleibt die Bilddatei unter ihrer
+    öffentlichen URL abrufbar, obwohl das Foto aus dem Profil verschwunden ist.
+    """
+    keys: list[str] = []
+    for url in (photo.url, photo.thumb_url):
+        key = _object_key_from_url(url) if url else None
+        if key:
+            keys.append(key)
+    return keys
+
+
 def storage_keys_for_user(db: Session, user: User) -> list[str]:
     """Alle Storage-Objekte eines Nutzers: Profilfotos, Thumbnails,
     Verifizierungs-Selfies und noch vorhandene Ausweisaufnahmen.
@@ -61,13 +77,20 @@ def storage_keys_for_user(db: Session, user: User) -> list[str]:
     """
     keys: list[str] = []
     for photo in db.query(Photo).filter(Photo.user_id == user.id).all():
-        for url in (photo.url, photo.thumb_url):
-            key = _object_key_from_url(url) if url else None
-            if key:
-                keys.append(key)
+        keys.extend(storage_keys_for_photo(photo))
     for req in db.query(VerificationRequest).filter(VerificationRequest.user_id == user.id).all():
         keys.extend(object_keys_for(req))
-    return keys
+        # Auch angefangene Uploads, die nie eingereicht wurden (siehe
+        # verification_service.orphan_keys_for) - beim endgültigen Löschen darf
+        # nichts übrig bleiben.
+        keys.extend(orphan_keys_for(req))
+    return _unique(keys)
+
+
+def _unique(keys: list[str]) -> list[str]:
+    """Reihenfolge erhalten, Doppelte entfernen."""
+    seen: set[str] = set()
+    return [k for k in keys if not (k in seen or seen.add(k))]
 
 
 def purge_verification_uploads_for_user(db: Session, user: User) -> None:

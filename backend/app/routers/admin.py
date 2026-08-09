@@ -428,9 +428,14 @@ def delete_photo(
     admin: AdminUser = Depends(get_current_admin),
     db: Session = Depends(get_db),
 ):
+    from ..cleanup import delete_storage_objects, storage_keys_for_photo
+
     photo = db.query(Photo).filter(Photo.id == photo_id).first()
     if not photo:
         raise HTTPException(404, "Foto nicht gefunden.")
+    # Die Bilddatei mitnehmen. Gerade hier: Was die Moderation entfernt, soll
+    # nicht unter seiner öffentlichen URL abrufbar bleiben.
+    delete_storage_objects(storage_keys_for_photo(photo))
     db.delete(photo)
     db.commit()
     return {"deleted": True}

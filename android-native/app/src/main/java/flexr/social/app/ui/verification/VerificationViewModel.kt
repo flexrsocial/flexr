@@ -8,6 +8,7 @@ import flexr.social.app.core.media.ImageProcessor
 import flexr.social.app.core.network.FlexrApiException
 import flexr.social.app.data.repository.ProfileRepository
 import flexr.social.app.data.repository.VerificationRepository
+import flexr.social.app.domain.model.VerificationStep
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -73,6 +74,21 @@ class VerificationViewModel @Inject constructor(
                             currentIndex = 0,
                             captures = emptyList(),
                             isStarting = false,
+                            // Der Server antwortet ohne Posen, wenn der
+                            // Selfie-Schritt schon hinter dem Konto liegt. Dann
+                            // ist dieser Bildschirm nur noch eine Sackgasse -
+                            // also sagen, was stattdessen ansteht.
+                            error = if (state.prompts.isEmpty()) {
+                                when (state.nextStep) {
+                                    VerificationStep.DOCUMENT ->
+                                        "Dein Selfie liegt bereits vor. Weiter geht es mit dem Ausweis."
+                                    VerificationStep.WAIT ->
+                                        "Deine Verifizierung ist bereits in Prüfung."
+                                    else -> "Für dieses Konto läuft gerade keine Verifizierung."
+                                }
+                            } else {
+                                null
+                            },
                         )
                     }
                 }
@@ -96,6 +112,9 @@ class VerificationViewModel @Inject constructor(
     }
 
     fun onCaptured(bitmap: Bitmap) {
+        // Ohne laufenden Vorgang gibt es keine Pose, der die Aufnahme zugeordnet
+        // werden könnte - sie würde nur stumm im Speicher landen.
+        if (_uiState.value.prompts.isEmpty()) return
         viewModelScope.launch {
             val bytes = runCatching { imageProcessor.compressSelfie(bitmap) }.getOrElse {
                 _uiState.update { state -> state.copy(error = "Aufnahme fehlgeschlagen, bitte erneut.") }

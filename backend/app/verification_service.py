@@ -187,8 +187,38 @@ def _keys_from_json(raw: str | None) -> list[str]:
         return []
 
 
+def orphan_keys_for(req: VerificationRequest, *, selfies: bool = True, documents: bool = True) -> list[str]:
+    """Hochgeladene Aufnahmen eines Vorgangs, die in keinem Datensatz stehen.
+
+    Der Upload läuft per Presigned PUT direkt in den Storage; erst das
+    anschließende ``/submit`` schreibt den Schlüssel in die Datenbank. Bricht
+    der Client dazwischen ab - Netzfehler beim Einreichen, App geschlossen,
+    zweiter Anlauf nach einem gescheiterten Upload - liegt die Aufnahme im
+    Storage, ohne dass sie noch jemand kennt. Über ``purge_uploads`` allein
+    wäre sie nicht mehr erreichbar und bliebe dauerhaft liegen, obwohl wir das
+    Gegenteil zusichern.
+
+    Beide Prefixe sind eindeutig: Ausweisaufnahmen liegen unter der ID des
+    Vorgangs, Selfies unter der des Nutzers. Für Selfies gilt das nur, wenn
+    ohnehin alle Selfies dieses Nutzers weggeräumt werden - deshalb hängt es an
+    ``selfies``.
+    """
+    keys: list[str] = []
+    if documents:
+        keys += storage.list_object_keys(
+            f"{storage.VERIFICATION_DOCUMENT_PREFIX}{req.id}/"
+        )
+    if selfies:
+        keys += storage.list_object_keys(f"users/{req.user_id}/verify/")
+    return keys
+
+
 def purge_uploads(req: VerificationRequest, *, selfies: bool = True, documents: bool = True) -> bool:
     """Löscht die temporären Aufnahmen eines Vorgangs und prüft das Ergebnis.
+
+    Mitgenommen werden auch angefangene Uploads ohne Datenbankeintrag (siehe
+    ``orphan_keys_for``) - sonst überlebt ausgerechnet die abgebrochene
+    Ausweisaufnahme jede Löschung.
 
     Gibt True zurück, wenn nachweislich nichts mehr im Storage liegt. Andernfalls
     bleiben die Verweise stehen (die Schlüssel sind Zufalls-IDs ohne
@@ -200,6 +230,9 @@ def purge_uploads(req: VerificationRequest, *, selfies: bool = True, documents: 
         keys += selfie_keys(req)
     if documents:
         keys += document_keys(req)
+    for key in orphan_keys_for(req, selfies=selfies, documents=documents):
+        if key not in keys:
+            keys.append(key)
 
     remaining = storage.delete_objects_verified(keys)
 

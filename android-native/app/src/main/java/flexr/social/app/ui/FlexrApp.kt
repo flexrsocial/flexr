@@ -186,7 +186,10 @@ private fun VerificationGraph(
     Scaffold(
         containerColor = Color.Transparent,
         snackbarHost = { SnackbarHost(snackbarHostState) },
-        topBar = { FlexrTopBar(statusSlot = { StatusPill("In Prüfung") }) },
+        // "In Prüfung" bekamen auch Konten angezeigt, die noch gar nichts
+        // eingereicht hatten. Der Pillentext gilt für den ganzen Graphen,
+        // also muss er in jedem Schritt stimmen.
+        topBar = { FlexrTopBar(statusSlot = { StatusPill("Nicht freigeschaltet") }) },
     ) { padding ->
         NavHost(
             navController = navController,
@@ -204,12 +207,17 @@ private fun VerificationGraph(
 
             composable(Routes.VERIFICATION) {
                 VerificationScreen(
-                    // Nach den Selfies steht der Ausweis an - direkt weiter,
+                    // Nach dem Selfie steht der Ausweis an - direkt weiter,
                     // ohne Umweg über die Übersicht.
-                    onBack = {
+                    onFinished = {
                         navController.navigate(Routes.VERIFICATION_DOCUMENT) {
                             popUpTo(Routes.VERIFICATION_GATE)
                         }
+                    },
+                    // Abbruch führt zurück zur Übersicht - von dort aus zeigt der
+                    // Server ohnehin an, welcher Schritt wirklich ansteht.
+                    onBack = {
+                        navController.popBackStack(Routes.VERIFICATION_GATE, inclusive = false)
                     },
                     onShowMessage = onShowMessage,
                 )
@@ -379,13 +387,14 @@ private fun MainGraph(
             composable(Routes.VERIFICATION) {
                 VerificationScreen(
                     // Auch bei einem bereits freigeschalteten Konto (Bestands-
-                    // konto, das sich freiwillig verifiziert) folgt auf die
-                    // Selfies der Ausweisschritt.
-                    onBack = {
+                    // konto, das sich freiwillig verifiziert) folgt auf das
+                    // Selfie der Ausweisschritt.
+                    onFinished = {
                         navController.navigate(Routes.VERIFICATION_DOCUMENT) {
                             popUpTo(Routes.ACCOUNT)
                         }
                     },
+                    onBack = { navController.popBackStack(Routes.ACCOUNT, inclusive = false) },
                     onShowMessage = onShowMessage,
                 )
             }

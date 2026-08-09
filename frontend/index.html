@@ -3807,6 +3807,14 @@
   async function startVerification(){
     try{
       const st = await api('/api/verification/start', {method: 'POST'});
+      // Ohne Posen läuft kein Selfie-Schritt (er liegt bereits hinter dem Konto).
+      // Ohne diese Abzweigung stünde hier eine Kamera mit der Überschrift
+      // "Fertig!", die auf nichts reagiert.
+      if(!st.prompts || !st.prompts.length){
+        toast('Dein Selfie liegt bereits vor - weiter geht es mit dem Ausweis.');
+        openIdStep();
+        return;
+      }
       verifyState = {prompts: st.prompts, idx: 0, blobs: []};
     }catch(err){
       toast(err.message || 'Verifizierung konnte nicht gestartet werden.');

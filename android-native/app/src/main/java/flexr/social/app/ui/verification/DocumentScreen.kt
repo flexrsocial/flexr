@@ -479,6 +479,9 @@ private fun DocumentCamera(
                     modifier = Modifier.fillMaxSize(),
                     factory = { viewContext ->
                         PreviewView(viewContext).apply {
+                            // Siehe VerificationScreen: die voreingestellte
+                            // SurfaceView hält sich nicht an Rahmen und Ecken.
+                            implementationMode = PreviewView.ImplementationMode.COMPATIBLE
                             scaleType = PreviewView.ScaleType.FIT_CENTER
                             controller = cameraController
                         }
