@@ -1,4 +1,5 @@
 from tests.conftest import (
+    TestingSessionLocal,
     GYM_GRAZ,
     GYM_OHNE_ADRESSE,
     GYM_WIEN,
@@ -103,3 +104,49 @@ def test_radius_validation(client):
     assert client.patch("/api/profiles/me", headers=headers, json={"search_radius_km": 1}).status_code == 422
     assert client.patch("/api/profiles/me", headers=headers, json={"search_radius_km": 9999}).status_code == 422
 
+
+
+def test_near_profile_survives_many_faraway_accounts(client):
+    """Ein nahes Profil darf nicht herausfallen, weil es viele weit entfernte gibt.
+
+    Früher holte das Deck erst 500 Konten ohne Sortierung aus der Datenbank und
+    filterte danach nach Entfernung. Wer hinter den ersten 500 lag, verschwand -
+    unabhängig davon, wie nah er trainiert. Gefiltert wird jetzt über die
+    Studios im Umkreis, bevor die Nutzer geladen werden.
+    """
+    from app.models import User
+
+    sucher = register_user(client, "viele.m@example.com", gender="mann", gym=GYM_WIEN)
+
+    # 600 weit entfernte Konten (Graz), die den alten 500er-Schnitt füllen.
+    # Direkt in die Datenbank, weil das Passwort-Hashing sonst die Laufzeit
+    # bestimmt - für das Deck zählen nur die Spalten.
+    db = TestingSessionLocal()
+    try:
+        vorlage = db.query(User).first()
+        db.bulk_save_objects([
+            User(
+                email=f"fern{i}@example.com",
+                password_hash=vorlage.password_hash,
+                name=f"Fern {i}",
+                birthdate=vorlage.birthdate,
+                plz="8010", city="Graz",
+                gender="frau", interest="mann",
+                gym=GYM_GRAZ,
+                verification_required=False,
+                sensitive_data_consent_at=vorlage.sensitive_data_consent_at,
+                withdrawal_waiver_consent_at=vorlage.withdrawal_waiver_consent_at,
+            )
+            for i in range(600)
+        ])
+        db.commit()
+    finally:
+        db.close()
+
+    # Das nahe Profil entsteht zuletzt - im alten Code lag es damit hinter dem
+    # Schnitt und fehlte im Deck.
+    register_user_with_photo(client, "nah.f@example.com", name="Nahe Wienerin",
+                             gender="frau", gym=GYM_WIEN_2)
+
+    deck = client.get("/api/swipes/deck", headers=sucher).json()
+    assert [p["name"] for p in deck] == ["Nahe Wienerin"]

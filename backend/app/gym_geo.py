@@ -17,7 +17,7 @@ from typing import Iterable, Optional
 
 from sqlalchemy.orm import Session
 
-from .geo import coords_for_plz
+from .geo import coords_for_plz, haversine_km
 from .models import Gym, GymStatus
 
 
@@ -80,3 +80,47 @@ def coords_for_gym(db: Session, gym_value: Optional[str]) -> Optional[tuple[floa
     if not gym_value:
         return None
     return coords_for_gyms(db, [gym_value]).get(gym_value)
+
+
+def gym_values_within(
+    db: Session, center: tuple[float, float], radius_km: float
+) -> dict[str, float]:
+    """Alle Gym-Werte im Umkreis, je mit ihrer Entfernung in km.
+
+    Der Umkreis wird über die Studios bestimmt, nicht über die Nutzer: Die
+    Entfernung hängt ausschließlich am Gym, alle Trainierenden desselben Studios
+    liegen gleich weit weg. Die Gym-Tabelle ist klein (einige hundert Zeilen),
+    die Nutzertabelle wächst - deshalb wird zuerst hier gefiltert und die
+    Nutzerabfrage anschließend auf die verbleibenden Gym-Werte eingeschränkt.
+
+    Zurück kommen genau die Zeichenketten, die so in ``User.gym`` stehen können:
+    das volle Label und - wo der Name eindeutig ist - der blanke Name von
+    Bestandsprofilen. Die Auflösungsregeln entsprechen ``coords_for_gyms``.
+    """
+    rows = (
+        db.query(Gym)
+        .filter(
+            Gym.status.in_([GymStatus.approved, GymStatus.pending]),
+            Gym.plz != "",
+        )
+        .all()
+    )
+
+    by_name: dict[str, list[Gym]] = {}
+    for gym in rows:
+        by_name.setdefault(gym.name, []).append(gym)
+
+    within: dict[str, float] = {}
+    for gym in rows:
+        coords = coords_for_plz(gym.plz)
+        if not coords:
+            continue
+        distance = haversine_km(center[0], center[1], coords[0], coords[1])
+        if distance > radius_km:
+            continue
+        within[gym.label] = distance
+        # Blanker Name nur, wenn er auf genau ein Studio zeigt - sonst wäre der
+        # Punkt nicht eindeutig (siehe Modulkopf).
+        if len(by_name[gym.name]) == 1:
+            within[gym.name] = distance
+    return within

@@ -143,8 +143,11 @@ class VerificationViewModel @Inject constructor(
             }.onSuccess {
                 _uiState.update { it.copy(isSubmitting = false) }
                 runCatching { profileRepository.refresh() }
+                // Nach dem Selfie steht der Ausweis an - geprüft wird erst
+                // danach. "In Prüfung" wäre hier schlicht falsch und lässt
+                // Nutzer auf eine Entscheidung warten, die niemand trifft.
                 _events.send(
-                    VerificationEvent.Message("Selfie eingereicht — deine Verifizierung ist in Prüfung."),
+                    VerificationEvent.Message("Selfie gespeichert — jetzt noch der Ausweis."),
                 )
                 _events.send(VerificationEvent.Finished)
             }.onFailure { throwable ->

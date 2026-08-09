@@ -204,3 +204,37 @@ def test_purge_after_grace_period_removes_verification_files(client, storage_stu
     finally:
         db.close()
     assert any(k.startswith("verification-documents/") for k in deleted)
+
+
+def test_abandoned_upload_without_db_entry_is_purged(client, storage_stub, monkeypatch):
+    """Angefangene Uploads ohne Datenbankeintrag müssen mitgelöscht werden.
+
+    Der Upload läuft per Presigned PUT direkt in den Storage; erst /submit
+    schreibt den Schlüssel in die Datenbank. Bricht der Client dazwischen ab,
+    kennt kein Datensatz die Aufnahme mehr - sie ist nur noch über ihren Prefix
+    auffindbar. Ausgerechnet die Ausweisaufnahme bliebe sonst dauerhaft liegen.
+    """
+    headers = register_raw(client, "abgebrochen@example.com")
+    _add_photo(client, headers)
+    _complete_submission(client, headers)
+
+    db = TestingSessionLocal()
+    try:
+        req_id = db.query(VerificationRequest).first().id
+    finally:
+        db.close()
+
+    # Zweiter Anlauf nach einem gescheiterten Einreichen: die Datei liegt im
+    # Storage, in der Datenbank steht sie nicht.
+    verwaist = f"verification-documents/{req_id}/abgebrochen.jpg"
+    monkeypatch.setattr(
+        app_storage,
+        "list_object_keys",
+        lambda prefix: [verwaist] if prefix.endswith(f"{req_id}/") else [],
+    )
+
+    resp = client.request(
+        "DELETE", "/api/profiles/me", headers=headers, json={"password": "supersecret123"}
+    )
+    assert resp.status_code == 200
+    assert verwaist in storage_stub
