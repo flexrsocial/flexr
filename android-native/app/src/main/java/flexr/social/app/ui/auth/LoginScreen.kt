@@ -86,13 +86,14 @@ fun LoginScreen(
         FieldError(state.error)
 
         Spacer(Modifier.height(22.dp))
+        // Wie bei der Registrierung bewusst immer tippbar: Ein gesperrter Knopf
+        // sagt nicht, was fehlt. viewModel.login() nennt den Grund beim Tippen.
         FlexrButton(
             text = "Einloggen",
             onClick = {
                 keyboard?.hide()
                 viewModel.login()
             },
-            enabled = state.canSubmit,
             loading = state.isSubmitting,
         )
 

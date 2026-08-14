@@ -18,9 +18,7 @@ data class LoginUiState(
     val isSubmitting: Boolean = false,
     val error: String? = null,
     val success: Boolean = false,
-) {
-    val canSubmit: Boolean get() = email.isNotBlank() && password.isNotBlank() && !isSubmitting
-}
+)
 
 @HiltViewModel
 class LoginViewModel @Inject constructor(

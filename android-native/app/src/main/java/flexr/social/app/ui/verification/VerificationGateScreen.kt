@@ -19,6 +19,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -52,6 +53,7 @@ import flexr.social.app.domain.model.VerificationStep
 fun VerificationGateScreen(
     onStartSelfies: () -> Unit,
     onStartDocument: () -> Unit,
+    onActivated: () -> Unit,
     onLogout: () -> Unit,
     onShowMessage: (String) -> Unit,
     viewModel: VerificationGateViewModel = hiltViewModel(),
@@ -60,6 +62,14 @@ fun VerificationGateScreen(
 
     // Zustand nach der Rückkehr von Selfie- oder Ausweisschritt auffrischen.
     LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { viewModel.load() }
+
+    // Freischaltung erkannt — egal ob über "Status aktualisieren" oder über das
+    // Auffrischen beim Zurückkehren in die App. Der Verifizierungsgraph ist ein
+    // eigener Navigationsgraph; nur ein neu geladener Sitzungszustand führt
+    // hier heraus.
+    LaunchedEffect(state.isActivated) {
+        if (state.isActivated) onActivated()
+    }
 
     if (state.deleteDialogVisible) {
         DeleteAccountDialog(
@@ -92,6 +102,11 @@ fun VerificationGateScreen(
             Spacer(Modifier.height(10.dp))
 
             when {
+                // Zuerst prüfen: Ein freigeschaltetes Konto meldet "approved"
+                // und keinen offenen Schritt mehr - ohne diesen Zweig sähe das
+                // wie ein neuer Anfang aus ("Verifizierung starten").
+                state.isActivated -> ActivatedContent(onRetry = onActivated)
+
                 state.isWaiting -> WaitingContent(onRefresh = {
                     viewModel.refresh { onShowMessage("Die Prüfung läuft noch.") }
                 }, isRefreshing = state.isRefreshing)
@@ -287,6 +302,43 @@ private fun WaitingContent(onRefresh: () -> Unit, isRefreshing: Boolean) {
         enabled = !isRefreshing,
         loading = isRefreshing,
     )
+}
+
+// ---------- Freigeschaltet, die App zieht gleich nach ----------
+
+/**
+ * Sichtbar wird das nur für einen Augenblick: Der Bildschirm stößt beim
+ * Erkennen der Freischaltung sofort das Neuladen der Sitzung an, danach ist
+ * dieser Graph weg. Bleibt es hängen, weil das Nachladen scheiterte, führt der
+ * Knopf hier heraus — ein Wartebildschirm ohne Ausweg wäre die schlechtere
+ * Antwort auf einen Netzfehler.
+ */
+@Composable
+private fun ActivatedContent(onRetry: () -> Unit) {
+    val colors = FlexrTheme.colors
+
+    Eyebrow("Geschafft")
+    Text(
+        text = "Konto freigeschaltet",
+        style = MaterialTheme.typography.headlineMedium,
+        color = colors.chalk,
+    )
+    Spacer(Modifier.height(14.dp))
+    StepBar(current = 3)
+    Spacer(Modifier.height(14.dp))
+    StatusChip("Freigeschaltet", danger = false)
+
+    FlexrCard {
+        Text(
+            text = "Deine Prüfung ist durch. Wir laden gerade dein Profil — gleich " +
+                "steht dir FLEXR vollständig offen.",
+            style = MaterialTheme.typography.bodyMedium,
+            color = colors.chalkDim,
+        )
+    }
+
+    Spacer(Modifier.height(18.dp))
+    FlexrButton(text = "Weiter zu FLEXR", onClick = onRetry)
 }
 
 // ---------- Endgültig abgelehnt ----------

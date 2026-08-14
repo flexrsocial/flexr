@@ -33,6 +33,13 @@ data class VerificationGateUiState(
     val isWaiting: Boolean get() = status == VerificationStatus.SUBMITTED
     val isRejected: Boolean get() = status == VerificationStatus.REJECTED
 
+    /**
+     * Die Prüfung ist durch und das Konto freigeschaltet. Der Bildschirm darf
+     * dann nicht stehen bleiben - er ist der einzige des Verifizierungsgraphen,
+     * und der Graph selbst wechselt erst, wenn die Sitzung neu geladen wird.
+     */
+    val isActivated: Boolean get() = verification?.accountActivated == true
+
     /** Der Prüfer hat eine neue Aufnahme angefordert. */
     val needsNewUpload: Boolean get() = status == VerificationStatus.REUPLOAD_REQUIRED
 }
@@ -76,18 +83,35 @@ class VerificationGateViewModel @Inject constructor(
     }
 
     /**
-     * "Status aktualisieren" im Wartezustand: Profil neu laden — ist die
-     * Prüfung durch, wechselt die App über den beobachteten Sitzungszustand
-     * von selbst in die Hauptansicht.
+     * "Status aktualisieren" im Wartezustand.
+     *
+     * Bisher wurde hier das Profil neu geladen und darauf gebaut, dass die App
+     * daraufhin von selbst weiterschaltet. Das tat sie nie: MainViewModel
+     * beobachtet nur `isLoggedIn`, nicht das Profil. Wer während der Wartezeit
+     * freigeschaltet wurde, drückte den Knopf, bekam nicht einmal die Meldung
+     * "läuft noch" — und blieb auf dem Wartebildschirm sitzen.
+     *
+     * Die Freischaltung steht bereits in der Statusantwort selbst
+     * (`account_activated`); sie landet im UI-Zustand, und der Bildschirm
+     * stößt daraufhin das Neuladen der Sitzung an.
      */
     fun refresh(onStillWaiting: () -> Unit) {
-        _uiState.update { it.copy(isRefreshing = true) }
+        _uiState.update { it.copy(isRefreshing = true, error = null) }
         viewModelScope.launch {
-            val profile = runCatching { profileRepository.refresh() }.getOrNull()
             runCatching { verificationRepository.status() }
-                .onSuccess { state -> _uiState.update { it.copy(verification = state) } }
-            _uiState.update { it.copy(isRefreshing = false) }
-            if (profile == null || !profile.isAccountActivated) onStillWaiting()
+                .onSuccess { state ->
+                    _uiState.update { it.copy(verification = state, isRefreshing = false) }
+                    if (!state.accountActivated) onStillWaiting()
+                }
+                .onFailure { throwable ->
+                    _uiState.update {
+                        it.copy(
+                            isRefreshing = false,
+                            error = (throwable as? FlexrApiException)?.message
+                                ?: "Status konnte nicht geladen werden.",
+                        )
+                    }
+                }
         }
     }
 

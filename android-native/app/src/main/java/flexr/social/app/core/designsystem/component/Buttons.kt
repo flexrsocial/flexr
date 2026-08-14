@@ -3,6 +3,7 @@ package flexr.social.app.core.designsystem.component
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
@@ -25,11 +26,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -53,19 +54,39 @@ fun FlexrButton(
     val scale by animateFloatAsState(if (pressed) 0.98f else 1f, label = "buttonScale")
     val colors = FlexrTheme.colors
     val isEnabled = enabled && !loading
+    // Gesperrt heisst: es fehlt noch etwas. Waehrend einer laufenden Aktion ist
+    // der Knopf ebenfalls nicht tippbar, sieht aber weiter nach Aktion aus.
+    val isBlocked = !enabled && !loading
 
     Box(
         modifier = modifier
             .fillMaxWidth()
             .scale(scale)
             .clip(RoundedCornerShape(12.dp))
+            // Der gesperrte Zustand lag frueher auf alpha 0.4. Ein oranger
+            // Verlauf auf #121212 verschwindet dabei fast vollstaendig - erst
+            // beim Registrierungsknopf gemeldet, dann beim Login. Statt zu
+            // verblassen wechselt der Knopf jetzt die Farbe: voll deckende
+            // Stahlflaeche mit lesbarer Schrift, unverwechselbar "noch nicht".
             .background(
-                Brush.linearGradient(
-                    listOf(colors.plateBright, colors.plate, Color(0xFFEF4C15)),
-                ),
+                if (isBlocked) {
+                    SolidColor(colors.surface3)
+                } else {
+                    Brush.linearGradient(
+                        listOf(colors.plateBright, colors.plate, Color(0xFFEF4C15)),
+                    )
+                },
             )
-            .alpha(if (isEnabled) 1f else 0.4f),
+            .then(
+                if (isBlocked) {
+                    Modifier.border(1.dp, colors.steel, RoundedCornerShape(12.dp))
+                } else {
+                    Modifier
+                },
+            ),
     ) {
+        val contentColor = if (isBlocked) colors.chalkDim else colors.plateInk
+
         TextButton(
             onClick = onClick,
             enabled = isEnabled,
@@ -82,16 +103,16 @@ fun FlexrButton(
                 if (loading) {
                     CircularProgressIndicator(
                         modifier = Modifier.size(17.dp),
-                        color = colors.plateInk,
+                        color = contentColor,
                         strokeWidth = 2.dp,
                     )
                 } else if (icon != null) {
-                    Icon(icon, contentDescription = null, tint = colors.plateInk, modifier = Modifier.size(17.dp))
+                    Icon(icon, contentDescription = null, tint = contentColor, modifier = Modifier.size(17.dp))
                 }
                 Text(
                     text = text.uppercase(),
                     style = MaterialTheme.typography.labelLarge,
-                    color = colors.plateInk,
+                    color = contentColor,
                     textAlign = TextAlign.Center,
                 )
             }
