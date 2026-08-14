@@ -1,5 +1,6 @@
 package flexr.social.app.ui.verification
 
+import android.net.Uri
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -16,6 +17,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -41,6 +43,7 @@ import flexr.social.app.core.designsystem.component.LoadingState
 import flexr.social.app.core.designsystem.component.SectionTitle
 import flexr.social.app.core.designsystem.theme.FlexrTheme
 import flexr.social.app.domain.model.VerificationStep
+import flexr.social.app.ui.components.PhotoGridEditor
 
 /**
  * Einziger erreichbarer Bildschirm, solange ein Konto die Alters- und
@@ -112,6 +115,14 @@ fun VerificationGateScreen(
                 }, isRefreshing = state.isRefreshing)
 
                 state.isRejected -> RejectedContent(reason = state.verification?.reason)
+
+                // Vor allen offenen Schritten: Ohne Profilfoto lehnt der Server
+                // den Start ab, und von hier führt sonst kein Weg zum Upload.
+                !state.hasProfilePhoto -> MissingPhotoContent(
+                    isUploading = state.isUploadingPhoto,
+                    error = state.photoError,
+                    onPhotoPicked = viewModel::onPhotoPicked,
+                )
 
                 state.step == VerificationStep.DOCUMENT -> DocumentPendingContent(
                     needsNewUpload = state.needsNewUpload,
@@ -302,6 +313,74 @@ private fun WaitingContent(onRefresh: () -> Unit, isRefreshing: Boolean) {
         enabled = !isRefreshing,
         loading = isRefreshing,
     )
+}
+
+// ---------- Profilfoto fehlt ----------
+
+/**
+ * Der Upload während der Registrierung kann scheitern (Funkloch, Aussetzer im
+ * Objekt-Storage) — das Konto existiert dann ohne Foto. Die Prüfung lässt sich
+ * so nicht starten, und der Konto-Bildschirm mit der Fotoverwaltung liegt im
+ * Hauptgraphen, den ein nicht freigeschaltetes Konto nie zu sehen bekommt.
+ * Ohne diesen Nachreich-Weg blieb nur die Kontolöschung.
+ */
+@Composable
+private fun MissingPhotoContent(
+    isUploading: Boolean,
+    error: String?,
+    onPhotoPicked: (Uri) -> Unit,
+) {
+    val colors = FlexrTheme.colors
+
+    Eyebrow("Profilfoto fehlt")
+    Text(
+        text = "Zuerst dein Profilfoto",
+        style = MaterialTheme.typography.headlineMedium,
+        color = colors.chalk,
+    )
+    Spacer(Modifier.height(14.dp))
+    StepBar(current = 1)
+    Spacer(Modifier.height(14.dp))
+    StatusChip("Foto fehlt", danger = true)
+
+    FlexrCard {
+        Column {
+            Text(
+                text = "Für die Prüfung vergleicht ein Mensch dein Profilfoto mit deinem " +
+                    "Selfie und deinem Ausweis. Ohne Profilfoto kann sie nicht starten.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = colors.chalkDim,
+            )
+            Spacer(Modifier.height(10.dp))
+            Text(
+                text = "Beim Anlegen deines Profils hat der Upload nicht geklappt. Hol ihn " +
+                    "hier nach — danach geht es normal weiter.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = colors.chalkDim,
+            )
+        }
+    }
+
+    Spacer(Modifier.height(14.dp))
+    PhotoGridEditor(
+        slots = emptyList(),
+        onPhotoPicked = onPhotoPicked,
+        onRemove = {},
+        maxPhotos = 1,
+    )
+    if (isUploading) {
+        Spacer(Modifier.height(10.dp))
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            CircularProgressIndicator(Modifier.size(14.dp), color = colors.plate, strokeWidth = 1.5.dp)
+            Spacer(Modifier.width(8.dp))
+            Text(
+                "Foto wird hochgeladen …",
+                style = MaterialTheme.typography.bodySmall,
+                color = colors.chalkDim,
+            )
+        }
+    }
+    FieldError(error)
 }
 
 // ---------- Freigeschaltet, die App zieht gleich nach ----------

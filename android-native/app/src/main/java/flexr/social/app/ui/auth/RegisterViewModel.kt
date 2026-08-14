@@ -331,8 +331,12 @@ class RegisterViewModel @Inject constructor(
                     // Das Konto ist damit angelegt, aber noch nicht freigeschaltet:
                     // Als Nächstes steht die Alters- und Identitätsprüfung an.
                     val notice = when {
+                        // Nicht mehr "im Konto nachholen": Der Konto-Bildschirm
+                        // gehört zum Hauptgraphen und ist ohne Freischaltung
+                        // gar nicht erreichbar. Der Upload wartet jetzt direkt
+                        // auf dem Verifizierungs-Schirm (VerificationGateScreen).
                         failures == state.photos.size ->
-                            "Profil erstellt — Foto-Upload fehlgeschlagen. Bitte im Konto ein Foto hinzufügen."
+                            "Profil erstellt — Foto-Upload fehlgeschlagen. Du kannst das Foto gleich nachreichen."
                         failures > 0 -> "Profil erstellt — nicht alle Fotos konnten hochgeladen werden."
                         else -> "Profil erstellt. Jetzt noch die Alters- und Identitätsprüfung 💪"
                     }

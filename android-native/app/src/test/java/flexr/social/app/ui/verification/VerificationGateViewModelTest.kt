@@ -1,5 +1,11 @@
 package flexr.social.app.ui.verification
 
+import flexr.social.app.core.media.PhotoPreparer
+import flexr.social.app.core.media.PreparedPhoto
+import flexr.social.app.data.remote.dto.AddPhotoRequestDto
+import flexr.social.app.data.remote.dto.MyProfileDto
+import flexr.social.app.data.remote.dto.PresignPhotoRequestDto
+import flexr.social.app.data.remote.dto.PresignPhotoResponseDto
 import flexr.social.app.data.remote.dto.VerificationStatusDto
 import flexr.social.app.data.repository.ProfileRepository
 import flexr.social.app.data.repository.VerificationRepository
@@ -9,7 +15,9 @@ import flexr.social.app.testing.MainDispatcherRule
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
+import flexr.social.app.testing.meinProfilDto
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -33,7 +41,7 @@ class VerificationGateViewModelTest {
     val mainDispatcherRule = MainDispatcherRule()
 
     /** Liefert nacheinander die vorgegebenen Statusantworten. */
-    private class TestApi(private val antworten: List<VerificationStatusDto>) : FakeFlexrApi() {
+    private open class TestApi(private val antworten: List<VerificationStatusDto>) : FakeFlexrApi() {
         var aufrufe = 0
             private set
 
@@ -44,9 +52,13 @@ class VerificationGateViewModelTest {
         }
     }
 
-    private fun viewModel(api: TestApi) = VerificationGateViewModel(
+    private fun viewModel(
+        api: TestApi,
+        preparer: PhotoPreparer = PhotoPreparer { PreparedPhoto(ByteArray(4), ByteArray(2)) },
+    ) = VerificationGateViewModel(
         verificationRepository = VerificationRepository(api),
         profileRepository = ProfileRepository(api, FakeSessionStore()),
+        photoPreparer = preparer,
     )
 
     private fun inPruefung() = VerificationStatusDto(
@@ -94,6 +106,59 @@ class VerificationGateViewModelTest {
         assertTrue(nochInPruefung)
         assertFalse(viewModel.uiState.value.isActivated)
         assertTrue(viewModel.uiState.value.isWaiting)
+    }
+
+    /**
+     * Scheitert der Foto-Upload während der Registrierung, existiert das Konto
+     * ohne Foto. /verification/start lehnt dann ab ("Lade zuerst mindestens ein
+     * Profilfoto hoch"), und der Konto-Bildschirm mit der Fotoverwaltung liegt
+     * im Hauptgraphen, den ein nicht freigeschaltetes Konto nie erreicht - es
+     * blieb nur die Kontolöschung.
+     */
+    @Test
+    fun `fehlendes Profilfoto wird gemeldet und laesst sich nachreichen`() = runTest {
+        val api = object : TestApi(listOf(inPruefung())) {
+            var registriert: AddPhotoRequestDto? = null
+
+            override suspend fun getMyProfile() = meinProfilDto(photos = emptyList())
+
+            override suspend fun presignPhoto(body: PresignPhotoRequestDto) =
+                PresignPhotoResponseDto(
+                    uploadUrl = "https://storage.example/put",
+                    objectKey = "users/ich/${body.contentType.substringAfter('/')}",
+                )
+
+            override suspend fun uploadToPresignedUrl(
+                url: String,
+                contentType: String,
+                body: okhttp3.RequestBody,
+            ) = Unit
+
+            override suspend fun addPhoto(body: AddPhotoRequestDto): MyProfileDto {
+                registriert = body
+                return meinProfilDto()
+            }
+        }
+        val profileRepository = ProfileRepository(api, FakeSessionStore())
+        val viewModel = VerificationGateViewModel(
+            verificationRepository = VerificationRepository(api),
+            profileRepository = profileRepository,
+            photoPreparer = { PreparedPhoto(ByteArray(8), ByteArray(4)) },
+        )
+
+        // Wie in der App: MainViewModel laedt das Profil, bevor der
+        // Verifizierungsgraph ueberhaupt sichtbar wird.
+        profileRepository.refresh()
+        advanceUntilIdle()
+        assertFalse(viewModel.uiState.value.hasProfilePhoto)
+
+        // Wie onPhotoPicked(), nur ohne android.net.Uri (im JVM-Test null).
+        viewModel.storePhoto { PreparedPhoto(ByteArray(8), ByteArray(4)) }
+        advanceUntilIdle()
+
+        assertNotNull(api.registriert)
+        assertTrue(viewModel.uiState.value.hasProfilePhoto)
+        assertFalse(viewModel.uiState.value.isUploadingPhoto)
     }
 
     @Test

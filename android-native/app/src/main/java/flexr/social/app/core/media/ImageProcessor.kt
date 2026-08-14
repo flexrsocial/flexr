@@ -34,6 +34,16 @@ class PhotoTooSmallException(val width: Int, val height: Int) : Exception(
 )
 
 /**
+ * Aufbereitung eines ausgewählten Bildes. Wie [flexr.social.app.data.session.SessionStore]
+ * nur wegen der Tests von der Umsetzung getrennt: [ImageProcessor] hängt am
+ * Android-Context und macht jedes ViewModel darüber in reinen JVM-Tests
+ * unkonstruierbar.
+ */
+fun interface PhotoPreparer {
+    suspend fun prepare(uri: Uri): PreparedPhoto
+}
+
+/**
  * Bildaufbereitung vor dem Upload — die native Entsprechung der
  * Canvas-Verarbeitung im Web (`preparePhoto`):
  *
@@ -47,9 +57,9 @@ class PhotoTooSmallException(val width: Int, val height: Int) : Exception(
 @Singleton
 class ImageProcessor @Inject constructor(
     @ApplicationContext private val context: Context,
-) {
+) : PhotoPreparer {
 
-    suspend fun prepare(uri: Uri): PreparedPhoto = withContext(Dispatchers.Default) {
+    override suspend fun prepare(uri: Uri): PreparedPhoto = withContext(Dispatchers.Default) {
         val bounds = readBounds(uri)
         if (min(bounds.width, bounds.height) < MIN_EDGE_PX) {
             throw PhotoTooSmallException(bounds.width, bounds.height)
