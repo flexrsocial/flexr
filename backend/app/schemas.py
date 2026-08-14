@@ -145,6 +145,10 @@ class MyProfileOut(ProfileOut):
 
     plz: str
     birthdate: date
+    # Nur in der eigenen Ansicht: Der Nutzer muss sehen, an welche Adresse die
+    # Bestätigungsmail ging - sonst bemerkt er einen Tippfehler nie. In
+    # ProfileOut (Fremdansicht) hat sie nichts verloren.
+    email: EmailStr
     search_radius_km: int = 20
     # Alters-/Identitätsprüfung: Muss dieses Konto sie durchlaufen, und ist es
     # bereits freigeschaltet? Nur lesbar - gesetzt wird ausschließlich
@@ -152,6 +156,9 @@ class MyProfileOut(ProfileOut):
     verification_required: bool = False
     is_account_activated: bool = True
     age_verified: bool = False
+    # E-Mail-Bestätigung. Steht vor der Alters- und Identitätsprüfung, siehe
+    # app/email_verification.py.
+    email_verified: bool = False
     phone: Optional[str] = None
     phone_verified: bool = False
     # Befristete Chat-Sperre: bis wann darf der Nutzer keine Nachrichten senden
@@ -266,6 +273,27 @@ class PhoneConfirmRequest(BaseModel):
     code: str = Field(pattern=r"^\d{6}$")
 
 
+# ---------- E-Mail-Bestätigung ----------
+
+class EmailConfirmRequest(BaseModel):
+    token: str = Field(min_length=16, max_length=200)
+
+    _trim = field_validator("token", mode="before")(_strip)
+
+
+class EmailConfirmResponse(BaseModel):
+    """Bestätigte Adresse und Name - die Seite begrüßt den Nutzer damit."""
+
+    email: EmailStr
+    name: str
+    confirmed: bool = True
+
+
+class EmailResendResponse(BaseModel):
+    email: EmailStr
+    valid_hours: int
+
+
 # ---------- Alters- und Identitätsprüfung ----------
 
 class VerificationSelfieIn(BaseModel):
@@ -301,6 +329,10 @@ class VerificationStatusOut(BaseModel):
     # Muss dieses Konto die Prüfung bestehen, bevor es nutzbar wird?
     verification_required: bool = False
     account_activated: bool = True
+    # Steht vor allem anderen: Ohne bestätigte Adresse lehnt /start ab. Bewusst
+    # ein eigenes Feld statt eines neuen next_step-Wertes - ausgelieferte
+    # App-Versionen kennen den Wert nicht und würden ihn als "none" lesen.
+    email_verified: bool = True
     # Zugelassene Dokumenttypen und ob eine Rückseite gebraucht wird -
     # damit der Client keine eigene Liste pflegen muss.
     document_types: Optional[list[dict]] = None

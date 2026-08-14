@@ -218,6 +218,14 @@ class User(Base):
     # Verifizierungs-Selfies gegen die Profilfotos gesetzt.
     is_verified = Column(Boolean, default=False, nullable=False)
 
+    # E-Mail-Bestätigung per Aktivierungslink. Steht vor der Alters- und
+    # Identitätsprüfung: Ein Mensch soll keine Ausweisaufnahme begutachten,
+    # solange nicht feststeht, dass die Adresse überhaupt dem Nutzer gehört -
+    # und ein Tippfehler soll auffallen, solange der Nutzer noch weiß, was er
+    # eingegeben hat (es gibt kein "Passwort vergessen"). Bestandskonten setzt
+    # die Migration auf den Zeitpunkt der Umstellung.
+    email_verified_at = Column(DateTime, nullable=True)
+
     # ---- Alters- und Identitätsprüfung (manuell, siehe VerificationRequest) ----
     # Muss dieses Konto die Prüfung durchlaufen, bevor es nutzbar wird? Neue
     # Registrierungen: ja. Bestandskonten werden von der Migration auf False
@@ -288,6 +296,10 @@ class User(Base):
     @property
     def phone_verified(self) -> bool:
         return self.phone_verified_at is not None
+
+    @property
+    def email_verified(self) -> bool:
+        return self.email_verified_at is not None
 
     @property
     def is_online(self) -> bool:
@@ -384,6 +396,28 @@ class PhoneVerification(Base):
     code_hash = Column(String, nullable=False)
     expires_at = Column(DateTime, nullable=False)
     attempts = Column(Integer, default=0, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+
+class EmailVerification(Base):
+    """Offene E-Mail-Bestätigung: Zufallstoken, nur als Hash gespeichert.
+
+    Der Token steht im Aktivierungslink und ist damit nichts anderes als ein
+    Passwort auf Zeit - er wird deshalb wie der SMS-Code behandelt und nie im
+    Klartext abgelegt. Pro Konto gibt es höchstens einen offenen Vorgang; ein
+    neuer Versand ersetzt den alten, damit ein abgefangener älterer Link nicht
+    parallel gültig bleibt.
+    """
+
+    __tablename__ = "email_verifications"
+
+    id = Column(String, primary_key=True, default=gen_uuid)
+    user_id = Column(String, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    # Die Adresse wird mitgeführt: Ändert sie sich später, ist ein noch offener
+    # Link für die alte Adresse wertlos und darf nicht mehr greifen.
+    email = Column(String, nullable=False)
+    token_hash = Column(String, nullable=False, index=True)
+    expires_at = Column(DateTime, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
 
 

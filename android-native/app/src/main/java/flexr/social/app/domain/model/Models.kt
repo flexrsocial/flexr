@@ -65,6 +65,9 @@ data class MyProfile(
      */
     val verificationRequired: Boolean = false,
     val isAccountActivated: Boolean = true,
+    /** Eigene Adresse und ihr Bestaetigungsstand - nur in der eigenen Ansicht. */
+    val email: String = "",
+    val emailVerified: Boolean = true,
     val ageVerified: Boolean = false,
 ) {
     val id: String get() = profile.id
@@ -170,6 +173,8 @@ data class VerificationState(
     val reason: String? = null,
     val verificationRequired: Boolean = false,
     val accountActivated: Boolean = true,
+    /** Steht vor allen anderen Schritten - ohne sie lehnt /start ab. */
+    val emailVerified: Boolean = true,
     val documentTypes: List<VerificationDocumentType> = emptyList(),
 )
 

@@ -72,6 +72,8 @@ fun MyProfileDto.toDomain() = MyProfile(
     messagingMutedUntil = ServerTime.parse(messagingMutedUntil),
     verificationRequired = verificationRequired,
     isAccountActivated = isAccountActivated,
+    email = email,
+    emailVerified = emailVerified,
     ageVerified = ageVerified,
 )
 
@@ -116,6 +118,7 @@ fun VerificationStatusDto.toDomain() = VerificationState(
     reason = reason,
     verificationRequired = verificationRequired,
     accountActivated = accountActivated,
+    emailVerified = emailVerified,
     documentTypes = documentTypes.orEmpty().map {
         VerificationDocumentType(value = it.value, label = it.label, needsBack = it.needsBack)
     },

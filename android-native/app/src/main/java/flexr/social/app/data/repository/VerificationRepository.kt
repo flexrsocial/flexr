@@ -2,6 +2,7 @@ package flexr.social.app.data.repository
 
 import flexr.social.app.core.network.apiCall
 import flexr.social.app.data.remote.FlexrApi
+import flexr.social.app.data.remote.dto.EmailConfirmRequestDto
 import flexr.social.app.data.remote.dto.PresignPhotoRequestDto
 import flexr.social.app.data.remote.dto.VerificationDocumentPresignRequestDto
 import flexr.social.app.data.remote.dto.VerificationDocumentSubmitRequestDto
@@ -29,6 +30,27 @@ class VerificationRepository @Inject constructor(
 ) {
 
     suspend fun status(): VerificationState = apiCall { api.getVerificationStatus() }.toDomain()
+
+    /**
+     * Neuen Aktivierungslink anfordern und melden, an welche Adresse er geht.
+     *
+     * Die Adresse gehört in die Bestätigung: Ein Tippfehler bei der
+     * Registrierung fällt sonst nie auf, und ein „Passwort vergessen" gibt es
+     * nicht — das Konto wäre unrettbar.
+     */
+    suspend fun resendVerificationEmail(): Pair<String, Int> {
+        val response = apiCall { api.resendVerificationEmail() }
+        return response.email to response.validHours
+    }
+
+    /**
+     * Token aus dem Aktivierungslink einlösen.
+     *
+     * Braucht bewusst keine Anmeldung: Der Link wird oft auf einem anderen
+     * Gerät geöffnet als dem, auf dem registriert wurde.
+     */
+    suspend fun confirmEmail(token: String): String =
+        apiCall { api.confirmEmail(EmailConfirmRequestDto(token)) }.name
 
     suspend fun start(): VerificationState = apiCall { api.startVerification() }.toDomain()
 

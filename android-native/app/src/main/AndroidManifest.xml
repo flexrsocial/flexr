@@ -49,6 +49,28 @@
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="flexr" android:host="checkout" />
             </intent-filter>
+
+            <!--
+                Aktivierungslink aus der Bestätigungsmail. autoVerify lässt
+                Android beim Installieren https://flexr.social/.well-known/assetlinks.json
+                prüfen; erst danach öffnet der Link die App statt des Browsers.
+
+                Die assetlinks.json stammt noch aus der TWA-Zeit und führt bereits
+                beide nötigen Fingerprints: den Play-App-Signing-Schlüssel und den
+                Upload-Key. Sie musste dafür nicht angefasst werden.
+
+                Schlägt die Prüfung doch fehl, öffnet der Link den Browser und die
+                Bestätigung läuft dort - der Weg geht also nie verloren.
+            -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data
+                    android:scheme="https"
+                    android:host="flexr.social"
+                    android:path="/mail-bestaetigen" />
+            </intent-filter>
         </activity>
 
         <!-- WorkManager wird über Hilt initialisiert, nicht über den Default-Provider. -->

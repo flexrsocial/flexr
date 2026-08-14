@@ -88,6 +88,10 @@ data class MyProfileDto(
     val photos: List<PhotoDto> = emptyList(),
     val plz: String,
     val birthdate: String,
+    // Nur in der eigenen Ansicht - der Nutzer muss sehen, an welche Adresse die
+    // Bestaetigungsmail ging. Default leer: aeltere Backends liefern sie nicht.
+    val email: String = "",
+    @SerialName("email_verified") val emailVerified: Boolean = true,
     @SerialName("search_radius_km") val searchRadiusKm: Int = 20,
     // phone/phone_verified liefert das Backend zwar mit, die App nutzt sie
     // nicht — die Telefonprüfung ist auch im Web verworfen worden.
@@ -239,6 +243,9 @@ data class VerificationStatusDto(
     val reason: String? = null,
     @SerialName("verification_required") val verificationRequired: Boolean = false,
     @SerialName("account_activated") val accountActivated: Boolean = true,
+    // Default true: Ein aelteres Backend ohne dieses Feld soll den Schritt
+    // nicht faelschlich als offen anzeigen.
+    @SerialName("email_verified") val emailVerified: Boolean = true,
     @SerialName("document_types") val documentTypes: List<VerificationDocumentTypeDto>? = null,
 )
 
@@ -275,3 +282,21 @@ data class VerificationSubmitRequestDto(val selfies: List<VerificationSelfieDto>
 
 @Serializable
 data class PlzLookupDto(val plz: String, val city: String)
+
+/** Neuen Aktivierungslink anfordern - Antwort auf POST /api/auth/email/resend. */
+@Serializable
+data class EmailResendResponseDto(
+    val email: String,
+    @SerialName("valid_hours") val validHours: Int = 24,
+)
+
+/** Token aus dem Aktivierungslink einlösen. */
+@Serializable
+data class EmailConfirmRequestDto(val token: String)
+
+@Serializable
+data class EmailConfirmResponseDto(
+    val email: String,
+    val name: String,
+    val confirmed: Boolean = true,
+)

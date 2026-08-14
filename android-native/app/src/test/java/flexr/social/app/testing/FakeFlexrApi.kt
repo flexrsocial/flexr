@@ -28,6 +28,9 @@ import flexr.social.app.data.remote.dto.SwipeRequestDto
 import flexr.social.app.data.remote.dto.SwipeResultDto
 import flexr.social.app.data.remote.dto.TokenResponseDto
 import flexr.social.app.data.remote.dto.UpdateProfileRequestDto
+import flexr.social.app.data.remote.dto.EmailConfirmRequestDto
+import flexr.social.app.data.remote.dto.EmailConfirmResponseDto
+import flexr.social.app.data.remote.dto.EmailResendResponseDto
 import flexr.social.app.data.remote.dto.VerificationDocumentPresignRequestDto
 import flexr.social.app.data.remote.dto.VerificationDocumentSubmitRequestDto
 import flexr.social.app.data.remote.dto.VerificationStatusDto
@@ -134,6 +137,12 @@ open class FakeFlexrApi : FlexrApi {
         nichtVorgesehen("lookupPostalCode")
 
     // ---------- verification.py ----------
+
+    override suspend fun resendVerificationEmail(): EmailResendResponseDto =
+        nichtVorgesehen("resendVerificationEmail")
+
+    override suspend fun confirmEmail(body: EmailConfirmRequestDto): EmailConfirmResponseDto =
+        nichtVorgesehen("confirmEmail")
 
     override suspend fun getVerificationStatus(): VerificationStatusDto =
         nichtVorgesehen("getVerificationStatus")

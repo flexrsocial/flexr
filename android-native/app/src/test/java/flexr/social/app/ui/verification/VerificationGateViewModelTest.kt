@@ -3,6 +3,7 @@ package flexr.social.app.ui.verification
 import flexr.social.app.core.media.PhotoPreparer
 import flexr.social.app.core.media.PreparedPhoto
 import flexr.social.app.data.remote.dto.AddPhotoRequestDto
+import flexr.social.app.data.remote.dto.EmailResendResponseDto
 import flexr.social.app.data.remote.dto.MyProfileDto
 import flexr.social.app.data.remote.dto.PresignPhotoRequestDto
 import flexr.social.app.data.remote.dto.PresignPhotoResponseDto
@@ -16,6 +17,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import flexr.social.app.testing.meinProfilDto
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
@@ -66,6 +68,14 @@ class VerificationGateViewModelTest {
         nextStep = "wait",
         verificationRequired = true,
         accountActivated = false,
+    )
+
+    private fun mailOffen() = VerificationStatusDto(
+        status = "none",
+        nextStep = "selfie",
+        verificationRequired = true,
+        accountActivated = false,
+        emailVerified = false,
     )
 
     private fun freigeschaltet() = VerificationStatusDto(
@@ -159,6 +169,44 @@ class VerificationGateViewModelTest {
         assertNotNull(api.registriert)
         assertTrue(viewModel.uiState.value.hasProfilePhoto)
         assertFalse(viewModel.uiState.value.isUploadingPhoto)
+    }
+
+    /**
+     * Die unbestätigte Adresse steht vor allem anderen - der Server lehnt
+     * /verification/start sonst ab.
+     */
+    @Test
+    fun `unbestaetigte Adresse wird als erster Schritt gemeldet`() = runTest {
+        val api = TestApi(listOf(mailOffen()))
+        val viewModel = viewModel(api)
+        advanceUntilIdle()
+
+        assertTrue(viewModel.uiState.value.needsEmailConfirmation)
+        assertFalse(viewModel.uiState.value.isWaiting)
+    }
+
+    @Test
+    fun `erneutes Senden meldet Adresse und Gueltigkeit zurueck`() = runTest {
+        val api = object : TestApi(listOf(mailOffen())) {
+            var aufgerufen = 0
+
+            override suspend fun resendVerificationEmail(): EmailResendResponseDto {
+                aufgerufen++
+                return EmailResendResponseDto(email = "nina@example.com", validHours = 24)
+            }
+        }
+        val viewModel = viewModel(api)
+        advanceUntilIdle()
+
+        var gemeldet: Pair<String, Int>? = null
+        viewModel.resendVerificationEmail { adresse, stunden -> gemeldet = adresse to stunden }
+        advanceUntilIdle()
+
+        assertEquals(1, api.aufgerufen)
+        assertEquals("nina@example.com" to 24, gemeldet)
+        assertFalse(viewModel.uiState.value.isSendingMail)
+        // Die gemeldete Adresse landet im Zustand - der Nutzer soll sie sehen.
+        assertEquals("nina@example.com", viewModel.uiState.value.email)
     }
 
     @Test

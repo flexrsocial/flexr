@@ -4,10 +4,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import flexr.social.app.SessionGate
+import flexr.social.app.core.network.FlexrApiException
 import flexr.social.app.data.repository.AuthRepository
 import flexr.social.app.data.repository.BillingRepository
 import flexr.social.app.data.repository.MatchRepository
 import flexr.social.app.data.repository.ProfileRepository
+import flexr.social.app.data.repository.VerificationRepository
 import flexr.social.app.domain.model.Membership
 import flexr.social.app.domain.model.MyProfile
 import flexr.social.app.notifications.MessageNotificationScheduler
@@ -51,6 +53,7 @@ class MainViewModel @Inject constructor(
     private val authRepository: AuthRepository,
     private val profileRepository: ProfileRepository,
     private val billingRepository: BillingRepository,
+    private val verificationRepository: VerificationRepository,
     private val notificationScheduler: MessageNotificationScheduler,
     matchRepository: MatchRepository,
 ) : ViewModel() {
@@ -111,6 +114,30 @@ class MainViewModel @Inject constructor(
 
     /** Nach Rückkehr aus dem Stripe-Checkout: Abo-Status neu holen. */
     fun refreshMembership() = loadSession()
+
+    /**
+     * Aktivierungslink aus der Bestätigungsmail (App Link auf
+     * https://flexr.social/mail-bestaetigen).
+     *
+     * Der Token wird eingelöst und danach die Sitzung neu bestimmt - der
+     * Verifizierungs-Schirm zeigt sonst weiter "Bestätige deine E-Mail", obwohl
+     * die Adresse längst bestätigt ist.
+     */
+    fun confirmEmailToken(token: String, onResult: (String) -> Unit) {
+        viewModelScope.launch {
+            runCatching { verificationRepository.confirmEmail(token) }
+                .onSuccess { name ->
+                    onResult("Danke, $name! Deine E-Mail-Adresse ist bestätigt.")
+                    loadSession()
+                }
+                .onFailure { throwable ->
+                    onResult(
+                        (throwable as? FlexrApiException)?.message
+                            ?: "Der Bestätigungslink konnte nicht eingelöst werden.",
+                    )
+                }
+        }
+    }
 
     fun logout() {
         viewModelScope.launch {
