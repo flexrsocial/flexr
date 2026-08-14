@@ -17,7 +17,7 @@ unverändert — die App spricht denselben REST-Vertrag wie das Web-Frontend.
 | | |
 |---|---|
 | applicationId | `flexr.social.app` (unverändert, Play-Store-Kontinuität) |
-| Version | `2.2.0`, versionCode **17** (TWA-Stand war 5) |
+| Version | `2.2.8`, versionCode **25** (TWA-Stand war 5) |
 | compileSdk / targetSdk / minSdk | 36 / 36 / 26 |
 | Signatur | bestehender Upload-Key `android/android.keystore`, SHA-256 `BC:64:AD:3F:…:14:0E:79:80` |
 
@@ -27,6 +27,28 @@ unverändert — die App spricht denselben REST-Vertrag wie das Web-Frontend.
 `android/KEYSTORE-CREDENTIALS.txt` entfällt die Signatur stillschweigend — das
 Ergebnis ist dann nicht hochladbar, also nach dem Build gegenprüfen:
 `unzip -l app-prod-release.aab | grep META-INF` muss `FLEXR.RSA` zeigen.
+
+**Neu in 2.2.8 — der Wartebildschirm war eine Sackgasse.** Wer während der
+Prüfung freigeschaltet wurde, drückte „Status aktualisieren" und bekam nichts:
+keine Meldung, keinen Wechsel in die App. `refresh()` lud das Profil und baute
+darauf, dass die App dem Sitzungszustand folgt — `MainViewModel` beobachtet aber
+nur `isLoggedIn`, nie das Profil. Die Freischaltung steht ohnehin in der
+Statusantwort selbst (`account_activated`); sie landet jetzt als
+`VerificationGateUiState.isActivated` im UI-Zustand, und der Bildschirm stößt
+daraufhin `loadSession()` an. Weil der Verifizierungsgraph nur über einen neu
+geladenen Sitzungszustand verlassen wird, ist das der einzige Weg heraus — der
+sichtbare „Weiter zu FLEXR"-Knopf ist der Ausweg, falls das Nachladen an einem
+Netzfehler scheitert. Regressionstest: `VerificationGateViewModelTest`.
+
+**Ebenfalls in 2.2.8 — der gesperrte Knopf war unsichtbar.** `FlexrButton` legte
+im gesperrten Zustand `alpha 0.4` über den orangen Verlauf; auf `#121212`
+verschwand er dabei praktisch vollständig. Gemeldet wurde das zuerst bei der
+Registrierung, dann beim Login. Statt zu verblassen wechselt der Knopf jetzt die
+Farbe: deckende Stahlfläche, 1 dp Rand, `chalkDim` als Schrift. Der Ladezustand
+bleibt davon unberührt und sieht weiter nach Aktion aus. Der Login-Knopf ist
+zusätzlich immer tippbar (`canSubmit` ist entfallen) — ein gesperrter Knopf sagt
+nicht, was fehlt, `login()` nennt den Grund beim Tippen. Das entspricht dem
+Verhalten der Registrierung.
 
 **Neu in 2.2.0 — die Alters- und Identitätsprüfung.** Ein neu registriertes Konto
 ist angelegt, aber nicht nutzbar, bis ein Mensch Profilfoto, Verifizierungs-Selfie
@@ -167,7 +189,7 @@ Wirkt für App **und** Web-Version gleichermaßen.
 
 ## Zustand der Test-Suites
 
-**Android:** `./gradlew :app:testProdReleaseUnitTest` — 27 Tests, grün.
+**Android:** `./gradlew :app:testProdReleaseUnitTest` — 42 Tests in 9 Klassen, grün.
 
 Seit 04.08.2026 sind auch **ViewModels testbar**. Bausteine liegen unter
 `app/src/test/java/flexr/social/app/testing/`:
