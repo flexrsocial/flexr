@@ -4,8 +4,13 @@ Dieses Dokument beschreibt den Zustand des Arbeitsverzeichnisses zum Zeitpunkt
 des Gerätewechsels. Es liegt bewusst **im Repo**, damit es beim Kopieren des
 Ordners mitkommt.
 
-Letzter Commit: `32cb5e8` (gepusht). **25 Dateien sind nicht committet** — die
-E-Mail-Bestätigung ist in Arbeit. Details unten.
+Letzter Commit: `53fc55c` (gepusht **und auf dem VPS deployt**). Das
+Arbeitsverzeichnis ist sauber — es steht nichts mehr offen.
+
+Der VPS lief zuvor auf `06462b2` vom 09.08. und war elf Commits zurück; mit
+diesem Deploy sind 2.2.8, 2.2.9 und die E-Mail-Bestätigung dort angekommen.
+Die Datenbank wurde vor der Migration gesichert nach
+`/root/flexr-backups/flexr-20260814-194613.sql.gz`.
 
 ---
 
@@ -111,10 +116,18 @@ bereit.
 
 ---
 
-## 3. In Arbeit: E-Mail-Bestätigung per Aktivierungslink
+## 3. E-Mail-Bestätigung per Aktivierungslink — deployt, aber schlafend
 
-**Nicht committet.** Der Stand ist lauffähig: Backend **211 Tests grün**,
-Android **45 Tests grün**, Version bereits auf **2.3.0 / versionCode 27**.
+Committet als `3aca19b`, gemergt als `53fc55c`, auf dem VPS deployt und
+migriert. Backend **213 Tests grün**, Android **45 Tests grün**, Version
+**2.3.0 / versionCode 27**.
+
+**Die Funktion ist derzeit wirkungslos** — und zwar mit Absicht: Auf dem VPS
+sind keine SMTP-Zugangsdaten gesetzt, deshalb verlangt der Server die
+Bestätigung nicht (siehe Weiche unter „Offene Punkte", Nr. 1). Für Nutzer
+ändert sich nichts, bis SMTP eingetragen ist. Nach dem Deploy geprüft:
+`email_configured() = False`, `email_confirmation_enforced() = False`, und alle
+22 Bestandskonten sind durch die Migration als bestätigt markiert.
 
 ### Getroffene Entscheidungen
 
