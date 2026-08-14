@@ -116,8 +116,21 @@ fun VerificationGateScreen(
 
                 state.isRejected -> RejectedContent(reason = state.verification?.reason)
 
-                // Vor allen offenen Schritten: Ohne Profilfoto lehnt der Server
-                // den Start ab, und von hier führt sonst kein Weg zum Upload.
+                // Ganz vorn: die bestätigte Adresse. Ohne sie lehnt der Server
+                // den Start ab.
+                state.needsEmailConfirmation -> EmailPendingContent(
+                    email = state.email,
+                    isSending = state.isSendingMail,
+                    error = state.mailError,
+                    onResend = {
+                        viewModel.resendVerificationEmail { adresse, stunden ->
+                            onShowMessage("Neue Mail an $adresse unterwegs. Der Link gilt $stunden Stunden.")
+                        }
+                    },
+                )
+
+                // Danach: Ohne Profilfoto lehnt der Server den Start ebenfalls
+                // ab, und von hier führt sonst kein Weg zum Upload.
                 !state.hasProfilePhoto -> MissingPhotoContent(
                     isUploading = state.isUploadingPhoto,
                     error = state.photoError,
@@ -312,6 +325,67 @@ private fun WaitingContent(onRefresh: () -> Unit, isRefreshing: Boolean) {
         onClick = onRefresh,
         enabled = !isRefreshing,
         loading = isRefreshing,
+    )
+}
+
+// ---------- E-Mail noch nicht bestätigt ----------
+
+/**
+ * Erster Schritt für ein frisch registriertes Konto. Die Adresse steht
+ * absichtlich groß da: Ein Tippfehler bei der Registrierung fällt sonst nie
+ * auf, und ohne „Passwort vergessen" wäre das Konto damit unrettbar.
+ */
+@Composable
+private fun EmailPendingContent(
+    email: String,
+    isSending: Boolean,
+    error: String?,
+    onResend: () -> Unit,
+) {
+    val colors = FlexrTheme.colors
+
+    Eyebrow("Schritt 1 von 3")
+    Text(
+        text = "Bestätige deine E-Mail",
+        style = MaterialTheme.typography.headlineMedium,
+        color = colors.chalk,
+    )
+    Spacer(Modifier.height(14.dp))
+    StepBar(current = 1)
+    Spacer(Modifier.height(14.dp))
+    StatusChip("Bestätigung offen", danger = false)
+
+    FlexrCard {
+        Column {
+            Text(
+                text = "Wir haben dir eine Mail geschickt an:",
+                style = MaterialTheme.typography.bodyMedium,
+                color = colors.chalkDim,
+            )
+            Spacer(Modifier.height(6.dp))
+            Text(
+                text = email.ifBlank { "deine E-Mail-Adresse" },
+                style = MaterialTheme.typography.bodyLarge,
+                color = colors.chalk,
+            )
+            Spacer(Modifier.height(10.dp))
+            Text(
+                text = "Klick den Link darin, dann geht es hier weiter. Nichts angekommen? " +
+                    "Schau im Spam-Ordner nach. Der Link gilt 24 Stunden.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = colors.chalkDim,
+            )
+        }
+    }
+
+    FieldError(error)
+
+    Spacer(Modifier.height(18.dp))
+    FlexrButton(
+        text = if (isSending) "Wird gesendet …" else "Mail erneut senden",
+        onClick = onResend,
+        enabled = !isSending,
+        loading = isSending,
     )
 }
 

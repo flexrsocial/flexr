@@ -3,6 +3,9 @@ package flexr.social.app.data.remote
 import flexr.social.app.data.remote.dto.AddPhotoRequestDto
 import flexr.social.app.data.remote.dto.AgeCheckRequestDto
 import flexr.social.app.data.remote.dto.AgeCheckResponseDto
+import flexr.social.app.data.remote.dto.EmailConfirmRequestDto
+import flexr.social.app.data.remote.dto.EmailConfirmResponseDto
+import flexr.social.app.data.remote.dto.EmailResendResponseDto
 import flexr.social.app.data.remote.dto.BlockRequestDto
 import flexr.social.app.data.remote.dto.CheckoutUrlDto
 import flexr.social.app.data.remote.dto.DeleteAccountRequestDto
@@ -62,6 +65,14 @@ interface FlexrApi {
      * Prüfung in /register — dieser Aufruf verhindert nur, dass jemand unter 18
      * das Formular weiter ausfüllt.
      */
+    /** Neuen Aktivierungslink anfordern (nur fuer unbestaetigte Adressen). */
+    @POST("api/auth/email/resend")
+    suspend fun resendVerificationEmail(): EmailResendResponseDto
+
+    /** Token aus dem Aktivierungslink einloesen - braucht keine Anmeldung. */
+    @POST("api/auth/email/confirm")
+    suspend fun confirmEmail(@Body body: EmailConfirmRequestDto): EmailConfirmResponseDto
+
     @POST("api/auth/age-check")
     suspend fun checkAge(@Body body: AgeCheckRequestDto): AgeCheckResponseDto
 

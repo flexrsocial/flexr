@@ -36,6 +36,10 @@ data class VerificationGateUiState(
     val hasProfilePhoto: Boolean = true,
     val isUploadingPhoto: Boolean = false,
     val photoError: String? = null,
+    /** Eigene Adresse - der Nutzer muss sehen, wohin die Mail ging. */
+    val email: String = "",
+    val isSendingMail: Boolean = false,
+    val mailError: String? = null,
     // Kontolöschung bleibt auch für ein gesperrtes Konto erreichbar - sonst
     // waere eine abgelehnte Verifizierung eine Sackgasse.
     val deleteDialogVisible: Boolean = false,
@@ -57,6 +61,14 @@ data class VerificationGateUiState(
 
     /** Der Prüfer hat eine neue Aufnahme angefordert. */
     val needsNewUpload: Boolean get() = status == VerificationStatus.REUPLOAD_REQUIRED
+
+    /**
+     * Die E-Mail-Adresse ist noch nicht bestätigt. Steht vor allen anderen
+     * Schritten: Der Server lehnt /verification/start sonst ab, und ein Mensch
+     * soll keine Ausweisaufnahme begutachten, solange nicht feststeht, dass die
+     * Adresse dem Nutzer gehört.
+     */
+    val needsEmailConfirmation: Boolean get() = verification?.emailVerified == false
 }
 
 /**
@@ -78,7 +90,12 @@ class VerificationGateViewModel @Inject constructor(
         // Graphen umgeschaltet hat - der Fotostand liegt also bereits vor.
         profileRepository.myProfile
             .onEach { profile ->
-                _uiState.update { it.copy(hasProfilePhoto = profile?.photos?.isNotEmpty() ?: true) }
+                _uiState.update {
+                    it.copy(
+                        hasProfilePhoto = profile?.photos?.isNotEmpty() ?: true,
+                        email = profile?.email ?: it.email,
+                    )
+                }
             }
             .launchIn(viewModelScope)
         load()
@@ -175,6 +192,33 @@ class VerificationGateViewModel @Inject constructor(
                     )
                 }
             }
+    }
+
+    /**
+     * Neuen Aktivierungslink anfordern.
+     *
+     * Der Server verwirft dabei einen noch offenen Link - zwei gleichzeitig
+     * gültige Links wären eine unnötig große Angriffsfläche.
+     */
+    fun resendVerificationEmail(onSent: (String, Int) -> Unit) {
+        if (_uiState.value.isSendingMail) return
+        _uiState.update { it.copy(isSendingMail = true, mailError = null) }
+        viewModelScope.launch {
+            runCatching { verificationRepository.resendVerificationEmail() }
+                .onSuccess { (adresse, stunden) ->
+                    _uiState.update { it.copy(isSendingMail = false, email = adresse) }
+                    onSent(adresse, stunden)
+                }
+                .onFailure { throwable ->
+                    _uiState.update {
+                        it.copy(
+                            isSendingMail = false,
+                            mailError = (throwable as? FlexrApiException)?.message
+                                ?: "Mail konnte nicht gesendet werden.",
+                        )
+                    }
+                }
+        }
     }
 
     // ---------- Konto löschen ----------

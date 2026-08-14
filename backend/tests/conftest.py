@@ -93,14 +93,44 @@ DEFAULT_USER = {
 }
 
 
-def register_raw(client, email, name="Test User", **overrides):
+def register_raw(client, email, name="Test User", confirm_email=True, **overrides):
     """Registrierung ohne Freischaltung - das Konto steht danach vor der
-    Alters- und Identitätsprüfung und kann noch nicht swipen/chatten."""
+    Alters- und Identitätsprüfung und kann noch nicht swipen/chatten.
+
+    Die E-Mail-Adresse gilt dabei als bestätigt: Sie ist seit der Einführung
+    des Aktivierungslinks Voraussetzung für den Start der Prüfung, aber für
+    alles andere nur Rauschen. Wer den Link selbst prüfen will, setzt
+    ``confirm_email=False`` (siehe test_email_verification.py).
+    """
     payload = {**DEFAULT_USER, "email": email, "name": name, **overrides}
     resp = client.post("/api/auth/register", json=payload)
     assert resp.status_code == 200, resp.text
     token = resp.json()["access_token"]
-    return {"Authorization": f"Bearer {token}"}
+    headers = {"Authorization": f"Bearer {token}"}
+    if confirm_email:
+        mark_email_confirmed(client, headers)
+    return headers
+
+
+def mark_email_confirmed(client, headers):
+    """Setzt die Adresse direkt in der Test-DB auf bestätigt.
+
+    Der echte Weg führt über den Token aus der Mail; hier zählt nur, dass die
+    Vorbedingung erfüllt ist - analog zu activate_user() und add_approved_photo().
+    """
+    from datetime import datetime
+
+    from app.models import User
+
+    user_id = client.get("/api/profiles/me", headers=headers).json()["id"]
+    db = TestingSessionLocal()
+    try:
+        user = db.query(User).filter(User.id == user_id).first()
+        user.email_verified_at = datetime.utcnow()
+        db.commit()
+    finally:
+        db.close()
+    return user_id
 
 
 def activate_user(client, headers):

@@ -7,8 +7,9 @@ from sqlalchemy.orm import Session
 
 from ..age import UNDERAGE_MESSAGE, age_on, is_adult
 from ..database import get_db
+from ..email_verification import TOKEN_TTL_HOURS, build_link, issue
 from ..geo import city_for_plz
-from ..mailer import send_welcome_email
+from ..mailer import send_verification_email
 from ..models import ModerationAction, UnderageSignupAttempt, User, UserDevice
 from ..moderation import restriction_detail
 from ..rate_limit import limiter
@@ -247,10 +248,21 @@ def register(
 
     record_device(db, user.id, request)
 
-    # Willkommensmail mit der Aufforderung zur Verifizierung. Nach der Antwort,
-    # nicht davor: Ein hängender oder kaputter Mailserver darf die Registrierung
-    # weder verzögern noch scheitern lassen (siehe app/mailer.py).
-    background_tasks.add_task(send_welcome_email, user.email, user.name)
+    # Bestätigungsmail mit dem Aktivierungslink - zugleich die Begrüßung und
+    # die Aufforderung zur Verifizierung. Nach der Antwort, nicht davor: Ein
+    # hängender oder kaputter Mailserver darf die Registrierung weder verzögern
+    # noch scheitern lassen (siehe app/mailer.py).
+    # Der Token entsteht synchron: Er ist eine Datenbankänderung und muss
+    # feststehen, bevor die Sitzung endet - FastAPI schließt Dependencies mit
+    # yield vor den BackgroundTasks. Nur der Versand wandert nach hinten.
+    verification_token = issue(db, user)
+    background_tasks.add_task(
+        send_verification_email,
+        user.email,
+        user.name,
+        build_link(verification_token),
+        TOKEN_TTL_HOURS,
+    )
 
     token = create_access_token(user.id)
     return TokenResponse(access_token=token)

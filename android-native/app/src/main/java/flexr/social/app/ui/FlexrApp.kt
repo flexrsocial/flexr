@@ -84,6 +84,19 @@ fun FlexrApp(
     }
     LaunchedEffect(intentData) {
         if (intentData?.scheme == "flexr") viewModel.refreshMembership()
+
+        // Aktivierungslink aus der Bestätigungsmail. Der Link ist als App Link
+        // eingetragen (AndroidManifest) und landet deshalb hier statt im
+        // Browser - schlägt die Prüfung der assetlinks.json fehl, öffnet ihn
+        // der Browser und bestätigt dort. Beide Wege führen zum Ziel.
+        if (intentData?.path == "/mail-bestaetigen") {
+            val token = intentData.getQueryParameter("token")
+            if (token.isNullOrBlank()) {
+                showMessage("In diesem Link fehlt der Bestätigungscode.")
+            } else {
+                viewModel.confirmEmailToken(token, showMessage)
+            }
+        }
     }
 
     Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {

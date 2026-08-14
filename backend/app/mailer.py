@@ -32,10 +32,15 @@ def send_email(to_address: str, subject: str, text_body: str, html_body: str | N
     Wirft nie - Aufrufer sollen sich nicht um den Mailserver kümmern müssen.
     """
     if not email_configured():
+        # Mit dem Textkörper: Sonst wäre der Aktivierungslink im Entwicklungs-
+        # betrieb nirgends abgreifbar und der Ablauf gar nicht testbar. Gleiches
+        # Muster wie app/sms.py, das dort den Code selbst ins Log schreibt.
+        # Der Zweig läuft ausschließlich ohne konfiguriertes SMTP.
         logger.warning(
-            "[MAIL-DEV] Kein SMTP konfiguriert - Mail an %s unterdrückt: %s",
+            "[MAIL-DEV] Kein SMTP konfiguriert - Mail an %s unterdrückt: %s\n%s",
             to_address,
             subject,
+            text_body,
         )
         return False
 
@@ -75,29 +80,35 @@ def _login_and_send(server: smtplib.SMTP, message: EmailMessage) -> None:
 
 
 # ---------------------------------------------------------------------------
-# Willkommensmail
+# Bestätigungsmail (erste Mail nach der Registrierung)
 # ---------------------------------------------------------------------------
 
-WELCOME_SUBJECT = "Willkommen bei FLEXR - jetzt noch dein Konto freischalten"
+VERIFY_SUBJECT = "Bestätige deine E-Mail-Adresse für FLEXR"
 
 
-def _welcome_text(name: str, app_url: str) -> str:
+def _verify_text(name: str, link: str, hours: int) -> str:
     return f"""Hallo {name},
 
-dein FLEXR-Profil ist angelegt. Ein Schritt fehlt noch: die einmalige
-Alters- und Identitätsprüfung. Erst danach ist dein Konto freigeschaltet -
-und erst dann startet dein Gratismonat, die Prüfzeit geht dir also nicht ab.
+dein FLEXR-Profil ist angelegt. Bevor es weitergeht, bestätige bitte
+einmalig deine E-Mail-Adresse:
+
+{link}
+
+Der Link gilt {hours} Stunden. Danach steht die einmalige Alters- und
+Identitätsprüfung an - erst danach ist dein Konto freigeschaltet, und erst
+dann startet dein Gratismonat. Die Prüfzeit geht dir also nicht ab.
 
 Das brauchst du dafür:
 
-  1. Drei Live-Selfies mit vorgegebenen Posen (direkt in der App aufgenommen)
+  1. Ein Live-Selfie, frontal in die Kamera (direkt in der App aufgenommen)
   2. Eine Aufnahme deines amtlichen Lichtbildausweises
-
-Jetzt verifizieren: {app_url}
 
 Die Prüfung erfolgt manuell durch einen Menschen - es kommt keine
 automatische Gesichtserkennung zum Einsatz. Die Aufnahmen werden nach
 Abschluss der Prüfung gelöscht.
+
+Du hast dich nicht bei FLEXR angemeldet? Dann ignoriere diese Mail einfach.
+Ohne Bestätigung passiert mit der Adresse nichts.
 
 Fragen? Antworte einfach auf diese Mail oder schreib an {settings.support_email}.
 
@@ -106,7 +117,7 @@ dein FLEXR-Team
 """
 
 
-def _welcome_html(name: str, app_url: str) -> str:
+def _verify_html(name: str, link: str, hours: int) -> str:
     # Der Name kommt vom Nutzer und landet in HTML - maskieren, sonst steht in
     # der Mail plötzlich fremdes Markup.
     name = html.escape(name)
@@ -117,20 +128,32 @@ def _welcome_html(name: str, app_url: str) -> str:
     <p style="margin:0 0 6px;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:#ff5a1f;">Erste Wiederholung</p>
     <h1 style="margin:0 0 18px;font-size:24px;line-height:1.25;color:#ffffff;">Willkommen bei FLEXR, {name}!</h1>
     <p style="margin:0 0 14px;font-size:15px;line-height:1.6;">
-      Dein Profil ist angelegt. Ein Schritt fehlt noch: die einmalige
-      <b>Alters- und Identitätsprüfung</b>. Erst danach ist dein Konto freigeschaltet -
-      und erst dann startet dein Gratismonat, die Prüfzeit geht dir also nicht ab.
+      Dein Profil ist angelegt. Bevor es weitergeht, bestätige bitte einmalig
+      deine E-Mail-Adresse. Der Link gilt {hours} Stunden.
+    </p>
+    <p style="margin:0 0 24px;">
+      <a href="{link}" style="display:inline-block;background:#ff5a1f;color:#1a0a04;text-decoration:none;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:14px 22px;border-radius:12px;">E-Mail bestätigen</a>
+    </p>
+    <p style="margin:0 0 14px;font-size:13px;line-height:1.6;color:#a0a0a8;">
+      Klappt der Knopf nicht? Kopier diese Adresse in deinen Browser:<br>
+      <span style="color:#e8e8ea;word-break:break-all;">{html.escape(link)}</span>
+    </p>
+    <p style="margin:0 0 14px;font-size:15px;line-height:1.6;">
+      Danach steht die einmalige <b>Alters- und Identitätsprüfung</b> an - erst
+      danach ist dein Konto freigeschaltet, und erst dann startet dein
+      Gratismonat. Die Prüfzeit geht dir also nicht ab.
     </p>
     <ol style="margin:0 0 22px;padding-left:20px;font-size:15px;line-height:1.7;">
-      <li>Drei Live-Selfies mit vorgegebenen Posen (direkt in der App aufgenommen)</li>
+      <li>Ein Live-Selfie, frontal in die Kamera (direkt in der App aufgenommen)</li>
       <li>Eine Aufnahme deines amtlichen Lichtbildausweises</li>
     </ol>
-    <p style="margin:0 0 24px;">
-      <a href="{app_url}" style="display:inline-block;background:#ff5a1f;color:#1a0a04;text-decoration:none;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:14px 22px;border-radius:12px;">Jetzt verifizieren</a>
-    </p>
     <p style="margin:0 0 14px;font-size:13px;line-height:1.6;color:#a0a0a8;">
       Die Prüfung erfolgt manuell durch einen Menschen - es kommt keine automatische
       Gesichtserkennung zum Einsatz. Die Aufnahmen werden nach Abschluss der Prüfung gelöscht.
+    </p>
+    <p style="margin:0 0 14px;font-size:13px;line-height:1.6;color:#a0a0a8;">
+      Du hast dich nicht bei FLEXR angemeldet? Dann ignoriere diese Mail einfach -
+      ohne Bestätigung passiert mit der Adresse nichts.
     </p>
     <p style="margin:0;font-size:13px;line-height:1.6;color:#a0a0a8;">
       Fragen? Antworte einfach auf diese Mail oder schreib an
@@ -142,12 +165,16 @@ def _welcome_html(name: str, app_url: str) -> str:
 """
 
 
-def send_welcome_email(email: str, name: str) -> bool:
-    """Begrüßt ein frisch angelegtes Konto und fordert zur Verifizierung auf."""
-    app_url = settings.frontend_url.rstrip("/")
+def send_verification_email(email: str, name: str, link: str, ttl_hours: int = 24) -> bool:
+    """Erste Mail nach der Registrierung: Adresse bestätigen.
+
+    Ersetzt die frühere Willkommensmail - zwei Mails gleichzeitig wären eine zu
+    viel, und die Aufforderung zur Verifizierung steht hier mit drin.
+    """
     return send_email(
         to_address=email,
-        subject=WELCOME_SUBJECT,
-        text_body=_welcome_text(name, app_url),
-        html_body=_welcome_html(name, app_url),
+        subject=VERIFY_SUBJECT,
+        text_body=_verify_text(name, link, ttl_hours),
+        html_body=_verify_html(name, link, ttl_hours),
     )
+

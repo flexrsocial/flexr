@@ -22,6 +22,7 @@ from sqlalchemy.orm import Session
 
 from .. import storage
 from ..database import get_db
+from ..mailer import email_configured
 from ..models import User, VerificationRequest, VerificationStatus
 from ..rate_limit import limiter
 from ..schemas import (
@@ -61,6 +62,22 @@ router = APIRouter(prefix="/api/verification", tags=["verification"])
 SELFIE_PROMPTS = ["Schau direkt in die Kamera"]
 
 
+def email_confirmation_enforced() -> bool:
+    """Wird die E-Mail-Bestätigung verlangt?
+
+    Nur, wenn der Server überhaupt Mail verschicken kann. Ohne SMTP-Zugangsdaten
+    schreibt der Mailer die Nachricht bloß ins Log (siehe app/mailer.py) - ein
+    Nutzer bekäme also nie einen Link und käme damit aus dem Wartezustand nicht
+    mehr heraus. Eine Pflicht, die niemand erfüllen kann, ist keine Pflicht,
+    sondern eine Sackgasse.
+
+    Sobald SMTP konfiguriert ist, greift die Bestätigung von selbst - auch für
+    Konten, die in der Zwischenzeit entstanden sind. Die kommen über
+    "Neu senden" an ihren Link.
+    """
+    return email_configured()
+
+
 def _status_out(user: User, req: VerificationRequest | None) -> VerificationStatusOut:
     """Baut die Statusantwort aus dem Server-Zustand - nie aus Client-Angaben."""
     if req is None:
@@ -80,6 +97,10 @@ def _status_out(user: User, req: VerificationRequest | None) -> VerificationStat
         reason=reason_text(req.review_reason) if req is not None else None,
         verification_required=user.verification_required,
         account_activated=user.is_account_activated,
+        # Für den Client heißt das Feld "steht die Bestätigung noch an?" - ohne
+        # Mailversand steht sie nicht an, sonst zeigte die Oberfläche einen
+        # Schritt an, den niemand abschließen kann.
+        email_verified=user.email_verified or not email_confirmation_enforced(),
         document_types=document_type_options() if step == "document" else None,
     )
 
@@ -100,6 +121,12 @@ def start_verification(
     db: Session = Depends(get_db),
 ):
     """Startet den Selfie-Schritt bzw. gibt einen laufenden Vorgang zurück."""
+    # Die bestätigte Adresse steht vor allem anderen: Ein Mensch soll keine
+    # Ausweisaufnahme begutachten, solange nicht feststeht, dass die Adresse dem
+    # Nutzer gehört - und ein Tippfehler soll auffallen, bevor Aufnahmen
+    # entstehen, die danach wieder gelöscht werden müssten.
+    if not current_user.email_verified and email_confirmation_enforced():
+        raise HTTPException(400, "Bestätige zuerst deine E-Mail-Adresse.")
     if not current_user.photos:
         raise HTTPException(400, "Lade zuerst mindestens ein Profilfoto hoch.")
 

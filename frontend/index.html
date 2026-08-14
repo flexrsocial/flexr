@@ -1709,6 +1709,16 @@
       </div>
     </section>
 
+    <!-- Landeseite des Aktivierungslinks aus der Bestätigungsmail -->
+    <section class="screen" id="screen-email-confirm">
+      <div class="eyebrow">E-Mail-Bestätigung</div>
+      <h1 class="headline" style="font-size:22px; margin-bottom:14px;" id="mailConfirmTitle">Einen Moment …</h1>
+      <div class="vcard">
+        <p id="mailConfirmText">Dein Bestätigungslink wird geprüft.</p>
+      </div>
+      <button class="btn" id="btnMailConfirmContinue" style="display:none;">Weiter zu FLEXR</button>
+    </section>
+
     <!-- ALTERS- UND IDENTITÄTSPRÜFUNG: Ausweisaufnahme -->
     <section class="screen" id="screen-verify-id">
       <div class="chat-header">
@@ -3671,6 +3681,25 @@
       return;
     }
 
+    // Vor allem anderen: die bestätigte E-Mail-Adresse. Ohne sie lehnt das
+    // Backend /verification/start ab, und ein Mensch soll keine Ausweisaufnahme
+    // begutachten, solange die Adresse nicht dem Nutzer gehört.
+    if(st.email_verified === false){
+      renderGateSteps(1);
+      $('vgateEyebrow').textContent = 'Schritt 1 von 3';
+      $('vgateTitle').textContent = 'Bestätige deine E-Mail';
+      statusWrap.innerHTML = gateStatusChip('wait', 'Bestätigung offen');
+      body.innerHTML = `
+        <div class="vcard">
+          <p>Wir haben dir eine Mail an <b>${escapeHtml(myProfile.email || '')}</b>
+            geschickt. Klick den Link darin, dann geht es hier weiter.</p>
+          <p>Nichts angekommen? Schau im Spam-Ordner nach. Der Link gilt 24 Stunden.</p>
+          <div class="field-err" id="vgateMailErr"></div>
+        </div>`;
+      btn.textContent = 'Mail erneut senden';
+      return;
+    }
+
     // Ohne Profilfoto kann die Prüfung nicht starten - das Backend lehnt
     // /verification/start mit "Lade zuerst mindestens ein Profilfoto hoch" ab.
     // Genau das passiert, wenn der Upload während der Registrierung scheitert
@@ -3773,9 +3802,27 @@
 
   $('btnVgatePrimary').addEventListener('click', async () => {
     const st = verificationStatus || {};
-    // Reihenfolge wie beim Rendern: Ohne Foto führt der Knopf zum Dateidialog.
-    if(!(myProfile && myProfile.photos && myProfile.photos.length)
-       && st.status !== 'submitted' && st.status !== 'rejected'){
+    const offeneSchritte = st.status !== 'submitted' && st.status !== 'rejected';
+
+    // Reihenfolge wie beim Rendern: erst die Mail, dann das Foto.
+    if(offeneSchritte && st.email_verified === false){
+      const btn = $('btnVgatePrimary');
+      const err = $('vgateMailErr');
+      btn.disabled = true;
+      btn.textContent = 'Wird gesendet …';
+      try{
+        const res = await api('/api/auth/email/resend', {method: 'POST'});
+        toast(`Neue Mail an ${res.email} unterwegs. Der Link gilt ${res.valid_hours} Stunden.`);
+      }catch(sendErr){
+        if(err) err.textContent = sendErr.message || 'Mail konnte nicht gesendet werden.';
+      }finally{
+        btn.disabled = false;
+        btn.textContent = 'Mail erneut senden';
+      }
+      return;
+    }
+
+    if(!(myProfile && myProfile.photos && myProfile.photos.length) && offeneSchritte){
       $('vgatePhotoInput').click();
       return;
     }
@@ -4665,8 +4712,53 @@
     navigator.serviceWorker.register('/sw.js').catch(err => console.error('SW-Registrierung fehlgeschlagen:', err));
   }
 
+  // ---------- E-Mail-Bestätigung über den Link aus der Mail ----------
+  // Der Link zeigt auf /mail-bestaetigen?token=… . nginx liefert dafür diese
+  // Seite aus (try_files … /index.html), die den Token gegen die API einlöst.
+  // Absichtlich kein reiner GET-Endpunkt in der API: Linkscanner in
+  // Mailservern folgen Links, die Bestätigung fände sonst ohne den Nutzer statt.
+  const EMAIL_CONFIRM_PATH = '/mail-bestaetigen';
+
+  async function handleEmailConfirmLink(){
+    const token = new URLSearchParams(location.search).get('token');
+    showScreen('screen-email-confirm');
+    const titel = $('mailConfirmTitle');
+    const text = $('mailConfirmText');
+    const weiter = $('btnMailConfirmContinue');
+    weiter.style.display = 'none';
+
+    if(!token){
+      titel.textContent = 'Link unvollständig';
+      text.textContent = 'In diesem Link fehlt der Bestätigungscode. Öffne ihn noch einmal direkt aus der E-Mail.';
+      weiter.style.display = 'block';
+      return;
+    }
+
+    try{
+      const res = await api('/api/auth/email/confirm', {
+        method: 'POST', body: JSON.stringify({token}),
+      });
+      titel.textContent = 'E-Mail bestätigt';
+      text.textContent = `Danke, ${res.name}! ${res.email} ist bestätigt. Weiter geht es mit der Alters- und Identitätsprüfung.`;
+    }catch(err){
+      titel.textContent = 'Bestätigung nicht möglich';
+      text.textContent = err.message || 'Der Link konnte nicht eingelöst werden.';
+    }
+    weiter.style.display = 'block';
+  }
+
+  $('btnMailConfirmContinue').addEventListener('click', () => {
+    // Token bleibt sonst in der Adresszeile und im Verlauf stehen.
+    history.replaceState(null, '', '/');
+    boot();
+  });
+
   // ---------- Boot ----------
   async function boot(){
+    if(location.pathname === EMAIL_CONFIRM_PATH){
+      await handleEmailConfirmLink();
+      return;
+    }
     if(token){
       try{
         await loadCurrentUser();
