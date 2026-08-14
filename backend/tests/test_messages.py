@@ -310,3 +310,36 @@ def test_admin_flagged_shows_delivery_and_censor_state(client):
     assert m["was_censored"] is True
     assert m["delivered"] is True
     assert m["read_at"] is not None
+
+
+def test_whitespace_only_message_is_rejected(client):
+    """Eine Nachricht aus lauter Leerzeichen ist keine Nachricht.
+
+    ``min_length=1`` allein hat "   " durchgelassen: im Verlauf erschien eine
+    leere Blase, und beim Gegenüber zählte sie als ungelesen. Beide Clients
+    schneiden zwar selbst zu - die Grenze gehört trotzdem an den Server.
+    """
+    match_id, (headers_a, _), (headers_b, _) = make_match(client)
+
+    for leer in ("   ", "\n", "\t \n"):
+        resp = client.post(
+            f"/api/matches/{match_id}/messages", headers=headers_a, json={"content": leer}
+        )
+        assert resp.status_code == 422, leer
+
+    assert client.get(f"/api/matches/{match_id}/messages", headers=headers_a).json() == []
+    assert client.get("/api/matches", headers=headers_b).json()[0]["unread_count"] == 0
+
+
+def test_message_is_stored_trimmed(client):
+    """Getippte Leerzeichen am Rand gehören nicht in den Verlauf."""
+    match_id, (headers_a, _), (headers_b, _) = make_match(client)
+
+    resp = client.post(
+        f"/api/matches/{match_id}/messages", headers=headers_a, json={"content": "  Hallo!  "}
+    )
+    assert resp.status_code == 201
+    assert resp.json()["content"] == "Hallo!"
+
+    messages = client.get(f"/api/matches/{match_id}/messages", headers=headers_b).json()
+    assert [m["content"] for m in messages] == ["Hallo!"]

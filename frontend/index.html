@@ -319,7 +319,15 @@
     box-shadow:none;
   }
   .btn.secondary:hover{ background:var(--surface-2); filter:none; transform:none; box-shadow:none; }
-  .btn:disabled{ opacity:0.4; cursor:not-allowed; filter:none; transform:none; box-shadow:none; }
+  /* Gesperrt heißt sichtbar gesperrt. opacity:0.4 ließ den orangen Verlauf auf
+     dem dunklen Grund praktisch verschwinden — in der Android-App wurde genau
+     das zweimal als "der Knopf ist weg" gemeldet (Registrierung, Login). Statt
+     zu verblassen wechselt der Knopf die Farbe. */
+  .btn:disabled{
+    background:var(--surface-3); border:1px solid var(--steel); color:var(--chalk-dim);
+    cursor:not-allowed; filter:none; transform:none; box-shadow:none;
+  }
+  .btn:disabled:hover{ filter:none; transform:none; box-shadow:none; }
   .btn-row{ display:flex; gap:10px; }
   .btn-row .btn{ margin-top:0; }
 
@@ -1689,6 +1697,10 @@
       </div>
       <div id="vgateStatusWrap"></div>
       <div id="vgateBody"></div>
+      <!-- Nachträglicher Profilfoto-Upload: Ohne Foto lehnt das Backend den
+           Start der Prüfung ab, und der Konto-Bildschirm ist von hier aus nicht
+           erreichbar. Ohne diesen Weg bliebe das Konto dauerhaft stecken. -->
+      <input type="file" id="vgatePhotoInput" accept="image/*" hidden>
       <button class="btn" id="btnVgatePrimary">Weiter</button>
       <div class="account-section" style="margin-top:26px;">
         <div class="account-section-title">Konto</div>
@@ -2492,7 +2504,10 @@
       pendingPhotos = [];
 
       if(uploadedCount === 0){
-        toast('Profil erstellt – Foto-Upload fehlgeschlagen. Bitte im Konto ein Foto hinzufügen.');
+        // Nicht mehr "im Konto nachholen": Der Konto-Screen ist ohne
+        // Freischaltung nicht erreichbar. Der Upload wartet stattdessen direkt
+        // auf dem Verifizierungs-Screen (siehe renderVerificationGate).
+        toast('Profil erstellt – Foto-Upload fehlgeschlagen. Du kannst das Foto gleich nachreichen.');
       } else if(photoFailures > 0){
         toast('Profil erstellt – nicht alle Fotos konnten hochgeladen werden.');
       } else {
@@ -3656,6 +3671,29 @@
       return;
     }
 
+    // Ohne Profilfoto kann die Prüfung nicht starten - das Backend lehnt
+    // /verification/start mit "Lade zuerst mindestens ein Profilfoto hoch" ab.
+    // Genau das passiert, wenn der Upload während der Registrierung scheitert
+    // (Funkloch, Storage-Aussetzer). Der Hinweis danach lautete "Bitte im Konto
+    // ein Foto hinzufügen" - nur ist der Konto-Bildschirm von hier aus gar nicht
+    // erreichbar. Ohne Ausweg blieb nur Kontolöschung. Also: Upload hierher.
+    if(!(myProfile && myProfile.photos && myProfile.photos.length)){
+      renderGateSteps(1);
+      $('vgateEyebrow').textContent = 'Profilfoto fehlt';
+      $('vgateTitle').textContent = 'Zuerst dein Profilfoto';
+      statusWrap.innerHTML = gateStatusChip('bad', 'Foto fehlt');
+      body.innerHTML = `
+        <div class="vcard">
+          <p>Für die Prüfung vergleicht ein Mensch dein Profilfoto mit deinem
+            Selfie und deinem Ausweis. Ohne Profilfoto kann sie nicht starten.</p>
+          <p>Beim Anlegen deines Profils hat der Upload nicht geklappt. Hol ihn
+            hier nach — danach geht es normal weiter.</p>
+          <div class="field-err" id="vgatePhotoErr"></div>
+        </div>`;
+      btn.textContent = 'Profilfoto hinzufügen';
+      return;
+    }
+
     if(st.next_step === 'document'){
       renderGateSteps(2);
       const isReupload = st.status === 'reupload_required';
@@ -3709,8 +3747,38 @@
     btn.textContent = isReupload ? 'Verifizierung wiederholen' : 'Verifizierung starten';
   }
 
+  // Nachträglicher Profilfoto-Upload aus dem Verifizierungs-Screen heraus.
+  $('vgatePhotoInput').addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    e.target.value = '';
+    if(!file) return;
+    const err = $('vgatePhotoErr');
+    const btn = $('btnVgatePrimary');
+    if(err) err.textContent = '';
+    btn.disabled = true;
+    btn.textContent = 'Foto wird hochgeladen …';
+    try{
+      const photo = await preparePhoto(file);
+      await uploadPhoto({blob: photo.blob, thumbBlob: photo.thumbBlob});
+      await loadCurrentUser();
+      toast('Profilfoto gespeichert. Jetzt kann die Prüfung starten.');
+      await showVerificationGate();
+    }catch(uploadErr){
+      console.error('Profilfoto-Upload fehlgeschlagen:', uploadErr);
+      if(err) err.textContent = uploadErr.message || 'Foto konnte nicht hochgeladen werden.';
+      btn.disabled = false;
+      btn.textContent = 'Profilfoto hinzufügen';
+    }
+  });
+
   $('btnVgatePrimary').addEventListener('click', async () => {
     const st = verificationStatus || {};
+    // Reihenfolge wie beim Rendern: Ohne Foto führt der Knopf zum Dateidialog.
+    if(!(myProfile && myProfile.photos && myProfile.photos.length)
+       && st.status !== 'submitted' && st.status !== 'rejected'){
+      $('vgatePhotoInput').click();
+      return;
+    }
     if(st.status === 'submitted'){
       // Status neu holen - vielleicht ist die Prüfung inzwischen durch
       const btn = $('btnVgatePrimary');

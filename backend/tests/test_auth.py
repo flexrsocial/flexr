@@ -180,3 +180,28 @@ def test_interest_derived_from_gender(client):
         assert ivan.gender.value == "frau" and ivan.interest.value == "mann"
     finally:
         db.close()
+
+
+def test_whitespace_only_name_is_rejected(client):
+    """Ein Name aus lauter Leerzeichen kam an ``min_length=1`` vorbei.
+
+    Das Profil erschien danach im Deck und im Chat namenlos. Die Web-Oberfläche
+    schneidet den Namen selbst zu, die Android-App nicht - geprüft wird er
+    deshalb hier.
+    """
+    from tests.conftest import DEFAULT_USER
+
+    resp = client.post("/api/auth/register",
+                       json={**DEFAULT_USER, "email": "leer@example.com", "name": "   "})
+    assert resp.status_code == 422
+
+
+def test_name_is_stored_trimmed(client):
+    from tests.conftest import DEFAULT_USER
+
+    resp = client.post("/api/auth/register",
+                       json={**DEFAULT_USER, "email": "rand@example.com", "name": "  Nina  "})
+    assert resp.status_code == 200
+
+    headers = {"Authorization": f"Bearer {resp.json()['access_token']}"}
+    assert client.get("/api/profiles/me", headers=headers).json()["name"] == "Nina"

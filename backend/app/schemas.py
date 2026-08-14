@@ -6,6 +6,17 @@ from pydantic import BaseModel, EmailStr, Field, field_validator, model_validato
 from .age import is_plausible_birthdate
 
 
+def _strip(v):
+    """Umgebende Leerzeichen entfernen, bevor die Längengrenzen greifen.
+
+    Sonst kommt " " an min_length=1 vorbei: Der Name landet leer im Profil und
+    eine Chatnachricht als leere Blase im Verlauf, die auch noch als ungelesen
+    zählt. Beide Clients schneiden zwar selbst zu, aber die Grenze gehört an
+    den Server - er ist die einzige Stelle, die jeder Client passieren muss.
+    """
+    return v.strip() if isinstance(v, str) else v
+
+
 class RegisterRequest(BaseModel):
     email: EmailStr
     password: str = Field(min_length=8)
@@ -29,6 +40,8 @@ class RegisterRequest(BaseModel):
     consent_withdrawal_waiver: bool = Field(
         description="Kenntnisnahme, dass das Rücktrittsrecht durch sofortigen Leistungsbeginn erlischt (§ 18 Abs. 1 Z 11 FAGG)"
     )
+
+    _trim = field_validator("name", "bio", mode="before")(_strip)
 
     @field_validator("birthdate")
     @classmethod
@@ -157,6 +170,10 @@ class UpdateProfileRequest(BaseModel):
     bio: Optional[str] = Field(default=None, max_length=280)
     search_radius_km: Optional[int] = Field(default=None, ge=2, le=250)
 
+    # Eine Bio aus lauter Leerzeichen ist eine leere Bio - und die bedeutet
+    # serverseitig "Bio entfernen" (siehe routers/profiles.py).
+    _trim = field_validator("bio", mode="before")(_strip)
+
 
 class DeleteAccountRequest(BaseModel):
     """Selbstlöschung: erneute Passworteingabe als Bestätigung."""
@@ -197,6 +214,8 @@ class MessageOut(BaseModel):
 
 class SendMessageRequest(BaseModel):
     content: str = Field(min_length=1, max_length=2000)
+
+    _trim = field_validator("content", mode="before")(_strip)
 
 
 class MatchOut(BaseModel):
