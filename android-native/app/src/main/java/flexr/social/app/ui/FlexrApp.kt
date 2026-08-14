@@ -100,7 +100,7 @@ fun FlexrApp(
                 is AppState.NeedsVerification -> VerificationGraph(
                     snackbarHostState = snackbarHostState,
                     onLogout = viewModel::logout,
-                    onVerificationSubmitted = viewModel::loadSession,
+                    onReloadSession = viewModel::loadSession,
                     onShowMessage = showMessage,
                 )
 
@@ -178,7 +178,7 @@ private fun AuthGraph(
 private fun VerificationGraph(
     snackbarHostState: SnackbarHostState,
     onLogout: () -> Unit,
-    onVerificationSubmitted: () -> Unit,
+    onReloadSession: () -> Unit,
     onShowMessage: (String) -> Unit,
 ) {
     val navController = rememberNavController()
@@ -200,6 +200,9 @@ private fun VerificationGraph(
                 VerificationGateScreen(
                     onStartSelfies = { navController.navigate(Routes.VERIFICATION) },
                     onStartDocument = { navController.navigate(Routes.VERIFICATION_DOCUMENT) },
+                    // Freigeschaltet: den Sitzungszustand neu bestimmen, damit
+                    // die App diesen Graphen verlässt.
+                    onActivated = onReloadSession,
                     onLogout = onLogout,
                     onShowMessage = onShowMessage,
                 )
@@ -228,7 +231,7 @@ private fun VerificationGraph(
                     onBack = { navController.popBackStack(Routes.VERIFICATION_GATE, inclusive = false) },
                     onSubmitted = {
                         navController.popBackStack(Routes.VERIFICATION_GATE, inclusive = false)
-                        onVerificationSubmitted()
+                        onReloadSession()
                     },
                     onShowMessage = onShowMessage,
                 )

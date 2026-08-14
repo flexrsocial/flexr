@@ -1,0 +1,112 @@
+package flexr.social.app.ui.verification
+
+import flexr.social.app.data.remote.dto.VerificationStatusDto
+import flexr.social.app.data.repository.ProfileRepository
+import flexr.social.app.data.repository.VerificationRepository
+import flexr.social.app.testing.FakeFlexrApi
+import flexr.social.app.testing.FakeSessionStore
+import flexr.social.app.testing.MainDispatcherRule
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.test.runTest
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
+import org.junit.Rule
+import org.junit.Test
+
+/**
+ * "Status aktualisieren" auf dem Wartebildschirm.
+ *
+ * Wer während der Prüfung freigeschaltet wird, drückte den Knopf und bekam
+ * nichts: keine Meldung, keinen Wechsel in die App. Der alte Code lud das
+ * Profil und verließ sich darauf, dass die App dem Sitzungszustand folgt — nur
+ * beobachtet MainViewModel ausschließlich `isLoggedIn`, nicht das Profil.
+ *
+ * Die Freischaltung steht in der Statusantwort selbst; sie muss im UI-Zustand
+ * ankommen, damit der Bildschirm das Neuladen der Sitzung anstoßen kann.
+ */
+// advanceUntilIdle() ist noch als experimentell markiert.
+@OptIn(ExperimentalCoroutinesApi::class)
+class VerificationGateViewModelTest {
+
+    @get:Rule
+    val mainDispatcherRule = MainDispatcherRule()
+
+    /** Liefert nacheinander die vorgegebenen Statusantworten. */
+    private class TestApi(private val antworten: List<VerificationStatusDto>) : FakeFlexrApi() {
+        var aufrufe = 0
+            private set
+
+        override suspend fun getVerificationStatus(): VerificationStatusDto {
+            val antwort = antworten[minOf(aufrufe, antworten.lastIndex)]
+            aufrufe++
+            return antwort
+        }
+    }
+
+    private fun viewModel(api: TestApi) = VerificationGateViewModel(
+        verificationRepository = VerificationRepository(api),
+        profileRepository = ProfileRepository(api, FakeSessionStore()),
+    )
+
+    private fun inPruefung() = VerificationStatusDto(
+        status = "submitted",
+        nextStep = "wait",
+        verificationRequired = true,
+        accountActivated = false,
+    )
+
+    private fun freigeschaltet() = VerificationStatusDto(
+        status = "approved",
+        nextStep = "none",
+        verificationRequired = true,
+        accountActivated = true,
+    )
+
+    @Test
+    fun `Freischaltung zwischen Laden und Knopfdruck wird erkannt`() = runTest {
+        val api = TestApi(listOf(inPruefung(), freigeschaltet()))
+        val viewModel = viewModel(api)
+        advanceUntilIdle()
+
+        assertTrue(viewModel.uiState.value.isWaiting)
+        assertFalse(viewModel.uiState.value.isActivated)
+
+        var nochInPruefung = false
+        viewModel.refresh { nochInPruefung = true }
+        advanceUntilIdle()
+
+        assertTrue(viewModel.uiState.value.isActivated)
+        // Kein "Die Prüfung läuft noch" für ein freigeschaltetes Konto.
+        assertFalse(nochInPruefung)
+    }
+
+    @Test
+    fun `laufende Pruefung meldet sich weiterhin als laufend`() = runTest {
+        val api = TestApi(listOf(inPruefung()))
+        val viewModel = viewModel(api)
+        advanceUntilIdle()
+
+        var nochInPruefung = false
+        viewModel.refresh { nochInPruefung = true }
+        advanceUntilIdle()
+
+        assertTrue(nochInPruefung)
+        assertFalse(viewModel.uiState.value.isActivated)
+        assertTrue(viewModel.uiState.value.isWaiting)
+    }
+
+    @Test
+    fun `auch das Auffrischen beim Zurueckkehren erkennt die Freischaltung`() = runTest {
+        val api = TestApi(listOf(inPruefung(), freigeschaltet()))
+        val viewModel = viewModel(api)
+        advanceUntilIdle()
+        assertFalse(viewModel.uiState.value.isActivated)
+
+        // LifecycleEventEffect(ON_RESUME) im Bildschirm ruft load().
+        viewModel.load()
+        advanceUntilIdle()
+
+        assertTrue(viewModel.uiState.value.isActivated)
+    }
+}
