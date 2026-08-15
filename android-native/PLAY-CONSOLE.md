@@ -1,9 +1,16 @@
-# Play Console — was beim Upload von 2.2.0 anzupassen ist
+# Play Console — was beim nächsten Upload anzupassen ist
 
-Stand: Version `2.2.0`, versionCode **17**. Neu in dieser Fassung ist die
-verpflichtende Alters- und Identitätsprüfung: Verifizierungs-Selfies **und** eine
-Aufnahme eines amtlichen Lichtbildausweises. Das berührt mehrere Angaben in der
-Play Console, die bisher nicht nötig waren.
+Stand: Version `2.3.0`, versionCode **27** (Stand 15.08.2026).
+
+**Der Sprung ist größer als eine Versionsnummer.** Im Play Store liegt weiterhin
+die alte TWA mit versionCode **5** — die native App wurde nie hochgeladen. Der
+nächste Upload springt also von 5 auf 27 und muss *alle* Änderungen an den
+Deklarationen mitbringen, die seitdem aufgelaufen sind. Dieses Dokument sammelt
+sie; nichts davon ist bereits in der Console eingetragen.
+
+Der Kern ist die verpflichtende Alters- und Identitätsprüfung aus 2.2.0:
+Verifizierungs-Selfies **und** eine Aufnahme eines amtlichen Lichtbildausweises.
+Was seit 2.2.0 dazukam, steht in Abschnitt 6.
 
 Die Punkte hier sind keine Empfehlung, sondern die Angaben, die zum tatsächlichen
 Verhalten der App passen. Weicht die Deklaration davon ab, ist das ein
@@ -44,10 +51,27 @@ Adresse des eingetragenen Gyms aus.
 
 ## 2. Berechtigungen
 
-`CAMERA` ist bereits deklariert und wurde bisher nur für die Selfies gebraucht.
-Ab 2.2.0 kommt die Rückkamera für den Ausweis dazu — dieselbe Berechtigung,
-keine neue Deklaration nötig. In der Store-Beschreibung sollte stehen, wofür die
+Das Manifest verlangt genau vier:
+
+| Berechtigung | Wofür |
+|---|---|
+| `INTERNET`, `ACCESS_NETWORK_STATE` | normal, keine Nutzerabfrage |
+| `CAMERA` | Profilfotos, Verifizierungs-Selfie (Frontkamera), Ausweis (Rückkamera) |
+| `POST_NOTIFICATIONS` | Hinweis auf neue Nachrichten (`NewMessageWorker`) |
+
+`CAMERA` lief in der TWA über Chrome und wurde nie von der App selbst
+angefordert — gegenüber dem Play-Store-Stand ist das also **neu**. Ab 2.2.0
+kommt die Rückkamera für den Ausweis dazu; dieselbe Berechtigung, keine
+zusätzliche Deklaration. In der Store-Beschreibung sollte stehen, wofür die
 Kamera verlangt wird.
+
+`POST_NOTIFICATIONS` ist seit Android 13 eine Laufzeitberechtigung und
+gegenüber der TWA ebenfalls neu. Die Benachrichtigungen entstehen lokal auf dem
+Gerät aus abgerufenen Nachrichten — es gibt keinen Push-Dienst und damit auch
+keinen Empfänger, der zu deklarieren wäre.
+
+Nicht mehr vorhanden: `ACCESS_COARSE_LOCATION` und `ACCESS_FINE_LOCATION`, seit
+2.0.7 ersatzlos entfallen.
 
 ---
 
@@ -85,7 +109,38 @@ Kamera verlangt wird.
 
 ---
 
-## 5. Vor dem Upload
+## 5. Was seit 2.2.0 dazukam
+
+Kurzfassung für die Frage, die beim Upload zählt: **Ändert sich dadurch eine
+Angabe in der Console?**
+
+| Version | Änderung | Deklaration betroffen? |
+|---|---|---|
+| 2.2.4 | `FLAG_SECURE` aus der Verifizierung entfernt | nein, siehe Abschnitt 4 |
+| 2.2.8 | Gesperrte Knöpfe wechseln die Farbe statt zu verblassen; Freischaltung wird auf dem Wartebildschirm erkannt | nein |
+| 2.2.9 | Foto-Upload direkt im Verifizierungs-Schirm; Namen, Bio und Nachrichten werden serverseitig getrimmt | nein |
+| 2.3.0 | E-Mail-Bestätigung per Aktivierungslink, als Android App Link | **nur Deep Links**, siehe unten |
+
+**Zur E-Mail-Bestätigung:** Die Adresse wurde schon vorher erhoben und ist als
+Datentyp bereits deklariert. Neu ist allein der Weg — ein Link in einer Mail
+öffnet die App. Für die Datensicherheit ändert das nichts.
+
+**Deep Links prüfen.** Das Manifest führt seit 2.3.0 einen Intent-Filter mit
+`autoVerify="true"` auf `https://flexr.social/mail-bestaetigen`. Android prüft
+dafür beim Installieren `https://flexr.social/.well-known/assetlinks.json`. Die
+Datei liegt im Repo unter `frontend/.well-known/` und stammt aus der TWA-Zeit;
+sie führt bereits beide nötigen Fingerprints — den Play-App-Signing-Schlüssel
+und den Upload-Key. Nach dem Upload lohnt ein Blick in der Console unter
+*Grow → Deep links*, ob die Verifizierung durchgelaufen ist. Schlägt sie fehl,
+öffnet der Link den Browser und die Bestätigung läuft dort weiter — der Weg
+geht also nicht verloren, die App-Integration fehlt dann nur.
+
+Der zweite Intent-Filter (`flexr://checkout`, `autoVerify="false"`) ist der
+bestehende Rückweg aus dem Stripe-Checkout und kein Widerspruch dazu.
+
+---
+
+## 6. Vor dem Upload
 
 ```bash
 cd android-native
@@ -99,7 +154,19 @@ unzip -l app/build/outputs/bundle/prodRelease/app-prod-release.aab | grep META-I
 ```
 
 **Vorher auf einem echten Gerät testen.** Die App ist gebaut und die Unit-Tests
-sind grün, aber der Kameraweg — Rückkamera, Bildlage, Schärfe auf einem flach
-liegenden Ausweis — lässt sich nur am Telefon beurteilen. Dafür eignet sich der
-interne Test-Track oder die Debug-Variante (`./gradlew :app:installProdDebug`),
-die als eigene App neben der Produktionsfassung installiert wird.
+sind grün (45 Tests zum Stand 2.3.0), aber der Kameraweg — Rückkamera,
+Bildlage, Schärfe auf einem flach liegenden Ausweis — lässt sich nur am Telefon
+beurteilen. Dafür eignet sich der interne Test-Track oder die Debug-Variante
+(`./gradlew :app:installProdDebug`), die als eigene App neben der
+Produktionsfassung installiert wird.
+
+**Die Oberfläche wurde bis heute auf keinem Gerät gesehen.** Weder auf dem
+vorigen noch auf dem aktuellen Arbeitsrechner gab es einen Emulator oder ein
+angeschlossenes Telefon; auf dem aktuellen fehlt sogar die Toolchain (kein JDK,
+kein Android-SDK, kein `adb`). Alles seit 2.0.x ist kompiliert und
+unit-getestet, aber nie visuell geprüft. Der interne Test-Track ist damit nicht
+optional, sondern der erste Blick auf die App überhaupt.
+
+Der Bundle-Bau und die Testläufe in diesem Abschnitt sind aus diesem Grund
+beim Stand 2.3.0 **nicht** nachgefahren worden — die Befehle stammen
+unverändert aus der Zeit, als die Toolchain vorhanden war.
