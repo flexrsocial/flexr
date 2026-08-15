@@ -254,6 +254,13 @@
       }
       document.getElementById('m-result-msg').textContent = body.message;
       document.getElementById('m-result-ref').textContent = body.reference;
+      // Ohne Empfangsbestaetigung ist das Aktenzeichen auf dem Bildschirm das
+      // Einzige, was der Melder in der Hand hat.
+      if(body.acknowledgement_sent === false){
+        const kasten = result.querySelector('.box');
+        kasten.style.borderColor = 'var(--warn)';
+        kasten.querySelector('h3').textContent = 'Meldung eingegangen — bitte Aktenzeichen notieren';
+      }
       form.style.display   = 'none';
       result.style.display = 'block';
       result.scrollIntoView({behavior: 'smooth', block: 'start'});

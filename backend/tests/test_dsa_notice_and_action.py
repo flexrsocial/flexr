@@ -11,6 +11,16 @@ from tests.conftest import TestingSessionLocal, create_admin, register_raw
 
 
 @pytest.fixture
+def mit_smtp(monkeypatch):
+    """Tut so, als wäre ein Mailserver eingerichtet - die Testumgebung hat
+    keinen, und Tests zum Meldeverfahren sollen nicht stillschweigend im
+    SMTP-losen Zweig landen."""
+    from app.routers import notices
+
+    monkeypatch.setattr(notices, "email_configured", lambda: True)
+
+
+@pytest.fixture
 def admin_headers(client):
     headers, _ = create_admin(client, email="dsa-admin@example.com")
     return headers
@@ -37,7 +47,7 @@ def _notice(**overrides):
 # ---------------------------------------------------------------------------
 
 
-def test_meldung_ohne_konto_moeglich(client):
+def test_meldung_ohne_konto_moeglich(client, mit_smtp):
     """Art. 16 Abs. 1 DSA spricht von "Personen oder Einrichtungen" - ein Konto
     zu verlangen wäre eine Hürde, die die Vorschrift nicht kennt."""
     resp = client.post("/api/notices", json=_notice())
@@ -263,3 +273,26 @@ def test_melder_sieht_nur_die_eigenen_meldungen(client):
     )
 
     assert client.get("/api/reports/mine", headers=anderer).json() == []
+
+
+def test_ohne_smtp_wird_keine_empfangsbestaetigung_versprochen(client, monkeypatch):
+    """Art. 16 Abs. 4 DSA verlangt eine Empfangsbestätigung. Kann sie gerade
+    nicht rausgehen, soll der Melder sich das Aktenzeichen notieren, statt auf
+    eine Mail zu warten, die nie kommt."""
+    from app.routers import notices
+
+    monkeypatch.setattr(notices, "email_configured", lambda: False)
+
+    body = client.post("/api/notices", json=_notice()).json()
+    assert body["acknowledgement_sent"] is False
+    assert "keine Bestätigungsmail" in body["message"]
+    assert body["reference"] in body["message"]
+
+
+def test_mit_smtp_geht_die_bestaetigung_raus(client, monkeypatch):
+    from app.routers import notices
+
+    monkeypatch.setattr(notices, "email_configured", lambda: True)
+    body = client.post("/api/notices", json=_notice()).json()
+    assert body["acknowledgement_sent"] is True
+    assert "melderin@example.com" in body["message"]

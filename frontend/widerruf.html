@@ -338,6 +338,14 @@
       }
       document.getElementById('w-result-msg').textContent  = body.message;
       document.getElementById('w-result-text').textContent = body.declaration_text;
+      // Kommt gerade keine Bestaetigungsmail raus, ist der angezeigte Wortlaut
+      // der einzige Nachweis, den der Erklaerende bekommt - dann wird der
+      // Kasten als Warnung ausgezeichnet statt als Erfolgsmeldung.
+      if(body.confirmation_sent === false){
+        const kasten = result.querySelector('.box');
+        kasten.style.borderColor = 'var(--warn)';
+        kasten.querySelector('h3').textContent = 'Rücktritt erklärt — bitte Wortlaut sichern';
+      }
       form.style.display   = 'none';
       result.style.display = 'block';
       result.scrollIntoView({behavior: 'smooth', block: 'start'});

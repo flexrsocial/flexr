@@ -8,7 +8,22 @@ Inhalt, Datum und Uhrzeit der Erklärung wiedergibt.
 
 from datetime import datetime
 
+import pytest
+
 from tests.conftest import TestingSessionLocal, register_raw
+
+
+@pytest.fixture
+def mit_smtp(monkeypatch):
+    """Tut so, als wäre ein Mailserver eingerichtet.
+
+    Die Testumgebung hat keinen (siehe app/mailer.py). Tests, die die
+    Ruecktrittsmechanik prüfen und nicht den Mailversand, sollen deshalb nicht
+    stillschweigend im SMTP-losen Zweig landen.
+    """
+    from app.routers import withdrawal
+
+    monkeypatch.setattr(withdrawal, "email_configured", lambda: True)
 
 
 def _payload(**overrides):
@@ -22,7 +37,7 @@ def _payload(**overrides):
     return basis
 
 
-def test_ruecktritt_ohne_anmeldung_moeglich(client):
+def test_ruecktritt_ohne_anmeldung_moeglich(client, mit_smtp):
     """Wer sein Konto gelöscht hat oder sich nicht einloggen kann, muss
     trotzdem zurücktreten können - ein Login wäre eine Hürde, die § 13a FAGG
     nicht vorsieht."""
@@ -54,7 +69,7 @@ def test_bestaetigungstext_enthaelt_inhalt_datum_uhrzeit(client):
     assert "Uhr" in text
 
 
-def test_erklaerung_wird_gespeichert_und_ist_auffindbar(client):
+def test_erklaerung_wird_gespeichert_und_ist_auffindbar(client, mit_smtp):
     from app.models import WithdrawalDeclaration
 
     resp = client.post("/api/withdrawal", json=_payload(message="Kein Interesse mehr."))
@@ -137,3 +152,48 @@ def test_name_ist_pflicht(client):
 def test_leerzeichen_gelten_nicht_als_name(client):
     resp = client.post("/api/withdrawal", json=_payload(name="   "))
     assert resp.status_code == 422
+
+
+def test_ohne_smtp_wird_keine_bestaetigung_versprochen(client, monkeypatch):
+    """Ohne konfigurierten Mailversand darf die Antwort keine Bestätigung
+    zusagen, die nie ankommt.
+
+    § 13a Abs. 4 FAGG verlangt eine Bestätigung auf dauerhaftem Datenträger.
+    Kann sie gerade nicht rausgehen, ist die Erklärung trotzdem wirksam - der
+    Erklärende muss das aber erfahren und sich den angezeigten Wortlaut selbst
+    sichern können. Genau diesen Fall hatte der erste Entwurf verschwiegen: Er
+    meldete immer "verschickt", auch auf einem Server ganz ohne SMTP.
+    """
+    from app.models import WithdrawalDeclaration
+    from app.routers import withdrawal
+
+    monkeypatch.setattr(withdrawal, "email_configured", lambda: False)
+
+    resp = client.post("/api/withdrawal", json=_payload())
+    assert resp.status_code == 201
+
+    body = resp.json()
+    assert body["confirmation_sent"] is False
+    assert "keine Bestätigungsmail" in body["message"]
+    assert "trotzdem wirksam" in body["message"]
+    # Der Wortlaut wird trotzdem angezeigt - er ist der einzige Nachweis, den
+    # der Erklärende in diesem Fall bekommt.
+    assert body["declaration_text"]
+
+    db = TestingSessionLocal()
+    try:
+        eintrag = db.query(WithdrawalDeclaration).one()
+        # Kein Versandzeitstempel fuer eine Mail, die nie rausging.
+        assert eintrag.confirmation_sent_at is None
+        assert eintrag.confirmation_channel is None
+    finally:
+        db.close()
+
+
+def test_mit_smtp_bleibt_die_zusage_bestehen(client, monkeypatch):
+    from app.routers import withdrawal
+
+    monkeypatch.setattr(withdrawal, "email_configured", lambda: True)
+    body = client.post("/api/withdrawal", json=_payload()).json()
+    assert body["confirmation_sent"] is True
+    assert "§ 13a Abs. 4 FAGG" in body["message"]

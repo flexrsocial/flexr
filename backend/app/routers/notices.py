@@ -23,7 +23,7 @@ from fastapi import APIRouter, BackgroundTasks, Depends, Request
 from sqlalchemy.orm import Session
 
 from ..database import get_db
-from ..mailer import send_notice_acknowledgement
+from ..mailer import email_configured, send_notice_acknowledgement
 from ..models import Notice, NoticeCategory
 from ..rate_limit import limiter
 from ..schemas import NoticeAck, NoticeRequest
@@ -98,8 +98,11 @@ def submit_notice(
     db.commit()
     db.refresh(notice)
 
-    ack_sent = False
-    if payload.reporter_email:
+    # Ohne konfiguriertes SMTP kann keine Empfangsbestätigung rausgehen. Das
+    # dem Melder zu verschweigen wäre der schlimmere Fehler: Er soll sich das
+    # Aktenzeichen notieren, statt auf eine Mail zu warten, die nie kommt.
+    ack_sent = bool(payload.reporter_email) and email_configured()
+    if ack_sent:
         background_tasks.add_task(
             send_notice_acknowledgement,
             payload.reporter_email,
@@ -107,7 +110,12 @@ def submit_notice(
             now.strftime("%d.%m.%Y %H:%M:%S UTC"),
             category_label(payload.category),
         )
-        ack_sent = True
+    elif payload.reporter_email:
+        logger.error(
+            "Meldung %s ohne Empfangsbestaetigung: SMTP ist nicht konfiguriert "
+            "(siehe LEGAL_REVIEW.md, T-06)",
+            notice.reference,
+        )
 
     logger.info(
         "DSA-Meldung %s eingegangen (Kategorie %s, dringend: %s)",
@@ -124,10 +132,17 @@ def submit_notice(
     else:
         frist = "Ein Mensch prüft die Meldung, in der Regel binnen 72 Stunden."
 
-    if payload.reporter_email:
+    if payload.reporter_email and ack_sent:
         zustellung = (
             f"Die Empfangsbestätigung und später die begründete Entscheidung "
             f"gehen an {payload.reporter_email}."
+        )
+    elif payload.reporter_email:
+        zustellung = (
+            "Wir können dir gerade keine Bestätigungsmail schicken. Deine "
+            f"Meldung ist trotzdem erfasst — notiere dir bitte das Aktenzeichen "
+            f"{notice.reference}. Die Entscheidung geht an "
+            f"{payload.reporter_email}, sobald der Mailversand wieder läuft."
         )
     else:
         zustellung = (

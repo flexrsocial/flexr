@@ -24,7 +24,7 @@ from sqlalchemy.orm import Session
 
 from .. import legal
 from ..database import get_db
-from ..mailer import send_withdrawal_confirmation
+from ..mailer import email_configured, send_withdrawal_confirmation
 from ..models import User, WithdrawalDeclaration
 from ..rate_limit import limiter
 from ..schemas import WithdrawalAck, WithdrawalRequest
@@ -95,22 +95,32 @@ def declare_withdrawal(
     db.commit()
     db.refresh(declaration)
 
-    # Der Versand läuft nach der Antwort. Der Zeitstempel wird trotzdem jetzt
-    # gesetzt: Er dokumentiert, wann die Bestätigung ausgelöst wurde - ob der
-    # Mailserver sie zustellt, liegt außerhalb dieses Vorgangs.
-    declaration.confirmation_sent_at = datetime.utcnow()
-    declaration.confirmation_channel = "email"
-    db.commit()
-
-    background_tasks.add_task(
-        send_withdrawal_confirmation,
-        payload.email,
-        payload.name,
-        declaration.reference,
-        received_at.strftime("%d.%m.%Y %H:%M:%S UTC"),
-        text,
-        payload.contract_reference,
-    )
+    # Ob überhaupt eine Mail rausgehen kann, entscheidet die SMTP-Konfiguration.
+    # Ohne sie schreibt der Mailer nur ins Log - dann darf hier weder ein
+    # Versandzeitstempel stehen noch dem Erklärenden eine Bestätigung
+    # versprochen werden, die nie ankommt. § 13a Abs. 4 FAGG verlangt eine
+    # Bestätigung auf dauerhaftem Datenträger; wer keine bekommt, muss das
+    # sofort erfahren und sich den angezeigten Wortlaut selbst sichern können.
+    kann_mailen = email_configured()
+    if kann_mailen:
+        declaration.confirmation_sent_at = datetime.utcnow()
+        declaration.confirmation_channel = "email"
+        db.commit()
+        background_tasks.add_task(
+            send_withdrawal_confirmation,
+            payload.email,
+            payload.name,
+            declaration.reference,
+            received_at.strftime("%d.%m.%Y %H:%M:%S UTC"),
+            text,
+            payload.contract_reference,
+        )
+    else:
+        logger.error(
+            "Ruecktritt %s ohne Bestaetigungsmail: SMTP ist nicht konfiguriert "
+            "(siehe LEGAL_REVIEW.md, T-06)",
+            declaration.reference,
+        )
 
     logger.info(
         "Ruecktrittserklaerung %s eingegangen (Konto zugeordnet: %s)",
@@ -118,14 +128,27 @@ def declare_withdrawal(
         bool(current_user),
     )
 
+    if kann_mailen:
+        hinweis = (
+            f"Die Bestätigung geht an {payload.email}. Bewahre sie auf — sie ist "
+            "dein Nachweis nach § 13a Abs. 4 FAGG."
+        )
+    else:
+        hinweis = (
+            "Wir können dir gerade keine Bestätigungsmail schicken. Deine "
+            "Erklärung ist trotzdem wirksam — sie gilt mit dem Eingang, nicht "
+            "mit der Bestätigung. Bitte sichere dir den unten angezeigten "
+            "Wortlaut samt Aktenzeichen (Bildschirmfoto genügt) und schreib uns "
+            "zur Sicherheit an flexr.social@proton.me."
+        )
+
     return WithdrawalAck(
         reference=declaration.reference,
         received_at=received_at,
         declaration_text=text,
-        confirmation_sent=True,
+        confirmation_sent=kann_mailen,
         message=(
             f"Dein Rücktritt ist erklärt (Aktenzeichen {declaration.reference}). "
-            f"Die Bestätigung geht an {payload.email}. Bewahre sie auf — sie ist "
-            "dein Nachweis nach § 13a Abs. 4 FAGG."
+            f"{hinweis}"
         ),
     )
