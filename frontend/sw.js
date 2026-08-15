@@ -4,7 +4,12 @@
 // gecacht.
 // Bei jedem Icon-Wechsel gemeinsam hochzaehlen: hier, in index.html und in
 // manifest.json - sonst bleibt das alte Icon im Browser-Cache haengen.
-const CACHE = 'flexr-shell-v6';
+// v7 am 15.08.2026: Zwischen zwei Deploys desselben Tages lag eine Fassung von
+// /app/index.html mit dem Unsplash-Demo-Deck im Cache. "Netz zuerst" holt zwar
+// bei jedem Online-Aufruf frisch, aber der Offline-Rueckfall haette die alte
+// Fassung noch ausgeliefert - mitsamt Fremdaufrufen, die die CSP dann
+// blockiert. Ein Hochzaehlen loescht alle alten Caches im activate-Schritt.
+const CACHE = 'flexr-shell-v7';
 // Seit dem 15.08.2026 liegt die App unter /app/, an der Wurzel steht die
 // oeffentliche Landingpage. Beide gehoeren in die Shell: die Landingpage,
 // weil sie der Einstieg ist, die App, weil sie offline funktionieren soll.
