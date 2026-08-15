@@ -1,3 +1,5 @@
+import logging
+
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 
@@ -7,7 +9,19 @@ from ..schemas import MembershipStatus
 from ..security import get_current_user
 from ..stripe_client import construct_webhook_event, create_checkout_session, create_portal_session
 
+logger = logging.getLogger(__name__)
+
 router = APIRouter(prefix="/api/billing", tags=["billing"])
+
+# Abostatus, die weiterhin Zugang bedeuten.
+#
+# "past_due" steht hier bewusst mit drin: Stripe wiederholt eine
+# fehlgeschlagene Abbuchung ueber mehrere Tage. Wer waehrend dieser Zeit
+# ausgesperrt wird, steht ohne eigenes Zutun vor einer verschlossenen App,
+# obwohl die Zahlung noch zustande kommen kann. Bleibt sie endgueltig aus,
+# beendet Stripe das Abo und schickt customer.subscription.deleted - erst das
+# entzieht den Zugang.
+ENTITLING_SUBSCRIPTION_STATUS = {"active", "trialing", "past_due"}
 
 
 @router.get("/status", response_model=MembershipStatus)
@@ -40,6 +54,79 @@ def create_portal(current_user: User = Depends(get_current_user)):
     return {"portal_url": url}
 
 
+def _user_for_subscription_event(db: Session, obj: dict):
+    """Ordnet ein Abo-Ereignis einem Nutzer zu.
+
+    Abo-Ereignisse tragen kein ``client_reference_id`` - das gibt es nur an der
+    Checkout-Session. Zugeordnet wird deshalb ueber die Abo-ID und, solange die
+    noch nicht gespeichert ist, ersatzweise ueber die Kunden-ID.
+    """
+    subscription_id = obj.get("id")
+    customer_id = obj.get("customer")
+
+    user = None
+    if subscription_id:
+        user = db.query(User).filter(User.stripe_subscription_id == subscription_id).first()
+    if user is None and customer_id:
+        user = db.query(User).filter(User.stripe_customer_id == customer_id).first()
+    return user
+
+
+def handle_stripe_event(event: dict, db: Session) -> None:
+    """Traegt ein Stripe-Ereignis in den Abostatus des Nutzers ein.
+
+    Ausgelagert aus dem Endpunkt, damit der Ablauf ohne Signaturpruefung
+    testbar ist - dieselbe Trennung wie bei ``trial_end_timestamp``.
+
+    Bekannte Grenze: Stripe stellt Ereignisse nicht garantiert in der
+    Reihenfolge ihres Entstehens zu. Trifft ein veraltetes "updated" nach einem
+    "deleted" ein, wird der Zugang faelschlich wieder geoeffnet. Sauber
+    aufloesen liesse sich das nur, indem der Abostatus bei jedem Ereignis frisch
+    von Stripe geholt wird - das kostet einen API-Aufruf pro Ereignis und ist
+    hier bewusst nicht getan.
+    """
+    event_type = event["type"]
+    obj = event["data"]["object"]
+
+    if event_type == "checkout.session.completed":
+        user = db.query(User).filter(User.id == obj.get("client_reference_id")).first()
+        if user:
+            user.is_subscribed = True
+            user.stripe_customer_id = obj.get("customer")
+            user.stripe_subscription_id = obj.get("subscription")
+            db.commit()
+        return
+
+    if event_type in ("customer.subscription.created", "customer.subscription.updated"):
+        user = _user_for_subscription_event(db, obj)
+        if user:
+            # Die Abo-ID nachtragen, falls die Checkout-Session sie nicht
+            # geliefert hat - sonst greift die Zuordnung beim naechsten
+            # Ereignis nur noch ueber die Kunden-ID.
+            user.stripe_subscription_id = obj.get("id") or user.stripe_subscription_id
+            user.is_subscribed = obj.get("status") in ENTITLING_SUBSCRIPTION_STATUS
+            db.commit()
+        return
+
+    if event_type == "customer.subscription.deleted":
+        user = _user_for_subscription_event(db, obj)
+        if user:
+            user.is_subscribed = False
+            db.commit()
+        return
+
+    if event_type == "invoice.payment_failed":
+        # Bewusst kein Entzug, siehe ENTITLING_SUBSCRIPTION_STATUS. Der Eintrag
+        # im Log ist der einzige Hinweis darauf, dass bei jemandem die Zahlung
+        # klemmt - es gibt keine Benachrichtigung im Betrieb.
+        logger.warning(
+            "Stripe: Zahlung fehlgeschlagen (customer=%s, subscription=%s)",
+            obj.get("customer"),
+            obj.get("subscription"),
+        )
+        return
+
+
 @router.post("/webhook")
 async def stripe_webhook(request: Request, db: Session = Depends(get_db)):
     payload = await request.body()
@@ -50,15 +137,6 @@ async def stripe_webhook(request: Request, db: Session = Depends(get_db)):
     except Exception:
         raise HTTPException(400, "Ungültige Webhook-Signatur.")
 
-    # TODO: weitere Events behandeln (invoice.payment_failed, customer.subscription.deleted, ...)
-    if event["type"] == "checkout.session.completed":
-        session = event["data"]["object"]
-        user_id = session.get("client_reference_id")
-        user = db.query(User).filter(User.id == user_id).first()
-        if user:
-            user.is_subscribed = True
-            user.stripe_customer_id = session.get("customer")
-            user.stripe_subscription_id = session.get("subscription")
-            db.commit()
+    handle_stripe_event(event, db)
 
     return {"received": True}
