@@ -15,7 +15,9 @@ from ..models import (
     Match,
     Message,
     ModerationAction,
+    Notice,
     Photo,
+    PhotoRejectionReason,
     PhotoStatus,
     Report,
     Swipe,
@@ -36,6 +38,9 @@ from ..schemas import (
     AdminLoginRequest,
     AdminModerationRequest,
     AdminMuteRequest,
+    AdminNoticeDecisionRequest,
+    AdminNoticeOut,
+    AdminPhotoRejectRequest,
     AdminReportDecisionRequest,
     AdminReportOut,
     AdminStats,
@@ -411,15 +416,104 @@ def approve_photo(
 @router.post("/photos/{photo_id}/reject")
 def reject_photo(
     photo_id: str,
+    payload: AdminPhotoRejectRequest | None = None,
     admin: AdminUser = Depends(get_current_admin),
     db: Session = Depends(get_db),
 ):
+    """Foto ablehnen - mit Grund.
+
+    Art. 17 DSA: Auch die Ablehnung eines einzelnen Fotos beschränkt einen vom
+    Nutzer bereitgestellten Inhalt und braucht deshalb eine Begründung. Vorher
+    verschwand das Foto kommentarlos aus dem Profil, und der Nutzer lud es
+    ratlos noch einmal hoch.
+
+    ``payload`` ist optional, damit das ausgelieferte Admin-Tool nicht in dem
+    Moment kaputtgeht, in dem der Server neu ist. Ohne Grund wird als
+    ``unusable`` abgelehnt - der Nutzer bekommt dann wenigstens den
+    allgemeinen Hinweis statt gar keinen.
+    """
     photo = db.query(Photo).filter(Photo.id == photo_id).first()
     if not photo:
         raise HTTPException(404, "Foto nicht gefunden.")
     photo.status = PhotoStatus.rejected
+    photo.rejection_reason = (
+        payload.reason if payload else PhotoRejectionReason.unusable.value
+    )
+    photo.rejection_note = payload.note if payload else None
+    photo.rejected_at = datetime.utcnow()
     db.commit()
-    return {"status": photo.status.value}
+    return {"status": photo.status.value, "reason": photo.rejection_reason}
+
+
+# ---------------------------------------------------------------------------
+# Meldungen aus dem öffentlichen Verfahren (Art. 16 DSA)
+# ---------------------------------------------------------------------------
+
+
+@router.get("/notices", response_model=list[AdminNoticeOut])
+def list_notices(
+    open_only: bool = True,
+    limit: int = Query(50, le=200),
+    offset: int = 0,
+    admin: AdminUser = Depends(get_current_admin),
+    db: Session = Depends(get_db),
+):
+    """Eingegangene Meldungen. Offene zuerst, älteste zuerst - eine Meldung,
+    die schon lange liegt, ist dringender als eine frische."""
+    query = db.query(Notice)
+    if open_only:
+        query = query.filter(Notice.decided_at.is_(None))
+    rows = (
+        query.order_by(Notice.created_at.asc()).offset(offset).limit(limit).all()
+    )
+    return [
+        AdminNoticeOut(
+            id=row.id,
+            reference=row.reference,
+            category=row.category,
+            explanation=row.explanation,
+            content_reference=row.content_reference,
+            reporter_name=row.reporter_name,
+            reporter_email=row.reporter_email,
+            created_at=row.created_at,
+            decided_at=row.decided_at,
+            outcome=row.outcome,
+        )
+        for row in rows
+    ]
+
+
+@router.post("/notices/{notice_id}/decide")
+def decide_notice(
+    notice_id: str,
+    payload: AdminNoticeDecisionRequest,
+    admin: AdminUser = Depends(get_current_admin),
+    db: Session = Depends(get_db),
+):
+    """Entscheidung über eine Meldung samt Begründung (Art. 16 Abs. 5 DSA).
+
+    Die Begründung geht wörtlich an den Melder, sofern er eine Adresse
+    hinterlassen hat. Bei den Ausnahmekategorien des Art. 16 Abs. 3 gibt es
+    keine Adresse - dann bleibt die Entscheidung als Nachweis in der Datenbank.
+    """
+    notice = db.query(Notice).filter(Notice.id == notice_id).first()
+    if not notice:
+        raise HTTPException(404, "Meldung nicht gefunden.")
+
+    notice.decided_at = datetime.utcnow()
+    notice.outcome = payload.outcome
+    notice.decision_reason = payload.decision_reason
+    notice.decision_automated = payload.decision_automated
+    db.commit()
+
+    return {
+        "decided": True,
+        "reference": notice.reference,
+        "outcome": notice.outcome,
+        # Ehrlich zurückmelden, ob der Melder die Entscheidung überhaupt
+        # erfahren kann - sonst hält der Admin die Sache für erledigt.
+        "reporter_can_be_informed": bool(notice.reporter_email),
+    }
 
 
 @router.delete("/photos/{photo_id}")

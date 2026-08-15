@@ -10,6 +10,7 @@ from ..rate_limit import limiter
 from ..schemas import (
     BlockRequest,
     ModerationNotice,
+    MyReportOut,
     ReportAck,
     ReportRequest,
 )
@@ -53,6 +54,40 @@ def create_report(
             "berufen willst."
         ),
     )
+
+
+@router.get("/reports/mine", response_model=list[MyReportOut])
+def list_my_reports(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Die eigenen Meldungen mit ihrem Stand (Art. 16 Abs. 5 DSA).
+
+    Bis 15.08.2026 versprach frontend/sicherheit.html: "du siehst das Ergebnis
+    unter 'Meine Meldungen' im Konto-Bereich". Diese Ansicht gab es nicht - der
+    Melder bekam ein Aktenzeichen und danach nie wieder etwas zu hören, obwohl
+    der Admin die Entscheidung längst in ``Report.decision_note`` geschrieben
+    hatte. Hier wird sie ihm zugänglich gemacht.
+    """
+    rows = (
+        db.query(Report)
+        .filter(Report.reporter_id == current_user.id)
+        .order_by(Report.created_at.desc())
+        .limit(100)
+        .all()
+    )
+    return [
+        MyReportOut(
+            reference=row.reference,
+            created_at=row.created_at,
+            reason=row.reason,
+            status="decided" if row.outcome else "open",
+            outcome=row.outcome,
+            decision_note=row.decision_note,
+            decided_at=row.dismissed_at if row.outcome else None,
+        )
+        for row in rows
+    ]
 
 
 @router.get("/moderation/notice", response_model=Optional[ModerationNotice])

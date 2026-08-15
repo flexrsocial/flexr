@@ -51,8 +51,11 @@ def create_checkout_session(
         customer_email=user_email,
         line_items=[{"price": settings.stripe_price_id, "quantity": 1}],
         subscription_data=subscription_data or None,
-        success_url=f"{settings.frontend_url}/account?checkout=success",
-        cancel_url=f"{settings.frontend_url}/account?checkout=cancelled",
+        # Seit dem 15.08.2026 liegt die Web-App unter /app/; an der Wurzel
+        # steht die oeffentliche Landingpage. Wer aus dem Checkout
+        # zurueckkommt, soll in der App landen, nicht im Marketing.
+        success_url=f"{settings.frontend_url}/app/?checkout=success",
+        cancel_url=f"{settings.frontend_url}/app/?checkout=cancelled",
         client_reference_id=user_id,
     )
     return session.url
@@ -63,7 +66,7 @@ def create_portal_session(stripe_customer_id: str) -> str:
     selbst verwalten/kündigen können, und gibt die URL zurück."""
     session = stripe.billing_portal.Session.create(
         customer=stripe_customer_id,
-        return_url=f"{settings.frontend_url}/account",
+        return_url=f"{settings.frontend_url}/app/",
     )
     return session.url
 

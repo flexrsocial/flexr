@@ -32,13 +32,25 @@ class RegisterRequest(BaseModel):
     gym: str
     bio: Optional[str] = Field(default=None, max_length=280)
 
-    # Zwei getrennt einzuholende, aktive Einwilligungen (siehe models.py User) -
-    # müssen explizit angehakt werden, ein Default von True wäre unwirksam.
+    # Ausdrückliche Einwilligung nach Art. 9 Abs. 2 lit. a DSGVO - muss aktiv
+    # angehakt werden, ein Default von True wäre unwirksam.
     consent_sensitive_data: bool = Field(
         description="Einwilligung zur Verarbeitung der sexuellen Orientierung (Art. 9 Abs. 2 lit. a DSGVO)"
     )
-    consent_withdrawal_waiver: bool = Field(
-        description="Kenntnisnahme, dass das Rücktrittsrecht durch sofortigen Leistungsbeginn erlischt (§ 18 Abs. 1 Z 11 FAGG)"
+    # Früher Pflichtfeld ("ich verliere mein Rücktrittsrecht"), seit 15.08.2026
+    # gegenstandslos: Die Registrierung begründet keinen entgeltlichen Vertrag,
+    # es gibt also kein Rücktrittsrecht, auf das verzichtet werden könnte.
+    #
+    # Das Feld bleibt entgegennahmefähig, damit die ausgelieferten Android- und
+    # iOS-Fassungen weiter registrieren können - sie schicken es noch mit. Der
+    # Wert wird ignoriert und nirgends gespeichert.
+    consent_withdrawal_waiver: Optional[bool] = Field(
+        default=None,
+        deprecated=True,
+        description=(
+            "Wird nicht mehr ausgewertet. Bleibt nur, damit ältere App-Fassungen "
+            "weiter registrieren können."
+        ),
     )
 
     _trim = field_validator("name", "bio", mode="before")(_strip)
@@ -61,12 +73,6 @@ class RegisterRequest(BaseModel):
             raise ValueError("Einwilligung zur Verarbeitung sensibler Daten ist erforderlich.")
         return v
 
-    @field_validator("consent_withdrawal_waiver")
-    @classmethod
-    def _require_withdrawal_waiver_consent(cls, v: bool) -> bool:
-        if not v:
-            raise ValueError("Kenntnisnahme zum Rücktrittsrecht ist erforderlich.")
-        return v
 
 
 class AgeCheckRequest(BaseModel):
@@ -642,3 +648,188 @@ class PhotoModerationOut(BaseModel):
     user_id: str
     user_name: str
     user_email: str
+
+
+# ---------------------------------------------------------------------------
+# Online-Rücktrittsfunktion (§ 13a FAGG)
+# ---------------------------------------------------------------------------
+
+
+class WithdrawalRequest(BaseModel):
+    """Rücktrittserklärung über die öffentliche Funktion.
+
+    Bewusst niedrigschwellig: § 13a FAGG verlangt, dass der Rücktritt ohne
+    unnötige Hürden erklärt werden kann. Pflicht sind deshalb nur Name und eine
+    elektronische Adresse für die Bestätigung - die Bezeichnung des Vertrags
+    darf auch ungenau sein, solange sich der Vorgang zuordnen lässt.
+    """
+
+    name: str = Field(min_length=1, max_length=120)
+    email: EmailStr
+    contract_reference: Optional[str] = Field(default=None, max_length=200)
+    message: Optional[str] = Field(default=None, max_length=1000)
+    # Der zweite, getrennte Schritt: erst nach dem Bestätigungsknopf wird
+    # erklärt. Ein Formular allein ist noch keine Erklärung.
+    confirmed: bool
+
+    _trim = field_validator("name", "contract_reference", "message", mode="before")(_strip)
+
+    @field_validator("confirmed")
+    @classmethod
+    def _require_confirmation(cls, v: bool) -> bool:
+        if not v:
+            raise ValueError("Bitte den Rücktritt im zweiten Schritt bestätigen.")
+        return v
+
+
+class WithdrawalAck(BaseModel):
+    reference: str
+    received_at: datetime
+    declaration_text: str
+    confirmation_sent: bool
+    message: str
+
+
+# ---------------------------------------------------------------------------
+# Meldeverfahren nach Art. 16 DSA
+# ---------------------------------------------------------------------------
+
+#: Kategorien, bei denen Art. 16 Abs. 3 DSA die Angabe von Name und E-Mail
+#: nicht verlangt (Straftaten nach Art. 3-7 der Richtlinie 2011/93/EU).
+ANONYMOUS_NOTICE_CATEGORIES = {"csam"}
+
+
+class NoticeRequest(BaseModel):
+    """Meldung über das öffentliche Formular - auch ohne Konto möglich."""
+
+    category: Literal[
+        "csam", "minor", "trafficking", "threat", "sexual_content",
+        "impersonation", "fraud", "hate", "ip_infringement",
+        "data_protection", "other_illegal",
+    ]
+    # Art. 16 Abs. 2 lit. a - eine Begründung, die eine Prüfung erlaubt.
+    # 30 Zeichen Untergrenze: "ist illegal" ist keine hinreichend präzise
+    # Meldung und würde die Prüfung nur blockieren.
+    explanation: str = Field(min_length=30, max_length=5000)
+    # Art. 16 Abs. 2 lit. b - genaue Fundstelle.
+    content_reference: str = Field(min_length=3, max_length=500)
+    reporter_name: Optional[str] = Field(default=None, max_length=120)
+    reporter_email: Optional[EmailStr] = None
+    # Art. 16 Abs. 2 lit. d - Erklärung in gutem Glauben.
+    good_faith: bool
+
+    _trim = field_validator(
+        "explanation", "content_reference", "reporter_name", mode="before"
+    )(_strip)
+
+    @field_validator("good_faith")
+    @classmethod
+    def _require_good_faith(cls, v: bool) -> bool:
+        if not v:
+            raise ValueError(
+                "Ohne die Erklärung, dass die Angaben nach bestem Wissen richtig "
+                "und vollständig sind, können wir die Meldung nicht bearbeiten."
+            )
+        return v
+
+    @model_validator(mode="after")
+    def _require_contact_unless_exempt(self):
+        """Kontaktangaben sind Pflicht - außer in den Fällen des Art. 16 Abs. 3.
+
+        Ohne Adresse gibt es weder Empfangsbestätigung noch Entscheidung; der
+        Melder soll das nicht versehentlich wählen. Bei Darstellungen sexuellen
+        Kindesmissbrauchs verlangt der DSA die Identifizierung ausdrücklich
+        nicht, dort bleibt das Feld frei.
+        """
+        if self.category in ANONYMOUS_NOTICE_CATEGORIES:
+            return self
+        if not self.reporter_name or not self.reporter_email:
+            raise ValueError(
+                "Für diese Kategorie brauchen wir Name und E-Mail-Adresse, damit "
+                "wir dir den Eingang und die Entscheidung mitteilen können."
+            )
+        return self
+
+
+class NoticeAck(BaseModel):
+    reference: str
+    created_at: datetime
+    acknowledgement_sent: bool
+    message: str
+
+
+class AdminNoticeOut(BaseModel):
+    id: str
+    reference: str
+    category: str
+    explanation: str
+    content_reference: str
+    reporter_name: Optional[str] = None
+    reporter_email: Optional[str] = None
+    created_at: datetime
+    decided_at: Optional[datetime] = None
+    outcome: Optional[str] = None
+
+
+class AdminNoticeDecisionRequest(BaseModel):
+    """Entscheidung über eine Meldung samt Begründung (Art. 16 Abs. 5 DSA)."""
+
+    outcome: Literal["action_taken", "no_action", "forwarded", "insufficient"]
+    decision_reason: str = Field(min_length=10, max_length=5000)
+    decision_automated: bool = False
+
+
+# ---------------------------------------------------------------------------
+# Meldungen aus Nutzersicht (Art. 16 Abs. 5 DSA)
+# ---------------------------------------------------------------------------
+
+
+class MyReportOut(BaseModel):
+    """Eine eigene Meldung mit ihrem Stand.
+
+    Bis 15.08.2026 versprach frontend/sicherheit.html eine Ansicht "Meine
+    Meldungen" im Konto-Bereich, die es nicht gab: Der Melder erfuhr das
+    Ergebnis nirgends. Dieses Schema ist die Grundlage dafür.
+    """
+
+    reference: str
+    created_at: datetime
+    reason: str
+    status: Literal["open", "decided"]
+    outcome: Optional[str] = None
+    decision_note: Optional[str] = None
+    decided_at: Optional[datetime] = None
+
+
+# ---------------------------------------------------------------------------
+# Einwilligungen (Art. 7 DSGVO)
+# ---------------------------------------------------------------------------
+
+
+class ConsentOut(BaseModel):
+    consent_type: str
+    version: str
+    granted_at: datetime
+    revoked_at: Optional[datetime] = None
+    active: bool
+
+
+class ConsentRevokeRequest(BaseModel):
+    consent_type: Literal["sensitive_data", "verification_media", "immediate_start"]
+
+
+class AdminPhotoRejectRequest(BaseModel):
+    """Ablehnung eines Profilfotos mit Grund (Art. 17 DSA).
+
+    Feste Gründe statt Freitext: Die Begründung soll konkret sein, ohne dass
+    lose Notizen zu Personen entstehen. ``note`` ergänzt nur den Fall "other".
+    """
+
+    reason: Literal[
+        "no_person", "not_account_holder", "multiple_people", "nudity",
+        "violence", "minor", "contact_details", "third_party_rights",
+        "unusable", "other",
+    ]
+    note: Optional[str] = Field(default=None, max_length=300)
+
+    _trim = field_validator("note", mode="before")(_strip)

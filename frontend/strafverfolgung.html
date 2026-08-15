@@ -7,36 +7,7 @@
 <meta name="description" content="Law Enforcement Guidelines von FLEXR: Zustellung behördlicher Anfragen, erforderliche Angaben, verfügbare Daten, Notfallanfragen und Sicherungsersuchen.">
 <meta name="robots" content="index, follow">
 <link rel="canonical" href="https://flexr.social/strafverfolgung.html">
-<style>
-  :root{ --ink:#121212; --surface:#1c1c1c; --steel:#3a3a3a; --chalk:#ede9e2; --chalk-dim:#a8a49b; --plate:#ff5a1f; --warn:#e34848; --lime:#c7ff4a; }
-  *{box-sizing:border-box;}
-  body{ margin:0; background:var(--ink); color:var(--chalk); font-family:'Work Sans', system-ui, sans-serif; line-height:1.6; }
-  .wrap{ max-width:720px; margin:0 auto; padding:32px 20px 80px; }
-  a{ color:var(--plate); }
-  h1{ font-size:26px; margin-bottom:4px; }
-  h2{ font-size:17px; color:var(--chalk); border-bottom:1px solid var(--steel); padding-bottom:6px; margin-top:36px; }
-  h3{ font-size:15px; color:var(--chalk); margin-top:24px; margin-bottom:6px; }
-  .back{ display:inline-block; margin-bottom:20px; font-size:13px; color:var(--chalk-dim); text-decoration:none; }
-  .lead{ color:var(--chalk-dim); font-size:14px; }
-  .stand{ color:var(--chalk-dim); font-size:13px; margin-top:0; }
-  ul{ padding-left:20px; margin:8px 0; }
-  ul li{ margin-bottom:7px; }
-  ol.steps{ list-style:none; padding-left:0; margin:8px 0; counter-reset:step; }
-  ol.steps li{ position:relative; padding-left:30px; margin-bottom:9px; }
-  ol.steps li::before{
-    content:counter(step); counter-increment:step;
-    position:absolute; left:0; top:0; color:var(--plate); font-weight:700;
-  }
-  .box{ background:var(--surface); border:1px solid var(--steel); border-radius:10px; padding:14px 16px; margin:14px 0; }
-  .box.alarm{ border-color:var(--warn); }
-  .box h3{ margin-top:0; }
-  table{ width:100%; border-collapse:collapse; margin:12px 0; font-size:14px; }
-  th,td{ text-align:left; padding:8px 10px; border-bottom:1px solid var(--steel); vertical-align:top; }
-  th{ color:var(--chalk-dim); font-weight:600; }
-  .en{ color:var(--chalk-dim); font-size:13px; font-style:italic; }
-  .nav-legal{ margin-top:44px; padding-top:16px; border-top:1px solid var(--steel); font-size:13px; }
-  .nav-legal a{ margin-right:16px; }
-</style>
+<link rel="stylesheet" href="/legal.css?v=1">
 </head>
 <body>
 <div class="wrap">
@@ -44,7 +15,7 @@
 
   <h1>Richtlinien für Strafverfolgungsbehörden</h1>
   <p class="lead">Law Enforcement Guidelines — Verfahren für behördliche Auskunfts-, Sicherungs- und Notfallersuchen</p>
-  <p class="stand">Stand: 3. August 2026</p>
+  <p class="stand">Stand: 15. August 2026</p>
 
   <p class="en">
     English: This page describes how law enforcement authorities can request data
@@ -54,11 +25,11 @@
 
   <h2>1. Wer wir sind</h2>
   <p>
-    Verantwortlich für die Plattform FLEXR ist flexr.social Kleinunternehmen,
-    Johann-Schrey-Weg 260, 8232 Grafendorf, Österreich (siehe
+    Verantwortlich für die Plattform FLEXR ist <b>Julian Pachernegg</b>,
+    Einzelunternehmer, Johann-Schrey-Weg 260, 8232 Grafendorf, Österreich (siehe
     <a href="/impressum.html">Impressum</a>). Der Dienst wird aus Österreich
-    betrieben; es gilt österreichisches Recht. FLEXR ist ein Kleinunternehmen ohne
-    eigene Rechtsabteilung — Anfragen bearbeitet die Betreiberin persönlich.
+    betrieben; es gilt österreichisches Recht. FLEXR ist ein Einzelunternehmen
+    ohne eigene Rechtsabteilung — Anfragen bearbeitet der Betreiber persönlich.
   </p>
 
   <h2>2. Zustellung von Anfragen</h2>
@@ -126,13 +97,15 @@
   </p>
   <table>
     <tr><th>Datenart</th><th>Vorhanden?</th><th>Anmerkung</th></tr>
-    <tr><td>Bestandsdaten (E-Mail, Name, Geburtsdatum, PLZ/Ort, Geschlecht, Studio, Registrierungszeitpunkt)</td><td>ja</td><td>Selbstangaben, nicht ausweisgeprüft</td></tr>
+    <tr><td>Bestandsdaten (E-Mail, Name, Geburtsdatum, PLZ/Ort, Geschlecht, Studio, Registrierungszeitpunkt)</td><td>ja</td><td>Selbstangaben. <b>Geburtsdatum und Lichtbild</b> wurden vor der Freischaltung gegen einen vorgelegten amtlichen Lichtbildausweis <b>sichtgeprüft</b> — es handelt sich um eine Sichtprüfung, nicht um ein behördliches Identifizierungsverfahren (kein eID, kein KYC). Der <b>Name</b> wird nicht gegen ein Register abgeglichen und gilt nicht als behördlich verifiziert. Bestandskonten aus der Zeit vor Einführung der Prüfung haben sie unter Umständen nicht durchlaufen; das teilen wir im Einzelfall mit.</td></tr>
     <tr><td>Telefonnummer</td><td>nur wenn hinterlegt</td><td>per SMS-Einmalcode bestätigt</td></tr>
     <tr><td>Profilfotos</td><td>ja</td><td>inkl. Freigabestatus</td></tr>
-    <tr><td>Verifizierungs-Selfies</td><td>nein</td><td>werden nach der Prüfung gelöscht</td></tr>
+    <tr><td>Verifizierungs-Selfies und Ausweisaufnahmen</td><td>in der Regel nein</td><td>werden unmittelbar nach der Prüfentscheidung gelöscht. Nur während einer noch offenen Prüfung sind sie vorübergehend vorhanden</td></tr>
     <tr><td>Chatnachrichten (Inhalt, Zeitstempel, Absender)</td><td>ja</td><td>Klartext in der Datenbank, keine Ende-zu-Ende-Verschlüsselung; das Original und die für den Empfänger bereinigte Fassung liegen getrennt vor</td></tr>
     <tr><td>Matches, Swipes, Blockierungen, Meldungen</td><td>ja</td><td>mit Zeitstempel</td></tr>
     <tr><td>Systemseitig markierte Nachrichten</td><td>ja</td><td>inkl. Markierungsgrund</td></tr>
+    <tr><td>Geräte-ID und User-Agent</td><td>ja</td><td>zufällige, vom Client erzeugte Kennung — keine Hardware-Kennung, keine IMEI, keine Werbe-ID</td></tr>
+    <tr><td>Moderationsentscheidungen</td><td>ja</td><td>Maßnahme, Umfang, Dauer, zugrunde liegende Tatsachen und Grundlage</td></tr>
     <tr><td>IP-Adressen je Konto oder Login</td><td>nein</td><td>werden nicht kontobezogen gespeichert; kurzlebige Server-Logs auf Systemebene können IP und Zeitstempel enthalten, ohne Zuordnung zum Konto</td></tr>
     <tr><td>Zahlungs- und Kartendaten</td><td>nein</td><td>ausschließlich bei Stripe; bitte direkt dort anfragen. Bei uns liegen nur die Stripe-Kennungen des Kontos</td></tr>
     <tr><td>Passwörter</td><td>nicht lesbar</td><td>nur als Hash gespeichert</td></tr>
@@ -143,9 +116,13 @@
     <h3>Gefahr für Leib und Leben</h3>
     <p>
       Besteht die begründete Annahme einer unmittelbaren Gefahr für das Leben oder
-      die körperliche Unversehrtheit einer Person, erteilen wir die zur Abwehr
-      erforderliche Auskunft ohne vorherige gerichtliche Anordnung. Betreff:
-      <b>„NOTFALL — Behördenanfrage"</b>.
+      die körperliche Unversehrtheit einer Person, prüfen wir ein Ersuchen
+      vorrangig. Eine Offenlegung erfolgt, <b>soweit im konkreten Fall eine
+      anwendbare gesetzliche Rechtsgrundlage sie erlaubt oder verlangt</b> und
+      wir Erforderlichkeit und Verhältnismäßigkeit geprüft haben. Wir sagen eine
+      Herausgabe also nicht pauschal und im Voraus zu — wir sagen zu, dass wir
+      unverzüglich prüfen und, wo die Rechtslage es trägt, unverzüglich
+      auskunftsfähig sind. Betreff: <b>„NOTFALL — Behördenanfrage"</b>.
     </p>
     <p>Bitte schildern Sie darin:</p>
     <ul>
@@ -156,7 +133,7 @@
     </ul>
     <p>
       Wir bearbeiten Notfallanfragen vorrangig und bestätigen den Eingang, sobald
-      die Anfrage gesichtet ist. Als Kleinunternehmen können wir keinen
+      die Anfrage gesichtet ist. Als Einzelunternehmen können wir keinen
       Rund-um-die-Uhr-Bereitschaftsdienst zusichern: Bei akuter Gefahr wenden Sie
       sich bitte zusätzlich über die üblichen Wege an den Polizeinotruf.
     </p>
@@ -231,7 +208,7 @@
 
   <h2>11. Kontakt</h2>
   <p>
-    flexr.social Kleinunternehmen<br>
+    Julian Pachernegg, Einzelunternehmer<br>
     Johann-Schrey-Weg 260, 8232 Grafendorf, Österreich<br>
     E-Mail: <a href="mailto:flexr.social@proton.me">flexr.social@proton.me</a>
   </p>
@@ -240,14 +217,16 @@
     oder Einwendungen.
   </p>
 
-  <div class="nav-legal">
+  <nav class="nav-legal" aria-label="Rechtliche Seiten">
     <a href="/faq.html">FAQ</a>
     <a href="/impressum.html">Impressum</a>
     <a href="/datenschutz.html">Datenschutz</a>
     <a href="/agb.html">AGB</a>
     <a href="/nutzungsrichtlinien.html">Nutzungsrichtlinien</a>
+    <a href="/widerruf.html">Widerruf</a>
     <a href="/sicherheit.html">Sicherheit</a>
-  </div>
+    <a href="/meldung.html">Inhalt melden</a>
+  </nav>
 </div>
 </body>
 </html>

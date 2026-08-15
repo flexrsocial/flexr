@@ -5,9 +5,15 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>FLEXR Admin</title>
 <meta name="robots" content="noindex, nofollow">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Work+Sans:wght@400;500;600&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<!-- Schriften vom eigenen Server statt von Google - siehe
+     frontend/legal.css und brand/build_webfonts.py. Auch hier: Jeder Aufruf
+     schickte sonst die IP-Adresse an Google, und das Admin-Werkzeug wird
+     nicht anonym benutzt. -->
 <style>
+@font-face{ font-family:'Oswald';         src:url('/fonts/oswald.woff2?v=1')         format('woff2'); font-weight:400 700; font-display:swap; }
+@font-face{ font-family:'Work Sans';      src:url('/fonts/work-sans.woff2?v=1')      format('woff2'); font-weight:400 700; font-display:swap; }
+@font-face{ font-family:'JetBrains Mono'; src:url('/fonts/jetbrains-mono.woff2?v=1') format('woff2'); font-weight:400 700; font-display:swap; }
+
   :root{
     --ink:#121212; --surface:#1c1c1c; --surface-2:#242424; --steel:#3a3a3a;
     --chalk:#ede9e2; --chalk-dim:#a8a49b; --plate:#ff5a1f; --plate-dim:#c94515;

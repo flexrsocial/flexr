@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
+from typing import Optional
 
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
 from passlib.context import CryptContext
@@ -64,6 +65,38 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
         db.commit()
 
     return user
+
+
+def optional_current_user(
+    request: Request, db: Session = Depends(get_db)
+) -> Optional[User]:
+    """Nutzer, falls ein gültiger Token mitkommt - sonst None.
+
+    Gebraucht für Vorgänge, die jedem offenstehen müssen, aber besser werden,
+    wenn sie sich einem Konto zuordnen lassen: die Rücktrittsfunktion nach
+    § 13a FAGG und das Meldeverfahren nach Art. 16 DSA. Beide dürfen an einer
+    fehlenden Anmeldung nicht scheitern - wer sein Konto gelöscht hat oder gar
+    keines besitzt, muss trotzdem erklären bzw. melden können.
+
+    Anders als get_current_user wirft diese Funktion nie: Ein kaputter Token
+    ist hier gleichbedeutend mit "nicht angemeldet". Gesperrte und gelöschte
+    Konten werden ebenfalls als "nicht angemeldet" behandelt - sie sollen die
+    Funktion nutzen können, nur eben ohne Zuordnung.
+    """
+    header = request.headers.get("Authorization", "")
+    scheme, _, token = header.partition(" ")
+    if scheme.lower() != "bearer" or not token:
+        return None
+    try:
+        payload = jwt.decode(token, settings.jwt_secret, algorithms=[settings.jwt_algorithm])
+    except JWTError:
+        return None
+    if payload.get("scope") != "user":
+        return None
+    user_id = payload.get("sub")
+    if not user_id:
+        return None
+    return db.query(User).filter(User.id == user_id).first()
 
 
 def _country_for_user(user: User) -> str:

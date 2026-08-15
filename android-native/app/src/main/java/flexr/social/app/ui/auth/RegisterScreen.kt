@@ -205,15 +205,15 @@ fun RegisterScreen(
             suffix = " verarbeitet werden.",
             onLinkClick = { onOpenLegal(LegalDocument.DATENSCHUTZ) },
         )
-        ConsentCheckbox(
-            checked = state.consentWithdrawalWaiver,
-            onCheckedChange = viewModel::onConsentWithdrawalWaiverChange,
-            prefix = "Ich stimme zu, dass der Zugang sofort mit Registrierung beginnt, und nehme zur " +
-                "Kenntnis, dass ich dadurch mein 14-tägiges Rücktrittsrecht verliere (siehe ",
-            linkText = "AGB",
-            suffix = ", §18 FAGG).",
-            onLinkClick = { onOpenLegal(LegalDocument.AGB) },
-        )
+        // Hier stand bis zum 15.08.2026 ein zweiter Pflicht-Haken: "Ich stimme
+        // zu, dass der Zugang sofort mit Registrierung beginnt, und nehme zur
+        // Kenntnis, dass ich dadurch mein 14-tägiges Rücktrittsrecht verliere."
+        //
+        // Ersatzlos entfallen. Die Registrierung begründet keinen entgeltlichen
+        // Vertrag - es wird kein Zahlungsmittel erhoben, und der Probemonat
+        // wandelt sich nicht von selbst in ein Abo um. Ohne entgeltlichen
+        // Vertrag gibt es kein Rücktrittsrecht, auf das man verzichten könnte.
+        // Die Rücktrittsbelehrung steht jetzt auf flexr.social/widerruf.html.
 
         FieldError(state.error)
 
@@ -222,7 +222,7 @@ fun RegisterScreen(
         // verschwunden, und verrät nicht, was noch fehlt. Beim Tippen nennt
         // viewModel.register() über validate() den konkreten Grund.
         FlexrButton(
-            text = "Profil erstellen & Probemonat starten",
+            text = "Kostenlos registrieren",
             onClick = {
                 keyboard?.hide()
                 viewModel.register()

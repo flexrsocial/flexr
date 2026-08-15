@@ -56,6 +56,86 @@ class ModerationAction(str, enum.Enum):
     ban = "ban"    # Kontosperre
 
 
+class ModerationSource(str, enum.Enum):
+    """Woher die Maßnahme kommt - Art. 17 Abs. 3 lit. b und c DSA verlangen die
+    Angabe, ob eine Meldung zugrunde lag und ob dabei automatisiert erkannt
+    wurde."""
+
+    user_notice = "user_notice"        # Meldung eines Nutzers bzw. über das Formular
+    own_initiative = "own_initiative"  # eigene Moderation ohne Meldung
+    authority = "authority"            # behördliche Anordnung
+
+
+class ModerationBasis(str, enum.Enum):
+    """Rechtsgrund der Maßnahme - Art. 17 Abs. 3 lit. d und e DSA unterscheiden
+    zwischen rechtswidrigem Inhalt (Gesetzesstelle) und Vertragsverstoß
+    (konkrete Regel der Nutzungsrichtlinien)."""
+
+    illegal_content = "illegal_content"  # Verstoß gegen geltendes Recht
+    terms = "terms"                      # Verstoß gegen die Nutzungsrichtlinien
+
+
+class PhotoRejectionReason(str, enum.Enum):
+    """Feste Ablehnungsgründe für Profilfotos.
+
+    Vorher wurde ein Foto kommentarlos abgelehnt - der Nutzer sah nur, dass es
+    verschwunden war. Art. 17 DSA verlangt für jede Beschränkung
+    nutzergenerierter Inhalte eine Begründung, die die tatsächlichen Umstände
+    benennt. Eine feste Liste statt Freitext, damit die Begründung immer
+    konkret ist und keine losen Notizen zu Personen entstehen.
+    """
+
+    no_person = "no_person"                  # keine Person erkennbar
+    not_account_holder = "not_account_holder"  # zeigt offenkundig eine andere Person
+    multiple_people = "multiple_people"      # mehrere Personen, Zuordnung unklar
+    nudity = "nudity"                        # sexuell explizite Darstellung
+    violence = "violence"                    # Gewalt- oder Hassdarstellung
+    minor = "minor"                          # zeigt offenkundig eine minderjährige Person
+    contact_details = "contact_details"      # Kontaktdaten/Links im Bild
+    third_party_rights = "third_party_rights"  # fremdes Bildmaterial, Werbung
+    unusable = "unusable"                    # unscharf, zu dunkel, Bildschirmfoto
+    other = "other"                          # sonstiger Grund
+
+
+class ConsentType(str, enum.Enum):
+    """Einwilligungsarten, die getrennt nachgewiesen werden müssen.
+
+    Ausdrücklich KEINE Einwilligung ist die Annahme der AGB - sie ist
+    Vertragsschluss. Sie steht hier trotzdem, weil auch die akzeptierte
+    Vertragsfassung nachweisbar sein muss (siehe legal.TERMS_VERSION).
+    """
+
+    sensitive_data = "sensitive_data"          # Art. 9 Abs. 2 lit. a DSGVO
+    verification_media = "verification_media"  # Selfie + Ausweisaufnahme
+    immediate_start = "immediate_start"        # § 10 FAGG, ausdrückliches Verlangen
+    terms = "terms"                            # angenommene AGB-Fassung (kein Consent i.S.d. DSGVO)
+
+
+class NoticeCategory(str, enum.Enum):
+    """Meldekategorien des öffentlichen Verfahrens nach Art. 16 DSA."""
+
+    csam = "csam"                          # Darstellung sexuellen Kindesmissbrauchs
+    minor = "minor"                        # mutmaßlich minderjährige Person
+    trafficking = "trafficking"            # Menschenhandel, sexuelle Ausbeutung
+    threat = "threat"                      # Drohung, Gefahr für Leib und Leben
+    sexual_content = "sexual_content"      # nicht einvernehmliche intime Aufnahmen
+    impersonation = "impersonation"        # Identitätsmissbrauch, fremde Fotos
+    fraud = "fraud"                        # Betrug, Erpressung, Scam
+    hate = "hate"                          # Hass, Verhetzung, Diskriminierung
+    ip_infringement = "ip_infringement"    # Urheber-/Kennzeichenrecht
+    data_protection = "data_protection"    # Verstoß gegen Datenschutzrecht
+    other_illegal = "other_illegal"        # sonstiger mutmaßlich rechtswidriger Inhalt
+
+
+class NoticeOutcome(str, enum.Enum):
+    """Ergebnis einer Meldung, das dem Melder mitgeteilt wird."""
+
+    action_taken = "action_taken"    # Inhalt entfernt bzw. Konto beschränkt
+    no_action = "no_action"          # geprüft, kein Verstoß festgestellt
+    forwarded = "forwarded"          # an eine Behörde weitergegeben
+    insufficient = "insufficient"    # Angaben reichen zur Prüfung nicht aus
+
+
 class VerificationStatus(str, enum.Enum):
     """Zustände der Alters- und Identitätsprüfung (eine Prüfung, mehrere Schritte).
 
@@ -189,13 +269,25 @@ class User(Base):
     stripe_customer_id = Column(String, nullable=True)
     stripe_subscription_id = Column(String, nullable=True)
 
-    # Nachweis-Zeitstempel für zwei gesetzlich getrennt einzuholende Einwilligungen
-    # (siehe Hinweise in frontend/datenschutz.html und frontend/agb.html):
-    # Art. 9 Abs. 2 lit. a DSGVO - explizite Einwilligung zur Verarbeitung der
-    # sexuellen Orientierung (aus gender/interest ableitbar), und § 18 Abs. 1 Z 11
-    # FAGG - Verzicht auf das Rücktrittsrecht durch sofortigen Leistungsbeginn.
+    # Nachweis-Zeitstempel der ausdrücklichen Einwilligung nach Art. 9 Abs. 2
+    # lit. a DSGVO zur Verarbeitung der aus gender/interest ableitbaren sexuellen
+    # Orientierung. Die versionierte Fassung steht zusätzlich in ``consents``;
+    # dieses Feld bleibt als schneller Zugriff und für Bestandskonten.
     sensitive_data_consent_at = Column(DateTime, nullable=False)
-    withdrawal_waiver_consent_at = Column(DateTime, nullable=False)
+
+    # Frühere "Verzicht auf das Rücktrittsrecht"-Erklärung (§ 18 Abs. 1 Z 11
+    # FAGG), die bei jeder Registrierung erzwungen wurde.
+    #
+    # Am 15.08.2026 aufgegeben: Bei der Registrierung entsteht überhaupt kein
+    # entgeltlicher Vertrag - es wird kein Zahlungsmittel erhoben, und der
+    # Probemonat wandelt sich nicht von selbst in ein Abo um (siehe
+    # routers/billing.py). Ohne entgeltlichen Vertrag gibt es kein
+    # Rücktrittsrecht, auf das man verzichten könnte; die Erklärung war
+    # gegenstandslos und in ihrer Formulierung irreführend.
+    #
+    # Die Spalte bleibt für Bestandskonten erhalten, ist aber nullable und wird
+    # bei neuen Registrierungen nicht mehr gesetzt.
+    withdrawal_waiver_consent_at = Column(DateTime, nullable=True)
 
     is_banned = Column(Boolean, default=False, nullable=False)
 
@@ -206,9 +298,29 @@ class User(Base):
 
     # Art. 17 DSA: Jede Beschränkung braucht eine Begründung für den Betroffenen.
     # Gilt für die letzte verhängte Maßnahme; wird beim Aufheben geleert.
+    #
+    # Bis 15.08.2026 bestand die Begründung aus einem einzigen Freitextfeld.
+    # Art. 17 Abs. 3 DSA verlangt aber mehr als einen Satz: Umfang der Maßnahme,
+    # die zugrunde liegenden Tatsachen, ob eine Meldung Anlass war, ob dabei
+    # automatisiert erkannt wurde, und die konkrete Rechts- bzw. AGB-Grundlage.
+    # Deshalb die zusätzlichen Felder - moderation_reason bleibt die
+    # Zusammenfassung in einem Satz.
     moderation_action = Column(String(20), nullable=True)  # ModerationAction
     moderation_reason = Column(String(500), nullable=True)
     moderation_action_at = Column(DateTime, nullable=True)
+    # Was genau beschränkt wurde ("Senden von Nachrichten", "gesamtes Konto").
+    moderation_scope = Column(String(200), nullable=True)
+    # Die tatsächlichen Umstände, auf die sich die Entscheidung stützt.
+    moderation_facts = Column(String(1000), nullable=True)
+    moderation_source = Column(String(20), nullable=True)   # ModerationSource
+    # Ob bei der Erkennung ein automatisiertes Mittel beteiligt war. Bei FLEXR
+    # sind das die Filter aus safety_checks.py - die Entscheidung selbst trifft
+    # immer ein Mensch.
+    moderation_automated = Column(Boolean, default=False, nullable=False)
+    moderation_basis = Column(String(20), nullable=True)    # ModerationBasis
+    # Fundstelle: Gesetzesstelle bei rechtswidrigem Inhalt, sonst der Abschnitt
+    # der Nutzungsrichtlinien.
+    moderation_basis_detail = Column(String(300), nullable=True)
 
     # Selbstlöschung: Konto wird sofort deaktiviert (Login gesperrt, unsichtbar),
     # nach 30 Tagen Karenz endgültig gelöscht (siehe Datenschutzerklärung Punkt 5).
@@ -322,6 +434,13 @@ class Photo(Base):
     thumb_url = Column(Text, nullable=True)
     position = Column(Integer, default=0)  # 0-4, Reihenfolge
     status = Column(Enum(PhotoStatus), nullable=False, default=PhotoStatus.pending)
+
+    # Art. 17 DSA: Auch die Ablehnung eines einzelnen Fotos ist eine
+    # Beschränkung nutzergenerierten Inhalts und braucht eine Begründung.
+    # Vorher verschwand ein abgelehntes Foto kommentarlos.
+    rejection_reason = Column(String(40), nullable=True)  # PhotoRejectionReason
+    rejection_note = Column(String(300), nullable=True)   # Ergänzung bei "other"
+    rejected_at = Column(DateTime, nullable=True)
 
     user = relationship("User", back_populates="photos")
 
@@ -551,6 +670,140 @@ class DailyAccess(Base):
     user_id = Column(String, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     day = Column(Date, nullable=False, index=True)
     country = Column(String(2), nullable=False, default="AT")
+
+
+class Consent(Base):
+    """Versionierter Einwilligungsnachweis (Art. 7 Abs. 1 DSGVO).
+
+    Bisher gab es nur zwei Zeitstempel am Nutzer - ohne Fassung des Textes, zu
+    dem eingewilligt wurde, und ohne Möglichkeit, einen Widerruf festzuhalten.
+    Art. 7 Abs. 1 verlangt aber den Nachweis, *wozu* eingewilligt wurde, und
+    Art. 7 Abs. 3, dass der Widerruf so einfach ist wie die Erteilung.
+
+    Bewusst OHNE IP-Adresse: Für den Nachweis reicht, wer wann zu welcher
+    Fassung eingewilligt hat. Eine IP wäre zusätzliche personenbezogene Daten
+    ohne eigenen Zweck.
+    """
+
+    __tablename__ = "consents"
+
+    id = Column(String, primary_key=True, default=gen_uuid)
+    user_id = Column(
+        String, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    consent_type = Column(String(30), nullable=False)  # ConsentType
+    # Fassung des Textes, zu dem eingewilligt wurde (siehe app/legal.py).
+    version = Column(String(20), nullable=False)
+    granted_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+    # Gesetzt, sobald widerrufen wurde. Der Datensatz bleibt als Nachweis
+    # bestehen - gelöscht wird er erst mit dem Konto.
+    revoked_at = Column(DateTime, nullable=True)
+
+    @property
+    def is_active(self) -> bool:
+        return self.revoked_at is None
+
+
+class WithdrawalDeclaration(Base):
+    """Rücktrittserklärung über die Online-Rücktrittsfunktion (§ 13a FAGG).
+
+    Ausdrücklich etwas anderes als "Abo kündigen": Die Kündigung beendet einen
+    laufenden Vertrag zum Periodenende, der Rücktritt löst ihn binnen 14 Tagen
+    rückwirkend auf. Beides muss getrennt erreichbar sein.
+
+    Die Erklärung kann auch von jemandem kommen, der gerade nicht angemeldet
+    ist - deshalb ist user_id optional und Name/E-Mail werden mitgeschrieben.
+    Der Bestätigungstext wird vollständig gespeichert, weil § 13a Abs. 4 FAGG
+    eine Bestätigung auf dauerhaftem Datenträger verlangt, die Inhalt, Datum
+    und Uhrzeit der Erklärung wiedergibt.
+    """
+
+    __tablename__ = "withdrawal_declarations"
+
+    id = Column(String, primary_key=True, default=gen_uuid)
+    # Optional: Wer angemeldet erklärt, bekommt die Zuordnung geschenkt.
+    # ondelete SET NULL, damit die Erklärung eine Kontolöschung überdauert -
+    # sie ist der Nachweis, dass zurückgetreten wurde.
+    user_id = Column(String, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+
+    name = Column(String(120), nullable=False)
+    email = Column(String, nullable=False, index=True)
+    # Freie Bezeichnung des Vertrags/Kontos, wie der Erklärende sie angibt
+    # (E-Mail des Kontos, Rechnungsnummer, Stripe-Referenz).
+    contract_reference = Column(String(200), nullable=True)
+    # Optionale eigene Worte des Erklärenden.
+    message = Column(String(1000), nullable=True)
+
+    # Wortlaut der Erklärung, wie er dem Erklärenden angezeigt und bestätigt
+    # wurde - nicht nachträglich rekonstruiert, sondern festgehalten.
+    declaration_text = Column(Text, nullable=False)
+
+    received_at = Column(DateTime, nullable=False, default=datetime.utcnow, index=True)
+    confirmation_sent_at = Column(DateTime, nullable=True)
+    # "email" - weitere dauerhafte Datenträger sind derzeit nicht angebunden.
+    confirmation_channel = Column(String(20), nullable=True)
+
+    # Bearbeitungsstand auf Betreiberseite (Rückabwicklung, Stripe-Storno).
+    processed_at = Column(DateTime, nullable=True)
+    processing_note = Column(String(500), nullable=True)
+
+    @property
+    def reference(self) -> str:
+        """Aktenzeichen für die Bestätigung, Form: W-XXXXXXXX."""
+        return "W-" + self.id.replace("-", "")[:8].upper()
+
+
+class Notice(Base):
+    """Meldung nach Art. 16 DSA über das öffentliche Formular.
+
+    Getrennt von ``Report``: Eine Meldung nach Art. 16 muss *jeder* abgeben
+    können - auch wer kein Konto hat und deshalb kein Profil "melden" kann.
+    Report bleibt die Ein-Klick-Meldung aus der App heraus, Notice das
+    förmliche Verfahren mit Begründung, Fundstelle und
+    Gutgläubigkeitserklärung.
+
+    Zur Anonymität: Art. 16 Abs. 3 DSA nimmt Meldungen zu Straftaten nach den
+    Artikeln 3 bis 7 der Richtlinie 2011/93/EU (Darstellungen sexuellen
+    Kindesmissbrauchs u. a.) von der Pflicht aus, Name und E-Mail anzugeben.
+    Für diese Kategorien sind die Kontaktfelder deshalb optional.
+    """
+
+    __tablename__ = "notices"
+
+    id = Column(String, primary_key=True, default=gen_uuid)
+    category = Column(String(30), nullable=False)  # NoticeCategory
+
+    # Art. 16 Abs. 2 lit. a: Begründung, warum der Inhalt rechtswidrig sein soll.
+    explanation = Column(Text, nullable=False)
+    # Art. 16 Abs. 2 lit. b: genaue elektronische Fundstelle - Profilname,
+    # Konto-ID, Chatverlauf, Zeitpunkt.
+    content_reference = Column(String(500), nullable=False)
+
+    # Art. 16 Abs. 2 lit. c - bei den Ausnahmekategorien leer.
+    reporter_name = Column(String(120), nullable=True)
+    reporter_email = Column(String, nullable=True)
+    # Art. 16 Abs. 2 lit. d: Erklärung in gutem Glauben.
+    good_faith = Column(Boolean, nullable=False, default=False)
+
+    created_at = Column(DateTime, nullable=False, default=datetime.utcnow, index=True)
+    # Art. 16 Abs. 4: unverzügliche Empfangsbestätigung.
+    acknowledged_at = Column(DateTime, nullable=True)
+
+    # Art. 16 Abs. 5 und 6: Entscheidung, ob automatisierte Mittel beteiligt
+    # waren, und Begründung.
+    decided_at = Column(DateTime, nullable=True)
+    outcome = Column(String(20), nullable=True)  # NoticeOutcome
+    decision_reason = Column(Text, nullable=True)
+    decision_automated = Column(Boolean, default=False, nullable=False)
+
+    @property
+    def reference(self) -> str:
+        """Aktenzeichen für die Empfangsbestätigung, Form: M-XXXXXXXX."""
+        return "M-" + self.id.replace("-", "")[:8].upper()
+
+    @property
+    def allows_anonymous(self) -> bool:
+        return self.category == NoticeCategory.csam.value
 
 
 class AdminUser(Base):

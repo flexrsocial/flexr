@@ -23,7 +23,9 @@ data class RegisterRequestDto(
     val gym: String,
     val bio: String? = null,
     @SerialName("consent_sensitive_data") val consentSensitiveData: Boolean,
-    @SerialName("consent_withdrawal_waiver") val consentWithdrawalWaiver: Boolean,
+    // consent_withdrawal_waiver wird seit dem 15.08.2026 nicht mehr geschickt.
+    // Der Server nimmt das Feld noch entgegen, damit ausgelieferte Fassungen
+    // weiter registrieren können, wertet es aber nicht aus.
 )
 
 @Serializable

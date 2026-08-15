@@ -4,187 +4,528 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Datenschutzerklärung — FLEXR</title>
-<meta name="description" content="Datenschutzerklärung von FLEXR, der Dating-App für Gym-People in Österreich — wie deine Daten verarbeitet und geschützt werden.">
+<meta name="description" content="Welche Daten FLEXR verarbeitet, wozu, auf welcher Rechtsgrundlage und wie lange — mit Aufbewahrungstabelle, Empfängerliste und deinen Rechten nach der DSGVO.">
 <meta name="robots" content="index, follow">
 <link rel="canonical" href="https://flexr.social/datenschutz.html">
-<style>
-  :root{ --ink:#121212; --surface:#1c1c1c; --steel:#3a3a3a; --chalk:#ede9e2; --chalk-dim:#a8a49b; --plate:#ff5a1f; --warn:#e34848; --lime:#c7ff4a; }
-  *{box-sizing:border-box;}
-  body{ margin:0; background:var(--ink); color:var(--chalk); font-family:'Work Sans', system-ui, sans-serif; line-height:1.6; }
-  .wrap{ max-width:720px; margin:0 auto; padding:32px 20px 80px; }
-  a{ color:var(--plate); }
-  h1{ font-size:26px; margin-bottom:4px; }
-  h2{ font-size:17px; color:var(--chalk); border-bottom:1px solid var(--steel); padding-bottom:6px; margin-top:36px; }
-  .back{ display:inline-block; margin-bottom:20px; font-size:13px; color:var(--chalk-dim); text-decoration:none; }
-  .nav-legal{ margin-top:44px; padding-top:16px; border-top:1px solid var(--steel); font-size:13px; }
-  .nav-legal a{ margin-right:16px; }
-  table{ width:100%; border-collapse:collapse; margin:12px 0; font-size:13.5px; }
-  th,td{ text-align:left; padding:8px 10px; border-bottom:1px solid var(--steel); vertical-align:top; }
-  th{ color:var(--chalk-dim); font-weight:600; }
-</style>
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="stylesheet" href="/legal.css?v=1">
 </head>
 <body>
 <div class="wrap">
   <a class="back" href="/">← zurück zu FLEXR</a>
 
+  <main>
   <h1>Datenschutzerklärung</h1>
+  <p class="lead">Was FLEXR mit deinen Daten macht — und was nicht</p>
+  <p class="stand">Fassung 2026-08-15 · Stand: 15. August 2026</p>
+
+  <div class="box hint">
+    <p style="margin:0;">
+      <b>In einem Satz.</b> FLEXR verarbeitet die Angaben, die du selbst
+      eingibst, plus das, was beim Nutzen zwangsläufig entsteht (Swipes,
+      Nachrichten, Abostatus). Es gibt <b>kein Tracking, keine Werbenetzwerke,
+      keine Analysewerkzeuge und keine Weitergabe zu Werbezwecken</b>. Deine
+      Fotos liegen bei einem Speicherdienst, die Zahlung läuft über Stripe, der
+      Server steht in Deutschland — mehr Empfänger gibt es nicht.
+    </p>
+  </div>
 
   <h2>1. Verantwortlicher</h2>
   <p>
-    flexr.social Kleinunternehmen<br>
-    Johann-Schrey-Weg 260, 8232 Grafendorf<br>
-    E-Mail: flexr.social@proton.me<br>
-    Ein gesonderter Datenschutzbeauftragter wurde nicht bestellt; datenschutzrechtliche
-    Anfragen werden von flexr.social Kleinunternehmen direkt bearbeitet (siehe Kontakt oben).
+    Julian Pachernegg<br>
+    Einzelunternehmer, Betreiber von FLEXR<br>
+    Johann-Schrey-Weg 260, 8232 Grafendorf, Österreich<br>
+    E-Mail: <a href="mailto:flexr.social@proton.me">flexr.social@proton.me</a>
+  </p>
+  <p>
+    Ein Datenschutzbeauftragter ist nicht bestellt; die gesetzlichen
+    Voraussetzungen des Art. 37 DSGVO liegen nach unserer Einschätzung nicht
+    vor. Datenschutzanfragen bearbeitet der Verantwortliche persönlich unter
+    der oben genannten Adresse.
   </p>
 
   <h2>2. Welche Daten wir verarbeiten</h2>
+  <p>
+    Die folgende Tabelle bildet ab, was der Code tatsächlich speichert — nicht
+    mehr und nicht weniger.
+  </p>
+  <div class="table-scroll">
   <table>
-    <tr><th>Kategorie</th><th>Beispiele</th><th>Quelle</th></tr>
-    <tr><td>Kontodaten</td><td>E-Mail, Passwort-Hash (bcrypt, nie im Klartext)</td><td>Registrierung</td></tr>
-    <tr><td>Profildaten</td><td>Name, Geburtsdatum, Stadt, Gym (Studio aus der öffentlichen Liste), Suchradius, Bio</td><td>Registrierung / Profilbearbeitung</td></tr>
-    <tr><td>Präferenzdaten (Art. 9 DSGVO)</td><td>Geschlecht, gesuchtes Geschlecht (→ sexuelle Orientierung)</td><td>Registrierung</td></tr>
-    <tr><td>Fotos</td><td>Profilbilder</td><td>Upload durch Nutzer, gespeichert bei Cloudflare R2</td></tr>
-    <tr><td>Verifizierungs-Selfie</td><td>Selfie-Aufnahme für die Alters- und Identitätsprüfung</td><td>Live-Aufnahme über die Kamera, temporär bei Cloudflare R2</td></tr>
-    <tr><td>Ausweisaufnahmen</td><td>Aufnahme eines amtlichen Lichtbildausweises (Personalausweis, Reisepass oder Führerschein) für die Alters- und Identitätsprüfung</td><td>Upload durch Nutzer, temporär in einem nicht öffentlich abrufbaren Bereich bei Cloudflare R2</td></tr>
-    <tr><td>Verifizierungs-Status</td><td>Ergebnis der Prüfung (offen / in Prüfung / freigegeben / abgelehnt), Prüfgrund aus einer festen Liste, Zeitpunkt der Prüfung und der Freischaltung, Prüfkennung</td><td>Ergebnis der manuellen Prüfung</td></tr>
-    <tr><td>Registrierungsversuche unter 18</td><td>Zufällige Geräte-ID und Zeitpunkt — kein Name, keine E-Mail, kein Geburtsdatum</td><td>Registrierungsformular</td></tr>
-    <tr><td>Nutzungsdaten</td><td>Swipes, Matches, Reports/Blocks</td><td>App-Nutzung</td></tr>
-    <tr><td>Zahlungsdaten</td><td>Abo-Status, Stripe-Kunden-/Abo-ID (keine Kartendaten bei uns)</td><td>Stripe Checkout</td></tr>
-    <tr><td>Technische Daten</td><td>IP-Adresse (Server-Logs), Zeitstempel</td><td>Automatisch beim Seitenaufruf</td></tr>
+    <thead>
+      <tr><th>Kategorie</th><th>Konkret</th><th>Herkunft</th><th>Zweck</th><th>Rechtsgrundlage</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Zugangsdaten</td>
+        <td>E-Mail-Adresse, Passwort als bcrypt-Hash (nie im Klartext)</td>
+        <td>Registrierung</td>
+        <td>Konto, Anmeldung, Kontakt zu dir</td>
+        <td>Art. 6 Abs. 1 lit. b</td>
+      </tr>
+      <tr>
+        <td>Profildaten</td>
+        <td>Name, Geburtsdatum, Postleitzahl, daraus abgeleiteter Ort, Gym, Suchradius, Bio</td>
+        <td>Registrierung, Profilbearbeitung</td>
+        <td>Darstellung des Profils, Umkreissuche</td>
+        <td>Art. 6 Abs. 1 lit. b</td>
+      </tr>
+      <tr>
+        <td><b>Präferenzdaten (Art. 9 DSGVO)</b></td>
+        <td>Geschlecht und gesuchtes Geschlecht — daraus ist die sexuelle Orientierung ableitbar</td>
+        <td>Registrierung</td>
+        <td>Matching</td>
+        <td>Art. 9 Abs. 2 lit. a (ausdrückliche Einwilligung), siehe Punkt 4</td>
+      </tr>
+      <tr>
+        <td>Profilfotos</td>
+        <td>Bilddateien und quadratische Vorschaubilder, Freigabestatus, Ablehnungsgrund aus fester Liste</td>
+        <td>Upload durch dich, Moderationsentscheidung</td>
+        <td>Darstellung des Profils, Moderation</td>
+        <td>Art. 6 Abs. 1 lit. b und lit. f</td>
+      </tr>
+      <tr>
+        <td>Verifizierungs-Selfie</td>
+        <td>Eine live über die Kamera aufgenommene Aufnahme</td>
+        <td>Aufnahme durch dich</td>
+        <td>Alters- und Identitätsprüfung</td>
+        <td>Art. 6 Abs. 1 lit. c und lit. f, siehe Punkt 5</td>
+      </tr>
+      <tr>
+        <td>Ausweisaufnahme</td>
+        <td>Aufnahme eines amtlichen Lichtbildausweises, Dokumenttyp</td>
+        <td>Upload durch dich</td>
+        <td>Alters- und Identitätsprüfung</td>
+        <td>Art. 6 Abs. 1 lit. c und lit. f, siehe Punkt 5</td>
+      </tr>
+      <tr>
+        <td>Prüfergebnis</td>
+        <td>Status, Prüfgrund aus fester Liste, Zeitpunkte, Kennung des Prüfers, Prüfmethode („manual_id")</td>
+        <td>Manuelle Prüfung</td>
+        <td>Nachweis der Altersprüfung</td>
+        <td>Art. 6 Abs. 1 lit. c und lit. f</td>
+      </tr>
+      <tr>
+        <td>Telefonnummer</td>
+        <td>Nur wenn du sie hinterlegst; wird erst nach bestätigtem SMS-Code gespeichert. Der Code selbst nur als Hash</td>
+        <td>Eingabe durch dich</td>
+        <td>Kontosicherheit, Missbrauchsprävention</td>
+        <td>Art. 6 Abs. 1 lit. f</td>
+      </tr>
+      <tr>
+        <td>E-Mail-Bestätigung</td>
+        <td>Zeitpunkt der Bestätigung; offener Token nur als Hash, mit Ablaufzeit</td>
+        <td>Aktivierungslink</td>
+        <td>Sicherstellen, dass die Adresse dir gehört</td>
+        <td>Art. 6 Abs. 1 lit. b und lit. f</td>
+      </tr>
+      <tr>
+        <td>Geräte-ID</td>
+        <td>Eine zufällige, im Browser bzw. in der App erzeugte Kennung sowie der User-Agent</td>
+        <td>Client bei Registrierung und Login</td>
+        <td>Erkennen von Mehrfachkonten, Verhindern der Umgehung einer Sperre</td>
+        <td>Art. 6 Abs. 1 lit. f</td>
+      </tr>
+      <tr>
+        <td>Registrierungsversuche unter 18</td>
+        <td>Nur zufällige Geräte-ID und Zeitpunkt — kein Name, keine E-Mail, kein Geburtsdatum</td>
+        <td>Registrierungsformular</td>
+        <td>Verhindern, dass die Altersgrenze durchprobiert wird</td>
+        <td>Art. 6 Abs. 1 lit. c und lit. f</td>
+      </tr>
+      <tr>
+        <td>Nutzungsdaten</td>
+        <td>Swipes (Like/Pass), Matches, Blockierungen, Zeitpunkt der letzten Aktivität</td>
+        <td>Nutzung der App</td>
+        <td>Matching, Online-Anzeige, Sicherheit</td>
+        <td>Art. 6 Abs. 1 lit. b und lit. f</td>
+      </tr>
+      <tr>
+        <td>Chatnachrichten</td>
+        <td>Inhalt, Absender, Zeitstempel, Lesezeitpunkt. Zusätzlich die für den Empfänger bereinigte Fassung, wenn Links oder E-Mail-Adressen entfernt wurden</td>
+        <td>Nutzung des Chats</td>
+        <td>Zustellung, Schutz vor Phishing und Scam</td>
+        <td>Art. 6 Abs. 1 lit. b und lit. f</td>
+      </tr>
+      <tr>
+        <td>Moderationsmarkierungen</td>
+        <td>Markierung auffälliger Nachrichten samt Grund (etwa erkannter Scam-Begriff oder Link)</td>
+        <td>Automatischer Filter</td>
+        <td>Missbrauchsprävention</td>
+        <td>Art. 6 Abs. 1 lit. f, Art. 16 DSA</td>
+      </tr>
+      <tr>
+        <td>Meldungen</td>
+        <td>Wer wen mit welcher Begründung gemeldet hat, Aktenzeichen, Entscheidung und Begründungstext</td>
+        <td>Melde-Funktion, Meldeformular</td>
+        <td>Meldeverfahren nach Art. 16 DSA</td>
+        <td>Art. 6 Abs. 1 lit. c und lit. f</td>
+      </tr>
+      <tr>
+        <td>Moderationsentscheidungen</td>
+        <td>Maßnahme, Umfang, Dauer, zugrunde liegende Tatsachen, Anlass, Beteiligung automatisierter Mittel, Grundlage</td>
+        <td>Entscheidung der Moderation</td>
+        <td>Begründungspflicht nach Art. 17 DSA</td>
+        <td>Art. 6 Abs. 1 lit. c und lit. f</td>
+      </tr>
+      <tr>
+        <td>Zahlungsdaten</td>
+        <td>Abostatus, Stripe-Kunden-ID, Stripe-Abo-ID. <b>Keine Karten- oder Kontodaten bei uns</b></td>
+        <td>Stripe-Checkout</td>
+        <td>Abwicklung der Mitgliedschaft</td>
+        <td>Art. 6 Abs. 1 lit. b, für die Aufbewahrung lit. c</td>
+      </tr>
+      <tr>
+        <td>Einwilligungsnachweise</td>
+        <td>Art der Einwilligung, Fassung des Textes, Zeitpunkt, gegebenenfalls Widerrufszeitpunkt — <b>ohne IP-Adresse</b></td>
+        <td>Registrierung, Konto-Einstellungen</td>
+        <td>Nachweispflicht nach Art. 7 Abs. 1</td>
+        <td>Art. 6 Abs. 1 lit. c</td>
+      </tr>
+      <tr>
+        <td>Rücktrittserklärungen</td>
+        <td>Name, E-Mail, Vertragsbezug, Wortlaut der Erklärung, Datum und Uhrzeit</td>
+        <td>Online-Rücktrittsfunktion</td>
+        <td>Abwicklung und Nachweis nach § 13a FAGG</td>
+        <td>Art. 6 Abs. 1 lit. b und lit. c</td>
+      </tr>
+      <tr>
+        <td>Zugriffsstatistik</td>
+        <td>Ein Eintrag je Konto, Tag und Ländercode. <b>Keine IP-Adresse</b>; der Ländercode ist konstant „AT"</td>
+        <td>Angemeldete Nutzung</td>
+        <td>Betriebsstatistik (tagesaktive Nutzer)</td>
+        <td>Art. 6 Abs. 1 lit. f</td>
+      </tr>
+      <tr>
+        <td>Server-Logs</td>
+        <td>IP-Adresse, Zeitstempel, angefragter Pfad, User-Agent — auf Systemebene beim Webserver, ohne Zuordnung zu einem Konto</td>
+        <td>Automatisch beim Aufruf</td>
+        <td>Betrieb und Abwehr von Angriffen</td>
+        <td>Art. 6 Abs. 1 lit. f</td>
+      </tr>
+    </tbody>
   </table>
+  </div>
 
-  <h2>3. Zwecke und Rechtsgrundlagen (Art. 6 DSGVO)</h2>
+  <h2>3. Was wir ausdrücklich nicht tun</h2>
+  <ul>
+    <li><b>Keine Standortdaten.</b> Weder Browser noch App fragen eine
+      Geräteposition ab. Die Umkreissuche rechnet ausschließlich mit der
+      öffentlichen Adresse des Studios, das du selbst auswählst, und deinem
+      Suchradius.</li>
+    <li><b>Keine Cookies zu Analyse- oder Werbezwecken.</b> Wir setzen
+      überhaupt keine Cookies. Dein Anmelde-Token liegt im lokalen Speicher
+      (localStorage) deines Browsers und wird nur an unseren eigenen Server
+      geschickt. Ein Consent-Banner gibt es deshalb nicht — es gäbe nichts
+      einzuwilligen.</li>
+    <li><b>Kein Tracking, keine Analysewerkzeuge, keine Werbenetzwerke, kein
+      Profiling zu Werbezwecken.</b></li>
+    <li><b>Keine externen Schriften oder CDNs.</b> Alle Schriften und Bilder
+      liegen auf unserem eigenen Server. Bis zum 15. August 2026 wurden die
+      Schriften von Google geladen — dabei ging deine IP-Adresse an Google.
+      Das ist beendet, die Schriften liegen jetzt unter flexr.social.</li>
+    <li><b>Keine automatisierte Entscheidung im Sinne des Art. 22 DSGVO.</b>
+      Über jede Fotofreigabe, jede Alters- und Identitätsprüfung und jede
+      Maßnahme gegen ein Konto entscheidet ein Mensch.</li>
+    <li><b>Kein Verkauf und keine Weitergabe deiner Daten</b> an Dritte zu
+      deren eigenen Zwecken.</li>
+  </ul>
+
+  <h2>4. Sexuelle Orientierung — die besondere Kategorie</h2>
   <p>
-    Vertragserfüllung (Art. 6 Abs. 1 lit. b): Bereitstellung des Matching-Dienstes,
-    Abo-Abwicklung.<br>
-    Berechtigtes Interesse (Art. 6 Abs. 1 lit. f): Betrugs-/Missbrauchsprävention,
-    Sicherheit (Report/Block-Funktion).<br>
-    Einwilligung (Art. 6 Abs. 1 lit. a i. V. m. Art. 9 Abs. 2 lit. a): Verarbeitung der
-    sexuellen Orientierung über das Präferenzfeld (siehe Hinweis oben).
+    Aus deinem Geschlecht und dem gesuchten Geschlecht lässt sich die sexuelle
+    Orientierung ableiten. Das ist eine besondere Kategorie personenbezogener
+    Daten nach Art. 9 Abs. 1 DSGVO. Wir verarbeiten sie ausschließlich auf
+    Grundlage deiner <b>ausdrücklichen Einwilligung</b> (Art. 9 Abs. 2
+    lit. a DSGVO), die bei der Registrierung getrennt und für sich abgefragt
+    wird — nicht gemeinsam mit den AGB und nicht mit einer anderen Erklärung
+    vermischt.
+  </p>
+  <p>
+    <b>Was wir dazu speichern.</b> Art der Einwilligung, die Fassung der
+    Datenschutzerklärung, zu der du eingewilligt hast, und den Zeitpunkt.
+    Bewusst <b>keine IP-Adresse</b>: Für den Nachweis nach Art. 7 Abs. 1 ist
+    sie nicht erforderlich.
+  </p>
+  <p>
+    <b>Widerruf.</b> Du kannst die Einwilligung jederzeit mit Wirkung für die
+    Zukunft widerrufen — im Konto-Bereich unter „Einwilligungen", mit einem
+    Klick. Er darf nicht schwerer sein als die Erteilung (Art. 7 Abs. 3), und
+    er ist es nicht.
+  </p>
+  <p>
+    <b>Was der Widerruf bewirkt — ehrlich gesagt.</b> Geschlecht und gesuchtes
+    Geschlecht sind die Grundlage des Matchings. Ohne sie können wir dir
+    niemanden mehr vorschlagen und du erscheinst in keinem Deck. Dein Konto
+    bleibt bestehen, die Dating-Funktion aber leer. Wer die Angaben ganz los
+    werden will, löscht das Konto — dann werden sie mitgelöscht.
+  </p>
+  <p class="hint">
+    Zur Einordnung: Die Einwilligung ist Voraussetzung dafür, dass das Matching
+    funktioniert — insofern ist die Wahl faktisch eng. Wir stellen sie deshalb
+    nicht als beliebig widerrufbare Nebensache dar, sondern sagen genau, was
+    ihr Wegfall bedeutet. Ob dieser Aufbau der richtige ist, ist Gegenstand
+    einer laufenden rechtlichen Prüfung (siehe
+    <span class="mono">docs/privacy/age-verification-assessment.md</span> im
+    Quellcode).
   </p>
 
-  <h2>3a. Alters- und Identitätsprüfung</h2>
+  <h2>5. Alters- und Identitätsprüfung</h2>
   <p>
-    <b>Was geprüft wird.</b> Vor der Freischaltung eines Accounts prüfen wir einmalig,
-    ob der Nutzer mindestens 18 Jahre alt ist und ob die Verifizierung zu seinem Profil
-    gehört. Verarbeitet werden dafür: das Verifizierungs-Selfie, eine temporäre
-    Aufnahme eines amtlichen Lichtbildausweises, das bei der Registrierung angegebene
-    Geburtsdatum sowie der Verifizierungs-Status samt Prüfzeitpunkt.
+    <b>Was geprüft wird.</b> Vor der Freischaltung eines Kontos prüfen wir
+    einmalig, ob du mindestens 18 Jahre alt bist und ob die Verifizierung zu
+    deinem Profil gehört. Verarbeitet werden dafür das Verifizierungs-Selfie,
+    eine temporäre Aufnahme eines amtlichen Lichtbildausweises, dein
+    angegebenes Geburtsdatum und der Prüfstatus.
   </p>
   <p>
-    <b>Zwecke.</b> Altersprüfung und Verhinderung von Accounts Minderjähriger,
-    Prüfung der Plausibilität von Identität und Profil sowie Missbrauchs- und
-    Fake-Profil-Prävention.
+    <b>Kein biometrisches Verfahren.</b> Ein Mensch vergleicht Profilbild,
+    Selfie und Ausweisfoto durch Sichtvergleich und gleicht das Geburtsdatum
+    ab. Es kommt keine automatisierte Gesichtserkennung zum Einsatz, es werden
+    keine Gesichtsmerkmale berechnet, gespeichert oder abgeglichen, es wird
+    keine Texterkennung auf das Dokument angewendet, und die maschinenlesbare
+    Zone wird nicht ausgelesen. Ein externer Identifizierungsdienstleister ist
+    nicht eingebunden. Es entstehen keine biometrischen Daten im Sinne des
+    Art. 9 Abs. 1 DSGVO.
   </p>
   <p>
-    <b>Art der Prüfung — kein biometrisches Verfahren.</b> Die Prüfung erfolgt
-    ausschließlich manuell: Ein Mensch vergleicht Profilbild, Verifizierungs-Selfie
-    und Ausweisfoto durch Sichtvergleich und gleicht das Geburtsdatum ab. Es kommt
-    <b>keine automatisierte biometrische Gesichtserkennung</b> zum Einsatz, es werden
-    keine Gesichtsmerkmale berechnet, gespeichert oder mit einer Datenbank abgeglichen,
-    und es ist kein externer Identifizierungsdienstleister eingebunden. Es findet
-    keine automatisierte Entscheidung im Sinne des Art. 22 DSGVO statt.
+    <b>Datenminimierung.</b> Verlangt wird nur, was für die Prüfung nötig ist:
+    Lichtbild, Geburtsdatum und Dokumenttyp. Nicht benötigte Angaben auf dem
+    Dokument darfst du vor dem Hochladen schwärzen. Die Ausweisnummer und der
+    übrige Dokumentinhalt werden nicht ausgelesen und nicht gespeichert, und es
+    wird keine zusätzliche Kopie des Geburtsdatums aus dem Ausweis angelegt.
+    Die Rückseite des Dokuments wird nicht angefordert.
   </p>
   <p>
-    <b>Datenminimierung.</b> Es wird nur verlangt, was für die Prüfung nötig ist:
-    Lichtbild, Geburtsdatum, Dokumenttyp und die zur Plausibilitätsprüfung
-    erforderlichen Gültigkeitsangaben. Nicht benötigte Angaben auf dem Dokument
-    dürfen vor dem Hochladen geschwärzt werden. Ausweisnummer, maschinenlesbare
-    Zone und der übrige Dokumentinhalt werden nicht ausgelesen und nicht gespeichert;
-    es wird auch keine zusätzliche Kopie des Geburtsdatums aus dem Ausweis angelegt.
+    <b>Zugriff und Speicherort.</b> Die Ausweisaufnahmen liegen in einem
+    eigenen, nicht öffentlich abrufbaren Bereich des Objektspeichers. Sie
+    bekommen keine öffentliche Adresse; für die Prüfung werden ausschließlich
+    Links mit 60 Sekunden Gültigkeit erzeugt, die nur angemeldeten Prüfern
+    angezeigt werden.
   </p>
   <p>
-    <b>Zugriff und Speicherort.</b> Die Ausweisaufnahmen liegen in einem eigenen,
-    nicht öffentlich abrufbaren Bereich des Objektspeichers. Sie erhalten keine
-    öffentliche Adresse; für die Prüfung werden ausschließlich Links mit sehr kurzer
-    Gültigkeit erzeugt, die nur angemeldeten Prüfern angezeigt werden.
+    <b>Rechtsgrundlage.</b> Die Prüfung dient der Einhaltung des gesetzlich
+    gebotenen Jugendschutzes und der Sicherheit der Plattform; wir stützen sie
+    auf Art. 6 Abs. 1 lit. c und lit. f DSGVO. Sie ist Voraussetzung für die
+    Nutzung von FLEXR — deshalb stützen wir sie <b>nicht</b> auf eine
+    Einwilligung: Eine Einwilligung, ohne die der Dienst gar nicht nutzbar
+    wäre, wäre nicht freiwillig im Sinne des Art. 4 Z 11 DSGVO. Diesen Aufbau
+    haben wir am 15. August 2026 geändert; vorher war zusätzlich eine
+    „Einwilligung" abgefragt worden, die diesen Namen nicht verdiente.
   </p>
   <p>
-    <b>Rechtsgrundlage.</b> Die Prüfung ist Voraussetzung für die Nutzung von FLEXR
-    und dient der Einhaltung des Mindestalters sowie der Sicherheit der Plattform
-    (Art. 6 Abs. 1 lit. b und lit. f DSGVO). Für die Aufnahmen von Gesicht und
-    Ausweis holen wir zusätzlich eine ausdrückliche Einwilligung ein, die vor der
-    Aufnahme erteilt wird (Art. 6 Abs. 1 lit. a DSGVO); ohne sie kann der Account
-    nicht freigeschaltet werden. Die Einwilligung kann jederzeit mit Wirkung für die
-    Zukunft widerrufen werden — noch nicht geprüfte Aufnahmen lassen sich in der App
-    selbst zurückziehen und werden dann sofort gelöscht.
-  </p>
-  <p>
-    <b>Registrierungsversuche unter 18.</b> Wird bei der Registrierung ein
-    Geburtsdatum unter 18 Jahren angegeben, halten wir zum Schutz vor
-    systematischem Ausprobieren der Altersgrenze fest, dass ein solcher Versuch
-    stattgefunden hat — gespeichert werden dabei nur die zufällige Geräte-ID und
-    der Zeitpunkt, keine Namens-, Kontakt- oder Geburtsdaten. Diese Einträge werden
-    nur für ein kurzes Zeitfenster ausgewertet.
+    <b>Abbruch.</b> Noch nicht geprüfte Aufnahmen kannst du in der App
+    zurückziehen; sie werden dann sofort gelöscht. Ohne abgeschlossene Prüfung
+    wird das Konto nicht freigeschaltet.
   </p>
 
-  <h2>4. Empfänger / Auftragsverarbeiter</h2>
+  <h2>6. Empfänger</h2>
+  <div class="table-scroll">
   <table>
-    <tr><th>Dienst</th><th>Zweck</th><th>Sitz / Übermittlung</th></tr>
-    <tr><td>Cloudflare R2</td><td>Speicherung von Profilfotos; temporäre Speicherung von Verifizierungs-Selfie und Ausweisaufnahmen</td><td>Eastern Europe (EEUR) — EU, kein Drittstaatentransfer</td></tr>
-    <tr><td>Stripe</td><td>Zahlungsabwicklung, Abo-Verwaltung</td><td>USA/EU, Standardvertragsklauseln (SCC)</td></tr>
-    <tr><td>Contabo GmbH, Welfenstraße 22, 81541 München, Deutschland</td><td>Serverbetrieb (VPS)</td><td>Deutschland/EU</td></tr>
+    <thead>
+      <tr><th>Dienst</th><th>Wofür</th><th>Sitz und Übermittlung</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Contabo GmbH, Welfenstraße 22, 81541 München, Deutschland</td>
+        <td>Serverbetrieb (virtueller Server), Datenbank</td>
+        <td>Deutschland / EU</td>
+      </tr>
+      <tr>
+        <td>Cloudflare (Cloudflare, Inc. bzw. Cloudflare Germany GmbH)</td>
+        <td>Objektspeicher R2: Profilfotos; vorübergehend Verifizierungs-Selfie und Ausweisaufnahme</td>
+        <td>Cloudflare ist ein Anbieter mit Sitz in den USA. Eine Übermittlung in die USA ist nicht ausgeschlossen. Siehe den Hinweis unten.</td>
+      </tr>
+      <tr>
+        <td>Stripe</td>
+        <td>Zahlungsabwicklung, Verwaltung des Abos, Rechnungen</td>
+        <td>Stripe-Gesellschaften in Irland und den USA. Siehe den Hinweis unten.</td>
+      </tr>
+      <tr>
+        <td>Twilio</td>
+        <td>Versand der SMS mit dem Bestätigungscode — nur wenn du eine Telefonnummer hinterlegst</td>
+        <td>Anbieter mit Sitz in den USA. Übermittelt wird ausschließlich die Rufnummer und der Code.</td>
+      </tr>
+      <tr>
+        <td>E-Mail-Versand (SMTP-Anbieter)</td>
+        <td>Bestätigungs-, Rücktritts- und Melde-E-Mails</td>
+        <td>Wird beim Einrichten des Versands festgelegt.</td>
+      </tr>
+    </tbody>
   </table>
-  <p>Mit allen Auftragsverarbeitern bestehen Auftragsverarbeitungsverträge (Art. 28 DSGVO).</p>
+  </div>
 
-  <h2>5. Speicherdauer</h2>
+  <div class="box hint">
+    <h3>Offene Punkte, die wir nicht behaupten wollen</h3>
+    <p>
+      Ältere Fassungen dieser Erklärung enthielten zwei Aussagen, die wir nicht
+      belegen konnten. Wir haben sie entfernt, statt sie stehen zu lassen:
+    </p>
+    <ul>
+      <li><b>„Cloudflare R2 — Eastern Europe (EEUR), EU, kein
+        Drittstaatentransfer."</b> Cloudflare unterscheidet zwischen einem
+        bloßen Standort-Hinweis („location hint") und einer echten
+        EU-Jurisdiktion. Ein Standort-Hinweis ist keine Zusicherung, dass die
+        Daten die EU nicht verlassen. Solange die Konfiguration nicht auf eine
+        echte EU-Jurisdiktion umgestellt ist, sagen wir hier nichts anderes,
+        als dass eine Übermittlung in ein Drittland nicht ausgeschlossen ist.</li>
+      <li><b>„Mit allen Auftragsverarbeitern bestehen
+        Auftragsverarbeitungsverträge."</b> Für Contabo, Cloudflare, Stripe und
+        Twilio bestehen jeweils standardisierte Auftragsverarbeitungs-
+        bedingungen der Anbieter. Dass sie im Einzelfall wirksam einbezogen und
+        vollständig sind, wird derzeit geprüft. Eine pauschale Zusicherung
+        geben wir bis dahin nicht ab.</li>
+    </ul>
+    <p style="margin-bottom:0;">
+      Beides ist als offener Punkt dokumentiert und wird nachgezogen. Wenn du
+      wissen willst, wo das steht: <b>LEGAL_REVIEW.md</b> im Quellcode, Punkte
+      D-01 bis D-04. Sobald geklärt, aktualisieren wir diesen Abschnitt.
+    </p>
+  </div>
+
   <p>
-    Kontodaten: bis zur Löschung des Profils durch den Nutzer.<br>
-    Nach Löschung: 30 Tage Karenzzeit, danach vollständige und unwiderrufliche Löschung
-    aller Daten inklusive Fotos aus Cloudflare R2.<br>
-    Verifizierungs-Selfie und Ausweisaufnahmen: werden unmittelbar nach Abschluss
-    der Prüfung gelöscht — bei Freigabe ebenso wie bei Ablehnung. Fordern wir eine
-    neue Aufnahme an, wird die ersetzte Aufnahme sofort gelöscht. Aufnahmen aus
-    abgebrochenen Registrierungen, die nie zur Prüfung eingereicht wurden, werden
-    spätestens nach 14 Tagen automatisch entfernt; löscht ein Nutzer sein Konto,
-    werden sie sofort gelöscht und überdauern die 30-tägige Karenzzeit nicht. Schlägt
-    eine Löschung technisch fehl, bleibt der Vorgang als offen markiert und wird
-    automatisch erneut gelöscht. <b>Es verbleibt keine dauerhafte Kopie des
-    Ausweises.</b><br>
-    Verifizierungs-Status: Das Ergebnis der Prüfung, der Prüfgrund aus einer festen
-    Liste, die Zeitpunkte und eine Prüfkennung bleiben als Nachweis erhalten, dass
-    die Altersprüfung stattgefunden hat — ohne die geprüften Bilder und ohne
-    Ausweisdaten. Sie werden mit dem Konto gelöscht.<br>
-    Registrierungsversuche unter 18: Geräte-ID und Zeitpunkt, nur für ein kurzes
-    Zeitfenster relevant.<br>
-    Zahlungsbezogene Daten: gemäß gesetzlicher Aufbewahrungspflichten (i. d. R. 7 Jahre, §132 BAO).
+    Soweit Daten in die USA oder ein anderes Drittland übermittelt werden,
+    stützen sich die Anbieter auf Standardvertragsklauseln der Europäischen
+    Kommission (Art. 46 Abs. 2 lit. c DSGVO) und, soweit zertifiziert, auf den
+    Angemessenheitsbeschluss zum EU-US Data Privacy Framework (Art. 45 DSGVO).
+    Auf Anfrage nennen wir dir den für den jeweiligen Dienst maßgeblichen
+    Mechanismus.
+  </p>
+  <p>
+    Darüber hinaus geben wir Daten nur weiter, wenn wir dazu gesetzlich
+    verpflichtet sind oder es zur Verfolgung von Straftaten erforderlich ist —
+    das Verfahren dafür steht in den
+    <a href="/strafverfolgung.html">Richtlinien für Strafverfolgungsbehörden</a>.
   </p>
 
-  <h2>6. Betroffenenrechte</h2>
+  <h2>7. Wie lange wir speichern</h2>
   <p>
-    Auskunft (Art. 15), Berichtigung (Art. 16), Löschung (Art. 17), Einschränkung (Art. 18),
-    Datenübertragbarkeit (Art. 20), Widerspruch (Art. 21), Widerruf einer Einwilligung
-    mit Wirkung für die Zukunft (Art. 7 Abs. 3). Kontakt dafür: flexr.social@proton.me.
+    Pauschale Aussagen wie „alles wird 30 Tage nach der Kontolöschung gelöscht"
+    wären falsch: Zahlungsbezogene Aufzeichnungen unterliegen längeren
+    gesetzlichen Fristen, und ein behördliches Sicherungsersuchen hält die
+    Löschung an. Deshalb die Tabelle.
+  </p>
+  <div class="table-scroll">
+  <table>
+    <thead><tr><th>Kategorie</th><th>Aufbewahrung</th><th>Wodurch ausgelöst</th></tr></thead>
+    <tbody>
+      <tr><td>Konto- und Profildaten</td><td>bis zur Löschung durch dich, danach 30 Tage Karenz</td><td>Selbstlöschung im Konto-Bereich</td></tr>
+      <tr><td>Profilfotos und Vorschaubilder</td><td>mit dem Konto, spätestens 30 Tage nach der Löschung; einzeln gelöschte Fotos sofort</td><td>Löschung des Fotos oder des Kontos</td></tr>
+      <tr><td>Verifizierungs-Selfie</td><td>unmittelbar nach der Prüfentscheidung; bei Kontolöschung sofort, ohne die Karenzzeit abzuwarten</td><td>Entscheidung des Prüfers bzw. Kontolöschung</td></tr>
+      <tr><td>Ausweisaufnahme</td><td>unmittelbar nach der Prüfentscheidung; nie eingereichte Aufnahmen spätestens nach 14 Tagen</td><td>Entscheidung des Prüfers bzw. Ablauf der Frist</td></tr>
+      <tr><td>Prüfergebnis (Status, Grund, Zeitpunkte)</td><td>mit dem Konto</td><td>Kontolöschung</td></tr>
+      <tr><td>Chatnachrichten, Matches, Swipes, Blockierungen</td><td>mit dem Konto</td><td>Kontolöschung</td></tr>
+      <tr><td>Meldungen und Moderationsentscheidungen</td><td>mit dem Konto der beteiligten Person</td><td>Kontolöschung</td></tr>
+      <tr><td>Geräte-ID und User-Agent</td><td>mit dem Konto</td><td>Kontolöschung</td></tr>
+      <tr><td>Registrierungsversuche unter 18</td><td>ausgewertet werden nur die letzten 24 Stunden</td><td>Zeitablauf</td></tr>
+      <tr><td>Stripe-Kennungen und Abostatus</td><td>zahlungsbezogene Aufzeichnungen 7 Jahre (§ 132 BAO); die Kennungen selbst mit dem Konto</td><td>gesetzliche Aufbewahrungsfrist</td></tr>
+      <tr><td>Rücktrittserklärungen (§ 13a FAGG)</td><td>7 Jahre als Nachweis der Vertragsabwicklung</td><td>gesetzliche Aufbewahrungsfrist</td></tr>
+      <tr><td>Einwilligungsnachweise</td><td>solange die Einwilligung wirkt, danach als Widerrufsnachweis bis zur Kontolöschung</td><td>Kontolöschung</td></tr>
+      <tr><td>Meldungen über das öffentliche Formular</td><td>7 Jahre — sie hängen an keinem Konto und belegen die Erfüllung von Art. 16 DSA</td><td>Nachweispflicht</td></tr>
+      <tr><td>Server-Logs</td><td>kurzlebig auf Systemebene, ohne Zuordnung zu einem Konto</td><td>Rotation durch das Betriebssystem</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p>
+    <b>Legal Hold.</b> Sichert eine Behörde Daten (Abschnitt 7 der
+    <a href="/strafverfolgung.html">Strafverfolgungsrichtlinien</a>) oder liegt
+    ein Fall nach Abschnitt 7 der
+    <a href="/nutzungsrichtlinien.html">Nutzungsrichtlinien</a> vor, nehmen wir
+    die betroffenen Daten von den automatischen Löschroutinen aus, bis der
+    Anlass weggefallen ist; eine Sicherung gilt zunächst 90 Tage.
+  </p>
+  <p>
+    <b>Zu „unwiderruflich gelöscht".</b> Nach der Karenzzeit werden die
+    Datensätze und die zugehörigen Dateien im Objektspeicher gelöscht und sind
+    über die App nicht wiederherstellbar. Wir behaupten aber nicht, dass in
+    diesem Moment jede Kopie überall verschwunden ist: Sicherungskopien der
+    Datenbank und interne Kopien des Speicherdienstes können für kurze Zeit
+    weiterbestehen, bis sie im normalen Umlauf überschrieben werden. Aus solchen
+    Sicherungen werden keine Konten wiederhergestellt.
+  </p>
+  <!--
+    TODO_LEGAL / TODO_TECH: Die tatsächliche Aufbewahrungsdauer der
+    Datenbank-Sicherungen und der nginx-/journald-Logs auf dem VPS ist im
+    Repository nicht dokumentiert. Sie muss festgestellt und hier konkret
+    benannt werden. Siehe LEGAL_REVIEW.md, Punkte T-03 und T-04.
+  -->
+
+  <h2>8. Sicherheit</h2>
+  <ul>
+    <li>Übertragung ausschließlich über HTTPS.</li>
+    <li>Passwörter werden nur als bcrypt-Hash gespeichert, nie im Klartext.
+      Dasselbe gilt für SMS-Codes und die Token aus Bestätigungslinks.</li>
+    <li>Ausweisaufnahmen liegen in einem nicht öffentlich abrufbaren Bereich
+      und sind nur über Links mit 60 Sekunden Gültigkeit erreichbar.</li>
+    <li>Hochgeladene Bilder werden serverseitig auf tatsächliches Format und
+      Größe geprüft, nicht auf die Angabe des Clients hin.</li>
+    <li>Begrenzung der Anfragen pro Zeit gegen Ausprobieren von Passwörtern.</li>
+    <li>Der Verwaltungsbereich ist von den Nutzerkonten getrennt und für
+      Suchmaschinen gesperrt.</li>
+  </ul>
+  <p>
+    Eine Ende-zu-Ende-Verschlüsselung der Chats gibt es <b>nicht</b>.
+    Nachrichten liegen in der Datenbank in lesbarer Form — anders ließen sich
+    Meldungen nicht prüfen und der Schutz vor Scam nicht umsetzen. Schreib
+    nichts, was du nicht auch einem Moderator zeigen würdest.
   </p>
 
-  <h2>7. Beschwerderecht</h2>
+  <h2>9. Deine Rechte</h2>
   <p>
-    Österreichische Datenschutzbehörde (DSB), Barichgasse 40–42, 1030 Wien,
+    Dir stehen zu: Auskunft (Art. 15), Berichtigung (Art. 16), Löschung
+    (Art. 17), Einschränkung der Verarbeitung (Art. 18), Datenübertragbarkeit
+    (Art. 20), Widerspruch gegen Verarbeitungen auf Grundlage berechtigter
+    Interessen (Art. 21) und Widerruf erteilter Einwilligungen mit Wirkung für
+    die Zukunft (Art. 7 Abs. 3).
+  </p>
+  <p>
+    Vieles davon geht direkt in der App, ohne uns zu schreiben: Profildaten
+    bearbeiten, Fotos löschen, Einwilligungen einsehen und widerrufen, das
+    Konto löschen. Für alles andere schreib an
+    <a href="mailto:flexr.social@proton.me">flexr.social@proton.me</a>. Wir
+    antworten binnen eines Monats; bei aufwendigen Anfragen kann sich die
+    Frist um zwei Monate verlängern, worüber wir dich dann informieren.
+  </p>
+  <p>
+    Damit wir nicht versehentlich Daten an die falsche Person geben, beantworten
+    wir Auskunfts- und Löschanfragen zu einem Konto nur, wenn sie von der
+    hinterlegten E-Mail-Adresse kommen oder du dich anderweitig zuordnen lässt.
+  </p>
+
+  <h2>10. Beschwerderecht</h2>
+  <p>
+    Du kannst dich jederzeit bei einer Aufsichtsbehörde beschweren, insbesondere
+    bei der Österreichischen Datenschutzbehörde, Barichgasse 40–42, 1030 Wien,
     <a href="https://www.dsb.gv.at" target="_blank" rel="noopener">www.dsb.gv.at</a>.
   </p>
 
-  <h2>8. Keine Standortdaten</h2>
+  <h2>11. Pflicht zur Bereitstellung</h2>
   <p>
-    FLEXR erhebt keine Standortdaten. Die Umkreissuche rechnet ausschließlich mit
-    der öffentlichen Adresse des Studios, das du selbst im Profil auswählst, und
-    dem von dir eingestellten Suchradius. Weder Browser noch App fragen eine
-    Geräteposition ab.
+    Die Angaben in Punkt 2 (Zugangs-, Profil- und Präferenzdaten) und die
+    Alters- und Identitätsprüfung sind für die Nutzung von FLEXR erforderlich.
+    Ohne sie kommt kein Konto zustande. Freiwillig sind die Bio, weitere Fotos
+    über das erste hinaus und die Telefonnummer.
   </p>
 
-  <h2>9. Keine Cookies / Tracking (Stand aktueller Code)</h2>
+  <h2>12. Änderungen dieser Erklärung</h2>
   <p>
-    Der Login-Token wird im lokalen Speicher des Browsers gespeichert.
+    Wir passen diese Erklärung an, wenn sich die Verarbeitung ändert. Maßgeblich
+    ist die jeweils hier veröffentlichte Fassung; der Fassungsstand steht oben.
+    Bei wesentlichen Änderungen informieren wir dich zusätzlich per E-Mail oder
+    in der App. Änderungen, die eine Einwilligung betreffen, holen wir neu ein —
+    eine alte Einwilligung deckt keinen neuen Text.
   </p>
+  </main>
 
-  <div class="nav-legal">
+  <nav class="nav-legal" aria-label="Rechtliche Seiten">
     <a href="/faq.html">FAQ</a>
     <a href="/impressum.html">Impressum</a>
     <a href="/agb.html">AGB</a>
+    <a href="/widerruf.html">Widerruf</a>
     <a href="/nutzungsrichtlinien.html">Nutzungsrichtlinien</a>
     <a href="/sicherheit.html">Sicherheit</a>
+    <a href="/meldung.html">Inhalt melden</a>
     <a href="/strafverfolgung.html">Strafverfolgung</a>
-  </div>
+  </nav>
 </div>
 </body>
 </html>

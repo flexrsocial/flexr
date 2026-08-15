@@ -5,12 +5,13 @@ from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request,
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
+from .. import consents
 from ..age import UNDERAGE_MESSAGE, age_on, is_adult
 from ..database import get_db
 from ..email_verification import TOKEN_TTL_HOURS, build_link, issue
 from ..geo import city_for_plz
 from ..mailer import send_verification_email
-from ..models import ModerationAction, UnderageSignupAttempt, User, UserDevice
+from ..models import ConsentType, ModerationAction, UnderageSignupAttempt, User, UserDevice
 from ..moderation import restriction_detail
 from ..rate_limit import limiter
 from ..safety_checks import check_public_text, is_disposable_email
@@ -233,7 +234,10 @@ def register(
         gym=payload.gym,
         bio=payload.bio,
         sensitive_data_consent_at=consent_timestamp,
-        withdrawal_waiver_consent_at=consent_timestamp,
+        # withdrawal_waiver_consent_at wird bewusst NICHT mehr gesetzt: Bei der
+        # Registrierung entsteht kein entgeltlicher Vertrag (kein Zahlungsmittel,
+        # keine automatische Umwandlung des Probemonats), also gibt es auch kein
+        # Rücktrittsrecht, auf das verzichtet werden könnte. Siehe models.User.
         # Neue Konten durchlaufen die Alters- und Identitätsprüfung, bevor sie
         # nutzbar werden. trial_ends_at wird bei der Freischaltung neu gesetzt
         # (verification_service.activate_account), damit die Prüfzeit nicht vom
@@ -245,6 +249,14 @@ def register(
     db.add(user)
     db.commit()
     db.refresh(user)
+
+    # Versionierter Nachweis: welche Fassung der Nutzer akzeptiert bzw. worin er
+    # eingewilligt hat. Der Zeitstempel am Nutzer bleibt zusätzlich bestehen.
+    # Die AGB-Annahme steht bewusst als eigener Eintrag daneben - sie ist
+    # Vertragsschluss, keine datenschutzrechtliche Einwilligung.
+    consents.grant(db, user, ConsentType.sensitive_data, at=consent_timestamp, commit=False)
+    consents.grant(db, user, ConsentType.terms, at=consent_timestamp, commit=False)
+    db.commit()
 
     record_device(db, user.id, request)
 

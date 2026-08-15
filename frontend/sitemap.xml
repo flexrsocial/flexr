@@ -1,50 +1,67 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Nur oeffentliche, indexierbare Seiten. Bewusst NICHT enthalten:
+  /app/ und alles darunter (noindex), /admin.html, /api/, der
+  Bestaetigungspfad /mail-bestaetigen und alle Checkout-Rueckwege.
+-->
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://flexr.social/</loc>
-    <lastmod>2026-08-04</lastmod>
+    <lastmod>2026-08-15</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
     <loc>https://flexr.social/faq.html</loc>
-    <lastmod>2026-07-24</lastmod>
+    <lastmod>2026-08-15</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://flexr.social/impressum.html</loc>
-    <lastmod>2026-07-24</lastmod>
-    <changefreq>yearly</changefreq>
-    <priority>0.3</priority>
-  </url>
-  <url>
-    <loc>https://flexr.social/agb.html</loc>
-    <lastmod>2026-08-03</lastmod>
-    <changefreq>yearly</changefreq>
-    <priority>0.3</priority>
-  </url>
-  <url>
-    <loc>https://flexr.social/nutzungsrichtlinien.html</loc>
-    <lastmod>2026-08-03</lastmod>
-    <changefreq>yearly</changefreq>
-    <priority>0.4</priority>
+    <priority>0.7</priority>
   </url>
   <url>
     <loc>https://flexr.social/sicherheit.html</loc>
-    <lastmod>2026-08-03</lastmod>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://flexr.social/nutzungsrichtlinien.html</loc>
+    <lastmod>2026-08-15</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://flexr.social/strafverfolgung.html</loc>
-    <lastmod>2026-08-03</lastmod>
+    <loc>https://flexr.social/meldung.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://flexr.social/widerruf.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.4</priority>
+  </url>
+  <url>
+    <loc>https://flexr.social/agb.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.4</priority>
+  </url>
+  <url>
+    <loc>https://flexr.social/datenschutz.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.4</priority>
+  </url>
+  <url>
+    <loc>https://flexr.social/impressum.html</loc>
+    <lastmod>2026-08-15</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
   <url>
-    <loc>https://flexr.social/datenschutz.html</loc>
-    <lastmod>2026-07-24</lastmod>
+    <loc>https://flexr.social/strafverfolgung.html</loc>
+    <lastmod>2026-08-15</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>

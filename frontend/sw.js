@@ -4,8 +4,13 @@
 // gecacht.
 // Bei jedem Icon-Wechsel gemeinsam hochzaehlen: hier, in index.html und in
 // manifest.json - sonst bleibt das alte Icon im Browser-Cache haengen.
-const CACHE = 'flexr-shell-v5';
-const SHELL = ['/', '/index.html', '/manifest.json', '/favicon.ico?v=4',
+const CACHE = 'flexr-shell-v6';
+// Seit dem 15.08.2026 liegt die App unter /app/, an der Wurzel steht die
+// oeffentliche Landingpage. Beide gehoeren in die Shell: die Landingpage,
+// weil sie der Einstieg ist, die App, weil sie offline funktionieren soll.
+const SHELL = ['/', '/index.html', '/app/', '/app/index.html',
+               '/manifest.json', '/favicon.ico?v=4', '/legal.css?v=1',
+               '/fonts/work-sans.woff2?v=1', '/fonts/oswald.woff2?v=1',
                '/icons/icon-192.png?v=4', '/icons/icon-512.png?v=4'];
 
 self.addEventListener('install', (event) => {
@@ -37,6 +42,9 @@ self.addEventListener('fetch', (event) => {
         }
         return resp;
       })
-      .catch(() => caches.match(event.request).then((hit) => hit || caches.match('/index.html')))
+      // Offline-Rueckfall: Wer in der App war, soll die App sehen, nicht die
+      // Landingpage - sonst landet er beim Marketing statt bei seinen Chats.
+      .catch(() => caches.match(event.request).then((hit) =>
+        hit || caches.match(url.pathname.startsWith('/app') ? '/app/index.html' : '/index.html')))
   );
 });

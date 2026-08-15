@@ -178,3 +178,118 @@ def send_verification_email(email: str, name: str, link: str, ttl_hours: int = 2
         html_body=_verify_html(name, link, ttl_hours),
     )
 
+
+# ---------------------------------------------------------------------------
+# Rücktrittsbestätigung (§ 13a Abs. 4 FAGG)
+#
+# Die Bestätigung muss auf einem dauerhaften Datenträger erfolgen und den
+# Inhalt der Erklärung samt Datum und Uhrzeit wiedergeben. Deshalb steht der
+# Wortlaut hier vollständig in der Mail und nicht nur ein "Wir haben Ihren
+# Widerruf erhalten".
+# ---------------------------------------------------------------------------
+
+WITHDRAWAL_SUBJECT = "Bestätigung deines Rücktritts ({reference}) — FLEXR"
+
+
+def _withdrawal_text(
+    name: str,
+    reference: str,
+    received_at: str,
+    declaration_text: str,
+    contract_reference: str | None,
+) -> str:
+    from . import legal
+
+    vertrag = contract_reference or "— keine Angabe —"
+    return f"""Hallo {name},
+
+deine Rücktrittserklärung ist bei uns eingegangen. Diese Mail ist die
+Bestätigung nach § 13a Abs. 4 FAGG — bewahre sie auf.
+
+  Aktenzeichen:      {reference}
+  Eingegangen am:    {received_at} (Uhrzeit in MEZ/MESZ)
+  Vertrag/Konto:     {vertrag}
+
+Wortlaut deiner Erklärung:
+
+{declaration_text}
+
+Was jetzt passiert: Wir prüfen die Erklärung und wickeln einen bereits
+bezahlten Zeitraum anteilig ab. Bereits geleistete Zahlungen erstatten wir
+über dasselbe Zahlungsmittel, mit dem du bezahlt hast.
+
+Wichtig, damit nichts durcheinandergerät: Ein Rücktritt ist etwas anderes als
+eine Kündigung. Wenn du zusätzlich willst, dass ein laufendes Abo nicht weiter
+verlängert wird, beende es bitte auch unter "Abo verwalten / kündigen" in
+deinem Konto.
+
+Fragen? Antworte einfach auf diese Mail.
+
+{legal.OPERATOR_NAME}
+{legal.OPERATOR_LEGAL_FORM}, {legal.OPERATOR_ROLE}
+{legal.OPERATOR_STREET}, {legal.OPERATOR_ZIP} {legal.OPERATOR_CITY}
+{legal.OPERATOR_EMAIL}
+"""
+
+
+def send_withdrawal_confirmation(
+    email: str,
+    name: str,
+    reference: str,
+    received_at: str,
+    declaration_text: str,
+    contract_reference: str | None = None,
+) -> bool:
+    """Unverzügliche Bestätigung einer Rücktrittserklärung."""
+    return send_email(
+        to_address=email,
+        subject=WITHDRAWAL_SUBJECT.format(reference=reference),
+        text_body=_withdrawal_text(
+            name, reference, received_at, declaration_text, contract_reference
+        ),
+    )
+
+
+# ---------------------------------------------------------------------------
+# Empfangsbestätigung einer DSA-Meldung (Art. 16 Abs. 4)
+# ---------------------------------------------------------------------------
+
+NOTICE_SUBJECT = "Deine Meldung an FLEXR ({reference})"
+
+
+def _notice_text(reference: str, received_at: str, category_label: str) -> str:
+    from . import legal
+
+    return f"""Hallo,
+
+deine Meldung ist bei uns eingegangen.
+
+  Aktenzeichen:   {reference}
+  Eingegangen am: {received_at}
+  Kategorie:      {category_label}
+
+Ein Mensch sieht sich die Meldung an — in der Regel binnen 72 Stunden, bei
+Gefahr für eine Person sofort. Du bekommst danach eine begründete Entscheidung
+an diese Adresse.
+
+Diese Bestätigung erfolgt nach Art. 16 Abs. 4 der Verordnung (EU) 2022/2065
+(Gesetz über digitale Dienste). Wenn du der Entscheidung später widersprechen
+willst, genügt eine formlose Antwort auf diese Mail unter Angabe des
+Aktenzeichens.
+
+{legal.OPERATOR_NAME}
+{legal.OPERATOR_LEGAL_FORM}, {legal.OPERATOR_ROLE}
+{legal.OPERATOR_EMAIL}
+"""
+
+
+def send_notice_acknowledgement(
+    email: str, reference: str, received_at: str, category_label: str
+) -> bool:
+    """Empfangsbestätigung an den Melder, sofern er eine Adresse angegeben hat."""
+    return send_email(
+        to_address=email,
+        subject=NOTICE_SUBJECT.format(reference=reference),
+        text_body=_notice_text(reference, received_at, category_label),
+    )
+
