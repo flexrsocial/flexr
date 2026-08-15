@@ -73,7 +73,6 @@ class AuthRepository @Inject constructor(
         gymLabel: String,
         bio: String?,
         consentSensitiveData: Boolean,
-        consentWithdrawalWaiver: Boolean,
     ) {
         val response = apiCall {
             api.register(
@@ -88,7 +87,6 @@ class AuthRepository @Inject constructor(
                     gym = gymLabel,
                     bio = bio?.trim()?.takeIf { it.isNotEmpty() },
                     consentSensitiveData = consentSensitiveData,
-                    consentWithdrawalWaiver = consentWithdrawalWaiver,
                 ),
             )
         }

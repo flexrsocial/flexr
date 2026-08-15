@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Inhalt melden — FLEXR</title>
+<meta name="description" content="Melde rechtswidrige Inhalte auf FLEXR — auch ohne Konto. Meldeverfahren nach Art. 16 DSA mit Aktenzeichen, Empfangsbestätigung und begründeter Entscheidung.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://flexr.social/meldung.html">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="stylesheet" href="/legal.css?v=1">
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="/">← zurück zu FLEXR</a>
+
+  <main>
+  <h1>Inhalt melden</h1>
+  <p class="lead">Melde- und Abhilfeverfahren nach Art. 16 der Verordnung (EU) 2022/2065 (DSA)</p>
+  <p class="stand">Stand: 15. August 2026</p>
+
+  <p class="en">
+    English: Use this form to report allegedly illegal content on FLEXR. You do
+    not need an account. Reports may be submitted in German or English.
+  </p>
+
+  <div class="box alarm">
+    <h3>Bei akuter Gefahr zuerst den Notruf</h3>
+    <p style="margin-bottom:0;">
+      Ist eine Person in unmittelbarer Gefahr, wähle <b>133</b> (Polizei) oder
+      <b>112</b> (Euronotruf). Dieses Formular ersetzt keine Anzeige und wird
+      nicht rund um die Uhr überwacht.
+    </p>
+  </div>
+
+  <h2>Wer melden kann</h2>
+  <p>
+    Jede Person und jede Einrichtung — <b>ein Konto brauchst du nicht</b>. Wenn
+    du angemeldet bist, geht es schneller über das Flaggen-Symbol direkt im
+    Profil oder im Chat; das Ergebnis siehst du dann unter „Meine Meldungen" im
+    Konto-Bereich. Dieses Formular ist der förmliche Weg und steht allen offen,
+    etwa wenn deine Fotos hier ohne dein Wissen verwendet werden.
+  </p>
+
+  <h2>Was danach passiert</h2>
+  <ol class="steps">
+    <li><b>Aktenzeichen und Empfangsbestätigung.</b> Du bekommst sofort ein
+      Aktenzeichen angezeigt und, sofern du eine Adresse angegeben hast, eine
+      Bestätigung per E-Mail.</li>
+    <li><b>Prüfung durch einen Menschen.</b> In der Regel binnen 72 Stunden.
+      Geht es um Gefahr für eine Person, um Minderjährige oder um
+      Missbrauchsdarstellungen: vorrangig, spätestens binnen 24 Stunden.</li>
+    <li><b>Begründete Entscheidung.</b> Du erfährst, ob wir eingeschritten sind
+      und warum — nicht bloß „geprüft". Wir sagen dir dabei auch, ob bei der
+      Erkennung automatisierte Mittel beteiligt waren.</li>
+    <li><b>Widerspruch.</b> Bist du mit der Entscheidung nicht einverstanden,
+      genügt eine formlose Antwort mit dem Aktenzeichen. Wir prüfen erneut und
+      antworten begründet. Der Rechtsweg bleibt dir unbenommen.</li>
+  </ol>
+
+  <h2>Meldeformular</h2>
+  <p class="hint">
+    Felder mit <span aria-hidden="true">*</span> sind Pflicht. Je genauer du
+    den Inhalt bezeichnest, desto eher können wir etwas tun — „ein Profil hat
+    mich beleidigt" lässt sich ohne Namen und Zeitpunkt nicht prüfen.
+  </p>
+
+  <form id="meldeForm" novalidate>
+    <label for="m-category">Worum geht es? <span aria-hidden="true">*</span></label>
+    <select id="m-category" name="category" required>
+      <option value="" disabled selected>Bitte wählen</option>
+      <option value="csam">Darstellung sexuellen Kindesmissbrauchs</option>
+      <option value="minor">Mutmaßlich minderjährige Person</option>
+      <option value="trafficking">Menschenhandel oder sexuelle Ausbeutung</option>
+      <option value="threat">Drohung oder Gefahr für Leib und Leben</option>
+      <option value="sexual_content">Nicht einvernehmliche intime Aufnahmen</option>
+      <option value="impersonation">Identitätsmissbrauch, meine Fotos werden verwendet</option>
+      <option value="fraud">Betrug, Erpressung, Scam</option>
+      <option value="hate">Hass, Verhetzung, Diskriminierung</option>
+      <option value="ip_infringement">Urheber- oder Kennzeichenrecht</option>
+      <option value="data_protection">Verstoß gegen Datenschutzrecht</option>
+      <option value="other_illegal">Sonstiger mutmaßlich rechtswidriger Inhalt</option>
+    </select>
+
+    <label for="m-reference">Wo genau? <span aria-hidden="true">*</span></label>
+    <input type="text" id="m-reference" name="content_reference" required maxlength="500"
+           placeholder="Profilname, Konto-ID, Chat mit Datum und ungefährer Uhrzeit">
+    <p class="hint">
+      Art. 16 Abs. 2 lit. b DSA verlangt die genaue elektronische Fundstelle.
+      Am besten: Profilname <i>und</i> Zeitpunkt.
+    </p>
+
+    <label for="m-explanation">Warum hältst du das für rechtswidrig? <span aria-hidden="true">*</span></label>
+    <textarea id="m-explanation" name="explanation" required minlength="30" maxlength="5000"
+              placeholder="Beschreibe, was passiert ist und woraus sich die Rechtswidrigkeit ergibt. Mindestens ein paar Sätze."></textarea>
+    <p class="hint">Mindestens 30 Zeichen — kürzer lässt sich eine Meldung nicht prüfen.</p>
+
+    <div id="m-contact">
+      <label for="m-name">Dein Name <span aria-hidden="true">*</span></label>
+      <input type="text" id="m-name" name="reporter_name" maxlength="120"
+             autocomplete="name" placeholder="Vor- und Nachname">
+
+      <label for="m-email">Deine E-Mail-Adresse <span aria-hidden="true">*</span></label>
+      <input type="email" id="m-email" name="reporter_email"
+             autocomplete="email" placeholder="du@example.com">
+      <p class="hint">
+        Nur, um dir Eingang und Entscheidung mitzuteilen. Wir geben deine
+        Angaben nicht an die gemeldete Person weiter.
+      </p>
+    </div>
+
+    <!-- Wird nur bei der Ausnahmekategorie des Art. 16 Abs. 3 DSA eingeblendet. -->
+    <div class="box hint" id="m-anon" style="display:none;">
+      <p style="margin:0;">
+        <b>Diese Meldung darfst du anonym abgeben.</b> Art. 16 Abs. 3 DSA
+        verlangt bei Darstellungen sexuellen Kindesmissbrauchs ausdrücklich
+        keine Kontaktangaben. Lässt du die Felder frei, können wir dir
+        allerdings weder den Eingang noch die Entscheidung mitteilen —
+        notiere dir dann bitte das Aktenzeichen.
+      </p>
+    </div>
+
+    <div class="check">
+      <input type="checkbox" id="m-goodfaith" name="good_faith">
+      <span>
+        <label for="m-goodfaith" style="display:inline; margin:0; font-size:14px; color:var(--chalk); font-weight:400;">
+          Ich erkläre in gutem Glauben, dass meine Angaben nach bestem Wissen
+          richtig und vollständig sind. <span aria-hidden="true">*</span>
+        </label>
+      </span>
+    </div>
+
+    <div class="err" id="m-err" role="alert" aria-live="assertive"></div>
+
+    <button type="submit" class="btn" id="m-submit">Meldung absenden</button>
+  </form>
+
+  <div class="result" id="m-result" role="status" aria-live="polite">
+    <div class="box" style="border-color:var(--lime);">
+      <h3>Meldung eingegangen</h3>
+      <p id="m-result-msg"></p>
+      <p><b>Dein Aktenzeichen:</b></p>
+      <pre id="m-result-ref"></pre>
+      <p class="hint" style="margin-bottom:0;">
+        Notiere es dir. Für Rückfragen oder einen Widerspruch genügt eine
+        formlose E-Mail an flexr.social@proton.me mit diesem Aktenzeichen.
+      </p>
+    </div>
+  </div>
+
+  <h2>Missbräuchliche Meldungen</h2>
+  <p>
+    Wer wiederholt offensichtlich unbegründete Meldungen abgibt, muss damit
+    rechnen, dass wir die Bearbeitung seiner Meldungen nach vorheriger Warnung
+    für eine angemessene Zeit aussetzen (Art. 23 Abs. 2 DSA). Eine bewusst
+    falsche Meldung kann darüber hinaus rechtliche Folgen haben.
+  </p>
+
+  <h2>Behörden</h2>
+  <p>
+    Behördliche Auskunfts-, Sicherungs- und Notfallersuchen laufen nicht über
+    dieses Formular, sondern über das Verfahren in den
+    <a href="/strafverfolgung.html">Richtlinien für Strafverfolgungsbehörden</a>.
+  </p>
+  </main>
+
+  <nav class="nav-legal" aria-label="Rechtliche Seiten">
+    <a href="/faq.html">FAQ</a>
+    <a href="/impressum.html">Impressum</a>
+    <a href="/datenschutz.html">Datenschutz</a>
+    <a href="/agb.html">AGB</a>
+    <a href="/widerruf.html">Widerruf</a>
+    <a href="/nutzungsrichtlinien.html">Nutzungsrichtlinien</a>
+    <a href="/sicherheit.html">Sicherheit</a>
+    <a href="/strafverfolgung.html">Strafverfolgung</a>
+  </nav>
+</div>
+
+<script>
+(function(){
+  var form     = document.getElementById('meldeForm');
+  var kategorie= document.getElementById('m-category');
+  var kontakt  = document.getElementById('m-contact');
+  var anonBox  = document.getElementById('m-anon');
+  var submit   = document.getElementById('m-submit');
+  var err      = document.getElementById('m-err');
+  var result   = document.getElementById('m-result');
+
+  // Art. 16 Abs. 3 DSA: Bei Missbrauchsdarstellungen Minderjähriger verlangt
+  // der DSA keine Identifizierung des Melders. Nur dort werden die
+  // Kontaktfelder freiwillig.
+  var ANONYM_ERLAUBT = ['csam'];
+
+  function darfAnonym(){ return ANONYM_ERLAUBT.indexOf(kategorie.value) !== -1; }
+
+  kategorie.addEventListener('change', function(){
+    var anon = darfAnonym();
+    anonBox.style.display = anon ? 'block' : 'none';
+    // Die Felder bleiben sichtbar - wer will, gibt sie trotzdem an und bekommt
+    // dann auch eine Entscheidung zugestellt.
+    kontakt.querySelectorAll('span[aria-hidden]').forEach(function(stern){
+      stern.style.display = anon ? 'none' : 'inline';
+    });
+  });
+
+  function fehler(text){
+    err.textContent = text;
+    submit.disabled = false;
+    submit.textContent = 'Meldung absenden';
+  }
+
+  form.addEventListener('submit', async function(ev){
+    ev.preventDefault();
+    err.textContent = '';
+
+    var name  = document.getElementById('m-name').value.trim();
+    var email = document.getElementById('m-email').value.trim();
+    var text  = document.getElementById('m-explanation').value.trim();
+    var ref   = document.getElementById('m-reference').value.trim();
+
+    if(!kategorie.value){ return fehler('Bitte wähle aus, worum es geht.'); }
+    if(!ref){            return fehler('Bitte gib an, wo genau der Inhalt zu finden ist.'); }
+    if(text.length < 30){ return fehler('Bitte beschreibe in mindestens 30 Zeichen, warum du den Inhalt für rechtswidrig hältst.'); }
+    if(!document.getElementById('m-goodfaith').checked){
+      return fehler('Ohne die Erklärung in gutem Glauben können wir die Meldung nicht bearbeiten.');
+    }
+    if(!darfAnonym() && (!name || !email)){
+      return fehler('Für diese Kategorie brauchen wir Name und E-Mail-Adresse, damit wir dir Eingang und Entscheidung mitteilen können.');
+    }
+
+    submit.disabled = true;
+    submit.textContent = 'Wird gesendet …';
+
+    try {
+      var resp = await fetch('/api/notices', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+          category: kategorie.value,
+          content_reference: ref,
+          explanation: text,
+          reporter_name: name || null,
+          reporter_email: email || null,
+          good_faith: true
+        })
+      });
+      var body = await resp.json();
+      if(!resp.ok){
+        var detail = body && body.detail;
+        if(Array.isArray(detail) && detail.length){ detail = detail[0].msg; }
+        return fehler(typeof detail === 'string' ? detail
+          : 'Die Meldung konnte nicht entgegengenommen werden. Schick sie uns '
+            + 'stattdessen per E-Mail an flexr.social@proton.me.');
+      }
+      document.getElementById('m-result-msg').textContent = body.message;
+      document.getElementById('m-result-ref').textContent = body.reference;
+      form.style.display   = 'none';
+      result.style.display = 'block';
+      result.scrollIntoView({behavior: 'smooth', block: 'start'});
+    } catch(e){
+      fehler('Keine Verbindung zum Server. Schick uns die Meldung stattdessen '
+           + 'per E-Mail an flexr.social@proton.me.');
+    }
+  });
+})();
+</script>
+</body>
+</html>

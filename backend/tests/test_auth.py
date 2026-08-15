@@ -139,7 +139,18 @@ def test_register_requires_sensitive_data_consent(client):
     assert resp.status_code == 422
 
 
-def test_register_requires_withdrawal_waiver_consent(client):
+def test_register_ignores_withdrawal_waiver_field(client):
+    """Der frühere Zwangs-Haken "ich verliere mein Rücktrittsrecht" ist weg.
+
+    Bei der Registrierung entsteht kein entgeltlicher Vertrag - kein
+    Zahlungsmittel, keine automatische Umwandlung des Probemonats. Damit gibt es
+    kein Rücktrittsrecht, auf das verzichtet werden könnte, und die Erklärung
+    war gegenstandslos.
+
+    Ausgelieferte App-Fassungen schicken das Feld weiter mit. Es darf die
+    Registrierung deshalb weder blockieren noch irgendetwas bewirken - egal mit
+    welchem Wert.
+    """
     resp = client.post(
         "/api/auth/register",
         json={
@@ -155,16 +166,60 @@ def test_register_requires_withdrawal_waiver_consent(client):
             "consent_withdrawal_waiver": False,
         },
     )
-    assert resp.status_code == 422
+    assert resp.status_code == 200
+
+    db = TestingSessionLocal()
+    try:
+        user = db.query(User).filter(User.email == "frank@example.com").first()
+        assert user.withdrawal_waiver_consent_at is None
+    finally:
+        db.close()
 
 
-def test_register_stores_consent_timestamps(client):
+def test_register_works_without_withdrawal_waiver_field(client):
+    """Neue Clients lassen das Feld ganz weg - das muss genügen."""
+    resp = client.post(
+        "/api/auth/register",
+        json={
+            "email": "frida@example.com",
+            "password": "supersecret123",
+            "name": "Frida",
+            "birthdate": "2000-11-02",
+            "plz": "1010",
+            "city": "Wien",
+            "gender": "frau",
+            "gym": "McFit",
+            "consent_sensitive_data": True,
+        },
+    )
+    assert resp.status_code == 200
+
+
+def test_register_stores_versioned_consents(client):
+    """Art. 7 Abs. 1 DSGVO: nachweisbar muss sein, WOZU eingewilligt wurde.
+
+    Ein Zeitstempel allein reicht dafür nicht - es braucht die Fassung des
+    Textes. Der Zeitstempel am Nutzer bleibt zusätzlich bestehen.
+    """
+    from app import legal
+    from app.models import Consent
+
     register_user(client, "grace@example.com")
     db = TestingSessionLocal()
     try:
         user = db.query(User).filter(User.email == "grace@example.com").first()
         assert user.sensitive_data_consent_at is not None
-        assert user.withdrawal_waiver_consent_at is not None
+
+        eintraege = {
+            c.consent_type: c
+            for c in db.query(Consent).filter(Consent.user_id == user.id).all()
+        }
+        # Art.-9-Einwilligung und AGB-Annahme werden getrennt festgehalten -
+        # die Annahme der AGB ist Vertragsschluss, keine Einwilligung.
+        assert set(eintraege) == {"sensitive_data", "terms"}
+        assert eintraege["sensitive_data"].version == legal.PRIVACY_VERSION
+        assert eintraege["terms"].version == legal.TERMS_VERSION
+        assert all(c.revoked_at is None for c in eintraege.values())
     finally:
         db.close()
 

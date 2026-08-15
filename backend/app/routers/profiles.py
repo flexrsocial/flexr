@@ -4,11 +4,14 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
+from .. import consents
 from ..database import get_db
 from ..geo import city_for_plz
-from ..models import GYM_CHOICES, Photo, PhotoStatus, User
+from ..models import GYM_CHOICES, ConsentType, Photo, PhotoStatus, User
 from ..schemas import (
     AddPhotoRequest,
+    ConsentOut,
+    ConsentRevokeRequest,
     DeleteAccountRequest,
     MyProfileOut,
     PresignPhotoRequest,
@@ -73,6 +76,76 @@ def update_my_profile(
     db.commit()
     db.refresh(current_user)
     return current_user
+
+
+@router.get("/me/consents", response_model=list[ConsentOut])
+def list_my_consents(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Welche Einwilligungen wann und zu welcher Fassung erteilt wurden.
+
+    Teil der Auskunft nach Art. 15 DSGVO und Voraussetzung dafür, dass ein
+    Widerruf überhaupt gezielt möglich ist.
+    """
+    return [
+        ConsentOut(
+            consent_type=entry.consent_type,
+            version=entry.version,
+            granted_at=entry.granted_at,
+            revoked_at=entry.revoked_at,
+            active=entry.is_active,
+        )
+        for entry in consents.history(db, current_user.id)
+    ]
+
+
+@router.post("/me/consents/revoke")
+def revoke_my_consent(
+    payload: ConsentRevokeRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Widerruf einer Einwilligung mit Wirkung für die Zukunft (Art. 7 Abs. 3).
+
+    Der Widerruf darf nicht schwerer sein als die Erteilung - angehakt wurde
+    mit einem Klick, also geht auch das hier mit einem Klick, statt über eine
+    Mail an den Support.
+
+    Was der Widerruf der Art.-9-Einwilligung bedeutet, wird ehrlich
+    zurückgemeldet: Geschlecht und gesuchtes Geschlecht sind die Grundlage des
+    Matchings. Ohne sie kann FLEXR niemanden mehr vorschlagen - das Konto
+    bleibt bestehen, das Deck aber leer. Wer das nicht will, löscht statt zu
+    widerrufen. Die Entscheidung bleibt beim Nutzer; verweigert wird der
+    Widerruf nicht.
+    """
+    consent_type = ConsentType(payload.consent_type)
+    revoked = consents.revoke(db, current_user.id, consent_type)
+
+    folge = {
+        ConsentType.sensitive_data: (
+            "Ohne diese Einwilligung dürfen wir Geschlecht und gesuchtes "
+            "Geschlecht nicht mehr zum Matching verwenden. Dein Konto bleibt "
+            "bestehen, es werden dir aber keine Profile mehr vorgeschlagen und "
+            "du erscheinst in keinem Deck. Willst du ganz weg, lösche dein "
+            "Konto — dann werden die Angaben mitgelöscht."
+        ),
+        ConsentType.verification_media: (
+            "Noch nicht geprüfte Aufnahmen werden gelöscht. Eine bereits "
+            "abgeschlossene Prüfung bleibt als Ergebnis bestehen — die Bilder "
+            "dazu sind ohnehin längst gelöscht."
+        ),
+        ConsentType.immediate_start: (
+            "Der Widerruf wirkt für die Zukunft. Auf einen bereits erklärten "
+            "Rücktritt hat er keinen Einfluss."
+        ),
+    }[consent_type]
+
+    return {
+        "revoked": revoked,
+        "consent_type": payload.consent_type,
+        "consequence": folge,
+    }
 
 
 @router.delete("/me")

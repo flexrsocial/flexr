@@ -7,9 +7,9 @@ from slowapi.middleware import SlowAPIMiddleware
 from .config import settings
 from .rate_limit import limiter
 from .routers import (
-    admin, auth, billing, email_verify, geo, gyms, matches, messages, phone, profiles,
-    safety, swipes,
-    verification,
+    admin, auth, billing, email_verify, geo, gyms, matches, messages, notices, phone,
+    profiles, safety, swipes,
+    verification, withdrawal,
 )
 
 # Tabellen werden per Alembic-Migration angelegt (siehe backend/alembic/),
@@ -29,6 +29,28 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+@app.middleware("http")
+async def security_headers(request, call_next):
+    """Schutz-Header für alle API-Antworten.
+
+    Die statischen Seiten bekommen ihre Header von nginx (siehe
+    deploy/nginx-flexr.conf); die API antwortet aber auch direkt an Clients und
+    soll sich nicht darauf verlassen, hinter genau diesem nginx zu stehen.
+
+    Kein CSP hier: Die API liefert ausschließlich JSON, das nichts ausführt.
+    Die Content-Security-Policy gehört zu den HTML-Auslieferungen.
+    """
+    response = await call_next(request)
+    response.headers.setdefault("X-Content-Type-Options", "nosniff")
+    response.headers.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
+    response.headers.setdefault("X-Frame-Options", "DENY")
+    # Antworten mit Profil-, Chat- oder Prüfdaten dürfen nirgends
+    # zwischengespeichert werden - weder im Browser noch in einem Proxy.
+    if request.url.path.startswith("/api/") and request.url.path != "/api/health":
+        response.headers.setdefault("Cache-Control", "no-store")
+    return response
+
+
 app.include_router(auth.router)
 app.include_router(email_verify.router)
 app.include_router(profiles.router)
@@ -37,6 +59,10 @@ app.include_router(matches.router)
 app.include_router(messages.router)
 app.include_router(billing.router)
 app.include_router(safety.router)
+# Beide ohne Anmeldezwang - siehe die Modulkommentare: § 13a FAGG und
+# Art. 16 DSA stehen jedem offen, nicht nur angemeldeten Nutzern.
+app.include_router(withdrawal.router)
+app.include_router(notices.router)
 app.include_router(verification.router)
 app.include_router(phone.router)
 app.include_router(gyms.router)

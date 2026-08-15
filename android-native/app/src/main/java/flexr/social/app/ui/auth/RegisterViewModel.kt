@@ -52,7 +52,6 @@ data class RegisterUiState(
     val photoError: String? = null,
     val isPreparingPhoto: Boolean = false,
     val consentSensitiveData: Boolean = false,
-    val consentWithdrawalWaiver: Boolean = false,
     val isSubmitting: Boolean = false,
     val error: String? = null,
     val success: Boolean = false,
@@ -84,8 +83,7 @@ data class RegisterUiState(
             gender != null &&
             gymPicker.selectedLabel != null &&
             photos.isNotEmpty() &&
-            consentSensitiveData &&
-            consentWithdrawalWaiver
+            consentSensitiveData
 
     companion object {
         const val MIN_PASSWORD_LENGTH = 8
@@ -132,9 +130,6 @@ class RegisterViewModel @Inject constructor(
 
     fun onConsentSensitiveDataChange(value: Boolean) =
         _uiState.update { it.copy(consentSensitiveData = value, error = null) }
-
-    fun onConsentWithdrawalWaiverChange(value: Boolean) =
-        _uiState.update { it.copy(consentWithdrawalWaiver = value, error = null) }
 
     // ---------- PLZ ----------
 
@@ -324,7 +319,6 @@ class RegisterViewModel @Inject constructor(
                         gymLabel = requireNotNull(state.gymPicker.selectedLabel),
                         bio = state.bio,
                         consentSensitiveData = state.consentSensitiveData,
-                        consentWithdrawalWaiver = state.consentWithdrawalWaiver,
                     )
                 }.onSuccess {
                     val failures = uploadPhotos(state.photos)
@@ -393,8 +387,10 @@ class RegisterViewModel @Inject constructor(
         if (state.gender == null) return "Bitte ein Geschlecht auswählen."
         if (state.gymPicker.selectedLabel == null) return "Bitte ein Gym aus der Liste auswählen."
         if (state.photos.isEmpty()) return "Bitte lade mindestens ein Foto hoch."
-        if (!state.consentSensitiveData || !state.consentWithdrawalWaiver) {
-            return "Bitte beide Zustimmungen ankreuzen, um fortzufahren."
+        if (!state.consentSensitiveData) {
+            return "Ohne die Einwilligung zur Verarbeitung von Geschlecht und gesuchtem " +
+                "Geschlecht können wir dir keine Profile vorschlagen - sie ist die " +
+                "Grundlage des Matchings."
         }
         return null
     }

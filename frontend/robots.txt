@@ -1,9 +1,25 @@
+# https://flexr.social/robots.txt
 User-agent: *
 Allow: /
+
+# Das Admin-Werkzeug hat keinen Suchwert.
 Disallow: /admin.html
+
+# Die API liefert JSON und gehoert nicht in den Index.
 Disallow: /api/
-# Kurzlebige Download-Ordner (Build-Artefakte o. Ä.), Praefix statt konkretem
+
+# Kurzlebige Download-Ordner (Build-Artefakte o. AE.), Praefix statt konkretem
 # Pfad - robots.txt ist selbst oeffentlich und soll den Pfad nicht verraten.
 Disallow: /dl-
+
+# Die Web-App unter /app/ ist bewusst NICHT gesperrt.
+#
+# Sie traegt ein <meta name="robots" content="noindex, follow">. Eine per
+# robots.txt gesperrte Seite darf Google gar nicht erst laden - dann sieht der
+# Crawler das noindex nie und kann die URL trotzdem in den Index aufnehmen,
+# nur ohne Inhalt. Beides zusammen hebt sich also auf.
+#
+# Der Schutz der privaten Inhalte kommt ohnehin nicht von hier, sondern von der
+# Anmeldung: Profile, Chats und Konto liefert die API nur mit gueltigem Token.
 
 Sitemap: https://flexr.social/sitemap.xml

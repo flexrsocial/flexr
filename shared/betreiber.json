@@ -1,0 +1,55 @@
+{
+  "_hinweis": [
+    "Einzige Quelle der Wahrheit für alle Betreiber- und Rechtsträgerangaben.",
+    "Wird von backend/app/legal.py gespiegelt (Test: backend/tests/test_betreiber.py)",
+    "und von tools/check_betreiber.py gegen Web, Android und iOS geprüft.",
+    "Wer hier etwas ändert, muss den Prüflauf laufen lassen:",
+    "  python3 tools/check_betreiber.py"
+  ],
+
+  "marke": "FLEXR",
+  "positionierung": "Dating für Gym-People in Österreich",
+  "domain": "flexr.social",
+  "site_url": "https://flexr.social",
+
+  "rechtstraeger": {
+    "name": "Julian Pachernegg",
+    "rechtsform": "Einzelunternehmer",
+    "rolle": "Betreiber von FLEXR",
+    "im_firmenbuch": false,
+    "strasse": "Johann-Schrey-Weg 260",
+    "plz": "8232",
+    "ort": "Grafendorf",
+    "land": "Österreich",
+    "email": "flexr.social@proton.me"
+  },
+
+  "unternehmensgegenstand": "Betrieb der Online-Dating-Plattform FLEXR (flexr.social)",
+
+  "umsatzsteuer": {
+    "kleinunternehmerregelung": true,
+    "grundlage": "§ 6 Abs. 1 Z 27 UStG",
+    "uid_vorhanden": false,
+    "_todo_legal": "Von Julian bestätigen lassen: gilt die Kleinunternehmerregelung im laufenden Jahr noch (Umsatzgrenze), und ist tatsächlich keine UID vergeben?"
+  },
+
+  "gewerbe": {
+    "_todo_legal": [
+      "Nicht im Repository belegt und deshalb bewusst NICHT auf den öffentlichen Seiten behauptet:",
+      "Wortlaut der Gewerbeberechtigung, zuständige Gewerbebehörde (Bezirksverwaltungsbehörde),",
+      "WKO-Fachgruppe/Fachverband. Siehe LEGAL_REVIEW.md, Punkte L-01 bis L-03."
+    ],
+    "gewerbewortlaut": null,
+    "gewerbebehoerde": null,
+    "wko_fachgruppe": null
+  },
+
+  "verbotene_altbezeichnungen": [
+    "flexr.social Kleinunternehmen",
+    "flexr.social Kleinunternehmer",
+    "FLEXR Kleinunternehmen",
+    "Unternehmen flexr.social",
+    "die Betreiberin",
+    "der Betreiberin"
+  ]
+}

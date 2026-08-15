@@ -146,7 +146,7 @@ Erste Fassung für iPhone und iPad.
 | Altersfreigabe | 18+ (Dating; „Häufige/starke Hinweise auf sexuelles Verhalten oder Nacktheit" verneinen, aber „Nutzergenerierte Inhalte" und „Uneingeschränkter Internetzugang" wahrheitsgemäß angeben) |
 | Verfügbarkeit | nur Österreich |
 | Preis | Gratis (Abo läuft außerhalb des App Stores, siehe HANDOFF) |
-| Copyright | `2026 flexr.social Kleinunternehmen` |
+| Copyright | `2026 Julian Pachernegg` |
 | Support-URL | `https://flexr.social/faq.html` |
 | Marketing-URL | `https://flexr.social/` |
 | Datenschutz-URL | `https://flexr.social/datenschutz.html` |
@@ -154,7 +154,7 @@ Erste Fassung für iPhone und iPad.
 
 ### Kontaktangaben für den Review
 
-Anschrift und E-Mail wie im Impressum: flexr.social Kleinunternehmen,
+Anschrift und E-Mail wie im Impressum: Julian Pachernegg, Einzelunternehmer,
 Johann-Schrey-Weg 260, 8232 Grafendorf, Österreich, flexr.social@proton.me.
 
 ---

@@ -88,8 +88,11 @@ DEFAULT_USER = {
     "city": "Wien",
     "gender": "mann",
     "gym": GYM_WIEN,
+    # consent_withdrawal_waiver steht hier bewusst nicht mehr drin: Der Haken
+    # ist am 15.08.2026 weggefallen, und der Normalfall der Tests soll das
+    # abbilden, was die aktuellen Clients schicken. Dass ältere App-Fassungen
+    # das Feld weiter mitsenden dürfen, prüft test_auth.py gesondert.
     "consent_sensitive_data": True,
-    "consent_withdrawal_waiver": True,
 }
 
 
