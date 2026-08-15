@@ -14,6 +14,80 @@ Die Datenbank wurde vor der Migration gesichert nach
 
 ---
 
+## 0. Nachtrag vom 15.08.2026 — wie der Umzug ausgegangen ist
+
+Der Rest dieses Dokuments beschreibt den **alten** Rechner und bleibt
+unverändert stehen. Was auf dem neuen tatsächlich ankam, steht hier.
+
+### Der Transportweg hat mehr gekostet als gedacht
+
+Der Ordner ging über MEGA. `/home/cooltek/MEGA/.megaignore` enthält die Regel
+`-:.*` — **MEGA synchronisiert keine Datei mit führendem Punkt.** Im
+angekommenen Baum standen exakt null Dotfiles. Verloren gingen damit `.git`
+(die Warnung „muss mit" aus Abschnitt 1 lief also ins Leere), `.gitignore`,
+`backend/.env`, `.claude/launch.json`, `frontend/.well-known/assetlinks.json`
+und sogar das Exec-Bit von `android-native/gradlew`. Mitgekommen ist dafür
+genau das, was bleiben sollte: 880 MB Baureste.
+
+**Wiederhergestellt** durch einen frischen Klon von
+`github.com/flexrsocial/flexr` — der Arbeitsbaum war danach deckungsgleich mit
+`a30a071`, es ist nichts verloren gegangen. Die Lehre gehört in die Regel, nicht
+in den Kopf: Code wandert über `git clone`, nicht über den Cloud-Ordner. Für
+Bauartefakte stehen jetzt zusätzlich `-d:build`, `-d:venv`, `-d:node_modules`
+und `-d:__pycache__` in der `.megaignore`.
+
+### Was auf dem neuen Rechner fehlt
+
+| | |
+|---|---|
+| Android-Toolchain | **komplett** — kein `java`, kein JDK, kein SDK, kein `adb`. Bundles sind hier nicht baubar. |
+| Postgres | nicht installiert. Die App importiert sauber, der Dev-Server kommt bis zum Verbindungsaufbau. |
+| `backend/.env` | neu angelegt, siehe unten |
+
+### Die lokale `.env` zeigt nicht mehr auf Produktion
+
+Abschnitt 5 warnt, dass ein einfach gestarteter Dev-Server gegen echtes R2 und
+echtes Stripe läuft. Das ist auf diesem Rechner nicht mehr so: Die neue
+`backend/.env` enthält bewusst **keine echten Zugangsdaten**. S3 steht auf
+nicht auflösbaren `.invalid`-Namen, Stripe ist leer. Alle Tests sind damit
+grün, ohne dass ein Testlauf die Produktion berührt.
+
+Das heißt auch: Die „213 grün" aus diesem Dokument wurden seinerzeit **gegen
+Produktions-Storage** erzeugt. Zwei Kniffe stehen als Kommentar in der `.env`,
+weil sie sonst niemand findet:
+
+```bash
+cd backend && AWS_MAX_ATTEMPTS=1 venv/bin/python -m pytest -q -p no:warnings
+```
+
+Ohne `AWS_MAX_ATTEMPTS=1` dauert der Lauf 12 Minuten statt 2 — botocore
+wiederholt jeden ins Leere laufenden Aufruf fünfmal mit Wartezeit. Und
+`.invalid` darf nicht durch `127.0.0.1:9` ersetzt werden: „connection refused"
+nimmt einen anderen Fehlerpfad, dann fällt
+`test_documents_never_get_a_public_url` um.
+
+### Seither entstanden
+
+- **`a790371` — Abo-Kündigung entzog den Zugang nicht.** Der TODO in
+  `billing.py` war keiner: `is_subscribed` wurde nur je auf True gesetzt. Wer
+  über das Billing-Portal kündigte, behielt Swipe, Chat und Deck dauerhaft.
+  Backend jetzt **223 grün**.
+- **`f933a57` — `PLAY-CONSOLE.md` auf 2.3.0.** Stand vorher auf 2.2.0 /
+  versionCode 17; `POST_NOTIFICATIONS` fehlte in der Berechtigungsliste.
+
+### Was der Nachtrag am Rest dieses Dokuments korrigiert
+
+- Abschnitt 2 sagt, es liege **kein** Bundle zum Download bereit. Das stimmte
+  nicht — in `/flexr/frontend/dl-9a7043db0cab292e/` lag noch
+  `flexr-2.2.9.aab`. Am 15.08. gelöscht, jetzt liegt wirklich keines mehr.
+- Abschnitt 6 nennt `PLAY-CONSOLE.md` als offen — erledigt, siehe oben.
+- Der in Abschnitt 1 genannte Pfad zu den Projekt-Erinnerungen gilt für den
+  alten Rechner. Auf dem neuen liegen sie unter
+  `~/.claude/projects/-home-cooltek-MEGA-flexr/memory/` und sind dort neu
+  aufgebaut.
+
+---
+
 ## 1. Wichtig vor dem Kopieren aufs Cloud-Laufwerk
 
 ### Der Ordner enthält Geheimnisse
