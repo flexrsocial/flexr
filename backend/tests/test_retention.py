@@ -144,3 +144,32 @@ def test_alle_retention_zeilen_haben_einen_beleg():
     for zeile in retention.RETENTION_TABLE:
         assert zeile.beleg, f"Zeile ohne Beleg: {zeile.kategorie}"
         assert len(zeile.frist) > 5
+
+
+def test_frontend_laedt_ueberhaupt_keine_fremden_hosts():
+    """Kein einziger Fremdaufruf im ausgelieferten HTML.
+
+    Am 15.08.2026 waren es zwei: Google Fonts in index.html und admin.html, und
+    acht Unsplash-Fotos im Demo-Deck der App. Letzteres fiel erst auf, als die
+    neue Content-Security-Policy sie blockierte - die Datenschutzerklaerung
+    hatte beide Empfaenger nie genannt.
+
+    Geprueft wird auf Hosts in Attributwerten, nicht auf jedes Vorkommen im
+    Text: Kommentare duerfen die Vergangenheit erwaehnen.
+    """
+    import re
+
+    ERLAUBT = {"flexr.social", "photos.flexr.social", "www.flexr.social",
+               "schema.org", "stripe.com", "www.dsb.gv.at", "www.ris.bka.gv.at"}
+
+    for name in ("index.html", "app/index.html", "admin.html", "legal.css",
+                 "agb.html", "datenschutz.html", "impressum.html", "faq.html",
+                 "widerruf.html", "meldung.html", "sicherheit.html",
+                 "nutzungsrichtlinien.html", "strafverfolgung.html"):
+        pfad = REPO / "frontend" / name
+        text = pfad.read_text(encoding="utf-8")
+        # href/src/url() mit absolutem Ziel
+        ziele = re.findall(r'(?:href|src)="https?://([^/"]+)', text)
+        ziele += re.findall(r"url\(['\"]?https?://([^/'\")]+)", text)
+        fremd = {h for h in ziele if h not in ERLAUBT}
+        assert not fremd, f"{name} laedt von fremden Hosts: {sorted(fremd)}"
