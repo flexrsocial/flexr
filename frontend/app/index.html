@@ -879,7 +879,38 @@
     content:'▸'; color:var(--plate); font-size:15px; line-height:1.5; flex-shrink:0;
   }
 
-  /* Interaktive Mini-Swipe-Demo mit Beispielprofilen */
+  /* Mini-Swipe-Demo mit Beispielprofilen - rein dekorativ, kein Swipe-Handling.
+     Die Fotos sind KI-generiert (siehe frontend/brand/demo/README.md), keine
+     echten Personen - anders als das alte, am 15.08.2026 wegen genau dieses
+     Risikos entfernte Unsplash-Deck (siehe Kommentar bei .landing-hero
+     weiter oben im Markup). Deshalb durchgehend als Beispiel gekennzeichnet,
+     nicht als Bestandsprofile. */
+  .hero-demo{ margin-top:8px; }
+  .hero-demo-stack{
+    position:relative; width:180px; height:230px; margin:0 auto 14px;
+  }
+  .hero-demo-card{
+    position:absolute; inset:0; border-radius:16px; overflow:hidden;
+    box-shadow:0 18px 40px rgba(0,0,0,.5); border:1px solid rgba(255,255,255,.08);
+    transform-origin:bottom center;
+  }
+  .hero-demo-card:nth-child(1){ transform:rotate(-7deg) translateX(-14px); z-index:1; opacity:.75; }
+  .hero-demo-card:nth-child(2){ transform:rotate(5deg) translateX(10px); z-index:2; opacity:.88; }
+  .hero-demo-card:nth-child(3){ transform:rotate(-1deg); z-index:3; }
+  .hero-demo-card img{ width:100%; height:100%; object-fit:cover; display:block; }
+  .hero-demo-card .hero-demo-name{
+    position:absolute; left:10px; right:10px; bottom:8px;
+    font-family:'Oswald', sans-serif; font-size:13px; color:#fff;
+    text-shadow:0 2px 8px rgba(0,0,0,.75);
+  }
+  .hero-demo-card .hero-demo-name b{ font-weight:600; }
+  .hero-demo-card .hero-demo-name span{
+    display:block; font-size:10.5px; color:rgba(255,255,255,.78); font-weight:400;
+  }
+  .hero-demo-label{
+    text-align:center; font-size:11px; color:var(--chalk-dim);
+    font-family:'JetBrains Mono', monospace; letter-spacing:.04em;
+  }
 
   /* Rechte Spalte neben der Karte: Vorschau-Reihe + Aktions-Buttons */
 
@@ -942,6 +973,7 @@
     }
     .hero-usps{ order:5; gap:9px; margin-bottom:22px; }
     .hero-usps li{ font-size:13.5px; }
+    .hero-demo{ order:6; margin-bottom:8px; }
   }
 
   .divider{ height:1px; background:var(--steel); margin:24px 0; position:relative; }
@@ -1351,13 +1383,34 @@
         <li>1 Monat gratis — danach entscheidest du selbst, ob du für 5&nbsp;€/Monat weitermachst</li>
         <li>Echte Profile: Melde- &amp; Blockfunktion inklusive</li>
       </ul>
-      <!-- Hier stand ein Demo-Deck mit acht Fotos echter Menschen von
-           images.unsplash.com, als FLEXR-Profile beschriftet ("Lena, 26,
-           McFit"). Am 15.08.2026 entfernt, aus zwei Gruenden: Es schickte die
-           IP jedes Besuchers an einen US-Anbieter, der in der
+      <!-- Hier stand bis zum 15.08.2026 ein Demo-Deck mit acht Fotos echter
+           Menschen von images.unsplash.com, als FLEXR-Profile beschriftet
+           ("Lena, 26, McFit"). Entfernt aus zwei Gruenden: Es schickte die IP
+           jedes Besuchers an einen US-Anbieter, der in der
            Datenschutzerklaerung nirgends stand, und es liess erfundene Nutzer
-           wie echte aussehen. Die oeffentliche Landingpage unter / kommt ohne
-           aus. -->
+           wie echte aussehen.
+           Seit dem 16.08.2026 wieder da, diesmal selbst gehostet (kein
+           Fremdaufruf) und mit KI-generierten Gesichtern statt Fotos echter
+           Personen (siehe frontend/brand/demo/README.md fuer Herkunft und
+           Rechte) - durchgehend als Beispiel gekennzeichnet, nicht als
+           echte Bestandsprofile dargestellt. -->
+      <div class="hero-demo">
+        <div class="hero-demo-stack">
+          <div class="hero-demo-card">
+            <img src="/brand/demo/demo-julia.jpg?v=1" alt="" loading="lazy">
+            <div class="hero-demo-name"><b>Julia, 25</b><span>Holmes Place Linz</span></div>
+          </div>
+          <div class="hero-demo-card">
+            <img src="/brand/demo/demo-tobias.jpg?v=1" alt="" loading="lazy">
+            <div class="hero-demo-name"><b>Tobias, 28</b><span>John Harris Salzburg</span></div>
+          </div>
+          <div class="hero-demo-card">
+            <img src="/brand/demo/demo-lena.jpg?v=1" alt="" loading="lazy">
+            <div class="hero-demo-name"><b>Lena, 26</b><span>FitOne Innsbruck</span></div>
+          </div>
+        </div>
+        <p class="hero-demo-label">Beispielprofile · keine echten Nutzer:innen</p>
+      </div>
     </div>
 
     <!-- LOGIN -->
