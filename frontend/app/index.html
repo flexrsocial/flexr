@@ -307,6 +307,16 @@
   .photo-hint{ font-size:12px; line-height:1.5; color:var(--chalk-dim); margin-top:8px; }
   .photo-hint.warn{ color:var(--plate); }
 
+  /* Rechtstext-Links (.legal-link) hatten ausserhalb bereits gestylter
+     Container (.vcard, .consent-note, .legal-footer, ...) keine eigene Farbe
+     und fielen auf Browser-Standard zurueck - sichtbares blau/lila statt
+     Marke. Diese Regel ist absichtlich niedrig spezifisch (nur eine Klasse),
+     damit die bestehenden praeziseren Regeln in ihren Containern weiterhin
+     gewinnen und sich nichts an deren Look aendert. */
+  .legal-link{ color:var(--plate); text-decoration:underline; text-underline-offset:2px; }
+  .legal-link:visited{ color:var(--plate); }
+  .legal-link:hover{ color:var(--chalk); }
+
   /* swipe card */
   /* Kein festes min-height: auf einem Telefon mit sichtbarer Adresszeile
      (unter ~750px dvh) zwingt das den Screen ins Scrollen, und Herz und X
