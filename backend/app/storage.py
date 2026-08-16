@@ -219,6 +219,40 @@ def delete_objects_verified(object_keys: list[str]) -> list[str]:
     return remaining
 
 
+# Obergrenze fuer ein Profilfoto. Die Weboberflaeche rechnet vor dem Upload auf
+# maximal 1080 px herunter und landet damit bei einigen hundert Kilobyte; die
+# Apps skalieren ebenfalls. Acht Megabyte lassen also jedes echte Foto durch
+# und ziehen trotzdem eine Grenze gegen Uploads, die keine Fotos sind.
+MAX_PHOTO_BYTES = 8 * 1024 * 1024
+
+
+def inspect_uploaded_photo(object_key: str) -> dict:
+    """Prueft ein frisch hochgeladenes Profilfoto auf Groesse und Format.
+
+    Warum ueberhaupt: Der Upload laeuft als Presigned PUT am Backend vorbei.
+    Der Client bestimmt zwar den Content-Type mit, aber nur den *behaupteten* -
+    die Signatur bindet die Zeichenkette, nicht den Inhalt. Ohne diese Pruefung
+    kann unter ``image/jpeg`` beliebiger Inhalt in beliebiger Groesse liegen.
+
+    Gleiche Mechanik wie ``inspect_uploaded_image()`` fuer Ausweisaufnahmen,
+    nur mit eigener Obergrenze - deshalb hier getrennt und nicht mit einem
+    Flag im selben Aufruf.
+
+    Liefert ``{"ok": bool, "size": int, "detected": str|None}``.
+    """
+    client = get_s3_client()
+    head = client.head_object(Bucket=settings.s3_bucket_name, Key=object_key)
+    size = int(head.get("ContentLength", 0))
+    if size <= 0 or size > MAX_PHOTO_BYTES:
+        return {"ok": False, "size": size, "detected": None}
+
+    body = client.get_object(
+        Bucket=settings.s3_bucket_name, Key=object_key, Range="bytes=0-15"
+    )["Body"].read()
+    detected = _sniff_image_type(body)
+    return {"ok": detected is not None, "size": size, "detected": detected}
+
+
 PHOTO_CACHE_CONTROL = "public, max-age=31536000, immutable"
 
 

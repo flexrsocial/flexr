@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -20,7 +21,14 @@ from ..schemas import (
     UpdateProfileRequest,
 )
 from ..security import get_current_user
-from ..storage import create_presigned_upload, public_url_for, set_photo_cache_control
+from ..storage import (
+    create_presigned_upload,
+    inspect_uploaded_photo,
+    public_url_for,
+    set_photo_cache_control,
+)
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/profiles", tags=["profiles"])
 
@@ -190,6 +198,28 @@ def presign_photo_upload(
     return PresignPhotoResponse(**result)
 
 
+def _foto_ist_brauchbar(object_key: str) -> bool:
+    """Groesse und echter Dateianfang des hochgeladenen Objekts.
+
+    Bewusst durchlaessig, wenn die Pruefung selbst scheitert: Ein Zeitfehler
+    oder eine Stoerung beim Objekt-Storage darf keinen sonst gueltigen Upload
+    abweisen. Genau daran haengt seit dem 15.08.2026 die Kernfunktion der App -
+    ein Fehler in dieser Zeile waere ein zweiter Totalausfall des Foto-Uploads.
+    Abgewiesen wird deshalb nur, was nachweislich zu gross oder kein Bild ist;
+    alles Unklare wird geloggt und durchgelassen.
+    """
+    try:
+        befund = inspect_uploaded_photo(object_key)
+    except Exception:  # noqa: BLE001 - siehe Docstring
+        logger.warning("Foto konnte nicht geprueft werden: %s", object_key, exc_info=True)
+        return True
+    if not befund["ok"]:
+        logger.info(
+            "Foto abgewiesen: %s (%s Byte, erkannt: %s)",
+            object_key, befund["size"], befund["detected"])
+    return befund["ok"]
+
+
 @router.post("/me/photos", response_model=MyProfileOut)
 def add_photo(
     payload: AddPhotoRequest,
@@ -204,6 +234,15 @@ def add_photo(
     existing_count = db.query(Photo).filter(Photo.user_id == current_user.id).count()
     if existing_count >= 6:
         raise HTTPException(400, "Maximal 6 Fotos erlaubt.")
+
+    # Erst jetzt laesst sich pruefen, was tatsaechlich im Storage liegt: Der
+    # Presigned PUT laeuft am Backend vorbei, der Content-Type ist nur eine
+    # Behauptung des Clients. Ohne diesen Schritt kaeme unter "image/jpeg"
+    # beliebiger Inhalt in beliebiger Groesse durch.
+    for key in filter(None, (payload.object_key, payload.thumb_object_key)):
+        if not _foto_ist_brauchbar(key):
+            raise HTTPException(
+                400, "Die hochgeladene Datei ist kein unterstütztes Bild oder zu groß.")
 
     # Cache-Control nachtraeglich setzen - siehe set_photo_cache_control().
     set_photo_cache_control(payload.object_key)
