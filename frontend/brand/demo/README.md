@@ -25,18 +25,25 @@ gleichwertig) da — dieser Hinweis darf beim Weiterverwenden nicht entfallen.
 
 ## Dateien
 
-Originale (KI-generiert, 1254×1254 px PNG) lagen unter `~/Downloads` auf dem
-Arbeitsplatzrechner, nicht Teil dieses Repositories. Hier abgelegt sind nur
-die verarbeiteten Fassungen:
+Originale (KI-generiert, 1254×1254 px PNG) lagen auf dem Arbeitsplatzrechner
+(zunächst `~/Downloads`, zweiter Satz unter `~/MEGA/FLEXR/Grafiken`), nicht
+Teil dieses Repositories. Hier abgelegt sind nur die verarbeiteten Fassungen:
 
-| Datei | Zugeordnetes Beispielprofil |
-|---|---|
-| `demo-lena.jpg` | Lena, 26 |
-| `demo-david.jpg` | David, 30 |
-| `demo-julia.jpg` | Julia, 25 |
-| `demo-tobias.jpg` | Tobias, 28 |
-| `demo-nina.jpg` | Nina, 26 |
-| `demo-marco.jpg` | Marco, 29 |
+| Datei | Zugeordnetes Beispielprofil | Verwendet in |
+|---|---|---|
+| `demo-lena.jpg` | Lena, 26 | Landingpage, App-Login-Hero |
+| `demo-tobias.jpg` | Tobias, 28 | Landingpage, App-Login-Hero |
+| `demo-sophie.jpg` | Sophie, 27 | Landingpage |
+| `demo-jonas.jpg` | Jonas, 25 | Landingpage |
+| `demo-julia.jpg` | Julia, 25 | App-Login-Hero |
+| `demo-david.jpg` | — | nicht mehr eingebunden (16.08.2026 von der Landingpage entfernt, Datei bleibt liegen) |
+| `demo-nina.jpg` | — | nicht mehr eingebunden (16.08.2026 von der Landingpage entfernt, Datei bleibt liegen) |
+| `demo-marco.jpg` | — | nicht mehr eingebunden (16.08.2026 von der Landingpage entfernt, Datei bleibt liegen) |
+
+Der Hinweistext "Beispielprofile · keine echten Nutzer:innen" wurde am
+16.08.2026 auf ausdrücklichen Wunsch von beiden Einbindungsstellen entfernt.
+Die Begründung dafür (Abschnitt oben) gilt inhaltlich unverändert — nur die
+sichtbare Kennzeichnung ist weg.
 
 Verarbeitung: auf 3:4 zugeschnitten (Kartenformat der echten App,
 `.card .photo`), auf 720×960 px skaliert, als JPEG (Qualität 84) exportiert.
