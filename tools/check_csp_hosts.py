@@ -2,35 +2,27 @@
 """Prueft, ob die Content-Security-Policy zu den echten Storage-Hosts passt.
 
 Am 15.08.2026 lief genau das auseinander und legte den Foto-Upload lahm:
+``connect-src`` stand auf ``'self'``, der Presigned PUT geht aber an
+``<account>.r2.cloudflarestorage.com``. Der Browser brach ihn ohne HTTP-Status
+ab - im Frontend sichtbar als "Failed to fetch".
 
-  * Die Policy erlaubte als Bildquelle photos.flexr.social - eine Domain, die
-    noch gar nicht existiert (LEGAL_REVIEW.md D-01 haelt sie bewusst zurueck).
-    Ausgeliefert wurde aber von pub-<id>.r2.dev.
-  * connect-src stand auf 'self'. Der Presigned PUT geht aber an
-    <account>.r2.cloudflarestorage.com. Der Browser brach ihn ohne HTTP-Status
-    ab - im Frontend sichtbar als "Failed to fetch".
+Am 16.08.2026 kam eine zweite Lektion dazu: Die *Anzeige* der Fotos lief
+ueber den oeffentlichen R2-Testhost ``pub-<id>.r2.dev`` direkt im Browser.
+Der blockte reproduzierbar ausgerechnet Einbettungen von flexr.social selbst
+mit HTTP 403 (direkte Aufrufe und Einbettungen ohne Referer gingen klaglos
+durch) - Cloudflare fuehrt diesen Testhost ausdruecklich als nicht fuer
+Produktionsbetrieb geeignet. Der Fix: ``deploy/nginx-flexr.conf`` holt das
+Objekt jetzt server-seitig ueber die Location ``/photos/`` und reicht es
+weiter. Fuer den Browser ist das kein Cross-Origin-Bild mehr, ``img-src``
+braucht nur noch ``'self'`` - ``S3_PUBLIC_BASE_URL`` muss deshalb auf den
+eigenen Ursprung zeigen (``https://flexr.social/photos``), nicht mehr auf R2.
 
-Beides war im Konfigurationstext nicht zu sehen, weil dort nur Hostnamen
-stehen und nicht, ob sie stimmen. Deshalb dieses Skript: Es haelt die Policy
-gegen die tatsaechlich konfigurierten Endpunkte.
-
-Die Pruefung ist bewusst gerichtet, nicht symmetrisch: Ein *zusaetzlicher*
-Host in der Policy ist kein Fehler (photos.flexr.social steht dort auf Vorrat
-fuer die EU-Migration). Ein *fehlender* ist einer, denn dann bricht der Upload
-oder die Anzeige.
+Geprueft wird hier die Mechanik, nicht die Produktionskonfiguration - die
+.env des Servers liegt nicht im Repository. Das Skript selbst wird auf dem
+Server gegen die echte .env gefahren:
 
     python3 tools/check_csp_hosts.py                  # nimmt backend/.env
     python3 tools/check_csp_hosts.py /flexr/backend/.env
-
-Auf dem Server nach jeder Aenderung an S3_ENDPOINT_URL, S3_PUBLIC_BASE_URL
-oder an der Policy laufen lassen - insbesondere bei Schritt 6 des
-Migrationsplans in LEGAL_REVIEW.md. Danach zusaetzlich mit
-
-    curl -sI https://flexr.social/app/ | grep -i content-security-policy
-
-nachmessen: Dieses Skript liest die Vorlage im Repository, nicht das, was
-nginx am Ende wirklich sendet. Beides kann auseinanderlaufen, und genau die
-Luecke hat den Ausfall so lange verdeckt.
 
 Rueckgabewert 0 = alles sauber, 1 = Befunde (Details auf stdout).
 """
@@ -42,14 +34,9 @@ from urllib.parse import urlparse
 
 REPO = Path(__file__).resolve().parent.parent
 SNIPPET = REPO / "deploy" / "nginx-security-snippet.conf"
+NGINX_SITE = REPO / "deploy" / "nginx-flexr.conf"
 
-# Welche .env-Variable in welcher Direktive auftauchen muss, und warum.
-ERWARTET = [
-    ("S3_ENDPOINT_URL", "connect-src",
-     "Presigned PUT des Foto-Uploads (putToPresigned() im Frontend)"),
-    ("S3_PUBLIC_BASE_URL", "img-src",
-     "Anzeige der Profilfotos"),
-]
+EIGENER_URSPRUNG = "flexr.social"
 
 
 def lies_env(pfad: Path) -> dict:
@@ -83,6 +70,15 @@ def hosts_der_direktive(policy: str, direktive: str) -> list:
     return []
 
 
+def photos_proxy_ziel(text: str) -> str | None:
+    """Host, an den die Location /photos/ in nginx-flexr.conf weiterreicht."""
+    block = re.search(r"location\s+/photos/\s*\{([^}]*)\}", text)
+    if not block:
+        return None
+    treffer = re.search(r"proxy_pass\s+https?://([^/;\s]+)", block.group(1))
+    return treffer.group(1) if treffer else None
+
+
 def main() -> int:
     env_pfad = Path(sys.argv[1]) if len(sys.argv) > 1 else REPO / "backend" / ".env"
     if not env_pfad.exists():
@@ -93,29 +89,51 @@ def main() -> int:
 
     env = lies_env(env_pfad)
     policy = policy_aus_snippet(SNIPPET.read_text(encoding="utf-8"))
-
     befunde = []
-    for variable, direktive, zweck in ERWARTET:
-        url = env.get(variable, "")
-        if not url:
-            print(f"– {variable} ist in {env_pfad} nicht gesetzt, "
-                  f"{direktive} nicht pruefbar.")
-            continue
 
-        host = urlparse(url).netloc
-        if not host:
-            befunde.append(f"{variable}={url!r} ist keine brauchbare URL.")
-            continue
-
-        erlaubte = hosts_der_direktive(policy, direktive)
-        passt = any(urlparse(q).netloc == host for q in erlaubte if "//" in q)
-        if passt:
-            print(f"✓ {direktive}: {host} ({zweck})")
+    # ---- connect-src: Presigned PUT geht direkt an S3_ENDPOINT_URL --------
+    endpunkt = env.get("S3_ENDPOINT_URL", "")
+    if not endpunkt:
+        print("– S3_ENDPOINT_URL ist nicht gesetzt, connect-src nicht pruefbar.")
+    else:
+        host = urlparse(endpunkt).netloc
+        erlaubt = hosts_der_direktive(policy, "connect-src")
+        if any(urlparse(q).netloc == host for q in erlaubt if "//" in q):
+            print(f"✓ connect-src: {host} (Presigned PUT des Foto-Uploads)")
         else:
             befunde.append(
-                f"{direktive} erlaubt {host} nicht — {zweck} bricht ab.\n"
-                f"    {variable} = {url}\n"
-                f"    erlaubt sind: {' '.join(erlaubte) or '(nichts)'}")
+                f"connect-src erlaubt {host} nicht — der Presigned PUT "
+                f"(S3_ENDPOINT_URL={endpunkt}) bricht dann ohne HTTP-Status ab.\n"
+                f"    erlaubt sind: {' '.join(erlaubt) or '(nichts)'}")
+
+    # ---- img-src: Fotos muessen ueber den eigenen Ursprung laufen ---------
+    basis = env.get("S3_PUBLIC_BASE_URL", "")
+    if not basis:
+        print("– S3_PUBLIC_BASE_URL ist nicht gesetzt, img-src nicht pruefbar.")
+    else:
+        basis_host = urlparse(basis).netloc
+        if EIGENER_URSPRUNG in basis_host:
+            print(f"✓ S3_PUBLIC_BASE_URL zeigt auf den eigenen Ursprung ({basis_host}) "
+                  f"- img-src 'self' genuegt.")
+            ziel = photos_proxy_ziel(NGINX_SITE.read_text(encoding="utf-8"))
+            if ziel:
+                print(f"✓ Location /photos/ reicht weiter an {ziel}")
+            else:
+                befunde.append(
+                    f"S3_PUBLIC_BASE_URL zeigt auf {basis_host}, aber "
+                    f"{NGINX_SITE} hat keine Location /photos/ mit proxy_pass. "
+                    f"Fotos haetten dann eine URL, die niemand ausliefert.")
+        else:
+            # Direkter externer Host (z.B. waehrend einer Migration, bevor der
+            # Proxy umgestellt ist) - dann muss img-src ihn explizit nennen.
+            erlaubt = hosts_der_direktive(policy, "img-src")
+            if any(urlparse(q).netloc == basis_host for q in erlaubt if "//" in q):
+                print(f"✓ img-src erlaubt {basis_host} explizit")
+            else:
+                befunde.append(
+                    f"S3_PUBLIC_BASE_URL zeigt auf einen fremden Host ({basis_host}), "
+                    f"den img-src nicht erlaubt — die Anzeige der Profilfotos bricht ab.\n"
+                    f"    erlaubt sind: {' '.join(erlaubt) or '(nichts)'}")
 
     if befunde:
         print("\nBefunde:")
