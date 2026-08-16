@@ -1620,43 +1620,66 @@
         <div class="field-err" id="acctPhotoErr"></div>
       </div>
 
-      <!-- Art. 16 Abs. 5 DSA: Der Melder muss die Entscheidung ueber seine
-           Meldung erfahren. frontend/sicherheit.html versprach diese Ansicht
-           schon, bevor es sie gab - der Melder bekam ein Aktenzeichen und
-           danach nie wieder etwas zu hoeren. -->
+      <!-- Hier standen bis zum 16.08.2026 drei weitere Bloecke: "Meine
+           Meldungen", "Einwilligungen" und "Vertrag" samt grossem Knopf
+           "Vertrag widerrufen". Zusammen fuellten sie mehr Bildschirm als
+           Profil und Fotos - der Kontobereich las sich wie ein
+           Compliance-Portal statt wie eine Dating-App.
+           Geloescht ist davon nichts, nur einen Klick weiter geraeumt:
+           Meldungsstatus und Einwilligungswiderruf stehen jetzt unter
+           "Datenschutz & Sicherheit" (screen-privacy), der gesetzliche
+           Ruecktritt dort und unveraendert oeffentlich unter /widerruf.html,
+           verlinkt aus Fussleiste, AGB und Checkout. Die normale
+           Abo-Kuendigung bleibt oben, wo sie hingehoert. -->
+
+      <div class="account-section">
+        <div class="account-section-title">Konto</div>
+        <button class="btn secondary" id="btnOpenPrivacy">Datenschutz &amp; Sicherheit</button>
+        <button class="btn secondary" id="btnLogout">Ausloggen</button>
+        <button class="btn danger-ghost" id="btnDeleteAccount">Konto löschen</button>
+      </div>
+    </section>
+
+    <!-- DATENSCHUTZ & SICHERHEIT (Unterseite des Kontobereichs) -->
+    <!--
+      Was hier steht, braucht man selten - aber wenn, dann muss es da sein:
+
+      * Einwilligungen (Art. 7 Abs. 3 DSGVO): Der Widerruf darf nicht schwerer
+        sein als die Erteilung. Angehakt wurde im Formular mit einem Klick,
+        also bleibt es auch hier ein Klick. Die Fassung und das Datum sind
+        nicht geloescht, sondern hinter "Details" geraeumt.
+      * Meine Meldungen (Art. 16 Abs. 5 DSA): Der Melder muss erfahren, was aus
+        seiner Meldung wurde. Solange SMTP auf dem Server nicht konfiguriert
+        ist, geht darueber keine Mail raus - diese Ansicht ist derzeit der
+        einzige Weg, auf dem die Entscheidung den Melder ueberhaupt erreicht.
+        Deshalb verschoben und nicht entfernt.
+      * Ruecktritt: nur als Verweis auf die oeffentliche Seite, kein grosser
+        Knopf. Gemeldet und gekuendigt wird weiterhin dort, wo es hingehoert -
+        ueber das Flaggen-Symbol im Profil und Chat bzw. ueber "Abo verwalten".
+    -->
+    <section class="screen" id="screen-privacy">
+      <div class="chat-header">
+        <button class="back-btn" id="btnPrivacyBack" aria-label="Zurück zum Konto"><svg class="ico" viewBox="0 0 24 24"><path d="M14.5 5 8 12l6.5 7"/></svg></button>
+        <div class="nm">Datenschutz &amp; Sicherheit</div>
+      </div>
+
+      <div class="account-section">
+        <div class="account-section-title">Matching-Präferenzen</div>
+        <div id="myConsents"><div class="loading">Lade …</div></div>
+      </div>
+
       <div class="account-section">
         <div class="account-section-title">Meine Meldungen</div>
         <div id="myReports"><div class="loading">Lade …</div></div>
       </div>
 
-      <!-- Art. 7 Abs. 3 DSGVO: Der Widerruf darf nicht schwerer sein als die
-           Erteilung. Angehakt wurde im Formular - also muss er auch hier ein
-           Klick sein, keine Mail an den Support. -->
       <div class="account-section">
-        <div class="account-section-title">Einwilligungen</div>
-        <div id="myConsents"><div class="loading">Lade …</div></div>
-        <p class="photo-hint">
-          Welche Fassung du angenommen hast, halten wir mit Zeitstempel fest.
-          Einzelheiten in der
-          <a href="/datenschutz.html" class="legal-link" data-legal-page="datenschutz.html">Datenschutzerklärung</a>.
-        </p>
-      </div>
-
-      <div class="account-section">
-        <div class="account-section-title">Vertrag</div>
+        <div class="account-section-title">Rechtliches</div>
         <p class="photo-hint" style="margin-top:0;">
-          <b>Kündigen</b> beendet ein laufendes Abo zum Ende der bezahlten
-          Periode — oben unter „Abo verwalten / kündigen".
-          <b>Zurücktreten</b> ist etwas anderes: Es löst einen Vertrag binnen
-          14 Tagen ab Abschluss auf, mit Rückzahlung.
+          <a href="/datenschutz.html" class="legal-link" data-legal-page="datenschutz.html">Datenschutzerklärung</a>
+          ·
+          <a href="/widerruf.html" class="legal-link" data-legal-page="widerruf.html">Vertrag widerrufen</a>
         </p>
-        <a class="btn secondary" href="/widerruf.html" style="display:block;text-align:center;text-decoration:none;">Vertrag widerrufen</a>
-      </div>
-
-      <div class="account-section">
-        <div class="account-section-title">Konto</div>
-        <button class="btn secondary" id="btnLogout">Ausloggen</button>
-        <button class="btn danger-ghost" id="btnDeleteAccount">Konto löschen</button>
       </div>
     </section>
 
@@ -2880,9 +2903,23 @@
     }
     fillProfileForm();
     renderAccountPhotoGrid();
-    loadMyReports();
-    loadMyConsents();
+    // Meldungen und Einwilligungen werden nicht mehr hier geladen, sondern
+    // erst beim Oeffnen von "Datenschutz & Sicherheit" - zwei Anfragen
+    // weniger bei jedem Blick ins Konto.
   }
+
+  // ---------- Datenschutz & Sicherheit (Unterseite des Kontobereichs) ----------
+  function openPrivacyScreen(){
+    showScreen('screen-privacy');
+    loadMyConsents();
+    loadMyReports();
+  }
+
+  $('btnOpenPrivacy').addEventListener('click', openPrivacyScreen);
+  $('btnPrivacyBack').addEventListener('click', () => {
+    showScreen('screen-account');
+    setNavActive('account');
+  });
 
   // ---------- Meine Meldungen (Art. 16 Abs. 5 DSA) ----------
   const REPORT_OUTCOME_TEXT = {
@@ -2923,11 +2960,21 @@
   }
 
   // ---------- Einwilligungen (Art. 7 DSGVO) ----------
+  // Kurz und in normaler Sprache. Die Paragraphen stehen im Detail-Aufklapper
+  // darunter, nicht in der Zeile - sonst liest sich die Ansicht wieder wie ein
+  // Formular und nicht wie eine Einstellung.
   const CONSENT_TEXT = {
-    sensitive_data:     'Verarbeitung von Geschlecht und gesuchtem Geschlecht (Art. 9 DSGVO)',
+    sensitive_data:     'Verarbeitung von Geschlecht und gesuchtem Geschlecht',
     verification_media: 'Aufnahmen für die Alters- und Identitätsprüfung',
     immediate_start:    'Sofortiger Leistungsbeginn',
     terms:              'Angenommene AGB-Fassung',
+  };
+  // Rechtsgrundlage je Einwilligung - erscheint nur im Detail-Aufklapper.
+  const CONSENT_GRUNDLAGE = {
+    sensitive_data:     'Ausdrückliche Einwilligung nach Art. 9 Abs. 2 lit. a DSGVO.',
+    verification_media: 'Ausdrückliche Einwilligung nach Art. 9 Abs. 2 lit. a DSGVO.',
+    immediate_start:    'Zustimmung zum sofortigen Leistungsbeginn (§ 11 Abs. 1 FAGG).',
+    terms:              'Vertragsschluss, keine Einwilligung — daher nicht widerrufbar.',
   };
   // Die AGB-Annahme ist Vertragsschluss, keine Einwilligung - sie wird
   // angezeigt, aber nicht als widerrufbar dargestellt.
@@ -2941,18 +2988,27 @@
         box.innerHTML = '<p class="photo-hint" style="margin:0;">Keine Einträge.</p>';
         return;
       }
+      // Die Zeile nennt die Sache und den Knopf. Datum und Fassung sind fuer
+      // den Nachweis noetig, aber nicht beim ersten Hinsehen - sie stehen
+      // hinter "Details".
       box.innerHTML = rows.map(c => {
         const datum = new Date(parseServerDate(c.granted_at)).toLocaleDateString('de-AT');
         const label = CONSENT_TEXT[c.consent_type] || c.consent_type;
-        const status = c.active
-          ? `erteilt am ${datum} (Fassung ${escapeHtml(c.version)})`
-          : `widerrufen am ${new Date(parseServerDate(c.revoked_at)).toLocaleDateString('de-AT')}`;
+        const details = (c.active
+          ? `Erteilt am ${datum}, Fassung ${escapeHtml(c.version)}.`
+          : `Widerrufen am ${new Date(parseServerDate(c.revoked_at)).toLocaleDateString('de-AT')}.`)
+          + ' ' + (CONSENT_GRUNDLAGE[c.consent_type] || '');
         const knopf = (c.active && CONSENT_REVOCABLE.indexOf(c.consent_type) !== -1)
-          ? `<button class="membership-link" data-revoke="${escapeHtml(c.consent_type)}">Widerrufen</button>`
+          ? `<button class="membership-link" data-revoke="${escapeHtml(c.consent_type)}">Einwilligung widerrufen</button>`
           : '';
+        const zustand = c.active ? '' :
+          '<span style="font-size:12.5px;color:var(--chalk-dim);"> — widerrufen</span>';
         return `<div class="vcard" style="margin-bottom:10px;">
-            <p style="margin:0;font-size:14px;">${escapeHtml(label)}</p>
-            <p style="margin:4px 0 0;font-size:12.5px;color:var(--chalk-dim);">${status}</p>
+            <p style="margin:0;font-size:14px;">${escapeHtml(label)}${zustand}</p>
+            <details style="margin-top:4px;">
+              <summary style="font-size:12.5px;color:var(--chalk-dim);cursor:pointer;">Details</summary>
+              <p style="margin:6px 0 0;font-size:12.5px;color:var(--chalk-dim);">${details}</p>
+            </details>
             ${knopf}
           </div>`;
       }).join('');
