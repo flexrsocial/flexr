@@ -1,20 +1,24 @@
-"""Die Content-Security-Policy muss die Storage-Hosts kennen.
+"""Die Content-Security-Policy muss zur tatsaechlichen Foto-Auslieferung passen.
 
-Am 15.08.2026 hat genau das den Foto-Upload lahmgelegt. Die Policy erlaubte
-``connect-src 'self'``, der Upload geht aber als Presigned PUT direkt an
-``<account>.r2.cloudflarestorage.com``. Der Browser brach ihn ohne HTTP-Status
-ab; im Frontend stand "Failed to fetch". Dasselbe bei ``img-src``: erlaubt war
-``photos.flexr.social`` - eine Domain, die es noch gar nicht gibt
-(LEGAL_REVIEW.md D-01) - ausgeliefert wird aber von ``pub-<id>.r2.dev``.
+Zwei getrennte Ausfaelle, beide am Verhaeltnis zwischen CSP und
+Storage-Konfiguration:
 
-Gefunden wurde es erst, als es ausfiel: Im Konfigurationstext sehen ein
-richtiger und ein falscher Hostname gleich aus.
+15.08.2026 - Upload: ``connect-src`` stand auf ``'self'``, der Presigned PUT
+geht aber direkt an ``<account>.r2.cloudflarestorage.com``. Der Browser brach
+die Anfrage ohne HTTP-Status ab ("Failed to fetch").
+
+16.08.2026 - Anzeige: Fotos liefen zunaechst direkt vom oeffentlichen
+R2-Testhost ``pub-<id>.r2.dev``. Der blockte reproduzierbar Einbettungen von
+flexr.social selbst mit HTTP 403 (direkte Aufrufe und referrer-lose
+Einbettungen liefen klaglos durch) - ein Testhost, den Cloudflare
+ausdruecklich nicht fuer Produktionsbetrieb vorsieht. Der Fix: Die Location
+``/photos/`` in ``deploy/nginx-flexr.conf`` holt das Objekt server-seitig und
+reicht es weiter; fuer den Browser ist es kein Cross-Origin-Bild mehr,
+``img-src 'self'`` genuegt. ``S3_PUBLIC_BASE_URL`` muss deshalb auf den
+eigenen Ursprung zeigen, nicht mehr auf R2.
 
 Geprueft wird hier die Mechanik von ``tools/check_csp_hosts.py``, nicht die
 Produktionskonfiguration - die .env des Servers liegt nicht im Repository.
-Das Skript selbst wird auf dem Server gegen die echte .env gefahren (siehe
-sein Modul-Docstring). Diese Tests halten es davon ab, unbemerkt zu verrotten:
-Ein Pruefskript, das nichts mehr prueft, ist schlimmer als keines.
 """
 
 import importlib.util
@@ -25,6 +29,7 @@ import pytest
 REPO = Path(__file__).resolve().parents[2]
 SKRIPT = REPO / "tools" / "check_csp_hosts.py"
 SNIPPET = REPO / "deploy" / "nginx-security-snippet.conf"
+NGINX_SITE = REPO / "deploy" / "nginx-flexr.conf"
 
 
 @pytest.fixture(scope="module")
@@ -44,33 +49,82 @@ def test_snippet_hat_ueberhaupt_eine_policy(policy):
     assert "default-src" in policy
 
 
-def test_upload_und_anzeige_haben_je_einen_eigenen_host(pruefer, policy):
-    """Der Kern des Ausfalls: Beide Direktiven brauchen mehr als 'self'.
+def test_connect_src_erlaubt_einen_externen_host(pruefer, policy):
+    """Der Presigned PUT geht direkt an R2 - dafuer braucht connect-src mehr
+    als 'self', sonst bricht der Upload ohne HTTP-Status ab."""
+    quellen = pruefer.hosts_der_direktive(policy, "connect-src")
+    fremde = [q for q in quellen if q.startswith("https://")]
+    assert fremde, "connect-src nennt keinen Storage-Host - der Presigned PUT bricht ab."
 
-    Welcher Host richtig ist, weiss nur die .env des jeweiligen Servers. Dass
-    ueberhaupt einer dasteht, laesst sich hier pruefen - und genau das war am
-    15.08.2026 nicht der Fall.
+
+def test_img_src_braucht_keinen_externen_host_mehr(pruefer, policy):
+    """Seit dem Proxy in /photos/ laufen Fotos ueber den eigenen Ursprung.
+
+    Ein externer Host in img-src waere kein Fehler, aber auch kein Zeichen,
+    dass der Proxy tatsaechlich genutzt wird - deshalb nur die Erwartung,
+    dass 'self' genuegt (siehe test_photos_proxy_existiert).
     """
-    for direktive in ("connect-src", "img-src"):
-        quellen = pruefer.hosts_der_direktive(policy, direktive)
-        fremde = [q for q in quellen if q.startswith("https://")]
-        assert fremde, (
-            f"{direktive} nennt keinen Storage-Host. Presigned PUT bzw. die "
-            f"Anzeige der Profilfotos laufen dann in eine CSP-Blockade.")
+    quellen = pruefer.hosts_der_direktive(policy, "img-src")
+    assert "'self'" in quellen
 
 
-def test_erkennt_einen_fehlenden_host(pruefer, tmp_path):
+def test_photos_proxy_existiert_und_hat_ein_ziel(pruefer):
+    text = NGINX_SITE.read_text(encoding="utf-8")
+    ziel = pruefer.photos_proxy_ziel(text)
+    assert ziel, "Location /photos/ mit proxy_pass fehlt in deploy/nginx-flexr.conf"
+    assert "r2" in ziel, f"Unerwartetes Proxy-Ziel fuer /photos/: {ziel}"
+
+
+def test_erkennt_fehlenden_connect_src_host(pruefer, tmp_path):
     """Gegenprobe: Die kaputte Policy von 5b0c4a8 muss auffallen."""
-    kaputt = ("add_header Content-Security-Policy \"default-src 'self'; "
-              "img-src 'self' data: blob: https://photos.flexr.social; "
-              "connect-src 'self'\" always;")
+    kaputt = ('add_header Content-Security-Policy "default-src \'self\'; '
+              'img-src \'self\' data: blob:; '
+              'connect-src \'self\'" always;')
     p = pruefer.policy_aus_snippet(kaputt)
-
     erlaubte = pruefer.hosts_der_direktive(p, "connect-src")
     assert not [q for q in erlaubte if q.startswith("https://")]
 
-    bilder = pruefer.hosts_der_direktive(p, "img-src")
-    assert "https://pub-0fa239128c094c37bb3bf410428cf0ba.r2.dev" not in bilder
+
+def test_erkennt_fremden_host_ohne_img_src_eintrag(pruefer, tmp_path):
+    """Falls S3_PUBLIC_BASE_URL wieder auf einen fremden Host zeigt (z.B.
+    waehrend einer Migration, bevor der Proxy umgestellt ist), muss img-src
+    ihn explizit nennen - sonst bricht die Anzeige."""
+    env = tmp_path / ".env"
+    env.write_text(
+        "S3_ENDPOINT_URL=https://beispiel.r2.cloudflarestorage.com\n"
+        "S3_PUBLIC_BASE_URL=https://pub-fremd.r2.dev\n",
+        encoding="utf-8")
+
+    import subprocess
+    import sys
+    ergebnis = subprocess.run(
+        [sys.executable, str(SKRIPT), str(env)],
+        capture_output=True, text=True)
+    assert ergebnis.returncode == 1
+    assert "pub-fremd.r2.dev" in ergebnis.stdout
+
+
+def test_akzeptiert_gleichen_ursprung_fuer_fotos(pruefer, policy, tmp_path):
+    # connect-src-Host muss zum echten Snippet passen, sonst schlaegt die
+    # erste Pruefung fehl, bevor die zweite (der eigentliche Testgegenstand)
+    # ueberhaupt zum Zug kommt.
+    echter_connect_host = [
+        q for q in pruefer.hosts_der_direktive(policy, "connect-src")
+        if q.startswith("https://")
+    ][0]
+
+    env = tmp_path / ".env"
+    env.write_text(
+        f"S3_ENDPOINT_URL={echter_connect_host}\n"
+        "S3_PUBLIC_BASE_URL=https://flexr.social/photos\n",
+        encoding="utf-8")
+
+    import subprocess
+    import sys
+    ergebnis = subprocess.run(
+        [sys.executable, str(SKRIPT), str(env)],
+        capture_output=True, text=True)
+    assert ergebnis.returncode == 0, ergebnis.stdout
 
 
 def test_env_leser_ignoriert_kommentare_und_anfuehrungszeichen(pruefer, tmp_path):
@@ -79,11 +133,11 @@ def test_env_leser_ignoriert_kommentare_und_anfuehrungszeichen(pruefer, tmp_path
         '# Kommentar\n'
         'S3_ENDPOINT_URL="https://beispiel.r2.cloudflarestorage.com"\n'
         '\n'
-        "S3_PUBLIC_BASE_URL='https://pub-beispiel.r2.dev'\n",
+        "S3_PUBLIC_BASE_URL='https://flexr.social/photos'\n",
         encoding="utf-8")
     werte = pruefer.lies_env(env)
     assert werte["S3_ENDPOINT_URL"] == "https://beispiel.r2.cloudflarestorage.com"
-    assert werte["S3_PUBLIC_BASE_URL"] == "https://pub-beispiel.r2.dev"
+    assert werte["S3_PUBLIC_BASE_URL"] == "https://flexr.social/photos"
 
 
 def test_direktive_wird_nicht_mit_einer_anderen_verwechselt(pruefer, policy):

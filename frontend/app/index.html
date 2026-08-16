@@ -1212,6 +1212,12 @@
   .account-section-title::before{
     content:''; width:3px; height:11px; background:var(--plate); border-radius:2px; flex-shrink:0;
   }
+  .account-footer-link{ text-align:center; margin:22px 0 8px; }
+  .account-footer-link button{
+    background:none; border:none; padding:4px; font-size:12px; color:var(--chalk-dim);
+    text-decoration:underline; text-underline-offset:2px; cursor:pointer;
+  }
+  .account-footer-link button:hover{ color:var(--plate); }
 
   .price-card{
     background:linear-gradient(180deg, rgba(255,90,31,.07), rgba(26,26,26,0) 45%), linear-gradient(180deg, #1f1f1f, #191919);
@@ -1634,10 +1640,16 @@
 
       <div class="account-section">
         <div class="account-section-title">Konto</div>
-        <button class="btn secondary" id="btnOpenPrivacy">Datenschutz &amp; Sicherheit</button>
         <button class="btn secondary" id="btnLogout">Ausloggen</button>
         <button class="btn danger-ghost" id="btnDeleteAccount">Konto löschen</button>
       </div>
+
+      <!-- Bewusst als unauffaelliger Fusszeilen-Link, nicht als Knopf in der
+           "Konto"-Sektion: Wird selten gebraucht, soll aber weiterhin in
+           einem Klick erreichbar bleiben. -->
+      <p class="account-footer-link">
+        <button type="button" id="btnOpenPrivacy">Datenschutz &amp; Sicherheit</button>
+      </p>
     </section>
 
     <!-- DATENSCHUTZ & SICHERHEIT (Unterseite des Kontobereichs) -->

@@ -100,7 +100,6 @@ Keine Daten verschieben oder löschen, ohne die Integrität sicherzustellen.
 Reihenfolge:
 
 1. Neuen Bucket mit `jurisdiction=eu` anlegen, etwa `flexr-photos-eu`.
-   Öffentliche Domain (`photos.flexr.social`) noch **nicht** umhängen.
 2. Bestand kopieren, nicht verschieben — `rclone copy` oder `aws s3 sync` gegen
    beide Endpunkte. Der alte Bucket bleibt unangetastet.
 3. **Abgleich vor dem Umschalten:** Objektzahl und Gesamtgröße beider Buckets
@@ -111,9 +110,16 @@ Reihenfolge:
 5. Letzten Abgleich fahren (`sync` erneut, sollte nichts mehr finden).
 6. `S3_BUCKET_NAME` und `S3_ENDPOINT_URL` in `/flexr/backend/.env` umstellen,
    Dienst neu starten.
-7. Öffentliche Domain auf den neuen Bucket umhängen. **Die Objektschlüssel
-   bleiben gleich**, deshalb bleiben alle in der Datenbank gespeicherten URLs
-   gültig — vorausgesetzt, `S3_PUBLIC_BASE_URL` ändert sich nicht.
+7. **Seit dem 16.08.2026 anders als hier ursprünglich beschrieben:** Es gibt
+   keine öffentliche R2-Domain mehr umzuhängen. `S3_PUBLIC_BASE_URL` zeigt auf
+   den eigenen Ursprung (`https://flexr.social/photos`); ausgeliefert wird
+   über die Location `/photos/` in `deploy/nginx-flexr.conf`, die serverseitig
+   an den tatsächlichen R2-Host weiterreicht (`proxy_pass`,
+   `proxy_set_header Host`). **Diese beiden Zeilen auf den neuen Bucket-Host
+   umstellen und `nginx -t` vor dem Reload.** Die Objektschlüssel bleiben
+   gleich, deshalb bleiben alle in der Datenbank gespeicherten URLs gültig -
+   sie zeigen ja weiterhin auf `/photos/…`, unabhängig davon, welcher Bucket
+   dahintersteht. `tools/check_csp_hosts.py` danach laufen lassen.
 8. Eine Woche beobachten. Erst dann den alten Bucket löschen, nicht früher.
 9. `frontend/datenschutz.html`, Punkt 6 aktualisieren — dann darf die
    EU-Aussage wieder hinein.
