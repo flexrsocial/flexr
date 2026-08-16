@@ -279,6 +279,31 @@
   }
   .photo-slot.pending .pstatus{ color:var(--plate); }
   .photo-slot.rejected .pstatus{ color:var(--danger); }
+  /* Laufender Upload: Der Platz wird sofort belegt, damit sichtbar ist, dass
+     etwas passiert. Die Vorschau liegt schon vor (preparePhoto liefert einen
+     Blob), sie wird gedimmt und mit einem Ring ueberlagert. */
+  .photo-slot.uploading{ border-style:solid; border-color:var(--plate-dim); cursor:default; }
+  .photo-slot.uploading img{ opacity:.35; }
+  .photo-slot .uploading-ring{
+    position:absolute; top:50%; left:50%; width:24px; height:24px; margin:-12px 0 0 -12px;
+    border:2px solid rgba(255,255,255,.22); border-top-color:var(--plate); border-radius:50%;
+    animation:uploadSpin .8s linear infinite;
+  }
+  @keyframes uploadSpin{ to{ transform:rotate(360deg); } }
+  /* Fehlgeschlagener Upload: Der Slot bleibt stehen und bietet den zweiten
+     Versuch an, statt die Auswahl stillschweigend zu verwerfen. */
+  .photo-slot.failed{ border-style:solid; border-color:rgba(227,72,72,.5); cursor:pointer; }
+  .photo-slot.failed img{ opacity:.3; }
+  .photo-slot .retry{
+    position:absolute; inset:0; display:flex; flex-direction:column; gap:2px;
+    align-items:center; justify-content:center; text-align:center;
+    font-family:'JetBrains Mono'; font-size:9px; letter-spacing:.06em; text-transform:uppercase;
+    color:var(--danger); background:rgba(0,0,0,.45); padding:4px;
+  }
+  .photo-slot .retry b{ color:var(--plate); font-weight:600; }
+  @media (prefers-reduced-motion: reduce){
+    .photo-slot .uploading-ring{ animation-duration:2.4s; }
+  }
   .photo-hint{ font-size:12px; line-height:1.5; color:var(--chalk-dim); margin-top:8px; }
   .photo-hint.warn{ color:var(--plate); }
 
@@ -2089,10 +2114,25 @@
             }, 'image/jpeg', 0.85);
           }, 'image/jpeg', 0.85);
         };
-        img.onerror = reject;
+        // Hier landet alles, was der Browser nicht dekodieren kann. Der
+        // haeufigste echte Fall ist HEIC/HEIF vom iPhone: Safari wandelt beim
+        // Auswaehlen meist selbst nach JPEG um, aber nicht immer - und Chrome
+        // und Firefox koennen HEIC gar nicht. Ohne eigenen Text stuende dort
+        // nur "Foto konnte nicht geladen werden", und der Nutzer probiert
+        // dasselbe Bild noch dreimal.
+        img.onerror = () => {
+          const name = (file.name || '').toLowerCase();
+          const heic = /\.(heic|heif)$/.test(name)
+            || /image\/hei[cf]/.test(file.type || '');
+          reject(new Error(heic
+            ? 'Dieses Foto liegt im iPhone-Format HEIC vor, das dein Browser nicht öffnen kann. '
+              + 'Speichere es als JPEG oder schalte am iPhone unter Einstellungen › Kamera › '
+              + 'Formate auf „Maximale Kompatibilität" um.'
+            : 'Diese Datei konnte nicht als Bild gelesen werden. Bitte wähle ein JPEG oder PNG.'));
+        };
         img.src = ev.target.result;
       };
-      reader.onerror = reject;
+      reader.onerror = () => reject(new Error('Die Datei konnte nicht gelesen werden.'));
       reader.readAsDataURL(file);
     });
   }
@@ -2126,34 +2166,129 @@
       pendingPhotos.push({blob: photo.blob, thumbBlob: photo.thumbBlob, previewUrl: URL.createObjectURL(photo.blob)});
       renderPhotoGrid();
     }catch(err){
-      $('photoErr').textContent = err.message || 'Foto konnte nicht geladen werden.';
-      console.error(err);
+      $('photoErr').textContent = uploadFehlerText(err);
+      logUploadFehler('onboarding-auswahl', err);
     }
   });
 
-  // Presigned-URLs anfordern (Vollbild + Thumbnail), beide direkt hochladen,
-  // object_keys im Backend registrieren
+  // ---------- Foto-Upload ----------
+  //
+  // Der Upload laeuft am Backend vorbei: Das Backend signiert nur eine
+  // PUT-URL, hochgeladen wird direkt in den Objekt-Storage. Das ist schnell,
+  // hat aber zwei Fehlerquellen, die es bei einem normalen API-Aufruf nicht
+  // gibt - die Content-Security-Policy des Dokuments und die CORS-Regeln des
+  // Buckets. Beide melden sich als fetch()-Rejection ganz ohne HTTP-Status.
+  //
+  // Am 15.08.2026 war es die Policy: connect-src stand auf 'self', der PUT
+  // ging an <account>.r2.cloudflarestorage.com. Der Nutzer sah den nackten
+  // Text "Failed to fetch". Deshalb hier zwei getrennte Dinge:
+  //   * UploadFehler traegt einen 'grund' fuer die Diagnose ...
+  //   * ... und eine Meldung, die man einem Menschen zeigen kann.
+
+  class UploadFehler extends Error {
+    constructor(grund, meldung){
+      super(meldung);
+      this.name = 'UploadFehler';
+      this.grund = grund;         // technisch, nur fuers Log
+      this.nutzerText = meldung;  // was der Nutzer liest
+    }
+  }
+
+  const UPLOAD_TEXT_ALLGEMEIN =
+    'Das Foto konnte nicht hochgeladen werden. Bitte versuche es erneut.';
+
+  // Aus einer Presigned-URL bleibt fuers Log nur der Origin uebrig.
+  //
+  // Die Query traegt die Signatur - ein kopiertes Log waere damit ein
+  // gueltiger Schreibzugriff auf den Bucket. Der Pfad wiederum enthaelt
+  // Bucket, Nutzer-ID und Objektschluessel, also nichts, was in eine Konsole
+  // gehoert. Fuer die einzige Frage, die dieses Log beantworten muss -
+  // "welchen Host hat der Browser abgelehnt?" - reicht der Origin genau aus.
+  function nurOrigin(url){
+    try{
+      return new URL(url).origin;
+    }catch(_){
+      return '(unlesbare URL)';
+    }
+  }
+
+  function logUploadFehler(schritt, err){
+    // Bewusst nur Kategorie und Schritt, keine URL mit Signatur, kein Token,
+    // keine Objektschluessel.
+    console.error('[foto-upload]', schritt,
+      err instanceof UploadFehler ? err.grund : (err && err.name) || 'unbekannt');
+  }
+
   async function putToPresigned(blob){
-    const presign = await api('/api/profiles/me/photos/presign', {
-      method: 'POST',
-      body: JSON.stringify({content_type: blob.type || 'image/jpeg'}),
-    });
-    const putRes = await fetch(presign.upload_url, {
-      method: 'PUT',
-      headers: {'Content-Type': blob.type || 'image/jpeg'},
-      body: blob,
-    });
-    if(!putRes.ok) throw new Error('Foto-Upload zum Objekt-Storage fehlgeschlagen.');
+    const contentType = blob.type || 'image/jpeg';
+
+    let presign;
+    try{
+      presign = await api('/api/profiles/me/photos/presign', {
+        method: 'POST',
+        body: JSON.stringify({content_type: contentType}),
+      });
+    }catch(err){
+      // api() beantwortet 401 und 402 schon selbst: Es setzt den Token
+      // zurueck bzw. zeigt die Paywall und wirft dazu einen Satz, den man
+      // lesen kann ("Sitzung abgelaufen. Bitte erneut einloggen."). Den
+      // ersetzen wir nicht, sonst steht auf dem Login-Screen die falsche
+      // Begruendung. Nur Meldungen ohne Aussage werden abgefangen -
+      // das erledigt uploadFehlerText().
+      throw new UploadFehler('presign-fehlgeschlagen', uploadFehlerText(err));
+    }
+
+    let putRes;
+    try{
+      putRes = await fetch(presign.upload_url, {
+        method: 'PUT',
+        headers: {'Content-Type': contentType},
+        body: blob,
+      });
+    }catch(netzErr){
+      // Hier landen CSP-Blockade, CORS-Ablehnung, DNS, TLS und echter
+      // Netzausfall - fetch() unterscheidet sie fuer Skripte nicht. Die
+      // konkrete Ursache steht als CSP- bzw. CORS-Meldung in der Konsole des
+      // Browsers; wir halten den Zielhost ohne Signatur daneben, damit sich
+      // beides zuordnen laesst.
+      console.error('[foto-upload] PUT abgewiesen (CSP/CORS/Netz), Ziel-Origin:',
+        nurOrigin(presign.upload_url));
+      throw new UploadFehler('put-rejected', UPLOAD_TEXT_ALLGEMEIN);
+    }
+
+    if(!putRes.ok){
+      throw new UploadFehler('put-http-' + putRes.status, UPLOAD_TEXT_ALLGEMEIN);
+    }
     return presign.object_key;
   }
 
   async function uploadPhoto(photo){
     const objectKey = await putToPresigned(photo.blob);
     const thumbKey = await putToPresigned(photo.thumbBlob);
-    return api('/api/profiles/me/photos', {
-      method: 'POST',
-      body: JSON.stringify({object_key: objectKey, thumb_object_key: thumbKey}),
-    });
+    try{
+      return await api('/api/profiles/me/photos', {
+        method: 'POST',
+        body: JSON.stringify({object_key: objectKey, thumb_object_key: thumbKey}),
+      });
+    }catch(err){
+      // Der Storage hat das Bild, die Datenbank kennt es nicht. Das Objekt
+      // raeumt der Aufraeumlauf ueber den Prefix wieder ab (storage.py,
+      // list_object_keys) - fuer den Nutzer ist es schlicht fehlgeschlagen.
+      throw new UploadFehler('registrieren-fehlgeschlagen', UPLOAD_TEXT_ALLGEMEIN);
+    }
+  }
+
+  // Einheitlicher Text fuer alles, was aus dem Upload-Pfad kommt. preparePhoto
+  // wirft eigene, bereits verstaendliche Meldungen (zu klein, kein Bild) -
+  // die bleiben erhalten.
+  function uploadFehlerText(err){
+    if(err instanceof UploadFehler) return err.nutzerText;
+    const m = err && err.message;
+    // Alles, was nach Browser-Innenleben klingt, wird nicht durchgereicht.
+    if(!m || /failed to fetch|networkerror|load failed|typeerror/i.test(m)){
+      return UPLOAD_TEXT_ALLGEMEIN;
+    }
+    return m;
   }
 
   // ---------- Registrierung ----------
@@ -2455,14 +2590,23 @@
     }
 
     const btn = $('btnCreateProfile');
+    const btnText = btn.textContent;
     btn.disabled = true;
+    btn.textContent = 'Konto wird erstellt …';
     try{
       const tokenRes = await api('/api/auth/register', {method: 'POST', body: JSON.stringify(payload)});
       setToken(tokenRes.access_token);
 
       let photoFailures = 0;
+      let nr = 0;
       for(const p of pendingPhotos){
-        try{ await uploadPhoto(p); }catch(err){ photoFailures++; console.error('Foto-Upload fehlgeschlagen:', err); }
+        nr++;
+        // Bis zu sechs Fotos, jedes mit zwei PUTs - ohne Fortschritt steht der
+        // Knopf hier je nach Verbindung eine gefuehlte Ewigkeit still.
+        btn.textContent = pendingPhotos.length > 1
+          ? `Foto ${nr} von ${pendingPhotos.length} wird hochgeladen …`
+          : 'Foto wird hochgeladen …';
+        try{ await uploadPhoto(p); }catch(err){ photoFailures++; logUploadFehler('registrierung', err); }
       }
       const uploadedCount = pendingPhotos.length - photoFailures;
       pendingPhotos = [];
@@ -2488,6 +2632,7 @@
       errEl.textContent = err.message || 'Registrierung fehlgeschlagen.';
     }finally{
       btn.disabled = false;
+      btn.textContent = btnText;
     }
   });
 
@@ -3012,13 +3157,37 @@
     }
   });
 
+  // Laufender bzw. gescheiterter Upload im Account-Raster. Nur einer zur Zeit:
+  // Solange er laeuft, nimmt das Raster keine weitere Auswahl an, sonst
+  // ueberholen sich zwei Uploads und das Raster springt.
+  // {vorschau, blob, thumbBlob, status:'laeuft'|'fehler', text}
+  let acctUpload = null;
+
   function renderAccountPhotoGrid(){
     const grid = $('acctPhotoGrid');
     grid.innerHTML = '';
     const photos = myProfile.photos || [];
+    // Der laufende Upload belegt den ersten freien Platz.
+    const uploadSlot = acctUpload ? Math.min(photos.length, 5) : -1;
     for(let i=0;i<6;i++){
       const slot = document.createElement('div');
       slot.className = 'photo-slot';
+      if(i === uploadSlot){
+        if(acctUpload.status === 'laeuft'){
+          slot.classList.add('uploading');
+          slot.innerHTML = `<img src="${acctUpload.vorschau}" alt=""><div class="uploading-ring"></div>`;
+          slot.setAttribute('aria-busy', 'true');
+          slot.setAttribute('aria-label', 'Foto wird hochgeladen');
+        } else {
+          slot.classList.add('failed');
+          slot.innerHTML = `<img src="${acctUpload.vorschau}" alt="">`
+            + `<div class="retry">Fehlgeschlagen<b>Erneut versuchen</b></div>`;
+          slot.title = acctUpload.text;
+          slot.onclick = () => starteAccountUpload(acctUpload);
+        }
+        grid.appendChild(slot);
+        continue;
+      }
       if(photos[i]){
         const st = photos[i].status;
         const statusCls = st === 'approved' ? '' : (st === 'rejected' ? 'rejected' : 'pending');
@@ -3039,7 +3208,13 @@
         };
       } else {
         slot.textContent = '+';
-        slot.onclick = () => { $('acctPhotoInput').click(); };
+        // Waehrend ein Upload laeuft, bleibt das Raster gesperrt.
+        if(acctUpload && acctUpload.status === 'laeuft'){
+          slot.style.opacity = '.4';
+          slot.style.cursor = 'default';
+        } else {
+          slot.onclick = () => { $('acctPhotoInput').click(); };
+        }
       }
       grid.appendChild(slot);
     }
@@ -3068,18 +3243,66 @@
     }
   }
 
+  // Fuehrt den Upload aus und haelt das Raster dabei auf Stand. Wird auch vom
+  // "Erneut versuchen" im fehlgeschlagenen Slot aufgerufen - deshalb nimmt sie
+  // den fertig aufbereiteten Auftrag entgegen und nicht die Datei: Ein zweiter
+  // Versuch soll das Bild nicht noch einmal skalieren.
+  async function starteAccountUpload(auftrag){
+    acctUpload = auftrag;
+    acctUpload.status = 'laeuft';
+    $('acctPhotoErr').textContent = '';
+    renderAccountPhotoGrid();
+    try{
+      myProfile = await uploadPhoto({blob: auftrag.blob, thumbBlob: auftrag.thumbBlob});
+      URL.revokeObjectURL(auftrag.vorschau);
+      acctUpload = null;
+      renderAccountPhotoGrid();
+      // Das Foto ist da und im Raster zu sehen; der Hinweis darunter sagt,
+      // dass es vor der Anzeige noch geprueft wird.
+      toast('Foto hochgeladen.');
+    }catch(err){
+      logUploadFehler('account', err);
+      acctUpload.status = 'fehler';
+      acctUpload.text = uploadFehlerText(err);
+      renderAccountPhotoGrid();
+      $('acctPhotoErr').textContent = acctUpload.text;
+    }
+  }
+
   $('acctPhotoInput').addEventListener('change', async (e)=>{
     const file = e.target.files[0];
     e.target.value = '';
     if(!file) return;
-    $('acctPhotoErr').textContent = '';
-    try{
-      const photo = await preparePhoto(file);
-      myProfile = await uploadPhoto(photo);
-      renderAccountPhotoGrid();
-    }catch(err){
-      $('acctPhotoErr').textContent = err.message || 'Foto-Upload fehlgeschlagen.';
+    if(acctUpload && acctUpload.status === 'laeuft') return;
+    if((myProfile.photos || []).length >= 6){
+      $('acctPhotoErr').textContent = 'Maximal 6 Fotos.';
+      return;
     }
+    $('acctPhotoErr').textContent = '';
+    // Ein vorher gescheiterter Versuch wird durch die neue Auswahl ersetzt.
+    // Das Neuzeichnen muss sofort passieren: preparePhoto braucht bei grossen
+    // Fotos gut eine Sekunde, und solange stuende sonst noch der alte
+    // "Fehlgeschlagen"-Slot da, obwohl der Nutzer laengst ein neues Bild
+    // gewaehlt hat.
+    if(acctUpload){
+      URL.revokeObjectURL(acctUpload.vorschau);
+      acctUpload = null;
+      renderAccountPhotoGrid();
+    }
+    let photo;
+    try{
+      photo = await preparePhoto(file);
+    }catch(err){
+      // preparePhoto meldet Verstaendliches (zu klein, kein lesbares Bild) -
+      // das ist kein Upload-Fehler und bekommt keinen Retry-Slot.
+      $('acctPhotoErr').textContent = uploadFehlerText(err);
+      return;
+    }
+    await starteAccountUpload({
+      blob: photo.blob,
+      thumbBlob: photo.thumbBlob,
+      vorschau: URL.createObjectURL(photo.blob),
+    });
   });
 
   // ---------- Swipe deck ----------
@@ -3858,8 +4081,8 @@
       toast('Profilfoto gespeichert. Jetzt kann die Prüfung starten.');
       await showVerificationGate();
     }catch(uploadErr){
-      console.error('Profilfoto-Upload fehlgeschlagen:', uploadErr);
-      if(err) err.textContent = uploadErr.message || 'Foto konnte nicht hochgeladen werden.';
+      logUploadFehler('verifizierungs-gate', uploadErr);
+      if(err) err.textContent = uploadFehlerText(uploadErr);
       btn.disabled = false;
       btn.textContent = 'Profilfoto hinzufügen';
     }
