@@ -171,16 +171,25 @@
               placeholder="Musst du nicht ausfüllen. Ein Rücktritt braucht keine Begründung."></textarea>
 
     <!-- Schritt 2: § 13a Abs. 3 FAGG verlangt einen eigenen
-         Bestätigungsschritt. Der Knopf bleibt gesperrt, bis er gesetzt ist. -->
-    <div class="check">
+         Bestätigungsschritt. Der Knopf bleibt gesperrt, bis er gesetzt ist.
+         Die ganze Zeile ist jetzt ein <label> - nicht nur die 18x18px grosse
+         Checkbox oder der Fliesstext daneben. Auf einem Touchscreen ist ein
+         verfehlter Tap auf die kleine Box sonst leicht mit "der Knopf geht
+         nicht" zu verwechseln, obwohl schlicht die Checkbox nie gesetzt
+         wurde. -->
+    <label class="check" for="w-confirm" style="cursor:pointer;">
       <input type="checkbox" id="w-confirm" name="confirmed">
       <span>
-        <label for="w-confirm" style="display:inline; margin:0; font-size:14px; color:var(--chalk); font-weight:400;">
-          Ich erkläre hiermit den Rücktritt von meinem entgeltlichen
-          FLEXR-Vertrag.
-        </label>
+        Ich erkläre hiermit den Rücktritt von meinem entgeltlichen
+        FLEXR-Vertrag.
       </span>
-    </div>
+    </label>
+
+    <!-- Erklaert live, warum der Knopf noch gesperrt ist - vorher gab es
+         dafuer keinerlei Hinweis. Wer Name und E-Mail ausfuellt, aber die
+         Checkbox uebersieht, sah bisher nur einen grauen Knopf ohne
+         erkennbaren Grund. -->
+    <p class="hint" id="w-disabled-hint" style="margin-top:10px;"></p>
 
     <div class="err" id="w-err" role="alert" aria-live="assertive"></div>
 
@@ -284,10 +293,37 @@
   var submit  = document.getElementById('w-submit');
   var err     = document.getElementById('w-err');
   var result  = document.getElementById('w-result');
+  var nameEl  = document.getElementById('w-name');
+  var emailEl = document.getElementById('w-email');
+  var hint    = document.getElementById('w-disabled-hint');
 
   // Schritt 2 aus § 13a Abs. 3 FAGG: Ohne gesetzte Bestätigung bleibt der
   // Knopf gesperrt. Ein ausgefülltes Formular allein ist noch keine Erklärung.
-  check.addEventListener('change', function(){ submit.disabled = !check.checked; });
+  //
+  // Vorher reagierte der Knopf nur auf die Checkbox - Name/E-Mail wurden erst
+  // beim Absenden geprüft. Wer die Checkbox übersah, sah einen grauen Knopf
+  // ohne jeden Hinweis, warum. aktualisieren() läuft bei jeder Eingabe und
+  // sagt konkret, was noch fehlt.
+  function aktualisieren(){
+    var fehlend = [];
+    if(!nameEl.value.trim()) fehlend.push('deinen Namen');
+    if(!emailEl.value.trim()) fehlend.push('deine E-Mail-Adresse');
+    if(!check.checked) fehlend.push('die Bestätigung oben');
+
+    submit.disabled = fehlend.length > 0;
+    if(fehlend.length === 0){
+      hint.textContent = '';
+    } else if(fehlend.length === 1){
+      hint.textContent = 'Es fehlt noch ' + fehlend[0] + '.';
+    } else {
+      var letzte = fehlend.pop();
+      hint.textContent = 'Es fehlen noch ' + fehlend.join(', ') + ' und ' + letzte + '.';
+    }
+  }
+  check.addEventListener('change', aktualisieren);
+  nameEl.addEventListener('input', aktualisieren);
+  emailEl.addEventListener('input', aktualisieren);
+  aktualisieren();
 
   function fehler(text){
     err.textContent = text;
