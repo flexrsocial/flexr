@@ -818,6 +818,30 @@ class ConsentRevokeRequest(BaseModel):
     consent_type: Literal["sensitive_data", "verification_media", "immediate_start"]
 
 
+class CheckoutRequest(BaseModel):
+    """Vor dem Wechsel zur Stripe-Checkout-Seite eingeholte ausdrückliche
+    Erklärung zum sofortigen Leistungsbeginn (§ 10 FAGG). Nicht vorangekreuzt,
+    muss aktiv bestätigt werden - sonst kann kein Checkout gestartet werden."""
+
+    immediate_start: bool = Field(
+        description=(
+            "Ich verlange ausdrücklich, dass FLEXR mit der Bereitstellung der "
+            "kostenpflichtigen Dienstleistung bereits vor Ablauf der "
+            "14-tägigen Rücktrittsfrist beginnt."
+        )
+    )
+
+    @field_validator("immediate_start")
+    @classmethod
+    def _erklaerung_erforderlich(cls, v: bool) -> bool:
+        if not v:
+            raise ValueError(
+                "Ohne diese Erklärung kann der kostenpflichtige Zugang nicht "
+                "sofort beginnen."
+            )
+        return v
+
+
 class AdminPhotoRejectRequest(BaseModel):
     """Ablehnung eines Profilfotos mit Grund (Art. 17 DSA).
 

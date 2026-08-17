@@ -225,6 +225,40 @@ def test_zuordnung_ueber_die_kunden_id_wenn_die_abo_id_fehlt(client):
     assert user.stripe_subscription_id == "sub_nachgetragen"
 
 
+def test_checkout_ohne_erklaerung_zum_leistungsbeginn_wird_abgelehnt(client):
+    """§ 10 FAGG: ohne die ausdrückliche Erklärung darf kein Checkout starten."""
+    headers = register_user(client, "ohne-erklaerung@example.com")
+
+    resp = client.post("/api/billing/checkout", json={"immediate_start": False}, headers=headers)
+    assert resp.status_code == 422
+
+    resp_ohne_feld = client.post("/api/billing/checkout", json={}, headers=headers)
+    assert resp_ohne_feld.status_code == 422
+
+
+def test_checkout_mit_erklaerung_haelt_die_einwilligung_fest(client):
+    import stripe
+    import pytest
+
+    from app.consents import active
+    from app.models import ConsentType
+
+    headers = register_user(client, "mit-erklaerung@example.com")
+    user_id = client.get("/api/profiles/me", headers=headers).json()["id"]
+
+    # Kein echter Stripe-Key im Testbetrieb - der Aufruf scheitert bei Stripe,
+    # aber erst NACH dem consents.grant(), das reicht fuer diesen Test.
+    with pytest.raises(stripe._error.AuthenticationError):
+        client.post("/api/billing/checkout", json={"immediate_start": True}, headers=headers)
+
+    db = TestingSessionLocal()
+    try:
+        eintrag = active(db, user_id, ConsentType.immediate_start)
+    finally:
+        db.close()
+    assert eintrag is not None
+
+
 def test_unbekannter_kunde_und_unbekanntes_ereignis_laufen_ins_leere(client):
     """Ein Webhook fuer einen fremden Kunden darf nichts anfassen und nicht
     abstuerzen - Stripe wiederholt sonst endlos."""
