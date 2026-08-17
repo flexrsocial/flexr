@@ -38,9 +38,12 @@
   th{ color:var(--chalk-dim); font-weight:600; }
   .toc{ background:var(--surface); border:1px solid var(--steel); border-radius:10px; padding:14px 18px; margin:22px 0 8px; font-size:14px; }
   .toc b{ display:block; margin-bottom:8px; font-size:12px; letter-spacing:.06em; text-transform:uppercase; color:var(--chalk-dim); }
-  .toc ol{ margin:0; padding-left:14px; }
-  .toc li{ margin-bottom:5px; }
-  .toc li::marker{ margin-inline-end:10px; color:var(--plate); }
+  .toc ol{ list-style:none; counter-reset:toc; margin:0; padding-left:4px; }
+  .toc li{ counter-increment:toc; margin-bottom:5px; }
+  .toc li::before{
+    content:counter(toc) "."; display:inline-block; min-width:1.4em;
+    margin-right:10px; color:var(--plate); font-weight:700;
+  }
   h2[id]{ scroll-margin-top:16px; }
   .nav-legal{ margin-top:44px; padding-top:16px; border-top:1px solid var(--steel); font-size:13px; }
   .nav-legal a{ margin-right:16px; }
