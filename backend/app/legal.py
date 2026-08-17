@@ -44,6 +44,11 @@ OPERATOR_ZIP: Final = "8232"
 OPERATOR_CITY: Final = "Grafendorf"
 OPERATOR_COUNTRY: Final = "Österreich"
 OPERATOR_EMAIL: Final = "flexr.social@proton.me"
+# Geschäftliche Kontaktnummer, nur an gesetzlich/vertraglich erforderlichen
+# Stellen zu verwenden (Impressum, vorvertragliche Anbieterinformation,
+# Rücktrittsbelehrung, Vertragsbestätigung) - kein Marketingelement, siehe
+# operator_block()/operator_inline(), die sie deshalb bewusst NICHT enthalten.
+OPERATOR_PHONE: Final = "+43 676 874030574"
 
 OPERATOR_SUBJECT: Final = "Betrieb der Online-Dating-Plattform FLEXR (flexr.social)"
 

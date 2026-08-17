@@ -42,6 +42,7 @@ def test_legal_py_spiegelt_die_quelle(daten):
     assert legal.OPERATOR_CITY == rt["ort"]
     assert legal.OPERATOR_COUNTRY == rt["land"]
     assert legal.OPERATOR_EMAIL == rt["email"]
+    assert legal.OPERATOR_PHONE == rt["telefon"]
     assert legal.BRAND == daten["marke"]
     assert legal.DOMAIN == daten["domain"]
     assert legal.POSITIONING == daten["positionierung"]
@@ -74,6 +75,13 @@ def test_operator_block_ist_vollstaendig():
     for teil in ("Julian Pachernegg", "Einzelunternehmer", "Johann-Schrey-Weg 260",
                  "8232 Grafendorf", "flexr.social@proton.me"):
         assert teil in block
+
+
+def test_telefonnummer_ist_kein_marketingelement():
+    """Die Nummer ist nur an rechtlich/vertraglich noetigen Stellen zu nennen,
+    nicht in Anschriftenbloecken, die auf Marketingflaechen landen koennten."""
+    assert legal.OPERATOR_PHONE not in legal.operator_block()
+    assert legal.OPERATOR_PHONE not in legal.operator_inline()
 
 
 def test_trial_wandelt_sich_nicht_von_selbst_um():

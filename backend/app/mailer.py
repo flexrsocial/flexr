@@ -229,6 +229,7 @@ Fragen? Antworte einfach auf diese Mail.
 {legal.OPERATOR_LEGAL_FORM}, {legal.OPERATOR_ROLE}
 {legal.OPERATOR_STREET}, {legal.OPERATOR_ZIP} {legal.OPERATOR_CITY}
 {legal.OPERATOR_EMAIL}
+{legal.OPERATOR_PHONE}
 """
 
 
