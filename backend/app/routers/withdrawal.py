@@ -28,7 +28,7 @@ from ..database import get_db
 from ..mailer import email_configured, send_withdrawal_confirmation
 from ..models import User, WithdrawalDeclaration
 from ..rate_limit import limiter
-from ..schemas import WithdrawalAck, WithdrawalRequest
+from ..schemas import WithdrawalAck, WithdrawalRequest, WithdrawalStatus
 from ..security import optional_current_user
 from ..stripe_client import cancel_subscription_immediately
 
@@ -63,6 +63,19 @@ def build_declaration_text(
     if message:
         zeilen += ["", "Anmerkung des Erklärenden:", message]
     return "\n".join(zeilen)
+
+
+@router.get("/status", response_model=WithdrawalStatus)
+def withdrawal_status():
+    """Ob die hervorgehobene Online-Rücktrittsfunktion schon Pflicht ist.
+
+    Öffentlich, ungedrosselt, ohne Anmeldung - jede Seite mit dem
+    Legal-Footer ruft das bei jedem Laden ab (siehe frontend/legal-status.js).
+    """
+    return WithdrawalStatus(
+        legally_required=legal.withdrawal_function_legally_required(),
+        effective_date=legal.WITHDRAWAL_FUNCTION_EFFECTIVE_DATE.isoformat(),
+    )
 
 
 @router.post("", response_model=WithdrawalAck, status_code=201)

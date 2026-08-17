@@ -707,6 +707,10 @@
      besucht waren, waehrend nie besuchte Fusszeilen-Links grau blieben. */
   .legal-footer a:link, .legal-footer a:visited{ color:var(--chalk-dim); text-decoration:none; }
   .legal-footer a:hover{ color:var(--chalk); }
+  /* Ab 1. Oktober 2026 gesetzlich vorgeschriebene, aber bewusst zurueckhaltende
+     Hervorhebung der Online-Ruecktrittsfunktion (§ 13a FAGG) - siehe
+     legal-status.js. */
+  .legal-footer a.widerruf-hervorgehoben{ border:1px solid var(--plate); border-radius:6px; padding:3px 8px; }
 
   .legal-modal-backdrop{
     display:none; position:fixed; inset:0; z-index:100;
@@ -1940,7 +1944,7 @@
          Seite statt ins Modal, obwohl das Modal ihre Formular-Skripte seit
          diesem Fix genauso ausfuehrt wie bei jeder anderen Rechtsseite. -->
     <a href="/agb.html" class="legal-link" data-legal-page="agb.html">AGB</a>
-    <a href="/widerruf.html" class="legal-link" data-legal-page="widerruf.html">Widerruf</a>
+    <a href="/widerruf.html" class="legal-link" data-legal-page="widerruf.html" data-widerruf-link>Rücktrittsrecht</a>
     <a href="/nutzungsrichtlinien.html" class="legal-link" data-legal-page="nutzungsrichtlinien.html">Nutzungsrichtlinien</a>
     <a href="/sicherheit.html" class="legal-link" data-legal-page="sicherheit.html">Sicherheit</a>
     <a href="/meldung.html" class="legal-link" data-legal-page="meldung.html">Inhalt melden</a>
@@ -2087,6 +2091,12 @@
         Rücktrittsrecht nach vollständiger Vertragserfüllung durch FLEXR
         erlischt, wenn die gesetzlichen Voraussetzungen dafür erfüllt sind.</span>
     </label>
+    <p id="istartOct1Hinweis" style="display:none; font-size:12.5px; color:var(--chalk-dim,#a8a49b); margin-top:12px;">
+      Informationen zum gesetzlichen Rücktrittsrecht und zur
+      Online-Rücktrittsfunktion findest du unter „Rücktrittsrecht". Die
+      Funktion „Vertrag widerrufen" ist im Bereich „Rechtliches" der Website
+      verfügbar.
+    </p>
     <div class="istart-err" id="istartErr" style="display:none; color:#e34848; font-size:13px; margin-top:8px;"></div>
     <div style="display:flex; gap:10px; margin-top:18px;">
       <button type="button" class="btn" id="istartCancel" style="flex:1; background:transparent; border:1px solid var(--steel,#3a3a3a);">Abbrechen</button>
@@ -5222,5 +5232,6 @@
 
 })();
 </script>
+<script src="/legal-status.js" defer></script>
 </body>
 </html>

@@ -313,6 +313,32 @@ def test_laufendes_abo_wird_beim_ruecktritt_automatisch_gestoppt(client, monkeyp
         db.close()
 
 
+def test_status_endpunkt_ist_oeffentlich_und_liefert_stichtag(client):
+    """Das statische Frontend fragt hierüber ab, ob die hervorgehobene
+    Funktion schon Pflicht ist - ohne Anmeldung, jederzeit."""
+    resp = client.get("/api/withdrawal/status")
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["effective_date"] == "2026-10-01"
+    assert isinstance(body["legally_required"], bool)
+
+
+def test_status_vor_dem_stichtag_ist_die_funktion_nicht_pflicht(client, monkeypatch):
+    from app import legal
+    from datetime import date
+
+    monkeypatch.setattr(legal, "WITHDRAWAL_FUNCTION_EFFECTIVE_DATE", date(2099, 1, 1))
+    assert client.get("/api/withdrawal/status").json()["legally_required"] is False
+
+
+def test_status_nach_dem_stichtag_ist_die_funktion_pflicht(client, monkeypatch):
+    from app import legal
+    from datetime import date
+
+    monkeypatch.setattr(legal, "WITHDRAWAL_FUNCTION_EFFECTIVE_DATE", date(2020, 1, 1))
+    assert client.get("/api/withdrawal/status").json()["legally_required"] is True
+
+
 def test_stripe_fehler_beim_stoppen_verhindert_den_ruecktritt_nicht(client, monkeypatch):
     """Ein Stripe-Fehler (falscher Schlüssel, Netzwerk) darf die Erklärung
     selbst nicht scheitern lassen - sie ist unabhängig vom Abo wirksam."""
