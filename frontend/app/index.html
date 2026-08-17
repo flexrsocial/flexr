@@ -815,6 +815,45 @@
   }
   .legal-modal-body .nav-legal{ margin-top:32px; padding-top:14px; border-top:1px solid var(--steel); font-size:13px; }
   .legal-modal-body .nav-legal a{ margin-right:16px; }
+  /* Widerruf und Meldung sind Formulare, keine reinen Lesetexte - ohne diese
+     Regeln (aus legal.css uebernommen) waeren Eingabefelder, Checkbox und
+     Absenden-Knopf im Modal unstilisierte Browser-Standardelemente, und die
+     Erfolgsmeldung (.result) stuende von Anfang an sichtbar da, statt erst
+     nach dem Absenden. */
+  .legal-modal-body label{ display:block; margin-top:16px; margin-bottom:6px; font-size:13px; color:var(--chalk-dim); font-weight:600; }
+  .legal-modal-body input[type=text], .legal-modal-body input[type=email],
+  .legal-modal-body select, .legal-modal-body textarea{
+    width:100%; padding:12px 14px; font:inherit; font-size:15px;
+    color:var(--chalk); background:var(--surface-2);
+    border:1px solid var(--steel); border-radius:10px;
+  }
+  .legal-modal-body textarea{ min-height:130px; resize:vertical; }
+  .legal-modal-body input::placeholder, .legal-modal-body textarea::placeholder{ color:#6f6b64; }
+  .legal-modal-body .check{ display:flex; gap:10px; align-items:flex-start; margin-top:18px; font-size:14px; color:var(--chalk); }
+  .legal-modal-body .check input{ margin-top:3px; width:18px; height:18px; flex:0 0 auto; accent-color:var(--plate); }
+  .legal-modal-body .check span{ line-height:1.5; }
+  .legal-modal-body .btn{
+    display:inline-block; width:100%; margin-top:22px; padding:15px 20px;
+    font-family:'Oswald', system-ui, sans-serif; font-size:16px; font-weight:600;
+    letter-spacing:.06em; text-transform:uppercase; text-align:center;
+    color:#1a0a04; background:var(--plate);
+    border:none; border-radius:12px; cursor:pointer;
+  }
+  .legal-modal-body .btn:hover{ background:var(--plate-bright); }
+  .legal-modal-body .btn[disabled]{ opacity:.45; cursor:not-allowed; }
+  .legal-modal-body .btn.secondary{ color:var(--chalk); background:transparent; border:1px solid var(--steel); }
+  .legal-modal-body .err{ color:var(--danger); font-size:13.5px; margin-top:10px; min-height:1px; }
+  .legal-modal-body .result{ display:none; }
+  .legal-modal-body .result pre{
+    white-space:pre-wrap; word-break:break-word;
+    background:var(--surface-2); border:1px solid var(--steel); border-radius:10px;
+    padding:14px; font-family:'JetBrains Mono', ui-monospace, monospace; font-size:13px;
+    color:var(--chalk);
+  }
+  .legal-modal-body .sr-only{
+    position:absolute; width:1px; height:1px; padding:0; margin:-1px;
+    overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0;
+  }
   /* Jeder Rechtstext hat auch eine eigene, direkt aufrufbare Adresse */
   .legal-modal-permalink{
     display:block; margin:0 0 18px; font-size:12px; color:var(--chalk-dim);
@@ -1889,12 +1928,15 @@
     <a href="/impressum.html" class="legal-link" data-legal-page="impressum.html">Impressum</a>
     <a href="/datenschutz.html" class="legal-link" data-legal-page="datenschutz.html">Datenschutz</a>
     <!-- Alle Rechtstexte öffnen im Modal, behalten aber ihre eigene, direkt
-         aufrufbare URL im href (und im Permalink oben im Modal). -->
+         aufrufbare URL im href (und im Permalink oben im Modal). Widerruf und
+         Meldung fehlte diese Anbindung bislang - sie fuehrten auf eine neue
+         Seite statt ins Modal, obwohl das Modal ihre Formular-Skripte seit
+         diesem Fix genauso ausfuehrt wie bei jeder anderen Rechtsseite. -->
     <a href="/agb.html" class="legal-link" data-legal-page="agb.html">AGB</a>
-    <a href="/widerruf.html">Widerruf</a>
+    <a href="/widerruf.html" class="legal-link" data-legal-page="widerruf.html">Widerruf</a>
     <a href="/nutzungsrichtlinien.html" class="legal-link" data-legal-page="nutzungsrichtlinien.html">Nutzungsrichtlinien</a>
     <a href="/sicherheit.html" class="legal-link" data-legal-page="sicherheit.html">Sicherheit</a>
-    <a href="/meldung.html">Inhalt melden</a>
+    <a href="/meldung.html" class="legal-link" data-legal-page="meldung.html">Inhalt melden</a>
     <a href="/strafverfolgung.html" class="legal-link" data-legal-page="strafverfolgung.html">Strafverfolgung</a>
   </footer>
 
@@ -4926,7 +4968,42 @@
         const html = await res.text();
         const doc = new DOMParser().parseFromString(html, 'text/html');
         const wrap = doc.querySelector('.wrap');
-        legalCache[page] = wrap ? wrap.innerHTML : '<p>Inhalt konnte nicht geladen werden.</p>';
+        // Jede Rechtsseite umschliesst ihren Inhalt mit einem eigenen <main>.
+        // Diese App hat aber schon ein GLOBALES, ungescoptes main{...} (Zeile
+        // ~116: display:flex; overflow-x:hidden; ...) fuer die eigene
+        // Bildschirm-Huelle. Ein zweites, eingebettetes <main> bekommt genau
+        // dieselbe Regel mit - seine Kinder werden zu Flex-Items, und ein
+        // Kind mit eigenem overflow:auto (etwa .table-scroll um breite
+        // Tabellen) bekommt dadurch eine automatische Mindestbreite von 0
+        // (dokumentiertes Flexbox-Verhalten: min-width:auto wird 0, sobald
+        // overflow nicht "visible" ist). Die Tabelle darin blieb aber ihre
+        // volle Breite behalten und lief ungeklemmt ueber den nachfolgenden
+        // Text - das war das gemeldete "Text über Text". Fix: das <main>
+        // durch ein neutrales <div> ersetzen, bevor der Inhalt ins Modal geht.
+        wrap?.querySelectorAll('main').forEach(main => {
+          const ersatz = document.createElement('div');
+          ersatz.innerHTML = main.innerHTML;
+          main.replaceWith(ersatz);
+        });
+        // Bei Widerruf und Meldung steht das Skript-Element NICHT in .wrap,
+        // sondern danach als eigenes Geschwister-Element auf oberster Ebene -
+        // wrap.innerHTML liesse es sonst komplett unter den Tisch fallen, und
+        // die Formulare blieben stumme Attrappen.
+        //
+        // Achtung beim Zusammenbauen unten: Der HTML-Parser dieser Seite
+        // erkennt das Ende des AEUSSEREN Skript-Blocks (in dem dieser Code
+        // hier selbst steht) rein textuell an der Zeichenfolge "</" + "script"
+        // + ">" - er weiss nichts von JS-Strings oder Kommentaren. Stuende
+        // diese Zeichenfolge hier UNAUFGETEILT im Quelltext, wuerde der
+        // Browser den umgebenden Skript-Block genau an dieser Stelle fuer
+        // beendet halten und den Rest des Programms verwerfen. Deshalb beide
+        // Tag-Namen unten bewusst per Konkatenation auseinandergerissen.
+        const externeSkripte = [...doc.querySelectorAll('body > script')]
+          .map(s => s.textContent).join('\n');
+        const skriptStart = '<' + 'script>';
+        const skriptEnde = '<' + '/script>';
+        legalCache[page] = (wrap ? wrap.innerHTML : '<p>Inhalt konnte nicht geladen werden.</p>')
+          + (externeSkripte ? skriptStart + externeSkripte + skriptEnde : '');
       }
       // Jeder Rechtstext bleibt unter einer eigenen Adresse erreichbar - das
       // Modal nennt sie und verlinkt sie, statt sie zu verstecken.
@@ -4936,6 +5013,17 @@
         legalCache[page];
       legalBody.scrollTop = 0;
       wireLegalModalLinks(page);
+      // Widerruf und Meldung sind keine reinen Lesetexte, sondern Formulare
+      // mit eigenem Skript-Block (Checkbox-Logik, Absenden per fetch). Ueber
+      // innerHTML eingefuegte Skript-Elemente fuehren sich nicht von selbst
+      // aus - ohne diesen Schritt waeren beide Formulare im Modal stumme
+      // Attrappen, obwohl der Rücktritt gesetzlich online moeglich sein muss
+      // (§ 13a FAGG).
+      legalBody.querySelectorAll('script').forEach(alt => {
+        const neu = document.createElement('script');
+        if(alt.src) neu.src = alt.src; else neu.textContent = alt.textContent;
+        alt.replaceWith(neu);
+      });
     }catch(err){
       legalBody.innerHTML = '<p>Inhalt konnte nicht geladen werden. <a href="/' + page + '">Direkt öffnen</a>.</p>';
     }
