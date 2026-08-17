@@ -51,6 +51,10 @@ def create_checkout_session(
         customer_email=user_email,
         line_items=[{"price": settings.stripe_price_id, "quantity": 1}],
         subscription_data=subscription_data or None,
+        # FLEXR-Nutzer sind Verbraucher in Österreich; explizit statt "auto",
+        # damit Stripes eigene (bereits EU-konforme) Preis- und Abo-Hinweise
+        # auf der gehosteten Checkout-Seite zuverlässig auf Deutsch stehen.
+        locale="de",
         # Seit dem 15.08.2026 liegt die Web-App unter /app/; an der Wurzel
         # steht die oeffentliche Landingpage. Wer aus dem Checkout
         # zurueckkommt, soll in der App landen, nicht im Marketing.
