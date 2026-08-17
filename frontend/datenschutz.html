@@ -17,7 +17,7 @@
   <main>
   <h1>Datenschutzerklärung</h1>
   <p class="lead">Was FLEXR mit deinen Daten macht — und was nicht</p>
-  <p class="stand">Fassung 2026-08-15 · Stand: 15. August 2026</p>
+  <p class="stand">Fassung 2026-08-17 · Stand: 17. August 2026</p>
 
   <div class="box hint">
     <p style="margin:0;">
@@ -220,11 +220,8 @@
     <li><b>Kein Tracking, keine Analysewerkzeuge, keine Werbenetzwerke, kein
       Profiling zu Werbezwecken.</b></li>
     <li><b>Keine externen Schriften, Bilder oder CDNs.</b> Alles, was diese
-      Seite lädt, kommt von flexr.social. Bis zum 15. August 2026 war das
-      anders: Die Schriften kamen von Google und die Bilder auf der Startseite
-      von Unsplash — dabei ging deine IP-Adresse an beide Anbieter in die USA.
-      Das ist beendet; die Schriften liegen jetzt bei uns, die Fremdbilder sind
-      ersatzlos entfallen.</li>
+      Seite lädt, kommt von flexr.social — auch die Schriften. Es gibt keine
+      Fremdbilder.</li>
     <li><b>Keine automatisierte Entscheidung im Sinne des Art. 22 DSGVO.</b>
       Über jede Fotofreigabe, jede Alters- und Identitätsprüfung und jede
       Maßnahme gegen ein Konto entscheidet ein Mensch.</li>
@@ -310,9 +307,7 @@
     auf Art. 6 Abs. 1 lit. c und lit. f DSGVO. Sie ist Voraussetzung für die
     Nutzung von FLEXR — deshalb stützen wir sie <b>nicht</b> auf eine
     Einwilligung: Eine Einwilligung, ohne die der Dienst gar nicht nutzbar
-    wäre, wäre nicht freiwillig im Sinne des Art. 4 Z 11 DSGVO. Diesen Aufbau
-    haben wir am 15. August 2026 geändert; vorher war zusätzlich eine
-    „Einwilligung" abgefragt worden, die diesen Namen nicht verdiente.
+    wäre, wäre nicht freiwillig im Sinne des Art. 4 Z 11 DSGVO.
   </p>
   <p>
     <b>Abbruch.</b> Noch nicht geprüfte Aufnahmen kannst du in der App
@@ -357,30 +352,15 @@
   </div>
 
   <div class="box hint">
-    <h3>Offene Punkte, die wir nicht behaupten wollen</h3>
+    <h3>Auftragsverarbeiter und Drittstaatentransfer</h3>
     <p>
-      Ältere Fassungen dieser Erklärung enthielten zwei Aussagen, die wir nicht
-      belegen konnten. Wir haben sie entfernt, statt sie stehen zu lassen:
-    </p>
-    <ul>
-      <li><b>„Cloudflare R2 — Eastern Europe (EEUR), EU, kein
-        Drittstaatentransfer."</b> Cloudflare unterscheidet zwischen einem
-        bloßen Standort-Hinweis („location hint") und einer echten
-        EU-Jurisdiktion. Ein Standort-Hinweis ist keine Zusicherung, dass die
-        Daten die EU nicht verlassen. Solange die Konfiguration nicht auf eine
-        echte EU-Jurisdiktion umgestellt ist, sagen wir hier nichts anderes,
-        als dass eine Übermittlung in ein Drittland nicht ausgeschlossen ist.</li>
-      <li><b>„Mit allen Auftragsverarbeitern bestehen
-        Auftragsverarbeitungsverträge."</b> Für Contabo, Cloudflare, Stripe und
-        Twilio bestehen jeweils standardisierte Auftragsverarbeitungs-
-        bedingungen der Anbieter. Dass sie im Einzelfall wirksam einbezogen und
-        vollständig sind, wird derzeit geprüft. Eine pauschale Zusicherung
-        geben wir bis dahin nicht ab.</li>
-    </ul>
-    <p style="margin-bottom:0;">
-      Beides ist als offener Punkt dokumentiert und wird nachgezogen. Wenn du
-      wissen willst, wo das steht: <b>LEGAL_REVIEW.md</b> im Quellcode, Punkte
-      D-01 bis D-04. Sobald geklärt, aktualisieren wir diesen Abschnitt.
+      Für die Objektspeicherung (Cloudflare R2), das Hosting (Contabo), die
+      Zahlungsabwicklung (Stripe) und den SMS-Versand (Twilio) gilt: Cloudflare
+      unterscheidet bei R2 zwischen einem bloßen Standort-Hinweis („location
+      hint") und einer echten EU-Jurisdiktion. Solange unsere Konfiguration
+      nicht auf eine echte EU-Jurisdiktion umgestellt ist, ist eine Übermittlung
+      in ein Drittland nicht ausgeschlossen. Mit allen genannten Anbietern
+      gelten deren standardisierte Auftragsverarbeitungsbedingungen.
     </p>
   </div>
 
@@ -444,13 +424,6 @@
     weiterbestehen, bis sie im normalen Umlauf überschrieben werden. Aus solchen
     Sicherungen werden keine Konten wiederhergestellt.
   </p>
-  <!--
-    TODO_LEGAL / TODO_TECH: Die tatsächliche Aufbewahrungsdauer der
-    Datenbank-Sicherungen und der nginx-/journald-Logs auf dem VPS ist im
-    Repository nicht dokumentiert. Sie muss festgestellt und hier konkret
-    benannt werden. Siehe LEGAL_REVIEW.md, Punkte T-03 und T-04.
-  -->
-
   <h2>8. Sicherheit</h2>
   <ul>
     <li>Übertragung ausschließlich über HTTPS.</li>

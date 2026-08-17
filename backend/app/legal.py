@@ -81,11 +81,11 @@ def operator_inline() -> str:
 # steht sichtbar unter "Stand:" auf jeder Seite.
 # ---------------------------------------------------------------------------
 
-TERMS_VERSION: Final = "2026-08-15"           # AGB
-PRIVACY_VERSION: Final = "2026-08-15"         # Datenschutzerklärung
-AUP_VERSION: Final = "2026-08-15"             # Nutzungsrichtlinien
-LE_GUIDELINES_VERSION: Final = "2026-08-15"   # Strafverfolgungsrichtlinien
-WITHDRAWAL_VERSION: Final = "2026-08-15"      # Widerrufsbelehrung
+TERMS_VERSION: Final = "2026-08-17"           # AGB
+PRIVACY_VERSION: Final = "2026-08-17"         # Datenschutzerklärung
+AUP_VERSION: Final = "2026-08-17"             # Nutzungsrichtlinien
+LE_GUIDELINES_VERSION: Final = "2026-08-17"   # Strafverfolgungsrichtlinien
+WITHDRAWAL_VERSION: Final = "2026-08-17"      # Widerrufsbelehrung
 
 
 # ---------------------------------------------------------------------------
