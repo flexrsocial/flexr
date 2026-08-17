@@ -7,10 +7,13 @@ Inhalt, Datum und Uhrzeit der Erklärung wiedergibt.
 """
 
 from datetime import datetime
+from zoneinfo import ZoneInfo
 
 import pytest
 
 from tests.conftest import TestingSessionLocal, register_raw
+
+_VIENNA = ZoneInfo("Europe/Vienna")
 
 
 @pytest.fixture
@@ -311,6 +314,47 @@ def test_laufendes_abo_wird_beim_ruecktritt_automatisch_gestoppt(client, monkeyp
         assert eintrag.subscription_stopped_at is not None
     finally:
         db.close()
+
+
+def _eingefrorene_zeit(monkeypatch, wien_zeit):
+    """Friert legal.datetime.now(Europe/Vienna) auf einen festen Zeitpunkt ein.
+
+    Simuliert die tatsaechliche Server-"Jetzt"-Zeit statt nur den Stichtag
+    selbst zu verschieben - naeher am echten Verhalten am 30.09./01.10.2026.
+    """
+    from app import legal
+
+    class _FakeDatetime(datetime):
+        @classmethod
+        def now(cls, tz=None):
+            return wien_zeit if tz is not None else wien_zeit.replace(tzinfo=None)
+
+    monkeypatch.setattr(legal, "datetime", _FakeDatetime)
+
+
+def test_time_travel_29_september_23_59_59_funktion_noch_nicht_pflicht(client, monkeypatch):
+    """30. September 2026, 23:59:59 Europe/Vienna: die hervorgehobene Funktion
+    ist noch nicht gesetzlich vorgeschrieben - normaler, gleichrangiger Link."""
+    _eingefrorene_zeit(
+        monkeypatch, datetime(2026, 9, 30, 23, 59, 59, tzinfo=_VIENNA)
+    )
+    body = client.get("/api/withdrawal/status").json()
+    assert body["legally_required"] is False
+
+
+def test_time_travel_1_oktober_00_00_00_funktion_ab_da_pflicht(client, monkeypatch):
+    """1. Oktober 2026, 00:00:00 Europe/Vienna: ab jetzt muss "Vertrag
+    widerrufen" hervorgehoben und ohne Login erreichbar sein."""
+    _eingefrorene_zeit(
+        monkeypatch, datetime(2026, 10, 1, 0, 0, 0, tzinfo=_VIENNA)
+    )
+    body = client.get("/api/withdrawal/status").json()
+    assert body["legally_required"] is True
+
+    # Die eigentliche Funktion selbst braucht keine Umschaltung - sie ist
+    # unabhaengig vom Stichtag immer schon aktiv (siehe legal.py-Kommentar).
+    resp = client.post("/api/withdrawal", json=_payload())
+    assert resp.status_code == 201
 
 
 def test_status_endpunkt_ist_oeffentlich_und_liefert_stichtag(client):
