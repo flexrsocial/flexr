@@ -179,11 +179,11 @@ orientierungsbezogenes Matching geben müsste.
 **Zuständig:** Rechtsanwalt, dann Julian für die Durchführung.
 
 ### D-07 · Rechtsgrundlage der Altersprüfung
-Am 15.08.2026 von „lit. b + lit. f + zusätzliche Einwilligung" auf
-**Art. 6 Abs. 1 lit. c und lit. f** umgestellt. Grund: Eine Einwilligung, ohne
-die der Dienst nicht nutzbar ist, ist keine.
-**Zu bestätigen:** Trägt lit. c (Jugendschutz, Art. 28 DSA) hier, oder ist lit. f
-allein die sauberere Konstruktion?
+**Art. 6 Abs. 1 lit. c und lit. f DSGVO**, mit lit. c konkret gestützt auf
+Art. 28 Abs. 1 DSA (Pflicht, Minderjährige vor unzulässigem Zugang zu
+schützen) - so seit 17.08.2026 in datenschutz.html ausformuliert.
+**Zu bestätigen:** Ob Art. 28 Abs. 1 DSA als konkrete Verpflichtung im Sinne
+von lit. c trägt, oder ob lit. f allein die sauberere Konstruktion ist.
 **Zuständig:** Rechtsanwalt.
 
 ---
