@@ -81,6 +81,10 @@ h2 {
   font-size: 18px; color: var(--chalk); margin-top: 40px;
   border-bottom: 1px solid var(--steel); padding-bottom: 6px;
 }
+/* Ausnahme: Ueberschrift direkt vor einer Ausklapp-Kartenliste (FAQ). Die
+   Trennlinie plus die Kartenkante direkt darunter wirkten wie zwei
+   Trenner uebereinander. */
+h2:has(+ details) { border-bottom: none; padding-bottom: 0; }
 h3 { font-size: 15.5px; color: var(--chalk); margin-top: 24px; margin-bottom: 6px; }
 
 .back { display: inline-block; margin-bottom: 20px; font-size: 13px; color: var(--chalk-dim); text-decoration: none; }
