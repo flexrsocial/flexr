@@ -180,6 +180,58 @@ def send_verification_email(email: str, name: str, link: str, ttl_hours: int = 2
 
 
 # ---------------------------------------------------------------------------
+# Vertragsbestätigung nach Abschluss des kostenpflichtigen Abos
+#
+# Wird nach "checkout.session.completed" verschickt (siehe routers/billing.py).
+# FLEXR beginnt sofort mit der Leistung, deshalb steht hier auch der Hinweis
+# auf die zuvor eingeholte ausdrückliche Erklärung dazu (§ 10 FAGG) sowie die
+# Kontaktangaben inkl. Telefonnummer - keine hervorgehobene CTA, nur normale
+# Kontaktdarstellung.
+# ---------------------------------------------------------------------------
+
+SUBSCRIPTION_SUBJECT = "Bestätigung deines FLEXR-Abos"
+
+
+def _subscription_text(name: str) -> str:
+    from . import legal
+
+    return f"""Hallo {name},
+
+danke für dein Abo. Diese Mail bestätigt den Vertragsabschluss.
+
+  Leistung:            FLEXR-Mitgliedschaft (flexr.social)
+  Preis:                {legal.PRICE_EUR_PER_MONTH} € pro Monat, Endpreis
+  Abrechnung:           monatlich, automatische Verlängerung
+  Laufzeit:             keine Mindestlaufzeit, monatlich kündbar
+  Kündigen:             jederzeit im Konto unter "Abo verwalten / kündigen"
+
+Du hast vor dem Abschluss ausdrücklich verlangt, dass wir mit der
+kostenpflichtigen Leistung schon vor Ablauf der 14-tägigen Rücktrittsfrist
+beginnen. Dein gesetzliches Rücktrittsrecht bleibt davon unberührt - bei
+einem Rücktritt kann lediglich ein anteiliger Wertersatz für die bereits
+erbrachte Leistung anfallen. Alles dazu, inklusive der Online-Funktion, steht
+unter {legal.SITE_URL}/widerruf.html.
+
+Fragen? Antworte einfach auf diese Mail.
+
+{legal.OPERATOR_NAME}
+{legal.OPERATOR_LEGAL_FORM}, {legal.OPERATOR_ROLE}
+{legal.OPERATOR_STREET}, {legal.OPERATOR_ZIP} {legal.OPERATOR_CITY}
+{legal.OPERATOR_EMAIL}
+{legal.OPERATOR_PHONE}
+"""
+
+
+def send_subscription_confirmation(email: str, name: str) -> bool:
+    """Vertragsbestätigung auf dauerhaftem Datenträger nach Zahlungsabschluss."""
+    return send_email(
+        to_address=email,
+        subject=SUBSCRIPTION_SUBJECT,
+        text_body=_subscription_text(name),
+    )
+
+
+# ---------------------------------------------------------------------------
 # Rücktrittsbestätigung (§ 13a Abs. 4 FAGG)
 #
 # Die Bestätigung muss auf einem dauerhaften Datenträger erfolgen und den

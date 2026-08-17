@@ -3,9 +3,10 @@ import logging
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 
+from .. import consents, mailer
 from ..database import get_db
-from ..models import User
-from ..schemas import MembershipStatus
+from ..models import ConsentType, User
+from ..schemas import CheckoutRequest, MembershipStatus
 from ..security import get_current_user
 from ..stripe_client import construct_webhook_event, create_checkout_session, create_portal_session
 
@@ -34,7 +35,15 @@ def membership_status(current_user: User = Depends(get_current_user)):
 
 
 @router.post("/checkout")
-def create_checkout(current_user: User = Depends(get_current_user)):
+def create_checkout(
+    payload: CheckoutRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    # payload.immediate_start ist per Validator schon auf True geprüft - ohne
+    # die Erklärung kommt die Anfrage gar nicht bis hierher (422).
+    consents.grant(db, current_user, ConsentType.immediate_start)
+
     # trial_ends_at wird mitgegeben, damit Stripe nur die seit der Registrierung
     # verbliebene Gratiszeit als Trial ansetzt und danach sofort abrechnet.
     url = create_checkout_session(
@@ -95,6 +104,11 @@ def handle_stripe_event(event: dict, db: Session) -> None:
             user.stripe_customer_id = obj.get("customer")
             user.stripe_subscription_id = obj.get("subscription")
             db.commit()
+            # Vertragsbestätigung auf dauerhaftem Datenträger (Art. 246a § 4
+            # Abs. 3 EGBGB-Wertung / vergleichbare österreichische Pflicht).
+            # Fehlschlagen darf das nicht den Abo-Status verhindern - deshalb
+            # erst nach dem commit() und ohne den Rückgabewert zu prüfen.
+            mailer.send_subscription_confirmation(user.email, user.name)
         return
 
     if event_type in ("customer.subscription.created", "customer.subscription.updated"):

@@ -2066,6 +2066,33 @@
 
 </div>
 
+<!-- Eigenständiges Overlay außerhalb von #app, damit die gesetzlich
+     vorgeschriebene Erklärung zum sofortigen Leistungsbeginn (§ 10 FAGG)
+     nicht in das eingefrorene Profil-/Paywall-Design gedrückt werden muss.
+     Erscheint vor jedem Wechsel zu Stripe, unabhängig davon, welcher der
+     beiden "Jetzt abonnieren"-Buttons geklickt wurde. Abbrechen ist immer
+     möglich - keine Sackgasse. -->
+<div id="immediateStartOverlay" class="istart-overlay" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="istartTitle">
+  <div class="istart-box">
+    <div id="istartTitle" style="font-weight:700; margin-bottom:10px;">Vor der Zahlung</div>
+    <label style="display:flex; gap:10px; align-items:flex-start; font-size:14px; line-height:1.45; cursor:pointer;">
+      <input type="checkbox" id="istartCheckbox" style="margin-top:3px;">
+      <span>Ich verlange ausdrücklich, dass FLEXR mit der Bereitstellung der
+        kostenpflichtigen Dienstleistung bereits vor Ablauf der 14-tägigen
+        Rücktrittsfrist beginnt.</span>
+    </label>
+    <div class="istart-err" id="istartErr" style="display:none; color:#e34848; font-size:13px; margin-top:8px;"></div>
+    <div style="display:flex; gap:10px; margin-top:18px;">
+      <button type="button" class="btn" id="istartCancel" style="flex:1; background:transparent; border:1px solid var(--steel,#3a3a3a);">Abbrechen</button>
+      <button type="button" class="btn" id="istartConfirm" style="flex:1;">Weiter zur Zahlung</button>
+    </div>
+  </div>
+</div>
+<style>
+  .istart-overlay{ position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:1000; display:flex; align-items:center; justify-content:center; padding:20px; }
+  .istart-box{ background:var(--surface,#1c1c1c); color:var(--chalk,#ede9e2); border:1px solid var(--steel,#3a3a3a); border-radius:12px; padding:20px; max-width:380px; width:100%; }
+</style>
+
 <script>
 (function(){
   const $ = (id) => document.getElementById(id);
@@ -2956,16 +2983,42 @@
   // Geräteposition wird dafür nicht mehr gebraucht - der Standortdialog beim
   // App-Start entfällt daher ersatzlos.
 
-  async function subscribeNow(){
+  function openImmediateStartOverlay(){
+    $('istartCheckbox').checked = false;
+    $('istartErr').style.display = 'none';
+    $('immediateStartOverlay').style.display = 'flex';
+  }
+  function closeImmediateStartOverlay(){
+    $('immediateStartOverlay').style.display = 'none';
+  }
+  async function confirmImmediateStartAndSubscribe(){
+    if(!$('istartCheckbox').checked){
+      $('istartErr').textContent = 'Bitte bestätige die Erklärung, um fortzufahren.';
+      $('istartErr').style.display = 'block';
+      return;
+    }
+    $('istartConfirm').disabled = true;
     try{
-      const res = await api('/api/billing/checkout', {method: 'POST'});
+      const res = await api('/api/billing/checkout', {
+        method: 'POST',
+        body: JSON.stringify({immediate_start: true}),
+      });
       window.location.href = res.checkout_url;
     }catch(err){
       toast(err.message || 'Checkout konnte nicht gestartet werden.');
+      $('istartConfirm').disabled = false;
     }
+  }
+  function subscribeNow(){
+    openImmediateStartOverlay();
   }
   $('btnSubscribe').addEventListener('click', subscribeNow);
   $('btnSubscribe2').addEventListener('click', subscribeNow);
+  $('istartCancel').addEventListener('click', closeImmediateStartOverlay);
+  $('istartConfirm').addEventListener('click', confirmImmediateStartAndSubscribe);
+  $('immediateStartOverlay').addEventListener('click', (e)=>{
+    if(e.target.id === 'immediateStartOverlay') closeImmediateStartOverlay();
+  });
 
   $('btnManageSubscription').addEventListener('click', async ()=>{
     try{
