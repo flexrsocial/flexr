@@ -2077,9 +2077,15 @@
     <div id="istartTitle" style="font-weight:700; margin-bottom:10px;">Vor der Zahlung</div>
     <label style="display:flex; gap:10px; align-items:flex-start; font-size:14px; line-height:1.45; cursor:pointer;">
       <input type="checkbox" id="istartCheckbox" style="margin-top:3px;">
-      <span>Ich verlange ausdrücklich, dass FLEXR mit der Bereitstellung der
-        kostenpflichtigen Dienstleistung bereits vor Ablauf der 14-tägigen
-        Rücktrittsfrist beginnt.</span>
+      <span>Ich stimme ausdrücklich zu, dass FLEXR bereits vor Ablauf der
+        14-tägigen Rücktrittsfrist mit der Erbringung der kostenpflichtigen
+        Dienstleistung beginnt.</span>
+    </label>
+    <label style="display:flex; gap:10px; align-items:flex-start; font-size:14px; line-height:1.45; cursor:pointer; margin-top:14px;">
+      <input type="checkbox" id="withdrawalAckCheckbox" style="margin-top:3px;">
+      <span>Ich bestätige, dass ich zur Kenntnis genommen habe, dass mein
+        Rücktrittsrecht nach vollständiger Vertragserfüllung durch FLEXR
+        erlischt, wenn die gesetzlichen Voraussetzungen dafür erfüllt sind.</span>
     </label>
     <div class="istart-err" id="istartErr" style="display:none; color:#e34848; font-size:13px; margin-top:8px;"></div>
     <div style="display:flex; gap:10px; margin-top:18px;">
@@ -2985,6 +2991,7 @@
 
   function openImmediateStartOverlay(){
     $('istartCheckbox').checked = false;
+    $('withdrawalAckCheckbox').checked = false;
     $('istartErr').style.display = 'none';
     $('immediateStartOverlay').style.display = 'flex';
   }
@@ -2992,8 +2999,10 @@
     $('immediateStartOverlay').style.display = 'none';
   }
   async function confirmImmediateStartAndSubscribe(){
-    if(!$('istartCheckbox').checked){
-      $('istartErr').textContent = 'Bitte bestätige die Erklärung, um fortzufahren.';
+    // Zwei getrennte Erklärungen, zwei getrennte Checkboxen - beide müssen
+    // einzeln angehakt sein, keine ersetzt die andere.
+    if(!$('istartCheckbox').checked || !$('withdrawalAckCheckbox').checked){
+      $('istartErr').textContent = 'Bitte bestätige beide Erklärungen, um fortzufahren.';
       $('istartErr').style.display = 'block';
       return;
     }
@@ -3001,7 +3010,7 @@
     try{
       const res = await api('/api/billing/checkout', {
         method: 'POST',
-        body: JSON.stringify({immediate_start: true}),
+        body: JSON.stringify({immediate_start: true, withdrawal_ack: true}),
       });
       window.location.href = res.checkout_url;
     }catch(err){

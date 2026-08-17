@@ -3,9 +3,9 @@ import logging
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 
-from .. import consents, mailer
+from .. import consents, legal, mailer
 from ..database import get_db
-from ..models import ConsentType, User
+from ..models import CheckoutConsent, ConsentType, User
 from ..schemas import CheckoutRequest, MembershipStatus
 from ..security import get_current_user
 from ..stripe_client import construct_webhook_event, create_checkout_session, create_portal_session
@@ -40,9 +40,21 @@ def create_checkout(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    # payload.immediate_start ist per Validator schon auf True geprüft - ohne
-    # die Erklärung kommt die Anfrage gar nicht bis hierher (422).
+    # Beide Erklaerungen sind per Validator schon auf True geprueft - ohne sie
+    # kommt die Anfrage gar nicht bis hierher (422). Zusaetzlich zum
+    # bestehenden Consent-Nachweis (Konto-Bereich, widerrufbar) legen wir
+    # einen eigenen, nicht widerrufbaren Datensatz mit beiden Erklaerungen an
+    # dieselbe Checkout-Anfrage an - er bekommt die Abo-ID nachgetragen,
+    # sobald Stripe sie liefert (siehe handle_stripe_event()).
     consents.grant(db, current_user, ConsentType.immediate_start)
+
+    checkout_consent = CheckoutConsent(
+        user_id=current_user.id,
+        immediate_start_version=legal.WITHDRAWAL_VERSION,
+        withdrawal_ack_version=legal.WITHDRAWAL_ACK_VERSION,
+    )
+    db.add(checkout_consent)
+    db.commit()
 
     # trial_ends_at wird mitgegeben, damit Stripe nur die seit der Registrierung
     # verbliebene Gratiszeit als Trial ansetzt und danach sofort abrechnet.
@@ -103,6 +115,23 @@ def handle_stripe_event(event: dict, db: Session) -> None:
             user.is_subscribed = True
             user.stripe_customer_id = obj.get("customer")
             user.stripe_subscription_id = obj.get("subscription")
+
+            # Die juengste noch unverknuepfte Checkout-Erklaerung dieses
+            # Nutzers bekommt jetzt die Abo-ID nachgetragen - vorher konnte
+            # sie nicht bekannt sein, es gab ja noch kein Abo.
+            offene_erklaerung = (
+                db.query(CheckoutConsent)
+                .filter(
+                    CheckoutConsent.user_id == user.id,
+                    CheckoutConsent.stripe_subscription_id.is_(None),
+                )
+                .order_by(CheckoutConsent.created_at.desc())
+                .first()
+            )
+            if offene_erklaerung:
+                offene_erklaerung.stripe_subscription_id = obj.get("subscription")
+                offene_erklaerung.stripe_customer_id = obj.get("customer")
+
             db.commit()
             # Vertragsbestätigung auf dauerhaftem Datenträger (Art. 246a § 4
             # Abs. 3 EGBGB-Wertung / vergleichbare österreichische Pflicht).

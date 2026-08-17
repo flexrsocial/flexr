@@ -197,10 +197,11 @@
       <p id="w-result-msg"></p>
       <p><b>Wortlaut deiner Erklärung:</b></p>
       <pre id="w-result-text"></pre>
-      <p class="hint" style="margin-bottom:0;">
-        Willst du zusätzlich verhindern, dass ein laufendes Abo weiter
-        verlängert wird, beende es auch unter „Abo verwalten / kündigen" in
-        deinem Konto. Rücktritt und Kündigung sind zwei verschiedene Dinge.
+      <p class="hint" style="margin-bottom:0;" id="w-result-sub-hint">
+        Ein zugeordnetes laufendes Abo wird durch den Rücktritt automatisch an
+        der weiteren Verlängerung gehindert. Rücktritt und Kündigung sind
+        trotzdem zwei verschiedene Dinge: Der Rücktritt löst den Vertrag
+        rückwirkend auf, die Kündigung beendet ihn nur für die Zukunft.
       </p>
     </div>
   </div>
@@ -292,6 +293,12 @@
   var emailEl = document.getElementById('w-email');
   var hint    = document.getElementById('w-disabled-hint');
 
+  // Eine UUID pro Formularaufruf, nicht pro Klick: Ein Doppelklick oder ein
+  // Netzwerk-Retry auf denselben Submit schickt dieselbe ID erneut, der
+  // Server legt dafuer keine zweite Erklaerung an (siehe routers/withdrawal.py).
+  var requestId = (window.crypto && crypto.randomUUID) ? crypto.randomUUID()
+    : 'w-' + Date.now() + '-' + Math.random().toString(16).slice(2);
+
   // Schritt 2 aus § 13a Abs. 3 FAGG: Ohne gesetzte Bestätigung bleibt der
   // Knopf gesperrt. Ein ausgefülltes Formular allein ist noch keine Erklärung.
   //
@@ -355,7 +362,8 @@
           email: email,
           contract_reference: document.getElementById('w-contract').value.trim() || null,
           message: document.getElementById('w-message').value.trim() || null,
-          confirmed: true
+          confirmed: true,
+          request_id: requestId
         })
       });
       var body = await resp.json();

@@ -197,3 +197,144 @@ def test_mit_smtp_bleibt_die_zusage_bestehen(client, monkeypatch):
     body = client.post("/api/withdrawal", json=_payload()).json()
     assert body["confirmation_sent"] is True
     assert "§ 13a Abs. 4 FAGG" in body["message"]
+
+
+def test_doppelter_request_id_legt_keine_zweite_erklaerung_an(client, mit_smtp):
+    """Ein Doppelklick auf "Widerruf bestätigen" darf nicht zu zwei
+    Erklärungen (und zwei Mails) führen - die request_id macht den zweiten
+    Versuch serverseitig zu einer Wiederholung derselben Antwort."""
+    from app.models import WithdrawalDeclaration
+
+    payload = _payload(request_id="doppelklick-123")
+    erste = client.post("/api/withdrawal", json=payload)
+    zweite = client.post("/api/withdrawal", json=payload)
+
+    assert erste.status_code == 201
+    assert zweite.status_code == 201
+    assert erste.json()["reference"] == zweite.json()["reference"]
+
+    db = TestingSessionLocal()
+    try:
+        assert db.query(WithdrawalDeclaration).count() == 1
+    finally:
+        db.close()
+
+
+def test_ohne_request_id_bleibt_jede_erklaerung_eigenstaendig(client, mit_smtp):
+    """Ohne request_id (älterer Client, formloser Zweitantrag) darf nichts
+    zusammengeführt werden - nur eine gleiche request_id bedeutet Wiederholung."""
+    from app.models import WithdrawalDeclaration
+
+    client.post("/api/withdrawal", json=_payload())
+    client.post("/api/withdrawal", json=_payload())
+
+    db = TestingSessionLocal()
+    try:
+        assert db.query(WithdrawalDeclaration).count() == 2
+    finally:
+        db.close()
+
+
+def test_lokalzeit_wien_wird_gespeichert(client, mit_smtp):
+    from app.models import WithdrawalDeclaration
+
+    client.post("/api/withdrawal", json=_payload())
+
+    db = TestingSessionLocal()
+    try:
+        eintrag = db.query(WithdrawalDeclaration).one()
+        assert eintrag.received_at_vienna
+        assert "Uhr" in eintrag.received_at_vienna
+    finally:
+        db.close()
+
+
+def test_status_wechselt_auf_bestaetigt_wenn_mail_rausgeht(client, mit_smtp):
+    from app.models import WithdrawalDeclaration
+
+    body = client.post("/api/withdrawal", json=_payload()).json()
+    assert body["status"] == "bestaetigt"
+
+    db = TestingSessionLocal()
+    try:
+        assert db.query(WithdrawalDeclaration).one().status == "bestaetigt"
+    finally:
+        db.close()
+
+
+def test_status_bleibt_eingegangen_ohne_smtp(client, monkeypatch):
+    from app.routers import withdrawal
+
+    monkeypatch.setattr(withdrawal, "email_configured", lambda: False)
+    body = client.post("/api/withdrawal", json=_payload()).json()
+    assert body["status"] == "eingegangen"
+
+
+def test_laufendes_abo_wird_beim_ruecktritt_automatisch_gestoppt(client, monkeypatch):
+    """Ist die Erklärung einem Konto mit laufendem Stripe-Abo zugeordnet,
+    verhindert der Rücktritt automatisch die nächste Abbuchung - niemand soll
+    zusätzlich manuell kündigen müssen, um das zu erreichen."""
+    from app.database import get_db
+    from app.main import app
+    from app.models import User, WithdrawalDeclaration
+    from app.routers import withdrawal
+
+    headers = register_raw(client, "abomitkonto@example.com")
+
+    db = TestingSessionLocal()
+    try:
+        user = db.query(User).filter(User.email == "abomitkonto@example.com").first()
+        user.stripe_subscription_id = "sub_test123"
+        user.is_subscribed = True
+        db.commit()
+    finally:
+        db.close()
+
+    gestoppte = []
+    monkeypatch.setattr(
+        withdrawal, "cancel_subscription_immediately", lambda sub_id: gestoppte.append(sub_id)
+    )
+
+    resp = client.post(
+        "/api/withdrawal", json=_payload(email="abomitkonto@example.com"), headers=headers
+    )
+    assert resp.status_code == 201
+    assert gestoppte == ["sub_test123"]
+
+    db = TestingSessionLocal()
+    try:
+        user = db.query(User).filter(User.email == "abomitkonto@example.com").first()
+        assert user.is_subscribed is False
+        eintrag = db.query(WithdrawalDeclaration).filter(
+            WithdrawalDeclaration.email == "abomitkonto@example.com"
+        ).one()
+        assert eintrag.subscription_stopped_at is not None
+    finally:
+        db.close()
+
+
+def test_stripe_fehler_beim_stoppen_verhindert_den_ruecktritt_nicht(client, monkeypatch):
+    """Ein Stripe-Fehler (falscher Schlüssel, Netzwerk) darf die Erklärung
+    selbst nicht scheitern lassen - sie ist unabhängig vom Abo wirksam."""
+    from app.models import User
+    from app.routers import withdrawal
+
+    headers = register_raw(client, "abomitfehler@example.com")
+
+    db = TestingSessionLocal()
+    try:
+        user = db.query(User).filter(User.email == "abomitfehler@example.com").first()
+        user.stripe_subscription_id = "sub_kaputt"
+        db.commit()
+    finally:
+        db.close()
+
+    def platzt(sub_id):
+        raise RuntimeError("Stripe nicht erreichbar")
+
+    monkeypatch.setattr(withdrawal, "cancel_subscription_immediately", platzt)
+
+    resp = client.post(
+        "/api/withdrawal", json=_payload(email="abomitfehler@example.com"), headers=headers
+    )
+    assert resp.status_code == 201

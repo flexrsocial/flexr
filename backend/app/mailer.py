@@ -79,6 +79,45 @@ def _login_and_send(server: smtplib.SMTP, message: EmailMessage) -> None:
     server.send_message(message)
 
 
+def send_email_with_retry(
+    to_address: str,
+    subject: str,
+    text_body: str,
+    html_body: str | None = None,
+    attempts: int = 3,
+    delay_seconds: float = 5.0,
+) -> bool:
+    """Wie send_email(), aber mit kurzen Wiederholungen bei Fehlschlag.
+
+    Für Bestätigungen, die gesetzlich "unverzüglich" zugehen müssen (§ 13a
+    Abs. 4 FAGG): Ein einzelner Verbindungsfehler soll nicht sofort dazu
+    führen, dass niemand benachrichtigt wird. Läuft synchron mit time.sleep()
+    zwischen den Versuchen - unproblematisch, weil der Aufrufer diese
+    Funktion selbst als BackgroundTask nach der HTTP-Antwort ausführt, siehe
+    routers/withdrawal.py.
+    """
+    import time
+
+    if not email_configured():
+        # Kein Konfigurationsfehler ist transient - Wiederholen bringt nichts.
+        return send_email(to_address, subject, text_body, html_body)
+
+    for versuch in range(1, attempts + 1):
+        if send_email(to_address, subject, text_body, html_body):
+            return True
+        if versuch < attempts:
+            logger.warning(
+                "Mailversand an %s fehlgeschlagen, Versuch %d/%d - erneuter "
+                "Versuch in %.0f s", to_address, versuch, attempts, delay_seconds,
+            )
+            time.sleep(delay_seconds)
+    logger.error(
+        "Mailversand an %s endgültig fehlgeschlagen nach %d Versuchen (%s) - "
+        "manuell nachfassen.", to_address, attempts, subject,
+    )
+    return False
+
+
 # ---------------------------------------------------------------------------
 # Bestätigungsmail (erste Mail nach der Registrierung)
 # ---------------------------------------------------------------------------
@@ -249,10 +288,26 @@ def _withdrawal_text(
     received_at: str,
     declaration_text: str,
     contract_reference: str | None,
+    subscription_stopped: bool = False,
 ) -> str:
     from . import legal
 
     vertrag = contract_reference or "— keine Angabe —"
+    if subscription_stopped:
+        folge = (
+            "Was jetzt passiert: Ein zugeordnetes laufendes Abo ist bereits an der "
+            "weiteren Verlängerung gehindert - es wird nicht erneut abgebucht. Wir "
+            "prüfen die Erklärung und wickeln einen bereits bezahlten Zeitraum "
+            "anteilig ab; bereits geleistete Zahlungen erstatten wir über dasselbe "
+            "Zahlungsmittel, mit dem du bezahlt hast."
+        )
+    else:
+        folge = (
+            "Was jetzt passiert: Wir prüfen die Erklärung, ordnen sie deinem Vertrag "
+            "zu und verhindern eine weitere Verlängerung. Bereits geleistete "
+            "Zahlungen erstatten wir über dasselbe Zahlungsmittel, mit dem du "
+            "bezahlt hast."
+        )
     return f"""Hallo {name},
 
 deine Rücktrittserklärung ist bei uns eingegangen. Diese Mail ist die
@@ -266,14 +321,7 @@ Wortlaut deiner Erklärung:
 
 {declaration_text}
 
-Was jetzt passiert: Wir prüfen die Erklärung und wickeln einen bereits
-bezahlten Zeitraum anteilig ab. Bereits geleistete Zahlungen erstatten wir
-über dasselbe Zahlungsmittel, mit dem du bezahlt hast.
-
-Wichtig, damit nichts durcheinandergerät: Ein Rücktritt ist etwas anderes als
-eine Kündigung. Wenn du zusätzlich willst, dass ein laufendes Abo nicht weiter
-verlängert wird, beende es bitte auch unter "Abo verwalten / kündigen" in
-deinem Konto.
+{folge}
 
 Fragen? Antworte einfach auf diese Mail.
 
@@ -292,13 +340,23 @@ def send_withdrawal_confirmation(
     received_at: str,
     declaration_text: str,
     contract_reference: str | None = None,
+    subscription_stopped: bool = False,
 ) -> bool:
-    """Unverzügliche Bestätigung einer Rücktrittserklärung."""
-    return send_email(
+    """Unverzügliche Bestätigung einer Rücktrittserklärung.
+
+    § 13a Abs. 4 FAGG verlangt diese Bestätigung "unverzüglich" - ein
+    einzelner SMTP-Fehlschlag (Netzwerk-Hänger, Server kurz nicht erreichbar)
+    darf sie deshalb nicht endgültig verhindern. send_email_with_retry()
+    versucht es mit kurzen Pausen erneut, bevor endgültig aufgegeben wird;
+    die Erklärung selbst ist zu diesem Zeitpunkt schon gespeichert (siehe
+    routers/withdrawal.py) und geht so oder so nicht verloren.
+    """
+    return send_email_with_retry(
         to_address=email,
         subject=WITHDRAWAL_SUBJECT.format(reference=reference),
         text_body=_withdrawal_text(
-            name, reference, received_at, declaration_text, contract_reference
+            name, reference, received_at, declaration_text, contract_reference,
+            subscription_stopped,
         ),
     )
 

@@ -130,6 +130,17 @@ th { color: var(--chalk-dim); font-weight: 600; }
 .nav-legal { margin-top: 48px; padding-top: 16px; border-top: 1px solid var(--steel); font-size: 13px; }
 .nav-legal a { margin-right: 16px; display: inline-block; margin-bottom: 6px; }
 
+/* Ab 1. Oktober 2026 gesetzlich vorgeschriebene, aber bewusst zurueckhaltende
+   Hervorhebung der Online-Ruecktrittsfunktion (§ 13a FAGG) - siehe
+   legal-status.js. Dezenter Outline-Button in der Markenfarbe, kein
+   Primary-CTA: kein Glow, keine Animation, kein abweichender Rahmen. */
+.nav-legal a.widerruf-hervorgehoben {
+  border: 1px solid var(--plate);
+  border-radius: 6px;
+  padding: 5px 10px;
+  margin-bottom: 6px;
+}
+
 /* ---- Formulare (Widerruf, Meldung) ---- */
 
 label { display: block; margin-top: 16px; margin-bottom: 6px; font-size: 13px; color: var(--chalk-dim); font-weight: 600; }
