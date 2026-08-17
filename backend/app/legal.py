@@ -86,6 +86,7 @@ PRIVACY_VERSION: Final = "2026-08-17"         # Datenschutzerklärung
 AUP_VERSION: Final = "2026-08-17"             # Nutzungsrichtlinien
 LE_GUIDELINES_VERSION: Final = "2026-08-17"   # Strafverfolgungsrichtlinien
 WITHDRAWAL_VERSION: Final = "2026-08-17"      # Widerrufsbelehrung
+WITHDRAWAL_ACK_VERSION: Final = "2026-08-17"  # Checkout: Kenntnisnahme Erlöschen Rücktrittsrecht
 
 
 # ---------------------------------------------------------------------------

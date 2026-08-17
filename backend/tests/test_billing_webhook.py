@@ -75,6 +75,43 @@ def test_checkout_schaltet_das_abo_frei(client):
     assert user.stripe_subscription_id == "sub_neu"
 
 
+def test_checkout_webhook_traegt_die_abo_id_bei_der_checkout_erklaerung_nach(client):
+    """Bei der Checkout-Anfrage selbst ist die Abo-ID noch nicht bekannt - der
+    Webhook muss sie der zuvor angelegten Erklaerung nachtragen."""
+    from app.models import CheckoutConsent
+
+    headers = register_user(client, "nachtrag@example.com")
+    user_id = client.get("/api/profiles/me", headers=headers).json()["id"]
+
+    db = TestingSessionLocal()
+    try:
+        db.add(CheckoutConsent(
+            user_id=user_id,
+            immediate_start_version="2026-08-17",
+            withdrawal_ack_version="2026-08-17",
+        ))
+        db.commit()
+    finally:
+        db.close()
+
+    _mit_db(lambda db: handle_stripe_event(
+        _event("checkout.session.completed", {
+            "client_reference_id": user_id,
+            "customer": "cus_nachtrag",
+            "subscription": "sub_nachtrag",
+        }),
+        db,
+    ))
+
+    db = TestingSessionLocal()
+    try:
+        eintrag = db.query(CheckoutConsent).filter(CheckoutConsent.user_id == user_id).one()
+        assert eintrag.stripe_subscription_id == "sub_nachtrag"
+        assert eintrag.stripe_customer_id == "cus_nachtrag"
+    finally:
+        db.close()
+
+
 def test_geloeschtes_abo_entzieht_den_zugang(client):
     """Der eigentliche Fehler: Kuendigung blieb folgenlos."""
     user_id = _setup_subscriber(client)
@@ -229,11 +266,29 @@ def test_checkout_ohne_erklaerung_zum_leistungsbeginn_wird_abgelehnt(client):
     """§ 10 FAGG: ohne die ausdrückliche Erklärung darf kein Checkout starten."""
     headers = register_user(client, "ohne-erklaerung@example.com")
 
-    resp = client.post("/api/billing/checkout", json={"immediate_start": False}, headers=headers)
+    resp = client.post(
+        "/api/billing/checkout",
+        json={"immediate_start": False, "withdrawal_ack": True},
+        headers=headers,
+    )
     assert resp.status_code == 422
 
     resp_ohne_feld = client.post("/api/billing/checkout", json={}, headers=headers)
     assert resp_ohne_feld.status_code == 422
+
+
+def test_checkout_ohne_kenntnisnahme_erloeschen_wird_abgelehnt(client):
+    """Die zweite Erklärung (§ 18 Abs. 1 Z 1 FAGG) ist eine eigene, getrennte
+    Checkbox - ohne sie darf der Checkout ebenso wenig starten wie ohne die
+    erste."""
+    headers = register_user(client, "ohne-kenntnisnahme@example.com")
+
+    resp = client.post(
+        "/api/billing/checkout",
+        json={"immediate_start": True, "withdrawal_ack": False},
+        headers=headers,
+    )
+    assert resp.status_code == 422
 
 
 def test_checkout_mit_erklaerung_haelt_die_einwilligung_fest(client):
@@ -241,22 +296,35 @@ def test_checkout_mit_erklaerung_haelt_die_einwilligung_fest(client):
     import pytest
 
     from app.consents import active
-    from app.models import ConsentType
+    from app.models import CheckoutConsent, ConsentType
 
     headers = register_user(client, "mit-erklaerung@example.com")
     user_id = client.get("/api/profiles/me", headers=headers).json()["id"]
 
     # Kein echter Stripe-Key im Testbetrieb - der Aufruf scheitert bei Stripe,
-    # aber erst NACH dem consents.grant(), das reicht fuer diesen Test.
+    # aber erst NACH dem consents.grant()/CheckoutConsent-Anlage, das reicht
+    # fuer diesen Test.
     with pytest.raises(stripe._error.AuthenticationError):
-        client.post("/api/billing/checkout", json={"immediate_start": True}, headers=headers)
+        client.post(
+            "/api/billing/checkout",
+            json={"immediate_start": True, "withdrawal_ack": True},
+            headers=headers,
+        )
 
     db = TestingSessionLocal()
     try:
         eintrag = active(db, user_id, ConsentType.immediate_start)
+        checkout_consent = (
+            db.query(CheckoutConsent).filter(CheckoutConsent.user_id == user_id).one()
+        )
     finally:
         db.close()
     assert eintrag is not None
+    # Beide Erklaerungen getrennt mit eigener Fassung, noch ohne Abo-ID -
+    # die kommt erst mit dem Webhook (siehe test_stripe_webhook_erg unten).
+    assert checkout_consent.immediate_start_version
+    assert checkout_consent.withdrawal_ack_version
+    assert checkout_consent.stripe_subscription_id is None
 
 
 def test_unbekannter_kunde_und_unbekanntes_ereignis_laufen_ins_leere(client):

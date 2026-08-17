@@ -671,6 +671,10 @@ class WithdrawalRequest(BaseModel):
     # Der zweite, getrennte Schritt: erst nach dem Bestätigungsknopf wird
     # erklärt. Ein Formular allein ist noch keine Erklärung.
     confirmed: bool
+    # Clientseitig einmal pro Formularaufruf erzeugt (UUID). Doppelte Klicks
+    # auf "Widerruf bestätigen" senden denselben Wert erneut - der Server
+    # erkennt daran den Zweitversuch und legt keine zweite Erklärung an.
+    request_id: Optional[str] = Field(default=None, max_length=64)
 
     _trim = field_validator("name", "contract_reference", "message", mode="before")(_strip)
 
@@ -688,6 +692,7 @@ class WithdrawalAck(BaseModel):
     declaration_text: str
     confirmation_sent: bool
     message: str
+    status: str
 
 
 # ---------------------------------------------------------------------------
@@ -819,15 +824,26 @@ class ConsentRevokeRequest(BaseModel):
 
 
 class CheckoutRequest(BaseModel):
-    """Vor dem Wechsel zur Stripe-Checkout-Seite eingeholte ausdrückliche
-    Erklärung zum sofortigen Leistungsbeginn (§ 10 FAGG). Nicht vorangekreuzt,
-    muss aktiv bestätigt werden - sonst kann kein Checkout gestartet werden."""
+    """Vor dem Wechsel zur Stripe-Checkout-Seite eingeholte zwei getrennte,
+    nicht vorangekreuzte Erklärungen. Beide müssen aktiv bestätigt werden -
+    sonst kann kein Checkout gestartet werden. Absichtlich zwei eigene Felder
+    statt einer gemeinsamen Checkbox: Die eine ist ein Verlangen (§ 10 FAGG),
+    die andere eine Kenntnisnahme (§ 18 Abs. 1 Z 1 FAGG) - unterschiedliche
+    Erklärungen, unterschiedliche Rechtsfolgen."""
 
     immediate_start: bool = Field(
         description=(
-            "Ich verlange ausdrücklich, dass FLEXR mit der Bereitstellung der "
-            "kostenpflichtigen Dienstleistung bereits vor Ablauf der "
-            "14-tägigen Rücktrittsfrist beginnt."
+            "Ich stimme ausdrücklich zu, dass FLEXR bereits vor Ablauf der "
+            "14-tägigen Rücktrittsfrist mit der Erbringung der "
+            "kostenpflichtigen Dienstleistung beginnt."
+        )
+    )
+    withdrawal_ack: bool = Field(
+        description=(
+            "Ich bestätige, dass ich zur Kenntnis genommen habe, dass mein "
+            "Rücktrittsrecht nach vollständiger Vertragserfüllung durch "
+            "FLEXR erlischt, wenn die gesetzlichen Voraussetzungen dafür "
+            "erfüllt sind."
         )
     )
 
@@ -838,6 +854,15 @@ class CheckoutRequest(BaseModel):
             raise ValueError(
                 "Ohne diese Erklärung kann der kostenpflichtige Zugang nicht "
                 "sofort beginnen."
+            )
+        return v
+
+    @field_validator("withdrawal_ack")
+    @classmethod
+    def _kenntnisnahme_erforderlich(cls, v: bool) -> bool:
+        if not v:
+            raise ValueError(
+                "Ohne diese Kenntnisnahme kann der Checkout nicht gestartet werden."
             )
         return v
 

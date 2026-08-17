@@ -704,6 +704,45 @@ class Consent(Base):
         return self.revoked_at is None
 
 
+class CheckoutConsent(Base):
+    """Die zwei getrennten Erklärungen beim kostenpflichtigen Checkout.
+
+    Bewusst eine eigene Tabelle, nicht ``Consent``: ``Consent`` bildet
+    widerrufbare DSGVO-Einwilligungen ab (Art. 9, Verifizierungsmedien). Die
+    beiden Erklärungen hier sind etwas anderes - Wissenserklärungen zum
+    Vertrag (§ 10, § 18 Abs. 1 Z 1 FAGG), die nicht "widerrufen" werden
+    können, sondern rechtlich fortwirken, solange der Vertrag läuft. Deshalb
+    getrennt gespeichert und direkt mit der Abo-ID verknüpfbar, sobald diese
+    aus dem Stripe-Checkout zurückkommt (siehe routers/billing.py).
+    """
+
+    __tablename__ = "checkout_consents"
+
+    id = Column(String, primary_key=True, default=gen_uuid)
+    user_id = Column(
+        String, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+
+    # Checkbox 1: "Ich stimme ausdrücklich zu, dass FLEXR bereits vor Ablauf
+    # der 14-tägigen Rücktrittsfrist mit der Erbringung der kostenpflichtigen
+    # Dienstleistung beginnt."
+    immediate_start_version = Column(String(20), nullable=False)
+    immediate_start_granted_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+
+    # Checkbox 2: "Ich bestätige, dass ich zur Kenntnis genommen habe, dass
+    # mein Rücktrittsrecht nach vollständiger Vertragserfüllung durch FLEXR
+    # erlischt, wenn die gesetzlichen Voraussetzungen dafür erfüllt sind."
+    withdrawal_ack_version = Column(String(20), nullable=False)
+    withdrawal_ack_granted_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+
+    # Erst nach dem Bezahlvorgang bekannt - vom Stripe-Webhook nachgetragen,
+    # sobald checkout.session.completed die Abo-ID liefert (nullable bis dahin).
+    stripe_subscription_id = Column(String, nullable=True, index=True)
+    stripe_customer_id = Column(String, nullable=True)
+
+    created_at = Column(DateTime, nullable=False, default=datetime.utcnow, index=True)
+
+
 class WithdrawalDeclaration(Base):
     """Rücktrittserklärung über die Online-Rücktrittsfunktion (§ 13a FAGG).
 
@@ -726,6 +765,10 @@ class WithdrawalDeclaration(Base):
     # sie ist der Nachweis, dass zurückgetreten wurde.
     user_id = Column(String, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
 
+    # Clientseitig erzeugte UUID, eindeutig - Grundlage der Idempotenz bei
+    # Doppelklick/Doppel-Submit (siehe routers/withdrawal.py).
+    request_id = Column(String(64), unique=True, nullable=True, index=True)
+
     name = Column(String(120), nullable=False)
     email = Column(String, nullable=False, index=True)
     # Freie Bezeichnung des Vertrags/Kontos, wie der Erklärende sie angibt
@@ -739,13 +782,25 @@ class WithdrawalDeclaration(Base):
     declaration_text = Column(Text, nullable=False)
 
     received_at = Column(DateTime, nullable=False, default=datetime.utcnow, index=True)
+    # Dieselbe Sekunde noch einmal, nur in Europe/Vienna und als fertig
+    # formatierte Zeichenkette - so, wie sie dem Erklärenden angezeigt und
+    # per Mail bestätigt wird. Der maßgebliche Zeitpunkt bleibt received_at
+    # (UTC); diese Spalte ist nur die menschenlesbare Lokalzeit dazu.
+    received_at_vienna = Column(String(40), nullable=False)
     confirmation_sent_at = Column(DateTime, nullable=True)
     # "email" - weitere dauerhafte Datenträger sind derzeit nicht angebunden.
     confirmation_channel = Column(String(20), nullable=True)
 
+    # Bearbeitungsstand: "eingegangen" -> "bestaetigt" (Mail raus) ->
+    # "abgeschlossen" (Betreiber hat Rueckabwicklung/Storno dokumentiert).
+    status = Column(String(30), nullable=False, default="eingegangen")
+
     # Bearbeitungsstand auf Betreiberseite (Rückabwicklung, Stripe-Storno).
     processed_at = Column(DateTime, nullable=True)
     processing_note = Column(String(500), nullable=True)
+    # Gesetzt, sobald ein zugeordnetes Stripe-Abo automatisch an der
+    # Verlaengerung gehindert wurde (siehe withdrawal.py).
+    subscription_stopped_at = Column(DateTime, nullable=True)
 
     @property
     def reference(self) -> str:

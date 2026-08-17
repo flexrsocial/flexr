@@ -77,3 +77,14 @@ def create_portal_session(stripe_customer_id: str) -> str:
 
 def construct_webhook_event(payload: bytes, sig_header: str):
     return stripe.Webhook.construct_event(payload, sig_header, settings.stripe_webhook_secret)
+
+
+def cancel_subscription_immediately(subscription_id: str) -> None:
+    """Beendet ein Abo sofort statt zum Periodenende.
+
+    Fuer einen wirksamen Ruecktritt (§ 13a FAGG): Der Vertrag ist rueckwirkend
+    aufgeloest, eine weitere Abbuchung darf nicht mehr stattfinden. Das ist
+    die andere Kuendigung (routers/billing.py, Stripe Billing Portal), die
+    laesst den Zugang bis zum Periodenende bewusst bestehen.
+    """
+    stripe.Subscription.delete(subscription_id)
