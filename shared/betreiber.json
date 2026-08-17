@@ -33,16 +33,7 @@
     "_todo_legal": "Von Julian bestätigen lassen: gilt die Kleinunternehmerregelung im laufenden Jahr noch (Umsatzgrenze), und ist tatsächlich keine UID vergeben?"
   },
 
-  "gewerbe": {
-    "_todo_legal": [
-      "Nicht im Repository belegt und deshalb bewusst NICHT auf den öffentlichen Seiten behauptet:",
-      "Wortlaut der Gewerbeberechtigung, zuständige Gewerbebehörde (Bezirksverwaltungsbehörde),",
-      "WKO-Fachgruppe/Fachverband. Siehe LEGAL_REVIEW.md, Punkte L-01 bis L-03."
-    ],
-    "gewerbewortlaut": null,
-    "gewerbebehoerde": null,
-    "wko_fachgruppe": null
-  },
+  "gewerbe_erforderlich": false,
 
   "verbotene_altbezeichnungen": [
     "flexr.social Kleinunternehmen",

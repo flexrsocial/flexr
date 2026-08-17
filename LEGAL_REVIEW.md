@@ -19,26 +19,13 @@ den betreffenden Rechtstext nach.
 
 ## L — Impressum und Gewerberecht
 
-### L-01 · Gewerbeberechtigung
-**Offen.** Wortlaut der Gewerbeberechtigung ist im Repository nirgends belegt.
-**Nötig:** Gewerberegisterauszug oder Gewerbeschein ansehen und den genauen
-Wortlaut eintragen.
-**Wirkt sich aus auf:** `frontend/impressum.html`, Abschnitt „Gewerberechtliche
-Angaben" (dort steht derzeit ein `TODO_LEGAL`-Kommentar, sichtbar ist nur der
-Verweis auf die GewO).
-**Warum es zählt:** § 5 Abs. 1 Z 6 ECG verlangt Angaben zu berufsrechtlichen
-Vorschriften; ohne Kenntnis der Berechtigung lässt sich das nicht ausfüllen.
-
-### L-02 · Zuständige Gewerbebehörde
-**Offen.** Für 8232 Grafendorf ist die Bezirksverwaltungsbehörde zuständig;
-welche genau, wurde bewusst **nicht** geraten.
-**Nötig:** Bei der Gemeinde oder der WKO erfragen und eintragen.
-**Wirkt sich aus auf:** `frontend/impressum.html`.
-
-### L-03 · WKO-Zugehörigkeit
-**Offen.** Fachgruppe bzw. Fachverband unbekannt.
-**Nötig:** WKO-Mitgliedsbestätigung ansehen.
-**Wirkt sich aus auf:** `frontend/impressum.html`.
+### L-01 bis L-03 · Gewerbeberechtigung, -behörde, WKO-Fachgruppe
+**Erledigt am 17.08.2026.** Vom Betreiber abschließend geklärt: Für den
+Betrieb von FLEXR ist keine Gewerbeanmeldung erforderlich. Der Abschnitt
+„Gewerberechtliche Angaben" (samt `TODO_LEGAL`-Kommentar) ist aus
+`frontend/impressum.html` entfernt, der `gewerbe`-Block in
+`shared/betreiber.json` gestrichen und durch `gewerbe_erforderlich: false`
+ersetzt. Diese Frage gilt als abgeschlossen und wird nicht erneut geöffnet.
 
 ### L-04 · § 14 UGB — bestätigen, dass keine Firmenbucheintragung besteht
 **Angenommen: keine Eintragung.** Der Verweis auf § 14 UGB stand bisher im

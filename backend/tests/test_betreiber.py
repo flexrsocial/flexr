@@ -61,13 +61,12 @@ def test_kleinunternehmerregelung_ist_keine_rechtsform(daten):
     assert daten["umsatzsteuer"]["grundlage"] == "§ 6 Abs. 1 Z 27 UStG"
 
 
-def test_unbelegte_gewerbedaten_bleiben_leer(daten):
-    """Was das Repository nicht belegt, darf im Impressum nicht behauptet
-    werden. Die offenen Punkte stehen in LEGAL_REVIEW.md."""
-    gewerbe = daten["gewerbe"]
-    assert gewerbe["gewerbewortlaut"] is None
-    assert gewerbe["gewerbebehoerde"] is None
-    assert gewerbe["wko_fachgruppe"] is None
+def test_keine_gewerbeanmeldung_erforderlich(daten):
+    """Vom Betreiber abschließend geklärt: für den Betrieb von FLEXR ist keine
+    Gewerbeanmeldung nötig. Es dürfen daher weder Gewerbedaten noch ein
+    "wird noch geklärt"-Hinweis im Impressum auftauchen."""
+    assert daten["gewerbe_erforderlich"] is False
+    assert "gewerbe" not in daten
 
 
 def test_operator_block_ist_vollstaendig():
