@@ -47,6 +47,10 @@
   h2[id]{ scroll-margin-top:16px; }
   .nav-legal{ margin-top:44px; padding-top:16px; border-top:1px solid var(--steel); font-size:13px; }
   .nav-legal a{ margin-right:16px; }
+  /* Ab 1. Oktober 2026 gesetzlich vorgeschriebene, aber bewusst zurueckhaltende
+     Hervorhebung der Online-Ruecktrittsfunktion (§ 13a FAGG) - siehe
+     legal-status.js. */
+  .nav-legal a.widerruf-hervorgehoben{ border:1px solid var(--plate); border-radius:6px; padding:5px 10px; }
 </style>
 </head>
 <body>
@@ -442,11 +446,12 @@
     <a href="/impressum.html">Impressum</a>
     <a href="/datenschutz.html">Datenschutz</a>
     <a href="/agb.html">AGB</a>
-    <a href="/widerruf.html">Vertrag widerrufen</a>
+    <a href="/widerruf.html" data-widerruf-link>Rücktrittsrecht</a>
     <a href="/sicherheit.html">Sicherheit</a>
     <a href="/meldung.html">Inhalt melden</a>
     <a href="/strafverfolgung.html">Strafverfolgung</a>
   </nav>
 </div>
+<script src="/legal-status.js" defer></script>
 </body>
 </html>

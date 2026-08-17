@@ -695,6 +695,17 @@ class WithdrawalAck(BaseModel):
     status: str
 
 
+class WithdrawalStatus(BaseModel):
+    """Öffentlicher, serverseitig maßgeblicher Stichtag-Status.
+
+    Das Frontend (statisches HTML ohne eigenen Server) fragt das ab, statt
+    sich auf die Uhr im Browser zu verlassen - die lässt sich verstellen, die
+    Serverzeit in Europe/Vienna ist die rechtlich maßgebliche."""
+
+    legally_required: bool
+    effective_date: str
+
+
 # ---------------------------------------------------------------------------
 # Meldeverfahren nach Art. 16 DSA
 # ---------------------------------------------------------------------------
