@@ -732,6 +732,10 @@
   /* Inhalt der Rechtstexte im Modal genauso lesbar wie auf der eigenen Seite */
   .legal-modal-body h1{ font-size:22px; margin:0 0 4px; text-transform:none; letter-spacing:0; }
   .legal-modal-body h2{ font-size:15px; color:var(--chalk); border-bottom:1px solid var(--steel); padding-bottom:6px; margin-top:28px; text-transform:none; letter-spacing:0; }
+  /* Ausnahme: Ueberschrift direkt vor einer Ausklapp-Kartenliste (FAQ) - die
+     Trennlinie plus die Kartenkante direkt darunter wirkten wie zwei
+     Trenner uebereinander. */
+  .legal-modal-body h2:has(+ details){ border-bottom:none; padding-bottom:0; }
   .legal-modal-body p, .legal-modal-body table, .legal-modal-body ol li{ font-size:14px; }
   .legal-modal-body a{ color:var(--plate); }
   .legal-modal-body .back{ display:none; }
@@ -807,8 +811,11 @@
   .legal-modal-body .emergency b{ color:var(--lime); }
   .legal-modal-body .toc{ background:var(--surface-2); border:1px solid var(--steel); border-radius:12px; padding:14px 18px; margin:18px 0 8px; }
   .legal-modal-body .toc b{ display:block; margin-bottom:8px; font-size:12px; letter-spacing:.06em; text-transform:uppercase; color:var(--chalk-dim); }
-  /* Nummerierte Listen (Inhalt, Ablaufschritte) gegen die a)-Zählung oben */
-  .legal-modal-body .toc ol, .legal-modal-body ol.steps{ counter-reset:legal-step; padding-left:0; margin:8px 0; }
+  /* Nummerierte Listen (Inhalt, Ablaufschritte) gegen die a)-Zählung oben.
+     list-style:none fehlte hier bislang: der eigene orange ::before-Zähler
+     kam zur nativen Listennumerierung des Browsers dazu, statt sie zu
+     ersetzen - sichtbar als doppelte Zahl ("1. 1Geltung"). */
+  .legal-modal-body .toc ol, .legal-modal-body ol.steps{ list-style:none; counter-reset:legal-step; padding-left:0; margin:8px 0; }
   .legal-modal-body .toc li, .legal-modal-body ol.steps li{ padding-left:26px; margin-bottom:7px; }
   .legal-modal-body .toc li::before, .legal-modal-body ol.steps li::before{
     content:counter(legal-step); counter-increment:legal-step; color:var(--plate); font-weight:700;
