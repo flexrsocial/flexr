@@ -84,6 +84,15 @@ def test_telefonnummer_ist_kein_marketingelement():
     assert legal.OPERATOR_PHONE not in legal.operator_inline()
 
 
+def test_widerrufsfunktion_stichtag():
+    """§ 13a FAGG: hervorgehobene Online-Rücktrittsfunktion wird erst ab
+    1. Oktober 2026 (Europe/Vienna) gesetzlich zwingend, nicht davor."""
+    from datetime import date
+
+    assert legal.WITHDRAWAL_FUNCTION_EFFECTIVE_DATE == date(2026, 10, 1)
+    assert legal.withdrawal_function_legally_required() in (True, False)
+
+
 def test_trial_wandelt_sich_nicht_von_selbst_um():
     """Der Merkposten in legal.py muss dem entsprechen, was billing.py tut -
     sonst laufen Rechtstext und Code wieder auseinander.

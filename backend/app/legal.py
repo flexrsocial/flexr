@@ -104,3 +104,31 @@ WITHDRAWAL_VERSION: Final = "2026-08-15"      # Widerrufsbelehrung
 
 PRICE_EUR_PER_MONTH: Final = "5"
 TRIAL_AUTO_CONVERTS: Final = False
+
+
+# ---------------------------------------------------------------------------
+# § 13a FAGG — Online-Rücktrittsfunktion
+#
+# Die Pflicht, auf der Online-Benutzeroberfläche eine leicht auffindbare
+# Rücktrittsfunktion bereitzustellen, tritt in Österreich am 1. Oktober 2026
+# in Kraft. Die Funktion selbst (routers/withdrawal.py) läuft schon vorher
+# und bleibt es auch danach - das gesetzliche Rücktrittsrecht besteht ja
+# unabhängig vom Stichtag. Was sich ändert, ist nur die Hervorhebungspflicht:
+# bis zum Stichtag genügt die normale, gleichrangige Nennung im Legal-Footer;
+# ab dem Stichtag muss der Zugang als eigenständige Funktion erkennbar sein.
+# Da diese Nennung schon jetzt dezent, aber als eigener Link erkennbar ist,
+# braucht es keinen serverseitigen oder client-seitigen Umschalter - der
+# bestehende Footer-Link erfüllt beide Phasen zugleich.
+# ---------------------------------------------------------------------------
+
+from datetime import date, datetime
+from zoneinfo import ZoneInfo
+
+WITHDRAWAL_FUNCTION_EFFECTIVE_DATE: Final = date(2026, 10, 1)
+_VIENNA: Final = ZoneInfo("Europe/Vienna")
+
+
+def withdrawal_function_legally_required() -> bool:
+    """Ob die hervorgehobene Online-Rücktrittsfunktion nach § 13a FAGG bereits
+    gesetzlich vorgeschrieben ist (Stichtag in Europe/Vienna)."""
+    return datetime.now(_VIENNA).date() >= WITHDRAWAL_FUNCTION_EFFECTIVE_DATE
