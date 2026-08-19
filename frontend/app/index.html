@@ -1031,6 +1031,24 @@
 
   body.landing .legal-footer{ display:flex; padding:14px 20px 22px; }
 
+  /* Auf einem typischen 24-Zoll-Desktop bleibt der komplette ausgeloggte
+     Einstieg inklusive Rechtelinks in einem Viewport. Kleinere Hoehen duerfen
+     weiterhin normal scrollen, damit Login und Registrierung nie abgeschnitten
+     werden. 820 px deckt auch 1080p-Fenster mit sichtbarer Browserleiste ab. */
+  @media (min-width: 861px) and (min-height: 820px){
+    body.landing{ height:100vh; height:100dvh; overflow-y:hidden; }
+    body.landing .app{ height:100vh; height:100dvh; min-height:0; }
+    body.landing header.top{
+      flex:0 0 auto; padding-top:18px; padding-bottom:4px;
+    }
+    body.landing main{
+      flex:1 1 auto; min-height:0; padding-top:10px; padding-bottom:12px;
+    }
+    body.landing .legal-footer{
+      flex:0 0 auto; flex-wrap:wrap; padding:8px 20px 12px;
+    }
+  }
+
   /* ---------- Mobile Landing (isoliertes Layout) ---------- */
   @media (max-width: 860px){
     body.landing header.top{ padding:18px 20px 2px; }
@@ -1516,11 +1534,111 @@
             <img src="/brand/demo/demo-tobias.jpg?v=1" alt="" loading="lazy">
             <div class="hero-demo-name"><b>Tobias, 28</b><span>John Harris Salzburg</span></div>
           </div>
-          <div class="hero-demo-card" tabindex="0" aria-label="Lena, 26, FitOne Innsbruck. Mit den Pfeiltasten wischen.">
+          <div class="hero-demo-card" tabindex="-1">
             <div class="hero-demo-stamp pass">Nope</div>
             <div class="hero-demo-stamp like">Match</div>
             <img src="/brand/demo/demo-lena.jpg?v=1" alt="" loading="lazy">
             <div class="hero-demo-name"><b>Lena, 26</b><span>FitOne Innsbruck</span></div>
+          </div>
+          <div class="hero-demo-card" tabindex="-1">
+            <div class="hero-demo-stamp pass">Nope</div><div class="hero-demo-stamp like">Match</div>
+            <img src="/brand/demo/demo-anna-v2.jpg?v=1" alt="" loading="lazy" width="720" height="960">
+            <div class="hero-demo-name"><b>Anna, 26</b><span>Das Gym Wien</span></div>
+          </div>
+          <div class="hero-demo-card" tabindex="-1">
+            <div class="hero-demo-stamp pass">Nope</div><div class="hero-demo-stamp like">Match</div>
+            <img src="/brand/demo/demo-miriam-v2.jpg?v=1" alt="" loading="lazy" width="720" height="960">
+            <div class="hero-demo-name"><b>Miriam, 28</b><span>McFit Graz</span></div>
+          </div>
+          <div class="hero-demo-card" tabindex="-1">
+            <div class="hero-demo-stamp pass">Nope</div><div class="hero-demo-stamp like">Match</div>
+            <img src="/brand/demo/demo-emi-v2.jpg?v=1" alt="" loading="lazy" width="720" height="960">
+            <div class="hero-demo-name"><b>Emi, 29</b><span>Holmes Place Linz</span></div>
+          </div>
+          <div class="hero-demo-card" tabindex="-1">
+            <div class="hero-demo-stamp pass">Nope</div><div class="hero-demo-stamp like">Match</div>
+            <img src="/brand/demo/demo-zeynep-v2.jpg?v=1" alt="" loading="lazy" width="720" height="960">
+            <div class="hero-demo-name"><b>Zeynep, 27</b><span>Fitinn Wien</span></div>
+          </div>
+          <div class="hero-demo-card" tabindex="-1">
+            <div class="hero-demo-stamp pass">Nope</div><div class="hero-demo-stamp like">Match</div>
+            <img src="/brand/demo/demo-laura-v2.jpg?v=1" alt="" loading="lazy" width="720" height="960">
+            <div class="hero-demo-name"><b>Laura, 30</b><span>John Harris Salzburg</span></div>
+          </div>
+          <div class="hero-demo-card" tabindex="-1">
+            <div class="hero-demo-stamp pass">Nope</div><div class="hero-demo-stamp like">Match</div>
+            <img src="/brand/demo/demo-amara-v2.jpg?v=1" alt="" loading="lazy" width="720" height="960">
+            <div class="hero-demo-name"><b>Amara, 30</b><span>Clever Fit Graz</span></div>
+          </div>
+          <div class="hero-demo-card" tabindex="-1">
+            <div class="hero-demo-stamp pass">Nope</div><div class="hero-demo-stamp like">Match</div>
+            <img src="/brand/demo/demo-maya-v2.jpg?v=1" alt="" loading="lazy" width="720" height="960">
+            <div class="hero-demo-name"><b>Maya, 26</b><span>Outdoor Workout Wien</span></div>
+          </div>
+          <div class="hero-demo-card" tabindex="-1">
+            <div class="hero-demo-stamp pass">Nope</div><div class="hero-demo-stamp like">Match</div>
+            <img src="/brand/demo/demo-priya-v2.jpg?v=1" alt="" loading="lazy" width="720" height="960">
+            <div class="hero-demo-name"><b>Priya, 31</b><span>HappyFit Linz</span></div>
+          </div>
+          <div class="hero-demo-card" tabindex="-1">
+            <div class="hero-demo-stamp pass">Nope</div><div class="hero-demo-stamp like">Match</div>
+            <img src="/brand/demo/demo-katharina-v2.jpg?v=1" alt="" loading="lazy" width="720" height="960">
+            <div class="hero-demo-name"><b>Katharina, 32</b><span>FitOne Innsbruck</span></div>
+          </div>
+          <div class="hero-demo-card" tabindex="-1">
+            <div class="hero-demo-stamp pass">Nope</div><div class="hero-demo-stamp like">Match</div>
+            <img src="/brand/demo/demo-sofia-v2.jpg?v=1" alt="" loading="lazy" width="720" height="960">
+            <div class="hero-demo-name"><b>Sofia, 28</b><span>Injoy Klagenfurt</span></div>
+          </div>
+          <div class="hero-demo-card" tabindex="-1">
+            <div class="hero-demo-stamp pass">Nope</div><div class="hero-demo-stamp like">Match</div>
+            <img src="/brand/demo/demo-lukas-v2.jpg?v=1" alt="" loading="lazy" width="720" height="960">
+            <div class="hero-demo-name"><b>Lukas, 28</b><span>Das Gym Wien</span></div>
+          </div>
+          <div class="hero-demo-card" tabindex="-1">
+            <div class="hero-demo-stamp pass">Nope</div><div class="hero-demo-stamp like">Match</div>
+            <img src="/brand/demo/demo-marco-v2.jpg?v=1" alt="" loading="lazy" width="720" height="960">
+            <div class="hero-demo-name"><b>Marco, 27</b><span>McFit Graz</span></div>
+          </div>
+          <div class="hero-demo-card" tabindex="-1">
+            <div class="hero-demo-stamp pass">Nope</div><div class="hero-demo-stamp like">Match</div>
+            <img src="/brand/demo/demo-elias-v2.jpg?v=1" alt="" loading="lazy" width="720" height="960">
+            <div class="hero-demo-name"><b>Elias, 30</b><span>John Harris Salzburg</span></div>
+          </div>
+          <div class="hero-demo-card" tabindex="-1">
+            <div class="hero-demo-stamp pass">Nope</div><div class="hero-demo-stamp like">Match</div>
+            <img src="/brand/demo/demo-kenji-v2.jpg?v=1" alt="" loading="lazy" width="720" height="960">
+            <div class="hero-demo-name"><b>Kenji, 25</b><span>Holmes Place Linz</span></div>
+          </div>
+          <div class="hero-demo-card" tabindex="-1">
+            <div class="hero-demo-stamp pass">Nope</div><div class="hero-demo-stamp like">Match</div>
+            <img src="/brand/demo/demo-cem-v2.jpg?v=1" alt="" loading="lazy" width="720" height="960">
+            <div class="hero-demo-name"><b>Cem, 29</b><span>Fitinn Wien</span></div>
+          </div>
+          <div class="hero-demo-card" tabindex="-1">
+            <div class="hero-demo-stamp pass">Nope</div><div class="hero-demo-stamp like">Match</div>
+            <img src="/brand/demo/demo-felix-v2.jpg?v=1" alt="" loading="lazy" width="720" height="960">
+            <div class="hero-demo-name"><b>Felix, 32</b><span>FitOne Innsbruck</span></div>
+          </div>
+          <div class="hero-demo-card" tabindex="-1">
+            <div class="hero-demo-stamp pass">Nope</div><div class="hero-demo-stamp like">Match</div>
+            <img src="/brand/demo/demo-mateo-v2.jpg?v=1" alt="" loading="lazy" width="720" height="960">
+            <div class="hero-demo-name"><b>Mateo, 26</b><span>Clever Fit Graz</span></div>
+          </div>
+          <div class="hero-demo-card" tabindex="-1">
+            <div class="hero-demo-stamp pass">Nope</div><div class="hero-demo-stamp like">Match</div>
+            <img src="/brand/demo/demo-arjun-v2.jpg?v=1" alt="" loading="lazy" width="720" height="960">
+            <div class="hero-demo-name"><b>Arjun, 31</b><span>HappyFit Linz</span></div>
+          </div>
+          <div class="hero-demo-card" tabindex="-1">
+            <div class="hero-demo-stamp pass">Nope</div><div class="hero-demo-stamp like">Match</div>
+            <img src="/brand/demo/demo-noah-v2.jpg?v=1" alt="" loading="lazy" width="720" height="960">
+            <div class="hero-demo-name"><b>Noah, 27</b><span>Outdoor Workout Wien</span></div>
+          </div>
+          <div class="hero-demo-card" tabindex="0" aria-label="Samuel, 33, Injoy Klagenfurt. Mit den Pfeiltasten wischen.">
+            <div class="hero-demo-stamp pass">Nope</div><div class="hero-demo-stamp like">Match</div>
+            <img src="/brand/demo/demo-samuel-v2.jpg?v=1" alt="" loading="lazy" width="720" height="960">
+            <div class="hero-demo-name"><b>Samuel, 33</b><span>Injoy Klagenfurt</span></div>
           </div>
         </div>
         <div class="hero-demo-actions">
@@ -2238,6 +2356,9 @@
         card.classList.remove('dragging');
         card.style.transition = '';
         card.style.opacity = fromTop === 0 ? '1' : (fromTop === 1 ? '.86' : '.68');
+        /* Auch im grossen Demo-Deck bleiben nur die obersten drei Ebenen
+           sichtbar; die weiteren Profile werden beim Weiterschalten aktiviert. */
+        card.style.visibility = fromTop <= 2 ? 'visible' : 'hidden';
         card.style.zIndex = String(index + 1);
         card.style.transform = fromTop === 0
           ? 'rotate(-1deg) translate(0,0) scale(1)'
