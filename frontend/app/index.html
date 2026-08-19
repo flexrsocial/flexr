@@ -1031,20 +1031,25 @@
 
   body.landing .legal-footer{ display:flex; padding:14px 20px 22px; }
 
-  /* Auf einem typischen 24-Zoll-Desktop bleibt der komplette ausgeloggte
-     Einstieg inklusive Rechtelinks in einem Viewport. Kleinere Hoehen duerfen
-     weiterhin normal scrollen, damit Login und Registrierung nie abgeschnitten
-     werden. 820 px deckt auch 1080p-Fenster mit sichtbarer Browserleiste ab. */
+  /* Auf einem typischen 24-Zoll-Desktop bleibt der initiale Login-Einstieg
+     inklusive Rechtelinks in einem Viewport. Die Regel gilt bewusst nur fuer
+     den Login-Screen: laengere Registrierungs- und Verifizierungsschritte
+     behalten ihr sicheres Scrollverhalten. 820 px deckt auch 1080p-Fenster
+     mit sichtbarer Browserleiste ab. */
   @media (min-width: 861px) and (min-height: 820px){
-    body.landing{ height:100vh; height:100dvh; overflow-y:hidden; }
-    body.landing .app{ height:100vh; height:100dvh; min-height:0; }
-    body.landing header.top{
+    body.landing[data-screen="screen-login"]{
+      height:100vh; height:100dvh; overflow-y:hidden;
+    }
+    body.landing[data-screen="screen-login"] .app{
+      height:100vh; height:100dvh; min-height:0;
+    }
+    body.landing[data-screen="screen-login"] header.top{
       flex:0 0 auto; padding-top:18px; padding-bottom:4px;
     }
-    body.landing main{
+    body.landing[data-screen="screen-login"] main{
       flex:1 1 auto; min-height:0; padding-top:10px; padding-bottom:12px;
     }
-    body.landing .legal-footer{
+    body.landing[data-screen="screen-login"] .legal-footer{
       flex:0 0 auto; flex-wrap:wrap; padding:8px 20px 12px;
     }
   }
