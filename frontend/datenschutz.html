@@ -17,7 +17,7 @@
   <main>
   <h1>Datenschutzerklärung</h1>
   <p class="lead">Was FLEXR mit deinen Daten macht — und was nicht</p>
-  <p class="stand">Fassung 2026-08-17 · Stand: 17. August 2026</p>
+  <p class="stand">Fassung 2026-08-19 · Stand: 19. August 2026</p>
 
   <div class="box hint">
     <p style="margin:0;">
@@ -26,7 +26,7 @@
       Nachrichten, Abostatus). Es gibt <b>kein Tracking, keine Werbenetzwerke,
       keine Analysewerkzeuge und keine Weitergabe zu Werbezwecken</b>. Deine
       Fotos liegen bei einem Speicherdienst, die Zahlung läuft über Stripe, der
-      Server steht in Deutschland — mehr Empfänger gibt es nicht.
+      Server steht in Deutschland und Transaktions-E-Mails versendet Brevo.
     </p>
   </div>
 
@@ -88,27 +88,20 @@
         <td>Eine live über die Kamera aufgenommene Aufnahme</td>
         <td>Aufnahme durch dich</td>
         <td>Alters- und Identitätsprüfung</td>
-        <td>Art. 6 Abs. 1 lit. c und lit. f, siehe Punkt 5</td>
+        <td>Art. 6 Abs. 1 lit. f, siehe Punkt 5</td>
       </tr>
       <tr>
         <td>Ausweisaufnahme</td>
         <td>Aufnahme eines amtlichen Lichtbildausweises, Dokumenttyp</td>
         <td>Upload durch dich</td>
         <td>Alters- und Identitätsprüfung</td>
-        <td>Art. 6 Abs. 1 lit. c und lit. f, siehe Punkt 5</td>
+        <td>Art. 6 Abs. 1 lit. f, siehe Punkt 5</td>
       </tr>
       <tr>
         <td>Prüfergebnis</td>
         <td>Status, Prüfgrund aus fester Liste, Zeitpunkte, Kennung des Prüfers, Prüfmethode („manual_id")</td>
         <td>Manuelle Prüfung</td>
         <td>Nachweis der Altersprüfung</td>
-        <td>Art. 6 Abs. 1 lit. c und lit. f</td>
-      </tr>
-      <tr>
-        <td>Telefonnummer</td>
-        <td>Nur wenn du sie hinterlegst; wird erst nach bestätigtem SMS-Code gespeichert. Der Code selbst nur als Hash</td>
-        <td>Eingabe durch dich</td>
-        <td>Kontosicherheit, Missbrauchsprävention</td>
         <td>Art. 6 Abs. 1 lit. f</td>
       </tr>
       <tr>
@@ -225,8 +218,9 @@
     <li><b>Keine automatisierte Entscheidung im Sinne des Art. 22 DSGVO.</b>
       Über jede Fotofreigabe, jede Alters- und Identitätsprüfung und jede
       Maßnahme gegen ein Konto entscheidet ein Mensch.</li>
-    <li><b>Kein Verkauf und keine Weitergabe deiner Daten</b> an Dritte zu
-      deren eigenen Zwecken.</li>
+    <li><b>Kein Verkauf und keine Weitergabe deiner Daten zu Werbezwecken.</b>
+      Welche Dienstleister Daten für die Bereitstellung von FLEXR erhalten,
+      steht vollständig in Punkt 6.</li>
   </ul>
 
   <h2>4. Sexuelle Orientierung — die besondere Kategorie</h2>
@@ -299,14 +293,14 @@
     angezeigt werden.
   </p>
   <p>
-    <b>Rechtsgrundlage.</b> Die Prüfung dient der Einhaltung der Pflicht aus
-    Art. 28 Abs. 1 DSA, Minderjährige vor unzulässigem Zugang zur Plattform zu
-    schützen, sowie der Sicherheit der Plattform allgemein; wir stützen sie auf
-    Art. 6 Abs. 1 lit. c (diese gesetzliche Verpflichtung) und lit. f DSGVO.
-    Sie ist Voraussetzung für die Nutzung von FLEXR — deshalb stützen wir sie
-    <b>nicht</b> auf eine Einwilligung: Eine Einwilligung, ohne die der Dienst
-    gar nicht nutzbar wäre, wäre nicht freiwillig im Sinne des Art. 4 Z 11
-    DSGVO.
+    <b>Rechtsgrundlage.</b> FLEXR richtet sich ausschließlich an Erwachsene.
+    Unser berechtigtes Interesse besteht darin, Minderjährige vom Dienst
+    fernzuhalten, Identitätsmissbrauch zu erschweren und die Sicherheit der
+    Plattform zu gewährleisten (Art. 6 Abs. 1 lit. f DSGVO). Dem stehen die
+    kurze Speicherdauer, die rein manuelle Sichtprüfung, die Möglichkeit zum
+    Schwärzen nicht benötigter Ausweisdaten und die sofortige Löschung nach der
+    Entscheidung gegenüber. Die Prüfung ist Voraussetzung für die Nutzung von
+    FLEXR — deshalb stützen wir sie <b>nicht</b> auf eine Einwilligung.
   </p>
   <p>
     <b>Abbruch.</b> Noch nicht geprüfte Aufnahmen kannst du in der App
@@ -337,11 +331,6 @@
         <td>Stripe-Gesellschaften in Irland und den USA. Siehe den Hinweis unten.</td>
       </tr>
       <tr>
-        <td>Twilio</td>
-        <td>Versand der SMS mit dem Bestätigungscode — nur wenn du eine Telefonnummer hinterlegst</td>
-        <td>Anbieter mit Sitz in den USA. Übermittelt wird ausschließlich die Rufnummer und der Code.</td>
-      </tr>
-      <tr>
         <td>Brevo (Sendinblue SAS, 7 rue de Madrid, 75008 Paris, Frankreich)</td>
         <td>Versand von Bestätigungs-, Rücktritts- und Melde-E-Mails</td>
         <td>Frankreich / EU</td>
@@ -353,13 +342,14 @@
   <div class="box hint">
     <h3>Auftragsverarbeiter und Drittstaatentransfer</h3>
     <p>
-      Für die Objektspeicherung (Cloudflare R2), das Hosting (Contabo), die
-      Zahlungsabwicklung (Stripe) und den SMS-Versand (Twilio) gilt: Cloudflare
-      unterscheidet bei R2 zwischen einem bloßen Standort-Hinweis („location
-      hint") und einer echten EU-Jurisdiktion. Solange unsere Konfiguration
-      nicht auf eine echte EU-Jurisdiktion umgestellt ist, ist eine Übermittlung
-      in ein Drittland nicht ausgeschlossen. Mit allen genannten Anbietern
-      gelten deren standardisierte Auftragsverarbeitungsbedingungen.
+      Cloudflare unterscheidet bei R2 zwischen einem bloßen Standort-Hinweis
+      („location hint") und einer echten EU-Jurisdiktion. Solange unsere
+      Konfiguration nicht auf eine echte EU-Jurisdiktion umgestellt ist, ist
+      eine Übermittlung in ein Drittland nicht ausgeschlossen. Contabo,
+      Cloudflare und Brevo verarbeiten Daten für die hier genannten Zwecke als
+      Dienstleister. Stripe verarbeitet Zahlungsdaten teilweise in eigener
+      datenschutzrechtlicher Verantwortung, insbesondere zur Zahlungsabwicklung,
+      Betrugsprävention und Erfüllung gesetzlicher Pflichten.
     </p>
   </div>
 
@@ -427,7 +417,7 @@
   <ul>
     <li>Übertragung ausschließlich über HTTPS.</li>
     <li>Passwörter werden nur als bcrypt-Hash gespeichert, nie im Klartext.
-      Dasselbe gilt für SMS-Codes und die Token aus Bestätigungslinks.</li>
+      Token aus Bestätigungslinks werden ebenfalls nur als Hash gespeichert.</li>
     <li>Ausweisaufnahmen liegen in einem nicht öffentlich abrufbaren Bereich
       und sind nur über Links mit 60 Sekunden Gültigkeit erreichbar.</li>
     <li>Hochgeladene Bilder werden serverseitig auf tatsächliches Format und
@@ -476,8 +466,8 @@
   <p>
     Die Angaben in Punkt 2 (Zugangs-, Profil- und Präferenzdaten) und die
     Alters- und Identitätsprüfung sind für die Nutzung von FLEXR erforderlich.
-    Ohne sie kommt kein Konto zustande. Freiwillig sind die Bio, weitere Fotos
-    über das erste hinaus und die Telefonnummer.
+    Ohne sie kommt kein Konto zustande. Freiwillig sind die Bio und weitere
+    Fotos über das erste hinaus.
   </p>
 
   <h2>12. Änderungen dieser Erklärung</h2>

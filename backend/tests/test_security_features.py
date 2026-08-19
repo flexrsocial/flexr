@@ -1,8 +1,5 @@
-import re
-
 from tests.conftest import TestingSessionLocal, create_admin, register_user
 from tests.test_swipes_and_matches import make_pair
-from app.routers import phone as phone_router
 
 
 def _make_match(client):
@@ -13,50 +10,11 @@ def _make_match(client):
     return match_id, headers_a, headers_b
 
 
-# ---------- Telefonprüfung ----------
+# ---------- Verworfene Telefonprüfung ----------
 
-def test_phone_verification_flow(client, monkeypatch):
-    sent = {}
-    monkeypatch.setattr(phone_router, "send_sms", lambda to, body: sent.update(to=to, body=body))
-
-    headers = register_user(client, "phone@example.com")
-    resp = client.post("/api/phone/request", headers=headers, json={"phone": "+436761234567"})
-    assert resp.status_code == 200, resp.text
-    assert sent["to"] == "+436761234567"
-    code = re.search(r"\d{6}", sent["body"]).group()
-
-    me = client.post("/api/phone/confirm", headers=headers, json={"code": code}).json()
-    assert me["phone"] == "+436761234567"
-    assert me["phone_verified"] is True
-
-
-def test_phone_wrong_code_and_attempts(client, monkeypatch):
-    monkeypatch.setattr(phone_router, "send_sms", lambda to, body: None)
-    headers = register_user(client, "phonewrong@example.com")
-    client.post("/api/phone/request", headers=headers, json={"phone": "+436761234568"})
-
-    resp = client.post("/api/phone/confirm", headers=headers, json={"code": "000000"})
-    assert resp.status_code == 400
-
-
-def test_phone_number_unique_across_accounts(client, monkeypatch):
-    sent = {}
-    monkeypatch.setattr(phone_router, "send_sms", lambda to, body: sent.update(body=body))
-
-    headers_a = register_user(client, "phoneuniq1@example.com")
-    client.post("/api/phone/request", headers=headers_a, json={"phone": "+436761111111"})
-    code = re.search(r"\d{6}", sent["body"]).group()
-    client.post("/api/phone/confirm", headers=headers_a, json={"code": code})
-
-    headers_b = register_user(client, "phoneuniq2@example.com", gender="frau")
-    resp = client.post("/api/phone/request", headers=headers_b, json={"phone": "+436761111111"})
-    assert resp.status_code == 409
-
-
-def test_phone_invalid_format_rejected(client):
-    headers = register_user(client, "phonefmt@example.com")
-    resp = client.post("/api/phone/request", headers=headers, json={"phone": "0676 1234567"})
-    assert resp.status_code == 422
+def test_phone_verification_is_not_exposed(client):
+    assert client.post("/api/phone/request", json={"phone": "+436761234567"}).status_code == 404
+    assert client.post("/api/phone/confirm", json={"code": "123456"}).status_code == 404
 
 
 # ---------- Geräteprüfung ----------

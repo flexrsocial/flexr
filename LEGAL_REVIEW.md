@@ -126,7 +126,6 @@ Im Repository ist kein einziger belegt.
 | Contabo GmbH | VPS, Datenbank | AVV abgeschlossen? Contabo bietet einen zum Download an. |
 | Cloudflare | R2, Fotos und Ausweisaufnahmen | Cloudflare DPA gilt idR automatisch über die Self-Serve-Bedingungen — Fassung und Datum festhalten. |
 | Stripe | Zahlungen | Siehe D-03 — Stripe ist nicht durchgehend Auftragsverarbeiter. |
-| Twilio | SMS | Nur relevant, wenn die Telefonprüfung produktiv genutzt wird. |
 | SMTP-Anbieter | E-Mail | Steht noch nicht fest (siehe T-06). |
 
 Erst wenn alle vorliegen, darf die Aussage zurück in
@@ -179,11 +178,13 @@ orientierungsbezogenes Matching geben müsste.
 **Zuständig:** Rechtsanwalt, dann Julian für die Durchführung.
 
 ### D-07 · Rechtsgrundlage der Altersprüfung
-**Art. 6 Abs. 1 lit. c und lit. f DSGVO**, mit lit. c konkret gestützt auf
-Art. 28 Abs. 1 DSA (Pflicht, Minderjährige vor unzulässigem Zugang zu
-schützen) - so seit 17.08.2026 in datenschutz.html ausformuliert.
-**Zu bestätigen:** Ob Art. 28 Abs. 1 DSA als konkrete Verpflichtung im Sinne
-von lit. c trägt, oder ob lit. f allein die sauberere Konstruktion ist.
+**Am 19.08.2026 korrigiert:** Art. 28 DSA gehört zu dem Abschnitt, von dem
+FLEXR bei zutreffender Einstufung als Kleinstunternehmen nach Art. 19 DSA
+ausgenommen ist. Die Datenschutzerklärung beruft sich deshalb nicht mehr auf
+Art. 6 Abs. 1 lit. c DSGVO, sondern beschreibt das berechtigte Interesse nach
+Art. 6 Abs. 1 lit. f DSGVO und die konkrete Interessenabwägung.
+**Zu bestätigen:** Ob diese Interessenabwägung für die verpflichtende manuelle
+Ausweisprüfung trägt.
 **Zuständig:** Rechtsanwalt.
 
 ---
