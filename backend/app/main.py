@@ -7,7 +7,7 @@ from slowapi.middleware import SlowAPIMiddleware
 from .config import settings
 from .rate_limit import limiter
 from .routers import (
-    admin, auth, billing, email_verify, geo, gyms, matches, messages, notices, phone,
+    admin, auth, billing, email_verify, geo, gyms, matches, messages, notices,
     profiles, safety, swipes,
     verification, withdrawal,
 )
@@ -64,7 +64,6 @@ app.include_router(safety.router)
 app.include_router(withdrawal.router)
 app.include_router(notices.router)
 app.include_router(verification.router)
-app.include_router(phone.router)
 app.include_router(gyms.router)
 app.include_router(geo.router)
 app.include_router(admin.router)

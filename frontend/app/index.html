@@ -819,10 +819,14 @@
      list-style:none fehlte hier bislang: der eigene orange ::before-Zähler
      kam zur nativen Listennumerierung des Browsers dazu, statt sie zu
      ersetzen - sichtbar als doppelte Zahl ("1. 1Geltung"). */
-  .legal-modal-body .toc ol, .legal-modal-body ol.steps{ list-style:none; counter-reset:legal-step; padding-left:0; margin:8px 0; }
-  .legal-modal-body .toc li, .legal-modal-body ol.steps li{ padding-left:26px; margin-bottom:7px; }
-  .legal-modal-body .toc li::before, .legal-modal-body ol.steps li::before{
-    content:counter(legal-step); counter-increment:legal-step; color:var(--plate); font-weight:700;
+  .legal-modal-body .toc ol{ list-style:none; counter-reset:legal-toc; padding-left:0; margin:8px 0; }
+  .legal-modal-body .toc li{
+    display:grid; grid-template-columns:1.7em minmax(0, 1fr); column-gap:8px;
+    padding-left:0; margin-bottom:7px;
+  }
+  .legal-modal-body .toc li::before{
+    content:counter(legal-toc) "."; counter-increment:legal-toc;
+    color:var(--plate); font-weight:700; text-align:right;
   }
   .legal-modal-body .nav-legal{ margin-top:32px; padding-top:14px; border-top:1px solid var(--steel); font-size:13px; }
   .legal-modal-body .nav-legal a{ margin-right:16px; }
@@ -4661,10 +4665,6 @@
     if(verificationStatus && verificationStatus.next_step === 'document') openIdStep();
     else startVerification();
   });
-
-  // Hinweis: Die Telefonprüfung (SMS-OTP) ist im Backend fertig vorhanden
-  // (/api/phone/request + /confirm), aber bewusst ohne UI - sie wird erst
-  // aktiviert, wenn ein SMS-Versand (Twilio) eingerichtet ist.
 
   function stopVerifyCamera(){
     if(verifyStream){
