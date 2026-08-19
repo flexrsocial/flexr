@@ -929,35 +929,73 @@
     content:'▸'; color:var(--plate); font-size:15px; line-height:1.5; flex-shrink:0;
   }
 
-  /* Mini-Swipe-Demo mit Beispielprofilen - rein dekorativ, kein Swipe-Handling.
-     Die Fotos sind KI-generiert (siehe frontend/brand/demo/README.md), keine
-     echten Personen - anders als das alte, am 15.08.2026 wegen genau dieses
-     Risikos entfernte Unsplash-Deck (siehe Kommentar bei .landing-hero
-     weiter oben im Markup). Deshalb durchgehend als Beispiel gekennzeichnet,
-     nicht als Bestandsprofile. */
-  .hero-demo{ margin-top:8px; }
+  /* Interaktives Musterdeck im Marketing-Hero. Es benutzt bewusst dieselbe
+     Karten-, Stempel- und Aktionssprache wie das echte Swipe-Deck weiter
+     unten, sendet aber keinerlei API-Anfrage. Die Bilder sind KI-generierte,
+     selbst gehostete Beispiele (frontend/brand/demo/README.md). */
+  body.landing .landing-hero{
+    display:grid;
+    grid-template-columns:minmax(0,1fr) 210px;
+    grid-template-areas:
+      "eyebrow demo"
+      "title demo"
+      "sub demo"
+      "usps usps";
+    column-gap:clamp(18px,3vw,34px); align-items:center;
+  }
+  .landing-hero .hero-eyebrow{ grid-area:eyebrow; }
+  .landing-hero h1{ grid-area:title; }
+  .landing-hero .hero-sub{ grid-area:sub; }
+  .hero-usps{ grid-area:usps; }
+  .hero-demo{ grid-area:demo; align-self:start; width:100%; padding-top:8px; }
   .hero-demo-stack{
-    position:relative; width:180px; height:230px; margin:0 auto 14px;
+    position:relative; width:190px; height:248px; margin:0 auto 12px;
+    touch-action:none;
   }
   .hero-demo-card{
-    position:absolute; inset:0; border-radius:16px; overflow:hidden;
-    box-shadow:0 18px 40px rgba(0,0,0,.5); border:1px solid rgba(255,255,255,.08);
-    transform-origin:bottom center;
+    position:absolute; inset:0; border-radius:18px; overflow:hidden;
+    background:var(--surface); border:1px solid rgba(255,255,255,.10);
+    box-shadow:0 18px 40px rgba(0,0,0,.52), 0 0 0 1px rgba(255,90,31,.15);
+    transform-origin:bottom center; cursor:grab; user-select:none;
+    transition:transform .36s cubic-bezier(.2,.8,.3,1), opacity .3s ease;
   }
-  .hero-demo-card:nth-child(1){ transform:rotate(-7deg) translateX(-14px); z-index:1; opacity:.75; }
-  .hero-demo-card:nth-child(2){ transform:rotate(5deg) translateX(10px); z-index:2; opacity:.88; }
-  .hero-demo-card:nth-child(3){ transform:rotate(-1deg); z-index:3; }
-  .hero-demo-card img{ width:100%; height:100%; object-fit:cover; display:block; }
+  .hero-demo-card:not(:last-child){ pointer-events:none; }
+  .hero-demo-card:last-child{ box-shadow:0 22px 48px rgba(0,0,0,.58), 0 0 0 1.5px rgba(255,90,31,.34); }
+  .hero-demo-card.dragging{ cursor:grabbing; transition:none; }
+  .hero-demo-card::after{
+    content:''; position:absolute; inset:0; pointer-events:none;
+    background:linear-gradient(180deg, rgba(0,0,0,.12), transparent 44%, rgba(0,0,0,.9));
+  }
+  .hero-demo-card img{ width:100%; height:100%; object-fit:cover; display:block; pointer-events:none; }
   .hero-demo-card .hero-demo-name{
-    position:absolute; left:10px; right:10px; bottom:8px;
-    font-family:'Oswald', sans-serif; font-size:13px; color:#fff;
-    text-shadow:0 2px 8px rgba(0,0,0,.75);
+    position:absolute; left:13px; right:13px; bottom:12px; z-index:2;
+    font-family:'Oswald', sans-serif; font-size:17px; color:#fff;
+    text-shadow:0 2px 9px rgba(0,0,0,.82);
   }
   .hero-demo-card .hero-demo-name b{ font-weight:600; }
   .hero-demo-card .hero-demo-name span{
-    display:block; font-size:10.5px; color:rgba(255,255,255,.78); font-weight:400;
+    display:block; margin-top:2px; font-family:'JetBrains Mono', monospace;
+    font-size:8.5px; line-height:1.35; letter-spacing:.03em; text-transform:uppercase;
+    color:rgba(255,255,255,.78); font-weight:400;
   }
-  /* Rechte Spalte neben der Karte: Vorschau-Reihe + Aktions-Buttons */
+  .hero-demo-stamp{
+    position:absolute; top:18px; z-index:3; opacity:0; padding:4px 9px;
+    border:3px solid currentColor; border-radius:8px; background:rgba(10,10,10,.34);
+    font-family:'Oswald', sans-serif; font-size:15px; font-weight:700;
+    letter-spacing:.04em; text-transform:uppercase; pointer-events:none;
+  }
+  .hero-demo-stamp.pass{ left:12px; color:var(--danger); transform:rotate(10deg); }
+  .hero-demo-stamp.like{ right:12px; color:var(--lime); transform:rotate(-10deg); }
+  .hero-demo-actions{ display:flex; justify-content:center; align-items:center; gap:18px; }
+  .hero-demo-actions .round-btn{ width:48px; height:48px; }
+  .hero-demo-actions .round-btn.like{ width:56px; height:56px; }
+  .hero-demo-actions .round-btn svg.ico{ width:22px; height:22px; }
+  .hero-demo-actions .round-btn.like svg.ico{ width:25px; height:25px; }
+  .hero-demo-hint{
+    margin-top:7px; text-align:center; color:var(--chalk-dim);
+    font-family:'JetBrains Mono', monospace; font-size:8.5px;
+    letter-spacing:.08em; text-transform:uppercase;
+  }
 
   body.landing .screen{ display:none; }
   body.landing .screen.active{
@@ -989,11 +1027,7 @@
 
   body.landing .legal-footer{ display:flex; padding:14px 20px 22px; }
 
-  /* ---------- Mobile Landing (isoliertes Layout) ----------
-     Am Handy zählt: schnell zur Anmeldung. Der Hero wird per display:contents
-     aufgelöst, damit seine Kinder gemeinsam mit der Login-/Registrier-Karte
-     frei angeordnet werden können: Eyebrow -> Headline -> Anmeldekarte ->
-     USPs -> kompakte Swipe-Demo. */
+  /* ---------- Mobile Landing (isoliertes Layout) ---------- */
   @media (max-width: 860px){
     body.landing header.top{ padding:18px 20px 2px; }
     body.landing .brand{ font-size:26px; }
@@ -1001,13 +1035,22 @@
       display:flex; flex-direction:column; gap:0;
       padding:8px 18px 36px; max-width:520px;
     }
-    body.landing .landing-hero{ display:contents; }
-    .landing-hero .hero-eyebrow{ order:1; font-size:10.5px; margin-bottom:10px; }
+    body.landing .landing-hero{
+      display:grid; width:100%; margin-bottom:28px;
+      grid-template-columns:minmax(0,1fr) 178px;
+      grid-template-areas:
+        "eyebrow demo"
+        "title demo"
+        "sub sub"
+        "usps usps";
+      column-gap:16px;
+    }
+    .landing-hero .hero-eyebrow{ font-size:10.5px; margin-bottom:10px; }
     .landing-hero h1{
-      order:2; font-size:clamp(34px,10vw,44px); line-height:1.06; margin-bottom:14px;
+      font-size:clamp(34px,10vw,44px); line-height:1.06; margin-bottom:14px;
     }
     .landing-hero .hero-sub{
-      order:3; font-size:14.5px; line-height:1.55; margin-bottom:18px;
+      font-size:14.5px; line-height:1.55; margin-bottom:18px;
     }
     body.landing .screen.active{
       order:4; max-height:none; overflow:visible;
@@ -1016,9 +1059,25 @@
          fiel mobil direkt auf die erste USP-Zeile darunter und dunkelte sie ab */
       box-shadow:0 6px 18px rgba(0,0,0,.3);
     }
-    .hero-usps{ order:5; gap:9px; margin-bottom:22px; }
+    .hero-usps{ gap:9px; margin-bottom:0; }
     .hero-usps li{ font-size:13.5px; }
-    .hero-demo{ order:6; margin-bottom:8px; }
+    .hero-demo{ padding-top:2px; }
+    .hero-demo-stack{ width:154px; height:202px; margin-bottom:9px; }
+    .hero-demo-card .hero-demo-name{ left:10px; right:10px; bottom:9px; font-size:14px; }
+    .hero-demo-card .hero-demo-name span{ font-size:7px; }
+    .hero-demo-actions{ gap:12px; }
+    .hero-demo-actions .round-btn{ width:42px; height:42px; }
+    .hero-demo-actions .round-btn.like{ width:48px; height:48px; }
+    .hero-demo-hint{ font-size:7px; }
+  }
+  @media (max-width: 420px){
+    body.landing .landing-hero{ grid-template-columns:minmax(0,1fr) 142px; column-gap:10px; }
+    .landing-hero h1{ font-size:clamp(31px,9.4vw,38px); }
+    .hero-demo-stack{ width:128px; height:172px; }
+    .hero-demo-actions .round-btn{ width:38px; height:38px; }
+    .hero-demo-actions .round-btn.like{ width:44px; height:44px; }
+    .hero-demo-actions .round-btn svg.ico{ width:18px; height:18px; }
+    .hero-demo-hint{ display:none; }
   }
 
   .divider{ height:1px; background:var(--steel); margin:24px 0; position:relative; }
@@ -1439,21 +1498,36 @@
            Personen (siehe frontend/brand/demo/README.md fuer Herkunft und
            Rechte) - durchgehend als Beispiel gekennzeichnet, nicht als
            echte Bestandsprofile dargestellt. -->
-      <div class="hero-demo">
-        <div class="hero-demo-stack">
-          <div class="hero-demo-card">
+      <div class="hero-demo" id="heroDemo" aria-label="Interaktives Beispiel für das Swipe-Deck">
+        <div class="hero-demo-stack" id="heroDemoStack" aria-live="polite">
+          <div class="hero-demo-card" tabindex="-1">
+            <div class="hero-demo-stamp pass">Nope</div>
+            <div class="hero-demo-stamp like">Match</div>
             <img src="/brand/demo/demo-julia.jpg?v=1" alt="" loading="lazy">
             <div class="hero-demo-name"><b>Julia, 25</b><span>Holmes Place Linz</span></div>
           </div>
-          <div class="hero-demo-card">
+          <div class="hero-demo-card" tabindex="-1">
+            <div class="hero-demo-stamp pass">Nope</div>
+            <div class="hero-demo-stamp like">Match</div>
             <img src="/brand/demo/demo-tobias.jpg?v=1" alt="" loading="lazy">
             <div class="hero-demo-name"><b>Tobias, 28</b><span>John Harris Salzburg</span></div>
           </div>
-          <div class="hero-demo-card">
+          <div class="hero-demo-card" tabindex="0" aria-label="Lena, 26, FitOne Innsbruck. Mit den Pfeiltasten wischen.">
+            <div class="hero-demo-stamp pass">Nope</div>
+            <div class="hero-demo-stamp like">Match</div>
             <img src="/brand/demo/demo-lena.jpg?v=1" alt="" loading="lazy">
             <div class="hero-demo-name"><b>Lena, 26</b><span>FitOne Innsbruck</span></div>
           </div>
         </div>
+        <div class="hero-demo-actions">
+          <button class="round-btn pass" type="button" data-demo-action="pass" aria-label="Beispielprofil ablehnen">
+            <svg class="ico" viewBox="0 0 24 24"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/></svg>
+          </button>
+          <button class="round-btn like" type="button" data-demo-action="like" aria-label="Beispielprofil gefällt mir">
+            <svg class="ico" viewBox="0 0 24 24"><path d="M12 20.3S4.8 15.7 4.8 10.8C4.8 8 6.9 6 9.3 6c1.2 0 2.3.55 2.7 1.4C12.4 6.55 13.5 6 14.7 6c2.4 0 4.5 2 4.5 4.8 0 4.9-7.2 9.5-7.2 9.5z" fill="currentColor" stroke="none"/></svg>
+          </button>
+        </div>
+        <div class="hero-demo-hint">Ziehen oder tippen · Beispielprofile</div>
       </div>
     </div>
 
@@ -2133,6 +2207,145 @@
     document.body.appendChild(t);
     setTimeout(()=> t.remove(), 2600);
   }
+
+  // ---------- Interaktives Musterdeck im ausgeloggten Hero ----------
+  // Reine Vorschau: Sie verwendet dieselbe Bewegungslogik wie das echte Deck,
+  // ruft aber weder /api/swipes auf noch schreibt sie Zustand in localStorage.
+  function initHeroDemo(){
+    const root = $('heroDemo');
+    const stack = $('heroDemoStack');
+    if(!root || !stack) return;
+
+    let drag = null;
+    let locked = false;
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    function cards(){ return [...stack.querySelectorAll('.hero-demo-card')]; }
+    function topCard(){ return stack.querySelector('.hero-demo-card:last-child'); }
+
+    function clearStamps(card){
+      card.querySelectorAll('.hero-demo-stamp').forEach(stamp => { stamp.style.opacity = 0; });
+    }
+
+    function arrangeCards(){
+      const all = cards();
+      all.forEach((card, index) => {
+        const fromTop = all.length - 1 - index;
+        card.classList.remove('dragging');
+        card.style.transition = '';
+        card.style.opacity = fromTop === 0 ? '1' : (fromTop === 1 ? '.86' : '.68');
+        card.style.zIndex = String(index + 1);
+        card.style.transform = fromTop === 0
+          ? 'rotate(-1deg) translate(0,0) scale(1)'
+          : fromTop === 1
+            ? 'rotate(5deg) translate(9px,5px) scale(.965)'
+            : 'rotate(-7deg) translate(-11px,8px) scale(.93)';
+        card.tabIndex = fromTop === 0 ? 0 : -1;
+        card.setAttribute('aria-hidden', fromTop === 0 ? 'false' : 'true');
+        clearStamps(card);
+      });
+    }
+
+    function finishSwipe(card){
+      stack.insertBefore(card, stack.firstElementChild);
+      card.style.opacity = '';
+      card.style.transform = '';
+      card.style.transition = '';
+      arrangeCards();
+      locked = false;
+    }
+
+    function swipe(action, velocity){
+      if(locked) return;
+      const card = topCard();
+      if(!card) return;
+      locked = true;
+      const dir = action === 'like' ? 1 : -1;
+      const stamp = card.querySelector('.hero-demo-stamp.' + action);
+      if(stamp) stamp.style.opacity = 1;
+      const speed = Math.min(Math.abs(velocity || 0), 32);
+      const duration = reducedMotion ? 20 : Math.max(250, 390 - speed * 5);
+      card.style.transition = `transform ${duration}ms cubic-bezier(.3,.1,.4,1), opacity ${duration}ms ease`;
+      requestAnimationFrame(() => {
+        card.style.transform = `translate(${dir * (stack.clientWidth + 260)}px,-35px) rotate(${dir * (20 + speed * .25)}deg)`;
+        card.style.opacity = '0';
+      });
+      window.setTimeout(() => finishSwipe(card), duration);
+    }
+
+    function snapBack(card){
+      card.classList.remove('dragging');
+      card.style.transition = reducedMotion ? 'none' : 'transform .42s cubic-bezier(.18,.9,.3,1.2)';
+      card.style.transform = 'rotate(-1deg) translate(0,0) scale(1)';
+      clearStamps(card);
+      window.setTimeout(() => { card.style.transition = ''; }, reducedMotion ? 20 : 430);
+    }
+
+    function resetDrag(){
+      if(!drag) return;
+      const card = drag.card;
+      drag = null;
+      snapBack(card);
+    }
+
+    stack.addEventListener('pointerdown', (event) => {
+      if(locked || event.button !== 0) return;
+      const card = event.target.closest('.hero-demo-card:last-child');
+      if(!card) return;
+      card.setPointerCapture(event.pointerId);
+      card.classList.add('dragging');
+      drag = {
+        card, pointerId:event.pointerId, startX:event.clientX, startY:event.clientY,
+        dx:0, lastX:event.clientX, lastT:performance.now(), velocity:0,
+      };
+    });
+
+    stack.addEventListener('pointermove', (event) => {
+      if(!drag || drag.pointerId !== event.pointerId) return;
+      const now = performance.now();
+      const elapsed = now - drag.lastT;
+      drag.dx = event.clientX - drag.startX;
+      const dy = event.clientY - drag.startY;
+      if(elapsed > 0) drag.velocity = (event.clientX - drag.lastX) / elapsed * 16;
+      drag.lastX = event.clientX;
+      drag.lastT = now;
+      const rotation = Math.max(-14, Math.min(14, drag.dx / 9));
+      drag.card.style.transform = `translate(${drag.dx}px,${dy * .35}px) rotate(${rotation}deg)`;
+      const progress = Math.min(Math.abs(drag.dx) / 70, 1);
+      const like = drag.card.querySelector('.hero-demo-stamp.like');
+      const pass = drag.card.querySelector('.hero-demo-stamp.pass');
+      like.style.opacity = drag.dx > 0 ? progress : 0;
+      pass.style.opacity = drag.dx < 0 ? progress : 0;
+    });
+
+    function endPointer(event){
+      if(!drag || drag.pointerId !== event.pointerId) return;
+      const {dx, velocity, card} = drag;
+      drag = null;
+      card.classList.remove('dragging');
+      if(Math.abs(dx) > 70 || (Math.abs(dx) > 32 && Math.abs(velocity) > 7)){
+        swipe(dx > 0 ? 'like' : 'pass', velocity);
+      } else {
+        snapBack(card);
+      }
+    }
+    stack.addEventListener('pointerup', endPointer);
+    stack.addEventListener('pointercancel', resetDrag);
+
+    root.querySelectorAll('[data-demo-action]').forEach(button => {
+      button.addEventListener('click', () => swipe(button.dataset.demoAction, 0));
+    });
+    stack.addEventListener('keydown', (event) => {
+      if(event.key === 'ArrowLeft'){
+        event.preventDefault(); swipe('pass', 0);
+      } else if(event.key === 'ArrowRight'){
+        event.preventDefault(); swipe('like', 0);
+      }
+    });
+
+    arrangeCards();
+  }
+  initHeroDemo();
 
   /* Breite des platzverbrauchenden Scrollbalkens im Account-Screen messen und als
      CSS-Variable bereitstellen - siehe --acct-scroll-gutter im Stylesheet. Auf

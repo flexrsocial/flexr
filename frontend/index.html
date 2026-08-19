@@ -117,7 +117,7 @@
 :root{
   --ink:#121212; --surface:#1c1c1c; --surface-2:#242424; --steel:#3a3a3a;
   --hairline:rgba(255,255,255,.07); --chalk:#ede9e2; --chalk-dim:#a8a49b;
-  --plate:#ff5a1f; --plate-bright:#ff7a45; --lime:#c7ff4a;
+  --plate:#ff5a1f; --plate-bright:#ff7a45; --lime:#c7ff4a; --danger:#e34848;
 }
 *{ box-sizing:border-box; }
 html{ scroll-behavior:smooth; }
@@ -198,30 +198,89 @@ section p b, section li b{ color:var(--chalk); }
 ul.plain{ padding-left:20px; color:var(--chalk-dim); max-width:62ch; }
 ul.plain li{ margin-bottom:9px; }
 
-/* ---- Musterprofile ----
-   KI-generierte Beispielfotos, keine echten Nutzer:innen - siehe
-   frontend/brand/demo/README.md. Deshalb durchgehend mit sichtbarem Hinweis,
-   nicht als Bestandsprofile dargestellt. */
-.profile-cards{
-  display:grid; gap:16px; margin-top:24px;
-  grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));
+/* ---- Interaktives Muster-Swipe-Deck ----
+   Dieselbe visuelle Sprache wie im echten App-Deck: Fotokarte, MATCH/NOPE-
+   Stempel und die runden X-/Herz-Aktionen. Die Beispielfotos sind KI-generiert
+   und selbst gehostet; es werden weder Likes gespeichert noch APIs aufgerufen. */
+.sample-deck{ width:min(100%, 380px); margin:28px auto 0; }
+.sample-deck-stage{
+  position:relative; width:100%; height:520px; touch-action:none;
 }
-.profile-card{
-  position:relative; aspect-ratio:3/4; border-radius:14px; overflow:hidden;
-  border:1px solid var(--hairline); background:var(--surface);
+.sample-profile-card{
+  position:absolute; inset:0; display:flex; flex-direction:column; overflow:hidden;
+  border-radius:20px; background:linear-gradient(180deg,#202020,#191919);
+  border:1px solid var(--hairline); cursor:grab; user-select:none;
+  box-shadow:0 22px 46px rgba(0,0,0,.55), 0 0 0 1.5px rgba(255,90,31,.22);
+  transform-origin:bottom center;
+  transition:transform .36s cubic-bezier(.2,.8,.3,1), opacity .3s ease;
 }
-.profile-card img{ width:100%; height:100%; object-fit:cover; display:block; }
-.profile-card::after{
-  content:''; position:absolute; inset:0;
-  background:linear-gradient(180deg, transparent 55%, rgba(0,0,0,.82) 100%);
+.sample-profile-card:not(:last-child){ pointer-events:none; }
+.sample-profile-card.dragging{ cursor:grabbing; transition:none; }
+.sample-photo{ position:relative; height:64%; flex-shrink:0; overflow:hidden; }
+.sample-photo::after{
+  content:''; position:absolute; inset:0; pointer-events:none;
+  background:linear-gradient(180deg,rgba(0,0,0,.12),transparent 38%,rgba(0,0,0,.9));
 }
-.profile-card .pc-name{
-  position:absolute; left:14px; right:14px; bottom:12px; z-index:1;
-  font-family:'Oswald', sans-serif; font-size:17px; color:#fff;
+.sample-photo img{ width:100%; height:100%; object-fit:cover; display:block; pointer-events:none; }
+.sample-photo-bars{
+  position:absolute; z-index:2; top:10px; left:10px; right:10px; display:flex; gap:4px;
 }
-.profile-card .pc-name span{
-  display:block; font-size:12px; color:rgba(255,255,255,.78); font-weight:400;
-  margin-top:2px;
+.sample-photo-bars i{ flex:1; height:3px; border-radius:2px; background:rgba(255,255,255,.3); }
+.sample-photo-bars i:first-child{ background:var(--plate); box-shadow:0 0 8px rgba(255,90,31,.45); }
+.sample-name{
+  position:absolute; z-index:2; left:16px; right:16px; bottom:13px;
+  font-family:'Oswald',sans-serif; font-size:27px; color:#fff;
+  text-shadow:0 2px 10px rgba(0,0,0,.7);
+}
+.sample-name span{
+  display:block; margin-top:2px; font-family:'Work Sans',sans-serif;
+  font-size:11px; line-height:1.4; color:rgba(255,255,255,.78);
+}
+.sample-card-body{ padding:15px 16px 18px; flex:1; }
+.sample-chip-row{ display:flex; flex-wrap:wrap; gap:7px; margin-bottom:12px; }
+.sample-chip{
+  display:inline-flex; align-items:center; gap:6px; padding:5px 9px; border-radius:7px;
+  border:1px solid rgba(199,255,74,.24); background:rgba(199,255,74,.07);
+  color:var(--lime); font-size:10px; line-height:1.25;
+}
+.sample-chip .dot{
+  width:7px; height:7px; border-radius:50%; background:var(--plate);
+  box-shadow:0 0 8px rgba(255,90,31,.45);
+}
+.sample-card-body p{ margin:0; color:var(--chalk-dim); font-size:13px; line-height:1.5; }
+.sample-stamp{
+  position:absolute; top:20px; z-index:4; opacity:0; padding:5px 12px;
+  border:3px solid currentColor; border-radius:9px; background:rgba(10,10,10,.35);
+  font-family:'Oswald',sans-serif; font-size:19px; line-height:1.1; font-weight:700;
+  letter-spacing:.04em; text-transform:uppercase; pointer-events:none;
+}
+.sample-stamp.pass{ left:15px; color:var(--danger); transform:rotate(10deg); }
+.sample-stamp.like{ right:15px; color:var(--lime); transform:rotate(-10deg); }
+.sample-actions{ display:flex; justify-content:center; align-items:center; gap:26px; margin-top:18px; }
+.sample-action{
+  width:56px; height:56px; border-radius:50%; border:1px solid var(--steel);
+  background:linear-gradient(180deg,#222,#1b1b1b); color:var(--danger);
+  display:flex; align-items:center; justify-content:center; cursor:pointer;
+  transition:transform .12s ease,border-color .15s ease,box-shadow .15s ease;
+}
+.sample-action svg{ width:24px; height:24px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+.sample-action:hover{ border-color:var(--danger); box-shadow:0 0 18px rgba(227,72,72,.2); }
+.sample-action.like{
+  width:64px; height:64px; color:#fff; border:none;
+  background:linear-gradient(135deg,var(--plate-bright),var(--plate) 55%,#ef4c15);
+  box-shadow:0 8px 22px rgba(255,90,31,.35),inset 0 1px 0 rgba(255,255,255,.3);
+}
+.sample-action.like svg{ width:28px; height:28px; }
+.sample-action.like:hover{ transform:translateY(-2px); box-shadow:0 12px 28px rgba(255,90,31,.45),inset 0 1px 0 rgba(255,255,255,.3); }
+.sample-action:active{ transform:scale(.92); }
+.sample-deck-hint{
+  margin-top:10px; text-align:center; color:var(--chalk-dim); font-size:11px;
+  letter-spacing:.07em; text-transform:uppercase;
+}
+@media(max-width:520px){
+  .sample-deck{ width:min(100%, 340px); }
+  .sample-deck-stage{ height:480px; }
+  .sample-name{ font-size:24px; }
 }
 /* ---- Preis ---- */
 .price-card{
@@ -382,26 +441,73 @@ footer{ border-top:1px solid var(--steel); padding:32px 0 60px; margin-top:20px;
     <section id="musterprofile">
       <h2>So könnte dein Match aussehen</h2>
       <p>
-        Ein Ausschnitt aus dem Deck, wie es beim Swipen aussieht. Keine echten
-        Mitglieder — die Gesichter sind KI-generiert.
+        Ein Ausschnitt aus dem Deck, wie es beim Swipen aussieht. Zieh die
+        Karte oder probier X und Herz aus. Keine echten Mitglieder — die
+        Gesichter sind KI-generiert.
       </p>
-      <div class="profile-cards">
-        <div class="profile-card">
-          <img src="/brand/demo/demo-lena.jpg?v=1" alt="" loading="lazy" width="720" height="960">
-          <div class="pc-name">Lena, 26<span>FitOne Innsbruck</span></div>
+      <div class="sample-deck" id="sampleDeck" aria-label="Interaktives Muster-Swipe-Deck">
+        <div class="sample-deck-stage" id="sampleDeckStage" aria-live="polite">
+          <article class="sample-profile-card" tabindex="-1" aria-label="Tobias, 28, John Harris Salzburg">
+            <div class="sample-stamp pass">Nope</div><div class="sample-stamp like">Match</div>
+            <div class="sample-photo">
+              <img src="/brand/demo/demo-tobias.jpg?v=1" alt="" loading="lazy" width="720" height="960">
+              <div class="sample-photo-bars"><i></i><i></i><i></i></div>
+              <div class="sample-name">Tobias, 28<span>Salzburg · John Harris Fitness</span></div>
+            </div>
+            <div class="sample-card-body">
+              <div class="sample-chip-row"><span class="sample-chip">John Harris Fitness</span></div>
+              <p>Push Day, Bergtouren und Kaffee nach dem Training.</p>
+            </div>
+          </article>
+          <article class="sample-profile-card" tabindex="-1" aria-label="Jonas, 25, Holmes Place Linz">
+            <div class="sample-stamp pass">Nope</div><div class="sample-stamp like">Match</div>
+            <div class="sample-photo">
+              <img src="/brand/demo/demo-jonas.jpg?v=1" alt="" loading="lazy" width="720" height="960">
+              <div class="sample-photo-bars"><i></i><i></i><i></i></div>
+              <div class="sample-name">Jonas, 25<span>Linz · Holmes Place</span></div>
+            </div>
+            <div class="sample-card-body">
+              <div class="sample-chip-row"><span class="sample-chip">Holmes Place</span></div>
+              <p>Functional Fitness, Meal Prep und sonntags eine lange Runde.</p>
+            </div>
+          </article>
+          <article class="sample-profile-card" tabindex="-1" aria-label="Sophie, 27, McFit Graz">
+            <div class="sample-stamp pass">Nope</div><div class="sample-stamp like">Match</div>
+            <div class="sample-photo">
+              <img src="/brand/demo/demo-sophie.jpg?v=1" alt="" loading="lazy" width="720" height="960">
+              <div class="sample-photo-bars"><i></i><i></i><i></i></div>
+              <div class="sample-name">Sophie, 27<span>Graz · McFit</span></div>
+            </div>
+            <div class="sample-card-body">
+              <div class="sample-chip-row"><span class="sample-chip">McFit Graz</span></div>
+              <p>Leg Day, Espresso und jedes Wochenende irgendwo draußen.</p>
+            </div>
+          </article>
+          <article class="sample-profile-card" tabindex="0" aria-label="Lena, 26, FitOne Innsbruck. Mit den Pfeiltasten wischen.">
+            <div class="sample-stamp pass">Nope</div><div class="sample-stamp like">Match</div>
+            <div class="sample-photo">
+              <img src="/brand/demo/demo-lena.jpg?v=1" alt="" loading="lazy" width="720" height="960">
+              <div class="sample-photo-bars"><i></i><i></i><i></i></div>
+              <div class="sample-name">Lena, 26<span>Innsbruck · FitOne</span></div>
+            </div>
+            <div class="sample-card-body">
+              <div class="sample-chip-row">
+                <span class="sample-chip">FitOne Innsbruck</span>
+                <span class="sample-chip"><span class="dot"></span>Online</span>
+              </div>
+              <p>Krafttraining, Wandern und immer offen für einen Spotter.</p>
+            </div>
+          </article>
         </div>
-        <div class="profile-card">
-          <img src="/brand/demo/demo-sophie.jpg?v=1" alt="" loading="lazy" width="720" height="960">
-          <div class="pc-name">Sophie, 27<span>McFit Graz</span></div>
+        <div class="sample-actions">
+          <button class="sample-action pass" type="button" data-sample-action="pass" aria-label="Beispielprofil ablehnen">
+            <svg viewBox="0 0 24 24"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/></svg>
+          </button>
+          <button class="sample-action like" type="button" data-sample-action="like" aria-label="Beispielprofil gefällt mir">
+            <svg viewBox="0 0 24 24"><path d="M12 20.3S4.8 15.7 4.8 10.8C4.8 8 6.9 6 9.3 6c1.2 0 2.3.55 2.7 1.4C12.4 6.55 13.5 6 14.7 6c2.4 0 4.5 2 4.5 4.8 0 4.9-7.2 9.5-7.2 9.5z" fill="currentColor" stroke="none"/></svg>
+          </button>
         </div>
-        <div class="profile-card">
-          <img src="/brand/demo/demo-jonas.jpg?v=1" alt="" loading="lazy" width="720" height="960">
-          <div class="pc-name">Jonas, 25<span>Holmes Place Linz</span></div>
-        </div>
-        <div class="profile-card">
-          <img src="/brand/demo/demo-tobias.jpg?v=1" alt="" loading="lazy" width="720" height="960">
-          <div class="pc-name">Tobias, 28<span>John Harris Salzburg</span></div>
-        </div>
+        <div class="sample-deck-hint">Ziehen, tippen oder Pfeiltasten verwenden</div>
       </div>
     </section>
 
@@ -662,6 +768,133 @@ footer{ border-top:1px solid var(--steel); padding:32px 0 60px; margin-top:20px;
     // bleibt der Besucher auf der Landingpage. Die Knoepfe fuehren ohnehin
     // zur App.
   }
+})();
+</script>
+<script>
+(function(){
+  // Das Musterdeck ist eine lokale Vorschau. Likes werden weder gespeichert
+  // noch an die API gesendet; nach der letzten Karte beginnt es wieder vorne.
+  var root = document.getElementById('sampleDeck');
+  var stage = document.getElementById('sampleDeckStage');
+  if (!root || !stage) return;
+
+  var drag = null;
+  var locked = false;
+  var reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function cards(){ return Array.prototype.slice.call(stage.querySelectorAll('.sample-profile-card')); }
+  function topCard(){ return stage.querySelector('.sample-profile-card:last-child'); }
+  function clearStamps(card){
+    card.querySelectorAll('.sample-stamp').forEach(function(stamp){ stamp.style.opacity = 0; });
+  }
+  function arrangeCards(){
+    var all = cards();
+    all.forEach(function(card, index){
+      var fromTop = all.length - 1 - index;
+      card.classList.remove('dragging');
+      card.style.transition = '';
+      card.style.opacity = fromTop === 0 ? '1' : (fromTop === 1 ? '.82' : '.56');
+      card.style.zIndex = String(index + 1);
+      card.style.transform = fromTop === 0
+        ? 'rotate(-.5deg) translate(0,0) scale(1)'
+        : fromTop === 1
+          ? 'rotate(3deg) translate(10px,9px) scale(.965)'
+          : 'rotate(-4deg) translate(-9px,13px) scale(.93)';
+      card.tabIndex = fromTop === 0 ? 0 : -1;
+      card.setAttribute('aria-hidden', fromTop === 0 ? 'false' : 'true');
+      clearStamps(card);
+    });
+  }
+  function finishSwipe(card){
+    stage.insertBefore(card, stage.firstElementChild);
+    card.style.opacity = '';
+    card.style.transform = '';
+    card.style.transition = '';
+    arrangeCards();
+    locked = false;
+  }
+  function swipe(action, velocity){
+    if (locked) return;
+    var card = topCard();
+    if (!card) return;
+    locked = true;
+    var dir = action === 'like' ? 1 : -1;
+    var stamp = card.querySelector('.sample-stamp.' + action);
+    if (stamp) stamp.style.opacity = 1;
+    var speed = Math.min(Math.abs(velocity || 0), 32);
+    var duration = reducedMotion ? 20 : Math.max(260, 410 - speed * 5);
+    card.style.transition = 'transform ' + duration + 'ms cubic-bezier(.3,.1,.4,1), opacity ' + duration + 'ms ease';
+    requestAnimationFrame(function(){
+      card.style.transform = 'translate(' + (dir * (stage.clientWidth + 320)) + 'px,-45px) rotate(' + (dir * (21 + speed * .25)) + 'deg)';
+      card.style.opacity = '0';
+    });
+    window.setTimeout(function(){ finishSwipe(card); }, duration);
+  }
+  function snapBack(card){
+    card.classList.remove('dragging');
+    card.style.transition = reducedMotion ? 'none' : 'transform .42s cubic-bezier(.18,.9,.3,1.2)';
+    card.style.transform = 'rotate(-.5deg) translate(0,0) scale(1)';
+    clearStamps(card);
+    window.setTimeout(function(){ card.style.transition = ''; }, reducedMotion ? 20 : 430);
+  }
+
+  stage.addEventListener('pointerdown', function(event){
+    if (locked || event.button !== 0) return;
+    var card = event.target.closest('.sample-profile-card:last-child');
+    if (!card) return;
+    card.setPointerCapture(event.pointerId);
+    card.style.transition = '';
+    card.classList.add('dragging');
+    drag = {
+      card:card, pointerId:event.pointerId, startX:event.clientX, startY:event.clientY,
+      dx:0, lastX:event.clientX, lastT:performance.now(), velocity:0
+    };
+  });
+  stage.addEventListener('pointermove', function(event){
+    if (!drag || drag.pointerId !== event.pointerId) return;
+    var now = performance.now();
+    var elapsed = now - drag.lastT;
+    drag.dx = event.clientX - drag.startX;
+    var dy = event.clientY - drag.startY;
+    if (elapsed > 0) drag.velocity = (event.clientX - drag.lastX) / elapsed * 16;
+    drag.lastX = event.clientX;
+    drag.lastT = now;
+    var rotation = Math.max(-15, Math.min(15, drag.dx / 12));
+    drag.card.style.transform = 'translate(' + drag.dx + 'px,' + (dy * .45) + 'px) rotate(' + rotation + 'deg)';
+    var progress = Math.min(Math.abs(drag.dx) / 95, 1);
+    drag.card.querySelector('.sample-stamp.like').style.opacity = drag.dx > 0 ? progress : 0;
+    drag.card.querySelector('.sample-stamp.pass').style.opacity = drag.dx < 0 ? progress : 0;
+  });
+  function endPointer(event){
+    if (!drag || drag.pointerId !== event.pointerId) return;
+    var current = drag;
+    drag = null;
+    current.card.classList.remove('dragging');
+    if (Math.abs(current.dx) > 95 || (Math.abs(current.dx) > 42 && Math.abs(current.velocity) > 8)){
+      swipe(current.dx > 0 ? 'like' : 'pass', current.velocity);
+    } else {
+      snapBack(current.card);
+    }
+  }
+  stage.addEventListener('pointerup', endPointer);
+  stage.addEventListener('pointercancel', function(){
+    if (!drag) return;
+    var card = drag.card;
+    drag = null;
+    snapBack(card);
+  });
+  root.querySelectorAll('[data-sample-action]').forEach(function(button){
+    button.addEventListener('click', function(){ swipe(button.dataset.sampleAction, 0); });
+  });
+  stage.addEventListener('keydown', function(event){
+    if (event.key === 'ArrowLeft'){
+      event.preventDefault(); swipe('pass', 0);
+    } else if (event.key === 'ArrowRight'){
+      event.preventDefault(); swipe('like', 0);
+    }
+  });
+
+  arrangeCards();
 })();
 </script>
 <script src="/legal-status.js" defer></script>
