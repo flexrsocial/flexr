@@ -1,7 +1,7 @@
 """Idempotenter Versand transaktionaler E-Mails."""
 
 from collections.abc import Callable
-from datetime import datetime
+from datetime import datetime, timezone
 from hashlib import sha256
 
 from sqlalchemy.exc import IntegrityError
@@ -45,7 +45,7 @@ def send_once(
 
     sent = sender()
     if sent:
-        record.sent_at = datetime.utcnow()
+        record.sent_at = datetime.now(timezone.utc).replace(tzinfo=None)
         db.commit()
         return True
 
