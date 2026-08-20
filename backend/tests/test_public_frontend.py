@@ -97,6 +97,18 @@ def test_kontoprofil_bleibt_offen_und_scrollbar():
     assert '<div class="account-section-title">Fotos</div>' in account
     assert '<div class="account-section-title">Konto</div>' in account
     assert '.screen.active{ display:flex; flex-direction:column; flex:1; min-height:0; overflow-y:auto;' in app
+    assert '.account-membership-note .membership-link{ margin-top:10px; }' in app
+    assert 'color:var(--plate); font-size:12.5px; font-weight:600;' in app
+    assert '<div class="consent-setting-action"><button class="membership-link"' in app
+
+    privacy = app.split('<section class="screen" id="screen-privacy">', 1)[1]
+    privacy = privacy.split('</section>', 1)[0]
+    assert '<nav class="legal-link-list" aria-label="Rechtliche Dokumente">' in privacy
+    for page in (
+        "datenschutz.html", "agb.html", "widerruf.html",
+        "nutzungsrichtlinien.html", "impressum.html", "meldung.html",
+    ):
+        assert f'href="/{page}"' in privacy
 
 
 def test_interne_links_zeigen_auf_vorhandene_dateien():

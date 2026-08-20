@@ -1136,15 +1136,21 @@
   .account-id{ flex:1; min-width:0; }
   .account-sub{ font-size:12.5px; color:var(--chalk-dim); margin-top:2px; }
   .account-membership-note{
-    display:flex; align-items:center; flex-wrap:wrap; column-gap:8px; row-gap:2px;
-    font-size:12.5px; color:var(--chalk-dim); margin:0 0 26px;
+    display:block; padding:14px 16px; margin:0 0 26px;
+    border:1px solid var(--hairline); border-radius:12px;
+    background:rgba(255,255,255,.018);
+    font-size:12.5px; line-height:1.55; color:var(--chalk-dim);
   }
+  .account-membership-note > span{ display:block; }
   .membership-link{
-    background:none; border:none; color:var(--chalk-dim); font-size:12.5px;
-    text-decoration:underline; cursor:pointer; padding:0; font-family:inherit;
+    display:inline-flex; align-items:center; background:none; border:none;
+    color:var(--plate); font-size:12.5px; font-weight:600; line-height:1.4;
+    text-decoration:underline; text-underline-offset:3px;
+    cursor:pointer; padding:0; font-family:inherit;
   }
-  .membership-link:hover{ color:var(--chalk); }
+  .membership-link:hover{ color:var(--plate-bright); }
   .membership-link:disabled{ text-decoration:none; cursor:default; opacity:0.7; }
+  .account-membership-note .membership-link{ margin-top:10px; }
 
   .account-section{ margin-bottom:26px; }
 
@@ -1403,10 +1409,26 @@
   }
   .account-footer-link{ text-align:center; margin:22px 0 8px; }
   .account-footer-link button{
-    background:none; border:none; padding:4px; font-size:12px; color:var(--chalk-dim);
-    text-decoration:underline; text-underline-offset:2px; cursor:pointer;
+    display:inline-flex; background:none; border:none; padding:6px 8px;
+    font-size:12.5px; font-weight:600; color:var(--plate);
+    text-decoration:underline; text-underline-offset:3px; cursor:pointer;
   }
-  .account-footer-link button:hover{ color:var(--plate); }
+  .account-footer-link button:hover{ color:var(--plate-bright); }
+
+  /* Der Widerruf bleibt nach Art. 7 Abs. 3 DSGVO direkt erreichbar, steht aber
+     als eigene Aktion unter dem Inhalt statt gequetscht im Fliesstext. */
+  .consent-setting-action{
+    margin-top:13px; padding-top:11px; border-top:1px solid var(--hairline);
+  }
+  .legal-link-list{
+    display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:9px 14px;
+  }
+  .legal-link-list a:link, .legal-link-list a:visited{
+    color:var(--plate); font-size:12.5px; line-height:1.4;
+    text-decoration:underline; text-underline-offset:3px;
+  }
+  .legal-link-list a:hover{ color:var(--plate-bright); }
+  @media (max-width:360px){ .legal-link-list{ grid-template-columns:1fr; } }
 
   .price-card{
     background:linear-gradient(180deg, rgba(255,90,31,.07), rgba(26,26,26,0) 45%), linear-gradient(180deg, #1f1f1f, #191919);
@@ -1982,15 +2004,12 @@
         also bleibt es auch hier ein Klick. Die Fassung und das Datum sind
         nicht geloescht, sondern hinter "Details" geraeumt.
       * Meine Meldungen (Art. 16 Abs. 5 DSA): Der Melder muss erfahren, was aus
-        seiner Meldung wurde. Solange SMTP auf dem Server nicht konfiguriert
-        ist, geht darueber keine Mail raus - diese Ansicht ist derzeit der
-        einzige Weg, auf dem die Entscheidung den Melder ueberhaupt erreicht.
-        Deshalb verschoben und nicht entfernt.
-      * Ruecktritt: bewusst kein Link/Knopf hier. Die gesetzliche
-        Ruecktrittsfunktion (§13a FAGG) lebt ausschliesslich ausserhalb des
-        Profils - oeffentlicher Footer, /widerruf.html, Checkout-Hinweis,
-        Vertragsbestaetigungsmail. Gemeldet und gekuendigt wird weiterhin
-        ueber das Flaggen-Symbol im Profil und Chat bzw. ueber "Abo verwalten".
+        seiner Meldung wurde. Die Ansicht bleibt unabhaengig von der
+        E-Mail-Zustellung als dauerhafter Status im Konto erhalten.
+      * Ruecktritt: getrennt vom DSGVO-Einwilligungswiderruf. Die gesetzliche
+        Ruecktrittsfunktion (§13a FAGG) bleibt oeffentlich unter
+        /widerruf.html und ist hier nur als kompakter Rechtstext-Link ergaenzt.
+        Gekuendigt wird weiterhin ueber "Abo verwalten".
     -->
     <section class="screen" id="screen-privacy">
       <div class="chat-header">
@@ -2010,9 +2029,14 @@
 
       <div class="account-section">
         <div class="account-section-title">Rechtliches</div>
-        <p class="photo-hint" style="margin-top:0;">
-          <a href="/datenschutz.html" class="legal-link" data-legal-page="datenschutz.html">Datenschutzerklärung</a>
-        </p>
+        <nav class="legal-link-list" aria-label="Rechtliche Dokumente">
+          <a href="/datenschutz.html" class="legal-link" data-legal-page="datenschutz.html">Datenschutz</a>
+          <a href="/agb.html" class="legal-link" data-legal-page="agb.html">AGB</a>
+          <a href="/widerruf.html" class="legal-link" data-legal-page="widerruf.html" data-widerruf-link>Rücktrittsrecht</a>
+          <a href="/nutzungsrichtlinien.html" class="legal-link" data-legal-page="nutzungsrichtlinien.html">Nutzungsrichtlinien</a>
+          <a href="/impressum.html" class="legal-link" data-legal-page="impressum.html">Impressum</a>
+          <a href="/meldung.html" class="legal-link" data-legal-page="meldung.html">Inhalt melden</a>
+        </nav>
       </div>
     </section>
 
@@ -3560,7 +3584,7 @@
           : `Widerrufen am ${new Date(parseServerDate(c.revoked_at)).toLocaleDateString('de-AT')}.`)
           + ' ' + (CONSENT_GRUNDLAGE[c.consent_type] || '');
         const knopf = (c.active && CONSENT_REVOCABLE.indexOf(c.consent_type) !== -1)
-          ? `<button class="membership-link" data-revoke="${escapeHtml(c.consent_type)}">Einwilligung widerrufen</button>`
+          ? `<div class="consent-setting-action"><button class="membership-link" data-revoke="${escapeHtml(c.consent_type)}">Einwilligung widerrufen</button></div>`
           : '';
         const zustand = c.active ? '' :
           '<span style="font-size:12.5px;color:var(--chalk-dim);"> — widerrufen</span>';
