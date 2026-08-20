@@ -22,7 +22,7 @@ def _vienna_day_window(day: date) -> tuple[datetime, datetime]:
 
 def run_due_email_jobs(db: Session, now: datetime | None = None) -> dict[str, int]:
     """Versendet Faelliges und gibt nur aggregierte Zaehler zurueck."""
-    current = now or datetime.utcnow()
+    current = now or datetime.now(timezone.utc).replace(tzinfo=None)
     local_day = current.replace(tzinfo=timezone.utc).astimezone(mailer.VIENNA).date()
     ending_start, ending_end = _vienna_day_window(local_day + timedelta(days=3))
 
