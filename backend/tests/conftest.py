@@ -2,6 +2,11 @@ import os
 
 os.environ.setdefault("DATABASE_URL", "sqlite:///:memory:")
 os.environ.setdefault("JWT_SECRET", "test-secret-for-pytest")
+# Lokale .env-Dateien duerfen die Tests nie mit einem echten oder absichtlich
+# ungueltigen SMTP-Relay verbinden. Versandpfade werden gezielt per monkeypatch
+# getestet; der Normalfall bleibt rein lokal und dadurch schnell.
+os.environ.setdefault("SMTP_HOST", "")
+os.environ.setdefault("SMTP_FROM", "")
 
 import pytest
 from fastapi.testclient import TestClient

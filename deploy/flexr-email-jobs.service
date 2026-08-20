@@ -1,0 +1,11 @@
+[Unit]
+Description=FLEXR transaktionale E-Mail-Jobs
+After=network-online.target postgresql.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=deploy
+WorkingDirectory=/flexr/backend
+EnvironmentFile=/flexr/backend/.env
+ExecStart=/flexr/backend/venv/bin/python -m app.email_jobs

@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from sqlalchemy import func, or_
 from sqlalchemy.orm import Session
 
+from .. import mailer
 from ..database import get_db
 from ..models import (
     AdminUser,
@@ -26,7 +27,7 @@ from ..models import (
     VerificationRequest,
     VerificationStatus,
 )
-from ..moderation import apply_restriction, clear_restriction
+from ..moderation import apply_restriction, clear_restriction, statement_of_reasons
 from ..rate_limit import limiter
 from ..schemas import (
     AdminAccessPoint,
@@ -55,7 +56,7 @@ from ..schemas import (
     PhotoModerationOut,
 )
 from ..security import create_admin_access_token, get_current_admin, verify_password
-from ..verification_service import activate_account, purge_uploads
+from ..verification_service import activate_account, purge_uploads, reason_text
 from .. import storage
 
 router = APIRouter(prefix="/api/admin", tags=["admin"])
@@ -293,6 +294,20 @@ def ban_user(
         raise HTTPException(404, "Nutzer nicht gefunden.")
     apply_restriction(user, ModerationAction.ban, payload.reason)
     db.commit()
+    statement = statement_of_reasons(user, ModerationAction.ban)
+    mailer.send_moderation_decision(
+        user.email,
+        user.name,
+        statement["measure"],
+        statement["summary"],
+        [
+            statement.get("facts"),
+            statement.get("source"),
+            statement.get("automated_detection"),
+            statement.get("legal_basis"),
+            statement.get("duration"),
+        ],
+    )
     return {"is_banned": True, "moderation_reason": user.moderation_reason}
 
 
@@ -307,6 +322,13 @@ def unban_user(
         raise HTTPException(404, "Nutzer nicht gefunden.")
     clear_restriction(user, ModerationAction.ban)
     db.commit()
+    mailer.send_moderation_decision(
+        user.email,
+        user.name,
+        "Die Sperre deines FLEXR-Kontos wurde aufgehoben.",
+        "Die bisherige Kontobeschränkung ist nicht mehr aktiv.",
+        appeal=False,
+    )
     return {"is_banned": False}
 
 
@@ -330,6 +352,20 @@ def mute_user(
         muted_until=datetime.utcnow() + timedelta(days=payload.days, hours=payload.hours),
     )
     db.commit()
+    statement = statement_of_reasons(user, ModerationAction.mute)
+    mailer.send_moderation_decision(
+        user.email,
+        user.name,
+        statement["measure"],
+        statement["summary"],
+        [
+            statement.get("facts"),
+            statement.get("source"),
+            statement.get("automated_detection"),
+            statement.get("legal_basis"),
+            statement.get("duration"),
+        ],
+    )
     return {
         "messaging_muted_until": user.messaging_muted_until.isoformat(),
         "moderation_reason": user.moderation_reason,
@@ -348,6 +384,13 @@ def unmute_user(
         raise HTTPException(404, "Nutzer nicht gefunden.")
     clear_restriction(user, ModerationAction.mute)
     db.commit()
+    mailer.send_moderation_decision(
+        user.email,
+        user.name,
+        "Deine Chat-Sperre wurde aufgehoben.",
+        "Du kannst in FLEXR wieder Nachrichten senden.",
+        appeal=False,
+    )
     return {"messaging_muted_until": None}
 
 
@@ -442,6 +485,24 @@ def reject_photo(
     photo.rejection_note = payload.note if payload else None
     photo.rejected_at = datetime.utcnow()
     db.commit()
+    rejection_labels = {
+        PhotoRejectionReason.no_person.value: "Auf dem Bild ist keine Person erkennbar.",
+        PhotoRejectionReason.not_account_holder.value: "Das Bild zeigt nicht die Person dieses Kontos.",
+        PhotoRejectionReason.multiple_people.value: "Auf dem Bild sind mehrere Personen und die Zuordnung ist unklar.",
+        PhotoRejectionReason.nudity.value: "Das Bild enthält sexuell explizite Darstellung.",
+        PhotoRejectionReason.violence.value: "Das Bild enthält Gewalt- oder Hassdarstellung.",
+        PhotoRejectionReason.minor.value: "Das Bild zeigt offenkundig eine minderjährige Person.",
+        PhotoRejectionReason.contact_details.value: "Das Bild enthält Kontaktdaten oder Links.",
+        PhotoRejectionReason.third_party_rights.value: "Das Bild enthält fremdes Bildmaterial oder Werbung.",
+        PhotoRejectionReason.unusable.value: "Das Bild ist technisch nicht ausreichend nutzbar.",
+        PhotoRejectionReason.other.value: "Das Bild entspricht nicht den Profilfoto-Richtlinien.",
+    }
+    reason = rejection_labels.get(
+        photo.rejection_reason, rejection_labels[PhotoRejectionReason.other.value]
+    )
+    if photo.rejection_note:
+        reason = f"{reason} {photo.rejection_note}"
+    mailer.send_photo_rejected(photo.user.email, photo.user.name, reason)
     return {"status": photo.status.value, "reason": photo.rejection_reason}
 
 
@@ -499,12 +560,28 @@ def decide_notice(
     notice = db.query(Notice).filter(Notice.id == notice_id).first()
     if not notice:
         raise HTTPException(404, "Meldung nicht gefunden.")
+    if notice.decided_at is not None:
+        raise HTTPException(409, "Diese Meldung wurde bereits entschieden.")
 
     notice.decided_at = datetime.utcnow()
     notice.outcome = payload.outcome
     notice.decision_reason = payload.decision_reason
     notice.decision_automated = payload.decision_automated
     db.commit()
+
+    if notice.reporter_email:
+        outcome_labels = {
+            "action_taken": "Es wurden Maßnahmen ergriffen.",
+            "no_action": "Es wurde kein Verstoß festgestellt.",
+            "forwarded": "Die Meldung wurde an die zuständige Stelle weitergegeben.",
+            "insufficient": "Die Angaben reichen für eine abschließende Prüfung nicht aus.",
+        }
+        mailer.send_report_decision(
+            notice.reporter_email,
+            notice.reference,
+            outcome_labels.get(notice.outcome, notice.outcome),
+            notice.decision_reason,
+        )
 
     return {
         "decided": True,
@@ -635,6 +712,7 @@ def approve_verification(
     # vom Aufräumlauf erneut versucht - er gilt nicht als erledigt.
     deleted = purge_uploads(req)
     db.commit()
+    mailer.send_verification_decision(user.email, user.name, "approved")
     return AdminVerificationDecisionOut(
         status=req.status.value,
         documents_deleted=deleted,
@@ -665,6 +743,12 @@ def reject_verification(
 
     deleted = purge_uploads(req)
     db.commit()
+    mailer.send_verification_decision(
+        user.email,
+        user.name,
+        "rejected",
+        reason_text(req.review_reason),
+    )
     return AdminVerificationDecisionOut(
         status=req.status.value,
         documents_deleted=deleted,
@@ -685,7 +769,7 @@ def request_verification_reupload(
     Mit ``redo_selfie`` müssen auch die Selfies neu aufgenommen werden - dann
     gibt der Server beim nächsten Start neue Posen aus.
     """
-    req, _user = _load_verification(db, request_id)
+    req, user = _load_verification(db, request_id)
 
     req.status = VerificationStatus.reupload_required
     req.decided_at = _dt.utcnow()
@@ -696,6 +780,13 @@ def request_verification_reupload(
 
     deleted = purge_uploads(req, selfies=payload.redo_selfie, documents=True)
     db.commit()
+    mailer.send_verification_decision(
+        user.email,
+        user.name,
+        "reupload_required",
+        reason_text(req.review_reason),
+        redo_selfie=payload.redo_selfie,
+    )
     return AdminVerificationDecisionOut(
         status=req.status.value,
         documents_deleted=deleted,
@@ -729,6 +820,7 @@ def require_verification(
     # Entscheidung ist er weg.
     user.is_verified = False
     db.commit()
+    mailer.send_verification_required(user.email, user.name)
     return {
         "verification_required": True,
         "is_account_activated": user.is_account_activated,
@@ -953,11 +1045,24 @@ def decide_report(
     report = db.query(Report).filter(Report.id == report_id).first()
     if not report:
         raise HTTPException(404, "Meldung nicht gefunden.")
-    if report.dismissed_at is None:
-        report.dismissed_at = datetime.utcnow()
+    if report.dismissed_at is not None:
+        raise HTTPException(409, "Diese Meldung wurde bereits entschieden.")
+    report.dismissed_at = datetime.utcnow()
     report.outcome = payload.outcome
     report.decision_note = payload.decision_note
     db.commit()
+    reporter = db.query(User).filter(User.id == report.reporter_id).first()
+    if reporter:
+        outcome_labels = {
+            "action_taken": "Es wurden Maßnahmen ergriffen.",
+            "no_action": "Es wurde kein Verstoß festgestellt.",
+        }
+        mailer.send_report_decision(
+            reporter.email,
+            report.reference,
+            outcome_labels.get(report.outcome, report.outcome),
+            report.decision_note,
+        )
     return {
         "decided": True,
         "reference": report.reference,

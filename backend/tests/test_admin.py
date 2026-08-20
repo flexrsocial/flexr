@@ -49,7 +49,12 @@ def test_admin_search_users(client):
     assert results[0]["email"] == "findme@example.com"
 
 
-def test_admin_ban_blocks_login_and_unban_restores(client):
+def test_admin_ban_blocks_login_and_unban_restores(client, monkeypatch):
+    mails = []
+    monkeypatch.setattr(
+        "app.routers.admin.mailer.send_moderation_decision",
+        lambda *args, **kwargs: mails.append((args, kwargs)) or True,
+    )
     admin_headers, _ = create_admin(client, email="admin4@example.com")
     register_user(client, "tobeban@example.com")
 
@@ -77,6 +82,9 @@ def test_admin_ban_blocks_login_and_unban_restores(client):
     unban_resp = client.post(f"/api/admin/users/{user_id}/unban", headers=admin_headers)
     assert unban_resp.status_code == 200
     assert unban_resp.json()["is_banned"] is False
+    assert len(mails) == 2
+    assert "gesperrt" in mails[0][0][2]
+    assert mails[1][1]["appeal"] is False
 
     login_resp2 = client.post(
         "/api/auth/login",

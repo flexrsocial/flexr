@@ -143,7 +143,12 @@ def test_dringende_kategorien_nennen_die_kuerzere_frist(client):
 # ---------------------------------------------------------------------------
 
 
-def test_admin_entscheidet_mit_begruendung(client, admin_headers):
+def test_admin_entscheidet_mit_begruendung(client, admin_headers, monkeypatch):
+    mails = []
+    monkeypatch.setattr(
+        "app.routers.admin.mailer.send_report_decision",
+        lambda *args, **kwargs: mails.append((args, kwargs)) or True,
+    )
     from app.models import Notice
 
     client.post("/api/notices", json=_notice())
@@ -176,6 +181,8 @@ def test_admin_entscheidet_mit_begruendung(client, admin_headers):
         assert "Abschnitt 3" in notice.decision_reason
     finally:
         db.close()
+    assert mails[0][0][0] == "melderin@example.com"
+    assert "M-" in mails[0][0][1]
 
 
 def test_entschiedene_meldung_faellt_aus_der_offenen_liste(client, admin_headers):

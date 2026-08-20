@@ -42,8 +42,14 @@ def _setup_subscriber(client, email="abonnent@example.com", **felder):
     return user_id
 
 
-def _event(event_type, obj):
-    return {"type": event_type, "data": {"object": obj}}
+def _event(event_type, obj, event_id=None, previous=None):
+    data = {"object": obj}
+    if previous is not None:
+        data["previous_attributes"] = previous
+    event = {"type": event_type, "data": data}
+    if event_id is not None:
+        event["id"] = event_id
+    return event
 
 
 def _mit_db(fn):
@@ -343,3 +349,127 @@ def test_unbekannter_kunde_und_unbekanntes_ereignis_laufen_ins_leere(client):
     ))
 
     assert _user_row(user_id).is_subscribed is True
+
+
+def test_trial_erinnerung_wird_trotz_webhook_wiederholung_nur_einmal_gesendet(
+    client, monkeypatch
+):
+    _setup_subscriber(client)
+    sent = []
+    monkeypatch.setattr(
+        "app.routers.billing.mailer.send_trial_ending",
+        lambda email, name, trial_end: sent.append((email, trial_end)) or True,
+    )
+
+    event = _event(
+        "customer.subscription.trial_will_end",
+        {
+            "id": "sub_test123",
+            "customer": "cus_test123",
+            "trial_end": 1790000000,
+        },
+        event_id="evt_trial_end",
+    )
+    _mit_db(lambda db: handle_stripe_event(event, db))
+    _mit_db(lambda db: handle_stripe_event(event, db))
+
+    assert sent == [("abonnent@example.com", 1790000000)]
+
+
+def test_abo_verlaengerung_zahlung_und_zahlungsfehler_senden_mails(
+    client, monkeypatch
+):
+    _setup_subscriber(client)
+    sent = []
+    monkeypatch.setattr(
+        "app.routers.billing.mailer.send_renewal_reminder",
+        lambda *args: sent.append(("upcoming", args)) or True,
+    )
+    monkeypatch.setattr(
+        "app.routers.billing.mailer.send_payment_succeeded",
+        lambda *args: sent.append(("paid", args)) or True,
+    )
+    monkeypatch.setattr(
+        "app.routers.billing.mailer.send_payment_failed",
+        lambda *args: sent.append(("failed", args)) or True,
+    )
+
+    invoice = {
+        "id": "in_123",
+        "customer": "cus_test123",
+        "subscription": "sub_test123",
+        "billing_reason": "subscription_cycle",
+        "amount_due": 500,
+        "amount_paid": 500,
+        "currency": "eur",
+        "period_end": 1790000000,
+        "next_payment_attempt": 1790003600,
+        "hosted_invoice_url": "https://invoice.example.test/in_123",
+    }
+    _mit_db(lambda db: handle_stripe_event(_event("invoice.upcoming", invoice), db))
+    _mit_db(lambda db: handle_stripe_event(_event("invoice.paid", invoice), db))
+    _mit_db(lambda db: handle_stripe_event(_event("invoice.payment_failed", invoice), db))
+
+    assert [kind for kind, _args in sent] == ["upcoming", "paid", "failed"]
+
+
+def test_null_euro_trial_rechnung_sendet_keine_zahlungsbestaetigung(
+    client, monkeypatch
+):
+    _setup_subscriber(client)
+    sent = []
+    monkeypatch.setattr(
+        "app.routers.billing.mailer.send_payment_succeeded",
+        lambda *args: sent.append(args) or True,
+    )
+
+    _mit_db(lambda db: handle_stripe_event(
+        _event("invoice.paid", {
+            "id": "in_zero",
+            "customer": "cus_test123",
+            "subscription": "sub_test123",
+            "amount_paid": 0,
+            "currency": "eur",
+        }),
+        db,
+    ))
+
+    assert sent == []
+
+
+def test_vorgemerkte_kuendigung_und_aboende_werden_bestaetigt(client, monkeypatch):
+    _setup_subscriber(client)
+    sent = []
+    monkeypatch.setattr(
+        "app.routers.billing.mailer.send_cancellation_scheduled",
+        lambda *args: sent.append(("scheduled", args)) or True,
+    )
+    monkeypatch.setattr(
+        "app.routers.billing.mailer.send_subscription_ended",
+        lambda *args: sent.append(("ended", args)) or True,
+    )
+
+    _mit_db(lambda db: handle_stripe_event(
+        _event(
+            "customer.subscription.updated",
+            {
+                "id": "sub_test123",
+                "customer": "cus_test123",
+                "status": "active",
+                "cancel_at_period_end": True,
+                "current_period_end": 1790000000,
+            },
+            previous={"cancel_at_period_end": False},
+        ),
+        db,
+    ))
+    _mit_db(lambda db: handle_stripe_event(
+        _event("customer.subscription.deleted", {
+            "id": "sub_test123",
+            "customer": "cus_test123",
+            "status": "canceled",
+        }),
+        db,
+    ))
+
+    assert [kind for kind, _args in sent] == ["scheduled", "ended"]
