@@ -743,6 +743,25 @@ class CheckoutConsent(Base):
     created_at = Column(DateTime, nullable=False, default=datetime.utcnow, index=True)
 
 
+class EmailNotification(Base):
+    """Idempotenz- und Versandnachweis fuer transaktionale E-Mails.
+
+    Stripe stellt Webhooks mindestens einmal zu und wiederholt sie bei
+    Zeitueberschreitungen. Ohne einen stabilen Schluessel bekaeme ein Nutzer
+    dadurch dieselbe Zahlungs- oder Kuendigungsnachricht mehrfach. Der
+    Schluessel ist ein SHA-256-Hash der fachlichen Ereignis-ID; Mailadresse,
+    Nutzer-ID und Nachrichteninhalt werden nicht gespeichert.
+    """
+
+    __tablename__ = "email_notifications"
+
+    id = Column(String, primary_key=True, default=gen_uuid)
+    notification_key = Column(String(64), unique=True, nullable=False, index=True)
+    kind = Column(String(50), nullable=False, index=True)
+    created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+    sent_at = Column(DateTime, nullable=True)
+
+
 class WithdrawalDeclaration(Base):
     """Rücktrittserklärung über die Online-Rücktrittsfunktion (§ 13a FAGG).
 

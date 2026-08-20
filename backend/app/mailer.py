@@ -14,8 +14,10 @@ import html
 import logging
 import smtplib
 import ssl
+from datetime import datetime, timezone
 from email.message import EmailMessage
 from email.utils import formataddr
+from zoneinfo import ZoneInfo
 
 from .config import settings
 
@@ -271,6 +273,305 @@ def send_subscription_confirmation(email: str, name: str) -> bool:
 
 
 # ---------------------------------------------------------------------------
+# Abo-Lebenszyklus (von Stripe-Webhooks ausgeloest)
+# ---------------------------------------------------------------------------
+
+VIENNA = ZoneInfo("Europe/Vienna")
+
+
+def _date_from_unix(timestamp: int | None) -> str:
+    if not timestamp:
+        return "noch nicht bekannt"
+    value = datetime.fromtimestamp(timestamp, tz=timezone.utc).astimezone(VIENNA)
+    return value.strftime("%d.%m.%Y um %H:%M Uhr")
+
+
+def _money(amount_cents: int | None, currency: str | None) -> str:
+    amount = (amount_cents or 0) / 100
+    code = (currency or "EUR").upper()
+    return f"{amount:.2f} {code}".replace(".", ",")
+
+
+def send_trial_ending(email: str, name: str, trial_end: int | None) -> bool:
+    from . import legal
+
+    body = f"""Hallo {name},
+
+dein FLEXR-Gratismonat endet am {_date_from_unix(trial_end)}. Danach wird dein
+bereits abgeschlossenes Abo erstmals mit {legal.PRICE_EUR_PER_MONTH} EUR pro
+Monat abgerechnet.
+
+Wenn du das nicht möchtest, kannst du das Abo vorher in FLEXR unter
+"Abo verwalten / kündigen" beenden. Bis zum Ende des Gratismonats bleibt dein
+Zugang erhalten.
+
+Fragen? Antworte einfach auf diese Mail.
+
+Dein FLEXR-Team
+"""
+    return send_email(email, "Dein FLEXR-Gratismonat endet bald", body)
+
+
+def send_renewal_reminder(
+    email: str,
+    name: str,
+    amount_due: int | None,
+    currency: str | None,
+    charge_at: int | None,
+) -> bool:
+    body = f"""Hallo {name},
+
+dein FLEXR-Abo verlängert sich am {_date_from_unix(charge_at)} um einen
+weiteren Monat. Der angekündigte Betrag ist {_money(amount_due, currency)}.
+
+Du kannst dein Abo vorher jederzeit in FLEXR unter
+"Abo verwalten / kündigen" verwalten. Bei einer Kündigung bleibt der Zugang
+bis zum Ende des bereits bezahlten Zeitraums bestehen.
+
+Dein FLEXR-Team
+"""
+    return send_email(email, "Deine nächste FLEXR-Aboverlängerung", body)
+
+
+def send_payment_succeeded(
+    email: str,
+    name: str,
+    amount_paid: int | None,
+    currency: str | None,
+    invoice_url: str | None,
+) -> bool:
+    rechnung = f"\nRechnung/Beleg: {invoice_url}\n" if invoice_url else ""
+    body = f"""Hallo {name},
+
+deine Zahlung über {_money(amount_paid, currency)} für FLEXR war erfolgreich.
+Dein Abo ist weiterhin aktiv.{rechnung}
+Du kannst dein Abo und deine Zahlungsdaten jederzeit in FLEXR unter
+"Abo verwalten / kündigen" verwalten.
+
+Dein FLEXR-Team
+"""
+    return send_email(email, "Zahlung für FLEXR erfolgreich", body)
+
+
+def send_payment_failed(
+    email: str,
+    name: str,
+    amount_due: int | None,
+    currency: str | None,
+    next_attempt: int | None,
+    invoice_url: str | None,
+) -> bool:
+    next_text = (
+        f"Der nächste Zahlungsversuch ist für {_date_from_unix(next_attempt)} vorgesehen."
+        if next_attempt
+        else "Stripe hat noch keinen weiteren Zahlungsversuch angekündigt."
+    )
+    rechnung = f"\nOffene Rechnung: {invoice_url}\n" if invoice_url else ""
+    body = f"""Hallo {name},
+
+die Zahlung über {_money(amount_due, currency)} für dein FLEXR-Abo ist
+fehlgeschlagen. {next_text}
+
+Bitte prüfe deine Zahlungsdaten in FLEXR unter "Abo verwalten / kündigen".
+Dein Zugang bleibt während der erneuten Zahlungsversuche vorerst aktiv.{rechnung}
+Dein FLEXR-Team
+"""
+    return send_email(email, "Zahlung für FLEXR fehlgeschlagen", body)
+
+
+def send_cancellation_scheduled(
+    email: str, name: str, access_ends_at: int | None
+) -> bool:
+    body = f"""Hallo {name},
+
+deine Kündigung ist vorgemerkt. Es erfolgen keine weiteren monatlichen
+Verlängerungen. Dein FLEXR-Zugang bleibt bis
+{_date_from_unix(access_ends_at)} bestehen.
+
+Du kannst die Kündigung bis dahin im Stripe-Kundenportal rückgängig machen.
+
+Dein FLEXR-Team
+"""
+    return send_email(email, "Bestätigung deiner FLEXR-Kündigung", body)
+
+
+def send_subscription_ended(email: str, name: str) -> bool:
+    body = f"""Hallo {name},
+
+dein FLEXR-Abo ist beendet. Es erfolgen keine weiteren Abbuchungen. Falls dein
+kostenloser Nutzungszeitraum ebenfalls abgelaufen ist, ist der Mitgliederzugang
+ab jetzt pausiert. Dein Konto bleibt bestehen und kann mit einem neuen Abo
+wieder aktiviert werden.
+
+Dein FLEXR-Team
+"""
+    return send_email(email, "Dein FLEXR-Abo ist beendet", body)
+
+
+def send_free_trial_ending(email: str, name: str, trial_end: datetime) -> bool:
+    end_text = trial_end.replace(tzinfo=timezone.utc).astimezone(VIENNA).strftime("%d.%m.%Y")
+    body = f"""Hallo {name},
+
+dein kostenloser FLEXR-Monat endet am {end_text}. Es erfolgt keine automatische
+Abbuchung: Du hast noch kein kostenpflichtiges Abo abgeschlossen.
+
+Wenn du FLEXR danach weiter nutzen möchtest, kannst du in der App unter
+"Mitgliedschaft" ein monatlich kündbares Abo abschließen. Ohne Abo wird dein
+Mitgliederzugang nach dem Gratismonat pausiert; dein Konto bleibt bestehen.
+
+Dein FLEXR-Team
+"""
+    return send_email(email, "Dein kostenloser FLEXR-Monat endet bald", body)
+
+
+def send_free_trial_ended(email: str, name: str) -> bool:
+    body = f"""Hallo {name},
+
+dein kostenloser FLEXR-Monat ist beendet. Weil du kein kostenpflichtiges Abo
+abgeschlossen hast, wurde nichts abgebucht und dein Mitgliederzugang ist jetzt
+pausiert. Dein Konto und dein Profil bleiben bestehen.
+
+Du kannst den Zugang jederzeit in FLEXR unter "Mitgliedschaft" mit einem
+monatlich kündbaren Abo wieder aktivieren.
+
+Dein FLEXR-Team
+"""
+    return send_email(email, "Dein kostenloser FLEXR-Monat ist beendet", body)
+
+
+# ---------------------------------------------------------------------------
+# Verifizierung und Moderation
+# ---------------------------------------------------------------------------
+
+
+def send_verification_decision(
+    email: str,
+    name: str,
+    outcome: str,
+    reason: str | None = None,
+    redo_selfie: bool = False,
+) -> bool:
+    if outcome == "approved":
+        subject = "Dein FLEXR-Konto ist freigeschaltet"
+        detail = (
+            "Deine Alters- und Identitätsprüfung wurde bestätigt. "
+            "Dein Konto ist jetzt freigeschaltet."
+        )
+    elif outcome == "reupload_required":
+        subject = "FLEXR braucht eine neue Verifizierungsaufnahme"
+        umfang = "Selfie und Ausweisaufnahme" if redo_selfie else "Ausweisaufnahme"
+        detail = f"Bitte lade {umfang} erneut hoch. Grund: {reason or 'Aufnahme nicht verwertbar.'}"
+    else:
+        subject = "Deine FLEXR-Verifizierung wurde abgelehnt"
+        detail = f"Die Prüfung konnte nicht bestätigt werden. Grund: {reason or 'Prüfung nicht erfolgreich.'}"
+    body = f"""Hallo {name},
+
+{detail}
+
+Öffne FLEXR, um deinen aktuellen Status und die nächsten Schritte zu sehen.
+Bei Fragen antworte auf diese Mail.
+
+Dein FLEXR-Team
+"""
+    return send_email_with_retry(email, subject, body, attempts=2, delay_seconds=1)
+
+
+def send_verification_required(email: str, name: str) -> bool:
+    body = f"""Hallo {name},
+
+für dein FLEXR-Konto ist eine Alters- und Identitätsprüfung erforderlich. Dein
+Konto ist bis zum Abschluss vorübergehend pausiert.
+
+Öffne FLEXR und folge dort den Schritten für Live-Selfie und amtlichen
+Lichtbildausweis. Die Prüfung erfolgt manuell; es findet keine automatische
+Gesichtserkennung statt. Die Prüfaufnahmen werden anschließend gelöscht.
+
+Bei Fragen antworte auf diese Mail.
+
+Dein FLEXR-Team
+"""
+    return send_email_with_retry(
+        email,
+        "Alters- und Identitätsprüfung für dein FLEXR-Konto",
+        body,
+        attempts=2,
+        delay_seconds=1,
+    )
+
+
+def send_moderation_decision(
+    email: str,
+    name: str,
+    measure: str,
+    summary: str,
+    details: list[str] | None = None,
+    appeal: bool = True,
+) -> bool:
+    detail_text = "\n".join(f"- {line}" for line in (details or []) if line)
+    if detail_text:
+        detail_text = "\n\nEinzelheiten:\n" + detail_text
+    appeal_text = ""
+    if appeal:
+        appeal_text = (
+            "\n\nDu kannst der Entscheidung formlos per Antwort auf diese Mail "
+            "widersprechen.\nWir prüfen sie dann erneut und antworten begründet. "
+            "Der Rechtsweg bleibt\nunbenommen."
+        )
+    body = f"""Hallo {name},
+
+{measure}
+
+Begründung: {summary}{detail_text}{appeal_text}
+
+Dein FLEXR-Team
+"""
+    return send_email_with_retry(
+        email, "Wichtige Mitteilung zu deinem FLEXR-Konto", body,
+        attempts=2, delay_seconds=1,
+    )
+
+
+def send_photo_rejected(email: str, name: str, reason: str) -> bool:
+    body = f"""Hallo {name},
+
+ein Profilfoto wurde nicht freigegeben und aus deinem sichtbaren Profil
+entfernt.
+
+Begründung: {reason}
+
+Du kannst ein neues Foto hochladen. Wenn du die Entscheidung für falsch
+hältst, antworte bitte auf diese Mail.
+
+Dein FLEXR-Team
+"""
+    return send_email_with_retry(
+        email, "Ein FLEXR-Profilfoto wurde abgelehnt", body,
+        attempts=2, delay_seconds=1,
+    )
+
+
+def send_report_decision(
+    email: str, reference: str, outcome: str, reason: str
+) -> bool:
+    body = f"""Hallo,
+
+wir haben deine Meldung {reference} geprüft.
+
+Ergebnis: {outcome}
+Begründung: {reason}
+
+Du kannst der Entscheidung formlos per Antwort auf diese Mail widersprechen.
+Der Rechtsweg bleibt unbenommen.
+
+Dein FLEXR-Team
+"""
+    return send_email_with_retry(
+        email, f"Entscheidung zu deiner FLEXR-Meldung {reference}", body,
+        attempts=2, delay_seconds=1,
+    )
+
+
+# ---------------------------------------------------------------------------
 # Rücktrittsbestätigung (§ 13a Abs. 4 FAGG)
 #
 # Die Bestätigung muss auf einem dauerhaften Datenträger erfolgen und den
@@ -403,4 +704,3 @@ def send_notice_acknowledgement(
         subject=NOTICE_SUBJECT.format(reference=reference),
         text_body=_notice_text(reference, received_at, category_label),
     )
-

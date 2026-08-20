@@ -37,9 +37,14 @@ def _user(user_id) -> User:
 # ---------- Probemonat ----------
 
 
-def test_pending_review_does_not_consume_trial(client, storage_stub):
+def test_pending_review_does_not_consume_trial(client, storage_stub, monkeypatch):
     """Der Probemonat startet mit der Freischaltung neu - eine lange manuelle
     Prüfung darf keine Gratiszeit kosten."""
+    mails = []
+    monkeypatch.setattr(
+        "app.routers.admin.mailer.send_verification_decision",
+        lambda *args, **kwargs: mails.append((args, kwargs)) or True,
+    )
     headers = register_raw(client, "trial@example.com")
     user_id = client.get("/api/profiles/me", headers=headers).json()["id"]
     _add_photo(client, headers)
@@ -69,6 +74,7 @@ def test_pending_review_does_not_consume_trial(client, storage_stub):
     ).days
     # Volle Gratiszeit ab Freischaltung, nicht ab Registrierung
     assert remaining_days >= settings.stripe_trial_days - 1
+    assert mails[0][0][2] == "approved"
 
 
 def test_trial_is_not_extended_by_a_second_activation(client, storage_stub):

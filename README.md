@@ -123,6 +123,10 @@ sudo chown -R $USER:$USER /flexr   # Besitzrechte, falls als root angelegt
    (Alternative: `deploy/flexr-api.service` mit systemd — vorher
    `sudo cp /flexr/deploy/flexr-api.service /etc/systemd/system/` und
    `sudo systemctl enable --now flexr-api`)
+   Für Erinnerungen zum kostenlosen Probemonat zusätzlich
+   `deploy/flexr-email-jobs.service` und `deploy/flexr-email-jobs.timer` nach
+   `/etc/systemd/system/` kopieren und den Timer mit
+   `sudo systemctl enable --now flexr-email-jobs.timer` aktivieren.
 4. nginx als Reverse Proxy vor Uvicorn schalten:
    `sudo cp /flexr/deploy/nginx-flexr.conf /etc/nginx/sites-available/flexr.social`
    `&& sudo ln -s /etc/nginx/sites-available/flexr.social /etc/nginx/sites-enabled/`
