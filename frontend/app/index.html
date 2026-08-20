@@ -1408,42 +1408,6 @@
   }
   .account-footer-link button:hover{ color:var(--plate); }
 
-  /* Im Konto ist die Uebersicht der Normalfall, nicht das Bearbeiten. Die
-     seltenen Formulare liegen deshalb in nativen, tastaturbedienbaren
-     Aufklappern. So bleibt der erste Blick ruhig, ohne Funktionen oder
-     rechtlich erforderliche Zugaenge zu verstecken. */
-  .account-disclosure{
-    margin:0 0 12px; border:1px solid var(--hairline); border-radius:14px;
-    background:rgba(255,255,255,.015); overflow:hidden;
-  }
-  .account-disclosure > summary{
-    list-style:none; display:flex; align-items:center; gap:12px; cursor:pointer;
-    padding:15px 16px; color:var(--chalk); user-select:none;
-  }
-  .account-disclosure > summary::-webkit-details-marker{ display:none; }
-  .account-disclosure > summary::after{
-    content:'›'; margin-left:auto; color:var(--chalk-dim); font-size:24px;
-    line-height:1; transform:rotate(90deg); transition:transform .16s ease;
-  }
-  .account-disclosure[open] > summary::after{ transform:rotate(-90deg); }
-  .account-disclosure > summary:hover{ background:rgba(255,255,255,.025); }
-  .account-disclosure > summary:focus-visible{ outline:2px solid var(--plate); outline-offset:-2px; }
-  .account-disclosure-title{ font-weight:600; font-size:14.5px; }
-  .account-disclosure-meta{ display:block; margin-top:2px; color:var(--chalk-dim); font-size:12px; }
-  .account-disclosure-body{ padding:0 16px 18px; border-top:1px solid var(--hairline); }
-  .account-disclosure-body > label:first-child{ margin-top:16px; }
-  .account-disclosure-body .account-section{ margin:16px 0 0; }
-  .account-disclosure.danger-zone{ margin-top:22px; background:transparent; }
-  .account-disclosure.danger-zone .danger-ghost{ margin-bottom:0; }
-  .privacy-disclosure{ margin-bottom:12px; }
-  .privacy-disclosure .account-disclosure-body{ padding-top:14px; }
-  .privacy-legal-links{ display:grid; grid-template-columns:1fr 1fr; gap:8px 14px; }
-  .privacy-legal-links a:link, .privacy-legal-links a:visited{
-    color:var(--chalk-dim); font-size:13px; text-decoration:none;
-  }
-  .privacy-legal-links a:hover{ color:var(--plate); }
-  @media (max-width:420px){ .privacy-legal-links{ grid-template-columns:1fr; } }
-
   .price-card{
     background:linear-gradient(180deg, rgba(255,90,31,.07), rgba(26,26,26,0) 45%), linear-gradient(180deg, #1f1f1f, #191919);
     border:1px solid rgba(255,90,31,.35); border-radius:18px; padding:24px 20px 22px; text-align:center;
@@ -1929,14 +1893,11 @@
         <button class="membership-link" id="btnManageSubscription" style="display:none;">Abo verwalten / kündigen</button>
       </div>
 
-      <details class="account-disclosure" id="profileSettingsDisclosure">
-        <summary>
-          <span>
-            <span class="account-disclosure-title">Profil bearbeiten</span>
-            <span class="account-disclosure-meta">PLZ, Gym, Bio und Suchumkreis</span>
-          </span>
-        </summary>
-        <div class="account-disclosure-body">
+      <!-- Profilfelder bleiben bewusst dauerhaft sichtbar. Der Account-Screen
+           scrollt als Ganzes; verschachtelte Aufklapper haben auf Mobilgeraeten
+           das Scrollen blockiert und werden hier nicht wieder eingefuehrt. -->
+      <div class="account-section">
+        <div class="account-section-title">Profil</div>
 
         <label for="a-plz">Postleitzahl</label>
         <div class="plz-combo" id="acctPlzCombo">
@@ -1978,24 +1939,16 @@
         <div class="radius-hint" id="radiusHint">Profile im Umkreis deines Gyms.</div>
 
         <div class="field-err" id="acctProfileErr"></div>
-          <button class="btn secondary" id="btnSaveProfile" style="margin-top:16px;">Profil speichern</button>
-        </div>
-      </details>
+        <button class="btn secondary" id="btnSaveProfile" style="margin-top:16px;">Profil speichern</button>
+      </div>
 
-      <details class="account-disclosure" id="photoSettingsDisclosure">
-        <summary>
-          <span>
-            <span class="account-disclosure-title">Fotos</span>
-            <span class="account-disclosure-meta" id="acctPhotoCount">0 von 6</span>
-          </span>
-        </summary>
-        <div class="account-disclosure-body">
-          <div class="photo-grid" id="acctPhotoGrid" style="margin-top:16px;"></div>
-          <div class="photo-hint" id="acctPhotoHint"></div>
-          <input type="file" id="acctPhotoInput" accept="image/*" style="display:none">
-          <div class="field-err" id="acctPhotoErr"></div>
-        </div>
-      </details>
+      <div class="account-section">
+        <div class="account-section-title">Fotos</div>
+        <div class="photo-grid" id="acctPhotoGrid"></div>
+        <div class="photo-hint" id="acctPhotoHint"></div>
+        <input type="file" id="acctPhotoInput" accept="image/*" style="display:none">
+        <div class="field-err" id="acctPhotoErr"></div>
+      </div>
 
       <!-- Hier standen bis zum 16.08.2026 drei weitere Bloecke: "Meine
            Meldungen", "Einwilligungen" und "Vertrag" samt grossem Knopf
@@ -2009,21 +1962,15 @@
            verlinkt aus Fussleiste, AGB und Checkout. Die normale
            Abo-Kuendigung bleibt oben, wo sie hingehoert. -->
 
-      <details class="account-disclosure danger-zone">
-        <summary>
-          <span>
-            <span class="account-disclosure-title">Weitere Einstellungen</span>
-            <span class="account-disclosure-meta">Privatsphäre, Meldungen und Konto</span>
-          </span>
-        </summary>
-        <div class="account-disclosure-body">
-          <div class="account-section">
-            <button class="btn secondary" type="button" id="btnOpenPrivacy">Privatsphäre &amp; Meldungen</button>
-            <button class="btn secondary" id="btnLogout" style="margin-top:10px;">Ausloggen</button>
-            <button class="btn danger-ghost" id="btnDeleteAccount">Konto löschen</button>
-          </div>
-        </div>
-      </details>
+      <div class="account-section">
+        <div class="account-section-title">Konto</div>
+        <button class="btn secondary" id="btnLogout">Ausloggen</button>
+        <button class="btn danger-ghost" id="btnDeleteAccount">Konto löschen</button>
+      </div>
+
+      <p class="account-footer-link">
+        <button type="button" id="btnOpenPrivacy">Datenschutz &amp; Sicherheit</button>
+      </p>
     </section>
 
     <!-- DATENSCHUTZ & SICHERHEIT (Unterseite des Kontobereichs) -->
@@ -2048,47 +1995,25 @@
     <section class="screen" id="screen-privacy">
       <div class="chat-header">
         <button class="back-btn" id="btnPrivacyBack" aria-label="Zurück zum Konto"><svg class="ico" viewBox="0 0 24 24"><path d="M14.5 5 8 12l6.5 7"/></svg></button>
-        <div class="nm">Privatsphäre &amp; Meldungen</div>
+        <div class="nm">Datenschutz &amp; Sicherheit</div>
       </div>
 
-      <details class="account-disclosure privacy-disclosure">
-        <summary>
-          <span>
-            <span class="account-disclosure-title">Datennutzung</span>
-            <span class="account-disclosure-meta">Einwilligungen ansehen oder widerrufen</span>
-          </span>
-        </summary>
-        <div class="account-disclosure-body" id="myConsents"><div class="loading">Lade …</div></div>
-      </details>
+      <div class="account-section">
+        <div class="account-section-title">Matching-Präferenzen</div>
+        <div id="myConsents"><div class="loading">Lade …</div></div>
+      </div>
 
-      <details class="account-disclosure privacy-disclosure">
-        <summary>
-          <span>
-            <span class="account-disclosure-title">Meine Meldungen</span>
-            <span class="account-disclosure-meta">Status gemeldeter Profile und Chats</span>
-          </span>
-        </summary>
-        <div class="account-disclosure-body" id="myReports"><div class="loading">Lade …</div></div>
-      </details>
+      <div class="account-section">
+        <div class="account-section-title">Meine Meldungen</div>
+        <div id="myReports"><div class="loading">Lade …</div></div>
+      </div>
 
-      <details class="account-disclosure privacy-disclosure">
-        <summary>
-          <span>
-            <span class="account-disclosure-title">Rechtliches</span>
-            <span class="account-disclosure-meta">Dokumente und Hilfe</span>
-          </span>
-        </summary>
-        <nav class="account-disclosure-body privacy-legal-links" aria-label="Rechtliche Dokumente">
-          <a href="/faq.html" class="legal-link" data-legal-page="faq.html">FAQ</a>
-          <a href="/impressum.html" class="legal-link" data-legal-page="impressum.html">Impressum</a>
-          <a href="/datenschutz.html" class="legal-link" data-legal-page="datenschutz.html">Datenschutz</a>
-          <a href="/agb.html" class="legal-link" data-legal-page="agb.html">AGB</a>
-          <a href="/widerruf.html" class="legal-link" data-legal-page="widerruf.html" data-widerruf-link>Rücktrittsrecht</a>
-          <a href="/nutzungsrichtlinien.html" class="legal-link" data-legal-page="nutzungsrichtlinien.html">Nutzungsrichtlinien</a>
-          <a href="/sicherheit.html" class="legal-link" data-legal-page="sicherheit.html">Sicherheit</a>
-          <a href="/meldung.html" class="legal-link" data-legal-page="meldung.html">Inhalt melden</a>
-        </nav>
-      </details>
+      <div class="account-section">
+        <div class="account-section-title">Rechtliches</div>
+        <p class="photo-hint" style="margin-top:0;">
+          <a href="/datenschutz.html" class="legal-link" data-legal-page="datenschutz.html">Datenschutzerklärung</a>
+        </p>
+      </div>
     </section>
 
     <!-- ALTERS- UND IDENTITÄTSPRÜFUNG: Übersicht/Status -->
@@ -3859,7 +3784,6 @@
     const grid = $('acctPhotoGrid');
     grid.innerHTML = '';
     const photos = myProfile.photos || [];
-    $('acctPhotoCount').textContent = `${photos.length} von 6`;
     // Der laufende Upload belegt den ersten freien Platz.
     const uploadSlot = acctUpload ? Math.min(photos.length, 5) : -1;
     for(let i=0;i<6;i++){

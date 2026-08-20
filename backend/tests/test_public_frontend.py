@@ -87,6 +87,18 @@ def test_statische_bilder_reservieren_ihren_layoutplatz():
             assert image.get("width") and image.get("height"), (filename, image.get("src"))
 
 
+def test_kontoprofil_bleibt_offen_und_scrollbar():
+    app = (FRONTEND / "app" / "index.html").read_text(encoding="utf-8")
+    account = app.split('<section class="screen" id="screen-account">', 1)[1]
+    account = account.split('</section>', 1)[0]
+
+    assert '<details class="account-disclosure"' not in account
+    assert '<div class="account-section-title">Profil</div>' in account
+    assert '<div class="account-section-title">Fotos</div>' in account
+    assert '<div class="account-section-title">Konto</div>' in account
+    assert '.screen.active{ display:flex; flex-direction:column; flex:1; min-height:0; overflow-y:auto;' in app
+
+
 def test_interne_links_zeigen_auf_vorhandene_dateien():
     for filename in PUBLIC_PAGES:
         source = FRONTEND / filename
