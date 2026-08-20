@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -39,6 +40,9 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -61,7 +65,6 @@ import flexr.social.app.core.designsystem.component.FlexrSecondaryButton
 import flexr.social.app.core.designsystem.component.FlexrTextField
 import flexr.social.app.core.designsystem.component.SectionTitle
 import flexr.social.app.core.designsystem.component.VerifiedBadge
-import flexr.social.app.core.designsystem.component.VerifiedBlue
 import flexr.social.app.core.designsystem.theme.FlexrTheme
 import flexr.social.app.core.designsystem.theme.MonoStyle
 import flexr.social.app.domain.model.VerificationStatus
@@ -102,6 +105,7 @@ fun AccountScreen(
     val colors = FlexrTheme.colors
     val currentProfile = profile
     val context = LocalContext.current
+    var legalDialogVisible by remember { mutableStateOf(false) }
     val notificationPermissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission(),
     ) { granted ->
@@ -175,14 +179,12 @@ fun AccountScreen(
 
         val isVerified = currentProfile?.profile?.isVerified == true ||
             state.verificationStatus == VerificationStatus.APPROVED
-        // Der Verifiziert-Hinweis verschwindet, sobald er bestätigt wurde;
-        // alle anderen Zustände sind Handlungsaufforderungen und bleiben stehen.
-        if (!isVerified || !state.verifiedHintDismissed) {
+        // Der blaue Haken im Profilkopf reicht als positives Feedback. Das
+        // Hinweisfeld bleibt nur sichtbar, solange tatsächlich etwas zu tun ist.
+        if (!isVerified) {
             Spacer(Modifier.height(14.dp))
             VerificationHint(
-                isVerified = isVerified,
                 status = state.verificationStatus,
-                onDismiss = viewModel::dismissVerifiedHint,
                 onStartVerification = viewModel::startVerification,
             )
         }
@@ -265,9 +267,7 @@ fun AccountScreen(
             Text("${state.searchRadiusKm} km", style = MonoStyle, color = colors.chalk)
         }
         Text(
-            text = "Ausgangspunkt ist die Adresse deines Gyms — nicht dein Wohnort und " +
-                "nicht dein aktueller Standort. Im eingestellten Umkreis siehst du auch " +
-                "Leute aus anderen Studios in der Nähe.",
+            text = "Radius rund um dein Gym. Dein Gerätestandort wird nicht verwendet.",
             style = MaterialTheme.typography.bodySmall,
             color = colors.chalkDim,
         )
@@ -309,23 +309,18 @@ fun AccountScreen(
         PhotoVisibilityHint(photoStatuses = currentProfile?.photos?.map { it.status }.orEmpty())
         FieldError(state.photoError)
 
-        // ---------- Benachrichtigungen ----------
+        // ---------- Einstellungen ----------
         Spacer(Modifier.height(28.dp))
-        SectionTitle("Benachrichtigungen")
+        SectionTitle("Einstellungen")
         Row(
             Modifier.fillMaxWidth().padding(top = 12.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Column(Modifier.weight(1f)) {
                 Text(
-                    "Neue Nachrichten",
+                    "Nachrichten erhalten",
                     style = MaterialTheme.typography.bodyLarge,
                     color = colors.chalk,
-                )
-                Text(
-                    "Benachrichtigung, wenn dir ein Match schreibt.",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = colors.chalkDim,
                 )
             }
             Switch(
@@ -354,6 +349,34 @@ fun AccountScreen(
             )
         }
 
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(10.dp))
+                .clickable { legalDialogVisible = true }
+                .padding(vertical = 15.dp, horizontal = 2.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Column(Modifier.weight(1f)) {
+                Text(
+                    "Hilfe & Rechtliches",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = colors.chalk,
+                )
+                Text(
+                    "FAQ, Sicherheit, Datenschutz und Bedingungen",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = colors.chalkDim,
+                )
+            }
+            Icon(
+                Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                contentDescription = null,
+                tint = colors.chalkDim,
+                modifier = Modifier.size(18.dp),
+            )
+        }
+
         // ---------- Konto ----------
         Spacer(Modifier.height(28.dp))
         SectionTitle("Konto")
@@ -362,36 +385,17 @@ fun AccountScreen(
         Spacer(Modifier.height(10.dp))
         FlexrDangerButton(text = "Konto löschen", onClick = viewModel::showDeleteDialog)
 
-        // ---------- Rechtliches ----------
-        Spacer(Modifier.height(28.dp))
-        SectionTitle("Rechtliches")
-        Column(Modifier.fillMaxWidth().padding(top = 6.dp)) {
-            LegalDocument.entries.forEach { document ->
-                Row(
-                    Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(10.dp))
-                        .clickable { onOpenLegal(document) }
-                        .padding(vertical = 13.dp, horizontal = 4.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text(
-                        text = document.title,
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = colors.chalk,
-                        modifier = Modifier.weight(1f),
-                    )
-                    Icon(
-                        Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                        contentDescription = null,
-                        tint = colors.chalkDim,
-                        modifier = Modifier.size(18.dp),
-                    )
-                }
-            }
-        }
-
         Spacer(Modifier.height(40.dp))
+    }
+
+    if (legalDialogVisible) {
+        LegalAndHelpDialog(
+            onOpenLegal = { document ->
+                legalDialogVisible = false
+                onOpenLegal(document)
+            },
+            onDismiss = { legalDialogVisible = false },
+        )
     }
 
     state.gymSuggestion?.let { suggestion ->
@@ -421,43 +425,31 @@ fun AccountScreen(
 /**
  * Hinweisfeld zum Verifizierungsstand.
  *
- * Der Bestätigungs-Hinweis lässt sich mit „Verstanden" dauerhaft wegklicken;
- * steht die Verifizierung noch aus, führt „Zur Verifizierung" direkt in den
- * Ablauf. Beide Aktionen sind sichtbare Schaltflächen statt einer unsichtbar
- * anklickbaren Fläche.
+ * Solange die Verifizierung offen ist, führt die sichtbare Aktion direkt in
+ * den passenden Schritt. Nach erfolgreicher Prüfung reicht der blaue Haken im
+ * Profilkopf und das Feld entfällt.
  */
 @Composable
 private fun VerificationHint(
-    isVerified: Boolean,
     status: VerificationStatus,
-    onDismiss: () -> Unit,
     onStartVerification: () -> Unit,
 ) {
     val colors = FlexrTheme.colors
-    val tint = when {
-        isVerified -> VerifiedBlue
-        status == VerificationStatus.SUBMITTED -> colors.chalkDim
-        else -> colors.plate
-    }
+    val tint = if (status == VerificationStatus.SUBMITTED) colors.chalkDim else colors.plate
     val label = when {
-        isVerified -> "Verifiziert"
         status == VerificationStatus.SUBMITTED -> "Prüfung läuft …"
         status.needsDocument -> "Alter bestätigen"
         else -> "Verifizierung"
     }
     val description = when {
-        isVerified ->
-            "Dein Profil ist verifiziert — andere sehen den blauen Haken neben deinem Namen."
         status == VerificationStatus.SUBMITTED ->
-            "Deine Verifizierung wird geprüft. Nach der Freigabe bekommst du den blauen Haken."
+            "Wir prüfen deine Angaben."
         status.needsDocument ->
-            "Es fehlt noch die Aufnahme deines amtlichen Lichtbildausweises."
+            "Selfie erledigt. Jetzt noch den Ausweis aufnehmen."
         status == VerificationStatus.REJECTED ->
-            "Deine Verifizierung konnte nicht abgeschlossen werden. Bei Fragen: " +
-                "flexr.social@proton.me"
+            "Nicht abgeschlossen. Hilfe bekommst du unter flexr.social@proton.me."
         else ->
-            "Zeig mit einem Live-Selfie und einem Lichtbildausweis, dass du wirklich du bist — " +
-                "und hol dir den blauen Haken."
+            "Einmalig Selfie und Lichtbildausweis prüfen lassen."
     }
 
     Column(
@@ -469,10 +461,7 @@ private fun VerificationHint(
             .padding(14.dp),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            if (isVerified) {
-                VerifiedBadge(size = 15)
-                Spacer(Modifier.width(8.dp))
-            } else if (status != VerificationStatus.SUBMITTED) {
+            if (status != VerificationStatus.SUBMITTED) {
                 Icon(
                     Icons.Filled.Warning,
                     contentDescription = null,
@@ -487,15 +476,6 @@ private fun VerificationHint(
         Text(description, style = MaterialTheme.typography.bodySmall, color = colors.chalkDim)
 
         when {
-            isVerified -> Row(
-                Modifier.fillMaxWidth().padding(top = 4.dp),
-                horizontalArrangement = Arrangement.End,
-            ) {
-                TextButton(onClick = onDismiss) {
-                    Text("Verstanden", color = tint, style = MaterialTheme.typography.labelLarge)
-                }
-            }
-
             // Kein Startknopf, wenn nichts zu starten ist: in Prüfung oder
             // endgültig abgelehnt.
             status != VerificationStatus.SUBMITTED &&
@@ -513,6 +493,60 @@ private fun VerificationHint(
             }
         }
     }
+}
+
+/**
+ * Die lange Liste der Rechtstexte liegt hinter einem einzigen verständlichen
+ * Einstieg. So bleibt die Profilseite ruhig, ohne notwendige Links zu verlieren.
+ */
+@Composable
+private fun LegalAndHelpDialog(
+    onOpenLegal: (LegalDocument) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    val colors = FlexrTheme.colors
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = MaterialTheme.colorScheme.surface,
+        title = { Text("Hilfe & Rechtliches", style = MaterialTheme.typography.headlineSmall) },
+        text = {
+            Column(
+                Modifier
+                    .fillMaxWidth()
+                    .heightIn(max = 480.dp)
+                    .verticalScroll(rememberScrollState()),
+            ) {
+                LegalDocument.entries.forEach { document ->
+                    Row(
+                        Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(10.dp))
+                            .clickable { onOpenLegal(document) }
+                            .padding(vertical = 13.dp, horizontal = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(
+                            text = document.title,
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = colors.chalk,
+                            modifier = Modifier.weight(1f),
+                        )
+                        Icon(
+                            Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                            contentDescription = null,
+                            tint = colors.chalkDim,
+                            modifier = Modifier.size(18.dp),
+                        )
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Schließen", color = colors.plate)
+            }
+        },
+    )
 }
 
 /**
@@ -537,9 +571,8 @@ internal fun DeleteAccountDialog(
         text = {
             Column {
                 Text(
-                    text = "Dein Konto wird sofort deaktiviert und ist für andere nicht mehr " +
-                        "sichtbar. Alle Daten inklusive Fotos werden nach 30 Tagen endgültig " +
-                        "und unwiderruflich gelöscht (siehe Datenschutzerklärung).",
+                    text = "Dein Konto wird sofort deaktiviert. Deine Daten und Fotos werden " +
+                        "nach 30 Tagen endgültig gelöscht.",
                     style = MaterialTheme.typography.bodyMedium,
                     color = FlexrTheme.colors.chalkDim,
                 )

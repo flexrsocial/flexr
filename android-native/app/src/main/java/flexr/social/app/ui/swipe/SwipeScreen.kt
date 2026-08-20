@@ -75,11 +75,9 @@ fun SwipeScreen(
             .padding(horizontal = 20.dp),
     ) {
         Spacer(Modifier.height(18.dp))
-        ScreenHeader(eyebrow = "Heutige Sätze", title = "Wer trainiert wo du bist")
+        ScreenHeader(eyebrow = "Entdecken", title = "Profile in deiner Nähe")
         Text(
-            // Die Umkreissuche geht von der Adresse des eingetragenen Gyms aus,
-            // nicht mehr vom Wohnort und nicht von der Geräteposition.
-            text = "Umkreis ${state.searchRadiusKm} km · Standort laut PLZ-Gym".uppercase(),
+            text = "${state.searchRadiusKm} km rund um dein Gym".uppercase(),
             style = MonoStyle,
             color = FlexrTheme.colors.chalkDim,
             modifier = Modifier.padding(top = 8.dp),

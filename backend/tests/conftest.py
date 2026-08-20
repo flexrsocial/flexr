@@ -7,6 +7,14 @@ os.environ.setdefault("JWT_SECRET", "test-secret-for-pytest")
 # getestet; der Normalfall bleibt rein lokal und dadurch schnell.
 os.environ.setdefault("SMTP_HOST", "")
 os.environ.setdefault("SMTP_FROM", "")
+# Gleiches gilt fuer Stripe: Auf dem Produktionsserver liegt ein echter Key in
+# backend/.env. Ohne explizite Testwerte wuerde pytest diesen uebernehmen und
+# der Checkout-Test statt des erwarteten lokalen Fehlers einen echten
+# Stripe-Aufruf starten. Leere Umgebungswerte haben Vorrang vor der .env und
+# halten die gesamte Suite garantiert frei von externen Zahlungsvorgaengen.
+os.environ.setdefault("STRIPE_SECRET_KEY", "")
+os.environ.setdefault("STRIPE_WEBHOOK_SECRET", "")
+os.environ.setdefault("STRIPE_PRICE_ID", "")
 
 import pytest
 from fastapi.testclient import TestClient

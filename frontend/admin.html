@@ -425,7 +425,11 @@
 
     <!-- REPORTS -->
     <section class="view" id="view-reports">
-      <h2>Meldungen</h2>
+      <h2>Förmliche Meldungen</h2>
+      <p class="hint">Meldungen nach Art. 16 DSA, die auch ohne FLEXR-Konto
+        eingereicht werden können. Jede Entscheidung braucht eine Begründung.</p>
+      <div id="noticesTableWrap"><div class="loading">Lädt …</div></div>
+      <h2 style="margin-top:32px;">Meldungen aus der App</h2>
       <div id="reportsTableWrap"><div class="loading">Lädt …</div></div>
       <h2 style="margin-top:32px;">Auffällige Nachrichten</h2>
       <p class="hint">Von der automatischen Sicherheitsprüfung markierte Chat-Nachrichten
@@ -718,6 +722,7 @@
       const tasks = [
         [stats.pending_photos, 'Fotos freigeben', 'warten auf Prüfung', 'photos'],
         [stats.pending_verifications, 'Verifizierungen', 'Alter & Identität prüfen', 'verifications'],
+        [stats.open_notices, 'Förmliche Meldungen', 'nach Art. 16 DSA', 'reports'],
         [stats.open_reports, 'Meldungen', 'abzuarbeiten', 'reports'],
         [stats.flagged_messages, 'Auffällige Nachrichten', 'im Review', 'reports'],
         [stats.pending_gyms, 'Gym-Vorschläge', 'freizugeben', 'gyms'],
@@ -745,7 +750,7 @@
       // Nav-Badges
       setNavBadge('pendingBadge', stats.pending_photos);
       setNavBadge('verifyBadge', stats.pending_verifications);
-      setNavBadge('reportsBadge', stats.open_reports + stats.flagged_messages);
+      setNavBadge('reportsBadge', stats.open_notices + stats.open_reports + stats.flagged_messages);
       setNavBadge('gymsBadge', stats.pending_gyms);
 
       loadAccessStats();
@@ -995,6 +1000,45 @@
     });
   });
 
+  // Art. 17 DSA: Eine Fotoablehnung braucht einen konkreten Grund. Das Backend
+  // unterstützt diese strukturierten Gründe bereits; das Admin-Tool muss sie
+  // deshalb mitsenden, statt jede Ablehnung pauschal als "technisch unbrauchbar"
+  // zu verbuchen.
+  const PHOTO_REJECTION_REASONS = [
+    ['no_person', 'Keine Person erkennbar'],
+    ['not_account_holder', 'Zeigt nicht den Kontoinhaber'],
+    ['multiple_people', 'Mehrere Personen / Zuordnung unklar'],
+    ['nudity', 'Sexuell explizite Darstellung'],
+    ['violence', 'Gewalt- oder Hassdarstellung'],
+    ['minor', 'Offenkundig minderjährige Person'],
+    ['contact_details', 'Kontaktdaten oder Links im Bild'],
+    ['third_party_rights', 'Fremdes Bildmaterial oder Werbung'],
+    ['unusable', 'Technisch nicht ausreichend nutzbar'],
+    ['other', 'Anderer Verstoß gegen die Profilfoto-Richtlinien'],
+  ];
+
+  function askPhotoRejection(){
+    const options = PHOTO_REJECTION_REASONS
+      .map(([, label], index) => `${index + 1}. ${label}`)
+      .join('\n');
+    const entered = prompt(`Ablehnungsgrund auswählen (1–${PHOTO_REJECTION_REASONS.length}):\n\n${options}`);
+    if(entered === null) return null;
+    const index = Number.parseInt(entered.trim(), 10) - 1;
+    if(!Number.isInteger(index) || !PHOTO_REJECTION_REASONS[index]){
+      toast('Bitte eine gültige Nummer auswählen.');
+      return null;
+    }
+    const [reason] = PHOTO_REJECTION_REASONS[index];
+    if(reason !== 'other') return {reason};
+    const note = prompt('Kurze konkrete Ergänzung zur Ablehnung:');
+    if(note === null) return null;
+    if(note.trim().length < 3){
+      toast('Bitte den anderen Ablehnungsgrund kurz erläutern.');
+      return null;
+    }
+    return {reason, note: note.trim()};
+  }
+
   async function loadPhotos(){
     const wrap = $('photoGridWrap');
     wrap.innerHTML = '<div class="loading">Lädt …</div>';
@@ -1026,7 +1070,13 @@
             const action = btn.dataset.action;
             try{
               if(action === 'approve') await api(`/api/admin/photos/${photoId}/approve`, {method: 'POST'});
-              if(action === 'reject') await api(`/api/admin/photos/${photoId}/reject`, {method: 'POST'});
+              if(action === 'reject'){
+                const rejection = askPhotoRejection();
+                if(rejection === null) return;
+                await api(`/api/admin/photos/${photoId}/reject`, {
+                  method: 'POST', body: JSON.stringify(rejection),
+                });
+              }
               if(action === 'delete'){
                 if(!confirm('Foto wirklich löschen?')) return;
                 await api(`/api/admin/photos/${photoId}`, {method: 'DELETE'});
@@ -1248,6 +1298,7 @@
   async function loadReports(){
     // Auffällige Nachrichten immer laden - unabhängig davon, ob es offene
     // Meldungen gibt (sonst bliebe die Tabelle bei 0 Meldungen auf "Lädt …")
+    loadNotices();
     loadFlaggedMessages();
     const wrap = $('reportsTableWrap');
     try{
@@ -1302,6 +1353,76 @@
             });
             toast('Meldung abgeschlossen, der Melder wird informiert.');
             loadReports();
+            loadDashboard();
+          }catch(err){ toast(err.message); }
+        });
+      });
+    }catch(err){
+      wrap.innerHTML = `<div class="empty-state">${escapeHtml(err.message)}</div>`;
+    }
+  }
+
+  const NOTICE_CATEGORY_LABELS = {
+    csam:'Sexueller Kindesmissbrauch', minor:'Mutmaßlich minderjährige Person',
+    trafficking:'Menschenhandel / Ausbeutung', threat:'Drohung / akute Gefahr',
+    sexual_content:'Nicht einvernehmliche intime Aufnahme',
+    impersonation:'Identitätsmissbrauch', fraud:'Betrug / Scam', hate:'Hass / Verhetzung',
+    ip_infringement:'Urheber- oder Kennzeichenrecht',
+    data_protection:'Datenschutz', other_illegal:'Sonstiger rechtswidriger Inhalt',
+  };
+
+  async function loadNotices(){
+    const wrap = $('noticesTableWrap');
+    try{
+      const notices = await api('/api/admin/notices');
+      if(notices.length === 0){
+        wrap.innerHTML = '<div class="empty-state">Keine förmlichen Meldungen.</div>';
+        return;
+      }
+      wrap.innerHTML = `
+        <div class="table-wrap"><table>
+          <thead><tr><th>Aktenzeichen</th><th>Kategorie</th><th>Fundstelle</th><th>Begründung</th><th>Melder</th><th>Datum</th><th></th></tr></thead>
+          <tbody>${notices.map(n => `
+            <tr>
+              <td class="mono">${escapeHtml(n.reference)}</td>
+              <td>${escapeHtml(NOTICE_CATEGORY_LABELS[n.category] || n.category)}</td>
+              <td class="msg-cell">${escapeHtml(n.content_reference)}</td>
+              <td class="msg-cell">${escapeHtml(n.explanation)}</td>
+              <td>${n.reporter_name ? escapeHtml(n.reporter_name) : '<span class="pill muted">anonym</span>'}</td>
+              <td>${fmtDate(n.created_at)}</td>
+              <td style="white-space:nowrap;">
+                <select data-notice-outcome="${n.id}" aria-label="Ergebnis für ${escapeHtml(n.reference)}">
+                  <option value="no_action">Kein Verstoß</option>
+                  <option value="action_taken">Maßnahmen ergriffen</option>
+                  <option value="forwarded">Weitergeleitet</option>
+                  <option value="insufficient">Angaben unzureichend</option>
+                </select>
+                <button class="btn small secondary" data-decide-notice="${n.id}">Entscheiden</button>
+              </td>
+            </tr>`).join('')}</tbody>
+        </table></div>`;
+
+      wrap.querySelectorAll('button[data-decide-notice]').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const id = btn.dataset.decideNotice;
+          const outcome = wrap.querySelector(`select[data-notice-outcome="${id}"]`).value;
+          const reason = prompt('Begründung für die Entscheidung (wird dem Melder wörtlich angezeigt):');
+          if(reason === null) return;
+          if(reason.trim().length < 10){
+            toast('Bitte die Entscheidung nachvollziehbar begründen (mindestens 10 Zeichen).');
+            return;
+          }
+          try{
+            const result = await api(`/api/admin/notices/${id}/decide`, {
+              method: 'POST',
+              body: JSON.stringify({
+                outcome, decision_reason: reason.trim(), decision_automated: false,
+              }),
+            });
+            toast(result.reporter_can_be_informed
+              ? 'Förmliche Meldung entschieden; der Melder wird informiert.'
+              : 'Förmliche Meldung entschieden; anonyme Meldung ohne Rückkanal.');
+            loadNotices();
             loadDashboard();
           }catch(err){ toast(err.message); }
         });

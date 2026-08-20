@@ -160,12 +160,70 @@ p{ margin:0 0 14px; }
 @media (max-width:560px){ .top nav .hide-s{ display:none; } }
 
 /* ---- Hero ---- */
-.hero{ padding:56px 0 44px; }
+.hero{
+  position:relative; padding:46px 0 40px;
+  isolation:isolate; overflow:clip;
+}
+.hero::before{
+  content:''; position:absolute; z-index:-1; width:500px; height:500px;
+  right:-150px; top:-120px; border-radius:50%; pointer-events:none;
+  background:radial-gradient(circle, rgba(255,90,31,.17), rgba(255,90,31,0) 68%);
+}
+.hero-grid{
+  display:grid; grid-template-columns:minmax(0,1fr) minmax(270px,320px);
+  gap:42px; align-items:center;
+}
+.hero-copy{ min-width:0; }
 .eyebrow{
   font-family:'Oswald', sans-serif; font-size:12.5px; letter-spacing:.22em;
   text-transform:uppercase; color:var(--plate); margin-bottom:14px;
 }
 .hero p.sub{ font-size:clamp(16px, 2.4vw, 19px); color:var(--chalk-dim); max-width:34em; }
+.hero-visual{
+  position:relative; min-height:440px; width:100%;
+  filter:drop-shadow(0 24px 44px rgba(0,0,0,.38));
+}
+.hero-profile{
+  position:absolute; overflow:hidden; width:228px; height:348px;
+  border-radius:19px; border:1px solid rgba(255,255,255,.15);
+  background:#202020;
+}
+.hero-profile img{
+  display:block; width:100%; height:100%; object-fit:cover; object-position:50% 18%;
+}
+.hero-profile::after{
+  content:''; position:absolute; inset:45% 0 0;
+  background:linear-gradient(180deg,transparent,rgba(10,10,10,.86));
+}
+.hero-profile-main{ right:10px; top:42px; z-index:3; transform:rotate(2deg); }
+.hero-profile-back{ left:0; top:4px; z-index:1; transform:rotate(-7deg); opacity:.78; }
+.hero-profile-mid{ left:34px; top:76px; z-index:2; transform:rotate(-2deg); opacity:.92; }
+.hero-profile-info{
+  position:absolute; z-index:2; left:17px; right:17px; bottom:16px;
+  color:#fff; text-shadow:0 2px 8px rgba(0,0,0,.6);
+}
+.hero-profile-info b{
+  display:block; font-family:'Oswald',sans-serif; font-size:23px; line-height:1.15;
+  letter-spacing:.03em;
+}
+.hero-profile-info span{ font-size:12.5px; color:rgba(255,255,255,.82); }
+.hero-match-badge{
+  position:absolute; z-index:5; right:-2px; top:20px; padding:9px 13px;
+  border:2px solid var(--lime); border-radius:9px; color:var(--lime);
+  background:rgba(18,18,18,.84); backdrop-filter:blur(8px);
+  font-family:'Oswald',sans-serif; font-size:14px; font-weight:700;
+  letter-spacing:.13em; text-transform:uppercase; transform:rotate(4deg);
+}
+.hero-actions{
+  position:absolute; z-index:5; right:28px; bottom:9px; display:flex; gap:12px;
+}
+.hero-action{
+  display:grid; place-items:center; width:52px; height:52px; border-radius:50%;
+  border:1px solid rgba(255,255,255,.18); background:rgba(25,25,25,.94);
+  font-size:26px; font-weight:700; line-height:1;
+}
+.hero-action-nope{ color:#ff6752; }
+.hero-action-like{ color:var(--lime); }
 .cta-row{ display:flex; flex-wrap:wrap; gap:12px; margin-top:26px; }
 .btn{
   display:inline-block; padding:16px 30px; border-radius:12px; text-decoration:none;
@@ -183,6 +241,34 @@ p{ margin:0 0 14px; }
 .usps li::before{
   content:''; position:absolute; left:2px; top:.62em; width:9px; height:9px;
   border-radius:50%; background:var(--plate);
+}
+
+@media (max-width:760px){
+  .hero{ padding-top:34px; }
+  .hero-grid{ grid-template-columns:1fr; gap:26px; }
+  .hero-visual{ min-height:330px; max-width:340px; margin:0 auto; }
+  .hero-profile{ width:190px; height:290px; }
+  .hero-profile-main{ right:18px; top:24px; }
+  .hero-profile-back{ left:20px; }
+  .hero-profile-mid{ left:55px; top:42px; }
+  .hero-match-badge{ right:10px; top:4px; }
+  .hero-actions{ right:34px; bottom:0; }
+}
+@media (max-width:420px){
+  .hero-visual{ min-height:300px; }
+  .hero-profile{ width:174px; height:266px; }
+  .hero-profile-back{ left:14px; }
+  .hero-profile-mid{ left:48px; top:34px; }
+  .hero-profile-main{ right:14px; top:18px; }
+  .hero-actions{ right:28px; }
+  .hero-action{ width:48px; height:48px; }
+}
+@media (prefers-reduced-motion:no-preference){
+  .hero-profile-main{ animation:hero-float 6s ease-in-out infinite; }
+  @keyframes hero-float{
+    0%,100%{ transform:rotate(2deg) translateY(0); }
+    50%{ transform:rotate(1deg) translateY(-7px); }
+  }
 }
 
 /* ---- Abschnitte ---- */
@@ -367,19 +453,45 @@ footer{ border-top:1px solid var(--steel); padding:32px 0 60px; margin-top:20px;
   <div class="wrap">
 
     <div class="hero">
-      <p class="eyebrow">FLEXR · Dating für Gym-People</p>
-      <h1>Dating für<br>Gym-People<br>in <em>Österreich</em></h1>
-      <p class="sub">
-        Finde Menschen, die Training genauso ernst nehmen wie du – in deinem
-        Gym und in deiner Nähe. Match. Train. Repeat.
-      </p>
-      <div class="cta-row">
-        <a class="btn" href="/app/">1 Monat kostenlos testen</a>
-        <a class="btn ghost" href="/app/">Einloggen</a>
+      <div class="hero-grid">
+        <div class="hero-copy">
+          <p class="eyebrow">FLEXR · Dating für Gym-People</p>
+          <h1>Dating für<br>Gym-People<br>in <em>Österreich</em></h1>
+          <p class="sub">
+            Finde Menschen, die Training genauso ernst nehmen wie du – in deinem
+            Gym und in deiner Nähe. Match. Train. Repeat.
+          </p>
+          <div class="cta-row">
+            <a class="btn" href="/app/">1 Monat kostenlos testen</a>
+            <a class="btn ghost" href="/app/">Einloggen</a>
+          </div>
+          <p class="cta-note">
+            Kostenlos registrieren, kein Zahlungsmittel nötig. Ab 18.
+          </p>
+        </div>
+
+        <div class="hero-visual" aria-hidden="true">
+          <div class="hero-profile hero-profile-back">
+            <img src="/brand/demo/demo-maximilian-v2.jpg?v=1" alt="" width="720" height="960">
+          </div>
+          <div class="hero-profile hero-profile-mid">
+            <img src="/brand/demo/demo-viktoria-v2.jpg?v=1" alt="" width="720" height="960">
+          </div>
+          <div class="hero-profile hero-profile-main">
+            <img src="/brand/demo/demo-hannah-v2.jpg?v=1" alt="" width="720" height="960" fetchpriority="high">
+            <div class="hero-profile-info">
+              <b>Hannah, 27</b>
+              <span>Krafttraining · Wien</span>
+            </div>
+          </div>
+          <div class="hero-match-badge">In deiner Nähe</div>
+          <div class="hero-actions">
+            <span class="hero-action hero-action-nope">×</span>
+            <span class="hero-action hero-action-like">♥</span>
+          </div>
+        </div>
       </div>
-      <p class="cta-note">
-        Kostenlos registrieren, kein Zahlungsmittel nötig. Ab 18.
-      </p>
+
       <ul class="usps">
         <li>Matches nach Gym und Umkreis — nicht am anderen Ende Österreichs</li>
         <li>1 Monat gratis, danach entscheidest du selbst — <b>nichts wird automatisch abgebucht</b></li>
@@ -521,30 +633,30 @@ footer{ border-top:1px solid var(--steel); padding:32px 0 60px; margin-top:20px;
             <div class="sample-photo"><img src="/brand/demo/demo-emi-v2.jpg?v=1" alt="" loading="lazy" width="720" height="960"><div class="sample-photo-bars"><i></i><i></i><i></i></div><div class="sample-name">Emi, 29<span>Linz · Holmes Place</span></div></div>
             <div class="sample-card-body"><div class="sample-chip-row"><span class="sample-chip">Holmes Place</span></div><p>Pull Days, Sushi nach dem Training und klare Trainingspläne.</p></div>
           </article>
-          <article class="sample-profile-card" tabindex="-1" aria-label="Zeynep, 27, Fitinn Wien">
+          <article class="sample-profile-card" tabindex="-1" aria-label="Hannah, 27, Fitinn Wien">
             <div class="sample-stamp pass">Nope</div><div class="sample-stamp like">Match</div>
-            <div class="sample-photo"><img src="/brand/demo/demo-zeynep-v2.jpg?v=1" alt="" loading="lazy" width="720" height="960"><div class="sample-photo-bars"><i></i><i></i><i></i></div><div class="sample-name">Zeynep, 27<span>Wien · Fitinn</span></div></div>
-            <div class="sample-card-body"><div class="sample-chip-row"><span class="sample-chip">Fitinn Wien</span></div><p>Sled Pushes, Functional Fitness und Berge statt Laufband.</p></div>
+            <div class="sample-photo"><img src="/brand/demo/demo-hannah-v2.jpg?v=1" alt="" loading="lazy" width="720" height="960"><div class="sample-photo-bars"><i></i><i></i><i></i></div><div class="sample-name">Hannah, 27<span>Wien · Fitinn</span></div></div>
+            <div class="sample-card-body"><div class="sample-chip-row"><span class="sample-chip">Fitinn Wien</span></div><p>Langhantel, Leg Days und Kaffee an der Donau.</p></div>
           </article>
           <article class="sample-profile-card" tabindex="-1" aria-label="Laura, 30, John Harris Salzburg">
             <div class="sample-stamp pass">Nope</div><div class="sample-stamp like">Match</div>
             <div class="sample-photo"><img src="/brand/demo/demo-laura-v2.jpg?v=1" alt="" loading="lazy" width="720" height="960"><div class="sample-photo-bars"><i></i><i></i><i></i></div><div class="sample-name">Laura, 30<span>Salzburg · John Harris</span></div></div>
             <div class="sample-card-body"><div class="sample-chip-row"><span class="sample-chip">John Harris</span></div><p>Intervalle, Halbmarathons und Frühstück nach dem Early-Bird-Workout.</p></div>
           </article>
-          <article class="sample-profile-card" tabindex="-1" aria-label="Amara, 30, Clever Fit Graz">
+          <article class="sample-profile-card" tabindex="-1" aria-label="Theresa, 26, FitOne Innsbruck">
             <div class="sample-stamp pass">Nope</div><div class="sample-stamp like">Match</div>
-            <div class="sample-photo"><img src="/brand/demo/demo-amara-v2.jpg?v=1" alt="" loading="lazy" width="720" height="960"><div class="sample-photo-bars"><i></i><i></i><i></i></div><div class="sample-name">Amara, 30<span>Graz · Clever Fit</span></div></div>
-            <div class="sample-card-body"><div class="sample-chip-row"><span class="sample-chip">Clever Fit Graz</span></div><p>Boxen, Mobility und ein guter Kaffee nach der letzten Runde.</p></div>
+            <div class="sample-photo"><img src="/brand/demo/demo-theresa-v2.jpg?v=1" alt="" loading="lazy" width="720" height="960"><div class="sample-photo-bars"><i></i><i></i><i></i></div><div class="sample-name">Theresa, 26<span>Innsbruck · FitOne</span></div></div>
+            <div class="sample-card-body"><div class="sample-chip-row"><span class="sample-chip">FitOne Innsbruck</span></div><p>Squats, Bergtouren und Sonnenuntergänge über Tirol.</p></div>
           </article>
           <article class="sample-profile-card" tabindex="-1" aria-label="Maya, 26, Outdoor Workout Wien">
             <div class="sample-stamp pass">Nope</div><div class="sample-stamp like">Match</div>
             <div class="sample-photo"><img src="/brand/demo/demo-maya-v2.jpg?v=1" alt="" loading="lazy" width="720" height="960"><div class="sample-photo-bars"><i></i><i></i><i></i></div><div class="sample-name">Maya, 26<span>Wien · Outdoor Workout</span></div></div>
             <div class="sample-card-body"><div class="sample-chip-row"><span class="sample-chip">Outdoor Workout</span></div><p>Calisthenics, Sonnenuntergänge und Trainings draußen.</p></div>
           </article>
-          <article class="sample-profile-card" tabindex="-1" aria-label="Priya, 31, HappyFit Linz">
+          <article class="sample-profile-card" tabindex="-1" aria-label="Viktoria, 29, MyGym Salzburg">
             <div class="sample-stamp pass">Nope</div><div class="sample-stamp like">Match</div>
-            <div class="sample-photo"><img src="/brand/demo/demo-priya-v2.jpg?v=1" alt="" loading="lazy" width="720" height="960"><div class="sample-photo-bars"><i></i><i></i><i></i></div><div class="sample-name">Priya, 31<span>Linz · HappyFit</span></div></div>
-            <div class="sample-card-body"><div class="sample-chip-row"><span class="sample-chip">HappyFit Linz</span></div><p>Deadlifts, Technik und entspanntes Kochen am Wochenende.</p></div>
+            <div class="sample-photo"><img src="/brand/demo/demo-viktoria-v2.jpg?v=1" alt="" loading="lazy" width="720" height="960"><div class="sample-photo-bars"><i></i><i></i><i></i></div><div class="sample-name">Viktoria, 29<span>Salzburg · MyGym</span></div></div>
+            <div class="sample-card-body"><div class="sample-chip-row"><span class="sample-chip">MyGym Salzburg</span></div><p>Functional Fitness, Skitage und Early-Bird-Workouts.</p></div>
           </article>
           <article class="sample-profile-card" tabindex="-1" aria-label="Katharina, 32, FitOne Innsbruck">
             <div class="sample-stamp pass">Nope</div><div class="sample-stamp like">Match</div>
@@ -586,15 +698,15 @@ footer{ border-top:1px solid var(--steel); padding:32px 0 60px; margin-top:20px;
             <div class="sample-photo"><img src="/brand/demo/demo-felix-v2.jpg?v=1" alt="" loading="lazy" width="720" height="960"><div class="sample-photo-bars"><i></i><i></i><i></i></div><div class="sample-name">Felix, 32<span>Innsbruck · FitOne</span></div></div>
             <div class="sample-card-body"><div class="sample-chip-row"><span class="sample-chip">FitOne Innsbruck</span></div><p>Intervalle, Trail Runs und Espresso vor sieben.</p></div>
           </article>
-          <article class="sample-profile-card" tabindex="-1" aria-label="Mateo, 26, Clever Fit Graz">
+          <article class="sample-profile-card" tabindex="-1" aria-label="Maximilian, 30, McFit Graz">
             <div class="sample-stamp pass">Nope</div><div class="sample-stamp like">Match</div>
-            <div class="sample-photo"><img src="/brand/demo/demo-mateo-v2.jpg?v=1" alt="" loading="lazy" width="720" height="960"><div class="sample-photo-bars"><i></i><i></i><i></i></div><div class="sample-name">Mateo, 26<span>Graz · Clever Fit</span></div></div>
-            <div class="sample-card-body"><div class="sample-chip-row"><span class="sample-chip">Clever Fit Graz</span></div><p>Boxen, Krafttraining und Salsa am Wochenende.</p></div>
+            <div class="sample-photo"><img src="/brand/demo/demo-maximilian-v2.jpg?v=1" alt="" loading="lazy" width="720" height="960"><div class="sample-photo-bars"><i></i><i></i><i></i></div><div class="sample-name">Maximilian, 30<span>Graz · McFit</span></div></div>
+            <div class="sample-card-body"><div class="sample-chip-row"><span class="sample-chip">McFit Graz</span></div><p>Schwere Grundübungen, Wandern und Espresso nach dem Training.</p></div>
           </article>
-          <article class="sample-profile-card" tabindex="-1" aria-label="Arjun, 31, HappyFit Linz">
+          <article class="sample-profile-card" tabindex="-1" aria-label="Fabian, 28, Das Gym Wien">
             <div class="sample-stamp pass">Nope</div><div class="sample-stamp like">Match</div>
-            <div class="sample-photo"><img src="/brand/demo/demo-arjun-v2.jpg?v=1" alt="" loading="lazy" width="720" height="960"><div class="sample-photo-bars"><i></i><i></i><i></i></div><div class="sample-name">Arjun, 31<span>Linz · HappyFit</span></div></div>
-            <div class="sample-card-body"><div class="sample-chip-row"><span class="sample-chip">HappyFit Linz</span></div><p>Rudern, Technik und gute Bücher nach dem Training.</p></div>
+            <div class="sample-photo"><img src="/brand/demo/demo-fabian-v2.jpg?v=1" alt="" loading="lazy" width="720" height="960"><div class="sample-photo-bars"><i></i><i></i><i></i></div><div class="sample-name">Fabian, 28<span>Wien · Das Gym</span></div></div>
+            <div class="sample-card-body"><div class="sample-chip-row"><span class="sample-chip">Das Gym Wien</span></div><p>Shoulder Day, Donauinsel und aktive Wochenenden.</p></div>
           </article>
           <article class="sample-profile-card" tabindex="-1" aria-label="Noah, 27, Outdoor Workout Wien">
             <div class="sample-stamp pass">Nope</div><div class="sample-stamp like">Match</div>

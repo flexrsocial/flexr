@@ -129,8 +129,14 @@ fun ChatScreen(
             isVerified = match?.profile?.isVerified == true,
             avatarUrl = match?.profile?.primaryPhoto?.avatarUrl,
             onBack = onBack,
-            onReport = { showReportDialog = true },
-            onBlock = { showBlockDialog = true },
+            onReport = {
+                showMenu = false
+                showReportDialog = true
+            },
+            onBlock = {
+                showMenu = false
+                showBlockDialog = true
+            },
             menuExpanded = showMenu,
             onMenuToggle = { showMenu = !showMenu },
             onClearHistory = {
@@ -279,22 +285,6 @@ private fun ChatHeader(
                     VerifiedBadge(size = 14)
                 }
             }
-            IconButton(onClick = onReport, modifier = Modifier.size(34.dp)) {
-                Icon(
-                    FlexrIcons.Report,
-                    contentDescription = "Melden",
-                    tint = colors.chalkDim,
-                    modifier = Modifier.size(17.dp),
-                )
-            }
-            IconButton(onClick = onBlock, modifier = Modifier.size(34.dp)) {
-                Icon(
-                    FlexrIcons.Block,
-                    contentDescription = "Blockieren",
-                    tint = colors.chalkDim,
-                    modifier = Modifier.size(17.dp),
-                )
-            }
             Box {
                 IconButton(onClick = onMenuToggle, modifier = Modifier.size(34.dp)) {
                     Icon(
@@ -309,6 +299,28 @@ private fun ChatHeader(
                     onDismissRequest = onMenuToggle,
                     containerColor = colors.surface2,
                 ) {
+                    DropdownMenuItem(
+                        text = { Text("Melden", color = colors.chalk) },
+                        onClick = onReport,
+                        leadingIcon = {
+                            Icon(
+                                FlexrIcons.Report,
+                                contentDescription = null,
+                                tint = colors.chalkDim,
+                            )
+                        },
+                    )
+                    DropdownMenuItem(
+                        text = { Text("Blockieren", color = colors.chalk) },
+                        onClick = onBlock,
+                        leadingIcon = {
+                            Icon(
+                                FlexrIcons.Block,
+                                contentDescription = null,
+                                tint = colors.chalkDim,
+                            )
+                        },
+                    )
                     DropdownMenuItem(
                         text = { Text("Chatverlauf leeren", color = colors.chalk) },
                         onClick = onClearHistory,

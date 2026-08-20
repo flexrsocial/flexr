@@ -188,13 +188,13 @@ fun PhotoVisibilityHint(
     val colors = FlexrTheme.colors
     val (text, warn) = when {
         photoStatuses.isEmpty() ->
-            "Lade mindestens ein Foto hoch — ohne Foto ist dein Profil in der Suche nicht sichtbar." to true
+            "Mindestens ein Foto ist nötig, damit dein Profil sichtbar ist." to true
         photoStatuses.any { it == PhotoStatus.APPROVED } ->
-            "Dein Profil ist in der Suche sichtbar. Neue Fotos werden vor der Anzeige geprüft." to false
+            "Dein Profil ist sichtbar. Neue Fotos werden kurz geprüft." to false
         photoStatuses.any { it == PhotoStatus.PENDING } ->
-            "Deine Fotos werden gerade geprüft. Sobald mindestens eines freigegeben ist, erscheinst du in der Suche." to true
+            "Dein Foto wird geprüft." to true
         else ->
-            "Deine Fotos wurden abgelehnt. Bitte lade ein anderes Foto hoch, um in der Suche zu erscheinen." to true
+            "Foto abgelehnt. Bitte lade ein anderes hoch." to true
     }
 
     Text(

@@ -188,6 +188,7 @@ def test_admin_entscheidet_mit_begruendung(client, admin_headers, monkeypatch):
 def test_entschiedene_meldung_faellt_aus_der_offenen_liste(client, admin_headers):
     client.post("/api/notices", json=_notice())
     notice_id = client.get("/api/admin/notices", headers=admin_headers).json()[0]["id"]
+    assert client.get("/api/admin/stats", headers=admin_headers).json()["open_notices"] == 1
 
     client.post(
         f"/api/admin/notices/{notice_id}/decide",
@@ -196,6 +197,7 @@ def test_entschiedene_meldung_faellt_aus_der_offenen_liste(client, admin_headers
     )
 
     assert client.get("/api/admin/notices", headers=admin_headers).json() == []
+    assert client.get("/api/admin/stats", headers=admin_headers).json()["open_notices"] == 0
     alle = client.get("/api/admin/notices?open_only=false", headers=admin_headers).json()
     assert len(alle) == 1
 

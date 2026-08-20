@@ -87,6 +87,7 @@ def get_stats(
     banned_users = db.query(func.count(User.id)).filter(User.is_banned.is_(True)).scalar()
     pending_photos = db.query(func.count(Photo.id)).filter(Photo.status == PhotoStatus.pending).scalar()
     open_reports = db.query(func.count(Report.id)).filter(Report.dismissed_at.is_(None)).scalar()
+    open_notices = db.query(func.count(Notice.id)).filter(Notice.decided_at.is_(None)).scalar()
     pending_verifications = (
         db.query(func.count(VerificationRequest.id))
         .filter(VerificationRequest.status == VerificationStatus.submitted)
@@ -120,6 +121,7 @@ def get_stats(
         banned_users=banned_users,
         pending_photos=pending_photos,
         open_reports=open_reports,
+        open_notices=open_notices,
         pending_verifications=pending_verifications,
         pending_verification_cleanups=pending_verification_cleanups,
         flagged_messages=flagged_messages,
