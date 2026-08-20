@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="de-AT">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -129,6 +129,13 @@ body{
      schmalen Displays keinen horizontalen Seiten-Scroll erzeugen. */
   overflow-x:hidden;
 }
+.skip-link{
+  position:fixed; z-index:1000; left:16px; top:12px;
+  padding:10px 14px; border-radius:8px;
+  color:var(--ink); background:var(--lime); font-weight:700;
+  transform:translateY(-160%); transition:transform .15s ease;
+}
+.skip-link:focus{ transform:translateY(0); color:var(--ink); }
 .wrap{ max-width:880px; margin:0 auto; padding:0 20px; }
 
 a{ color:var(--plate); }
@@ -434,6 +441,7 @@ footer{ border-top:1px solid var(--steel); padding:32px 0 60px; margin-top:20px;
 </style>
 </head>
 <body>
+<a class="skip-link" href="#main-content">Zum Inhalt springen</a>
 
 <header class="top">
   <div class="wrap" style="display:flex; align-items:center; justify-content:space-between; width:100%;">
@@ -449,7 +457,7 @@ footer{ border-top:1px solid var(--steel); padding:32px 0 60px; margin-top:20px;
   </div>
 </header>
 
-<main>
+<main id="main-content">
   <div class="wrap">
 
     <div class="hero">
@@ -958,23 +966,11 @@ footer{ border-top:1px solid var(--steel); padding:32px 0 60px; margin-top:20px;
 <script>
 (function(){
   // Diese Seite ist die oeffentliche Landingpage; die App liegt unter /app/.
-  //
-  // Zwei Faelle fangen wir hier ab, damit die Trennung niemanden aussperrt:
-  //
-  // 1. Unbekannte Pfade. nginx liefert fuer alles, was keine Datei ist, diese
-  //    Seite aus (try_files ... /index.html). Der Bestaetigungslink aus der
-  //    Registrierungsmail zeigt auf /mail-bestaetigen?token=... und landet
-  //    damit hier. Er wird samt Query an die App weitergereicht.
-  //
-  // 2. Angemeldete Besucher. Wer ein Token hat, will die App, nicht das
-  //    Marketing. Suchmaschinen haben nie ein Token und sehen deshalb immer
-  //    diese Seite - die Weiterleitung ist kein Cloaking.
+  // Angemeldete Besucher wollen die App, nicht das Marketing. Suchmaschinen
+  // haben nie ein Token und sehen deshalb immer diese Seite - die Weiterleitung
+  // ist kein Cloaking. Unbekannte Pfade behandelt nginx als echte 404;
+  // /mail-bestaetigen ist dort der einzige explizite Rueckfall auf die App.
   try {
-    var pfad = location.pathname;
-    if (pfad !== '/' && pfad !== '/index.html') {
-      location.replace('/app' + pfad + location.search + location.hash);
-      return;
-    }
     if (localStorage.getItem('flexr_token')) {
       location.replace('/app/');
     }

@@ -1,8 +1,9 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="de-AT">
 <head>
 <meta charset="UTF-8">
-<title>FLEXR — App</title>
+<title>FLEXR — Dating-App für Gym-People</title>
+<meta name="description" content="Bei FLEXR anmelden oder kostenlos registrieren: Dating für Gym-People mit Matches nach Fitnessstudio und Umkreis in Österreich.">
 <!-- Die Web-App gehoert nicht in den Index: Login, Registrierung, Profile,
      Chats und Konto haben keinen Suchwert, und ihre Inhalte sind ohnehin nur
      angemeldet erreichbar. Die indexierbare Seite ist die Landingpage unter /.
@@ -66,6 +67,13 @@
   /* Kein horizontales Scrollen - die Swipe-Fly-off-Animationen schieben
      Karten kurzzeitig weit über den rechten/linken Rand hinaus */
   html, body{ overflow-x:hidden; }
+  .skip-link{
+    position:fixed; z-index:10000; left:16px; top:12px;
+    padding:10px 14px; border-radius:8px;
+    color:var(--ink); background:var(--lime); font-weight:700;
+    transform:translateY(-160%); transition:transform .15s ease;
+  }
+  .skip-link:focus{ transform:translateY(0); color:var(--ink); }
   body{
     background:var(--ink);
     color:var(--chalk);
@@ -1529,6 +1537,7 @@
   // an einem await auf /api/me, und der Parser hat den Hero laengst gemalt.
   if(localStorage.getItem('flexr_token')) document.body.classList.remove('landing');
 </script>
+<a class="skip-link" href="#main-content">Zum Inhalt springen</a>
 <div class="app" id="app">
 
   <header class="top">
@@ -1536,7 +1545,7 @@
     <div class="status-pill" id="statusPill">—</div>
   </header>
 
-  <main>
+  <main id="main-content">
 
     <!-- LANDING-HERO (nur sichtbar im Landing-Modus, d.h. ausgeloggt) -->
     <div class="landing-hero">
@@ -1567,19 +1576,19 @@
           <div class="hero-demo-card" tabindex="-1">
             <div class="hero-demo-stamp pass">Nope</div>
             <div class="hero-demo-stamp like">Match</div>
-            <img src="/brand/demo/demo-julia.jpg?v=1" alt="" loading="lazy">
+            <img src="/brand/demo/demo-julia.jpg?v=1" alt="" loading="lazy" width="720" height="960">
             <div class="hero-demo-name"><b>Julia, 25</b><span>Holmes Place Linz</span></div>
           </div>
           <div class="hero-demo-card" tabindex="-1">
             <div class="hero-demo-stamp pass">Nope</div>
             <div class="hero-demo-stamp like">Match</div>
-            <img src="/brand/demo/demo-tobias.jpg?v=1" alt="" loading="lazy">
+            <img src="/brand/demo/demo-tobias.jpg?v=1" alt="" loading="lazy" width="720" height="960">
             <div class="hero-demo-name"><b>Tobias, 28</b><span>John Harris Salzburg</span></div>
           </div>
           <div class="hero-demo-card" tabindex="-1">
             <div class="hero-demo-stamp pass">Nope</div>
             <div class="hero-demo-stamp like">Match</div>
-            <img src="/brand/demo/demo-lena.jpg?v=1" alt="" loading="lazy">
+            <img src="/brand/demo/demo-lena.jpg?v=1" alt="" loading="lazy" width="720" height="960">
             <div class="hero-demo-name"><b>Lena, 26</b><span>FitOne Innsbruck</span></div>
           </div>
           <div class="hero-demo-card" tabindex="-1">
@@ -5595,14 +5604,12 @@
   }
 
   // ---------- E-Mail-Bestätigung über den Link aus der Mail ----------
-  // Der Link zeigt auf /mail-bestaetigen?token=… . nginx liefert dafür diese
-  // Seite aus (try_files … /index.html), die den Token gegen die API einlöst.
+  // Der Link zeigt auf /mail-bestaetigen?token=… . nginx liefert fuer genau
+  // diesen Pfad die App-Shell aus, die den Token gegen die API einloest.
   // Absichtlich kein reiner GET-Endpunkt in der API: Linkscanner in
   // Mailservern folgen Links, die Bestätigung fände sonst ohne den Nutzer statt.
-  // Die App liegt seit dem 15.08.2026 unter /app/ - der Link aus der Mail
-  // zeigt aber weiter auf /mail-bestaetigen. Die Landingpage unter / leitet
-  // unbekannte Pfade samt Query hierher weiter, deshalb sind beide Formen
-  // gueltig.
+  // Die App liegt unter /app/, der kurze Root-Pfad bleibt fuer bestehende
+  // E-Mails und Android App Links erhalten. Beide Formen sind gueltig.
   const EMAIL_CONFIRM_PATHS = ['/mail-bestaetigen', '/app/mail-bestaetigen'];
 
   async function handleEmailConfirmLink(){

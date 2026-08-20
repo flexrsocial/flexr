@@ -9,7 +9,10 @@
   "orientation": "portrait",
   "background_color": "#121212",
   "theme_color": "#121212",
-  "lang": "de",
+  "lang": "de-AT",
+  "dir": "ltr",
+  "categories": ["social", "lifestyle"],
+  "prefer_related_applications": false,
   "icons": [
     {
       "src": "/icons/icon-192.png?v=4",

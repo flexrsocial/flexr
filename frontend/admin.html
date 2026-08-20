@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="de-AT">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -314,14 +314,14 @@
 <!-- LOGIN -->
 <div id="loginScreen">
   <div class="login-card">
-    <div class="brand">FLE<span>X</span>R <span style="color:var(--chalk-dim); font-weight:400;">Admin</span></div>
+    <h1 class="brand">FLE<span>X</span>R <span style="color:var(--chalk-dim); font-weight:400;">Admin</span></h1>
     <div class="sub">Interner Bereich — nur für Betreiber.</div>
-    <label>E-Mail</label>
-    <input type="text" id="l-email" placeholder="admin@flexr.social">
-    <label>Passwort</label>
-    <input type="password" id="l-password" placeholder="••••••••">
-    <div class="field-err" id="loginErr"></div>
-    <button class="btn full" id="btnLogin">Einloggen</button>
+    <label for="l-email">E-Mail</label>
+    <input type="email" id="l-email" placeholder="admin@flexr.social" autocomplete="username" inputmode="email">
+    <label for="l-password">Passwort</label>
+    <input type="password" id="l-password" placeholder="••••••••" autocomplete="current-password">
+    <div class="field-err" id="loginErr" role="alert" aria-live="polite"></div>
+    <button class="btn full" id="btnLogin" type="button">Einloggen</button>
   </div>
 </div>
 
