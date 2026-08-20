@@ -1640,11 +1640,6 @@
             <img src="/brand/demo/demo-noah-v2.jpg?v=1" alt="" loading="lazy" width="720" height="960">
             <div class="hero-demo-name"><b>Noah, 27</b><span>Outdoor Workout Wien</span></div>
           </div>
-          <div class="hero-demo-card" tabindex="0" aria-label="Samuel, 33, Injoy Klagenfurt. Mit den Pfeiltasten wischen.">
-            <div class="hero-demo-stamp pass">Nope</div><div class="hero-demo-stamp like">Match</div>
-            <img src="/brand/demo/demo-samuel-v2.jpg?v=1" alt="" loading="lazy" width="720" height="960">
-            <div class="hero-demo-name"><b>Samuel, 33</b><span>Injoy Klagenfurt</span></div>
-          </div>
         </div>
         <div class="hero-demo-actions">
           <button class="round-btn pass" type="button" data-demo-action="pass" aria-label="Beispielprofil ablehnen">
@@ -2350,6 +2345,15 @@
     function cards(){ return [...stack.querySelectorAll('.hero-demo-card')]; }
     function topCard(){ return stack.querySelector('.hero-demo-card:last-child'); }
 
+    function shuffleDeck(){
+      const shuffled = cards();
+      for(let index = shuffled.length - 1; index > 0; index--){
+        const randomIndex = Math.floor(Math.random() * (index + 1));
+        [shuffled[index], shuffled[randomIndex]] = [shuffled[randomIndex], shuffled[index]];
+      }
+      shuffled.forEach(card => stack.appendChild(card));
+    }
+
     function clearStamps(card){
       card.querySelectorAll('.hero-demo-stamp').forEach(stamp => { stamp.style.opacity = 0; });
     }
@@ -2473,6 +2477,8 @@
       }
     });
 
+    /* Jeder Seitenaufruf beginnt mit einer neuen, echten Zufallsreihenfolge. */
+    shuffleDeck();
     arrangeCards();
   }
   initHeroDemo();
