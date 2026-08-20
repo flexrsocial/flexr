@@ -2,9 +2,9 @@
 
 Stand: **20.08.2026**
 
-Produktstand: Commit `176fadb` auf `main`; das vorliegende Handoff folgt als
-reiner Dokumentationscommit. Der jeweils verbindliche Stand ist immer
-`git log -1 --oneline` auf `origin/main`.
+Produktstand vor diesem Dokumentationscommit: **`7b47740` auf `main`**. Das
+vorliegende Handoff folgt als reiner Dokumentationscommit. Der jeweils
+verbindliche Stand ist immer `git log -1 --oneline` auf `origin/main`.
 
 ## Kurzfassung
 
@@ -41,9 +41,21 @@ Nutzermails. Das neue signierte Android App Bundle ist Version **2.4.1** mit
 
 ### Web-App und native Android-App
 
-- Konto-/Profilseiten sind auf die wesentlichen Nutzeraktionen reduziert.
-- Datenschutz, Meldungen und Rechtliches sind weiterhin erreichbar, aber als
-  sekundäre Bereiche gebündelt.
+- Die Web-App-Profilseite verwendet wieder das offene Ursprungsdesign: Profil,
+  Fotos und Konto stehen dauerhaft untereinander und der Screen scrollt als
+  Ganzes. Keine Aufklappregister wieder einführen; sie blockierten auf manchen
+  Geräten das Scrollen.
+- Der Mitgliedschaftshinweis ist ein eigener ruhiger Kasten. „Jetzt
+  abonnieren“ und „Datenschutz & Sicherheit“ erscheinen in FLEXR-Orange und
+  haben eigenen Abstand statt direkt am Fließtext zu kleben.
+- Der Widerruf einer DSGVO-Einwilligung bleibt im Konto direkt erreichbar
+  (Art. 7 Abs. 3 DSGVO), steht aber als eigene orange Aktion unter einer
+  Trennlinie. Nicht entfernen, ohne einen ebenso einfachen Ersatzweg zu bauen.
+- Unter „Rechtliches“ stehen kompakt Datenschutz, AGB, Rücktrittsrecht,
+  Nutzungsrichtlinien, Impressum und „Inhalt melden“. Nicht jede öffentliche
+  Informationsseite muss im Profil dupliziert werden.
+- Datenschutz, Meldungen und Rechtliches bleiben als sekundärer Bereich über
+  den Link unterhalb der Konto-Aktionen erreichbar.
 - Sicherheits- und Rechtshinweise wurden aus den Hauptabläufen herausgenommen,
   soweit sie nicht zwingend direkt sichtbar sein müssen.
 - Android bündelt die Rechts-/Sicherheitslinks in einem Dialog; Melden und
@@ -62,10 +74,32 @@ Nutzermails. Das neue signierte Android App Bundle ist Version **2.4.1** mit
 - Nutzer-, Foto-, Verifizierungs-, Melde-, Sperr- und Gym-Abläufe wurden mit
   ausschließlich synthetischen QA-Konten produktiv geprüft.
 
+### SEO, Auslieferung und Barrierefreiheit
+
+- Alle zehn indexierbaren Seiten verwenden `lang="de-AT"`, Canonicals,
+  Beschreibungen, Open-Graph-Metadaten, genau einen Hauptinhalt und einen
+  Tastatur-Sprunglink.
+- Die Sitemap enthält nur die öffentlichen kanonischen Seiten und wurde mit
+  `lastmod` 20.08.2026 aktualisiert.
+- Unbekannte URLs liefern jetzt einen echten HTTP-404-Status mit gebrandeter
+  Fehlerseite statt der Landingpage als Soft-404.
+- `/mail-bestaetigen` bleibt als expliziter App-Deep-Link erreichbar und trägt
+  `X-Robots-Tag: noindex, nofollow`.
+- Demo-Profilbilder werden langfristig und unveränderlich gecacht. Der Service
+  Worker cached weder Nutzerfotos unter `/photos/` noch AAB-Downloads unter
+  `/dl-*`.
+- Breite Tabellen in den Rechtsseiten scrollen mobil in ihrem eigenen Bereich;
+  die Seite selbst hat bei 390 Pixeln keinen horizontalen Overflow.
+- Die aktive Nginx-Datei wurde gezielt angepasst, nicht mit der Repository-
+  Vorlage überschrieben. Backup auf dem VPS:
+  `/etc/nginx/sites-available/flexr.social.bak-a9a3faf`.
+
 ## Test- und Produktionsstatus
 
 - Backend: effektiv **337 Tests grün**; zusätzlich liefen die 30 direkt
   betroffenen Admin-/DSA-Tests nochmals erfolgreich.
+- Die aktuelle Frontend-Auslieferung ist zusätzlich durch **7 statische
+  Regressionstests** in `backend/tests/test_public_frontend.py` abgesichert.
 - Android: **45 Release-Unit-Tests grün**.
 - Android: `bundleProdRelease` erfolgreich, Bundle mit dem bestehenden
   FLEXR-Upload-Key signiert; Zertifikat-Fingerprint stimmt mit dem Keystore
@@ -78,6 +112,9 @@ Nutzermails. Das neue signierte Android App Bundle ist Version **2.4.1** mit
 - VPS-API ist aktiv und `/api/health` antwortet mit `{"status":"ok"}`.
 - Landingpage, App-Seite, alle fünf neuen Bilder und der öffentliche
   AAB-Download wurden nach dem Deploy mit HTTP 200 geprüft.
+- Nach dem letzten Profil-Deploy wurden bei 390 Pixeln Markenfarben,
+  Abstände, sechs Rechtstextlinks, fehlender horizontaler Overflow und das
+  offene Profil ohne Aufklappregister live geprüft. Nginx und API waren aktiv.
 
 ## Noch offen / bewusst nicht produktiv ausgelöst
 
@@ -90,6 +127,11 @@ Nutzermails. Das neue signierte Android App Bundle ist Version **2.4.1** mit
    beachten: Data-Safety-Angaben, Kamera/Ausweisfotos und Deep Links prüfen.
 4. Die Rechtstexte wurden technisch und inhaltlich bereinigt, ersetzen aber
    keine abschließende Prüfung durch eine österreichische Rechtsberatung.
+5. In der Google Search Console prüfen, ob
+   `https://flexr.social/sitemap.xml` den Status „Erfolgreich“ hat. Für die
+   Startseite einmal „Live-URL testen“ und „Indexierung beantragen“. Falls dort
+   noch ein Soft-404-Problem gemeldet wird, nach dem neuen echten 404-Verhalten
+   „Fehlerbehebung überprüfen“ starten.
 
 ## Auf einem anderen Gerät starten
 
@@ -129,6 +171,13 @@ cd backend
 python3 -m venv venv
 venv/bin/pip install -r requirements-dev.txt
 venv/bin/python -m pytest
+```
+
+Schneller statischer Frontend-/SEO-Test ohne laufende Datenbank:
+
+```bash
+cd backend
+venv/bin/python -m pytest tests/test_public_frontend.py -q
 ```
 
 Android benötigt JDK 17, Android SDK Platform 36 und Build Tools 36.0.0:
@@ -184,6 +233,12 @@ Download ebenfalls prüfen.
 
 ## Erinnerung für die nächste Sitzung
 
+- Zuerst `git pull --ff-only origin main` und dieses Handoff vollständig lesen.
+- Web-App-Profil nicht wieder in Aufklappregister umbauen; offenes Layout und
+  Scrollregel sind absichtlich durch einen Regressionstest geschützt.
+- Bei Änderungen am Konto die Darstellung zusätzlich bei 390 × 844 Pixeln
+  prüfen: orange Aktionen, Abstände, vertikales Scrollen und kein horizontaler
+  Overflow.
 - Zuerst auf einem echten Android-Gerät bzw. im internen Play-Testtrack testen.
 - Danach kontrollierten Stripe-Testcheckout durchführen.
 - Anschließend AAB 2.4.1 in die Play Console laden und Data Safety/Deep Links
