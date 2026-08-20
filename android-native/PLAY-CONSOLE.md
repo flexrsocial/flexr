@@ -1,10 +1,10 @@
 # Play Console — was beim nächsten Upload anzupassen ist
 
-Stand: Version `2.3.0`, versionCode **27** (Stand 15.08.2026).
+Stand: Version `2.4.1`, versionCode **29** (Stand 20.08.2026).
 
 **Der Sprung ist größer als eine Versionsnummer.** Im Play Store liegt weiterhin
 die alte TWA mit versionCode **5** — die native App wurde nie hochgeladen. Der
-nächste Upload springt also von 5 auf 27 und muss *alle* Änderungen an den
+nächste Upload springt also von 5 auf 29 und muss *alle* Änderungen an den
 Deklarationen mitbringen, die seitdem aufgelaufen sind. Dieses Dokument sammelt
 sie; nichts davon ist bereits in der Console eingetragen.
 
@@ -120,6 +120,8 @@ Angabe in der Console?**
 | 2.2.8 | Gesperrte Knöpfe wechseln die Farbe statt zu verblassen; Freischaltung wird auf dem Wartebildschirm erkannt | nein |
 | 2.2.9 | Foto-Upload direkt im Verifizierungs-Schirm; Namen, Bio und Nachrichten werden serverseitig getrimmt | nein |
 | 2.3.0 | E-Mail-Bestätigung per Aktivierungslink, als Android App Link | **nur Deep Links**, siehe unten |
+| 2.4.0 | Rechtstexte an den tatsächlichen Vertrags-, Zahlungs- und Datenschutzablauf angeglichen | Textangaben prüfen, keine neuen Datentypen |
+| 2.4.1 | Konto-, Chat- und Deck-Oberfläche vereinfacht; Telefon-/SMS-Prüfung aus den nativen Rechtstexten entfernt, Brevo ergänzt | Brevo muss als E-Mail-Dienstleister angegeben sein |
 
 **Zur E-Mail-Bestätigung:** Die Adresse wurde schon vorher erhoben und ist als
 Datentyp bereits deklariert. Neu ist allein der Weg — ein Link in einer Mail
@@ -160,13 +162,9 @@ beurteilen. Dafür eignet sich der interne Test-Track oder die Debug-Variante
 (`./gradlew :app:installProdDebug`), die als eigene App neben der
 Produktionsfassung installiert wird.
 
-**Die Oberfläche wurde bis heute auf keinem Gerät gesehen.** Weder auf dem
-vorigen noch auf dem aktuellen Arbeitsrechner gab es einen Emulator oder ein
-angeschlossenes Telefon; auf dem aktuellen fehlt sogar die Toolchain (kein JDK,
-kein Android-SDK, kein `adb`). Alles seit 2.0.x ist kompiliert und
-unit-getestet, aber nie visuell geprüft. Der interne Test-Track ist damit nicht
-optional, sondern der erste Blick auf die App überhaupt.
-
-Der Bundle-Bau und die Testläufe in diesem Abschnitt sind aus diesem Grund
-beim Stand 2.3.0 **nicht** nachgefahren worden — die Befehle stammen
-unverändert aus der Zeit, als die Toolchain vorhanden war.
+**Die Oberfläche wurde bis heute auf keinem physischen Gerät gesehen.** Auf dem
+Build-Rechner gab es weder Emulator noch angeschlossenes Telefon. Version 2.4.1
+wurde mit JDK 17, Android SDK 36 und Build Tools 36 kompiliert; alle 45
+Release-Unit-Tests sowie `bundleProdRelease` liefen am 20.08.2026 erfolgreich.
+Kamera, Bildlage und Schärfe der Ausweisaufnahme bleiben deshalb im internen
+Test-Track auf echter Hardware zu prüfen.

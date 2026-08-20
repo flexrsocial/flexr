@@ -1175,7 +1175,8 @@
     border-radius:12px; padding:11px 13px; font-size:12.5px; line-height:1.5;
     color:var(--chalk); box-shadow:0 14px 34px rgba(0,0,0,.5);
   }
-  .verify-badge-wrap:hover .verify-tooltip{ display:block; }
+  .verify-badge-wrap:hover .verify-tooltip,
+  .verify-badge-wrap:focus-within .verify-tooltip{ display:block; }
   /* Im Fließtext des Tooltips soll der Haken symmetrisch zwischen den Wörtern
      sitzen (der Standard-margin-left des Badges wirkt sonst nur einseitig) */
   .verify-tooltip .verified-badge{ margin:0 .1em; }
@@ -1399,6 +1400,42 @@
   }
   .account-footer-link button:hover{ color:var(--plate); }
 
+  /* Im Konto ist die Uebersicht der Normalfall, nicht das Bearbeiten. Die
+     seltenen Formulare liegen deshalb in nativen, tastaturbedienbaren
+     Aufklappern. So bleibt der erste Blick ruhig, ohne Funktionen oder
+     rechtlich erforderliche Zugaenge zu verstecken. */
+  .account-disclosure{
+    margin:0 0 12px; border:1px solid var(--hairline); border-radius:14px;
+    background:rgba(255,255,255,.015); overflow:hidden;
+  }
+  .account-disclosure > summary{
+    list-style:none; display:flex; align-items:center; gap:12px; cursor:pointer;
+    padding:15px 16px; color:var(--chalk); user-select:none;
+  }
+  .account-disclosure > summary::-webkit-details-marker{ display:none; }
+  .account-disclosure > summary::after{
+    content:'›'; margin-left:auto; color:var(--chalk-dim); font-size:24px;
+    line-height:1; transform:rotate(90deg); transition:transform .16s ease;
+  }
+  .account-disclosure[open] > summary::after{ transform:rotate(-90deg); }
+  .account-disclosure > summary:hover{ background:rgba(255,255,255,.025); }
+  .account-disclosure > summary:focus-visible{ outline:2px solid var(--plate); outline-offset:-2px; }
+  .account-disclosure-title{ font-weight:600; font-size:14.5px; }
+  .account-disclosure-meta{ display:block; margin-top:2px; color:var(--chalk-dim); font-size:12px; }
+  .account-disclosure-body{ padding:0 16px 18px; border-top:1px solid var(--hairline); }
+  .account-disclosure-body > label:first-child{ margin-top:16px; }
+  .account-disclosure-body .account-section{ margin:16px 0 0; }
+  .account-disclosure.danger-zone{ margin-top:22px; background:transparent; }
+  .account-disclosure.danger-zone .danger-ghost{ margin-bottom:0; }
+  .privacy-disclosure{ margin-bottom:12px; }
+  .privacy-disclosure .account-disclosure-body{ padding-top:14px; }
+  .privacy-legal-links{ display:grid; grid-template-columns:1fr 1fr; gap:8px 14px; }
+  .privacy-legal-links a:link, .privacy-legal-links a:visited{
+    color:var(--chalk-dim); font-size:13px; text-decoration:none;
+  }
+  .privacy-legal-links a:hover{ color:var(--plate); }
+  @media (max-width:420px){ .privacy-legal-links{ grid-template-columns:1fr; } }
+
   .price-card{
     background:linear-gradient(180deg, rgba(255,90,31,.07), rgba(26,26,26,0) 45%), linear-gradient(180deg, #1f1f1f, #191919);
     border:1px solid rgba(255,90,31,.35); border-radius:18px; padding:24px 20px 22px; text-align:center;
@@ -1562,8 +1599,8 @@
           </div>
           <div class="hero-demo-card" tabindex="-1">
             <div class="hero-demo-stamp pass">Nope</div><div class="hero-demo-stamp like">Match</div>
-            <img src="/brand/demo/demo-zeynep-v2.jpg?v=1" alt="" loading="lazy" width="720" height="960">
-            <div class="hero-demo-name"><b>Zeynep, 27</b><span>Fitinn Wien</span></div>
+            <img src="/brand/demo/demo-hannah-v2.jpg?v=1" alt="" loading="lazy" width="720" height="960">
+            <div class="hero-demo-name"><b>Hannah, 27</b><span>Fitinn Wien</span></div>
           </div>
           <div class="hero-demo-card" tabindex="-1">
             <div class="hero-demo-stamp pass">Nope</div><div class="hero-demo-stamp like">Match</div>
@@ -1572,8 +1609,8 @@
           </div>
           <div class="hero-demo-card" tabindex="-1">
             <div class="hero-demo-stamp pass">Nope</div><div class="hero-demo-stamp like">Match</div>
-            <img src="/brand/demo/demo-amara-v2.jpg?v=1" alt="" loading="lazy" width="720" height="960">
-            <div class="hero-demo-name"><b>Amara, 30</b><span>Clever Fit Graz</span></div>
+            <img src="/brand/demo/demo-theresa-v2.jpg?v=1" alt="" loading="lazy" width="720" height="960">
+            <div class="hero-demo-name"><b>Theresa, 26</b><span>FitOne Innsbruck</span></div>
           </div>
           <div class="hero-demo-card" tabindex="-1">
             <div class="hero-demo-stamp pass">Nope</div><div class="hero-demo-stamp like">Match</div>
@@ -1582,8 +1619,8 @@
           </div>
           <div class="hero-demo-card" tabindex="-1">
             <div class="hero-demo-stamp pass">Nope</div><div class="hero-demo-stamp like">Match</div>
-            <img src="/brand/demo/demo-priya-v2.jpg?v=1" alt="" loading="lazy" width="720" height="960">
-            <div class="hero-demo-name"><b>Priya, 31</b><span>HappyFit Linz</span></div>
+            <img src="/brand/demo/demo-viktoria-v2.jpg?v=1" alt="" loading="lazy" width="720" height="960">
+            <div class="hero-demo-name"><b>Viktoria, 29</b><span>MyGym Salzburg</span></div>
           </div>
           <div class="hero-demo-card" tabindex="-1">
             <div class="hero-demo-stamp pass">Nope</div><div class="hero-demo-stamp like">Match</div>
@@ -1627,13 +1664,13 @@
           </div>
           <div class="hero-demo-card" tabindex="-1">
             <div class="hero-demo-stamp pass">Nope</div><div class="hero-demo-stamp like">Match</div>
-            <img src="/brand/demo/demo-mateo-v2.jpg?v=1" alt="" loading="lazy" width="720" height="960">
-            <div class="hero-demo-name"><b>Mateo, 26</b><span>Clever Fit Graz</span></div>
+            <img src="/brand/demo/demo-maximilian-v2.jpg?v=1" alt="" loading="lazy" width="720" height="960">
+            <div class="hero-demo-name"><b>Maximilian, 30</b><span>McFit Graz</span></div>
           </div>
           <div class="hero-demo-card" tabindex="-1">
             <div class="hero-demo-stamp pass">Nope</div><div class="hero-demo-stamp like">Match</div>
-            <img src="/brand/demo/demo-arjun-v2.jpg?v=1" alt="" loading="lazy" width="720" height="960">
-            <div class="hero-demo-name"><b>Arjun, 31</b><span>HappyFit Linz</span></div>
+            <img src="/brand/demo/demo-fabian-v2.jpg?v=1" alt="" loading="lazy" width="720" height="960">
+            <div class="hero-demo-name"><b>Fabian, 28</b><span>Das Gym Wien</span></div>
           </div>
           <div class="hero-demo-card" tabindex="-1">
             <div class="hero-demo-stamp pass">Nope</div><div class="hero-demo-stamp like">Match</div>
@@ -1663,10 +1700,10 @@
       <h1 class="headline">Zurück ins<br>Gym-Date.</h1>
       <p class="sub">Melde dich mit deinen Zugangsdaten an.</p>
 
-      <label>E-Mail</label>
-      <input type="text" id="l-email" placeholder="max@example.com">
-      <label>Passwort</label>
-      <input type="password" id="l-password" placeholder="••••••••">
+      <label for="l-email">E-Mail</label>
+      <input type="email" id="l-email" placeholder="max@example.com" autocomplete="username" inputmode="email">
+      <label for="l-password">Passwort</label>
+      <input type="password" id="l-password" placeholder="••••••••" autocomplete="current-password">
       <div class="field-err" id="loginErr"></div>
       <button class="btn" id="btnLogin">Einloggen</button>
     </section>
@@ -1681,26 +1718,26 @@
       <h1 class="headline">Dating für Leute,<br>die auch Montags<br>Beintag machen.</h1>
       <p class="sub">Erstell dein Profil — kostenlos. Danach 1 Monat gratis testen; ob du für 5&nbsp;€/Monat weitermachst, entscheidest du selbst. Es wird jetzt kein Zahlungsmittel abgefragt. Aktuell nur in Österreich verfügbar.</p>
 
-      <label>E-Mail</label>
-      <input type="text" id="f-email" placeholder="max@example.com">
-      <label>Passwort</label>
+      <label for="f-email">E-Mail</label>
+      <input type="email" id="f-email" placeholder="max@example.com" autocomplete="email" inputmode="email">
+      <label for="f-password">Passwort</label>
       <input type="password" id="f-password" placeholder="Mind. 8 Zeichen" autocomplete="new-password">
-      <label>Passwort wiederholen</label>
+      <label for="f-password2">Passwort wiederholen</label>
       <input type="password" id="f-password2" placeholder="Passwort erneut eingeben" autocomplete="new-password">
       <div class="field-err" id="pw2Err"></div>
 
-      <label>Name</label>
-      <input type="text" id="f-name" placeholder="Max">
+      <label for="f-name">Name</label>
+      <input type="text" id="f-name" placeholder="Max" autocomplete="name">
 
       <div class="row2">
         <div>
-          <label>Geburtsdatum</label>
-          <input type="date" id="f-birthdate" class="date-empty">
+          <label for="f-birthdate">Geburtsdatum</label>
+          <input type="date" id="f-birthdate" class="date-empty" autocomplete="bday">
         </div>
         <div>
-          <label>Postleitzahl</label>
+          <label for="f-plz">Postleitzahl</label>
           <div class="plz-combo" id="plzCombo">
-            <input type="text" id="f-plz" placeholder="1010" inputmode="numeric" maxlength="4">
+            <input type="text" id="f-plz" placeholder="1010" inputmode="numeric" maxlength="4" autocomplete="postal-code">
             <span class="ort-display" id="ortDisplay">— PLZ eingeben —</span>
           </div>
         </div>
@@ -1726,21 +1763,21 @@
           Probemonat startet erst dann.</p>
       </div>
 
-      <label>Geschlecht</label>
+      <label for="f-gender">Geschlecht</label>
       <select id="f-gender" required>
         <option value="" disabled selected>Wähle</option>
         <option value="mann">Mann</option>
         <option value="frau">Frau</option>
       </select>
 
-      <label>Gym</label>
+      <label for="f-gym">Gym</label>
       <div class="gym-picker">
         <input type="text" id="f-gym" placeholder="Gym suchen (Name, Ort oder PLZ) …" autocomplete="off">
         <div class="gym-results" id="fGymResults"></div>
       </div>
       <div class="gym-picked" id="fGymPicked"></div>
 
-      <label>Bio</label>
+      <label for="f-bio">Bio</label>
       <div class="bio-wrap">
         <textarea id="f-bio" placeholder="Was du suchst, dein Training, gerne mit Emojis 💪" maxlength="280"></textarea>
         <button type="button" class="emoji-btn" id="btnEmojiToggleReg" aria-label="Emoji einfügen">
@@ -1749,8 +1786,8 @@
         <div class="emoji-panel" id="emojiPanelReg"></div>
       </div>
 
-      <label>Fotos (mind. 1, max. 6)</label>
-      <div class="photo-grid" id="photoGrid"></div>
+      <label id="photoGridLabel">Fotos (mind. 1, max. 6)</label>
+      <div class="photo-grid" id="photoGrid" role="group" aria-labelledby="photoGridLabel"></div>
       <input type="file" id="photoInput" accept="image/*" style="display:none">
       <div class="field-err" id="photoErr"></div>
 
@@ -1883,24 +1920,30 @@
         <button class="membership-link" id="btnManageSubscription" style="display:none;">Abo verwalten / kündigen</button>
       </div>
 
-      <div class="account-section">
-        <div class="account-section-title">Profil</div>
+      <details class="account-disclosure" id="profileSettingsDisclosure">
+        <summary>
+          <span>
+            <span class="account-disclosure-title">Profil bearbeiten</span>
+            <span class="account-disclosure-meta">PLZ, Gym, Bio und Suchumkreis</span>
+          </span>
+        </summary>
+        <div class="account-disclosure-body">
 
-        <label>Postleitzahl</label>
+        <label for="a-plz">Postleitzahl</label>
         <div class="plz-combo" id="acctPlzCombo">
-          <input type="text" id="a-plz" placeholder="1010" inputmode="numeric" maxlength="4">
+          <input type="text" id="a-plz" placeholder="1010" inputmode="numeric" maxlength="4" autocomplete="postal-code">
           <span class="ort-display" id="acctOrtDisplay">— PLZ eingeben —</span>
         </div>
         <div class="field-err" id="acctPlzErr"></div>
 
-        <label>Gym</label>
+        <label for="a-gym">Gym</label>
         <div class="gym-picker">
           <input type="text" id="a-gym" placeholder="Gym suchen (Name, Ort oder PLZ) …" autocomplete="off">
           <div class="gym-results" id="aGymResults"></div>
         </div>
         <div class="gym-picked" id="aGymPicked"></div>
 
-        <label>Bio</label>
+        <label for="a-bio">Bio</label>
         <div class="bio-wrap">
           <textarea id="a-bio" placeholder="Was du suchst, dein Training, gerne mit Emojis 💪" maxlength="280"></textarea>
           <button type="button" class="emoji-btn" id="btnEmojiToggle" aria-label="Emoji einfügen">
@@ -1909,7 +1952,7 @@
           <div class="emoji-panel" id="emojiPanel"></div>
         </div>
 
-        <label>Suchumkreis<span class="info-hint">
+        <label for="a-radius">Suchumkreis<span class="info-hint">
           <button type="button" aria-label="Wie die Suche funktioniert">i</button>
           <span class="bubble" role="tooltip">
             <strong>So sucht FLEXR:</strong> Ausgangspunkt ist die Adresse deines
@@ -1926,16 +1969,24 @@
         <div class="radius-hint" id="radiusHint">Profile im Umkreis deines Gyms.</div>
 
         <div class="field-err" id="acctProfileErr"></div>
-        <button class="btn secondary" id="btnSaveProfile" style="margin-top:16px;">Profil speichern</button>
-      </div>
+          <button class="btn secondary" id="btnSaveProfile" style="margin-top:16px;">Profil speichern</button>
+        </div>
+      </details>
 
-      <div class="account-section">
-        <div class="account-section-title">Fotos</div>
-        <div class="photo-grid" id="acctPhotoGrid"></div>
-        <div class="photo-hint" id="acctPhotoHint"></div>
-        <input type="file" id="acctPhotoInput" accept="image/*" style="display:none">
-        <div class="field-err" id="acctPhotoErr"></div>
-      </div>
+      <details class="account-disclosure" id="photoSettingsDisclosure">
+        <summary>
+          <span>
+            <span class="account-disclosure-title">Fotos</span>
+            <span class="account-disclosure-meta" id="acctPhotoCount">0 von 6</span>
+          </span>
+        </summary>
+        <div class="account-disclosure-body">
+          <div class="photo-grid" id="acctPhotoGrid" style="margin-top:16px;"></div>
+          <div class="photo-hint" id="acctPhotoHint"></div>
+          <input type="file" id="acctPhotoInput" accept="image/*" style="display:none">
+          <div class="field-err" id="acctPhotoErr"></div>
+        </div>
+      </details>
 
       <!-- Hier standen bis zum 16.08.2026 drei weitere Bloecke: "Meine
            Meldungen", "Einwilligungen" und "Vertrag" samt grossem Knopf
@@ -1949,18 +2000,21 @@
            verlinkt aus Fussleiste, AGB und Checkout. Die normale
            Abo-Kuendigung bleibt oben, wo sie hingehoert. -->
 
-      <div class="account-section">
-        <div class="account-section-title">Konto</div>
-        <button class="btn secondary" id="btnLogout">Ausloggen</button>
-        <button class="btn danger-ghost" id="btnDeleteAccount">Konto löschen</button>
-      </div>
-
-      <!-- Bewusst als unauffaelliger Fusszeilen-Link, nicht als Knopf in der
-           "Konto"-Sektion: Wird selten gebraucht, soll aber weiterhin in
-           einem Klick erreichbar bleiben. -->
-      <p class="account-footer-link">
-        <button type="button" id="btnOpenPrivacy">Datenschutz &amp; Sicherheit</button>
-      </p>
+      <details class="account-disclosure danger-zone">
+        <summary>
+          <span>
+            <span class="account-disclosure-title">Weitere Einstellungen</span>
+            <span class="account-disclosure-meta">Privatsphäre, Meldungen und Konto</span>
+          </span>
+        </summary>
+        <div class="account-disclosure-body">
+          <div class="account-section">
+            <button class="btn secondary" type="button" id="btnOpenPrivacy">Privatsphäre &amp; Meldungen</button>
+            <button class="btn secondary" id="btnLogout" style="margin-top:10px;">Ausloggen</button>
+            <button class="btn danger-ghost" id="btnDeleteAccount">Konto löschen</button>
+          </div>
+        </div>
+      </details>
     </section>
 
     <!-- DATENSCHUTZ & SICHERHEIT (Unterseite des Kontobereichs) -->
@@ -1985,25 +2039,47 @@
     <section class="screen" id="screen-privacy">
       <div class="chat-header">
         <button class="back-btn" id="btnPrivacyBack" aria-label="Zurück zum Konto"><svg class="ico" viewBox="0 0 24 24"><path d="M14.5 5 8 12l6.5 7"/></svg></button>
-        <div class="nm">Datenschutz &amp; Sicherheit</div>
+        <div class="nm">Privatsphäre &amp; Meldungen</div>
       </div>
 
-      <div class="account-section">
-        <div class="account-section-title">Matching-Präferenzen</div>
-        <div id="myConsents"><div class="loading">Lade …</div></div>
-      </div>
+      <details class="account-disclosure privacy-disclosure">
+        <summary>
+          <span>
+            <span class="account-disclosure-title">Datennutzung</span>
+            <span class="account-disclosure-meta">Einwilligungen ansehen oder widerrufen</span>
+          </span>
+        </summary>
+        <div class="account-disclosure-body" id="myConsents"><div class="loading">Lade …</div></div>
+      </details>
 
-      <div class="account-section">
-        <div class="account-section-title">Meine Meldungen</div>
-        <div id="myReports"><div class="loading">Lade …</div></div>
-      </div>
+      <details class="account-disclosure privacy-disclosure">
+        <summary>
+          <span>
+            <span class="account-disclosure-title">Meine Meldungen</span>
+            <span class="account-disclosure-meta">Status gemeldeter Profile und Chats</span>
+          </span>
+        </summary>
+        <div class="account-disclosure-body" id="myReports"><div class="loading">Lade …</div></div>
+      </details>
 
-      <div class="account-section">
-        <div class="account-section-title">Rechtliches</div>
-        <p class="photo-hint" style="margin-top:0;">
-          <a href="/datenschutz.html" class="legal-link" data-legal-page="datenschutz.html">Datenschutzerklärung</a>
-        </p>
-      </div>
+      <details class="account-disclosure privacy-disclosure">
+        <summary>
+          <span>
+            <span class="account-disclosure-title">Rechtliches</span>
+            <span class="account-disclosure-meta">Dokumente und Hilfe</span>
+          </span>
+        </summary>
+        <nav class="account-disclosure-body privacy-legal-links" aria-label="Rechtliche Dokumente">
+          <a href="/faq.html" class="legal-link" data-legal-page="faq.html">FAQ</a>
+          <a href="/impressum.html" class="legal-link" data-legal-page="impressum.html">Impressum</a>
+          <a href="/datenschutz.html" class="legal-link" data-legal-page="datenschutz.html">Datenschutz</a>
+          <a href="/agb.html" class="legal-link" data-legal-page="agb.html">AGB</a>
+          <a href="/widerruf.html" class="legal-link" data-legal-page="widerruf.html" data-widerruf-link>Rücktrittsrecht</a>
+          <a href="/nutzungsrichtlinien.html" class="legal-link" data-legal-page="nutzungsrichtlinien.html">Nutzungsrichtlinien</a>
+          <a href="/sicherheit.html" class="legal-link" data-legal-page="sicherheit.html">Sicherheit</a>
+          <a href="/meldung.html" class="legal-link" data-legal-page="meldung.html">Inhalt melden</a>
+        </nav>
+      </details>
     </section>
 
     <!-- ALTERS- UND IDENTITÄTSPRÜFUNG: Übersicht/Status -->
@@ -2060,8 +2136,8 @@
           <a href="/datenschutz.html" class="legal-link" data-legal-page="datenschutz.html">Datenschutzerklärung</a>.</p>
       </div>
 
-      <label>Dokumenttyp</label>
-      <div class="doc-types" id="vidTypes"></div>
+      <label id="vidTypesLabel">Dokumenttyp</label>
+      <div class="doc-types" id="vidTypes" role="group" aria-labelledby="vidTypesLabel"></div>
 
       <div class="redact-note">
         <svg viewBox="0 0 24 24"><path d="M12 3.2 20 6.5v5.2c0 4.4-3.2 8.1-8 9.1-4.8-1-8-4.7-8-9.1V6.5L12 3.2z"/><path d="M9.5 12.2l1.8 1.8 3.4-3.6"/></svg>
@@ -2070,8 +2146,8 @@
           Gültigkeitsinformationen müssen sichtbar bleiben.</b></span>
       </div>
 
-      <label>Aufnahmen</label>
-      <div class="doc-slots" id="vidSlots"></div>
+      <label id="vidSlotsLabel">Aufnahmen</label>
+      <div class="doc-slots" id="vidSlots" role="group" aria-labelledby="vidSlotsLabel"></div>
       <input type="file" id="vidFileInput" accept="image/jpeg,image/png,image/webp" capture="environment" style="display:none">
       <div class="field-err" id="vidErr"></div>
       <button class="btn" id="btnVidSubmit">Zur Prüfung einreichen</button>
@@ -2197,18 +2273,18 @@
           sofort für dein Profil verwenden, nach Prüfung erscheint es für alle
           in der Auswahl.
         </p>
-        <label style="margin-top:16px;">Name des Gyms</label>
-        <input type="text" id="sg-name" placeholder="z. B. Eisenschmiede" maxlength="120">
-        <label>Straße</label>
+        <label for="sg-name" style="margin-top:16px;">Name des Gyms</label>
+        <input type="text" id="sg-name" placeholder="z. B. Eisenschmiede" maxlength="120" autocomplete="organization">
+        <label for="sg-street">Straße</label>
         <input type="text" id="sg-street" placeholder="z. B. Hauptstraße" maxlength="120">
         <div class="row2">
           <div>
-            <label>Hausnummer</label>
+            <label for="sg-number">Hausnummer</label>
             <input type="text" id="sg-number" placeholder="12" maxlength="20">
           </div>
           <div>
-            <label>Postleitzahl</label>
-            <input type="text" id="sg-plz" placeholder="1010" inputmode="numeric" maxlength="4">
+            <label for="sg-plz">Postleitzahl</label>
+            <input type="text" id="sg-plz" placeholder="1010" inputmode="numeric" maxlength="4" autocomplete="postal-code">
           </div>
         </div>
         <div class="field-err" id="sgErr"></div>
@@ -2234,7 +2310,7 @@
           Sicherungskopien bleiben davon unberührt. Einzelheiten findest du
           in der Datenschutzerklärung.
         </p>
-        <label style="margin-top:18px;">Zur Bestätigung dein Passwort</label>
+        <label for="deletePassword" style="margin-top:18px;">Zur Bestätigung dein Passwort</label>
         <input type="password" id="deletePassword" placeholder="••••••••" autocomplete="current-password">
         <div class="field-err" id="deleteErr"></div>
         <div class="btn-row" style="margin-top:18px;">
@@ -3444,8 +3520,9 @@
       // Bewusst mit dem Zusatz: Der Probemonat wandelt sich nicht von selbst in
       // ein Abo um, es gibt also keine Frist zu versaeumen. Ohne den Satz liest
       // sich ein Countdown wie eine Kuendigungsfrist.
+      const dayLabel = daysLeft === 1 ? '1 Tag' : `${daysLeft} Tage`;
       $('acctStatusText').textContent = daysLeft > 0
-        ? `Noch ${daysLeft} Tag(e) gratis Probemonat — danach wird nichts automatisch abgebucht.`
+        ? `Noch ${dayLabel} gratis — danach wird nichts automatisch abgebucht.`
         : 'Dein Probemonat ist abgelaufen. Es wurde nichts abgebucht.';
       $('btnSubscribe').disabled = false;
       $('btnSubscribe').textContent = 'Jetzt abonnieren';
@@ -3773,6 +3850,7 @@
     const grid = $('acctPhotoGrid');
     grid.innerHTML = '';
     const photos = myProfile.photos || [];
+    $('acctPhotoCount').textContent = `${photos.length} von 6`;
     // Der laufende Upload belegt den ersten freien Platz.
     const uploadSlot = acctUpload ? Math.min(photos.length, 5) : -1;
     for(let i=0;i<6;i++){
@@ -3806,6 +3884,7 @@
             $('acctPhotoErr').textContent = 'Mindestens ein Foto ist erforderlich. Lade zuerst ein weiteres hoch.';
             return;
           }
+          if(!confirm('Dieses Foto wirklich entfernen?')) return;
           $('acctPhotoErr').textContent = '';
           try{
             myProfile = await api('/api/profiles/me/photos/' + photos[i].id, {method: 'DELETE'});

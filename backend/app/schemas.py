@@ -590,6 +590,7 @@ class AdminStats(BaseModel):
     # Offene Aufgaben (Aufgaben-Panel im Dashboard)
     pending_photos: int
     open_reports: int
+    open_notices: int = 0
     pending_verifications: int = 0
     # Entschiedene Prüfungen, bei denen das Löschen der Aufnahmen noch aussteht
     pending_verification_cleanups: int = 0

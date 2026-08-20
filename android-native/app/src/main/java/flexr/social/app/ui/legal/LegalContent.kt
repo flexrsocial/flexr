@@ -534,9 +534,8 @@ object LegalContent {
                     "über die Kamera entsteht — ein vorhandenes Bild aus der Galerie lässt " +
                     "sich dafür nicht auswählen; dazu kommt der Abgleich mit einem " +
                     "vorgelegten amtlichen Lichtbildausweis. Nach der Prüfung werden Selfie " +
-                    "und Ausweisaufnahmen gelöscht. Dazu kommen die Telefonprüfung per " +
-                    "SMS-Einmalcode, die E-Mail-Eindeutigkeit je Konto und die Sperrliste für " +
-                    "Wegwerf-Adressen.",
+                    "und Ausweisaufnahmen gelöscht. Dazu kommen die E-Mail-Eindeutigkeit je " +
+                    "Konto und die Sperrliste für Wegwerf-Adressen.",
             ),
             LegalBlock.Lettered(
                 listOf(
@@ -720,7 +719,7 @@ object LegalContent {
                     "Rechtsgrundlage und, soweit erforderlich, gerichtliche Bewilligung " +
                         "bzw. staatsanwaltschaftliche Anordnung.",
                     "Möglichst genaue Bezeichnung der betroffenen Person: E-Mail-Adresse " +
-                        "des Kontos, Profilname, Telefonnummer oder Konto-ID.",
+                        "des Kontos, Profilname oder Konto-ID.",
                     "Präzise Bezeichnung der angeforderten Daten und des Zeitraums.",
                     "Frist, bis zu der die Auskunft benötigt wird.",
                 ),
@@ -754,14 +753,16 @@ object LegalContent {
                         "Bestandsdaten (E-Mail, Name, Geburtsdatum, PLZ/Ort, Geschlecht, " +
                             "Studio, Registrierungszeitpunkt)",
                         "ja",
-                        "Selbstangaben, nicht ausweisgeprüft",
+                        "Selbstangaben; Geburtsdatum und Lichtbild werden vor der " +
+                            "Freischaltung manuell sichtgeprüft, der Name nicht gegen ein " +
+                            "Register abgeglichen",
                     ),
-                    listOf("Telefonnummer", "nur wenn hinterlegt", "per SMS-Einmalcode bestätigt"),
                     listOf("Profilfotos", "ja", "inkl. Freigabestatus"),
                     listOf(
-                        "Verifizierungs-Selfies",
-                        "nein",
-                        "werden nach der Prüfung gelöscht",
+                        "Verifizierungs-Selfies und Ausweisaufnahmen",
+                        "in der Regel nein",
+                        "nur während einer offenen Prüfung vorhanden; werden nach der " +
+                            "Entscheidung gelöscht",
                     ),
                     listOf(
                         "Chatnachrichten (Inhalt, Zeitstempel, Absender)",
@@ -1023,13 +1024,17 @@ object LegalContent {
                         "Serverbetrieb (VPS)",
                         "Deutschland/EU",
                     ),
+                    listOf(
+                        "Brevo (Sendinblue SAS, 7 rue de Madrid, 75008 Paris, Frankreich)",
+                        "Versand von Bestätigungs-, Rücktritts- und Melde-E-Mails",
+                        "Frankreich/EU",
+                    ),
                 ),
             ),
             LegalBlock.Note(
-                "Für Contabo, Cloudflare und Stripe bestehen jeweils standardisierte " +
-                    "Auftragsverarbeitungsbedingungen der Anbieter. Ob sie im Einzelfall " +
-                    "wirksam einbezogen und vollständig sind, wird derzeit geprüft; eine " +
-                    "pauschale Zusicherung geben wir bis dahin nicht ab.",
+                "Contabo, Cloudflare und Brevo verarbeiten Daten für die genannten Zwecke " +
+                    "als Dienstleister. Stripe verarbeitet Zahlungsdaten teilweise in " +
+                    "eigener datenschutzrechtlicher Verantwortung.",
             ),
             LegalBlock.Heading("5. Speicherdauer"),
             LegalBlock.Bullets(

@@ -1,17 +1,20 @@
 # Beispielprofil-Fotos (Demo-Deck)
 
-28 KI-generierte Portraits. 22 davon werden als Beispielprofile im Login-Hero
+33 KI-generierte Portraits. 22 davon werden als Beispielprofile im Login-Hero
 der App (`frontend/app/index.html`, `.hero-demo`) und 23 im
 Musterprofile-Abschnitt der Landingpage (`frontend/index.html`) verwendet.
-Von den am 19.08.2026 hinzugekommenen 20 Motiven sind 19 in beiden Decks
-eingebunden: zehn Frauen und neun Männer. Samuel wurde am 19.08.2026 auf
-Nutzerwunsch aus beiden Decks entfernt; die Quelldatei bleibt erhalten.
+Von den am 19.08.2026 hinzugekommenen 20 Motiven sind 14 weiterhin in beiden
+Decks eingebunden. Fünf Karten wurden am 20.08.2026 durch drei neue Frauen- und
+zwei neue Männerprofile mit lokalem Österreich-Bezug ersetzt. Samuel wurde am
+19.08.2026 auf Nutzerwunsch aus beiden Decks entfernt; die Quelldatei bleibt
+erhalten.
 
 ## Herkunft
 
 Der erste Satz wurde am 16.08.2026 mit ChatGPT (Bildgenerierung) erzeugt und
-vom Nutzer bereitgestellt. Weitere 20 Bilder wurden am 19.08.2026 mit dem in
-Codex eingebauten ImageGen erzeugt. Keine echten, identifizierbaren Personen
+vom Nutzer bereitgestellt. Weitere 20 Bilder wurden am 19.08.2026 und fünf
+Ersatzmotive am 20.08.2026 mit dem in Codex eingebauten ImageGen erzeugt. Keine
+echten, identifizierbaren Personen
 abgebildet — anders als das ursprüngliche Demo-Deck
 (bis 15.08.2026, acht Fotos realer Menschen von images.unsplash.com), das aus
 genau diesem Grund entfernt wurde: reale Personen als erfundene FLEXR-Profile
@@ -46,11 +49,11 @@ Teil dieses Repositories. Hier abgelegt sind nur die verarbeiteten Fassungen:
 | `demo-anna-v2.jpg` | Anna, 26 | Landingpage, App-Login-Hero |
 | `demo-miriam-v2.jpg` | Miriam, 28 | Landingpage, App-Login-Hero |
 | `demo-emi-v2.jpg` | Emi, 29 | Landingpage, App-Login-Hero |
-| `demo-zeynep-v2.jpg` | Zeynep, 27 | Landingpage, App-Login-Hero |
+| `demo-zeynep-v2.jpg` | — | nicht mehr eingebunden (20.08.2026 ersetzt) |
 | `demo-laura-v2.jpg` | Laura, 30 | Landingpage, App-Login-Hero |
-| `demo-amara-v2.jpg` | Amara, 30 | Landingpage, App-Login-Hero |
+| `demo-amara-v2.jpg` | — | nicht mehr eingebunden (20.08.2026 ersetzt) |
 | `demo-maya-v2.jpg` | Maya, 26 | Landingpage, App-Login-Hero |
-| `demo-priya-v2.jpg` | Priya, 31 | Landingpage, App-Login-Hero |
+| `demo-priya-v2.jpg` | — | nicht mehr eingebunden (20.08.2026 ersetzt) |
 | `demo-katharina-v2.jpg` | Katharina, 32 | Landingpage, App-Login-Hero |
 | `demo-sofia-v2.jpg` | Sofia, 28 | Landingpage, App-Login-Hero |
 | `demo-lukas-v2.jpg` | Lukas, 28 | Landingpage, App-Login-Hero |
@@ -59,10 +62,15 @@ Teil dieses Repositories. Hier abgelegt sind nur die verarbeiteten Fassungen:
 | `demo-kenji-v2.jpg` | Kenji, 25 | Landingpage, App-Login-Hero |
 | `demo-cem-v2.jpg` | Cem, 29 | Landingpage, App-Login-Hero |
 | `demo-felix-v2.jpg` | Felix, 32 | Landingpage, App-Login-Hero |
-| `demo-mateo-v2.jpg` | Mateo, 26 | Landingpage, App-Login-Hero |
-| `demo-arjun-v2.jpg` | Arjun, 31 | Landingpage, App-Login-Hero |
+| `demo-mateo-v2.jpg` | — | nicht mehr eingebunden (20.08.2026 ersetzt) |
+| `demo-arjun-v2.jpg` | — | nicht mehr eingebunden (20.08.2026 ersetzt) |
 | `demo-noah-v2.jpg` | Noah, 27 | Landingpage, App-Login-Hero |
 | `demo-samuel-v2.jpg` | Samuel, 33 | nicht mehr eingebunden (19.08.2026 auf Nutzerwunsch entfernt) |
+| `demo-hannah-v2.jpg` | Hannah, 27 | Landingpage, App-Login-Hero |
+| `demo-viktoria-v2.jpg` | Viktoria, 29 | Landingpage, App-Login-Hero |
+| `demo-theresa-v2.jpg` | Theresa, 26 | Landingpage, App-Login-Hero |
+| `demo-maximilian-v2.jpg` | Maximilian, 30 | Landingpage, App-Login-Hero |
+| `demo-fabian-v2.jpg` | Fabian, 28 | Landingpage, App-Login-Hero |
 
 Der Hinweistext "Beispielprofile · keine echten Nutzer:innen" wurde am
 16.08.2026 auf ausdrücklichen Wunsch von beiden Einbindungsstellen entfernt.
@@ -85,6 +93,15 @@ Calisthenics, Deadlift, Cycling, Battle Ropes, Pull-up Rig, Incline Dumbbell,
 Indoor Rower, Outdoor Dips, SkiErg und ein professioneller Men's-Physique-
 Bühnenauftritt. Die Kleidung ist bewusst markenfrei statt als Gymshark-
 Produktdarstellung ausgeführt.
+
+## Prompt-Set vom 20.08.2026
+
+Fünf fotorealistische 3:4-Portraits mit klar erwachsenen, attraktiven und
+athletischen Personen in modernen Studios in Wien, Salzburg, Innsbruck und
+Graz. Drei Frauen und zwei Männer tragen farblich abgestimmte Gymshark-
+Trainingskleidung. Gesichter und vollständige Köpfe liegen bewusst mit
+ausreichend Abstand im oberen Bildbereich, damit der Karten-Crop sie nicht
+abschneidet. Keine weiteren Personen, Texte oder Wasserzeichen.
 
 ## Selbst gehostet, kein Fremdaufruf
 
