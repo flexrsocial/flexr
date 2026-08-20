@@ -1,5 +1,9 @@
 # FLEXR — Projekt-Setup für Claude Code
 
+> **Weiterarbeiten auf einem anderen Gerät:** Den aktuellen Produktionsstand,
+> Tests, offene Punkte, Build-/Deploy-Befehle und die sichere Übergabe an Claude
+> Code beschreibt [HANDOFF.md](HANDOFF.md).
+
 Dieses Verzeichnis ist der Startpunkt, um aus dem Chat-Prototyp eine echte,
 deploybare App unter flexr.social zu machen. Öffne diesen Ordner in Claude
 Code und lass es von hier aus weiterbauen.
