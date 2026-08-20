@@ -1,10 +1,11 @@
 # Beispielprofil-Fotos (Demo-Deck)
 
-28 KI-generierte Portraits. 23 davon werden als Beispielprofile im Login-Hero
-der App (`frontend/app/index.html`, `.hero-demo`) und 24 im
+28 KI-generierte Portraits. 22 davon werden als Beispielprofile im Login-Hero
+der App (`frontend/app/index.html`, `.hero-demo`) und 23 im
 Musterprofile-Abschnitt der Landingpage (`frontend/index.html`) verwendet.
-Die am 19.08.2026 hinzugekommenen 20 Motive sind in beiden Decks eingebunden:
-zehn Frauen und zehn Männer.
+Von den am 19.08.2026 hinzugekommenen 20 Motiven sind 19 in beiden Decks
+eingebunden: zehn Frauen und neun Männer. Samuel wurde am 19.08.2026 auf
+Nutzerwunsch aus beiden Decks entfernt; die Quelldatei bleibt erhalten.
 
 ## Herkunft
 
@@ -61,7 +62,7 @@ Teil dieses Repositories. Hier abgelegt sind nur die verarbeiteten Fassungen:
 | `demo-mateo-v2.jpg` | Mateo, 26 | Landingpage, App-Login-Hero |
 | `demo-arjun-v2.jpg` | Arjun, 31 | Landingpage, App-Login-Hero |
 | `demo-noah-v2.jpg` | Noah, 27 | Landingpage, App-Login-Hero |
-| `demo-samuel-v2.jpg` | Samuel, 33 | Landingpage, App-Login-Hero |
+| `demo-samuel-v2.jpg` | Samuel, 33 | nicht mehr eingebunden (19.08.2026 auf Nutzerwunsch entfernt) |
 
 Der Hinweistext "Beispielprofile · keine echten Nutzer:innen" wurde am
 16.08.2026 auf ausdrücklichen Wunsch von beiden Einbindungsstellen entfernt.

@@ -125,6 +125,9 @@ body{
   margin:0; background:var(--ink); color:var(--chalk);
   font-family:'Work Sans', system-ui, -apple-system, sans-serif;
   line-height:1.65; -webkit-font-smoothing:antialiased;
+  /* Die seitlich versetzten Kartenebenen und Fly-out-Animationen duerfen auf
+     schmalen Displays keinen horizontalen Seiten-Scroll erzeugen. */
+  overflow-x:hidden;
 }
 .wrap{ max-width:880px; margin:0 auto; padding:0 20px; }
 
@@ -222,6 +225,11 @@ ul.plain li{ margin-bottom:9px; }
   background:linear-gradient(180deg,rgba(0,0,0,.12),transparent 38%,rgba(0,0,0,.9));
 }
 .sample-photo img{ width:100%; height:100%; object-fit:cover; display:block; pointer-events:none; }
+/* Die neuen 3:4-Portraits enthalten bewusst mehr Oberkoerper und Trainings-
+   szene als der flachere Fotoausschnitt der Landing-Karte zeigen kann. Den
+   Crop deshalb am oberen Bildrand verankern: Gesichter bleiben vollstaendig
+   sichtbar, abgeschnitten wird nur weiter unten im Motiv. */
+.sample-photo img[src*="-v2.jpg"]{ object-position:center top; }
 .sample-photo-bars{
   position:absolute; z-index:2; top:10px; left:10px; right:10px; display:flex; gap:4px;
 }
@@ -593,11 +601,6 @@ footer{ border-top:1px solid var(--steel); padding:32px 0 60px; margin-top:20px;
             <div class="sample-photo"><img src="/brand/demo/demo-noah-v2.jpg?v=1" alt="" loading="lazy" width="720" height="960"><div class="sample-photo-bars"><i></i><i></i><i></i></div><div class="sample-name">Noah, 27<span>Wien · Outdoor Workout</span></div></div>
             <div class="sample-card-body"><div class="sample-chip-row"><span class="sample-chip">Outdoor Workout</span></div><p>Calisthenics, Donauinsel und Sommerabende draußen.</p></div>
           </article>
-          <article class="sample-profile-card" tabindex="0" aria-label="Samuel, 33, Injoy Klagenfurt. Mit den Pfeiltasten wischen.">
-            <div class="sample-stamp pass">Nope</div><div class="sample-stamp like">Match</div>
-            <div class="sample-photo"><img src="/brand/demo/demo-samuel-v2.jpg?v=1" alt="" loading="lazy" width="720" height="960"><div class="sample-photo-bars"><i></i><i></i><i></i></div><div class="sample-name">Samuel, 33<span>Klagenfurt · Injoy</span></div></div>
-            <div class="sample-card-body"><div class="sample-chip-row"><span class="sample-chip">Injoy Klagenfurt</span><span class="sample-chip"><span class="dot"></span>Online</span></div><p>SkiErg, Hyrox und entspannte Abende mit Freunden.</p></div>
-          </article>
         </div>
         <div class="sample-actions">
           <button class="sample-action pass" type="button" data-sample-action="pass" aria-label="Beispielprofil ablehnen">
@@ -884,6 +887,16 @@ footer{ border-top:1px solid var(--steel); padding:32px 0 60px; margin-top:20px;
 
   function cards(){ return Array.prototype.slice.call(stage.querySelectorAll('.sample-profile-card')); }
   function topCard(){ return stage.querySelector('.sample-profile-card:last-child'); }
+  function shuffleDeck(){
+    var shuffled = cards();
+    for (var index = shuffled.length - 1; index > 0; index--){
+      var randomIndex = Math.floor(Math.random() * (index + 1));
+      var current = shuffled[index];
+      shuffled[index] = shuffled[randomIndex];
+      shuffled[randomIndex] = current;
+    }
+    shuffled.forEach(function(card){ stage.appendChild(card); });
+  }
   function clearStamps(card){
     card.querySelectorAll('.sample-stamp').forEach(function(stamp){ stamp.style.opacity = 0; });
   }
@@ -997,6 +1010,9 @@ footer{ border-top:1px solid var(--steel); padding:32px 0 60px; margin-top:20px;
     }
   });
 
+  /* Bei jedem Laden neu mischen. Die Markup-Reihenfolge gruppiert die
+     Profile nicht mehr sichtbar nach dem Zeitpunkt ihrer Erstellung. */
+  shuffleDeck();
   arrangeCards();
 })();
 </script>
