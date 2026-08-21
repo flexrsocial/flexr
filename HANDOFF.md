@@ -1,18 +1,21 @@
 # FLEXR — Handoff für ein anderes Gerät / Claude Code
 
-Stand: **20.08.2026**
+Stand: **21.08.2026**
 
-Produktstand vor diesem Dokumentationscommit: **`7b47740` auf `main`**. Das
+Produktstand vor diesem Dokumentationscommit: **`16f7947` auf `main`**. Das
 vorliegende Handoff folgt als reiner Dokumentationscommit. Der jeweils
 verbindliche Stand ist immer `git log -1 --oneline` auf `origin/main`.
 
 ## Kurzfassung
 
-FLEXR ist auf GitHub und dem Produktions-VPS deployt. Landingpage, Web-App,
-Admin-Dashboard und native Android-App wurden UX-seitig vereinfacht und
-produktiv getestet. Brevo übernimmt E-Mail-Verifizierung und transaktionale
-Nutzermails. Das neue signierte Android App Bundle ist Version **2.4.1** mit
-`versionCode 29`.
+FLEXR ist auf GitHub und dem Produktions-VPS deployt. In dieser Sitzung wurde
+eine Lücke geschlossen, die ChatGPT Codex auf einem anderen Rechner offen
+gelassen hatte (Token-Limit erreicht): Der Widerruf der Matching-Einwilligung
+war nur über die Web-App möglich. Dabei fiel zusätzlich ein Bug auf, der die
+native Abo-Zahlung komplett blockierte, sowie eine optisch von der Marke
+abweichende Web-Komponente. Alles behoben, committet, gepusht und deployt,
+inklusive neu signiertem Android App Bundle Version **2.4.3**
+(`versionCode 31`).
 
 - Repository: `git@github.com:flexrsocial/flexr.git`
 - Produktionsseite: <https://flexr.social>
@@ -21,117 +24,176 @@ Nutzermails. Das neue signierte Android App Bundle ist Version **2.4.1** mit
 - Repository auf dem VPS: `/flexr`
 - API-Dienst: `flexr-api.service`
 - E-Mail-Jobtimer: `flexr-email-jobs.timer`
-- AAB-Download: <https://flexr.social/dl-a616e78274de323b/flexr-2.4.1.aab>
-- AAB SHA-256: `760ded8a14e798c186deda3695734831e66a18cd3b7d08d465fdd51f3606b481`
+- AAB-Download: <https://flexr.social/dl-a616e78274de323b/flexr-2.4.3.aab>
+- AAB SHA-256: `95cf264760cbe67a683c17d2a5805d54271dc0bfb114baa70476e2dfc0cde1e2`
+- Vorgänger `flexr-2.4.2.aab` liegt aus Kompatibilitätsgründen noch auf dem
+  VPS (enthielt bereits denselben Checkout-Fix, nur unter altem
+  Versions-Label) — kann bei Gelegenheit aufgeräumt werden, ist aber
+  unkritisch.
 
-## Was zuletzt umgesetzt wurde
+## Was in dieser Sitzung umgesetzt wurde
 
-### Landingpage und Muster-Swipedecks
+### Native App: Einwilligungswiderruf nachgezogen
 
-- Der obere Landingpage-Bereich hat jetzt einen Profilkarten-Fotostapel mit
-  X-/Herz-Aktionen und ist auf Desktop und Mobil responsiv.
-- Die Musterdecks auf Landingpage und `/app/` verwenden das echte
-  Swipe-Erscheinungsbild und eine gemischte Profilreihenfolge.
-- Samuel ist nicht mehr eingebunden.
-- Fünf zuvor beanstandete Musterprofile wurden durch drei weibliche und zwei
-  männliche, klar erwachsene Gym-Profile mit Österreich-Bezug ersetzt:
-  Hannah, Theresa, Viktoria, Maximilian und Fabian.
-- Die Bildausschnitte wurden so korrigiert, dass Gesichter auf der Landingpage
-  nicht abgeschnitten werden.
+Der Widerruf einer DSGVO-Einwilligung (Art. 7 Abs. 3), insbesondere der
+Art.-9-Einwilligung zu Geschlecht/gesuchtem Geschlecht, ging bisher nur über
+die Web-App. Codex hatte dafür bereits API-Client, DTOs, Repository und
+ViewModel-Logik fertig (unversioniert liegen gelassen), aber keine
+Compose-Oberfläche — genau da gingen die Tokens aus.
 
-### Web-App und native Android-App
+- Neuer Abschnitt „Datenschutz & Sicherheit" im Konto-Bereich
+  (`AccountScreen.kt`): aufklappbare Zeile mit Pfeil rechts, optisch identisch
+  zu „Hilfe & Rechtliches". Zeigt Liste aller Einwilligungen (Status, Datum,
+  Fassung, Rechtsgrundlage) mit Widerruf-Button je widerrufbarer Einwilligung.
+- Für den Art.-9-Widerruf (Geschlecht/gesuchtes Geschlecht) erscheint derselbe
+  Warnhinweis-Dialog wie im Web vor dem eigentlichen Widerruf.
+- `FlexrLinkButton` (gemeinsame Design-System-Komponente) ist jetzt linksbündig
+  statt durch die von `TextButton` erzwungene Mindestbreite eingerückt —
+  betrifft auch „Jetzt abonnieren" und „Abo verwalten / kündigen".
 
-- Die Web-App-Profilseite verwendet wieder das offene Ursprungsdesign: Profil,
-  Fotos und Konto stehen dauerhaft untereinander und der Screen scrollt als
-  Ganzes. Keine Aufklappregister wieder einführen; sie blockierten auf manchen
-  Geräten das Scrollen.
-- Der Mitgliedschaftshinweis ist ein eigener ruhiger Kasten. „Jetzt
-  abonnieren“ und „Datenschutz & Sicherheit“ erscheinen in FLEXR-Orange und
-  haben eigenen Abstand statt direkt am Fließtext zu kleben.
-- Der Widerruf einer DSGVO-Einwilligung bleibt im Konto direkt erreichbar
-  (Art. 7 Abs. 3 DSGVO), steht aber als eigene orange Aktion unter einer
-  Trennlinie. Nicht entfernen, ohne einen ebenso einfachen Ersatzweg zu bauen.
-- Unter „Rechtliches“ stehen kompakt Datenschutz, AGB, Rücktrittsrecht,
-  Nutzungsrichtlinien, Impressum und „Inhalt melden“. Nicht jede öffentliche
-  Informationsseite muss im Profil dupliziert werden.
-- Datenschutz, Meldungen und Rechtliches bleiben als sekundärer Bereich über
-  den Link unterhalb der Konto-Aktionen erreichbar.
-- Sicherheits- und Rechtshinweise wurden aus den Hauptabläufen herausgenommen,
-  soweit sie nicht zwingend direkt sichtbar sein müssen.
-- Android bündelt die Rechts-/Sicherheitslinks in einem Dialog; Melden und
-  Blockieren im Chat liegen im Overflow-Menü.
-- Telefon-/SMS- und Twilio-Hinweise wurden aus den relevanten Rechtstexten
-  entfernt. Es wird bei der Registrierung keine Telefonnummer erhoben.
-- Brevo ist als E-Mail-Dienstleister dokumentiert und produktiv konfiguriert.
+### Bug gefunden und behoben: Abo-Checkout schlug fehl
 
-### Admin-Dashboard
+Beim Testen fiel auf: Klick auf „Jetzt abonnieren" in der nativen App zeigte
+den Fehler **„Field required"**. Ursache: Der native Client rief
+`POST /api/billing/checkout` ganz ohne Body auf. Das Backend verlangt aber
+zwei getrennte, nicht vorangekreuzte Erklärungen (§ 10 und § 18 Abs. 1 Z 1
+FAGG: sofortiger Leistungsbeginn + Kenntnisnahme über den Verlust des
+Rücktrittsrechts) — ohne sie lehnt FastAPI mit `422` ab, und die rohe
+Pydantic-Meldung landete ungefiltert als Toast beim Nutzer.
 
-- Förmliche Art.-16-DSA-Meldungen sind im Aufgabenbereich sichtbar und
-  entscheidbar.
-- Offene Notices sind Teil der Admin-Statistik.
-- Fotoablehnungen verwenden strukturierte Gründe statt eines generischen
-  Fallbacks.
-- Nutzer-, Foto-, Verifizierungs-, Melde-, Sperr- und Gym-Abläufe wurden mit
-  ausschließlich synthetischen QA-Konten produktiv geprüft.
+- Beide Plattformen (App-Profil-Screen und Paywall nach Ablauf des
+  Probemonats — beide nutzen `AccountViewModel`) zeigen jetzt vorher einen
+  Dialog mit genau diesen zwei Checkboxen, Wortlaut identisch zur Web-App.
+  Erst nach Bestätigung beider Punkte wird der Checkout gestartet.
+- **Dieser Bug betraf nur die native App**, nicht die Web-App — dort gab es
+  den Dialog schon.
 
-### SEO, Auslieferung und Barrierefreiheit
+### Web: Checkout-Popup im FLEXR-Stil vereinheitlicht
 
-- Alle zehn indexierbaren Seiten verwenden `lang="de-AT"`, Canonicals,
-  Beschreibungen, Open-Graph-Metadaten, genau einen Hauptinhalt und einen
-  Tastatur-Sprunglink.
-- Die Sitemap enthält nur die öffentlichen kanonischen Seiten und wurde mit
-  `lastmod` 20.08.2026 aktualisiert.
-- Unbekannte URLs liefern jetzt einen echten HTTP-404-Status mit gebrandeter
-  Fehlerseite statt der Landingpage als Soft-404.
-- `/mail-bestaetigen` bleibt als expliziter App-Deep-Link erreichbar und trägt
-  `X-Robots-Tag: noindex, nofollow`.
-- Demo-Profilbilder werden langfristig und unveränderlich gecacht. Der Service
-  Worker cached weder Nutzerfotos unter `/photos/` noch AAB-Downloads unter
-  `/dl-*`.
-- Breite Tabellen in den Rechtsseiten scrollen mobil in ihrem eigenen Bereich;
-  die Seite selbst hat bei 390 Pixeln keinen horizontalen Overflow.
-- Die aktive Nginx-Datei wurde gezielt angepasst, nicht mit der Repository-
-  Vorlage überschrieben. Backup auf dem VPS:
-  `/etc/nginx/sites-available/flexr.social.bak-a9a3faf`.
+Beim Vergleich fiel auf, dass `immediateStartOverlay` (das „Vor der
+Zahlung"-Popup vor Stripe) eine eigene, vom Rest der Seite abweichende Optik
+hatte:
 
-## Test- und Produktionsstatus
+- Der „Abbrechen"-Button nutzte `class="btn"` mit `background:transparent`,
+  aber `.btn` setzt `color:#191008` (dunkle Schrift für den orangen
+  Verlauf) — auf transparentem Grund praktisch unlesbar.
+- Die Checkbox-Labels waren generische `<label>`-Elemente und erbten dadurch
+  ungewollt `text-transform:uppercase` von der globalen `label{…}`-Regel
+  (gedacht für Formularfeld-Labels wie „POSTLEITZAHL") — der ganze
+  Erklärungstext erschien in Großbuchstaben.
+- Generische, unthemte Checkboxen statt der im Rest der App verwendeten
+  orangen `accent-color`.
 
-- Backend: effektiv **337 Tests grün**; zusätzlich liefen die 30 direkt
-  betroffenen Admin-/DSA-Tests nochmals erfolgreich.
-- Die aktuelle Frontend-Auslieferung ist zusätzlich durch **7 statische
-  Regressionstests** in `backend/tests/test_public_frontend.py` abgesichert.
-- Android: **45 Release-Unit-Tests grün**.
-- Android: `bundleProdRelease` erfolgreich, Bundle mit dem bestehenden
-  FLEXR-Upload-Key signiert; Zertifikat-Fingerprint stimmt mit dem Keystore
-  überein.
-- Produktives Web-/Mobile-E2E: Registrierung, Aktivierungs-Gates, Profil,
-  Deck, Swipe, Match, Chat, Unread/Read, Linkzensur, Report, Moderation,
-  Mute/Unmute, Block/Unblock und Rematch erfolgreich.
-- Alle synthetischen QA-Nutzer und abhängigen Daten wurden danach gelöscht;
-  reale Profile wurden nicht verändert.
-- VPS-API ist aktiv und `/api/health` antwortet mit `{"status":"ok"}`.
-- Landingpage, App-Seite, alle fünf neuen Bilder und der öffentliche
-  AAB-Download wurden nach dem Deploy mit HTTP 200 geprüft.
-- Nach dem letzten Profil-Deploy wurden bei 390 Pixeln Markenfarben,
-  Abstände, sechs Rechtstextlinks, fehlender horizontaler Overflow und das
-  offene Profil ohne Aufklappregister live geprüft. Nginx und API waren aktiv.
+Behoben durch Wiederverwendung der bereits etablierten Klassen statt neuer
+Optik: `.legal-modal-backdrop`/`.legal-modal`/`.legal-modal-body` (wie beim
+„Konto löschen"-Dialog) und `.consent-label` (wie bei der Registrierung).
+Visuell auf der Live-Seite geprüft (Screenshot, DOM-Klassen per curl
+bestätigt).
+
+### Version
+
+`versionCode` 29 → 30 → 31, `versionName` 2.4.1 → 2.4.2 → 2.4.3.
+
+## Android-Build — Hinweis zur RAM-Lage auf diesem Rechner
+
+Dieser Rechner hat nur **3,7 GB RAM**. `bundleProdRelease` geriet beim
+2.4.3-Build zweimal in schwere Swap-Auslastung (einmal musste ein
+hängender Java-Prozess manuell per `kill` beendet werden, um einen erneuten
+Systemstillstand wie beim vorherigen Versuch zu verhindern — der hatte einen
+Neustart der Maschine erzwungen). Der dritte Versuch lief durch (1m 23s,
+BUILD SUCCESSFUL, 45/45 Tests grün, Fingerprint bestätigt).
+
+Auf einem neuen/anderen Gerät ist das wahrscheinlich kein Thema — die
+RAM-Probleme sind rechnerspezifisch, nicht projektspezifisch. Falls doch auf
+einer schwachen Maschine (≤ 4 GB) gebaut wird: in `~/.gradle/gradle.properties`
+(nutzerweit, **nicht** im Projekt-Git)
+
+```properties
+org.gradle.jvmargs=-Xmx1536m -XX:MaxMetaspaceSize=256m -XX:+UseSerialGC -Dfile.encoding=UTF-8
+org.gradle.parallel=false
+org.gradle.workers.max=1
+org.gradle.caching=true
+kotlin.compiler.execution.strategy=in-process
+```
+
+setzen und **andere speicherhungrige Anwendungen vorher schließen** — in
+dieser Sitzung kam die eigentliche Knappheit weniger von Gradle selbst
+(dessen Heap war begrenzt) als von parallel laufenden Anwendungen auf
+demselben Rechner, die den Swap zusätzlich füllten.
+
+Falls auf einem neuen Gerät keine JDK/Android-SDK-Toolchain existiert: lässt
+sich ohne root/sudo in einen beliebigen Ordner installieren (Eclipse Temurin
+17 von `api.adoptium.net`, Android Commandline-Tools von
+`dl.google.com/android/repository/`, Platform 36 + Build-Tools 36.0.0 per
+`sdkmanager`).
+
+## Testdaten für manuelles Testen (neu in dieser Sitzung)
+
+Auf Wunsch wurden alte synthetische Testkonten entfernt und neue angelegt,
+alle über den echten Löschweg (`admin.py:delete_user`-Logik) bzw. die echte
+Registrierungs-API — keine rohen SQL-Eingriffe.
+
+**Gelöscht:** 20 synthetische `@flexrtest.at`-Konten (Batch vom 08.08.2026)
+sowie 2 E2E-Testkonten (`pachernegg+flexrtest…20260816@gmail.com`, „E2E
+Test"/„E2E Test 2" vom 16.08.2026).
+
+**Bewusst nicht angerührt:** `teresa.pachernegg@gmail.com` („Teresa") — nicht
+eindeutig als Testkonto erkennbar, auf Nutzerwunsch erhalten geblieben.
+
+**Neu angelegt:** 5 Frauenprofile, alle im 158-km-Suchradius von
+`pachernegg@gmail.com` (Julian, McFit Triester Straße, 1100 Wien), über die
+echte Registrierungs-API mit je einem genehmigten Foto (bereits öffentliche
+Demo-Bilder aus `frontend/brand/demo/`) und `verification_required=False`
+(überspringt die volle Selfie/Ausweis-Prüfung bewusst — reine
+Deck-Sichtbarkeit fürs manuelle Testen, nicht die Verifizierungs-UX selbst):
+
+| Name | Login-E-Mail | Gym | Entfernung |
+|---|---|---|---|
+| Katharina | `pachernegg+flexrtest-katharina@gmail.com` | FITINN, 1050 Wien | ~4,5 km |
+| Laura | `pachernegg+flexrtest-laura@gmail.com` | Clever fit, Stockerau | ~30,6 km |
+| Sofia | `pachernegg+flexrtest-sofia@gmail.com` | Clever fit, Krems an der Donau | ~66,5 km |
+| Maya | `pachernegg+flexrtest-maya@gmail.com` | INJOY, Amstetten | ~114,9 km |
+| Miriam | `pachernegg+flexrtest-miriam@gmail.com` | MoreFit, Lieboch | ~152,8 km |
+
+Alle E-Mails laufen über Gmail-Plus-Adressierung im selben Postfach wie
+`pachernegg@gmail.com`. Über `get_deck()`-Logik geprüft: alle 5 erscheinen im
+Deck (Gender/Interest-Match, Gym löst auf, Foto genehmigt, Radius erfüllt).
+
+**Passwörter absichtlich nicht in diesem Dokument** — `flexrsocial/flexr` ist
+ein öffentliches GitHub-Repository, Klartext-Zugangsdaten zu echten,
+einloggbaren Konten gehören da nicht rein, auch nicht zu Testprofilen. Sie
+wurden im Chat dieser Sitzung mitgeteilt; falls nicht mehr griffbereit,
+einfach über „Passwort vergessen" mit der jeweiligen E-Mail zurücksetzen.
+
+Zum späteren Aufräumen: gleicher Ablauf wie oben beschrieben (Storage-Objekte
+über `cleanup.storage_keys_for_user` + `delete_storage_objects`, danach
+`db.delete(user)`), Filter auf `email LIKE 'pachernegg+flexrtest-%'`.
 
 ## Noch offen / bewusst nicht produktiv ausgelöst
 
 1. Die native App muss auf einem echten Android-Gerät im internen Play-Testtrack
-   geprüft werden, besonders Kamera, Profilfoto, Selfie und Ausweisaufnahme.
+   geprüft werden, besonders Kamera, Profilfoto, Selfie, Ausweisaufnahme —
+   und jetzt zusätzlich der neue Checkout-Dialog und der
+   Datenschutz-&-Sicherheit-Widerruf.
 2. Ein echter Stripe-Checkout wurde nicht ausgelöst, um keine reale Zahlung oder
    Subscription anzulegen. Der Checkout gehört mit einem kontrollierten
-   Testnutzer geprüft.
-3. Das AAB ist noch in die Play Console hochzuladen. Dabei `PLAY-CONSOLE.md`
+   Testnutzer geprüft — jetzt mit dem neuen Zwei-Checkbox-Dialog auf beiden
+   Plattformen. Dafür eignen sich auch die fünf neuen Test-Frauenprofile
+   (siehe „Testdaten" oben) als Gegenüber zum Deck-/Match-/Chat-Testen.
+3. Das AAB (2.4.3, siehe oben) ist noch in die Play Console hochzuladen. Dabei `PLAY-CONSOLE.md`
    beachten: Data-Safety-Angaben, Kamera/Ausweisfotos und Deep Links prüfen.
 4. Die Rechtstexte wurden technisch und inhaltlich bereinigt, ersetzen aber
    keine abschließende Prüfung durch eine österreichische Rechtsberatung.
 5. In der Google Search Console prüfen, ob
-   `https://flexr.social/sitemap.xml` den Status „Erfolgreich“ hat. Für die
-   Startseite einmal „Live-URL testen“ und „Indexierung beantragen“. Falls dort
+   `https://flexr.social/sitemap.xml` den Status „Erfolgreich" hat. Für die
+   Startseite einmal „Live-URL testen" und „Indexierung beantragen". Falls dort
    noch ein Soft-404-Problem gemeldet wird, nach dem neuen echten 404-Verhalten
-   „Fehlerbehebung überprüfen“ starten.
+   „Fehlerbehebung überprüfen" starten.
+6. `backend/tests/test_public_frontend.py` wurde nach der Checkout-Popup-
+   Änderung **nicht** erneut laufen gelassen (kein lokaler venv auf diesem
+   Rechner vorhanden) — vor dem nächsten Deploy einmal nachholen, auch wenn
+   ein `grep` bereits bestätigt hat, dass kein Test die entfernten
+   `.istart-*`-Klassen referenziert.
 
 ## Auf einem anderen Gerät starten
 
@@ -239,8 +301,16 @@ Download ebenfalls prüfen.
 - Bei Änderungen am Konto die Darstellung zusätzlich bei 390 × 844 Pixeln
   prüfen: orange Aktionen, Abstände, vertikales Scrollen und kein horizontaler
   Overflow.
-- Zuerst auf einem echten Android-Gerät bzw. im internen Play-Testtrack testen.
-- Danach kontrollierten Stripe-Testcheckout durchführen.
-- Anschließend AAB 2.4.1 in die Play Console laden und Data Safety/Deep Links
+- `backend/tests/test_public_frontend.py` einmal laufen lassen (siehe „Noch
+  offen" Punkt 6).
+- Auf einem echten Android-Gerät bzw. im internen Play-Testtrack testen —
+  inklusive neuem Checkout-Dialog und Einwilligungswiderruf. Die fünf neuen
+  Test-Frauenprofile (siehe „Testdaten" oben) eignen sich als Gegenüber.
+- Anschließend kontrollierten Stripe-Testcheckout durchführen.
+- Danach AAB 2.4.3 (bereits gebaut, signiert und live hochgeladen — siehe
+  Kurzfassung) in die Play Console laden und Data Safety/Deep Links
   kontrollieren.
+- Die 5 neuen Test-Frauenprofile (`pachernegg+flexrtest-*@gmail.com`) sind für
+  manuelles Deck-/Match-/Chat-Testen gedacht — nach Abschluss des Testens
+  wieder löschen (Ablauf siehe „Testdaten"-Abschnitt oben).
 - Erst danach neue Produktfunktionen beginnen.
