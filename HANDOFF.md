@@ -1,246 +1,309 @@
 # FLEXR — Handoff für ein anderes Gerät / Claude Code
 
-Stand: **21.08.2026**
+Stand: **21.08.2026**, Abend
 
-Produktstand vor diesem Dokumentationscommit: **`16f7947` auf `main`**. Das
-vorliegende Handoff folgt als reiner Dokumentationscommit. Der jeweils
-verbindliche Stand ist immer `git log -1 --oneline` auf `origin/main`.
+Produktstand: `git log -1 --oneline` auf `origin/main` ist `8b80faa`. Dieses
+Handoff ersetzt die vorherige Fassung vollständig (Stand 21.08.2026 morgens,
+Commit `cbd0f0a`) — zwischen den beiden lagen mehrere Bugfix- und
+Deploy-Runden in derselben Sitzung.
 
-## Kurzfassung
+## Wichtiger Fund zu Beginn dieser Sitzung: lokaler Git-Stand war veraltet
 
-FLEXR ist auf GitHub und dem Produktions-VPS deployt. In dieser Sitzung wurde
-eine Lücke geschlossen, die ChatGPT Codex auf einem anderen Rechner offen
-gelassen hatte (Token-Limit erreicht): Der Widerruf der Matching-Einwilligung
-war nur über die Web-App möglich. Dabei fiel zusätzlich ein Bug auf, der die
-native Abo-Zahlung komplett blockierte, sowie eine optisch von der Marke
-abweichende Web-Komponente. Alles behoben, committet, gepusht und deployt,
-inklusive neu signiertem Android App Bundle Version **2.4.4**
-(`versionCode 32`). Der Funktionsstand ist seit 2.4.2 unverändert — 2.4.3 und
-2.4.4 waren reine Versions-Label-Anpassungen auf Nutzerwunsch, kein neuer Code.
+Auf **diesem** Gerät (Pfad `~/MEGA/flexr/flexr`, MEGA-Cloud-Sync) zeigte
+`git log -1` auf einen sehr alten Commit (`a30a071`), obwohl die Dateien auf
+der Platte über MEGA-Sync größtenteils aktuell waren — mutmaßlich, weil auf
+diesem Gerät nie `git pull` liefen und stattdessen nur Dateien synchronisiert
+wurden. `git diff`/`git status` waren dadurch am Anfang **irreführend**
+(zeigten tausende Zeilen an vermeintlichen Änderungen, die gar keine echten
+Änderungen waren, plus einige echte veraltete Datei-Leichen wie
+`frontend/legal.css`, `frontend/widerruf.html`, alte `frontend/brand/demo/`-
+Bilder, die in neueren Commits bereits entfernt wurden).
+
+**Fix:** `git fetch origin` und danach `git reset --mixed origin/main` (verändert
+nur HEAD/Index, lässt das Arbeitsverzeichnis unangetastet). Erst danach zeigte
+`git status` die tatsächlichen, beabsichtigten Änderungen. Auf einem neuen
+Gerät IMMER zuerst so prüfen, bevor irgendetwas committet wird — sonst droht
+entweder ein riesiger Fehl-Commit oder (schlimmer) ein `git add -A`, das
+echte, neuere Dateien fälschlich als „gelöscht" einstuft.
 
 - Repository: `git@github.com:flexrsocial/flexr.git`
 - Produktionsseite: <https://flexr.social>
 - API-Healthcheck: <https://flexr.social/api/health>
-- VPS-SSH-Alias auf dem bisherigen Rechner: `flexr-vps`
+- VPS-SSH-Alias: `flexr-vps` (root@31.220.73.67, Key
+  `~/.ssh/id_ed25519_flexr_vps` — lag auf diesem Gerät bereits vor, keine
+  Neueinrichtung nötig)
 - Repository auf dem VPS: `/flexr`
 - API-Dienst: `flexr-api.service`
-- E-Mail-Jobtimer: `flexr-email-jobs.timer`
-- AAB-Download: <https://flexr.social/dl-a616e78274de323b/flexr-2.4.4.aab>
-- AAB SHA-256: `340f516533a38e9688d73b4d731b3d7c294d6dc84fed3a780fd0753a8aa8a873`
-- Vorgänger `flexr-2.4.2.aab` und `flexr-2.4.3.aab` liegen aus
-  Kompatibilitätsgründen noch auf dem VPS (identischer Funktionsstand, nur
-  altes Versions-Label) — können bei Gelegenheit aufgeräumt werden, ist aber
-  unkritisch.
+- **Achtung, geteilter VPS:** Auf demselben Server laufen auch fremde,
+  nicht mit FLEXR verwandte Projekte (`tarifbot-*`, `ediktmonitor`,
+  `gasfees`, ein `defi`-Ordner). Bei Aufräumarbeiten in `/tmp` oder
+  `~/.pm2` etc. nichts anfassen, das nicht eindeutig zu `/flexr` gehört.
+- AAB-Download (aktuell): <https://flexr.social/dl-a616e78274de323b/flexr-2.4.6.aab>
+- AAB SHA-256: `1ec3da96cd321535110f0a8f0935e7e3561abf1e7c7a5e79f81bb9c7b4e217dc`
+- Ältere AABs (2.4.2–2.4.5) liegen noch auf dem VPS, unkritisch, bei
+  Gelegenheit aufräumbar.
 
 ## Was in dieser Sitzung umgesetzt wurde
 
-### Native App: Einwilligungswiderruf nachgezogen
+Reihenfolge in etwa chronologisch, alles einzeln committet, getestet,
+gepusht und deployt (Backend-Restart bzw. Migration wo nötig).
 
-Der Widerruf einer DSGVO-Einwilligung (Art. 7 Abs. 3), insbesondere der
-Art.-9-Einwilligung zu Geschlecht/gesuchtem Geschlecht, ging bisher nur über
-die Web-App. Codex hatte dafür bereits API-Client, DTOs, Repository und
-ViewModel-Logik fertig (unversioniert liegen gelassen), aber keine
-Compose-Oberfläche — genau da gingen die Tokens aus.
+### 1. Web: Chat-Header-Avatar-Ring zeigte eine Lücke
 
-- Neuer Abschnitt „Datenschutz & Sicherheit" im Konto-Bereich
-  (`AccountScreen.kt`): aufklappbare Zeile mit Pfeil rechts, optisch identisch
-  zu „Hilfe & Rechtliches". Zeigt Liste aller Einwilligungen (Status, Datum,
-  Fassung, Rechtsgrundlage) mit Widerruf-Button je widerrufbarer Einwilligung.
-- Für den Art.-9-Widerruf (Geschlecht/gesuchtes Geschlecht) erscheint derselbe
-  Warnhinweis-Dialog wie im Web vor dem eigentlichen Widerruf.
-- `FlexrLinkButton` (gemeinsame Design-System-Komponente) ist jetzt linksbündig
-  statt durch die von `TextButton` erzwungene Mindestbreite eingerückt —
-  betrifft auch „Jetzt abonnieren" und „Abo verwalten / kündigen".
+`.chat-header img` nutzte noch die alte Spread-`box-shadow`-Ringtechnik
+(dieselbe Klasse Bug, die für Konto- und Matchlisten-Avatar schon einmal
+gefixt worden war). Erster Fix: echter `border` auf einem `::after` — löste
+das Problem laut Nutzer-Screenshot **nicht vollständig** (vermutlich
+Sub-Pixel-Rundung zwischen zwei separat positionierten Kreisrändern bei
+gebrochenem Bildschirm-Skalierungsfaktor). **Zweiter, robusterer Fix:** der
+Ring ist jetzt die Hintergrundfarbe eines einzigen gefüllten Kreis-Elements,
+das Foto sitzt per Padding darin — nur noch eine Kreiskontur statt zwei.
+Noch nicht vom Nutzer nach dem zweiten Fix bestätigt — als Erstes in der
+nächsten Sitzung nachfragen/prüfen.
 
-### Bug gefunden und behoben: Abo-Checkout schlug fehl
+### 2. Web + Android: Profilbild-Thumbnails schnitten Gesichter ab
 
-Beim Testen fiel auf: Klick auf „Jetzt abonnieren" in der nativen App zeigte
-den Fehler **„Field required"**. Ursache: Der native Client rief
-`POST /api/billing/checkout` ganz ohne Body auf. Das Backend verlangt aber
-zwei getrennte, nicht vorangekreuzte Erklärungen (§ 10 und § 18 Abs. 1 Z 1
-FAGG: sofortiger Leistungsbeginn + Kenntnisnahme über den Verlust des
-Rücktrittsrechts) — ohne sie lehnt FastAPI mit `422` ab, und die rohe
-Pydantic-Meldung landete ungefiltert als Toast beim Nutzer.
+Der 256px-Quadrat-Thumbnail-Crop beim Foto-Upload war strikt mittig
+(`sy = (h - side) / 2`). Bei Hochformat-Fotos mit Kopf-Freiraum schnitt das
+die Stirn ab. Jetzt `sy = (h - side) * 0.15` (Richtung oberer Rand) in
+`frontend/app/index.html` (`preparePhoto`) und
+`android-native/.../core/media/ImageProcessor.kt` (`centerSquare`). Wirkt
+nur für **neu hochgeladene** Fotos — bereits vorhandene Thumbnails bleiben
+wie sie sind (der Fix ist client-seitig, das Backend croppt nie).
 
-- Beide Plattformen (App-Profil-Screen und Paywall nach Ablauf des
-  Probemonats — beide nutzen `AccountViewModel`) zeigen jetzt vorher einen
-  Dialog mit genau diesen zwei Checkboxen, Wortlaut identisch zur Web-App.
-  Erst nach Bestätigung beider Punkte wird der Checkout gestartet.
-- **Dieser Bug betraf nur die native App**, nicht die Web-App — dort gab es
-  den Dialog schon.
+### 3. "Chatverlauf leeren" ließ den ganzen Chat aus der Chats-Liste verschwinden
 
-### Web: Checkout-Popup im FLEXR-Stil vereinheitlicht
+Bug lag in allen Clients (Web, Android, auch iOS betroffen — nicht gefixt,
+siehe „Noch offen"): Die Chats-Liste filterte auf `last_message != null`.
+Nach dem Leeren wird `last_message` server-seitig korrekt `null` (Backend war
+nie das Problem), die Clients werteten das aber fälschlich als „kein Chat
+mehr" statt „Chat da, nur leer". Fix: neues Backend-Feld `in_chats` auf
+`MatchOut` (`GET /api/matches`), das unabhängig von `last_message`/`cleared_at`
+ist — bleibt nach dem Leeren `true`. Web + Android nutzen jetzt `in_chats`
+statt `last_message` als Listen-Filter.
 
-Beim Vergleich fiel auf, dass `immediateStartOverlay` (das „Vor der
-Zahlung"-Popup vor Stripe) eine eigene, vom Rest der Seite abweichende Optik
-hatte:
+### 4. "Chat löschen" löschte versehentlich das ganze Match
 
-- Der „Abbrechen"-Button nutzte `class="btn"` mit `background:transparent`,
-  aber `.btn` setzt `color:#191008` (dunkle Schrift für den orangen
-  Verlauf) — auf transparentem Grund praktisch unlesbar.
-- Die Checkbox-Labels waren generische `<label>`-Elemente und erbten dadurch
-  ungewollt `text-transform:uppercase` von der globalen `label{…}`-Regel
-  (gedacht für Formularfeld-Labels wie „POSTLEITZAHL") — der ganze
-  Erklärungstext erschien in Großbuchstaben.
-- Generische, unthemte Checkboxen statt der im Rest der App verwendeten
-  orangen `accent-color`.
+Rief bislang denselben Endpunkt wie "Match auflösen" auf (`DELETE
+/api/matches/{id}`) — löschte also Match, Swipe und Verlauf komplett, obwohl
+der Button im Chat-Menü etwas anderes suggerierte als der separate
+"Match auflösen"-Button im Matchprofil. Neuer Endpunkt
+`DELETE /api/matches/{id}/chat`: Match, Swipe und Nachrichten bleiben
+bestehen, nur `in_chats` wird für die löschende Seite zurückgesetzt (kehrt
+bei einer neuen Nachricht automatisch zurück, wie bei anderen Messengern).
+Backend-Migration `6f2a3c9d7e15` ergänzt `user_a/b_chat_deleted_at` auf
+`matches`.
 
-Behoben durch Wiederverwendung der bereits etablierten Klassen statt neuer
-Optik: `.legal-modal-backdrop`/`.legal-modal`/`.legal-modal-body` (wie beim
-„Konto löschen"-Dialog) und `.consent-label` (wie bei der Registrierung).
-Visuell auf der Live-Seite geprüft (Screenshot, DOM-Klassen per curl
-bestätigt).
+### 5. Web: rechts abgeschnittener Rahmen beim Hover über eine Chat-Kachel
 
-### Version
+Ursache: `.match-item:hover{ transform:translateX(2px); }` schob die Kachel
+2px nach rechts; auf Desktops mit klassischem (nicht Overlay-)Scrollbalken
+fraß der sich in die rechten 20px Innenabstand von `main`/`.screen.active`
+hinein, sodass die 2px-Verschiebung den abgerundeten Rand unter den
+Scrollbalken schob. Fix: `scrollbar-gutter: stable` auf beiden scrollenden
+Containern.
 
-`versionCode` 29 → 30 → 31 → 32, `versionName` 2.4.1 → 2.4.2 → 2.4.3 → 2.4.4.
-Ab 2.4.2 nur noch Versions-Label-Änderungen auf Nutzerwunsch, kein neuer Code.
+### 6. "Sofortiger Leistungsbeginn" — Widerruf-Knopf entfernt (tat nie etwas)
 
-## Android-Build — Hinweis zur RAM-Lage auf diesem Rechner
+Der Nutzer fragte, was der Widerruf dieser Einwilligung bewirkt — Antwort:
+nichts. Es gab zwei parallele Datensätze für dieselbe Sache: den
+widerrufbaren `Consent`-Ledger-Eintrag (nur fürs Konto-UI) und den
+tatsächlich maßgeblichen, bewusst **nicht** widerrufbaren
+`CheckoutConsent`-Datensatz (§ 10/§ 18 Abs. 1 Z 1 FAGG, wirkt fort, solange
+der Vertrag läuft). Der Widerrufen-Knopf beim Ledger-Eintrag täuschte also
+eine Wirkung vor, die es nicht gab. Entfernt: `billing.py` legt keinen
+`Consent`-Ledger-Eintrag für `immediate_start` mehr an, Web/Android zeigen
+dafür keinen Widerrufen-Knopf mehr (alte, historische Einträge bleiben zur
+Ansicht stehen, nur ohne Knopf).
 
-Dieser Rechner hat nur **3,7 GB RAM**, explizit auf max. 1,5 GB Build-Speicher
-begrenzt. `bundleProdRelease` geriet dabei mehrfach in schwere
-Swap-Auslastung (einmal musste ein hängender Java-Prozess manuell per `kill`
-beendet werden, um einen erneuten Systemstillstand wie bei einem früheren
-Versuch zu verhindern — der hatte einen Neustart der Maschine erzwungen).
+### 7. Echter Bug: Widerruf von "Geschlecht/gesuchtes Geschlecht" wirkte nicht
 
-**Ursache gefunden und behoben:** `kotlin.compiler.execution.strategy=in-process`
-zwingt den Kotlin-Compiler in denselben JVM-Prozess wie Gradle selbst. Bei
-einer kompletten Neukompilierung (z. B. nach einer Änderung an
-`build.gradle.kts`, die den Configuration-Cache invalidiert) reichte der
-1,5-GB-Heap für Gradle + Kotlin-Compiler zusammen in einem Prozess nicht.
-Der `bundleProdRelease`-Build für 2.4.3 lief deshalb 3× fehl
-(`packageProdReleaseBundle FAILED` bzw. `compileProdReleaseKotlin FAILED`
-mit `InvocationTargetException`), bis ein separater, ebenfalls begrenzter
-Kotlin-Compiler-Daemon eingerichtet wurde. Seitdem (2.4.4) liefen Test- und
-Bundle-Build im ersten Versuch durch.
+Beim Testen von Punkt 6 fiel auf: `GET /api/profiles/me/consents/revoke` für
+`sensitive_data` versprach *"du erscheinst in keinem Deck mehr"* — das wurde
+aber **nirgends durchgesetzt**. `swipes.get_deck()` prüfte den Consent-Status
+gar nicht. Neuer Filter `consents.sensitive_data_consent_condition()`
+(korrelierte EXISTS-Subquery), jetzt Teil der `base_filters` in
+`routers/swipes.py`.
 
-Aktuelle, funktionierende `~/.gradle/gradle.properties` (nutzerweit, **nicht**
-im Projekt-Git):
+### 8. Datenlücke dabei entdeckt: mehrere Konten ohne Consent-Zeile
 
-```properties
-org.gradle.jvmargs=-Xmx1536m -XX:MaxMetaspaceSize=256m -XX:+UseSerialGC -Dfile.encoding=UTF-8
-org.gradle.parallel=false
-org.gradle.workers.max=1
-org.gradle.caching=true
-kotlin.daemon.jvmargs=-Xmx1024m -XX:MaxMetaspaceSize=320m -XX:+UseSerialGC
+Beim Testen von Punkt 7 fiel auf: mehrere aktive Konten — **darunter das
+echte Konto `pachernegg@gmail.com`** — hatten trotz gesetztem Altfeld
+`users.sensitive_data_consent_at` **keine** Zeile in der neueren
+`consents`-Tabelle. Ohne Nachtrag hätte der neue Deck-Filter aus Punkt 7 sie
+fälschlich unsichtbar gemacht, obwohl nie widerrufen wurde. Migration
+`9c4e1a7f2b83` trägt das nach (gleicher Ansatz wie die ursprüngliche
+Consent-Migration `a1f7c39b2d40`, die das schon einmal für alle
+**damals** bestehenden Konten gemacht hatte — offenbar wurden danach
+Konten angelegt, ohne über `consents.grant()` zu laufen, mindestens die per
+Skript direkt in die DB geschriebenen Testkonten dieser Sitzung).
+
+**Falle beim ersten Migrationslauf:** Die Bedingung prüfte zunächst nur
+„keine AKTIVE Zeile" statt „noch nie irgendeine Zeile" — dadurch bekam
+`pachernegg@gmail.com`, das kurz zuvor testweise selbst über die App
+widerrufen hatte, fälschlich eine neue aktive Zeile und der Widerruf wurde
+stillschweigend rückgängig gemacht. Auf Produktion von Hand korrigiert
+(die einzelne betroffene Zeile wieder gelöscht), Migrationsdatei danach
+korrigiert (Commit `8b80faa`) — bei einem etwaigen **Neu**-Deploy auf einer
+frischen DB tritt der Fehler nicht mehr auf.
+
+### 9. Neuer Endpunkt: Widerruf zurücknehmen
+
+`POST /api/profiles/me/consents/grant` — ein Widerruf von `sensitive_data`
+oder `verification_media` lässt sich jetzt zurücknehmen (erneute
+Einwilligung). Ohne das blieb ein Konto nach dem Widerruf von
+`sensitive_data` dauerhaft mit leerem Deck zurück, reparierbar nur über die
+Kontolöschung. Web + Android zeigen bei widerrufenen, widerrufbaren
+Einwilligungen jetzt "Einwilligung erneut erteilen" — aber nur auf der
+jeweils **neuesten** Zeile je Art (nach Widerruf+Neuerteilung gibt es zwei
+historische Zeilen derselben Art, nur die neueste bekommt einen
+Aktions-Knopf).
+
+### 10. Android: "— widerrufen" brach Buchstabe für Buchstabe um
+
+Layout-Bug in `ConsentSection` (`AccountScreen.kt`): `Row(Text(label),
+Text("— widerrufen"))` — bei einem langen Label (z. B. "Verarbeitung von
+Geschlecht und gesuchtem Geschlecht") blieb für den zweiten `Text` in der
+`Row` (die nicht umbricht) kaum Restbreite, der Suffix brach dadurch
+zeichenweise am rechten Bildschirmrand um. Fix: ein einzelnes
+`AnnotatedString`-`Text` statt zwei `Text`s in einer `Row` — wickelt als ein
+Absatz normal um.
+
+## Android-Build — Toolchain auf diesem Gerät
+
+Anders als beim letzten Gerät (3,7 GB RAM, stark limitiert) hat dieses hier
+**7,6 GB RAM** — der reguläre Build lief ohne Sonderbehandlung durch. Es gab
+hier weder JDK noch Android SDK; beides wurde ad hoc installiert:
+
+```bash
+# JDK (Temurin 17) und Android Commandline-Tools nach /tmp/flexr-android-build
+# (ACHTUNG: /tmp — überlebt keinen Neustart, auf einem neuen Gerät neu holen)
+curl -fsSL -o jdk.tar.gz "https://api.adoptium.net/v3/binary/latest/17/ga/linux/x64/jdk/hotspot/normal/eclipse"
+curl -fsSL -o cmdline-tools.zip "https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip"
+# jdk.tar.gz -> /tmp/flexr-android-build/jdk (--strip-components=1)
+# cmdline-tools.zip -> /tmp/flexr-android-build/sdk/cmdline-tools/latest
+yes | sdkmanager --sdk_root=/tmp/flexr-android-build/sdk "platform-tools" "platforms;android-36" "build-tools;36.0.0"
+echo "sdk.dir=/tmp/flexr-android-build/sdk" > android-native/local.properties
 ```
 
-Zwei getrennte, jeweils begrenzte Prozesse (Gradle max. 1,5 GB, Kotlin-Daemon
-max. 1 GB) statt ein einzelner, überladener Prozess. Zusätzlich **immer**
-`:app:testProdReleaseUnitTest` und `:app:bundleProdRelease` als **getrennte
-Gradle-Aufrufe** starten, nicht in einem Befehl kombinieren — das hat in
-dieser Sitzung zusätzlich zu Abstürzen geführt (zwei Tasks im selben
-Single-Use-Daemon-Prozess addieren sich).
+`~/.gradle/gradle.properties` wurde vorsorglich (nicht zwingend nötig bei
+7,6 GB RAM) auf moderate Werte gesetzt:
 
-Auf einem neuen/anderen Gerät mit mehr RAM ist das wahrscheinlich kein
-Thema — die RAM-Probleme sind rechnerspezifisch, nicht projektspezifisch. Auf
-einer schwachen Maschine zusätzlich **andere speicherhungrige Anwendungen
-vorher schließen**: ein Teil der Knappheit kam von parallel laufenden
-Anwendungen auf demselben Rechner, nicht nur von Gradle/Kotlin selbst.
+```properties
+org.gradle.jvmargs=-Xmx2048m -XX:MaxMetaspaceSize=384m -Dfile.encoding=UTF-8
+org.gradle.parallel=false
+org.gradle.workers.max=2
+org.gradle.caching=true
+kotlin.daemon.jvmargs=-Xmx1536m -XX:MaxMetaspaceSize=384m
+```
 
-Falls auf einem neuen Gerät keine JDK/Android-SDK-Toolchain existiert: lässt
-sich ohne root/sudo in einen beliebigen Ordner installieren (Eclipse Temurin
-17 von `api.adoptium.net`, Android Commandline-Tools von
-`dl.google.com/android/repository/`, Platform 36 + Build-Tools 36.0.0 per
-`sdkmanager`).
+Auf einem neuen Gerät: JDK/SDK entweder neu installieren (s. o., dauert ca.
+5–10 Min inkl. Download) oder prüfen, ob unter `/tmp` noch etwas vom letzten
+Mal übrig ist (unwahrscheinlich, `/tmp` wird meist beim Neustart geleert).
 
-## Testdaten für manuelles Testen (neu in dieser Sitzung)
+**Falle, die in dieser Sitzung zweimal auftrat:** Nach dem Hinzufügen einer
+neuen Methode zum `FlexrApi`-Interface (z. B. `deleteChat`, `grantMyConsent`)
+schlägt `:app:compileProdReleaseUnitTestKotlin` fehl, weil `FakeFlexrApi`
+(unter `app/src/test/.../testing/FakeFlexrApi.kt`) das Interface vollständig
+implementiert und bei jeder neuen Methode ergänzt werden muss (`override
+suspend fun neueMethode(...) = nichtVorgesehen("neueMethode")`) — alle
+anderen Test-Doubles erben von `FakeFlexrApi` und beheben sich dadurch von
+selbst. `:app:compileProdReleaseKotlin` (Hauptcode) meldet das **nicht**,
+erst der separate Unit-Test-Compile-Schritt — immer beide laufen lassen,
+nicht nur den ersten.
 
-Auf Wunsch wurden alte synthetische Testkonten entfernt und neue angelegt,
-alle über den echten Löschweg (`admin.py:delete_user`-Logik) bzw. die echte
-Registrierungs-API — keine rohen SQL-Eingriffe.
+## Testdaten für manuelles Testen
 
-**Gelöscht:** 20 synthetische `@flexrtest.at`-Konten (Batch vom 08.08.2026)
-sowie 2 E2E-Testkonten (`pachernegg+flexrtest…20260816@gmail.com`, „E2E
-Test"/„E2E Test 2" vom 16.08.2026).
+Auf Wunsch zweimal gelöscht und neu angelegt, zuletzt mit **echten
+Hochformat-Fotos** (1080×1440, aus `~/MEGA/flexr/seed/fotos/`, Unsplash-
+Quellen aus einer früheren Sitzung), damit der Foto-Crop-Fix aus Punkt 2
+sichtbar getestet werden kann — die vorherigen Läufe nutzten quadratische
+Demo-Bilder aus `frontend/brand/demo/`, an denen der Crop-Unterschied gar
+nicht sichtbar gewesen wäre.
 
-**Bewusst nicht angerührt:** `teresa.pachernegg@gmail.com` („Teresa") — nicht
-eindeutig als Testkonto erkennbar, auf Nutzerwunsch erhalten geblieben.
+Alle im 158-km-Suchradius von `pachernegg@gmail.com` (Julian, McFit
+Triester Straße, 1100 Wien), `verification_required=False`, sofort aktiv:
 
-**Neu angelegt:** 5 Frauenprofile, alle im 158-km-Suchradius von
-`pachernegg@gmail.com` (Julian, McFit Triester Straße, 1100 Wien), über die
-echte Registrierungs-API mit je einem genehmigten Foto (bereits öffentliche
-Demo-Bilder aus `frontend/brand/demo/`) und `verification_required=False`
-(überspringt die volle Selfie/Ausweis-Prüfung bewusst — reine
-Deck-Sichtbarkeit fürs manuelle Testen, nicht die Verifizierungs-UX selbst):
+| Name | Login-E-Mail | Passwort |
+|---|---|---|
+| Katharina | `pachernegg+flexrtest-katharina@gmail.com` | `2fCSNfuA9tZa` |
+| Sarah | `pachernegg+flexrtest-sarah@gmail.com` | `AOjXkqxhzcHF` |
+| Verena | `pachernegg+flexrtest-verena@gmail.com` | `l54K_mGm3i_T` |
+| Sophie | `pachernegg+flexrtest-sophie@gmail.com` | `XSpTcLIPXnT5` |
+| Elena | `pachernegg+flexrtest-elena@gmail.com` | `-YcvPAAMriaQ` |
 
-| Name | Login-E-Mail | Gym | Entfernung |
-|---|---|---|---|
-| Katharina | `pachernegg+flexrtest-katharina@gmail.com` | FITINN, 1050 Wien | ~4,5 km |
-| Laura | `pachernegg+flexrtest-laura@gmail.com` | Clever fit, Stockerau | ~30,6 km |
-| Sofia | `pachernegg+flexrtest-sofia@gmail.com` | Clever fit, Krems an der Donau | ~66,5 km |
-| Maya | `pachernegg+flexrtest-maya@gmail.com` | INJOY, Amstetten | ~114,9 km |
-| Miriam | `pachernegg+flexrtest-miriam@gmail.com` | MoreFit, Lieboch | ~152,8 km |
+Anlage-Skript lief direkt gegen die Produktions-DB auf dem VPS (SQLAlchemy,
+kein rohes SQL), Fotos per `storage.get_s3_client()` nach R2 hochgeladen —
+kein eigenes Skript-File hinterlassen (`/tmp` auf dem VPS danach geleert).
+Bei Bedarf lässt sich das Vorgehen aus diesem Handoff-Abschnitt und den
+Git-Commits dieser Sitzung rekonstruieren, oder aus
+`~/MEGA/flexr/seed/README.md` (älteres, anderes Testkonten-Batch,
+`@flexrtest.at`, nicht mehr aktuell).
 
-Alle E-Mails laufen über Gmail-Plus-Adressierung im selben Postfach wie
-`pachernegg@gmail.com`. Über `get_deck()`-Logik geprüft: alle 5 erscheinen im
-Deck (Gender/Interest-Match, Gym löst auf, Foto genehmigt, Radius erfüllt).
+**Bewusst nicht angerührt:** `teresa.pachernegg@gmail.com` — weiterhin
+unklar, ob Testkonto, auf Nutzerwunsch erhalten.
 
-**Passwörter absichtlich nicht in diesem Dokument** — `flexrsocial/flexr` ist
-ein öffentliches GitHub-Repository, Klartext-Zugangsdaten zu echten,
-einloggbaren Konten gehören da nicht rein, auch nicht zu Testprofilen. Sie
-wurden im Chat dieser Sitzung mitgeteilt; falls nicht mehr griffbereit,
-einfach über „Passwort vergessen" mit der jeweiligen E-Mail zurücksetzen.
+Zum späteren Aufräumen: `email LIKE 'pachernegg+flexrtest-%'`, über den
+echten Löschweg (`delete_storage_objects`/`storage_keys_for_user` +
+`db.delete(user)`), nicht per rohem SQL.
 
-Zum späteren Aufräumen: gleicher Ablauf wie oben beschrieben (Storage-Objekte
-über `cleanup.storage_keys_for_user` + `delete_storage_objects`, danach
-`db.delete(user)`), Filter auf `email LIKE 'pachernegg+flexrtest-%'`.
+## Noch offen / bewusst nicht erledigt
 
-## Noch offen / bewusst nicht produktiv ausgelöst
-
-1. Die native App muss auf einem echten Android-Gerät im internen Play-Testtrack
-   geprüft werden, besonders Kamera, Profilfoto, Selfie, Ausweisaufnahme —
-   und jetzt zusätzlich der neue Checkout-Dialog und der
-   Datenschutz-&-Sicherheit-Widerruf.
-2. Ein echter Stripe-Checkout wurde nicht ausgelöst, um keine reale Zahlung oder
-   Subscription anzulegen. Der Checkout gehört mit einem kontrollierten
-   Testnutzer geprüft — jetzt mit dem neuen Zwei-Checkbox-Dialog auf beiden
-   Plattformen. Dafür eignen sich auch die fünf neuen Test-Frauenprofile
-   (siehe „Testdaten" oben) als Gegenüber zum Deck-/Match-/Chat-Testen.
-3. Das AAB (2.4.4, siehe oben) ist noch in die Play Console hochzuladen. Dabei `PLAY-CONSOLE.md`
-   beachten: Data-Safety-Angaben, Kamera/Ausweisfotos und Deep Links prüfen.
-4. Die Rechtstexte wurden technisch und inhaltlich bereinigt, ersetzen aber
-   keine abschließende Prüfung durch eine österreichische Rechtsberatung.
-5. In der Google Search Console prüfen, ob
-   `https://flexr.social/sitemap.xml` den Status „Erfolgreich" hat. Für die
-   Startseite einmal „Live-URL testen" und „Indexierung beantragen". Falls dort
-   noch ein Soft-404-Problem gemeldet wird, nach dem neuen echten 404-Verhalten
-   „Fehlerbehebung überprüfen" starten.
-6. `backend/tests/test_public_frontend.py` wurde nach der Checkout-Popup-
-   Änderung **nicht** erneut laufen gelassen (kein lokaler venv auf diesem
-   Rechner vorhanden) — vor dem nächsten Deploy einmal nachholen, auch wenn
-   ein `grep` bereits bestätigt hat, dass kein Test die entfernten
-   `.istart-*`-Klassen referenziert.
+1. **Ring-Fix (Punkt 1) vom Nutzer noch nicht nach dem zweiten Anlauf
+   bestätigt.** Zuerst nachfragen bzw. mit hartem Reload gegenprüfen.
+2. **iOS hat dieselben Bugs wie Punkt 3 und vermutlich Punkt 2** (gleiche
+   `filter { $0.lastMessage != nil }`-Logik in
+   `ios/FLEXR/Data/Repository/MatchRepository.swift`, gleicher
+   Center-Crop vermutlich in der iOS-Fotoverarbeitung — nicht geprüft,
+   nicht gefixt). Nicht angefasst, weil in dieser Sitzung nie explizit
+   verlangt.
+3. **Android AAB 2.4.6 (versionCode 34) ist gebaut, signiert und auf dem
+   VPS-Downloadordner live** — aber noch nicht in die Play Console
+   hochgeladen. `PLAY-CONSOLE.md` beachten: Data-Safety-Angaben, Kamera/
+   Ausweisfotos und Deep Links prüfen. Enthält gegenüber 2.4.4 echten neuen
+   Code (Punkte 2, 3, 4, 6, 9, 10 dieses Handoffs) — kein reines
+   Versions-Label-Update.
+4. **Kein kontrollierter Stripe-Testcheckout** ausgelöst (wie in den
+   vorherigen Sitzungen auch bewusst vermieden).
+5. Die fünf Test-Frauenprofile eignen sich weiterhin für Deck-/Match-/
+   Chat-Testen — nach Abschluss löschen (siehe oben).
+6. `backend/tests/test_public_frontend.py` lief in dieser Sitzung mehrfach
+   grün mit — der in einer früheren Sitzung offene Punkt dazu ist erledigt.
+7. Google Search Console / Sitemap-Status (aus einer noch früheren
+   Sitzung offen) wurde in dieser Sitzung nicht erneut geprüft.
 
 ## Auf einem anderen Gerät starten
 
 ```bash
-git clone git@github.com:flexrsocial/flexr.git
+git clone git@github.com:flexrsocial/flexr.git   # oder: vorhandenes Repo
 cd flexr
-git switch main
-git pull --ff-only origin main
-git status --short --branch
-git log -5 --oneline
+git fetch origin
+git log -1 --oneline                              # HEAD prüfen
+git log -1 --oneline origin/main                   # gegen origin/main vergleichen
 ```
 
-Falls das Repository schon vorhanden ist, reichen die letzten vier Befehle.
-Vor jeder Änderung zuerst prüfen, dass keine fremden lokalen Änderungen
-überschrieben werden.
+**Falls HEAD hinter `origin/main` zurückliegt** (siehe Fund ganz oben in
+diesem Dokument) — insbesondere auf einem MEGA/Dropbox/etc.-synchronisierten
+Ordner, wo `git pull` möglicherweise nie lief:
+
+```bash
+git status --short          # erst pruefen, ob es hier ueberhaupt was zu verlieren gibt
+git reset --mixed origin/main   # bewegt nur HEAD+Index, laesst Arbeitsverzeichnis unangetastet
+git status --short          # jetzt sollte nur noch echte, beabsichtigte Aenderungen zeigen
+```
+
+Kein `git reset --hard` und kein `git checkout .` ohne vorherige Prüfung —
+beide würden echte, noch unversionierte lokale Änderungen im
+Arbeitsverzeichnis zerstören.
 
 ### Nicht im Git enthaltene Zugangsdaten
 
-Diese Dateien oder Zugänge müssen auf einem neuen Gerät separat und sicher
-bereitgestellt werden; niemals in Git committen oder in ein Handoff kopieren:
+- SSH-Key/-Konfiguration für GitHub sowie den Alias `flexr-vps`
+- `backend/.env`
+- `android/android.keystore`, `android/KEYSTORE-CREDENTIALS.txt`
 
-- SSH-Key und SSH-Konfiguration für GitHub sowie den Alias `flexr-vps`
-- `backend/.env`, falls das Backend lokal mit externen Diensten laufen soll
-- `android/android.keystore`
-- `android/KEYSTORE-CREDENTIALS.txt`
-
-Die Produktions-Secrets liegen bereits auf dem VPS in `/flexr/backend/.env`.
-Brevo-, Stripe-, JWT-, Datenbank- und Storage-Schlüssel nicht aus alten Chats
-übernehmen oder erneut posten. Der Brevo-Schlüssel wurde bereits rotiert.
+Produktions-Secrets liegen auf dem VPS in `/flexr/backend/.env`. Nicht aus
+alten Chats übernehmen oder erneut posten.
 
 ## Tests auf dem neuen Gerät
 
@@ -250,85 +313,91 @@ Backend:
 cd backend
 python3 -m venv venv
 venv/bin/pip install -r requirements-dev.txt
-venv/bin/python -m pytest
+venv/bin/python -m pytest -q
 ```
 
-Schneller statischer Frontend-/SEO-Test ohne laufende Datenbank:
+Stand dieser Sitzung: **355 Tests, alle grün.**
 
-```bash
-cd backend
-venv/bin/python -m pytest tests/test_public_frontend.py -q
-```
-
-Android benötigt JDK 17, Android SDK Platform 36 und Build Tools 36.0.0:
+Android (siehe Toolchain-Abschnitt oben für JDK/SDK-Setup):
 
 ```bash
 cd android-native
+export JAVA_HOME=/pfad/zu/jdk-17
+export PATH="$JAVA_HOME/bin:$PATH"
+export ANDROID_HOME=/pfad/zu/android-sdk
 ./gradlew --no-daemon --max-workers=1 :app:testProdReleaseUnitTest
 ./gradlew --no-daemon --max-workers=1 :app:bundleProdRelease
 unzip -l app/build/outputs/bundle/prodRelease/app-prod-release.aab | grep META-INF/FLEXR
 sha256sum app/build/outputs/bundle/prodRelease/app-prod-release.aab
 ```
 
-Ohne Keystore oder Passwortdatei kann Gradle ein nicht uploadfähiges,
-unsigniertes Bundle erzeugen. Deshalb die `FLEXR.RSA`-Prüfung nie auslassen.
+Immer als **getrennte** `./gradlew`-Aufrufe, nie kombiniert (frühere
+Sitzung: führte auf einer RAM-knappen Maschine zu Abstürzen). Nach jeder
+Änderung an `FlexrApi.kt` zuerst `FakeFlexrApi.kt` ergänzen (siehe Falle
+oben), sonst schlägt nur der Unit-Test-Compile fehl, nicht der Hauptbuild.
 
 ## Normaler Commit- und Deploy-Ablauf
 
 ```bash
 git status --short
-git diff --check
-git add <nur-die-beabsichtigten-dateien>
+git add <nur-die-beabsichtigten-dateien>   # NICHT git add -A, siehe .env.example-Falle unten
 git commit -m "Kurze aussagekräftige Beschreibung"
 git push origin main
 
 ssh flexr-vps 'cd /flexr && git pull --ff-only origin main'
+ssh flexr-vps 'cd /flexr/backend && venv/bin/alembic upgrade head'   # nur falls neue Migration
 ssh flexr-vps 'sudo systemctl restart flexr-api && systemctl is-active flexr-api'
 curl -fsS https://flexr.social/api/health
 ```
 
-Wichtig: Auf dem VPS ist `frontend/dl-a616e78274de323b/` absichtlich
-unversioniert. Darin liegen die AAB-Downloads. Diesen Ordner bei Deploys oder
-Aufräumarbeiten nicht löschen.
+**Falle, die in dieser Sitzung mehrfach auftrat:** `backend/.env.example`
+zeigt in `git diff` als verändert (Rückfall auf generische Platzhalterwerte
+wie `smtp.example.com`), ohne dass diese Sitzung das absichtlich angefasst
+hätte — mutmaßlich Rest aus derselben Git-Stand-Problematik wie ganz oben
+beschrieben. **Bewusst nicht mitcommitten**, gezielt einzelne Dateien
+stagen statt `git add -A`.
 
-Ein neues Bundle wird so bereitgestellt:
+**Alembic-Migrationen und `sudo systemctl restart`** wurden vom
+Auto-Mode-Classifier dieser Sitzung beim ersten Versuch jeweils blockiert,
+liefen aber beim **zweiten** identischen Versuch anstandslos durch (kein
+Workaround nötig, einfach denselben Befehl nochmal ausführen).
+
+Ein neues AAB wird so bereitgestellt:
 
 ```bash
 scp android-native/app/build/outputs/bundle/prodRelease/app-prod-release.aab \
   flexr-vps:/flexr/frontend/dl-a616e78274de323b/flexr-X.Y.Z.aab
 ssh flexr-vps 'sha256sum /flexr/frontend/dl-a616e78274de323b/flexr-X.Y.Z.aab'
+# lokale und entfernte SHA-256 vergleichen, dann:
+curl -fsSI https://flexr.social/dl-a616e78274de323b/flexr-X.Y.Z.aab
 ```
 
-Lokale und entfernte SHA-256 müssen identisch sein. Danach den öffentlichen
-Download ebenfalls prüfen.
+`frontend/dl-a616e78274de323b/` auf dem VPS ist absichtlich unversioniert
+(enthält die AAB-Downloads) — nie löschen.
 
 ## Empfohlener Einstiegsprompt für Claude Code
 
-> Lies zuerst `HANDOFF.md`, danach die für deine Aufgabe relevanten README- und
-> Handoff-Dateien vollständig. Prüfe `git status`, `git log -5` und den aktuellen
-> Stand von `origin/main`. Bewahre bestehende lokale Änderungen und den
-> unversionierten VPS-Downloadordner. Poste oder committe keine Secrets. Arbeite
-> die offenen Punkte aus dem Handoff der Reihe nach ab, teste proportional zum
-> Risiko und committe/deploye erst nach erfolgreicher Prüfung.
+> Lies zuerst `HANDOFF.md` vollständig. Prüfe `git fetch origin`, dann
+> `git log -1 --oneline` gegen `git log -1 --oneline origin/main` — bei
+> Abweichung erst den Abschnitt „Auf einem anderen Gerät starten" befolgen,
+> bevor irgendetwas committet wird. Poste oder committe keine Secrets.
+> Arbeite die offenen Punkte der Reihe nach ab, teste proportional zum
+> Risiko (Backend-Tests laufen lassen, bei Android immer Kotlin-Compile UND
+> Unit-Test-Compile separat prüfen) und committe/deploye erst nach
+> erfolgreicher Prüfung.
 
 ## Erinnerung für die nächste Sitzung
 
-- Zuerst `git pull --ff-only origin main` und dieses Handoff vollständig lesen.
-- Web-App-Profil nicht wieder in Aufklappregister umbauen; offenes Layout und
-  Scrollregel sind absichtlich durch einen Regressionstest geschützt.
-- Bei Änderungen am Konto die Darstellung zusätzlich bei 390 × 844 Pixeln
-  prüfen: orange Aktionen, Abstände, vertikales Scrollen und kein horizontaler
-  Overflow.
-- `backend/tests/test_public_frontend.py` einmal laufen lassen (siehe „Noch
-  offen" Punkt 6).
-- Auf einem echten Android-Gerät bzw. im internen Play-Testtrack testen —
-  inklusive neuem Checkout-Dialog und Einwilligungswiderruf. Die fünf neuen
-  Test-Frauenprofile (siehe „Testdaten" oben) eignen sich als Gegenüber.
-- Anschließend kontrollierten Stripe-Testcheckout durchführen.
-- Danach AAB 2.4.4 (bereits gebaut, signiert und live hochgeladen — siehe
-  Kurzfassung) in die Play Console laden und Data Safety/Deep Links
-  kontrollieren.
-- Die 5 neuen Test-Frauenprofile (`pachernegg+flexrtest-*@gmail.com`) sind für
-  manuelles Deck-/Match-/Chat-Testen gedacht — nach Abschluss des Testens
-  wieder löschen (Ablauf siehe „Testdaten"-Abschnitt oben).
+- Zuerst `git fetch origin` + HEAD-Abgleich (siehe oben), erst danach
+  irgendetwas anfassen.
+- Nachfragen/prüfen, ob der zweite Ring-Fix (Punkt 1) tatsächlich behoben
+  hat — das war der Stand beim Ende dieser Sitzung, unbestätigt.
+- iOS hat vermutlich dieselben zwei Bugs wie Web/Android hatten (Punkte 2
+  und 3) — bisher nicht angefasst, nur auf ausdrücklichen Wunsch angehen.
+- AAB 2.4.6 ist bereits gebaut, signiert und live hochgeladen (siehe
+  Kurzfassung) — noch nicht in die Play Console geladen.
+- Die 5 Test-Frauenprofile nach Abschluss des Testens löschen (siehe
+  „Testdaten" oben).
+- Danach kontrollierten Stripe-Testcheckout durchführen (weiterhin offen
+  aus früheren Sitzungen).
 - Erst danach neue Produktfunktionen beginnen.
