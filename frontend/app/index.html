@@ -3587,8 +3587,12 @@
     terms:              'Vertragsschluss, keine Einwilligung — daher nicht widerrufbar.',
   };
   // Die AGB-Annahme ist Vertragsschluss, keine Einwilligung - sie wird
-  // angezeigt, aber nicht als widerrufbar dargestellt.
-  const CONSENT_REVOCABLE = ['sensitive_data', 'verification_media', 'immediate_start'];
+  // angezeigt, aber nicht als widerrufbar dargestellt. "Sofortiger
+  // Leistungsbeginn" ebenso: die massgebliche § 10/§ 18 Abs. 1 Z 1
+  // FAGG-Erklaerung liegt unveraenderlich in CheckoutConsent und wirkt fort,
+  // solange der Vertrag laeuft - ein "Widerruf" hier haette nichts bewirkt,
+  // zeigte aber einen Knopf, der das Gegenteil suggerierte.
+  const CONSENT_REVOCABLE = ['sensitive_data', 'verification_media'];
 
   async function loadMyConsents(){
     const box = $('myConsents');
@@ -3601,16 +3605,26 @@
       // Die Zeile nennt die Sache und den Knopf. Datum und Fassung sind fuer
       // den Nachweis noetig, aber nicht beim ersten Hinsehen - sie stehen
       // hinter "Details".
+      // Nach Widerruf + erneuter Einwilligung gibt es zwei Zeilen derselben
+      // Art (neueste zuerst, siehe Backend). Den Aktions-Knopf nur auf der
+      // jeweils neuesten zeigen - sonst wirbt eine bereits ueberholte
+      // "widerrufen"-Zeile faelschlich noch mit "erneut erteilen".
+      const gesehen = new Set();
       box.innerHTML = rows.map(c => {
+        const istNeuesteDieserArt = !gesehen.has(c.consent_type);
+        gesehen.add(c.consent_type);
         const datum = new Date(parseServerDate(c.granted_at)).toLocaleDateString('de-AT');
         const label = CONSENT_TEXT[c.consent_type] || c.consent_type;
         const details = (c.active
           ? `Erteilt am ${datum}, Fassung ${escapeHtml(c.version)}.`
           : `Widerrufen am ${new Date(parseServerDate(c.revoked_at)).toLocaleDateString('de-AT')}.`)
           + ' ' + (CONSENT_GRUNDLAGE[c.consent_type] || '');
-        const knopf = (c.active && CONSENT_REVOCABLE.indexOf(c.consent_type) !== -1)
-          ? `<div class="consent-setting-action"><button class="membership-link" data-revoke="${escapeHtml(c.consent_type)}">Einwilligung widerrufen</button></div>`
-          : '';
+        let knopf = '';
+        if(istNeuesteDieserArt && CONSENT_REVOCABLE.indexOf(c.consent_type) !== -1){
+          knopf = c.active
+            ? `<div class="consent-setting-action"><button class="membership-link" data-revoke="${escapeHtml(c.consent_type)}">Einwilligung widerrufen</button></div>`
+            : `<div class="consent-setting-action"><button class="membership-link" data-grant="${escapeHtml(c.consent_type)}">Einwilligung erneut erteilen</button></div>`;
+        }
         const zustand = c.active ? '' :
           '<span style="font-size:12.5px;color:var(--chalk-dim);"> — widerrufen</span>';
         return `<div class="vcard" style="margin-bottom:10px;">
@@ -3625,6 +3639,9 @@
 
       box.querySelectorAll('[data-revoke]').forEach(btn => {
         btn.addEventListener('click', () => revokeConsent(btn.dataset.revoke));
+      });
+      box.querySelectorAll('[data-grant]').forEach(btn => {
+        btn.addEventListener('click', () => grantConsent(btn.dataset.grant));
       });
     }catch(e){
       box.innerHTML = '<p class="photo-hint" style="margin:0;">Deine Einwilligungen konnten '
@@ -3651,6 +3668,18 @@
       loadMyConsents();
     }catch(e){
       toast(e.message || 'Der Widerruf konnte nicht erfasst werden.');
+    }
+  }
+
+  async function grantConsent(consentType){
+    try{
+      const res = await api('/api/profiles/me/consents/grant', {
+        method: 'POST', body: JSON.stringify({consent_type: consentType}),
+      });
+      toast(res.consequence || 'Einwilligung erneut erteilt.');
+      loadMyConsents();
+    }catch(e){
+      toast(e.message || 'Die erneute Einwilligung konnte nicht erfasst werden.');
     }
   }
 

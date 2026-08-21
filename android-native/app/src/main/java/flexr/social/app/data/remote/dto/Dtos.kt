@@ -138,6 +138,16 @@ data class ConsentRevokeResponseDto(
 )
 
 @Serializable
+data class ConsentGrantRequestDto(@SerialName("consent_type") val consentType: String)
+
+@Serializable
+data class ConsentGrantResponseDto(
+    val granted: Boolean,
+    @SerialName("consent_type") val consentType: String,
+    val consequence: String,
+)
+
+@Serializable
 data class PresignPhotoRequestDto(@SerialName("content_type") val contentType: String)
 
 @Serializable

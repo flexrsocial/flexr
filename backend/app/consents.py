@@ -12,6 +12,7 @@ Nachweis genügt Konto, Art, Fassung und Zeitpunkt.
 
 from datetime import datetime
 
+from sqlalchemy import exists
 from sqlalchemy.orm import Session
 
 from . import legal
@@ -24,7 +25,6 @@ from .models import Consent, ConsentType, User
 VERSION_FOR = {
     ConsentType.sensitive_data: legal.PRIVACY_VERSION,
     ConsentType.verification_media: legal.PRIVACY_VERSION,
-    ConsentType.immediate_start: legal.WITHDRAWAL_VERSION,
     ConsentType.terms: legal.TERMS_VERSION,
 }
 
@@ -88,6 +88,21 @@ def active(db: Session, user_id: str, consent_type: ConsentType) -> Consent | No
         )
         .order_by(Consent.granted_at.desc())
         .first()
+    )
+
+
+def sensitive_data_consent_condition():
+    """SQLAlchemy-Bedingung für Query-Filter (z. B. get_deck): korreliert auf
+    ``User.id`` der jeweils äußeren Query, wahr nur mit aktiver Art.-9-
+    Einwilligung. Ohne diese Bedingung stimmte das Widerruf-Versprechen
+    "du erscheinst in keinem Deck mehr" (routers/profiles.py) nicht - Konten
+    mit widerrufener Einwilligung tauchten trotzdem weiter auf, weil
+    swipes.get_deck() gender/interest verwendete, ohne den Consent zu prüfen.
+    """
+    return exists().where(
+        Consent.user_id == User.id,
+        Consent.consent_type == ConsentType.sensitive_data.value,
+        Consent.revoked_at.is_(None),
     )
 
 

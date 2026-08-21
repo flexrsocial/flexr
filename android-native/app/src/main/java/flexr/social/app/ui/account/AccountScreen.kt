@@ -52,8 +52,11 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -426,6 +429,7 @@ fun AccountScreen(
                 loading = state.consentsLoading,
                 error = state.consentError,
                 revokingType = state.revokingConsentType,
+                grantingType = state.grantingConsentType,
                 onRevoke = { consentType ->
                     if (consentType == "sensitive_data") {
                         pendingSensitiveRevoke = true
@@ -433,6 +437,7 @@ fun AccountScreen(
                         viewModel.revokeConsent(consentType)
                     }
                 },
+                onGrant = viewModel::grantConsent,
             )
         }
 
@@ -626,9 +631,12 @@ private fun ConsentSection(
     loading: Boolean,
     error: String?,
     revokingType: String?,
+    grantingType: String?,
     onRevoke: (String) -> Unit,
+    onGrant: (String) -> Unit,
 ) {
     val colors = FlexrTheme.colors
+    val busy = revokingType != null || grantingType != null
     when {
         loading && consents.isEmpty() -> Row(verticalAlignment = Alignment.CenterVertically) {
             CircularProgressIndicator(Modifier.size(14.dp), color = colors.plate, strokeWidth = 1.5.dp)
@@ -641,20 +649,34 @@ private fun ConsentSection(
             color = colors.chalkDim,
         )
         else -> Column {
+            // Nach Widerruf + erneuter Einwilligung gibt es zwei Zeilen
+            // derselben Art (neueste zuerst). Den Aktions-Knopf nur auf der
+            // jeweils neuesten zeigen - sonst wirbt eine bereits überholte
+            // "widerrufen"-Zeile fälschlich noch mit "erneut erteilen".
+            val gesehen = remember(consents) { mutableSetOf<String>() }
             consents.forEachIndexed { index, consent ->
+                val istNeuesteDieserArt = gesehen.add(consent.consentType)
                 Column(Modifier.fillMaxWidth().padding(vertical = 10.dp)) {
                     val label = CONSENT_LABELS[consent.consentType] ?: consent.consentType
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(label, style = MaterialTheme.typography.bodyMedium, color = colors.chalk)
-                        if (!consent.active) {
-                            Spacer(Modifier.width(6.dp))
-                            Text(
-                                "— widerrufen",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = colors.chalkDim,
-                            )
-                        }
-                    }
+                    // EIN Text statt Row(Text, Text): "— widerrufen" als Row-
+                    // Geschwister neben einem langen Label (z. B. "Verarbeitung
+                    // von Geschlecht und gesuchtem Geschlecht") bekam kaum noch
+                    // Restbreite, weil Row seine Kinder ohne weight() nicht
+                    // umbricht - der Suffix landete dadurch einzeln Buchstabe
+                    // für Buchstabe untereinander am rechten Rand. Ein
+                    // AnnotatedString wickelt als EIN Absatz normal um.
+                    Text(
+                        buildAnnotatedString {
+                            append(label)
+                            if (!consent.active) {
+                                withStyle(SpanStyle(color = colors.chalkDim)) {
+                                    append("  — widerrufen")
+                                }
+                            }
+                        },
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = colors.chalk,
+                    )
                     val datum = ServerTime
                         .parse(if (consent.active) consent.grantedAt else consent.revokedAt)
                         ?.let(ServerTime::formatDay)
@@ -672,12 +694,20 @@ private fun ConsentSection(
                         color = colors.chalkDim,
                         modifier = Modifier.padding(top = 2.dp),
                     )
-                    if (consent.active && consent.consentType in CONSENT_REVOCABLE) {
-                        FlexrLinkButton(
-                            text = "Einwilligung widerrufen",
-                            onClick = { onRevoke(consent.consentType) },
-                            enabled = revokingType == null,
-                        )
+                    if (consent.consentType in CONSENT_REVOCABLE && istNeuesteDieserArt) {
+                        if (consent.active) {
+                            FlexrLinkButton(
+                                text = "Einwilligung widerrufen",
+                                onClick = { onRevoke(consent.consentType) },
+                                enabled = !busy,
+                            )
+                        } else {
+                            FlexrLinkButton(
+                                text = "Einwilligung erneut erteilen",
+                                onClick = { onGrant(consent.consentType) },
+                                enabled = !busy,
+                            )
+                        }
                     }
                 }
                 if (index != consents.lastIndex) {
@@ -703,7 +733,12 @@ private val CONSENT_GRUNDLAGE = mapOf(
     "terms" to "Vertragsschluss, keine Einwilligung — daher nicht widerrufbar.",
 )
 
-private val CONSENT_REVOCABLE = setOf("sensitive_data", "verification_media", "immediate_start")
+// "Sofortiger Leistungsbeginn" ist bewusst nicht widerrufbar: die massgebliche
+// § 10/§ 18 Abs. 1 Z 1 FAGG-Erklaerung liegt unveraenderlich im
+// CheckoutConsent-Datensatz und wirkt fort, solange der Vertrag laeuft - ein
+// Widerruf hier haette nichts bewirkt, zeigte aber einen Knopf, der das
+// Gegenteil suggerierte.
+private val CONSENT_REVOCABLE = setOf("sensitive_data", "verification_media")
 
 /**
  * Hinweisfeld zum Verifizierungsstand.

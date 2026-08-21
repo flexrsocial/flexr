@@ -8,6 +8,8 @@ import flexr.social.app.data.remote.dto.BlockRequestDto
 import flexr.social.app.data.remote.dto.CheckoutRequestDto
 import flexr.social.app.data.remote.dto.CheckoutUrlDto
 import flexr.social.app.data.remote.dto.ConsentDto
+import flexr.social.app.data.remote.dto.ConsentGrantRequestDto
+import flexr.social.app.data.remote.dto.ConsentGrantResponseDto
 import flexr.social.app.data.remote.dto.ConsentRevokeRequestDto
 import flexr.social.app.data.remote.dto.ConsentRevokeResponseDto
 import flexr.social.app.data.remote.dto.DeleteAccountRequestDto
@@ -82,6 +84,9 @@ open class FakeFlexrApi : FlexrApi {
 
     override suspend fun revokeMyConsent(body: ConsentRevokeRequestDto): ConsentRevokeResponseDto =
         nichtVorgesehen("revokeMyConsent")
+
+    override suspend fun grantMyConsent(body: ConsentGrantRequestDto): ConsentGrantResponseDto =
+        nichtVorgesehen("grantMyConsent")
 
     override suspend fun presignPhoto(body: PresignPhotoRequestDto): PresignPhotoResponseDto =
         nichtVorgesehen("presignPhoto")

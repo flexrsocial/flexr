@@ -5,6 +5,8 @@ import flexr.social.app.core.network.apiCall
 import flexr.social.app.data.remote.FlexrApi
 import flexr.social.app.data.remote.dto.AddPhotoRequestDto
 import flexr.social.app.data.remote.dto.ConsentDto
+import flexr.social.app.data.remote.dto.ConsentGrantRequestDto
+import flexr.social.app.data.remote.dto.ConsentGrantResponseDto
 import flexr.social.app.data.remote.dto.ConsentRevokeRequestDto
 import flexr.social.app.data.remote.dto.ConsentRevokeResponseDto
 import flexr.social.app.data.remote.dto.DeleteAccountRequestDto
@@ -79,6 +81,10 @@ class ProfileRepository @Inject constructor(
 
     suspend fun revokeConsent(consentType: String): ConsentRevokeResponseDto = apiCall {
         api.revokeMyConsent(ConsentRevokeRequestDto(consentType))
+    }
+
+    suspend fun grantConsent(consentType: String): ConsentGrantResponseDto = apiCall {
+        api.grantMyConsent(ConsentGrantRequestDto(consentType))
     }
 
     /** GPS-Position speichern — sie hat für die Umkreissuche Vorrang vor der PLZ. */

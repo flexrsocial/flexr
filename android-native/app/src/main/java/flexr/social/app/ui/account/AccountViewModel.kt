@@ -56,6 +56,7 @@ data class AccountUiState(
     val consentsLoading: Boolean = false,
     val consentError: String? = null,
     val revokingConsentType: String? = null,
+    val grantingConsentType: String? = null,
     val checkoutDialogVisible: Boolean = false,
     val checkoutImmediateStart: Boolean = false,
     val checkoutWithdrawalAck: Boolean = false,
@@ -467,7 +468,7 @@ class AccountViewModel @Inject constructor(
     }
 
     fun revokeConsent(consentType: String) {
-        if (_uiState.value.revokingConsentType != null) return
+        if (_uiState.value.revokingConsentType != null || _uiState.value.grantingConsentType != null) return
         _uiState.update { it.copy(revokingConsentType = consentType, consentError = null) }
         viewModelScope.launch {
             runCatching {
@@ -488,6 +489,35 @@ class AccountViewModel @Inject constructor(
                         revokingConsentType = null,
                         consentError = (throwable as? FlexrApiException)?.message
                             ?: "Der Widerruf konnte nicht gespeichert werden.",
+                    )
+                }
+            }
+        }
+    }
+
+    /** Einen zuvor erklärten Widerruf rückgängig machen. */
+    fun grantConsent(consentType: String) {
+        if (_uiState.value.revokingConsentType != null || _uiState.value.grantingConsentType != null) return
+        _uiState.update { it.copy(grantingConsentType = consentType, consentError = null) }
+        viewModelScope.launch {
+            runCatching {
+                val result = profileRepository.grantConsent(consentType)
+                result to profileRepository.consents()
+            }.onSuccess { (result, consents) ->
+                _uiState.update {
+                    it.copy(
+                        consents = consents,
+                        grantingConsentType = null,
+                        consentError = null,
+                    )
+                }
+                _events.send(AccountEvent.Message(result.consequence))
+            }.onFailure { throwable ->
+                _uiState.update {
+                    it.copy(
+                        grantingConsentType = null,
+                        consentError = (throwable as? FlexrApiException)?.message
+                            ?: "Die erneute Einwilligung konnte nicht gespeichert werden.",
                     )
                 }
             }

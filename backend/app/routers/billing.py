@@ -3,10 +3,10 @@ import logging
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 
-from .. import consents, legal, mailer
+from .. import legal, mailer
 from ..database import get_db
 from ..email_notifications import send_once
-from ..models import CheckoutConsent, ConsentType, User
+from ..models import CheckoutConsent, User
 from ..schemas import CheckoutRequest, MembershipStatus
 from ..security import get_current_user
 from ..stripe_client import construct_webhook_event, create_checkout_session, create_portal_session
@@ -42,13 +42,13 @@ def create_checkout(
     db: Session = Depends(get_db),
 ):
     # Beide Erklaerungen sind per Validator schon auf True geprueft - ohne sie
-    # kommt die Anfrage gar nicht bis hierher (422). Zusaetzlich zum
-    # bestehenden Consent-Nachweis (Konto-Bereich, widerrufbar) legen wir
-    # einen eigenen, nicht widerrufbaren Datensatz mit beiden Erklaerungen an
-    # dieselbe Checkout-Anfrage an - er bekommt die Abo-ID nachgetragen,
-    # sobald Stripe sie liefert (siehe handle_stripe_event()).
-    consents.grant(db, current_user, ConsentType.immediate_start)
-
+    # kommt die Anfrage gar nicht bis hierher (422). Der massgebliche
+    # Nachweis ist dieser CheckoutConsent-Datensatz - er bekommt die Abo-ID
+    # nachgetragen, sobald Stripe sie liefert (siehe handle_stripe_event()).
+    # Bewusst KEIN zusaetzlicher Eintrag in der widerrufbaren Consent-Tabelle:
+    # ein "Widerruf" haette dort ohnehin keine Wirkung gehabt (§ 10/§ 18 Abs.
+    # 1 Z 1 FAGG-Erklaerungen wirken fort, solange der Vertrag laeuft), zeigte
+    # Nutzern aber einen Widerrufen-Knopf, der nichts auslöste.
     checkout_consent = CheckoutConsent(
         user_id=current_user.id,
         immediate_start_version=legal.WITHDRAWAL_VERSION,

@@ -10,6 +10,8 @@ import flexr.social.app.data.remote.dto.BlockRequestDto
 import flexr.social.app.data.remote.dto.CheckoutRequestDto
 import flexr.social.app.data.remote.dto.CheckoutUrlDto
 import flexr.social.app.data.remote.dto.ConsentDto
+import flexr.social.app.data.remote.dto.ConsentGrantRequestDto
+import flexr.social.app.data.remote.dto.ConsentGrantResponseDto
 import flexr.social.app.data.remote.dto.ConsentRevokeRequestDto
 import flexr.social.app.data.remote.dto.ConsentRevokeResponseDto
 import flexr.social.app.data.remote.dto.DeleteAccountRequestDto
@@ -97,6 +99,9 @@ interface FlexrApi {
 
     @POST("api/profiles/me/consents/revoke")
     suspend fun revokeMyConsent(@Body body: ConsentRevokeRequestDto): ConsentRevokeResponseDto
+
+    @POST("api/profiles/me/consents/grant")
+    suspend fun grantMyConsent(@Body body: ConsentGrantRequestDto): ConsentGrantResponseDto
 
 
     @POST("api/profiles/me/photos/presign")

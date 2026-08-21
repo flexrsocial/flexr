@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 
+from .. import consents
 from ..database import get_db
 from ..gym_geo import coords_for_gym, gym_values_within
 from ..models import Block, Match, Swipe, User
@@ -64,6 +65,10 @@ def get_deck(
         # Nicht freigeschaltete Konten (Prüfung offen oder abgelehnt) sind
         # für andere unsichtbar.
         account_visible_condition(),
+        # Widerrufene Art.-9-Einwilligung: gender/interest dürfen dann nicht
+        # mehr fürs Matching verwendet werden (siehe consents.py) - das
+        # Konto darf also in keinem fremden Deck mehr erscheinen.
+        consents.sensitive_data_consent_condition(),
         User.gender == current_user.interest,
         User.interest == current_user.gender,
     ]

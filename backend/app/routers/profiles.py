@@ -11,6 +11,7 @@ from ..geo import city_for_plz
 from ..models import GYM_CHOICES, ConsentType, Photo, PhotoStatus, User
 from ..schemas import (
     AddPhotoRequest,
+    ConsentGrantRequest,
     ConsentOut,
     ConsentRevokeRequest,
     DeleteAccountRequest,
@@ -143,15 +144,47 @@ def revoke_my_consent(
             "abgeschlossene Prüfung bleibt als Ergebnis bestehen — die Bilder "
             "dazu sind ohnehin längst gelöscht."
         ),
-        ConsentType.immediate_start: (
-            "Der Widerruf wirkt für die Zukunft. Auf einen bereits erklärten "
-            "Rücktritt hat er keinen Einfluss."
-        ),
     }[consent_type]
 
     return {
         "revoked": revoked,
         "consent_type": payload.consent_type,
+        "consequence": folge,
+    }
+
+
+@router.post("/me/consents/grant")
+def grant_my_consent(
+    payload: ConsentGrantRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Einen zuvor erklärten Widerruf rückgängig machen (erneute Einwilligung).
+
+    Nicht von der DSGVO verlangt, aber ohne das bliebe ein Konto nach dem
+    Widerruf von sensitive_data dauerhaft mit leerem Deck zurück, ohne
+    reparierbar zu sein außer über die Kontolöschung. Ein Klick zum Widerruf,
+    ein Klick zurück - dieselbe Symmetrie wie beim Widerruf selbst.
+    """
+    consent_type = ConsentType(payload.consent_type)
+    entry = consents.grant(db, current_user, consent_type)
+
+    folge = {
+        ConsentType.sensitive_data: (
+            "Deine Einwilligung ist wieder aktiv. Du erscheinst ab sofort "
+            "wieder im Deck und dir werden wieder Profile vorgeschlagen."
+        ),
+        ConsentType.verification_media: (
+            "Deine Einwilligung ist wieder aktiv. Bereits gelöschte Aufnahmen "
+            "sind damit nicht wiederhergestellt - für eine neue Prüfung "
+            "reichst du sie im Verifizierungsschritt erneut ein."
+        ),
+    }[consent_type]
+
+    return {
+        "granted": True,
+        "consent_type": payload.consent_type,
+        "version": entry.version,
         "consequence": folge,
     }
 

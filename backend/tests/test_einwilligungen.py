@@ -5,12 +5,20 @@ import pytest
 from app import legal
 from app.models import Consent
 from tests.conftest import TestingSessionLocal, register_raw
+from tests.test_swipes_and_matches import make_pair
 
 
 def _consents(client, headers):
+    """Neuesten Eintrag je Art zurückgeben. Die API liefert neueste zuerst -
+    nach einem Widerruf + erneuter Einwilligung gibt es zwei Zeilen derselben
+    Art; setdefault behält hier bewusst die erste (= neueste), nicht die
+    letzte, wie es ein Dict-Comprehension täte."""
     resp = client.get("/api/profiles/me/consents", headers=headers)
     assert resp.status_code == 200
-    return {c["consent_type"]: c for c in resp.json()}
+    result = {}
+    for c in resp.json():
+        result.setdefault(c["consent_type"], c)
+    return result
 
 
 def test_einwilligung_wird_mit_fassung_nachgewiesen(client):
@@ -150,7 +158,7 @@ def test_consents_verschwinden_mit_dem_konto():
     assert fk.ondelete == "CASCADE"
 
 
-@pytest.mark.parametrize("typ", ["sensitive_data", "verification_media", "immediate_start"])
+@pytest.mark.parametrize("typ", ["sensitive_data", "verification_media"])
 def test_jeder_widerrufbare_typ_hat_eine_folgenerklaerung(client, typ):
     """Ein Widerruf ohne Erklärung, was er bewirkt, wäre eine Falltür."""
     headers = register_raw(client, f"typ-{typ}@example.com")
@@ -159,3 +167,103 @@ def test_jeder_widerrufbare_typ_hat_eine_folgenerklaerung(client, typ):
     )
     assert resp.status_code == 200
     assert len(resp.json()["consequence"]) > 40
+
+
+def test_immediate_start_ist_nicht_widerrufbar(client):
+    """§ 10/§ 18 Abs. 1 Z 1 FAGG-Erklärungen wirken fort, solange der Vertrag
+    läuft - dafür gibt es keinen "Widerruf" mehr (siehe CheckoutConsent)."""
+    headers = register_raw(client, "kein-widerruf-immediate-start@example.com")
+    resp = client.post(
+        "/api/profiles/me/consents/revoke",
+        json={"consent_type": "immediate_start"},
+        headers=headers,
+    )
+    assert resp.status_code == 422
+
+
+def test_widerruf_kann_zurueckgenommen_werden(client):
+    """Ohne einen Weg zurück bliebe ein Konto nach dem Widerruf von
+    sensitive_data dauerhaft mit leerem Deck zurück - reparierbar nur über
+    die Kontolöschung. Das wäre unnötig hart."""
+    headers = register_raw(client, "widerruf-zurueck@example.com")
+    client.post(
+        "/api/profiles/me/consents/revoke",
+        json={"consent_type": "sensitive_data"},
+        headers=headers,
+    )
+    eintraege = _consents(client, headers)
+    assert eintraege["sensitive_data"]["active"] is False
+
+    resp = client.post(
+        "/api/profiles/me/consents/grant",
+        json={"consent_type": "sensitive_data"},
+        headers=headers,
+    )
+    assert resp.status_code == 200
+    assert resp.json()["granted"] is True
+
+    eintraege = _consents(client, headers)
+    assert eintraege["sensitive_data"]["active"] is True
+    assert eintraege["sensitive_data"]["revoked_at"] is None
+
+
+def test_erneute_einwilligung_erscheint_im_deck(client):
+    """Der eigentliche Zweck: nach dem Widerruf verschwindet man aus fremden
+    Decks, nach der erneuten Einwilligung taucht man wieder auf."""
+    (headers_a, user_a), (headers_b, user_b) = make_pair(client)
+    deck = client.get("/api/swipes/deck", headers=headers_b).json()
+    assert any(p["id"] == user_a["id"] for p in deck)
+
+    client.post(
+        "/api/profiles/me/consents/revoke",
+        json={"consent_type": "sensitive_data"},
+        headers=headers_a,
+    )
+    deck = client.get("/api/swipes/deck", headers=headers_b).json()
+    assert all(p["id"] != user_a["id"] for p in deck)
+
+    client.post(
+        "/api/profiles/me/consents/grant",
+        json={"consent_type": "sensitive_data"},
+        headers=headers_a,
+    )
+    deck = client.get("/api/swipes/deck", headers=headers_b).json()
+    assert any(p["id"] == user_a["id"] for p in deck)
+
+
+def test_immediate_start_kann_nicht_erneut_erteilt_werden(client):
+    headers = register_raw(client, "kein-grant-immediate-start@example.com")
+    resp = client.post(
+        "/api/profiles/me/consents/grant",
+        json={"consent_type": "immediate_start"},
+        headers=headers,
+    )
+    assert resp.status_code == 422
+
+
+def test_konto_ohne_consent_zeile_erscheint_nicht_im_deck(client):
+    """Konten, die direkt in der DB angelegt wurden (z. B. per Skript, ohne
+    über consents.grant() zu laufen) oder aus der Zeit vor der
+    consents-Tabelle stammen, dürfen nicht stillschweigend so behandelt
+    werden, als hätten sie nie eingewilligt - aber ohne nachgetragene
+    Consent-Zeile (siehe Migration 9c4e1a7f2b83) verschwinden sie tatsächlich
+    aus jedem Deck. Dieser Test hält genau dieses (unerwünschte, aber ohne
+    Nachtrag reale) Verhalten fest, damit ein künftiger Nachtrag-Fix nicht
+    versehentlich wieder verschwindet."""
+    from app.models import Consent
+
+    (headers_a, user_a), (headers_b, user_b) = make_pair(client)
+    deck = client.get("/api/swipes/deck", headers=headers_b).json()
+    assert any(p["id"] == user_a["id"] for p in deck)
+
+    db = TestingSessionLocal()
+    try:
+        db.query(Consent).filter(
+            Consent.user_id == user_a["id"], Consent.consent_type == "sensitive_data"
+        ).delete()
+        db.commit()
+    finally:
+        db.close()
+
+    deck = client.get("/api/swipes/deck", headers=headers_b).json()
+    assert all(p["id"] != user_a["id"] for p in deck)

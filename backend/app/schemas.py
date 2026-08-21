@@ -837,7 +837,18 @@ class ConsentOut(BaseModel):
 
 
 class ConsentRevokeRequest(BaseModel):
-    consent_type: Literal["sensitive_data", "verification_media", "immediate_start"]
+    consent_type: Literal["sensitive_data", "verification_media"]
+
+
+class ConsentGrantRequest(BaseModel):
+    """Widerruf einer Einwilligung rückgängig machen (erneut erteilen).
+    Nur für dieselben Arten wie ConsentRevokeRequest - Art. 7 Abs. 3 DSGVO
+    verlangt nur, dass der Widerruf nicht schwerer ist als die Erteilung,
+    nicht, dass es überhaupt einen Weg zurück geben muss. Den bieten wir hier
+    zusätzlich an, weil ein Widerruf von sensitive_data sonst dauerhaft ein
+    leeres Deck bedeutet, ohne dass sich das Konto anders reparieren ließe."""
+
+    consent_type: Literal["sensitive_data", "verification_media"]
 
 
 class CheckoutRequest(BaseModel):

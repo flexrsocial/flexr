@@ -301,15 +301,13 @@ def test_checkout_mit_erklaerung_haelt_die_einwilligung_fest(client):
     import stripe
     import pytest
 
-    from app.consents import active
-    from app.models import CheckoutConsent, ConsentType
+    from app.models import CheckoutConsent
 
     headers = register_user(client, "mit-erklaerung@example.com")
     user_id = client.get("/api/profiles/me", headers=headers).json()["id"]
 
     # Kein echter Stripe-Key im Testbetrieb - der Aufruf scheitert bei Stripe,
-    # aber erst NACH dem consents.grant()/CheckoutConsent-Anlage, das reicht
-    # fuer diesen Test.
+    # aber erst NACH der CheckoutConsent-Anlage, das reicht fuer diesen Test.
     with pytest.raises(stripe._error.AuthenticationError):
         client.post(
             "/api/billing/checkout",
@@ -319,15 +317,16 @@ def test_checkout_mit_erklaerung_haelt_die_einwilligung_fest(client):
 
     db = TestingSessionLocal()
     try:
-        eintrag = active(db, user_id, ConsentType.immediate_start)
         checkout_consent = (
             db.query(CheckoutConsent).filter(CheckoutConsent.user_id == user_id).one()
         )
     finally:
         db.close()
-    assert eintrag is not None
     # Beide Erklaerungen getrennt mit eigener Fassung, noch ohne Abo-ID -
     # die kommt erst mit dem Webhook (siehe test_stripe_webhook_erg unten).
+    # Kein zusaetzlicher, "widerrufbarer" Consent-Eintrag mehr: die
+    # massgebliche Erklaerung liegt allein hier und wirkt fort, solange der
+    # Vertrag laeuft (siehe consents.py/billing.py).
     assert checkout_consent.immediate_start_version
     assert checkout_consent.withdrawal_ack_version
     assert checkout_consent.stripe_subscription_id is None
