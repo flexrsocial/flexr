@@ -121,9 +121,16 @@
   .status-pill.trial{ color:var(--lime); border-color:rgba(199,255,74,0.3); }
   .status-pill.expired{ color:var(--danger); border-color:rgba(227,72,72,0.4); }
 
-  main{ flex:1; padding:22px 20px 100px; overflow-y:auto; overflow-x:hidden; display:flex; flex-direction:column; }
+  /* scrollbar-gutter:stable reserviert den Platz für einen (nicht-Overlay-)
+     Scrollbalken immer, egal ob der Inhalt gerade lang genug zum Scrollen
+     ist. Ohne das ändert sich die tatsächlich sichtbare Breite je nachdem,
+     ob ein Scrollbalken da ist - z. B. verschwand rechts der abgerundete
+     Rand einer Chat-Kachel beim Hover (transform:translateX schob sie exakt
+     unter den Scrollbalken, der auf manchen Desktops den rechten Rand des
+     20px-Innenabstands auffrisst). */
+  main{ flex:1; padding:22px 20px 100px; overflow-y:auto; overflow-x:hidden; scrollbar-gutter:stable; display:flex; flex-direction:column; }
   .screen{ display:none; animation:fade .25s ease; }
-  .screen.active{ display:flex; flex-direction:column; flex:1; min-height:0; overflow-y:auto; overflow-x:hidden; }
+  .screen.active{ display:flex; flex-direction:column; flex:1; min-height:0; overflow-y:auto; overflow-x:hidden; scrollbar-gutter:stable; }
   /* Der Chat füllt den Screen exakt (Nachrichten scrollen intern) - kein
      zweiter Scrollbalken auf Screen-Ebene. */
   #screen-chat.active{ overflow:hidden; }
