@@ -14,8 +14,9 @@ gelassen hatte (Token-Limit erreicht): Der Widerruf der Matching-Einwilligung
 war nur über die Web-App möglich. Dabei fiel zusätzlich ein Bug auf, der die
 native Abo-Zahlung komplett blockierte, sowie eine optisch von der Marke
 abweichende Web-Komponente. Alles behoben, committet, gepusht und deployt,
-inklusive neu signiertem Android App Bundle Version **2.4.3**
-(`versionCode 31`).
+inklusive neu signiertem Android App Bundle Version **2.4.4**
+(`versionCode 32`). Der Funktionsstand ist seit 2.4.2 unverändert — 2.4.3 und
+2.4.4 waren reine Versions-Label-Anpassungen auf Nutzerwunsch, kein neuer Code.
 
 - Repository: `git@github.com:flexrsocial/flexr.git`
 - Produktionsseite: <https://flexr.social>
@@ -24,11 +25,11 @@ inklusive neu signiertem Android App Bundle Version **2.4.3**
 - Repository auf dem VPS: `/flexr`
 - API-Dienst: `flexr-api.service`
 - E-Mail-Jobtimer: `flexr-email-jobs.timer`
-- AAB-Download: <https://flexr.social/dl-a616e78274de323b/flexr-2.4.3.aab>
-- AAB SHA-256: `95cf264760cbe67a683c17d2a5805d54271dc0bfb114baa70476e2dfc0cde1e2`
-- Vorgänger `flexr-2.4.2.aab` liegt aus Kompatibilitätsgründen noch auf dem
-  VPS (enthielt bereits denselben Checkout-Fix, nur unter altem
-  Versions-Label) — kann bei Gelegenheit aufgeräumt werden, ist aber
+- AAB-Download: <https://flexr.social/dl-a616e78274de323b/flexr-2.4.4.aab>
+- AAB SHA-256: `340f516533a38e9688d73b4d731b3d7c294d6dc84fed3a780fd0753a8aa8a873`
+- Vorgänger `flexr-2.4.2.aab` und `flexr-2.4.3.aab` liegen aus
+  Kompatibilitätsgründen noch auf dem VPS (identischer Funktionsstand, nur
+  altes Versions-Label) — können bei Gelegenheit aufgeräumt werden, ist aber
   unkritisch.
 
 ## Was in dieser Sitzung umgesetzt wurde
@@ -92,34 +93,51 @@ bestätigt).
 
 ### Version
 
-`versionCode` 29 → 30 → 31, `versionName` 2.4.1 → 2.4.2 → 2.4.3.
+`versionCode` 29 → 30 → 31 → 32, `versionName` 2.4.1 → 2.4.2 → 2.4.3 → 2.4.4.
+Ab 2.4.2 nur noch Versions-Label-Änderungen auf Nutzerwunsch, kein neuer Code.
 
 ## Android-Build — Hinweis zur RAM-Lage auf diesem Rechner
 
-Dieser Rechner hat nur **3,7 GB RAM**. `bundleProdRelease` geriet beim
-2.4.3-Build zweimal in schwere Swap-Auslastung (einmal musste ein
-hängender Java-Prozess manuell per `kill` beendet werden, um einen erneuten
-Systemstillstand wie beim vorherigen Versuch zu verhindern — der hatte einen
-Neustart der Maschine erzwungen). Der dritte Versuch lief durch (1m 23s,
-BUILD SUCCESSFUL, 45/45 Tests grün, Fingerprint bestätigt).
+Dieser Rechner hat nur **3,7 GB RAM**, explizit auf max. 1,5 GB Build-Speicher
+begrenzt. `bundleProdRelease` geriet dabei mehrfach in schwere
+Swap-Auslastung (einmal musste ein hängender Java-Prozess manuell per `kill`
+beendet werden, um einen erneuten Systemstillstand wie bei einem früheren
+Versuch zu verhindern — der hatte einen Neustart der Maschine erzwungen).
 
-Auf einem neuen/anderen Gerät ist das wahrscheinlich kein Thema — die
-RAM-Probleme sind rechnerspezifisch, nicht projektspezifisch. Falls doch auf
-einer schwachen Maschine (≤ 4 GB) gebaut wird: in `~/.gradle/gradle.properties`
-(nutzerweit, **nicht** im Projekt-Git)
+**Ursache gefunden und behoben:** `kotlin.compiler.execution.strategy=in-process`
+zwingt den Kotlin-Compiler in denselben JVM-Prozess wie Gradle selbst. Bei
+einer kompletten Neukompilierung (z. B. nach einer Änderung an
+`build.gradle.kts`, die den Configuration-Cache invalidiert) reichte der
+1,5-GB-Heap für Gradle + Kotlin-Compiler zusammen in einem Prozess nicht.
+Der `bundleProdRelease`-Build für 2.4.3 lief deshalb 3× fehl
+(`packageProdReleaseBundle FAILED` bzw. `compileProdReleaseKotlin FAILED`
+mit `InvocationTargetException`), bis ein separater, ebenfalls begrenzter
+Kotlin-Compiler-Daemon eingerichtet wurde. Seitdem (2.4.4) liefen Test- und
+Bundle-Build im ersten Versuch durch.
+
+Aktuelle, funktionierende `~/.gradle/gradle.properties` (nutzerweit, **nicht**
+im Projekt-Git):
 
 ```properties
 org.gradle.jvmargs=-Xmx1536m -XX:MaxMetaspaceSize=256m -XX:+UseSerialGC -Dfile.encoding=UTF-8
 org.gradle.parallel=false
 org.gradle.workers.max=1
 org.gradle.caching=true
-kotlin.compiler.execution.strategy=in-process
+kotlin.daemon.jvmargs=-Xmx1024m -XX:MaxMetaspaceSize=320m -XX:+UseSerialGC
 ```
 
-setzen und **andere speicherhungrige Anwendungen vorher schließen** — in
-dieser Sitzung kam die eigentliche Knappheit weniger von Gradle selbst
-(dessen Heap war begrenzt) als von parallel laufenden Anwendungen auf
-demselben Rechner, die den Swap zusätzlich füllten.
+Zwei getrennte, jeweils begrenzte Prozesse (Gradle max. 1,5 GB, Kotlin-Daemon
+max. 1 GB) statt ein einzelner, überladener Prozess. Zusätzlich **immer**
+`:app:testProdReleaseUnitTest` und `:app:bundleProdRelease` als **getrennte
+Gradle-Aufrufe** starten, nicht in einem Befehl kombinieren — das hat in
+dieser Sitzung zusätzlich zu Abstürzen geführt (zwei Tasks im selben
+Single-Use-Daemon-Prozess addieren sich).
+
+Auf einem neuen/anderen Gerät mit mehr RAM ist das wahrscheinlich kein
+Thema — die RAM-Probleme sind rechnerspezifisch, nicht projektspezifisch. Auf
+einer schwachen Maschine zusätzlich **andere speicherhungrige Anwendungen
+vorher schließen**: ein Teil der Knappheit kam von parallel laufenden
+Anwendungen auf demselben Rechner, nicht nur von Gradle/Kotlin selbst.
 
 Falls auf einem neuen Gerät keine JDK/Android-SDK-Toolchain existiert: lässt
 sich ohne root/sudo in einen beliebigen Ordner installieren (Eclipse Temurin
@@ -180,7 +198,7 @@ Zum späteren Aufräumen: gleicher Ablauf wie oben beschrieben (Storage-Objekte
    Testnutzer geprüft — jetzt mit dem neuen Zwei-Checkbox-Dialog auf beiden
    Plattformen. Dafür eignen sich auch die fünf neuen Test-Frauenprofile
    (siehe „Testdaten" oben) als Gegenüber zum Deck-/Match-/Chat-Testen.
-3. Das AAB (2.4.3, siehe oben) ist noch in die Play Console hochzuladen. Dabei `PLAY-CONSOLE.md`
+3. Das AAB (2.4.4, siehe oben) ist noch in die Play Console hochzuladen. Dabei `PLAY-CONSOLE.md`
    beachten: Data-Safety-Angaben, Kamera/Ausweisfotos und Deep Links prüfen.
 4. Die Rechtstexte wurden technisch und inhaltlich bereinigt, ersetzen aber
    keine abschließende Prüfung durch eine österreichische Rechtsberatung.
@@ -307,7 +325,7 @@ Download ebenfalls prüfen.
   inklusive neuem Checkout-Dialog und Einwilligungswiderruf. Die fünf neuen
   Test-Frauenprofile (siehe „Testdaten" oben) eignen sich als Gegenüber.
 - Anschließend kontrollierten Stripe-Testcheckout durchführen.
-- Danach AAB 2.4.3 (bereits gebaut, signiert und live hochgeladen — siehe
+- Danach AAB 2.4.4 (bereits gebaut, signiert und live hochgeladen — siehe
   Kurzfassung) in die Play Console laden und Data Safety/Deep Links
   kontrollieren.
 - Die 5 neuen Test-Frauenprofile (`pachernegg+flexrtest-*@gmail.com`) sind für
