@@ -18,6 +18,15 @@ aus jedem fremden Deck verschwunden, obwohl nie widerrufen wurde.
 Gleicher Ansatz wie in a1f7c39b2d40: Fassung wird nicht erfunden, sondern als
 Nachtrag gekennzeichnet.
 
+Wichtig: die Bedingung prueft "hat ueberhaupt JEMALS eine Zeile dieser Art"
+(nicht nur "hat gerade keine AKTIVE Zeile") - sonst wuerde ein Konto, das
+seinen Art.-9-Consent bewusst widerrufen hat (also eine widerrufene Zeile
+besitzt), hier faelschlich eine neue AKTIVE Zeile bekommen und der Widerruf
+wuerde stillschweigend rueckgaengig gemacht. Genau das ist beim ersten Lauf
+dieser Migration auf Produktion einem Konto passiert, das kurz zuvor ueber
+die App selbst widerrufen hatte - von Hand wieder korrigiert, hier fuer
+kuenftige (Neu-)Deploys gefixt.
+
 Revision ID: 9c4e1a7f2b83
 Revises: 6f2a3c9d7e15
 Create Date: 2026-08-21
@@ -50,7 +59,6 @@ def upgrade() -> None:
               SELECT 1 FROM consents c
               WHERE c.user_id = u.id
                 AND c.consent_type = 'sensitive_data'
-                AND c.revoked_at IS NULL
           )
         """
     )
