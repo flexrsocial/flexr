@@ -565,17 +565,21 @@
   }
   .chat-header .back-btn svg.ico{ width:20px; height:20px; }
   .chat-header .back-btn:hover{ color:var(--plate); }
-  .chat-header .av{ position:relative; width:42px; height:42px; flex-shrink:0; display:block; }
-  .chat-header .av img{
-    width:42px; height:42px; border-radius:50%; object-fit:cover; background:var(--surface-2); display:block;
-    border:2px solid var(--ink);
+  /* Ring als EIN gefüllter Kreis (background statt border), das Foto sitzt
+     per Padding darin - keine zwei separat positionierten Kreisrandlinien
+     (Foto-eigener Rand + ::after-Ring), die bei Sub-Pixel-Rundung (z. B. bei
+     Bildschirmen mit gebrochenem Skalierungsfaktor) minimal auseinanderdriften
+     und dadurch eine sichtbare Lücke am Rand zeigen konnten - das trat sowohl
+     bei box-shadow- als auch bei border-Ringen auf zwei Elementen auf. Ein
+     einzelner gefüllter Kreis kann diese Lücke strukturell nicht haben. */
+  .chat-header .av{
+    width:46px; height:46px; border-radius:50%; flex-shrink:0;
+    background:var(--plate-dim); padding:2px; box-sizing:border-box;
+    display:flex; align-items:center; justify-content:center;
   }
-  /* Echter Border (durchgehend) statt Spread-box-shadow als Ring - Letzteres
-     zeigte hier (wie einst bei Konto-/Matchliste-Avatar) eine Lücke am oberen
-     Rand. Gleiche Optik wie .match-item .av::after / .account-avatar::after. */
-  .chat-header .av::after{
-    content:''; position:absolute; inset:-2px; border-radius:50%;
-    border:2px solid var(--plate-dim); box-sizing:border-box; pointer-events:none;
+  .chat-header .av img{
+    width:100%; height:100%; border-radius:50%; object-fit:cover; background:var(--surface-2); display:block;
+    border:2px solid var(--ink); box-sizing:border-box;
   }
   .chat-header .nm{ font-family:'Oswald'; font-size:16px; flex:1; min-width:0; letter-spacing:0.01em; }
   .chat-header .chat-flag-btns{ display:flex; gap:6px; align-items:center; }
