@@ -2308,38 +2308,41 @@
      nicht in das eingefrorene Profil-/Paywall-Design gedrückt werden muss.
      Erscheint vor jedem Wechsel zu Stripe, unabhängig davon, welcher der
      beiden "Jetzt abonnieren"-Buttons geklickt wurde. Abbrechen ist immer
-     möglich - keine Sackgasse. -->
-<div id="immediateStartOverlay" class="istart-overlay" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="istartTitle">
-  <div class="istart-box">
-    <div id="istartTitle" style="font-weight:700; margin-bottom:10px;">Vor der Zahlung</div>
-    <label style="display:flex; gap:10px; align-items:flex-start; font-size:14px; line-height:1.45; cursor:pointer;">
-      <input type="checkbox" id="istartCheckbox" style="margin-top:3px;">
-      <span>Ich stimme ausdrücklich zu, dass FLEXR bereits vor Ablauf der
-        14-tägigen Rücktrittsfrist mit der Erbringung der kostenpflichtigen
-        Dienstleistung beginnt.</span>
-    </label>
-    <label style="display:flex; gap:10px; align-items:flex-start; font-size:14px; line-height:1.45; cursor:pointer; margin-top:14px;">
-      <input type="checkbox" id="withdrawalAckCheckbox" style="margin-top:3px;">
-      <span>Ich bestätige, dass ich zur Kenntnis genommen habe, dass mein
-        Rücktrittsrecht nach vollständiger Vertragserfüllung durch FLEXR
-        erlischt, wenn die gesetzlichen Voraussetzungen dafür erfüllt sind.</span>
-    </label>
-    <p id="istartOct1Hinweis" style="display:none; font-size:12.5px; color:var(--chalk-dim,#a8a49b); margin-top:12px;">
-      Informationen zum gesetzlichen Rücktrittsrecht und zur
-      Online-Rücktrittsfunktion findest du unter „Rücktrittsrecht". Die
-      Funktion „Vertrag widerrufen" ist im Bereich „Rechtliches" der Website
-      verfügbar.
-    </p>
-    <div class="istart-err" id="istartErr" style="display:none; color:#e34848; font-size:13px; margin-top:8px;"></div>
-    <div style="display:flex; gap:10px; margin-top:18px;">
-      <button type="button" class="btn" id="istartCancel" style="flex:1; background:transparent; border:1px solid var(--steel,#3a3a3a);">Abbrechen</button>
-      <button type="button" class="btn" id="istartConfirm" style="flex:1;">Weiter zur Zahlung</button>
+     möglich - keine Sackgasse. Nutzt dieselben .legal-modal-/.consent-label-
+     Klassen wie die Konto-löschen-Bestätigung und die Registrierung, statt
+     einer eigenen, davon abweichenden Optik. -->
+<div id="immediateStartOverlay" class="legal-modal-backdrop" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="istartTitle">
+  <div class="legal-modal checkout-modal">
+    <div class="legal-modal-body">
+      <h1 id="istartTitle" style="font-size:20px;">Vor der Zahlung</h1>
+      <label class="consent-label" style="margin-top:16px; font-size:14px;">
+        <input type="checkbox" id="istartCheckbox">
+        <span>Ich stimme ausdrücklich zu, dass FLEXR bereits vor Ablauf der
+          14-tägigen Rücktrittsfrist mit der Erbringung der kostenpflichtigen
+          Dienstleistung beginnt.</span>
+      </label>
+      <label class="consent-label" style="margin-top:14px; font-size:14px;">
+        <input type="checkbox" id="withdrawalAckCheckbox">
+        <span>Ich bestätige, dass ich zur Kenntnis genommen habe, dass mein
+          Rücktrittsrecht nach vollständiger Vertragserfüllung durch FLEXR
+          erlischt, wenn die gesetzlichen Voraussetzungen dafür erfüllt sind.</span>
+      </label>
+      <p id="istartOct1Hinweis" style="display:none; font-size:12.5px; color:var(--chalk-dim); margin-top:12px;">
+        Informationen zum gesetzlichen Rücktrittsrecht und zur
+        Online-Rücktrittsfunktion findest du unter „Rücktrittsrecht". Die
+        Funktion „Vertrag widerrufen" ist im Bereich „Rechtliches" der Website
+        verfügbar.
+      </p>
+      <div class="field-err" id="istartErr" style="display:none;"></div>
+      <div class="btn-row" style="margin-top:18px;">
+        <button type="button" class="btn" id="istartConfirm">Weiter zur Zahlung</button>
+        <button type="button" class="btn secondary" id="istartCancel">Abbrechen</button>
+      </div>
     </div>
   </div>
 </div>
 <style>
-  .istart-overlay{ position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:1000; display:flex; align-items:center; justify-content:center; padding:20px; }
-  .istart-box{ background:var(--surface,#1c1c1c); color:var(--chalk,#ede9e2); border:1px solid var(--steel,#3a3a3a); border-radius:12px; padding:20px; max-width:380px; width:100%; }
+  .checkout-modal{ max-width:440px; }
 </style>
 
 <script>

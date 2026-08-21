@@ -13,6 +13,7 @@ import flexr.social.app.data.repository.PlzRepository
 import flexr.social.app.data.repository.ProfileRepository
 import flexr.social.app.data.repository.UnknownPostalCodeException
 import flexr.social.app.data.repository.VerificationRepository
+import flexr.social.app.data.remote.dto.ConsentDto
 import flexr.social.app.data.session.SessionStore
 import flexr.social.app.domain.model.Gym
 import flexr.social.app.domain.model.Membership
@@ -51,6 +52,15 @@ data class AccountUiState(
     /** Bestätigter „verifiziert"-Hinweis wird dauerhaft ausgeblendet. */
     val verifiedHintDismissed: Boolean = false,
     val notificationsEnabled: Boolean = true,
+    val consents: List<ConsentDto> = emptyList(),
+    val consentsLoading: Boolean = false,
+    val consentError: String? = null,
+    val revokingConsentType: String? = null,
+    val checkoutDialogVisible: Boolean = false,
+    val checkoutImmediateStart: Boolean = false,
+    val checkoutWithdrawalAck: Boolean = false,
+    val checkoutError: String? = null,
+    val isStartingCheckout: Boolean = false,
     val deleteDialogVisible: Boolean = false,
     val deletePassword: String = "",
     val deleteError: String? = null,
@@ -105,6 +115,7 @@ class AccountViewModel @Inject constructor(
             runCatching { profileRepository.refresh() }.getOrNull()?.let(::prefillFrom)
             runCatching { billingRepository.refresh() }
             refreshVerificationStatus()
+            refreshConsents()
             val notificationsEnabled = sessionStore.notificationsEnabled.first()
             val hintDismissed = sessionStore.verifiedHintDismissed.first()
             _uiState.update {
@@ -362,12 +373,55 @@ class AccountViewModel @Inject constructor(
 
     // ---------- Mitgliedschaft ----------
 
-    fun startCheckout() {
+    // Zwei getrennte, nicht vorangekreuzte Erklärungen vor jedem Checkout
+    // (§ 10 und § 18 Abs. 1 Z 1 FAGG) - ohne beide lehnt das Backend die
+    // Anfrage mit 422 ab (`CheckoutRequest` in `backend/app/schemas.py`).
+    fun openCheckoutDialog() {
+        _uiState.update {
+            it.copy(
+                checkoutDialogVisible = true,
+                checkoutImmediateStart = false,
+                checkoutWithdrawalAck = false,
+                checkoutError = null,
+            )
+        }
+    }
+
+    fun closeCheckoutDialog() {
+        _uiState.update { it.copy(checkoutDialogVisible = false) }
+    }
+
+    fun onCheckoutImmediateStartChange(checked: Boolean) {
+        _uiState.update { it.copy(checkoutImmediateStart = checked) }
+    }
+
+    fun onCheckoutWithdrawalAckChange(checked: Boolean) {
+        _uiState.update { it.copy(checkoutWithdrawalAck = checked) }
+    }
+
+    fun confirmCheckout() {
+        val current = _uiState.value
+        if (!current.checkoutImmediateStart || !current.checkoutWithdrawalAck) {
+            _uiState.update {
+                it.copy(checkoutError = "Bitte bestätige beide Erklärungen, um fortzufahren.")
+            }
+            return
+        }
+        _uiState.update { it.copy(isStartingCheckout = true, checkoutError = null) }
         viewModelScope.launch {
-            runCatching { billingRepository.checkoutUrl() }
-                .onSuccess { _events.send(AccountEvent.OpenUrl(it)) }
-                .onFailure {
-                    _events.send(AccountEvent.Message(it.message ?: "Checkout konnte nicht gestartet werden."))
+            runCatching { billingRepository.checkoutUrl(immediateStart = true, withdrawalAck = true) }
+                .onSuccess { url ->
+                    _uiState.update { it.copy(isStartingCheckout = false, checkoutDialogVisible = false) }
+                    _events.send(AccountEvent.OpenUrl(url))
+                }
+                .onFailure { throwable ->
+                    _uiState.update {
+                        it.copy(
+                            isStartingCheckout = false,
+                            checkoutError = (throwable as? FlexrApiException)?.message
+                                ?: "Checkout konnte nicht gestartet werden.",
+                        )
+                    }
                 }
         }
     }
@@ -387,6 +441,57 @@ class AccountViewModel @Inject constructor(
     fun setNotificationsEnabled(enabled: Boolean) {
         _uiState.update { it.copy(notificationsEnabled = enabled) }
         viewModelScope.launch { sessionStore.setNotificationsEnabled(enabled) }
+    }
+
+    // ---------- Einwilligungen ----------
+
+    fun refreshConsents() {
+        _uiState.update { it.copy(consentsLoading = true, consentError = null) }
+        viewModelScope.launch {
+            runCatching { profileRepository.consents() }
+                .onSuccess { consents ->
+                    _uiState.update {
+                        it.copy(consents = consents, consentsLoading = false, consentError = null)
+                    }
+                }
+                .onFailure { throwable ->
+                    _uiState.update {
+                        it.copy(
+                            consentsLoading = false,
+                            consentError = (throwable as? FlexrApiException)?.message
+                                ?: "Einwilligungen konnten nicht geladen werden.",
+                        )
+                    }
+                }
+        }
+    }
+
+    fun revokeConsent(consentType: String) {
+        if (_uiState.value.revokingConsentType != null) return
+        _uiState.update { it.copy(revokingConsentType = consentType, consentError = null) }
+        viewModelScope.launch {
+            runCatching {
+                val result = profileRepository.revokeConsent(consentType)
+                result to profileRepository.consents()
+            }.onSuccess { (result, consents) ->
+                _uiState.update {
+                    it.copy(
+                        consents = consents,
+                        revokingConsentType = null,
+                        consentError = null,
+                    )
+                }
+                _events.send(AccountEvent.Message(result.consequence))
+            }.onFailure { throwable ->
+                _uiState.update {
+                    it.copy(
+                        revokingConsentType = null,
+                        consentError = (throwable as? FlexrApiException)?.message
+                            ?: "Der Widerruf konnte nicht gespeichert werden.",
+                    )
+                }
+            }
+        }
     }
 
     // ---------- Konto löschen ----------

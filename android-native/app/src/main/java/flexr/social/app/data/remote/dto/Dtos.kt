@@ -119,6 +119,25 @@ data class UpdateProfileRequestDto(
 data class DeleteAccountRequestDto(val password: String)
 
 @Serializable
+data class ConsentDto(
+    @SerialName("consent_type") val consentType: String,
+    val version: String,
+    @SerialName("granted_at") val grantedAt: String,
+    @SerialName("revoked_at") val revokedAt: String? = null,
+    val active: Boolean,
+)
+
+@Serializable
+data class ConsentRevokeRequestDto(@SerialName("consent_type") val consentType: String)
+
+@Serializable
+data class ConsentRevokeResponseDto(
+    val revoked: Boolean,
+    @SerialName("consent_type") val consentType: String,
+    val consequence: String,
+)
+
+@Serializable
 data class PresignPhotoRequestDto(@SerialName("content_type") val contentType: String)
 
 @Serializable
@@ -140,6 +159,12 @@ data class MembershipStatusDto(
     @SerialName("is_subscribed") val isSubscribed: Boolean,
     @SerialName("trial_ends_at") val trialEndsAt: String,
     @SerialName("is_active") val isActive: Boolean,
+)
+
+@Serializable
+data class CheckoutRequestDto(
+    @SerialName("immediate_start") val immediateStart: Boolean,
+    @SerialName("withdrawal_ack") val withdrawalAck: Boolean,
 )
 
 @Serializable

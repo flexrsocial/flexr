@@ -5,7 +5,11 @@ import flexr.social.app.data.remote.dto.AddPhotoRequestDto
 import flexr.social.app.data.remote.dto.AgeCheckRequestDto
 import flexr.social.app.data.remote.dto.AgeCheckResponseDto
 import flexr.social.app.data.remote.dto.BlockRequestDto
+import flexr.social.app.data.remote.dto.CheckoutRequestDto
 import flexr.social.app.data.remote.dto.CheckoutUrlDto
+import flexr.social.app.data.remote.dto.ConsentDto
+import flexr.social.app.data.remote.dto.ConsentRevokeRequestDto
+import flexr.social.app.data.remote.dto.ConsentRevokeResponseDto
 import flexr.social.app.data.remote.dto.DeleteAccountRequestDto
 import flexr.social.app.data.remote.dto.GymDto
 import flexr.social.app.data.remote.dto.GymSuggestRequestDto
@@ -73,6 +77,12 @@ open class FakeFlexrApi : FlexrApi {
     override suspend fun deleteMyAccount(body: DeleteAccountRequestDto) =
         nichtVorgesehen("deleteMyAccount")
 
+    override suspend fun getMyConsents(): List<ConsentDto> =
+        nichtVorgesehen("getMyConsents")
+
+    override suspend fun revokeMyConsent(body: ConsentRevokeRequestDto): ConsentRevokeResponseDto =
+        nichtVorgesehen("revokeMyConsent")
+
     override suspend fun presignPhoto(body: PresignPhotoRequestDto): PresignPhotoResponseDto =
         nichtVorgesehen("presignPhoto")
 
@@ -107,7 +117,8 @@ open class FakeFlexrApi : FlexrApi {
     override suspend fun getMembershipStatus(): MembershipStatusDto =
         nichtVorgesehen("getMembershipStatus")
 
-    override suspend fun createCheckout(): CheckoutUrlDto = nichtVorgesehen("createCheckout")
+    override suspend fun createCheckout(body: CheckoutRequestDto): CheckoutUrlDto =
+        nichtVorgesehen("createCheckout")
 
     override suspend fun createPortal(): PortalUrlDto = nichtVorgesehen("createPortal")
 

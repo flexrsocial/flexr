@@ -28,7 +28,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
@@ -46,6 +49,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.ImeAction
@@ -67,6 +71,7 @@ import flexr.social.app.core.designsystem.component.SectionTitle
 import flexr.social.app.core.designsystem.component.VerifiedBadge
 import flexr.social.app.core.designsystem.theme.FlexrTheme
 import flexr.social.app.core.designsystem.theme.MonoStyle
+import flexr.social.app.data.remote.dto.ConsentDto
 import flexr.social.app.domain.model.VerificationStatus
 import flexr.social.app.ui.components.GymPicker
 import flexr.social.app.ui.components.GymSuggestionDialog
@@ -106,6 +111,8 @@ fun AccountScreen(
     val currentProfile = profile
     val context = LocalContext.current
     var legalDialogVisible by remember { mutableStateOf(false) }
+    var pendingSensitiveRevoke by remember { mutableStateOf(false) }
+    var consentsExpanded by remember { mutableStateOf(false) }
     val notificationPermissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission(),
     ) { granted ->
@@ -215,7 +222,7 @@ fun AccountScreen(
                         onClick = viewModel::openBillingPortal,
                     )
                 } else {
-                    FlexrLinkButton(text = "Jetzt abonnieren", onClick = viewModel::startCheckout)
+                    FlexrLinkButton(text = "Jetzt abonnieren", onClick = viewModel::openCheckoutDialog)
                 }
             }
         }
@@ -364,7 +371,7 @@ fun AccountScreen(
                     color = colors.chalk,
                 )
                 Text(
-                    "FAQ, Sicherheit, Datenschutz und Bedingungen",
+                    "Sicherheit, Datenschutz und Bedingungen",
                     style = MaterialTheme.typography.bodySmall,
                     color = colors.chalkDim,
                 )
@@ -374,6 +381,58 @@ fun AccountScreen(
                 contentDescription = null,
                 tint = colors.chalkDim,
                 modifier = Modifier.size(18.dp),
+            )
+        }
+
+        // ---------- Datenschutz & Sicherheit ----------
+        // Der Widerruf einer Einwilligung (Art. 7 Abs. 3 DSGVO) darf nicht
+        // schwerer sein als die Erteilung - die war ebenfalls ein Klick bei der
+        // Registrierung. Bislang ging das nur über die Web-App, das gleicht
+        // diese Lücke nativ an. Gleiche Zeilen-Optik wie "Hilfe & Rechtliches"
+        // darüber - nur klappt der Pfeil hier die Liste direkt auf, statt einen
+        // Dialog zu öffnen.
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(10.dp))
+                .clickable { consentsExpanded = !consentsExpanded }
+                .padding(vertical = 15.dp, horizontal = 2.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Column(Modifier.weight(1f)) {
+                Text(
+                    "Datenschutz & Sicherheit",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = colors.chalk,
+                )
+                Text(
+                    "Einwilligungen einsehen und widerrufen",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = colors.chalkDim,
+                )
+            }
+            Icon(
+                Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                contentDescription = null,
+                tint = colors.chalkDim,
+                modifier = Modifier
+                    .size(18.dp)
+                    .rotate(if (consentsExpanded) 90f else 0f),
+            )
+        }
+        if (consentsExpanded) {
+            ConsentSection(
+                consents = state.consents,
+                loading = state.consentsLoading,
+                error = state.consentError,
+                revokingType = state.revokingConsentType,
+                onRevoke = { consentType ->
+                    if (consentType == "sensitive_data") {
+                        pendingSensitiveRevoke = true
+                    } else {
+                        viewModel.revokeConsent(consentType)
+                    }
+                },
             )
         }
 
@@ -420,7 +479,231 @@ fun AccountScreen(
             onDismiss = viewModel::hideDeleteDialog,
         )
     }
+
+    if (pendingSensitiveRevoke) {
+        AlertDialog(
+            onDismissRequest = { pendingSensitiveRevoke = false },
+            containerColor = MaterialTheme.colorScheme.surface,
+            title = { Text("Einwilligung widerrufen?", style = MaterialTheme.typography.headlineSmall) },
+            text = {
+                Text(
+                    text = "Geschlecht und gesuchtes Geschlecht sind die Grundlage des " +
+                        "Matchings.\n\nOhne diese Einwilligung schlagen wir dir keine Profile " +
+                        "mehr vor und du erscheinst in keinem Deck. Dein Konto bleibt bestehen." +
+                        "\n\nWillst du ganz weg, lösche stattdessen dein Konto.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = FlexrTheme.colors.chalkDim,
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    pendingSensitiveRevoke = false
+                    viewModel.revokeConsent("sensitive_data")
+                }) {
+                    Text("Widerruf erklären", color = FlexrTheme.colors.danger)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { pendingSensitiveRevoke = false }) {
+                    Text("Abbrechen", color = FlexrTheme.colors.chalkDim)
+                }
+            },
+        )
+    }
+
+    if (state.checkoutDialogVisible) {
+        CheckoutDialog(
+            immediateStartChecked = state.checkoutImmediateStart,
+            withdrawalAckChecked = state.checkoutWithdrawalAck,
+            error = state.checkoutError,
+            isStarting = state.isStartingCheckout,
+            onImmediateStartChange = viewModel::onCheckoutImmediateStartChange,
+            onWithdrawalAckChange = viewModel::onCheckoutWithdrawalAckChange,
+            onConfirm = viewModel::confirmCheckout,
+            onDismiss = viewModel::closeCheckoutDialog,
+        )
+    }
 }
+
+/**
+ * Zwei getrennte, nicht vorangekreuzte Erklärungen vor jedem Wechsel zu
+ * Stripe (§ 10 und § 18 Abs. 1 Z 1 FAGG) - ohne beide sendet das Backend
+ * `422 field required` zurück (`backend/app/schemas.py:CheckoutRequest`).
+ * Wortlaut identisch mit der Web-App (`frontend/app/index.html`,
+ * `immediateStartOverlay`). Nicht `private`: `PaywallScreen` nutzt denselben
+ * Dialog für denselben Checkout-Weg (siehe `DeleteAccountDialog` darunter).
+ */
+@Composable
+internal fun CheckoutDialog(
+    immediateStartChecked: Boolean,
+    withdrawalAckChecked: Boolean,
+    error: String?,
+    isStarting: Boolean,
+    onImmediateStartChange: (Boolean) -> Unit,
+    onWithdrawalAckChange: (Boolean) -> Unit,
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    val colors = FlexrTheme.colors
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = MaterialTheme.colorScheme.surface,
+        title = { Text("Vor der Zahlung", style = MaterialTheme.typography.headlineSmall) },
+        text = {
+            Column(Modifier.verticalScroll(rememberScrollState())) {
+                CheckoutConsentRow(
+                    checked = immediateStartChecked,
+                    onCheckedChange = onImmediateStartChange,
+                    text = "Ich stimme ausdrücklich zu, dass FLEXR bereits vor Ablauf der " +
+                        "14-tägigen Rücktrittsfrist mit der Erbringung der kostenpflichtigen " +
+                        "Dienstleistung beginnt.",
+                )
+                CheckoutConsentRow(
+                    checked = withdrawalAckChecked,
+                    onCheckedChange = onWithdrawalAckChange,
+                    text = "Ich bestätige, dass ich zur Kenntnis genommen habe, dass mein " +
+                        "Rücktrittsrecht nach vollständiger Vertragserfüllung durch FLEXR " +
+                        "erlischt, wenn die gesetzlichen Voraussetzungen dafür erfüllt sind.",
+                )
+                FieldError(error)
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onConfirm, enabled = !isStarting) {
+                Text("Weiter zur Zahlung", color = colors.plate)
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss, enabled = !isStarting) {
+                Text("Abbrechen", color = colors.chalkDim)
+            }
+        },
+    )
+}
+
+/** Eine der beiden Checkout-Erklärungen - gleiches Muster wie `ConsentCheckbox` in RegisterScreen.kt. */
+@Composable
+private fun CheckoutConsentRow(
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit,
+    text: String,
+) {
+    val colors = FlexrTheme.colors
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .clickable { onCheckedChange(!checked) }
+            .padding(vertical = 6.dp),
+        verticalAlignment = Alignment.Top,
+    ) {
+        Checkbox(
+            checked = checked,
+            onCheckedChange = onCheckedChange,
+            colors = CheckboxDefaults.colors(
+                checkedColor = colors.plate,
+                checkmarkColor = colors.plateInk,
+                uncheckedColor = colors.steel,
+            ),
+        )
+        Text(
+            text = text,
+            style = MaterialTheme.typography.bodyMedium,
+            color = colors.chalk,
+            modifier = Modifier.padding(top = 12.dp, end = 4.dp),
+        )
+    }
+}
+
+/**
+ * Liste der DSGVO-Einwilligungen mit Sofort-Widerruf (Art. 7 Abs. 3 DSGVO) -
+ * angehakt wurde mit einem Klick, also geht auch der Widerruf mit einem Klick.
+ * Texte und Rechtsgrundlagen sind bewusst identisch mit der Web-App gehalten
+ * (`frontend/app/index.html`, `CONSENT_TEXT`/`CONSENT_GRUNDLAGE`).
+ */
+@Composable
+private fun ConsentSection(
+    consents: List<ConsentDto>,
+    loading: Boolean,
+    error: String?,
+    revokingType: String?,
+    onRevoke: (String) -> Unit,
+) {
+    val colors = FlexrTheme.colors
+    when {
+        loading && consents.isEmpty() -> Row(verticalAlignment = Alignment.CenterVertically) {
+            CircularProgressIndicator(Modifier.size(14.dp), color = colors.plate, strokeWidth = 1.5.dp)
+            Spacer(Modifier.width(8.dp))
+            Text("Lade …", style = MaterialTheme.typography.bodySmall, color = colors.chalkDim)
+        }
+        consents.isEmpty() && error == null -> Text(
+            "Keine Einträge.",
+            style = MaterialTheme.typography.bodySmall,
+            color = colors.chalkDim,
+        )
+        else -> Column {
+            consents.forEachIndexed { index, consent ->
+                Column(Modifier.fillMaxWidth().padding(vertical = 10.dp)) {
+                    val label = CONSENT_LABELS[consent.consentType] ?: consent.consentType
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(label, style = MaterialTheme.typography.bodyMedium, color = colors.chalk)
+                        if (!consent.active) {
+                            Spacer(Modifier.width(6.dp))
+                            Text(
+                                "— widerrufen",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = colors.chalkDim,
+                            )
+                        }
+                    }
+                    val datum = ServerTime
+                        .parse(if (consent.active) consent.grantedAt else consent.revokedAt)
+                        ?.let(ServerTime::formatDay)
+                    val details = buildString {
+                        if (consent.active) {
+                            append("Erteilt am ${datum ?: "—"}, Fassung ${consent.version}.")
+                        } else {
+                            append("Widerrufen am ${datum ?: "—"}.")
+                        }
+                        CONSENT_GRUNDLAGE[consent.consentType]?.let { append(" $it") }
+                    }
+                    Text(
+                        details,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = colors.chalkDim,
+                        modifier = Modifier.padding(top = 2.dp),
+                    )
+                    if (consent.active && consent.consentType in CONSENT_REVOCABLE) {
+                        FlexrLinkButton(
+                            text = "Einwilligung widerrufen",
+                            onClick = { onRevoke(consent.consentType) },
+                            enabled = revokingType == null,
+                        )
+                    }
+                }
+                if (index != consents.lastIndex) {
+                    HorizontalDivider(color = colors.hairline)
+                }
+            }
+        }
+    }
+    FieldError(error)
+}
+
+private val CONSENT_LABELS = mapOf(
+    "sensitive_data" to "Verarbeitung von Geschlecht und gesuchtem Geschlecht",
+    "verification_media" to "Aufnahmen für die Alters- und Identitätsprüfung",
+    "immediate_start" to "Sofortiger Leistungsbeginn",
+    "terms" to "Angenommene AGB-Fassung",
+)
+
+private val CONSENT_GRUNDLAGE = mapOf(
+    "sensitive_data" to "Ausdrückliche Einwilligung nach Art. 9 Abs. 2 lit. a DSGVO.",
+    "verification_media" to "Ausdrückliche Einwilligung nach Art. 9 Abs. 2 lit. a DSGVO.",
+    "immediate_start" to "Zustimmung zum sofortigen Leistungsbeginn (§ 11 Abs. 1 FAGG).",
+    "terms" to "Vertragsschluss, keine Einwilligung — daher nicht widerrufbar.",
+)
+
+private val CONSENT_REVOCABLE = setOf("sensitive_data", "verification_media", "immediate_start")
 
 /**
  * Hinweisfeld zum Verifizierungsstand.

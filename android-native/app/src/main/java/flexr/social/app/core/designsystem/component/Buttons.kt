@@ -4,6 +4,7 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
@@ -186,7 +187,11 @@ fun FlexrDangerButton(
     }
 }
 
-/** Textlink-Optik für Nebenaktionen (`.link-btn` / `.membership-link`). */
+/**
+ * Textlink-Optik für Nebenaktionen (`.link-btn` / `.membership-link`) - bewusst
+ * kein `TextButton`: dessen erzwungene Mindestbreite zentriert den Text sonst
+ * in unsichtbarem Leerraum statt ihn linksbündig mit dem Text darüber zu halten.
+ */
 @Composable
 fun FlexrLinkButton(
     text: String,
@@ -195,12 +200,14 @@ fun FlexrLinkButton(
     enabled: Boolean = true,
     color: Color = FlexrTheme.colors.plate,
 ) {
-    TextButton(onClick = onClick, enabled = enabled, modifier = modifier) {
-        Text(
-            text = text,
-            style = MaterialTheme.typography.bodyMedium,
-            color = if (enabled) color else FlexrTheme.colors.chalkDim,
-            textDecoration = androidx.compose.ui.text.style.TextDecoration.Underline,
-        )
-    }
+    Text(
+        text = text,
+        style = MaterialTheme.typography.bodyMedium,
+        color = if (enabled) color else FlexrTheme.colors.chalkDim,
+        textDecoration = androidx.compose.ui.text.style.TextDecoration.Underline,
+        modifier = modifier
+            .clip(RoundedCornerShape(4.dp))
+            .clickable(enabled = enabled, onClick = onClick)
+            .padding(vertical = 8.dp),
+    )
 }

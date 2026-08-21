@@ -2,6 +2,7 @@ package flexr.social.app.data.repository
 
 import flexr.social.app.core.network.apiCall
 import flexr.social.app.data.remote.FlexrApi
+import flexr.social.app.data.remote.dto.CheckoutRequestDto
 import flexr.social.app.domain.model.Membership
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -34,7 +35,13 @@ class BillingRepository @Inject constructor(
         _membership.value = null
     }
 
-    suspend fun checkoutUrl(): String = apiCall { api.createCheckout() }.checkoutUrl
+    /**
+     * Beide Erklärungen müssen vor dem Aufruf aktiv bestätigt worden sein
+     * (§ 10 und § 18 Abs. 1 Z 1 FAGG) - das Backend lehnt `false` oder ein
+     * fehlendes Feld mit 422 ab.
+     */
+    suspend fun checkoutUrl(immediateStart: Boolean, withdrawalAck: Boolean): String =
+        apiCall { api.createCheckout(CheckoutRequestDto(immediateStart, withdrawalAck)) }.checkoutUrl
 
     /** Self-Service-Verwaltung/Kündigung über das Stripe Billing Portal. */
     suspend fun portalUrl(): String = apiCall { api.createPortal() }.portalUrl

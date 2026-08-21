@@ -7,7 +7,11 @@ import flexr.social.app.data.remote.dto.EmailConfirmRequestDto
 import flexr.social.app.data.remote.dto.EmailConfirmResponseDto
 import flexr.social.app.data.remote.dto.EmailResendResponseDto
 import flexr.social.app.data.remote.dto.BlockRequestDto
+import flexr.social.app.data.remote.dto.CheckoutRequestDto
 import flexr.social.app.data.remote.dto.CheckoutUrlDto
+import flexr.social.app.data.remote.dto.ConsentDto
+import flexr.social.app.data.remote.dto.ConsentRevokeRequestDto
+import flexr.social.app.data.remote.dto.ConsentRevokeResponseDto
 import flexr.social.app.data.remote.dto.DeleteAccountRequestDto
 import flexr.social.app.data.remote.dto.GymDto
 import flexr.social.app.data.remote.dto.GymSuggestRequestDto
@@ -88,6 +92,11 @@ interface FlexrApi {
     @HTTP(method = "DELETE", path = "api/profiles/me", hasBody = true)
     suspend fun deleteMyAccount(@Body body: DeleteAccountRequestDto)
 
+    @GET("api/profiles/me/consents")
+    suspend fun getMyConsents(): List<ConsentDto>
+
+    @POST("api/profiles/me/consents/revoke")
+    suspend fun revokeMyConsent(@Body body: ConsentRevokeRequestDto): ConsentRevokeResponseDto
 
 
     @POST("api/profiles/me/photos/presign")
@@ -133,7 +142,7 @@ interface FlexrApi {
     suspend fun getMembershipStatus(): MembershipStatusDto
 
     @POST("api/billing/checkout")
-    suspend fun createCheckout(): CheckoutUrlDto
+    suspend fun createCheckout(@Body body: CheckoutRequestDto): CheckoutUrlDto
 
     @POST("api/billing/portal")
     suspend fun createPortal(): PortalUrlDto

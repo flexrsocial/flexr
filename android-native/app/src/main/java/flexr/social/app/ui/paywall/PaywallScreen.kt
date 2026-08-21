@@ -38,6 +38,7 @@ import flexr.social.app.core.designsystem.icon.FlexrIcons
 import flexr.social.app.core.designsystem.theme.FlexrTheme
 import flexr.social.app.ui.account.AccountEvent
 import flexr.social.app.ui.account.AccountViewModel
+import flexr.social.app.ui.account.CheckoutDialog
 import flexr.social.app.ui.account.DeleteAccountDialog
 
 /**
@@ -127,7 +128,7 @@ fun PaywallScreen(
                 }
             }
             Spacer(Modifier.height(12.dp))
-            FlexrButton(text = "Jetzt abonnieren", onClick = viewModel::startCheckout)
+            FlexrButton(text = "Jetzt abonnieren", onClick = viewModel::openCheckoutDialog)
         }
 
         Spacer(Modifier.height(14.dp))
@@ -158,6 +159,19 @@ fun PaywallScreen(
             onPasswordChange = viewModel::onDeletePasswordChange,
             onConfirm = viewModel::confirmDelete,
             onDismiss = viewModel::hideDeleteDialog,
+        )
+    }
+
+    if (state.checkoutDialogVisible) {
+        CheckoutDialog(
+            immediateStartChecked = state.checkoutImmediateStart,
+            withdrawalAckChecked = state.checkoutWithdrawalAck,
+            error = state.checkoutError,
+            isStarting = state.isStartingCheckout,
+            onImmediateStartChange = viewModel::onCheckoutImmediateStartChange,
+            onWithdrawalAckChange = viewModel::onCheckoutWithdrawalAckChange,
+            onConfirm = viewModel::confirmCheckout,
+            onDismiss = viewModel::closeCheckoutDialog,
         )
     }
 }
