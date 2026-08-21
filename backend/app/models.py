@@ -480,6 +480,25 @@ class Match(Base):
         else:
             self.user_b_cleared_at = ts
 
+    # "Chat löschen" (anders als "Match auflösen"): blendet die Unterhaltung
+    # nur für die löschende Seite aus der Chats-Übersicht aus. Match, Swipe und
+    # die Nachrichten selbst bleiben bestehen - für die andere Seite ändert
+    # sich nichts. Schreibt eine neue Nachricht danach jemand (egal wer), taucht
+    # der Chat für die löschende Seite automatisch wieder auf (siehe
+    # ``in_chats`` in routers/matches.py), so wie man es von anderen Messengern
+    # kennt.
+    user_a_chat_deleted_at = Column(DateTime, nullable=True)
+    user_b_chat_deleted_at = Column(DateTime, nullable=True)
+
+    def chat_deleted_at_for(self, user_id: str):
+        return self.user_a_chat_deleted_at if user_id == self.user_a_id else self.user_b_chat_deleted_at
+
+    def set_chat_deleted_at(self, user_id: str, ts) -> None:
+        if user_id == self.user_a_id:
+            self.user_a_chat_deleted_at = ts
+        else:
+            self.user_b_chat_deleted_at = ts
+
 
 class Message(Base):
     __tablename__ = "messages"

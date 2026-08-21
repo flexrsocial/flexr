@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import and_, or_
 from sqlalchemy.orm import Session
@@ -67,6 +69,17 @@ def get_matches(
 
         last_message = last_q.order_by(Message.created_at.desc()).first()
         unread_count = unread_q.count()
+
+        # "Chats"-Zugehörigkeit unabhängig von last_message/cleared_at: nach
+        # "Chatverlauf leeren" bleibt der Chat sichtbar (nur eben ohne
+        # last_message), nach "Chat löschen" verschwindet er, bis danach eine
+        # neue Nachricht eintrifft (chat_deleted_at gilt nur bis dahin).
+        chat_deleted_at = row.chat_deleted_at_for(current_user.id)
+        history_q = db.query(Message.id).filter(Message.match_id == row.id)
+        if chat_deleted_at is not None:
+            history_q = history_q.filter(Message.created_at > chat_deleted_at)
+        in_chats = db.query(history_q.exists()).scalar()
+
         result.append(
             (
                 row.created_at,
@@ -76,6 +89,7 @@ def get_matches(
                     last_message=last_message,
                     unread_count=unread_count,
                     is_online=users_by_id[other_id].is_online,
+                    in_chats=in_chats,
                 ),
             )
         )
@@ -110,3 +124,27 @@ def unmatch(
     db.delete(match)
     db.commit()
     return {"unmatched": True}
+
+
+@router.delete("/{match_id}/chat")
+def delete_chat(
+    match_id: str,
+    current_user: User = Depends(require_active_membership),
+    db: Session = Depends(get_db),
+):
+    """"Chat löschen": anders als ``unmatch`` bleiben Match, Swipe und die
+    Nachrichten selbst bestehen - nur für die löschende Seite verschwindet die
+    Unterhaltung aus der Chats-Übersicht (siehe ``in_chats`` in
+    ``get_matches``), bis erneut eine Nachricht geschrieben wird. Für die
+    andere Seite ändert sich nichts."""
+    match = db.query(Match).filter(Match.id == match_id).first()
+    if not match or current_user.id not in (match.user_a_id, match.user_b_id):
+        raise HTTPException(404, "Match nicht gefunden.")
+
+    jetzt = datetime.utcnow()
+    match.set_chat_deleted_at(current_user.id, jetzt)
+    # Wie bei "Chatverlauf leeren": die alten Nachrichten sollen nicht wieder
+    # auftauchen, sobald der Chat durch eine neue Nachricht zurückkehrt.
+    match.set_cleared_at(current_user.id, jetzt)
+    db.commit()
+    return {"chat_deleted": True}

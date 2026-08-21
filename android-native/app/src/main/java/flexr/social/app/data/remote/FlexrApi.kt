@@ -136,6 +136,9 @@ interface FlexrApi {
     @DELETE("api/matches/{matchId}/messages")
     suspend fun clearMessages(@Path("matchId") matchId: String)
 
+    @DELETE("api/matches/{matchId}/chat")
+    suspend fun deleteChat(@Path("matchId") matchId: String)
+
     // ---------- billing.py ----------
 
     @GET("api/billing/status")

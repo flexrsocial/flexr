@@ -59,6 +59,18 @@ class MatchRepository @Inject constructor(
         matchDao.deleteById(matchId)
     }
 
+    /**
+     * "Chat löschen": anders als [unmatch] bleibt das Match serverseitig
+     * bestehen - nur die Unterhaltung verschwindet aus dem "Chats"-Tab, bis
+     * erneut eine Nachricht eintrifft. Lokal reicht ein [refresh], das den
+     * jetzt aktualisierten inChats-Wert vom Server übernimmt.
+     */
+    suspend fun deleteChat(matchId: String) {
+        apiCall { api.deleteChat(matchId) }
+        messageDao.deleteForMatch(matchId)
+        refresh()
+    }
+
     /** Nach dem Blockieren verschwindet das Match beidseitig aus der Liste. */
     suspend fun removeLocally(matchId: String) {
         messageDao.deleteForMatch(matchId)

@@ -99,6 +99,7 @@ fun MatchDto.toDomain() = MatchSummary(
     lastMessage = lastMessage?.toDomain(),
     unreadCount = unreadCount,
     isOnline = isOnline,
+    inChats = inChats,
 )
 
 fun GymDto.toDomain() = Gym(

@@ -101,6 +101,9 @@ data class MatchSummary(
     val lastMessage: Message?,
     val unreadCount: Int,
     val isOnline: Boolean,
+    // Bleibt nach "Chatverlauf leeren" true (Chat bleibt gelistet, nur leer),
+    // wird erst durch "Chat löschen" false, bis eine neue Nachricht eintrifft.
+    val inChats: Boolean = false,
 )
 
 data class Gym(

@@ -205,6 +205,7 @@ data class MatchDto(
     @SerialName("last_message") val lastMessage: MessageDto? = null,
     @SerialName("unread_count") val unreadCount: Int = 0,
     @SerialName("is_online") val isOnline: Boolean = false,
+    @SerialName("in_chats") val inChats: Boolean = false,
 )
 
 // ---------- Gyms ----------

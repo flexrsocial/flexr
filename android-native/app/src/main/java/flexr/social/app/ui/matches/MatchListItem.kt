@@ -102,10 +102,13 @@ fun MatchListItem(
                 }
             }
             val secondary = if (showLastMessage) {
+                // lastMessage kann trotz inChats fehlen: nach "Chatverlauf
+                // leeren" ist der Chat weiterhin gelistet, aber (für einen
+                // selbst) leer.
                 match.lastMessage?.let { message ->
                     val prefix = if (message.senderId == ownUserId) "Du: " else ""
                     prefix + message.content
-                }.orEmpty()
+                } ?: "Chatverlauf geleert"
             } else {
                 buildString {
                     append(profile.city)

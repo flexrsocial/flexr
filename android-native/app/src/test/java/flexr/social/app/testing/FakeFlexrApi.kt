@@ -112,6 +112,8 @@ open class FakeFlexrApi : FlexrApi {
 
     override suspend fun clearMessages(matchId: String) = nichtVorgesehen("clearMessages")
 
+    override suspend fun deleteChat(matchId: String) = nichtVorgesehen("deleteChat")
+
     // ---------- billing.py ----------
 
     override suspend fun getMembershipStatus(): MembershipStatusDto =

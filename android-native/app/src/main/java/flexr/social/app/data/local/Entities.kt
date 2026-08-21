@@ -69,6 +69,7 @@ data class MatchEntity(
     val lastMessageSenderId: String?,
     val lastMessageAt: Instant?,
     val matchedAt: Instant,
+    val inChats: Boolean,
 )
 
 @Entity(
@@ -133,6 +134,7 @@ fun MatchEntity.toDomain(): MatchSummary = MatchSummary(
     },
     unreadCount = unreadCount,
     isOnline = isOnline,
+    inChats = inChats,
 )
 
 fun MatchSummary.toEntity(matchedAt: Instant = Instant.now()) = MatchEntity(
@@ -154,6 +156,7 @@ fun MatchSummary.toEntity(matchedAt: Instant = Instant.now()) = MatchEntity(
     lastMessageSenderId = lastMessage?.senderId,
     lastMessageAt = lastMessage?.createdAt,
     matchedAt = lastMessage?.createdAt ?: matchedAt,
+    inChats = inChats,
 )
 
 fun MessageEntity.toDomain() = Message(

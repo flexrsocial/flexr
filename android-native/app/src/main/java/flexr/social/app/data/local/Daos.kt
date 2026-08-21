@@ -17,7 +17,12 @@ interface MatchDao {
     @Query("SELECT * FROM matches ORDER BY COALESCE(lastMessageAt, matchedAt) DESC")
     fun observeAll(): Flow<List<MatchEntity>>
 
-    @Query("SELECT * FROM matches WHERE lastMessageId IS NOT NULL ORDER BY lastMessageAt DESC")
+    /**
+     * "Chats"-Tab: inChats bleibt nach "Chatverlauf leeren" true (Chat bleibt
+     * gelistet, nur ohne lastMessage), wird erst durch "Chat löschen" false,
+     * bis erneut eine Nachricht eintrifft (siehe in_chats im Backend).
+     */
+    @Query("SELECT * FROM matches WHERE inChats = 1 ORDER BY COALESCE(lastMessageAt, matchedAt) DESC")
     fun observeWithConversation(): Flow<List<MatchEntity>>
 
     @Query("SELECT * FROM matches WHERE matchId = :matchId")

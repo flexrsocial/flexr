@@ -558,9 +558,17 @@
   }
   .chat-header .back-btn svg.ico{ width:20px; height:20px; }
   .chat-header .back-btn:hover{ color:var(--plate); }
-  .chat-header img{
-    width:42px; height:42px; border-radius:50%; object-fit:cover; background:var(--surface-2); flex-shrink:0;
-    border:2px solid var(--ink); box-shadow:0 0 0 1.5px var(--plate-dim);
+  .chat-header .av{ position:relative; width:42px; height:42px; flex-shrink:0; display:block; }
+  .chat-header .av img{
+    width:42px; height:42px; border-radius:50%; object-fit:cover; background:var(--surface-2); display:block;
+    border:2px solid var(--ink);
+  }
+  /* Echter Border (durchgehend) statt Spread-box-shadow als Ring - Letzteres
+     zeigte hier (wie einst bei Konto-/Matchliste-Avatar) eine Lücke am oberen
+     Rand. Gleiche Optik wie .match-item .av::after / .account-avatar::after. */
+  .chat-header .av::after{
+    content:''; position:absolute; inset:-2px; border-radius:50%;
+    border:2px solid var(--plate-dim); box-sizing:border-box; pointer-events:none;
   }
   .chat-header .nm{ font-family:'Oswald'; font-size:16px; flex:1; min-width:0; letter-spacing:0.01em; }
   .chat-header .chat-flag-btns{ display:flex; gap:6px; align-items:center; }
@@ -1867,7 +1875,7 @@
     <section class="screen" id="screen-chat">
       <div class="chat-header">
         <button class="back-btn" id="btnChatBack" aria-label="Zurück zu Matches"><svg class="ico" viewBox="0 0 24 24"><path d="M14.5 5 8 12l6.5 7"/></svg></button>
-        <img id="chatAvatar" src="" alt="">
+        <span class="av"><img id="chatAvatar" src="" alt=""></span>
         <div class="nm" id="chatName">—</div>
         <div class="chat-flag-btns">
           <div class="icon-btn" id="btnReportChat" title="Melden" aria-label="Melden"><svg class="ico" viewBox="0 0 24 24"><path d="M6 21V4.5M6 5h11.5l-2.4 3.9 2.4 3.9H6"/></svg></div>
@@ -2684,7 +2692,10 @@
           thumbCanvas.height = THUMB;
           const side = Math.min(img.width, img.height);
           const sx = (img.width - side) / 2;
-          const sy = (img.height - side) / 2;
+          // Vertikal nicht mittig, sondern Richtung oberen Rand ausschneiden:
+          // Hochformat-Portraits haben meist mehr Freiraum über dem Kopf als
+          // unter dem Kinn - ein mittiger Crop schnitt sonst die Stirn ab.
+          const sy = (img.height - side) * 0.15;
           thumbCanvas.getContext('2d').drawImage(img, sx, sy, side, side, 0, 0, THUMB, THUMB);
 
           canvas.toBlob((blob) => {
@@ -4446,7 +4457,10 @@
     try{
       matchesCache = await api('/api/matches');
       renderUnreadBadge(matchesCache);
-      const withMessages = matchesCache.filter(m => m.last_message);
+      // in_chats statt last_message: bleibt nach "Chatverlauf leeren" true
+      // (der Chat soll sichtbar bleiben, nur mit leerem Inhalt), wird erst
+      // durch "Chat löschen" false, bis eine neue Nachricht eintrifft.
+      const withMessages = matchesCache.filter(m => m.in_chats);
       if(withMessages.length === 0){
         $('chatList').innerHTML = `
           <div class="empty">
@@ -4461,13 +4475,16 @@
         const photo = photoThumb(p.photos && p.photos[0]);
         const unread = m.unread_count > 0;
         const cls = ['match-item', unread ? 'unread' : '', m.is_online ? 'online' : ''].filter(Boolean).join(' ');
-        const mine = m.last_message.sender_id === myProfile.id;
+        // last_message kann trotz in_chats fehlen: nach "Chatverlauf leeren"
+        // ist der Chat weiterhin gelistet, aber (für einen selbst) leer.
+        const mine = m.last_message && m.last_message.sender_id === myProfile.id;
+        const preview = m.last_message ? `${mine ? 'Du: ' : ''}${escapeHtml(m.last_message.content)}` : 'Chatverlauf geleert';
         return `
         <div class="${cls}" data-match-id="${m.match_id}">
           <span class="av"><img src="${photo}" title="${m.is_online ? 'Gerade online' : ''}"></span>
           <div class="info">
             <div class="nm">${escapeHtml(p.name)}, ${p.age}${verifiedBadge(p)}</div>
-            <div class="last-msg">${mine ? 'Du: ' : ''}${escapeHtml(m.last_message.content)}</div>
+            <div class="last-msg">${preview}</div>
           </div>
           ${unread ? `<div class="unread-badge">${m.unread_count}</div>` : '<div class="chev"></div>'}
         </div>`;
@@ -5408,9 +5425,9 @@
     chatMenu.classList.remove('open');
     const match = findMatchById(currentChatMatchId);
     if(!match) return;
-    if(!confirm(`Chat mit ${match.profile.name} wirklich löschen? Das Match und der gesamte Verlauf werden entfernt.`)) return;
+    if(!confirm(`Chat mit ${match.profile.name} wirklich löschen? Er verschwindet aus deinen Chats – euer Match bleibt aber bestehen.`)) return;
     try{
-      await api(`/api/matches/${currentChatMatchId}`, {method: 'DELETE'});
+      await api(`/api/matches/${currentChatMatchId}/chat`, {method: 'DELETE'});
       toast('Chat gelöscht.');
       stopChatPolling();
       currentChatMatchId = null;

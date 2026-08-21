@@ -262,6 +262,71 @@ def test_clear_messages_is_per_user(client):
     assert len(b_msgs) == 3
 
 
+def test_clear_messages_keeps_chat_listed(client):
+    """"Chatverlauf leeren" blendet nur die Nachrichten aus - der Chat selbst
+    bleibt für die Chats-Übersicht sichtbar (in_chats bleibt true)."""
+    match_id, (headers_a, _), _ = make_match(client)
+    client.post(f"/api/matches/{match_id}/messages", headers=headers_a, json={"content": "hi"})
+
+    client.delete(f"/api/matches/{match_id}/messages", headers=headers_a)
+
+    matches_a = client.get("/api/matches", headers=headers_a).json()
+    assert matches_a[0]["in_chats"] is True
+    assert matches_a[0]["last_message"] is None
+
+
+def test_delete_chat_keeps_match_but_hides_from_chats(client):
+    match_id, (headers_a, user_a), (headers_b, user_b) = make_match(client)
+    client.post(f"/api/matches/{match_id}/messages", headers=headers_a, json={"content": "hi"})
+
+    resp = client.delete(f"/api/matches/{match_id}/chat", headers=headers_a)
+    assert resp.status_code == 200
+
+    # Match bleibt für beide Seiten bestehen ...
+    matches_a = client.get("/api/matches", headers=headers_a).json()
+    matches_b = client.get("/api/matches", headers=headers_b).json()
+    assert any(m["match_id"] == match_id for m in matches_a)
+    assert any(m["match_id"] == match_id for m in matches_b)
+
+    # ... aber nur bei A verschwindet der Chat aus der Chats-Übersicht.
+    a_row = next(m for m in matches_a if m["match_id"] == match_id)
+    b_row = next(m for m in matches_b if m["match_id"] == match_id)
+    assert a_row["in_chats"] is False
+    assert b_row["in_chats"] is True
+
+    # B behält den ursprünglichen Verlauf unverändert.
+    assert len(client.get(f"/api/matches/{match_id}/messages", headers=headers_b).json()) == 1
+
+    # Kein Wieder-Auftauchen im Deck - anders als bei "Match auflösen".
+    deck = client.get("/api/swipes/deck", headers=headers_a).json()
+    assert all(p["id"] != user_b["id"] for p in deck)
+
+
+def test_delete_chat_reappears_after_new_message(client):
+    match_id, (headers_a, _), (headers_b, _) = make_match(client)
+    client.post(f"/api/matches/{match_id}/messages", headers=headers_a, json={"content": "hi"})
+    client.delete(f"/api/matches/{match_id}/chat", headers=headers_a)
+
+    client.post(f"/api/matches/{match_id}/messages", headers=headers_b, json={"content": "noch da?"})
+
+    matches_a = client.get("/api/matches", headers=headers_a).json()
+    a_row = next(m for m in matches_a if m["match_id"] == match_id)
+    assert a_row["in_chats"] is True
+    # Alte, vor dem Löschen geschriebene Nachricht bleibt für A ausgeblendet.
+    assert a_row["last_message"]["content"] == "noch da?"
+
+
+def test_delete_chat_requires_participation(client):
+    match_id, _, _ = make_match(client)
+    headers_c = register_user(client, "deletechat.outsider@example.com", name="C", gender="mann")
+    assert client.delete(f"/api/matches/{match_id}/chat", headers=headers_c).status_code == 404
+
+
+def test_delete_chat_unknown_match_404(client):
+    headers = register_user(client, "deletechat.solo@example.com")
+    assert client.delete("/api/matches/gibt-es-nicht/chat", headers=headers).status_code == 404
+
+
 def test_mute_supports_hours_and_requires_positive_duration(client):
     match_id, (headers_a, user_a), _ = make_match(client)
     admin_headers, _ = create_admin(client, email="hmuteadmin@example.com")

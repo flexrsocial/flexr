@@ -225,8 +225,7 @@ fun ChatScreen(
     if (showDeleteDialog) {
         ConfirmDialog(
             title = "Chat löschen?",
-            text = "Das Match und der gesamte Verlauf werden entfernt. " +
-                "Die Person kann dir danach erneut im Deck begegnen.",
+            text = "Der Chat verschwindet aus deinen Chats — euer Match bleibt aber bestehen.",
             confirmLabel = "Löschen",
             onConfirm = {
                 showDeleteDialog = false

@@ -186,10 +186,14 @@ class ChatViewModel @Inject constructor(
         }
     }
 
-    /** Chat löschen = Match auflösen (Verlauf und Match verschwinden). */
+    /**
+     * Chat löschen: anders als "Match auflösen" (MatchProfileViewModel.unmatch)
+     * bleibt das Match bestehen - der Chat verschwindet nur aus dem
+     * "Chats"-Tab, bis erneut eine Nachricht eintrifft.
+     */
     fun deleteChat() {
         viewModelScope.launch {
-            runCatching { matchRepository.unmatch(matchId) }
+            runCatching { matchRepository.deleteChat(matchId) }
                 .onSuccess {
                     _events.send(ChatEvent.Message("Chat gelöscht."))
                     _events.send(ChatEvent.Closed)

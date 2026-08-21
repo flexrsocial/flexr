@@ -176,7 +176,10 @@ class ImageProcessor @Inject constructor(
     private fun centerSquare(bitmap: Bitmap, size: Int): Bitmap {
         val side = min(bitmap.width, bitmap.height)
         val left = (bitmap.width - side) / 2
-        val top = (bitmap.height - side) / 2
+        // Nicht vertikal mittig, sondern Richtung oberen Rand ausschneiden:
+        // Hochformat-Portraits haben meist mehr Freiraum ueber dem Kopf als
+        // unter dem Kinn - ein mittiger Crop schnitt sonst die Stirn ab.
+        val top = ((bitmap.height - side) * 0.15).toInt()
         val cropped = Bitmap.createBitmap(bitmap, left, top, side, side)
         val scaled = Bitmap.createScaledBitmap(cropped, size, size, true)
         if (cropped !== scaled && cropped !== bitmap) cropped.recycle()

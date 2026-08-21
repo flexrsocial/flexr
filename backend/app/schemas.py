@@ -237,6 +237,11 @@ class MatchOut(BaseModel):
     last_message: Optional[MessageOut] = None
     unread_count: int = 0
     is_online: bool = False
+    # Ob dieses Match unter "Chats" erscheinen soll: true, sobald es (nach
+    # einem eventuellen "Chat löschen") mindestens eine Nachricht gibt. Anders
+    # als last_message bleibt das nach "Chatverlauf leeren" weiterhin true -
+    # der Chat soll dabei sichtbar bleiben, nur eben mit leerem Inhalt.
+    in_chats: bool = False
 
 
 # ---------- Gyms ----------
