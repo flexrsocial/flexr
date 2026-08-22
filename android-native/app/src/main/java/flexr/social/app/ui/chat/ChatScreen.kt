@@ -127,6 +127,7 @@ fun ChatScreen(
             name = match?.profile?.name,
             age = match?.profile?.age,
             isVerified = match?.profile?.isVerified == true,
+            isOnline = match?.isOnline == true,
             avatarUrl = match?.profile?.primaryPhoto?.avatarUrl,
             onBack = onBack,
             onReport = {
@@ -241,6 +242,7 @@ private fun ChatHeader(
     name: String?,
     age: Int?,
     isVerified: Boolean,
+    isOnline: Boolean,
     avatarUrl: String?,
     onBack: () -> Unit,
     onReport: () -> Unit,
@@ -268,7 +270,10 @@ private fun ChatHeader(
                     .size(42.dp)
                     .clip(CircleShape)
                     .background(colors.surface2)
-                    .border(1.5.dp, colors.plateDim, CircleShape),
+                    // Der Ring markiert "gerade online" - genau wie auf der
+                    // Matches/Chats-Uebersicht (MatchListItem) - und stand hier
+                    // vorher unbedingt, zeigte also faelschlich immer online.
+                    .let { if (isOnline) it.border(1.5.dp, colors.plateDim, CircleShape) else it },
             )
             Spacer(Modifier.width(11.dp))
             Row(Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {

@@ -574,8 +574,16 @@
      einzelner gefüllter Kreis kann diese Lücke strukturell nicht haben. */
   .chat-header .av{
     width:46px; height:46px; border-radius:50%; flex-shrink:0;
-    background:var(--plate-dim); padding:2px; box-sizing:border-box;
+    background:var(--ink); padding:2px; box-sizing:border-box;
     display:flex; align-items:center; justify-content:center;
+  }
+  /* Ring wird nur orange, wenn der Match wirklich gerade online ist - vorher
+     war die Fuellfarbe fix auf var(--plate-dim), wodurch der Kreis im Chat
+     immer "online" zeigte, unabhaengig vom tatsaechlichen Status (der auf
+     Matches/Chats-Uebersicht korrekt nur bei .match-item.online erscheint). */
+  .chat-header .av.online{
+    background:var(--plate-dim);
+    box-shadow:0 0 12px var(--plate-glow);
   }
   .chat-header .av img{
     width:100%; height:100%; border-radius:50%; object-fit:cover; background:var(--surface-2); display:block;
@@ -1898,7 +1906,7 @@
     <section class="screen" id="screen-chat">
       <div class="chat-header">
         <button class="back-btn" id="btnChatBack" aria-label="Zurück zu Matches"><svg class="ico" viewBox="0 0 24 24"><path d="M14.5 5 8 12l6.5 7"/></svg></button>
-        <span class="av"><img id="chatAvatar" src="" alt=""></span>
+        <span class="av" id="chatAvatarWrap"><img id="chatAvatar" src="" alt=""></span>
         <div class="nm" id="chatName">—</div>
         <div class="chat-flag-btns">
           <div class="icon-btn" id="btnReportChat" title="Melden" aria-label="Melden"><svg class="ico" viewBox="0 0 24 24"><path d="M6 21V4.5M6 5h11.5l-2.4 3.9 2.4 3.9H6"/></svg></div>
@@ -5277,6 +5285,10 @@
       $('chatAvatar').src = photoThumb(match.profile.photos && match.profile.photos[0]);
       $('chatName').innerHTML = escapeHtml(match.profile.name + ', ' + match.profile.age) + verifiedBadge(match.profile);
     }
+    // chatAvatarWrap ist ein einzelnes wiederverwendetes Element ueber alle
+    // Chats hinweg - ohne dieses Zuruecksetzen haette ein zuvor online
+    // gesehener Match seinen Ring behalten, auch wenn der naechste offline ist.
+    $('chatAvatarWrap').classList.toggle('online', !!(match && match.is_online));
     showScreen('screen-chat');
     $('chatMessages').innerHTML = '<div class="loading">Lade Chat …</div>';
     // Chat-Sperre-Status auffrischen (kann während der Sitzung gesetzt worden sein)
