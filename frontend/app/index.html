@@ -1426,7 +1426,7 @@
   .account-section-title::before{
     content:''; width:3px; height:11px; background:var(--plate); border-radius:2px; flex-shrink:0;
   }
-  .account-footer-link{ text-align:center; margin:22px 0 8px; }
+  .account-footer-link{ text-align:center; margin:10px 0 8px; }
   .account-footer-link button{
     display:inline-flex; background:none; border:none; padding:6px 8px;
     font-size:12.5px; font-weight:600; color:var(--plate);
@@ -1471,7 +1471,14 @@
     padding:11px 16px; border-radius:11px; font-size:13.5px; z-index:90; max-width:380px; text-align:left;
     box-shadow:0 14px 34px rgba(0,0,0,.5);
     animation:toastIn .25s ease;
+    display:flex; align-items:flex-start; gap:10px;
   }
+  .toast-text{ flex:1; }
+  .toast-close{
+    background:none; border:none; padding:0; margin:-2px -4px 0 0; color:var(--chalk-dim);
+    font-size:15px; line-height:1; cursor:pointer; flex-shrink:0;
+  }
+  .toast-close:hover{ color:var(--chalk); }
   @keyframes toastIn{ from{opacity:0; transform:translate(-50%,-10px);} to{opacity:1; transform:translate(-50%,0);} }
 
   /* ---------- Match-Overlay (Vollbild-Moment bei beidseitigem Like) ---------- */
@@ -2003,7 +2010,7 @@
            verlinkt aus Fussleiste, AGB und Checkout. Die normale
            Abo-Kuendigung bleibt oben, wo sie hingehoert. -->
 
-      <div class="account-section">
+      <div class="account-section" style="margin-bottom:10px;">
         <div class="account-section-title">Konto</div>
         <button class="btn secondary" id="btnLogout">Ausloggen</button>
         <button class="btn danger-ghost" id="btnDeleteAccount">Konto löschen</button>
@@ -2378,12 +2385,24 @@
   let deck = [];
   let deckIdx = 0;
 
+  // Mindestanzeigedauer 10s (vorher 2600ms) - bei den Widerrufs-Folgetexten
+  // (z.B. revokeConsent) war das zu kurz, um sie in Ruhe zu lesen. Zusaetzlich
+  // per Knopf schliessbar statt nur automatisch zu verschwinden.
   function toast(msg){
     const t = document.createElement('div');
     t.className = 'toast';
-    t.textContent = msg;
+    const text = document.createElement('span');
+    text.className = 'toast-text';
+    text.textContent = msg;
+    const close = document.createElement('button');
+    close.className = 'toast-close';
+    close.type = 'button';
+    close.setAttribute('aria-label', 'Schließen');
+    close.textContent = '✕';
+    close.addEventListener('click', () => t.remove());
+    t.append(text, close);
     document.body.appendChild(t);
-    setTimeout(()=> t.remove(), 2600);
+    setTimeout(()=> t.remove(), 10000);
   }
 
   // ---------- Interaktives Musterdeck im ausgeloggten Hero ----------
