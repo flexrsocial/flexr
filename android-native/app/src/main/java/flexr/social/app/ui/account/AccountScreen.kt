@@ -637,13 +637,20 @@ private fun ConsentSection(
 ) {
     val colors = FlexrTheme.colors
     val busy = revokingType != null || grantingType != null
+    // "Sofortiger Leistungsbeginn" gehört gar nicht erst in diese Liste: nicht
+    // widerrufbar (siehe CONSENT_REVOCABLE unten) und stand hier trotzdem als
+    // eigener Eintrag samt "— widerrufen"-Zeile, obwohl der Klick daneben
+    // ohnehin nichts ausgelöst hätte.
+    val sichtbareConsents = remember(consents) {
+        consents.filterNot { it.consentType == "immediate_start" }
+    }
     when {
-        loading && consents.isEmpty() -> Row(verticalAlignment = Alignment.CenterVertically) {
+        loading && sichtbareConsents.isEmpty() -> Row(verticalAlignment = Alignment.CenterVertically) {
             CircularProgressIndicator(Modifier.size(14.dp), color = colors.plate, strokeWidth = 1.5.dp)
             Spacer(Modifier.width(8.dp))
             Text("Lade …", style = MaterialTheme.typography.bodySmall, color = colors.chalkDim)
         }
-        consents.isEmpty() && error == null -> Text(
+        sichtbareConsents.isEmpty() && error == null -> Text(
             "Keine Einträge.",
             style = MaterialTheme.typography.bodySmall,
             color = colors.chalkDim,
@@ -653,8 +660,8 @@ private fun ConsentSection(
             // derselben Art (neueste zuerst). Den Aktions-Knopf nur auf der
             // jeweils neuesten zeigen - sonst wirbt eine bereits überholte
             // "widerrufen"-Zeile fälschlich noch mit "erneut erteilen".
-            val gesehen = remember(consents) { mutableSetOf<String>() }
-            consents.forEachIndexed { index, consent ->
+            val gesehen = remember(sichtbareConsents) { mutableSetOf<String>() }
+            sichtbareConsents.forEachIndexed { index, consent ->
                 val istNeuesteDieserArt = gesehen.add(consent.consentType)
                 Column(Modifier.fillMaxWidth().padding(vertical = 10.dp)) {
                     val label = CONSENT_LABELS[consent.consentType] ?: consent.consentType
@@ -710,7 +717,7 @@ private fun ConsentSection(
                         }
                     }
                 }
-                if (index != consents.lastIndex) {
+                if (index != sichtbareConsents.lastIndex) {
                     HorizontalDivider(color = colors.hairline)
                 }
             }
@@ -722,21 +729,20 @@ private fun ConsentSection(
 private val CONSENT_LABELS = mapOf(
     "sensitive_data" to "Verarbeitung von Geschlecht und gesuchtem Geschlecht",
     "verification_media" to "Aufnahmen für die Alters- und Identitätsprüfung",
-    "immediate_start" to "Sofortiger Leistungsbeginn",
     "terms" to "Angenommene AGB-Fassung",
 )
 
 private val CONSENT_GRUNDLAGE = mapOf(
     "sensitive_data" to "Ausdrückliche Einwilligung nach Art. 9 Abs. 2 lit. a DSGVO.",
     "verification_media" to "Ausdrückliche Einwilligung nach Art. 9 Abs. 2 lit. a DSGVO.",
-    "immediate_start" to "Zustimmung zum sofortigen Leistungsbeginn (§ 11 Abs. 1 FAGG).",
     "terms" to "Vertragsschluss, keine Einwilligung — daher nicht widerrufbar.",
 )
 
-// "Sofortiger Leistungsbeginn" ist bewusst nicht widerrufbar: die massgebliche
-// § 10/§ 18 Abs. 1 Z 1 FAGG-Erklaerung liegt unveraenderlich im
-// CheckoutConsent-Datensatz und wirkt fort, solange der Vertrag laeuft - ein
-// Widerruf hier haette nichts bewirkt, zeigte aber einen Knopf, der das
+// "Sofortiger Leistungsbeginn" erscheint hier gar nicht erst (siehe
+// sichtbareConsents oben in ConsentSection): die massgebliche § 10/§ 18
+// Abs. 1 Z 1 FAGG-Erklaerung liegt unveraenderlich im CheckoutConsent-
+// Datensatz und wirkt fort, solange der Vertrag laeuft - ein Widerruf hier
+// haette nichts bewirkt, zeigte aber einen Eintrag samt Knopf, der das
 // Gegenteil suggerierte.
 private val CONSENT_REVOCABLE = setOf("sensitive_data", "verification_media")
 

@@ -3,21 +3,34 @@ package flexr.social.app.ui
 import android.net.Uri
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarData
+import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
@@ -75,7 +88,9 @@ fun FlexrApp(
     val context = LocalContext.current
 
     val showMessage: (String) -> Unit = { message ->
-        scope.launch { snackbarHostState.showSnackbar(message) }
+        scope.launch {
+            snackbarHostState.showSnackbar(message, withDismissAction = true, duration = SnackbarDuration.Long)
+        }
     }
 
     // Rückkehr aus dem Stripe-Checkout im Browser: Abo-Status neu holen.
@@ -139,6 +154,45 @@ fun FlexrApp(
     }
 }
 
+/**
+ * Ersetzt den Standard-`Snackbar`: dessen Textzeile begann sichtbar erst in
+ * der zweiten Zeile (Innenabstand des Standard-Layouts), noch dazu verschwand
+ * er nach ein paar Sekunden ohne Möglichkeit, ihn vorher wegzutippen - bei
+ * Widerrufs-Folgetexten (z. B. `AccountScreen.kt`, `revokeConsent`) zu kurz,
+ * um sie in Ruhe zu lesen. Eigenes Layout mit engem oberen Abstand plus
+ * Schließen-Knopf statt der Standard-`Snackbar`-Komposable.
+ */
+@Composable
+private fun FlexrSnackbar(data: SnackbarData) {
+    Surface(
+        modifier = Modifier
+            .padding(12.dp)
+            .fillMaxWidth(),
+        shape = RoundedCornerShape(12.dp),
+        color = MaterialTheme.colorScheme.inverseSurface,
+        contentColor = MaterialTheme.colorScheme.inverseOnSurface,
+        tonalElevation = 6.dp,
+        shadowElevation = 6.dp,
+    ) {
+        Row(
+            Modifier.padding(start = 16.dp, top = 14.dp, end = 4.dp, bottom = 14.dp),
+            verticalAlignment = Alignment.Top,
+        ) {
+            Text(
+                data.visuals.message,
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.weight(1f),
+            )
+            IconButton(
+                onClick = { data.dismiss() },
+                modifier = Modifier.size(24.dp),
+            ) {
+                Icon(Icons.Default.Close, contentDescription = "Schließen")
+            }
+        }
+    }
+}
+
 // ---------- Ausgeloggt ----------
 
 @Composable
@@ -151,7 +205,7 @@ private fun AuthGraph(
 
     Scaffold(
         containerColor = Color.Transparent,
-        snackbarHost = { SnackbarHost(snackbarHostState) },
+        snackbarHost = { SnackbarHost(snackbarHostState) { data -> FlexrSnackbar(data) } },
         topBar = { FlexrTopBar(statusSlot = {}) },
     ) { padding ->
         NavHost(
@@ -198,7 +252,7 @@ private fun VerificationGraph(
 
     Scaffold(
         containerColor = Color.Transparent,
-        snackbarHost = { SnackbarHost(snackbarHostState) },
+        snackbarHost = { SnackbarHost(snackbarHostState) { data -> FlexrSnackbar(data) } },
         // "In Prüfung" bekamen auch Konten angezeigt, die noch gar nichts
         // eingereicht hatten. Der Pillentext gilt für den ganzen Graphen,
         // also muss er in jedem Schritt stimmen.
@@ -269,7 +323,7 @@ private fun LockedGraph(
 
     Scaffold(
         containerColor = Color.Transparent,
-        snackbarHost = { SnackbarHost(snackbarHostState) },
+        snackbarHost = { SnackbarHost(snackbarHostState) { data -> FlexrSnackbar(data) } },
         topBar = {
             FlexrTopBar(statusSlot = { MembershipPill(membership) })
         },
@@ -310,7 +364,7 @@ private fun MainGraph(
 
     Scaffold(
         containerColor = Color.Transparent,
-        snackbarHost = { SnackbarHost(snackbarHostState) },
+        snackbarHost = { SnackbarHost(snackbarHostState) { data -> FlexrSnackbar(data) } },
         topBar = {
             if (isTopLevel) {
                 FlexrTopBar(statusSlot = { MembershipPill(membership) })

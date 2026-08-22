@@ -3576,28 +3576,29 @@
   const CONSENT_TEXT = {
     sensitive_data:     'Verarbeitung von Geschlecht und gesuchtem Geschlecht',
     verification_media: 'Aufnahmen für die Alters- und Identitätsprüfung',
-    immediate_start:    'Sofortiger Leistungsbeginn',
     terms:              'Angenommene AGB-Fassung',
   };
   // Rechtsgrundlage je Einwilligung - erscheint nur im Detail-Aufklapper.
   const CONSENT_GRUNDLAGE = {
     sensitive_data:     'Ausdrückliche Einwilligung nach Art. 9 Abs. 2 lit. a DSGVO.',
     verification_media: 'Ausdrückliche Einwilligung nach Art. 9 Abs. 2 lit. a DSGVO.',
-    immediate_start:    'Zustimmung zum sofortigen Leistungsbeginn (§ 11 Abs. 1 FAGG).',
     terms:              'Vertragsschluss, keine Einwilligung — daher nicht widerrufbar.',
   };
   // Die AGB-Annahme ist Vertragsschluss, keine Einwilligung - sie wird
-  // angezeigt, aber nicht als widerrufbar dargestellt. "Sofortiger
-  // Leistungsbeginn" ebenso: die massgebliche § 10/§ 18 Abs. 1 Z 1
-  // FAGG-Erklaerung liegt unveraenderlich in CheckoutConsent und wirkt fort,
-  // solange der Vertrag laeuft - ein "Widerruf" hier haette nichts bewirkt,
-  // zeigte aber einen Knopf, der das Gegenteil suggerierte.
+  // angezeigt, aber nicht als widerrufbar dargestellt.
   const CONSENT_REVOCABLE = ['sensitive_data', 'verification_media'];
+  // "Sofortiger Leistungsbeginn" gehoert gar nicht erst in diese Liste: die
+  // massgebliche § 10/§ 18 Abs. 1 Z 1 FAGG-Erklaerung liegt unveraenderlich
+  // in CheckoutConsent und wirkt fort, solange der Vertrag laeuft - ein
+  // "Widerruf" hier haette nichts bewirkt, zeigte aber einen Eintrag samt
+  // Knopf, der das Gegenteil suggerierte.
+  const CONSENT_HIDDEN = ['immediate_start'];
 
   async function loadMyConsents(){
     const box = $('myConsents');
     try{
-      const rows = await api('/api/profiles/me/consents');
+      const rows = (await api('/api/profiles/me/consents'))
+        .filter(c => CONSENT_HIDDEN.indexOf(c.consent_type) === -1);
       if(!rows.length){
         box.innerHTML = '<p class="photo-hint" style="margin:0;">Keine Einträge.</p>';
         return;
