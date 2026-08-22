@@ -150,7 +150,7 @@
      ragt per negativem Margin in den 20px-Rand, der Inhalt wird per gleichem
      padding wieder zurückgeholt - so bleibt der Feldrand gleich, der Balken
      sitzt aber mittig zwischen Feldrand und Hintergrundende. */
-  #screen-account.active, #screen-matches.active{ margin-right:-13px; padding-right:13px; }
+  #screen-account.active, #screen-matches.active, #screen-privacy.active{ margin-right:-13px; padding-right:13px; }
   /* Auf dem Account-Screen zieht ein platzverbrauchender Scrollbalken Breite aus
      der Inhaltsbox, wodurch der Verifiziert-Badge um die Balkenbreite nach links
      rutscht. Den Testmonat-Pill im festen Header um exakt denselben Betrag
@@ -600,8 +600,10 @@
 
   .chat-messages{
     display:flex; flex-direction:column; gap:7px; flex:1; min-height:0; overflow-y:auto;
-    padding:6px 2px 12px; scrollbar-width:thin; scrollbar-color:var(--steel) transparent;
+    padding:6px 13px 12px 2px; margin-right:-13px;
+    scrollbar-width:thin; scrollbar-color:transparent transparent;
   }
+  .chat-messages:hover{ scrollbar-color:rgba(255,90,31,.45) transparent; }
   .msg-wrap{ display:flex; flex-direction:column; max-width:82%; }
   .msg-wrap.mine{ align-self:flex-end; align-items:flex-end; }
   .msg-wrap.theirs{ align-self:flex-start; align-items:flex-start; }
@@ -1534,7 +1536,10 @@
   main::-webkit-scrollbar{ width:6px; }
   main::-webkit-scrollbar-thumb{ background:var(--steel); border-radius:3px; }
   .chat-messages::-webkit-scrollbar{ width:5px; }
-  .chat-messages::-webkit-scrollbar-thumb{ background:var(--steel); border-radius:3px; }
+  .chat-messages::-webkit-scrollbar-track{ background:transparent; }
+  .chat-messages::-webkit-scrollbar-thumb{ background:transparent; border-radius:3px; }
+  .chat-messages:hover::-webkit-scrollbar-thumb{ background:rgba(255,90,31,.45); }
+  .chat-messages::-webkit-scrollbar-thumb:hover{ background:rgba(255,90,31,.7); }
   #btnLogout:hover{ border-color:rgba(227,72,72,.5); color:var(--danger); background:rgba(227,72,72,.05); }
 </style>
 </head>
@@ -3617,8 +3622,19 @@
   async function loadMyConsents(){
     const box = $('myConsents');
     try{
+      // Der Server liefert die volle Historie (neueste zuerst) - fuer den
+      // Nachweis nach Art. 7 Abs. 1 DSGVO noetig, bleibt also in der DB.
+      // Angezeigt wird pro Art aber nur die neueste Zeile: eine wachsende
+      // Liste aus "widerrufen"/"erteilt"-Karten derselben Sache (z.B.
+      // Geschlecht) las sich wie ein Protokoll statt wie eine Einstellung.
+      const gesehenTypen = new Set();
       const rows = (await api('/api/profiles/me/consents'))
-        .filter(c => CONSENT_HIDDEN.indexOf(c.consent_type) === -1);
+        .filter(c => CONSENT_HIDDEN.indexOf(c.consent_type) === -1)
+        .filter(c => {
+          if(gesehenTypen.has(c.consent_type)) return false;
+          gesehenTypen.add(c.consent_type);
+          return true;
+        });
       if(!rows.length){
         box.innerHTML = '<p class="photo-hint" style="margin:0;">Keine Einträge.</p>';
         return;
@@ -3626,14 +3642,7 @@
       // Die Zeile nennt die Sache und den Knopf. Datum und Fassung sind fuer
       // den Nachweis noetig, aber nicht beim ersten Hinsehen - sie stehen
       // hinter "Details".
-      // Nach Widerruf + erneuter Einwilligung gibt es zwei Zeilen derselben
-      // Art (neueste zuerst, siehe Backend). Den Aktions-Knopf nur auf der
-      // jeweils neuesten zeigen - sonst wirbt eine bereits ueberholte
-      // "widerrufen"-Zeile faelschlich noch mit "erneut erteilen".
-      const gesehen = new Set();
       box.innerHTML = rows.map(c => {
-        const istNeuesteDieserArt = !gesehen.has(c.consent_type);
-        gesehen.add(c.consent_type);
         const datum = new Date(parseServerDate(c.granted_at)).toLocaleDateString('de-AT');
         const label = CONSENT_TEXT[c.consent_type] || c.consent_type;
         const details = (c.active
@@ -3641,7 +3650,7 @@
           : `Widerrufen am ${new Date(parseServerDate(c.revoked_at)).toLocaleDateString('de-AT')}.`)
           + ' ' + (CONSENT_GRUNDLAGE[c.consent_type] || '');
         let knopf = '';
-        if(istNeuesteDieserArt && CONSENT_REVOCABLE.indexOf(c.consent_type) !== -1){
+        if(CONSENT_REVOCABLE.indexOf(c.consent_type) !== -1){
           knopf = c.active
             ? `<div class="consent-setting-action"><button class="membership-link" data-revoke="${escapeHtml(c.consent_type)}">Einwilligung widerrufen</button></div>`
             : `<div class="consent-setting-action"><button class="membership-link" data-grant="${escapeHtml(c.consent_type)}">Einwilligung erneut erteilen</button></div>`;

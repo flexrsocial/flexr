@@ -641,8 +641,17 @@ private fun ConsentSection(
     // widerrufbar (siehe CONSENT_REVOCABLE unten) und stand hier trotzdem als
     // eigener Eintrag samt "— widerrufen"-Zeile, obwohl der Klick daneben
     // ohnehin nichts ausgelöst hätte.
+    //
+    // Der Server liefert die volle Historie (neueste zuerst) - fuer den
+    // Nachweis nach Art. 7 Abs. 1 DSGVO noetig, bleibt also in der DB.
+    // Angezeigt wird pro Art aber nur die neueste Zeile: eine wachsende Liste
+    // aus "widerrufen"/"erteilt"-Karten derselben Sache (z. B. Geschlecht)
+    // las sich wie ein Protokoll statt wie eine Einstellung.
     val sichtbareConsents = remember(consents) {
-        consents.filterNot { it.consentType == "immediate_start" }
+        val gesehen = mutableSetOf<String>()
+        consents
+            .filterNot { it.consentType == "immediate_start" }
+            .filter { gesehen.add(it.consentType) }
     }
     when {
         loading && sichtbareConsents.isEmpty() -> Row(verticalAlignment = Alignment.CenterVertically) {
@@ -656,13 +665,7 @@ private fun ConsentSection(
             color = colors.chalkDim,
         )
         else -> Column {
-            // Nach Widerruf + erneuter Einwilligung gibt es zwei Zeilen
-            // derselben Art (neueste zuerst). Den Aktions-Knopf nur auf der
-            // jeweils neuesten zeigen - sonst wirbt eine bereits überholte
-            // "widerrufen"-Zeile fälschlich noch mit "erneut erteilen".
-            val gesehen = remember(sichtbareConsents) { mutableSetOf<String>() }
             sichtbareConsents.forEachIndexed { index, consent ->
-                val istNeuesteDieserArt = gesehen.add(consent.consentType)
                 Column(Modifier.fillMaxWidth().padding(vertical = 10.dp)) {
                     val label = CONSENT_LABELS[consent.consentType] ?: consent.consentType
                     // EIN Text statt Row(Text, Text): "— widerrufen" als Row-
@@ -701,7 +704,7 @@ private fun ConsentSection(
                         color = colors.chalkDim,
                         modifier = Modifier.padding(top = 2.dp),
                     )
-                    if (consent.consentType in CONSENT_REVOCABLE && istNeuesteDieserArt) {
+                    if (consent.consentType in CONSENT_REVOCABLE) {
                         if (consent.active) {
                             FlexrLinkButton(
                                 text = "Einwilligung widerrufen",
