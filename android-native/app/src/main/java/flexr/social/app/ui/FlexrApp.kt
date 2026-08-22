@@ -70,7 +70,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 /** Mindestanzeigedauer der Snackbar-Meldungen (`showMessage` in `FlexrApp`). */
-private const val MIN_MESSAGE_DURATION_MS = 10_000L
+private const val MIN_MESSAGE_DURATION_MS = 20_000L
 
 /**
  * Einstiegspunkt der Oberfläche.
@@ -93,10 +93,9 @@ fun FlexrApp(
 
     val showMessage: (String) -> Unit = { message ->
         scope.launch {
-            // `SnackbarDuration.Long` liegt bei genau 10s (siehe Compose-Quelle),
-            // eine Systemeinstellung (Barrierefreiheit) kann sie nur verlaengern,
-            // nie verkuerzen - explizit statt der Konstante, damit "mindestens
-            // 10s" auf einen Blick im Code steht statt in der Compose-Doku.
+            // Erst 10s, dann laut Rueckmeldung immer noch zu kurz - jetzt 20s.
+            // Eigener Timer statt SnackbarDuration.Long (fix bei 10s), damit die
+            // Dauer hier direkt im Code einstellbar ist.
             val autoDismiss = launch {
                 delay(MIN_MESSAGE_DURATION_MS)
                 snackbarHostState.currentSnackbarData?.dismiss()

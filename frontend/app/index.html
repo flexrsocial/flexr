@@ -2385,9 +2385,10 @@
   let deck = [];
   let deckIdx = 0;
 
-  // Mindestanzeigedauer 10s (vorher 2600ms) - bei den Widerrufs-Folgetexten
-  // (z.B. revokeConsent) war das zu kurz, um sie in Ruhe zu lesen. Zusaetzlich
-  // per Knopf schliessbar statt nur automatisch zu verschwinden.
+  // Mindestanzeigedauer 20s (vorher 2600ms, dann 10s) - bei den Widerrufs-
+  // Folgetexten (z.B. revokeConsent) war das zu kurz, um sie in Ruhe zu
+  // lesen. Zusaetzlich per Knopf schliessbar statt nur automatisch zu
+  // verschwinden.
   function toast(msg){
     const t = document.createElement('div');
     t.className = 'toast';
@@ -2402,7 +2403,7 @@
     close.addEventListener('click', () => t.remove());
     t.append(text, close);
     document.body.appendChild(t);
-    setTimeout(()=> t.remove(), 10000);
+    setTimeout(()=> t.remove(), 20000);
   }
 
   // ---------- Interaktives Musterdeck im ausgeloggten Hero ----------
