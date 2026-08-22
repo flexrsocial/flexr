@@ -61,6 +61,13 @@ android {
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
             signingConfig = signingConfigs.findByName("release")
+            // Play Console warnte bei versionCode 35, das Bundle enthalte nativen
+            // Code (androidx.graphics.path u.a., siehe stripProdReleaseDebugSymbols
+            // im Build-Log) ohne Debug-Symbole. FULL laesst AGP die Symbole selbst
+            // einsammeln und ins Bundle packen - kein separater manueller Upload.
+            ndk {
+                debugSymbolLevel = "FULL"
+            }
         }
     }
 
