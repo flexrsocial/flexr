@@ -66,7 +66,11 @@ import flexr.social.app.ui.swipe.SwipeScreen
 import flexr.social.app.ui.verification.DocumentScreen
 import flexr.social.app.ui.verification.VerificationGateScreen
 import flexr.social.app.ui.verification.VerificationScreen
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+
+/** Mindestanzeigedauer der Snackbar-Meldungen (`showMessage` in `FlexrApp`). */
+private const val MIN_MESSAGE_DURATION_MS = 10_000L
 
 /**
  * Einstiegspunkt der Oberfläche.
@@ -89,7 +93,16 @@ fun FlexrApp(
 
     val showMessage: (String) -> Unit = { message ->
         scope.launch {
-            snackbarHostState.showSnackbar(message, withDismissAction = true, duration = SnackbarDuration.Long)
+            // `SnackbarDuration.Long` liegt bei genau 10s (siehe Compose-Quelle),
+            // eine Systemeinstellung (Barrierefreiheit) kann sie nur verlaengern,
+            // nie verkuerzen - explizit statt der Konstante, damit "mindestens
+            // 10s" auf einen Blick im Code steht statt in der Compose-Doku.
+            val autoDismiss = launch {
+                delay(MIN_MESSAGE_DURATION_MS)
+                snackbarHostState.currentSnackbarData?.dismiss()
+            }
+            snackbarHostState.showSnackbar(message, withDismissAction = true, duration = SnackbarDuration.Indefinite)
+            autoDismiss.cancel()
         }
     }
 
