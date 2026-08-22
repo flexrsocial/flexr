@@ -137,6 +137,16 @@
   /* Ebenso der Swipe-Screen: Deck und Aktionsknoepfe teilen sich die Hoehe
      exakt auf, es darf nichts unter die Falz rutschen. */
   #screen-swipe.active{ overflow:hidden; }
+  /* Auf kurzen Viewports (kleines Browserfenster, Landscape-Handy) presste
+     das exakte Aufteilen von .deck (flex:1) die Karte auf eine Resthoehe von
+     teils nur ein paar hundert Pixeln - das Foto (58% davon) wurde dadurch
+     viel breiter als hoch und schnitt Gesichter zu einem schmalen Streifen
+     zu. Unterhalb einer Mindesthoehe lieber wieder wie jeder andere Screen
+     scrollen lassen, statt die Karte zu verzerren. */
+  @media (max-height: 700px){
+    #screen-swipe.active{ overflow-y:auto; overflow-x:hidden; }
+    #screen-swipe .deck{ flex:none; min-height:440px; }
+  }
   /* Dezenter Scrollbalken im FLEXR-Look: dünn, orange-transparent, erscheint
      erst beim Hovern/Scrollen (Thumb sonst unsichtbar). */
   .screen.active{ scrollbar-width:thin; scrollbar-color:transparent transparent; }
