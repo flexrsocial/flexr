@@ -251,12 +251,15 @@ echten Löschweg (`delete_storage_objects`/`storage_keys_for_user` +
 
 1. **Ring-Fix (Punkt 1) vom Nutzer noch nicht nach dem zweiten Anlauf
    bestätigt.** Zuerst nachfragen bzw. mit hartem Reload gegenprüfen.
-2. **iOS hat dieselben Bugs wie Punkt 3 und vermutlich Punkt 2** (gleiche
-   `filter { $0.lastMessage != nil }`-Logik in
-   `ios/FLEXR/Data/Repository/MatchRepository.swift`, gleicher
-   Center-Crop vermutlich in der iOS-Fotoverarbeitung — nicht geprüft,
-   nicht gefixt). Nicht angefasst, weil in dieser Sitzung nie explizit
-   verlangt.
+2. ~~**iOS hat dieselben Bugs wie Punkt 3 und vermutlich Punkt 2**~~ —
+   **am 23.08.2026 erledigt**, zusammen mit allem anderen, was seit dem
+   15.08. an iOS vorbeigelaufen war. Einzelheiten in
+   [ios/HANDOFF.md](ios/HANDOFF.md), Abschnitt „Was am 23.08.2026
+   nachgezogen wurde". Wichtigster Fund dabei: `POST /api/billing/checkout`
+   verlangt seit dem 17.08. einen Körper mit beiden FAGG-Erklärungen — die
+   iOS-App schickte keinen, jeder Abo-Abschluss wäre mit 422 gescheitert.
+   **Die iOS-App ist weiterhin nie übersetzt worden** (kein Mac vorhanden);
+   der Mac-Teil steckt jetzt in `ios/tools/mac-build.sh`.
 3. **Android AAB 2.4.6 (versionCode 34) ist gebaut, signiert und auf dem
    VPS-Downloadordner live** — aber noch nicht in die Play Console
    hochgeladen. `PLAY-CONSOLE.md` beachten: Data-Safety-Angaben, Kamera/
@@ -392,8 +395,10 @@ curl -fsSI https://flexr.social/dl-a616e78274de323b/flexr-X.Y.Z.aab
   irgendetwas anfassen.
 - Nachfragen/prüfen, ob der zweite Ring-Fix (Punkt 1) tatsächlich behoben
   hat — das war der Stand beim Ende dieser Sitzung, unbestätigt.
-- iOS hat vermutlich dieselben zwei Bugs wie Web/Android hatten (Punkte 2
-  und 3) — bisher nicht angefasst, nur auf ausdrücklichen Wunsch angehen.
+- iOS ist am 23.08.2026 auf 2.4.9 nachgezogen worden (siehe
+  `ios/HANDOFF.md`), aber immer noch **nie übersetzt**. Erster Schritt auf
+  einem Mac: `./ios/tools/mac-build.sh team <TEAM-ID>` und danach
+  `./ios/tools/mac-build.sh all`.
 - AAB 2.4.6 ist bereits gebaut, signiert und live hochgeladen (siehe
   Kurzfassung) — noch nicht in die Play Console geladen.
 - Die 5 Test-Frauenprofile nach Abschluss des Testens löschen (siehe

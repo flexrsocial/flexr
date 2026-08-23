@@ -11,6 +11,16 @@ REST-Vertrag wie Web- und Android-Frontend.
 
 ## Schnellstart
 
+Der gesamte Mac-Teil steckt in einem Skript — Team-ID eintragen, übersetzen,
+testen, archivieren, hochladen:
+
+```bash
+./ios/tools/mac-build.sh team ABCDE12345   # Team-ID einmalig eintragen
+./ios/tools/mac-build.sh all               # prüfen + Tests + Release-Archiv
+```
+
+Von Hand geht dasselbe auch:
+
 ```bash
 open ios/FLEXR.xcodeproj
 ```
@@ -42,7 +52,7 @@ alles andere gilt die Build-Einstellung `FLEXR_API_BASE_URL`
 | | |
 |---|---|
 | Bundle-ID | `social.flexr.app` |
-| Version | `2.0.6` (`MARKETING_VERSION`), Build 1 |
+| Version | `2.4.9` (`MARKETING_VERSION`), Build 1 — gleicher Stand wie Android `2.4.9`/`versionCode 37` |
 | Mindestversion | iOS 17.0 |
 | Geräte | iPhone und iPad, Hochformat |
 
@@ -63,6 +73,7 @@ SwiftUI-View  ->  @Observable Model  ->  Repository  ->  URLSession | SwiftData 
 ios/
 ├── FLEXR.xcodeproj/          Dateisystem-synchronisierte Gruppen (Xcode 16)
 ├── Config/Info.plist         Berechtigungstexte, Schriften, URL-Schema, BGTask-ID
+├── tools/mac-build.sh        Team-ID, Übersetzen, Tests, Archiv, Upload
 ├── tools/build_icons_ios.py  App-Icon und Splash-Symbol aus der FX-Vorlage
 ├── FLEXRTests/               Unit-Tests
 └── FLEXR/
@@ -105,7 +116,10 @@ offline sichtbar.
 | `ui/swipe/MatchOverlay` | `UI/Swipe/MatchOverlay` | |
 | `ui/matches/*` | `UI/Matches/*` | plus Zum-Aktualisieren-Ziehen |
 | `ui/chat/*` | `UI/Chat/*` | 4-s-Abgleich, optimistisches Senden, Lesebestätigung, Zensur-Hinweis, Chat-Sperre |
-| `ui/account/*` | `UI/Account/*` | Profil, Fotos, Radius, Abo, Verifizierung, Löschung |
+| `ui/account/*` | `UI/Account/*` | Profil, Fotos, Radius, Abo, Verifizierung, Löschung, Einwilligungen |
+| `ui/account/CheckoutDialog` | `UI/Account/CheckoutConsentSheet` | zwei Pflichterklärungen vor Stripe; auf iOS ein Blatt statt Alert |
+| `ui/account/ConsentSection` | `UI/Account/ConsentList` | Einwilligungen einsehen, widerrufen, erneut erteilen |
+| `ui/auth/ReactivateAccountDialog` | `alert` in `UI/Auth/LoginView` | Konto in der 30-Tage-Karenz zurückholen |
 | `ui/verification/*` | `UI/Verification/*` | AVFoundation statt CameraX, Frontkamera, ein Live-Frontselfie |
 | `ui/paywall`, `ui/reports`, `ui/legal` | dito | Rechtstexte als strukturierte Daten, offline |
 | `data/session/SessionStore` | dito | Token im Keychain, Rest in UserDefaults |
@@ -143,7 +157,7 @@ offline sichtbar.
 
 | Berechtigung | Wofür | Wann erfragt |
 |---|---|---|
-| Kamera | Verifizierungs-Selfies | beim Start der Verifizierung |
+| Kamera | Verifizierungs-Selfie | beim Start der Verifizierung |
 | Mitteilungen | neue Nachrichten | beim Einschalten im Konto |
 | Hintergrundaktualisierung | Nachrichtenabgleich | ohne Dialog, systemseitig steuerbar |
 
