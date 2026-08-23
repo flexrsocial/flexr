@@ -956,18 +956,13 @@
     max-width:1200px; width:100%; margin:0 auto;
     padding:24px clamp(20px,5vw,64px) 40px;
   }
-  /* Der Hero sitzt oben in der Gitterzeile, nicht mittig. Mit dem
-     align-items:center der Zeile richtete er sich an der Hoehe der rechten
-     Spalte aus - und die Registrierungsmaske ist rund viermal so hoch wie die
-     Login-Maske. Beim Umschalten auf "Registrieren" rutschte
-     "Match. Train. Repeat." dadurch knapp 400px nach unten und war im ersten
-     Bildschirm gar nicht mehr zu sehen. Gepinnt wird nur der Hero; die
-     Login-Karte bleibt weiterhin mittig zu ihm ausgerichtet.
-     Nur ab 861px: darunter ist main ein Flex-Column-Layout, dort wuerde
-     align-self die Breite statt der Hoehe steuern. */
-  @media (min-width: 861px){
-    body.landing .landing-hero{ align-self:start; }
-  }
+  /* Der Hero bleibt bewusst mittig in der Gitterzeile (align-items:center
+     weiter oben). Am 23.08.2026 war er kurzzeitig oben angeheftet, damit
+     "Match. Train. Repeat." beim Umschalten auf "Registrieren" nicht
+     mitwandert - auf Wunsch zurueckgenommen, die mittige Ausrichtung gefaellt
+     besser. Wer das erneut angeht: es reicht ein align-self:start auf
+     .landing-hero ab 861px, aber der Hero rutscht dann eben nicht mehr mit
+     der Kartenhoehe mit. */
   body.landing .landing-hero{ display:block; }
   .landing-hero{ display:none; }
   .landing-hero .hero-eyebrow{
@@ -1102,18 +1097,11 @@
     body.landing[data-screen="screen-login"] .app{
       height:100vh; height:100dvh; min-height:0;
     }
-    /* Der obere Abstand gilt bewusst fuer BEIDE Auth-Screens, nicht nur fuer
-       den Login: sonst begaenne der Hero im Registrieren-Modus 28px tiefer
-       als im Login-Modus und wanderte beim Tabwechsel sichtbar mit. Die
-       Hoehen-/Flex-Regeln bleiben dagegen dem Login vorbehalten - nur der
-       passt garantiert ohne Scrollen in einen Bildschirm. */
-    body.landing header.top{ padding-top:18px; padding-bottom:4px; }
-    body.landing main{ padding-top:10px; }
     body.landing[data-screen="screen-login"] header.top{
-      flex:0 0 auto;
+      flex:0 0 auto; padding-top:18px; padding-bottom:4px;
     }
     body.landing[data-screen="screen-login"] main{
-      flex:1 1 auto; min-height:0; padding-bottom:12px;
+      flex:1 1 auto; min-height:0; padding-top:10px; padding-bottom:12px;
     }
     body.landing[data-screen="screen-login"] .legal-footer{
       flex:0 0 auto; flex-wrap:wrap; padding:8px 20px 12px;
