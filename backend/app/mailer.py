@@ -510,6 +510,31 @@ def send_account_deletion_confirmation(
 # ---------------------------------------------------------------------------
 
 
+def _decision_html(name: str, eyebrow: str, detail: str) -> str:
+    """Gebrandete Fassung im selben Look wie _verify_html - fuer kurze
+    Status-Mails ohne eigenen Call-to-Action-Link."""
+    name_safe = html.escape(name)
+    detail_html = html.escape(detail).replace("\n", "<br>")
+    return f"""<!doctype html>
+<html lang="de">
+<body style="margin:0;padding:24px;background:#0f0f11;font-family:Helvetica,Arial,sans-serif;color:#e8e8ea;">
+  <div style="max-width:520px;margin:0 auto;background:#17171a;border:1px solid #2a2a30;border-radius:16px;padding:28px;">
+    <p style="margin:0 0 6px;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:#ff5a1f;">{html.escape(eyebrow)}</p>
+    <h1 style="margin:0 0 18px;font-size:22px;line-height:1.3;color:#ffffff;">Hallo {name_safe},</h1>
+    <p style="margin:0 0 22px;font-size:15px;line-height:1.6;">
+      {detail_html}
+    </p>
+    <p style="margin:0;font-size:13px;line-height:1.6;color:#a0a0a8;">
+      Öffne FLEXR, um deinen aktuellen Status und die nächsten Schritte zu sehen.
+      Fragen? Antworte einfach auf diese Mail oder schreib an
+      <a href="mailto:{settings.support_email}" style="color:#e8e8ea;">{settings.support_email}</a>.
+    </p>
+  </div>
+</body>
+</html>
+"""
+
+
 def send_verification_decision(
     email: str,
     name: str,
@@ -519,16 +544,19 @@ def send_verification_decision(
 ) -> bool:
     if outcome == "approved":
         subject = "Dein FLEXR-Konto ist freigeschaltet"
+        eyebrow = "Freigeschaltet"
         detail = (
             "Deine Alters- und Identitätsprüfung wurde bestätigt. "
             "Dein Konto ist jetzt freigeschaltet."
         )
     elif outcome == "reupload_required":
         subject = "FLEXR braucht eine neue Verifizierungsaufnahme"
+        eyebrow = "Nachbesserung nötig"
         umfang = "Selfie und Ausweisaufnahme" if redo_selfie else "Ausweisaufnahme"
         detail = f"Bitte lade {umfang} erneut hoch. Grund: {reason or 'Aufnahme nicht verwertbar.'}"
     else:
         subject = "Deine FLEXR-Verifizierung wurde abgelehnt"
+        eyebrow = "Verifizierung abgelehnt"
         detail = f"Die Prüfung konnte nicht bestätigt werden. Grund: {reason or 'Prüfung nicht erfolgreich.'}"
     body = f"""Hallo {name},
 
@@ -539,7 +567,9 @@ Bei Fragen antworte auf diese Mail.
 
 Dein FLEXR-Team
 """
-    return send_email_with_retry(email, subject, body, attempts=2, delay_seconds=1)
+    return send_email_with_retry(
+        email, subject, body, _decision_html(name, eyebrow, detail), attempts=2, delay_seconds=1,
+    )
 
 
 def send_verification_required(email: str, name: str) -> bool:
