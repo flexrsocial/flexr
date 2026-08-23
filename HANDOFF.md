@@ -1,30 +1,13 @@
 # FLEXR — Handoff für ein anderes Gerät / Claude Code
 
-Stand: **21.08.2026**, Abend
+Stand: **23.08.2026**, Abend
 
-Produktstand: `git log -1 --oneline` auf `origin/main` ist `8b80faa`. Dieses
-Handoff ersetzt die vorherige Fassung vollständig (Stand 21.08.2026 morgens,
-Commit `cbd0f0a`) — zwischen den beiden lagen mehrere Bugfix- und
-Deploy-Runden in derselben Sitzung.
+Produktstand: `git log -1 --oneline` auf `origin/main` ist `2885d7a`, auf dem
+VPS ausgerollt und live geprüft. Aufbau des Dokuments: erst die Eckdaten,
+dann die Sitzung vom **23.08.**, dann die vom **21.08.**; die Build-, Test-
+und Deploy-Abschnitte am Ende gelten sitzungsübergreifend.
 
-## Wichtiger Fund zu Beginn dieser Sitzung: lokaler Git-Stand war veraltet
-
-Auf **diesem** Gerät (Pfad `~/MEGA/flexr/flexr`, MEGA-Cloud-Sync) zeigte
-`git log -1` auf einen sehr alten Commit (`a30a071`), obwohl die Dateien auf
-der Platte über MEGA-Sync größtenteils aktuell waren — mutmaßlich, weil auf
-diesem Gerät nie `git pull` liefen und stattdessen nur Dateien synchronisiert
-wurden. `git diff`/`git status` waren dadurch am Anfang **irreführend**
-(zeigten tausende Zeilen an vermeintlichen Änderungen, die gar keine echten
-Änderungen waren, plus einige echte veraltete Datei-Leichen wie
-`frontend/legal.css`, `frontend/widerruf.html`, alte `frontend/brand/demo/`-
-Bilder, die in neueren Commits bereits entfernt wurden).
-
-**Fix:** `git fetch origin` und danach `git reset --mixed origin/main` (verändert
-nur HEAD/Index, lässt das Arbeitsverzeichnis unangetastet). Erst danach zeigte
-`git status` die tatsächlichen, beabsichtigten Änderungen. Auf einem neuen
-Gerät IMMER zuerst so prüfen, bevor irgendetwas committet wird — sonst droht
-entweder ein riesiger Fehl-Commit oder (schlimmer) ein `git add -A`, das
-echte, neuere Dateien fälschlich als „gelöscht" einstuft.
+## Eckdaten (sitzungsübergreifend)
 
 - Repository: `git@github.com:flexrsocial/flexr.git`
 - Produktionsseite: <https://flexr.social>
@@ -43,7 +26,195 @@ echte, neuere Dateien fälschlich als „gelöscht" einstuft.
 - Ältere AABs (2.4.2–2.4.5) liegen noch auf dem VPS, unkritisch, bei
   Gelegenheit aufräumbar.
 
-## Was in dieser Sitzung umgesetzt wurde
+## Sitzung 23.08.2026 (Web-Frontend: Layout + Listen-Aktualisierung)
+
+Zwei Commits, beide nur `frontend/app/index.html`, beide gepusht und
+ausgerollt. Keine Backend-Änderung, keine Migration, kein Dienst-Neustart —
+nginx liefert die Datei statisch aus.
+
+### 1. Landingpage: "Match. Train. Repeat." rutschte beim Tabwechsel nach unten
+
+Commit `3d00cf2`. Beim Umschalten von "Einloggen" auf "Registrieren" wanderte
+die Headline knapp **400px** nach unten und war im ersten Bildschirm gar nicht
+mehr zu sehen (gemessen bei 1440×900: h1 von y=186 auf y=579, also +393px;
+der Hero-Block selbst von y=138 auf y=531).
+
+Ursache: `body.landing main` ist ein Grid mit `align-items:center`. Die
+Zeilenhöhe richtet sich nach der höheren Spalte, und die Registrierungsmaske
+ist mit rund 1520px etwa viermal so hoch wie die Login-Maske (390px) — der
+Hero zentrierte sich also an einer Karte, deren Höhe vom gewählten Reiter
+abhängt.
+
+Gepinnt wird jetzt **nur der Hero** (`align-self:start`), die Login-Karte
+bleibt mittig zu ihm; der Login-Bildschirm sieht dadurch aus wie vorher. Die
+Regel gilt erst ab 861px — darunter ist `main` ein Flex-Column-Layout, dort
+würde `align-self` die *Breite* statt der Höhe steuern.
+
+Danach blieben noch 28px Versatz, weil der kompakte obere Abstand (Kopfzeile
+18/4, `main` 10) nur für `[data-screen="screen-login"]` galt. Der **Abstand**
+gilt jetzt für beide Auth-Screens, die **Höhen-/Flex-Regeln** bleiben dem
+Login vorbehalten (nur der passt garantiert ohne Scrollen in einen Schirm).
+
+Ergebnis: h1 steht in Login, Registrierung und zurück auf demselben Wert,
+Verschiebung **0px** — bei 1440×900, 1920×1080 und 1821×934 jeweils y=115,
+bei 1280×700 (kurzer Schirm, dort greift die Login-Vollhöhenregel gar nicht)
+y=143. Zusätzlich 375×812 geprüft. Alles lokal gemessen und nach dem Deploy
+noch einmal live auf flexr.social gegengeprüft (1821×934: 0px; mobil beide
+Masken 339px breit wie der Hero, kein horizontaler Scroll).
+
+Anmerkung zur Commit-Nachricht von `3d00cf2`: dort steht der Vorher-Wert
+fälschlich mit „1821×934: y=115 auf y=508". Gemessen wurde der kaputte
+Zustand bei 1440×900 (y=186 → y=579); bei 1821×934 wurde nur der reparierte
+Zustand geprüft. Die Größenordnung (~400px) stimmt, die Viewport-Angabe im
+Commit nicht.
+
+Nebenbei mitgenommen: mobil erbte `.screen.active` das `align-items:center`
+des Desktop-Grids. In einer Flex-Column heißt das Schrumpfen auf die
+Inhaltsbreite — die kurze Login-Maske war rund 23px schmaler als Hero und
+Registrierungsmaske und saß sichtbar eingerückt. `width:100%` behebt das.
+
+### 2. Echter Bug: Chat- und Matchliste blieben eingefroren stehen
+
+Commit `2885d7a`. Wer auf dem Chats-Bildschirm stehenblieb, sah eine sich
+selbst widersprechende Oberfläche: die Liste meldete **"Noch keine Chats"**,
+während der Reiter daneben schon eine **Ungelesen-Zahl** zeigte.
+
+Ursache: `refreshUnreadBadge()` läuft alle 20s, holt `/api/matches` frisch und
+aktualisierte davon **nur die Zahl am Reiter**. Neu gezeichnet wurden die
+Listen ausschließlich beim Antippen des Menüpunkts (`loadChats`/
+`loadMatches`). Eine eintreffende Nachricht änderte also weder Vorschautext
+noch Ungelesen-Punkt noch Reihenfolge — und ein Chat, der erst durch diese
+Nachricht wieder entsteht (erste Nachricht eines Matches, oder nach "Chat
+löschen"), fehlte ganz, bis man einmal weg und wieder hin navigierte.
+
+`loadChats`/`loadMatches` sind jetzt in Holen und Zeichnen getrennt
+(`renderChats`/`renderMatches`); der Hintergrund-Abgleich zeichnet die Liste
+mit, wenn der zugehörige Bildschirm sichtbar ist. Beide Zeichenfunktionen
+merken sich das zuletzt erzeugte Markup und steigen bei Gleichheit aus —
+sonst würde alle 20s die halbe Liste ersetzt und Hover-/Fokuszustand gingen
+verloren. `loadChats`/`loadMatches` setzen den Vergleichswert zurück, weil sie
+vorher den „Lädt …"-Platzhalter schreiben.
+
+### Was sonst noch getestet wurde (alles unauffällig)
+
+Zwei Testkonten über die echte Oberfläche angelegt, gematcht, in beide
+Richtungen geschrieben:
+
+- „Chatverlauf leeren" / „Chat löschen" — die Fixes vom 21.08. halten: der
+  Verlauf bleibt bei der Gegenseite, der Chat kommt bei neuer Nachricht mit
+  frischem Verlauf zurück, das Match überlebt.
+- XSS in Nachrichten (`<img onerror>`, `<script>`) — sauber escaped.
+- Link-/E-Mail-Zensur greift. Telefonnummern gehen **absichtlich** durch
+  (so dokumentiert in `safety_checks.py`) — kein Bug.
+- Bio-Prüfung: Links und Telefonnummern werden abgewiesen.
+- **IDOR-Prüfung** mit einem dritten, freigeschalteten Konto gegen alle
+  Match-/Chat-Endpunkte (GET/POST messages, DELETE chat/match/messages):
+  durchgehend 404, kein Datenabfluss.
+- Admin-Endpunkte gegen ein Nutzer-Token: durchgehend 401.
+- Eingabeprüfung: leere Nachricht, nur Leerzeichen, 5000 Zeichen → 422;
+  Swipe auf sich selbst → 400.
+- Abgelaufener Probemonat: Deck und Matches 402, Paywall-Bildschirm korrekt.
+- Match auflösen, Blockieren (beidseitig wirksam), Kontolöschung inkl.
+  sofort ungültigem Token und 30-Tage-Reaktivierungsfrist.
+- Backend-Suite vor und nach den Änderungen: **362 Tests grün**.
+
+Kein Stripe-Checkout ausgelöst (wie in den Sitzungen davor bewusst vermieden).
+
+### Fund ohne Fix: Blockieren lässt sich nirgends rückgängig machen
+
+Das Backend kann es — `GET /api/blocks` und `DELETE /api/blocks/{user_id}` in
+`backend/app/routers/safety.py`. **Kein Client nutzt das:**
+
+- Web (`frontend/app/index.html`) ruft ausschließlich `POST /api/blocks` auf
+  (zwei Stellen). Es gibt keine Liste der Blockierten und kein Aufheben.
+- Android hat API- und Repository-Ebene (`FlexrApi.listBlocks/unblock`,
+  `SafetyRepository.blockedUserIds/unblock`), aber **kein** ViewModel und
+  keinen Bildschirm, der sie benutzt.
+- iOS hat ebenfalls nur die API-Ebene (`FlexrAPI.swift`).
+
+Wirkung: Ein Fehlgriff auf „Blockieren" ist aus Nutzersicht auf **allen**
+Plattformen endgültig, und niemand kann nachsehen, wen er blockiert hat.
+Das ist eine Funktionslücke, kein Bug — deshalb bewusst nicht im Vorbeigehen
+gebaut. Zu klären wäre auch, ob `GET /api/blocks` (liefert nur IDs) für eine
+brauchbare Liste um Name und Foto erweitert werden muss.
+
+### Stolperstein beim Deploy: VPS-Pull braucht den Deploy-Key explizit
+
+`ssh flexr-vps 'cd /flexr && git pull --ff-only origin main'` — der im
+Abschnitt „Normaler Commit- und Deploy-Ablauf" dokumentierte Befehl —
+scheitert derzeit mit `Permission denied (publickey)`. Der Deploy-Key liegt
+als `~/.ssh/id_ed25519_github_flexr` auf dem Server, aber es gibt **keine**
+`~/.ssh/config`, die git darauf zeigt. Funktionierender Aufruf:
+
+```bash
+ssh flexr-vps 'cd /flexr && GIT_SSH_COMMAND="ssh -i ~/.ssh/id_ed25519_github_flexr -o IdentitiesOnly=yes" git pull --ff-only origin main'
+```
+
+Dauerhafte Abhilfe wäre eine `~/.ssh/config` auf dem VPS mit `Host github.com
+/ IdentityFile ~/.ssh/id_ed25519_github_flexr / IdentitiesOnly yes`. Bewusst
+nicht angelegt — Serverkonfiguration, das gehört abgesprochen.
+
+### Lokal testen: zwei Fallen, die viel Zeit kosten können
+
+1. **`backend/.env` zeigt auf den PRODUKTIONS-Bucket.** `DATABASE_URL` steht
+   zwar auf localhost, aber `S3_ENDPOINT_URL`/`S3_BUCKET_NAME` zeigen auf das
+   echte R2 `flexr-photos`. Da bei der Registrierung ein Foto Pflicht ist,
+   landen Testbilder sonst im Produktions-Storage. Abhilfe: die S3-Variablen
+   per **Umgebungsvariable** überschreiben (die schlagen in pydantic-settings
+   die `.env`-Datei) und gegen einen lokalen S3-Ersatz fahren. boto3 nutzt bei
+   einem localhost-Endpunkt Path-Style-URLs; ein kleiner Fake-Server mit
+   PUT/GET(+Range)/HEAD/DELETE/COPY/`list_objects_v2` reicht der App aus.
+2. **CORS/Origin.** Die Web-App setzt bei Host `localhost`/`127.0.0.1` die
+   API-Basis fest auf `http://localhost:8000` — ein Proxy vor dem Frontend
+   wird für `/api` also gar nicht benutzt. Erlaubt sind laut `app/main.py` nur
+   `settings.frontend_url`, `http://localhost:5173` und `http://localhost:8000`.
+   Das Frontend deshalb auf **Port 5173** ausliefern. Für **zwei gleichzeitig
+   eingeloggte Testnutzer zwei verschiedene Origins** verwenden
+   (`localhost:5173` und `127.0.0.1:5173`, zweiter über `FRONTEND_URL`
+   freigeschaltet) — sonst teilen sich beide Tabs den localStorage und damit
+   das Token, was sich sehr überzeugend als Anwendungsfehler tarnt.
+
+Freischalten neuer Testkonten ohne Kamera: Fotos über
+`POST /api/admin/photos/{id}/approve` freigeben (sonst erscheint das Profil in
+keinem Deck) und das Konto mit `verification_service.activate_account(user)`
+plus `is_verified`/`age_verified` aktivieren — denselben Weg geht die
+Admin-Freigabe.
+
+### Testkonten dieser Sitzung — nur in der LOKALEN Datenbank
+
+Nicht auf Produktion, dort ist nichts angelegt worden:
+
+| Name | Login-E-Mail | Passwort |
+|---|---|---|
+| Mara Testerin | `bugtest-mara@flexrtest.at` | `TestPass123!` |
+| Tim Tester | `bugtest-tim@flexrtest.at` | `TestPass123!` |
+| Eva Dritte | `bugtest-eva@flexrtest.at` | `TestPass123!` (selbst gelöscht, in Karenz) |
+
+Ebenfalls nur lokal: `localadmin@example.com` hat jetzt das Passwort
+`LocalAdmin123!` (für die Admin-Oberfläche im Test).
+
+## Sitzung 21.08.2026
+
+### Wichtiger Fund zu Beginn jener Sitzung: lokaler Git-Stand war veraltet
+
+Auf **diesem** Gerät (Pfad `~/MEGA/flexr/flexr`, MEGA-Cloud-Sync) zeigte
+`git log -1` auf einen sehr alten Commit (`a30a071`), obwohl die Dateien auf
+der Platte über MEGA-Sync größtenteils aktuell waren — mutmaßlich, weil auf
+diesem Gerät nie `git pull` liefen und stattdessen nur Dateien synchronisiert
+wurden. `git diff`/`git status` waren dadurch am Anfang **irreführend**
+(zeigten tausende Zeilen an vermeintlichen Änderungen, die gar keine echten
+Änderungen waren, plus einige echte veraltete Datei-Leichen wie
+`frontend/legal.css`, `frontend/widerruf.html`, alte `frontend/brand/demo/`-
+Bilder, die in neueren Commits bereits entfernt wurden).
+
+**Fix:** `git fetch origin` und danach `git reset --mixed origin/main` (verändert
+nur HEAD/Index, lässt das Arbeitsverzeichnis unangetastet). Erst danach zeigte
+`git status` die tatsächlichen, beabsichtigten Änderungen. Auf einem neuen
+Gerät IMMER zuerst so prüfen, bevor irgendetwas committet wird — sonst droht
+entweder ein riesiger Fehl-Commit oder (schlimmer) ein `git add -A`, das
+echte, neuere Dateien fälschlich als „gelöscht" einstuft.
+
+## Was am 21.08.2026 umgesetzt wurde
 
 Reihenfolge in etwa chronologisch, alles einzeln committet, getestet,
 gepusht und deployt (Backend-Restart bzw. Migration wo nötig).
@@ -136,7 +307,7 @@ fälschlich unsichtbar gemacht, obwohl nie widerrufen wurde. Migration
 Consent-Migration `a1f7c39b2d40`, die das schon einmal für alle
 **damals** bestehenden Konten gemacht hatte — offenbar wurden danach
 Konten angelegt, ohne über `consents.grant()` zu laufen, mindestens die per
-Skript direkt in die DB geschriebenen Testkonten dieser Sitzung).
+Skript direkt in die DB geschriebenen Testkonten jener Sitzung).
 
 **Falle beim ersten Migrationslauf:** Die Bedingung prüfte zunächst nur
 „keine AKTIVE Zeile" statt „noch nie irgendeine Zeile" — dadurch bekam
@@ -201,7 +372,7 @@ Auf einem neuen Gerät: JDK/SDK entweder neu installieren (s. o., dauert ca.
 5–10 Min inkl. Download) oder prüfen, ob unter `/tmp` noch etwas vom letzten
 Mal übrig ist (unwahrscheinlich, `/tmp` wird meist beim Neustart geleert).
 
-**Falle, die in dieser Sitzung zweimal auftrat:** Nach dem Hinzufügen einer
+**Falle, die am 21.08. zweimal auftrat:** Nach dem Hinzufügen einer
 neuen Methode zum `FlexrApi`-Interface (z. B. `deleteChat`, `grantMyConsent`)
 schlägt `:app:compileProdReleaseUnitTestKotlin` fehl, weil `FakeFlexrApi`
 (unter `app/src/test/.../testing/FakeFlexrApi.kt`) das Interface vollständig
@@ -212,7 +383,7 @@ selbst. `:app:compileProdReleaseKotlin` (Hauptcode) meldet das **nicht**,
 erst der separate Unit-Test-Compile-Schritt — immer beide laufen lassen,
 nicht nur den ersten.
 
-## Testdaten für manuelles Testen
+## Testdaten für manuelles Testen (Produktion, angelegt am 21.08.2026)
 
 Auf Wunsch zweimal gelöscht und neu angelegt, zuletzt mit **echten
 Hochformat-Fotos** (1080×1440, aus `~/MEGA/flexr/seed/fotos/`, Unsplash-
@@ -236,7 +407,7 @@ Anlage-Skript lief direkt gegen die Produktions-DB auf dem VPS (SQLAlchemy,
 kein rohes SQL), Fotos per `storage.get_s3_client()` nach R2 hochgeladen —
 kein eigenes Skript-File hinterlassen (`/tmp` auf dem VPS danach geleert).
 Bei Bedarf lässt sich das Vorgehen aus diesem Handoff-Abschnitt und den
-Git-Commits dieser Sitzung rekonstruieren, oder aus
+Git-Commits jener Sitzung rekonstruieren, oder aus
 `~/MEGA/flexr/seed/README.md` (älteres, anderes Testkonten-Batch,
 `@flexrtest.at`, nicht mehr aktuell).
 
@@ -249,9 +420,24 @@ echten Löschweg (`delete_storage_objects`/`storage_keys_for_user` +
 
 ## Noch offen / bewusst nicht erledigt
 
-1. **Ring-Fix (Punkt 1) vom Nutzer noch nicht nach dem zweiten Anlauf
-   bestätigt.** Zuerst nachfragen bzw. mit hartem Reload gegenprüfen.
-2. ~~**iOS hat dieselben Bugs wie Punkt 3 und vermutlich Punkt 2**~~ —
+1. **Blockieren lässt sich auf keiner Plattform rückgängig machen** —
+   Backend kann es, kein Client bietet es an. Einzelheiten und offene
+   Fragen im Abschnitt „Fund ohne Fix" der Sitzung 23.08. Neu und
+   unbearbeitet.
+2. **`~/.ssh/config` auf dem VPS fehlt**, deshalb scheitert der weiter unten
+   dokumentierte `git pull`-Befehl. Workaround und Vorschlag im Abschnitt
+   „Stolperstein beim Deploy" (23.08.). Serverkonfiguration — abzusprechen.
+3. **Web-Änderungen vom 23.08. sind ausgerollt und live geprüft**, aber vom
+   Nutzer noch nicht selbst in Augenschein genommen.
+4. **Android und iOS haben die Layout- und Listen-Fixes vom 23.08. nicht.**
+   Der Layout-Fix ist reines Web (Landingpage gibt es in den Apps nicht).
+   Der Listen-Fix dagegen könnte sinngemäß auch dort greifen: prüfen, ob
+   Chat-/Matchliste in Android und iOS bei eintreffenden Nachrichten von
+   selbst nachziehen oder erst beim Tabwechsel.
+5. **Ring-Fix (21.08., Punkt 1) vom Nutzer noch nicht nach dem zweiten
+   Anlauf bestätigt.** Zuerst nachfragen bzw. mit hartem Reload
+   gegenprüfen.
+6. ~~**iOS hat dieselben Bugs wie Punkt 3 und vermutlich Punkt 2**~~ —
    **am 23.08.2026 erledigt**, zusammen mit allem anderen, was seit dem
    15.08. an iOS vorbeigelaufen war. Einzelheiten in
    [ios/HANDOFF.md](ios/HANDOFF.md), Abschnitt „Was am 23.08.2026
@@ -260,20 +446,20 @@ echten Löschweg (`delete_storage_objects`/`storage_keys_for_user` +
    iOS-App schickte keinen, jeder Abo-Abschluss wäre mit 422 gescheitert.
    **Die iOS-App ist weiterhin nie übersetzt worden** (kein Mac vorhanden);
    der Mac-Teil steckt jetzt in `ios/tools/mac-build.sh`.
-3. **Android AAB 2.4.6 (versionCode 34) ist gebaut, signiert und auf dem
+7. **Android AAB 2.4.6 (versionCode 34) ist gebaut, signiert und auf dem
    VPS-Downloadordner live** — aber noch nicht in die Play Console
    hochgeladen. `PLAY-CONSOLE.md` beachten: Data-Safety-Angaben, Kamera/
    Ausweisfotos und Deep Links prüfen. Enthält gegenüber 2.4.4 echten neuen
-   Code (Punkte 2, 3, 4, 6, 9, 10 dieses Handoffs) — kein reines
+   Code (Punkte 2, 3, 4, 6, 9, 10 der Sitzung 21.08.) — kein reines
    Versions-Label-Update.
-4. **Kein kontrollierter Stripe-Testcheckout** ausgelöst (wie in den
+8. **Kein kontrollierter Stripe-Testcheckout** ausgelöst (wie in den
    vorherigen Sitzungen auch bewusst vermieden).
-5. Die fünf Test-Frauenprofile eignen sich weiterhin für Deck-/Match-/
+9. Die fünf Test-Frauenprofile eignen sich weiterhin für Deck-/Match-/
    Chat-Testen — nach Abschluss löschen (siehe oben).
-6. `backend/tests/test_public_frontend.py` lief in dieser Sitzung mehrfach
-   grün mit — der in einer früheren Sitzung offene Punkt dazu ist erledigt.
-7. Google Search Console / Sitemap-Status (aus einer noch früheren
-   Sitzung offen) wurde in dieser Sitzung nicht erneut geprüft.
+10. `backend/tests/test_public_frontend.py` lief auch am 23.08. mehrfach
+    grün mit — der in einer früheren Sitzung offene Punkt dazu ist erledigt.
+11. Google Search Console / Sitemap-Status (aus einer früheren Sitzung
+    offen) wurde auch am 23.08. nicht geprüft.
 
 ## Auf einem anderen Gerät starten
 
@@ -319,7 +505,8 @@ venv/bin/pip install -r requirements-dev.txt
 venv/bin/python -m pytest -q
 ```
 
-Stand dieser Sitzung: **355 Tests, alle grün.**
+Stand 23.08.2026: **362 Tests, alle grün** (vor und nach den Änderungen
+jener Sitzung gelaufen).
 
 Android (siehe Toolchain-Abschnitt oben für JDK/SDK-Setup):
 
@@ -347,13 +534,28 @@ git add <nur-die-beabsichtigten-dateien>   # NICHT git add -A, siehe .env.exampl
 git commit -m "Kurze aussagekräftige Beschreibung"
 git push origin main
 
-ssh flexr-vps 'cd /flexr && git pull --ff-only origin main'
+# Stand 23.08.2026 scheitert das blanke "git pull" auf dem VPS mit
+# "Permission denied (publickey)" - der Deploy-Key muss explizit mit:
+ssh flexr-vps 'cd /flexr && GIT_SSH_COMMAND="ssh -i ~/.ssh/id_ed25519_github_flexr -o IdentitiesOnly=yes" git pull --ff-only origin main'
 ssh flexr-vps 'cd /flexr/backend && venv/bin/alembic upgrade head'   # nur falls neue Migration
 ssh flexr-vps 'sudo systemctl restart flexr-api && systemctl is-active flexr-api'
 curl -fsS https://flexr.social/api/health
 ```
 
-**Falle, die in dieser Sitzung mehrfach auftrat:** `backend/.env.example`
+**Nur-Frontend-Änderungen brauchen weder Migration noch Neustart** — nginx
+liefert `frontend/` statisch aus, nach dem `git pull` ist die neue Fassung
+sofort live. Der Service Worker fährt „Netz zuerst", ein Hochzählen von
+`CACHE` in `frontend/sw.js` ist dafür also nicht nötig (das war beim
+Unsplash-Vorfall am 15.08. anders — dort ging es um den Offline-Rückfall
+auf eine Fassung mit Fremdaufrufen). Zum Gegenprüfen taugt ein Vergleich
+der Prüfsummen:
+
+```bash
+curl -fsS https://flexr.social/app/ | md5sum
+md5sum frontend/app/index.html
+```
+
+**Falle, die schon mehrfach auftrat:** `backend/.env.example`
 zeigt in `git diff` als verändert (Rückfall auf generische Platzhalterwerte
 wie `smtp.example.com`), ohne dass diese Sitzung das absichtlich angefasst
 hätte — mutmaßlich Rest aus derselben Git-Stand-Problematik wie ganz oben
@@ -361,7 +563,7 @@ beschrieben. **Bewusst nicht mitcommitten**, gezielt einzelne Dateien
 stagen statt `git add -A`.
 
 **Alembic-Migrationen und `sudo systemctl restart`** wurden vom
-Auto-Mode-Classifier dieser Sitzung beim ersten Versuch jeweils blockiert,
+Auto-Mode-Classifier am 21.08. beim ersten Versuch jeweils blockiert,
 liefen aber beim **zweiten** identischen Versuch anstandslos durch (kein
 Workaround nötig, einfach denselben Befehl nochmal ausführen).
 
@@ -392,9 +594,18 @@ curl -fsSI https://flexr.social/dl-a616e78274de323b/flexr-X.Y.Z.aab
 ## Erinnerung für die nächste Sitzung
 
 - Zuerst `git fetch origin` + HEAD-Abgleich (siehe oben), erst danach
-  irgendetwas anfassen.
-- Nachfragen/prüfen, ob der zweite Ring-Fix (Punkt 1) tatsächlich behoben
-  hat — das war der Stand beim Ende dieser Sitzung, unbestätigt.
+  irgendetwas anfassen. Beim Deploy den Deploy-Key mitgeben (siehe
+  „Normaler Commit- und Deploy-Ablauf"), sonst scheitert der Pull.
+- Nachfragen, ob das Layout der Landingpage (Headline bleibt beim Wechsel
+  auf „Registrieren" oben stehen) so gefällt — ausgerollt, aber vom Nutzer
+  noch nicht begutachtet.
+- Nachfragen/prüfen, ob der zweite Ring-Fix (21.08.) tatsächlich behoben
+  hat — weiterhin unbestätigt.
+- Entscheiden, ob die Blockier-Liste samt Aufheben gebaut wird (Punkt 1
+  unter „Noch offen"): Backend kann es, kein Client zeigt es. Dabei klären,
+  ob `GET /api/blocks` Name und Foto mitliefern muss.
+- Prüfen, ob Android und iOS denselben Listen-Bug haben wie das Web
+  (Chat-/Matchliste zieht bei neuer Nachricht nicht von selbst nach).
 - iOS ist am 23.08.2026 auf 2.4.9 nachgezogen worden (siehe
   `ios/HANDOFF.md`), aber immer noch **nie übersetzt**. Erster Schritt auf
   einem Mac: `./ios/tools/mac-build.sh team <TEAM-ID>` und danach
