@@ -121,6 +121,95 @@ def send_email_with_retry(
 
 
 # ---------------------------------------------------------------------------
+# Gemeinsame HTML-Kartenoptik fuer alle Mails.
+#
+# Bis 2026-08-23 hatte nur die Bestaetigungsmail (_verify_html unten) das
+# offizielle Branding, der Rest der ueber 15 Mailfunktionen verschickte reinen
+# Klartext. Alles hier gebaute soll optisch zu _verify_html passen (dieselbe
+# dunkle Karte, derselbe orangene Eyebrow-Akzent), ohne deren bereits
+# getestete Umsetzung anzufassen. text_body bleibt ueberall die inhaltlich
+# massgebliche Fassung - html_body ist nur die Darstellung.
+# ---------------------------------------------------------------------------
+
+
+def _default_footer_html() -> str:
+    return f"""    <p style="margin:0;font-size:13px;line-height:1.6;color:#a0a0a8;">
+      Fragen? Antworte einfach auf diese Mail oder schreib an
+      <a href="mailto:{settings.support_email}" style="color:#e8e8ea;">{settings.support_email}</a>.
+    </p>"""
+
+
+def _operator_footer_html(full: bool = True) -> str:
+    """Rechtlich vorgeschriebene Betreiberangaben - HTML-Fassung derselben
+    OPERATOR_*-Felder aus app/legal.py wie in den Klartextmails
+    (_subscription_text, _withdrawal_text, _notice_text). ``full=False``
+    laesst Anschrift und Telefon weg, wie _notice_text es tut."""
+    from . import legal
+
+    rows = [legal.OPERATOR_NAME, f"{legal.OPERATOR_LEGAL_FORM}, {legal.OPERATOR_ROLE}"]
+    if full:
+        rows.append(f"{legal.OPERATOR_STREET}, {legal.OPERATOR_ZIP} {legal.OPERATOR_CITY}")
+    rows.append(legal.OPERATOR_EMAIL)
+    if full:
+        rows.append(legal.OPERATOR_PHONE)
+    lines = "<br>".join(html.escape(row) for row in rows)
+    return f"""    <p style="margin:0;font-size:13px;line-height:1.6;color:#a0a0a8;">
+      {lines}
+    </p>"""
+
+
+def _p(text: str) -> str:
+    """Ein maskierter Absatz im Mail-Stil. \\n im Text wird zu <br>."""
+    return (
+        '    <p style="margin:0 0 18px;font-size:15px;line-height:1.6;">'
+        f'{html.escape(text).replace(chr(10), "<br>")}</p>'
+    )
+
+
+def _p_raw(inner_html: str) -> str:
+    """Wie _p(), nimmt aber bereits fertiges HTML entgegen (z.B. fuer Links -
+    der Aufrufer maskiert dort selbst, was maskiert werden muss)."""
+    return f'    <p style="margin:0 0 18px;font-size:15px;line-height:1.6;">{inner_html}</p>'
+
+
+def _ul(items: list[str]) -> str:
+    lis = "".join(f'<li style="margin:0 0 6px;">{html.escape(item)}</li>' for item in items)
+    return f'    <ul style="margin:0 0 18px;padding-left:20px;font-size:15px;line-height:1.6;">{lis}</ul>'
+
+
+def _kv_rows_html(rows: list[tuple[str, str]]) -> str:
+    """Tabelle fuer Aktenzeichen/Betrag/Datum-Bloecke - HTML-Fassung der
+    eingerueckten "Key:   Wert"-Zeilen in den Klartextmails."""
+
+    def cell(text: str) -> str:
+        return html.escape(text).replace(chr(10), "<br>")
+
+    rows_html = "".join(
+        f'<tr><td style="padding:2px 12px 2px 0;color:#a0a0a8;white-space:nowrap;'
+        f'vertical-align:top;">{cell(k)}</td><td style="padding:2px 0;">{cell(v)}</td></tr>'
+        for k, v in rows
+    )
+    return f'    <table style="border-collapse:collapse;font-size:14px;margin:0 0 18px;">{rows_html}</table>'
+
+
+def _email_shell(eyebrow: str, heading_html: str, body_html: str, footer_html: str | None = None) -> str:
+    """Kartenoptik von _verify_html, generalisiert: heading_html und
+    body_html kommen vom Aufrufer bereits maskiert/gerendert."""
+    return f"""<!doctype html>
+<html lang="de">
+<body style="margin:0;padding:24px;background:#0f0f11;font-family:Helvetica,Arial,sans-serif;color:#e8e8ea;">
+  <div style="max-width:520px;margin:0 auto;background:#17171a;border:1px solid #2a2a30;border-radius:16px;padding:28px;">
+    <p style="margin:0 0 6px;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:#ff5a1f;">{html.escape(eyebrow)}</p>
+    <h1 style="margin:0 0 18px;font-size:22px;line-height:1.3;color:#ffffff;">{heading_html}</h1>
+{body_html}
+{footer_html or _default_footer_html()}
+  </div>
+</body>
+</html>
+"""
+
+
+# ---------------------------------------------------------------------------
 # Bestätigungsmail (erste Mail nach der Registrierung)
 # ---------------------------------------------------------------------------
 
@@ -263,12 +352,37 @@ Fragen? Antworte einfach auf diese Mail.
 """
 
 
+def _subscription_html(name: str) -> str:
+    from . import legal
+
+    body = "\n".join([
+        _p("danke für dein Abo. Diese Mail bestätigt den Vertragsabschluss."),
+        _kv_rows_html([
+            ("Leistung", "FLEXR-Mitgliedschaft (flexr.social)"),
+            ("Preis", f"{legal.PRICE_EUR_PER_MONTH} € pro Monat, Endpreis"),
+            ("Abrechnung", "monatlich, automatische Verlängerung"),
+            ("Laufzeit", "keine Mindestlaufzeit, monatlich kündbar"),
+            ("Kündigen", 'jederzeit im Konto unter "Abo verwalten / kündigen"'),
+        ]),
+        _p(
+            "Du hast vor dem Abschluss ausdrücklich verlangt, dass wir mit der "
+            "kostenpflichtigen Leistung schon vor Ablauf der 14-tägigen "
+            "Rücktrittsfrist beginnen. Dein gesetzliches Rücktrittsrecht bleibt "
+            "davon unberührt - bei einem Rücktritt kann lediglich ein anteiliger "
+            "Wertersatz für die bereits erbrachte Leistung anfallen. Alles dazu, "
+            f"inklusive der Online-Funktion, steht unter {legal.SITE_URL}/widerruf.html."
+        ),
+    ])
+    return _email_shell("Abo bestätigt", f"Hallo {html.escape(name)},", body, _operator_footer_html())
+
+
 def send_subscription_confirmation(email: str, name: str) -> bool:
     """Vertragsbestätigung auf dauerhaftem Datenträger nach Zahlungsabschluss."""
     return send_email(
         to_address=email,
         subject=SUBSCRIPTION_SUBJECT,
         text_body=_subscription_text(name),
+        html_body=_subscription_html(name),
     )
 
 
@@ -298,6 +412,24 @@ def _money(amount_cents: int | None, currency: str | None) -> str:
     return f"{amount:.2f} {code}".replace(".", ",")
 
 
+def _trial_ending_html(name: str, trial_end: int | None) -> str:
+    from . import legal
+
+    body = "\n".join([
+        _p(
+            f"dein FLEXR-Gratismonat endet am {_date_from_unix(trial_end)}. Danach "
+            f"wird dein bereits abgeschlossenes Abo erstmals mit "
+            f"{legal.PRICE_EUR_PER_MONTH} EUR pro Monat abgerechnet."
+        ),
+        _p(
+            'Wenn du das nicht möchtest, kannst du das Abo vorher in FLEXR unter '
+            '"Abo verwalten / kündigen" beenden. Bis zum Ende des Gratismonats '
+            "bleibt dein Zugang erhalten."
+        ),
+    ])
+    return _email_shell("Gratismonat endet bald", f"Hallo {html.escape(name)},", body)
+
+
 def send_trial_ending(email: str, name: str, trial_end: int | None) -> bool:
     from . import legal
 
@@ -315,7 +447,23 @@ Fragen? Antworte einfach auf diese Mail.
 
 Dein FLEXR-Team
 """
-    return send_email(email, "Dein FLEXR-Gratismonat endet bald", body)
+    return send_email(email, "Dein FLEXR-Gratismonat endet bald", body, _trial_ending_html(name, trial_end))
+
+
+def _renewal_reminder_html(name: str, amount_due: int | None, currency: str | None, charge_at: int | None) -> str:
+    body = "\n".join([
+        _p(
+            f"dein FLEXR-Abo verlängert sich am {_date_from_unix(charge_at)} um "
+            f"einen weiteren Monat. Der angekündigte Betrag ist "
+            f"{_money(amount_due, currency)}."
+        ),
+        _p(
+            'Du kannst dein Abo vorher jederzeit in FLEXR unter '
+            '"Abo verwalten / kündigen" verwalten. Bei einer Kündigung bleibt '
+            "der Zugang bis zum Ende des bereits bezahlten Zeitraums bestehen."
+        ),
+    ])
+    return _email_shell("Abo verlängert sich", f"Hallo {html.escape(name)},", body)
 
 
 def send_renewal_reminder(
@@ -336,7 +484,27 @@ bis zum Ende des bereits bezahlten Zeitraums bestehen.
 
 Dein FLEXR-Team
 """
-    return send_email(email, "Deine nächste FLEXR-Aboverlängerung", body)
+    return send_email(
+        email, "Deine nächste FLEXR-Aboverlängerung", body,
+        _renewal_reminder_html(name, amount_due, currency, charge_at),
+    )
+
+
+def _payment_succeeded_html(name: str, amount_paid: int | None, currency: str | None, invoice_url: str | None) -> str:
+    paragraphs = [
+        _p(
+            f"deine Zahlung über {_money(amount_paid, currency)} für FLEXR war "
+            "erfolgreich. Dein Abo ist weiterhin aktiv."
+        ),
+    ]
+    if invoice_url:
+        link = html.escape(invoice_url)
+        paragraphs.append(_p_raw(f'Rechnung/Beleg: <a href="{link}" style="color:#e8e8ea;">{link}</a>'))
+    paragraphs.append(_p(
+        'Du kannst dein Abo und deine Zahlungsdaten jederzeit in FLEXR unter '
+        '"Abo verwalten / kündigen" verwalten.'
+    ))
+    return _email_shell("Zahlung erfolgreich", f"Hallo {html.escape(name)},", "\n".join(paragraphs))
 
 
 def send_payment_succeeded(
@@ -356,7 +524,39 @@ Du kannst dein Abo und deine Zahlungsdaten jederzeit in FLEXR unter
 
 Dein FLEXR-Team
 """
-    return send_email(email, "Zahlung für FLEXR erfolgreich", body)
+    return send_email(
+        email, "Zahlung für FLEXR erfolgreich", body,
+        _payment_succeeded_html(name, amount_paid, currency, invoice_url),
+    )
+
+
+def _payment_failed_html(
+    name: str,
+    amount_due: int | None,
+    currency: str | None,
+    next_attempt: int | None,
+    invoice_url: str | None,
+) -> str:
+    next_text = (
+        f"Der nächste Zahlungsversuch ist für {_date_from_unix(next_attempt)} vorgesehen."
+        if next_attempt
+        else "Stripe hat noch keinen weiteren Zahlungsversuch angekündigt."
+    )
+    paragraphs = [
+        _p(
+            f"die Zahlung über {_money(amount_due, currency)} für dein FLEXR-Abo "
+            f"ist fehlgeschlagen. {next_text}"
+        ),
+        _p(
+            'Bitte prüfe deine Zahlungsdaten in FLEXR unter "Abo verwalten / '
+            'kündigen". Dein Zugang bleibt während der erneuten '
+            "Zahlungsversuche vorerst aktiv."
+        ),
+    ]
+    if invoice_url:
+        link = html.escape(invoice_url)
+        paragraphs.append(_p_raw(f'Offene Rechnung: <a href="{link}" style="color:#e8e8ea;">{link}</a>'))
+    return _email_shell("Zahlung fehlgeschlagen", f"Hallo {html.escape(name)},", "\n".join(paragraphs))
 
 
 def send_payment_failed(
@@ -382,7 +582,22 @@ Bitte prüfe deine Zahlungsdaten in FLEXR unter "Abo verwalten / kündigen".
 Dein Zugang bleibt während der erneuten Zahlungsversuche vorerst aktiv.{rechnung}
 Dein FLEXR-Team
 """
-    return send_email(email, "Zahlung für FLEXR fehlgeschlagen", body)
+    return send_email(
+        email, "Zahlung für FLEXR fehlgeschlagen", body,
+        _payment_failed_html(name, amount_due, currency, next_attempt, invoice_url),
+    )
+
+
+def _cancellation_scheduled_html(name: str, access_ends_at: int | None) -> str:
+    body = "\n".join([
+        _p(
+            "deine Kündigung ist vorgemerkt. Es erfolgen keine weiteren "
+            f"monatlichen Verlängerungen. Dein FLEXR-Zugang bleibt bis "
+            f"{_date_from_unix(access_ends_at)} bestehen."
+        ),
+        _p("Du kannst die Kündigung bis dahin im Stripe-Kundenportal rückgängig machen."),
+    ])
+    return _email_shell("Kündigung vorgemerkt", f"Hallo {html.escape(name)},", body)
 
 
 def send_cancellation_scheduled(
@@ -398,7 +613,20 @@ Du kannst die Kündigung bis dahin im Stripe-Kundenportal rückgängig machen.
 
 Dein FLEXR-Team
 """
-    return send_email(email, "Bestätigung deiner FLEXR-Kündigung", body)
+    return send_email(
+        email, "Bestätigung deiner FLEXR-Kündigung", body,
+        _cancellation_scheduled_html(name, access_ends_at),
+    )
+
+
+def _subscription_ended_html(name: str) -> str:
+    body = _p(
+        "dein FLEXR-Abo ist beendet. Es erfolgen keine weiteren Abbuchungen. "
+        "Falls dein kostenloser Nutzungszeitraum ebenfalls abgelaufen ist, ist "
+        "der Mitgliederzugang ab jetzt pausiert. Dein Konto bleibt bestehen "
+        "und kann mit einem neuen Abo wieder aktiviert werden."
+    )
+    return _email_shell("Abo beendet", f"Hallo {html.escape(name)},", body)
 
 
 def send_subscription_ended(email: str, name: str) -> bool:
@@ -411,7 +639,25 @@ wieder aktiviert werden.
 
 Dein FLEXR-Team
 """
-    return send_email(email, "Dein FLEXR-Abo ist beendet", body)
+    return send_email(email, "Dein FLEXR-Abo ist beendet", body, _subscription_ended_html(name))
+
+
+def _free_trial_ending_html(name: str, trial_end: datetime) -> str:
+    end_text = trial_end.replace(tzinfo=timezone.utc).astimezone(VIENNA).strftime("%d.%m.%Y")
+    body = "\n".join([
+        _p(
+            f"dein kostenloser FLEXR-Monat endet am {end_text}. Es erfolgt keine "
+            "automatische Abbuchung: Du hast noch kein kostenpflichtiges Abo "
+            "abgeschlossen."
+        ),
+        _p(
+            'Wenn du FLEXR danach weiter nutzen möchtest, kannst du in der App '
+            'unter "Mitgliedschaft" ein monatlich kündbares Abo abschließen. '
+            "Ohne Abo wird dein Mitgliederzugang nach dem Gratismonat "
+            "pausiert; dein Konto bleibt bestehen."
+        ),
+    ])
+    return _email_shell("Gratismonat endet bald", f"Hallo {html.escape(name)},", body)
 
 
 def send_free_trial_ending(email: str, name: str, trial_end: datetime) -> bool:
@@ -427,7 +673,26 @@ Mitgliederzugang nach dem Gratismonat pausiert; dein Konto bleibt bestehen.
 
 Dein FLEXR-Team
 """
-    return send_email(email, "Dein kostenloser FLEXR-Monat endet bald", body)
+    return send_email(
+        email, "Dein kostenloser FLEXR-Monat endet bald", body,
+        _free_trial_ending_html(name, trial_end),
+    )
+
+
+def _free_trial_ended_html(name: str) -> str:
+    body = "\n".join([
+        _p(
+            "dein kostenloser FLEXR-Monat ist beendet. Weil du kein "
+            "kostenpflichtiges Abo abgeschlossen hast, wurde nichts abgebucht "
+            "und dein Mitgliederzugang ist jetzt pausiert. Dein Konto und "
+            "dein Profil bleiben bestehen."
+        ),
+        _p(
+            'Du kannst den Zugang jederzeit in FLEXR unter "Mitgliedschaft" '
+            "mit einem monatlich kündbaren Abo wieder aktivieren."
+        ),
+    ])
+    return _email_shell("Gratismonat beendet", f"Hallo {html.escape(name)},", body)
 
 
 def send_free_trial_ended(email: str, name: str) -> bool:
@@ -442,7 +707,7 @@ monatlich kündbaren Abo wieder aktivieren.
 
 Dein FLEXR-Team
 """
-    return send_email(email, "Dein kostenloser FLEXR-Monat ist beendet", body)
+    return send_email(email, "Dein kostenloser FLEXR-Monat ist beendet", body, _free_trial_ended_html(name))
 
 
 # ---------------------------------------------------------------------------
@@ -487,6 +752,35 @@ Dein FLEXR-Team
 """
 
 
+def _deletion_html(name: str, purge_date: str, grace_days: int) -> str:
+    body = "\n".join([
+        _p("Dein FLEXR-Konto wurde soeben deaktiviert. Diese Mail bestätigt deinen Löschauftrag."),
+        _ul([
+            "Dein Profil ist ab sofort für andere Mitglieder unsichtbar, ein "
+            "Login ist vorerst nicht mehr möglich.",
+            f"Deine Konto- und Profildaten bleiben noch bis zum {purge_date} "
+            f"gespeichert ({grace_days} Tage Karenzzeit) und werden danach "
+            "unwiderruflich gelöscht.",
+            "Dein Verifizierungs-Selfie und deine Ausweisaufnahme wurden "
+            "bereits jetzt gelöscht, ohne auf die Karenzzeit zu warten.",
+        ]),
+        _p(
+            f"Meinung geändert? Bis zum {purge_date} kannst du dein Konto "
+            "reaktivieren: Melde dich einfach mit deiner E-Mail-Adresse und "
+            "deinem bisherigen Passwort erneut an - der Login bietet dir die "
+            "Reaktivierung dann von selbst an. Nach Ablauf der Frist ist das "
+            "nicht mehr möglich, und die Daten sind endgültig weg."
+        ),
+        _p(
+            "Warst du das nicht? Dann kennt jemand dein Passwort - antworte "
+            f"umgehend auf diese Mail oder schreib an {settings.support_email}, "
+            "wir kümmern uns darum."
+        ),
+        _p("Einzelheiten zur Löschung stehen in unserer Datenschutzerklärung."),
+    ])
+    return _email_shell("Konto gelöscht", f"Hallo {html.escape(name)},", body)
+
+
 def send_account_deletion_confirmation(
     email: str, name: str, purge_at: datetime, grace_days: int
 ) -> bool:
@@ -496,10 +790,12 @@ def send_account_deletion_confirmation(
     Zeitpunkt schon in der DB vollzogen (deleted_at gesetzt) - ein einzelner
     SMTP-Aussetzer soll die Bestätigung trotzdem nicht kippen lassen.
     """
+    purge_date = _date_from_naive_utc(purge_at)
     return send_email_with_retry(
         to_address=email,
         subject=DELETION_SUBJECT,
-        text_body=_deletion_text(name, _date_from_naive_utc(purge_at), grace_days),
+        text_body=_deletion_text(name, purge_date, grace_days),
+        html_body=_deletion_html(name, purge_date, grace_days),
         attempts=2,
         delay_seconds=1,
     )
@@ -572,6 +868,23 @@ Dein FLEXR-Team
     )
 
 
+def _verification_required_html(name: str) -> str:
+    body = "\n".join([
+        _p(
+            "für dein FLEXR-Konto ist eine Alters- und Identitätsprüfung "
+            "erforderlich. Dein Konto ist bis zum Abschluss vorübergehend "
+            "pausiert."
+        ),
+        _p(
+            "Öffne FLEXR und folge dort den Schritten für Live-Selfie und "
+            "amtlichen Lichtbildausweis. Die Prüfung erfolgt manuell; es "
+            "findet keine automatische Gesichtserkennung statt. Die "
+            "Prüfaufnahmen werden anschließend gelöscht."
+        ),
+    ])
+    return _email_shell("Prüfung erforderlich", f"Hallo {html.escape(name)},", body)
+
+
 def send_verification_required(email: str, name: str) -> bool:
     body = f"""Hallo {name},
 
@@ -590,9 +903,27 @@ Dein FLEXR-Team
         email,
         "Alters- und Identitätsprüfung für dein FLEXR-Konto",
         body,
+        _verification_required_html(name),
         attempts=2,
         delay_seconds=1,
     )
+
+
+def _moderation_decision_html(
+    name: str, measure: str, summary: str, details: list[str] | None, appeal: bool
+) -> str:
+    parts = [_p(measure), _p(f"Begründung: {summary}")]
+    detail_items = [line for line in (details or []) if line]
+    if detail_items:
+        parts.append(_p("Einzelheiten:"))
+        parts.append(_ul(detail_items))
+    if appeal:
+        parts.append(_p(
+            "Du kannst der Entscheidung formlos per Antwort auf diese Mail "
+            "widersprechen. Wir prüfen sie dann erneut und antworten "
+            "begründet. Der Rechtsweg bleibt unbenommen."
+        ))
+    return _email_shell("Kontomitteilung", f"Hallo {html.escape(name)},", "\n".join(parts))
 
 
 def send_moderation_decision(
@@ -623,8 +954,21 @@ Dein FLEXR-Team
 """
     return send_email_with_retry(
         email, "Wichtige Mitteilung zu deinem FLEXR-Konto", body,
+        _moderation_decision_html(name, measure, summary, details, appeal),
         attempts=2, delay_seconds=1,
     )
+
+
+def _photo_rejected_html(name: str, reason: str) -> str:
+    body = "\n".join([
+        _p("Ein Profilfoto wurde nicht freigegeben und aus deinem sichtbaren Profil entfernt."),
+        _p(f"Begründung: {reason}"),
+        _p(
+            "Du kannst ein neues Foto hochladen. Wenn du die Entscheidung für "
+            "falsch hältst, antworte bitte auf diese Mail."
+        ),
+    ])
+    return _email_shell("Foto abgelehnt", f"Hallo {html.escape(name)},", body)
 
 
 def send_photo_rejected(email: str, name: str, reason: str) -> bool:
@@ -641,9 +985,21 @@ hältst, antworte bitte auf diese Mail.
 Dein FLEXR-Team
 """
     return send_email_with_retry(
-        email, "Ein FLEXR-Profilfoto wurde abgelehnt", body,
+        email, "Ein FLEXR-Profilfoto wurde abgelehnt", body, _photo_rejected_html(name, reason),
         attempts=2, delay_seconds=1,
     )
+
+
+def _report_decision_html(reference: str, outcome: str, reason: str) -> str:
+    body = "\n".join([
+        _p(f"wir haben deine Meldung {reference} geprüft."),
+        _kv_rows_html([("Ergebnis", outcome), ("Begründung", reason)]),
+        _p(
+            "Du kannst der Entscheidung formlos per Antwort auf diese Mail "
+            "widersprechen. Der Rechtsweg bleibt unbenommen."
+        ),
+    ])
+    return _email_shell("Meldung entschieden", "Hallo,", body)
 
 
 def send_report_decision(
@@ -663,6 +1019,7 @@ Dein FLEXR-Team
 """
     return send_email_with_retry(
         email, f"Entscheidung zu deiner FLEXR-Meldung {reference}", body,
+        _report_decision_html(reference, outcome, reason),
         attempts=2, delay_seconds=1,
     )
 
@@ -730,6 +1087,50 @@ Fragen? Antworte einfach auf diese Mail.
 """
 
 
+def _withdrawal_html(
+    name: str,
+    reference: str,
+    received_at: str,
+    declaration_text: str,
+    contract_reference: str | None,
+    subscription_stopped: bool = False,
+) -> str:
+    vertrag = contract_reference or "— keine Angabe —"
+    if subscription_stopped:
+        folge = (
+            "Was jetzt passiert: Ein zugeordnetes laufendes Abo ist bereits an "
+            "der weiteren Verlängerung gehindert - es wird nicht erneut "
+            "abgebucht. Wir prüfen die Erklärung und wickeln einen bereits "
+            "bezahlten Zeitraum anteilig ab; bereits geleistete Zahlungen "
+            "erstatten wir über dasselbe Zahlungsmittel, mit dem du bezahlt hast."
+        )
+    else:
+        folge = (
+            "Was jetzt passiert: Wir prüfen die Erklärung, ordnen sie deinem "
+            "Vertrag zu und verhindern eine weitere Verlängerung. Bereits "
+            "geleistete Zahlungen erstatten wir über dasselbe Zahlungsmittel, "
+            "mit dem du bezahlt hast."
+        )
+    declaration_html = html.escape(declaration_text).replace(chr(10), "<br>")
+    body = "\n".join([
+        _p(
+            "deine Rücktrittserklärung ist bei uns eingegangen. Diese Mail "
+            "ist die Bestätigung nach § 13a Abs. 4 FAGG — bewahre sie auf."
+        ),
+        _kv_rows_html([
+            ("Aktenzeichen", reference),
+            ("Eingegangen am", f"{received_at} (Uhrzeit in MEZ/MESZ)"),
+            ("Vertrag/Konto", vertrag),
+        ]),
+        _p("Wortlaut deiner Erklärung:"),
+        f'    <blockquote style="margin:0 0 18px;padding:2px 16px;'
+        f'border-left:2px solid #2a2a30;font-size:14px;line-height:1.6;'
+        f'color:#c8c8ce;">{declaration_html}</blockquote>',
+        _p(folge),
+    ])
+    return _email_shell("Rücktritt bestätigt", f"Hallo {html.escape(name)},", body, _operator_footer_html())
+
+
 def send_withdrawal_confirmation(
     email: str,
     name: str,
@@ -747,11 +1148,18 @@ def send_withdrawal_confirmation(
     versucht es mit kurzen Pausen erneut, bevor endgültig aufgegeben wird;
     die Erklärung selbst ist zu diesem Zeitpunkt schon gespeichert (siehe
     routers/withdrawal.py) und geht so oder so nicht verloren.
+
+    Rechtsverbindlich ist text_body (Wortlaut der Erklärung, unveraendert);
+    html_body ist nur eine gebrandete Darstellung desselben Inhalts.
     """
     return send_email_with_retry(
         to_address=email,
         subject=WITHDRAWAL_SUBJECT.format(reference=reference),
         text_body=_withdrawal_text(
+            name, reference, received_at, declaration_text, contract_reference,
+            subscription_stopped,
+        ),
+        html_body=_withdrawal_html(
             name, reference, received_at, declaration_text, contract_reference,
             subscription_stopped,
         ),
@@ -791,6 +1199,29 @@ Aktenzeichens.
 """
 
 
+def _notice_html(reference: str, received_at: str, category_label: str) -> str:
+    body = "\n".join([
+        _p("deine Meldung ist bei uns eingegangen."),
+        _kv_rows_html([
+            ("Aktenzeichen", reference),
+            ("Eingegangen am", received_at),
+            ("Kategorie", category_label),
+        ]),
+        _p(
+            "Ein Mensch sieht sich die Meldung an — in der Regel binnen 72 "
+            "Stunden, bei Gefahr für eine Person sofort. Du bekommst danach "
+            "eine begründete Entscheidung an diese Adresse."
+        ),
+        _p(
+            "Diese Bestätigung erfolgt nach Art. 16 Abs. 4 der Verordnung "
+            "(EU) 2022/2065 (Gesetz über digitale Dienste). Wenn du der "
+            "Entscheidung später widersprechen willst, genügt eine formlose "
+            "Antwort auf diese Mail unter Angabe des Aktenzeichens."
+        ),
+    ])
+    return _email_shell("Meldung eingegangen", "Hallo,", body, _operator_footer_html(full=False))
+
+
 def send_notice_acknowledgement(
     email: str, reference: str, received_at: str, category_label: str
 ) -> bool:
@@ -799,4 +1230,5 @@ def send_notice_acknowledgement(
         to_address=email,
         subject=NOTICE_SUBJECT.format(reference=reference),
         text_body=_notice_text(reference, received_at, category_label),
+        html_body=_notice_html(reference, received_at, category_label),
     )
