@@ -4534,6 +4534,15 @@
     try{
       matchesCache = await api('/api/matches');
       renderUnreadBadge(matchesCache);
+      // Steht die Chatliste gerade auf dem Schirm, muss sie mitwandern. Vorher
+      // aktualisierte der Abgleich nur die Zahl am Reiter: Wer auf der Chatliste
+      // stehenblieb, sah eine neue Nachricht weder als Vorschautext noch als
+      // ungelesen-Punkt, und ein Chat, der erst durch diese Nachricht wieder
+      // entsteht (erste Nachricht eines Matches, oder nach "Chat löschen"),
+      // fehlte ganz - die Liste meldete "Noch keine Chats", waehrend der
+      // Reiter daneben schon eine Ungelesen-Zahl zeigte.
+      if(document.body.dataset.screen === 'screen-chats') renderChats(matchesCache);
+      if(document.body.dataset.screen === 'screen-matches') renderMatches(matchesCache);
     }catch(err){ /* stiller Hintergrund-Abgleich */ }
   }
 
@@ -4550,21 +4559,34 @@
 
   async function loadMatches(){
     $('matchList').innerHTML = '<div class="loading">Lade Matches …</div>';
+    lastMatchListHtml = null;
     try{
       matchesCache = await api('/api/matches');
       renderUnreadBadge(matchesCache);
-      if(matchesCache.length === 0){
-        $('matchList').innerHTML = `
+      renderMatches(matchesCache);
+    }catch(err){
+      $('matchList').innerHTML = '<div class="loading">Matches konnten nicht geladen werden.</div>';
+      console.error(err);
+    }
+  }
+
+  // Siehe lastChatListHtml: gleicher Grund, eigene Liste.
+  let lastMatchListHtml = null;
+
+  function renderMatches(matches){
+    matches = matches || [];
+    let html;
+    if(matches.length === 0){
+      html = `
           <div class="empty">
             <div class="empty-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M12 20.3S4.8 15.7 4.8 10.8C4.8 8 6.9 6 9.3 6c1.2 0 2.3.55 2.7 1.4C12.4 6.55 13.5 6 14.7 6c2.4 0 4.5 2 4.5 4.8 0 4.9-7.2 9.5-7.2 9.5z"/></svg></div>
             <div class="empty-title">Noch keine Matches</div>
             <div class="empty-sub">Weiter swipen — dein nächster Trainingspartner wartet schon.</div>
           </div>`;
-        return;
-      }
+    } else {
       // Matches-Screen: reine Match-Liste ohne Nachrichten-Vorschau -
       // laufende Unterhaltungen stehen im eigenen Menüpunkt "Chats".
-      $('matchList').innerHTML = matchesCache.map(m => {
+      html = matches.map(m => {
         const p = m.profile;
         const photo = photoThumb(p.photos && p.photos[0]);
         const cls = ['match-item', m.is_online ? 'online' : ''].filter(Boolean).join(' ');
@@ -4578,35 +4600,50 @@
           <div class="chev"></div>
         </div>`;
       }).join('');
-      $('matchList').querySelectorAll('.match-item').forEach(el => {
-        el.addEventListener('click', () => openMatchProfile(el.dataset.matchId));
-      });
-    }catch(err){
-      $('matchList').innerHTML = '<div class="loading">Matches konnten nicht geladen werden.</div>';
-      console.error(err);
     }
+    if(html === lastMatchListHtml) return;
+    lastMatchListHtml = html;
+    $('matchList').innerHTML = html;
+    $('matchList').querySelectorAll('.match-item').forEach(el => {
+      el.addEventListener('click', () => openMatchProfile(el.dataset.matchId));
+    });
   }
 
   // ---------- Chats (nur Matches mit laufender Unterhaltung) ----------
   async function loadChats(){
     $('chatList').innerHTML = '<div class="loading">Lade Chats …</div>';
+    lastChatListHtml = null;
     try{
       matchesCache = await api('/api/matches');
       renderUnreadBadge(matchesCache);
-      // in_chats statt last_message: bleibt nach "Chatverlauf leeren" true
-      // (der Chat soll sichtbar bleiben, nur mit leerem Inhalt), wird erst
-      // durch "Chat löschen" false, bis eine neue Nachricht eintrifft.
-      const withMessages = matchesCache.filter(m => m.in_chats);
-      if(withMessages.length === 0){
-        $('chatList').innerHTML = `
+      renderChats(matchesCache);
+    }catch(err){
+      $('chatList').innerHTML = '<div class="loading">Chats konnten nicht geladen werden.</div>';
+      console.error(err);
+    }
+  }
+
+  // Zuletzt gezeichnetes Markup der Chatliste. Der Hintergrund-Abgleich zeichnet
+  // alle 20s neu; ohne diesen Vergleich wuerden dabei bei jedem Durchlauf
+  // saemtliche Zeilen ersetzt und Hover-/Fokuszustand gingen verloren, obwohl
+  // sich meist gar nichts geaendert hat.
+  let lastChatListHtml = null;
+
+  function renderChats(matches){
+    // in_chats statt last_message: bleibt nach "Chatverlauf leeren" true
+    // (der Chat soll sichtbar bleiben, nur mit leerem Inhalt), wird erst
+    // durch "Chat löschen" false, bis eine neue Nachricht eintrifft.
+    const withMessages = (matches || []).filter(m => m.in_chats);
+    let html;
+    if(withMessages.length === 0){
+      html = `
           <div class="empty">
             <div class="empty-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M21 11.7a8.2 8.2 0 0 1-8.3 8.1c-1.5 0-2.9-.35-4.1-1L4 19.9l1.1-4.1a8.1 8.1 0 1 1 15.9-4.1z"/></svg></div>
             <div class="empty-title">Noch keine Chats</div>
             <div class="empty-sub">Schreib einem deiner Matches die erste Nachricht.</div>
           </div>`;
-        return;
-      }
-      $('chatList').innerHTML = withMessages.map(m => {
+    } else {
+      html = withMessages.map(m => {
         const p = m.profile;
         const photo = photoThumb(p.photos && p.photos[0]);
         const unread = m.unread_count > 0;
@@ -4625,13 +4662,13 @@
           ${unread ? `<div class="unread-badge">${m.unread_count}</div>` : '<div class="chev"></div>'}
         </div>`;
       }).join('');
-      $('chatList').querySelectorAll('.match-item').forEach(el => {
-        el.addEventListener('click', () => openChat(el.dataset.matchId, 'chats'));
-      });
-    }catch(err){
-      $('chatList').innerHTML = '<div class="loading">Chats konnten nicht geladen werden.</div>';
-      console.error(err);
     }
+    if(html === lastChatListHtml) return;
+    lastChatListHtml = html;
+    $('chatList').innerHTML = html;
+    $('chatList').querySelectorAll('.match-item').forEach(el => {
+      el.addEventListener('click', () => openChat(el.dataset.matchId, 'chats'));
+    });
   }
 
   function findMatchById(matchId){
