@@ -106,6 +106,26 @@ def main() -> int:
                 f"(S3_ENDPOINT_URL={endpunkt}) bricht dann ohne HTTP-Status ab.\n"
                 f"    erlaubt sind: {' '.join(erlaubt) or '(nichts)'}")
 
+    # ---- img-src: Presigned GET des Admin-Tools --------------------------
+    #
+    # Diese Pruefung fehlte bis zum 23.08.2026 und liess genau deshalb einen
+    # Ausfall durch: frontend/admin.html bettet Verifizierungs-Selfie und
+    # Ausweisaufnahme als Presigned GET direkt von S3_ENDPOINT_URL ein
+    # (storage.create_presigned_view_url). Die Pruefung unten sah nur die
+    # Profilfotos, meldete "img-src 'self' genuegt" - und der Browser blockte
+    # die beiden Admin-Bilder still, waehrend die Profilfotos daneben luden.
+    if endpunkt:
+        host = urlparse(endpunkt).netloc
+        erlaubt = hosts_der_direktive(policy, "img-src")
+        if any(urlparse(q).netloc == host for q in erlaubt if "//" in q):
+            print(f"✓ img-src: {host} (Presigned GET der Verifizierungsaufnahmen im Admin-Tool)")
+        else:
+            befunde.append(
+                f"img-src erlaubt {host} nicht — Selfie und Ausweisaufnahme in "
+                f"frontend/admin.html werden dann vom Browser blockiert "
+                f"(Profilfotos laufen ueber /photos/ und laden weiterhin).\n"
+                f"    erlaubt sind: {' '.join(erlaubt) or '(nichts)'}")
+
     # ---- img-src: Fotos muessen ueber den eigenen Ursprung laufen ---------
     basis = env.get("S3_PUBLIC_BASE_URL", "")
     if not basis:
@@ -114,7 +134,7 @@ def main() -> int:
         basis_host = urlparse(basis).netloc
         if EIGENER_URSPRUNG in basis_host:
             print(f"✓ S3_PUBLIC_BASE_URL zeigt auf den eigenen Ursprung ({basis_host}) "
-                  f"- img-src 'self' genuegt.")
+                  f"- fuer die Profilfotos genuegt 'self'.")
             ziel = photos_proxy_ziel(NGINX_SITE.read_text(encoding="utf-8"))
             if ziel:
                 print(f"✓ Location /photos/ reicht weiter an {ziel}")

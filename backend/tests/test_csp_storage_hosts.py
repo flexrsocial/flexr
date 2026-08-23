@@ -57,15 +57,66 @@ def test_connect_src_erlaubt_einen_externen_host(pruefer, policy):
     assert fremde, "connect-src nennt keinen Storage-Host - der Presigned PUT bricht ab."
 
 
-def test_img_src_braucht_keinen_externen_host_mehr(pruefer, policy):
-    """Seit dem Proxy in /photos/ laufen Fotos ueber den eigenen Ursprung.
-
-    Ein externer Host in img-src waere kein Fehler, aber auch kein Zeichen,
-    dass der Proxy tatsaechlich genutzt wird - deshalb nur die Erwartung,
-    dass 'self' genuegt (siehe test_photos_proxy_existiert).
-    """
+def test_img_src_erlaubt_den_eigenen_ursprung(pruefer, policy):
+    """Profilfotos laufen seit dem Proxy in /photos/ ueber den eigenen
+    Ursprung (siehe test_photos_proxy_existiert_und_hat_ein_ziel)."""
     quellen = pruefer.hosts_der_direktive(policy, "img-src")
     assert "'self'" in quellen
+
+
+def test_img_src_erlaubt_den_storage_endpunkt(pruefer, policy):
+    """Gegenstueck zum Ausfall vom 23.08.2026.
+
+    frontend/admin.html bettet Verifizierungs-Selfie und Ausweisaufnahme als
+    Presigned GET direkt von S3_ENDPOINT_URL ein - ein Proxy wie /photos/
+    scheidet dort aus, weil der offen ist und diese Aufnahmen nur der
+    angemeldete Admin sehen darf. Ohne den Host in img-src blockt der Browser
+    genau diese beiden Bilder still, waehrend die Profilfotos daneben laden.
+
+    Derselbe Host steht in connect-src (Presigned PUT des Uploads); beide
+    Direktiven muessen ihn nennen.
+    """
+    connect_hosts = [
+        q for q in pruefer.hosts_der_direktive(policy, "connect-src")
+        if q.startswith("https://")
+    ]
+    img_hosts = [
+        q for q in pruefer.hosts_der_direktive(policy, "img-src")
+        if q.startswith("https://")
+    ]
+    assert img_hosts, (
+        "img-src nennt keinen Storage-Host - Selfie und Ausweisaufnahme im "
+        "Admin-Tool werden vom Browser blockiert."
+    )
+    assert set(connect_hosts) <= set(img_hosts), (
+        f"Storage-Host in connect-src, aber nicht in img-src: "
+        f"{set(connect_hosts) - set(img_hosts)}"
+    )
+
+
+def test_erkennt_fehlenden_img_src_host_fuer_admin_aufnahmen(pruefer, tmp_path):
+    """Gegenprobe: Die kaputte Policy von vor dem 23.08.2026 muss auffallen -
+    connect-src nennt den Endpunkt, img-src nicht."""
+    env = tmp_path / ".env"
+    env.write_text(
+        "S3_ENDPOINT_URL=https://beispiel.r2.cloudflarestorage.com\n"
+        "S3_PUBLIC_BASE_URL=https://flexr.social/photos\n",
+        encoding="utf-8")
+
+    import subprocess
+    import sys
+    kaputt = tmp_path / "snippet.conf"
+    kaputt.write_text(
+        'add_header Content-Security-Policy "default-src \'self\'; '
+        "img-src 'self' data: blob:; "
+        'connect-src \'self\' https://beispiel.r2.cloudflarestorage.com" always;',
+        encoding="utf-8")
+
+    p = pruefer.policy_aus_snippet(kaputt.read_text(encoding="utf-8"))
+    erlaubt = pruefer.hosts_der_direktive(p, "img-src")
+    assert not [q for q in erlaubt if q.startswith("https://")], (
+        "Die Gegenprobe-Policy soll gerade KEINEN img-src-Host haben."
+    )
 
 
 def test_photos_proxy_existiert_und_hat_ein_ziel(pruefer):
