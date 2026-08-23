@@ -466,6 +466,22 @@ class BlockRequest(BaseModel):
     user_id: str
 
 
+class BlockedUserOut(BaseModel):
+    """Blockierte Person für die Verwaltungsliste im Konto.
+
+    Bewusst nur das Nötigste, um die Person wiederzuerkennen: Name, Alter und
+    ein Vorschaubild. Bio, Gym und Entfernung gehören nicht dazu - wer jemanden
+    blockiert hat, soll dessen Profil nicht weiter einsehen können, nur die
+    Blockierung zurücknehmen können.
+    """
+
+    user_id: str
+    name: str
+    age: Optional[int] = None
+    photo_url: Optional[str] = None
+    blocked_at: Optional[datetime] = None
+
+
 # ---------- Admin ----------
 
 class AdminLoginRequest(BaseModel):

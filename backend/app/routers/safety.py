@@ -1,13 +1,15 @@
 from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from sqlalchemy.orm import Session
 
+from ..age import age_on
 from ..database import get_db
-from ..models import Block, ModerationAction, Report, User
+from ..models import Block, ModerationAction, Photo, PhotoStatus, Report, User
 from ..moderation import APPEAL_HINT
 from ..rate_limit import limiter
 from ..schemas import (
+    BlockedUserOut,
     BlockRequest,
     ModerationNotice,
     MyReportOut,
@@ -137,11 +139,64 @@ def create_block(
 
 @router.get("/blocks")
 def list_blocks(
+    detail: bool = Query(
+        False,
+        description="Mit Name, Alter und Vorschaubild statt nur der IDs.",
+    ),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    rows = db.query(Block).filter(Block.blocker_id == current_user.id).all()
-    return [row.blocked_id for row in rows]
+    """Wen habe ich blockiert?
+
+    Ohne ``detail`` liefert der Endpunkt weiterhin die reine Liste der IDs.
+    Das ist bewusst der Standard: Android (``FlexrApi.listBlocks``) und iOS
+    (``FlexrAPI.listBlocks``) deklarieren ``List<String>`` bzw. ``[String]``,
+    und eine geänderte Standardform würde dort beim nächsten Aufruf brechen -
+    beide Plattformen haben zwar noch keinen Bildschirm dafür, die
+    Deklaration steht aber. Mit ``?detail=true`` kommt die Fassung, aus der
+    sich eine Liste bauen lässt, in der man die Person wiedererkennt.
+    """
+    rows = (
+        db.query(Block)
+        .filter(Block.blocker_id == current_user.id)
+        .order_by(Block.created_at.desc())
+        .all()
+    )
+    if not detail:
+        return [row.blocked_id for row in rows]
+
+    users = {
+        u.id: u
+        for u in db.query(User).filter(User.id.in_([r.blocked_id for r in rows])).all()
+    } if rows else {}
+
+    out: list[BlockedUserOut] = []
+    for row in rows:
+        user = users.get(row.blocked_id)
+        if user is None:
+            # Konto endgültig gelöscht - die Blockierung hängt dann an einer
+            # Person, die es nicht mehr gibt. Nicht anzeigen, aber auch nicht
+            # stillschweigend loeschen: das erledigt der Fremdschlüssel.
+            continue
+        # Nur freigegebene Fotos, gleiche Regel wie in to_public_profile().
+        # Ein noch ungeprüftes oder abgelehntes Foto darf hier so wenig
+        # auftauchen wie irgendwo sonst.
+        photo = (
+            db.query(Photo)
+            .filter(Photo.user_id == user.id, Photo.status == PhotoStatus.approved)
+            .order_by(Photo.position.asc())
+            .first()
+        )
+        out.append(
+            BlockedUserOut(
+                user_id=user.id,
+                name=user.name,
+                age=age_on(user.birthdate) if user.birthdate else None,
+                photo_url=(photo.thumb_url or photo.url) if photo else None,
+                blocked_at=row.created_at,
+            )
+        )
+    return out
 
 
 @router.delete("/blocks/{user_id}")

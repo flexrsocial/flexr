@@ -552,6 +552,22 @@
     border-radius:50%; min-width:21px; height:21px; display:flex; align-items:center; justify-content:center;
     padding:0 5px; flex-shrink:0; box-shadow:0 0 12px var(--plate-glow);
   }
+  /* Blockierte Person: dieselbe Kachel wie Match und Chat, aber die Zeile
+     selbst fuehrt nirgendwohin - nur der "Aufheben"-Knopf ist anklickbar.
+     Deshalb kein Zeiger-Cursor und kein Verschieben beim Ueberfahren. Das
+     Vorschaubild ist absichtlich gedaempft: die Person ist blockiert, ihr
+     Profil soll hier nicht wieder wie ein Angebot aussehen. */
+  .blocked-item{ cursor:default; }
+  .blocked-item:hover{ border-color:var(--hairline); transform:none; }
+  .blocked-item .av img{ filter:grayscale(1); opacity:.72; }
+  .blocked-item .av{
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Oswald', sans-serif; font-size:20px; color:var(--chalk-dim);
+    background:var(--surface-2); border-radius:50%;
+  }
+  .blocked-item .unblock-btn{
+    width:auto; margin:0; flex-shrink:0; padding:8px 14px; font-size:13px;
+  }
   .match-item .chev{
     width:7px; height:7px; border-top:1.5px solid var(--chalk-dim); border-right:1.5px solid var(--chalk-dim);
     transform:rotate(45deg); flex-shrink:0; margin-left:2px; opacity:.6;
@@ -2085,6 +2101,11 @@
       </div>
 
       <div class="account-section">
+        <div class="account-section-title">Blockierte Personen</div>
+        <div id="myBlocks"><div class="loading">Lade …</div></div>
+      </div>
+
+      <div class="account-section">
         <div class="account-section-title">Meine Meldungen</div>
         <div id="myReports"><div class="loading">Lade …</div></div>
       </div>
@@ -3601,6 +3622,7 @@
   function openPrivacyScreen(){
     showScreen('screen-privacy');
     loadMyConsents();
+    loadMyBlocks();
     loadMyReports();
   }
 
@@ -3609,6 +3631,62 @@
     showScreen('screen-account');
     setNavActive('account');
   });
+
+  // ---------- Blockierte Personen ----------
+  // Blockieren war bis hierher eine Einbahnstrasse: Das Backend kann eine
+  // Blockierung laengst zuruecknehmen (DELETE /api/blocks/{id}), nur zeigte es
+  // kein Client an. Ein Fehlgriff auf das Verbots-Symbol war damit endgueltig,
+  // und niemand konnte nachsehen, wen er ueberhaupt blockiert hat.
+  // ?detail=true liefert Name, Alter und Vorschaubild - ohne den Parameter
+  // bleibt der Endpunkt bei der reinen ID-Liste, auf die Android und iOS
+  // deklariert sind.
+  async function loadMyBlocks(){
+    const box = $('myBlocks');
+    try{
+      const rows = await api('/api/blocks?detail=true');
+      if(!rows.length){
+        box.innerHTML = '<p class="photo-hint" style="margin:0;">Du hast niemanden blockiert. '
+          + 'Blockieren geht über das Verbots-Symbol in jedem Profil und in jedem Chat.</p>';
+        return;
+      }
+      box.innerHTML = rows.map(b => {
+        const seit = b.blocked_at
+          ? ' · seit ' + new Date(parseServerDate(b.blocked_at)).toLocaleDateString('de-AT')
+          : '';
+        const avatar = b.photo_url
+          ? `<img src="${escapeHtml(b.photo_url)}" alt="">`
+          : escapeHtml((b.name || '?').charAt(0).toUpperCase());
+        return `<div class="match-item blocked-item">
+            <span class="av">${avatar}</span>
+            <div class="info">
+              <div class="nm">${escapeHtml(b.name)}${b.age ? ', ' + b.age : ''}</div>
+              <div class="last-msg">Blockiert${escapeHtml(seit)}</div>
+            </div>
+            <button type="button" class="btn secondary unblock-btn"
+                    data-user-id="${escapeHtml(b.user_id)}"
+                    data-name="${escapeHtml(b.name)}">Aufheben</button>
+          </div>`;
+      }).join('') + '<p class="photo-hint">Eine Blockierung blendet ein bestehendes '
+        + 'Match nur aus, sie löst es nicht auf. Hebst du sie auf, seht ihr einander '
+        + 'wieder im Deck — und ein früheres Match ist samt Chatverlauf wieder da.</p>';
+      box.querySelectorAll('.unblock-btn').forEach(btn => {
+        btn.addEventListener('click', () => unblockUser(btn.dataset.userId, btn.dataset.name));
+      });
+    }catch(e){
+      box.innerHTML = '<p class="photo-hint" style="margin:0;">Deine Blockierungen konnten '
+        + 'gerade nicht geladen werden.</p>';
+    }
+  }
+
+  async function unblockUser(userId, name){
+    if(!confirm(`Blockierung von ${name} aufheben? Ihr seht euch danach wieder im Deck; `
+      + `ein früheres Match ist damit auch wieder da.`)) return;
+    try{
+      await api(`/api/blocks/${userId}`, {method: 'DELETE'});
+      toast(`Blockierung von ${name} aufgehoben.`);
+      loadMyBlocks();
+    }catch(err){ toast(err.message || 'Aufheben fehlgeschlagen.'); }
+  }
 
   // ---------- Meine Meldungen (Art. 16 Abs. 5 DSA) ----------
   const REPORT_OUTCOME_TEXT = {
