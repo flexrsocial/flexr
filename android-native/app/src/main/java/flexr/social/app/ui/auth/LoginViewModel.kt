@@ -18,6 +18,11 @@ data class LoginUiState(
     val isSubmitting: Boolean = false,
     val error: String? = null,
     val success: Boolean = false,
+    /** Konto innerhalb der 30-Tage-Karenz nach Selbstlöschung - Login bietet
+     *  die Reaktivierung an, statt in eine Sackgasse zu führen. */
+    val reactivateMessage: String? = null,
+    val isReactivating: Boolean = false,
+    val reactivateError: String? = null,
 )
 
 @HiltViewModel
@@ -45,11 +50,40 @@ class LoginViewModel @Inject constructor(
             runCatching { authRepository.login(state.email, state.password) }
                 .onSuccess { _uiState.update { it.copy(isSubmitting = false, success = true) } }
                 .onFailure { throwable ->
+                    val apiError = throwable as? FlexrApiException
+                    if (apiError?.isAccountDeleted == true) {
+                        _uiState.update {
+                            it.copy(isSubmitting = false, reactivateMessage = apiError.message)
+                        }
+                    } else {
+                        _uiState.update {
+                            it.copy(isSubmitting = false, error = apiError?.message ?: "Login fehlgeschlagen.")
+                        }
+                    }
+                }
+        }
+    }
+
+    fun dismissReactivateDialog() = _uiState.update { it.copy(reactivateMessage = null, reactivateError = null) }
+
+    fun reactivate() {
+        val state = _uiState.value
+        if (state.isReactivating) return
+
+        _uiState.update { it.copy(isReactivating = true, reactivateError = null) }
+        viewModelScope.launch {
+            runCatching { authRepository.reactivate(state.email, state.password) }
+                .onSuccess {
+                    _uiState.update {
+                        it.copy(isReactivating = false, reactivateMessage = null, success = true)
+                    }
+                }
+                .onFailure { throwable ->
                     _uiState.update {
                         it.copy(
-                            isSubmitting = false,
-                            error = (throwable as? FlexrApiException)?.message
-                                ?: "Login fehlgeschlagen.",
+                            isReactivating = false,
+                            reactivateError = (throwable as? FlexrApiException)?.message
+                                ?: "Reaktivierung fehlgeschlagen.",
                         )
                     }
                 }

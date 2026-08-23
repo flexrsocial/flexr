@@ -67,6 +67,14 @@ interface FlexrApi {
     suspend fun login(@Body body: LoginRequestDto): TokenResponseDto
 
     /**
+     * Macht eine Selbstlöschung innerhalb der 30-Tage-Karenzzeit rückgängig.
+     * Nimmt dieselben Zugangsdaten wie [login] entgegen (siehe
+     * routers/auth.reactivate).
+     */
+    @POST("api/auth/reactivate")
+    suspend fun reactivate(@Body body: LoginRequestDto): TokenResponseDto
+
+    /**
      * Altersprüfung fürs Registrierungsformular. Verbindlich bleibt dieselbe
      * Prüfung in /register — dieser Aufruf verhindert nur, dass jemand unter 18
      * das Formular weiter ausfüllt.

@@ -66,6 +66,9 @@ open class FakeFlexrApi : FlexrApi {
     override suspend fun login(body: LoginRequestDto): TokenResponseDto =
         nichtVorgesehen("login")
 
+    override suspend fun reactivate(body: LoginRequestDto): TokenResponseDto =
+        nichtVorgesehen("reactivate")
+
     override suspend fun checkAge(body: AgeCheckRequestDto): AgeCheckResponseDto =
         nichtVorgesehen("checkAge")
 

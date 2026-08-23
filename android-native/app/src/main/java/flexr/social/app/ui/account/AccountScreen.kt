@@ -899,7 +899,9 @@ internal fun DeleteAccountDialog(
             Column {
                 Text(
                     text = "Dein Konto wird sofort deaktiviert. Deine Daten und Fotos werden " +
-                        "nach 30 Tagen endgültig gelöscht.",
+                        "nach 30 Tagen endgültig gelöscht. Du bekommst dazu eine Bestätigungsmail. " +
+                        "Innerhalb der 30 Tage kannst du dich mit deinem bisherigen Passwort " +
+                        "erneut einloggen, um die Löschung rückgängig zu machen.",
                     style = MaterialTheme.typography.bodyMedium,
                     color = FlexrTheme.colors.chalkDim,
                 )

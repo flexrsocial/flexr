@@ -11,8 +11,10 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -106,4 +108,53 @@ fun LoginScreen(
         )
         Spacer(Modifier.height(40.dp))
     }
+
+    val reactivateMessage = state.reactivateMessage
+    if (reactivateMessage != null) {
+        ReactivateAccountDialog(
+            message = reactivateMessage,
+            error = state.reactivateError,
+            isReactivating = state.isReactivating,
+            onConfirm = viewModel::reactivate,
+            onDismiss = viewModel::dismissReactivateDialog,
+        )
+    }
+}
+
+/**
+ * Konto innerhalb der 30-Tage-Karenz nach Selbstlöschung: Statt der
+ * Sackgasse aus routers/auth.login (403, code=account_deleted) bietet der
+ * Login hier die Reaktivierung an (POST /api/auth/reactivate, dieselben
+ * Zugangsdaten wie eben eingegeben).
+ */
+@Composable
+private fun ReactivateAccountDialog(
+    message: String,
+    error: String?,
+    isReactivating: Boolean,
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = MaterialTheme.colorScheme.surface,
+        title = { Text("Konto reaktivieren?", style = MaterialTheme.typography.headlineSmall) },
+        text = {
+            Text(
+                text = (error ?: message),
+                style = MaterialTheme.typography.bodyMedium,
+                color = if (error != null) FlexrTheme.colors.danger else FlexrTheme.colors.chalkDim,
+            )
+        },
+        confirmButton = {
+            TextButton(onClick = onConfirm, enabled = !isReactivating) {
+                Text("Jetzt reaktivieren")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Abbrechen", color = FlexrTheme.colors.chalkDim)
+            }
+        },
+    )
 }

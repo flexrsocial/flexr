@@ -26,11 +26,15 @@ class FlexrApiException(
     /** Begründung der Maßnahme und Widerspruchsweg (Art. 17 DSA). */
     val moderationReason: String? = null,
     val appealHint: String? = null,
+    /** Strukturiertes Detail-Objekt des Backends, z.B. "account_deleted" bei
+     *  einem Login innerhalb der 30-Tage-Karenzzeit (siehe routers/auth.py). */
+    val code: String? = null,
 ) : Exception(message) {
 
     val isUnauthorized: Boolean get() = statusCode == 401
     val isPaymentRequired: Boolean get() = statusCode == 402
     val isMessagingMuted: Boolean get() = mutedUntil != null
+    val isAccountDeleted: Boolean get() = code == "account_deleted"
 }
 
 object ApiErrorParser {
@@ -66,6 +70,7 @@ object ApiErrorParser {
         var mutedUntil: Instant? = null
         var moderationReason: String? = null
         var appealHint: String? = null
+        var errorCode: String? = null
         val message = when (detail) {
             is JsonPrimitive -> detail.content
             is JsonArray -> detail.mapNotNull { element ->
@@ -78,11 +83,12 @@ object ApiErrorParser {
                 // Sperre und Ban tragen Begründung und Widerspruchshinweis mit.
                 moderationReason = detail["moderation_reason"]?.jsonPrimitive?.content
                 appealHint = detail["appeal_hint"]?.jsonPrimitive?.content
+                errorCode = detail["code"]?.jsonPrimitive?.content
                 detail["message"]?.jsonPrimitive?.content ?: defaultMessage(code)
             }
             else -> defaultMessage(code)
         }
-        return FlexrApiException(code, message, mutedUntil, moderationReason, appealHint)
+        return FlexrApiException(code, message, mutedUntil, moderationReason, appealHint, errorCode)
     }
 
     private fun defaultMessage(code: Int): String = when (code) {

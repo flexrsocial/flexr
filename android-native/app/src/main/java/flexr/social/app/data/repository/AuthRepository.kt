@@ -98,6 +98,15 @@ class AuthRepository @Inject constructor(
         sessionStore.saveToken(response.accessToken)
     }
 
+    /**
+     * Macht eine Selbstlöschung innerhalb der 30-Tage-Karenzzeit rückgängig und
+     * meldet gleich an. Nimmt dieselben Zugangsdaten wie [login] entgegen.
+     */
+    suspend fun reactivate(email: String, password: String) {
+        val response = apiCall { api.reactivate(LoginRequestDto(email.trim(), password)) }
+        sessionStore.saveToken(response.accessToken)
+    }
+
     /** Abmelden: Token verwerfen und den lokalen Cache leeren. */
     suspend fun logout() {
         sessionStore.clear()
