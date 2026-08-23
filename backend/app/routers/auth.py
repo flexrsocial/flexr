@@ -14,6 +14,7 @@ from ..mailer import send_verification_email
 from ..models import ConsentType, ModerationAction, UnderageSignupAttempt, User, UserDevice
 from ..moderation import restriction_detail
 from ..rate_limit import limiter
+from ..retention import ACCOUNT_GRACE_PERIOD_DAYS
 from ..safety_checks import check_public_text, is_disposable_email
 from ..schemas import (
     AgeCheckRequest,
@@ -296,7 +297,22 @@ def login(request: Request, payload: LoginRequest, db: Session = Depends(get_db)
     if not user or not verify_password(payload.password, user.password_hash):
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "E-Mail oder Passwort falsch.")
     if user.deleted_at is not None:
-        raise HTTPException(status.HTTP_403_FORBIDDEN, "Dieses Konto wurde gelöscht.")
+        # purge_deleted_users() ist oben bereits gelaufen - wenn deleted_at
+        # noch gesetzt ist, läuft die 30-Tage-Karenzzeit also noch. Strukturiertes
+        # Detail mit code, damit der Client statt eines Sackgassen-Logins die
+        # Reaktivierung anbieten kann (POST /api/auth/reactivate).
+        deadline = user.deleted_at + timedelta(days=ACCOUNT_GRACE_PERIOD_DAYS)
+        raise HTTPException(
+            status.HTTP_403_FORBIDDEN,
+            {
+                "code": "account_deleted",
+                "message": (
+                    "Dieses Konto wurde gelöscht. Bis zum "
+                    f"{deadline.strftime('%d.%m.%Y')} kannst du es noch reaktivieren."
+                ),
+                "reactivate_until": deadline.isoformat(),
+            },
+        )
     if user.is_banned:
         # Art. 17 DSA: Der Gesperrte erfährt den Grund und den Widerspruchsweg.
         # Beim Ban ist der Login der einzige Kanal - ein Token bekommt er nicht.
@@ -304,6 +320,37 @@ def login(request: Request, payload: LoginRequest, db: Session = Depends(get_db)
             status.HTTP_403_FORBIDDEN,
             restriction_detail(user, ModerationAction.ban),
         )
+
+    record_device(db, user.id, request)
+
+    token = create_access_token(user.id)
+    return TokenResponse(access_token=token)
+
+
+@router.post("/reactivate", response_model=TokenResponse)
+@limiter.limit("10/minute")
+def reactivate(request: Request, payload: LoginRequest, db: Session = Depends(get_db)):
+    """Macht eine Selbstlöschung innerhalb der 30-Tage-Karenzzeit rückgängig.
+
+    Nimmt bewusst dieselben Zugangsdaten wie /login entgegen: Wer E-Mail und
+    aktuelles Passwort kennt, darf die eigene Löschung widerrufen - dieselbe
+    Vertrauensbasis wie ein normaler Login. Nach Ablauf der Karenzzeit gibt es
+    das Konto nicht mehr (purge_deleted_users hat es bereits entfernt), dann
+    verhält sich dieser Endpunkt wie ein Login mit falschen Daten.
+    """
+    from ..cleanup import purge_deleted_users, purge_stale_verification_uploads
+
+    purge_deleted_users(db)
+    purge_stale_verification_uploads(db)
+
+    user = db.query(User).filter(User.email == payload.email).first()
+    if not user or not verify_password(payload.password, user.password_hash):
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "E-Mail oder Passwort falsch.")
+    if user.deleted_at is None:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Dieses Konto ist nicht gelöscht.")
+
+    user.deleted_at = None
+    db.commit()
 
     record_device(db, user.id, request)
 

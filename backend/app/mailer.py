@@ -286,6 +286,12 @@ def _date_from_unix(timestamp: int | None) -> str:
     return value.strftime("%d.%m.%Y um %H:%M Uhr")
 
 
+def _date_from_naive_utc(value: datetime) -> str:
+    """Wie _date_from_unix, aber für naive UTC-Zeitstempel aus der DB (z.B.
+    User.deleted_at) statt Unix-Timestamps aus Stripe-Payloads."""
+    return value.replace(tzinfo=timezone.utc).astimezone(VIENNA).strftime("%d.%m.%Y")
+
+
 def _money(amount_cents: int | None, currency: str | None) -> str:
     amount = (amount_cents or 0) / 100
     code = (currency or "EUR").upper()
@@ -437,6 +443,66 @@ monatlich kündbaren Abo wieder aktivieren.
 Dein FLEXR-Team
 """
     return send_email(email, "Dein kostenloser FLEXR-Monat ist beendet", body)
+
+
+# ---------------------------------------------------------------------------
+# Bestätigung der Selbstlöschung (30-Tage-Karenzzeit)
+#
+# Wird unmittelbar bei DELETE /api/profiles/me verschickt (siehe
+# routers/profiles.py). Erklärt, was mit der Karenzzeit passiert und dass eine
+# Reaktivierung per erneutem Login möglich ist (siehe routers/auth.reactivate).
+# ---------------------------------------------------------------------------
+
+DELETION_SUBJECT = "Bestätigung: Dein FLEXR-Konto wurde gelöscht"
+
+
+def _deletion_text(name: str, purge_date: str, grace_days: int) -> str:
+    return f"""Hallo {name},
+
+dein FLEXR-Konto wurde soeben deaktiviert. Diese Mail bestätigt deinen
+Löschauftrag.
+
+Was das bedeutet:
+
+  - Dein Profil ist ab sofort für andere Mitglieder unsichtbar, ein Login
+    ist vorerst nicht mehr möglich.
+  - Deine Konto- und Profildaten bleiben noch bis zum {purge_date}
+    gespeichert ({grace_days} Tage Karenzzeit) und werden danach
+    unwiderruflich gelöscht.
+  - Dein Verifizierungs-Selfie und deine Ausweisaufnahme wurden bereits
+    jetzt gelöscht, ohne auf die Karenzzeit zu warten.
+
+Meinung geändert? Bis zum {purge_date} kannst du dein Konto reaktivieren:
+Melde dich einfach mit deiner E-Mail-Adresse und deinem bisherigen Passwort
+erneut an - der Login bietet dir die Reaktivierung dann von selbst an. Nach
+Ablauf der Frist ist das nicht mehr möglich, und die Daten sind endgültig
+weg.
+
+Warst du das nicht? Dann kennt jemand dein Passwort - antworte umgehend auf
+diese Mail oder schreib an {settings.support_email}, wir kümmern uns darum.
+
+Einzelheiten zur Löschung stehen in unserer Datenschutzerklärung.
+
+Dein FLEXR-Team
+"""
+
+
+def send_account_deletion_confirmation(
+    email: str, name: str, purge_at: datetime, grace_days: int
+) -> bool:
+    """Bestätigung der Selbstlöschung, mit kurzen Wiederholungen bei Fehlschlag.
+
+    Analog zur Rücktrittsbestätigung: Die Löschung selbst ist zu diesem
+    Zeitpunkt schon in der DB vollzogen (deleted_at gesetzt) - ein einzelner
+    SMTP-Aussetzer soll die Bestätigung trotzdem nicht kippen lassen.
+    """
+    return send_email_with_retry(
+        to_address=email,
+        subject=DELETION_SUBJECT,
+        text_body=_deletion_text(name, _date_from_naive_utc(purge_at), grace_days),
+        attempts=2,
+        delay_seconds=1,
+    )
 
 
 # ---------------------------------------------------------------------------

@@ -2312,8 +2312,10 @@
         <p style="margin-top:10px;">
           Dein Konto wird sofort deaktiviert und ist für andere nicht mehr sichtbar.
           Konto- und Profildaten werden nach Ablauf der 30-tägigen Karenzzeit
-          gelöscht. Gesetzliche Aufbewahrungspflichten, erforderliche
-          Nachweise, Legal Holds und vorübergehend fortbestehende
+          gelöscht. Du bekommst dazu eine Bestätigungsmail. Innerhalb der 30 Tage
+          kannst du dich mit deinem bisherigen Passwort erneut einloggen, um die
+          Löschung rückgängig zu machen. Gesetzliche Aufbewahrungspflichten,
+          erforderliche Nachweise, Legal Holds und vorübergehend fortbestehende
           Sicherungskopien bleiben davon unberührt. Einzelheiten findest du
           in der Datenschutzerklärung.
         </p>
@@ -3303,6 +3305,27 @@
       $('bottomNav').style.display = 'flex';
       goToApp();
     }catch(err){
+      // Konto innerhalb der 30-Tage-Karenz nach Selbstlöschung: Login bietet
+      // die Reaktivierung an, statt in eine Sackgasse zu führen.
+      if(err.detail && err.detail.code === 'account_deleted'){
+        const reaktivieren = confirm(
+          (err.detail.message || 'Dieses Konto wurde gelöscht.')
+          + '\n\nJetzt reaktivieren und wieder einloggen?'
+        );
+        if(reaktivieren){
+          try{
+            const tokenRes = await api('/api/auth/reactivate', {method: 'POST', body: JSON.stringify({email, password})});
+            setToken(tokenRes.access_token);
+            await loadCurrentUser();
+            $('bottomNav').style.display = 'flex';
+            toast('Dein Konto wurde reaktiviert.');
+            goToApp();
+          }catch(err2){
+            errEl.textContent = err2.message || 'Reaktivierung fehlgeschlagen.';
+          }
+          return;
+        }
+      }
       errEl.textContent = err.message || 'Login fehlgeschlagen.';
     }finally{
       btn.disabled = false;

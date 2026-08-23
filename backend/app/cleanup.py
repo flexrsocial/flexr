@@ -21,6 +21,7 @@ from sqlalchemy.orm import Session
 
 from .config import settings
 from .models import Photo, User, VerificationRequest, VerificationStatus
+from .retention import ACCOUNT_GRACE_PERIOD_DAYS as GRACE_PERIOD_DAYS
 from .storage import get_s3_client
 from .verification_service import (
     ORPHAN_RETENTION_DAYS,
@@ -30,8 +31,6 @@ from .verification_service import (
 )
 
 logger = logging.getLogger("flexr.cleanup")
-
-GRACE_PERIOD_DAYS = 30
 
 
 def _object_key_from_url(url: str) -> str | None:

@@ -1,14 +1,15 @@
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
-from .. import consents
+from .. import consents, mailer
 from ..database import get_db
 from ..geo import city_for_plz
 from ..models import GYM_CHOICES, ConsentType, Photo, PhotoStatus, User
+from ..retention import ACCOUNT_GRACE_PERIOD_DAYS
 from ..schemas import (
     AddPhotoRequest,
     ConsentGrantRequest,
@@ -192,6 +193,7 @@ def grant_my_consent(
 @router.delete("/me")
 def delete_my_account(
     payload: DeleteAccountRequest,
+    background_tasks: BackgroundTasks,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
@@ -211,7 +213,19 @@ def delete_my_account(
 
     current_user.deleted_at = datetime.utcnow()
     db.commit()
-    return {"deleted": True, "purge_after_days": 30}
+
+    # Bestätigung samt Reaktivierungshinweis - nach der Antwort, nicht davor
+    # (siehe app/mailer.py zur Begründung dieses Musters).
+    purge_at = current_user.deleted_at + timedelta(days=ACCOUNT_GRACE_PERIOD_DAYS)
+    background_tasks.add_task(
+        mailer.send_account_deletion_confirmation,
+        current_user.email,
+        current_user.name,
+        purge_at,
+        ACCOUNT_GRACE_PERIOD_DAYS,
+    )
+
+    return {"deleted": True, "purge_after_days": ACCOUNT_GRACE_PERIOD_DAYS}
 
 
 @router.post("/me/photos/presign", response_model=PresignPhotoResponse)
