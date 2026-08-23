@@ -21,10 +21,23 @@ und Deploy-Abschnitte am Ende gelten sitzungsübergreifend.
   nicht mit FLEXR verwandte Projekte (`tarifbot-*`, `ediktmonitor`,
   `gasfees`, ein `defi`-Ordner). Bei Aufräumarbeiten in `/tmp` oder
   `~/.pm2` etc. nichts anfassen, das nicht eindeutig zu `/flexr` gehört.
-- AAB-Download (aktuell): <https://flexr.social/dl-a616e78274de323b/flexr-2.4.6.aab>
-- AAB SHA-256: `1ec3da96cd321535110f0a8f0935e7e3561abf1e7c7a5e79f81bb9c7b4e217dc`
-- Ältere AABs (2.4.2–2.4.5) liegen noch auf dem VPS, unkritisch, bei
-  Gelegenheit aufräumbar.
+- **AAB-Download (aktuell, 2.4.9 / versionCode 37):**
+  <https://flexr.social/dl-5d8a93fc22b232c9/app-prod-release.aab>
+  SHA-256 `7431c17f6333c6c3e6c3cfac101e9ce565902c89ffdf5d9417969ba19f3b51c1`,
+  7.636.045 Bytes, gebaut am 23.08.2026, mit dem FLEXR-Schlüssel signiert
+  (`META-INF/FLEXR.SF`/`.RSA` im Bundle). Entspricht exakt dem Quellstand
+  (`android-native/app/build.gradle.kts`: versionCode 37, versionName 2.4.9).
+- **Zwei Downloadordner, beide unversioniert und beide behalten:**
+  `dl-a616e78274de323b/` enthält die versioniert benannten AABs 2.4.0–2.4.6,
+  `dl-5d8a93fc22b232c9/` das aktuelle Bundle — dort allerdings unter dem
+  generischen Namen `app-prod-release.aab` statt nach dem sonst üblichen
+  Muster `flexr-X.Y.Z.aab`. Beim nächsten Build lohnt es, das zu
+  vereinheitlichen; solange zwei Ordner mit unterschiedlicher Namenskonvention
+  nebeneinanderstehen, ist „welches ist das aktuelle?" jedes Mal eine
+  Rückfrage.
+- Ältere AABs (2.4.0–2.4.6) liegen noch auf dem VPS, unkritisch, bei
+  Gelegenheit aufräumbar. **Achtung:** Das im Handoff vom 21.08. als
+  „aktuell" geführte 2.4.6 ist es seit dem 23.08. nicht mehr.
 
 ## Sitzung 23.08.2026 (Web-Frontend: Layout + Listen-Aktualisierung)
 
@@ -169,6 +182,28 @@ Richtungen geschrieben:
   nach dem Blockier-Feature **367** (5 neue in `tests/test_safety.py`).
 
 Kein Stripe-Checkout ausgelöst (wie in den Sitzungen davor bewusst vermieden).
+
+### Braucht es für diese Änderungen ein neues AAB? Nein.
+
+Die Frage kam am Ende der Sitzung auf; die Antwort ist an drei Punkten
+festzumachen und gilt sinngemäß auch beim nächsten Mal:
+
+1. **Unter `android-native/` wurde nichts geändert.** Letzter Commit dort ist
+   `062bb99` (versionCode 37, versionName 2.4.9) und liegt vor allen Commits
+   dieser Sitzung. Ein Neubau erzeugte dasselbe Programm mit demselben
+   versionCode — die Play Console lehnt das ohnehin als Dublette ab.
+2. **Das bereits hochgeladene Bundle ist auf Stand.** Das AAB unter
+   `dl-5d8a93fc22b232c9/` ist nachweislich 2.4.9 (Versionsstring im
+   `base/manifest/AndroidManifest.xml`, FLEXR-Signatur im Bundle) und deckt
+   sich mit `build.gradle.kts`.
+3. **Die Backend-Änderung bricht die App nicht.** `GET /api/blocks` liefert
+   ohne `?detail=true` weiterhin exakt die alte ID-Liste — genau deshalb wurde
+   die Standardform nicht angefasst (siehe Abschnitt 3).
+
+Ein neues AAB wird erst fällig, wenn wieder Kotlin-Code angefasst wird — etwa
+für die beiden offenen Android-Punkte (Blockier-Liste, Listen-Aktualisierung).
+Dann gilt der Ablauf im Abschnitt „Android-Build" und das Hochzählen von
+versionCode **und** versionName.
 
 ### Beobachtung am Rande: doppelte Element-IDs in den Profilkarten
 
@@ -495,12 +530,11 @@ echten Löschweg (`delete_storage_objects`/`storage_keys_for_user` +
    iOS-App schickte keinen, jeder Abo-Abschluss wäre mit 422 gescheitert.
    **Die iOS-App ist weiterhin nie übersetzt worden** (kein Mac vorhanden);
    der Mac-Teil steckt jetzt in `ios/tools/mac-build.sh`.
-8. **Android AAB 2.4.6 (versionCode 34) ist gebaut, signiert und auf dem
-   VPS-Downloadordner live** — aber noch nicht in die Play Console
-   hochgeladen. `PLAY-CONSOLE.md` beachten: Data-Safety-Angaben, Kamera/
-   Ausweisfotos und Deep Links prüfen. Enthält gegenüber 2.4.4 echten neuen
-   Code (Punkte 2, 3, 4, 6, 9, 10 der Sitzung 21.08.) — kein reines
-   Versions-Label-Update.
+8. **Android AAB 2.4.9 (versionCode 37) ist gebaut, signiert und auf dem
+   VPS live** (Link in den Eckdaten) — aber **noch nicht in die Play Console
+   hochgeladen**. `PLAY-CONSOLE.md` beachten: Data-Safety-Angaben, Kamera/
+   Ausweisfotos und Deep Links prüfen. Es ist der Stand, der auch im Quelltext
+   steht; ein Neubau brächte nichts Neues.
 9. **Kein kontrollierter Stripe-Testcheckout** ausgelöst (wie in den
    vorherigen Sitzungen auch bewusst vermieden).
 10. Die fünf Test-Frauenprofile eignen sich weiterhin für Deck-/Match-/
@@ -661,8 +695,9 @@ curl -fsSI https://flexr.social/dl-a616e78274de323b/flexr-X.Y.Z.aab
   `ios/HANDOFF.md`), aber immer noch **nie übersetzt**. Erster Schritt auf
   einem Mac: `./ios/tools/mac-build.sh team <TEAM-ID>` und danach
   `./ios/tools/mac-build.sh all`.
-- AAB 2.4.6 ist bereits gebaut, signiert und live hochgeladen (siehe
-  Kurzfassung) — noch nicht in die Play Console geladen.
+- AAB 2.4.9 (versionCode 37) ist gebaut, signiert und auf dem VPS live —
+  noch nicht in die Play Console geladen. Ein Neubau ist erst nötig, wenn
+  wieder etwas unter `android-native/` geändert wurde.
 - Die 5 Test-Frauenprofile nach Abschluss des Testens löschen (siehe
   „Testdaten" oben).
 - Danach kontrollierten Stripe-Testcheckout durchführen (weiterhin offen
