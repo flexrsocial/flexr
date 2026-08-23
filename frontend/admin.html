@@ -1189,11 +1189,15 @@
         <div class="verify-cols">
           <div>
             <div class="verify-col-title">Verifizierungs-Selfies (mit der Anweisung, die der Server gestellt hat)</div>
+            <!-- Kein loading="lazy": Diese URLs sind nur 60 Sekunden gültig
+                 (storage.DOCUMENT_VIEW_URL_TTL_SECONDS) - mit Lazy-Loading laedt
+                 der Browser sie erst beim Scrollen ins Bild und die Signatur ist
+                 bis dahin oft schon abgelaufen (kaputtes Bild statt Foto). -->
             <div class="verify-imgs">
               ${r.selfie_urls.length
                 ? r.selfie_urls.map(s => `
                   <figure>
-                    <img src="${escapeHtml(s.url)}" loading="lazy">
+                    <img src="${escapeHtml(s.url)}">
                     <figcaption>${escapeHtml(s.prompt)}</figcaption>
                   </figure>`).join('')
                 : '<div class="verify-doc-missing">Keine Selfies vorhanden.</div>'}
@@ -1217,7 +1221,7 @@
             ? `<div class="verify-doc-imgs">${r.document_urls.map(d => `
                 <figure>
                   <a href="${escapeHtml(d.url)}" target="_blank" rel="noopener">
-                    <img src="${escapeHtml(d.url)}" loading="lazy">
+                    <img src="${escapeHtml(d.url)}">
                   </a>
                   <figcaption>${escapeHtml(SIDE_LABELS[d.side] || d.side)} — zum Vergrößern anklicken</figcaption>
                 </figure>`).join('')}</div>`
