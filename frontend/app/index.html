@@ -956,6 +956,18 @@
     max-width:1200px; width:100%; margin:0 auto;
     padding:24px clamp(20px,5vw,64px) 40px;
   }
+  /* Der Hero sitzt oben in der Gitterzeile, nicht mittig. Mit dem
+     align-items:center der Zeile richtete er sich an der Hoehe der rechten
+     Spalte aus - und die Registrierungsmaske ist rund viermal so hoch wie die
+     Login-Maske. Beim Umschalten auf "Registrieren" rutschte
+     "Match. Train. Repeat." dadurch knapp 400px nach unten und war im ersten
+     Bildschirm gar nicht mehr zu sehen. Gepinnt wird nur der Hero; die
+     Login-Karte bleibt weiterhin mittig zu ihm ausgerichtet.
+     Nur ab 861px: darunter ist main ein Flex-Column-Layout, dort wuerde
+     align-self die Breite statt der Hoehe steuern. */
+  @media (min-width: 861px){
+    body.landing .landing-hero{ align-self:start; }
+  }
   body.landing .landing-hero{ display:block; }
   .landing-hero{ display:none; }
   .landing-hero .hero-eyebrow{
@@ -1090,11 +1102,18 @@
     body.landing[data-screen="screen-login"] .app{
       height:100vh; height:100dvh; min-height:0;
     }
+    /* Der obere Abstand gilt bewusst fuer BEIDE Auth-Screens, nicht nur fuer
+       den Login: sonst begaenne der Hero im Registrieren-Modus 28px tiefer
+       als im Login-Modus und wanderte beim Tabwechsel sichtbar mit. Die
+       Hoehen-/Flex-Regeln bleiben dagegen dem Login vorbehalten - nur der
+       passt garantiert ohne Scrollen in einen Bildschirm. */
+    body.landing header.top{ padding-top:18px; padding-bottom:4px; }
+    body.landing main{ padding-top:10px; }
     body.landing[data-screen="screen-login"] header.top{
-      flex:0 0 auto; padding-top:18px; padding-bottom:4px;
+      flex:0 0 auto;
     }
     body.landing[data-screen="screen-login"] main{
-      flex:1 1 auto; min-height:0; padding-top:10px; padding-bottom:12px;
+      flex:1 1 auto; min-height:0; padding-bottom:12px;
     }
     body.landing[data-screen="screen-login"] .legal-footer{
       flex:0 0 auto; flex-wrap:wrap; padding:8px 20px 12px;
@@ -1127,6 +1146,12 @@
       font-size:14.5px; line-height:1.55; margin-bottom:18px;
     }
     body.landing .screen.active{
+      /* width:100% gegen das geerbte align-items:center des Desktop-Grids:
+         mobil ist main ein Flex-Column, dort schrumpfte die Karte sonst auf
+         ihre Inhaltsbreite. Die kurze Login-Maske wurde dadurch rund 23px
+         schmaler als Hero und Registrierungsmaske und sass sichtbar
+         eingerueckt. */
+      width:100%;
       order:4; max-height:none; overflow:visible;
       padding:20px 18px 24px; border-radius:18px; margin-bottom:32px;
       /* Kompakter Schatten: der Desktop-Schatten (34px versetzt, 70px weich)
