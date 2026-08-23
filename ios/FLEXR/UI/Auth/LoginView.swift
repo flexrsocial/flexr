@@ -8,6 +8,10 @@ final class LoginModel {
     var password = ""
     var isSubmitting = false
     var error: String?
+    /// Konto innerhalb der 30-Tage-Karenz nach Selbstlöschung — der Login
+    /// bietet die Reaktivierung an, statt in eine Sackgasse zu führen.
+    var reactivateMessage: String?
+    var isReactivating = false
 
     var canSubmit: Bool { !email.isEmpty && !password.isEmpty && !isSubmitting }
 
@@ -30,9 +34,35 @@ final class LoginModel {
             // Erfolg meldet der SessionStore; `AppModel` schaltet daraufhin um.
             try await auth.login(email: email, password: password)
         } catch {
-            self.error = (error as? FlexrAPIError)?.message ?? "Login fehlgeschlagen."
+            let apiError = error as? FlexrAPIError
+            if apiError?.isAccountDeleted == true {
+                // 403 mit code=account_deleted aus routers/auth.login: Das Konto
+                // liegt noch in der 30-Tage-Karenz und lässt sich zurückholen.
+                reactivateMessage = apiError?.message
+            } else {
+                self.error = apiError?.message ?? "Login fehlgeschlagen."
+            }
         }
         isSubmitting = false
+    }
+
+    func dismissReactivate() {
+        reactivateMessage = nil
+    }
+
+    /// Der Alert ist beim Tippen auf „Jetzt reaktivieren" bereits weg — ein
+    /// Fehler landet deshalb im Fehlerfeld des Formulars, nicht im Alert.
+    func reactivate() async {
+        guard !isReactivating else { return }
+        isReactivating = true
+        error = nil
+        do {
+            try await auth.reactivate(email: email, password: password)
+        } catch {
+            self.error = (error as? FlexrAPIError)?.message ?? "Reaktivierung fehlgeschlagen."
+        }
+        reactivateMessage = nil
+        isReactivating = false
     }
 }
 
@@ -120,5 +150,17 @@ struct LoginView: View {
         .scrollDismissesKeyboard(.interactively)
         .onChange(of: model.email) { _, _ in model.error = nil }
         .onChange(of: model.password) { _, _ in model.error = nil }
+        .alert(
+            "Konto reaktivieren?",
+            isPresented: Binding(
+                get: { model.reactivateMessage != nil },
+                set: { if !$0 { model.dismissReactivate() } }
+            )
+        ) {
+            Button("Jetzt reaktivieren") { Task { await model.reactivate() } }
+            Button("Abbrechen", role: .cancel) { model.dismissReactivate() }
+        } message: {
+            Text(model.reactivateMessage ?? "")
+        }
     }
 }

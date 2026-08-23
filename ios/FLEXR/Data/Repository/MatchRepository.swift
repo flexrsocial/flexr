@@ -12,8 +12,13 @@ final class MatchRepository {
     /// Aktueller Stand aus dem lokalen Bestand, nie direkt vom Server.
     private(set) var matches: [MatchSummary] = []
 
-    /// Nur Matches mit laufender Unterhaltung — der Menüpunkt „Chats".
-    var conversations: [MatchSummary] { matches.filter { $0.lastMessage != nil } }
+    /// Der Menüpunkt „Chats".
+    ///
+    /// Bewusst `inChats` statt `lastMessage != nil`: Nach „Chatverlauf leeren"
+    /// liefert der Server korrekt `last_message = null`, der Chat soll aber
+    /// gelistet bleiben — nur eben leer. Erst „Chat löschen" setzt `in_chats`
+    /// zurück, bis eine neue Nachricht eintrifft.
+    var conversations: [MatchSummary] { matches.filter(\.inChats) }
 
     var unreadTotal: Int { matches.reduce(0) { $0 + $1.unreadCount } }
 
@@ -51,6 +56,16 @@ final class MatchRepository {
         try await api.unmatch(matchID: matchID)
         store.deleteMatch(id: matchID)
         reload()
+    }
+
+    /// „Chat löschen": anders als [unmatch] bleibt das Match serverseitig
+    /// bestehen — nur die Unterhaltung verschwindet aus dem „Chats"-Tab, bis
+    /// erneut eine Nachricht eintrifft. Lokal reicht ein [refresh], das den
+    /// jetzt aktualisierten `inChats`-Wert vom Server übernimmt.
+    func deleteChat(matchID: String) async throws {
+        try await api.deleteChat(matchID: matchID)
+        store.deleteMessages(matchID: matchID)
+        try await refresh()
     }
 
     /// Nach dem Blockieren verschwindet das Match beidseitig aus der Liste.

@@ -495,9 +495,8 @@ enum LegalContent {
                     + "über die Kamera entsteht — ein vorhandenes Bild aus der Galerie lässt "
                     + "sich dafür nicht auswählen; dazu kommt der Abgleich mit einem "
                     + "vorgelegten amtlichen Lichtbildausweis. Nach der Prüfung werden Selfie "
-                    + "und Ausweisaufnahmen gelöscht. Dazu kommen die Telefonprüfung per "
-                    + "SMS-Einmalcode, die E-Mail-Eindeutigkeit je Konto und die Sperrliste für "
-                    + "Wegwerf-Adressen."
+                    + "und Ausweisaufnahmen gelöscht. Dazu kommen die E-Mail-Eindeutigkeit je "
+                    + "Konto und die Sperrliste für Wegwerf-Adressen."
             ),
             .lettered([
                 "Meldung über die Melden-Funktion oder per E-Mail an "
@@ -668,7 +667,7 @@ enum LegalContent {
                 "Rechtsgrundlage und, soweit erforderlich, gerichtliche Bewilligung bzw. "
                     + "staatsanwaltschaftliche Anordnung.",
                 "Möglichst genaue Bezeichnung der betroffenen Person: E-Mail-Adresse des "
-                    + "Kontos, Profilname, Telefonnummer oder Konto-ID.",
+                    + "Kontos, Profilname oder Konto-ID.",
                 "Präzise Bezeichnung der angeforderten Daten und des Zeitraums.",
                 "Frist, bis zu der die Auskunft benötigt wird.",
             ]),
@@ -699,11 +698,17 @@ enum LegalContent {
                         "Bestandsdaten (E-Mail, Name, Geburtsdatum, PLZ/Ort, Geschlecht, "
                             + "Studio, Registrierungszeitpunkt)",
                         "ja",
-                        "Selbstangaben, nicht ausweisgeprüft",
+                        "Selbstangaben; Geburtsdatum und Lichtbild werden vor der "
+                            + "Freischaltung manuell sichtgeprüft, der Name nicht gegen ein "
+                            + "Register abgeglichen",
                     ],
-                    ["Telefonnummer", "nur wenn hinterlegt", "per SMS-Einmalcode bestätigt"],
                     ["Profilfotos", "ja", "inkl. Freigabestatus"],
-                    ["Verifizierungs-Selfies", "nein", "werden nach der Prüfung gelöscht"],
+                    [
+                        "Verifizierungs-Selfies und Ausweisaufnahmen",
+                        "in der Regel nein",
+                        "nur während einer offenen Prüfung vorhanden; werden nach der "
+                            + "Entscheidung gelöscht",
+                    ],
                     [
                         "Chatnachrichten (Inhalt, Zeitstempel, Absender)",
                         "ja",
@@ -867,8 +872,8 @@ enum LegalContent {
             .paragraph(
                 "Was geprüft wird. Vor der Freischaltung eines Accounts prüfen wir "
                     + "einmalig, ob der Nutzer mindestens 18 Jahre alt ist und ob die "
-                    + "Verifizierung zu seinem Profil gehört. Verarbeitet werden dafür: die "
-                    + "Verifizierungs-Selfies, eine temporäre Aufnahme eines amtlichen "
+                    + "Verifizierung zu seinem Profil gehört. Verarbeitet werden dafür: das "
+                    + "Verifizierungs-Selfie, eine temporäre Aufnahme eines amtlichen "
                     + "Lichtbildausweises, das bei der Registrierung angegebene Geburtsdatum "
                     + "sowie der Verifizierungs-Status samt Prüfzeitpunkt."
             ),
@@ -945,13 +950,17 @@ enum LegalContent {
                         "Serverbetrieb (VPS)",
                         "Deutschland/EU",
                     ],
+                    [
+                        "Brevo (Sendinblue SAS, 7 rue de Madrid, 75008 Paris, Frankreich)",
+                        "Versand von Bestätigungs-, Rücktritts- und Melde-E-Mails",
+                        "Frankreich/EU",
+                    ],
                 ]
             ),
             .note(
-                "Für Contabo, Cloudflare und Stripe bestehen jeweils standardisierte "
-                    + "Auftragsverarbeitungsbedingungen der Anbieter. Ob sie im Einzelfall "
-                    + "wirksam einbezogen und vollständig sind, wird derzeit geprüft; eine "
-                    + "pauschale Zusicherung geben wir bis dahin nicht ab."
+                "Contabo, Cloudflare und Brevo verarbeiten Daten für die genannten Zwecke "
+                    + "als Dienstleister. Stripe verarbeitet Zahlungsdaten teilweise in "
+                    + "eigener datenschutzrechtlicher Verantwortung."
             ),
             .heading("5. Speicherdauer"),
             .bullets([

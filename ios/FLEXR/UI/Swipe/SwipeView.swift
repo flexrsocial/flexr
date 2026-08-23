@@ -54,7 +54,7 @@ struct SwipeView: View {
     @ViewBuilder
     private func content(_ model: SwipeModel) -> some View {
         VStack(alignment: .leading, spacing: 0) {
-            ScreenHeader(eyebrow: "Heutige Sätze", title: "Wer trainiert wo du bist")
+            ScreenHeader(eyebrow: "Entdecken", title: "Profile in deiner Nähe")
                 .padding(.top, 18)
 
             Text(locationLabel(model).uppercased())
@@ -116,7 +116,7 @@ struct SwipeView: View {
     private func locationLabel(_ model: SwipeModel) -> String {
         // Die Umkreissuche geht von der Adresse des eingetragenen Gyms aus,
         // nicht vom Wohnort und nicht von der Geräteposition.
-        "Umkreis \(model.searchRadiusKm) km · Standort laut PLZ-Gym"
+        "\(model.searchRadiusKm) km rund um dein Gym"
     }
 
     @ViewBuilder

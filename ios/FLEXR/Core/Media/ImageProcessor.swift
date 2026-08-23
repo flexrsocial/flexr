@@ -117,9 +117,16 @@ enum ImageProcessor {
         return render(size: target) { image.draw(in: CGRect(origin: .zero, size: target)) }
     }
 
+    /// Quadratischer Ausschnitt fürs Thumbnail — waagrecht mittig, senkrecht
+    /// aber Richtung oberen Rand (Faktor 0.15 statt 0.5, identisch mit Web und
+    /// Android): Hochformat-Portraits haben meist mehr Freiraum über dem Kopf
+    /// als unter dem Kinn, ein mittiger Zuschnitt schnitt sonst die Stirn ab.
     private static func centerSquare(_ image: UIImage, size: Int) -> UIImage {
         let side = min(image.size.width, image.size.height)
-        let origin = CGPoint(x: (image.size.width - side) / 2, y: (image.size.height - side) / 2)
+        let origin = CGPoint(
+            x: (image.size.width - side) / 2,
+            y: (image.size.height - side) * 0.15
+        )
         let target = CGSize(width: CGFloat(size), height: CGFloat(size))
         let factor = CGFloat(size) / side
 

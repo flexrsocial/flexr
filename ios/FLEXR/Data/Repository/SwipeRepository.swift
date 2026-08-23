@@ -58,8 +58,13 @@ final class BillingRepository {
         membership = nil
     }
 
-    func checkoutURL() async throws -> String {
-        try await api.createCheckout().checkoutUrl
+    /// Beide Erklärungen müssen vor dem Aufruf aktiv bestätigt worden sein
+    /// (§ 10 und § 18 Abs. 1 Z 1 FAGG) — das Backend lehnt `false` oder ein
+    /// fehlendes Feld mit 422 ab.
+    func checkoutURL(immediateStart: Bool, withdrawalAck: Bool) async throws -> String {
+        try await api.createCheckout(
+            CheckoutRequestDTO(immediateStart: immediateStart, withdrawalAck: withdrawalAck)
+        ).checkoutUrl
     }
 
     /// Self-Service-Verwaltung/Kündigung über das Stripe Billing Portal.

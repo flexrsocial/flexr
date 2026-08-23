@@ -136,28 +136,15 @@ struct PhotoVisibilityHint: View {
 
     private var content: (text: String, warn: Bool) {
         if statuses.isEmpty {
-            return (
-                "Lade mindestens ein Foto hoch — ohne Foto ist dein Profil in der Suche nicht sichtbar.",
-                true
-            )
+            return ("Mindestens ein Foto ist nötig, damit dein Profil sichtbar ist.", true)
         }
         if statuses.contains(.approved) {
-            return (
-                "Dein Profil ist in der Suche sichtbar. Neue Fotos werden vor der Anzeige geprüft.",
-                false
-            )
+            return ("Dein Profil ist sichtbar. Neue Fotos werden kurz geprüft.", false)
         }
         if statuses.contains(.pending) {
-            return (
-                "Deine Fotos werden gerade geprüft. Sobald mindestens eines freigegeben ist, "
-                    + "erscheinst du in der Suche.",
-                true
-            )
+            return ("Dein Foto wird geprüft.", true)
         }
-        return (
-            "Deine Fotos wurden abgelehnt. Bitte lade ein anderes Foto hoch, um in der Suche zu erscheinen.",
-            true
-        )
+        return ("Foto abgelehnt. Bitte lade ein anderes hoch.", true)
     }
 
     var body: some View {

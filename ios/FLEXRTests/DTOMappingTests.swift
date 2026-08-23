@@ -74,7 +74,7 @@ final class DTOMappingTests: XCTestCase {
           "last_message": {"id": "n1", "match_id": "m1", "sender_id": "u2",
                            "content": "Hi", "created_at": "2026-07-26T20:30:00",
                            "read_at": null, "was_censored": true},
-          "unread_count": 3, "is_online": true
+          "unread_count": 3, "is_online": true, "in_chats": true
         }
         """
         let match = try decoder.decode(MatchDTO.self, from: Data(json.utf8)).toDomain()
@@ -82,11 +82,74 @@ final class DTOMappingTests: XCTestCase {
         XCTAssertEqual(match.matchID, "m1")
         XCTAssertEqual(match.unreadCount, 3)
         XCTAssertTrue(match.isOnline)
+        XCTAssertTrue(match.inChats)
         XCTAssertEqual(match.lastMessage?.senderID, "u2")
         XCTAssertTrue(match.lastMessage?.wasCensored == true)
         XCTAssertNil(match.lastMessage?.readAt)
         XCTAssertEqual(match.lastMessage?.createdAt, ServerTime.parse("2026-07-26T20:30:00"))
         XCTAssertEqual(match.profile.gender, .frau)
+    }
+
+    /// Nach „Chatverlauf leeren" liefert der Server `last_message: null`, aber
+    /// `in_chats: true` — der Chat bleibt gelistet, nur eben leer. Genau daran
+    /// hing der Bug, der den Chat in allen Clients aus der Liste warf.
+    func testGeleerterChatBleibtInDerChatliste() throws {
+        let json = """
+        {
+          "match_id": "m2",
+          "profile": {"id": "u3", "name": "Nina", "age": 27, "city": "Linz", "gender": "frau",
+                      "gym": "Studio — Weg 3, 4020 Linz"},
+          "last_message": null, "unread_count": 0, "is_online": false, "in_chats": true
+        }
+        """
+        let match = try decoder.decode(MatchDTO.self, from: Data(json.utf8)).toDomain()
+        XCTAssertNil(match.lastMessage)
+        XCTAssertTrue(match.inChats)
+    }
+
+    /// Ältere Antworten ohne das Feld: dann entscheidet wie früher die letzte
+    /// Nachricht, damit die Chatliste nicht schlagartig leer ist.
+    func testFehlendesInChatsFaelltAufLetzteNachrichtZurueck() throws {
+        let json = """
+        {
+          "match_id": "m3",
+          "profile": {"id": "u4", "name": "Ida", "age": 31, "city": "Wien", "gender": "frau",
+                      "gym": "Studio — Weg 4, 1100 Wien"},
+          "last_message": null, "unread_count": 0, "is_online": false
+        }
+        """
+        XCTAssertFalse(try decoder.decode(MatchDTO.self, from: Data(json.utf8)).toDomain().inChats)
+    }
+
+    func testEinwilligungsEintragWirdGelesen() throws {
+        let json = """
+        [
+          {"consent_type": "sensitive_data", "version": "2026-08-03",
+           "granted_at": "2026-08-03T09:00:00", "revoked_at": null, "active": true},
+          {"consent_type": "verification_media", "version": "2026-08-03",
+           "granted_at": "2026-08-01T09:00:00", "revoked_at": "2026-08-20T18:00:00",
+           "active": false}
+        ]
+        """
+        let consents = try decoder.decode([ConsentDTO].self, from: Data(json.utf8))
+        XCTAssertEqual(consents.count, 2)
+        XCTAssertEqual(consents[0].consentType, "sensitive_data")
+        XCTAssertEqual(consents[0].version, "2026-08-03")
+        XCTAssertTrue(consents[0].active)
+        XCTAssertNil(consents[0].revokedAt)
+        XCTAssertFalse(consents[1].active)
+        XCTAssertEqual(consents[1].revokedAt, "2026-08-20T18:00:00")
+    }
+
+    func testWiderrufsAntwortTraegtDieFolge() throws {
+        let json = """
+        {"revoked": true, "consent_type": "sensitive_data",
+         "consequence": "Du erscheinst in keinem Deck mehr."}
+        """
+        let antwort = try decoder.decode(ConsentRevokeResponseDTO.self, from: Data(json.utf8))
+        XCTAssertTrue(antwort.revoked)
+        XCTAssertEqual(antwort.consentType, "sensitive_data")
+        XCTAssertEqual(antwort.consequence, "Du erscheinst in keinem Deck mehr.")
     }
 
     func testAnfragenGehenInSnakeCaseRaus() throws {
@@ -105,6 +168,23 @@ final class DTOMappingTests: XCTestCase {
         XCTAssertEqual(
             String(decoding: report, as: UTF8.self),
             #"{"reason":"Spam","reported_user_id":"u2"}"#
+        )
+
+        // Ohne genau diese beiden Felder antwortet /api/billing/checkout mit 422.
+        let checkout = try encoder.encode(
+            CheckoutRequestDTO(immediateStart: true, withdrawalAck: true)
+        )
+        XCTAssertEqual(
+            String(decoding: checkout, as: UTF8.self),
+            #"{"immediate_start":true,"withdrawal_ack":true}"#
+        )
+
+        let widerruf = try encoder.encode(
+            ConsentRevokeRequestDTO(consentType: "sensitive_data")
+        )
+        XCTAssertEqual(
+            String(decoding: widerruf, as: UTF8.self),
+            #"{"consent_type":"sensitive_data"}"#
         )
     }
 

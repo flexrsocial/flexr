@@ -44,6 +44,24 @@ final class APIErrorParserTests: XCTestCase {
         XCTAssertEqual(error.appealHint, "Widerspruch an flexr.social@proton.me")
     }
 
+    /// Login innerhalb der 30-Tage-Karenz nach Selbstlöschung: Das Backend
+    /// schickt ein strukturiertes Detail mit `code`, damit der Login die
+    /// Reaktivierung anbieten kann statt in eine Sackgasse zu führen.
+    func testGeloeschtesKontoWirdAmCodeErkannt() {
+        let error = parse(
+            403,
+            #"{"detail":{"code":"account_deleted","message":"Dieses Konto wurde gelöscht.","#
+                + #""reactivate_until":"2026-09-22T18:00:00"}}"#
+        )
+        XCTAssertTrue(error.isAccountDeleted)
+        XCTAssertEqual(error.code, "account_deleted")
+        XCTAssertEqual(error.message, "Dieses Konto wurde gelöscht.")
+    }
+
+    func testGewoehnlicherFehlerHatKeinenCode() {
+        XCTAssertFalse(parse(403, #"{"detail":"Zugriff nicht möglich."}"#).isAccountDeleted)
+    }
+
     func testAbgelaufeneMitgliedschaftWirdErkannt() {
         let error = parse(402, "{}")
         XCTAssertTrue(error.isPaymentRequired)

@@ -40,6 +40,7 @@ struct ChatView: View {
         VStack(spacing: 0) {
             ChatHeader(
                 profile: model.match?.profile,
+                isOnline: model.match?.isOnline == true,
                 onBack: onBack,
                 onReport: { showReportDialog = true },
                 onBlock: { showBlockDialog = true },
@@ -98,8 +99,7 @@ struct ChatView: View {
         .confirmDialog(
             isPresented: $showDeleteDialog,
             title: "Chat löschen?",
-            message: "Das Match und der gesamte Verlauf werden entfernt. "
-                + "Die Person kann dir danach erneut im Deck begegnen.",
+            message: "Der Chat verschwindet aus deinen Chats — euer Match bleibt aber bestehen.",
             confirmLabel: "Löschen",
             onConfirm: model.deleteChat
         )
@@ -159,6 +159,7 @@ struct ChatView: View {
 private struct ChatHeader: View {
 
     let profile: Profile?
+    let isOnline: Bool
     let onBack: () -> Void
     let onReport: () -> Void
     let onBlock: () -> Void
@@ -177,11 +178,14 @@ private struct ChatHeader: View {
                 .buttonStyle(.plain)
                 .accessibilityLabel("Zurück")
 
+                // Der Ring markiert „gerade online" — genau wie in der
+                // Matches-/Chats-Übersicht (MatchListItem). Er stand hier
+                // vorher unbedingt und zeigte damit fälschlich immer online.
                 AvatarImage(
                     source: PhotoImageSource(profile?.primaryPhoto?.avatarURL),
                     name: profile?.name ?? "",
                     size: 42,
-                    ringColor: FlexrColor.plateDim,
+                    ringColor: isOnline ? FlexrColor.plateDim : nil,
                     ringWidth: 1.5
                 )
                 .padding(.leading, 6)
@@ -196,25 +200,21 @@ private struct ChatHeader: View {
                 .padding(.leading, 11)
                 .frame(maxWidth: .infinity, alignment: .leading)
 
-                Button(action: onReport) {
-                    Image(systemName: FlexrIcon.report)
-                        .font(.system(size: 15, weight: .medium))
-                        .foregroundStyle(FlexrColor.chalkDim)
-                        .frame(width: 34, height: 34)
-                }
-                .buttonStyle(.plain)
-                .accessibilityLabel("Melden")
-
-                Button(action: onBlock) {
-                    Image(systemName: FlexrIcon.block)
-                        .font(.system(size: 15, weight: .medium))
-                        .foregroundStyle(FlexrColor.chalkDim)
-                        .frame(width: 34, height: 34)
-                }
-                .buttonStyle(.plain)
-                .accessibilityLabel("Blockieren")
-
+                // Melden und Blockieren stehen im Menü statt als eigene
+                // Symbole in der Kopfzeile: zwei Symbole ohne Beschriftung
+                // neben dem Namen waren nicht zu unterscheiden, und Platz für
+                // den Namen nahmen sie auch weg.
                 Menu {
+                    Button {
+                        onReport()
+                    } label: {
+                        Label("Melden", systemImage: FlexrIcon.report)
+                    }
+                    Button {
+                        onBlock()
+                    } label: {
+                        Label("Blockieren", systemImage: FlexrIcon.block)
+                    }
                     Button("Chatverlauf leeren", action: onClearHistory)
                     Button("Chat löschen", role: .destructive, action: onDeleteChat)
                 } label: {

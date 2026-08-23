@@ -50,6 +50,10 @@ final class MatchEntity {
     /// Sortierschlüssel: zuletzt geschriebene Unterhaltung zuerst, Matches ohne
     /// Nachricht nach ihrem Match-Zeitpunkt — wie im Backend.
     var sortedAt: Date
+    /// Filter des „Chats"-Tabs. Mit Vorgabewert, damit SwiftData das Feld einer
+    /// bereits angelegten Datei leichtgewichtig ergänzen kann statt die Datei
+    /// zu verwerfen (siehe FlexrStore).
+    var inChats: Bool = false
 
     init(
         matchID: String,
@@ -69,7 +73,8 @@ final class MatchEntity {
         lastMessageContent: String?,
         lastMessageSenderID: String?,
         lastMessageAt: Date?,
-        sortedAt: Date
+        sortedAt: Date,
+        inChats: Bool
     ) {
         self.matchID = matchID
         self.profileID = profileID
@@ -89,6 +94,7 @@ final class MatchEntity {
         self.lastMessageSenderID = lastMessageSenderID
         self.lastMessageAt = lastMessageAt
         self.sortedAt = sortedAt
+        self.inChats = inChats
     }
 }
 
@@ -162,7 +168,8 @@ extension MatchEntity {
                 )
             },
             unreadCount: unreadCount,
-            isOnline: isOnline
+            isOnline: isOnline,
+            inChats: inChats
         )
     }
 
@@ -185,6 +192,7 @@ extension MatchEntity {
         lastMessageSenderID = summary.lastMessage?.senderID
         lastMessageAt = summary.lastMessage?.createdAt
         sortedAt = summary.lastMessage?.createdAt ?? matchedAt
+        inChats = summary.inChats
     }
 
     static func make(_ summary: MatchSummary, matchedAt: Date = Date()) -> MatchEntity {
@@ -206,7 +214,8 @@ extension MatchEntity {
             lastMessageContent: summary.lastMessage?.content,
             lastMessageSenderID: summary.lastMessage?.senderID,
             lastMessageAt: summary.lastMessage?.createdAt,
-            sortedAt: summary.lastMessage?.createdAt ?? matchedAt
+            sortedAt: summary.lastMessage?.createdAt ?? matchedAt,
+            inChats: summary.inChats
         )
     }
 

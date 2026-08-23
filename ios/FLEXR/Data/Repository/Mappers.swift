@@ -91,7 +91,8 @@ extension MatchDTO {
             profile: profile.toDomain(),
             lastMessage: lastMessage?.toDomain(),
             unreadCount: unreadCount ?? 0,
-            isOnline: isOnline ?? false
+            isOnline: isOnline ?? false,
+            inChats: inChats ?? (lastMessage != nil)
         )
     }
 }

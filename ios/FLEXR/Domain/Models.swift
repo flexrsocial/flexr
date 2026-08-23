@@ -101,6 +101,10 @@ struct MatchSummary: Identifiable, Hashable, Sendable {
     let lastMessage: Message?
     let unreadCount: Int
     let isOnline: Bool
+    /// Bleibt nach „Chatverlauf leeren" true (der Chat bleibt gelistet, nur
+    /// leer) und wird erst durch „Chat löschen" false, bis erneut eine
+    /// Nachricht eintrifft.
+    var inChats: Bool = false
 
     var id: String { matchID }
 }

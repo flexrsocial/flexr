@@ -12,10 +12,14 @@ struct FlexrAPIError: Error, LocalizedError, Equatable {
     /// Begründung der Maßnahme und Widerspruchsweg (Art. 17 DSA).
     var moderationReason: String?
     var appealHint: String?
+    /// Strukturiertes Detail-Objekt des Backends, z. B. „account_deleted" bei
+    /// einem Login innerhalb der 30-Tage-Karenzzeit (siehe routers/auth.py).
+    var code: String?
 
     var isUnauthorized: Bool { statusCode == 401 }
     var isPaymentRequired: Bool { statusCode == 402 }
     var isMessagingMuted: Bool { mutedUntil != nil }
+    var isAccountDeleted: Bool { code == "account_deleted" }
 
     var errorDescription: String? { message }
 }
@@ -57,7 +61,8 @@ enum APIErrorParser {
                 mutedUntil: mutedUntil,
                 // Sperre und Ban tragen Begründung und Widerspruchshinweis mit.
                 moderationReason: object["moderation_reason"] as? String,
-                appealHint: object["appeal_hint"] as? String
+                appealHint: object["appeal_hint"] as? String,
+                code: object["code"] as? String
             )
 
         default:

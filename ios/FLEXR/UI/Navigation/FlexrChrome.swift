@@ -114,22 +114,37 @@ struct ToastOverlay: View {
         VStack {
             Spacer()
             if let message {
-                Text(message)
-                    .flexrText(.bodyMedium)
-                    .foregroundStyle(FlexrColor.chalk)
-                    .multilineTextAlignment(.leading)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 13)
-                    .flexrSurface(fill: FlexrColor.surface3, border: FlexrColor.steel)
-                    .padding(.horizontal, 16)
-                    .padding(.bottom, 12)
-                    .transition(.move(edge: .bottom).combined(with: .opacity))
-                    .onTapGesture { self.message = nil }
-                    .task(id: message) {
-                        try? await Task.sleep(for: .seconds(4))
-                        if !Task.isCancelled { self.message = nil }
+                HStack(alignment: .top, spacing: 8) {
+                    Text(message)
+                        .flexrText(.bodyMedium)
+                        .foregroundStyle(FlexrColor.chalk)
+                        .multilineTextAlignment(.leading)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+
+                    Button { self.message = nil } label: {
+                        Image(systemName: FlexrIcon.close)
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundStyle(FlexrColor.chalkDim)
+                            .frame(width: 24, height: 24)
                     }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("Schließen")
+                }
+                .padding(.leading, 16)
+                .padding(.trailing, 8)
+                .padding(.vertical, 13)
+                .flexrSurface(fill: FlexrColor.surface3, border: FlexrColor.steel)
+                .padding(.horizontal, 16)
+                .padding(.bottom, 12)
+                .transition(.move(edge: .bottom).combined(with: .opacity))
+                .onTapGesture { self.message = nil }
+                // Erst 4 s, dann 10 s — laut Rückmeldung immer noch zu kurz.
+                // Widerrufs-Folgetexte (AccountView, revokeConsent) sind lang;
+                // dazu jetzt ein Schließen-Knopf, damit 20 s nicht im Weg sind.
+                .task(id: message) {
+                    try? await Task.sleep(for: .seconds(20))
+                    if !Task.isCancelled { self.message = nil }
+                }
             }
         }
         .animation(.easeOut(duration: 0.22), value: message)

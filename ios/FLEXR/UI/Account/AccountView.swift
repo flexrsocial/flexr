@@ -10,6 +10,8 @@ struct AccountView: View {
     @State private var model: AccountModel?
     @State private var showDeleteDialog = false
     @State private var deletePassword = ""
+    @State private var consentsExpanded = false
+    @State private var pendingSensitiveRevoke = false
 
     var body: some View {
         Group {
@@ -82,6 +84,7 @@ struct AccountView: View {
 
                 photoSection(model)
                 notificationSection(model)
+                privacySection(model)
                 accountSection()
                 legalSection()
             }
@@ -117,6 +120,31 @@ struct AccountView: View {
         }
         .onChange(of: model.didDeleteAccount) { _, deleted in
             if deleted { Task { await appModel.logout() } }
+        }
+        .sheet(isPresented: $model.checkoutSheetVisible) {
+            CheckoutConsentSheet(
+                immediateStart: $model.checkoutImmediateStart,
+                withdrawalAck: $model.checkoutWithdrawalAck,
+                error: model.checkoutError,
+                isStarting: model.isStartingCheckout,
+                onConfirm: { Task { await model.confirmCheckout() } },
+                onDismiss: model.closeCheckoutSheet
+            )
+        }
+        // Der Widerruf von „sensitive_data" leert das Deck in beide Richtungen —
+        // das ist die einzige Einwilligung, die eine Rückfrage verdient.
+        .alert("Einwilligung widerrufen?", isPresented: $pendingSensitiveRevoke) {
+            Button("Widerruf erklären", role: .destructive) {
+                Task { await model.revokeConsent("sensitive_data") }
+            }
+            Button("Abbrechen", role: .cancel) {}
+        } message: {
+            Text(
+                "Geschlecht und gesuchtes Geschlecht sind die Grundlage des Matchings."
+                    + "\n\nOhne diese Einwilligung schlagen wir dir keine Profile mehr vor "
+                    + "und du erscheinst in keinem Deck. Dein Konto bleibt bestehen."
+                    + "\n\nWillst du ganz weg, lösche stattdessen dein Konto."
+            )
         }
     }
 
@@ -176,7 +204,7 @@ struct AccountView: View {
                             model.openBillingPortal()
                         }
                     } else {
-                        FlexrLinkButton(title: "Jetzt abonnieren") { model.startCheckout() }
+                        FlexrLinkButton(title: "Jetzt abonnieren") { model.openCheckoutSheet() }
                     }
                 }
             }
@@ -261,6 +289,57 @@ struct AccountView: View {
                 .tint(FlexrColor.plate)
             }
             .padding(.top, 12)
+        }
+    }
+
+    /// Einwilligungen einsehen und widerrufen — direkt in der App statt nur
+    /// über die Web-App. Art. 7 Abs. 3 DSGVO: Der Widerruf darf nicht schwerer
+    /// sein als die Erteilung, und die war bei der Registrierung ein Tippen.
+    @ViewBuilder
+    private func privacySection(_ model: AccountModel) -> some View {
+        VStack(alignment: .leading, spacing: 0) {
+            SectionTitle(text: "Datenschutz & Sicherheit").padding(.top, 28)
+
+            Button {
+                withAnimation(.easeOut(duration: 0.18)) { consentsExpanded.toggle() }
+            } label: {
+                HStack {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Einwilligungen")
+                            .flexrText(.bodyLarge)
+                            .foregroundStyle(FlexrColor.chalk)
+                        Text("Einsehen und widerrufen")
+                            .flexrText(.bodySmall)
+                            .foregroundStyle(FlexrColor.chalkDim)
+                    }
+                    Spacer()
+                    Image(systemName: FlexrIcon.forward)
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(FlexrColor.chalkDim)
+                        .rotationEffect(.degrees(consentsExpanded ? 90 : 0))
+                }
+                .padding(.vertical, 13)
+                .padding(.horizontal, 4)
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+
+            if consentsExpanded {
+                ConsentList(
+                    consents: model.consents,
+                    isLoading: model.consentsLoading,
+                    error: model.consentError,
+                    isBusy: model.revokingConsentType != nil || model.grantingConsentType != nil,
+                    onRevoke: { consentType in
+                        if consentType == "sensitive_data" {
+                            pendingSensitiveRevoke = true
+                        } else {
+                            Task { await model.revokeConsent(consentType) }
+                        }
+                    },
+                    onGrant: { consentType in Task { await model.grantConsent(consentType) } }
+                )
+            }
         }
     }
 
@@ -355,8 +434,8 @@ private struct VerificationHint: View {
             return "Deine Verifizierung konnte nicht abgeschlossen werden. "
                 + "Bei Fragen: flexr.social@proton.me"
         default:
-            return "Zeig mit 3 Live-Selfies und einem Lichtbildausweis, dass du wirklich du bist "
-                + "— und hol dir den blauen Haken."
+            return "Zeig mit einem Live-Selfie und einem Lichtbildausweis, dass du wirklich "
+                + "du bist — und hol dir den blauen Haken."
         }
     }
 
@@ -458,5 +537,216 @@ struct DeleteAccountSheet: View {
             }
         }
         .presentationDetents([.medium, .large])
+    }
+}
+
+// MARK: - Einwilligungen
+
+private let consentLabels: [String: String] = [
+    "sensitive_data": "Verarbeitung von Geschlecht und gesuchtem Geschlecht",
+    "verification_media": "Aufnahmen für die Alters- und Identitätsprüfung",
+    "terms": "Angenommene AGB-Fassung",
+]
+
+private let consentGrundlage: [String: String] = [
+    "sensitive_data": "Ausdrückliche Einwilligung nach Art. 9 Abs. 2 lit. a DSGVO.",
+    "verification_media": "Ausdrückliche Einwilligung nach Art. 9 Abs. 2 lit. a DSGVO.",
+    "terms": "Vertragsschluss, keine Einwilligung — daher nicht widerrufbar.",
+]
+
+/// „Sofortiger Leistungsbeginn" steht bewusst nicht in dieser Aufzählung: Die
+/// maßgebliche § 10/§ 18-Abs.-1-Z-1-FAGG-Erklärung liegt unveränderlich im
+/// CheckoutConsent-Datensatz und wirkt fort, solange der Vertrag läuft — ein
+/// Widerruf hier hätte nichts bewirkt, aber das Gegenteil suggeriert.
+private let consentRevocable: Set<String> = ["sensitive_data", "verification_media"]
+
+/// Liste der DSGVO-Einwilligungen mit Sofort-Widerruf (Art. 7 Abs. 3 DSGVO) —
+/// angehakt wurde mit einem Tippen, also geht auch der Widerruf mit einem
+/// Tippen. Texte und Rechtsgrundlagen sind wortgleich mit Web-App
+/// (`frontend/app/index.html`, `CONSENT_TEXT`/`CONSENT_GRUNDLAGE`) und
+/// Android (`ConsentSection` in `AccountScreen.kt`).
+private struct ConsentList: View {
+
+    let consents: [ConsentDTO]
+    let isLoading: Bool
+    let error: String?
+    let isBusy: Bool
+    let onRevoke: (String) -> Void
+    let onGrant: (String) -> Void
+
+    /// Der Server liefert die volle Historie (neueste zuerst) — für den
+    /// Nachweis nach Art. 7 Abs. 1 DSGVO nötig, bleibt also in der Datenbank.
+    /// Angezeigt wird pro Art aber nur die neueste Zeile: eine wachsende Liste
+    /// aus „widerrufen"/„erteilt"-Karten derselben Sache läse sich wie ein
+    /// Protokoll statt wie eine Einstellung.
+    private var visible: [ConsentDTO] {
+        var gesehen = Set<String>()
+        return consents
+            .filter { $0.consentType != "immediate_start" }
+            .filter { gesehen.insert($0.consentType).inserted }
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            if isLoading, visible.isEmpty {
+                HStack(spacing: 8) {
+                    ProgressView().controlSize(.mini).tint(FlexrColor.plate)
+                    Text("Lade …").flexrText(.bodySmall).foregroundStyle(FlexrColor.chalkDim)
+                }
+            } else if visible.isEmpty, error == nil {
+                Text("Keine Einträge.")
+                    .flexrText(.bodySmall)
+                    .foregroundStyle(FlexrColor.chalkDim)
+            } else {
+                ForEach(Array(visible.enumerated()), id: \.element.consentType) { index, consent in
+                    row(consent)
+                    if index != visible.count - 1 { HairlineDivider() }
+                }
+            }
+            FieldError(message: error)
+        }
+    }
+
+    @ViewBuilder
+    private func row(_ consent: ConsentDTO) -> some View {
+        VStack(alignment: .leading, spacing: 2) {
+            (Text(consentLabels[consent.consentType] ?? consent.consentType)
+                .foregroundStyle(FlexrColor.chalk)
+                + Text(consent.active ? "" : "  — widerrufen")
+                .foregroundStyle(FlexrColor.chalkDim))
+                .flexrText(.bodyMedium)
+                .frame(maxWidth: .infinity, alignment: .leading)
+
+            Text(details(consent))
+                .flexrText(.bodySmall)
+                .foregroundStyle(FlexrColor.chalkDim)
+                .frame(maxWidth: .infinity, alignment: .leading)
+
+            if consentRevocable.contains(consent.consentType) {
+                if consent.active {
+                    FlexrLinkButton(
+                        title: "Einwilligung widerrufen",
+                        isEnabled: !isBusy
+                    ) { onRevoke(consent.consentType) }
+                } else {
+                    FlexrLinkButton(
+                        title: "Einwilligung erneut erteilen",
+                        isEnabled: !isBusy
+                    ) { onGrant(consent.consentType) }
+                }
+            }
+        }
+        .padding(.vertical, 10)
+    }
+
+    private func details(_ consent: ConsentDTO) -> String {
+        let datum = ServerTime.parse(consent.active ? consent.grantedAt : consent.revokedAt)
+            .map(ServerTime.formatDay) ?? "—"
+        var text = consent.active
+            ? "Erteilt am \(datum), Fassung \(consent.version)."
+            : "Widerrufen am \(datum)."
+        if let grundlage = consentGrundlage[consent.consentType] { text += " " + grundlage }
+        return text
+    }
+}
+
+// MARK: - Erklärungen vor dem Checkout
+
+/// Zwei getrennte, nicht vorangekreuzte Erklärungen vor jedem Wechsel zu
+/// Stripe (§ 10 und § 18 Abs. 1 Z 1 FAGG) — ohne beide antwortet das Backend
+/// mit `422 field required` (`backend/app/schemas.py:CheckoutRequest`).
+/// Wortlaut identisch mit Web-App (`immediateStartOverlay` in
+/// `frontend/app/index.html`) und Android (`CheckoutDialog`). Bewusst ein Blatt
+/// und kein `alert`: Ein Alert trägt keine zwei antippbaren Kästchen mit
+/// mehrzeiligem Fließtext. Nicht privat — die Paywall nutzt denselben Weg.
+struct CheckoutConsentSheet: View {
+
+    @Binding var immediateStart: Bool
+    @Binding var withdrawalAck: Bool
+    let error: String?
+    let isStarting: Bool
+    let onConfirm: () -> Void
+    let onDismiss: () -> Void
+
+    var body: some View {
+        NavigationStack {
+            ZStack {
+                FlexrBackground()
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 0) {
+                        CheckoutConsentRow(
+                            isOn: $immediateStart,
+                            text: "Ich stimme ausdrücklich zu, dass FLEXR bereits vor Ablauf der "
+                                + "14-tägigen Rücktrittsfrist mit der Erbringung der "
+                                + "kostenpflichtigen Dienstleistung beginnt."
+                        )
+                        CheckoutConsentRow(
+                            isOn: $withdrawalAck,
+                            text: "Ich bestätige, dass ich zur Kenntnis genommen habe, dass mein "
+                                + "Rücktrittsrecht nach vollständiger Vertragserfüllung durch "
+                                + "FLEXR erlischt, wenn die gesetzlichen Voraussetzungen dafür "
+                                + "erfüllt sind."
+                        )
+
+                        FieldError(message: error)
+
+                        Spacer(minLength: 24)
+                        FlexrButton(
+                            title: "Weiter zur Zahlung",
+                            isEnabled: !isStarting,
+                            isLoading: isStarting,
+                            action: onConfirm
+                        )
+                    }
+                    .padding(20)
+                }
+            }
+            .navigationTitle("Vor der Zahlung")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Abbrechen", action: onDismiss)
+                        .foregroundStyle(FlexrColor.chalkDim)
+                }
+            }
+        }
+        .presentationDetents([.medium, .large])
+    }
+}
+
+/// Eine der beiden Checkout-Erklärungen — gleiches Muster wie `ConsentCheckbox`
+/// in RegisterView.swift, nur ohne eingebetteten Rechtstext-Link.
+private struct CheckoutConsentRow: View {
+
+    @Binding var isOn: Bool
+    let text: String
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 10) {
+            Button { isOn.toggle() } label: {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 5, style: .continuous)
+                        .fill(isOn ? FlexrColor.plate : .clear)
+                    RoundedRectangle(cornerRadius: 5, style: .continuous)
+                        .strokeBorder(isOn ? FlexrColor.plate : FlexrColor.steel, lineWidth: 1.5)
+                    if isOn {
+                        Image(systemName: FlexrIcon.check)
+                            .font(.system(size: 12, weight: .bold))
+                            .foregroundStyle(FlexrColor.plateInk)
+                    }
+                }
+                .frame(width: 22, height: 22)
+            }
+            .buttonStyle(.plain)
+            .accessibilityAddTraits(isOn ? [.isSelected] : [])
+
+            Text(text)
+                .flexrText(.bodyMedium)
+                .foregroundStyle(FlexrColor.chalk)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .contentShape(Rectangle())
+                .onTapGesture { isOn.toggle() }
+        }
+        .padding(.vertical, 8)
     }
 }

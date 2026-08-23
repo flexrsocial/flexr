@@ -163,11 +163,13 @@ final class ChatModel {
         }
     }
 
-    /// Chat löschen = Match auflösen (Verlauf und Match verschwinden).
+    /// Chat löschen: anders als „Match auflösen" (MatchProfileView) bleibt das
+    /// Match bestehen — der Chat verschwindet nur aus dem „Chats"-Tab, bis
+    /// erneut eine Nachricht eintrifft.
     func deleteChat() {
         Task {
             do {
-                try await matches.unmatch(matchID: matchID)
+                try await matches.deleteChat(matchID: matchID)
                 onMessage("Chat gelöscht.")
                 isClosed = true
             } catch {

@@ -9,8 +9,7 @@ struct PaywallView: View {
     @Environment(AppContainer.self) private var container
     @Environment(AppModel.self) private var appModel
 
-    @State private var externalURL: ExternalURL?
-    /// Nur für die Selbstlöschung - der Rest des Modells bleibt ungenutzt,
+    /// Für Selbstlöschung UND Checkout - der Rest des Modells bleibt ungenutzt,
     /// load() wird bewusst nicht aufgerufen.
     @State private var accountModel: AccountModel?
     @State private var showDeleteDialog = false
@@ -58,8 +57,10 @@ struct PaywallView: View {
                     }
                     .padding(.top, 10)
 
-                    FlexrButton(title: "Jetzt abonnieren", action: startCheckout)
-                        .padding(.top, 12)
+                    FlexrButton(title: "Jetzt abonnieren") {
+                        accountModel?.openCheckoutSheet()
+                    }
+                    .padding(.top, 12)
                 }
                 .padding(20)
                 .flexrSurface(radius: FlexrRadius.large, border: FlexrColor.plate.opacity(0.3))
@@ -91,10 +92,36 @@ struct PaywallView: View {
             .padding(.horizontal, 20)
             .padding(.bottom, 40)
         }
-        .externalPage($externalURL)
+        .externalPage(
+            Binding(
+                get: { accountModel?.externalURL },
+                set: { accountModel?.externalURL = $0 }
+            )
+        )
         .task {
             if accountModel == nil {
                 accountModel = AccountModel(container: container) { appModel.show($0) }
+            }
+        }
+        .sheet(isPresented: Binding(
+            get: { accountModel?.checkoutSheetVisible ?? false },
+            set: { if !$0 { accountModel?.closeCheckoutSheet() } }
+        )) {
+            if let accountModel {
+                CheckoutConsentSheet(
+                    immediateStart: Binding(
+                        get: { accountModel.checkoutImmediateStart },
+                        set: { accountModel.checkoutImmediateStart = $0 }
+                    ),
+                    withdrawalAck: Binding(
+                        get: { accountModel.checkoutWithdrawalAck },
+                        set: { accountModel.checkoutWithdrawalAck = $0 }
+                    ),
+                    error: accountModel.checkoutError,
+                    isStarting: accountModel.isStartingCheckout,
+                    onConfirm: { Task { await accountModel.confirmCheckout() } },
+                    onDismiss: accountModel.closeCheckoutSheet
+                )
             }
         }
         .sheet(isPresented: $showDeleteDialog) {
@@ -112,18 +139,6 @@ struct PaywallView: View {
         }
         .onChange(of: accountModel?.didDeleteAccount ?? false) { _, deleted in
             if deleted { Task { await appModel.logout() } }
-        }
-    }
-
-    private func startCheckout() {
-        Task {
-            do {
-                externalURL = ExternalURL(try await container.billing.checkoutURL())
-            } catch {
-                appModel.show(
-                    (error as? FlexrAPIError)?.message ?? "Checkout konnte nicht gestartet werden."
-                )
-            }
         }
     }
 }

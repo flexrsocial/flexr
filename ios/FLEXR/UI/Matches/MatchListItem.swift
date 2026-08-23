@@ -71,7 +71,9 @@ struct MatchListItem: View {
 
     private var secondaryLine: String {
         if showsLastMessage {
-            guard let message = match.lastMessage else { return "" }
+            // lastMessage kann trotz inChats fehlen: Nach „Chatverlauf leeren"
+            // ist der Chat weiterhin gelistet, aber (für einen selbst) leer.
+            guard let message = match.lastMessage else { return "Chatverlauf geleert" }
             let prefix = message.senderID == ownUserID ? "Du: " : ""
             return prefix + message.content
         }

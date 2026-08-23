@@ -91,6 +91,39 @@ struct DeleteAccountRequestDTO: Encodable {
     let password: String
 }
 
+// MARK: - Einwilligungen (Art. 7 Abs. 3 DSGVO)
+
+/// Ein Eintrag des Einwilligungs-Ledgers (`GET /api/profiles/me/consents`).
+/// Der Server liefert die volle Historie, neueste zuerst — angezeigt wird nur
+/// die jeweils neueste Zeile je Art (siehe ConsentSection in AccountView).
+struct ConsentDTO: Decodable, Equatable {
+    let consentType: String
+    let version: String
+    let grantedAt: String
+    let revokedAt: String?
+    let active: Bool
+}
+
+struct ConsentRevokeRequestDTO: Encodable {
+    let consentType: String
+}
+
+struct ConsentRevokeResponseDTO: Decodable {
+    let revoked: Bool
+    let consentType: String
+    let consequence: String
+}
+
+struct ConsentGrantRequestDTO: Encodable {
+    let consentType: String
+}
+
+struct ConsentGrantResponseDTO: Decodable {
+    let granted: Bool
+    let consentType: String
+    let consequence: String
+}
+
 struct PresignPhotoRequestDTO: Encodable {
     let contentType: String
 }
@@ -111,6 +144,15 @@ struct MembershipStatusDTO: Decodable {
     let isSubscribed: Bool
     let trialEndsAt: String
     let isActive: Bool
+}
+
+/// Die beiden getrennten, nicht vorangekreuzten Erklärungen vor dem Wechsel
+/// zur Stripe-Seite (§ 10 und § 18 Abs. 1 Z 1 FAGG). Das Backend lehnt `false`
+/// oder ein fehlendes Feld mit 422 ab — ein leerer Aufruf reicht seit dem
+/// 17.08.2026 nicht mehr (`CheckoutRequest` in `backend/app/schemas.py`).
+struct CheckoutRequestDTO: Encodable {
+    let immediateStart: Bool
+    let withdrawalAck: Bool
 }
 
 struct CheckoutUrlDTO: Decodable {
@@ -152,6 +194,10 @@ struct MatchDTO: Decodable {
     let lastMessage: MessageDTO?
     let unreadCount: Int?
     let isOnline: Bool?
+    /// Ob das Match unter „Chats" erscheint. Bleibt nach „Chatverlauf leeren"
+    /// `true` (der Chat bleibt gelistet, nur ohne `lastMessage`) und wird erst
+    /// durch „Chat löschen" `false`, bis erneut eine Nachricht eintrifft.
+    let inChats: Bool?
 }
 
 // MARK: - Gyms

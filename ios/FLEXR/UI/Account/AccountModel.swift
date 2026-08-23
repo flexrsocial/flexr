@@ -29,6 +29,18 @@ final class AccountModel {
     /// Bestätigter „verifiziert"-Hinweis wird dauerhaft ausgeblendet.
     var verifiedHintDismissed = false
     var notificationsEnabled = true
+    // Einwilligungen (Art. 7 Abs. 3 DSGVO)
+    var consents: [ConsentDTO] = []
+    var consentsLoading = false
+    var consentError: String?
+    var revokingConsentType: String?
+    var grantingConsentType: String?
+    // Zwei getrennte, nicht vorangekreuzte Erklärungen vor jedem Checkout
+    var checkoutSheetVisible = false
+    var checkoutImmediateStart = false
+    var checkoutWithdrawalAck = false
+    var checkoutError: String?
+    var isStartingCheckout = false
     var isDeleting = false
     var deleteError: String?
     /// Nach dem Löschen: die App meldet ab.
@@ -74,6 +86,7 @@ final class AccountModel {
         if let refreshed = try? await profiles.refresh() { prefill(from: refreshed) }
         _ = try? await billing.refresh()
         await refreshVerificationStatus()
+        await refreshConsents()
     }
 
     private func prefill(from profile: MyProfile) {
@@ -260,14 +273,37 @@ final class AccountModel {
 
     // MARK: - Mitgliedschaft
 
-    func startCheckout() {
-        Task {
-            do {
-                externalURL = ExternalURL(try await billing.checkoutURL())
-            } catch {
-                onMessage(error.localizedDescription)
-            }
+    /// Zwei getrennte, nicht vorangekreuzte Erklärungen vor jedem Checkout
+    /// (§ 10 und § 18 Abs. 1 Z 1 FAGG) — ohne beide lehnt das Backend die
+    /// Anfrage mit 422 ab (`CheckoutRequest` in `backend/app/schemas.py`).
+    func openCheckoutSheet() {
+        checkoutImmediateStart = false
+        checkoutWithdrawalAck = false
+        checkoutError = nil
+        checkoutSheetVisible = true
+    }
+
+    func closeCheckoutSheet() {
+        checkoutSheetVisible = false
+    }
+
+    func confirmCheckout() async {
+        guard !isStartingCheckout else { return }
+        guard checkoutImmediateStart, checkoutWithdrawalAck else {
+            checkoutError = "Bitte bestätige beide Erklärungen, um fortzufahren."
+            return
         }
+        isStartingCheckout = true
+        checkoutError = nil
+        do {
+            let url = try await billing.checkoutURL(immediateStart: true, withdrawalAck: true)
+            checkoutSheetVisible = false
+            externalURL = ExternalURL(url)
+        } catch {
+            checkoutError = (error as? FlexrAPIError)?.message
+                ?? "Checkout konnte nicht gestartet werden."
+        }
+        isStartingCheckout = false
     }
 
     func openBillingPortal() {
@@ -299,6 +335,51 @@ final class AccountModel {
         notificationsEnabled = enabled
         session.notificationsEnabled = enabled
         if enabled { notifications.schedule() } else { notifications.cancel() }
+    }
+
+    // MARK: - Einwilligungen
+
+    func refreshConsents() async {
+        consentsLoading = true
+        consentError = nil
+        do {
+            consents = try await profiles.consents()
+        } catch {
+            consentError = (error as? FlexrAPIError)?.message
+                ?? "Einwilligungen konnten nicht geladen werden."
+        }
+        consentsLoading = false
+    }
+
+    func revokeConsent(_ consentType: String) async {
+        guard revokingConsentType == nil, grantingConsentType == nil else { return }
+        revokingConsentType = consentType
+        consentError = nil
+        do {
+            let result = try await profiles.revokeConsent(consentType)
+            consents = try await profiles.consents()
+            onMessage(result.consequence)
+        } catch {
+            consentError = (error as? FlexrAPIError)?.message
+                ?? "Der Widerruf konnte nicht gespeichert werden."
+        }
+        revokingConsentType = nil
+    }
+
+    /// Einen zuvor erklärten Widerruf rückgängig machen.
+    func grantConsent(_ consentType: String) async {
+        guard revokingConsentType == nil, grantingConsentType == nil else { return }
+        grantingConsentType = consentType
+        consentError = nil
+        do {
+            let result = try await profiles.grantConsent(consentType)
+            consents = try await profiles.consents()
+            onMessage(result.consequence)
+        } catch {
+            consentError = (error as? FlexrAPIError)?.message
+                ?? "Die erneute Einwilligung konnte nicht gespeichert werden."
+        }
+        grantingConsentType = nil
     }
 
     // MARK: - Konto löschen

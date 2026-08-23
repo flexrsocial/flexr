@@ -21,6 +21,13 @@ struct FlexrAPI {
         try await client.send(.post, "api/auth/login", body: body)
     }
 
+    /// Macht eine Selbstlöschung innerhalb der 30-Tage-Karenzzeit rückgängig.
+    /// Nimmt dieselben Zugangsdaten wie [login] entgegen (siehe
+    /// routers/auth.reactivate).
+    func reactivate(_ body: LoginRequestDTO) async throws -> TokenResponseDTO {
+        try await client.send(.post, "api/auth/reactivate", body: body)
+    }
+
     // MARK: - profiles.py
 
     func myProfile() async throws -> MyProfileDTO {
@@ -36,7 +43,17 @@ struct FlexrAPI {
         try await client.send(.delete, "api/profiles/me", body: body)
     }
 
+    func myConsents() async throws -> [ConsentDTO] {
+        try await client.send(.get, "api/profiles/me/consents")
+    }
 
+    func revokeConsent(_ body: ConsentRevokeRequestDTO) async throws -> ConsentRevokeResponseDTO {
+        try await client.send(.post, "api/profiles/me/consents/revoke", body: body)
+    }
+
+    func grantConsent(_ body: ConsentGrantRequestDTO) async throws -> ConsentGrantResponseDTO {
+        try await client.send(.post, "api/profiles/me/consents/grant", body: body)
+    }
 
     func presignPhoto(_ body: PresignPhotoRequestDTO) async throws -> PresignPhotoResponseDTO {
         try await client.send(.post, "api/profiles/me/photos/presign", body: body)
@@ -82,14 +99,20 @@ struct FlexrAPI {
         try await client.send(.delete, "api/matches/\(matchID)/messages")
     }
 
+    /// „Chat löschen": Match, Swipe und Nachrichten bleiben bestehen — nur die
+    /// Unterhaltung verschwindet aus der Chats-Übersicht (siehe `in_chats`).
+    func deleteChat(matchID: String) async throws {
+        try await client.send(.delete, "api/matches/\(matchID)/chat")
+    }
+
     // MARK: - billing.py
 
     func membershipStatus() async throws -> MembershipStatusDTO {
         try await client.send(.get, "api/billing/status")
     }
 
-    func createCheckout() async throws -> CheckoutUrlDTO {
-        try await client.send(.post, "api/billing/checkout")
+    func createCheckout(_ body: CheckoutRequestDTO) async throws -> CheckoutUrlDTO {
+        try await client.send(.post, "api/billing/checkout", body: body)
     }
 
     func createPortal() async throws -> PortalUrlDTO {

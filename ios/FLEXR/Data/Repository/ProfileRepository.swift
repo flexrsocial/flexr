@@ -58,11 +58,23 @@ final class ProfileRepository {
         myProfile = nil
     }
 
-    /// GPS-Position speichern — sie hat für die Umkreissuche Vorrang vor der PLZ.
-    @discardableResult
+    // MARK: - Einwilligungen (Art. 7 Abs. 3 DSGVO)
 
-    /// Ohne Standortfreigabe: gespeicherte Position löschen, es gilt wieder die PLZ.
-    @discardableResult
+    /// Volle Historie des Einwilligungs-Ledgers, neueste Zeile je Art zuerst.
+    func consents() async throws -> [ConsentDTO] {
+        try await api.myConsents()
+    }
+
+    func revokeConsent(_ consentType: String) async throws -> ConsentRevokeResponseDTO {
+        try await api.revokeConsent(ConsentRevokeRequestDTO(consentType: consentType))
+    }
+
+    /// Einen zuvor erklärten Widerruf zurücknehmen (erneute Einwilligung).
+    func grantConsent(_ consentType: String) async throws -> ConsentGrantResponseDTO {
+        try await api.grantConsent(ConsentGrantRequestDTO(consentType: consentType))
+    }
+
+    // MARK: - Fotos
 
     /// Lädt Vollbild und Thumbnail direkt in den Objekt-Storage und registriert
     /// anschließend die object_keys — es fließen keine Bilddaten durchs Backend.

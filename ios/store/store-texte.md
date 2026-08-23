@@ -42,7 +42,7 @@ Probemonat) und ein Match mit Chatverlauf haben.
 > Standortfreigabe ist optional — ohne sie wird die Koordinate der
 > Postleitzahl verwendet.
 >
-> Die Foto-Verifizierung verlangt drei Live-Selfies über die Frontkamera. Sie
+> Die Alters- und Identitätsprüfung verlangt ein Live-Selfie über die Frontkamera. Es
 > ist freiwillig und für die Nutzung nicht erforderlich.
 >
 > Das Abo (5 €/Monat nach einem Gratismonat) wird derzeit über Stripe im

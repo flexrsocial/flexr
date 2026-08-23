@@ -63,6 +63,15 @@ final class AuthRepository {
         session.save(token: response.accessToken)
     }
 
+    /// Macht eine Selbstlöschung innerhalb der 30-Tage-Karenzzeit rückgängig
+    /// und meldet gleich an. Nimmt dieselben Zugangsdaten wie [login] entgegen.
+    func reactivate(email: String, password: String) async throws {
+        let response = try await api.reactivate(
+            LoginRequestDTO(email: email.trimmingCharacters(in: .whitespaces), password: password)
+        )
+        session.save(token: response.accessToken)
+    }
+
     /// Abmelden: Token verwerfen und den lokalen Bestand leeren.
     func logout() async {
         session.clear()
