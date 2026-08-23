@@ -1,8 +1,8 @@
 # FLEXR — Handoff für ein anderes Gerät / Claude Code
 
-Stand: **23.08.2026**, Abend
+Stand: **23.08.2026**, spätabends
 
-Produktstand: `git log -1 --oneline` auf `origin/main` ist `2885d7a`, auf dem
+Produktstand: `git log -1 --oneline` auf `origin/main` ist `bca5073`, auf dem
 VPS ausgerollt und live geprüft. Aufbau des Dokuments: erst die Eckdaten,
 dann die Sitzung vom **23.08.**, dann die vom **21.08.**; die Build-, Test-
 und Deploy-Abschnitte am Ende gelten sitzungsübergreifend.
@@ -28,11 +28,31 @@ und Deploy-Abschnitte am Ende gelten sitzungsübergreifend.
 
 ## Sitzung 23.08.2026 (Web-Frontend: Layout + Listen-Aktualisierung)
 
-Zwei Commits, beide nur `frontend/app/index.html`, beide gepusht und
-ausgerollt. Keine Backend-Änderung, keine Migration, kein Dienst-Neustart —
-nginx liefert die Datei statisch aus.
+Vier Commits, alle gepusht und ausgerollt. Drei davon reines Web-Frontend,
+der vierte (`bca5073`) zusätzlich Backend — **keine Migration** (nur ein
+neuer Query-Parameter auf einem bestehenden Endpunkt), aber ein
+**Dienst-Neustart** war dafür nötig. Reihenfolge:
 
-### 1. Landingpage: "Match. Train. Repeat." rutschte beim Tabwechsel nach unten
+| Commit | Inhalt |
+|---|---|
+| `3d00cf2` | Hero oben angeheftet *(wieder zurückgenommen, s. u.)* |
+| `2885d7a` | Chat-/Matchliste ziehen von selbst nach |
+| `42b9b9b` | Revert des Hero-Anheftens — Hero wieder mittig |
+| `bca5073` | Blockierte Personen anzeigen und Blockierung aufheben |
+
+### 1. Landingpage: Hero angeheftet — und auf Wunsch wieder zurückgenommen
+
+**Endstand: der Hero ist wieder mittig, so wie vor dem 23.08.** Commit
+`3d00cf2` hatte ihn oben angeheftet, Commit `42b9b9b` nimmt das wieder
+zurück — dem Nutzer gefällt die mittige Ausrichtung besser, das Mitwandern
+der Headline ist damit bewusst in Kauf genommen. Der Rest dieses Abschnitts
+beschreibt, was das Anheften gelöst hätte, falls die Frage wiederkommt.
+
+Zurückgenommen wurde beides, was zusammengehörte: das `align-self:start` und
+die Aufteilung des oberen Abstands auf beide Auth-Screens (die diente allein
+den letzten 28px Versatz). **Nicht** zurückgenommen: das `width:100%` auf
+`.screen.active` im Mobil-Layout — das hing nicht am Anheften, sondern behebt
+eine unabhängige Ungereimtheit (siehe unten).
 
 Commit `3d00cf2`. Beim Umschalten von "Einloggen" auf "Registrieren" wanderte
 die Headline knapp **400px** nach unten und war im ersten Bildschirm gar nicht
@@ -95,6 +115,35 @@ sonst würde alle 20s die halbe Liste ersetzt und Hover-/Fokuszustand gingen
 verloren. `loadChats`/`loadMatches` setzen den Vergleichswert zurück, weil sie
 vorher den „Lädt …"-Platzhalter schreiben.
 
+### 3. Blockierungen sichtbar machen und aufheben können
+
+Commit `bca5073`. Das war zunächst als Fund ohne Fix notiert und ist auf
+Wunsch nachgezogen worden.
+
+Neu im Web unter **Konto → Datenschutz & Sicherheit** der Abschnitt
+„Blockierte Personen": Name, Alter, Vorschaubild, Datum, Knopf „Aufheben".
+
+Backend: `GET /api/blocks` bekommt ein optionales **`?detail=true`** und
+liefert dann `BlockedUserOut` statt der reinen ID-Liste. Die Standardform
+bleibt absichtlich unverändert — Android (`FlexrApi.listBlocks`) und iOS
+(`FlexrAPI.listBlocks`) deklarieren `List<String>` bzw. `[String]`, eine
+geänderte Standardantwort würde dort beim ersten Aufruf brechen. Auf diesem
+Gerät lässt sich weder Android noch iOS übersetzen, deshalb blieben beide
+unangetastet; ein Test hält die alte Form fest, damit sie nicht versehentlich
+kippt. **Wer als Nächstes an Android oder iOS arbeitet und dort bauen kann:**
+dann lohnt es, die Standardform auf die Detailfassung umzustellen und die drei
+Deklarationen mitzuziehen — der Parameter ist nur ein Kompatibilitätskrücke.
+
+`BlockedUserOut` zeigt bewusst nur, was zum Wiedererkennen nötig ist. Kein
+Bio, kein Gym, keine Entfernung — wer jemanden blockiert hat, soll dessen
+Profil nicht weiter einsehen können. Fürs Foto gilt dieselbe Regel wie im
+Deck: nur Status `approved`.
+
+**Beim Bauen präzisiert und wichtig zu wissen:** Blockieren **löst ein Match
+nicht auf**, es blendet es nur aus. Nach dem Aufheben sind Match *und*
+Chatverlauf wieder da. Der erste Entwurf des Hinweistextes behauptete das
+Gegenteil; korrigiert, und ein Test hält das Verhalten jetzt fest.
+
 ### Was sonst noch getestet wurde (alles unauffällig)
 
 Zwei Testkonten über die echte Oberfläche angelegt, gematcht, in beide
@@ -116,27 +165,23 @@ Richtungen geschrieben:
 - Abgelaufener Probemonat: Deck und Matches 402, Paywall-Bildschirm korrekt.
 - Match auflösen, Blockieren (beidseitig wirksam), Kontolöschung inkl.
   sofort ungültigem Token und 30-Tage-Reaktivierungsfrist.
-- Backend-Suite vor und nach den Änderungen: **362 Tests grün**.
+- Backend-Suite vor und nach den Änderungen: **362 Tests grün**,
+  nach dem Blockier-Feature **367** (5 neue in `tests/test_safety.py`).
 
 Kein Stripe-Checkout ausgelöst (wie in den Sitzungen davor bewusst vermieden).
 
-### Fund ohne Fix: Blockieren lässt sich nirgends rückgängig machen
+### Beobachtung am Rande: doppelte Element-IDs in den Profilkarten
 
-Das Backend kann es — `GET /api/blocks` und `DELETE /api/blocks/{user_id}` in
-`backend/app/routers/safety.py`. **Kein Client nutzt das:**
-
-- Web (`frontend/app/index.html`) ruft ausschließlich `POST /api/blocks` auf
-  (zwei Stellen). Es gibt keine Liste der Blockierten und kein Aufheben.
-- Android hat API- und Repository-Ebene (`FlexrApi.listBlocks/unblock`,
-  `SafetyRepository.blockedUserIds/unblock`), aber **kein** ViewModel und
-  keinen Bildschirm, der sie benutzt.
-- iOS hat ebenfalls nur die API-Ebene (`FlexrAPI.swift`).
-
-Wirkung: Ein Fehlgriff auf „Blockieren" ist aus Nutzersicht auf **allen**
-Plattformen endgültig, und niemand kann nachsehen, wen er blockiert hat.
-Das ist eine Funktionslücke, kein Bug — deshalb bewusst nicht im Vorbeigehen
-gebaut. Zu klären wäre auch, ob `GET /api/blocks` (liefert nur IDs) für eine
-brauchbare Liste um Name und Foto erweitert werden muss.
+`buildCardEl()` vergibt in **jeder** erzeugten Karte dieselben IDs
+(`btnReportCard`, `btnBlockCard`, `btnUnmatchCard`). Stehen Swipe-Deck und
+Match-Profil gleichzeitig im DOM — was der Normalfall ist —, gibt es diese
+IDs mehrfach. Funktional geht das gut, weil die Handler über
+`el.querySelector` innerhalb der jeweiligen Karte gebunden werden und nicht
+über `getElementById`. Es ist trotzdem ungültiges HTML und eine Falle: ein
+`document.getElementById('btnBlockCard')` trifft immer die **erste** Karte im
+Dokument, nicht die sichtbare. Beim Testen ist genau das zweimal passiert und
+sah jedes Mal nach einem Anwendungsfehler aus. Nicht angefasst — die Umstellung
+auf Klassen berührt mehrere Stellen und hat keinen Nutzerwert.
 
 ### Stolperstein beim Deploy: VPS-Pull braucht den Deploy-Key explizit
 
@@ -420,24 +465,28 @@ echten Löschweg (`delete_storage_objects`/`storage_keys_for_user` +
 
 ## Noch offen / bewusst nicht erledigt
 
-1. **Blockieren lässt sich auf keiner Plattform rückgängig machen** —
-   Backend kann es, kein Client bietet es an. Einzelheiten und offene
-   Fragen im Abschnitt „Fund ohne Fix" der Sitzung 23.08. Neu und
-   unbearbeitet.
+1. ~~**Blockieren lässt sich auf keiner Plattform rückgängig machen**~~ —
+   **fürs Web am 23.08. erledigt** (`bca5073`, siehe Abschnitt 3 der
+   Sitzung 23.08.). **Android und iOS haben es weiterhin nicht**: dort
+   existiert nur die API-Ebene, kein Bildschirm. Wer dort baut, sollte bei
+   der Gelegenheit `GET /api/blocks` auf die Detailfassung als Standard
+   umstellen und `?detail=true` wieder loswerden.
 2. **`~/.ssh/config` auf dem VPS fehlt**, deshalb scheitert der weiter unten
    dokumentierte `git pull`-Befehl. Workaround und Vorschlag im Abschnitt
    „Stolperstein beim Deploy" (23.08.). Serverkonfiguration — abzusprechen.
-3. **Web-Änderungen vom 23.08. sind ausgerollt und live geprüft**, aber vom
-   Nutzer noch nicht selbst in Augenschein genommen.
-4. **Android und iOS haben die Layout- und Listen-Fixes vom 23.08. nicht.**
-   Der Layout-Fix ist reines Web (Landingpage gibt es in den Apps nicht).
-   Der Listen-Fix dagegen könnte sinngemäß auch dort greifen: prüfen, ob
-   Chat-/Matchliste in Android und iOS bei eintreffenden Nachrichten von
-   selbst nachziehen oder erst beim Tabwechsel.
+3. **Änderungen vom 23.08. sind ausgerollt und live geprüft**, aber vom
+   Nutzer noch nicht selbst in Augenschein genommen — insbesondere der neue
+   Abschnitt „Blockierte Personen" im Konto.
+4. **Android und iOS haben den Listen-Fix vom 23.08. nicht.** Prüfen, ob
+   Chat-/Matchliste dort bei eintreffenden Nachrichten von selbst nachziehen
+   oder erst beim Tabwechsel. (Der Layout-Punkt entfällt — er war reines
+   Web und ist ohnehin zurückgenommen.)
 5. **Ring-Fix (21.08., Punkt 1) vom Nutzer noch nicht nach dem zweiten
    Anlauf bestätigt.** Zuerst nachfragen bzw. mit hartem Reload
    gegenprüfen.
-6. ~~**iOS hat dieselben Bugs wie Punkt 3 und vermutlich Punkt 2**~~ —
+6. **Doppelte Element-IDs in den Profilkarten** (siehe „Beobachtung am
+   Rande", 23.08.) — ungültiges HTML, funktional derzeit harmlos.
+7. ~~**iOS hat dieselben Bugs wie Punkt 3 und vermutlich Punkt 2**~~ —
    **am 23.08.2026 erledigt**, zusammen mit allem anderen, was seit dem
    15.08. an iOS vorbeigelaufen war. Einzelheiten in
    [ios/HANDOFF.md](ios/HANDOFF.md), Abschnitt „Was am 23.08.2026
@@ -446,19 +495,19 @@ echten Löschweg (`delete_storage_objects`/`storage_keys_for_user` +
    iOS-App schickte keinen, jeder Abo-Abschluss wäre mit 422 gescheitert.
    **Die iOS-App ist weiterhin nie übersetzt worden** (kein Mac vorhanden);
    der Mac-Teil steckt jetzt in `ios/tools/mac-build.sh`.
-7. **Android AAB 2.4.6 (versionCode 34) ist gebaut, signiert und auf dem
+8. **Android AAB 2.4.6 (versionCode 34) ist gebaut, signiert und auf dem
    VPS-Downloadordner live** — aber noch nicht in die Play Console
    hochgeladen. `PLAY-CONSOLE.md` beachten: Data-Safety-Angaben, Kamera/
    Ausweisfotos und Deep Links prüfen. Enthält gegenüber 2.4.4 echten neuen
    Code (Punkte 2, 3, 4, 6, 9, 10 der Sitzung 21.08.) — kein reines
    Versions-Label-Update.
-8. **Kein kontrollierter Stripe-Testcheckout** ausgelöst (wie in den
+9. **Kein kontrollierter Stripe-Testcheckout** ausgelöst (wie in den
    vorherigen Sitzungen auch bewusst vermieden).
-9. Die fünf Test-Frauenprofile eignen sich weiterhin für Deck-/Match-/
+10. Die fünf Test-Frauenprofile eignen sich weiterhin für Deck-/Match-/
    Chat-Testen — nach Abschluss löschen (siehe oben).
-10. `backend/tests/test_public_frontend.py` lief auch am 23.08. mehrfach
+11. `backend/tests/test_public_frontend.py` lief auch am 23.08. mehrfach
     grün mit — der in einer früheren Sitzung offene Punkt dazu ist erledigt.
-11. Google Search Console / Sitemap-Status (aus einer früheren Sitzung
+12. Google Search Console / Sitemap-Status (aus einer früheren Sitzung
     offen) wurde auch am 23.08. nicht geprüft.
 
 ## Auf einem anderen Gerät starten
@@ -505,8 +554,8 @@ venv/bin/pip install -r requirements-dev.txt
 venv/bin/python -m pytest -q
 ```
 
-Stand 23.08.2026: **362 Tests, alle grün** (vor und nach den Änderungen
-jener Sitzung gelaufen).
+Stand 23.08.2026: **367 Tests, alle grün** (362 vor dem Blockier-Feature,
+5 kamen mit ihm dazu).
 
 Android (siehe Toolchain-Abschnitt oben für JDK/SDK-Setup):
 
@@ -596,14 +645,16 @@ curl -fsSI https://flexr.social/dl-a616e78274de323b/flexr-X.Y.Z.aab
 - Zuerst `git fetch origin` + HEAD-Abgleich (siehe oben), erst danach
   irgendetwas anfassen. Beim Deploy den Deploy-Key mitgeben (siehe
   „Normaler Commit- und Deploy-Ablauf"), sonst scheitert der Pull.
-- Nachfragen, ob das Layout der Landingpage (Headline bleibt beim Wechsel
-  auf „Registrieren" oben stehen) so gefällt — ausgerollt, aber vom Nutzer
-  noch nicht begutachtet.
+- Nachfragen, ob der neue Abschnitt „Blockierte Personen" (Konto →
+  Datenschutz & Sicherheit) so passt — ausgerollt, aber vom Nutzer noch
+  nicht begutachtet.
+- Das Anheften der Landing-Headline ist auf Wunsch **zurückgenommen**; der
+  Hero steht wieder mittig. Nicht erneut „reparieren", ohne zu fragen.
 - Nachfragen/prüfen, ob der zweite Ring-Fix (21.08.) tatsächlich behoben
   hat — weiterhin unbestätigt.
-- Entscheiden, ob die Blockier-Liste samt Aufheben gebaut wird (Punkt 1
-  unter „Noch offen"): Backend kann es, kein Client zeigt es. Dabei klären,
-  ob `GET /api/blocks` Name und Foto mitliefern muss.
+- Die Blockier-Liste gibt es jetzt im Web. Wer an Android oder iOS baut:
+  dort fehlt sie noch, und `?detail=true` auf `GET /api/blocks` sollte bei
+  der Gelegenheit zum Standard werden.
 - Prüfen, ob Android und iOS denselben Listen-Bug haben wie das Web
   (Chat-/Matchliste zieht bei neuer Nachricht nicht von selbst nach).
 - iOS ist am 23.08.2026 auf 2.4.9 nachgezogen worden (siehe
