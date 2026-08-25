@@ -22,6 +22,7 @@ from datetime import datetime
 from fastapi import APIRouter, BackgroundTasks, Depends, Request
 from sqlalchemy.orm import Session
 
+from .. import telegram
 from ..database import get_db
 from ..mailer import email_configured, send_notice_acknowledgement
 from ..models import Notice, NoticeCategory
@@ -97,6 +98,11 @@ def submit_notice(
     db.add(notice)
     db.commit()
     db.refresh(notice)
+
+    telegram.notify_admin_task(
+        f"🆕 Neue DSA-Meldung ({notice.reference}) im FLEXR-Admin-Dashboard: "
+        f"{category_label(payload.category)}"
+    )
 
     # Ohne konfiguriertes SMTP kann keine Empfangsbestätigung rausgehen. Das
     # dem Melder zu verschweigen wäre der schlimmere Fehler: Er soll sich das

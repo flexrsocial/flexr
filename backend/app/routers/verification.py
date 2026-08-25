@@ -20,7 +20,7 @@ from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 
-from .. import storage
+from .. import storage, telegram
 from ..database import get_db
 from ..mailer import email_configured
 from ..models import User, VerificationRequest, VerificationStatus
@@ -330,6 +330,9 @@ def submit_document(
     active.submitted_at = datetime.utcnow()
     active.review_reason = None
     db.commit()
+    telegram.notify_admin_task(
+        f"🆕 Neue Alters-/Identitätsprüfung im FLEXR-Admin-Dashboard: {current_user.name}"
+    )
     return _status_out(current_user, active)
 
 

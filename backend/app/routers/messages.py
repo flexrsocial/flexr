@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy import and_, or_
 from sqlalchemy.orm import Session
 
+from .. import telegram
 from ..database import get_db
 from ..models import Block, Match, Message, ModerationAction, User
 from ..moderation import restriction_detail
@@ -142,5 +143,9 @@ def send_message(
     db.add(message)
     db.commit()
     db.refresh(message)
+    if message.is_flagged:
+        telegram.notify_admin_task(
+            f"🆕 Nachricht markiert im FLEXR-Admin-Dashboard: Grund {flag_reason}"
+        )
     # Der Absender bekommt sein Original zurück, plus den Zensur-Hinweis
     return _message_out(message, current_user.id)

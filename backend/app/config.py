@@ -41,6 +41,12 @@ class Settings(BaseSettings):
     mail_from_name: str = "FLEXR"
     support_email: str = "flexr.social@proton.me"
 
+    # Telegram-Push ans Admin-Team, sobald im Admin-Dashboard eine neue
+    # Aufgabe entsteht (Meldung, Foto-Prüfung, Verifizierung, ...). Ohne
+    # Zugangsdaten wird nur geloggt (Entwicklungs-/Testbetrieb).
+    telegram_bot_token: str = ""
+    telegram_chat_id: str = ""
+
     class Config:
         env_file = ".env"
 

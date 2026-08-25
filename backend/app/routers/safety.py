@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 
 from ..age import age_on
 from ..database import get_db
+from .. import telegram
 from ..models import Block, ModerationAction, Photo, PhotoStatus, Report, User
 from ..moderation import APPEAL_HINT
 from ..rate_limit import limiter
@@ -44,6 +45,10 @@ def create_report(
     db.add(report)
     db.commit()
     db.refresh(report)
+
+    telegram.notify_admin_task(
+        f"🆕 Neue Meldung ({report.reference}) im FLEXR-Admin-Dashboard: {payload.reason}"
+    )
 
     # Art. 16 Abs. 4 DSA: unverzügliche Empfangsbestätigung mit Aktenzeichen.
     return ReportAck(

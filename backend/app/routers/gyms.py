@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
+from .. import telegram
 from ..database import get_db
 from ..models import Gym, GymStatus
 from ..rate_limit import limiter
@@ -98,6 +99,7 @@ def suggest_gym(
     db.add(gym)
     db.commit()
     db.refresh(gym)
+    telegram.notify_admin_task(f"🆕 Neuer Gym-Vorschlag im FLEXR-Admin-Dashboard: {gym.name}")
     return GymOut(
         id=gym.id, name=gym.name, street=gym.street, house_number=gym.house_number,
         plz=gym.plz, city=gym.city, label=gym.label,

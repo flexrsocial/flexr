@@ -5,7 +5,7 @@ from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
-from .. import consents, mailer
+from .. import consents, mailer, telegram
 from ..database import get_db
 from ..geo import city_for_plz
 from ..models import GYM_CHOICES, ConsentType, Photo, PhotoStatus, User
@@ -311,6 +311,9 @@ def add_photo(
     db.add(photo)
     db.commit()
     db.refresh(current_user)
+    telegram.notify_admin_task(
+        f"🆕 Neues Foto zur Prüfung im FLEXR-Admin-Dashboard: {current_user.name}"
+    )
     return current_user
 
 
