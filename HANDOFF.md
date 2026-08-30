@@ -1,11 +1,13 @@
 # FLEXR — Handoff für ein anderes Gerät / Claude Code
 
-Stand: **23.08.2026**, spätabends
+Stand: **30.08.2026**, abends
 
-Produktstand: `git log -1 --oneline` auf `origin/main` ist `bca5073`, auf dem
-VPS ausgerollt und live geprüft. Aufbau des Dokuments: erst die Eckdaten,
-dann die Sitzung vom **23.08.**, dann die vom **21.08.**; die Build-, Test-
-und Deploy-Abschnitte am Ende gelten sitzungsübergreifend.
+Produktstand: `git log -1 --oneline` auf `origin/main` ist `d2042b9`,
+gepusht — **auf dem VPS noch nicht ausgerollt** (Backend unverändert, siehe
+unten; nur Web/Android/iOS betroffen, Web-Deploy steht noch aus). Aufbau des
+Dokuments: erst die Eckdaten, dann die Sitzung vom **30.08.**, dann **23.08.**,
+dann **21.08.**; die Build-, Test- und Deploy-Abschnitte am Ende gelten
+sitzungsübergreifend.
 
 ## Eckdaten (sitzungsübergreifend)
 
@@ -21,23 +23,163 @@ und Deploy-Abschnitte am Ende gelten sitzungsübergreifend.
   nicht mit FLEXR verwandte Projekte (`tarifbot-*`, `ediktmonitor`,
   `gasfees`, ein `defi`-Ordner). Bei Aufräumarbeiten in `/tmp` oder
   `~/.pm2` etc. nichts anfassen, das nicht eindeutig zu `/flexr` gehört.
-- **AAB-Download (aktuell, 2.4.9 / versionCode 37):**
-  <https://flexr.social/dl-5d8a93fc22b232c9/app-prod-release.aab>
-  SHA-256 `7431c17f6333c6c3e6c3cfac101e9ce565902c89ffdf5d9417969ba19f3b51c1`,
-  7.636.045 Bytes, gebaut am 23.08.2026, mit dem FLEXR-Schlüssel signiert
+- **AAB-Download (aktuell, 2.5.0 / versionCode 38):**
+  <https://flexr.social/dl-a616e78274de323b/flexr-2.5.0.aab>
+  SHA-256 `0d6fd2aad4f1f64039564adb2cdfc2c56f4d15d7ebd1cd38475c6995889d6612`,
+  7.648.665 Bytes, gebaut am 30.08.2026, mit dem FLEXR-Schlüssel signiert
   (`META-INF/FLEXR.SF`/`.RSA` im Bundle). Entspricht exakt dem Quellstand
-  (`android-native/app/build.gradle.kts`: versionCode 37, versionName 2.4.9).
-- **Zwei Downloadordner, beide unversioniert und beide behalten:**
-  `dl-a616e78274de323b/` enthält die versioniert benannten AABs 2.4.0–2.4.6,
-  `dl-5d8a93fc22b232c9/` das aktuelle Bundle — dort allerdings unter dem
-  generischen Namen `app-prod-release.aab` statt nach dem sonst üblichen
-  Muster `flexr-X.Y.Z.aab`. Beim nächsten Build lohnt es, das zu
-  vereinheitlichen; solange zwei Ordner mit unterschiedlicher Namenskonvention
-  nebeneinanderstehen, ist „welches ist das aktuelle?" jedes Mal eine
-  Rückfrage.
-- Ältere AABs (2.4.0–2.4.6) liegen noch auf dem VPS, unkritisch, bei
-  Gelegenheit aufräumbar. **Achtung:** Das im Handoff vom 21.08. als
-  „aktuell" geführte 2.4.6 ist es seit dem 23.08. nicht mehr.
+  (`android-native/app/build.gradle.kts`: versionCode 38, versionName 2.5.0).
+  **Noch nicht in die Play Console geladen** (2.4.9/versionCode 37 war das,
+  siehe „Noch offen").
+- **Downloadordner-Namenskonvention vereinheitlicht** (war seit dem 23.08.
+  als Punkt offen): dieses Bundle liegt als `flexr-2.5.0.aab` in
+  `dl-a616e78274de323b/`, dem Ordner mit den versioniert benannten AABs
+  (2.4.0–2.4.6). Der zweite Ordner `dl-5d8a93fc22b232c9/` enthält weiterhin
+  das alte 2.4.9-Bundle unter dem generischen Namen `app-prod-release.aab` —
+  unkritisch, kann bei Gelegenheit aufgeräumt werden, aber ab jetzt landen
+  neue Builds einheitlich in `dl-a616e78274de323b/` als `flexr-X.Y.Z.aab`.
+- Ältere AABs (2.4.0–2.4.6, plus das 2.4.9 im anderen Ordner) liegen noch auf
+  dem VPS, unkritisch, bei Gelegenheit aufräumbar.
+
+## Sitzung 30.08.2026 (Android/iOS: Blockier-Liste + Listen-Poll, Telegram-Diagnose)
+
+Drei Commits, alle gepusht (`3ad34da`, `f265ae8`, `d2042b9`) — **Web/Backend
+auf dem VPS noch nicht ausgerollt**, nur das AAB wurde hochgeladen (dazu
+unten mehr). Vorgeschichte: Der lokale Arbeitsstand auf diesem
+MEGA-synchronisierten Gerät hatte den Telegram-Push (Commit `086341b`, von
+einem anderen Gerät aus gepusht) bereits unversioniert auf der Platte liegen
+— `git fetch` + `git reset --mixed origin/main` (siehe Abschnitt „Auf einem
+anderen Gerät starten") hat das sauber aufgelöst, einzige echte Differenz
+war ein bereits bekannter Trip-and-fall: `backend/.env.example` war auf
+generische Platzhalter zurückgefallen, per `git checkout origin/main --
+backend/.env.example` verworfen.
+
+### 1. Android + iOS: „Blockierte Personen" — Commit `f265ae8`
+
+Zieht das Web-Feature vom 23.08. (`bca5073`) auf beide native Clients nach:
+neuer Abschnitt unter Konto → Datenschutz & Sicherheit mit Name, Alter,
+Vorschaubild und Blockierdatum je blockierter Person, Knopf „Aufheben".
+Backend unverändert — `GET /api/blocks?detail=true` und
+`DELETE /api/blocks/{id}` gab es schon, nur eben keinen Bildschirm dafür.
+Bewusst **nicht** die von der 23.08.-Notiz vorgeschlagene Umstellung des
+Server-Standards auf die Detailfassung gemacht: eine neue Methode
+(`listBlockedUsers`/`listBlocks(detail:)`) neben der alten reicht, und ohne
+iOS-Compiler wäre eine Standardänderung nicht sicher verifizierbar gewesen.
+
+Android: `FakeFlexrApi` (Testdouble) um die neue Methode ergänzt — die
+bekannte Falle aus früheren Sitzungen (siehe „Android-Build" unten) hätte
+sonst erst beim separaten Unit-Test-Compile zugeschlagen. Toolchain
+(JDK 17 + Android SDK 36) war auf diesem Gerät nach einem Neustart wieder
+weg (liegt unter `/tmp`, siehe „Android-Build") und musste neu installiert
+werden. `compileProdReleaseKotlin`, `compileProdReleaseUnitTestKotlin` und
+die volle Unit-Suite liefen grün: **51 Tests**.
+
+iOS: wie in jeder bisherigen Sitzung **ungebaut** (kein Mac verfügbar) — Code
+sorgfältig nach bestehenden Mustern geschrieben (`ConsentList`/`AccountModel`
+als Vorlage für `BlockedUsersList`/die neuen `AccountModel`-Methoden), aber
+nicht compilerverifiziert. Erster Schritt auf einem Mac bleibt
+`./ios/tools/mac-build.sh`.
+
+### 2. Android + iOS: Matches/Chats aktualisieren sich still im Hintergrund — Commit `d2042b9`
+
+Der am 23.08. offene Prüfpunkt („haben Android/iOS denselben Listen-Bug wie
+Web?") ist geklärt: **nein**, strukturell nicht. Android zeichnet Matches/
+Chats aus Room-`Flow`s, iOS aus `@Observable`-Arrays — beide Wege redrawen
+automatisch, sobald sich die zugrundeliegenden Daten ändern, ganz gleich ob
+der Auslöser eine manuelle Aktualisierung oder ein Hintergrundabgleich ist.
+Der Web-Bug (Badge aktualisiert sich, Liste nicht) kann dort gar nicht erst
+entstehen.
+
+Einzige echte Lücke: kein **Vordergrund**-Poll in Web-Kadenz (20s), während
+der Bildschirm offen ist — die vorhandenen Hintergrund-Worker
+(`NewMessageWorker` Android, `MessageRefreshService` iOS) sind an das
+OS-Minimum von 15 Minuten gebunden. Nachgezogen als „Nice to have":
+- Android: `MatchesViewModel.silentRefresh()` (kein Ladezustand, keine
+  Fehlermeldung — die würden bei jedem 20s-Tick unnötig aufblitzen) plus
+  `LaunchedEffect` in `MatchesScreen`/`ChatsScreen`, bricht automatisch ab,
+  sobald der Bildschirm die Komposition verlässt.
+- iOS: zusätzlicher `.task` in `MatchesView`/`ChatsView` nach dem Vorbild von
+  `ChatModel.poll()` — SwiftUI bricht die Aufgabe beim Verlassen der Ansicht
+  selbst ab.
+
+**Da wieder Kotlin-Code unter `android-native/` geändert wurde, war ein
+neues AAB fällig** (anders als am 23.08., wo das explizit nicht der Fall
+war). Versionierung auf **2.5.0 / versionCode 38** angehoben (vorher 2.4.9 /
+37). Build lief anfangs mit `FAILURE ... lintVitalAnalyzeProdRelease ...
+Metaspace` — dieses Gerät hat nur 7,6 GB RAM, `~/.gradle/gradle.properties`
+mit `-Xmx2048m -XX:MaxMetaspaceSize=384m` reichte für `lintVital` nicht.
+Angehoben auf `-Xmx2560m -XX:MaxMetaspaceSize=768m` (Kotlin-Daemon auf
+512m), danach lief `bundleProdRelease` durch. **Falle dabei:** Der erste
+fehlgeschlagene Lauf hinterließ trotz `FAILURE` ein *scheinbar* gültiges
+Bundle im Ausgabeverzeichnis — tatsächlich war das die Aug-23-Altlast
+(SHA-256 `7431c17f...`, identisch mit dem in diesem Dokument zuvor
+geführten 2.4.9-Bundle). Vor dem zweiten Versuch die Datei gelöscht und nach
+dem Build **Prüfsumme UND den `2.5.0`-String im Manifest** kontrolliert,
+nicht nur „Datei existiert".
+
+Neues Bundle hochgeladen nach
+`flexr-vps:/flexr/frontend/dl-a616e78274de323b/flexr-2.5.0.aab` (Prüfsumme
+lokal/remote verglichen, per `curl -fsSI` gegengeprüft) — Details in den
+Eckdaten oben. **Noch nicht in der Play Console** (siehe „Noch offen").
+
+### 3. Telegram-Push-Diagnose: geklärt — kein Bug
+
+Befund gemeldet: „Jemand hat sich registriert, ich habe aber keine
+Telegram-Nachricht bekommen, obwohl das Update im Admin-Dashboard
+auftauchte." Geprüft:
+
+- `TELEGRAM_BOT_TOKEN`/`TELEGRAM_CHAT_ID` sind auf dem VPS gesetzt (nicht
+  leer).
+- `getMe` und `getChat` gegen die Telegram-Bot-API laufen beide erfolgreich
+  vom VPS aus — Bot-Token gültig, Chat (`429666581`, privater Chat mit
+  Julian/`@blktomcat`) für den Bot sichtbar. Netzwerk/Firewall zu
+  `api.telegram.org` ist also nicht das Problem.
+- `flexr-api.service` läuft seit dem 27.08. mit Commit `086341b` (dem
+  Telegram-Feature) — der Code ist live.
+- Journal-Log (`journalctl -u flexr-api`, geht bis 14.07. zurück, kein
+  Rotationsproblem) zeigt **keine** Telegram-Fehlermeldung — aber
+  `notify_admin_task()` loggt bei **Erfolg** bewusst nichts (nur bei
+  fehlender Konfiguration oder Fehlschlag), ein stiller Erfolg sieht in den
+  Logs also identisch zu „nie aufgerufen" aus.
+- Timeline aus der DB rekonstruiert: Die letzte echte (Nicht-Test-)
+  Registrierung vor dieser Sitzung war **Melanie** (`meli.moeser@gmail.com`,
+  24.08.2026 18:52) — **einen Tag vor** dem Telegram-Deploy (`086341b`,
+  25.08. 14:47). Für ihre Registrierung *konnte* also gar kein Push kommen,
+  das Feature existierte serverseitig noch nicht. Ihr Foto lag seither
+  unbearbeitet in der Warteschlange und wurde erst in dieser Sitzung
+  (30.08., zusammen mit drei weiteren) über das Admin-Dashboard freigegeben.
+- Während der Sitzung selbst gab es einen einzelnen `POST
+  /api/profiles/me/photos` um 17:23:16 (gefolgt von einem `DELETE` vier
+  Sekunden später) von derselben IP wie die Admin-Aktionen davor/danach —
+  sieht nach einem eigenen Testlauf des Nutzers aus, nicht nach einer
+  fremden Registrierung. Ob **dieser** Aufruf einen Telegram-Push ausgelöst
+  hat, lässt sich aus den Logs nicht ablesen (s. o., Erfolg loggt nichts).
+
+**Vom Nutzer bestätigt:** Die konkret gemeldete Registrierung (Melanie) war
+tatsächlich der Fall (a) — ihr Foto-Upload lag zeitlich vor der Erstellung
+des Bots, das Feature existierte für dieses Ereignis schlicht noch nicht.
+Kein Versandfehler, der Push funktioniert. Kein weiterer Sendetest nötig.
+
+**Nebenbefund, weiterhin relevant:** Bei der `getChat`-Diagnose ist im
+Terminal-Output kurzzeitig der **volle Bot-Token im Klartext** gelandet
+(fehlerhaftes `sed`-Redacting-Muster). Nur in dieser lokalen Session
+sichtbar, aber sicherheitshalber lohnt es, den Token über @BotFather
+(`/revoke`) neu zu erzeugen und in `backend/.env` zu aktualisieren.
+
+### Was in dieser Sitzung nicht angefasst wurde
+
+- **Kein Deploy auf den VPS** für Web/Backend — die drei Commits sind
+  gepusht, aber `git pull` + Neustart auf dem VPS stehen noch aus (nur das
+  AAB wurde direkt in den Download-Ordner geladen, das ist unabhängig vom
+  Git-Deploy). Backend-Code ist ohnehin unverändert, ein Pull bräuchte also
+  weder Migration noch Neustart, nur den reinen Dateistand.
+- Punkt 2 aus der 23.08.-Liste („offene Fragen ans Web-Update, vom Nutzer
+  noch nicht selbst begutachtet") wurde nur code-seitig gegengeprüft
+  (Prüfsumme, CSS), nicht visuell auf einem Gerät.
+- Kein Stripe-Testcheckout (weiterhin bewusst vermieden, s. u.) — der Nutzer
+  hat lokal `sk_test_...`-Schlüssel konfiguriert, ein Checkout würde also
+  kein echtes Geld bewegen, aber das Ausfüllen von Kartendaten (auch
+  Test-Kartennummern) bleibt eine Aufgabe für den Nutzer selbst.
 
 ## Sitzung 23.08.2026 (Web-Frontend: Layout + Listen-Aktualisierung)
 
@@ -501,26 +643,28 @@ echten Löschweg (`delete_storage_objects`/`storage_keys_for_user` +
 ## Noch offen / bewusst nicht erledigt
 
 1. ~~**Blockieren lässt sich auf keiner Plattform rückgängig machen**~~ —
-   **fürs Web am 23.08. erledigt** (`bca5073`, siehe Abschnitt 3 der
-   Sitzung 23.08.). **Android und iOS haben es weiterhin nicht**: dort
-   existiert nur die API-Ebene, kein Bildschirm. Wer dort baut, sollte bei
-   der Gelegenheit `GET /api/blocks` auf die Detailfassung als Standard
-   umstellen und `?detail=true` wieder loswerden.
+   **erledigt**: Web am 23.08. (`bca5073`), Android + iOS am 30.08.
+   (`f265ae8`, siehe Sitzung 30.08. Punkt 1). Bewusst **nicht** mitgezogen:
+   die Umstellung des `GET /api/blocks`-Standards auf die Detailfassung —
+   die neuen Methoden (`listBlockedUsers`/`listBlocks(detail:)`) laufen
+   parallel zur alten, siehe Docstring in `safety.py`.
 2. **`~/.ssh/config` auf dem VPS fehlt**, deshalb scheitert der weiter unten
    dokumentierte `git pull`-Befehl. Workaround und Vorschlag im Abschnitt
    „Stolperstein beim Deploy" (23.08.). Serverkonfiguration — abzusprechen.
 3. **Änderungen vom 23.08. sind ausgerollt und live geprüft**, aber vom
    Nutzer noch nicht selbst in Augenschein genommen — insbesondere der neue
-   Abschnitt „Blockierte Personen" im Konto.
-4. **Android und iOS haben den Listen-Fix vom 23.08. nicht.** Prüfen, ob
-   Chat-/Matchliste dort bei eintreffenden Nachrichten von selbst nachziehen
-   oder erst beim Tabwechsel. (Der Layout-Punkt entfällt — er war reines
-   Web und ist ohnehin zurückgenommen.)
+   Abschnitt „Blockierte Personen" im Konto. Gilt jetzt genauso für die
+   Android/iOS-Fassung vom 30.08. (dort zusätzlich: iOS-Teil ist nicht
+   einmal compilerverifiziert, siehe Sitzung 30.08.).
+4. ~~**Android und iOS haben den Listen-Fix vom 23.08. nicht.**~~ —
+   **geklärt am 30.08.**: Beide Clients haben den Web-Bug strukturell nie
+   gehabt (reaktive Listen über Room-Flow/`@Observable`). Der fehlende
+   20s-Vordergrund-Poll wurde als Nice-to-have nachgezogen (`d2042b9`).
 5. **Ring-Fix (21.08., Punkt 1) vom Nutzer noch nicht nach dem zweiten
    Anlauf bestätigt.** Zuerst nachfragen bzw. mit hartem Reload
    gegenprüfen.
-6. **Doppelte Element-IDs in den Profilkarten** (siehe „Beobachtung am
-   Rande", 23.08.) — ungültiges HTML, funktional derzeit harmlos.
+6. ~~**Doppelte Element-IDs in den Profilkarten**~~ — **am 30.08. erledigt**
+   (`3ad34da`), IDs durch Klassen ersetzt.
 7. ~~**iOS hat dieselben Bugs wie Punkt 3 und vermutlich Punkt 2**~~ —
    **am 23.08.2026 erledigt**, zusammen mit allem anderen, was seit dem
    15.08. an iOS vorbeigelaufen war. Einzelheiten in
@@ -529,20 +673,40 @@ echten Löschweg (`delete_storage_objects`/`storage_keys_for_user` +
    verlangt seit dem 17.08. einen Körper mit beiden FAGG-Erklärungen — die
    iOS-App schickte keinen, jeder Abo-Abschluss wäre mit 422 gescheitert.
    **Die iOS-App ist weiterhin nie übersetzt worden** (kein Mac vorhanden);
-   der Mac-Teil steckt jetzt in `ios/tools/mac-build.sh`.
-8. **Android AAB 2.4.9 (versionCode 37) ist gebaut, signiert und auf dem
-   VPS live** (Link in den Eckdaten) — aber **noch nicht in die Play Console
-   hochgeladen**. `PLAY-CONSOLE.md` beachten: Data-Safety-Angaben, Kamera/
-   Ausweisfotos und Deep Links prüfen. Es ist der Stand, der auch im Quelltext
-   steht; ein Neubau brächte nichts Neues.
-9. **Kein kontrollierter Stripe-Testcheckout** ausgelöst (wie in den
-   vorherigen Sitzungen auch bewusst vermieden).
+   der Mac-Teil steckt jetzt in `ios/tools/mac-build.sh`. Der Blockier-
+   Bildschirm vom 30.08. muss dort als Erstes gegengeprüft werden.
+8. **Android AAB 2.4.9 (versionCode 37) ist inzwischen in der Play Console**
+   (vom Nutzer selbst hochgeladen). Das neue **2.5.0 (versionCode 38)** vom
+   30.08. liegt gebaut, signiert und auf dem VPS bereit (Link in den
+   Eckdaten), ist aber **noch nicht in die Play Console geladen**.
+   `PLAY-CONSOLE.md` beachten — diese Sitzung hat weder neue Berechtigungen
+   noch neue Datentypen eingeführt (Blockier-Feature nutzt nur bereits
+   deklarierte Foto-/Kontodaten), die bestehenden Data-Safety-Angaben
+   bleiben also gültig.
+9. **Kein kontrollierter Stripe-Testcheckout** ausgelöst. Lokal ist ein
+   `sk_test_...`-Schlüssel konfiguriert (kein echtes Geld), aber
+   Kartendaten — auch Stripes Test-Kartennummern — einzugeben bleibt eine
+   Aufgabe für den Nutzer selbst.
 10. Die fünf Test-Frauenprofile eignen sich weiterhin für Deck-/Match-/
    Chat-Testen — nach Abschluss löschen (siehe oben).
 11. `backend/tests/test_public_frontend.py` lief auch am 23.08. mehrfach
     grün mit — der in einer früheren Sitzung offene Punkt dazu ist erledigt.
 12. Google Search Console / Sitemap-Status (aus einer früheren Sitzung
     offen) wurde auch am 23.08. nicht geprüft.
+13. **Web/Backend-Commits vom 30.08. sind gepusht, aber nicht auf dem VPS
+    ausgerollt.** `git pull` (mit Deploy-Key, siehe „Normaler Commit- und
+    Deploy-Ablauf") nachholen — Backend ist unverändert, also weder
+    Migration noch Neustart nötig, nur der reine Dateistand für die
+    Web-Fixes (doppelte IDs).
+14. ~~**Telegram-Push: Ursache für die ausgebliebene Nachricht**~~ —
+    **geklärt am 30.08., kein Bug** (siehe Sitzung 30.08., Punkt 3): die
+    gemeldete Registrierung war einen Tag älter als das Feature, vom Nutzer
+    bestätigt. Push funktioniert.
+15. **Sicherheitshinweis, noch offen:** Der Telegram-Bot-Token ist während
+    der 30.08.-Diagnose kurz im Klartext im Terminal gelandet (eigener
+    `sed`-Fehler). Nur lokal sichtbar, aber sicherheitshalber empfehlenswert:
+    Token über @BotFather (`/revoke`) neu erzeugen, `backend/.env` auf dem
+    VPS aktualisieren und `flexr-api` neu starten.
 
 ## Auf einem anderen Gerät starten
 
@@ -679,27 +843,31 @@ curl -fsSI https://flexr.social/dl-a616e78274de323b/flexr-X.Y.Z.aab
 - Zuerst `git fetch origin` + HEAD-Abgleich (siehe oben), erst danach
   irgendetwas anfassen. Beim Deploy den Deploy-Key mitgeben (siehe
   „Normaler Commit- und Deploy-Ablauf"), sonst scheitert der Pull.
+- **VPS-Deploy vom 30.08. steht noch aus** — `git pull` auf dem VPS
+  nachholen (Backend unverändert, kein Neustart nötig, siehe „Noch offen"
+  Punkt 13).
 - Nachfragen, ob der neue Abschnitt „Blockierte Personen" (Konto →
-  Datenschutz & Sicherheit) so passt — ausgerollt, aber vom Nutzer noch
-  nicht begutachtet.
+  Datenschutz & Sicherheit) so passt — auf allen drei Plattformen
+  ausgerollt (Web 23.08., Android + iOS 30.08.), vom Nutzer noch nicht
+  begutachtet. iOS zusätzlich **nie compiliert**.
 - Das Anheften der Landing-Headline ist auf Wunsch **zurückgenommen**; der
   Hero steht wieder mittig. Nicht erneut „reparieren", ohne zu fragen.
 - Nachfragen/prüfen, ob der zweite Ring-Fix (21.08.) tatsächlich behoben
   hat — weiterhin unbestätigt.
-- Die Blockier-Liste gibt es jetzt im Web. Wer an Android oder iOS baut:
-  dort fehlt sie noch, und `?detail=true` auf `GET /api/blocks` sollte bei
-  der Gelegenheit zum Standard werden.
-- Prüfen, ob Android und iOS denselben Listen-Bug haben wie das Web
-  (Chat-/Matchliste zieht bei neuer Nachricht nicht von selbst nach).
+- Telegram-Push ist geklärt (kein Bug, siehe Sitzung 30.08. Punkt 3) — noch
+  offen ist nur der Sicherheitshinweis dazu: Bot-Token über @BotFather neu
+  erzeugen, da er kurz im Terminal sichtbar war (Punkt 15).
 - iOS ist am 23.08.2026 auf 2.4.9 nachgezogen worden (siehe
-  `ios/HANDOFF.md`), aber immer noch **nie übersetzt**. Erster Schritt auf
-  einem Mac: `./ios/tools/mac-build.sh team <TEAM-ID>` und danach
+  `ios/HANDOFF.md`), plus die Blockier-Liste am 30.08. — aber immer noch
+  **nie übersetzt**. Erster Schritt auf einem Mac:
+  `./ios/tools/mac-build.sh team <TEAM-ID>` und danach
   `./ios/tools/mac-build.sh all`.
-- AAB 2.4.9 (versionCode 37) ist gebaut, signiert und auf dem VPS live —
-  noch nicht in die Play Console geladen. Ein Neubau ist erst nötig, wenn
-  wieder etwas unter `android-native/` geändert wurde.
+- AAB 2.5.0 (versionCode 38) ist gebaut, signiert und auf dem VPS bereit —
+  noch nicht in die Play Console geladen (2.4.9 ist es inzwischen). Ein
+  Neubau ist erst nötig, wenn wieder etwas unter `android-native/` geändert
+  wurde.
 - Die 5 Test-Frauenprofile nach Abschluss des Testens löschen (siehe
   „Testdaten" oben).
 - Danach kontrollierten Stripe-Testcheckout durchführen (weiterhin offen
-  aus früheren Sitzungen).
+  aus früheren Sitzungen) — Kartendaten eingeben bleibt Sache des Nutzers.
 - Erst danach neue Produktfunktionen beginnen.

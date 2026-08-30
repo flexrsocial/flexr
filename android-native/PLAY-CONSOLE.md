@@ -122,6 +122,14 @@ Angabe in der Console?**
 | 2.3.0 | E-Mail-Bestätigung per Aktivierungslink, als Android App Link | **nur Deep Links**, siehe unten |
 | 2.4.0 | Rechtstexte an den tatsächlichen Vertrags-, Zahlungs- und Datenschutzablauf angeglichen | Textangaben prüfen, keine neuen Datentypen |
 | 2.4.1 | Konto-, Chat- und Deck-Oberfläche vereinfacht; Telefon-/SMS-Prüfung aus den nativen Rechtstexten entfernt, Brevo ergänzt | Brevo muss als E-Mail-Dienstleister angegeben sein |
+| 2.5.0 (30.08.2026) | „Blockierte Personen" verwalten/aufheben unter Konto → Datenschutz & Sicherheit (nutzt bereits deklarierte Foto-/Kontodaten); stiller 20s-Vordergrund-Poll für Matches/Chats | nein — keine neue Berechtigung, kein neuer Datentyp |
+
+**Hinweis:** Dieses Dokument selbst ist zwischen 2.4.1 (versionCode 29, Stand
+oben im Dokumentkopf) und 2.5.0 nicht mitgepflegt worden — die
+Zwischenversionen 2.4.2–2.4.9 haben ihre Deklarationsrelevanz nicht hier
+festgehalten. Vor dem nächsten Play-Console-Upload lohnt ein Blick in die
+`HANDOFF.md`-Sitzungen 21.08./23.08., ob dort deklarationsrelevante
+Änderungen (neue Berechtigungen, Datentypen, Deep Links) übersehen wurden.
 
 **Zur E-Mail-Bestätigung:** Die Adresse wurde schon vorher erhoben und ist als
 Datentyp bereits deklariert. Neu ist allein der Weg — ein Link in einer Mail
