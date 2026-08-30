@@ -7,6 +7,9 @@ import SwiftUI
 /// Trennung, die auch die Web-App vornimmt.
 struct MatchesView: View {
 
+    /// Gleiche Kadenz wie der Web-Poll (`refreshUnreadBadge`, alle 20s).
+    private static let pollInterval: Duration = .seconds(20)
+
     let onOpenMatchProfile: (String) -> Void
 
     @Environment(AppContainer.self) private var container
@@ -27,6 +30,7 @@ struct MatchesView: View {
             MatchListItem(match: match, onTap: { onOpenMatchProfile(match.matchID) })
         }
         .task { await refresh() }
+        .task { await pollWhileVisible() }
     }
 
     private func refresh() async {
@@ -40,10 +44,25 @@ struct MatchesView: View {
         }
         isRefreshing = false
     }
+
+    /// Hält die Liste aktuell, während der Bildschirm sichtbar ist — SwiftUI
+    /// bricht die Aufgabe beim Verlassen automatisch ab (wie `ChatModel.poll()`).
+    /// Bewusst ohne Ladezustand/Fehlerbanner: ein 20s-Hintergrundabgleich soll
+    /// nicht sichtbar aufblitzen, das übernimmt weiterhin `refresh()` beim
+    /// Betreten und beim Ziehen zum Aktualisieren.
+    private func pollWhileVisible() async {
+        while !Task.isCancelled {
+            try? await Task.sleep(for: Self.pollInterval)
+            _ = try? await container.matches.refresh()
+        }
+    }
 }
 
 /// Nur Matches mit laufender Unterhaltung.
 struct ChatsView: View {
+
+    /// Gleiche Kadenz wie der Web-Poll (`refreshUnreadBadge`, alle 20s).
+    private static let pollInterval: Duration = .seconds(20)
 
     let ownUserID: String
     let onOpenChat: (String) -> Void
@@ -71,6 +90,7 @@ struct ChatsView: View {
             )
         }
         .task { await refresh() }
+        .task { await pollWhileVisible() }
     }
 
     private func refresh() async {
@@ -83,6 +103,18 @@ struct ChatsView: View {
             )
         }
         isRefreshing = false
+    }
+
+    /// Hält die Liste aktuell, während der Bildschirm sichtbar ist — SwiftUI
+    /// bricht die Aufgabe beim Verlassen automatisch ab (wie `ChatModel.poll()`).
+    /// Bewusst ohne Ladezustand/Fehlerbanner: ein 20s-Hintergrundabgleich soll
+    /// nicht sichtbar aufblitzen, das übernimmt weiterhin `refresh()` beim
+    /// Betreten und beim Ziehen zum Aktualisieren.
+    private func pollWhileVisible() async {
+        while !Task.isCancelled {
+            try? await Task.sleep(for: Self.pollInterval)
+            _ = try? await container.matches.refresh()
+        }
     }
 }
 

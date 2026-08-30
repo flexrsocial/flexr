@@ -12,6 +12,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -20,6 +21,16 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import flexr.social.app.core.designsystem.component.EmptyState
 import flexr.social.app.core.designsystem.component.ScreenHeader
 import flexr.social.app.core.designsystem.icon.FlexrIcons
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
+
+/**
+ * Abstand zwischen zwei stillen Hintergrund-Abgleichen, während Matches oder
+ * Chats sichtbar sind — gleiche Kadenz wie der Web-Poll (`refreshUnreadBadge`,
+ * alle 20s). Nur so lange aktiv, wie der jeweilige Bildschirm komponiert ist:
+ * `LaunchedEffect` bricht automatisch ab, sobald er die Komposition verlässt.
+ */
+private const val LIST_POLL_INTERVAL_MS = 20_000L
 
 /** Alle Matches — der Einstieg ins Profil und von dort in den Chat. */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -30,6 +41,13 @@ fun MatchesScreen(
 ) {
     val matches by viewModel.matches.collectAsStateWithLifecycle()
     val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
+
+    LaunchedEffect(Unit) {
+        while (isActive) {
+            delay(LIST_POLL_INTERVAL_MS)
+            viewModel.silentRefresh()
+        }
+    }
 
     Column(Modifier.fillMaxSize().padding(horizontal = 20.dp)) {
         Spacer(Modifier.height(18.dp))
@@ -77,6 +95,13 @@ fun ChatsScreen(
 ) {
     val conversations by viewModel.conversations.collectAsStateWithLifecycle()
     val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
+
+    LaunchedEffect(Unit) {
+        while (isActive) {
+            delay(LIST_POLL_INTERVAL_MS)
+            viewModel.silentRefresh()
+        }
+    }
 
     Column(Modifier.fillMaxSize().padding(horizontal = 20.dp)) {
         Spacer(Modifier.height(18.dp))

@@ -54,4 +54,17 @@ class MatchesViewModel @Inject constructor(
             _isRefreshing.value = false
         }
     }
+
+    /**
+     * Stiller Hintergrund-Abgleich für die Auto-Aktualisierung, während der
+     * Bildschirm sichtbar ist — anders als refresh() weder Ladeanzeige noch
+     * Fehlermeldung, die würden bei jedem 20s-Tick unnötig aufblitzen. Schreibt
+     * nur in Room; die sichtbare Liste (matches/conversations) zieht über den
+     * Room-Flow automatisch nach, kein separater Zeichenschritt nötig.
+     */
+    fun silentRefresh() {
+        viewModelScope.launch {
+            runCatching { matchRepository.refresh() }
+        }
+    }
 }
