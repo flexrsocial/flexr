@@ -35,6 +35,11 @@ final class AccountModel {
     var consentError: String?
     var revokingConsentType: String?
     var grantingConsentType: String?
+    // Blockierte Personen
+    var blockedUsers: [BlockedUser] = []
+    var blockedUsersLoading = false
+    var blockedUsersError: String?
+    var unblockingUserID: String?
     // Zwei getrennte, nicht vorangekreuzte Erklärungen vor jedem Checkout
     var checkoutSheetVisible = false
     var checkoutImmediateStart = false
@@ -57,6 +62,7 @@ final class AccountModel {
     @ObservationIgnored private let gyms: GymRepository
     @ObservationIgnored private let plz: PlzRepository
     @ObservationIgnored private let verification: VerificationRepository
+    @ObservationIgnored private let safety: SafetyRepository
     @ObservationIgnored private let session: SessionStore
     @ObservationIgnored private let notifications: MessageRefreshService
     @ObservationIgnored private let onMessage: (String) -> Void
@@ -73,6 +79,7 @@ final class AccountModel {
         gyms = container.gyms
         plz = container.plz
         verification = container.verification
+        safety = container.safety
         session = container.session
         notifications = container.notifications
         self.onMessage = onMessage
@@ -87,6 +94,7 @@ final class AccountModel {
         _ = try? await billing.refresh()
         await refreshVerificationStatus()
         await refreshConsents()
+        await refreshBlockedUsers()
     }
 
     private func prefill(from profile: MyProfile) {
@@ -380,6 +388,35 @@ final class AccountModel {
                 ?? "Die erneute Einwilligung konnte nicht gespeichert werden."
         }
         grantingConsentType = nil
+    }
+
+    // MARK: - Blockierte Personen
+
+    func refreshBlockedUsers() async {
+        blockedUsersLoading = true
+        blockedUsersError = nil
+        do {
+            blockedUsers = try await safety.blockedUsers()
+        } catch {
+            blockedUsersError = (error as? FlexrAPIError)?.message
+                ?? "Deine Blockierungen konnten nicht geladen werden."
+        }
+        blockedUsersLoading = false
+    }
+
+    /// Hebt eine Blockierung auf. Löst weder Match noch Chatverlauf auf, blendet
+    /// sie nur wieder ein — entspricht `DELETE /api/blocks/{id}` in safety.py.
+    func unblockUser(_ userID: String) async {
+        guard unblockingUserID == nil else { return }
+        unblockingUserID = userID
+        blockedUsersError = nil
+        do {
+            try await safety.unblock(userID: userID)
+            blockedUsers.removeAll { $0.userId == userID }
+        } catch {
+            blockedUsersError = (error as? FlexrAPIError)?.message ?? "Aufheben fehlgeschlagen."
+        }
+        unblockingUserID = nil
     }
 
     // MARK: - Konto löschen

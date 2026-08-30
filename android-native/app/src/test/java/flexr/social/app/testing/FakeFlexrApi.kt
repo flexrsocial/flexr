@@ -5,6 +5,7 @@ import flexr.social.app.data.remote.dto.AddPhotoRequestDto
 import flexr.social.app.data.remote.dto.AgeCheckRequestDto
 import flexr.social.app.data.remote.dto.AgeCheckResponseDto
 import flexr.social.app.data.remote.dto.BlockRequestDto
+import flexr.social.app.data.remote.dto.BlockedUserDto
 import flexr.social.app.data.remote.dto.CheckoutRequestDto
 import flexr.social.app.data.remote.dto.CheckoutUrlDto
 import flexr.social.app.data.remote.dto.ConsentDto
@@ -142,6 +143,9 @@ open class FakeFlexrApi : FlexrApi {
     override suspend fun block(body: BlockRequestDto) = nichtVorgesehen("block")
 
     override suspend fun listBlocks(): List<String> = nichtVorgesehen("listBlocks")
+
+    override suspend fun listBlockedUsers(detail: Boolean): List<BlockedUserDto> =
+        nichtVorgesehen("listBlockedUsers")
 
     override suspend fun unblock(userId: String) = nichtVorgesehen("unblock")
 

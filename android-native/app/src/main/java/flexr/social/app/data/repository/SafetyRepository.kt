@@ -5,6 +5,7 @@ import flexr.social.app.core.network.apiCall
 import flexr.social.app.data.remote.FlexrApi
 import flexr.social.app.data.remote.dto.BlockRequestDto
 import flexr.social.app.data.remote.dto.ReportRequestDto
+import flexr.social.app.domain.model.BlockedUser
 import flexr.social.app.domain.model.ModerationNotice
 import flexr.social.app.domain.model.ReportAck
 import javax.inject.Inject
@@ -41,6 +42,18 @@ class SafetyRepository @Inject constructor(
     }
 
     suspend fun blockedUserIds(): List<String> = apiCall { api.listBlocks() }
+
+    /** Blockierte Personen mit Name, Alter und Vorschaubild für die Verwaltungsliste. */
+    suspend fun blockedUsers(): List<BlockedUser> =
+        apiCall { api.listBlockedUsers() }.map { dto ->
+            BlockedUser(
+                userId = dto.userId,
+                name = dto.name,
+                age = dto.age,
+                photoUrl = dto.photoUrl,
+                blockedAt = ServerTime.parse(dto.blockedAt),
+            )
+        }
 
     suspend fun unblock(userId: String) {
         apiCall { api.unblock(userId) }

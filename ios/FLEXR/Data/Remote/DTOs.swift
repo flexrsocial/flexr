@@ -247,6 +247,17 @@ struct BlockRequestDTO: Encodable {
     let userId: String
 }
 
+/// Blockierte Person für die Verwaltungsliste im Konto — entspricht
+/// `backend/app/schemas.py::BlockedUserOut`. Bewusst nur das Nötigste zum
+/// Wiedererkennen, kein Bio/Gym/Entfernung (siehe dortiger Docstring).
+struct BlockedUserOutDTO: Decodable {
+    let userId: String
+    let name: String
+    let age: Int?
+    let photoUrl: String?
+    let blockedAt: String?
+}
+
 // MARK: - Foto-Verifizierung
 
 struct VerificationStatusDTO: Decodable {

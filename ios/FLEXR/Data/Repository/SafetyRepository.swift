@@ -41,6 +41,19 @@ final class SafetyRepository {
         try await api.listBlocks()
     }
 
+    /// Blockierte Personen mit Name, Alter und Vorschaubild für die Verwaltungsliste.
+    func blockedUsers() async throws -> [BlockedUser] {
+        try await api.listBlockedUsers().map { dto in
+            BlockedUser(
+                userId: dto.userId,
+                name: dto.name,
+                age: dto.age,
+                photoUrl: dto.photoUrl,
+                blockedAt: ServerTime.parse(dto.blockedAt)
+            )
+        }
+    }
+
     func unblock(userID: String) async throws {
         try await api.unblock(userID: userID)
     }

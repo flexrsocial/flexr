@@ -11,10 +11,12 @@ import flexr.social.app.data.repository.BillingRepository
 import flexr.social.app.data.repository.GymRepository
 import flexr.social.app.data.repository.PlzRepository
 import flexr.social.app.data.repository.ProfileRepository
+import flexr.social.app.data.repository.SafetyRepository
 import flexr.social.app.data.repository.UnknownPostalCodeException
 import flexr.social.app.data.repository.VerificationRepository
 import flexr.social.app.data.remote.dto.ConsentDto
 import flexr.social.app.data.session.SessionStore
+import flexr.social.app.domain.model.BlockedUser
 import flexr.social.app.domain.model.Gym
 import flexr.social.app.domain.model.Membership
 import flexr.social.app.domain.model.MyProfile
@@ -57,6 +59,10 @@ data class AccountUiState(
     val consentError: String? = null,
     val revokingConsentType: String? = null,
     val grantingConsentType: String? = null,
+    val blockedUsers: List<BlockedUser> = emptyList(),
+    val blockedUsersLoading: Boolean = false,
+    val blockedUsersError: String? = null,
+    val unblockingUserId: String? = null,
     val checkoutDialogVisible: Boolean = false,
     val checkoutImmediateStart: Boolean = false,
     val checkoutWithdrawalAck: Boolean = false,
@@ -91,6 +97,7 @@ class AccountViewModel @Inject constructor(
     private val gymRepository: GymRepository,
     private val plzRepository: PlzRepository,
     private val verificationRepository: VerificationRepository,
+    private val safetyRepository: SafetyRepository,
     private val imageProcessor: ImageProcessor,
     private val sessionStore: SessionStore,
 ) : ViewModel() {
@@ -117,6 +124,7 @@ class AccountViewModel @Inject constructor(
             runCatching { billingRepository.refresh() }
             refreshVerificationStatus()
             refreshConsents()
+            refreshBlockedUsers()
             val notificationsEnabled = sessionStore.notificationsEnabled.first()
             val hintDismissed = sessionStore.verifiedHintDismissed.first()
             _uiState.update {
@@ -521,6 +529,58 @@ class AccountViewModel @Inject constructor(
                     )
                 }
             }
+        }
+    }
+
+    // ---------- Blockierte Personen ----------
+
+    fun refreshBlockedUsers() {
+        _uiState.update { it.copy(blockedUsersLoading = true, blockedUsersError = null) }
+        viewModelScope.launch {
+            runCatching { safetyRepository.blockedUsers() }
+                .onSuccess { blocked ->
+                    _uiState.update {
+                        it.copy(blockedUsers = blocked, blockedUsersLoading = false, blockedUsersError = null)
+                    }
+                }
+                .onFailure { throwable ->
+                    _uiState.update {
+                        it.copy(
+                            blockedUsersLoading = false,
+                            blockedUsersError = (throwable as? FlexrApiException)?.message
+                                ?: "Deine Blockierungen konnten nicht geladen werden.",
+                        )
+                    }
+                }
+        }
+    }
+
+    /**
+     * Hebt eine Blockierung auf. Löst weder Match noch Chatverlauf auf, blendet
+     * sie nur wieder ein — entspricht `DELETE /api/blocks/{id}` in safety.py.
+     */
+    fun unblockUser(userId: String) {
+        if (_uiState.value.unblockingUserId != null) return
+        _uiState.update { it.copy(unblockingUserId = userId, blockedUsersError = null) }
+        viewModelScope.launch {
+            runCatching { safetyRepository.unblock(userId) }
+                .onSuccess {
+                    _uiState.update {
+                        it.copy(
+                            blockedUsers = it.blockedUsers.filterNot { user -> user.userId == userId },
+                            unblockingUserId = null,
+                        )
+                    }
+                }
+                .onFailure { throwable ->
+                    _uiState.update {
+                        it.copy(
+                            unblockingUserId = null,
+                            blockedUsersError = (throwable as? FlexrApiException)?.message
+                                ?: "Aufheben fehlgeschlagen.",
+                        )
+                    }
+                }
         }
     }
 

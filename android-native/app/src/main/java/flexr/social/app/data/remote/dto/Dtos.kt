@@ -269,6 +269,20 @@ data class ModerationNoticeDto(
 @Serializable
 data class BlockRequestDto(@SerialName("user_id") val userId: String)
 
+/**
+ * Blockierte Person für die Verwaltungsliste im Konto — entspricht
+ * `backend/app/schemas.py::BlockedUserOut`. Bewusst nur das Nötigste zum
+ * Wiedererkennen, kein Bio/Gym/Entfernung (siehe dortiger Docstring).
+ */
+@Serializable
+data class BlockedUserDto(
+    @SerialName("user_id") val userId: String,
+    val name: String,
+    val age: Int? = null,
+    @SerialName("photo_url") val photoUrl: String? = null,
+    @SerialName("blocked_at") val blockedAt: String? = null,
+)
+
 // ---------- Alters- und Identitätsprüfung ----------
 
 @Serializable

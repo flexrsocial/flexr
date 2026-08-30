@@ -75,6 +75,7 @@ import flexr.social.app.core.designsystem.component.VerifiedBadge
 import flexr.social.app.core.designsystem.theme.FlexrTheme
 import flexr.social.app.core.designsystem.theme.MonoStyle
 import flexr.social.app.data.remote.dto.ConsentDto
+import flexr.social.app.domain.model.BlockedUser
 import flexr.social.app.domain.model.VerificationStatus
 import flexr.social.app.ui.components.GymPicker
 import flexr.social.app.ui.components.GymSuggestionDialog
@@ -116,6 +117,7 @@ fun AccountScreen(
     var legalDialogVisible by remember { mutableStateOf(false) }
     var pendingSensitiveRevoke by remember { mutableStateOf(false) }
     var consentsExpanded by remember { mutableStateOf(false) }
+    var blockedUsersExpanded by remember { mutableStateOf(false) }
     val notificationPermissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission(),
     ) { granted ->
@@ -441,6 +443,50 @@ fun AccountScreen(
             )
         }
 
+        // ---------- Blockierte Personen ----------
+        // Blockieren war bis hierher eine Einbahnstraße: das Backend kann eine
+        // Blockierung längst zurücknehmen (DELETE /api/blocks/{id}), nur zeigte
+        // kein Client das an. Entspricht der Web-Fassung unter "Datenschutz &
+        // Sicherheit" (frontend/app/index.html, "loadMyBlocks").
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(10.dp))
+                .clickable { blockedUsersExpanded = !blockedUsersExpanded }
+                .padding(vertical = 15.dp, horizontal = 2.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Column(Modifier.weight(1f)) {
+                Text(
+                    "Blockierte Personen",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = colors.chalk,
+                )
+                Text(
+                    "Blockierungen verwalten und aufheben",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = colors.chalkDim,
+                )
+            }
+            Icon(
+                Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                contentDescription = null,
+                tint = colors.chalkDim,
+                modifier = Modifier
+                    .size(18.dp)
+                    .rotate(if (blockedUsersExpanded) 90f else 0f),
+            )
+        }
+        if (blockedUsersExpanded) {
+            BlockedUsersSection(
+                blockedUsers = state.blockedUsers,
+                loading = state.blockedUsersLoading,
+                error = state.blockedUsersError,
+                unblockingUserId = state.unblockingUserId,
+                onUnblock = viewModel::unblockUser,
+            )
+        }
+
         // ---------- Konto ----------
         Spacer(Modifier.height(28.dp))
         SectionTitle("Konto")
@@ -724,6 +770,88 @@ private fun ConsentSection(
                     HorizontalDivider(color = colors.hairline)
                 }
             }
+        }
+    }
+    FieldError(error)
+}
+
+/**
+ * Verwaltungsliste blockierter Personen mit Aufheben-Knopf. Entspricht der
+ * Web-Fassung (`frontend/app/index.html`, "loadMyBlocks"/"unblockUser").
+ * Bewusst nur Name, Alter, Vorschaubild und Blockierdatum — kein Bio/Gym/
+ * Entfernung, siehe `backend/app/schemas.py::BlockedUserOut`.
+ */
+@Composable
+private fun BlockedUsersSection(
+    blockedUsers: List<BlockedUser>,
+    loading: Boolean,
+    error: String?,
+    unblockingUserId: String?,
+    onUnblock: (String) -> Unit,
+) {
+    val colors = FlexrTheme.colors
+    when {
+        loading && blockedUsers.isEmpty() -> Row(verticalAlignment = Alignment.CenterVertically) {
+            CircularProgressIndicator(Modifier.size(14.dp), color = colors.plate, strokeWidth = 1.5.dp)
+            Spacer(Modifier.width(8.dp))
+            Text("Lade …", style = MaterialTheme.typography.bodySmall, color = colors.chalkDim)
+        }
+        blockedUsers.isEmpty() && error == null -> Text(
+            "Du hast niemanden blockiert. Blockieren geht über das Verbots-Symbol in "
+                + "jedem Profil und in jedem Chat.",
+            style = MaterialTheme.typography.bodySmall,
+            color = colors.chalkDim,
+        )
+        else -> Column {
+            blockedUsers.forEachIndexed { index, user ->
+                Row(
+                    Modifier.fillMaxWidth().padding(vertical = 10.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                    AsyncImage(
+                        model = user.photoUrl,
+                        contentDescription = "Profilfoto von ${user.name}",
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .size(44.dp)
+                            .clip(CircleShape)
+                            .background(colors.surface2),
+                    )
+                    Column(Modifier.weight(1f)) {
+                        Text(
+                            text = user.name + (user.age?.let { ", $it" } ?: ""),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = colors.chalk,
+                        )
+                        val seit = user.blockedAt?.let(ServerTime::formatDay)
+                        Text(
+                            text = "Blockiert" + (seit?.let { " · seit $it" } ?: ""),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = colors.chalkDim,
+                        )
+                    }
+                    FlexrLinkButton(
+                        text = "Aufheben",
+                        onClick = { onUnblock(user.userId) },
+                        enabled = unblockingUserId == null,
+                    )
+                }
+                if (index != blockedUsers.lastIndex) {
+                    HorizontalDivider(color = colors.hairline)
+                }
+            }
+            // Blockieren löst ein Match nicht auf, es blendet es nur aus - nach
+            // dem Aufheben sind Match und Chatverlauf wieder da (dieselbe
+            // Klarstellung wie in der Web-Fassung, siehe HANDOFF.md 23.08.).
+            Text(
+                "Eine Blockierung blendet ein bestehendes Match nur aus, sie löst es nicht "
+                    + "auf. Hebst du sie auf, seht ihr einander wieder im Deck — und ein "
+                    + "früheres Match ist samt Chatverlauf wieder da.",
+                style = MaterialTheme.typography.bodySmall,
+                color = colors.chalkDim,
+                modifier = Modifier.padding(top = 8.dp),
+            )
         }
     }
     FieldError(error)

@@ -11,6 +11,7 @@ struct AccountView: View {
     @State private var showDeleteDialog = false
     @State private var deletePassword = ""
     @State private var consentsExpanded = false
+    @State private var blockedUsersExpanded = false
     @State private var pendingSensitiveRevoke = false
 
     var body: some View {
@@ -340,6 +341,44 @@ struct AccountView: View {
                     onGrant: { consentType in Task { await model.grantConsent(consentType) } }
                 )
             }
+
+            // Blockieren war bis hierher eine Einbahnstraße: das Backend kann
+            // eine Blockierung längst zurücknehmen (DELETE /api/blocks/{id}),
+            // nur zeigte kein Client das an. Entspricht der Web-Fassung unter
+            // "Datenschutz & Sicherheit" (frontend/app/index.html, "loadMyBlocks").
+            Button {
+                withAnimation(.easeOut(duration: 0.18)) { blockedUsersExpanded.toggle() }
+            } label: {
+                HStack {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Blockierte Personen")
+                            .flexrText(.bodyLarge)
+                            .foregroundStyle(FlexrColor.chalk)
+                        Text("Blockierungen verwalten und aufheben")
+                            .flexrText(.bodySmall)
+                            .foregroundStyle(FlexrColor.chalkDim)
+                    }
+                    Spacer()
+                    Image(systemName: FlexrIcon.forward)
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(FlexrColor.chalkDim)
+                        .rotationEffect(.degrees(blockedUsersExpanded ? 90 : 0))
+                }
+                .padding(.vertical, 13)
+                .padding(.horizontal, 4)
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+
+            if blockedUsersExpanded {
+                BlockedUsersList(
+                    blockedUsers: model.blockedUsers,
+                    isLoading: model.blockedUsersLoading,
+                    error: model.blockedUsersError,
+                    unblockingUserID: model.unblockingUserID,
+                    onUnblock: { userID in Task { await model.unblockUser(userID) } }
+                )
+            }
         }
     }
 
@@ -647,6 +686,80 @@ private struct ConsentList: View {
             : "Widerrufen am \(datum)."
         if let grundlage = consentGrundlage[consent.consentType] { text += " " + grundlage }
         return text
+    }
+}
+
+/// Verwaltungsliste blockierter Personen mit Aufheben-Knopf. Entspricht der
+/// Web-Fassung (`frontend/app/index.html`, "loadMyBlocks"/"unblockUser").
+/// Bewusst nur Name, Alter, Vorschaubild und Blockierdatum — kein Bio/Gym/
+/// Entfernung, siehe `backend/app/schemas.py::BlockedUserOut`.
+private struct BlockedUsersList: View {
+
+    let blockedUsers: [BlockedUser]
+    let isLoading: Bool
+    let error: String?
+    let unblockingUserID: String?
+    let onUnblock: (String) -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            if isLoading, blockedUsers.isEmpty {
+                HStack(spacing: 8) {
+                    ProgressView().controlSize(.mini).tint(FlexrColor.plate)
+                    Text("Lade …").flexrText(.bodySmall).foregroundStyle(FlexrColor.chalkDim)
+                }
+            } else if blockedUsers.isEmpty, error == nil {
+                Text(
+                    "Du hast niemanden blockiert. Blockieren geht über das Verbots-Symbol in "
+                        + "jedem Profil und in jedem Chat."
+                )
+                .flexrText(.bodySmall)
+                .foregroundStyle(FlexrColor.chalkDim)
+            } else {
+                ForEach(Array(blockedUsers.enumerated()), id: \.element.id) { index, user in
+                    row(user)
+                    if index != blockedUsers.count - 1 { HairlineDivider() }
+                }
+                // Blockieren löst ein Match nicht auf, es blendet es nur aus -
+                // nach dem Aufheben sind Match und Chatverlauf wieder da
+                // (dieselbe Klarstellung wie in der Web-Fassung).
+                Text(
+                    "Eine Blockierung blendet ein bestehendes Match nur aus, sie löst es "
+                        + "nicht auf. Hebst du sie auf, seht ihr einander wieder im Deck — "
+                        + "und ein früheres Match ist samt Chatverlauf wieder da."
+                )
+                .flexrText(.bodySmall)
+                .foregroundStyle(FlexrColor.chalkDim)
+                .padding(.top, 8)
+            }
+            FieldError(message: error)
+        }
+    }
+
+    @ViewBuilder
+    private func row(_ user: BlockedUser) -> some View {
+        HStack(spacing: 12) {
+            AvatarImage(
+                source: PhotoImageSource(user.photoUrl),
+                name: user.name,
+                size: 44,
+                accessibilityLabel: "Profilfoto von \(user.name)"
+            )
+            VStack(alignment: .leading, spacing: 2) {
+                Text(user.name + (user.age.map { ", \($0)" } ?? ""))
+                    .flexrText(.bodyMedium)
+                    .foregroundStyle(FlexrColor.chalk)
+                Text("Blockiert" + (user.blockedAt.map { " · seit \(ServerTime.formatDay($0))" } ?? ""))
+                    .flexrText(.bodySmall)
+                    .foregroundStyle(FlexrColor.chalkDim)
+            }
+            Spacer()
+            FlexrLinkButton(
+                title: "Aufheben",
+                isEnabled: unblockingUserID == nil
+            ) { onUnblock(user.userId) }
+        }
+        .padding(.vertical, 10)
     }
 }
 

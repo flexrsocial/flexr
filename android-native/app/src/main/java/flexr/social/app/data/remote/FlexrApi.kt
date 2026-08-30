@@ -7,6 +7,7 @@ import flexr.social.app.data.remote.dto.EmailConfirmRequestDto
 import flexr.social.app.data.remote.dto.EmailConfirmResponseDto
 import flexr.social.app.data.remote.dto.EmailResendResponseDto
 import flexr.social.app.data.remote.dto.BlockRequestDto
+import flexr.social.app.data.remote.dto.BlockedUserDto
 import flexr.social.app.data.remote.dto.CheckoutRequestDto
 import flexr.social.app.data.remote.dto.CheckoutUrlDto
 import flexr.social.app.data.remote.dto.ConsentDto
@@ -176,6 +177,13 @@ interface FlexrApi {
 
     @GET("api/blocks")
     suspend fun listBlocks(): List<String>
+
+    // Eigene Methode statt eines Defaultwerts auf listBlocks(): Retrofit
+    // unterscheidet Endpunkte über die volle Signatur, ein zusätzlicher
+    // Query-Parameter reicht dafür. Der Server-Standard (ohne ?detail=true)
+    // bleibt bewusst die reine ID-Liste, siehe Docstring in safety.py.
+    @GET("api/blocks")
+    suspend fun listBlockedUsers(@Query("detail") detail: Boolean = true): List<BlockedUserDto>
 
     @DELETE("api/blocks/{userId}")
     suspend fun unblock(@Path("userId") userId: String)

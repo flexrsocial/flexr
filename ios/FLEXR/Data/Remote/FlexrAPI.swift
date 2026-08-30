@@ -137,6 +137,14 @@ struct FlexrAPI {
         try await client.send(.get, "api/blocks")
     }
 
+    /// Wie `listBlocks()`, aber mit Name, Alter und Vorschaubild statt nur der
+    /// IDs. Eigene Methode statt eines Parameters an `listBlocks()`, damit der
+    /// Server-Standard (ohne `?detail=true`) unverändert die reine ID-Liste
+    /// bleibt — siehe Docstring in `backend/app/routers/safety.py`.
+    func listBlockedUsers() async throws -> [BlockedUserOutDTO] {
+        try await client.send(.get, "api/blocks", query: ["detail": "true"])
+    }
+
     func unblock(userID: String) async throws {
         try await client.send(.delete, "api/blocks/\(userID)")
     }

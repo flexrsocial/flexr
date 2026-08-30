@@ -175,3 +175,16 @@ struct ModerationNotice: Sendable {
     let mutedUntil: Date?
     let appealHint: String
 }
+
+/// Blockierte Person für die Verwaltungsliste im Konto. Bewusst nur Name,
+/// Alter und Vorschaubild — kein Bio/Gym/Entfernung, siehe
+/// `backend/app/schemas.py::BlockedUserOut`.
+struct BlockedUser: Identifiable, Sendable {
+    let userId: String
+    let name: String
+    let age: Int?
+    let photoUrl: String?
+    let blockedAt: Date?
+
+    var id: String { userId }
+}

@@ -209,3 +209,16 @@ data class ModerationNotice(
     val mutedUntil: Instant?,
     val appealHint: String,
 )
+
+/**
+ * Blockierte Person für die Verwaltungsliste im Konto. Bewusst nur Name,
+ * Alter und Vorschaubild — kein Bio/Gym/Entfernung, siehe
+ * `backend/app/schemas.py::BlockedUserOut`.
+ */
+data class BlockedUser(
+    val userId: String,
+    val name: String,
+    val age: Int?,
+    val photoUrl: String?,
+    val blockedAt: Instant?,
+)
