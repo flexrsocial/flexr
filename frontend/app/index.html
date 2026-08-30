@@ -4185,9 +4185,9 @@
       ${interactive ? `
       <div class="flag-btns">
         ${handlers && handlers.onUnmatch ? `
-        <div class="flag-btn" id="btnUnmatchCard" title="Match auflösen" aria-label="Match auflösen"><svg class="ico" viewBox="0 0 24 24"><path d="M12 20.3 4.6 13a4.7 4.7 0 0 1 6.6-6.7l.8.8.8-.8A4.7 4.7 0 0 1 19.4 13L12 20.3z"/><path d="M4 20 20 4"/></svg></div>` : ''}
-        <div class="flag-btn" id="btnReportCard" title="Melden" aria-label="Melden"><svg class="ico" viewBox="0 0 24 24"><path d="M6 21V4.5M6 5h11.5l-2.4 3.9 2.4 3.9H6"/></svg></div>
-        <div class="flag-btn" id="btnBlockCard" title="Blockieren" aria-label="Blockieren"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.2"/><path d="M6.4 6.4l11.2 11.2"/></svg></div>
+        <div class="flag-btn btnUnmatchCard" title="Match auflösen" aria-label="Match auflösen"><svg class="ico" viewBox="0 0 24 24"><path d="M12 20.3 4.6 13a4.7 4.7 0 0 1 6.6-6.7l.8.8.8-.8A4.7 4.7 0 0 1 19.4 13L12 20.3z"/><path d="M4 20 20 4"/></svg></div>` : ''}
+        <div class="flag-btn btnReportCard" title="Melden" aria-label="Melden"><svg class="ico" viewBox="0 0 24 24"><path d="M6 21V4.5M6 5h11.5l-2.4 3.9 2.4 3.9H6"/></svg></div>
+        <div class="flag-btn btnBlockCard" title="Blockieren" aria-label="Blockieren"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.2"/><path d="M6.4 6.4l11.2 11.2"/></svg></div>
       </div>` : ''}
       <div class="stamp like">MATCH</div>
       <div class="stamp pass">NOPE</div>
@@ -4209,9 +4209,9 @@
       </div>`;
 
     if(interactive){
-      const reportBtn = el.querySelector('#btnReportCard');
-      const blockBtn = el.querySelector('#btnBlockCard');
-      const unmatchBtn = el.querySelector('#btnUnmatchCard');
+      const reportBtn = el.querySelector('.btnReportCard');
+      const blockBtn = el.querySelector('.btnBlockCard');
+      const unmatchBtn = el.querySelector('.btnUnmatchCard');
       [reportBtn, blockBtn, unmatchBtn].filter(Boolean).forEach(btn => {
         btn.addEventListener('mousedown', e => e.stopPropagation());
         btn.addEventListener('touchstart', e => e.stopPropagation(), {passive: true});
