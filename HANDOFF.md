@@ -1,13 +1,107 @@
 # FLEXR — Handoff für ein anderes Gerät / Claude Code
 
-Stand: **30.08.2026**, abends
+Stand: **31.08.2026**, abends
 
-Produktstand: `git log -1 --oneline` auf `origin/main` ist `d2042b9`,
-gepusht — **auf dem VPS noch nicht ausgerollt** (Backend unverändert, siehe
-unten; nur Web/Android/iOS betroffen, Web-Deploy steht noch aus). Aufbau des
-Dokuments: erst die Eckdaten, dann die Sitzung vom **30.08.**, dann **23.08.**,
-dann **21.08.**; die Build-, Test- und Deploy-Abschnitte am Ende gelten
-sitzungsübergreifend.
+Produktstand: `git log -1 --oneline` auf `origin/main` ist `96b076f`,
+gepusht **und auf dem VPS ausgerollt** (Backend migriert und neu gestartet,
+Web live). Aufbau des Dokuments: erst die Eckdaten, dann die Sitzung vom
+**31.08.**, dann **30.08.**, dann **23.08.**, dann **21.08.**; die Build-,
+Test- und Deploy-Abschnitte am Ende gelten sitzungsübergreifend.
+
+## Sitzung 31.08.2026 — Fotosortierung und Benachrichtigungen
+
+Zwei Commits, beide gepusht und ausgerollt: `68f14d2` (Feature) und
+`96b076f` (Version 2.5.1 / versionCode 39).
+
+### Was dazugekommen ist
+
+- **Fotos per Drag & Drop sortierbar** (Web, Android, iOS). `PUT
+  /api/profiles/me/photos/order` verlangt die **vollständige** Liste der
+  eigenen Foto-IDs — eine Teilangabe liesse offen, welche Position die
+  übrigen bekommen, und `photos[0]` (Hauptfoto: Swipe-Karte, Avatar,
+  Chat-Kopf) würde nach jedem Schreibzugriff springen.
+- **Drei Benachrichtigungs-Anlässe**, je getrennt für E-Mail und App
+  abschaltbar unter Profil → Benachrichtigungen (6 Schalter): neues Match,
+  ab 3 wartenden Profilen im Suchradius, 7 Tage ohne Nutzung.
+  `PATCH /api/profiles/me/notifications`, Migration `a4e17c9b2d58`.
+- **Kein FCM/APNs.** Die Apps holen Benachrichtigungen per WorkManager
+  (`ActivityNotificationWorker`, stündlich) bzw. `BGAppRefreshTask`
+  (`ActivityRefreshService`) aus `GET /api/notifications/pending` und zeigen
+  sie lokal an — dasselbe Muster wie `NewMessageWorker`. Quittiert wird über
+  `POST /api/notifications/delivered`, und zwar erst **nach** dem Anzeigen:
+  bricht der Lauf dazwischen ab, kommt die Meldung erneut statt zu verfallen.
+
+### Zwei Fallstricke, die Geld/Ruf gekostet hätten
+
+1. **`last_seen_at` taugt nicht für „7 Tage ohne Login".** Es wird in
+   `security.get_current_user` bei *jedem* authentifizierten Request gesetzt,
+   also auch vom Hintergrund-Poller der Apps — die Erinnerung wäre nie fällig
+   geworden. Neu ist `last_active_at`, das Abrufe mit `X-Flexr-Background: 1`
+   übergeht; beide Apps senden den Header auf den Notification-Endpunkten.
+2. **Die Migration setzt `last_active_at` für Bestandskonten auf „jetzt".**
+   Ohne das stünde die Spalte auf NULL, der Job fällt bei NULL auf
+   `created_at` zurück — der erste nächtliche Lauf hätte jedem Konto älter
+   als sieben Tage auf einen Schlag die Inaktivitäts-Erinnerung geschickt,
+   Mail *und* Push, an den gesamten ruhenden Bestand. Nach dem Deploy
+   verifiziert: 0 Konten ohne `last_active_at`, 0 Konten, die sofort als
+   inaktiv gelten.
+
+Der Deck-Zähler nutzt bewusst dieselbe Funktion wie `/api/swipes/deck`
+(`deck_profiles` in `routers/swipes.py`) — eine zweite, vereinfachte Zählung
+wäre bei der nächsten Filteränderung auseinandergelaufen und hätte Mails über
+Profile verschickt, die im Deck gar nicht auftauchen.
+
+### Stand der Prüfung
+
+- Backend: **381 Tests grün** (14 neu, vorher 367).
+- Web: Drag & Drop und die 6 Schalter im Browser bei 375×812 durchgespielt
+  (Verschieben statt Tauschen, Server-Reihenfolge deckungsgleich,
+  Schalterstand überlebt Reload).
+- Android: `:app:testProdReleaseUnitTest` und `:app:bundleProdRelease` beide
+  **BUILD SUCCESSFUL**. **Auf einem Gerät ist es noch nicht angefasst worden**
+  — Drag & Drop und die Schalter sind auf Android ungetestet, der Worker läuft
+  nur stündlich.
+- iOS: **nicht kompiliert**, hier ist kein macOS/Xcode. Der Swift-Code ist
+  ungeprüft.
+
+### Play-Console-Warnung „nativer Code ohne Debug-Symbole" — erledigt, nicht behebbar
+
+Beim Upload von versionCode 39 warnte die Play Console erneut. **Die Warnung
+lässt sich von unserer Seite nicht abstellen; bitte nicht noch einmal
+untersuchen.**
+
+Der native Code stammt ausschliesslich aus Fremdbibliotheken:
+`libandroidx.graphics.path`, `libdatastore_shared_counter` sowie CameraX'
+`libimage_processing_util_jni` und `libsurface_util_jni`. Alle vier liefert
+Google **fertig gestripped** aus — mit `llvm-readelf -S` geprüft: weder
+`.debug_*` noch `.symtab`. `extractNativeDebugMetadata` schreibt deshalb ein
+leeres Verzeichnis.
+
+`debugSymbolLevel = "FULL"` stand seit versionCode 35 in der
+`build.gradle.kts` und war die ganze Zeit wirkungslos. In dieser Sitzung
+eigens das NDK r27d nachinstalliert (2 GB, liegt jetzt unter
+`~/.bubblewrap/android_sdk/ndk/`) und sauber neu gebaut: **byte-identisches
+Bundle**, Warnung unverändert. Das NDK war also nicht die Ursache — es gibt
+schlicht keine Symbole zu extrahieren.
+
+Praktische Folge: Stürzt die App *innerhalb* dieser vier Google-Bibliotheken
+ab, zeigt der Play-Crashreport rohe Adressen. Eigener Code ist nicht
+betroffen. `debugSymbolLevel = "FULL"` bleibt stehen, falls je eigener
+nativer Code dazukommt; ein NDK ist dafür aktuell nicht nötig.
+
+### Offen
+
+- iOS bauen und prüfen.
+- Tipp auf eine Benachrichtigung öffnet nur die App, springt nicht zum Ziel.
+  `NewMessageWorker` setzt seit jeher `EXTRA_OPEN_CHATS`, liest es aber nie
+  aus; `ActivityNotificationWorker` setzt `EXTRA_TARGET` ("matches"/"swipe")
+  mit demselben Problem. iOS-Pendant: `didReceive` ruft immer
+  `openChatsTab()` und ignoriert `userInfo["target"]`.
+- AAB 2.5.1 war gebaut, signiert und hochgeladen, wurde auf Wunsch aber
+  **wieder vom VPS gelöscht**. Das lokale Bundle liegt noch unter
+  `android-native/app/build/outputs/bundle/prodRelease/app-prod-release.aab`
+  (SHA-256 `d8d956d0d92ad8b73f2bdfc032b4b494c64f6951a6913272f7d7fff8e23b9cea`).
+  Für einen Release neu hochladen — siehe „Ein neues AAB wird so bereitgestellt".
 
 ## Eckdaten (sitzungsübergreifend)
 
@@ -18,6 +112,12 @@ sitzungsübergreifend.
   `~/.ssh/id_ed25519_flexr_vps` — lag auf diesem Gerät bereits vor, keine
   Neueinrichtung nötig)
 - Repository auf dem VPS: `/flexr`
+- **Android-Toolchain liegt unter `~/.bubblewrap/`** (Rest des TWA-Setups),
+  nicht an den üblichen Orten:
+  `JAVA_HOME=~/.bubblewrap/jdk/jdk-17.0.11+9` (Temurin 17.0.11) und
+  `ANDROID_HOME=~/.bubblewrap/android_sdk` (platform android-36,
+  build-tools 34/35, seit 31.08. auch ndk/27.3.13750724). Eine Suche nach
+  `javac` mit kleinem `-maxdepth` findet das nicht.
 - API-Dienst: `flexr-api.service`
 - **Achtung, geteilter VPS:** Auf demselben Server laufen auch fremde,
   nicht mit FLEXR verwandte Projekte (`tarifbot-*`, `ediktmonitor`,
