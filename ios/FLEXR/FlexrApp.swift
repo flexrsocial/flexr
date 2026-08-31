@@ -50,6 +50,20 @@ final class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCent
                 self?.container.notifications.handle(refreshTask)
             }
         }
+        // Zweiter Auftrag für Match, wartende Profile und Inaktivität - iOS
+        // verlangt je Kennung eine eigene Registrierung.
+        BGTaskScheduler.shared.register(
+            forTaskWithIdentifier: ActivityRefreshService.taskIdentifier,
+            using: .main
+        ) { [weak self] task in
+            guard let refreshTask = task as? BGAppRefreshTask else {
+                task.setTaskCompleted(success: false)
+                return
+            }
+            MainActor.assumeIsolated {
+                self?.container.activityNotifications.handle(refreshTask)
+            }
+        }
         return true
     }
 

@@ -160,7 +160,7 @@
      ragt per negativem Margin in den 20px-Rand, der Inhalt wird per gleichem
      padding wieder zurückgeholt - so bleibt der Feldrand gleich, der Balken
      sitzt aber mittig zwischen Feldrand und Hintergrundende. */
-  #screen-account.active, #screen-matches.active, #screen-privacy.active, #screen-swipe.active{ margin-right:-13px; padding-right:13px; }
+  #screen-account.active, #screen-matches.active, #screen-privacy.active, #screen-notifications.active, #screen-swipe.active{ margin-right:-13px; padding-right:13px; }
   /* Auf dem Account-Screen zieht ein platzverbrauchender Scrollbalken Breite aus
      der Inhaltsbox, wodurch der Verifiziert-Badge um die Balkenbreite nach links
      rutscht. Den Testmonat-Pill im festen Header um exakt denselben Betrag
@@ -329,6 +329,40 @@
   @media (prefers-reduced-motion: reduce){
     .photo-slot .uploading-ring{ animation-duration:2.4s; }
   }
+  /* ---- Fotos per Drag & Drop sortieren ----
+     Umgesetzt mit Pointer-Events statt der HTML5-Drag-API: die zieht auf
+     Touch-Geraeten gar nicht los, und das Sortieren wird vor allem am Handy
+     gebraucht. touch-action:none auf dem greifbaren Foto verhindert, dass die
+     Seite mitscrollt, sobald der Finger sich bewegt. */
+  .photo-slot.draggable{ cursor:grab; touch-action:none; }
+  .photo-slot.draggable .drag-handle{
+    position:absolute; left:4px; top:4px; width:20px; height:20px;
+    display:flex; align-items:center; justify-content:center;
+    border-radius:6px; background:rgba(0,0,0,.6); color:#fff;
+    font-size:11px; line-height:1; pointer-events:none;
+  }
+  /* Position 1 ist das Hauptfoto (Swipe-Karte, Avatar, Chat-Kopf) - die
+     Nummer macht sichtbar, was das Ziehen ueberhaupt bewirkt. */
+  .photo-slot .pos-badge{
+    position:absolute; left:4px; bottom:4px; min-width:16px; height:16px; padding:0 4px;
+    display:flex; align-items:center; justify-content:center;
+    border-radius:5px; background:rgba(0,0,0,.62); color:var(--chalk-dim);
+    font-family:'JetBrains Mono'; font-size:9px; pointer-events:none;
+  }
+  .photo-slot.is-main .pos-badge{ background:var(--plate); color:#141414; }
+  /* Der Platz, von dem gerade gezogen wird: bleibt als Luecke stehen, damit
+     das Raster nicht in sich zusammenfaellt. */
+  .photo-slot.dragging{ opacity:.25; }
+  .photo-slot.drop-target{ border-color:var(--plate); border-style:solid; }
+  /* Das mitgefuehrte Abbild haengt am Body, nicht im Raster - sonst wuerde es
+     vom overflow:hidden der Kachel abgeschnitten. */
+  .photo-drag-ghost{
+    position:fixed; z-index:200; pointer-events:none; border-radius:11px;
+    overflow:hidden; box-shadow:0 12px 30px rgba(0,0,0,.5);
+    border:1.5px solid var(--plate); opacity:.92;
+  }
+  .photo-drag-ghost img{ width:100%; height:100%; object-fit:cover; }
+
   .photo-hint{ font-size:12px; line-height:1.5; color:var(--chalk-dim); margin-top:8px; }
   .photo-hint.warn{ color:var(--plate); }
 
@@ -1476,6 +1510,40 @@
   .account-section-title::before{
     content:''; width:3px; height:11px; background:var(--plate); border-radius:2px; flex-shrink:0;
   }
+  /* ---- Schieberegler fuer die Benachrichtigungen ----
+     Eine echte Checkbox traegt den Zustand (Tastatur, Screenreader, :checked),
+     sichtbar ist nur die Bahn davor. Kein div mit role=switch: das muesste
+     Fokus und Tastenbedienung von Hand nachbauen. */
+  .switch-row{
+    display:flex; align-items:center; justify-content:space-between; gap:14px;
+    padding:11px 0; border-bottom:1px solid var(--hairline);
+  }
+  .switch-row:last-child{ border-bottom:none; }
+  .switch-row .switch-text{ min-width:0; }
+  .switch-row .switch-label{ font-size:13.5px; line-height:1.4; }
+  .switch-row .switch-hint{ font-size:11.5px; line-height:1.45; color:var(--chalk-dim); margin-top:3px; }
+  .switch{ position:relative; flex-shrink:0; width:42px; height:24px; }
+  .switch input{
+    position:absolute; inset:0; margin:0; width:100%; height:100%;
+    opacity:0; cursor:pointer; z-index:1;
+  }
+  .switch .track{
+    position:absolute; inset:0; border-radius:999px; background:var(--surface-2);
+    border:1px solid var(--hairline); transition:background .15s ease, border-color .15s ease;
+  }
+  .switch .track::after{
+    content:''; position:absolute; top:2px; left:2px; width:18px; height:18px;
+    border-radius:50%; background:var(--chalk-dim); transition:transform .15s ease, background .15s ease;
+  }
+  .switch input:checked + .track{ background:var(--plate); border-color:var(--plate); }
+  .switch input:checked + .track::after{ transform:translateX(18px); background:#141414; }
+  .switch input:focus-visible + .track{ outline:2px solid var(--plate-bright); outline-offset:2px; }
+  .switch input:disabled{ cursor:default; }
+  .switch input:disabled + .track{ opacity:.45; }
+  @media (prefers-reduced-motion: reduce){
+    .switch .track, .switch .track::after{ transition:none; }
+  }
+
   .account-footer-link{ text-align:center; margin:10px 0 8px; }
   .account-footer-link button{
     display:inline-flex; background:none; border:none; padding:6px 8px;
@@ -2070,8 +2138,104 @@
       </div>
 
       <p class="account-footer-link">
+        <button type="button" id="btnOpenNotifications">Benachrichtigungen</button>
+      </p>
+
+      <p class="account-footer-link">
         <button type="button" id="btnOpenPrivacy">Datenschutz &amp; Sicherheit</button>
       </p>
+    </section>
+
+    <!-- BENACHRICHTIGUNGEN (Unterseite des Kontobereichs) -->
+    <!--
+      Als eigene Unterseite und nicht als weiterer Block im Kontobereich: das
+      sind sechs Schalter, die im Alltag niemand braucht - im Hauptbereich
+      haetten sie Profil und Fotos wieder nach unten gedrueckt (siehe die
+      Begruendung bei screen-privacy).
+
+      Pro Anlass getrennt nach E-Mail und App, weil die beiden Kanaele
+      unterschiedlich stoeren: Die Match-Mail will man vielleicht behalten,
+      die Push-Meldung mitten im Training nicht.
+    -->
+    <section class="screen" id="screen-notifications">
+      <div class="chat-header">
+        <button class="back-btn" id="btnNotificationsBack" aria-label="Zurück zum Konto"><svg class="ico" viewBox="0 0 24 24"><path d="M14.5 5 8 12l6.5 7"/></svg></button>
+        <div class="nm">Benachrichtigungen</div>
+      </div>
+
+      <div class="account-section">
+        <div class="account-section-title">Neues Match</div>
+        <div class="switch-row">
+          <div class="switch-text">
+            <div class="switch-label">E-Mail</div>
+            <div class="switch-hint">Wenn jemand dich zurückgeliked hat.</div>
+          </div>
+          <label class="switch">
+            <input type="checkbox" data-notify="notify_match_email" aria-label="E-Mail bei neuem Match">
+            <span class="track"></span>
+          </label>
+        </div>
+        <div class="switch-row">
+          <div class="switch-text">
+            <div class="switch-label">App-Benachrichtigung</div>
+            <div class="switch-hint">Nur in der Android- und iOS-App.</div>
+          </div>
+          <label class="switch">
+            <input type="checkbox" data-notify="notify_match_push" aria-label="App-Benachrichtigung bei neuem Match">
+            <span class="track"></span>
+          </label>
+        </div>
+      </div>
+
+      <div class="account-section">
+        <div class="account-section-title">Neue Profile im Umkreis</div>
+        <div class="switch-row">
+          <div class="switch-text">
+            <div class="switch-label">E-Mail</div>
+            <div class="switch-hint">Sobald mindestens drei neue Profile in deinem Suchradius warten. Höchstens eine Nachricht pro Tag.</div>
+          </div>
+          <label class="switch">
+            <input type="checkbox" data-notify="notify_queue_email" aria-label="E-Mail bei neuen Profilen im Umkreis">
+            <span class="track"></span>
+          </label>
+        </div>
+        <div class="switch-row">
+          <div class="switch-text">
+            <div class="switch-label">App-Benachrichtigung</div>
+            <div class="switch-hint">Nur in der Android- und iOS-App.</div>
+          </div>
+          <label class="switch">
+            <input type="checkbox" data-notify="notify_queue_push" aria-label="App-Benachrichtigung bei neuen Profilen im Umkreis">
+            <span class="track"></span>
+          </label>
+        </div>
+      </div>
+
+      <div class="account-section">
+        <div class="account-section-title">Erinnerung bei Inaktivität</div>
+        <div class="switch-row">
+          <div class="switch-text">
+            <div class="switch-label">E-Mail</div>
+            <div class="switch-hint">Wenn du sieben Tage nicht in FLEXR warst.</div>
+          </div>
+          <label class="switch">
+            <input type="checkbox" data-notify="notify_inactive_email" aria-label="E-Mail-Erinnerung bei Inaktivität">
+            <span class="track"></span>
+          </label>
+        </div>
+        <div class="switch-row">
+          <div class="switch-text">
+            <div class="switch-label">App-Benachrichtigung</div>
+            <div class="switch-hint">Nur in der Android- und iOS-App.</div>
+          </div>
+          <label class="switch">
+            <input type="checkbox" data-notify="notify_inactive_push" aria-label="App-Erinnerung bei Inaktivität">
+            <span class="track"></span>
+          </label>
+        </div>
+      </div>
+
+      <p class="photo-hint" id="notifyHint">Rechtlich nötige Nachrichten — etwa zu Abo, Rücktritt oder Moderationsentscheidungen — lassen sich hier nicht abschalten.</p>
     </section>
 
     <!-- DATENSCHUTZ & SICHERHEIT (Unterseite des Kontobereichs) -->
@@ -3633,6 +3797,53 @@
     setNavActive('account');
   });
 
+  // ---------- Benachrichtigungen (Unterseite des Kontobereichs) ----------
+  // Die Schalterstellung kommt mit /api/profiles/me mit, es braucht also
+  // keinen eigenen Ladeschritt beim Oeffnen.
+  const notifySwitches = () => [...document.querySelectorAll('#screen-notifications input[data-notify]')];
+
+  function renderNotificationSettings(){
+    notifySwitches().forEach(input => {
+      // Voreinstellung an, falls ein Bestandsprofil das Feld noch nicht
+      // mitliefert - dieselbe Annahme wie serverseitig.
+      input.checked = myProfile[input.dataset.notify] !== false;
+      input.disabled = false;
+    });
+  }
+
+  function openNotificationsScreen(){
+    renderNotificationSettings();
+    showScreen('screen-notifications');
+  }
+
+  $('btnOpenNotifications').addEventListener('click', openNotificationsScreen);
+  $('btnNotificationsBack').addEventListener('click', () => {
+    showScreen('screen-account');
+    setNavActive('account');
+  });
+
+  notifySwitches().forEach(input => {
+    input.addEventListener('change', async () => {
+      const feld = input.dataset.notify;
+      const gewuenscht = input.checked;
+      const vorher = myProfile[feld] !== false;
+      // Waehrend des Speicherns gesperrt: ohne die Sperre ueberholen sich zwei
+      // schnelle Umschaltungen desselben Schalters, und die Anzeige zeigt am
+      // Ende den Stand der zuerst gestarteten Anfrage.
+      input.disabled = true;
+      try{
+        myProfile = await api('/api/profiles/me/notifications', {
+          method: 'PATCH',
+          body: JSON.stringify({[feld]: gewuenscht}),
+        });
+      }catch(err){
+        myProfile = {...myProfile, [feld]: vorher};
+        toast(err.message || 'Einstellung konnte nicht gespeichert werden.');
+      }
+      renderNotificationSettings();
+    });
+  });
+
   // ---------- Blockierte Personen ----------
   // Blockieren war bis hierher eine Einbahnstrasse: Das Backend kann eine
   // Blockierung laengst zuruecknehmen (DELETE /api/blocks/{id}), nur zeigte es
@@ -4021,6 +4232,127 @@
   // {vorschau, blob, thumbBlob, status:'laeuft'|'fehler', text}
   let acctUpload = null;
 
+  // ---------- Fotos per Drag & Drop sortieren ----------
+  // Position 0 ist das Hauptfoto: es traegt Swipe-Karte, Avatar und Chat-Kopf.
+  // Umgesetzt mit Pointer-Events, damit dieselbe Geste am Handy und mit der
+  // Maus funktioniert - die HTML5-Drag-API loest auf Touch gar nicht aus.
+  let photoDrag = null;
+
+  function startPhotoDrag(e, slot){
+    // Nur die primaere Taste/der erste Finger, und nicht auf dem Loeschkreuz:
+    // sonst wuerde jeder Loeschversuch als Zugbeginn gelten.
+    if(e.button !== 0 || e.target.closest('.remove')) return;
+    e.preventDefault();
+
+    const grid = slot.parentElement;
+    const rect = slot.getBoundingClientRect();
+    photoDrag = {
+      slot, grid,
+      // Erst ab ein paar Pixeln Bewegung wird es ein Zug - ein Tippen bleibt
+      // ein Tippen und darf die Reihenfolge nicht anfassen.
+      started: false,
+      startX: e.clientX, startY: e.clientY,
+      offsetX: e.clientX - rect.left, offsetY: e.clientY - rect.top,
+      width: rect.width, height: rect.height,
+      ghost: null,
+      pointerId: e.pointerId,
+    };
+    // Zeiger einfangen, damit das Ziehen nicht abreisst, sobald der Finger die
+    // Kachel verlaesst - in einem try, weil manche Browser werfen, wenn der
+    // Zeiger nicht (mehr) aktiv ist. Die Bewegung haengt nicht daran: die
+    // Zuhoerer sitzen ohnehin am window und nicht an der Kachel.
+    try{ slot.setPointerCapture(e.pointerId); }catch(_){ /* ohne Capture weiter */ }
+    window.addEventListener('pointermove', movePhotoDrag);
+    window.addEventListener('pointerup', endPhotoDrag);
+    window.addEventListener('pointercancel', endPhotoDrag);
+  }
+
+  function movePhotoDrag(e){
+    if(!photoDrag) return;
+    const dx = e.clientX - photoDrag.startX;
+    const dy = e.clientY - photoDrag.startY;
+
+    if(!photoDrag.started){
+      if(Math.hypot(dx, dy) < 6) return;
+      photoDrag.started = true;
+      const ghost = document.createElement('div');
+      ghost.className = 'photo-drag-ghost';
+      ghost.style.width = photoDrag.width + 'px';
+      ghost.style.height = photoDrag.height + 'px';
+      const img = photoDrag.slot.querySelector('img');
+      ghost.innerHTML = `<img src="${img ? img.src : ''}" alt="">`;
+      document.body.appendChild(ghost);
+      photoDrag.ghost = ghost;
+      photoDrag.slot.classList.add('dragging');
+    }
+
+    photoDrag.ghost.style.left = (e.clientX - photoDrag.offsetX) + 'px';
+    photoDrag.ghost.style.top = (e.clientY - photoDrag.offsetY) + 'px';
+
+    // Ziel ueber die Kachelmitten bestimmen statt ueber elementFromPoint: das
+    // Abbild liegt zwar auf pointer-events:none, aber unter dem Finger liegt
+    // je nach Geraet auch mal gar nichts Greifbares.
+    const target = photoSlotAt(e.clientX, e.clientY);
+    photoDrag.grid.querySelectorAll('.drop-target')
+      .forEach(el => el.classList.remove('drop-target'));
+    if(target && target !== photoDrag.slot) target.classList.add('drop-target');
+  }
+
+  function photoSlotAt(x, y){
+    const slots = [...photoDrag.grid.querySelectorAll('.photo-slot.draggable')];
+    return slots.find(el => {
+      const r = el.getBoundingClientRect();
+      return x >= r.left && x <= r.right && y >= r.top && y <= r.bottom;
+    }) || null;
+  }
+
+  async function endPhotoDrag(e){
+    if(!photoDrag) return;
+    const {slot, grid, ghost, started} = photoDrag;
+    window.removeEventListener('pointermove', movePhotoDrag);
+    window.removeEventListener('pointerup', endPhotoDrag);
+    window.removeEventListener('pointercancel', endPhotoDrag);
+    try{
+      if(slot.hasPointerCapture(photoDrag.pointerId)) slot.releasePointerCapture(photoDrag.pointerId);
+    }catch(_){ /* war nie gefangen */ }
+
+    const target = started ? photoSlotAt(e.clientX, e.clientY) : null;
+    if(ghost) ghost.remove();
+    slot.classList.remove('dragging');
+    grid.querySelectorAll('.drop-target').forEach(el => el.classList.remove('drop-target'));
+    photoDrag = null;
+    if(!started || !target || target === slot) return;
+
+    // Verschieben, nicht tauschen: beim Tauschen wuerde ein Foto von Platz 4
+    // auf Platz 1 das bisherige Hauptfoto nach hinten werfen, statt die
+    // dazwischenliegenden nachruecken zu lassen.
+    const ids = [...grid.querySelectorAll('.photo-slot.draggable')].map(el => el.dataset.photoId);
+    const from = ids.indexOf(slot.dataset.photoId);
+    const to = ids.indexOf(target.dataset.photoId);
+    if(from < 0 || to < 0 || from === to) return;
+    ids.splice(to, 0, ids.splice(from, 1)[0]);
+
+    const vorher = myProfile.photos;
+    // Sofort neu zeichnen und erst danach speichern: die Reihenfolge fuehlt
+    // sich sonst zaeh an. Schlaegt der Aufruf fehl, wird der alte Stand
+    // wiederhergestellt.
+    myProfile = {...myProfile, photos: ids.map(id => vorher.find(p => p.id === id))};
+    renderAccountPhotoGrid();
+    try{
+      myProfile = await api('/api/profiles/me/photos/order', {
+        method: 'PUT',
+        body: JSON.stringify({photo_ids: ids}),
+      });
+    }catch(err){
+      myProfile = {...myProfile, photos: vorher};
+      toast(err.message || 'Reihenfolge konnte nicht gespeichert werden.');
+    }
+    // renderAccount zeichnet das Raster mit und frischt zugleich den Avatar
+    // im Kopfbereich auf - der haengt an photos[0] und zeigt nach dem
+    // Umsortieren womoeglich ein anderes Foto.
+    renderAccount();
+  }
+
   function renderAccountPhotoGrid(){
     const grid = $('acctPhotoGrid');
     grid.innerHTML = '';
@@ -4052,6 +4384,18 @@
         const statusLabel = st === 'approved' ? '' : (st === 'rejected' ? 'Abgelehnt' : 'In Prüfung');
         if(statusCls) slot.classList.add(statusCls);
         slot.innerHTML = `<img src="${photos[i].url}"><div class="remove" data-id="${photos[i].id}">✕</div>${statusLabel ? `<div class="pstatus">${statusLabel}</div>` : ''}`;
+        // Sortierbar nur, solange kein Upload laeuft: waehrenddessen belegt der
+        // Upload einen Platz, und eine jetzt gespeicherte Reihenfolge wuerde
+        // das gleich eintreffende Foto an eine zufaellige Stelle setzen.
+        if(photos.length > 1 && !acctUpload){
+          slot.classList.add('draggable');
+          slot.dataset.photoId = photos[i].id;
+          slot.insertAdjacentHTML('beforeend',
+            `<div class="drag-handle" aria-hidden="true">⠿</div>`
+            + `<div class="pos-badge">${i + 1}</div>`);
+          if(i === 0) slot.classList.add('is-main');
+          slot.addEventListener('pointerdown', (e)=> startPhotoDrag(e, slot));
+        }
         slot.querySelector('.remove').onclick = async (e)=>{
           e.stopPropagation();
           if((myProfile.photos || []).length <= 1){

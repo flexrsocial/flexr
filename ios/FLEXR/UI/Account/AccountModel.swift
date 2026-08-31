@@ -29,6 +29,12 @@ final class AccountModel {
     /// Bestätigter „verifiziert"-Hinweis wird dauerhaft ausgeblendet.
     var verifiedHintDismissed = false
     var notificationsEnabled = true
+    /// Läuft gerade ein Schalter aus dem Untermenü zum Server?
+    var isSavingNotifications = false
+
+    /// Schalterstellung unter „Benachrichtigungen". Kommt mit dem Profil mit,
+    /// braucht also keinen eigenen Ladeschritt.
+    var notifications: NotificationSettings { profile?.notifications ?? NotificationSettings() }
     // Einwilligungen (Art. 7 Abs. 3 DSGVO)
     var consents: [ConsentDTO] = []
     var consentsLoading = false
@@ -265,6 +271,32 @@ final class AccountModel {
                 onMessage(error.localizedDescription)
             }
         }
+    }
+
+    /// Neue Fotoreihenfolge speichern.
+    ///
+    /// Der Server bekommt die vollständige Liste; scheitert der Aufruf, bleibt
+    /// die bisherige Reihenfolge stehen, weil die Anzeige dem Profil aus dem
+    /// Repository folgt und nicht der Geste.
+    func reorderPhotos(_ photoIDs: [String]) {
+        Task {
+            do {
+                try await profiles.reorderPhotos(photoIDs)
+            } catch {
+                onMessage(error.localizedDescription)
+            }
+        }
+    }
+
+    /// Einzelnen Schalter unter „Benachrichtigungen" speichern.
+    func updateNotificationSetting(_ request: NotificationSettingsRequestDTO) async {
+        isSavingNotifications = true
+        do {
+            try await profiles.updateNotificationSettings(request)
+        } catch {
+            onMessage(error.localizedDescription)
+        }
+        isSavingNotifications = false
     }
 
     // MARK: - Verifizierung

@@ -5,4 +5,7 @@
     <string name="notification_channel_messages">Neue Nachrichten</string>
     <string name="notification_channel_messages_desc">Benachrichtigung, wenn dir ein Match schreibt.</string>
     <string name="notification_new_messages_title">Neue Nachrichten</string>
+
+    <string name="notification_channel_activity">Matches und Erinnerungen</string>
+    <string name="notification_channel_activity_desc">Neues Match, neue Profile in deinem Umkreis und Erinnerungen.</string>
 </resources>

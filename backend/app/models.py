@@ -369,6 +369,25 @@ class User(Base):
     # die Online-Anzeige bei Matches.
     last_seen_at = Column(DateTime, nullable=True)
 
+    # Wie last_seen_at, aber ausdrücklich OHNE die Hintergrundabfragen der
+    # nativen Apps (die schicken X-Flexr-Background: 1, siehe security.py).
+    # last_seen_at taugt deshalb nicht als Grundlage für die
+    # Inaktivitäts-Erinnerung: der WorkManager-Poller frischt es alle paar
+    # Stunden auf, ohne dass der Mensch die App je geöffnet hätte - die
+    # "7 Tage ohne Login"-Mail wäre nie fällig geworden.
+    last_active_at = Column(DateTime, nullable=True)
+
+    # ---- Benachrichtigungen (pro Thema getrennt nach Kanal schaltbar) ----
+    # Voreinstellung an: es sind die drei Ereignisse, wegen derer jemand die
+    # App überhaupt installiert. Abschalten geht im Profil unter
+    # "Benachrichtigungen".
+    notify_match_email = Column(Boolean, nullable=False, default=True)
+    notify_match_push = Column(Boolean, nullable=False, default=True)
+    notify_queue_email = Column(Boolean, nullable=False, default=True)
+    notify_queue_push = Column(Boolean, nullable=False, default=True)
+    notify_inactive_email = Column(Boolean, nullable=False, default=True)
+    notify_inactive_push = Column(Boolean, nullable=False, default=True)
+
     # Radius der Umkreissuche. Mittelpunkt ist die Adresse des eingetragenen
     # Gyms (siehe gym_geo.py) - so tauchen auch Leute aus nahegelegenen
     # Studios auf, nicht nur die aus dem eigenen.
@@ -779,6 +798,44 @@ class EmailNotification(Base):
     kind = Column(String(50), nullable=False, index=True)
     created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
     sent_at = Column(DateTime, nullable=True)
+
+
+class NotificationTopic(str, enum.Enum):
+    """Fachliche Anlässe, über die FLEXR von sich aus benachrichtigt."""
+
+    new_match = "new_match"
+    queue_waiting = "queue_waiting"
+    inactivity = "inactivity"
+
+
+class PushNotification(Base):
+    """Zustellfach für App-Benachrichtigungen.
+
+    FLEXR hat bewusst kein FCM/APNs: die nativen Apps holen ihre
+    Benachrichtigungen per WorkManager bzw. BGTaskScheduler ab und zeigen sie
+    lokal an (dasselbe Muster wie NewMessageWorker für neue Nachrichten). Ob
+    ein Anlass überhaupt zugestellt wird, entscheidet der Server anhand der
+    notify_*_push-Schalter - so gilt dieselbe Einstellung für Android und iOS,
+    ohne dass beide Clients die Regeln nachbauen müssen.
+
+    dedupe_key verhindert, dass derselbe Anlass mehrfach im Fach landet
+    (Match-Benachrichtigung bei doppeltem Swipe, täglich wiederkehrende Jobs).
+    """
+
+    __tablename__ = "push_notifications"
+
+    id = Column(String, primary_key=True, default=gen_uuid)
+    user_id = Column(String, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    topic = Column(Enum(NotificationTopic), nullable=False)
+    title = Column(String(120), nullable=False)
+    body = Column(String(300), nullable=False)
+    # Ziel-Screen in der App ("matches", "swipe") - der Client entscheidet,
+    # wohin der Tap führt, ohne den Text interpretieren zu müssen.
+    target = Column(String(20), nullable=True)
+    dedupe_key = Column(String(64), unique=True, nullable=False, index=True)
+    created_at = Column(DateTime, nullable=False, default=datetime.utcnow, index=True)
+    # Vom Client bestätigt, sobald die Systembenachrichtigung angezeigt wurde.
+    delivered_at = Column(DateTime, nullable=True)
 
 
 class WithdrawalDeclaration(Base):

@@ -23,23 +23,38 @@ class MessageNotificationScheduler @Inject constructor(
 ) {
 
     fun schedule() {
-        val request = PeriodicWorkRequestBuilder<NewMessageWorker>(15, TimeUnit.MINUTES)
-            .setConstraints(
-                Constraints.Builder()
-                    .setRequiredNetworkType(NetworkType.CONNECTED)
-                    .build(),
-            )
+        val constraints = Constraints.Builder()
+            .setRequiredNetworkType(NetworkType.CONNECTED)
+            .build()
+
+        val messages = PeriodicWorkRequestBuilder<NewMessageWorker>(15, TimeUnit.MINUTES)
+            .setConstraints(constraints)
             .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 5, TimeUnit.MINUTES)
             .build()
 
         WorkManager.getInstance(context).enqueueUniquePeriodicWork(
             NewMessageWorker.WORK_NAME,
             ExistingPeriodicWorkPolicy.KEEP,
-            request,
+            messages,
+        )
+
+        // Getrennter Auftrag mit größerem Abstand: Matches und Erinnerungen
+        // vertragen eine Stunde Verzögerung, ein Chat nicht. Das spart Akku
+        // und Anfragen gegenüber dem 15-Minuten-Takt der Nachrichten.
+        val activity = PeriodicWorkRequestBuilder<ActivityNotificationWorker>(1, TimeUnit.HOURS)
+            .setConstraints(constraints)
+            .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 15, TimeUnit.MINUTES)
+            .build()
+
+        WorkManager.getInstance(context).enqueueUniquePeriodicWork(
+            ActivityNotificationWorker.WORK_NAME,
+            ExistingPeriodicWorkPolicy.KEEP,
+            activity,
         )
     }
 
     fun cancel() {
         WorkManager.getInstance(context).cancelUniqueWork(NewMessageWorker.WORK_NAME)
+        WorkManager.getInstance(context).cancelUniqueWork(ActivityNotificationWorker.WORK_NAME)
     }
 }

@@ -55,9 +55,10 @@ final class APIClient: @unchecked Sendable {
         _ path: String,
         query: [String: String] = [:],
         body: (any Encodable)? = nil,
+        headers: [String: String] = [:],
         as type: Response.Type = Response.self
     ) async throws -> Response {
-        let data = try await perform(method, path, query: query, body: body)
+        let data = try await perform(method, path, query: query, body: body, headers: headers)
         do {
             return try decoder.decode(Response.self, from: data)
         } catch {
@@ -70,9 +71,10 @@ final class APIClient: @unchecked Sendable {
         _ method: HTTPMethod,
         _ path: String,
         query: [String: String] = [:],
-        body: (any Encodable)? = nil
+        body: (any Encodable)? = nil,
+        headers: [String: String] = [:]
     ) async throws {
-        _ = try await perform(method, path, query: query, body: body)
+        _ = try await perform(method, path, query: query, body: body, headers: headers)
     }
 
     /// Für Antworten, die auch `null` sein dürfen (z. B. `/api/moderation/notice`).
@@ -81,7 +83,7 @@ final class APIClient: @unchecked Sendable {
         _ path: String,
         as type: Response.Type
     ) async throws -> Response? {
-        let data = try await perform(method, path, query: [:], body: nil)
+        let data = try await perform(method, path, query: [:], body: nil, headers: [:])
         guard !data.isEmpty else { return nil }
         do {
             return try decoder.decode(Response?.self, from: data)
@@ -119,7 +121,8 @@ final class APIClient: @unchecked Sendable {
         _ method: HTTPMethod,
         _ path: String,
         query: [String: String],
-        body: (any Encodable)?
+        body: (any Encodable)?,
+        headers: [String: String] = [:]
     ) async throws -> Data {
         guard var components = URLComponents(
             url: baseURL.appendingPathComponent(path),
@@ -144,6 +147,13 @@ final class APIClient: @unchecked Sendable {
                 request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
             }
             request.setValue(sessionStore.deviceID, forHTTPHeaderField: "X-Device-Id")
+        }
+
+        // Zusatz-Header je Aufruf - aktuell nur X-Flexr-Background, mit dem der
+        // Hintergrundabgleich sich als solcher ausweist (siehe
+        // ActivityRefreshService).
+        for (name, value) in headers {
+            request.setValue(value, forHTTPHeaderField: name)
         }
 
         if let body {

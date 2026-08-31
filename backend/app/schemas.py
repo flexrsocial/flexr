@@ -170,6 +170,52 @@ class MyProfileOut(ProfileOut):
     # Befristete Chat-Sperre: bis wann darf der Nutzer keine Nachrichten senden
     # (None oder Vergangenheit = keine aktive Sperre)
     messaging_muted_until: Optional[datetime] = None
+    # Schalterstellung für "Benachrichtigungen" im Profil. Fährt in der eigenen
+    # Ansicht mit, damit die Oberfläche sie ohne zweiten Abruf zeichnen kann.
+    notify_match_email: bool = True
+    notify_match_push: bool = True
+    notify_queue_email: bool = True
+    notify_queue_push: bool = True
+    notify_inactive_email: bool = True
+    notify_inactive_push: bool = True
+
+
+class NotificationSettingsUpdate(BaseModel):
+    """Einzelne Schalter unter "Benachrichtigungen".
+
+    Alle Felder optional: die Oberfläche schickt genau den einen Schalter, den
+    der Nutzer umgelegt hat, und überschreibt die übrigen nicht mit einem
+    veralteten Stand.
+    """
+
+    notify_match_email: Optional[bool] = None
+    notify_match_push: Optional[bool] = None
+    notify_queue_email: Optional[bool] = None
+    notify_queue_push: Optional[bool] = None
+    notify_inactive_email: Optional[bool] = None
+    notify_inactive_push: Optional[bool] = None
+
+
+class ReorderPhotosRequest(BaseModel):
+    """Neue Reihenfolge als vollständige Liste der eigenen Foto-IDs."""
+
+    photo_ids: list[str] = Field(min_length=1, max_length=6)
+
+
+class PushNotificationOut(BaseModel):
+    id: str
+    topic: str
+    title: str
+    body: str
+    target: Optional[str] = None
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class MarkDeliveredRequest(BaseModel):
+    ids: list[str] = Field(min_length=1, max_length=50)
 
 
 class UpdateProfileRequest(BaseModel):

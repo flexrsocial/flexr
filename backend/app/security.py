@@ -31,7 +31,11 @@ def create_access_token(user_id: str) -> str:
     return jwt.encode(payload, settings.jwt_secret, algorithm=settings.jwt_algorithm)
 
 
-def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)) -> User:
+def get_current_user(
+    request: Request,
+    token: str = Depends(oauth2_scheme),
+    db: Session = Depends(get_db),
+) -> User:
     credentials_error = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Ungültige oder abgelaufene Anmeldung.",
@@ -63,6 +67,16 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
         user.last_seen_at = now
         _record_daily_access(db, user)
         db.commit()
+
+    # last_active_at zählt nur echte Vordergrund-Nutzung. Die nativen Apps
+    # gleichen im Hintergrund ab (WorkManager/BGTaskScheduler) und schicken
+    # dabei X-Flexr-Background: 1 - würden diese Abrufe mitzählen, wäre die
+    # Inaktivitäts-Erinnerung nie fällig, weil der Poller den Zeitstempel alle
+    # paar Stunden auffrischt, ohne dass jemand die App geöffnet hat.
+    if request.headers.get("X-Flexr-Background") != "1":
+        if user.last_active_at is None or now - user.last_active_at > timedelta(seconds=60):
+            user.last_active_at = now
+            db.commit()
 
     return user
 

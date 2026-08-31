@@ -8,7 +8,7 @@ from .config import settings
 from .rate_limit import limiter
 from .routers import (
     admin, auth, billing, email_verify, geo, gyms, matches, messages, notices,
-    profiles, safety, swipes,
+    notifications, profiles, safety, swipes,
     verification, withdrawal,
 )
 
@@ -57,6 +57,7 @@ app.include_router(profiles.router)
 app.include_router(swipes.router)
 app.include_router(matches.router)
 app.include_router(messages.router)
+app.include_router(notifications.router)
 app.include_router(billing.router)
 app.include_router(safety.router)
 # Beide ohne Anmeldezwang - siehe die Modulkommentare: § 13a FAGG und

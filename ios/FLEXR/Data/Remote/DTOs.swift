@@ -77,6 +77,44 @@ struct MyProfileDTO: Decodable {
     // phone/phone_verified liefert das Backend zwar mit, die App nutzt sie
     // nicht — die Telefonprüfung ist auch im Web verworfen worden.
     let messagingMutedUntil: String?
+    // Schalterstellung unter "Benachrichtigungen". Optional mit Vorgabe "an":
+    // ein aelteres Backend ohne diese Felder soll nicht so aussehen, als haette
+    // der Nutzer alles abgeschaltet.
+    let notifyMatchEmail: Bool?
+    let notifyMatchPush: Bool?
+    let notifyQueueEmail: Bool?
+    let notifyQueuePush: Bool?
+    let notifyInactiveEmail: Bool?
+    let notifyInactivePush: Bool?
+}
+
+/// Einzelner Schalter - nur das geaenderte Feld wird geschickt, die uebrigen
+/// bleiben nil und damit unangetastet.
+struct NotificationSettingsRequestDTO: Encodable {
+    var notifyMatchEmail: Bool?
+    var notifyMatchPush: Bool?
+    var notifyQueueEmail: Bool?
+    var notifyQueuePush: Bool?
+    var notifyInactiveEmail: Bool?
+    var notifyInactivePush: Bool?
+}
+
+/// Neue Reihenfolge der eigenen Fotos (Drag & Drop im Profil).
+struct ReorderPhotosRequestDTO: Encodable {
+    let photoIds: [String]
+}
+
+/// Eine vom Server bereitgelegte, noch nicht angezeigte Benachrichtigung.
+struct PushNotificationDTO: Decodable {
+    let id: String
+    let topic: String
+    let title: String
+    let body: String
+    let target: String?
+}
+
+struct MarkDeliveredRequestDTO: Encodable {
+    let ids: [String]
 }
 
 struct UpdateProfileRequestDTO: Encodable {

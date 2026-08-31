@@ -55,7 +55,15 @@ extension MyProfileDTO {
             plz: plz,
             birthdate: ServerTime.parseDate(birthdate),
             searchRadiusKm: searchRadiusKm ?? 20,
-            messagingMutedUntil: ServerTime.parse(messagingMutedUntil)
+            messagingMutedUntil: ServerTime.parse(messagingMutedUntil),
+            notifications: NotificationSettings(
+                matchEmail: notifyMatchEmail ?? true,
+                matchPush: notifyMatchPush ?? true,
+                queueEmail: notifyQueueEmail ?? true,
+                queuePush: notifyQueuePush ?? true,
+                inactiveEmail: notifyInactiveEmail ?? true,
+                inactivePush: notifyInactivePush ?? true
+            )
         )
     }
 }
@@ -114,5 +122,11 @@ extension GymDTO {
 extension VerificationStatusDTO {
     func toDomain() -> VerificationState {
         VerificationState(status: VerificationStatus(raw: status), prompts: prompts ?? [])
+    }
+}
+
+extension PushNotificationDTO {
+    func toDomain() -> PushNotification {
+        PushNotification(id: id, topic: topic, title: title, body: body, target: target)
     }
 }

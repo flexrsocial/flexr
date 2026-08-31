@@ -19,17 +19,21 @@ import flexr.social.app.data.remote.dto.DeleteAccountRequestDto
 import flexr.social.app.data.remote.dto.GymDto
 import flexr.social.app.data.remote.dto.GymSuggestRequestDto
 import flexr.social.app.data.remote.dto.LoginRequestDto
+import flexr.social.app.data.remote.dto.MarkDeliveredRequestDto
 import flexr.social.app.data.remote.dto.MatchDto
 import flexr.social.app.data.remote.dto.MembershipStatusDto
 import flexr.social.app.data.remote.dto.MessageDto
 import flexr.social.app.data.remote.dto.ModerationNoticeDto
 import flexr.social.app.data.remote.dto.MyProfileDto
+import flexr.social.app.data.remote.dto.NotificationSettingsRequestDto
 import flexr.social.app.data.remote.dto.PlzLookupDto
 import flexr.social.app.data.remote.dto.PortalUrlDto
 import flexr.social.app.data.remote.dto.PresignPhotoRequestDto
 import flexr.social.app.data.remote.dto.PresignPhotoResponseDto
 import flexr.social.app.data.remote.dto.ProfileDto
+import flexr.social.app.data.remote.dto.PushNotificationDto
 import flexr.social.app.data.remote.dto.RegisterRequestDto
+import flexr.social.app.data.remote.dto.ReorderPhotosRequestDto
 import flexr.social.app.data.remote.dto.ReportAckDto
 import flexr.social.app.data.remote.dto.ReportRequestDto
 import flexr.social.app.data.remote.dto.SendMessageRequestDto
@@ -121,6 +125,35 @@ interface FlexrApi {
 
     @DELETE("api/profiles/me/photos/{photoId}")
     suspend fun deletePhoto(@Path("photoId") photoId: String): MyProfileDto
+
+    /** Reihenfolge der eigenen Fotos - photos[0] ist das Hauptfoto. */
+    @PUT("api/profiles/me/photos/order")
+    suspend fun reorderPhotos(@Body body: ReorderPhotosRequestDto): MyProfileDto
+
+    @PATCH("api/profiles/me/notifications")
+    suspend fun updateNotificationSettings(
+        @Body body: NotificationSettingsRequestDto,
+    ): MyProfileDto
+
+    // ---------- notifications.py ----------
+
+    /**
+     * Bereitliegende App-Benachrichtigungen abholen.
+     *
+     * X-Flexr-Background markiert den Abruf als Hintergrundabgleich: ohne den
+     * Header wuerde ausgerechnet der Poller, der die Inaktivitaets-Erinnerung
+     * ausliefern soll, den Nutzer dauerhaft als aktiv erscheinen lassen.
+     */
+    @GET("api/notifications/pending")
+    suspend fun pendingNotifications(
+        @Header("X-Flexr-Background") background: String = "1",
+    ): List<PushNotificationDto>
+
+    @POST("api/notifications/delivered")
+    suspend fun markNotificationsDelivered(
+        @Body body: MarkDeliveredRequestDto,
+        @Header("X-Flexr-Background") background: String = "1",
+    )
 
     // ---------- swipes.py ----------
 

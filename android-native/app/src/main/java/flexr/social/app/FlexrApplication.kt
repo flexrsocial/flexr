@@ -66,9 +66,24 @@ class FlexrApplication : Application(), Configuration.Provider, ImageLoaderFacto
             lightColor = android.graphics.Color.parseColor("#FF5A1F")
         }
         manager.createNotificationChannel(messages)
+
+        // Eigener Kanal neben den Nachrichten: Matches und Erinnerungen sind
+        // weniger dringend als ein Chat. Getrennt kann der Nutzer sie in den
+        // Systemeinstellungen leiser stellen, ohne die Nachrichten zu verlieren.
+        val activity = NotificationChannel(
+            CHANNEL_ACTIVITY,
+            getString(R.string.notification_channel_activity),
+            NotificationManager.IMPORTANCE_DEFAULT,
+        ).apply {
+            description = getString(R.string.notification_channel_activity_desc)
+            enableLights(true)
+            lightColor = android.graphics.Color.parseColor("#FF5A1F")
+        }
+        manager.createNotificationChannel(activity)
     }
 
     companion object {
         const val CHANNEL_MESSAGES = "flexr_messages"
+        const val CHANNEL_ACTIVITY = "flexr_activity"
     }
 }

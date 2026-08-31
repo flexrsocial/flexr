@@ -79,6 +79,8 @@ import flexr.social.app.domain.model.BlockedUser
 import flexr.social.app.domain.model.VerificationStatus
 import flexr.social.app.ui.components.GymPicker
 import flexr.social.app.ui.components.GymSuggestionDialog
+import flexr.social.app.data.remote.dto.NotificationSettingsRequestDto
+import flexr.social.app.domain.model.NotificationSettings
 import flexr.social.app.ui.components.PhotoGridEditor
 import flexr.social.app.ui.components.PhotoSlot
 import flexr.social.app.ui.components.PhotoVisibilityHint
@@ -115,6 +117,7 @@ fun AccountScreen(
     val currentProfile = profile
     val context = LocalContext.current
     var legalDialogVisible by remember { mutableStateOf(false) }
+    var notificationDialogVisible by remember { mutableStateOf(false) }
     var pendingSensitiveRevoke by remember { mutableStateOf(false) }
     var consentsExpanded by remember { mutableStateOf(false) }
     var blockedUsersExpanded by remember { mutableStateOf(false) }
@@ -303,6 +306,9 @@ fun AccountScreen(
             onPhotoPicked = viewModel::onPhotoPicked,
             onRemove = viewModel::onPhotoRemoved,
             showStatus = true,
+            // Langer Druck auf ein Foto sortiert es um; Position 1 ist das
+            // Hauptfoto (Swipe-Karte, Avatar, Chat-Kopf).
+            onReorder = viewModel::onPhotosReordered,
         )
         if (state.isUploadingPhoto) {
             Row(
@@ -358,6 +364,34 @@ fun AccountScreen(
                     uncheckedTrackColor = colors.surface3,
                     uncheckedBorderColor = colors.steel,
                 ),
+            )
+        }
+
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(10.dp))
+                .clickable { notificationDialogVisible = true }
+                .padding(vertical = 15.dp, horizontal = 2.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Column(Modifier.weight(1f)) {
+                Text(
+                    "Benachrichtigungen",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = colors.chalk,
+                )
+                Text(
+                    "Matches, neue Profile und Erinnerungen",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = colors.chalkDim,
+                )
+            }
+            Icon(
+                Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                contentDescription = null,
+                tint = colors.chalkDim,
+                modifier = Modifier.size(18.dp),
             )
         }
 
@@ -496,6 +530,15 @@ fun AccountScreen(
         FlexrDangerButton(text = "Konto löschen", onClick = viewModel::showDeleteDialog)
 
         Spacer(Modifier.height(40.dp))
+    }
+
+    if (notificationDialogVisible) {
+        NotificationSettingsDialog(
+            settings = currentProfile?.notifications ?: NotificationSettings(),
+            saving = state.isSavingNotifications,
+            onChange = viewModel::updateNotificationSetting,
+            onDismiss = { notificationDialogVisible = false },
+        )
     }
 
     if (legalDialogVisible) {
@@ -954,6 +997,136 @@ private fun VerificationHint(
  * Die lange Liste der Rechtstexte liegt hinter einem einzigen verständlichen
  * Einstieg. So bleibt die Profilseite ruhig, ohne notwendige Links zu verlieren.
  */
+/**
+ * Untermenü "Benachrichtigungen" - drei Anlässe, je getrennt für E-Mail und App.
+ *
+ * Als Dialog und nicht als weiterer Block im Konto: sechs Schalter, die im
+ * Alltag niemand anfasst, hätten Profil und Fotos nach unten gedrückt.
+ *
+ * Die Schalter stehen unter dem App-weiten "Nachrichten erhalten" im Konto -
+ * ist das aus, zeigt die App gar nichts an, unabhängig von dieser Auswahl.
+ */
+@Composable
+private fun NotificationSettingsDialog(
+    settings: NotificationSettings,
+    saving: Boolean,
+    onChange: (NotificationSettingsRequestDto) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    val colors = FlexrTheme.colors
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = MaterialTheme.colorScheme.surface,
+        title = { Text("Benachrichtigungen", style = MaterialTheme.typography.headlineSmall) },
+        text = {
+            Column(
+                Modifier
+                    .fillMaxWidth()
+                    .heightIn(max = 480.dp)
+                    .verticalScroll(rememberScrollState()),
+            ) {
+                NotificationGroupTitle("Neues Match")
+                NotificationSwitchRow(
+                    label = "E-Mail",
+                    hint = "Wenn jemand dich zurückgeliked hat.",
+                    checked = settings.matchEmail,
+                    enabled = !saving,
+                ) { onChange(NotificationSettingsRequestDto(notifyMatchEmail = it)) }
+                NotificationSwitchRow(
+                    label = "App-Benachrichtigung",
+                    hint = null,
+                    checked = settings.matchPush,
+                    enabled = !saving,
+                ) { onChange(NotificationSettingsRequestDto(notifyMatchPush = it)) }
+
+                NotificationGroupTitle("Neue Profile im Umkreis")
+                NotificationSwitchRow(
+                    label = "E-Mail",
+                    hint = "Ab drei wartenden Profilen, höchstens einmal am Tag.",
+                    checked = settings.queueEmail,
+                    enabled = !saving,
+                ) { onChange(NotificationSettingsRequestDto(notifyQueueEmail = it)) }
+                NotificationSwitchRow(
+                    label = "App-Benachrichtigung",
+                    hint = null,
+                    checked = settings.queuePush,
+                    enabled = !saving,
+                ) { onChange(NotificationSettingsRequestDto(notifyQueuePush = it)) }
+
+                NotificationGroupTitle("Erinnerung bei Inaktivität")
+                NotificationSwitchRow(
+                    label = "E-Mail",
+                    hint = "Wenn du sieben Tage nicht in FLEXR warst.",
+                    checked = settings.inactiveEmail,
+                    enabled = !saving,
+                ) { onChange(NotificationSettingsRequestDto(notifyInactiveEmail = it)) }
+                NotificationSwitchRow(
+                    label = "App-Benachrichtigung",
+                    hint = null,
+                    checked = settings.inactivePush,
+                    enabled = !saving,
+                ) { onChange(NotificationSettingsRequestDto(notifyInactivePush = it)) }
+
+                Spacer(Modifier.height(14.dp))
+                Text(
+                    "Rechtlich nötige Nachrichten — etwa zu Abo, Rücktritt oder " +
+                        "Moderationsentscheidungen — lassen sich hier nicht abschalten.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = colors.chalkDim,
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Schließen", color = colors.plate)
+            }
+        },
+    )
+}
+
+@Composable
+private fun NotificationGroupTitle(text: String) {
+    Spacer(Modifier.height(14.dp))
+    Text(
+        text = text,
+        style = MaterialTheme.typography.labelMedium,
+        color = FlexrTheme.colors.chalkDim,
+    )
+}
+
+@Composable
+private fun NotificationSwitchRow(
+    label: String,
+    hint: String?,
+    checked: Boolean,
+    enabled: Boolean,
+    onCheckedChange: (Boolean) -> Unit,
+) {
+    val colors = FlexrTheme.colors
+    Row(
+        Modifier.fillMaxWidth().padding(vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Column(Modifier.weight(1f)) {
+            Text(label, style = MaterialTheme.typography.bodyLarge, color = colors.chalk)
+            if (hint != null) {
+                Text(hint, style = MaterialTheme.typography.bodySmall, color = colors.chalkDim)
+            }
+        }
+        Switch(
+            checked = checked,
+            enabled = enabled,
+            onCheckedChange = onCheckedChange,
+            colors = SwitchDefaults.colors(
+                checkedThumbColor = colors.plateInk,
+                checkedTrackColor = colors.plate,
+                uncheckedTrackColor = colors.surface3,
+                uncheckedBorderColor = colors.steel,
+            ),
+        )
+    }
+}
+
 @Composable
 private fun LegalAndHelpDialog(
     onOpenLegal: (LegalDocument) -> Unit,

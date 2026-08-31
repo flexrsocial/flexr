@@ -67,6 +67,8 @@ struct MyProfile: Hashable, Sendable {
     let birthdate: Date?
     let searchRadiusKm: Int
     let messagingMutedUntil: Date?
+    /// Schalterstellung unter „Benachrichtigungen" im Konto.
+    var notifications: NotificationSettings = NotificationSettings()
 
     var id: String { profile.id }
     var name: String { profile.name }
@@ -77,6 +79,29 @@ struct MyProfile: Hashable, Sendable {
         guard let messagingMutedUntil, messagingMutedUntil > now else { return nil }
         return messagingMutedUntil
     }
+}
+
+/// Drei Anlässe, je getrennt für E-Mail und App.
+///
+/// Ob eine App-Benachrichtigung überhaupt entsteht, entscheidet der Server —
+/// die Schalter hier zeigen dieselbe Einstellung, sie sind keine zweite Regel
+/// daneben.
+struct NotificationSettings: Hashable, Sendable {
+    var matchEmail: Bool = true
+    var matchPush: Bool = true
+    var queueEmail: Bool = true
+    var queuePush: Bool = true
+    var inactiveEmail: Bool = true
+    var inactivePush: Bool = true
+}
+
+/// Eine vom Server bereitgelegte, noch nicht angezeigte Benachrichtigung.
+struct PushNotification: Identifiable, Hashable, Sendable {
+    let id: String
+    let topic: String
+    let title: String
+    let body: String
+    let target: String?
 }
 
 struct Membership: Hashable, Sendable {

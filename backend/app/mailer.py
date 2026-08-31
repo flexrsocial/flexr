@@ -711,6 +711,100 @@ Dein FLEXR-Team
 
 
 # ---------------------------------------------------------------------------
+# Aktivitäts-Benachrichtigungen (neues Match, wartende Profile, Inaktivität)
+#
+# Anders als die Abrechnungs- und Moderationsmails sind das die einzigen
+# abbestellbaren Nachrichten: jede hat im Profil unter "Benachrichtigungen"
+# einen eigenen Schalter (siehe notifications.py). Der Hinweis darauf steht
+# deshalb in jedem dieser drei Texte.
+# ---------------------------------------------------------------------------
+
+_NOTIFY_OPT_OUT = (
+    'Du kannst diese Benachrichtigung jederzeit in FLEXR unter '
+    '"Benachrichtigungen" im Profil abschalten.'
+)
+
+
+def _new_match_html(name: str, match_name: str) -> str:
+    body = "\n".join([
+        _p(
+            f"{html.escape(match_name)} hat dich auch geliked - ihr habt ein "
+            "Match. Ab jetzt könnt ihr euch in FLEXR schreiben."
+        ),
+        _p(_NOTIFY_OPT_OUT),
+    ])
+    return _email_shell("Neues Match", f"Hallo {html.escape(name)},", body)
+
+
+def send_new_match(email: str, name: str, match_name: str) -> bool:
+    body = f"""Hallo {name},
+
+{match_name} hat dich auch geliked - ihr habt ein Match. Ab jetzt könnt ihr euch
+in FLEXR schreiben.
+
+{_NOTIFY_OPT_OUT}
+
+Dein FLEXR-Team
+"""
+    return send_email(
+        email, f"Neues Match mit {match_name}", body, _new_match_html(name, match_name),
+    )
+
+
+def _queue_waiting_html(name: str, count: int) -> str:
+    body = "\n".join([
+        _p(
+            f"In deinem Suchradius warten gerade {count} neue Profile darauf, "
+            "von dir bewertet zu werden."
+        ),
+        _p(_NOTIFY_OPT_OUT),
+    ])
+    return _email_shell("Neue Profile", f"Hallo {html.escape(name)},", body)
+
+
+def send_queue_waiting(email: str, name: str, count: int) -> bool:
+    body = f"""Hallo {name},
+
+in deinem Suchradius warten gerade {count} neue Profile darauf, von dir bewertet
+zu werden.
+
+{_NOTIFY_OPT_OUT}
+
+Dein FLEXR-Team
+"""
+    return send_email(
+        email, f"{count} neue Profile in deinem Umkreis", body,
+        _queue_waiting_html(name, count),
+    )
+
+
+def _inactivity_html(name: str, days: int) -> str:
+    body = "\n".join([
+        _p(
+            f"du warst {days} Tage nicht mehr in FLEXR. In der Zwischenzeit "
+            "können neue Profile in deinem Umkreis dazugekommen sein."
+        ),
+        _p(_NOTIFY_OPT_OUT),
+    ])
+    return _email_shell("Lange nicht gesehen", f"Hallo {html.escape(name)},", body)
+
+
+def send_inactivity_reminder(email: str, name: str, days: int) -> bool:
+    body = f"""Hallo {name},
+
+du warst {days} Tage nicht mehr in FLEXR. In der Zwischenzeit können neue Profile
+in deinem Umkreis dazugekommen sein.
+
+{_NOTIFY_OPT_OUT}
+
+Dein FLEXR-Team
+"""
+    return send_email(
+        email, "Lange nicht gesehen bei FLEXR", body, _inactivity_html(name, days),
+    )
+
+
+# ---------------------------------------------------------------------------
 # Bestätigung der Selbstlöschung (30-Tage-Karenzzeit)
 #
 # Wird unmittelbar bei DELETE /api/profiles/me verschickt (siehe

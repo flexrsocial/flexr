@@ -13,6 +13,7 @@ struct AccountView: View {
     @State private var consentsExpanded = false
     @State private var blockedUsersExpanded = false
     @State private var pendingSensitiveRevoke = false
+    @State private var notificationDetailsVisible = false
 
     var body: some View {
         Group {
@@ -108,6 +109,11 @@ struct AccountView: View {
                     onSubmit: { Task { await model.submitGymSuggestion() } },
                     onDismiss: model.closeGymSuggestion
                 )
+            }
+        }
+        .sheet(isPresented: $notificationDetailsVisible) {
+            if let model {
+                NotificationSettingsSheet(model: model)
             }
         }
         .sheet(isPresented: $showDeleteDialog) {
@@ -247,7 +253,10 @@ struct AccountView: View {
                 },
                 onPhotoPicked: { data in Task { await model.onPhotoPicked(data) } },
                 onRemove: model.removePhoto,
-                showsStatus: true
+                showsStatus: true,
+                // Foto ziehen sortiert es um; Position 1 ist das Hauptfoto
+                // (Swipe-Karte, Avatar, Chat-Kopf).
+                onReorder: model.reorderPhotos
             )
             .padding(.top, 8)
 
@@ -290,6 +299,30 @@ struct AccountView: View {
                 .tint(FlexrColor.plate)
             }
             .padding(.top, 12)
+
+            // Untermenü statt weiterer Schalter an dieser Stelle: sechs
+            // Einstellungen, die im Alltag niemand anfasst, hätten Profil und
+            // Fotos nach unten gedrückt.
+            Button {
+                notificationDetailsVisible = true
+            } label: {
+                HStack {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Matches, Profile & Erinnerungen")
+                            .flexrText(.bodyLarge)
+                            .foregroundStyle(FlexrColor.chalk)
+                        Text("E-Mail und App getrennt einstellen")
+                            .flexrText(.bodySmall)
+                            .foregroundStyle(FlexrColor.chalkDim)
+                    }
+                    Spacer(minLength: 12)
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(FlexrColor.chalkDim)
+                }
+                .padding(.vertical, 14)
+            }
+            .buttonStyle(.plain)
         }
     }
 
@@ -861,5 +894,106 @@ private struct CheckoutConsentRow: View {
                 .onTapGesture { isOn.toggle() }
         }
         .padding(.vertical, 8)
+    }
+}
+
+/// Untermenü „Benachrichtigungen" — drei Anlässe, je getrennt für E-Mail und App.
+///
+/// Die Schalter stehen unter dem App-weiten „Neue Nachrichten" im Konto: ist
+/// das aus, zeigt die App gar nichts an, unabhängig von dieser Auswahl.
+private struct NotificationSettingsSheet: View {
+
+    let model: AccountModel
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 0) {
+                    SectionTitle(text: "Neues Match").padding(.top, 20)
+                    row(
+                        "E-Mail",
+                        hint: "Wenn jemand dich zurückgeliked hat.",
+                        isOn: model.notifications.matchEmail
+                    ) { NotificationSettingsRequestDTO(notifyMatchEmail: $0) }
+                    row("App-Benachrichtigung", hint: nil, isOn: model.notifications.matchPush) {
+                        NotificationSettingsRequestDTO(notifyMatchPush: $0)
+                    }
+
+                    SectionTitle(text: "Neue Profile im Umkreis").padding(.top, 26)
+                    row(
+                        "E-Mail",
+                        hint: "Ab drei wartenden Profilen, höchstens einmal am Tag.",
+                        isOn: model.notifications.queueEmail
+                    ) { NotificationSettingsRequestDTO(notifyQueueEmail: $0) }
+                    row("App-Benachrichtigung", hint: nil, isOn: model.notifications.queuePush) {
+                        NotificationSettingsRequestDTO(notifyQueuePush: $0)
+                    }
+
+                    SectionTitle(text: "Erinnerung bei Inaktivität").padding(.top, 26)
+                    row(
+                        "E-Mail",
+                        hint: "Wenn du sieben Tage nicht in FLEXR warst.",
+                        isOn: model.notifications.inactiveEmail
+                    ) { NotificationSettingsRequestDTO(notifyInactiveEmail: $0) }
+                    row("App-Benachrichtigung", hint: nil, isOn: model.notifications.inactivePush) {
+                        NotificationSettingsRequestDTO(notifyInactivePush: $0)
+                    }
+
+                    Text(
+                        "Rechtlich nötige Nachrichten — etwa zu Abo, Rücktritt oder "
+                            + "Moderationsentscheidungen — lassen sich hier nicht abschalten."
+                    )
+                    .flexrText(.bodySmall)
+                    .foregroundStyle(FlexrColor.chalkDim)
+                    .padding(.top, 24)
+                }
+                .padding(.horizontal, 20)
+                .padding(.bottom, 32)
+            }
+            .background(FlexrColor.ink.ignoresSafeArea())
+            .navigationTitle("Benachrichtigungen")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Fertig") { dismiss() }.tint(FlexrColor.plate)
+                }
+            }
+        }
+    }
+
+    private func row(
+        _ label: String,
+        hint: String?,
+        isOn: Bool,
+        request: @escaping (Bool) -> NotificationSettingsRequestDTO
+    ) -> some View {
+        HStack {
+            VStack(alignment: .leading, spacing: 2) {
+                Text(label)
+                    .flexrText(.bodyLarge)
+                    .foregroundStyle(FlexrColor.chalk)
+                if let hint {
+                    Text(hint)
+                        .flexrText(.bodySmall)
+                        .foregroundStyle(FlexrColor.chalkDim)
+                }
+            }
+            Spacer(minLength: 12)
+            Toggle(
+                "",
+                isOn: Binding(
+                    get: { isOn },
+                    // Es wird immer nur das eine geänderte Feld geschickt, damit
+                    // ein Schalter nie die Stellung der übrigen mit einem
+                    // veralteten Stand überschreibt.
+                    set: { neu in Task { await model.updateNotificationSetting(request(neu)) } }
+                )
+            )
+            .labelsHidden()
+            .tint(FlexrColor.plate)
+            .disabled(model.isSavingNotifications)
+        }
+        .padding(.vertical, 10)
     }
 }

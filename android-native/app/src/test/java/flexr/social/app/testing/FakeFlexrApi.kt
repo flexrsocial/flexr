@@ -17,17 +17,21 @@ import flexr.social.app.data.remote.dto.DeleteAccountRequestDto
 import flexr.social.app.data.remote.dto.GymDto
 import flexr.social.app.data.remote.dto.GymSuggestRequestDto
 import flexr.social.app.data.remote.dto.LoginRequestDto
+import flexr.social.app.data.remote.dto.MarkDeliveredRequestDto
 import flexr.social.app.data.remote.dto.MatchDto
 import flexr.social.app.data.remote.dto.MembershipStatusDto
 import flexr.social.app.data.remote.dto.MessageDto
 import flexr.social.app.data.remote.dto.ModerationNoticeDto
 import flexr.social.app.data.remote.dto.MyProfileDto
+import flexr.social.app.data.remote.dto.NotificationSettingsRequestDto
 import flexr.social.app.data.remote.dto.PlzLookupDto
 import flexr.social.app.data.remote.dto.PortalUrlDto
 import flexr.social.app.data.remote.dto.PresignPhotoRequestDto
 import flexr.social.app.data.remote.dto.PresignPhotoResponseDto
 import flexr.social.app.data.remote.dto.ProfileDto
+import flexr.social.app.data.remote.dto.PushNotificationDto
 import flexr.social.app.data.remote.dto.RegisterRequestDto
+import flexr.social.app.data.remote.dto.ReorderPhotosRequestDto
 import flexr.social.app.data.remote.dto.ReportAckDto
 import flexr.social.app.data.remote.dto.ReportRequestDto
 import flexr.social.app.data.remote.dto.SendMessageRequestDto
@@ -100,6 +104,25 @@ open class FakeFlexrApi : FlexrApi {
 
     override suspend fun deletePhoto(photoId: String): MyProfileDto =
         nichtVorgesehen("deletePhoto")
+
+    override suspend fun reorderPhotos(body: ReorderPhotosRequestDto): MyProfileDto =
+        nichtVorgesehen("reorderPhotos")
+
+    override suspend fun updateNotificationSettings(
+        body: NotificationSettingsRequestDto,
+    ): MyProfileDto = nichtVorgesehen("updateNotificationSettings")
+
+    // ---------- notifications.py ----------
+
+    override suspend fun pendingNotifications(background: String): List<PushNotificationDto> =
+        nichtVorgesehen("pendingNotifications")
+
+    // Rückgabetyp ausdrücklich Unit - siehe die Begründung bei
+    // uploadToPresignedUrl weiter unten.
+    override suspend fun markNotificationsDelivered(
+        body: MarkDeliveredRequestDto,
+        background: String,
+    ): Unit = nichtVorgesehen("markNotificationsDelivered")
 
     // ---------- swipes.py ----------
 

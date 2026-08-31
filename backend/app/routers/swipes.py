@@ -1,7 +1,9 @@
+import logging
+
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 
-from .. import consents
+from .. import consents, notifications
 from ..database import get_db
 from ..gym_geo import coords_for_gym, gym_values_within
 from ..models import Block, Match, Swipe, User
@@ -10,6 +12,8 @@ from ..schemas import ProfileOut, SwipeRequest, SwipeResult
 from ..security import require_active_membership
 from ..verification_service import account_visible_condition
 from .profiles import to_public_profile
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/swipes", tags=["swipes"])
 
@@ -27,6 +31,17 @@ def get_deck(
     current_user: User = Depends(require_active_membership),
     db: Session = Depends(get_db),
 ):
+    return deck_profiles(db, current_user)
+
+
+def deck_profiles(db: Session, current_user: User, limit: int = DECK_SIZE) -> list[ProfileOut]:
+    """Die Profile, die dieser Nutzer als nächstes zu sehen bekäme.
+
+    Als eigene Funktion, weil der Benachrichtigungsjob dieselbe Frage stellt
+    ("wie viele warten gerade?"). Eine zweite, vereinfachte Zählung dort würde
+    zwangsläufig von dieser hier abweichen, sobald jemand die Filter anfasst -
+    und dann Mails über Profile verschicken, die im Deck gar nicht auftauchen.
+    """
     already_swiped_ids = [
         row.to_user_id
         for row in db.query(Swipe.to_user_id).filter(Swipe.from_user_id == current_user.id)
@@ -91,9 +106,9 @@ def get_deck(
                 continue
             profile.distance_km = round(nearby_gyms[u.gym])
             profiles.append(profile)
-        if len(profiles) >= DECK_SIZE:
+        if len(profiles) >= limit:
             break
-    return profiles[:DECK_SIZE]
+    return profiles[:limit]
 
 
 @router.post("", response_model=SwipeResult)
@@ -150,8 +165,27 @@ def swipe(
                 .first()
             )
             if not existing_match:
-                db.add(Match(user_a_id=a, user_b_id=b))
+                new_match = Match(user_a_id=a, user_b_id=b)
+                db.add(new_match)
                 db.commit()
+                # Beide Seiten benachrichtigen, nicht nur die wartende: für den
+                # Swipenden ist das Match genauso neu, er sieht es nur zufällig
+                # gerade im Vordergrund. Der Versand darf den Swipe nicht
+                # scheitern lassen - ein toter SMTP-Server würde sonst das
+                # Match-Ergebnis verschlucken, obwohl es längst gespeichert ist.
+                for recipient, other in (
+                    (current_user, target_user),
+                    (target_user, current_user),
+                ):
+                    try:
+                        notifications.notify_new_match(
+                            db, recipient, other.name, new_match.id
+                        )
+                    except Exception:
+                        logger.exception(
+                            "Match-Benachrichtigung fehlgeschlagen (match=%s)",
+                            new_match.id,
+                        )
             matched = True
 
     return SwipeResult(matched=matched)

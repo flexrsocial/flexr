@@ -17,9 +17,11 @@ from ..schemas import (
     ConsentRevokeRequest,
     DeleteAccountRequest,
     MyProfileOut,
+    NotificationSettingsUpdate,
     PresignPhotoRequest,
     PresignPhotoResponse,
     ProfileOut,
+    ReorderPhotosRequest,
     UpdateProfileRequest,
 )
 from ..security import get_current_user
@@ -314,6 +316,54 @@ def add_photo(
     telegram.notify_admin_task(
         f"🆕 Neues Foto zur Prüfung im FLEXR-Admin-Dashboard: {current_user.name}"
     )
+    return current_user
+
+
+@router.put("/me/photos/order", response_model=MyProfileOut)
+def reorder_photos(
+    payload: ReorderPhotosRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Reihenfolge der eigenen Fotos neu setzen (Drag & Drop im Profil).
+
+    Position 0 ist das Hauptfoto - es trägt Swipe-Karte, Avatar und Chat-Kopf
+    (siehe die order_by-Begründung an User.photos). Verlangt wird deshalb die
+    vollständige Liste, nicht ein "verschiebe X vor Y": eine Teilangabe ließe
+    offen, welche Position die nicht genannten Fotos bekommen, und das
+    Hauptfoto würde je nach DB-Reihenfolge springen.
+    """
+    photos = db.query(Photo).filter(Photo.user_id == current_user.id).all()
+    by_id = {photo.id: photo for photo in photos}
+
+    if len(payload.photo_ids) != len(set(payload.photo_ids)):
+        raise HTTPException(400, "Doppelte Foto-ID in der Reihenfolge.")
+    # Vollzählig und ausschließlich eigene Fotos: sonst könnte eine
+    # untergeschobene fremde ID die Zuordnung verschieben, und eine
+    # unvollständige Liste würde Fotos ohne definierte Position zurücklassen.
+    if set(payload.photo_ids) != set(by_id):
+        raise HTTPException(400, "Die Reihenfolge muss genau die eigenen Fotos enthalten.")
+
+    for index, photo_id in enumerate(payload.photo_ids):
+        by_id[photo_id].position = index
+    db.commit()
+    db.refresh(current_user)
+    return current_user
+
+
+@router.patch("/me/notifications", response_model=MyProfileOut)
+def update_notification_settings(
+    payload: NotificationSettingsUpdate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Schalter unter "Benachrichtigungen" - je Anlass getrennt für E-Mail und App."""
+    changes = payload.model_dump(exclude_unset=True)
+    for field, value in changes.items():
+        if value is not None:
+            setattr(current_user, field, value)
+    db.commit()
+    db.refresh(current_user)
     return current_user
 
 

@@ -96,6 +96,26 @@ final class ProfileRepository {
         return updated
     }
 
+    /// Neue Reihenfolge speichern. Erwartet die vollständige Liste der eigenen
+    /// Foto-IDs; photos[0] wird zum Hauptfoto (Swipe-Karte, Avatar, Chat-Kopf).
+    @discardableResult
+    func reorderPhotos(_ photoIDs: [String]) async throws -> MyProfile {
+        let updated = try await api.reorderPhotos(
+            ReorderPhotosRequestDTO(photoIds: photoIDs)
+        ).toDomain()
+        myProfile = updated
+        return updated
+    }
+
+    @discardableResult
+    func updateNotificationSettings(
+        _ request: NotificationSettingsRequestDTO
+    ) async throws -> MyProfile {
+        let updated = try await api.updateNotificationSettings(request).toDomain()
+        myProfile = updated
+        return updated
+    }
+
     private func upload(_ data: Data, mimeType: String) async throws -> String {
         let presign = try await api.presignPhoto(PresignPhotoRequestDTO(contentType: mimeType))
         try await api.upload(to: presign.uploadUrl, contentType: mimeType, data: data)

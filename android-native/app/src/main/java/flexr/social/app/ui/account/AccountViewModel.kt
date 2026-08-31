@@ -15,6 +15,7 @@ import flexr.social.app.data.repository.SafetyRepository
 import flexr.social.app.data.repository.UnknownPostalCodeException
 import flexr.social.app.data.repository.VerificationRepository
 import flexr.social.app.data.remote.dto.ConsentDto
+import flexr.social.app.data.remote.dto.NotificationSettingsRequestDto
 import flexr.social.app.data.session.SessionStore
 import flexr.social.app.domain.model.BlockedUser
 import flexr.social.app.domain.model.Gym
@@ -54,6 +55,8 @@ data class AccountUiState(
     /** Bestätigter „verifiziert"-Hinweis wird dauerhaft ausgeblendet. */
     val verifiedHintDismissed: Boolean = false,
     val notificationsEnabled: Boolean = true,
+    /** Läuft gerade ein Schalter unter "Benachrichtigungen" zum Server? */
+    val isSavingNotifications: Boolean = false,
     val consents: List<ConsentDto> = emptyList(),
     val consentsLoading: Boolean = false,
     val consentError: String? = null,
@@ -447,9 +450,52 @@ class AccountViewModel @Inject constructor(
 
     // ---------- Benachrichtigungen ----------
 
+    /**
+     * Neue Fotoreihenfolge speichern.
+     *
+     * Der Server bekommt die vollstaendige Liste; scheitert der Aufruf, bleibt
+     * die bisherige Reihenfolge stehen, weil die Anzeige dem Profil aus dem
+     * Repository folgt und nicht der Geste.
+     */
+    fun onPhotosReordered(photoIds: List<String>) {
+        viewModelScope.launch {
+            runCatching { profileRepository.reorderPhotos(photoIds) }
+                .onFailure {
+                    _events.send(
+                        AccountEvent.Message(
+                            it.message ?: "Reihenfolge konnte nicht gespeichert werden.",
+                        ),
+                    )
+                }
+        }
+    }
+
     fun setNotificationsEnabled(enabled: Boolean) {
         _uiState.update { it.copy(notificationsEnabled = enabled) }
         viewModelScope.launch { sessionStore.setNotificationsEnabled(enabled) }
+    }
+
+    /**
+     * Einzelnen Schalter unter "Benachrichtigungen" speichern.
+     *
+     * Es wird immer nur das eine geänderte Feld geschickt - so überschreibt ein
+     * Schalter nie die Stellung der übrigen mit einem veralteten Stand. Die
+     * Anzeige folgt dem Profil aus dem Repository, deshalb gibt es hier keine
+     * zweite Kopie des Zustands, die auseinanderlaufen könnte.
+     */
+    fun updateNotificationSetting(request: NotificationSettingsRequestDto) {
+        _uiState.update { it.copy(isSavingNotifications = true) }
+        viewModelScope.launch {
+            runCatching { profileRepository.updateNotificationSettings(request) }
+                .onFailure {
+                    _events.send(
+                        AccountEvent.Message(
+                            it.message ?: "Einstellung konnte nicht gespeichert werden.",
+                        ),
+                    )
+                }
+            _uiState.update { it.copy(isSavingNotifications = false) }
+        }
     }
 
     // ---------- Einwilligungen ----------

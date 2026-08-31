@@ -67,6 +67,39 @@ struct FlexrAPI {
         try await client.send(.delete, "api/profiles/me/photos/\(id)")
     }
 
+    /// Reihenfolge der eigenen Fotos - photos[0] ist das Hauptfoto.
+    func reorderPhotos(_ body: ReorderPhotosRequestDTO) async throws -> MyProfileDTO {
+        try await client.send(.put, "api/profiles/me/photos/order", body: body)
+    }
+
+    func updateNotificationSettings(
+        _ body: NotificationSettingsRequestDTO
+    ) async throws -> MyProfileDTO {
+        try await client.send(.patch, "api/profiles/me/notifications", body: body)
+    }
+
+    // MARK: - notifications.py
+
+    /// Bereitliegende App-Benachrichtigungen abholen.
+    ///
+    /// `X-Flexr-Background` weist den Abruf als Hintergrundabgleich aus: ohne
+    /// den Header wuerde ausgerechnet der Lauf, der die Inaktivitaets-Erinnerung
+    /// ausliefern soll, den Nutzer dauerhaft als aktiv erscheinen lassen.
+    func pendingNotifications() async throws -> [PushNotificationDTO] {
+        try await client.send(
+            .get, "api/notifications/pending",
+            headers: ["X-Flexr-Background": "1"]
+        )
+    }
+
+    func markNotificationsDelivered(_ body: MarkDeliveredRequestDTO) async throws {
+        try await client.send(
+            .post, "api/notifications/delivered",
+            body: body,
+            headers: ["X-Flexr-Background": "1"]
+        )
+    }
+
     // MARK: - swipes.py
 
     func deck() async throws -> [ProfileDTO] {

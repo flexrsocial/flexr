@@ -104,7 +104,52 @@ data class MyProfileDto(
     @SerialName("verification_required") val verificationRequired: Boolean = false,
     @SerialName("is_account_activated") val isAccountActivated: Boolean = true,
     @SerialName("age_verified") val ageVerified: Boolean = false,
+    // Schalterstellung unter "Benachrichtigungen". Default an - ein aelteres
+    // Backend ohne diese Felder soll nicht so aussehen, als haette der Nutzer
+    // alles abgeschaltet.
+    @SerialName("notify_match_email") val notifyMatchEmail: Boolean = true,
+    @SerialName("notify_match_push") val notifyMatchPush: Boolean = true,
+    @SerialName("notify_queue_email") val notifyQueueEmail: Boolean = true,
+    @SerialName("notify_queue_push") val notifyQueuePush: Boolean = true,
+    @SerialName("notify_inactive_email") val notifyInactiveEmail: Boolean = true,
+    @SerialName("notify_inactive_push") val notifyInactivePush: Boolean = true,
 )
+
+/** Einzelner Schalter - nur das gesetzte Feld wird geschickt. */
+@Serializable
+data class NotificationSettingsRequestDto(
+    @SerialName("notify_match_email") val notifyMatchEmail: Boolean? = null,
+    @SerialName("notify_match_push") val notifyMatchPush: Boolean? = null,
+    @SerialName("notify_queue_email") val notifyQueueEmail: Boolean? = null,
+    @SerialName("notify_queue_push") val notifyQueuePush: Boolean? = null,
+    @SerialName("notify_inactive_email") val notifyInactiveEmail: Boolean? = null,
+    @SerialName("notify_inactive_push") val notifyInactivePush: Boolean? = null,
+)
+
+/** Neue Reihenfolge der eigenen Fotos (Drag & Drop im Profil). */
+@Serializable
+data class ReorderPhotosRequestDto(
+    @SerialName("photo_ids") val photoIds: List<String>,
+)
+
+/**
+ * Eine vom Server bereitgelegte App-Benachrichtigung.
+ *
+ * FLEXR hat kein FCM: der Hintergrundabgleich holt diese Eintraege ab und zeigt
+ * sie lokal an (siehe ActivityNotificationWorker).
+ */
+@Serializable
+data class PushNotificationDto(
+    val id: String,
+    val topic: String,
+    val title: String,
+    val body: String,
+    val target: String? = null,
+    @SerialName("created_at") val createdAt: String,
+)
+
+@Serializable
+data class MarkDeliveredRequestDto(val ids: List<String>)
 
 @Serializable
 data class UpdateProfileRequestDto(

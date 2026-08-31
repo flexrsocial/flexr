@@ -25,6 +25,9 @@ final class AppContainer {
     let safety: SafetyRepository
     let verification: VerificationRepository
     let notifications: MessageRefreshService
+    /// Abholfach der Aktivitäts-Benachrichtigungen (Match, Deck, Inaktivität).
+    let pushInbox: NotificationRepository
+    let activityNotifications: ActivityRefreshService
 
     init() {
         let session = SessionStore()
@@ -51,6 +54,9 @@ final class AppContainer {
         safety = SafetyRepository(api: api)
         verification = VerificationRepository(api: api)
         notifications = MessageRefreshService(session: session, matches: matchRepository)
+        let inbox = NotificationRepository(api: api)
+        pushInbox = inbox
+        activityNotifications = ActivityRefreshService(session: session, notifications: inbox)
     }
 }
 

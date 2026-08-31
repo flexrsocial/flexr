@@ -69,6 +69,8 @@ data class MyProfile(
     val email: String = "",
     val emailVerified: Boolean = true,
     val ageVerified: Boolean = false,
+    /** Schalterstellung unter "Benachrichtigungen" im Konto. */
+    val notifications: NotificationSettings = NotificationSettings(),
 ) {
     val id: String get() = profile.id
     val name: String get() = profile.name
@@ -78,6 +80,31 @@ data class MyProfile(
     fun activeMuteUntil(now: Instant = Instant.now()): Instant? =
         messagingMutedUntil?.takeIf { it.isAfter(now) }
 }
+
+/**
+ * Drei Anlaesse, je getrennt fuer E-Mail und App.
+ *
+ * Ob eine App-Benachrichtigung ueberhaupt entsteht, entscheidet der Server -
+ * die Schalter hier sind die Anzeige derselben Einstellung, nicht eine zweite
+ * Regel daneben.
+ */
+data class NotificationSettings(
+    val matchEmail: Boolean = true,
+    val matchPush: Boolean = true,
+    val queueEmail: Boolean = true,
+    val queuePush: Boolean = true,
+    val inactiveEmail: Boolean = true,
+    val inactivePush: Boolean = true,
+)
+
+/** Eine vom Server bereitgelegte, noch nicht angezeigte Benachrichtigung. */
+data class PushNotification(
+    val id: String,
+    val topic: String,
+    val title: String,
+    val body: String,
+    val target: String?,
+)
 
 data class Membership(
     val isSubscribed: Boolean,

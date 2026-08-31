@@ -10,7 +10,9 @@ import flexr.social.app.data.remote.dto.ConsentGrantResponseDto
 import flexr.social.app.data.remote.dto.ConsentRevokeRequestDto
 import flexr.social.app.data.remote.dto.ConsentRevokeResponseDto
 import flexr.social.app.data.remote.dto.DeleteAccountRequestDto
+import flexr.social.app.data.remote.dto.NotificationSettingsRequestDto
 import flexr.social.app.data.remote.dto.PresignPhotoRequestDto
+import flexr.social.app.data.remote.dto.ReorderPhotosRequestDto
 import flexr.social.app.data.remote.dto.UpdateProfileRequestDto
 import flexr.social.app.data.session.SessionStore
 import flexr.social.app.domain.model.MyProfile
@@ -107,6 +109,24 @@ class ProfileRepository @Inject constructor(
 
     suspend fun deletePhoto(photoId: String): MyProfile {
         val updated = apiCall { api.deletePhoto(photoId) }.toDomain()
+        _myProfile.value = updated
+        return updated
+    }
+
+    /**
+     * Neue Reihenfolge speichern. Erwartet die vollstaendige Liste der eigenen
+     * Foto-IDs; photos[0] wird zum Hauptfoto (Swipe-Karte, Avatar, Chat-Kopf).
+     */
+    suspend fun reorderPhotos(photoIds: List<String>): MyProfile {
+        val updated = apiCall { api.reorderPhotos(ReorderPhotosRequestDto(photoIds)) }.toDomain()
+        _myProfile.value = updated
+        return updated
+    }
+
+    suspend fun updateNotificationSettings(
+        request: NotificationSettingsRequestDto,
+    ): MyProfile {
+        val updated = apiCall { api.updateNotificationSettings(request) }.toDomain()
         _myProfile.value = updated
         return updated
     }

@@ -69,9 +69,11 @@ final class AppModel {
             let membership = try await container.billing.refresh()
             if membership.isActive {
                 container.notifications.schedule()
+                container.activityNotifications.schedule()
                 state = .ready(profile: profile, membership: membership)
             } else {
                 container.notifications.cancel()
+                container.activityNotifications.cancel()
                 state = .locked(membership)
             }
         } catch {
@@ -89,6 +91,7 @@ final class AppModel {
 
     func logout() async {
         container.notifications.cancel()
+        container.activityNotifications.cancel()
         await container.auth.logout()
         container.profiles.clear()
         container.billing.clear()

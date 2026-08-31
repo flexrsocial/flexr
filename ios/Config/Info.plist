@@ -89,6 +89,7 @@
 	<key>BGTaskSchedulerPermittedIdentifiers</key>
 	<array>
 		<string>social.flexr.app.messages.refresh</string>
+		<string>social.flexr.app.activity.refresh</string>
 	</array>
 
 	<!-- Nur die lokale Testumgebung darf über http laufen; alles andere bleibt

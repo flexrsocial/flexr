@@ -9,6 +9,7 @@ import flexr.social.app.data.remote.dto.MessageDto
 import flexr.social.app.data.remote.dto.MyProfileDto
 import flexr.social.app.data.remote.dto.PhotoDto
 import flexr.social.app.data.remote.dto.ProfileDto
+import flexr.social.app.data.remote.dto.PushNotificationDto
 import flexr.social.app.data.remote.dto.VerificationStatusDto
 import flexr.social.app.domain.model.AgeCheck
 import flexr.social.app.domain.model.Gender
@@ -19,7 +20,9 @@ import flexr.social.app.domain.model.Message
 import flexr.social.app.domain.model.MyProfile
 import flexr.social.app.domain.model.Photo
 import flexr.social.app.domain.model.PhotoStatus
+import flexr.social.app.domain.model.NotificationSettings
 import flexr.social.app.domain.model.Profile
+import flexr.social.app.domain.model.PushNotification
 import flexr.social.app.domain.model.VerificationDocumentType
 import flexr.social.app.domain.model.VerificationState
 import flexr.social.app.domain.model.VerificationStatus
@@ -75,6 +78,22 @@ fun MyProfileDto.toDomain() = MyProfile(
     email = email,
     emailVerified = emailVerified,
     ageVerified = ageVerified,
+    notifications = NotificationSettings(
+        matchEmail = notifyMatchEmail,
+        matchPush = notifyMatchPush,
+        queueEmail = notifyQueueEmail,
+        queuePush = notifyQueuePush,
+        inactiveEmail = notifyInactiveEmail,
+        inactivePush = notifyInactivePush,
+    ),
+)
+
+fun PushNotificationDto.toDomain() = PushNotification(
+    id = id,
+    topic = topic,
+    title = title,
+    body = body,
+    target = target,
 )
 
 fun MembershipStatusDto.toDomain() = Membership(
