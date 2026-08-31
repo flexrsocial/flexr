@@ -64,6 +64,26 @@ Profile verschickt, die im Deck gar nicht auftauchen.
 - iOS: **nicht kompiliert**, hier ist kein macOS/Xcode. Der Swift-Code ist
   ungeprüft.
 
+### Benachrichtigungs-Tipp führt zum Ziel (Nachtrag)
+
+Vorher öffnete jeder Tipp nur die App auf dem zuletzt gesehenen Screen — das
+Ziel wurde zwar mitgeschickt, aber nirgends ausgelesen (`EXTRA_OPEN_CHATS`
+seit jeher, `EXTRA_TARGET` seit dieser Sitzung).
+
+- **Android:** `MainActivity.targetOf()` liest die Extras und prüft den
+  Serverwert gegen `TopLevelDestination`, statt ihn blind zu übernehmen.
+  `MainGraph` navigiert mit demselben Muster wie die untere Leiste
+  (`popUpTo`/`launchSingleTop`/`restoreState`), damit kein zweiter
+  Backstack-Eintrag entsteht. `onNewIntent` ist überschrieben — ohne das
+  griffe es nur beim Kaltstart. Das Ziel wird nach der Navigation verbraucht,
+  sonst spränge die App bei jeder Neuzusammensetzung erneut dorthin.
+- **iOS:** `didReceive` unterscheidet an `userInfo` zwischen `target`
+  (Aktivitäts-Benachrichtigung) und `openChats` (Nachricht); `AppModel.open(target:)`
+  prüft gegen `TopLevelDestination`.
+
+Bewusst getrennt von `intent.data` bzw. dem Deeplink-Pfad gehalten: darüber
+läuft der Bestätigungslink aus der Registrierungsmail.
+
 ### Play-Console-Warnung „nativer Code ohne Debug-Symbole" — erledigt, nicht behebbar
 
 Beim Upload von versionCode 39 warnte die Play Console erneut. **Die Warnung
@@ -92,16 +112,20 @@ nativer Code dazukommt; ein NDK ist dafür aktuell nicht nötig.
 ### Offen
 
 - iOS bauen und prüfen.
-- Tipp auf eine Benachrichtigung öffnet nur die App, springt nicht zum Ziel.
-  `NewMessageWorker` setzt seit jeher `EXTRA_OPEN_CHATS`, liest es aber nie
-  aus; `ActivityNotificationWorker` setzt `EXTRA_TARGET` ("matches"/"swipe")
-  mit demselben Problem. iOS-Pendant: `didReceive` ruft immer
-  `openChatsTab()` und ignoriert `userInfo["target"]`.
-- AAB 2.5.1 war gebaut, signiert und hochgeladen, wurde auf Wunsch aber
-  **wieder vom VPS gelöscht**. Das lokale Bundle liegt noch unter
-  `android-native/app/build/outputs/bundle/prodRelease/app-prod-release.aab`
-  (SHA-256 `d8d956d0d92ad8b73f2bdfc032b4b494c64f6951a6913272f7d7fff8e23b9cea`).
-  Für einen Release neu hochladen — siehe „Ein neues AAB wird so bereitgestellt".
+- **Auf einem Gerät ist nichts davon angefasst worden.** Für die
+  Benachrichtigungs-Navigation konkret zu prüfen: Tipp bei **geschlossener**
+  App (Kaltstart über `onCreate`) und bei **laufender** App (`onNewIntent`),
+  danach einmal drehen — die App darf dann *nicht* erneut zum Ziel springen.
+  Und gegenprüfen, dass der Bestätigungslink aus der Registrierungsmail
+  (`/mail-bestaetigen`) unverändert funktioniert: der läuft über
+  `intent.data` und wurde bewusst nicht angefasst.
+- AAB: 2.5.1 (versionCode 39) war hochgeladen und wurde auf Wunsch wieder
+  vom VPS gelöscht. Aktuell ist **2.5.2 (versionCode 40)** mit der
+  Benachrichtigungs-Navigation, gebaut und signiert unter
+  `android-native/app/build/outputs/bundle/prodRelease/app-prod-release.aab`,
+  aber **nicht auf dem VPS**. Für einen Release hochladen — siehe „Ein neues
+  AAB wird so bereitgestellt". Ein etwaiger Versionsentwurf 39 in der Play
+  Console lässt sich verwerfen.
 
 ## Eckdaten (sitzungsübergreifend)
 

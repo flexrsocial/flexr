@@ -80,6 +80,15 @@ final class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCent
         _ center: UNUserNotificationCenter,
         didReceive response: UNNotificationResponse
     ) async {
-        appModel.openChatsTab()
+        // Jede Benachrichtigungsart bringt ihren eigenen Schlüssel mit:
+        // ActivityRefreshService setzt "target" (matches/swipe),
+        // MessageRefreshService "openChats". Bislang landete jeder Tipp
+        // unabhängig davon in der Chatliste.
+        let info = response.notification.request.content.userInfo
+        if let target = info["target"] as? String, !target.isEmpty {
+            appModel.open(target: target)
+        } else if info["openChats"] as? Bool == true {
+            appModel.openChatsTab()
+        }
     }
 }

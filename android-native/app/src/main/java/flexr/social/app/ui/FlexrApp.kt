@@ -83,6 +83,9 @@ private const val MIN_MESSAGE_DURATION_MS = 20_000L
 @Composable
 fun FlexrApp(
     intentData: Uri? = null,
+    /** Zielreiter einer angetippten Benachrichtigung, sonst null. */
+    notificationTarget: String? = null,
+    onNotificationTargetHandled: () -> Unit = {},
     viewModel: MainViewModel = hiltViewModel(),
 ) {
     val appState by viewModel.appState.collectAsStateWithLifecycle()
@@ -160,6 +163,8 @@ fun FlexrApp(
                     onLogout = viewModel::logout,
                     onOpenUrl = { context.openExternalPage(it) },
                     onShowMessage = showMessage,
+                    notificationTarget = notificationTarget,
+                    onNotificationTargetHandled = onNotificationTargetHandled,
                 )
             }
         }
@@ -368,11 +373,31 @@ private fun MainGraph(
     onLogout: () -> Unit,
     onOpenUrl: (String) -> Unit,
     onShowMessage: (String) -> Unit,
+    notificationTarget: String? = null,
+    onNotificationTargetHandled: () -> Unit = {},
 ) {
     val navController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route
     val isTopLevel = TopLevelDestination.entries.any { it.route == currentRoute }
+
+    // Tipp auf eine Benachrichtigung: zum passenden Reiter springen.
+    //
+    // Gleiches Navigationsmuster wie die untere Leiste, damit kein zweiter
+    // Eintrag im Backstack entsteht. Das Ziel wird anschliessend verbraucht -
+    // ohne das wuerde jede Neuzusammensetzung (Drehen, Rueckkehr aus dem
+    // Hintergrund) erneut dorthin springen und den Nutzer festhalten.
+    LaunchedEffect(notificationTarget) {
+        val target = notificationTarget ?: return@LaunchedEffect
+        if (TopLevelDestination.entries.any { it.route == target }) {
+            navController.navigate(target) {
+                popUpTo(navController.graph.startDestinationId) { saveState = true }
+                launchSingleTop = true
+                restoreState = true
+            }
+        }
+        onNotificationTargetHandled()
+    }
 
     Scaffold(
         containerColor = Color.Transparent,

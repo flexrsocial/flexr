@@ -107,4 +107,15 @@ final class AppModel {
     func openChatsTab() {
         selectedTab = .chats
     }
+
+    /// Reiter aus einer angetippten Benachrichtigung heraus wechseln.
+    ///
+    /// Der Zielwert kommt vom Server (`PushNotification.target`) und wird
+    /// bewusst gegen `TopLevelDestination` geprüft statt blind übernommen:
+    /// ein unbekannter Wert — etwa aus einer neueren Serverfassung — soll die
+    /// App einfach nur öffnen, nicht in einen leeren Zustand schicken.
+    func open(target rawValue: String) {
+        guard let destination = TopLevelDestination(rawValue: rawValue) else { return }
+        selectedTab = destination
+    }
 }
