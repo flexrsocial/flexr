@@ -324,11 +324,6 @@ ul.plain li{ margin-bottom:9px; }
    sichtbar, abgeschnitten wird nur weiter unten im Motiv. */
 .sample-photo img[src*="-v2.jpg"],
 .sample-photo img[src*="-v3.jpg"]{ object-position:center top; }
-.sample-photo-bars{
-  position:absolute; z-index:2; top:10px; left:10px; right:10px; display:flex; gap:4px;
-}
-.sample-photo-bars i{ flex:1; height:3px; border-radius:2px; background:rgba(255,255,255,.3); }
-.sample-photo-bars i:first-child{ background:var(--plate); box-shadow:0 0 8px rgba(255,90,31,.45); }
 .sample-name{
   position:absolute; z-index:2; left:16px; right:16px; bottom:13px;
   font-family:'Oswald',sans-serif; font-size:27px; color:#fff;
@@ -580,7 +575,6 @@ footer{ border-top:1px solid var(--steel); padding:32px 0 60px; margin-top:20px;
             <div class="sample-stamp pass">Nope</div><div class="sample-stamp like">Match</div>
             <div class="sample-photo">
               <img src="/brand/demo/demo-tobias.jpg?v=1" alt="" loading="lazy" width="720" height="960">
-              <div class="sample-photo-bars"><i></i><i></i><i></i></div>
               <div class="sample-name">Tobias, 28<span>Salzburg · John Harris Fitness</span></div>
             </div>
             <div class="sample-card-body">
@@ -592,7 +586,6 @@ footer{ border-top:1px solid var(--steel); padding:32px 0 60px; margin-top:20px;
             <div class="sample-stamp pass">Nope</div><div class="sample-stamp like">Match</div>
             <div class="sample-photo">
               <img src="/brand/demo/demo-jonas.jpg?v=1" alt="" loading="lazy" width="720" height="960">
-              <div class="sample-photo-bars"><i></i><i></i><i></i></div>
               <div class="sample-name">Jonas, 25<span>Linz · Holmes Place</span></div>
             </div>
             <div class="sample-card-body">
@@ -604,7 +597,6 @@ footer{ border-top:1px solid var(--steel); padding:32px 0 60px; margin-top:20px;
             <div class="sample-stamp pass">Nope</div><div class="sample-stamp like">Match</div>
             <div class="sample-photo">
               <img src="/brand/demo/demo-sophie.jpg?v=1" alt="" loading="lazy" width="720" height="960">
-              <div class="sample-photo-bars"><i></i><i></i><i></i></div>
               <div class="sample-name">Sophie, 27<span>Graz · McFit</span></div>
             </div>
             <div class="sample-card-body">
@@ -616,7 +608,6 @@ footer{ border-top:1px solid var(--steel); padding:32px 0 60px; margin-top:20px;
             <div class="sample-stamp pass">Nope</div><div class="sample-stamp like">Match</div>
             <div class="sample-photo">
               <img src="/brand/demo/demo-lena.jpg?v=1" alt="" loading="lazy" width="720" height="960">
-              <div class="sample-photo-bars"><i></i><i></i><i></i></div>
               <div class="sample-name">Lena, 26<span>Innsbruck · FitOne</span></div>
             </div>
             <div class="sample-card-body">
@@ -629,107 +620,107 @@ footer{ border-top:1px solid var(--steel); padding:32px 0 60px; margin-top:20px;
           </article>
           <article class="sample-profile-card" tabindex="-1" data-face-group="melina-selin" aria-label="Melina, 27, Injoy Klagenfurt">
             <div class="sample-stamp pass">Nope</div><div class="sample-stamp like">Match</div>
-            <div class="sample-photo"><img src="/brand/demo/demo-melina-v3.jpg?v=1" alt="" loading="lazy" width="720" height="960"><div class="sample-photo-bars"><i></i><i></i><i></i></div><div class="sample-name">Melina, 27<span>Klagenfurt · Injoy</span></div></div>
+            <div class="sample-photo"><img src="/brand/demo/demo-melina-v3.jpg?v=1" alt="" loading="lazy" width="720" height="960"><div class="sample-name">Melina, 27<span>Klagenfurt · Injoy</span></div></div>
             <div class="sample-card-body"><div class="sample-chip-row"><span class="sample-chip">Injoy Klagenfurt</span></div><p>Ganzkörper-Split, Runden um den Wörthersee und Kaffee danach.</p></div>
           </article>
           <article class="sample-profile-card" tabindex="-1" aria-label="Anna, 26, Das Gym Wien">
             <div class="sample-stamp pass">Nope</div><div class="sample-stamp like">Match</div>
-            <div class="sample-photo"><img src="/brand/demo/demo-anna-v2.jpg?v=1" alt="" loading="lazy" width="720" height="960"><div class="sample-photo-bars"><i></i><i></i><i></i></div><div class="sample-name">Anna, 26<span>Wien · Das Gym</span></div></div>
+            <div class="sample-photo"><img src="/brand/demo/demo-anna-v2.jpg?v=1" alt="" loading="lazy" width="720" height="960"><div class="sample-name">Anna, 26<span>Wien · Das Gym</span></div></div>
             <div class="sample-card-body"><div class="sample-chip-row"><span class="sample-chip">Das Gym Wien</span></div><p>Schwere Squats, Wiener Kaffee und sonntags Meal Prep.</p></div>
           </article>
           <article class="sample-profile-card" tabindex="-1" aria-label="Miriam, 28, McFit Graz">
             <div class="sample-stamp pass">Nope</div><div class="sample-stamp like">Match</div>
-            <div class="sample-photo"><img src="/brand/demo/demo-miriam-v2.jpg?v=1" alt="" loading="lazy" width="720" height="960"><div class="sample-photo-bars"><i></i><i></i><i></i></div><div class="sample-name">Miriam, 28<span>Graz · McFit</span></div></div>
+            <div class="sample-photo"><img src="/brand/demo/demo-miriam-v2.jpg?v=1" alt="" loading="lazy" width="720" height="960"><div class="sample-name">Miriam, 28<span>Graz · McFit</span></div></div>
             <div class="sample-card-body"><div class="sample-chip-row"><span class="sample-chip">McFit Graz</span></div><p>Dumbbells, lange Spaziergänge und immer bereit für eine neue Playlist.</p></div>
           </article>
           <article class="sample-profile-card" tabindex="-1" aria-label="Emi, 29, Holmes Place Linz">
             <div class="sample-stamp pass">Nope</div><div class="sample-stamp like">Match</div>
-            <div class="sample-photo"><img src="/brand/demo/demo-emi-v2.jpg?v=1" alt="" loading="lazy" width="720" height="960"><div class="sample-photo-bars"><i></i><i></i><i></i></div><div class="sample-name">Emi, 29<span>Linz · Holmes Place</span></div></div>
+            <div class="sample-photo"><img src="/brand/demo/demo-emi-v2.jpg?v=1" alt="" loading="lazy" width="720" height="960"><div class="sample-name">Emi, 29<span>Linz · Holmes Place</span></div></div>
             <div class="sample-card-body"><div class="sample-chip-row"><span class="sample-chip">Holmes Place</span></div><p>Pull Days, Sushi nach dem Training und klare Trainingspläne.</p></div>
           </article>
           <article class="sample-profile-card" tabindex="-1" aria-label="Hannah, 27, Fitinn Wien">
             <div class="sample-stamp pass">Nope</div><div class="sample-stamp like">Match</div>
-            <div class="sample-photo"><img src="/brand/demo/demo-hannah-v2.jpg?v=1" alt="" loading="lazy" width="720" height="960"><div class="sample-photo-bars"><i></i><i></i><i></i></div><div class="sample-name">Hannah, 27<span>Wien · Fitinn</span></div></div>
+            <div class="sample-photo"><img src="/brand/demo/demo-hannah-v2.jpg?v=1" alt="" loading="lazy" width="720" height="960"><div class="sample-name">Hannah, 27<span>Wien · Fitinn</span></div></div>
             <div class="sample-card-body"><div class="sample-chip-row"><span class="sample-chip">Fitinn Wien</span></div><p>Langhantel, Leg Days und Kaffee an der Donau.</p></div>
           </article>
           <article class="sample-profile-card" tabindex="-1" aria-label="Laura, 30, John Harris Salzburg">
             <div class="sample-stamp pass">Nope</div><div class="sample-stamp like">Match</div>
-            <div class="sample-photo"><img src="/brand/demo/demo-laura-v2.jpg?v=1" alt="" loading="lazy" width="720" height="960"><div class="sample-photo-bars"><i></i><i></i><i></i></div><div class="sample-name">Laura, 30<span>Salzburg · John Harris</span></div></div>
+            <div class="sample-photo"><img src="/brand/demo/demo-laura-v2.jpg?v=1" alt="" loading="lazy" width="720" height="960"><div class="sample-name">Laura, 30<span>Salzburg · John Harris</span></div></div>
             <div class="sample-card-body"><div class="sample-chip-row"><span class="sample-chip">John Harris</span></div><p>Intervalle, Halbmarathons und Frühstück nach dem Early-Bird-Workout.</p></div>
           </article>
           <article class="sample-profile-card" tabindex="-1" aria-label="Theresa, 26, FitOne Innsbruck">
             <div class="sample-stamp pass">Nope</div><div class="sample-stamp like">Match</div>
-            <div class="sample-photo"><img src="/brand/demo/demo-theresa-v2.jpg?v=1" alt="" loading="lazy" width="720" height="960"><div class="sample-photo-bars"><i></i><i></i><i></i></div><div class="sample-name">Theresa, 26<span>Innsbruck · FitOne</span></div></div>
+            <div class="sample-photo"><img src="/brand/demo/demo-theresa-v2.jpg?v=1" alt="" loading="lazy" width="720" height="960"><div class="sample-name">Theresa, 26<span>Innsbruck · FitOne</span></div></div>
             <div class="sample-card-body"><div class="sample-chip-row"><span class="sample-chip">FitOne Innsbruck</span></div><p>Squats, Bergtouren und Sonnenuntergänge über Tirol.</p></div>
           </article>
           <article class="sample-profile-card" tabindex="-1" aria-label="Maya, 26, Outdoor Workout Wien">
             <div class="sample-stamp pass">Nope</div><div class="sample-stamp like">Match</div>
-            <div class="sample-photo"><img src="/brand/demo/demo-maya-v2.jpg?v=1" alt="" loading="lazy" width="720" height="960"><div class="sample-photo-bars"><i></i><i></i><i></i></div><div class="sample-name">Maya, 26<span>Wien · Outdoor Workout</span></div></div>
+            <div class="sample-photo"><img src="/brand/demo/demo-maya-v2.jpg?v=1" alt="" loading="lazy" width="720" height="960"><div class="sample-name">Maya, 26<span>Wien · Outdoor Workout</span></div></div>
             <div class="sample-card-body"><div class="sample-chip-row"><span class="sample-chip">Outdoor Workout</span></div><p>Calisthenics, Sonnenuntergänge und Trainings draußen.</p></div>
           </article>
           <article class="sample-profile-card" tabindex="-1" aria-label="Viktoria, 29, MyGym Salzburg">
             <div class="sample-stamp pass">Nope</div><div class="sample-stamp like">Match</div>
-            <div class="sample-photo"><img src="/brand/demo/demo-viktoria-v2.jpg?v=1" alt="" loading="lazy" width="720" height="960"><div class="sample-photo-bars"><i></i><i></i><i></i></div><div class="sample-name">Viktoria, 29<span>Salzburg · MyGym</span></div></div>
+            <div class="sample-photo"><img src="/brand/demo/demo-viktoria-v2.jpg?v=1" alt="" loading="lazy" width="720" height="960"><div class="sample-name">Viktoria, 29<span>Salzburg · MyGym</span></div></div>
             <div class="sample-card-body"><div class="sample-chip-row"><span class="sample-chip">MyGym Salzburg</span></div><p>Functional Fitness, Skitage und Early-Bird-Workouts.</p></div>
           </article>
           <article class="sample-profile-card" tabindex="-1" aria-label="Katharina, 32, FitOne Innsbruck">
             <div class="sample-stamp pass">Nope</div><div class="sample-stamp like">Match</div>
-            <div class="sample-photo"><img src="/brand/demo/demo-katharina-v2.jpg?v=1" alt="" loading="lazy" width="720" height="960"><div class="sample-photo-bars"><i></i><i></i><i></i></div><div class="sample-name">Katharina, 32<span>Innsbruck · FitOne</span></div></div>
+            <div class="sample-photo"><img src="/brand/demo/demo-katharina-v2.jpg?v=1" alt="" loading="lazy" width="720" height="960"><div class="sample-name">Katharina, 32<span>Innsbruck · FitOne</span></div></div>
             <div class="sample-card-body"><div class="sample-chip-row"><span class="sample-chip">FitOne Innsbruck</span></div><p>Cycling, Krafttraining und aktive Wochenenden in Tirol.</p></div>
           </article>
           <article class="sample-profile-card" tabindex="-1" aria-label="Sofia, 28, Injoy Klagenfurt">
             <div class="sample-stamp pass">Nope</div><div class="sample-stamp like">Match</div>
-            <div class="sample-photo"><img src="/brand/demo/demo-sofia-v2.jpg?v=1" alt="" loading="lazy" width="720" height="960"><div class="sample-photo-bars"><i></i><i></i><i></i></div><div class="sample-name">Sofia, 28<span>Klagenfurt · Injoy</span></div></div>
+            <div class="sample-photo"><img src="/brand/demo/demo-sofia-v2.jpg?v=1" alt="" loading="lazy" width="720" height="960"><div class="sample-name">Sofia, 28<span>Klagenfurt · Injoy</span></div></div>
             <div class="sample-card-body"><div class="sample-chip-row"><span class="sample-chip">Injoy Klagenfurt</span></div><p>Battle Ropes, Team-Workouts und nie ohne gute Laune.</p></div>
           </article>
           <article class="sample-profile-card" tabindex="-1" aria-label="Lukas, 28, Das Gym Wien">
             <div class="sample-stamp pass">Nope</div><div class="sample-stamp like">Match</div>
-            <div class="sample-photo"><img src="/brand/demo/demo-lukas-v2.jpg?v=1" alt="" loading="lazy" width="720" height="960"><div class="sample-photo-bars"><i></i><i></i><i></i></div><div class="sample-name">Lukas, 28<span>Wien · Das Gym</span></div></div>
+            <div class="sample-photo"><img src="/brand/demo/demo-lukas-v2.jpg?v=1" alt="" loading="lazy" width="720" height="960"><div class="sample-name">Lukas, 28<span>Wien · Das Gym</span></div></div>
             <div class="sample-card-body"><div class="sample-chip-row"><span class="sample-chip">Das Gym Wien</span></div><p>Deadlifts, Push Day und danach Wiener Schnitzel.</p></div>
           </article>
           <article class="sample-profile-card" tabindex="-1" aria-label="Marco, 27, McFit Graz">
             <div class="sample-stamp pass">Nope</div><div class="sample-stamp like">Match</div>
-            <div class="sample-photo"><img src="/brand/demo/demo-marco-v2.jpg?v=1" alt="" loading="lazy" width="720" height="960"><div class="sample-photo-bars"><i></i><i></i><i></i></div><div class="sample-name">Marco, 27<span>Graz · McFit</span></div></div>
+            <div class="sample-photo"><img src="/brand/demo/demo-marco-v2.jpg?v=1" alt="" loading="lazy" width="720" height="960"><div class="sample-name">Marco, 27<span>Graz · McFit</span></div></div>
             <div class="sample-card-body"><div class="sample-chip-row"><span class="sample-chip">McFit Graz</span></div><p>Men's Physique, Struktur und die beste Pasta nach dem Wettkampf.</p></div>
           </article>
           <article class="sample-profile-card" tabindex="-1" aria-label="Elias, 30, John Harris Salzburg">
             <div class="sample-stamp pass">Nope</div><div class="sample-stamp like">Match</div>
-            <div class="sample-photo"><img src="/brand/demo/demo-elias-v2.jpg?v=1" alt="" loading="lazy" width="720" height="960"><div class="sample-photo-bars"><i></i><i></i><i></i></div><div class="sample-name">Elias, 30<span>Salzburg · John Harris</span></div></div>
+            <div class="sample-photo"><img src="/brand/demo/demo-elias-v2.jpg?v=1" alt="" loading="lazy" width="720" height="960"><div class="sample-name">Elias, 30<span>Salzburg · John Harris</span></div></div>
             <div class="sample-card-body"><div class="sample-chip-row"><span class="sample-chip">John Harris</span></div><p>Pull-ups, Basketball und Training vor dem Frühstück.</p></div>
           </article>
           <article class="sample-profile-card" tabindex="-1" aria-label="Kenji, 25, Holmes Place Linz">
             <div class="sample-stamp pass">Nope</div><div class="sample-stamp like">Match</div>
-            <div class="sample-photo"><img src="/brand/demo/demo-kenji-v2.jpg?v=1" alt="" loading="lazy" width="720" height="960"><div class="sample-photo-bars"><i></i><i></i><i></i></div><div class="sample-name">Kenji, 25<span>Linz · Holmes Place</span></div></div>
+            <div class="sample-photo"><img src="/brand/demo/demo-kenji-v2.jpg?v=1" alt="" loading="lazy" width="720" height="960"><div class="sample-name">Kenji, 25<span>Linz · Holmes Place</span></div></div>
             <div class="sample-card-body"><div class="sample-chip-row"><span class="sample-chip">Holmes Place</span></div><p>Upper Body, Fotografie und neue Restaurants in Linz.</p></div>
           </article>
           <article class="sample-profile-card" tabindex="-1" data-face-group="melina-selin" aria-label="Selin, 26, Holmes Place Linz">
             <div class="sample-stamp pass">Nope</div><div class="sample-stamp like">Match</div>
-            <div class="sample-photo"><img src="/brand/demo/demo-selin-v3.jpg?v=1" alt="" loading="lazy" width="720" height="960"><div class="sample-photo-bars"><i></i><i></i><i></i></div><div class="sample-name">Selin, 26<span>Linz · Holmes Place</span></div></div>
+            <div class="sample-photo"><img src="/brand/demo/demo-selin-v3.jpg?v=1" alt="" loading="lazy" width="720" height="960"><div class="sample-name">Selin, 26<span>Linz · Holmes Place</span></div></div>
             <div class="sample-card-body"><div class="sample-chip-row"><span class="sample-chip">Holmes Place Linz</span></div><p>Push Day, Meal Prep und der Shake direkt nach dem Training.</p></div>
           </article>
           <article class="sample-profile-card" tabindex="-1" aria-label="Cem, 29, Fitinn Wien">
             <div class="sample-stamp pass">Nope</div><div class="sample-stamp like">Match</div>
-            <div class="sample-photo"><img src="/brand/demo/demo-cem-v2.jpg?v=1" alt="" loading="lazy" width="720" height="960"><div class="sample-photo-bars"><i></i><i></i><i></i></div><div class="sample-name">Cem, 29<span>Wien · Fitinn</span></div></div>
+            <div class="sample-photo"><img src="/brand/demo/demo-cem-v2.jpg?v=1" alt="" loading="lazy" width="720" height="960"><div class="sample-name">Cem, 29<span>Wien · Fitinn</span></div></div>
             <div class="sample-card-body"><div class="sample-chip-row"><span class="sample-chip">Fitinn Wien</span></div><p>Functional Fitness, Fußball und spontane Wochenendtrips.</p></div>
           </article>
           <article class="sample-profile-card" tabindex="-1" aria-label="Felix, 32, FitOne Innsbruck">
             <div class="sample-stamp pass">Nope</div><div class="sample-stamp like">Match</div>
-            <div class="sample-photo"><img src="/brand/demo/demo-felix-v2.jpg?v=1" alt="" loading="lazy" width="720" height="960"><div class="sample-photo-bars"><i></i><i></i><i></i></div><div class="sample-name">Felix, 32<span>Innsbruck · FitOne</span></div></div>
+            <div class="sample-photo"><img src="/brand/demo/demo-felix-v2.jpg?v=1" alt="" loading="lazy" width="720" height="960"><div class="sample-name">Felix, 32<span>Innsbruck · FitOne</span></div></div>
             <div class="sample-card-body"><div class="sample-chip-row"><span class="sample-chip">FitOne Innsbruck</span></div><p>Intervalle, Trail Runs und Espresso vor sieben.</p></div>
           </article>
           <article class="sample-profile-card" tabindex="-1" aria-label="Maximilian, 30, McFit Graz">
             <div class="sample-stamp pass">Nope</div><div class="sample-stamp like">Match</div>
-            <div class="sample-photo"><img src="/brand/demo/demo-maximilian-v2.jpg?v=1" alt="" loading="lazy" width="720" height="960"><div class="sample-photo-bars"><i></i><i></i><i></i></div><div class="sample-name">Maximilian, 30<span>Graz · McFit</span></div></div>
+            <div class="sample-photo"><img src="/brand/demo/demo-maximilian-v2.jpg?v=1" alt="" loading="lazy" width="720" height="960"><div class="sample-name">Maximilian, 30<span>Graz · McFit</span></div></div>
             <div class="sample-card-body"><div class="sample-chip-row"><span class="sample-chip">McFit Graz</span></div><p>Schwere Grundübungen, Wandern und Espresso nach dem Training.</p></div>
           </article>
           <article class="sample-profile-card" tabindex="-1" aria-label="Fabian, 28, Das Gym Wien">
             <div class="sample-stamp pass">Nope</div><div class="sample-stamp like">Match</div>
-            <div class="sample-photo"><img src="/brand/demo/demo-fabian-v2.jpg?v=1" alt="" loading="lazy" width="720" height="960"><div class="sample-photo-bars"><i></i><i></i><i></i></div><div class="sample-name">Fabian, 28<span>Wien · Das Gym</span></div></div>
+            <div class="sample-photo"><img src="/brand/demo/demo-fabian-v2.jpg?v=1" alt="" loading="lazy" width="720" height="960"><div class="sample-name">Fabian, 28<span>Wien · Das Gym</span></div></div>
             <div class="sample-card-body"><div class="sample-chip-row"><span class="sample-chip">Das Gym Wien</span></div><p>Shoulder Day, Donauinsel und aktive Wochenenden.</p></div>
           </article>
           <article class="sample-profile-card" tabindex="-1" aria-label="Noah, 27, Outdoor Workout Wien">
             <div class="sample-stamp pass">Nope</div><div class="sample-stamp like">Match</div>
-            <div class="sample-photo"><img src="/brand/demo/demo-noah-v2.jpg?v=1" alt="" loading="lazy" width="720" height="960"><div class="sample-photo-bars"><i></i><i></i><i></i></div><div class="sample-name">Noah, 27<span>Wien · Outdoor Workout</span></div></div>
+            <div class="sample-photo"><img src="/brand/demo/demo-noah-v2.jpg?v=1" alt="" loading="lazy" width="720" height="960"><div class="sample-name">Noah, 27<span>Wien · Outdoor Workout</span></div></div>
             <div class="sample-card-body"><div class="sample-chip-row"><span class="sample-chip">Outdoor Workout</span></div><p>Calisthenics, Donauinsel und Sommerabende draußen.</p></div>
           </article>
         </div>
