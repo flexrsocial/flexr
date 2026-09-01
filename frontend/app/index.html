@@ -1724,6 +1724,11 @@
             <img src="/brand/demo/demo-lena.jpg?v=1" alt="" loading="lazy" width="720" height="960">
             <div class="hero-demo-name"><b>Lena, 26</b><span>FitOne Innsbruck</span></div>
           </div>
+          <div class="hero-demo-card" tabindex="-1" data-face-group="melina-selin">
+            <div class="hero-demo-stamp pass">Nope</div><div class="hero-demo-stamp like">Match</div>
+            <img src="/brand/demo/demo-melina-v3.jpg?v=1" alt="" loading="lazy" width="720" height="960">
+            <div class="hero-demo-name"><b>Melina, 27</b><span>Injoy Klagenfurt</span></div>
+          </div>
           <div class="hero-demo-card" tabindex="-1">
             <div class="hero-demo-stamp pass">Nope</div><div class="hero-demo-stamp like">Match</div>
             <img src="/brand/demo/demo-anna-v2.jpg?v=1" alt="" loading="lazy" width="720" height="960">
@@ -1793,6 +1798,11 @@
             <div class="hero-demo-stamp pass">Nope</div><div class="hero-demo-stamp like">Match</div>
             <img src="/brand/demo/demo-kenji-v2.jpg?v=1" alt="" loading="lazy" width="720" height="960">
             <div class="hero-demo-name"><b>Kenji, 25</b><span>Holmes Place Linz</span></div>
+          </div>
+          <div class="hero-demo-card" tabindex="-1" data-face-group="melina-selin">
+            <div class="hero-demo-stamp pass">Nope</div><div class="hero-demo-stamp like">Match</div>
+            <img src="/brand/demo/demo-selin-v3.jpg?v=1" alt="" loading="lazy" width="720" height="960">
+            <div class="hero-demo-name"><b>Selin, 26</b><span>Holmes Place Linz</span></div>
           </div>
           <div class="hero-demo-card" tabindex="-1">
             <div class="hero-demo-stamp pass">Nope</div><div class="hero-demo-stamp like">Match</div>
@@ -2645,11 +2655,33 @@
     function cards(){ return [...stack.querySelectorAll('.hero-demo-card')]; }
     function topCard(){ return stack.querySelector('.hero-demo-card:last-child'); }
 
+    // Melina und Selin zeigen dieselbe generierte Person (gleiche
+    // data-face-group). Im Markup stehen sie weit auseinander, das Mischen
+    // koennte sie aber nebeneinander legen - ein zu enger Wurf wird deshalb
+    // verworfen.
+    const MIN_FACE_GAP = 6;
+    function faceGapOk(list){
+      const seen = {};
+      for(let i = 0; i < list.length; i++){
+        const group = list[i].getAttribute('data-face-group');
+        if(!group) continue;
+        if(seen[group] !== undefined && i - seen[group] < MIN_FACE_GAP) return false;
+        seen[group] = i;
+      }
+      return true;
+    }
+
     function shuffleDeck(){
-      const shuffled = cards();
-      for(let index = shuffled.length - 1; index > 0; index--){
-        const randomIndex = Math.floor(Math.random() * (index + 1));
-        [shuffled[index], shuffled[randomIndex]] = [shuffled[randomIndex], shuffled[index]];
+      let shuffled;
+      // Nach 24 Fehlversuchen bleibt es beim letzten Wurf statt endlos zu
+      // wuerfeln.
+      for(let attempt = 0; attempt < 24; attempt++){
+        shuffled = cards();
+        for(let index = shuffled.length - 1; index > 0; index--){
+          const randomIndex = Math.floor(Math.random() * (index + 1));
+          [shuffled[index], shuffled[randomIndex]] = [shuffled[randomIndex], shuffled[index]];
+        }
+        if(faceGapOk(shuffled)) break;
       }
       shuffled.forEach(card => stack.appendChild(card));
     }

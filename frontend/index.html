@@ -322,7 +322,8 @@ ul.plain li{ margin-bottom:9px; }
    szene als der flachere Fotoausschnitt der Landing-Karte zeigen kann. Den
    Crop deshalb am oberen Bildrand verankern: Gesichter bleiben vollstaendig
    sichtbar, abgeschnitten wird nur weiter unten im Motiv. */
-.sample-photo img[src*="-v2.jpg"]{ object-position:center top; }
+.sample-photo img[src*="-v2.jpg"],
+.sample-photo img[src*="-v3.jpg"]{ object-position:center top; }
 .sample-photo-bars{
   position:absolute; z-index:2; top:10px; left:10px; right:10px; display:flex; gap:4px;
 }
@@ -626,6 +627,11 @@ footer{ border-top:1px solid var(--steel); padding:32px 0 60px; margin-top:20px;
               <p>Krafttraining, Wandern und immer offen für einen Spotter.</p>
             </div>
           </article>
+          <article class="sample-profile-card" tabindex="-1" data-face-group="melina-selin" aria-label="Melina, 27, Injoy Klagenfurt">
+            <div class="sample-stamp pass">Nope</div><div class="sample-stamp like">Match</div>
+            <div class="sample-photo"><img src="/brand/demo/demo-melina-v3.jpg?v=1" alt="" loading="lazy" width="720" height="960"><div class="sample-photo-bars"><i></i><i></i><i></i></div><div class="sample-name">Melina, 27<span>Klagenfurt · Injoy</span></div></div>
+            <div class="sample-card-body"><div class="sample-chip-row"><span class="sample-chip">Injoy Klagenfurt</span></div><p>Ganzkörper-Split, Runden um den Wörthersee und Kaffee danach.</p></div>
+          </article>
           <article class="sample-profile-card" tabindex="-1" aria-label="Anna, 26, Das Gym Wien">
             <div class="sample-stamp pass">Nope</div><div class="sample-stamp like">Match</div>
             <div class="sample-photo"><img src="/brand/demo/demo-anna-v2.jpg?v=1" alt="" loading="lazy" width="720" height="960"><div class="sample-photo-bars"><i></i><i></i><i></i></div><div class="sample-name">Anna, 26<span>Wien · Das Gym</span></div></div>
@@ -695,6 +701,11 @@ footer{ border-top:1px solid var(--steel); padding:32px 0 60px; margin-top:20px;
             <div class="sample-stamp pass">Nope</div><div class="sample-stamp like">Match</div>
             <div class="sample-photo"><img src="/brand/demo/demo-kenji-v2.jpg?v=1" alt="" loading="lazy" width="720" height="960"><div class="sample-photo-bars"><i></i><i></i><i></i></div><div class="sample-name">Kenji, 25<span>Linz · Holmes Place</span></div></div>
             <div class="sample-card-body"><div class="sample-chip-row"><span class="sample-chip">Holmes Place</span></div><p>Upper Body, Fotografie und neue Restaurants in Linz.</p></div>
+          </article>
+          <article class="sample-profile-card" tabindex="-1" data-face-group="melina-selin" aria-label="Selin, 26, Holmes Place Linz">
+            <div class="sample-stamp pass">Nope</div><div class="sample-stamp like">Match</div>
+            <div class="sample-photo"><img src="/brand/demo/demo-selin-v3.jpg?v=1" alt="" loading="lazy" width="720" height="960"><div class="sample-photo-bars"><i></i><i></i><i></i></div><div class="sample-name">Selin, 26<span>Linz · Holmes Place</span></div></div>
+            <div class="sample-card-body"><div class="sample-chip-row"><span class="sample-chip">Holmes Place Linz</span></div><p>Push Day, Meal Prep und der Shake direkt nach dem Training.</p></div>
           </article>
           <article class="sample-profile-card" tabindex="-1" aria-label="Cem, 29, Fitinn Wien">
             <div class="sample-stamp pass">Nope</div><div class="sample-stamp like">Match</div>
@@ -995,13 +1006,34 @@ footer{ border-top:1px solid var(--steel); padding:32px 0 60px; margin-top:20px;
 
   function cards(){ return Array.prototype.slice.call(stage.querySelectorAll('.sample-profile-card')); }
   function topCard(){ return stage.querySelector('.sample-profile-card:last-child'); }
+  // Zwei Karten zeigen dieselbe generierte Person (Melina und Selin, gleiche
+  // data-face-group). Im Markup stehen sie weit auseinander, das Mischen
+  // koennte sie aber nebeneinander legen - dann faellt sofort auf, dass es
+  // dasselbe Gesicht ist. Deshalb wird ein zu enger Wurf verworfen.
+  var MIN_FACE_GAP = 6;
+  function faceGapOk(list){
+    var seen = {};
+    for (var i = 0; i < list.length; i++){
+      var group = list[i].getAttribute('data-face-group');
+      if (!group) continue;
+      if (seen[group] !== undefined && i - seen[group] < MIN_FACE_GAP) return false;
+      seen[group] = i;
+    }
+    return true;
+  }
   function shuffleDeck(){
-    var shuffled = cards();
-    for (var index = shuffled.length - 1; index > 0; index--){
-      var randomIndex = Math.floor(Math.random() * (index + 1));
-      var current = shuffled[index];
-      shuffled[index] = shuffled[randomIndex];
-      shuffled[randomIndex] = current;
+    var shuffled;
+    // Nach 24 Fehlversuchen bleibt es beim letzten Wurf - lieber ein enges
+    // Deck als eine Endlosschleife.
+    for (var attempt = 0; attempt < 24; attempt++){
+      shuffled = cards();
+      for (var index = shuffled.length - 1; index > 0; index--){
+        var randomIndex = Math.floor(Math.random() * (index + 1));
+        var current = shuffled[index];
+        shuffled[index] = shuffled[randomIndex];
+        shuffled[randomIndex] = current;
+      }
+      if (faceGapOk(shuffled)) break;
     }
     shuffled.forEach(function(card){ stage.appendChild(card); });
   }

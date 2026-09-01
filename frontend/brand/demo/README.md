@@ -1,8 +1,10 @@
 # Beispielprofil-Fotos (Demo-Deck)
 
-33 KI-generierte Portraits. 22 davon werden als Beispielprofile im Login-Hero
-der App (`frontend/app/index.html`, `.hero-demo`) und 23 im
+35 KI-generierte Portraits. 24 davon werden als Beispielprofile im Login-Hero
+der App (`frontend/app/index.html`, `.hero-demo`) und 25 im
 Musterprofile-Abschnitt der Landingpage (`frontend/index.html`) verwendet.
+Zwei davon kamen am 01.09.2026 dazu (Melina, Selin) und stehen in beiden Decks
+bewusst weit auseinander.
 Von den am 19.08.2026 hinzugekommenen 20 Motiven sind 14 weiterhin in beiden
 Decks eingebunden. Fünf Karten wurden am 20.08.2026 durch drei neue Frauen- und
 zwei neue Männerprofile mit lokalem Österreich-Bezug ersetzt. Samuel wurde am
@@ -13,7 +15,11 @@ erhalten.
 
 Der erste Satz wurde am 16.08.2026 mit ChatGPT (Bildgenerierung) erzeugt und
 vom Nutzer bereitgestellt. Weitere 20 Bilder wurden am 19.08.2026 und fünf
-Ersatzmotive am 20.08.2026 mit dem in Codex eingebauten ImageGen erzeugt. Keine
+Ersatzmotive am 20.08.2026 mit dem in Codex eingebauten ImageGen erzeugt. Am
+01.09.2026 kamen zwei Motive dazu, die der Nutzer als eine mit Google Gemini
+erzeugte Doppelkachel bereitgestellt hat (`~/Downloads/Gemini_Generated_
+Image_g8h1nqg8h1nqg8h1.jpeg`, 1376×768 px); die beiden Hälften wurden daraus
+einzeln freigestellt. Keine
 echten, identifizierbaren Personen
 abgebildet — anders als das ursprüngliche Demo-Deck
 (bis 15.08.2026, acht Fotos realer Menschen von images.unsplash.com), das aus
@@ -71,6 +77,8 @@ Teil dieses Repositories. Hier abgelegt sind nur die verarbeiteten Fassungen:
 | `demo-theresa-v2.jpg` | Theresa, 26 | Landingpage, App-Login-Hero |
 | `demo-maximilian-v2.jpg` | Maximilian, 30 | Landingpage, App-Login-Hero |
 | `demo-fabian-v2.jpg` | Fabian, 28 | Landingpage, App-Login-Hero |
+| `demo-melina-v3.jpg` | Melina, 27 | Landingpage, App-Login-Hero |
+| `demo-selin-v3.jpg` | Selin, 26 | Landingpage, App-Login-Hero |
 
 Der Hinweistext "Beispielprofile · keine echten Nutzer:innen" wurde am
 16.08.2026 auf ausdrücklichen Wunsch von beiden Einbindungsstellen entfernt.
@@ -80,6 +88,7 @@ sichtbare Kennzeichnung ist weg.
 Verarbeitung: auf 3:4 zugeschnitten (Kartenformat der echten App,
 `.card .photo`), auf 720×960 px skaliert, als JPEG (Qualität 84) exportiert.
 Je nach Motiv rund 55–125 KB je Datei statt mehrerer Megabyte im Original.
+Die beiden `-v3`-Dateien vom 01.09.2026 sind mit Qualität 88 exportiert.
 
 ## Prompt-Set vom 19.08.2026
 
@@ -110,3 +119,18 @@ werden von nginx unter derselben Origin ausgeliefert wie der Rest der Seite.
 Kein Drittanbieter bekommt die IP-Adresse von Besuchern zu sehen, keine
 Content-Security-Policy-Ausnahme nötig — `img-src 'self'` deckt das bereits
 ab.
+
+## Motive vom 01.09.2026 (`-v3`)
+
+Zwei Aufnahmen derselben generierten Person: einmal draußen mit heller Jacke
+(Melina), einmal in einer Küche mit Shake (Selin). Weil dieselben
+Gesichtszüge zweimal im Deck stehen, sind die Karten in beiden Decks bewusst
+15 Positionen voneinander entfernt platziert.
+
+Anders als bei den Prompt-Sets vom 19. und 20.08.2026 ist die Kleidung hier
+**nicht markenfrei**: auf Bustier und Leggings steht in beiden Motiven gut
+lesbar der Schriftzug einer realen Sportbekleidungsmarke (TEVEO). Das ist eine
+fremde Wortmarke in einer Werbeumgebung und kann den Eindruck einer
+Zusammenarbeit erwecken, die es nicht gibt. Wenn das nicht gewollt ist,
+müssen die Schriftzüge vor dem nächsten Deploy retuschiert oder die Motive
+ersetzt werden.
