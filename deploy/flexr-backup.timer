@@ -1,0 +1,13 @@
+[Unit]
+Description=FLEXR – taegliches Backup um 03:30
+
+[Timer]
+OnCalendar=*-*-* 03:30:00
+# Versetzt zum Tarifbot-Backup (03:00) auf derselben Maschine.
+RandomizedDelaySec=15m
+# Holt einen verpassten Lauf nach, wenn der Server zur Startzeit aus war.
+Persistent=true
+Unit=flexr-backup.service
+
+[Install]
+WantedBy=timers.target

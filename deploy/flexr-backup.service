@@ -1,0 +1,28 @@
+[Unit]
+Description=FLEXR – verschluesseltes Backup von Datenbank und Konfiguration
+After=postgresql.service network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/flexr/scripts/backup.sh
+User=root
+
+# Der Dump liegt kurzzeitig im Klartext auf der Platte. Der Dienst bekommt
+# deshalb nur, was er wirklich braucht.
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+NoNewPrivileges=true
+ReadWritePaths=/var/backups/flexr /var/lib/flexr
+
+# Legt /var/cache/flexr-restic an und setzt $RESTIC_CACHE_DIR. Ohne Cache
+# liest restic bei jedem Lauf das gesamte Repository neu.
+CacheDirectory=flexr-restic
+CacheDirectoryMode=0700
+Environment=RESTIC_CACHE_DIR=/var/cache/flexr-restic
+ReadOnlyPaths=/etc/flexr /flexr/scripts /flexr/backend/.env
+
+# Backups duerfen den laufenden Betrieb nicht ausbremsen.
+Nice=10
+IOSchedulingClass=idle

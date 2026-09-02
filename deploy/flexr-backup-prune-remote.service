@@ -1,0 +1,26 @@
+[Unit]
+Description=FLEXR – Aufbewahrungsfristen auf dem externen Backup-Ziel
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/flexr/scripts/backup-prune-remote.sh
+User=root
+
+# Reines Netzwerk-Kommando gegen das externe Repository: kein Arbeitsverzeichnis,
+# kein Dump, deshalb kein ReadWritePaths noetig.
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+NoNewPrivileges=true
+
+# Dasselbe Cache-Verzeichnis wie der taegliche Backup-Lauf, damit restic nicht
+# bei jedem Lauf das gesamte Repository neu lesen muss.
+CacheDirectory=flexr-restic
+CacheDirectoryMode=0700
+Environment=RESTIC_CACHE_DIR=/var/cache/flexr-restic
+ReadOnlyPaths=/etc/flexr /flexr/scripts
+
+Nice=15
+IOSchedulingClass=idle
