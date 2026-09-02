@@ -1,0 +1,13 @@
+[Unit]
+Description=FLEXR – woechentlicher Restore-Test
+
+[Timer]
+# Sonntags um 04:15, also nach dem naechtlichen Backup (03:30) und versetzt
+# zum Tarifbot-Restore-Test (04:30) auf derselben Maschine.
+OnCalendar=Sun *-*-* 04:15:00
+RandomizedDelaySec=15m
+Persistent=true
+Unit=flexr-backup-verify.service
+
+[Install]
+WantedBy=timers.target

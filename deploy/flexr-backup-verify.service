@@ -1,0 +1,24 @@
+[Unit]
+Description=FLEXR – Restore-Test des letzten Backups
+After=postgresql.service
+
+[Service]
+Type=oneshot
+ExecStart=/flexr/scripts/backup-verify.sh
+User=root
+
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+NoNewPrivileges=true
+ReadWritePaths=/var/backups/flexr /var/lib/flexr
+
+# Legt /var/cache/flexr-restic an und setzt $RESTIC_CACHE_DIR. Ohne Cache
+# liest restic bei jedem Lauf das gesamte Repository neu.
+CacheDirectory=flexr-restic
+CacheDirectoryMode=0700
+Environment=RESTIC_CACHE_DIR=/var/cache/flexr-restic
+ReadOnlyPaths=/etc/flexr /flexr/scripts /flexr/backend/.env
+
+Nice=15
+IOSchedulingClass=idle
