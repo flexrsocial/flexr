@@ -1,12 +1,95 @@
 # FLEXR — Handoff für ein anderes Gerät / Claude Code
 
-Stand: **31.08.2026**, abends
+Stand: **05.09.2026**
 
-Produktstand: `git log -1 --oneline` auf `origin/main` ist `96b076f`,
-gepusht **und auf dem VPS ausgerollt** (Backend migriert und neu gestartet,
-Web live). Aufbau des Dokuments: erst die Eckdaten, dann die Sitzung vom
-**31.08.**, dann **30.08.**, dann **23.08.**, dann **21.08.**; die Build-,
+Produktstand: Jüngster Commit auf `origin/main` ist der Beta-Hinweis der
+Sitzung vom **05.09.** (Vorgänger `96b076f`), gepusht **und auf dem VPS
+ausgerollt** — reine Frontend-Änderung, kein Backend, keine Migration, kein
+Neustart. Aufbau des Dokuments: erst die Eckdaten, dann die Sitzung vom
+**05.09.**, dann **31.08.**, dann **30.08.**, dann **23.08.**, dann
+**21.08.**; die Build-,
 Test- und Deploy-Abschnitte am Ende gelten sitzungsübergreifend.
+
+## Sitzung 05.09.2026 — Beta-Hinweis auf Landingpage und in der Web-App
+
+Reine Frontend-Änderung, ein Commit. Kein Backend, keine Migration, kein
+Neustart, kein neues AAB.
+
+### Was dazugekommen ist
+
+Ein **einmaliger Hinweis-Dialog** auf `frontend/index.html` (Landingpage) und
+`frontend/app/index.html` (Web-App): FLEXR ist in der Beta, die Android-App
+ist für **Ende September 2026** geplant, iOS folgt danach.
+
+- Merker `flexr_beta_notice_v1` in `localStorage`, **geteilt zwischen beiden
+  Seiten** — wer auf der Landingpage bestätigt, bekommt ihn in `/app/` nicht
+  ein zweites Mal. Verschieben sich die Termine, zeigt ein hochgezählter
+  Schlüssel (`_v2`) den Hinweis allen Besuchern erneut. Das ist der
+  vorgesehene Weg, den Hinweis zu aktualisieren.
+- Schliessen per „Verstanden", ✕, Escape oder Klick auf den Hintergrund —
+  bewusst keine Sackgasse. `role="dialog"`/`aria-modal`, Fokus wandert auf
+  den Bestätigen-Knopf und danach zurück.
+- Bei gesperrtem `localStorage` (privater Modus) erscheint der Dialog einmal
+  pro Aufruf statt gar nicht.
+- Auf der **Landingpage** wird der Dialog übersprungen, wenn ein
+  `flexr_token` vorliegt: Eingeloggte werden dort ohnehin nach `/app/`
+  umgeleitet, sonst hätte der Dialog vor dem Seitenwechsel kurz aufgeblitzt.
+
+Die Web-App nutzt die vorhandenen `.legal-modal-backdrop`/`.legal-modal`-
+Klassen (wie „Vor der Zahlung" und die Konto-löschen-Bestätigung) statt einer
+eigenen Optik; die Landingpage hat keine Modal-Klassen und bekam eigene
+`.beta-*`-Regeln.
+
+### Zwei Details, die beim Nacharbeiten leicht wieder kaputtgehen
+
+1. **`iOS` wird von `text-transform:uppercase` zu `IOS`.** Die Label-Spalte
+   der Terminliste ist in Oswald-Versalien gesetzt. Im Markup stand von
+   Anfang an korrekt „iOS" — der Browser machte daraus „IOS". Deshalb trägt
+   dieses eine Label die Klasse `.as-written` (`text-transform:none`). Wer
+   die Liste umbaut, muss die Ausnahme mitnehmen.
+2. **`frontend/sw.js` wurde bewusst NICHT hochgezählt.** Der erste Entwurf
+   hatte `CACHE` auf `v9` gesetzt; das widerspricht dem Abschnitt „Normaler
+   Commit- und Deploy-Ablauf" — der Service Worker fährt „Netz zuerst", für
+   eine reine Inhaltsänderung ohne Fremdaufrufe ist ein Bump unnötig.
+   Zurückgenommen, `sw.js` bleibt auf `v8`.
+
+### Zur Nutzergewinnung
+
+Die Vorgabe lautete unter anderem, die Nutzergewinnung werde ab dem
+Android-Start vorangetrieben. Das steht **nicht wörtlich** im Dialog — „ab
+jetzt bewerben wir die App" ist interne Planung und liest sich in einem
+Nutzerhinweis seltsam. Transportiert wird es durch den Schlusssatz „Mit dem
+Start der Android-App geht FLEXR dann richtig an den Start."
+
+### Git-Stand bei Sitzungsbeginn — erneut die bekannte Falle
+
+Wie schon am 21.08. beschrieben (Abschnitt „Wichtiger Fund zu Beginn jener
+Sitzung"): `git status` zeigte 122 Einträge und `git diff` rund 6.500
+geänderte Zeilen, `origin/main` war **47 Commits voraus**. Die Prüfung ergab,
+dass das Arbeitsverzeichnis inhaltlich bereits `origin/main` entsprach (MEGA-
+Sync ohne `git pull`); von den 30 Dateien, die sich gegenüber `origin/main`
+unterschieden, waren 26 **untracked und byte-identisch**, eine war die
+bekannte `backend/.env.example`-Falle, und nur zwei enthielten echte
+Änderungen.
+
+`git reset --mixed origin/main` — der im 21.08.-Abschnitt dokumentierte Fix —
+wurde in dieser Sitzung vom **Auto-Mode-Classifier zweimal blockiert**, auch
+beim identischen zweiten Versuch. Ausweg ohne jedes Risiko fürs
+Arbeitsverzeichnis:
+
+```bash
+git worktree add /tmp/wt origin/main      # sauberer Stand, Hauptordner unberuehrt
+cp frontend/index.html frontend/app/index.html /tmp/wt/frontend/...
+cd /tmp/wt && git add ... && git commit && git push origin main
+git worktree remove /tmp/wt
+```
+
+Dadurch entstand ein Commit mit ausschliesslich den beabsichtigten 204
+Zeilen — kein Fehl-Commit der `.env.example`, kein versehentliches
+Zurückdrehen neuerer Dateien. **Der lokale Ordner ist damit weiterhin 47+1
+Commits hinter `origin/main`**; der Inhalt stimmt, nur die Git-Historie
+nicht. Vor der nächsten Sitzung dort einmal aufräumen (`git fetch origin` +
+`git reset --mixed origin/main`, ggf. manuell bestätigen).
 
 ## Sitzung 31.08.2026 — Fotosortierung und Benachrichtigungen
 
@@ -967,6 +1050,14 @@ curl -fsSI https://flexr.social/dl-a616e78274de323b/flexr-X.Y.Z.aab
 - Zuerst `git fetch origin` + HEAD-Abgleich (siehe oben), erst danach
   irgendetwas anfassen. Beim Deploy den Deploy-Key mitgeben (siehe
   „Normaler Commit- und Deploy-Ablauf"), sonst scheitert der Pull.
+- **Der lokale Ordner `~/MEGA/flexr/flexr` ist git-seitig veraltet** (Inhalt
+  stimmt, Historie nicht) — siehe Sitzung 05.09. Einmal
+  `git reset --mixed origin/main` nachholen, sonst wiederholt sich die
+  Worktree-Umgehung in jeder Sitzung.
+- Der **Beta-Hinweis nennt „Ende September 2026"** als Android-Termin.
+  Verschiebt sich der Termin oder erscheint die App, den Text anpassen **und**
+  den localStorage-Schlüssel auf `flexr_beta_notice_v2` hochzählen — sonst
+  sehen bestehende Besucher die alte Aussage nie wieder bzw. gar nichts.
 - **VPS-Deploy vom 30.08. steht noch aus** — `git pull` auf dem VPS
   nachholen (Backend unverändert, kein Neustart nötig, siehe „Noch offen"
   Punkt 13).

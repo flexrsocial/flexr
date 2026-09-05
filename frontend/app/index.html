@@ -2605,6 +2605,93 @@
   .checkout-modal{ max-width:440px; }
 </style>
 
+<!-- Beta-Hinweis: erscheint einmal je Browser (Merker in localStorage, derselbe
+     Schluessel wie auf der Landingpage) und nennt die geplanten Store-Termine.
+     Nutzt bewusst die vorhandenen .legal-modal-Klassen statt einer eigenen
+     Optik - siehe Konto-loeschen-Bestaetigung und "Vor der Zahlung". -->
+<div id="betaBackdrop" class="legal-modal-backdrop" role="dialog" aria-modal="true"
+     aria-labelledby="betaTitle" aria-describedby="betaText">
+  <div class="legal-modal beta-modal">
+    <button type="button" class="legal-modal-close" id="betaClose" aria-label="Hinweis schließen">✕</button>
+    <div class="legal-modal-body">
+      <p class="beta-eyebrow">Beta-Phase</p>
+      <h1 id="betaTitle" style="font-size:22px;">FLEXR ist noch im Aufbau</h1>
+      <p id="betaText" style="color:var(--chalk-dim); margin-top:10px;">
+        Du kannst FLEXR schon jetzt im Browser nutzen. Weil wir noch in der Beta
+        sind, sind manche Regionen dünn besetzt und einzelne Funktionen ändern
+        sich noch.
+      </p>
+      <ul class="beta-dates">
+        <li><b>Android</b><span>Veröffentlichung geplant für Ende September 2026</span></li>
+        <li><b class="as-written">iOS</b><span>folgt im Anschluss</span></li>
+      </ul>
+      <p style="color:var(--chalk-dim); margin-bottom:0;">
+        Mit dem Start der Android-App geht FLEXR dann richtig an den Start.
+      </p>
+      <button type="button" class="btn" id="betaOk">Verstanden</button>
+    </div>
+  </div>
+</div>
+<style>
+  .beta-modal{ max-width:440px; }
+  .beta-eyebrow{
+    font-family:'Oswald', sans-serif; font-size:12px; letter-spacing:.22em;
+    text-transform:uppercase; color:var(--plate); margin:0;
+  }
+  /* Die beiden Termine als Liste statt im Fliesstext: Wer den Dialog nur
+     ueberfliegt, soll "Android - Ende September 2026" trotzdem mitnehmen. */
+  .beta-dates{ list-style:none; padding:0; margin:16px 0; }
+  .beta-dates li{
+    display:flex; gap:12px; align-items:baseline;
+    padding:10px 0; border-top:1px solid var(--hairline); font-size:14px;
+  }
+  .beta-dates li:last-child{ border-bottom:1px solid var(--hairline); }
+  .beta-dates b{
+    flex:0 0 82px; color:var(--chalk); font-size:12.5px; font-weight:600;
+    font-family:'Oswald', sans-serif; letter-spacing:.1em; text-transform:uppercase;
+  }
+  /* Markennamen schreiben sich, wie der Hersteller sie schreibt: "iOS" beginnt
+     klein. Ohne diese Ausnahme macht das text-transform der Zeile darueber ein
+     "IOS" daraus. */
+  .beta-dates b.as-written{ text-transform:none; }
+  .beta-dates span{ color:var(--chalk-dim); }
+</style>
+
+<script>
+(function(){
+  // Der Merker traegt eine Version im Namen: Verschieben sich die Termine,
+  // zeigt ein hochgezaehlter Schluessel den Hinweis allen Nutzern erneut.
+  var KEY = 'flexr_beta_notice_v1';
+  var backdrop = document.getElementById('betaBackdrop');
+  if (!backdrop) return;
+
+  try {
+    if (localStorage.getItem(KEY)) return;
+  } catch (e) {
+    // localStorage gesperrt (privater Modus): Dann lieber einmal pro Aufruf
+    // zeigen als gar nicht - der Hinweis ist schnell weggeklickt.
+  }
+
+  var lastFocus = document.activeElement;
+
+  function onKey(e){ if (e.key === 'Escape') close(); }
+
+  function close(){
+    backdrop.classList.remove('open');
+    try { localStorage.setItem(KEY, '1'); } catch (e) {}
+    document.removeEventListener('keydown', onKey);
+    if (lastFocus && lastFocus.focus) lastFocus.focus();
+  }
+
+  backdrop.classList.add('open');
+  document.addEventListener('keydown', onKey);
+  document.getElementById('betaClose').addEventListener('click', close);
+  document.getElementById('betaOk').addEventListener('click', close);
+  backdrop.addEventListener('click', function(e){ if (e.target === backdrop) close(); });
+  document.getElementById('betaOk').focus();
+})();
+</script>
+
 <script>
 (function(){
   const $ = (id) => document.getElementById(id);

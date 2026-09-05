@@ -434,6 +434,59 @@ footer{ border-top:1px solid var(--steel); padding:32px 0 60px; margin-top:20px;
   html{ scroll-behavior:auto; }
   *{ animation-duration:.01ms !important; transition-duration:.01ms !important; }
 }
+
+/* ---- Beta-Hinweis ---- */
+/* Der Dialog laeuft ueber allem anderen (z-index ueber der Kopfzeile), weil er
+   die Erwartung an Reichweite und Funktionsumfang setzen soll, bevor jemand
+   ein Konto anlegt. */
+.beta-backdrop{
+  display:none; position:fixed; inset:0; z-index:1200;
+  background:rgba(0,0,0,.66); backdrop-filter:blur(3px);
+  align-items:center; justify-content:center; padding:24px;
+}
+.beta-backdrop.open{ display:flex; }
+.beta-modal{
+  position:relative; width:100%; max-width:440px;
+  max-height:min(84vh, 660px); overflow-y:auto;
+  background:var(--surface); border:1px solid var(--steel); border-radius:18px;
+  box-shadow:0 30px 60px rgba(0,0,0,.5);
+  padding:28px 26px 24px;
+}
+.beta-modal .eyebrow{ margin-bottom:8px; }
+.beta-modal h2{ font-size:clamp(21px, 5vw, 26px); margin:0 0 12px; }
+.beta-modal p{ font-size:15px; color:var(--chalk-dim); }
+.beta-modal p:last-of-type{ margin-bottom:0; }
+/* Die beiden Termine als Liste statt im Fliesstext: Wer den Dialog nur
+   ueberfliegt, soll "Android - Ende September 2026" trotzdem mitnehmen. */
+.beta-dates{ list-style:none; padding:0; margin:16px 0 16px; }
+.beta-dates li{
+  display:flex; gap:12px; align-items:baseline;
+  padding:10px 0; border-top:1px solid var(--hairline); font-size:14.5px;
+}
+.beta-dates li:last-child{ border-bottom:1px solid var(--hairline); }
+.beta-dates b{
+  flex:0 0 88px; color:var(--chalk); font-size:13px; font-weight:600;
+  font-family:'Oswald', sans-serif; letter-spacing:.1em; text-transform:uppercase;
+}
+/* Markennamen schreiben sich, wie der Hersteller sie schreibt: "iOS" beginnt
+   klein. Ohne diese Ausnahme macht das text-transform der Zeile darueber ein
+   "IOS" daraus. */
+.beta-dates b.as-written{ text-transform:none; }
+.beta-dates span{ color:var(--chalk-dim); }
+.beta-modal .btn{
+  display:block; width:100%; margin-top:18px; padding:14px 24px;
+  text-align:center; cursor:pointer;
+}
+.beta-close{
+  position:absolute; top:12px; right:12px; width:32px; height:32px; border-radius:50%;
+  border:1px solid var(--steel); background:var(--surface-2); color:var(--chalk);
+  font-size:15px; line-height:1; cursor:pointer;
+}
+.beta-close:hover{ background:var(--ink); }
+@media (max-width:420px){
+  .beta-modal{ padding:24px 20px 20px; }
+  .beta-dates b{ flex-basis:78px; }
+}
 </style>
 </head>
 <body>
@@ -1147,6 +1200,70 @@ footer{ border-top:1px solid var(--steel); padding:32px 0 60px; margin-top:20px;
   arrangeCards();
 })();
 </script>
+<!-- Beta-Hinweis: erscheint einmal je Browser (Merker in localStorage) und
+     nennt die geplanten Store-Termine. Bewusst ein Dialog und kein Banner -
+     ein Banner wird auf der Landingpage ueberscrollt, und wer sich gleich
+     registriert, soll den Beta-Status vorher gelesen haben. -->
+<div class="beta-backdrop" id="betaBackdrop" role="dialog" aria-modal="true"
+     aria-labelledby="betaTitle" aria-describedby="betaText">
+  <div class="beta-modal">
+    <button type="button" class="beta-close" id="betaClose" aria-label="Hinweis schließen">✕</button>
+    <p class="eyebrow">Beta-Phase</p>
+    <h2 id="betaTitle">FLEXR ist noch im Aufbau</h2>
+    <p id="betaText">
+      Du kannst FLEXR schon jetzt im Browser nutzen. Weil wir noch in der Beta
+      sind, sind manche Regionen dünn besetzt und einzelne Funktionen ändern
+      sich noch.
+    </p>
+    <ul class="beta-dates">
+      <li><b>Android</b><span>Veröffentlichung geplant für Ende September 2026</span></li>
+      <li><b class="as-written">iOS</b><span>folgt im Anschluss</span></li>
+    </ul>
+    <p>Mit dem Start der Android-App geht FLEXR dann richtig an den Start.</p>
+    <button type="button" class="btn" id="betaOk">Verstanden</button>
+  </div>
+</div>
+
+<script>
+(function(){
+  // Der Merker traegt eine Version im Namen: Verschieben sich die Termine,
+  // zeigt ein hochgezaehlter Schluessel den Hinweis allen Besuchern erneut.
+  // Derselbe Schluessel gilt in /app/ - wer hier bestaetigt hat, bekommt den
+  // Dialog dort nicht ein zweites Mal.
+  var KEY = 'flexr_beta_notice_v1';
+  var backdrop = document.getElementById('betaBackdrop');
+  if (!backdrop) return;
+
+  try {
+    // Eingeloggte Besucher leitet das Skript weiter oben nach /app/ um. Dort
+    // steht derselbe Hinweis; hier waere er nur ein Aufblitzen vor dem Wechsel.
+    if (localStorage.getItem('flexr_token')) return;
+    if (localStorage.getItem(KEY)) return;
+  } catch (e) {
+    // localStorage gesperrt (privater Modus): Dann lieber einmal pro Aufruf
+    // zeigen als gar nicht - der Hinweis ist schnell weggeklickt.
+  }
+
+  var lastFocus = document.activeElement;
+
+  function onKey(e){ if (e.key === 'Escape') close(); }
+
+  function close(){
+    backdrop.classList.remove('open');
+    try { localStorage.setItem(KEY, '1'); } catch (e) {}
+    document.removeEventListener('keydown', onKey);
+    if (lastFocus && lastFocus.focus) lastFocus.focus();
+  }
+
+  backdrop.classList.add('open');
+  document.addEventListener('keydown', onKey);
+  document.getElementById('betaClose').addEventListener('click', close);
+  document.getElementById('betaOk').addEventListener('click', close);
+  backdrop.addEventListener('click', function(e){ if (e.target === backdrop) close(); });
+  document.getElementById('betaOk').focus();
+})();
+</script>
+
 <script src="/legal-status.js" defer></script>
 </body>
 </html>
