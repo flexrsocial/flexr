@@ -298,9 +298,6 @@ def test_checkout_ohne_kenntnisnahme_erloeschen_wird_abgelehnt(client):
 
 
 def test_checkout_mit_erklaerung_haelt_die_einwilligung_fest(client):
-    import stripe
-    import pytest
-
     from app.models import CheckoutConsent
 
     headers = register_user(client, "mit-erklaerung@example.com")
@@ -308,12 +305,16 @@ def test_checkout_mit_erklaerung_haelt_die_einwilligung_fest(client):
 
     # Kein echter Stripe-Key im Testbetrieb - der Aufruf scheitert bei Stripe,
     # aber erst NACH der CheckoutConsent-Anlage, das reicht fuer diesen Test.
-    with pytest.raises(stripe._error.AuthenticationError):
-        client.post(
-            "/api/billing/checkout",
-            json={"immediate_start": True, "withdrawal_ack": True},
-            headers=headers,
-        )
+    # Die Stoerung kommt seit 06.09.2026 als 502 heraus statt als
+    # durchgereichte Stripe-Ausnahme (ein unbehandelter 500 verliert die
+    # CORS-Header, im Browser kam nur "Failed to fetch" an) - siehe
+    # tests/test_journey_befunde.py.
+    resp = client.post(
+        "/api/billing/checkout",
+        json={"immediate_start": True, "withdrawal_ack": True},
+        headers=headers,
+    )
+    assert resp.status_code == 502
 
     db = TestingSessionLocal()
     try:

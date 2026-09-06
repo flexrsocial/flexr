@@ -607,10 +607,14 @@
     transform:rotate(45deg); flex-shrink:0; margin-left:2px; opacity:.6;
   }
 
+  /* Als <button>, nicht als <div>: Melden und Blockieren sind die gesetzlich
+     vorgeschriebenen Schutzfunktionen und muessen auch per Tastatur erreichbar
+     und ausloesbar sein. Der globale Reset deckt margin/padding/box-sizing
+     schon ab, `font:inherit` fehlt bei Buttons aber. */
   .icon-btn{
     width:31px; height:31px; border-radius:50%; background:var(--surface-2); border:1px solid var(--steel);
     color:var(--chalk-dim); display:flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0;
-    transition:color .15s ease, border-color .15s ease;
+    font:inherit; transition:color .15s ease, border-color .15s ease;
   }
   .icon-btn:hover{ color:var(--chalk); border-color:var(--chalk-dim); }
   .icon-btn svg.ico{ width:14px; height:14px; stroke-width:2.2; }
@@ -746,10 +750,11 @@
   .profile-card-wrap{ position:relative; flex:1; min-height:320px; margin-bottom:16px; }
 
   .card .flag-btns{ position:absolute; top:22px; right:10px; display:flex; gap:6px; z-index:2; }
+  /* Ebenfalls <button> - siehe Kommentar bei .icon-btn. */
   .card .flag-btn{
     width:29px; height:29px; border-radius:50%; background:rgba(0,0,0,0.5); border:1px solid rgba(255,255,255,0.22);
     color:rgba(255,255,255,.85); display:flex; align-items:center; justify-content:center; cursor:pointer;
-    backdrop-filter:blur(3px); transition:background .15s ease, color .15s ease;
+    font:inherit; backdrop-filter:blur(3px); transition:background .15s ease, color .15s ease;
   }
   .card .flag-btn:hover{ background:rgba(0,0,0,.75); color:#fff; }
   .card .flag-btn svg.ico{ width:14px; height:14px; stroke-width:2.2; }
@@ -1857,6 +1862,10 @@
       <label for="l-password">Passwort</label>
       <input type="password" id="l-password" placeholder="••••••••" autocomplete="current-password">
       <div class="field-err" id="loginErr"></div>
+      <!-- Begründete Mitteilung nach Art. 17 DSA bei gesperrtem Konto. Der
+           Login ist dafür der einzige Kanal - ein Token bekommt der Gesperrte
+           nicht, die Mitteilung in der App erreicht ihn also nie. -->
+      <div class="chat-mute-banner" id="loginModerationNotice" style="display:none;"></div>
       <button class="btn" id="btnLogin">Einloggen</button>
     </section>
 
@@ -2027,10 +2036,10 @@
         <span class="av" id="chatAvatarWrap"><img id="chatAvatar" src="" alt=""></span>
         <div class="nm" id="chatName">—</div>
         <div class="chat-flag-btns">
-          <div class="icon-btn" id="btnReportChat" title="Melden" aria-label="Melden"><svg class="ico" viewBox="0 0 24 24"><path d="M6 21V4.5M6 5h11.5l-2.4 3.9 2.4 3.9H6"/></svg></div>
-          <div class="icon-btn" id="btnBlockChat" title="Blockieren" aria-label="Blockieren"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.2"/><path d="M6.4 6.4l11.2 11.2"/></svg></div>
+          <button type="button" class="icon-btn" id="btnReportChat" title="Melden" aria-label="Melden"><svg class="ico" viewBox="0 0 24 24"><path d="M6 21V4.5M6 5h11.5l-2.4 3.9 2.4 3.9H6"/></svg></button>
+          <button type="button" class="icon-btn" id="btnBlockChat" title="Blockieren" aria-label="Blockieren"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.2"/><path d="M6.4 6.4l11.2 11.2"/></svg></button>
           <div class="chat-menu-wrap">
-            <div class="icon-btn" id="btnChatMenu" title="Mehr" aria-label="Weitere Optionen"><svg class="ico" viewBox="0 0 24 24" style="fill:currentColor; stroke:none;"><circle cx="12" cy="5" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="12" cy="19" r="1.7"/></svg></div>
+            <button type="button" class="icon-btn" id="btnChatMenu" title="Mehr" aria-label="Weitere Optionen" aria-haspopup="true" aria-expanded="false"><svg class="ico" viewBox="0 0 24 24" style="fill:currentColor; stroke:none;"><circle cx="12" cy="5" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="12" cy="19" r="1.7"/></svg></button>
             <div class="chat-menu" id="chatMenu">
               <button type="button" id="btnClearChat">Chatverlauf leeren</button>
               <button type="button" id="btnDeleteChat" class="danger">Chat löschen</button>
@@ -2942,6 +2951,51 @@
     return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   }
 
+  /* Begründete Mitteilung nach Art. 17 DSA aus einem 403-Detail bauen.
+
+     Der Server liefert bei jeder Beschränkung `moderation_reason`,
+     `appeal_hint` und – seit der Erweiterung auf Art. 17 Abs. 3 – ein
+     `statement` mit Maßnahme, Reichweite, Dauer, Anlass, Angabe zur
+     automatisierten Erkennung und Rechtsgrundlage. Vorher zeigte die
+     Oberfläche davon nur `message` ("Dein Konto wurde gesperrt."); Grund und
+     Widerspruchsweg gingen verloren, obwohl der Login bei einer Kontosperre
+     der einzige Kanal zum Betroffenen ist.
+
+     Fehlende Felder werden weggelassen, nicht erfunden – bei Maßnahmen aus
+     der Zeit vor der Begründungspflicht bleibt es beim Zusammenfassungssatz. */
+  function moderationNoticeHtml(detail){
+    if(!detail) return '';
+    const st = detail.statement || {};
+    const zeilen = [];
+    const kopf = st.measure || detail.message;
+    if(kopf) zeilen.push(`<strong>${escapeHtml(kopf)}</strong>`);
+    const grund = detail.moderation_reason || st.summary;
+    if(grund) zeilen.push(`<strong>Begründung:</strong> ${escapeHtml(grund)}`);
+    if(st.facts) zeilen.push(`<strong>Sachverhalt:</strong> ${escapeHtml(st.facts)}`);
+    if(st.scope) zeilen.push(`<strong>Umfang:</strong> ${escapeHtml(st.scope)}`);
+    if(st.duration) zeilen.push(`<strong>Dauer:</strong> ${escapeHtml(st.duration)}`);
+    if(st.source) zeilen.push(escapeHtml(st.source));
+    if(st.automated_detection) zeilen.push(escapeHtml(st.automated_detection));
+    if(st.legal_basis) zeilen.push(escapeHtml(st.legal_basis));
+    const hinweis = detail.appeal_hint || st.appeal_hint;
+    if(hinweis) zeilen.push(escapeHtml(hinweis));
+    if(!zeilen.length) return '';
+    return `<span class="mute-ico">⚠️</span><span>${zeilen.join('<br>')}</span>`;
+  }
+
+  function showLoginModerationNotice(detail){
+    const box = $('loginModerationNotice');
+    const html = moderationNoticeHtml(detail);
+    box.innerHTML = html;
+    box.style.display = html ? 'flex' : 'none';
+  }
+
+  function clearLoginModerationNotice(){
+    const box = $('loginModerationNotice');
+    box.innerHTML = '';
+    box.style.display = 'none';
+  }
+
   // Gym wird als volles Label "Name — Straße 1, 1100 Wien" gespeichert. Für
   // kompakte Zeilen (Header, Karten-Ortszeile) reicht der Name-Teil.
   function gymName(s){ return String(s || '').split(' — ')[0]; }
@@ -3010,6 +3064,33 @@
     }
     let data = null;
     try{ data = await res.json(); }catch(e){ /* kein JSON-Body */ }
+
+    // 403 mit reason "account_banned" = Konto wurde gesperrt, während die
+    // Sitzung offen war. Ohne diesen Zweig blieb der Nutzer in einer App, in
+    // der ab sofort jeder Abruf stumm fehlschlägt (Deck lädt nicht, Chat-
+    // Polling wirft im Hintergrund), und die begründete Mitteilung nach
+    // Art. 17 DSA – die der Server im Detail mitschickt – sah er nie.
+    //
+    // Nur bei bestehender Sitzung: Der Login-Versuch eines Gesperrten läuft
+    // ebenfalls hier durch, hat aber nichts abzuräumen und wird in doLogin()
+    // eigens behandelt.
+    if(token && res.status === 403 && data && data.detail && data.detail.reason === 'account_banned'){
+      stopChatPolling();
+      stopUnreadPolling();
+      stopVerifyCamera();
+      setToken(null);
+      myProfile = null;
+      membership = null;
+      verificationStatus = null;
+      $('bottomNav').style.display = 'none';
+      showScreen('screen-login');
+      $('loginErr').textContent = '';
+      showLoginModerationNotice(data.detail);
+      const bannErr = new Error(data.detail.message || 'Dein Konto wurde gesperrt.');
+      bannErr.status = res.status;
+      bannErr.detail = data.detail;
+      throw bannErr;
+    }
 
     // 403 mit code "verification_required" = Konto noch nicht freigeschaltet.
     // Kann mitten in einer Sitzung auftreten (Admin fordert die Prüfung nach) -
@@ -3609,6 +3690,7 @@
   async function doLogin(){
     const errEl = $('loginErr');
     errEl.textContent = '';
+    clearLoginModerationNotice();
     const email = $('l-email').value.trim();
     const password = $('l-password').value;
     if(!email || !password){ errEl.textContent = 'Bitte E-Mail und Passwort angeben.'; return; }
@@ -3644,6 +3726,14 @@
           return;
         }
       }
+      // Kontosperre: Art. 17 DSA verlangt Grund und Widerspruchsweg. Der
+      // Server schickt beides im Detail mit - beim Ban ist der Login der
+      // einzige Kanal, über den es den Betroffenen erreicht.
+      if(err.detail && err.detail.reason === 'account_banned'){
+        errEl.textContent = '';
+        showLoginModerationNotice(err.detail);
+        return;
+      }
       errEl.textContent = err.message || 'Login fehlgeschlagen.';
     }finally{
       btn.disabled = false;
@@ -3675,6 +3765,7 @@
       idState = null;
     }
     $('bottomNav').style.display = 'none';
+    clearLoginModerationNotice();
     showScreen('screen-login');
   }
 
@@ -3804,6 +3895,11 @@
     $('immediateStartOverlay').style.display = 'none';
   }
   async function confirmImmediateStartAndSubscribe(){
+    // Jeder Anlauf beginnt ohne die Meldung des vorigen - sonst stand nach dem
+    // Anhaken noch "Bitte bestätige beide Erklärungen" im Kasten, während der
+    // eigentliche Fehler nur kurz als Toast vorbeizog.
+    $('istartErr').textContent = '';
+    $('istartErr').style.display = 'none';
     // Zwei getrennte Erklärungen, zwei getrennte Checkboxen - beide müssen
     // einzeln angehakt sein, keine ersetzt die andere.
     if(!$('istartCheckbox').checked || !$('withdrawalAckCheckbox').checked){
@@ -3819,7 +3915,13 @@
       });
       window.location.href = res.checkout_url;
     }catch(err){
-      toast(err.message || 'Checkout konnte nicht gestartet werden.');
+      // Der Fehler gehört in den Kasten, nicht nur in einen Toast: Das
+      // Overlay bleibt offen, und der Nutzer soll dort lesen können, warum
+      // es nicht weiterging.
+      const msg = err.message || 'Checkout konnte nicht gestartet werden.';
+      $('istartErr').textContent = msg;
+      $('istartErr').style.display = 'block';
+      toast(msg);
       $('istartConfirm').disabled = false;
     }
   }
@@ -4649,9 +4751,9 @@
       ${interactive ? `
       <div class="flag-btns">
         ${handlers && handlers.onUnmatch ? `
-        <div class="flag-btn btnUnmatchCard" title="Match auflösen" aria-label="Match auflösen"><svg class="ico" viewBox="0 0 24 24"><path d="M12 20.3 4.6 13a4.7 4.7 0 0 1 6.6-6.7l.8.8.8-.8A4.7 4.7 0 0 1 19.4 13L12 20.3z"/><path d="M4 20 20 4"/></svg></div>` : ''}
-        <div class="flag-btn btnReportCard" title="Melden" aria-label="Melden"><svg class="ico" viewBox="0 0 24 24"><path d="M6 21V4.5M6 5h11.5l-2.4 3.9 2.4 3.9H6"/></svg></div>
-        <div class="flag-btn btnBlockCard" title="Blockieren" aria-label="Blockieren"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.2"/><path d="M6.4 6.4l11.2 11.2"/></svg></div>
+        <button type="button" class="flag-btn btnUnmatchCard" title="Match auflösen" aria-label="Match auflösen"><svg class="ico" viewBox="0 0 24 24"><path d="M12 20.3 4.6 13a4.7 4.7 0 0 1 6.6-6.7l.8.8.8-.8A4.7 4.7 0 0 1 19.4 13L12 20.3z"/><path d="M4 20 20 4"/></svg></button>` : ''}
+        <button type="button" class="flag-btn btnReportCard" title="Melden" aria-label="Melden"><svg class="ico" viewBox="0 0 24 24"><path d="M6 21V4.5M6 5h11.5l-2.4 3.9 2.4 3.9H6"/></svg></button>
+        <button type="button" class="flag-btn btnBlockCard" title="Blockieren" aria-label="Blockieren"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.2"/><path d="M6.4 6.4l11.2 11.2"/></svg></button>
       </div>` : ''}
       <div class="stamp like">MATCH</div>
       <div class="stamp pass">NOPE</div>
@@ -6077,46 +6179,51 @@
     }
   });
 
-  $('btnReportChat').addEventListener('click', async () => {
+  // Melden und Blockieren laufen über dieselben Helfer wie Swipe-Karte und
+  // Match-Profil. Vorher standen hier eigene Kopien - und die im Chat zeigte
+  // statt der Empfangsbestätigung mit Aktenzeichen (Art. 16 Abs. 4 DSA) nur
+  // ein pauschales "Meldung gesendet".
+  $('btnReportChat').addEventListener('click', () => {
     const match = findMatchById(currentChatMatchId);
     if(!match) return;
-    const reason = prompt(`${match.profile.name} melden. Kurzer Grund:`);
-    if(!reason || !reason.trim()) return;
-    try{
-      await api('/api/reports', {method: 'POST', body: JSON.stringify({reported_user_id: match.profile.id, reason: reason.trim()})});
-      toast('Meldung gesendet. Danke für dein Feedback.');
-    }catch(err){ toast(err.message || 'Meldung fehlgeschlagen.'); }
+    reportUser(match.profile.id, match.profile.name);
   });
 
-  $('btnBlockChat').addEventListener('click', async () => {
+  $('btnBlockChat').addEventListener('click', () => {
     const match = findMatchById(currentChatMatchId);
     if(!match) return;
-    if(!confirm(`${match.profile.name} wirklich blockieren? Ihr seht euch danach nicht mehr.`)) return;
-    try{
-      await api('/api/blocks', {method: 'POST', body: JSON.stringify({user_id: match.profile.id})});
-      toast(`${match.profile.name} blockiert.`);
+    blockUser(match.profile.id, match.profile.name, () => {
       stopChatPolling();
       currentChatMatchId = null;
       showScreen('screen-chats');
       setNavActive('chats');
       loadChats();
-    }catch(err){ toast(err.message || 'Blockieren fehlgeschlagen.'); }
+    });
   });
 
   // ---------- 3-Punkte-Menü im Chat (Verlauf leeren / Chat löschen) ----------
   const chatMenu = $('chatMenu');
+  // aria-expanded muss dem tatsaechlichen Zustand folgen - eine feste
+  // Angabe im Markup waere schlechter als gar keine.
+  function setChatMenu(offen){
+    chatMenu.classList.toggle('open', offen);
+    $('btnChatMenu').setAttribute('aria-expanded', offen ? 'true' : 'false');
+  }
   $('btnChatMenu').addEventListener('click', (e) => {
     e.stopPropagation();
-    chatMenu.classList.toggle('open');
+    setChatMenu(!chatMenu.classList.contains('open'));
   });
   document.addEventListener('click', (e) => {
     if(chatMenu.classList.contains('open') && !e.target.closest('.chat-menu-wrap')){
-      chatMenu.classList.remove('open');
+      setChatMenu(false);
     }
+  });
+  document.addEventListener('keydown', (e) => {
+    if(e.key === 'Escape' && chatMenu.classList.contains('open')) setChatMenu(false);
   });
 
   $('btnClearChat').addEventListener('click', async () => {
-    chatMenu.classList.remove('open');
+    setChatMenu(false);
     if(!currentChatMatchId) return;
     if(!confirm('Chatverlauf wirklich leeren? Er wird nur für dich ausgeblendet – die andere Person sieht den Verlauf weiterhin.')) return;
     try{
@@ -6129,7 +6236,7 @@
   });
 
   $('btnDeleteChat').addEventListener('click', async () => {
-    chatMenu.classList.remove('open');
+    setChatMenu(false);
     const match = findMatchById(currentChatMatchId);
     if(!match) return;
     if(!confirm(`Chat mit ${match.profile.name} wirklich löschen? Er verschwindet aus deinen Chats – euer Match bleibt aber bestehen.`)) return;

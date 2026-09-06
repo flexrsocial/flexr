@@ -1,14 +1,187 @@
 # FLEXR — Handoff für ein anderes Gerät / Claude Code
 
-Stand: **05.09.2026**
+Stand: **06.09.2026**
 
-Produktstand: Jüngster Commit auf `origin/main` ist der Beta-Hinweis der
-Sitzung vom **05.09.** (Vorgänger `96b076f`), gepusht **und auf dem VPS
-ausgerollt** — reine Frontend-Änderung, kein Backend, keine Migration, kein
-Neustart. Aufbau des Dokuments: erst die Eckdaten, dann die Sitzung vom
-**05.09.**, dann **31.08.**, dann **30.08.**, dann **23.08.**, dann
-**21.08.**; die Build-,
+Produktstand: Jüngster Commit auf `origin/main` ist der Journey-Durchgang der
+Sitzung vom **06.09.** (Vorgänger `ce0af15`), gepusht **und auf dem VPS
+ausgerollt** — Backend **und** Frontend, keine Migration, Backend-Neustart
+nötig. Aufbau des Dokuments: erst die Eckdaten, dann die Sitzung vom
+**06.09.**, dann **05.09.**, dann **31.08.**, dann **30.08.**, dann
+**23.08.**, dann **21.08.**; die Build-,
 Test- und Deploy-Abschnitte am Ende gelten sitzungsübergreifend.
+
+## Sitzung 06.09.2026 — Kompletter Journey-Durchgang, fünf Befunde behoben
+
+Ein Commit. Backend **und** Web-Frontend, **keine Migration**, aber
+Backend-Neustart nötig (`app/routers/admin.py`, `billing.py`, `schemas.py`).
+Android und iOS sind **nicht angefasst** — siehe „Offen" unten.
+
+### Wie geprüft wurde
+
+Die gesamte Nutzerreise und das Admin-Dashboard wurden lokal gegen einen
+laufenden Server durchgespielt, nicht nur gelesen: Registrierung (inkl.
+Alters-Sperre unter 18), PLZ- und Gym-Suche, Foto-Upload, Verifizierung
+(Selfie + Ausweis), Admin-Freigabe, Deck, Swipe, Match, Chat inkl. Zensur,
+Melden, Blockieren, förmliche Meldung nach Art. 16 DSA, Gym-Vorschlag,
+Benachrichtigungs-Schalter, Datenschutz-Screen, Rechtstexte im Modal,
+Rücktrittsformular, Paywall, Kontolöschung und Reaktivierung. Im Admin:
+Dashboard, Nutzerliste und -detail, Ban, Mute, Foto-Freigabe und -Ablehnung,
+Meldungen, auffällige Nachrichten, Gym-Freigabe.
+
+**Ohne Produktionsdaten anzufassen.** Der Foto-Upload läuft als Presigned PUT
+direkt in den Storage, und `backend/.env` zeigt auf den echten R2-Bucket
+(siehe „Lokal testen: zwei Fallen"). Für den Durchgang lief deshalb ein
+kleiner S3-Ersatz auf `127.0.0.1:9000` (PUT/GET/HEAD/DELETE, `list_objects_v2`,
+`copy_object`) und alle `S3_*`-Werte kamen als Umgebungsvariablen — die
+schlagen in pydantic-settings die `.env`. Ebenso `SMTP_HOST=""`, damit kein
+Testkonto echte Post bekommt.
+
+### Behobene Befunde
+
+1. **Kontosperre ohne Begründung (Art. 17 DSA).** Der Server baut in
+   `moderation.restriction_detail()` die vollständige begründete Mitteilung —
+   Maßnahme, Umfang, Dauer, Anlass, Angabe zur automatisierten Erkennung,
+   Rechtsgrundlage, Widerspruchsweg — und schickt sie im 403-Detail mit. Die
+   Web-App zeigte davon **nur** den Satz „Dein Konto wurde gesperrt." Beim Ban
+   ist der Login der einzige Kanal zum Betroffenen (ein Token bekommt er
+   nicht), der Rest ging also ersatzlos verloren. Neu: `moderationNoticeHtml()`
+   baut die Mitteilung aus dem `statement`, `#loginModerationNotice` zeigt sie
+   unter dem Login-Formular.
+   Zusätzlich behandelt `api()` jetzt den Fall, dass die Sperre **während**
+   einer offenen Sitzung greift: vorher blieb der Nutzer in einer App, in der
+   ab sofort jeder Abruf stumm fehlschlug. Jetzt Ausloggen und dieselbe
+   Mitteilung. Der Zweig greift nur bei gesetztem Token — der Login-Versuch
+   eines Gesperrten läuft ebenfalls durch `api()` und wird in `doLogin()`
+   eigens behandelt; ohne die Bedingung überschrieb der generische
+   Fehlerpfad die Mitteilung anschließend wieder.
+2. **Melden aus dem Chat verwarf das Aktenzeichen (Art. 16 Abs. 4 DSA).** Es
+   gab zwei Melde-Implementierungen: `reportUser()` (Swipe-Karte,
+   Match-Profil) zeigt die Empfangsbestätigung samt Aktenzeichen,
+   `btnReportChat` war eine eigene Kopie mit „Meldung gesendet. Danke für dein
+   Feedback." Dasselbe bei `btnBlockChat` gegenüber `blockUser()`. Beide
+   Kopien sind raus, die Chat-Knöpfe rufen die gemeinsamen Helfer auf.
+3. **Gelöschte Konten waren im Admin-Dashboard nicht als solche erkennbar.**
+   Eine Selbstlöschung deaktiviert das Konto sofort und löscht es erst nach 30
+   Tagen Karenz. In Liste und Detailansicht fehlte jeder Hinweis darauf — eine
+   Meldung gegen ein längst deaktiviertes Profil wäre bearbeitet worden, als
+   wäre es aktiv. Neu: `deleted_at` in Liste und Detail, `purge_at` (Termin
+   der endgültigen Löschung) im Detail, Kennzeichnung „Gelöscht" in beiden
+   Ansichten und eine Kachel „In Löschung" auf dem Dashboard.
+   Dabei fiel auf, dass die Kennzahlen sich widersprachen: `new_today` nahm
+   selbstgelöschte Konten schon immer aus, `total_users`/`trial_users`/
+   `banned_users`/`active_subscriptions` nicht — das Dashboard zeigte „14 im
+   Probemonat" bei 13 Nutzern gesamt. Alle Bestandszahlen schließen jetzt
+   gelöschte Konten aus, sichtbar bleiben sie über `deleted_users`.
+4. **Checkout-Störung kam als nackter 500 heraus.** Fiel Stripe aus oder
+   fehlte der Key, propagierte die Ausnahme ungefangen. Ein unbehandelter 500
+   verlässt die Anwendung **ohne** die CORS-Header der Middleware — im Browser
+   kam deshalb nur „Failed to fetch" an, ohne jeden Hinweis. Der Nutzer hatte
+   in dem Moment gerade zwei rechtlich erhebliche Erklärungen abgegeben.
+   `create_checkout()` und `create_portal()` antworten jetzt mit 502 und einem
+   deutschen Satz. Im Overlay „Vor der Zahlung" blieb ausserdem die alte
+   Meldung „Bitte bestätige beide Erklärungen" stehen, während der echte
+   Fehler nur als Toast vorbeizog — der Kasten wird jetzt bei jedem Anlauf
+   zurückgesetzt und trägt anschließend den tatsächlichen Fehler.
+   `test_billing_webhook.py::test_checkout_mit_erklaerung_haelt_die_einwilligung_fest`
+   hing an der durchgereichten Stripe-Ausnahme (`pytest.raises`) und wurde auf
+   die 502-Antwort umgestellt; die eigentliche Zusicherung des Tests — der
+   `CheckoutConsent`-Datensatz entsteht **vor** dem Stripe-Aufruf — ist
+   unverändert.
+
+5. **Melden und Blockieren waren per Tastatur nicht erreichbar.** Die
+   Flaggen-, Verbots- und „Match auflösen"-Symbole auf der Swipe-Karte und im
+   Chat-Kopf waren `<div class="flag-btn">` bzw. `<div class="icon-btn">` mit
+   `title` und `aria-label`, aber ohne `role`, ohne `tabindex` und ohne
+   Tastaturbedienung — ausgerechnet bei den gesetzlich vorgeschriebenen
+   Schutzfunktionen, während der Zurück-Pfeil daneben im selben Kopf längst ein
+   echter `<button>` war. Jetzt alle sechs als `<button type="button">`.
+   Optisch ist das ein Nulldurchgang: der globale Reset (`*{box-sizing:
+   border-box; margin:0; padding:0}`) deckt schon alles ab, was ein Button
+   sonst mitbringt, ergänzt um `font:inherit`; im Browser nachgemessen —
+   29×29 bzw. 31×31 Pixel, gleicher Radius, gleicher Hintergrund wie vorher.
+   Das Drei-Punkte-Menü im Chat hat zusätzlich `aria-haspopup`, ein
+   `aria-expanded`, das über `setChatMenu()` dem tatsächlichen Zustand folgt
+   (eine feste Angabe im Markup wäre schlechter als gar keine), und schließt
+   jetzt auch mit Escape.
+
+### Was ausdrücklich in Ordnung war
+
+Damit es niemand ein zweites Mal untersucht: Der Swipe ist idempotent (zweiter
+Swipe aktualisiert die Zeile, statt eine zweite anzulegen). Öffentliche
+Profile filtern auf freigegebene Fotos, ein abgelehntes Hauptfoto kann also
+nicht auf der Karte landen. Die Ablehnung eines Fotos geht per Mail mit
+Klartext-Begründung raus. Blockierte verschwinden aus dem Deck. Der Ban wird
+serverseitig auf jedem Endpunkt durchgesetzt, auch mit altem Token. Die
+Reaktivierung innerhalb der Karenzzeit funktioniert über den Login-Dialog.
+Der Foto-Upload hat einen sauberen Wiederaufnahme-Pfad, wenn der Presigned PUT
+scheitert („Profilfoto fehlt" statt Sackgasse). Die Rechtstexte laden alle im
+Modal, inklusive der Formulare in `widerruf.html` und `meldung.html`.
+
+### Verbesserungspotenzial, bewusst nicht angefasst
+
+- **Foto-Ablehnung im Admin läuft über `window.prompt` mit einer Nummernliste
+  1–10.** Funktioniert (die Eingabe wird validiert), ist aber für einen
+  täglich benutzten Moderationsschritt grob. Eine richtige Auswahl wäre
+  besser — reiner UI-Umbau ohne Verhaltensänderung, deshalb hier nicht
+  mitgenommen.
+- **`redact_message()` schluckt das Satzzeichen hinter einer URL.** Aus
+  „meinprofil.com/anna, da sind…" wird „[Link entfernt] da sind…" — `\S*` ist
+  gierig und nimmt das Komma mit. Kosmetisch.
+- **`CheckoutConsent` wird vor dem Stripe-Aufruf committet.** Scheitert der
+  Checkout, bleibt eine Zeile ohne zugehörigen Vorgang stehen. Die Erklärung
+  *wurde* abgegeben, insofern vertretbar; wer aufräumt, sollte es bewusst tun.
+- **Kein `<form>` um Login und Registrierung.** Für den Login ist Enter
+  eigens verdrahtet, im Registrierungsformular nicht.
+
+### Falle beim Start dieser Sitzung
+
+`backend/venv/bin/` enthielt **keine `python`-Symlinks mehr** (MEGA-Sync
+verliert Symlinks und Ausführungsrechte). `venv/bin/python -m pytest` scheiterte
+mit „Datei oder Verzeichnis nicht gefunden". Ein Umweg über `PYTHONPATH` auf
+`venv/lib/python3.12/site-packages` funktioniert **nicht** — dann liegt
+`/usr/lib/python3/dist-packages` mit im Pfad und `pyOpenSSL` kollidiert mit der
+`cryptography` aus dem venv (`module 'lib' has no attribute 'GEN_EMAIL'`).
+Richtige Abhilfe:
+
+```bash
+cd backend/venv/bin && ln -sf /usr/bin/python3.12 python3 && ln -sf python3 python
+```
+
+Aus derselben Ursache hatten `scripts/*.sh` und `ios/tools/mac-build.sh` ihr
+Ausführungsrecht verloren; vor dem Commit mit `chmod +x` zurückgesetzt, sonst
+wäre eine Rechte-Rücknahme mitcommittet worden.
+
+Ebenfalls aus derselben Ursache: `HANDOFF.md` und `backend/.env.example` lagen
+im Arbeitsverzeichnis in einer **älteren** Fassung als auf `origin/main`
+(HANDOFF 97 Zeilen kürzer, `.env.example` ohne den Telegram-Block). Nach dem
+`git reset --mixed origin/main` beide gezielt mit `git checkout --` auf den
+Serverstand zurückgeholt, statt sie mitzucommitten. **Genau prüfen, welche
+Dateien in den Commit gehen** — `git add -A` hätte hier 97 Zeilen Dokumentation
+und die Telegram-Variablen gelöscht.
+
+### Stand der Prüfung
+
+- Backend: **393 Tests grün** (12 neu in `backend/tests/test_journey_befunde.py`,
+  vorher 381; ein bestehender Billing-Test angepasst, siehe Befund 4).
+- Web: alle fünf Behebungen im Browser bei 375×812 nachgestellt — Login eines
+  gesperrten Kontos, Sperre mitten in der Sitzung, Melden aus dem Chat mit
+  Aktenzeichen, Blockieren aus dem Chat, Checkout-Störung mit deutscher
+  Meldung, Admin-Liste und -Detail mit „Gelöscht", Dashboard-Kacheln stimmig.
+  Für die Tastaturbedienung zusätzlich Fokus und Auslösen der Melden-Taste auf
+  der Karte geprüft und per Screenshot gegengeprüft, dass sich am Aussehen von
+  Karte und Chat-Kopf nichts geändert hat.
+- Android/iOS: **nicht gebaut.** Auf dieser Maschine gibt es weder JDK noch
+  Android-SDK (und 3 GB RAM), macOS/Xcode ohnehin nicht.
+
+### Offen
+
+- **Android und iOS haben denselben Befund 1**: `ApiError.kt` liest
+  `moderation_reason` und `appeal_hint`, der Chat zeigt sie im Mute-Banner —
+  der **Login** wertet sie aber nicht aus, ein Gesperrter sieht dort ebenfalls
+  nur „Dein Konto wurde gesperrt.". Zu beheben, sobald eine Maschine mit
+  Toolchain zur Verfügung steht; ungeprüften Kotlin-/Swift-Code auszuliefern
+  wäre hier das grössere Risiko.
+- Das `statement`-Feld (Art. 17 Abs. 3) wertet bisher nur die Web-App aus.
 
 ## Sitzung 05.09.2026 — Beta-Hinweis auf Landingpage und in der Web-App
 

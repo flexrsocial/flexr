@@ -1,6 +1,6 @@
 import logging
 
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.orm import Session
 
 from .. import legal, mailer
@@ -59,11 +59,26 @@ def create_checkout(
 
     # trial_ends_at wird mitgegeben, damit Stripe nur die seit der Registrierung
     # verbliebene Gratiszeit als Trial ansetzt und danach sofort abrechnet.
-    url = create_checkout_session(
-        current_user.email,
-        current_user.id,
-        current_user.trial_ends_at,
-    )
+    #
+    # Faellt Stripe aus oder stimmen die Zugangsdaten nicht, darf das nicht als
+    # nackter 500 herauskommen: Die CORS-Header der Anwendung haengen an der
+    # Middleware und fehlen bei einer unbehandelten Ausnahme - im Browser kam
+    # deshalb nur "Failed to fetch" an, ohne jeden Hinweis, was zu tun ist.
+    # Der Nutzer hat gerade zwei rechtlich erhebliche Erklaerungen abgegeben
+    # und soll erfahren, dass es an uns liegt und er es erneut versuchen kann.
+    try:
+        url = create_checkout_session(
+            current_user.email,
+            current_user.id,
+            current_user.trial_ends_at,
+        )
+    except Exception:  # noqa: BLE001 - jede Stoerung soll dieselbe Antwort geben
+        logger.exception("Stripe-Checkout fehlgeschlagen (user=%s)", current_user.id)
+        raise HTTPException(
+            status.HTTP_502_BAD_GATEWAY,
+            "Die Zahlung kann gerade nicht gestartet werden. Bitte versuch es "
+            "in ein paar Minuten noch einmal - es wurde nichts abgebucht.",
+        )
     return {"checkout_url": url}
 
 
@@ -72,7 +87,15 @@ def create_portal(current_user: User = Depends(get_current_user)):
     """Self-Service-Verwaltung/Kündigung des Abos über Stripes Billing Portal."""
     if not current_user.stripe_customer_id:
         raise HTTPException(400, "Noch kein Abo abgeschlossen.")
-    url = create_portal_session(current_user.stripe_customer_id)
+    try:
+        url = create_portal_session(current_user.stripe_customer_id)
+    except Exception:  # noqa: BLE001 - siehe create_checkout()
+        logger.exception("Stripe-Portal fehlgeschlagen (user=%s)", current_user.id)
+        raise HTTPException(
+            status.HTTP_502_BAD_GATEWAY,
+            "Die Abo-Verwaltung ist gerade nicht erreichbar. Bitte versuch es "
+            "in ein paar Minuten noch einmal.",
+        )
     return {"portal_url": url}
 
 

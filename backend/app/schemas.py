@@ -556,6 +556,11 @@ class AdminUserListItem(BaseModel):
     age_verified: bool = False
     created_at: datetime
     photo_count: int
+    # Selbstlöschung: gesetzt, solange die 30-tägige Karenzzeit läuft. Ohne
+    # dieses Feld sah ein solches Konto in der Liste aus wie jedes andere -
+    # eine Meldung dazu wäre gegen ein längst deaktiviertes Profil bearbeitet
+    # worden.
+    deleted_at: Optional[datetime] = None
 
 
 class AdminUserDetailOut(BaseModel):
@@ -591,6 +596,10 @@ class AdminUserDetailOut(BaseModel):
     phone: Optional[str] = None
     phone_verified: bool = False
     photos: list[PhotoOut] = []
+    # Selbstlöschung durch den Nutzer; das Konto verschwindet nach Ablauf der
+    # Karenzzeit endgültig (cleanup.purge_deleted_users).
+    deleted_at: Optional[datetime] = None
+    purge_at: Optional[datetime] = None
     # Geräteprüfung: [{device_id, user_agent, last_seen, shared_with: [Namen]}]
     devices: list[dict] = []
 
@@ -650,10 +659,15 @@ class AdminFlaggedMessageOut(BaseModel):
 
 
 class AdminStats(BaseModel):
+    # Zählt nur lebende Konten - deckungsgleich mit new_today, das
+    # selbstgelöschte Konten schon immer ausgenommen hat. Die in der
+    # Karenzzeit stehenden Konten stehen daneben in deleted_users.
     total_users: int
     active_subscriptions: int
     trial_users: int
     banned_users: int
+    # Konten in der 30-tägigen Karenzzeit nach Selbstlöschung
+    deleted_users: int = 0
     # Offene Aufgaben (Aufgaben-Panel im Dashboard)
     pending_photos: int
     open_reports: int

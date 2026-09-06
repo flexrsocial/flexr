@@ -29,6 +29,7 @@ from ..models import (
 )
 from ..moderation import apply_restriction, clear_restriction, statement_of_reasons
 from ..rate_limit import limiter
+from ..retention import ACCOUNT_GRACE_PERIOD_DAYS
 from ..schemas import (
     AdminAccessPoint,
     AdminAccessStats,
@@ -77,14 +78,23 @@ def get_stats(
     admin: AdminUser = Depends(get_current_admin),
     db: Session = Depends(get_db),
 ):
-    total_users = db.query(func.count(User.id)).scalar()
-    active_subscriptions = db.query(func.count(User.id)).filter(User.is_subscribed.is_(True)).scalar()
+    # Selbstgelöschte Konten (30-Tage-Karenz) zählen in keiner der
+    # Bestandskennzahlen mit - new_today nimmt sie schon immer aus, und die
+    # Kacheln daneben sollen dieselbe Menge beschreiben. Ohne das stand auf dem
+    # Dashboard schon "14 im Probemonat" bei 13 Nutzern gesamt. Sichtbar
+    # bleiben sie über deleted_users.
+    lebend = User.deleted_at.is_(None)
+    total_users = db.query(func.count(User.id)).filter(lebend).scalar()
+    deleted_users = db.query(func.count(User.id)).filter(User.deleted_at.isnot(None)).scalar()
+    active_subscriptions = (
+        db.query(func.count(User.id)).filter(lebend, User.is_subscribed.is_(True)).scalar()
+    )
     trial_users = (
         db.query(func.count(User.id))
-        .filter(User.is_subscribed.is_(False), User.trial_ends_at > datetime.utcnow())
+        .filter(lebend, User.is_subscribed.is_(False), User.trial_ends_at > datetime.utcnow())
         .scalar()
     )
-    banned_users = db.query(func.count(User.id)).filter(User.is_banned.is_(True)).scalar()
+    banned_users = db.query(func.count(User.id)).filter(lebend, User.is_banned.is_(True)).scalar()
     pending_photos = db.query(func.count(Photo.id)).filter(Photo.status == PhotoStatus.pending).scalar()
     open_reports = db.query(func.count(Report.id)).filter(Report.dismissed_at.is_(None)).scalar()
     open_notices = db.query(func.count(Notice.id)).filter(Notice.decided_at.is_(None)).scalar()
@@ -116,6 +126,7 @@ def get_stats(
     )
     return AdminStats(
         total_users=total_users,
+        deleted_users=deleted_users,
         active_subscriptions=active_subscriptions,
         trial_users=trial_users,
         banned_users=banned_users,
@@ -213,6 +224,7 @@ def list_users(
             age_verified=u.age_verified,
             created_at=u.created_at,
             photo_count=photo_counts.get(u.id, 0),
+            deleted_at=u.deleted_at,
         )
         for u in users
     ]
@@ -278,6 +290,11 @@ def get_user_detail(
         phone=user.phone,
         phone_verified=user.phone_verified,
         photos=user.photos,
+        deleted_at=user.deleted_at,
+        purge_at=(
+            user.deleted_at + timedelta(days=ACCOUNT_GRACE_PERIOD_DAYS)
+            if user.deleted_at is not None else None
+        ),
         devices=device_infos,
     )
 
