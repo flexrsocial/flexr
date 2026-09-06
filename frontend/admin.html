@@ -296,6 +296,37 @@
   .detail-row .k{ color:var(--chalk-dim); }
   .modal .photo-strip{ display:flex; gap:8px; margin:16px 0; flex-wrap:wrap; }
   .modal .photo-strip img{ width:64px; height:80px; object-fit:cover; border-radius:8px; border:1px solid var(--steel); }
+  /* Ablehnungsdialog fuer Profilfotos: das abgelehnte Bild bleibt beim
+     Entscheiden sichtbar, die Gruende stehen als Liste statt als Nummern in
+     einem prompt(). */
+  .reject-preview{ display:flex; gap:14px; align-items:flex-start; margin-bottom:18px; }
+  .reject-preview img{
+    width:88px; height:110px; object-fit:cover; border-radius:10px;
+    border:1px solid var(--steel); flex-shrink:0;
+  }
+  .reject-reasons{ display:flex; flex-direction:column; gap:2px; margin-bottom:6px; }
+  /* Wie bei .verify-checklist: die globale Regel
+     label{display:block; text-transform:uppercase; margin:14px 0 6px} passt
+     zu Formularbeschriftungen, nicht zu einer Auswahlliste aus ganzen
+     Saetzen - sonst steht dort "ANDERER VERSTOSS GEGEN DIE
+     PROFILFOTO-RICHTLINIEN". */
+  .reject-reasons label{
+    display:flex; gap:10px; align-items:flex-start; padding:9px 10px; border-radius:9px;
+    font-size:13.5px; cursor:pointer; border:1px solid transparent;
+    color:var(--chalk); text-transform:none; letter-spacing:0; margin:0;
+  }
+  .reject-reasons label:hover{ background:var(--surface-2); }
+  .reject-reasons input{ margin-top:2px; width:15px; height:15px; flex-shrink:0; accent-color:var(--plate); }
+  .reject-reasons label.picked{ background:var(--surface-2); border-color:var(--plate); }
+  .reject-note{ margin-top:10px; }
+  .reject-note textarea{
+    width:100%; min-height:64px; resize:vertical; background:var(--surface-2);
+    border:1px solid var(--steel); border-radius:9px; color:var(--chalk);
+    padding:9px 10px; font:inherit; font-size:13.5px;
+  }
+  .reject-hint{ color:var(--chalk-dim); font-size:12px; margin-top:6px; }
+  .reject-err{ color:var(--danger); font-size:12.5px; margin-top:10px; min-height:1px; }
+
   .modal-actions{ display:flex; gap:10px; margin-top:20px; }
   /* Aktionsreihe im Nutzer-Modal: Sperr-Steuerung + Buttons kompakt in eine Zeile */
   .modal-actions.tight{ flex-wrap:wrap; gap:8px; align-items:center; }
@@ -441,6 +472,33 @@
     </section>
 
   </main>
+</div>
+
+<!-- FOTO-ABLEHNUNG -->
+<div class="modal-backdrop" id="rejectModalBackdrop">
+  <div class="modal" style="max-width:520px;" role="dialog" aria-modal="true" aria-labelledby="rejectModalTitle">
+    <button class="modal-close" id="rejectModalClose" aria-label="Abbrechen">✕</button>
+    <h3 id="rejectModalTitle">Foto ablehnen</h3>
+    <div class="modal-sub">Der Grund geht dem Nutzer per E-Mail zu (Art. 17 DSA).</div>
+    <div class="reject-preview">
+      <img id="rejectPreviewImg" src="" alt="">
+      <div>
+        <div id="rejectPreviewName" style="font-size:14px;"></div>
+        <div class="mono" id="rejectPreviewMail" style="color:var(--chalk-dim); font-size:12px;"></div>
+      </div>
+    </div>
+    <div class="reject-reasons" id="rejectReasons"></div>
+    <div class="reject-note" id="rejectNoteWrap" style="display:none;">
+      <label for="rejectNote" style="font-size:12px; color:var(--chalk-dim);">Kurze konkrete Ergänzung</label>
+      <textarea id="rejectNote" maxlength="300" placeholder="Was genau spricht gegen das Bild?"></textarea>
+      <div class="reject-hint">Wird dem Nutzer wörtlich angezeigt.</div>
+    </div>
+    <div class="reject-err" id="rejectErr"></div>
+    <div class="modal-actions">
+      <button class="btn secondary" id="rejectConfirm">Ablehnen</button>
+      <button class="btn secondary" id="rejectCancel">Abbrechen</button>
+    </div>
+  </div>
 </div>
 
 <!-- USER DETAIL MODAL -->
@@ -1026,27 +1084,88 @@
     ['other', 'Anderer Verstoß gegen die Profilfoto-Richtlinien'],
   ];
 
-  function askPhotoRejection(){
-    const options = PHOTO_REJECTION_REASONS
-      .map(([, label], index) => `${index + 1}. ${label}`)
-      .join('\n');
-    const entered = prompt(`Ablehnungsgrund auswählen (1–${PHOTO_REJECTION_REASONS.length}):\n\n${options}`);
-    if(entered === null) return null;
-    const index = Number.parseInt(entered.trim(), 10) - 1;
-    if(!Number.isInteger(index) || !PHOTO_REJECTION_REASONS[index]){
-      toast('Bitte eine gültige Nummer auswählen.');
-      return null;
-    }
-    const [reason] = PHOTO_REJECTION_REASONS[index];
-    if(reason !== 'other') return {reason};
-    const note = prompt('Kurze konkrete Ergänzung zur Ablehnung:');
-    if(note === null) return null;
-    if(note.trim().length < 3){
-      toast('Bitte den anderen Ablehnungsgrund kurz erläutern.');
-      return null;
-    }
-    return {reason, note: note.trim()};
+  /* Ablehnungsdialog statt zweier prompt()-Fenster.
+
+     Vorher musste der Prüfer die Nummer eines Grundes aus einer Liste 1-10
+     abtippen - bei einem Schritt, der mehrmals täglich vorkommt, und ohne das
+     Bild vor Augen: prompt() blendet die Seite aus. Ein Vertipper landete
+     nicht etwa beim falschen Grund, sondern brach den ganzen Vorgang ab.
+
+     Der Dialog zeigt das betroffene Bild, die Gründe als Auswahlliste und das
+     Ergänzungsfeld für "Anderer Verstoß" erst dann, wenn es gebraucht wird.
+     Geliefert wird dieselbe Struktur wie vorher ({reason} bzw.
+     {reason, note}) - am Server ändert sich nichts. */
+  let rejectAufloesen = null;
+
+  function fuelleAblehnungsgruende(){
+    const wrap = $('rejectReasons');
+    wrap.innerHTML = PHOTO_REJECTION_REASONS.map(([wert, label]) => `
+      <label data-reason="${wert}">
+        <input type="radio" name="rejectReason" value="${wert}">
+        <span>${escapeHtml(label)}</span>
+      </label>`).join('');
+    wrap.querySelectorAll('input[name="rejectReason"]').forEach(radio => {
+      radio.addEventListener('change', () => {
+        wrap.querySelectorAll('label').forEach(l => l.classList.toggle('picked', l.dataset.reason === radio.value));
+        // Das Ergänzungsfeld gehört nur zu "other" - sonst steht es im Weg.
+        $('rejectNoteWrap').style.display = radio.value === 'other' ? 'block' : 'none';
+        $('rejectErr').textContent = '';
+        if(radio.value === 'other') $('rejectNote').focus();
+      });
+    });
   }
+
+  /* Öffnet den Dialog und liefert ein Promise auf {reason[, note]} bzw. null
+     bei Abbruch - damit bleibt die Aufrufstelle so schlicht wie mit prompt(). */
+  function askPhotoRejection(photo){
+    return new Promise(resolve => {
+      fuelleAblehnungsgruende();
+      $('rejectPreviewImg').src = photo && photo.url ? photo.url : '';
+      $('rejectPreviewImg').alt = photo ? `Zu prüfendes Foto von ${photo.user_name}` : '';
+      $('rejectPreviewName').textContent = photo ? photo.user_name : '';
+      $('rejectPreviewMail').textContent = photo ? photo.user_email : '';
+      $('rejectNote').value = '';
+      $('rejectNoteWrap').style.display = 'none';
+      $('rejectErr').textContent = '';
+      $('rejectModalBackdrop').classList.add('open');
+      rejectAufloesen = resolve;
+    });
+  }
+
+  function schliesseAblehnung(ergebnis){
+    $('rejectModalBackdrop').classList.remove('open');
+    const aufloesen = rejectAufloesen;
+    rejectAufloesen = null;
+    if(aufloesen) aufloesen(ergebnis);
+  }
+
+  $('rejectConfirm').addEventListener('click', () => {
+    const gewaehlt = document.querySelector('input[name="rejectReason"]:checked');
+    if(!gewaehlt){
+      $('rejectErr').textContent = 'Bitte einen Grund auswählen.';
+      return;
+    }
+    if(gewaehlt.value !== 'other'){
+      schliesseAblehnung({reason: gewaehlt.value});
+      return;
+    }
+    const note = $('rejectNote').value.trim();
+    if(note.length < 3){
+      $('rejectErr').textContent = 'Bitte den anderen Ablehnungsgrund kurz erläutern.';
+      $('rejectNote').focus();
+      return;
+    }
+    schliesseAblehnung({reason: gewaehlt.value, note});
+  });
+
+  $('rejectCancel').addEventListener('click', () => schliesseAblehnung(null));
+  $('rejectModalClose').addEventListener('click', () => schliesseAblehnung(null));
+  $('rejectModalBackdrop').addEventListener('click', (e) => {
+    if(e.target === $('rejectModalBackdrop')) schliesseAblehnung(null);
+  });
+  document.addEventListener('keydown', (e) => {
+    if(e.key === 'Escape' && $('rejectModalBackdrop').classList.contains('open')) schliesseAblehnung(null);
+  });
 
   async function loadPhotos(){
     const wrap = $('photoGridWrap');
@@ -1074,13 +1193,16 @@
 
       wrap.querySelectorAll('.photo-mod-card').forEach(card => {
         const photoId = card.dataset.photoId;
+        // Der Ablehnungsdialog zeigt das Bild - dafuer wird der ganze Datensatz
+        // gebraucht, nicht nur die ID.
+        const photo = photos.find(x => x.id === photoId);
         card.querySelectorAll('button[data-action]').forEach(btn => {
           btn.addEventListener('click', async () => {
             const action = btn.dataset.action;
             try{
               if(action === 'approve') await api(`/api/admin/photos/${photoId}/approve`, {method: 'POST'});
               if(action === 'reject'){
-                const rejection = askPhotoRejection();
+                const rejection = await askPhotoRejection(photo);
                 if(rejection === null) return;
                 await api(`/api/admin/photos/${photoId}/reject`, {
                   method: 'POST', body: JSON.stringify(rejection),

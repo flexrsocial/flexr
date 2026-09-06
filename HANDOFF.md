@@ -10,7 +10,7 @@ nötig. Aufbau des Dokuments: erst die Eckdaten, dann die Sitzung vom
 **23.08.**, dann **21.08.**; die Build-,
 Test- und Deploy-Abschnitte am Ende gelten sitzungsübergreifend.
 
-## Sitzung 06.09.2026 — Kompletter Journey-Durchgang, fünf Befunde behoben
+## Sitzung 06.09.2026 — Kompletter Journey-Durchgang, sechs Befunde behoben
 
 Ein Commit. Backend **und** Web-Frontend, **keine Migration**, aber
 Backend-Neustart nötig (`app/routers/admin.py`, `billing.py`, `schemas.py`).
@@ -104,6 +104,23 @@ Testkonto echte Post bekommt.
    (eine feste Angabe im Markup wäre schlechter als gar keine), und schließt
    jetzt auch mit Escape.
 
+6. **Foto-Ablehnung lief über zwei verschachtelte `prompt()`-Fenster.**
+   Der Prüfer musste die Nummer eines Grundes aus einer Liste 1–10 abtippen —
+   bei einem Schritt, der mehrmals täglich vorkommt, und ohne das Bild vor
+   Augen, weil `prompt()` die Seite ausblendet. Ein Vertipper landete nicht
+   beim falschen Grund, sondern brach den ganzen Vorgang ab. Jetzt ein
+   Dialog in der Optik des Nutzer-Modals: das zu beurteilende Foto steht
+   oben, die Gründe stehen als Auswahlliste, und das Ergänzungsfeld für
+   „Anderer Verstoß" erscheint erst, wenn es gebraucht wird. Die gesendete
+   Struktur ist unverändert (`{reason}` bzw. `{reason, note}`) — am Server
+   ändert sich nichts.
+   Zwei Kleinigkeiten fielen dabei mit ab: das Vorschaubild bekam ein `alt`
+   (die Bilder im Prüfraster hatten gar keines), und die globale Regel
+   `label{text-transform:uppercase}` musste für die Gründeliste
+   zurückgesetzt werden — sonst stand dort „ANDERER VERSTOSS GEGEN DIE
+   PROFILFOTO-RICHTLINIEN". Dieselbe Ausnahme gibt es schon bei
+   `.verify-checklist`.
+
 ### Was ausdrücklich in Ordnung war
 
 Damit es niemand ein zweites Mal untersucht: Der Swipe ist idempotent (zweiter
@@ -119,11 +136,6 @@ Modal, inklusive der Formulare in `widerruf.html` und `meldung.html`.
 
 ### Verbesserungspotenzial, bewusst nicht angefasst
 
-- **Foto-Ablehnung im Admin läuft über `window.prompt` mit einer Nummernliste
-  1–10.** Funktioniert (die Eingabe wird validiert), ist aber für einen
-  täglich benutzten Moderationsschritt grob. Eine richtige Auswahl wäre
-  besser — reiner UI-Umbau ohne Verhaltensänderung, deshalb hier nicht
-  mitgenommen.
 - **`redact_message()` schluckt das Satzzeichen hinter einer URL.** Aus
   „meinprofil.com/anna, da sind…" wird „[Link entfernt] da sind…" — `\S*` ist
   gierig und nimmt das Komma mit. Kosmetisch.
@@ -163,15 +175,28 @@ und die Telegram-Variablen gelöscht.
 
 - Backend: **393 Tests grün** (12 neu in `backend/tests/test_journey_befunde.py`,
   vorher 381; ein bestehender Billing-Test angepasst, siehe Befund 4).
-- Web: alle fünf Behebungen im Browser bei 375×812 nachgestellt — Login eines
+- Web: alle Behebungen im Browser nachgestellt — Login eines
   gesperrten Kontos, Sperre mitten in der Sitzung, Melden aus dem Chat mit
   Aktenzeichen, Blockieren aus dem Chat, Checkout-Störung mit deutscher
   Meldung, Admin-Liste und -Detail mit „Gelöscht", Dashboard-Kacheln stimmig.
   Für die Tastaturbedienung zusätzlich Fokus und Auslösen der Melden-Taste auf
   der Karte geprüft und per Screenshot gegengeprüft, dass sich am Aussehen von
   Karte und Chat-Kopf nichts geändert hat.
-- Android/iOS: **nicht gebaut.** Auf dieser Maschine gibt es weder JDK noch
-  Android-SDK (und 3 GB RAM), macOS/Xcode ohnehin nicht.
+- Android: **gebaut.** `:app:testProdReleaseUnitTest` BUILD SUCCESSFUL
+  (5m 7s), `:app:bundleProdRelease` BUILD SUCCESSFUL (10m 46s). Ergebnis ist
+  **flexr-2.5.2 (versionCode 40)**, 7.678.819 Byte, SHA-256
+  `2739c7ae205b9cda54f79c29e51a275bea81514e0870c032c792edecf53c973a`, liegt
+  unter `https://flexr.social/dl-a616e78274de323b/flexr-2.5.2.aab`
+  (Prüfsumme lokal und entfernt verglichen). Der Signaturschlüssel im Bundle
+  ist der bisherige Upload-Key — SHA-256 des Zertifikats
+  `BC:64:AD:3F:27:3E:B2:2D:38:1E:D7:CB:46:DE:67:6E:6A:1C:C6:3B:18:C9:64:FA:AB:A3:DD:A5:14:0E:79:80`,
+  deckungsgleich mit `keytool -list` auf `android/android.keystore`.
+  **Der Android-Code ist in dieser Sitzung nicht angefasst worden**: 2.5.2
+  steht seit dem 31.08. im Repo (`e865534`, Benachrichtigungs-Navigation) und
+  war bloß nie gebaut worden — auf dem VPS lag zuletzt 2.5.0. Damit gilt
+  weiterhin, was die Sitzung vom 31.08. notiert hat: **die
+  Benachrichtigungs-Navigation ist auf keinem Gerät getestet.**
+- iOS: **nicht gebaut**, hier gibt es kein macOS/Xcode.
 
 ### Offen
 
@@ -948,16 +973,42 @@ Anders als beim letzten Gerät (3,7 GB RAM, stark limitiert) hat dieses hier
 **7,6 GB RAM** — der reguläre Build lief ohne Sonderbehandlung durch. Es gab
 hier weder JDK noch Android SDK; beides wurde ad hoc installiert:
 
+> **Nachtrag 06.09.2026:** Das Gerät dieser Sitzung hat **3,8 GB RAM** (plus
+> 3,8 GB Swap). Die schon vorhandene, sparsame `~/.gradle/gradle.properties`
+> (siehe unten, mit `-XX:+UseSerialGC`) stammt von einem früheren Lauf auf
+> genau dieser Maschine und wurde unverändert übernommen — nicht durch eigene
+> Schätzwerte ersetzen. Während des Builds sind **alle lokalen Testdienste zu
+> beenden** (uvicorn, der S3-Ersatz, `http.server`, offene Browser-Tabs);
+> mit ihnen zusammen blieben nur noch rund 130 MB frei.
+
+> **Stand 06.09.2026: liegt jetzt unter `~/android-toolchain/`, nicht mehr
+> unter `/tmp`.** Der alte `/tmp`-Pfad war beim nächsten Start weg (genau das
+> ist am 06.09. passiert: `local.properties` zeigte noch auf
+> `/tmp/flexr-android-build/sdk`, das Verzeichnis existierte nicht mehr, und
+> es gab weder `java` noch `javac` im PATH). Der Gradle-Cache unter
+> `~/.gradle` (1,9 GB) hatte dagegen überlebt, der Build zog deshalb kaum
+> Abhängigkeiten nach.
+
 ```bash
-# JDK (Temurin 17) und Android Commandline-Tools nach /tmp/flexr-android-build
-# (ACHTUNG: /tmp — überlebt keinen Neustart, auf einem neuen Gerät neu holen)
+# JDK (Temurin 17) und Android Commandline-Tools nach ~/android-toolchain
+mkdir -p ~/android-toolchain && cd ~/android-toolchain
 curl -fsSL -o jdk.tar.gz "https://api.adoptium.net/v3/binary/latest/17/ga/linux/x64/jdk/hotspot/normal/eclipse"
 curl -fsSL -o cmdline-tools.zip "https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip"
-# jdk.tar.gz -> /tmp/flexr-android-build/jdk (--strip-components=1)
-# cmdline-tools.zip -> /tmp/flexr-android-build/sdk/cmdline-tools/latest
-yes | sdkmanager --sdk_root=/tmp/flexr-android-build/sdk "platform-tools" "platforms;android-36" "build-tools;36.0.0"
-echo "sdk.dir=/tmp/flexr-android-build/sdk" > android-native/local.properties
+mkdir -p jdk sdk/cmdline-tools
+tar xzf jdk.tar.gz -C jdk --strip-components=1
+unzip -q cmdline-tools.zip -d sdk/cmdline-tools && mv sdk/cmdline-tools/cmdline-tools sdk/cmdline-tools/latest
+
+export JAVA_HOME=~/android-toolchain/jdk
+export PATH="$JAVA_HOME/bin:$PATH"
+yes | sdk/cmdline-tools/latest/bin/sdkmanager --sdk_root=$PWD/sdk --licenses
+sdk/cmdline-tools/latest/bin/sdkmanager --sdk_root=$PWD/sdk \
+  "platform-tools" "platforms;android-36" "build-tools;36.0.0"
+
+echo "sdk.dir=$HOME/android-toolchain/sdk" > /pfad/zu/flexr/android-native/local.properties
 ```
+
+Dauer inkl. Download rund 6 Minuten (JDK 60 MB, cmdline-tools 130 MB,
+SDK-Pakete zusammen ca. 800 MB).
 
 `~/.gradle/gradle.properties` wurde vorsorglich (nicht zwingend nötig bei
 7,6 GB RAM) auf moderate Werte gesetzt:
