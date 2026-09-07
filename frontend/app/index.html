@@ -1517,6 +1517,22 @@
     width:16px; height:16px; border-radius:50%; background:var(--plate); cursor:pointer;
     border:2px solid var(--ink); box-shadow:0 0 10px var(--plate-glow);
   }
+  /* Der Regler ist zwar ein <input>, hat aber kein Feldaussehen. Die
+     generische Fokus-Regel weiter oben (box-shadow:inset 0 0 0 2px var(--plate))
+     zeichnet ihren Rahmen bei 4px Schienenhoehe ueber die volle Breite - beim
+     Ziehen war deshalb die ganze Schiene orange, auch rechts vom Griff.
+     Fokus gehoert hier an den Griff, nicht an die Schiene. */
+  .radius-row input[type=range]:focus{ box-shadow:none; }
+  /* :focus-visible statt :focus - der Ring soll bei Tastaturbedienung
+     erscheinen, nicht bei jedem Mausgriff (dort zeigt schon der wandernde
+     Griff, was passiert). Ohne ihn haetten Tastaturnutzer gar keine
+     Fokusanzeige mehr, weil die Regel darueber sie entfernt. */
+  .radius-row input[type=range]:focus-visible::-webkit-slider-thumb{
+    box-shadow:0 0 0 3px var(--plate-glow), 0 0 10px var(--plate-glow);
+  }
+  .radius-row input[type=range]:focus-visible::-moz-range-thumb{
+    box-shadow:0 0 0 3px var(--plate-glow), 0 0 10px var(--plate-glow);
+  }
   .radius-value{ font-size:12.5px; color:var(--chalk); min-width:52px; text-align:right; }
   .radius-hint{ font-size:11.5px; color:var(--chalk-dim); margin-top:6px; }
   .account-section-title{
