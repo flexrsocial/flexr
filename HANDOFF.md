@@ -116,6 +116,18 @@ lügt in diesem Ordner.
   `/app/`, `/admin.html`, `/mail-bestaetigen` sowie alle vier
   Adressvarianten (http/https × www/ohne).
 
+### Nachtrag: `~/.ssh/config` auf dem VPS angelegt
+
+Der seit 23.08. offene Punkt 2 aus „Noch offen", nach Absprache erledigt. Der
+blanke `git pull --ff-only origin main` auf dem VPS funktioniert jetzt, das
+vorangestellte `GIT_SSH_COMMAND` entfällt. Vorher geprüft, dass `/flexr` das
+einzige Repository auf diesem geteilten Server mit einem github-Remote ist,
+damit der `Host github.com`-Block niemand anderem dazwischenfunkt. Datei,
+Begründung und Gegenprobe stehen im Abschnitt „Stolperstein beim Deploy".
+
+Der Telegram-Bot-Token (Punkt 15) bleibt auf ausdrücklichen Wunsch **wie er
+ist** — nicht erneut vorschlagen.
+
 ### Offen
 
 - **Search Console: `/admin.html` per URL-Prüfung neu abrufen und die
@@ -879,21 +891,35 @@ Dokument, nicht die sichtbare. Beim Testen ist genau das zweimal passiert und
 sah jedes Mal nach einem Anwendungsfehler aus. Nicht angefasst — die Umstellung
 auf Klassen berührt mehrere Stellen und hat keinen Nutzerwert.
 
-### Stolperstein beim Deploy: VPS-Pull braucht den Deploy-Key explizit
+### Stolperstein beim Deploy: VPS-Pull brauchte den Deploy-Key explizit — erledigt am 07.09.2026
 
-`ssh flexr-vps 'cd /flexr && git pull --ff-only origin main'` — der im
-Abschnitt „Normaler Commit- und Deploy-Ablauf" dokumentierte Befehl —
-scheitert derzeit mit `Permission denied (publickey)`. Der Deploy-Key liegt
-als `~/.ssh/id_ed25519_github_flexr` auf dem Server, aber es gibt **keine**
-`~/.ssh/config`, die git darauf zeigt. Funktionierender Aufruf:
+**Historisch, seit 07.09.2026 behoben.** Von 23.08. bis 07.09. scheiterte
+`ssh flexr-vps 'cd /flexr && git pull --ff-only origin main'` mit
+`Permission denied (publickey)`: Der Deploy-Key lag als
+`~/.ssh/id_ed25519_github_flexr` auf dem Server, aber keine `~/.ssh/config`
+zeigte git darauf. Jeder Pull brauchte deshalb ein vorangestelltes
+`GIT_SSH_COMMAND="ssh -i ~/.ssh/id_ed25519_github_flexr -o IdentitiesOnly=yes"`.
 
-```bash
-ssh flexr-vps 'cd /flexr && GIT_SSH_COMMAND="ssh -i ~/.ssh/id_ed25519_github_flexr -o IdentitiesOnly=yes" git pull --ff-only origin main'
+Seit 07.09. liegt die abgesprochene `~/.ssh/config` auf dem VPS:
+
+```
+Host github.com
+    HostName github.com
+    User git
+    IdentityFile ~/.ssh/id_ed25519_github_flexr
+    IdentitiesOnly yes
 ```
 
-Dauerhafte Abhilfe wäre eine `~/.ssh/config` auf dem VPS mit `Host github.com
-/ IdentityFile ~/.ssh/id_ed25519_github_flexr / IdentitiesOnly yes`. Bewusst
-nicht angelegt — Serverkonfiguration, das gehört abgesprochen.
+`IdentitiesOnly yes` ist der Kern der Sache: Ohne den Eintrag bietet ssh
+github.com der Reihe nach alle vorhandenen Identitäten an, github nimmt die
+erste bekannte und lehnt sie für dieses Repository ab. Der Block greift nur
+für `github.com`, andere SSH-Ziele bleiben unberührt — auf diesem **geteilten**
+Server wichtig. Geprüft wurde vorher, dass `/flexr` das einzige Repository auf
+dem Server mit einem github-Remote ist (`/vaultonaut` hat gar keinen Origin).
+
+Falls der Fehler je wiederkehrt: Erst `ssh flexr-vps 'ssh -T git@github.com'`
+— die Antwort muss „Hi flexrsocial/flexr! You've successfully authenticated"
+lauten. Kommt sie, liegt es nicht am Schlüssel.
 
 ### Lokal testen: zwei Fallen, die viel Zeit kosten können
 
@@ -1193,9 +1219,10 @@ echten Löschweg (`delete_storage_objects`/`storage_keys_for_user` +
    die Umstellung des `GET /api/blocks`-Standards auf die Detailfassung —
    die neuen Methoden (`listBlockedUsers`/`listBlocks(detail:)`) laufen
    parallel zur alten, siehe Docstring in `safety.py`.
-2. **`~/.ssh/config` auf dem VPS fehlt**, deshalb scheitert der weiter unten
-   dokumentierte `git pull`-Befehl. Workaround und Vorschlag im Abschnitt
-   „Stolperstein beim Deploy" (23.08.). Serverkonfiguration — abzusprechen.
+2. ~~**`~/.ssh/config` auf dem VPS fehlt**, deshalb scheitert der weiter
+   unten dokumentierte `git pull`-Befehl.~~ — **erledigt am 07.09.2026**,
+   nach Absprache angelegt. Der blanke `git pull` auf dem VPS funktioniert
+   jetzt; Details im Abschnitt „Stolperstein beim Deploy".
 3. **Änderungen vom 23.08. sind ausgerollt und live geprüft**, aber vom
    Nutzer noch nicht selbst in Augenschein genommen — insbesondere der neue
    Abschnitt „Blockierte Personen" im Konto. Gilt jetzt genauso für die
@@ -1331,9 +1358,9 @@ git add <nur-die-beabsichtigten-dateien>   # NICHT git add -A, siehe .env.exampl
 git commit -m "Kurze aussagekräftige Beschreibung"
 git push origin main
 
-# Stand 23.08.2026 scheitert das blanke "git pull" auf dem VPS mit
-# "Permission denied (publickey)" - der Deploy-Key muss explizit mit:
-ssh flexr-vps 'cd /flexr && GIT_SSH_COMMAND="ssh -i ~/.ssh/id_ed25519_github_flexr -o IdentitiesOnly=yes" git pull --ff-only origin main'
+# Seit 07.09.2026 reicht der blanke Befehl - die ~/.ssh/config auf dem VPS
+# zeigt git auf den Deploy-Key (vorher: "Permission denied (publickey)").
+ssh flexr-vps 'cd /flexr && git pull --ff-only origin main'
 ssh flexr-vps 'cd /flexr/backend && venv/bin/alembic upgrade head'   # nur falls neue Migration
 ssh flexr-vps 'sudo systemctl restart flexr-api && systemctl is-active flexr-api'
 curl -fsS https://flexr.social/api/health
