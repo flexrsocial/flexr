@@ -1,14 +1,128 @@
 # FLEXR — Handoff für ein anderes Gerät / Claude Code
 
-Stand: **06.09.2026**
+Stand: **07.09.2026**
 
-Produktstand: Jüngster Commit auf `origin/main` ist der Journey-Durchgang der
-Sitzung vom **06.09.** (Vorgänger `ce0af15`), gepusht **und auf dem VPS
-ausgerollt** — Backend **und** Frontend, keine Migration, Backend-Neustart
-nötig. Aufbau des Dokuments: erst die Eckdaten, dann die Sitzung vom
+Produktstand: Jüngster Commit auf `origin/main` ist der robots/nginx-Umbau der
+Sitzung vom **07.09.**, gepusht **und auf dem VPS ausgerollt** — reine
+Auslieferungskonfiguration, kein Backend, keine Migration, kein Neustart.
+Aufbau des Dokuments: erst die Eckdaten, dann die Sitzung vom **07.09.**, dann
 **06.09.**, dann **05.09.**, dann **31.08.**, dann **30.08.**, dann
 **23.08.**, dann **21.08.**; die Build-,
 Test- und Deploy-Abschnitte am Ende gelten sitzungsübergreifend.
+
+## Sitzung 07.09.2026 — Search-Console-Meldung, robots.txt/nginx, veraltetes `.git`
+
+Anlass war eine Search-Console-Mail („Neuer Grund dafür, dass Seiten nicht
+indexiert werden: Durch robots.txt-Datei blockiert"). Ein Commit, reine
+Auslieferungskonfiguration — kein Backend, keine Migration, kein Neustart.
+
+### Die Meldung selbst war harmlos
+
+Alle acht nicht indexierten Seiten sind gewollt und korrekt gelöst. Live gegen
+Repo geprüft, `robots.txt` und `sitemap.xml` stimmen überein, alle zehn
+Sitemap-URLs existieren, jede öffentliche Seite trägt `index, follow` plus
+Canonical:
+
+| Grund im Bericht | Seiten | Was es ist |
+|---|---|---|
+| Seite mit Weiterleitung | 3 | `http://flexr.social/`, `http://www.…`, `https://www.…` → 301 auf die kanonische Adresse |
+| Alternative Seite mit kanonischem Tag | 1 | `/index.html` liefert 200, Canonical zeigt auf `/` |
+| Gecrawlt – zurzeit nicht indexiert | 1 | Googles eigene Entscheidung, nichts zu reparieren |
+| Durch „noindex" ausgeschlossen | 2 | `/app/` (Meta-Tag) und `/mail-bestaetigen` (`X-Robots-Tag`) |
+| Durch robots.txt blockiert | 1 | `/admin.html` — der einzige echte Befund, siehe unten |
+| 4xx-Problem | 0 | erledigt |
+
+**Die als „Fehlgeschlagen" markierten Validierungen nicht erneut starten.** Sie
+laufen auf beabsichtigte Ausschlüsse (Weiterleitung, Canonical, Crawled); eine
+Validierung prüft, ob der Grund *verschwunden* ist, und schlägt dort zwingend
+immer wieder fehl.
+
+### Befund: `/admin.html` stand in der noindex-Falle
+
+`robots.txt` sperrte `/admin.html` **und** die Seite trug ein
+`<meta name="robots" content="noindex, nofollow">`. Das hebt sich gegenseitig
+auf: Eine per robots.txt gesperrte Seite darf Google gar nicht erst laden,
+sieht das noindex im HTML also nie und kann die URL trotzdem ohne Inhalt
+indexieren. Der Kommentar in `robots.txt` hat genau das für `/app/` schon
+erklärt und bei `/admin.html` das Gegenteil getan. Zweiter Nebeneffekt: Das
+`Disallow` schrieb den Admin-Pfad in eine öffentliche Datei — dieselbe
+Überlegung, die dort `/dl-` bewusst nur als Präfix nennt.
+
+Behoben in drei Dateien:
+
+- `frontend/robots.txt` — `Disallow: /admin.html` entfernt, es bleiben nur
+  `/api/` und `/dl-`. Der Kommentarblock erklärt die Regel jetzt für `/app/`
+  **und** `/admin.html`.
+- `deploy/nginx-flexr.conf` — neue `location = /admin.html` mit
+  `add_header X-Robots-Tag "noindex, nofollow" always`. Das Security-Snippet
+  ist mit eingebunden, sonst verwerfen die eigenen `add_header` die geerbten
+  Schutz-Header (die Falle vom 15.08.). Funktional ändert sich sonst nichts:
+  vorher lief `/admin.html` in `location /`, das denselben Snippet und
+  dasselbe `no-cache` setzt. Das `<meta name="robots">` in `admin.html` bleibt
+  zusätzlich stehen und wird jetzt auch wirklich gelesen.
+- `backend/tests/test_public_frontend.py` — neuer Test
+  `test_noindex_seiten_sind_nicht_zusaetzlich_per_robots_gesperrt`: die
+  Disallow-Liste muss exakt `["/api/", "/dl-"]` sein, beide noindex-Seiten
+  müssen ihr Meta-Tag haben, und der nginx-Block muss X-Robots-Tag samt
+  Snippet tragen. Ohne den Test kann das lautlos zurückfallen.
+
+Auf dem VPS wurde die `location` **von Hand** in
+`/etc/nginx/sites-available/flexr.social` nachgetragen, nicht die Repo-Datei
+kopiert — die aktive Fassung enthält die certbot-Direktiven und ist anders
+sortiert. Sicherung vorher unter `/root/`, danach `nginx -t` und Reload.
+
+### Wichtiger: Das `.git` in diesem MEGA-Ordner war fünf Commits veraltet
+
+Der Punkt kostet sonst jede Sitzung wieder Zeit — der frühere Punkt 13 unter
+„Noch offen" behauptete das Gegenteil der Wirklichkeit und hat hier prompt in
+die Irre geführt.
+
+Der Vergleich live gegen lokal zeigte: `index.html`, `app/index.html` und
+`admin.html` auf dem VPS waren **byteidentisch mit dem Arbeitsverzeichnis**,
+aber verschieden von `HEAD` — was nach „ausgerollt, aber nicht committet"
+aussah. Ein `git fetch` löste es auf:
+
+```
+d1804de..9e83c97  main -> origin/main     # 5 Commits
+```
+
+Die neun vermeintlich geänderten Dateien waren nie ungesicherte Arbeit,
+sondern längst gepushte **und** ausgerollte Commits vom 05./06.09., die der
+lokale HEAD nur nicht kannte. Genau der Stolperstein aus dem Abschnitt weiter
+unten: Auf diesem Gerät läuft nie `git pull`, MEGA synchronisiert nur die
+*Dateien*, nicht das Repository.
+
+Aufgeräumt mit dem dort vorgesehenen Weg:
+
+```bash
+git fetch origin
+git status --short              # erst prüfen, ob es etwas zu verlieren gibt
+git reset --mixed origin/main   # bewegt nur HEAD+Index, Arbeitsverzeichnis bleibt
+```
+
+Danach blieben nur noch die drei echten Änderungen übrig — plus vier
+`scripts/*.sh`, denen die MEGA-Sync das Executable-Bit abgeräumt hatte (nur
+Modus, Inhalt identisch), repariert mit `chmod +x scripts/*.sh`.
+
+**Merksatz für die nächste Sitzung: Vor jeder Beurteilung des Repo-Stands
+zuerst `git fetch origin` laufen lassen.** `git status` ohne vorheriges Fetch
+lügt in diesem Ordner.
+
+### Wie geprüft wurde
+
+- `./venv/bin/python -m pytest -q` in `backend/` — **395 grün** (0 offen),
+  darunter die acht aus `test_public_frontend.py`.
+- Live mit `curl` gemessen: `robots.txt`, `sitemap.xml`, Header von `/`,
+  `/app/`, `/admin.html`, `/mail-bestaetigen` sowie alle vier
+  Adressvarianten (http/https × www/ohne).
+
+### Offen
+
+- **Search Console: `/admin.html` per URL-Prüfung neu abrufen und die
+  Meldung damit schliessen.** Braucht den Google-Zugang des Nutzers, konnte
+  aus der Sitzung heraus nicht erledigt werden.
+- Bis Google neu crawlt, bleibt der alte Zustand im Bericht stehen. Das ist
+  normal und kein Zeichen, dass etwas nicht gegriffen hat.
 
 ## Sitzung 06.09.2026 — Kompletter Journey-Durchgang, sechs Befunde behoben
 
@@ -1122,13 +1236,18 @@ echten Löschweg (`delete_storage_objects`/`storage_keys_for_user` +
    Chat-Testen — nach Abschluss löschen (siehe oben).
 11. `backend/tests/test_public_frontend.py` lief auch am 23.08. mehrfach
     grün mit — der in einer früheren Sitzung offene Punkt dazu ist erledigt.
-12. Google Search Console / Sitemap-Status (aus einer früheren Sitzung
-    offen) wurde auch am 23.08. nicht geprüft.
-13. **Web/Backend-Commits vom 30.08. sind gepusht, aber nicht auf dem VPS
-    ausgerollt.** `git pull` (mit Deploy-Key, siehe „Normaler Commit- und
-    Deploy-Ablauf") nachholen — Backend ist unverändert, also weder
-    Migration noch Neustart nötig, nur der reine Dateistand für die
-    Web-Fixes (doppelte IDs).
+12. ~~Google Search Console / Sitemap-Status~~ — **geprüft am 07.09.**
+    (siehe Sitzung 07.09.): Sitemap und robots.txt sind sauber, der einzige
+    echte Befund (`/admin.html` in der noindex-Falle) ist behoben und
+    ausgerollt. Offen bleibt nur die URL-Prüfung in der Search Console
+    selbst — die braucht den Google-Zugang des Nutzers.
+13. ~~**Web/Backend-Commits vom 30.08. sind gepusht, aber nicht auf dem VPS
+    ausgerollt.**~~ — **war am 07.09. längst überholt und irreführend.** Der
+    VPS stand da bereits auf `9e83c97`; ausgerollt war alles, veraltet war
+    das lokale `.git` in diesem MEGA-Ordner (fünf Commits hinter
+    `origin/main`). Die Notiz hat genau deshalb in die Irre geführt — Details
+    und der Merksatz `git fetch origin` **vor** jeder Beurteilung des
+    Repo-Stands stehen in der Sitzung 07.09.
 14. ~~**Telegram-Push: Ursache für die ausgebliebene Nachricht**~~ —
     **geklärt am 30.08., kein Bug** (siehe Sitzung 30.08., Punkt 3): die
     gemeldete Registrierung war einen Tag älter als das Feature, vom Nutzer

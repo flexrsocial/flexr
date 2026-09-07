@@ -2,9 +2,6 @@
 User-agent: *
 Allow: /
 
-# Das Admin-Werkzeug hat keinen Suchwert.
-Disallow: /admin.html
-
 # Die API liefert JSON und gehoert nicht in den Index.
 Disallow: /api/
 
@@ -12,12 +9,20 @@ Disallow: /api/
 # Pfad - robots.txt ist selbst oeffentlich und soll den Pfad nicht verraten.
 Disallow: /dl-
 
-# Die Web-App unter /app/ ist bewusst NICHT gesperrt.
+# Weder die Web-App unter /app/ noch /admin.html sind hier gesperrt. Beide
+# tragen stattdessen ein noindex: /app/ als <meta name="robots">, /admin.html
+# zusaetzlich als X-Robots-Tag aus nginx.
 #
-# Sie traegt ein <meta name="robots" content="noindex, follow">. Eine per
-# robots.txt gesperrte Seite darf Google gar nicht erst laden - dann sieht der
-# Crawler das noindex nie und kann die URL trotzdem in den Index aufnehmen,
-# nur ohne Inhalt. Beides zusammen hebt sich also auf.
+# Der Grund ist derselbe fuer beide: Eine per robots.txt gesperrte Seite darf
+# Google gar nicht erst laden - dann sieht der Crawler das noindex nie und
+# kann die URL trotzdem in den Index aufnehmen, nur ohne Inhalt. Beides
+# zusammen hebt sich also auf.
+#
+# Bis zum 07.09.2026 stand /admin.html genau in dieser Falle (Disallow UND
+# noindex im HTML); die Search Console meldete sie am 07.09.2026 als "Durch
+# robots.txt-Datei blockiert". Ein zweiter Grund fuer den Verzicht auf das
+# Disallow: Es schrieb den Admin-Pfad in diese oeffentliche Datei - dieselbe
+# Ueberlegung, die oben schon /dl- nur als Praefix nennt.
 #
 # Der Schutz der privaten Inhalte kommt ohnehin nicht von hier, sondern von der
 # Anmeldung: Profile, Chats und Konto liefert die API nur mit gueltigem Token.

@@ -146,6 +146,32 @@ def test_service_worker_cachet_weder_nutzerfotos_noch_downloads():
     assert "STATIC_PREFIXES" in worker
 
 
+def test_noindex_seiten_sind_nicht_zusaetzlich_per_robots_gesperrt():
+    """robots.txt-Sperre und noindex heben sich gegenseitig auf.
+
+    Eine per robots.txt gesperrte Seite darf Google nicht laden, sieht das
+    noindex also nie und kann die URL trotzdem ohne Inhalt indexieren. Genau
+    das meldete die Search Console am 07.09.2026 fuer /admin.html. Seither
+    traegt /admin.html den X-Robots-Tag aus nginx statt eines Disallow.
+    """
+    robots = (FRONTEND / "robots.txt").read_text(encoding="utf-8")
+    directives = [
+        line.split(":", 1)[1].strip()
+        for line in robots.splitlines()
+        if line.lower().startswith("disallow:")
+    ]
+    assert directives == ["/api/", "/dl-"]
+
+    for page, marker in (("admin.html", "noindex"), ("app/index.html", "noindex")):
+        parser = parse_page(FRONTEND / page)
+        assert marker in meta_content(parser, name="robots"), page
+
+    nginx = NGINX.read_text(encoding="utf-8")
+    admin = nginx.split("location = /admin.html {", 1)[1].split("}", 1)[0]
+    assert 'add_header X-Robots-Tag "noindex, nofollow" always;' in admin
+    assert "include /etc/nginx/snippets/flexr-security.conf;" in admin
+
+
 def test_sitemap_enthaelt_nur_oeffentliche_kanonische_seiten():
     root = ElementTree.parse(FRONTEND / "sitemap.xml").getroot()
     ns = {"s": "http://www.sitemaps.org/schemas/sitemap/0.9"}
