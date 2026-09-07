@@ -82,11 +82,30 @@ den kostenpflichtigen Pfad prueft. 399 Tests gruen.
 
 ### Builds dieser Sitzung
 
-**Android: gebaut und signiert** — `versionCode 41`, `versionName 2.5.3`
-(vorher 40 / 2.5.2), Upload-Key `CN=FLEXR` (SHA-256 des Zertifikats
-`bc64ad3f…e7980`, unveraendert der bisherige). Die Toolchain lag entgegen der
-bisherigen Doku unter `~/.bubblewrap/` — siehe den korrigierten Abschnitt
-„Android-Build" weiter unten, dort steht auch die `--no-build-cache`-Falle.
+**Android: gebaut und signiert.** Dieser Release ist **2.5.4** — nicht 2.5.3.
+
+> **Achtung, Abweichung zwischen Nummer und Artefakt (bewusst so belassen):**
+> Das gebaute Bundle traegt intern `versionName 2.5.3` und `versionCode 41`
+> (`build.gradle.kts` sagt dasselbe), und es liegt auf dem Server als
+> `flexr-2.5.3.aab`. Der Release **heisst** trotzdem 2.5.4; die Nummer 2.5.3
+> war anderweitig schon vergeben. Es wurde am 07.09. entschieden, deshalb
+> nicht neu zu bauen.
+>
+> Praktische Folgen, bevor das Bundle in die Play Console geht:
+> - Die Console zeigt den `versionName` **aus dem Bundle** an, also 2.5.3.
+>   Wer dort 2.5.4 lesen will, muss vorher neu bauen.
+> - `build.gradle.kts` steht auf 2.5.3/41. Der **naechste** Release ist
+>   entsprechend zu setzen — 2.5.5 waere die logische Fortsetzung, 2.5.4
+>   waere doppelt vergeben.
+> - Der Download-Link heisst weiterhin
+>   `dl-a616e78274de323b/flexr-2.5.3.aab`.
+
+Upload-Key `CN=FLEXR` (SHA-256 des Zertifikats `bc64ad3f…e7980`, unveraendert
+der bisherige), SHA-256 des Bundles
+`9f61e8fca9822527be1a073390d12107d2b3ee5c015cc77f1947fd0cbdbf6007`. Die
+Toolchain lag entgegen der bisherigen Doku unter `~/.bubblewrap/` — siehe den
+korrigierten Abschnitt „Android-Build" weiter unten, dort steht auch die
+`--no-build-cache`-Falle.
 
 **iOS: nicht baubar, unveraendert.** `xcodebuild` und die iOS-SDKs gibt es nur
 unter macOS; das Projekt wurde noch nie kompiliert (siehe `ios/HANDOFF.md`).
@@ -1528,6 +1547,13 @@ curl -fsSI https://flexr.social/dl-a616e78274de323b/flexr-X.Y.Z.aab
 
 `frontend/dl-a616e78274de323b/` auf dem VPS ist absichtlich unversioniert
 (enthält die AAB-Downloads) — nie löschen.
+
+**Der Dateiname folgt dem `versionName` aus dem Bundle, nicht der
+Release-Nummer** — beim Release vom 07.09. fällt beides auseinander: Er heißt
+2.5.4, das Bundle sagt 2.5.3, die Datei entsprechend `flexr-2.5.3.aab`. Siehe
+den Abschnitt „Builds dieser Sitzung" ganz oben; beim nächsten Build ist
+`versionName` in `android-native/app/build.gradle.kts` vor dem Bauen zu
+setzen, damit das nicht erneut auseinanderläuft.
 
 ## Empfohlener Einstiegsprompt für Claude Code
 
