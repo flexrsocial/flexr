@@ -1494,8 +1494,20 @@
   .radius-row{ display:flex; align-items:center; gap:14px; }
   .radius-row input[type=range]{
     flex:1; -webkit-appearance:none; appearance:none; height:4px; border-radius:2px;
-    background:var(--steel); outline:none; padding:0; border:none;
+    outline:none; padding:0; border:none;
+    /* Die zurueckgelegte Strecke bleibt orange - vorher war die Schiene
+       durchgehend grau, der eingestellte Wert also nur am Griff ablesbar.
+       --p (0..1) setzt radiusFill() aus dem Wert; der Knick rechnet die
+       Griffbreite heraus, damit die Farbkante auf der Griffmitte sitzt und
+       nicht an den Enden darueber hinauslaeuft. */
+    --p:0;
+    --radius-knick:calc(9px + var(--p) * (100% - 18px));
+    background:linear-gradient(to right,
+      var(--plate) 0, var(--plate) var(--radius-knick),
+      var(--steel) var(--radius-knick), var(--steel) 100%);
   }
+  /* Firefox zeichnet sonst seine eigene Schiene ueber den Verlauf. */
+  .radius-row input[type=range]::-moz-range-track{ background:transparent; }
   .radius-row input[type=range]::-webkit-slider-thumb{
     -webkit-appearance:none; appearance:none; width:18px; height:18px; border-radius:50%;
     background:var(--plate); cursor:pointer; box-shadow:0 0 10px var(--plate-glow);
@@ -4355,12 +4367,23 @@
     $('a-bio').value = myProfile.bio || '';
     $('a-radius').value = myProfile.search_radius_km || 20;
     $('radiusValue').textContent = ($('a-radius').value) + ' km';
+    radiusFill();
     $('radiusHint').textContent = `Profile im Umkreis deines Gyms (${gymName(myProfile.gym)}).`;
     $('acctProfileErr').textContent = '';
   }
 
+  // Farbanteil der Schiene an den Wert anpassen. Muss an beiden Stellen
+  // laufen: beim Ziehen und beim Fuellen des Formulars - sonst steht der
+  // Regler nach dem Speichern oder Neuladen wieder auf einer grauen Schiene.
+  function radiusFill(){
+    const el = $('a-radius');
+    const min = Number(el.min), max = Number(el.max);
+    el.style.setProperty('--p', max > min ? (Number(el.value) - min) / (max - min) : 0);
+  }
+
   $('a-radius').addEventListener('input', () => {
     $('radiusValue').textContent = $('a-radius').value + ' km';
+    radiusFill();
   });
 
   // ---------- Emoji-Picker für die Bio ----------
