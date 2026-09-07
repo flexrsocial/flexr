@@ -73,7 +73,8 @@ extension MembershipStatusDTO {
         Membership(
             isSubscribed: isSubscribed,
             trialEndsAt: ServerTime.parse(trialEndsAt) ?? Date(timeIntervalSince1970: 0),
-            isActive: isActive
+            isActive: isActive,
+            billingEnabled: billingEnabled ?? true
         )
     }
 }

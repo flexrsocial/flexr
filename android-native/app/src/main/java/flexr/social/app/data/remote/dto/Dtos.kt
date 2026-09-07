@@ -214,6 +214,10 @@ data class MembershipStatusDto(
     @SerialName("is_subscribed") val isSubscribed: Boolean,
     @SerialName("trial_ends_at") val trialEndsAt: String,
     @SerialName("is_active") val isActive: Boolean,
+    // false = Abogebuehr ausgesetzt, FLEXR ist fuer alle kostenlos (siehe
+    // backend/app/config.py). Der Standard true haelt aeltere Server, die das
+    // Feld noch nicht liefern, beim bisherigen Verhalten.
+    @SerialName("billing_enabled") val billingEnabled: Boolean = true,
 )
 
 @Serializable

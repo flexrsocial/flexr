@@ -45,10 +45,12 @@ Probemonat) und ein Match mit Chatverlauf haben.
 > Die Alters- und Identitätsprüfung verlangt ein Live-Selfie über die Frontkamera. Es
 > ist freiwillig und für die Nutzung nicht erforderlich.
 >
-> Das Abo (5 €/Monat nach einem Gratismonat) wird derzeit über Stripe im
-> externen Browser abgewickelt. **Vor der Einreichung zur öffentlichen
-> Veröffentlichung klären** — siehe ios/HANDOFF.md, Abschnitt „Der
-> wahrscheinlichste Streitpunkt im Review".
+> FLEXR ist während der Beta-Phase für alle kostenlos: Die Mitgliedschaft von
+> 5 €/Monat ist bis auf weiteres ausgesetzt (BILLING_ENABLED=false), die App
+> bietet derzeit keinen Kauf und keinen Abo-Abschluss an. Wird die Gebühr
+> später aktiviert, läuft sie wie bisher über Stripe im externen Browser —
+> **vor der Einreichung zur öffentlichen Veröffentlichung klären**, siehe
+> ios/HANDOFF.md, Abschnitt „Der wahrscheinlichste Streitpunkt im Review".
 
 ---
 
@@ -118,7 +120,7 @@ Jedes Foto wird von einem Menschen geprüft, bevor es jemand zu sehen bekommt. L
 
 PREIS
 
-Starte mit 1 Monat gratis. Danach nur 5 €/Monat – jederzeit kündbar.
+Während der Beta-Phase kostenlos: Die Mitgliedschaft von 5 €/Monat ist bis auf weiteres ausgesetzt – für neue wie für bestehende Konten. Kein Zahlungsmittel nötig.
 
 FLEXR ist für alle ab 18 Jahren.
 

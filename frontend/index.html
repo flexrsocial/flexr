@@ -7,7 +7,7 @@
 <!-- Unter 160 Zeichen bleiben: Google schneidet das Snippet sonst mitten im
      Satz ab. Dass der Gratismonat nicht automatisch kostenpflichtig wird, ist
      der eigentliche Conversion-Vorteil und gehoert deshalb hinein. -->
-<meta name="description" content="FLEXR ist die Dating-App für Gym-People in Österreich: Matches nach Fitnessstudio und Umkreis. 1 Monat kostenlos testen – danach entscheidest du selbst.">
+<meta name="description" content="FLEXR ist die Dating-App für Gym-People in Österreich: Matches nach Fitnessstudio und Umkreis. In der Beta-Phase kostenlos – die Mitgliedschaft von 5 € pro Monat ist bis auf weiteres ausgesetzt.">
 <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1">
 <link rel="canonical" href="https://flexr.social/">
 <meta name="theme-color" content="#121212">
@@ -17,7 +17,7 @@
 <meta property="og:locale" content="de_AT">
 <meta property="og:url" content="https://flexr.social/">
 <meta property="og:title" content="FLEXR – Dating für Gym-People in Österreich">
-<meta property="og:description" content="Finde Menschen, die Training genauso ernst nehmen wie du – in deinem Gym und in deiner Nähe. 1 Monat kostenlos testen.">
+<meta property="og:description" content="Finde Menschen, die Training genauso ernst nehmen wie du – in deinem Gym und in deiner Nähe. In der Beta-Phase kostenlos.">
 <meta property="og:image" content="https://flexr.social/og-image.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
@@ -26,7 +26,7 @@
 
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="FLEXR – Dating für Gym-People in Österreich">
-<meta name="twitter:description" content="Matches nach Gym und Umkreis. 1 Monat kostenlos testen – danach entscheidest du selbst.">
+<meta name="twitter:description" content="Matches nach Gym und Umkreis. In der Beta-Phase kostenlos – ohne Zahlungsmittel.">
 <meta name="twitter:image" content="https://flexr.social/og-image.png">
 <meta name="twitter:image:alt" content="FLEXR — Dating für Gym-People in Österreich.">
 
@@ -90,11 +90,11 @@
       "description": "Dating-App für Gym-People in Österreich: Matches nach Fitnessstudio und Umkreis.",
       "offers": {
         "@type": "Offer",
-        "price": "5.00",
+        "price": "0.00",
         "priceCurrency": "EUR",
         "category": "subscription",
         "availability": "https://schema.org/InStock",
-        "description": "1 Monat kostenlos testen. Danach 5 € pro Monat, monatlich kündbar – der Probemonat wird nicht automatisch kostenpflichtig."
+        "description": "Während der Beta-Phase kostenlos: Die Mitgliedschaft von 5 € pro Monat ist bis auf weiteres ausgesetzt, für neue wie bestehende Konten. Es wird kein Zahlungsmittel hinterlegt."
       }
     }
   ]
@@ -456,6 +456,14 @@ footer{ border-top:1px solid var(--steel); padding:32px 0 60px; margin-top:20px;
 .beta-modal h2{ font-size:clamp(21px, 5vw, 26px); margin:0 0 12px; }
 .beta-modal p{ font-size:15px; color:var(--chalk-dim); }
 .beta-modal p:last-of-type{ margin-bottom:0; }
+/* Die ausgesetzte Gebuehr ist der Grund, warum viele ueberhaupt bleiben -
+   sie steht deshalb in einem eigenen Kasten und nicht im Fliesstext. */
+.beta-free{
+  margin:16px 0 0; padding:13px 15px; border-radius:12px;
+  background:var(--surface-2); border:1px solid rgba(199,255,74,0.3);
+  color:var(--chalk-dim); font-size:14.5px; line-height:1.55;
+}
+.beta-free b{ color:var(--lime); display:block; margin-bottom:3px; }
 /* Die beiden Termine als Liste statt im Fliesstext: Wer den Dialog nur
    ueberfliegt, soll "Android - Ende September 2026" trotzdem mitnehmen. */
 .beta-dates{ list-style:none; padding:0; margin:16px 0 16px; }
@@ -519,7 +527,7 @@ footer{ border-top:1px solid var(--steel); padding:32px 0 60px; margin-top:20px;
             Gym und in deiner Nähe. Match. Train. Repeat.
           </p>
           <div class="cta-row">
-            <a class="btn" href="/app/">1 Monat kostenlos testen</a>
+            <a class="btn" href="/app/">Gratis loslegen</a>
             <a class="btn ghost" href="/app/">Einloggen</a>
           </div>
           <p class="cta-note">
@@ -551,7 +559,7 @@ footer{ border-top:1px solid var(--steel); padding:32px 0 60px; margin-top:20px;
 
       <ul class="usps">
         <li>Matches nach Gym und Umkreis — nicht am anderen Ende Österreichs</li>
-        <li>1 Monat gratis, danach entscheidest du selbst — <b>nichts wird automatisch abgebucht</b></li>
+        <li>In der Beta gratis — die 5&nbsp;€/Monat sind ausgesetzt, <b>nichts wird abgebucht</b></li>
         <li>Jedes Konto wird vor der Freischaltung auf Volljährigkeit geprüft</li>
       </ul>
     </div>
@@ -883,28 +891,31 @@ footer{ border-top:1px solid var(--steel); padding:32px 0 60px; margin-top:20px;
     <section id="preis">
       <h2>Was FLEXR kostet</h2>
       <div class="price-card">
-        <p class="price-free">1 Monat kostenlos</p>
-        <div class="price">5&nbsp;€ <small>/ Monat</small></div>
-        <p style="margin:0; font-size:14.5px;">danach — wenn du willst</p>
+        <p class="price-free">Beta-Phase</p>
+        <div class="price">0&nbsp;€ <small>/ Monat</small></div>
+        <p style="margin:0; font-size:14.5px;">
+          Die Mitgliedschaft von <s>5&nbsp;€ pro Monat</s> ist bis auf weiteres
+          ausgesetzt — für neue und für bestehende Konten.
+        </p>
         <ul>
           <li>Unbegrenzt swipen und matchen</li>
           <li>Chat mit allen Matches</li>
-          <li>Monatlich kündbar, keine Mindestlaufzeit</li>
-          <li>Keine In-App-Käufe, keine versteckten Kosten</li>
+          <li>Kein Zahlungsmittel nötig, keine In-App-Käufe</li>
+          <li>Keine Mindestlaufzeit, nichts zu kündigen</li>
         </ul>
         <a class="btn" href="/app/" style="display:block; text-align:center; margin-top:22px;">Kostenlos starten</a>
       </div>
       <p style="margin-top:22px;">
-        <b>Der Gratismonat wird nicht automatisch kostenpflichtig.</b> Bei der
-        Registrierung wird kein Zahlungsmittel abgefragt und keines hinterlegt.
-        Läuft der Monat ab, ruht dein Konto einfach – dein Profil und deine
-        Matches bleiben erhalten, Swipen und Chatten sind gesperrt, bis du dich
-        aktiv für ein Abo entscheidest. Du musst nichts kündigen und kannst
-        keine Frist versäumen.
+        <b>Solange die Beta läuft, wird nichts abgebucht.</b> Bei der
+        Registrierung wird kein Zahlungsmittel abgefragt und keines hinterlegt,
+        und aus dem Konto kann von selbst kein Abo werden. Du musst nichts
+        kündigen und kannst keine Frist versäumen.
       </p>
       <p>
-        Der Preis ist der Endpreis; Umsatzsteuer wird nicht zusätzlich
-        verrechnet. Kündigen geht jederzeit im Konto.
+        Wir behalten uns vor, die Mitgliedschaft später auf 5&nbsp;€ pro Monat
+        umzustellen — angekündigt, bevor sie gilt, und ohne dass sich dein
+        Konto von selbst in ein Abo verwandelt. Der Preis wäre dann der
+        Endpreis; Umsatzsteuer wird nicht zusätzlich verrechnet.
       </p>
     </section>
 
@@ -925,11 +936,11 @@ footer{ border-top:1px solid var(--steel); padding:32px 0 60px; margin-top:20px;
         </details>
         <details>
           <summary>Was kostet FLEXR?</summary>
-          <div class="faq-a">Der erste Monat nach der Freischaltung ist kostenlos. Danach entscheidest du selbst, ob du für 5&nbsp;€ pro Monat weitermachst. Keine Mindestlaufzeit, keine versteckten Kosten.</div>
+          <div class="faq-a">Derzeit nichts. Während der Beta-Phase ist die Mitgliedschaft von 5&nbsp;€ pro Monat bis auf weiteres ausgesetzt — für neue und für bestehende Konten. Sollte die Gebühr später starten, kündigen wir das vorher an; kostenpflichtig wird nichts, ohne dass du dich aktiv dafür entscheidest.</div>
         </details>
         <details>
-          <summary>Wird der kostenlose Monat automatisch kostenpflichtig?</summary>
-          <div class="faq-a"><b>Nein.</b> Bei der Registrierung wird kein Zahlungsmittel hinterlegt, aus dem Probemonat kann also gar kein Abo werden. Läuft er ab, ruht dein Konto, bis du dich aktiv entscheidest. Du musst nichts kündigen.</div>
+          <summary>Wird mein Konto automatisch kostenpflichtig?</summary>
+          <div class="faq-a"><b>Nein.</b> Bei der Registrierung wird kein Zahlungsmittel hinterlegt, aus einem kostenlosen Konto kann also gar kein Abo werden. Du musst nichts kündigen und keine Frist beachten.</div>
         </details>
         <details>
           <summary>Wie funktionieren Matches?</summary>
@@ -968,11 +979,11 @@ footer{ border-top:1px solid var(--steel); padding:32px 0 60px; margin-top:20px;
     <section id="start" style="text-align:center;">
       <h2>Bereit?</h2>
       <p style="margin-left:auto; margin-right:auto;">
-        Profil erstellen, Gym auswählen, loslegen. Der erste Monat kostet nichts,
-        und danach entscheidest du.
+        Profil erstellen, Gym auswählen, loslegen. Während der Beta kostet FLEXR
+        nichts — ohne Zahlungsmittel, ohne Frist.
       </p>
       <div class="cta-row" style="justify-content:center;">
-        <a class="btn" href="/app/">1 Monat kostenlos testen</a>
+        <a class="btn" href="/app/">Gratis loslegen</a>
       </div>
     </section>
 
@@ -1215,6 +1226,13 @@ footer{ border-top:1px solid var(--steel); padding:32px 0 60px; margin-top:20px;
       sind, sind manche Regionen dünn besetzt und einzelne Funktionen ändern
       sich noch.
     </p>
+    <div class="beta-free">
+      <b>Solange die Beta läuft, kostet FLEXR nichts.</b>
+      Die Mitgliedschaft von 5&nbsp;€ pro Monat ist bis auf weiteres ausgesetzt —
+      für neue und für bestehende Konten. Es wird kein Zahlungsmittel abgefragt
+      und nichts abgebucht. Wenn die Gebühr später starten soll, sagen wir das
+      vorher an.
+    </div>
     <ul class="beta-dates">
       <li><b>Android</b><span>Veröffentlichung geplant für Ende September 2026</span></li>
       <li><b class="as-written">iOS</b><span>folgt im Anschluss</span></li>
@@ -1230,7 +1248,9 @@ footer{ border-top:1px solid var(--steel); padding:32px 0 60px; margin-top:20px;
   // zeigt ein hochgezaehlter Schluessel den Hinweis allen Besuchern erneut.
   // Derselbe Schluessel gilt in /app/ - wer hier bestaetigt hat, bekommt den
   // Dialog dort nicht ein zweites Mal.
-  var KEY = 'flexr_beta_notice_v1';
+  // v2 seit 07.09.2026: Der Dialog nennt jetzt die ausgesetzte Abogebuehr.
+  // Wer v1 schon weggeklickt hatte, soll genau das noch mitbekommen.
+  var KEY = 'flexr_beta_notice_v2';
   var backdrop = document.getElementById('betaBackdrop');
   if (!backdrop) return;
 

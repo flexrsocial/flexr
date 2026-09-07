@@ -54,8 +54,14 @@ struct RegisterView: View {
                 ScreenHeader(
                     eyebrow: "Erste Wiederholung",
                     title: "Dating für Leute,\ndie auch montags\nBeintag machen.",
-                    subtitle: "Erstell dein Profil. 1 Monat gratis testen, danach 5 €/Monat. "
-                        + "Jederzeit kündbar. Aktuell nur in Österreich verfügbar."
+                    // Beta-Gratisphase: Der Text steht fest im Code, weil vor
+                    // dem Login noch kein /api/billing/status abrufbar ist.
+                    // Wird die Gebühr wieder scharf geschaltet
+                    // (BILLING_ENABLED, backend/app/config.py), gehört hier
+                    // "1 Monat gratis testen, danach 5 €/Monat" zurück.
+                    subtitle: "Erstell dein Profil. Während der Beta-Phase kostenlos — "
+                        + "die Mitgliedschaft von 5 €/Monat ist bis auf weiteres ausgesetzt. "
+                        + "Aktuell nur in Österreich verfügbar."
                 )
                 .padding(.top, 24)
 

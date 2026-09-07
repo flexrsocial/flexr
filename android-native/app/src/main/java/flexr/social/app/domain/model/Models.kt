@@ -110,6 +110,12 @@ data class Membership(
     val isSubscribed: Boolean,
     val trialEndsAt: Instant,
     val isActive: Boolean,
+    /**
+     * Ist die Abogebuehr ueberhaupt scharf geschaltet? Waehrend der Beta ist
+     * sie ausgesetzt: keine Bezahlwand, keine Restlaufzeit, keine Preise.
+     * Entschieden wird das serverseitig, nicht in der App.
+     */
+    val billingEnabled: Boolean,
 )
 
 data class Message(

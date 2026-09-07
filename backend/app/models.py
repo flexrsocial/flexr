@@ -415,6 +415,11 @@ class User(Base):
         return not self.verification_required or self.activated_at is not None
 
     def is_active_member(self) -> bool:
+        # Solange die Abogebuehr ausgesetzt ist (settings.billing_enabled),
+        # hat jedes freigeschaltete Konto Zugang - der Probemonat laeuft im
+        # Hintergrund weiter, sperrt aber nicht aus. Siehe config.py.
+        if not settings.billing_enabled:
+            return True
         return self.is_subscribed or datetime.utcnow() < self.trial_ends_at
 
     @property

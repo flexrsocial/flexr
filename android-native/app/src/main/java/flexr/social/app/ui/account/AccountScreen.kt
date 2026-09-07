@@ -216,20 +216,28 @@ fun AccountScreen(
                     .padding(14.dp),
             ) {
                 Text(
-                    text = if (status.isSubscribed) {
-                        "Dein Abo ist aktiv (5 €/Monat)."
-                    } else {
-                        "Noch ${ServerTime.daysUntil(status.trialEndsAt)} Tag(e) gratis Probemonat."
+                    text = when {
+                        !status.billingEnabled ->
+                            "FLEXR ist in der Beta-Phase kostenlos — die Mitgliedschaft " +
+                                "von 5 €/Monat ist bis auf weiteres ausgesetzt. Es ist kein " +
+                                "Zahlungsmittel hinterlegt und es wird nichts abgebucht."
+                        status.isSubscribed -> "Dein Abo ist aktiv (5 €/Monat)."
+                        else ->
+                            "Noch ${ServerTime.daysUntil(status.trialEndsAt)} Tag(e) gratis Probemonat."
                     },
                     style = MaterialTheme.typography.bodyMedium,
                     color = colors.chalk,
                 )
+                // Wer noch ein Abo aus der Zeit vor der Aussetzung hat, muss es
+                // weiterhin kuendigen koennen - der Verwalten-Link bleibt dafuer
+                // stehen. Ein Abschluss wird waehrend der Gratisphase gar nicht
+                // erst angeboten; der Server lehnt ihn mit 409 ab.
                 if (status.isSubscribed) {
                     FlexrLinkButton(
                         text = "Abo verwalten / kündigen",
                         onClick = viewModel::openBillingPortal,
                     )
-                } else {
+                } else if (status.billingEnabled) {
                     FlexrLinkButton(text = "Jetzt abonnieren", onClick = viewModel::openCheckoutDialog)
                 }
             }

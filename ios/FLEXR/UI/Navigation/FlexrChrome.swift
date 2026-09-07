@@ -45,7 +45,11 @@ struct MembershipPill: View {
     let membership: Membership
 
     var body: some View {
-        if membership.isSubscribed {
+        if !membership.billingEnabled {
+            // Kein Countdown, solange nichts abläuft - sonst liest sich die
+            // Pille wie eine Frist, die es gerade gar nicht gibt.
+            StatusPill(text: "Beta · gratis")
+        } else if membership.isSubscribed {
             StatusPill(text: "Abo aktiv")
         } else if membership.isActive {
             StatusPill(text: "Testmonat: \(ServerTime.daysUntil(membership.trialEndsAt))d")

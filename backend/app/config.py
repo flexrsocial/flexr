@@ -12,6 +12,26 @@ class Settings(BaseSettings):
     stripe_price_id: str = ""
     stripe_trial_days: int = 30
 
+    # Abogebuehr scharf geschaltet? In der Beta-Phase ist die Mitgliedschaft
+    # fuer alle - neue wie bestehende Konten - unbefristet kostenlos; die
+    # 5 EUR pro Monat sind "bis auf weiteres ausgesetzt".
+    #
+    # Bewusst ein Schalter und kein Ausbau: Der gesamte Stripe-Pfad
+    # (Checkout, Webhook, Portal, Probemonat, Bezahlwand) bleibt unveraendert
+    # bestehen und wird mit BILLING_ENABLED=true wieder aktiv - ohne
+    # Datenmigration, ohne Code-Aenderung, ohne neues Deployment der Clients.
+    # Die Clients holen den Zustand ueber GET /api/billing/status
+    # (Feld ``billing_enabled``) und zeigen Preise, Bezahlwand und
+    # Abo-Knoepfe nur, solange er wahr ist.
+    #
+    # trial_ends_at laeuft waehrend der Gratisphase im Hintergrund weiter,
+    # sperrt aber niemanden aus (User.is_active_member()). Wird die Gebuehr
+    # spaeter aktiviert, haben Bestandskonten mit laengst abgelaufenem
+    # Probemonat sofort keinen Zugang mehr - vor dem Umlegen des Schalters
+    # gehoert deshalb eine Vorankuendigung an die Nutzer und, falls gewollt,
+    # ein neues trial_ends_at fuer Bestandskonten.
+    billing_enabled: bool = False
+
     frontend_url: str = "https://flexr.social"
     env: str = "development"
 

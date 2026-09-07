@@ -193,24 +193,38 @@ struct AccountView: View {
         .padding(.top, 18)
     }
 
+    /// Statuszeile der Mitgliedschaft - während der Beta-Phase zahlt niemand,
+    /// weder neue noch bestehende Konten.
+    private func membershipText(_ membership: Membership) -> String {
+        if !membership.billingEnabled {
+            return "FLEXR ist in der Beta-Phase kostenlos — die Mitgliedschaft von "
+                + "5 €/Monat ist bis auf weiteres ausgesetzt. Es ist kein "
+                + "Zahlungsmittel hinterlegt und es wird nichts abgebucht."
+        }
+        if membership.isSubscribed {
+            return "Dein Abo ist aktiv (5 €/Monat)."
+        }
+        return "Noch \(ServerTime.daysUntil(membership.trialEndsAt)) Tag(e) gratis Probemonat."
+    }
+
     @ViewBuilder
     private func membershipCard(_ model: AccountModel) -> some View {
         if let membership = model.membership {
             FlexrCard {
                 VStack(alignment: .leading, spacing: 0) {
-                    Text(
-                        membership.isSubscribed
-                            ? "Dein Abo ist aktiv (5 €/Monat)."
-                            : "Noch \(ServerTime.daysUntil(membership.trialEndsAt)) Tag(e) gratis Probemonat."
-                    )
-                    .flexrText(.bodyMedium)
-                    .foregroundStyle(FlexrColor.chalk)
+                    Text(membershipText(membership))
+                        .flexrText(.bodyMedium)
+                        .foregroundStyle(FlexrColor.chalk)
 
+                    // Wer noch ein Abo aus der Zeit vor der Aussetzung hat, muss
+                    // es weiterhin kündigen können - der Verwalten-Link bleibt
+                    // dafür stehen. Ein Abschluss wird während der Gratisphase
+                    // gar nicht erst angeboten; der Server lehnt ihn mit 409 ab.
                     if membership.isSubscribed {
                         FlexrLinkButton(title: "Abo verwalten / kündigen") {
                             model.openBillingPortal()
                         }
-                    } else {
+                    } else if membership.billingEnabled {
                         FlexrLinkButton(title: "Jetzt abonnieren") { model.openCheckoutSheet() }
                     }
                 }

@@ -15,6 +15,13 @@ os.environ.setdefault("SMTP_FROM", "")
 os.environ.setdefault("STRIPE_SECRET_KEY", "")
 os.environ.setdefault("STRIPE_WEBHOOK_SECRET", "")
 os.environ.setdefault("STRIPE_PRICE_ID", "")
+# Im Betrieb ist die Abogebuehr derzeit ausgesetzt (BILLING_ENABLED=False,
+# siehe app/config.py). Die Suite prueft trotzdem den kostenpflichtigen Pfad -
+# Probemonat, Bezahlwand, Webhook -, weil genau der spaeter wieder scharf
+# geschaltet wird und bis dahin nicht verrotten darf. Die Gratisphase selbst
+# hat eigene Tests (test_billing_pausiert.py); sie schalten den Wert gezielt
+# per monkeypatch um.
+os.environ.setdefault("BILLING_ENABLED", "true")
 
 import pytest
 from fastapi.testclient import TestClient

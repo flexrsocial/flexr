@@ -98,6 +98,17 @@ verfügbar. Der erste Lauf auf einem Mac ist damit zugleich der erste
 Compiler ausschließen kann (Argumentreihenfolgen, `some View`-Ableitungen,
 Nebenläufigkeitswarnungen).
 
+> **Nachtrag 07.09.2026:** Daran hat sich nichts geändert — auf dem Gerät der
+> Sitzung vom 07.09. gibt es weiterhin kein `swiftc`/`xcodebuild` (Linux). Die
+> Änderungen für die ausgesetzte Abogebühr (`Membership.billingEnabled`,
+> `MembershipPill`, `AccountView.membershipText`, `RegisterView`,
+> `LegalContent`) sind deshalb wie unten beschrieben nur statisch geprüft:
+> alle `Membership(...)`-Konstruktionsstellen erfasst (nur `Mappers.swift`),
+> `billingEnabled: Bool?` im DTO ist optional und bleibt mit `?? true`
+> abwärtskompatibel zu einem Server ohne das Feld, die `if`-Ketten in
+> `MembershipPill` und `membershipCard` haben ihren abschließenden Zweig
+> behalten. Der Android-Zwilling derselben Änderung **ist** compilergeprüft.
+
 ### Was stattdessen statisch geprüft wurde
 
 Ersatzweise sind drei Dinge maschinell gegengelesen worden — das ersetzt keinen
@@ -180,6 +191,17 @@ Marketing-Panels mit nachgestelltem App-Screen, dieselbe Machart wie die
 Play-Store-Assets, kein Abzug der laufenden App.
 
 ### Der wahrscheinlichste Streitpunkt im Review: Stripe
+
+> **Stand 07.09.2026: derzeit entschärft.** Die Abogebühr ist ausgesetzt
+> (`BILLING_ENABLED=false` im Backend, siehe HANDOFF im Projektwurzelverzeichnis).
+> Solange das so ist, liefert `GET /api/billing/status` `billing_enabled: false`,
+> die App zeigt **keinen Preis, keine Bezahlwand und keinen Kaufknopf**, und
+> `openCheckoutSheet()` ist von keinem Bildschirm aus erreichbar — es gibt in
+> der App also nichts zu kaufen und nichts nach draußen zu verlinken. Für einen
+> ersten TestFlight- oder Store-Review fällt Richtlinie 3.1.1 damit weg.
+>
+> Der Absatz darunter gilt unverändert für den Tag, an dem die Gebühr wieder
+> scharf geschaltet wird — **vorher zu entscheiden, nicht danach.**
 
 Die App schickt zum Bezahlen in eine externe Browser-Sitzung
 (`SFSafariViewController`). Für **digitale Inhalte innerhalb der App** verlangt

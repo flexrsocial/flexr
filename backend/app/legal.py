@@ -81,7 +81,7 @@ def operator_inline() -> str:
 # steht sichtbar unter "Stand:" auf jeder Seite.
 # ---------------------------------------------------------------------------
 
-TERMS_VERSION: Final = "2026-08-19"           # AGB
+TERMS_VERSION: Final = "2026-09-07"           # AGB (Punkt 7 e/9 a: Entgelt ausgesetzt)
 PRIVACY_VERSION: Final = "2026-08-19"          # Datenschutzerklärung
 AUP_VERSION: Final = "2026-08-19"              # Nutzungsrichtlinien
 LE_GUIDELINES_VERSION: Final = "2026-08-19"    # Strafverfolgungsrichtlinien
@@ -101,6 +101,12 @@ WITHDRAWAL_ACK_VERSION: Final = "2026-08-17"  # Checkout: Kenntnisnahme Erlösch
 #     wandelt sich NICHT von selbst in ein Abo um.
 #   * Ein zahlungspflichtiger Vertrag entsteht erst durch den aktiven Abschluss
 #     im Stripe-Checkout (POST /api/billing/checkout).
+#
+# Seit dem 07.09.2026 ist die Gebuehr zusaetzlich "bis auf weiteres
+# ausgesetzt": settings.billing_enabled steht auf False, die Nutzung ist fuer
+# neue wie bestehende Konten kostenlos, /api/billing/checkout lehnt mit 409 ab.
+# PRICE_EUR_PER_MONTH bleibt der hinterlegte Preis fuer die Zeit danach - die
+# Rechtstexte nennen ihn weiter, aber ausdruecklich als derzeit ausgesetzt.
 # ---------------------------------------------------------------------------
 
 PRICE_EUR_PER_MONTH: Final = "5"

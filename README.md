@@ -139,7 +139,12 @@ sudo chown -R $USER:$USER /flexr   # Besitzrechte, falls als root angelegt
 5. DNS bei deinem Domain-Registrar: A-Record von `flexr.social` auf die
    IP deines VPS zeigen lassen (bzw. AAAA für IPv6, falls vorhanden)
 6. Stripe: Live-Keys eintragen, Webhook-Endpoint `https://flexr.social/api/billing/webhook`
-   im Stripe-Dashboard hinterlegen
+   im Stripe-Dashboard hinterlegen. **Seit 07.09.2026 ist die Abogebühr
+   ausgesetzt** (`BILLING_ENABLED=false`, Standard): FLEXR ist für alle
+   kostenlos, der Checkout lehnt mit 409 ab, die Bezahlwand greift nicht und
+   die Probemonat-Erinnerungen aus Punkt 3 entfallen. Der komplette
+   Stripe-Pfad bleibt im Code — `BILLING_ENABLED=true` schaltet ihn wieder
+   scharf (siehe `backend/app/config.py`).
 7. Vor dem Live-Schalten: Impressum, Datenschutzerklärung, AGB und
    Altersverifikation ergänzen (in AT/EU bei einer Dating-Plattform mit
    Nutzerfotos Pflicht, kein optionales Nice-to-have). Melde-/Blockfunktion

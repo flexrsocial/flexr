@@ -108,6 +108,10 @@ struct Membership: Hashable, Sendable {
     let isSubscribed: Bool
     let trialEndsAt: Date
     let isActive: Bool
+    /// Ist die Abogebühr überhaupt scharf geschaltet? Während der Beta ist sie
+    /// ausgesetzt: keine Bezahlwand, keine Restlaufzeit, keine Preise.
+    /// Entschieden wird das serverseitig, nicht in der App.
+    let billingEnabled: Bool
 }
 
 struct Message: Identifiable, Hashable, Sendable {

@@ -5,12 +5,99 @@ Stand: **07.09.2026**
 Produktstand: Jüngster Commit auf `origin/main` ist der robots/nginx-Umbau der
 Sitzung vom **07.09.**, gepusht **und auf dem VPS ausgerollt** — reine
 Auslieferungskonfiguration, kein Backend, keine Migration, kein Neustart.
-Aufbau des Dokuments: erst die Eckdaten, dann die Sitzung vom **07.09.**, dann
-**06.09.**, dann **05.09.**, dann **31.08.**, dann **30.08.**, dann
-**23.08.**, dann **21.08.**; die Build-,
+Aufbau des Dokuments: erst die Eckdaten, dann die beiden Sitzungen vom
+**07.09.**, dann **06.09.**, dann **05.09.**, dann **31.08.**, dann **30.08.**,
+dann **23.08.**, dann **21.08.**; die Build-,
 Test- und Deploy-Abschnitte am Ende gelten sitzungsübergreifend.
 
-## Sitzung 07.09.2026 — Search-Console-Meldung, robots.txt/nginx, veraltetes `.git`
+## Sitzung 07.09.2026 (2) — Abogebühr bis auf weiteres ausgesetzt
+
+Ziel: In der Beta sollen neue **und bestehende** Nutzer nichts zahlen, um
+überhaupt erst eine Nutzerbasis aufzubauen. Das kostenpflichtige Abo bleibt
+vollständig im Code und wird später wieder scharf geschaltet.
+
+### Ein Schalter, kein Ausbau
+
+`BILLING_ENABLED` (`backend/app/config.py`, Standard **false**) ist die einzige
+Stelle, an der die Entscheidung faellt. Stripe-Checkout, Webhook, Portal,
+Probemonat und Bezahlwand bleiben unveraendert bestehen.
+
+Backend:
+
+- `User.is_active_member()` liefert bei ausgesetzter Gebuehr immer `True`.
+  Damit greift die Bezahlwand nirgends mehr — `require_active_membership`
+  haengt an derselben Methode, also Deck, Matches, Chat und die
+  Warteschlangen-Mails gleich mit.
+- `GET /api/billing/status` liefert zusaetzlich `billing_enabled`. Daran
+  entscheiden alle drei Clients, ob sie Preise, Bezahlwand und Abo-Knoepfe
+  ueberhaupt zeigen.
+- `POST /api/billing/checkout` antwortet mit **409**, bevor irgendeine
+  Consent-Buchung entsteht. `POST /api/billing/portal` bleibt erreichbar —
+  wer aus der Zeit davor noch ein Abo hat, muss es kuendigen koennen.
+- Die beiden Probemonat-Mails (`free_trial_ending`, `free_trial_ended`)
+  entfallen, solange nichts ablaeuft. Die Aktivitaets-Benachrichtigungen
+  laufen unveraendert weiter.
+- `_nach_der_pruefung_satz()` in `mailer.py` haelt beide Fassungen des
+  Verifizierungs-Hinweises nebeneinander — beim Umlegen des Schalters ist dort
+  nichts nachzuziehen.
+
+Clients (alle drei lesen `billing_enabled`, keiner entscheidet selbst):
+
+- Statuspille: **„Beta · gratis"** statt Restlaufzeit-Countdown.
+- Konto-Bereich: Hinweis auf die ausgesetzte Gebuehr, „Jetzt abonnieren"
+  ausgeblendet; „Abo verwalten / kuendigen" bleibt fuer Bestandsabos stehen.
+- Beta-Dialog auf Landingpage und in `/app/` nennt die ausgesetzte Gebuehr in
+  einem eigenen Kasten (`.beta-free`).
+
+Feste Texte, die **beim Wiedereinschalten zurueckmuessen** (sie stehen vor dem
+Login, wo es noch keinen `/api/billing/status` gibt) — jeweils mit Kommentar im
+Code markiert: Hero-USP und Registrierungs-Untertitel in `frontend/app/`,
+`RegisterScreen.kt`, `RegisterView.swift`.
+
+### Rechtstexte
+
+AGB neu als Fassung **2026-09-07** (`legal.TERMS_VERSION` mitgezogen): Punkt 7
+bekommt lit. e („Beta-Phase: Das Entgelt ist ausgesetzt", inklusive der
+Klarstellung, dass das Konto nach dem Probemonat **nicht** ruht), Punkt 9 einen
+vorangestellten Hinweis. FAQ-Seite, Landingpage-Preisblock, strukturierte Daten
+(`price` jetzt `0.00`), Meta-Beschreibungen, `LegalContent.kt/.swift` und die
+Store-Texte entsprechend. `/widerruf.html` blieb unveraendert — es beschreibt
+das Ruecktrittsrecht am entgeltlichen Vertrag, den es gerade nicht gibt.
+
+### Vor dem Wiedereinschalten zu bedenken
+
+`trial_ends_at` laeuft im Hintergrund weiter. Wird `BILLING_ENABLED=true`
+gesetzt, stehen Bestandskonten mit laengst abgelaufenem Probemonat sofort vor
+der Bezahlwand. Dazu gehoert eine Vorankuendigung (AGB Punkt 18) und
+vermutlich ein frisches `trial_ends_at` fuer Bestandskonten.
+
+**Bestandsabos:** Es gibt **keine aktiven Stripe-Konten** (vom Betreiber am
+07.09. bestaetigt). Es war also niemand zu kuendigen, und der Umbau kann
+niemandem eine laufende Abbuchung wegnehmen oder stehen lassen.
+
+Tests: `backend/tests/test_billing_pausiert.py` (vier Faelle: kein Aussperren,
+Gegenprobe mit aktivierter Gebuehr, 409 im Checkout, keine Probemonat-Mails).
+`conftest.py` setzt `BILLING_ENABLED=true`, damit die restliche Suite weiter
+den kostenpflichtigen Pfad prueft. 399 Tests gruen.
+
+### Builds dieser Sitzung
+
+**Android: gebaut und signiert** — `versionCode 41`, `versionName 2.5.3`
+(vorher 40 / 2.5.2), Upload-Key `CN=FLEXR` (SHA-256 des Zertifikats
+`bc64ad3f…e7980`, unveraendert der bisherige). Die Toolchain lag entgegen der
+bisherigen Doku unter `~/.bubblewrap/` — siehe den korrigierten Abschnitt
+„Android-Build" weiter unten, dort steht auch die `--no-build-cache`-Falle.
+
+**iOS: nicht baubar, unveraendert.** `xcodebuild` und die iOS-SDKs gibt es nur
+unter macOS; das Projekt wurde noch nie kompiliert (siehe `ios/HANDOFF.md`).
+Die Swift-Aenderungen sind statisch geprueft und spiegeln zeilenweise die
+compilergeprueften Kotlin-Aenderungen. Nebenbefund, in `ios/HANDOFF.md`
+nachgetragen: Der dort groesste Review-Streitpunkt (Richtlinie 3.1.1, Kauf
+ueber externen Browser) **entfaellt waehrend der Gratisphase** — die App zeigt
+keinen Preis und keinen Kaufknopf, `openCheckoutSheet()` ist von keinem
+Bildschirm erreichbar.
+
+## Sitzung 07.09.2026 (1) — Search-Console-Meldung, robots.txt/nginx, veraltetes `.git`
 
 Anlass war eine Search-Console-Mail („Neuer Grund dafür, dass Seiten nicht
 indexiert werden: Durch robots.txt-Datei blockiert"). Ein Commit, reine
@@ -1121,13 +1208,51 @@ hier weder JDK noch Android SDK; beides wurde ad hoc installiert:
 > beenden** (uvicorn, der S3-Ersatz, `http.server`, offene Browser-Tabs);
 > mit ihnen zusammen blieben nur noch rund 130 MB frei.
 
-> **Stand 06.09.2026: liegt jetzt unter `~/android-toolchain/`, nicht mehr
-> unter `/tmp`.** Der alte `/tmp`-Pfad war beim nächsten Start weg (genau das
-> ist am 06.09. passiert: `local.properties` zeigte noch auf
-> `/tmp/flexr-android-build/sdk`, das Verzeichnis existierte nicht mehr, und
-> es gab weder `java` noch `javac` im PATH). Der Gradle-Cache unter
-> `~/.gradle` (1,9 GB) hatte dagegen überlebt, der Build zog deshalb kaum
-> Abhängigkeiten nach.
+> **Stand 07.09.2026: die Toolchain liegt unter `~/.bubblewrap/`.** Weder
+> `~/android-toolchain/` noch der ältere `/tmp`-Pfad existieren auf diesem
+> Gerät; `local.properties` zeigte zudem auf ein verschriebenes
+> `/home/blcktomcat/...` (mit „c"). Vorhanden und vollständig ist stattdessen
+> die Toolchain, die seinerzeit `bubblewrap` für den TWA-Build mitgebracht hat
+> — nichts muss nachinstalliert werden:
+>
+> ```bash
+> export JAVA_HOME=~/.bubblewrap/jdk/jdk-17.0.11+9      # Temurin 17.0.11+9
+> export PATH="$JAVA_HOME/bin:$PATH"
+> export ANDROID_HOME=~/.bubblewrap/android_sdk          # platforms;android-36,
+> echo "sdk.dir=$HOME/.bubblewrap/android_sdk" \
+>   > android-native/local.properties                    # build-tools 34/35
+> ```
+>
+> **Vor der Neuinstallation einer Toolchain immer erst hier nachsehen**
+> (`find / -xdev -name sdkmanager -o -name javac`) — der Abschnitt darunter
+> beschreibt den Neuaufbau, der auf diesem Gerät nicht nötig ist.
+>
+> **Release-Builds mit `--no-build-cache` bauen.** Am 07.09. brach
+> `compileProdReleaseJavaWithJavac` mit „duplicate class:
+> dagger.hilt.internal.aggregatedroot.codegen._flexr_social_app_FlexrApplication"
+> ab. Kein Codefehler — `compileProdReleaseKotlin` lief sauber durch. In
+> `app/build/generated/ksp/prodRelease/java/` lag dieselbe Hilt-Klasse zweimal:
+> unter dem heutigen Pfad `dagger/hilt/internal/…` und unter dem älteren
+> `hilt/internal/…`.
+>
+> `./gradlew clean` hat **nicht** geholfen — der Fehler kam sofort wieder
+> („13 from cache"). Die Quelle ist der **Gradle-Build-Cache**
+> (`org.gradle.caching=true` in `~/.gradle/gradle.properties`,
+> `~/.gradle/caches/build-cache-1`): Dort liegt ein vergifteter
+> KSP-Task-Eintrag aus einer älteren Hilt-/KSP-Fassung, der beide Pfade
+> enthält. Nachgewiesen mit
+> `./gradlew --offline --no-build-cache clean :app:kspProdReleaseKotlin` —
+> frisch generiert entsteht die Datei genau einmal.
+>
+> Also: `./gradlew --offline --no-build-cache :app:bundleProdRelease
+> :app:assembleProdRelease`. Wer den Cache dauerhaft loswerden will, löscht
+> `~/.gradle/caches/build-cache-1` (kostet beim nächsten Build Zeit, sonst
+> nichts).
+>
+> **Stand 06.09.2026 (überholt):** lag unter `~/android-toolchain/`, davor
+> unter `/tmp` — beide Pfade waren beim nächsten Start weg. Der Gradle-Cache
+> unter `~/.gradle` (1,9 GB) überlebt dagegen jeden Neustart, der Build zieht
+> deshalb kaum Abhängigkeiten nach und läuft mit `--offline` durch.
 
 ```bash
 # JDK (Temurin 17) und Android Commandline-Tools nach ~/android-toolchain

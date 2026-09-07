@@ -100,6 +100,7 @@ fun MembershipStatusDto.toDomain() = Membership(
     isSubscribed = isSubscribed,
     trialEndsAt = ServerTime.parse(trialEndsAt) ?: Instant.EPOCH,
     isActive = isActive,
+    billingEnabled = billingEnabled,
 )
 
 fun MessageDto.toDomain() = Message(

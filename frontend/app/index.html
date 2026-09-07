@@ -1695,7 +1695,13 @@
       </p>
       <ul class="hero-usps">
         <li>Matches nach Gym &amp; Stadt — kein Ghosting am anderen Ende Österreichs</li>
-        <li>1 Monat gratis — danach entscheidest du selbst, ob du für 5&nbsp;€/Monat weitermachst</li>
+        <!-- Beta-Gratisphase: Diese Zeile und der Registrierungstext weiter
+             unten stehen fest im Markup, weil sie vor dem Login gezeigt werden
+             - da gibt es noch keinen /api/billing/status. Wird die Gebuehr
+             wieder scharf geschaltet (BILLING_ENABLED=true, siehe
+             backend/app/config.py), gehoeren beide zurueck auf "1 Monat gratis,
+             danach 5 EUR/Monat". -->
+        <li>In der Beta gratis — die 5&nbsp;€/Monat sind bis auf weiteres ausgesetzt</li>
         <li>Echte Profile: Melde- &amp; Blockfunktion inklusive</li>
       </ul>
       <!-- Hier stand bis zum 15.08.2026 ein Demo-Deck mit acht Fotos echter
@@ -1877,7 +1883,8 @@
       </div>
       <div class="eyebrow">Erste Wiederholung</div>
       <h1 class="headline">Dating für Leute,<br>die auch Montags<br>Beintag machen.</h1>
-      <p class="sub">Erstell dein Profil — kostenlos. Danach 1 Monat gratis testen; ob du für 5&nbsp;€/Monat weitermachst, entscheidest du selbst. Es wird jetzt kein Zahlungsmittel abgefragt. Aktuell nur in Österreich verfügbar.</p>
+      <!-- Beta-Gratisphase, siehe Kommentar bei den Hero-USPs. -->
+      <p class="sub">Erstell dein Profil — kostenlos. Während der Beta-Phase bleibt FLEXR kostenlos; die Mitgliedschaft von 5&nbsp;€/Monat ist bis auf weiteres ausgesetzt. Es wird kein Zahlungsmittel abgefragt. Aktuell nur in Österreich verfügbar.</p>
 
       <label for="f-email">E-Mail</label>
       <input type="email" id="f-email" placeholder="max@example.com" autocomplete="email" inputmode="email">
@@ -1920,8 +1927,8 @@
           Gesichtserkennung. Die Aufnahmen werden nach Abschluss der Prüfung
           gelöscht — siehe
           <a href="/datenschutz.html" class="legal-link" data-legal-page="datenschutz.html">Datenschutzerklärung</a>.
-          Dein Konto wird erst nach bestandener Prüfung freigeschaltet; der
-          Probemonat startet erst dann.</p>
+          Dein Konto wird erst nach bestandener Prüfung freigeschaltet. Die
+          Nutzung ist während der Beta-Phase ohnehin kostenlos.</p>
       </div>
 
       <label for="f-gender">Geschlecht</label>
@@ -2630,6 +2637,13 @@
         sind, sind manche Regionen dünn besetzt und einzelne Funktionen ändern
         sich noch.
       </p>
+      <div class="beta-free">
+        <b>Solange die Beta läuft, kostet FLEXR nichts.</b>
+        Die Mitgliedschaft von 5&nbsp;€ pro Monat ist bis auf weiteres
+        ausgesetzt — für neue und für bestehende Konten. Es wird kein
+        Zahlungsmittel abgefragt und nichts abgebucht. Wenn die Gebühr später
+        starten soll, sagen wir das vorher an.
+      </div>
       <ul class="beta-dates">
         <li><b>Android</b><span>Veröffentlichung geplant für Ende September 2026</span></li>
         <li><b class="as-written">iOS</b><span>folgt im Anschluss</span></li>
@@ -2643,6 +2657,14 @@
 </div>
 <style>
   .beta-modal{ max-width:440px; }
+  /* Die ausgesetzte Gebuehr ist der Grund, warum viele ueberhaupt bleiben -
+     sie steht deshalb in einem eigenen Kasten und nicht im Fliesstext. */
+  .beta-free{
+    margin:16px 0 0; padding:13px 15px; border-radius:12px;
+    background:var(--surface-2); border:1px solid rgba(199,255,74,0.3);
+    color:var(--chalk-dim); font-size:14px; line-height:1.55;
+  }
+  .beta-free b{ color:var(--lime); display:block; margin-bottom:3px; }
   .beta-eyebrow{
     font-family:'Oswald', sans-serif; font-size:12px; letter-spacing:.22em;
     text-transform:uppercase; color:var(--plate); margin:0;
@@ -2670,7 +2692,9 @@
 (function(){
   // Der Merker traegt eine Version im Namen: Verschieben sich die Termine,
   // zeigt ein hochgezaehlter Schluessel den Hinweis allen Nutzern erneut.
-  var KEY = 'flexr_beta_notice_v1';
+  // v2 seit 07.09.2026: Der Dialog nennt jetzt die ausgesetzte Abogebuehr.
+  // Wer v1 schon weggeklickt hatte, soll genau das noch mitbekommen.
+  var KEY = 'flexr_beta_notice_v2';
   var backdrop = document.getElementById('betaBackdrop');
   if (!backdrop) return;
 
@@ -3842,6 +3866,15 @@
     return !myProfile || myProfile.is_account_activated !== false;
   }
 
+  // Ist die Abogebühr überhaupt scharf geschaltet? Der Server entscheidet das
+  // (settings.billing_enabled, siehe backend/app/config.py) und liefert es in
+  // /api/billing/status mit. Solange sie ausgesetzt ist, kostet FLEXR nichts:
+  // keine Bezahlwand, keine Restlaufzeit, keine Preise. Der ganze Abo-Pfad
+  // bleibt im Code und wird wieder sichtbar, sobald der Server true meldet.
+  function billingActive(){
+    return !membership || membership.billing_enabled !== false;
+  }
+
   function updateStatusPill(){
     const pill = $('statusPill');
     if(!membership){ pill.textContent = '—'; return; }
@@ -3849,6 +3882,12 @@
     // anzuzeigen wäre irreführend, sie startet erst mit der Freigabe.
     if(!accountActivated()){
       pill.textContent = 'In Prüfung'; pill.className = 'status-pill trial';
+      return;
+    }
+    if(!billingActive()){
+      // Kein Countdown, wenn nichts abläuft - sonst liest sich die Pille wie
+      // eine Frist, die es gerade gar nicht gibt.
+      pill.textContent = 'Beta · gratis'; pill.className = 'status-pill trial';
       return;
     }
     if(membership.is_subscribed){
@@ -3979,12 +4018,25 @@
       avatarEl.textContent = (myProfile.name || '?').charAt(0).toUpperCase();
     }
 
-    if(membership.is_subscribed){
+    if(!billingActive()){
+      // Während der Beta zahlt niemand - weder neue noch bestehende Konten.
+      // Der Abo-Knopf verschwindet dann ganz: Ein Angebot anzuzeigen, das der
+      // Server mit 409 ablehnt, wäre eine Sackgasse.
+      $('acctStatusText').textContent = 'FLEXR ist in der Beta-Phase kostenlos — '
+        + 'die Mitgliedschaft von 5 €/Monat ist bis auf weiteres ausgesetzt. '
+        + 'Es ist kein Zahlungsmittel hinterlegt und es wird nichts abgebucht.';
+      $('btnSubscribe').style.display = 'none';
+      // Wer noch ein Abo aus der Zeit davor hat, muss es weiterhin kündigen
+      // können - der Verwalten-Link bleibt dafür stehen.
+      $('btnManageSubscription').style.display = membership.is_subscribed ? 'block' : 'none';
+    } else if(membership.is_subscribed){
+      $('btnSubscribe').style.display = '';
       $('acctStatusText').textContent = 'Dein Abo ist aktiv (5 €/Monat).';
       $('btnSubscribe').textContent = 'Abo aktiv ✓';
       $('btnSubscribe').disabled = true;
       $('btnManageSubscription').style.display = 'block';
     } else {
+      $('btnSubscribe').style.display = '';
       const daysLeft = Math.max(0, Math.ceil((parseServerDate(membership.trial_ends_at) - Date.now())/86400000));
       // Bewusst mit dem Zusatz: Der Probemonat wandelt sich nicht von selbst in
       // ein Abo um, es gibt also keine Frist zu versaeumen. Ohne den Satz liest
@@ -5412,8 +5464,8 @@
             18 Jahre alt bist und ob die Verifizierung zu deinem Profil gehört.
             Sobald die Prüfung abgeschlossen ist, kannst du FLEXR vollständig nutzen.</p>
           <p>Die Aufnahmen deines Ausweises werden nach Abschluss der Prüfung gelöscht.
-            Dein Probemonat startet erst mit der Freischaltung — die Wartezeit kostet
-            dich also keine Gratiszeit.</p>
+            Die Wartezeit kostet dich nichts — FLEXR ist während der Beta-Phase
+            für alle kostenlos.</p>
         </div>`;
       btn.textContent = 'Status aktualisieren';
       return;

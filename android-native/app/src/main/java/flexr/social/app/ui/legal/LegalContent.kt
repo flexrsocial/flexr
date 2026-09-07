@@ -51,8 +51,10 @@ object LegalContent {
             ),
             LegalBlock.Faq(
                 "Was kostet FLEXR?",
-                "Du testest FLEXR einen Monat gratis. Danach kostet es 5 € pro Monat, " +
-                    "jederzeit kündbar — ohne Mindestlaufzeit.",
+                "Derzeit nichts: Während der Beta-Phase ist die Mitgliedschaft von " +
+                    "5 € pro Monat bis auf weiteres ausgesetzt — für neue wie für " +
+                    "bestehende Konten. Sollte die Gebühr später starten, kündigen " +
+                    "wir das vorher an.",
             ),
             LegalBlock.Faq(
                 "In welchen Städten ist FLEXR verfügbar?",
@@ -190,12 +192,14 @@ object LegalContent {
             LegalBlock.Heading("4. Preise, Probemonat, Kündigung"),
             LegalBlock.Lettered(
                 listOf(
-                    "Nach der Freischaltung ist der erste Monat kostenlos. Der Probemonat " +
-                        "wird NICHT automatisch kostenpflichtig: Bei der Registrierung wird " +
-                        "kein Zahlungsmittel erhoben, und aus dem Probemonat entsteht von " +
-                        "selbst kein Abo. Läuft er ab, ruht das Konto, bis eine " +
-                        "kostenpflichtige Mitgliedschaft ausdrücklich bestellt wird. Es gibt " +
-                        "keine Kündigungsfrist, die versäumt werden könnte.",
+                    "Während der Beta-Phase ist die Nutzung kostenlos: Das Entgelt von " +
+                        "5 € pro Monat ist bis auf weiteres ausgesetzt, für neue wie für " +
+                        "bestehende Konten. Das Konto ruht in dieser Zeit auch dann nicht, " +
+                        "wenn der Probemonat abgelaufen ist.",
+                    "Kostenpflichtig wird nichts von selbst: Bei der Registrierung wird " +
+                        "kein Zahlungsmittel erhoben, und ein Abo entsteht nur durch eine " +
+                        "ausdrückliche Bestellung. Es gibt keine Kündigungsfrist, die " +
+                        "versäumt werden könnte.",
                     "Ein abgeschlossenes Abo kostet 5 € pro Monat und verlängert sich " +
                         "jeweils um einen Monat, bis es gekündigt wird. Keine " +
                         "Mindestlaufzeit.",

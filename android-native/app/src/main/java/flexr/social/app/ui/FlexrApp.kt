@@ -537,6 +537,9 @@ private fun androidx.navigation.NavGraphBuilder.legalDestination(navController: 
 @Composable
 private fun MembershipPill(membership: Membership) {
     when {
+        // Kein Countdown, solange nichts ablaeuft - sonst liest sich die Pille
+        // wie eine Frist, die es gerade gar nicht gibt.
+        !membership.billingEnabled -> StatusPill("Beta · gratis")
         membership.isSubscribed -> StatusPill("Abo aktiv")
         membership.isActive -> StatusPill("Testmonat: ${ServerTime.daysUntil(membership.trialEndsAt)}d")
         else -> StatusPill("Abgelaufen", expired = true)

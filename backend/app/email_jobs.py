@@ -5,6 +5,7 @@ from datetime import date, datetime, time, timedelta, timezone
 from sqlalchemy.orm import Session
 
 from . import mailer, notifications
+from .config import settings
 from .database import SessionLocal
 from .email_notifications import send_once
 from .models import User
@@ -32,6 +33,17 @@ def run_due_email_jobs(db: Session, now: datetime | None = None) -> dict[str, in
     local_day = current.replace(tzinfo=timezone.utc).astimezone(mailer.VIENNA).date()
     ending_start, ending_end = _vienna_day_window(local_day + timedelta(days=3))
 
+    result: dict[str, int] = {"trial_ending_sent": 0, "trial_ended_sent": 0, "failed": 0}
+
+    # Solange die Abogebuehr ausgesetzt ist, endet mit dem Probemonat gar
+    # nichts: der Zugang bleibt (User.is_active_member()). "Dein Probemonat
+    # laeuft ab" waere dann schlicht falsch - beide Mails entfallen, bis
+    # BILLING_ENABLED wieder true ist. Die uebrigen Benachrichtigungen
+    # (wartende Profile, Inaktivitaet) laufen unveraendert weiter.
+    if not settings.billing_enabled:
+        result.update(run_activity_notifications(db, current))
+        return result
+
     base = db.query(User).filter(
         User.deleted_at.is_(None),
         User.is_banned.is_(False),
@@ -48,8 +60,6 @@ def run_due_email_jobs(db: Session, now: datetime | None = None) -> dict[str, in
         User.trial_ends_at <= current,
         User.trial_ends_at > current - timedelta(days=2),
     ).all()
-
-    result: dict[str, int] = {"trial_ending_sent": 0, "trial_ended_sent": 0, "failed": 0}
 
     for user in ending_users:
         key = f"trial:ending:{user.id}:{user.trial_ends_at.isoformat()}"

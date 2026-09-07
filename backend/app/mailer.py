@@ -14,6 +14,7 @@ import html
 import logging
 import smtplib
 import ssl
+import textwrap
 from datetime import datetime, timezone
 from email.message import EmailMessage
 from email.utils import formataddr
@@ -216,7 +217,34 @@ def _email_shell(eyebrow: str, heading_html: str, body_html: str, footer_html: s
 VERIFY_SUBJECT = "Bestätige deine E-Mail-Adresse für FLEXR"
 
 
+def _nach_der_pruefung_satz() -> str:
+    """Was nach der Verifizierung auf den Nutzer wartet.
+
+    Haengt daran, ob die Abogebuehr scharf geschaltet ist: Solange sie
+    ausgesetzt ist, gibt es keinen Gratismonat zu erwaehnen - es ist ohnehin
+    alles gratis. Beide Fassungen stehen hier nebeneinander, damit beim
+    Umlegen von BILLING_ENABLED nichts nachgezogen werden muss.
+    """
+    if settings.billing_enabled:
+        return (
+            "erst danach ist dein Konto freigeschaltet, und erst dann startet "
+            "dein Gratismonat. Die Prüfzeit geht dir also nicht ab."
+        )
+    return (
+        "erst danach ist dein Konto freigeschaltet. FLEXR ist während der "
+        "Beta-Phase für alle kostenlos - die Prüfzeit kostet dich nichts."
+    )
+
+
 def _verify_text(name: str, link: str, hours: int) -> str:
+    # Der Satz nach der Pruefung wechselt mit BILLING_ENABLED und ist mal
+    # laenger, mal kuerzer - deshalb hier umgebrochen statt fest im Text, damit
+    # die Nur-Text-Fassung ihre Zeilenbreite behaelt.
+    pruefung = textwrap.fill(
+        f"Der Link gilt {hours} Stunden. Danach steht die einmalige Alters- "
+        f"und Identitätsprüfung an - {_nach_der_pruefung_satz()}",
+        width=76,
+    )
     return f"""Hallo {name},
 
 dein FLEXR-Profil ist angelegt. Bevor es weitergeht, bestätige bitte
@@ -224,9 +252,7 @@ einmalig deine E-Mail-Adresse:
 
 {link}
 
-Der Link gilt {hours} Stunden. Danach steht die einmalige Alters- und
-Identitätsprüfung an - erst danach ist dein Konto freigeschaltet, und erst
-dann startet dein Gratismonat. Die Prüfzeit geht dir also nicht ab.
+{pruefung}
 
 Das brauchst du dafür:
 
@@ -269,9 +295,8 @@ def _verify_html(name: str, link: str, hours: int) -> str:
       <span style="color:#e8e8ea;word-break:break-all;">{html.escape(link)}</span>
     </p>
     <p style="margin:0 0 14px;font-size:15px;line-height:1.6;">
-      Danach steht die einmalige <b>Alters- und Identitätsprüfung</b> an - erst
-      danach ist dein Konto freigeschaltet, und erst dann startet dein
-      Gratismonat. Die Prüfzeit geht dir also nicht ab.
+      Danach steht die einmalige <b>Alters- und Identitätsprüfung</b> an -
+      {_nach_der_pruefung_satz()}
     </p>
     <ol style="margin:0 0 22px;padding-left:20px;font-size:15px;line-height:1.7;">
       <li>Ein Live-Selfie, frontal in die Kamera (direkt in der App aufgenommen)</li>

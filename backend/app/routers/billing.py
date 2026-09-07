@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.orm import Session
 
 from .. import legal, mailer
+from ..config import settings
 from ..database import get_db
 from ..email_notifications import send_once
 from ..models import CheckoutConsent, User
@@ -32,6 +33,7 @@ def membership_status(current_user: User = Depends(get_current_user)):
         is_subscribed=current_user.is_subscribed,
         trial_ends_at=current_user.trial_ends_at,
         is_active=current_user.is_active_member(),
+        billing_enabled=settings.billing_enabled,
     )
 
 
@@ -41,6 +43,20 @@ def create_checkout(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+    # Waehrend die Gebuehr ausgesetzt ist, gibt es nichts zu bezahlen. Die
+    # Clients bieten den Abschluss dann gar nicht erst an; wer den Endpunkt
+    # trotzdem erreicht (alter Client, offener Tab, direkter Aufruf), soll
+    # keinen Vertrag ueber eine Leistung schliessen, die er ohnehin gratis
+    # bekommt. Der Ablehnung geht bewusst jede Consent-Buchung voraus: ohne
+    # Vertrag ist auch nichts zu erklaeren. 409 statt 404 - den Endpunkt gibt
+    # es, nur der Zustand passt nicht.
+    if not settings.billing_enabled:
+        raise HTTPException(
+            status.HTTP_409_CONFLICT,
+            "FLEXR ist in der Beta-Phase für alle kostenlos - ein Abo ist "
+            "derzeit nicht nötig und kann nicht abgeschlossen werden.",
+        )
+
     # Beide Erklaerungen sind per Validator schon auf True geprueft - ohne sie
     # kommt die Anfrage gar nicht bis hierher (422). Der massgebliche
     # Nachweis ist dieser CheckoutConsent-Datensatz - er bekommt die Abo-ID
@@ -84,7 +100,11 @@ def create_checkout(
 
 @router.post("/portal")
 def create_portal(current_user: User = Depends(get_current_user)):
-    """Self-Service-Verwaltung/Kündigung des Abos über Stripes Billing Portal."""
+    """Self-Service-Verwaltung/Kündigung des Abos über Stripes Billing Portal.
+
+    Bleibt auch bei ausgesetzter Gebuehr erreichbar: Wer aus der Zeit davor
+    noch ein laufendes Abo hat, muss es kuendigen koennen - gerade dann.
+    """
     if not current_user.stripe_customer_id:
         raise HTTPException(400, "Noch kein Abo abgeschlossen.")
     try:

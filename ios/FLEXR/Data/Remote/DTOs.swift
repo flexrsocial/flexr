@@ -182,6 +182,10 @@ struct MembershipStatusDTO: Decodable {
     let isSubscribed: Bool
     let trialEndsAt: String
     let isActive: Bool
+    /// false = Abogebühr ausgesetzt, FLEXR ist für alle kostenlos (siehe
+    /// `backend/app/config.py`). Optional, damit ältere Server, die das Feld
+    /// noch nicht liefern, beim bisherigen Verhalten bleiben.
+    let billingEnabled: Bool?
 }
 
 /// Die beiden getrennten, nicht vorangekreuzten Erklärungen vor dem Wechsel

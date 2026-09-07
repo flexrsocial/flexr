@@ -244,6 +244,10 @@ class MembershipStatus(BaseModel):
     is_subscribed: bool
     trial_ends_at: datetime
     is_active: bool
+    # False = Abogebuehr ausgesetzt, die Mitgliedschaft ist fuer alle
+    # kostenlos. Die Clients blenden daran Preise, Bezahlwand und
+    # Abo-Knoepfe aus; ``is_active`` ist dann immer True.
+    billing_enabled: bool
 
 
 class SwipeRequest(BaseModel):
