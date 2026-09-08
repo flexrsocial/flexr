@@ -1,14 +1,87 @@
 # FLEXR — Handoff für ein anderes Gerät / Claude Code
 
-Stand: **07.09.2026**
+Stand: **08.09.2026**
 
 Produktstand: Jüngster Commit auf `origin/main` ist der robots/nginx-Umbau der
 Sitzung vom **07.09.**, gepusht **und auf dem VPS ausgerollt** — reine
 Auslieferungskonfiguration, kein Backend, keine Migration, kein Neustart.
-Aufbau des Dokuments: erst die Eckdaten, dann die beiden Sitzungen vom
-**07.09.**, dann **06.09.**, dann **05.09.**, dann **31.08.**, dann **30.08.**,
-dann **23.08.**, dann **21.08.**; die Build-,
+Aufbau des Dokuments: erst die Eckdaten, dann **08.09.**, dann die beiden
+Sitzungen vom **07.09.**, dann **06.09.**, dann **05.09.**, dann **31.08.**,
+dann **30.08.**, dann **23.08.**, dann **21.08.**; die Build-,
 Test- und Deploy-Abschnitte am Ende gelten sitzungsübergreifend.
+
+## Sitzung 08.09.2026 — Version 2.5.5 gebaut, alle AABs vom VPS gelöscht
+
+Kein Produktcode angefasst. Zwei Dinge: Versionsnummer hochgezogen und neu
+gebaut, danach auf Wunsch **sämtliche AABs vom VPS gelöscht** — beide
+Downloadordner sind jetzt leer.
+
+### Version 2.5.5 (versionCode 42) — Nummernversatz ist behoben
+
+`android-native/app/build.gradle.kts` steht jetzt auf `versionCode = 42`,
+`versionName = "2.5.5"` (Commit `af71b25`). **2.5.4 ist übersprungen**, und
+zwar bewusst: Der Release vom 07.09. hieß 2.5.4, das damals gebaute Bundle
+trug aber `versionName 2.5.3` — die Nummer 2.5.4 war damit vergeben, ohne je
+in einem Artefakt zu stehen. Ab 2.5.5 stimmen Release-Nummer, `versionName`
+im Bundle und Dateiname wieder überein; der Warnkasten im 07.09.-Abschnitt
+ist damit erledigt.
+
+Gebaut mit der Toolchain aus `~/.bubblewrap/` (siehe „Android-Build"):
+
+```bash
+./gradlew --offline --no-build-cache --no-daemon --max-workers=1 \
+  :app:bundleProdRelease
+```
+
+BUILD SUCCESSFUL in 7m 3s, mit dem unveränderten Upload-Key `CN=FLEXR`
+signiert (`META-INF/FLEXR.SF`/`.RSA` im Bundle). 7.679.482 Bytes, SHA-256
+`a2202dbad901476c7cc0a15683879d4cf45141183551f74bbe74a29ade6f8600`.
+`versionName` **im gebauten Manifest** gegengeprüft (nicht nur in der
+Gradle-Datei) — steht dort auf 2.5.5.
+
+Die `--no-build-cache`-Falle vom 07.09. trat nicht wieder auf; die Option war
+wie dokumentiert von vornherein gesetzt. Unit-Tests liefen in dieser Sitzung
+**nicht** — es wurde kein Kotlin-Code geändert, nur die Versionsnummer.
+
+### Auf dem VPS liegt kein AAB mehr
+
+Das 2.5.5-Bundle war kurzzeitig als
+`dl-a616e78274de323b/flexr-2.5.5.aab` erreichbar und wurde anschließend
+**zusammen mit allen älteren AABs gelöscht**: aus `dl-a616e78274de323b/` die
+zehn Dateien 2.4.0–2.4.6, 2.5.0, 2.5.2 und 2.5.5, aus
+`dl-5d8a93fc22b232c9/` das alte 2.4.9-Bundle (`app-prod-release.aab`,
+7.636.045 Bytes) — elf Dateien, rund 82 MB. `find /flexr -name "*.aab"`
+liefert nichts mehr. Beide Ordner bestehen weiter; `dl-a616e78274de323b/`
+bleibt der vorgesehene Ort für neue Bundles, gelöscht wurde nur der Inhalt.
+
+**Folgen, die man kennen muss:**
+
+- Sämtliche AAB-Links in diesem Dokument und in älteren Sitzungsabschnitten
+  liefern jetzt **404**. Die Abschnitte vor dem 08.09. bleiben als Protokoll
+  stehen, ihre Links sind aber tot.
+- Die Bundles 2.4.0–2.4.6, 2.4.9, 2.5.0 und 2.5.2 existierten **nur** auf dem
+  VPS und sind damit weg. Sie ließen sich nur durch einen Neubau des
+  jeweiligen Commits ersetzen, und das ergäbe kein byte-identisches Artefakt.
+  Besonders zu beachten: **2.4.9 ist die Fassung, die in der Play Console
+  steht** — von genau diesem Artefakt gibt es keine Kopie mehr. Seine
+  Prüfsumme ist im 30.08.-Abschnitt festgehalten (`7431c17f…`).
+- Erhalten geblieben ist allein 2.5.5, lokal an zwei Stellen:
+  `android-native/app/build/outputs/bundle/prodRelease/app-prod-release.aab`
+  (überlebt kein `gradlew clean`) und als Sicherung
+  `~/Downloads/flexr-2.5.5.aab`, beide mit der oben genannten Prüfsumme.
+- Der zweite Ordner `dl-5d8a93fc22b232c9/` ist damit gegenstandslos: Er
+  enthielt nur das 2.4.9-Bundle und ist jetzt leer. Neue Bundles gehören
+  ohnehin nach `dl-a616e78274de323b/`; der leere Ordner kann bei Gelegenheit
+  ganz weg.
+
+### Offen
+
+- **2.5.5 ist nirgends veröffentlicht** — weder auf dem VPS noch in der Play
+  Console. Wer es bereitstellen will, lädt `~/Downloads/flexr-2.5.5.aab`
+  nach dem Ablauf unter „Ein neues AAB wird so bereitgestellt" hoch.
+- In der Play Console steht weiterhin 2.4.9 (versionCode 37) — das Artefakt
+  dazu liegt seit dem 08.09. nirgends mehr lokal oder auf dem VPS, nur noch
+  in der Play Console selbst.
 
 ## Sitzung 07.09.2026 (2) — Abogebühr bis auf weiteres ausgesetzt
 
@@ -84,6 +157,10 @@ den kostenpflichtigen Pfad prueft. 399 Tests gruen.
 
 **Android: gebaut und signiert.** Dieser Release ist **2.5.4** — nicht 2.5.3.
 
+> **ERLEDIGT am 08.09.** — der Versatz ist mit 2.5.5 (versionCode 42)
+> aufgelöst, siehe die Sitzung 08.09. oben. Der Kasten bleibt als Protokoll
+> stehen; der darin genannte Download-Link ist gelöscht und liefert 404.
+>
 > **Achtung, Abweichung zwischen Nummer und Artefakt (bewusst so belassen):**
 > Das gebaute Bundle traegt intern `versionName 2.5.3` und `versionCode 41`
 > (`build.gradle.kts` sagt dasselbe), und es liegt auf dem Server als
@@ -660,23 +737,21 @@ nativer Code dazukommt; ein NDK ist dafür aktuell nicht nötig.
   nicht mit FLEXR verwandte Projekte (`tarifbot-*`, `ediktmonitor`,
   `gasfees`, ein `defi`-Ordner). Bei Aufräumarbeiten in `/tmp` oder
   `~/.pm2` etc. nichts anfassen, das nicht eindeutig zu `/flexr` gehört.
-- **AAB-Download (aktuell, 2.5.0 / versionCode 38):**
-  <https://flexr.social/dl-a616e78274de323b/flexr-2.5.0.aab>
-  SHA-256 `0d6fd2aad4f1f64039564adb2cdfc2c56f4d15d7ebd1cd38475c6995889d6612`,
-  7.648.665 Bytes, gebaut am 30.08.2026, mit dem FLEXR-Schlüssel signiert
-  (`META-INF/FLEXR.SF`/`.RSA` im Bundle). Entspricht exakt dem Quellstand
-  (`android-native/app/build.gradle.kts`: versionCode 38, versionName 2.5.0).
-  **Noch nicht in die Play Console geladen** (2.4.9/versionCode 37 war das,
-  siehe „Noch offen").
-- **Downloadordner-Namenskonvention vereinheitlicht** (war seit dem 23.08.
-  als Punkt offen): dieses Bundle liegt als `flexr-2.5.0.aab` in
-  `dl-a616e78274de323b/`, dem Ordner mit den versioniert benannten AABs
-  (2.4.0–2.4.6). Der zweite Ordner `dl-5d8a93fc22b232c9/` enthält weiterhin
-  das alte 2.4.9-Bundle unter dem generischen Namen `app-prod-release.aab` —
-  unkritisch, kann bei Gelegenheit aufgeräumt werden, aber ab jetzt landen
-  neue Builds einheitlich in `dl-a616e78274de323b/` als `flexr-X.Y.Z.aab`.
-- Ältere AABs (2.4.0–2.4.6, plus das 2.4.9 im anderen Ordner) liegen noch auf
-  dem VPS, unkritisch, bei Gelegenheit aufräumbar.
+- **AAB-Download: derzeit keiner.** `dl-a616e78274de323b/` wurde am
+  08.09.2026 auf Wunsch geleert (2.4.0–2.4.6, 2.5.0, 2.5.2, 2.5.5) — alle
+  AAB-Links in diesem Dokument liefern 404. Der aktuelle Quellstand ist
+  **2.5.5 / versionCode 42**, gebaut und signiert, SHA-256
+  `a2202dbad901476c7cc0a15683879d4cf45141183551f74bbe74a29ade6f8600`,
+  7.679.482 Bytes, aber nur lokal: unter
+  `android-native/app/build/outputs/bundle/prodRelease/app-prod-release.aab`
+  und als Sicherung `~/Downloads/flexr-2.5.5.aab`. Zum Bereitstellen siehe
+  „Ein neues AAB wird so bereitgestellt".
+- **Namenskonvention** (seit 30.08. vereinheitlicht): neue Bundles landen in
+  `dl-a616e78274de323b/` als `flexr-X.Y.Z.aab`, benannt nach dem
+  `versionName` **aus dem Bundle**. Der Ordner ist leer, aber vorhanden.
+- Der zweite Ordner `dl-5d8a93fc22b232c9/` ist ebenfalls leer (enthielt bis
+  zum 08.09. das 2.4.9-Bundle als `app-prod-release.aab`) und wird nicht mehr
+  gebraucht.
 
 ## Sitzung 30.08.2026 (Android/iOS: Blockier-Liste + Listen-Poll, Telegram-Diagnose)
 
@@ -1545,15 +1620,31 @@ ssh flexr-vps 'sha256sum /flexr/frontend/dl-a616e78274de323b/flexr-X.Y.Z.aab'
 curl -fsSI https://flexr.social/dl-a616e78274de323b/flexr-X.Y.Z.aab
 ```
 
+Der Alias `flexr-vps` meldet sich als **root** an (siehe `~/.ssh/config`),
+der Zielordner ist damit direkt beschreibbar — ein Umweg über `/tmp` mit
+anschließendem `sudo mv` ist nicht nötig (am 08.09. vorsorglich so gemacht,
+das war überflüssig).
+
 `frontend/dl-a616e78274de323b/` auf dem VPS ist absichtlich unversioniert
-(enthält die AAB-Downloads) — nie löschen.
+(es ist der Ort für die AAB-Downloads) — **der Ordner selbst ist nie zu
+löschen**. Sein Inhalt wurde am 08.09.2026 auf ausdrücklichen Wunsch
+geleert (ebenso der von `dl-5d8a93fc22b232c9/`); das ist kein Präzedenzfall,
+sondern war eine Einzelanweisung.
 
 **Der Dateiname folgt dem `versionName` aus dem Bundle, nicht der
-Release-Nummer** — beim Release vom 07.09. fällt beides auseinander: Er heißt
-2.5.4, das Bundle sagt 2.5.3, die Datei entsprechend `flexr-2.5.3.aab`. Siehe
-den Abschnitt „Builds dieser Sitzung" ganz oben; beim nächsten Build ist
-`versionName` in `android-native/app/build.gradle.kts` vor dem Bauen zu
-setzen, damit das nicht erneut auseinanderläuft.
+Release-Nummer.** Beim Release vom 07.09. fiel beides auseinander (Release
+2.5.4, Bundle 2.5.3); seit 2.5.5 stimmt es wieder überein. Damit das so
+bleibt: `versionCode` **und** `versionName` in
+`android-native/app/build.gradle.kts` vor dem Bauen setzen, und nach dem
+Build den `versionName` **im Bundle-Manifest** gegenprüfen, nicht nur in der
+Gradle-Datei:
+
+```bash
+python3 -c 'import zipfile,re,sys; \
+d=zipfile.ZipFile(sys.argv[1]).read("base/manifest/AndroidManifest.xml"); \
+print(re.findall(rb"[0-9]+\.[0-9]+\.[0-9]+", d)[:5])' \
+  app/build/outputs/bundle/prodRelease/app-prod-release.aab
+```
 
 ## Empfohlener Einstiegsprompt für Claude Code
 
