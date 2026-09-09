@@ -14,12 +14,17 @@
 // weder aus Datenschutz- noch aus Speichergruenden in diesen Cache.
 // v9: Die Zweisprachigkeit kam dazu. /i18n.js und /app/i18n-app.js gehoeren in
 // die Shell - ohne sie zeigt die App offline die rohen Uebersetzungsschluessel.
-const CACHE = 'flexr-shell-v9';
+// v10: Die Landingpage gibt es jetzt zweisprachig unter zwei Adressen (/ und
+// /en/). Beide gehoeren in die Shell, dazu lang-switch.js; i18n-landing.js ist
+// dagegen raus - es ist nur noch Eingabe fuer build-en.py und wird von keiner
+// Seite mehr geladen.
+const CACHE = 'flexr-shell-v10';
 // Seit dem 15.08.2026 liegt die App unter /app/, an der Wurzel steht die
 // oeffentliche Landingpage. Beide gehoeren in die Shell: die Landingpage,
 // weil sie der Einstieg ist, die App, weil sie offline funktionieren soll.
-const SHELL = ['/', '/index.html', '/app/', '/app/index.html',
-               '/i18n.js?v=1', '/i18n-landing.js?v=1', '/app/i18n-app.js?v=1',
+const SHELL = ['/', '/index.html', '/en/', '/en/index.html',
+               '/app/', '/app/index.html',
+               '/lang-switch.js?v=1', '/i18n.js?v=1', '/app/i18n-app.js?v=1',
                '/manifest.json', '/favicon.ico?v=4', '/legal.css?v=1',
                '/fonts/work-sans.woff2?v=1', '/fonts/oswald.woff2?v=1',
                '/icons/icon-192.png?v=4', '/icons/icon-512.png?v=4'];

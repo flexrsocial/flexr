@@ -55,10 +55,13 @@ flexr/
 │   ├── pytest.ini
 │   └── .env.example
 ├── frontend/
-│   ├── index.html              # oeffentliche Landingpage
+│   ├── index.html              # oeffentliche Landingpage (deutsch)
+│   ├── en/index.html           # englische Fassung — ERZEUGT, siehe build-en.py
+│   ├── build-en.py             # erzeugt en/index.html aus index.html + Woerterbuch
+│   ├── lang-switch.js          # Wegfuehrung zwischen / und /en/
 │   ├── app/index.html          # Web-App, fetch()-basiert gegen /api/...
-│   ├── i18n.js                 # Zweisprachigkeit: Maschinerie + Spracherkennung
-│   ├── i18n-landing.js         # Woerterbuch der Landingpage (de/en)
+│   ├── i18n.js                 # Zweisprachigkeit der App: Maschinerie + Erkennung
+│   ├── i18n-landing.js         # Woerterbuch der Landingpage (Eingabe fuer build-en.py)
 │   └── app/i18n-app.js         # Woerterbuch der Web-App (de/en)
 ├── deploy/
 │   ├── flexr-api.service       # systemd-Unit (Alternative zu pm2)

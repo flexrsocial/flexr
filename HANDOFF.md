@@ -2,16 +2,17 @@
 
 Stand: **09.09.2026**
 
-Produktstand: Jüngster Commit auf `origin/main` bringt die **Zweisprachigkeit
-(Deutsch/Englisch)** in Web-App, Landingpage, Android- und iOS-App sowie den
-**zweiten Weg beim Ausweis-Upload** (Datei statt nur Kamera). Reines
+Produktstand: Auf `origin/main` liegen zwei Commits dieser Sitzung — die
+**Zweisprachigkeit (Deutsch/Englisch)** in Web-App, Landingpage, Android- und
+iOS-App samt **zweitem Weg beim Ausweis-Upload** (Datei statt nur Kamera), und
+darauf die **eigene englische Landingpage unter `/en/`**. Beides reines
 Frontend/Client — kein Backend, keine Migration, kein Neustart.
 Aufbau des Dokuments: erst die Eckdaten, dann **09.09.**, dann **08.09.**,
 dann die beiden Sitzungen vom **07.09.**, dann **06.09.**, dann **05.09.**,
 dann **31.08.**, dann **30.08.**, dann **23.08.**, dann **21.08.**; die Build-,
 Test- und Deploy-Abschnitte am Ende gelten sitzungsübergreifend.
 
-## Sitzung 09.09.2026 — Zweisprachigkeit (de/en) und Datei-Upload beim Ausweis
+## Sitzung 09.09.2026 — Zweisprachigkeit (de/en), Datei-Upload beim Ausweis, `/en/`
 
 Zwei Aufträge, beide durchgezogen: der Ausweisschritt nimmt jetzt auch eine
 **bestehende Datei** statt nur einer Kameraaufnahme an, und **Web-App,
@@ -133,16 +134,93 @@ JVM-Tests unkonstruierbar. Die Tests setzen `FakeAppStrings` ein.
   dieser Adresse. Eine per JavaScript umgeschriebene FAQPage-Auszeichnung wäre
   gegenüber Google nur noch Rauschen.
 
-### Offener Punkt: englische Landingpage ist noch nicht indexierbar
+### Englische Landingpage unter `/en/` — erledigt im selben Zug
 
-Die Landingpage schaltet Titel, `<meta name="description">` und die
-`og:`-Angaben mit um und trägt jetzt `hreflang`-Verweise auf `/` (de),
-`/?lang=en` (en) und `x-default`. **Das reicht für Menschen, nicht für
-Suchmaschinen:** Googlebot rendert aus einer US-Zeitzone und sähe auf `/`
-englischen Fließtext unter deutscher Auszeichnung. Sauber indexierbar wird
-Englisch erst mit einer eigenen Seite unter `/en/` samt eigenem `canonical`,
-eigener JSON-LD-Auszeichnung und einem Eintrag in `sitemap.xml`. Das ist der
-nächste Arbeitsschritt.
+Der erste Wurf schaltete die Sprache der Landingpage **zur Laufzeit** um, so wie
+die Web-App. Für die App ist das richtig (sie steht auf `noindex`), für die
+Landingpage war es falsch: Googlebot rendert aus einer US-Zeitzone und hätte auf
+`/` englischen Fließtext unter deutscher Auszeichnung gesehen. Das ist mit einem
+zweiten Commit korrigiert — Beschreibung im Abschnitt „Zwei Adressen" weiter
+unten.
+
+### Zwei Adressen statt eines Umschalters: `/` und `/en/`
+
+Die Landingpage gibt es jetzt **zweimal**, unter zwei eigenen Adressen:
+
+| | |
+|---|---|
+| `https://flexr.social/` | Deutsch, `<html lang="de-AT">`, eigenes `canonical` |
+| `https://flexr.social/en/` | Englisch, `<html lang="en">`, eigenes `canonical` |
+
+Beide liefern ihren Text **fertig im HTML** aus und verweisen über `hreflang`
+wechselseitig aufeinander (`de-AT`, `de`, `en`, `x-default`); dieselben
+Verweise stehen als `xhtml:link` in `sitemap.xml`. Damit sieht jede Adresse für
+Suchmaschinen eindeutig eine Sprache — genau das, was der Laufzeit-Umschalter
+nicht leisten konnte.
+
+Die Web-App unter `/app/` bleibt beim Laufzeit-Umschalter. Sie steht auf
+`noindex`; dort gibt es kein SEO-Problem zu lösen, und ein Seitenwechsel mitten
+in einer angemeldeten Sitzung wäre die schlechtere Antwort.
+
+**Erzeugt, nicht doppelt gepflegt.** `frontend/index.html` bleibt die einzige
+Quelle des Markups; `frontend/build-en.py` setzt daraus und aus dem
+`en`-Block der Wörterbücher die englische Fassung zusammen:
+
+```bash
+python3 frontend/build-en.py
+```
+
+Das Skript **muss nach jeder Änderung an `frontend/index.html` oder an
+`frontend/i18n-landing.js` laufen**. Es bricht ab, wenn zu einer
+`data-i18n`-Auszeichnung kein englischer Text existiert — eine halb übersetzte
+Seite entsteht gar nicht erst. `frontend/en/index.html` trägt einen
+Kopfkommentar „ERZEUGTE DATEI"; Änderungen dort gehen beim nächsten Lauf
+verloren.
+
+Umgestellt werden dabei: alle ausgezeichneten Texte und Attribute,
+`<html lang>`, `canonical`, `og:url`, `og:locale`, Titel und Beschreibungen
+(aus denselben Schlüsseln), die Richtung des Sprachreglers, der Selbstverweis
+der Wortmarke und die JSON-LD-Auszeichnung (`inLanguage`, eigene `@id` für
+`WebSite` und `SoftwareApplication`, englische Beschreibungen). Die
+`Organization` behält bewusst **dieselbe `@id`** — es ist dasselbe Unternehmen,
+nicht ein zweites.
+
+**Wegführung** (`frontend/lang-switch.js`, ersetzt auf der Landingpage die
+Laufzeit-Übersetzung):
+
+1. Der Regler in der Kopfzeile ist jetzt ein **Verweis** (`<a>`), kein Knopf.
+   Ein Klick merkt die Wahl unter demselben `flexr_lang` wie die App.
+2. Wer schon einmal gewählt hat, landet beim nächsten Aufruf direkt auf der
+   passenden Adresse (`location.replace`, damit der Zurück-Knopf nicht in eine
+   Schleife läuft).
+3. Wer **noch nie** gewählt hat und erkennbar nicht aus dem DACH-Raum kommt,
+   bekommt eine **Hinweiszeile** mit Verweis auf die andere Fassung — und
+   ausdrücklich **keine automatische Weiterleitung**.
+
+Punkt 3 ist die entscheidende Stelle: Ein Crawler hat nie eine gespeicherte
+Wahl. Eine automatische Weiterleitung träfe damit **immer** ihn — er bekäme
+die deutsche Fassung von `/` nie zu sehen, und die getrennten Adressen wären
+umsonst. Die Hinweiszeile trägt `data-nosnippet` und wird per JavaScript hinter
+dem Sprungverweis eingehängt, steht also weder im ausgelieferten HTML noch vor
+„Zum Inhalt springen" in der Tastaturreihenfolge.
+
+**Wenn stattdessen automatisch weitergeleitet werden soll**, ist das der
+Einzeiler in `lang-switch.js`: `if(detect() !== pageLang) showNotice();` wird zu
+`location.replace(URLS[detect()])`. Die SEO-Folge steht oben.
+
+Die 25 Beschreibungen der Musterprofile im Demo-Deck („Push Day, Bergtouren und
+Kaffee nach dem Training.") waren bis dahin nicht ausgezeichnet und damit die
+letzten deutschen Reste auf der englischen Seite — sie liegen jetzt als
+`sample.bio1`…`sample.bio25` im Wörterbuch.
+
+**nginx braucht keine eigene `location`**: `try_files $uri $uri/` findet das
+Verzeichnis, `index index.html` liefert `/en/index.html`, und `/en` ohne
+Schrägstrich bekommt die übliche 301 auf `/en/`. Als Kommentar in
+`deploy/nginx-flexr.conf` vermerkt.
+
+Der Service Worker steht damit auf `flexr-shell-v10`: `/en/` und
+`lang-switch.js` sind in der Shell, `i18n-landing.js` ist heraus — es wird von
+keiner Seite mehr geladen und ist nur noch Eingabe für den Generator.
 
 ### Ein fremder Anteil in diesem Commit
 
@@ -159,9 +237,15 @@ einen Commit zu erfinden, der so nie existiert hat, ist der Anteil hier
 - **Android**: `:app:testProdDebugUnitTest` und `:app:assembleProdDebug` grün
   (offline, Toolchain aus `~/.bubblewrap/`). `resourceConfigurations` steht
   jetzt auf `listOf("de", "en")`.
-- **Web-App und Landingpage**: im Browser durchgeklickt. 192 bzw. 115
-  übersetzte Knoten, in **beiden** Sprachen kein roher Schlüssel und kein leerer
-  Text. Spracherkennung mit 14 Fällen als Node-Test durchgespielt (Wien mit
+- **Web-App**: im Browser durchgeklickt. 192 übersetzte Knoten, in **beiden**
+  Sprachen kein roher Schlüssel und kein leerer Text.
+- **Landingpage `/` und `/en/`**: beide Adressen aufgerufen, in der erzeugten
+  englischen Fassung kein deutscher Rest ausserhalb von Eigennamen
+  (`St. Pölten`, `Wiener Neustadt`, die Studionamen), JSON-LD auf beiden Seiten
+  als gültiges JSON geparst, keine relativen Verweise in `/en/`. Die drei Fälle
+  der Wegführung durchgespielt: gespeichertes `de` auf `/en/` leitet auf `/`,
+  gespeichertes `en` auf `/` leitet auf `/en/`, **ohne** gespeicherte Wahl
+  bleibt `/` deutsch (der Crawler-Fall). Spracherkennung mit 14 Fällen als Node-Test durchgespielt (Wien mit
   englischem System → Deutsch, Mailand mit deutschem System → Deutsch, London →
   Englisch, gespeicherte Wahl schlägt den Ort, …).
 - **Schlüssel-Parität und Format-Platzhalter** (`%1$s` / `{name}` / `%@`)
@@ -182,9 +266,13 @@ ebenso `LegalDocument.title` → `titleKey` und `TopLevelDestination.label` →
 ### Neue Dateien
 
 ```
-frontend/i18n.js                       Maschinerie + Spracherkennung (geteilt)
-frontend/i18n-landing.js               Woerterbuch der Landingpage
+frontend/i18n.js                       Maschinerie + Spracherkennung (App)
+frontend/i18n-landing.js               Woerterbuch der Landingpage (nur noch
+                                       Eingabe fuer build-en.py)
 frontend/app/i18n-app.js               Woerterbuch der Web-App
+frontend/lang-switch.js                Wegfuehrung zwischen / und /en/
+frontend/build-en.py                   erzeugt frontend/en/index.html
+frontend/en/index.html                 ERZEUGT - nicht von Hand bearbeiten
 android-native/.../core/locale/        AppLanguage, LanguageStore, AppStrings,
                                        ProvideAppLanguage, AppLanguageViewModel
 android-native/.../di/CoroutineModule.kt   @ApplicationScope fuer AppStrings
@@ -197,9 +285,9 @@ ios/FLEXR/Core/Locale/                 AppLanguage, LanguageStore, FlexrStrings
 ios/FLEXR/Core/DesignSystem/Component/LanguageSwitch.swift
 ```
 
-Der Service Worker (`frontend/sw.js`) steht auf `flexr-shell-v9` und nimmt
-`/i18n.js`, `/i18n-landing.js` und `/app/i18n-app.js` in die Shell — ohne sie
-zeigte die App offline die rohen Schlüssel.
+Der Service Worker (`frontend/sw.js`) steht auf `flexr-shell-v10` (siehe
+oben) — ohne die i18n-Dateien in der Shell zeigte die App offline die rohen
+Schlüssel.
 
 ## Sitzung 08.09.2026 — Version 2.5.5 gebaut, alle AABs vom VPS gelöscht
 
