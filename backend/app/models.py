@@ -387,6 +387,8 @@ class User(Base):
     notify_queue_push = Column(Boolean, nullable=False, default=True)
     notify_inactive_email = Column(Boolean, nullable=False, default=True)
     notify_inactive_push = Column(Boolean, nullable=False, default=True)
+    notify_pending_likes_email = Column(Boolean, nullable=False, default=True)
+    notify_pending_likes_push = Column(Boolean, nullable=False, default=True)
 
     # Radius der Umkreissuche. Mittelpunkt ist die Adresse des eingetragenen
     # Gyms (siehe gym_geo.py) - so tauchen auch Leute aus nahegelegenen
@@ -811,6 +813,7 @@ class NotificationTopic(str, enum.Enum):
     new_match = "new_match"
     queue_waiting = "queue_waiting"
     inactivity = "inactivity"
+    pending_likes = "pending_likes"
 
 
 class PushNotification(Base):

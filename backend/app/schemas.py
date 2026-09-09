@@ -178,6 +178,8 @@ class MyProfileOut(ProfileOut):
     notify_queue_push: bool = True
     notify_inactive_email: bool = True
     notify_inactive_push: bool = True
+    notify_pending_likes_email: bool = True
+    notify_pending_likes_push: bool = True
 
 
 class NotificationSettingsUpdate(BaseModel):
@@ -194,6 +196,8 @@ class NotificationSettingsUpdate(BaseModel):
     notify_queue_push: Optional[bool] = None
     notify_inactive_email: Optional[bool] = None
     notify_inactive_push: Optional[bool] = None
+    notify_pending_likes_email: Optional[bool] = None
+    notify_pending_likes_push: Optional[bool] = None
 
 
 class ReorderPhotosRequest(BaseModel):

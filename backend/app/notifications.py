@@ -1,9 +1,10 @@
 """Zustellung der Aktivitäts-Benachrichtigungen über beide Kanäle.
 
-Drei Anlässe, zwei Kanäle: neues Match, wartende Profile im Suchradius und
-Inaktivität - jeweils als E-Mail und als App-Benachrichtigung. Beide Kanäle
-laufen bewusst durch dieselbe Funktion, damit ein Anlass nicht auf einem Kanal
-anders entschieden wird als auf dem anderen.
+Vier Anlässe, zwei Kanäle: neues Match, wartende Profile im Suchradius,
+Inaktivität und offene Likes ohne Match - jeweils als E-Mail und als
+App-Benachrichtigung. Beide Kanäle laufen bewusst durch dieselbe Funktion,
+damit ein Anlass nicht auf einem Kanal anders entschieden wird als auf dem
+anderen.
 
 Warum der Push-Teil hier und nicht im Client entschieden wird: FLEXR hat kein
 FCM/APNs, die Apps holen ihre Benachrichtigungen per Hintergrundabgleich ab
@@ -29,11 +30,13 @@ _EMAIL_FLAG = {
     NotificationTopic.new_match: "notify_match_email",
     NotificationTopic.queue_waiting: "notify_queue_email",
     NotificationTopic.inactivity: "notify_inactive_email",
+    NotificationTopic.pending_likes: "notify_pending_likes_email",
 }
 _PUSH_FLAG = {
     NotificationTopic.new_match: "notify_match_push",
     NotificationTopic.queue_waiting: "notify_queue_push",
     NotificationTopic.inactivity: "notify_inactive_push",
+    NotificationTopic.pending_likes: "notify_pending_likes_push",
 }
 
 
@@ -168,6 +171,31 @@ def notify_inactivity(db: Session, user: User, days: int, period_key: str) -> No
     send_email_once(
         db, user, NotificationTopic.inactivity, key,
         lambda: mailer.send_inactivity_reminder(user.email, user.name, days),
+    )
+
+
+def notify_pending_likes(db: Session, user: User, count: int, period_key: str) -> None:
+    """Offene Likes ohne Match - höchstens einmal pro Woche.
+
+    period_key ist der ISO-Wochenschlüssel (siehe email_jobs.py): hält die
+    Nachricht auf höchstens eine pro Kalenderwoche, unabhängig davon, wie oft
+    der tägliche Job in dieser Woche noch läuft.
+    """
+    key = f"pending_likes:{user.id}:{period_key}"
+    body = (
+        "Ein Mitglied hat dich geliked." if count == 1
+        else f"{count} Mitglieder haben dich geliked."
+    )
+    queue_push(
+        db, user, NotificationTopic.pending_likes,
+        title="Neue Likes",
+        body=body,
+        dedupe_key=key,
+        target="swipe",
+    )
+    send_email_once(
+        db, user, NotificationTopic.pending_likes, key,
+        lambda: mailer.send_pending_likes(user.email, user.name, count),
     )
 
 

@@ -736,12 +736,13 @@ Dein FLEXR-Team
 
 
 # ---------------------------------------------------------------------------
-# Aktivitäts-Benachrichtigungen (neues Match, wartende Profile, Inaktivität)
+# Aktivitäts-Benachrichtigungen (neues Match, wartende Profile, Inaktivität,
+# offene Likes ohne Match)
 #
 # Anders als die Abrechnungs- und Moderationsmails sind das die einzigen
 # abbestellbaren Nachrichten: jede hat im Profil unter "Benachrichtigungen"
 # einen eigenen Schalter (siehe notifications.py). Der Hinweis darauf steht
-# deshalb in jedem dieser drei Texte.
+# deshalb in jedem dieser Texte.
 # ---------------------------------------------------------------------------
 
 _NOTIFY_OPT_OUT = (
@@ -801,6 +802,36 @@ Dein FLEXR-Team
         email, f"{count} neue Profile in deinem Umkreis", body,
         _queue_waiting_html(name, count),
     )
+
+
+def _pending_likes_html(name: str, count: int) -> str:
+    mitglied = "Mitglied" if count == 1 else "Mitglieder"
+    hat_haben = "hat" if count == 1 else "haben"
+    body = "\n".join([
+        _p(
+            f"{count} {mitglied} {hat_haben} dein Profil geliked - ihr habt aber "
+            "noch kein Match. Öffne FLEXR und swipe zurück, dann seht ihr, ob's "
+            "auch bei dir passt."
+        ),
+        _p(_NOTIFY_OPT_OUT),
+    ])
+    return _email_shell("Neue Likes", f"Hallo {html.escape(name)},", body)
+
+
+def send_pending_likes(email: str, name: str, count: int) -> bool:
+    mitglied = "Mitglied" if count == 1 else "Mitglieder"
+    hat_haben = "hat" if count == 1 else "haben"
+    subject = "Ein Like wartet auf dich bei FLEXR" if count == 1 else f"{count} Likes warten auf dich bei FLEXR"
+    body = f"""Hallo {name},
+
+{count} {mitglied} {hat_haben} dein Profil geliked - ihr habt aber noch kein
+Match. Öffne FLEXR und swipe zurück, dann seht ihr, ob's auch bei dir passt.
+
+{_NOTIFY_OPT_OUT}
+
+Dein FLEXR-Team
+"""
+    return send_email(email, subject, body, _pending_likes_html(name, count))
 
 
 def _inactivity_html(name: str, days: int) -> str:
