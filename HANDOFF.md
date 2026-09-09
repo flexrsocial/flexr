@@ -7,10 +7,108 @@ Produktstand: Auf `origin/main` liegen zwei Commits dieser Sitzung — die
 iOS-App samt **zweitem Weg beim Ausweis-Upload** (Datei statt nur Kamera), und
 darauf die **eigene englische Landingpage unter `/en/`**. Beides reines
 Frontend/Client — kein Backend, keine Migration, kein Neustart.
+**Noch nicht committet:** die Nachbesserungen aus der zweiten Sitzung vom
+09.09. (siehe direkt unten) liegen nur im Arbeitsverzeichnis.
 Aufbau des Dokuments: erst die Eckdaten, dann **09.09.**, dann **08.09.**,
 dann die beiden Sitzungen vom **07.09.**, dann **06.09.**, dann **05.09.**,
 dann **31.08.**, dann **30.08.**, dann **23.08.**, dann **21.08.**; die Build-,
 Test- und Deploy-Abschnitte am Ende gelten sitzungsübergreifend.
+
+## Sitzung 09.09.2026 (zweite) — 2.5.5 wieder auf dem VPS, sechs Fehler in `/app`
+
+Ein Auftrag mit sieben Punkten, alle aus der Benutzung heraus gemeldet.
+
+### 2.5.5 liegt wieder zum Herunterladen bereit
+
+Das am 08.09. gebaute Bundle wurde unverändert hochgeladen:
+
+    https://flexr.social/dl-a616e78274de323b/flexr-2.5.5.aab
+
+7.679.482 Bytes, SHA-256 `a2202dbad901476c7cc0a15683879d4cf45141183551f74bbe74a29ade6f8600`
+— lokal und auf dem VPS identisch, `versionName` im Bundle-Manifest auf 2.5.5
+gegengeprüft. **Der Abschnitt „Auf dem VPS liegt kein AAB mehr" weiter unten
+gilt damit nur noch für die dort aufgezählten älteren Bundles.** Neu gebaut
+wurde nichts; alle Korrekturen dieser Sitzung sind Web-Frontend.
+
+### `t is not a function` beim Profilspeichern
+
+`toast()` legte seine Box in `const t` an und verdeckte damit die
+Übersetzungsfunktion `t` aus demselben Modul. `t('common.close')` für das
+Schließkreuz warf deshalb einen TypeError. Sichtbar wurde er als Fehlerzeile
+unter dem Speichern-Knopf, obwohl das `PATCH /api/profiles/me` **schon durch
+war** — gespeichert wurde also immer, nur die Bestätigung schlug fehl. Die Box
+heißt jetzt `box`. Betroffen war jeder Toast der App, nicht nur dieser.
+
+### Sprachwechsel löschte dynamisch gesetzte Texte
+
+`FlexrI18n.apply()` überschreibt jeden `[data-i18n]`-Knoten mit dem Eintrag
+seines Schlüssels. Knoten, die zur Laufzeit etwas anderes bekommen hatten,
+verloren das beim Umschalten:
+
+- der aufgelöste Ort neben der PLZ („Wien" → „— PLZ eingeben —"),
+- der Umkreis-Hinweis mit eingesetztem Gym-Namen,
+- die stehenbleibenden Fehlerzeilen von PLZ-Suche und Profilspeichern.
+
+Zwei Helfer in `app/index.html` trennen die Fälle sauber: `setI18nText(el, key,
+vars)` für übersetzbare Texte (Schlüssel **und** Platzhalterwerte bleiben am
+Knoten stehen) und `setPlainText(el, text)` für Eigennamen wie den Ortsnamen,
+das `data-i18n` entfernt. Dazu kann `apply()` in `/i18n.js` jetzt
+`data-i18n-vars` (JSON) lesen — nur so überlebt „Profile im Umkreis deines
+Gyms (McFit)." einen Wechsel. Neue Schlüssel: `plz.unknownShort`,
+`plz.failedShort`, `acct.saveFailed` (vorher fest deutsch im Code).
+
+**Wer weitere dynamische Texte einbaut, nimmt diese beiden Helfer** — ein
+direktes `el.textContent = t(...)` auf einem `[data-i18n]`-Knoten ist genau der
+Fehler, der hier dreimal steckte.
+
+### Fokusrahmen der PLZ-Kombination
+
+`.plz-combo.focused` zeichnete eine äußere `outline` mit `outline-offset:1px`.
+Die Kombination liegt bündig an der linken Kante von `.screen.active`
+(`padding-left:0`, `overflow-x:hidden`), die Linie lag dort also außerhalb des
+Scroll-Containers und wurde abgeschnitten: oben, rechts und unten orange, der
+linke senkrechte Strich fehlte. Jetzt derselbe `inset`-`box-shadow` wie bei den
+einfachen Feldern — der Grund dafür stand seit jeher im Kommentar darüber, die
+PLZ-Kombination war nur nie nachgezogen worden.
+
+### Sprachregler nur noch einmal im Kontobereich
+
+`body[data-screen="screen-account"] header.top .lang-switch{ display:none; }` —
+auf dem Kontobildschirm steht der beschriftete Regler unter „Profil", der
+unbeschriftete in der Kopfzeile war daneben ein Doppel. Auf allen anderen
+Bildschirmen (auch ausgeloggt) bleibt er stehen, dort gibt es keinen zweiten.
+
+### Grüne Augenbraue im Hero brach nur auf Deutsch um
+
+„DATING FÜR GYM-PEOPLE · ÖSTERREICH" braucht 310px, die Textspalte des Heros
+ist auf dem Desktop 304px breit — die englische Fassung (283px) passte, die
+deutsche nicht. Die Augenbraue läuft jetzt über **beide** Gitterspalten
+(`grid-template-areas: "eyebrow eyebrow"`, in der Desktop- **und** der
+Mobilfassung) und trägt `white-space:nowrap`. Das Musterdeck beginnt dadurch
+auf Höhe der Schlagzeile statt der Augenbraue. Geprüft bei 320/360/430/480/
+1280/1440 px, beide Sprachen einzeilig und ohne Überlauf.
+
+### Noch offen: Landing zwischen 861 und ~1000 px
+
+Dabei aufgefallen, **nicht** beauftragt und deshalb nicht angefasst: In diesem
+Fensterbereich ist der ausgeloggte Hero zerdrückt. `body.landing main` gibt der
+rechten Spalte `minmax(340px,460px)`, dem Hero bleiben bei 900px rund 305px,
+davon nimmt das Musterdeck 210px — die Textspalte ist dann ~68px breit,
+„MATCH. TRAIN. REPEAT." wird beschnitten und der Fließtext steht ein Wort pro
+Zeile. Sauber wäre, das Musterdeck unterhalb von ~1100px auszublenden und den
+Hero dort einspaltig laufen zu lassen. Das ist eine Gestaltungsentscheidung,
+darum liegen gelassen.
+
+### Prüfung
+
+Kein Backend berührt, keine Migration, kein Neustart. Getestet im Browser gegen
+`python3 -m http.server` mit einem `fetch`-Stub für `/api/geo/plz/<plz>`:
+Ort auflösen, unbekannte PLZ (404), Sprachwechsel in beide Richtungen,
+Fokusrahmen, sichtbarer Toast (über den Gym-Vorschlag, derselbe Codepfad wie
+beim Profilspeichern) und ein Vergleich aller berechneten Stile im
+Kontobereich vor und nach dem Wechsel — außer den übersetzten Wörtern
+verschiebt sich nichts. `/i18n.js` und `/app/i18n-app.js` sind im Skript-Tag
+auf `?v=2` hochgezählt, sonst liefert der Browser-Cache die alte Maschinerie.
 
 ## Sitzung 09.09.2026 — Zweisprachigkeit (de/en), Datei-Upload beim Ausweis, `/en/`
 

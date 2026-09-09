@@ -243,7 +243,16 @@
     font-size:14px; color:var(--chalk-dim); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
   }
   .plz-combo .ort-display.resolved{ color:var(--chalk); }
-  .plz-combo.focused{ outline:2px solid var(--plate); outline-offset:1px; }
+  /* Fokus-Rahmen INNEN, aus demselben Grund wie bei den einfachen Feldern
+     weiter oben: die PLZ-Kombination liegt buendig an der linken Kante von
+     .screen.active (padding-left:0, overflow-x:hidden). Die bisherige aeussere
+     outline lag damit ausserhalb des Scroll-Containers und wurde links
+     abgeschnitten - der Rahmen war oben, rechts und unten orange, der linke
+     senkrechte Strich fehlte. */
+  .plz-combo.focused{
+    outline:none; border-color:var(--plate);
+    box-shadow:inset 0 0 0 2px var(--plate);
+  }
   .row3{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; }
   /* minmax(0,1fr) statt 1fr: Grid-Spalten dürfen unter ihre Inhaltsbreite
      schrumpfen (Datums-Input/PLZ-Combo), sonst wird die Karte auf schmalen
@@ -1024,6 +1033,14 @@
   .landing-hero .hero-eyebrow{
     font-family:'JetBrains Mono', monospace; font-size:12px; letter-spacing:0.16em;
     text-transform:uppercase; color:var(--lime); margin-bottom:16px;
+    /* Eine Zeile, unabhaengig von der Sprache. "DATING FÜR GYM-PEOPLE ·
+       ÖSTERREICH" ist drei Zeichen laenger als die englische Fassung und lief
+       in der Textspalte des Heros um wenige Pixel ueber - die deutsche Zeile
+       brach damit um, die englische nicht. Der Platz kommt daher, dass die
+       Zeile jetzt ueber beide Gitterspalten laeuft (siehe grid-template-areas);
+       nowrap haelt sie auch dann zusammen, wenn eine kuenftige Uebersetzung
+       noch ein Stueck laenger wird. */
+    white-space:nowrap;
   }
   .landing-hero h1{
     font-size:clamp(42px,6vw,76px); line-height:1.08; margin-bottom:22px;
@@ -1050,8 +1067,12 @@
   body.landing .landing-hero{
     display:grid;
     grid-template-columns:minmax(0,1fr) 210px;
+    /* Die Augenbraue laeuft ueber beide Spalten - die Textspalte allein ist
+       fuer die deutsche Fassung zu schmal (siehe .hero-eyebrow). Das
+       Musterdeck beginnt dadurch auf Hoehe der Schlagzeile statt der
+       Augenbraue. */
     grid-template-areas:
-      "eyebrow demo"
+      "eyebrow eyebrow"
       "title demo"
       "sub demo"
       "usps usps";
@@ -1176,7 +1197,7 @@
       display:grid; width:100%; margin-bottom:28px;
       grid-template-columns:minmax(0,1fr) 178px;
       grid-template-areas:
-        "eyebrow demo"
+        "eyebrow eyebrow"
         "title demo"
         "sub sub"
         "usps usps";
@@ -1731,6 +1752,11 @@
   @media (prefers-reduced-motion: reduce){
     .lang-switch .knob{ transition:none; }
   }
+  /* Im Kontobereich steht der Regler beschriftet unter "Profil" - der zweite,
+     unbeschriftete in der Kopfzeile waere daneben nur ein Doppel. Er
+     verschwindet deshalb genau auf diesem Bildschirm; ueberall sonst (auch
+     ausgeloggt) bleibt er stehen, weil es dort keinen anderen gibt. */
+  body[data-screen="screen-account"] header.top .lang-switch{ display:none; }
   /* Im Kontobereich steht der Regler in einer eigenen Zeile mit Beschriftung,
      damit er dort nicht wie ein verirrtes Kopfzeilen-Element wirkt. */
   .lang-row{
@@ -1771,8 +1797,8 @@
      (DACH-Raum -> Deutsch), i18n-app.js das Woerterbuch dieser Seite. Beide
      laufen synchron und damit vor dem DOMContentLoaded, bei dem FlexrI18n die
      data-i18n-Knoten uebersetzt. -->
-<script src="/i18n.js?v=1"></script>
-<script src="/app/i18n-app.js?v=1"></script>
+<script src="/i18n.js?v=2"></script>
+<script src="/app/i18n-app.js?v=2"></script>
 <a class="skip-link" href="#main-content" data-i18n="common.skipToContent">Zum Inhalt springen</a>
 <div class="app" id="app">
 
@@ -2880,6 +2906,29 @@
   const t = (key, vars) => FlexrI18n.t(key, vars);
   const dateLocale = () => (FlexrI18n.current() === 'en' ? 'en-GB' : 'de-AT');
 
+  /* Zur Laufzeit gesetzte Texte und der Sprachwechsel kamen sich in die Quere:
+     FlexrI18n.apply() ueberschreibt jeden [data-i18n]-Knoten mit dem Eintrag
+     seines Schluessels. Ein aufgeloester Ortsname ("Wien") oder ein Hinweis
+     mit eingesetztem Gym-Namen war nach dem Umschalten deshalb weg - beim
+     Ortsfeld sah es aus, als haette der Wechsel die Stadt geloescht.
+
+     setI18nText  - uebersetzbarer Text: Schluessel (und Platzhalterwerte)
+                    bleiben am Knoten stehen, der Wechsel baut ihn neu.
+     setPlainText - Text, den es nur in einer Fassung gibt (Eigennamen wie der
+                    Ortsname): data-i18n kommt weg, der Wechsel laesst ihn in
+                    Ruhe.                                                     */
+  function setI18nText(el, key, vars){
+    el.setAttribute('data-i18n', key);
+    if(vars) el.setAttribute('data-i18n-vars', JSON.stringify(vars));
+    else el.removeAttribute('data-i18n-vars');
+    el.textContent = t(key, vars);
+  }
+  function setPlainText(el, text){
+    el.removeAttribute('data-i18n');
+    el.removeAttribute('data-i18n-vars');
+    el.textContent = text;
+  }
+
   const API_BASE = (location.hostname === 'localhost' || location.hostname === '127.0.0.1')
     ? 'http://localhost:8000'
     : '';
@@ -2895,9 +2944,14 @@
   // Folgetexten (z.B. revokeConsent) war das zu kurz, um sie in Ruhe zu
   // lesen. Zusaetzlich per Knopf schliessbar statt nur automatisch zu
   // verschwinden.
+  // Die Box heisst bewusst `box` und nicht `t`: `t` ist weiter oben die
+  // Uebersetzungsfunktion. Als lokales `const t` verdeckte das Element sie,
+  // und `t('common.close')` warf dann "t is not a function" - sichtbar wurde
+  // das als Fehlermeldung beim Profilspeichern, obwohl das Speichern selbst
+  // schon durch war.
   function toast(msg){
-    const t = document.createElement('div');
-    t.className = 'toast';
+    const box = document.createElement('div');
+    box.className = 'toast';
     const text = document.createElement('span');
     text.className = 'toast-text';
     text.textContent = msg;
@@ -2906,10 +2960,10 @@
     close.type = 'button';
     close.setAttribute('aria-label', t('common.close'));
     close.textContent = '✕';
-    close.addEventListener('click', () => t.remove());
-    t.append(text, close);
-    document.body.appendChild(t);
-    setTimeout(()=> t.remove(), 20000);
+    close.addEventListener('click', () => box.remove());
+    box.append(text, close);
+    document.body.appendChild(box);
+    setTimeout(()=> box.remove(), 20000);
   }
 
   // ---------- Interaktives Musterdeck im ausgeloggten Hero ----------
@@ -3532,22 +3586,22 @@
   async function lookupLocalityForPlz(plz){
     const ortDisplay = $('ortDisplay');
     const plzErr = $('plzErr');
-    plzErr.textContent = '';
-    ortDisplay.textContent = t('plz.loading');
+    setPlainText(plzErr, '');
+    setI18nText(ortDisplay, 'plz.loading');
     ortDisplay.classList.remove('resolved');
     resolvedCity = '';
     try{
       resolvedCity = await lookupCityForPlz(plz);
-      ortDisplay.textContent = resolvedCity;
+      setPlainText(ortDisplay, resolvedCity);   // Eigenname, nicht uebersetzbar
       ortDisplay.classList.add('resolved');
     }catch(err){
       if(err.status === 404){
-        ortDisplay.textContent = '— unbekannte PLZ —';
-        plzErr.textContent = t('plz.notFound');
+        setI18nText(ortDisplay, 'plz.unknownShort');
+        setI18nText(plzErr, 'plz.notFound');
         return;
       }
-      ortDisplay.textContent = '— Lookup fehlgeschlagen —';
-      plzErr.textContent = t('plz.failed');
+      setI18nText(ortDisplay, 'plz.failedShort');
+      setI18nText(plzErr, 'plz.failed');
       console.error(err);
     }
   }
@@ -3556,9 +3610,9 @@
     const plz = $('f-plz').value.trim();
     clearTimeout(plzLookupTimeout);
     if(!/^\d{4}$/.test(plz)){
-      $('ortDisplay').textContent = '— PLZ eingeben —';
+      setI18nText($('ortDisplay'), 'reg.plzPlaceholderHint');
       $('ortDisplay').classList.remove('resolved');
-      $('plzErr').textContent = '';
+      setPlainText($('plzErr'), '');
       resolvedCity = '';
       return;
     }
@@ -4473,9 +4527,10 @@
   function fillProfileForm(){
     $('a-plz').value = myProfile.plz || '';
     acctResolvedCity = myProfile.city || '';
-    $('acctOrtDisplay').textContent = acctResolvedCity || '— PLZ eingeben —';
+    if(acctResolvedCity) setPlainText($('acctOrtDisplay'), acctResolvedCity);
+    else setI18nText($('acctOrtDisplay'), 'reg.plzPlaceholderHint');
     $('acctOrtDisplay').classList.toggle('resolved', !!acctResolvedCity);
-    $('acctPlzErr').textContent = '';
+    setPlainText($('acctPlzErr'), '');
     const gymFull = myProfile.gym || '';
     $('a-gym').value = gymName(gymFull);          // Name im Suchfeld
     if(gymFull){
@@ -4492,8 +4547,8 @@
     $('a-radius').value = myProfile.search_radius_km || 20;
     $('radiusValue').textContent = ($('a-radius').value) + ' km';
     radiusFill();
-    $('radiusHint').textContent = t('acct.radiusHintGym', {gym: gymName(myProfile.gym)});
-    $('acctProfileErr').textContent = '';
+    setI18nText($('radiusHint'), 'acct.radiusHintGym', {gym: gymName(myProfile.gym)});
+    setPlainText($('acctProfileErr'), '');
   }
 
   // Farbanteil der Schiene an den Wert anpassen. Muss an beiden Stellen
@@ -4577,22 +4632,22 @@
 
   async function lookupAcctLocality(plz){
     const ortDisplay = $('acctOrtDisplay');
-    $('acctPlzErr').textContent = '';
-    ortDisplay.textContent = t('plz.loading');
+    setPlainText($('acctPlzErr'), '');
+    setI18nText(ortDisplay, 'plz.loading');
     ortDisplay.classList.remove('resolved');
     acctResolvedCity = '';
     try{
       acctResolvedCity = await lookupCityForPlz(plz);
-      ortDisplay.textContent = acctResolvedCity;
+      setPlainText(ortDisplay, acctResolvedCity);   // Eigenname, nicht uebersetzbar
       ortDisplay.classList.add('resolved');
     }catch(err){
       if(err.status === 404){
-        ortDisplay.textContent = '— unbekannte PLZ —';
-        $('acctPlzErr').textContent = t('plz.notFound');
+        setI18nText(ortDisplay, 'plz.unknownShort');
+        setI18nText($('acctPlzErr'), 'plz.notFound');
         return;
       }
-      ortDisplay.textContent = '— Lookup fehlgeschlagen —';
-      $('acctPlzErr').textContent = t('plz.failed');
+      setI18nText(ortDisplay, 'plz.failedShort');
+      setI18nText($('acctPlzErr'), 'plz.failed');
       console.error(err);
     }
   }
@@ -4601,9 +4656,9 @@
     const plz = $('a-plz').value.trim();
     clearTimeout(acctPlzLookupTimeout);
     if(!/^\d{4}$/.test(plz)){
-      $('acctOrtDisplay').textContent = '— PLZ eingeben —';
+      setI18nText($('acctOrtDisplay'), 'reg.plzPlaceholderHint');
       $('acctOrtDisplay').classList.remove('resolved');
-      $('acctPlzErr').textContent = '';
+      setPlainText($('acctPlzErr'), '');
       acctResolvedCity = '';
       return;
     }
@@ -4614,15 +4669,15 @@
 
   $('btnSaveProfile').addEventListener('click', async () => {
     const errEl = $('acctProfileErr');
-    errEl.textContent = '';
+    setPlainText(errEl, '');
 
     const plz = $('a-plz').value.trim();
     if(!/^\d{4}$/.test(plz) || !acctResolvedCity){
-      errEl.textContent = t('reg.errPlz');
+      setI18nText(errEl, 'reg.errPlz');
       return;
     }
     if((myProfile.photos || []).length === 0){
-      errEl.textContent = t('acct.errPhotoBeforeSave');
+      setI18nText(errEl, 'acct.errPhotoBeforeSave');
       return;
     }
 
@@ -4640,7 +4695,9 @@
       renderAccount();
       toast(t('acct.saved'));
     }catch(err){
-      errEl.textContent = err.message || 'Speichern fehlgeschlagen.';
+      // Servertext: der kommt schon in der gewaehlten Sprache und ist
+      // nicht noch einmal uebersetzbar.
+      setPlainText(errEl, err.message || t('acct.saveFailed'));
     }finally{
       btn.disabled = false;
     }

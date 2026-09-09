@@ -123,13 +123,24 @@ window.FlexrI18n = (function(){
     'data-i18n-content': 'content'
   };
 
+  /* Platzhalterwerte, die am Knoten haengen: `data-i18n-vars` als JSON. So
+     ueberlebt ein zur Laufzeit gebauter Text ("Profile im Umkreis deines Gyms
+     (McFit).") den Sprachwechsel - apply() baut ihn mit denselben Werten in
+     der neuen Sprache neu, statt ihn auf den Rohtext des Schluessels
+     zurueckzusetzen. */
+  function nodeVars(el){
+    var raw = el.getAttribute('data-i18n-vars');
+    if(!raw) return null;
+    try{ return JSON.parse(raw); }catch(e){ return null; }
+  }
+
   function apply(root){
     var scope = root || document;
     scope.querySelectorAll('[data-i18n]').forEach(function(el){
-      el.textContent = t(el.getAttribute('data-i18n'));
+      el.textContent = t(el.getAttribute('data-i18n'), nodeVars(el));
     });
     scope.querySelectorAll('[data-i18n-html]').forEach(function(el){
-      el.innerHTML = t(el.getAttribute('data-i18n-html'));
+      el.innerHTML = t(el.getAttribute('data-i18n-html'), nodeVars(el));
     });
     Object.keys(ATTR_MAP).forEach(function(dataAttr){
       scope.querySelectorAll('[' + dataAttr + ']').forEach(function(el){
