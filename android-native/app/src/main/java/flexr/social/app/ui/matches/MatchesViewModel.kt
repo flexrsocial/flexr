@@ -3,6 +3,8 @@ package flexr.social.app.ui.matches
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import flexr.social.app.R
+import flexr.social.app.core.locale.AppStrings
 import flexr.social.app.core.network.FlexrApiException
 import flexr.social.app.data.repository.MatchRepository
 import flexr.social.app.domain.model.MatchSummary
@@ -24,6 +26,7 @@ import javax.inject.Inject
 @HiltViewModel
 class MatchesViewModel @Inject constructor(
     private val matchRepository: MatchRepository,
+    private val strings: AppStrings,
 ) : ViewModel() {
 
     val matches: StateFlow<List<MatchSummary>> = matchRepository.matches
@@ -49,7 +52,7 @@ class MatchesViewModel @Inject constructor(
                 .onSuccess { _error.value = null }
                 .onFailure { throwable ->
                     _error.value = (throwable as? FlexrApiException)?.message
-                        ?: "Matches konnten nicht geladen werden."
+                        ?: strings.get(R.string.matches_load_failed)
                 }
             _isRefreshing.value = false
         }

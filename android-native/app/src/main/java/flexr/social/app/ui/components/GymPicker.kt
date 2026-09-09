@@ -27,10 +27,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import flexr.social.app.R
 import flexr.social.app.core.designsystem.component.FieldError
 import flexr.social.app.core.designsystem.component.FlexrTextField
 import flexr.social.app.core.designsystem.theme.FlexrTheme
@@ -66,8 +68,8 @@ fun GymPicker(
         FlexrTextField(
             value = state.query,
             onValueChange = onQueryChange,
-            label = "Gym",
-            placeholder = "Gym suchen (Name, Ort oder PLZ) …",
+            label = stringResource(R.string.gym_label),
+            placeholder = stringResource(R.string.gym_search_placeholder),
             imeAction = ImeAction.Search,
             trailingIcon = Icons.Filled.Search,
         )
@@ -88,7 +90,11 @@ fun GymPicker(
                     ) {
                         CircularProgressIndicator(Modifier.size(14.dp), color = colors.plate, strokeWidth = 1.5.dp)
                         Spacer(Modifier.size(10.dp))
-                        Text("Suche …", style = MaterialTheme.typography.bodySmall, color = colors.chalkDim)
+                        Text(
+                            stringResource(R.string.gym_searching),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = colors.chalkDim,
+                        )
                     }
                 }
                 LazyColumn(Modifier.heightIn(max = 260.dp)) {
@@ -111,7 +117,7 @@ fun GymPicker(
                                 modifier = Modifier.size(16.dp),
                             )
                             Text(
-                                text = "Gym nicht dabei? Jetzt vorschlagen",
+                                text = stringResource(R.string.gym_suggest_row),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = colors.plate,
                             )
@@ -197,27 +203,26 @@ fun GymSuggestionDialog(
     AlertDialog(
         onDismissRequest = onDismiss,
         containerColor = MaterialTheme.colorScheme.surface,
-        title = { Text("Gym vorschlagen", style = MaterialTheme.typography.headlineSmall) },
+        title = { Text(stringResource(R.string.gym_suggest_title), style = MaterialTheme.typography.headlineSmall) },
         text = {
             Column {
                 Text(
-                    text = "Dein Gym fehlt in der Liste? Reich es mit Adresse ein — du kannst es " +
-                        "sofort für dein Profil verwenden, nach Prüfung erscheint es für alle.",
+                    text = stringResource(R.string.gym_suggest_intro),
                     style = MaterialTheme.typography.bodySmall,
                     color = FlexrTheme.colors.chalkDim,
                 )
                 FlexrTextField(
                     value = state.name,
                     onValueChange = onNameChange,
-                    label = "Name des Gyms",
-                    placeholder = "z. B. Eisenschmiede",
+                    label = stringResource(R.string.gym_name_label),
+                    placeholder = stringResource(R.string.gym_name_placeholder),
                     maxLength = 120,
                 )
                 FlexrTextField(
                     value = state.street,
                     onValueChange = onStreetChange,
-                    label = "Straße",
-                    placeholder = "z. B. Hauptstraße",
+                    label = stringResource(R.string.gym_street_label),
+                    placeholder = stringResource(R.string.gym_street_placeholder),
                     maxLength = 120,
                 )
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -225,7 +230,7 @@ fun GymSuggestionDialog(
                         FlexrTextField(
                             value = state.houseNumber,
                             onValueChange = onHouseNumberChange,
-                            label = "Hausnummer",
+                            label = stringResource(R.string.gym_house_number_label),
                             placeholder = "12",
                             maxLength = 20,
                         )
@@ -234,7 +239,7 @@ fun GymSuggestionDialog(
                         FlexrTextField(
                             value = state.postalCode,
                             onValueChange = { onPostalCodeChange(it.filter(Char::isDigit).take(4)) },
-                            label = "Postleitzahl",
+                            label = stringResource(R.string.gym_postal_code_label),
                             placeholder = "1010",
                             keyboardType = KeyboardType.NumberPassword,
                             imeAction = ImeAction.Done,
@@ -246,12 +251,12 @@ fun GymSuggestionDialog(
         },
         confirmButton = {
             TextButton(onClick = onSubmit, enabled = state.isValid && !state.isSubmitting) {
-                Text("Vorschlag einreichen", color = FlexrTheme.colors.plate)
+                Text(stringResource(R.string.gym_suggest_submit), color = FlexrTheme.colors.plate)
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Abbrechen", color = FlexrTheme.colors.chalkDim)
+                Text(stringResource(R.string.common_cancel), color = FlexrTheme.colors.chalkDim)
             }
         },
     )

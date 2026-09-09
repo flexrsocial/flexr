@@ -6,10 +6,11 @@ import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Block
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.Chat
-import androidx.compose.material.icons.filled.EmojiEmotions
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.EmojiEmotions
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.HeartBroken
+import androidx.compose.material.icons.filled.InsertDriveFile
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.OutlinedFlag
@@ -93,6 +94,9 @@ object FlexrIcons {
     val Place = Icons.Filled.Place
     val Close = Icons.Filled.Close
     val Emoji = Icons.Filled.EmojiEmotions
+
+    /** Datei vom Geraet - zweiter Weg neben der Kamera bei der Ausweisaufnahme. */
+    val Upload = Icons.Filled.InsertDriveFile
 }
 
 /** Merkt sich das Hantel-Icon über Rekompositionen hinweg. */

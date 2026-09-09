@@ -4,9 +4,13 @@ import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import flexr.social.app.R
+import flexr.social.app.core.locale.AppStrings
 import flexr.social.app.core.media.ImageProcessor
 import flexr.social.app.core.media.PhotoTooSmallException
 import flexr.social.app.core.network.FlexrApiException
+import flexr.social.app.data.remote.dto.ConsentDto
+import flexr.social.app.data.remote.dto.NotificationSettingsRequestDto
 import flexr.social.app.data.repository.BillingRepository
 import flexr.social.app.data.repository.GymRepository
 import flexr.social.app.data.repository.PlzRepository
@@ -14,8 +18,6 @@ import flexr.social.app.data.repository.ProfileRepository
 import flexr.social.app.data.repository.SafetyRepository
 import flexr.social.app.data.repository.UnknownPostalCodeException
 import flexr.social.app.data.repository.VerificationRepository
-import flexr.social.app.data.remote.dto.ConsentDto
-import flexr.social.app.data.remote.dto.NotificationSettingsRequestDto
 import flexr.social.app.data.session.SessionStore
 import flexr.social.app.domain.model.BlockedUser
 import flexr.social.app.domain.model.Gym
@@ -103,6 +105,7 @@ class AccountViewModel @Inject constructor(
     private val safetyRepository: SafetyRepository,
     private val imageProcessor: ImageProcessor,
     private val sessionStore: SessionStore,
+    private val strings: AppStrings,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(AccountUiState())
@@ -177,7 +180,7 @@ class AccountViewModel @Inject constructor(
                         onFailure = { throwable ->
                             PlzLookupState.Failed(
                                 if (throwable is UnknownPostalCodeException) throwable.message.orEmpty()
-                                else "Ort konnte nicht ermittelt werden.",
+                                else strings.get(R.string.error_city_lookup),
                             )
                         },
                     ),
@@ -253,7 +256,7 @@ class AccountViewModel @Inject constructor(
                     it.copy(
                         gymSuggestion = suggestion.copy(
                             isSubmitting = false,
-                            error = throwable.message ?: "Vorschlag konnte nicht eingereicht werden.",
+                            error = throwable.message ?: strings.get(R.string.gym_suggest_failed),
                         ),
                     )
                 }
@@ -271,19 +274,18 @@ class AccountViewModel @Inject constructor(
         if (city == null) {
             _uiState.update {
                 it.copy(
-                    saveError = "Bitte eine gültige österreichische Postleitzahl eingeben " +
-                        "(Ort wird automatisch ermittelt).",
+                    saveError = strings.get(R.string.account_err_postal_code),
                 )
             }
             return
         }
         if (profile.value?.photos.isNullOrEmpty()) {
-            _uiState.update { it.copy(saveError = "Bitte lade mindestens ein Foto hoch, bevor du speicherst.") }
+            _uiState.update { it.copy(saveError = strings.get(R.string.account_err_photo_before_save)) }
             return
         }
         val gymLabel = state.gymPicker.selectedLabel
         if (gymLabel == null) {
-            _uiState.update { it.copy(saveError = "Bitte ein Gym aus der Liste auswählen.") }
+            _uiState.update { it.copy(saveError = strings.get(R.string.account_err_gym)) }
             return
         }
 
@@ -299,12 +301,12 @@ class AccountViewModel @Inject constructor(
                 )
             }.onSuccess {
                 _uiState.update { it.copy(isSaving = false) }
-                _events.send(AccountEvent.Message("Profil gespeichert ✓"))
+                _events.send(AccountEvent.Message(strings.get(R.string.account_saved)))
             }.onFailure { throwable ->
                 _uiState.update {
                     it.copy(
                         isSaving = false,
-                        saveError = (throwable as? FlexrApiException)?.message ?: "Speichern fehlgeschlagen.",
+                        saveError = (throwable as? FlexrApiException)?.message ?: strings.get(R.string.account_save_failed),
                     )
                 }
             }
@@ -326,9 +328,14 @@ class AccountViewModel @Inject constructor(
                     it.copy(
                         isUploadingPhoto = false,
                         photoError = when (throwable) {
-                            is PhotoTooSmallException -> throwable.message
+                            is PhotoTooSmallException -> strings.get(
+                                R.string.photo_too_small,
+                                throwable.width,
+                                throwable.height,
+                                ImageProcessor.MIN_EDGE_PX,
+                            )
                             is FlexrApiException -> throwable.message
-                            else -> "Foto-Upload fehlgeschlagen."
+                            else -> strings.get(R.string.photo_upload_failed)
                         },
                     )
                 }
@@ -340,7 +347,7 @@ class AccountViewModel @Inject constructor(
         if ((profile.value?.photos?.size ?: 0) <= 1) {
             _uiState.update {
                 it.copy(
-                    photoError = "Mindestens ein Foto ist erforderlich. Lade zuerst ein weiteres hoch.",
+                    photoError = strings.get(R.string.photo_min_one),
                 )
             }
             return
@@ -348,7 +355,9 @@ class AccountViewModel @Inject constructor(
         _uiState.update { it.copy(photoError = null) }
         viewModelScope.launch {
             runCatching { profileRepository.deletePhoto(photoId) }
-                .onFailure { _events.send(AccountEvent.Message(it.message ?: "Löschen fehlgeschlagen.")) }
+                .onFailure {
+                    _events.send(AccountEvent.Message(it.message ?: strings.get(R.string.common_delete_failed)))
+                }
         }
     }
 
@@ -415,7 +424,7 @@ class AccountViewModel @Inject constructor(
         val current = _uiState.value
         if (!current.checkoutImmediateStart || !current.checkoutWithdrawalAck) {
             _uiState.update {
-                it.copy(checkoutError = "Bitte bestätige beide Erklärungen, um fortzufahren.")
+                it.copy(checkoutError = strings.get(R.string.account_checkout_consent_missing))
             }
             return
         }
@@ -431,7 +440,7 @@ class AccountViewModel @Inject constructor(
                         it.copy(
                             isStartingCheckout = false,
                             checkoutError = (throwable as? FlexrApiException)?.message
-                                ?: "Checkout konnte nicht gestartet werden.",
+                                ?: strings.get(R.string.account_checkout_failed),
                         )
                     }
                 }
@@ -443,7 +452,7 @@ class AccountViewModel @Inject constructor(
             runCatching { billingRepository.portalUrl() }
                 .onSuccess { _events.send(AccountEvent.OpenUrl(it)) }
                 .onFailure {
-                    _events.send(AccountEvent.Message(it.message ?: "Abo-Verwaltung konnte nicht geöffnet werden."))
+                    _events.send(AccountEvent.Message(it.message ?: strings.get(R.string.account_portal_failed)))
                 }
         }
     }
@@ -463,7 +472,7 @@ class AccountViewModel @Inject constructor(
                 .onFailure {
                     _events.send(
                         AccountEvent.Message(
-                            it.message ?: "Reihenfolge konnte nicht gespeichert werden.",
+                            it.message ?: strings.get(R.string.photo_order_failed),
                         ),
                     )
                 }
@@ -490,7 +499,7 @@ class AccountViewModel @Inject constructor(
                 .onFailure {
                     _events.send(
                         AccountEvent.Message(
-                            it.message ?: "Einstellung konnte nicht gespeichert werden.",
+                            it.message ?: strings.get(R.string.account_notification_save_failed),
                         ),
                     )
                 }
@@ -514,7 +523,7 @@ class AccountViewModel @Inject constructor(
                         it.copy(
                             consentsLoading = false,
                             consentError = (throwable as? FlexrApiException)?.message
-                                ?: "Einwilligungen konnten nicht geladen werden.",
+                                ?: strings.get(R.string.consent_load_failed),
                         )
                     }
                 }
@@ -542,7 +551,7 @@ class AccountViewModel @Inject constructor(
                     it.copy(
                         revokingConsentType = null,
                         consentError = (throwable as? FlexrApiException)?.message
-                            ?: "Der Widerruf konnte nicht gespeichert werden.",
+                            ?: strings.get(R.string.consent_revoke_failed),
                     )
                 }
             }
@@ -571,7 +580,7 @@ class AccountViewModel @Inject constructor(
                     it.copy(
                         grantingConsentType = null,
                         consentError = (throwable as? FlexrApiException)?.message
-                            ?: "Die erneute Einwilligung konnte nicht gespeichert werden.",
+                            ?: strings.get(R.string.consent_grant_failed),
                     )
                 }
             }
@@ -594,7 +603,7 @@ class AccountViewModel @Inject constructor(
                         it.copy(
                             blockedUsersLoading = false,
                             blockedUsersError = (throwable as? FlexrApiException)?.message
-                                ?: "Deine Blockierungen konnten nicht geladen werden.",
+                                ?: strings.get(R.string.blocks_load_failed),
                         )
                     }
                 }
@@ -644,7 +653,7 @@ class AccountViewModel @Inject constructor(
     fun confirmDelete() {
         val password = _uiState.value.deletePassword
         if (password.isBlank()) {
-            _uiState.update { it.copy(deleteError = "Bitte gib zur Bestätigung dein Passwort ein.") }
+            _uiState.update { it.copy(deleteError = strings.get(R.string.delete_password_missing)) }
             return
         }
         _uiState.update { it.copy(isDeleting = true, deleteError = null) }
@@ -654,7 +663,7 @@ class AccountViewModel @Inject constructor(
                     _uiState.update { it.copy(isDeleting = false, deleteDialogVisible = false) }
                     _events.send(
                         AccountEvent.Message(
-                            "Dein Konto wurde deaktiviert und wird in 30 Tagen endgültig gelöscht.",
+                            strings.get(R.string.delete_done),
                         ),
                     )
                     _events.send(AccountEvent.LoggedOut)
@@ -664,7 +673,7 @@ class AccountViewModel @Inject constructor(
                         it.copy(
                             isDeleting = false,
                             deleteError = (throwable as? FlexrApiException)?.message
-                                ?: "Löschen fehlgeschlagen.",
+                                ?: strings.get(R.string.common_delete_failed),
                         )
                     }
                 }

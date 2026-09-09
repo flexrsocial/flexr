@@ -23,6 +23,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -32,6 +33,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
+import flexr.social.app.R
 import flexr.social.app.core.designsystem.theme.FlexrTheme
 
 /** Feldbeschriftung im FLEXR-Stil: klein, gesperrt, Versalien, gedämpft. */
@@ -217,7 +219,9 @@ fun FlexrPasswordField(
                 IconButton(onClick = { visible = !visible }) {
                     Icon(
                         imageVector = if (visible) Icons.Filled.VisibilityOff else Icons.Filled.Visibility,
-                        contentDescription = if (visible) "Passwort verbergen" else "Passwort anzeigen",
+                        contentDescription = stringResource(
+                            if (visible) R.string.field_password_hide else R.string.field_password_show,
+                        ),
                         tint = colors.chalkDim,
                         modifier = Modifier.size(20.dp),
                     )

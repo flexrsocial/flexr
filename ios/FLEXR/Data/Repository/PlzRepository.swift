@@ -1,13 +1,17 @@
 import Foundation
 
 /// Fehler, wenn zu einer eingegebenen PLZ kein österreichischer Ort existiert.
+///
+/// Die Texte sind technische Beschreibungen für Protokolle. Was der Nutzer
+/// liest, bauen die Modelle aus `L.errorPostalCodeUnknown` — nur dort ist die
+/// gewählte Sprache bekannt.
 struct UnknownPostalCodeError: LocalizedError {
-    var errorDescription: String? { "Postleitzahl nicht gefunden. Bitte prüfen." }
+    var errorDescription: String? { "Unbekannte Postleitzahl." }
 }
 
 /// Fehler, wenn die Eingabe gar keine vierstellige PLZ ist.
 struct InvalidPostalCodeError: LocalizedError {
-    var errorDescription: String? { "Ungültige Postleitzahl." }
+    var errorDescription: String? { "Ungültiges PLZ-Format." }
 }
 
 /// Ortsermittlung zur Postleitzahl über das eigene Backend.

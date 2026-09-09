@@ -45,9 +45,11 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
+import flexr.social.app.R
 import flexr.social.app.core.designsystem.component.StatChip
 import flexr.social.app.core.designsystem.component.VerifiedBadge
 import flexr.social.app.core.designsystem.icon.FlexrIcons
@@ -190,7 +192,7 @@ fun SwipeableCard(
 
         if (draggable) {
             SwipeStamp(
-                text = "Match",
+                text = stringResource(R.string.swipe_stamp_match),
                 color = FlexrTheme.colors.lime,
                 rotation = -10f,
                 modifier = Modifier
@@ -199,7 +201,7 @@ fun SwipeableCard(
                     .alpha(if (dragX > 0) progress else 0f),
             )
             SwipeStamp(
-                text = "Nope",
+                text = stringResource(R.string.swipe_stamp_pass),
                 color = FlexrTheme.colors.danger,
                 rotation = 10f,
                 modifier = Modifier
@@ -269,7 +271,7 @@ private fun CardContent(
         ) {
             AsyncImage(
                 model = photos.getOrNull(photoIndex)?.url,
-                contentDescription = "Profilfoto von ${profile.name}",
+                contentDescription = stringResource(R.string.common_profile_photo_of, profile.name),
                 contentScale = ContentScale.Crop,
                 modifier = Modifier.fillMaxSize().background(colors.surface2),
             )
@@ -333,10 +335,10 @@ private fun CardContent(
                     horizontalArrangement = Arrangement.spacedBy(6.dp),
                 ) {
                     onUnmatch?.let {
-                        CardActionButton(FlexrIcons.Unmatch, "Match auflösen", it)
+                        CardActionButton(FlexrIcons.Unmatch, stringResource(R.string.unmatch_action), it)
                     }
-                    CardActionButton(FlexrIcons.Report, "Melden", onReport)
-                    CardActionButton(FlexrIcons.Block, "Blockieren", onBlock)
+                    CardActionButton(FlexrIcons.Report, stringResource(R.string.common_report), onReport)
+                    CardActionButton(FlexrIcons.Block, stringResource(R.string.common_block), onBlock)
                 }
             }
 
@@ -381,7 +383,7 @@ private fun CardContent(
         ) {
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 StatChip(
-                    text = profile.gym.ifBlank { "Kein Gym angegeben" },
+                    text = profile.gym.ifBlank { stringResource(R.string.gym_none) },
                     icon = FlexrIcons.Gym,
                 )
                 if (profile.isOnline) {
@@ -390,7 +392,7 @@ private fun CardContent(
             }
             Spacer(Modifier.height(12.dp))
             Text(
-                text = profile.bio?.takeIf { it.isNotBlank() } ?: "Keine Bio angegeben.",
+                text = profile.bio?.takeIf { it.isNotBlank() } ?: stringResource(R.string.bio_none),
                 style = MaterialTheme.typography.bodyMedium,
                 color = colors.chalkDim,
             )

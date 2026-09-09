@@ -1,6 +1,8 @@
 import SwiftUI
 
 struct ChatView: View {
+    @Environment(LanguageStore.self) private var languageStore
+    private var s: FlexrStrings { languageStore.strings }
 
     let matchID: String
     let onBack: () -> Void
@@ -26,6 +28,7 @@ struct ChatView: View {
             let created = model ?? ChatModel(
                 matchID: matchID,
                 container: container,
+                languageStore: languageStore,
                 onMessage: { appModel.show($0) }
             )
             model = created
@@ -83,24 +86,24 @@ struct ChatView: View {
         }
         .confirmDialog(
             isPresented: $showBlockDialog,
-            title: "\(model.match?.profile.name ?? "") blockieren?",
-            message: "Ihr seht euch danach nicht mehr. Das Match und der Chat verschwinden.",
-            confirmLabel: "Blockieren",
+            title: s(.reportBlockTitleNamed, model.match?.profile.name ?? ""),
+            message: s(.chatBlockBody),
+            confirmLabel: s(.commonBlock),
             onConfirm: model.block
         )
         .confirmDialog(
             isPresented: $showClearDialog,
-            title: "Chatverlauf leeren?",
-            message: "Der Verlauf wird nur für dich ausgeblendet — die andere Person sieht ihn weiterhin.",
-            confirmLabel: "Leeren",
+            title: s(.chatClearTitle),
+            message: s(.chatClearBody),
+            confirmLabel: s(.chatClearConfirm),
             isDestructive: false,
             onConfirm: model.clearHistory
         )
         .confirmDialog(
             isPresented: $showDeleteDialog,
-            title: "Chat löschen?",
-            message: "Der Chat verschwindet aus deinen Chats — euer Match bleibt aber bestehen.",
-            confirmLabel: "Löschen",
+            title: s(.chatDeleteTitle),
+            message: s(.chatDeleteBody),
+            confirmLabel: s(.commonDelete),
             onConfirm: model.deleteChat
         )
     }
@@ -110,8 +113,8 @@ struct ChatView: View {
         if model.messages.isEmpty, !model.isLoading {
             EmptyStateView(
                 icon: .symbol(FlexrIcon.send),
-                title: "Noch keine Nachrichten",
-                message: "Schreib die erste — ihr habt schließlich gematcht."
+                title: s(.chatEmptyTitle),
+                message: s(.chatEmptySub)
             )
             .frame(maxHeight: .infinity)
         } else {
@@ -157,6 +160,8 @@ struct ChatView: View {
 // MARK: - Kopfzeile
 
 private struct ChatHeader: View {
+    @Environment(LanguageStore.self) private var languageStore
+    private var s: FlexrStrings { languageStore.strings }
 
     let profile: Profile?
     let isOnline: Bool
@@ -176,7 +181,7 @@ private struct ChatHeader: View {
                         .frame(width: 36, height: 36)
                 }
                 .buttonStyle(.plain)
-                .accessibilityLabel("Zurück")
+                .accessibilityLabel(s(.commonBack))
 
                 // Der Ring markiert „gerade online" — genau wie in der
                 // Matches-/Chats-Übersicht (MatchListItem). Er stand hier
@@ -208,15 +213,15 @@ private struct ChatHeader: View {
                     Button {
                         onReport()
                     } label: {
-                        Label("Melden", systemImage: FlexrIcon.report)
+                        Label(s(.commonReport), systemImage: FlexrIcon.report)
                     }
                     Button {
                         onBlock()
                     } label: {
-                        Label("Blockieren", systemImage: FlexrIcon.block)
+                        Label(s(.commonBlock), systemImage: FlexrIcon.block)
                     }
-                    Button("Chatverlauf leeren", action: onClearHistory)
-                    Button("Chat löschen", role: .destructive, action: onDeleteChat)
+                    Button(s(.chatClearAction), action: onClearHistory)
+                    Button(s(.chatDeleteAction), role: .destructive, action: onDeleteChat)
                 } label: {
                     Image(systemName: FlexrIcon.more)
                         .font(.system(size: 15, weight: .semibold))
@@ -235,6 +240,8 @@ private struct ChatHeader: View {
 // MARK: - Nachrichtenblase
 
 private struct MessageBubble: View {
+    @Environment(LanguageStore.self) private var languageStore
+    private var s: FlexrStrings { languageStore.strings }
 
     let message: Message
     let isMine: Bool
@@ -297,9 +304,7 @@ private struct MessageBubble: View {
             // Empfänger den Grund für den Platzhalter.
             if message.wasCensored {
                 Text(
-                    isMine
-                        ? "🔒 Zum Schutz zensiert — der Empfänger sieht keine Links/Kontaktdaten."
-                        : "🔒 Ein Link oder Kontaktdaten wurden zu deinem Schutz entfernt."
+                    isMine ? s(.chatCensoredOut) : s(.chatCensoredIn)
                 )
                 .flexrText(.bodySmall)
                 .foregroundStyle(FlexrColor.chalkDim)
@@ -315,6 +320,8 @@ private struct MessageBubble: View {
 /// Art. 17 DSA verlangt zu jeder Beschränkung eine Begründung und den Hinweis
 /// darauf, wie man dagegen vorgehen kann — beides steht deshalb im Banner.
 private struct MuteBanner: View {
+    @Environment(LanguageStore.self) private var languageStore
+    private var s: FlexrStrings { languageStore.strings }
 
     let untilLabel: String
     let reason: String?
@@ -324,10 +331,7 @@ private struct MuteBanner: View {
         HStack(alignment: .top, spacing: 9) {
             Text("⚠️").flexrText(.bodyMedium)
             VStack(alignment: .leading, spacing: 6) {
-                Text(
-                    "Deine Chat-Funktion ist vorübergehend gesperrt. Du kannst bis "
-                        + "\(untilLabel) Uhr keine Nachrichten senden."
-                )
+                Text(s(.chatMutedBanner, untilLabel))
                 .flexrText(.bodySmall)
                 .foregroundStyle(Color(hex: 0xFFB3B3))
 
@@ -357,6 +361,8 @@ private struct MuteBanner: View {
 // MARK: - Eingabezeile
 
 private struct ChatInputRow: View {
+    @Environment(LanguageStore.self) private var languageStore
+    private var s: FlexrStrings { languageStore.strings }
 
     @Binding var draft: String
     let isEnabled: Bool
@@ -386,7 +392,7 @@ private struct ChatInputRow: View {
                     selection: $selection,
                     measuredHeight: $inputHeight,
                     font: FlexrFont.uiFont("WorkSans-Regular", size: 15, weight: 400),
-                    placeholder: isEnabled ? "Nachricht schreiben…" : "Chat vorübergehend gesperrt",
+                    placeholder: s(isEnabled ? .chatInputPlaceholder : .chatInputLocked),
                     isEnabled: isEnabled,
                     maxLength: ChatModel.maxLength,
                     maxLines: 5

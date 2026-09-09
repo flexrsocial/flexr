@@ -4,6 +4,8 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import flexr.social.app.R
+import flexr.social.app.core.locale.AppStrings
 import flexr.social.app.data.repository.MatchRepository
 import flexr.social.app.data.repository.SafetyRepository
 import flexr.social.app.domain.model.MatchSummary
@@ -26,6 +28,7 @@ class MatchProfileViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val matchRepository: MatchRepository,
     private val safetyRepository: SafetyRepository,
+    private val strings: AppStrings,
 ) : ViewModel() {
 
     private val matchId: String = checkNotNull(savedStateHandle["matchId"])
@@ -43,7 +46,7 @@ class MatchProfileViewModel @Inject constructor(
                 // Empfangsbestätigung mit Aktenzeichen (Art. 16 Abs. 4 DSA)
                 .onSuccess { _events.send(MatchProfileEvent.Message(it.message)) }
                 .onFailure {
-                    _events.send(MatchProfileEvent.Message(it.message ?: "Meldung fehlgeschlagen."))
+                    _events.send(MatchProfileEvent.Message(it.message ?: strings.get(R.string.report_failed)))
                 }
         }
     }
@@ -54,11 +57,11 @@ class MatchProfileViewModel @Inject constructor(
             runCatching { safetyRepository.block(profile.id) }
                 .onSuccess {
                     matchRepository.removeLocally(matchId)
-                    _events.send(MatchProfileEvent.Message("${profile.name} blockiert."))
+                    _events.send(MatchProfileEvent.Message(strings.get(R.string.block_done, profile.name)))
                     _events.send(MatchProfileEvent.Closed)
                 }
                 .onFailure {
-                    _events.send(MatchProfileEvent.Message(it.message ?: "Blockieren fehlgeschlagen."))
+                    _events.send(MatchProfileEvent.Message(it.message ?: strings.get(R.string.block_failed)))
                 }
         }
     }
@@ -68,11 +71,11 @@ class MatchProfileViewModel @Inject constructor(
         viewModelScope.launch {
             runCatching { matchRepository.unmatch(matchId) }
                 .onSuccess {
-                    _events.send(MatchProfileEvent.Message("Match mit $name aufgelöst."))
+                    _events.send(MatchProfileEvent.Message(strings.get(R.string.unmatch_done, name)))
                     _events.send(MatchProfileEvent.Closed)
                 }
                 .onFailure {
-                    _events.send(MatchProfileEvent.Message(it.message ?: "Auflösen fehlgeschlagen."))
+                    _events.send(MatchProfileEvent.Message(it.message ?: strings.get(R.string.unmatch_failed)))
                 }
         }
     }

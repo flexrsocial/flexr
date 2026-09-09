@@ -107,9 +107,12 @@ final class MessageRefreshService {
         else { return }
 
         let content = UNMutableNotificationContent()
+        // Über [FlexrStrings.current] und nicht über die Systemsprache: der
+        // Dienst läuft im Hintergrund, ohne Zugriff auf die Oberfläche.
+        let s = FlexrStrings.current
         content.title = senderNames.count == 1
-            ? "Neue Nachricht von \(senderNames[0])"
-            : "\(totalUnread) neue Nachrichten"
+            ? s(.notifyNewMessageFrom, senderNames[0])
+            : s(.notifyNewMessagesCount, totalUnread)
         content.body = senderNames.count == 1
             ? preview
             : Array(Set(senderNames)).sorted().joined(separator: ", ")

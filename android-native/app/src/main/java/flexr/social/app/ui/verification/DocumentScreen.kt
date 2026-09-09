@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Matrix
+import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.core.CameraSelector
@@ -49,6 +50,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -57,6 +59,7 @@ import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
+import flexr.social.app.R
 import flexr.social.app.core.designsystem.component.Eyebrow
 import flexr.social.app.core.designsystem.component.FieldError
 import flexr.social.app.core.designsystem.component.FlexrButton
@@ -110,9 +113,24 @@ fun DocumentScreen(
         onBack = onBack,
         onTypeSelected = viewModel::onTypeSelected,
         onCapture = viewModel::onCaptureRequested,
+        onPickFile = viewModel::onFilePicked,
         onRetake = viewModel::onRetake,
         onSubmit = viewModel::submit,
     )
+}
+
+/**
+ * Uebersetzte Bezeichnung des Ausweistyps.
+ *
+ * Der Server liefert sie auf Deutsch. Kennen wir den Wert, nehmen wir die
+ * eigene Uebersetzung; alles Unbekannte bleibt so, wie es geliefert wurde.
+ */
+@Composable
+private fun documentTypeLabel(type: VerificationDocumentType): String = when (type.value) {
+    "id_card" -> stringResource(R.string.document_type_id_card)
+    "passport" -> stringResource(R.string.document_type_passport)
+    "drivers_license" -> stringResource(R.string.document_type_license)
+    else -> type.label
 }
 
 // ---------- Auswahl und Aufnahmeplätze ----------
@@ -123,9 +141,16 @@ private fun DocumentForm(
     onBack: () -> Unit,
     onTypeSelected: (VerificationDocumentType) -> Unit,
     onCapture: (DocumentSide) -> Unit,
+    onPickFile: (DocumentSide, Uri) -> Unit,
     onRetake: (DocumentSide) -> Unit,
     onSubmit: () -> Unit,
 ) {
+    // Die Dateiauswahl merkt sich, fuer welche Seite sie geoeffnet wurde - der
+    // Rueckgabewert des Systemdialogs kennt nur die URI.
+    var pickForSide by remember { mutableStateOf(DocumentSide.FRONT) }
+    val filePicker = rememberLauncherForActivityResult(
+        ActivityResultContracts.GetContent(),
+    ) { uri -> if (uri != null) onPickFile(pickForSide, uri) }
     val colors = FlexrTheme.colors
 
     Column(
@@ -139,11 +164,11 @@ private fun DocumentForm(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             IconButton(onClick = onBack, modifier = Modifier.size(36.dp)) {
-                Icon(FlexrIcons.Back, contentDescription = "Zurück", tint = colors.chalk)
+                Icon(FlexrIcons.Back, contentDescription = stringResource(R.string.common_back), tint = colors.chalk)
             }
             Spacer(Modifier.width(6.dp))
             Text(
-                text = "Alter bestätigen",
+                text = stringResource(R.string.document_title),
                 style = MaterialTheme.typography.titleMedium,
                 color = colors.chalk,
             )
@@ -151,7 +176,7 @@ private fun DocumentForm(
         Box(Modifier.fillMaxWidth().height(1.dp).background(colors.hairline))
 
         if (state.isLoading) {
-            LoadingState(label = "Wird geladen …")
+            LoadingState(label = stringResource(R.string.document_loading))
             return@Column
         }
 
@@ -163,23 +188,19 @@ private fun DocumentForm(
             FlexrCard {
                 Column {
                     Text(
-                        text = "WARUM WIR DAS BRAUCHEN",
+                        text = stringResource(R.string.document_why_title),
                         style = MaterialTheme.typography.headlineSmall,
                         color = colors.chalk,
                     )
                     Spacer(Modifier.height(8.dp))
                     Text(
-                        text = "Um FLEXR nutzen zu können, musst du mindestens 18 Jahre alt " +
-                            "sein. Lade einmalig einen gültigen amtlichen Lichtbildausweis hoch. " +
-                            "Wir verwenden ihn ausschließlich zur Alters- und Identitätsprüfung " +
-                            "und löschen die Aufnahme nach Abschluss der Prüfung.",
+                        text = stringResource(R.string.document_why),
                         style = MaterialTheme.typography.bodyMedium,
                         color = colors.chalkDim,
                     )
                     Spacer(Modifier.height(8.dp))
                     Text(
-                        text = "Die Prüfung erfolgt manuell durch einen Menschen — es kommt " +
-                            "keine automatische Gesichtserkennung zum Einsatz.",
+                        text = stringResource(R.string.document_manual_review),
                         style = MaterialTheme.typography.bodyMedium,
                         color = colors.chalkDim,
                     )
@@ -187,7 +208,7 @@ private fun DocumentForm(
             }
 
             Spacer(Modifier.height(18.dp))
-            Eyebrow("Dokumenttyp")
+            Eyebrow(stringResource(R.string.document_type_label))
             state.documentTypes.forEach { type ->
                 DocumentTypeOption(
                     type = type,
@@ -201,7 +222,7 @@ private fun DocumentForm(
             RedactionNote()
 
             Spacer(Modifier.height(18.dp))
-            Eyebrow("Aufnahmen")
+            Eyebrow(stringResource(R.string.document_shots_label))
             state.requiredSides.forEach { side ->
                 CaptureSlot(
                     side = side,
@@ -209,27 +230,42 @@ private fun DocumentForm(
                     onClick = {
                         if (state.captures[side] == null) onCapture(side) else onRetake(side)
                     },
+                    onPickFile = {
+                        pickForSide = side
+                        filePicker.launch("image/*")
+                    },
                 )
                 Spacer(Modifier.height(10.dp))
             }
+            Text(
+                text = stringResource(R.string.document_source_hint),
+                style = MaterialTheme.typography.bodySmall,
+                color = colors.chalkDim,
+                modifier = Modifier.padding(top = 2.dp),
+            )
+            Spacer(Modifier.height(6.dp))
 
             FieldError(state.error)
             Spacer(Modifier.height(16.dp))
         }
 
         if (state.isSubmitting) {
-            FlexrButton(text = "Wird übermittelt …", onClick = {}, enabled = false, loading = true)
+            FlexrButton(
+                text = stringResource(R.string.document_submitting),
+                onClick = {},
+                enabled = false,
+                loading = true,
+            )
         } else {
             FlexrButton(
-                text = "Zur Prüfung einreichen",
+                text = stringResource(R.string.document_submit),
                 onClick = onSubmit,
                 enabled = state.isComplete,
             )
         }
         Spacer(Modifier.height(10.dp))
         Text(
-            text = "Die Aufnahmen sind nicht öffentlich abrufbar und werden nach der Prüfung " +
-                "gelöscht.",
+            text = stringResource(R.string.document_consent_note),
             style = MaterialTheme.typography.bodySmall,
             color = colors.chalkDim,
         )
@@ -283,12 +319,14 @@ private fun DocumentTypeOption(
     ) {
         Column {
             Text(
-                text = type.label,
+                text = documentTypeLabel(type),
                 style = MaterialTheme.typography.bodyLarge,
                 color = colors.chalk,
             )
             Text(
-                text = if (type.needsBack) "Vorder- und Rückseite" else "Seite mit Foto und Geburtsdatum",
+                text = stringResource(
+                    if (type.needsBack) R.string.document_needs_both else R.string.document_needs_front,
+                ),
                 style = MaterialTheme.typography.bodySmall,
                 color = colors.chalkDim,
             )
@@ -310,15 +348,13 @@ private fun RedactionNote() {
     ) {
         Column {
             Text(
-                text = "Du kannst Informationen schwärzen, die für die Altersprüfung nicht " +
-                    "benötigt werden.",
+                text = stringResource(R.string.document_redact_note),
                 style = MaterialTheme.typography.bodySmall,
                 color = colors.chalkDim,
             )
             Spacer(Modifier.height(4.dp))
             Text(
-                text = "Foto, Geburtsdatum und die zur Prüfung erforderlichen " +
-                    "Gültigkeitsinformationen müssen sichtbar bleiben.",
+                text = stringResource(R.string.document_redact_note_bold),
                 style = MaterialTheme.typography.bodySmall,
                 color = colors.chalk,
                 fontWeight = FontWeight.SemiBold,
@@ -328,8 +364,14 @@ private fun RedactionNote() {
 }
 
 @Composable
-private fun CaptureSlot(side: DocumentSide, image: ByteArray?, onClick: () -> Unit) {
+private fun CaptureSlot(
+    side: DocumentSide,
+    image: ByteArray?,
+    onClick: () -> Unit,
+    onPickFile: () -> Unit,
+) {
     val colors = FlexrTheme.colors
+    Column {
     Box(
         Modifier
             .fillMaxWidth()
@@ -347,7 +389,7 @@ private fun CaptureSlot(side: DocumentSide, image: ByteArray?, onClick: () -> Un
         if (image != null) {
             AsyncImage(
                 model = image,
-                contentDescription = "${side.label} des Ausweises",
+                contentDescription = stringResource(R.string.document_side_of_id, stringResource(side.labelRes)),
                 contentScale = ContentScale.Fit,
                 modifier = Modifier.fillMaxSize(),
             )
@@ -360,7 +402,7 @@ private fun CaptureSlot(side: DocumentSide, image: ByteArray?, onClick: () -> Un
                     .padding(horizontal = 8.dp, vertical = 4.dp),
             ) {
                 Text(
-                    text = "${side.label} ✓ — tippen zum Wiederholen",
+                    text = stringResource(R.string.document_side_done, stringResource(side.labelRes)),
                     style = MaterialTheme.typography.bodySmall,
                     color = colors.chalk,
                 )
@@ -375,13 +417,55 @@ private fun CaptureSlot(side: DocumentSide, image: ByteArray?, onClick: () -> Un
                 )
                 Spacer(Modifier.height(6.dp))
                 Text(
-                    text = side.label + " aufnehmen",
+                    text = stringResource(R.string.document_capture_side, stringResource(side.labelRes)),
                     style = MaterialTheme.typography.bodyMedium,
                     color = colors.chalkDim,
                     textAlign = TextAlign.Center,
                 )
             }
         }
+    }
+        // Zwei sichtbare Wege statt nur der Kamera: wer den Ausweis schon
+        // gescannt oder vorab geschwaerzt hat, kaeme sonst nicht weiter.
+        Spacer(Modifier.height(8.dp))
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            SlotActionButton(
+                icon = FlexrIcons.Camera,
+                label = stringResource(R.string.document_action_camera),
+                onClick = onClick,
+                modifier = Modifier.weight(1f),
+            )
+            SlotActionButton(
+                icon = FlexrIcons.Upload,
+                label = stringResource(R.string.document_action_file),
+                onClick = onPickFile,
+                modifier = Modifier.weight(1f),
+            )
+        }
+    }
+}
+
+/** Flacher Knopf unter dem Aufnahmeplatz — Kamera oder Dateiauswahl. */
+@Composable
+private fun SlotActionButton(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    label: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val colors = FlexrTheme.colors
+    Row(
+        modifier
+            .clip(RoundedCornerShape(10.dp))
+            .border(1.dp, colors.steel, RoundedCornerShape(10.dp))
+            .clickable(onClick = onClick)
+            .padding(vertical = 9.dp),
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(icon, contentDescription = null, tint = colors.chalkDim, modifier = Modifier.size(15.dp))
+        Spacer(Modifier.width(6.dp))
+        Text(label, style = MaterialTheme.typography.bodySmall, color = colors.chalkDim)
     }
 }
 
@@ -402,6 +486,9 @@ private fun DocumentCamera(
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     val colors = FlexrTheme.colors
+    // Aus dem Kamera-Rueckruf heraus ist kein `stringResource` moeglich - der
+    // laeuft ausserhalb der Komposition. Deshalb hier einmal aufloesen.
+    val captureFailedMessage = stringResource(R.string.document_capture_failed)
 
     var hasPermission by remember {
         mutableStateOf(
@@ -441,11 +528,11 @@ private fun DocumentCamera(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             IconButton(onClick = onCancel, modifier = Modifier.size(36.dp)) {
-                Icon(FlexrIcons.Back, contentDescription = "Abbrechen", tint = colors.chalk)
+                Icon(FlexrIcons.Back, contentDescription = stringResource(R.string.common_cancel), tint = colors.chalk)
             }
             Spacer(Modifier.width(6.dp))
             Text(
-                text = side.label + " aufnehmen",
+                text = stringResource(R.string.document_capture_side, stringResource(side.labelRes)),
                 style = MaterialTheme.typography.titleMedium,
                 color = colors.chalk,
             )
@@ -453,8 +540,7 @@ private fun DocumentCamera(
 
         Spacer(Modifier.height(8.dp))
         Text(
-            text = "Lege den Ausweis flach hin und füll den Rahmen möglichst aus. Achte darauf, " +
-                "dass Foto und Geburtsdatum scharf zu lesen sind.",
+            text = stringResource(R.string.document_frame_hint),
             style = MaterialTheme.typography.bodySmall,
             color = colors.chalkDim,
         )
@@ -484,7 +570,7 @@ private fun DocumentCamera(
                 )
             } else {
                 Text(
-                    text = "Kamerazugriff wird benötigt.",
+                    text = stringResource(R.string.document_camera_needed),
                     style = MaterialTheme.typography.bodyMedium,
                     color = colors.chalkDim,
                     textAlign = TextAlign.Center,
@@ -495,7 +581,7 @@ private fun DocumentCamera(
         Spacer(Modifier.height(16.dp))
         if (hasPermission) {
             FlexrButton(
-                text = "Aufnehmen",
+                text = stringResource(R.string.document_capture),
                 icon = FlexrIcons.Camera,
                 onClick = {
                     cameraController.takePicture(
@@ -508,7 +594,7 @@ private fun DocumentCamera(
                             }
 
                             override fun onError(exception: ImageCaptureException) {
-                                onError("Aufnahme fehlgeschlagen, bitte erneut.")
+                                onError(captureFailedMessage)
                             }
                         },
                     )
@@ -516,7 +602,7 @@ private fun DocumentCamera(
             )
         } else {
             FlexrSecondaryButton(
-                text = "Kamerazugriff erlauben",
+                text = stringResource(R.string.document_allow_camera),
                 onClick = { permissionLauncher.launch(Manifest.permission.CAMERA) },
             )
         }

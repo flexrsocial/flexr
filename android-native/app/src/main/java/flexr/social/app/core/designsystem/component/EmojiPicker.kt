@@ -25,11 +25,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import flexr.social.app.R
 import flexr.social.app.core.designsystem.icon.FlexrIcons
 import flexr.social.app.core.designsystem.theme.FlexrTheme
 
@@ -149,7 +151,9 @@ fun EmojiToggleButton(
     ) {
         Icon(
             imageVector = FlexrIcons.Emoji,
-            contentDescription = if (expanded) "Emoji-Auswahl schließen" else "Emoji einfügen",
+            contentDescription = stringResource(
+                if (expanded) R.string.emoji_close else R.string.emoji_insert,
+            ),
             tint = if (expanded) colors.plate else colors.chalkDim,
             modifier = Modifier.size((size * 0.62).dp),
         )

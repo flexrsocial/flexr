@@ -30,9 +30,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import flexr.social.app.R
 import flexr.social.app.core.designsystem.component.EmptyState
 import flexr.social.app.core.designsystem.component.LoadingState
 import flexr.social.app.core.designsystem.component.ScreenHeader
@@ -75,9 +77,12 @@ fun SwipeScreen(
             .padding(horizontal = 20.dp),
     ) {
         Spacer(Modifier.height(18.dp))
-        ScreenHeader(eyebrow = "Entdecken", title = "Profile in deiner Nähe")
+        ScreenHeader(
+            eyebrow = stringResource(R.string.swipe_eyebrow),
+            title = stringResource(R.string.swipe_title),
+        )
         Text(
-            text = "${state.searchRadiusKm} km rund um dein Gym".uppercase(),
+            text = stringResource(R.string.swipe_radius, state.searchRadiusKm).uppercase(),
             style = MonoStyle,
             color = FlexrTheme.colors.chalkDim,
             modifier = Modifier.padding(top = 8.dp),
@@ -87,15 +92,15 @@ fun SwipeScreen(
 
         Box(Modifier.fillMaxWidth().weight(1f)) {
             when {
-                state.isLoading -> LoadingState(label = "Lade Profile …")
+                state.isLoading -> LoadingState(label = stringResource(R.string.swipe_loading))
 
                 state.error != null -> EmptyState(
                     icon = FlexrIcons.Swipe,
-                    title = "Nicht geladen",
+                    title = stringResource(R.string.swipe_error_title),
                     description = state.error.orEmpty(),
                     action = {
                         flexr.social.app.core.designsystem.component.FlexrSecondaryButton(
-                            text = "Erneut versuchen",
+                            text = stringResource(R.string.swipe_retry),
                             onClick = viewModel::loadDeck,
                         )
                     },
@@ -103,11 +108,11 @@ fun SwipeScreen(
 
                 state.isExhausted -> EmptyState(
                     icon = FlexrIcons.Swipe,
-                    title = "Alle Sätze absolviert",
-                    description = "Keine neuen Profile in deiner Nähe. Schau später nochmal vorbei.",
+                    title = stringResource(R.string.swipe_empty_title),
+                    description = stringResource(R.string.swipe_empty_sub),
                     action = {
                         flexr.social.app.core.designsystem.component.FlexrSecondaryButton(
-                            text = "Neu laden",
+                            text = stringResource(R.string.swipe_reload),
                             onClick = viewModel::loadDeck,
                         )
                     },
@@ -162,13 +167,13 @@ fun SwipeScreen(
                         ) {
                             RoundActionButton(
                                 icon = FlexrIcons.Pass,
-                                description = "Ablehnen",
+                                description = stringResource(R.string.swipe_pass),
                                 tint = FlexrTheme.colors.danger,
                                 onClick = { scope.commitSwipe(cardState, false) { viewModel.pass() } },
                             )
                             RoundActionButton(
                                 icon = FlexrIcons.Like,
-                                description = "Gefällt mir",
+                                description = stringResource(R.string.swipe_like),
                                 tint = Color.White,
                                 large = true,
                                 onClick = { scope.commitSwipe(cardState, true) { viewModel.like() } },
@@ -195,9 +200,9 @@ fun SwipeScreen(
 
     if (showBlockDialog && current != null) {
         ConfirmDialog(
-            title = "${current.name} blockieren?",
-            text = "Ihr seht euch danach nicht mehr — weder im Deck noch in den Matches.",
-            confirmLabel = "Blockieren",
+            title = stringResource(R.string.block_dialog_title, current.name),
+            text = stringResource(R.string.swipe_block_body),
+            confirmLabel = stringResource(R.string.common_block),
             onConfirm = {
                 showBlockDialog = false
                 viewModel.block(current.id, current.name)
@@ -210,7 +215,7 @@ fun SwipeScreen(
         MatchOverlay(
             matchedProfile = matched,
             ownAvatarUrl = state.ownAvatarUrl,
-            ownName = "Du",
+            ownName = stringResource(R.string.swipe_own_name),
             onWriteMessage = viewModel::openChatWithMatch,
             onKeepSwiping = viewModel::dismissMatchOverlay,
         )

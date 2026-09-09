@@ -7,6 +7,8 @@ import SwiftUI
 /// Touch-Logik. Beim Schließen wird der zuletzt betrachtete Index
 /// zurückgemeldet, damit die Karte dahinter dasselbe Foto zeigt.
 struct PhotoLightbox: View {
+    @Environment(LanguageStore.self) private var languageStore
+    private var s: FlexrStrings { languageStore.strings }
 
     let photos: [Photo]
     let startIndex: Int
@@ -31,7 +33,7 @@ struct PhotoLightbox: View {
                     PhotoImage(
                         source: .remote(photo.url),
                         contentMode: .fit,
-                        accessibilityLabel: "Foto \(offset + 1) von \(photos.count)"
+                        accessibilityLabel: s(.photoLightboxPosition, offset + 1, photos.count)
                     )
                     .padding(.horizontal, 16)
                     .padding(.vertical, 64)
@@ -51,7 +53,7 @@ struct PhotoLightbox: View {
                             .background(Circle().fill(.white.opacity(0.08)))
                     }
                     .buttonStyle(.plain)
-                    .accessibilityLabel("Schließen")
+                    .accessibilityLabel(s(.commonClose))
                 }
                 .padding(16)
 

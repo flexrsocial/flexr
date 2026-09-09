@@ -113,6 +113,8 @@ data class MyProfileDto(
     @SerialName("notify_queue_push") val notifyQueuePush: Boolean = true,
     @SerialName("notify_inactive_email") val notifyInactiveEmail: Boolean = true,
     @SerialName("notify_inactive_push") val notifyInactivePush: Boolean = true,
+    @SerialName("notify_pending_likes_email") val notifyPendingLikesEmail: Boolean = true,
+    @SerialName("notify_pending_likes_push") val notifyPendingLikesPush: Boolean = true,
 )
 
 /** Einzelner Schalter - nur das gesetzte Feld wird geschickt. */
@@ -124,6 +126,8 @@ data class NotificationSettingsRequestDto(
     @SerialName("notify_queue_push") val notifyQueuePush: Boolean? = null,
     @SerialName("notify_inactive_email") val notifyInactiveEmail: Boolean? = null,
     @SerialName("notify_inactive_push") val notifyInactivePush: Boolean? = null,
+    @SerialName("notify_pending_likes_email") val notifyPendingLikesEmail: Boolean? = null,
+    @SerialName("notify_pending_likes_push") val notifyPendingLikesPush: Boolean? = null,
 )
 
 /** Neue Reihenfolge der eigenen Fotos (Drag & Drop im Profil). */

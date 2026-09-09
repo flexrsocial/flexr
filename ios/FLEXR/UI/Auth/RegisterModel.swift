@@ -70,16 +70,24 @@ final class RegisterModel {
     @ObservationIgnored private var plzLookupTask: Task<Void, Never>?
     @ObservationIgnored private var gymSearchTask: Task<Void, Never>?
 
+    /// Texte in der gewählten Sprache. Als Referenz auf den Speicher und nicht
+    /// als Kopie: eine Umstellung mitten in der Sitzung wirkt dann sofort auch
+    /// auf Meldungen, die dieses Modell danach erzeugt.
+    @ObservationIgnored private let languageStore: LanguageStore
+    private var s: FlexrStrings { languageStore.strings }
+
     init(
         auth: AuthRepository,
         profiles: ProfileRepository,
         gyms: GymRepository,
-        plz: PlzRepository
+        plz: PlzRepository,
+        languageStore: LanguageStore
     ) {
         self.auth = auth
         self.profiles = profiles
         self.gyms = gyms
         self.plz = plz
+        self.languageStore = languageStore
     }
 
     // MARK: - PLZ
@@ -103,8 +111,8 @@ final class RegisterModel {
                 guard !Task.isCancelled else { return }
                 plzLookup = .failed(
                     message: error is UnknownPostalCodeError
-                        ? (error.localizedDescription)
-                        : "Ort konnte nicht ermittelt werden. Bitte später erneut versuchen."
+                        ? s(.errorPostalCodeUnknown)
+                        : s(.plzLookupFailed)
                 )
             }
         }
@@ -169,7 +177,7 @@ final class RegisterModel {
             gymPicker.query = gym.name
             gymPicker.selectedLabel = gym.label
             gymPicker.isExpanded = false
-            successNotice = "Danke! Vorschlag eingereicht — du kannst das Gym sofort verwenden."
+            successNotice = s(.gymSuggestThanks)
         } catch {
             suggestion.isSubmitting = false
             suggestion.error = error.localizedDescription
@@ -181,7 +189,7 @@ final class RegisterModel {
 
     func onPhotoPicked(_ data: Data) async {
         guard photos.count < ImageProcessor.maxPhotos else {
-            photoError = "Maximal \(ImageProcessor.maxPhotos) Fotos."
+            photoError = s(.registerPhotoMax, ImageProcessor.maxPhotos)
             return
         }
         isPreparingPhoto = true
@@ -192,9 +200,10 @@ final class RegisterModel {
                 PendingPhoto(id: UUID().uuidString, preview: prepared.thumbnail, prepared: prepared)
             )
         } catch let error as PhotoTooSmallError {
-            photoError = error.errorDescription
+            photoError = s(.photoTooSmall, error.width, error.height,
+                           ImageProcessor.minEdgePx, ImageProcessor.minEdgePx)
         } catch {
-            photoError = "Foto konnte nicht geladen werden."
+            photoError = s(.registerPhotoLoadFailed)
         }
         isPreparingPhoto = false
     }
@@ -232,15 +241,14 @@ final class RegisterModel {
             )
             let failures = await uploadPhotos()
             if failures == 0 {
-                successNotice = "Profil erstellt. Willkommen bei FLEXR 💪"
+                successNotice = s(.registerDone)
             } else if failures == photos.count {
-                successNotice = "Profil erstellt — Foto-Upload fehlgeschlagen. "
-                    + "Bitte im Konto ein Foto hinzufügen."
+                successNotice = s(.registerDoneNoPhoto)
             } else {
-                successNotice = "Profil erstellt — nicht alle Fotos konnten hochgeladen werden."
+                successNotice = s(.registerDonePartial)
             }
         } catch {
-            self.error = (error as? FlexrAPIError)?.message ?? "Registrierung fehlgeschlagen."
+            self.error = (error as? FlexrAPIError)?.message ?? s(.registerFailed)
         }
         isSubmitting = false
     }
@@ -262,21 +270,17 @@ final class RegisterModel {
         guard !email.isEmpty, password.count >= Self.minPasswordLength, !name.isEmpty,
               let birthdate
         else {
-            return "Bitte E-Mail, Passwort (min. \(Self.minPasswordLength) Zeichen), "
-                + "Name und Geburtsdatum angeben."
+            return s(.registerErrRequired, Self.minPasswordLength)
         }
         let age = ServerTime.age(from: birthdate)
-        if age < Self.minAge { return "Du musst mindestens 18 Jahre alt sein." }
-        if age > Self.maxAge { return "Bitte ein gültiges Geburtsdatum angeben." }
-        if resolvedCity == nil {
-            return "Bitte eine gültige österreichische Postleitzahl eingeben "
-                + "(Ort wird automatisch ermittelt)."
-        }
-        if gender == nil { return "Bitte ein Geschlecht auswählen." }
-        if gymPicker.selectedLabel == nil { return "Bitte ein Gym aus der Liste auswählen." }
-        if photos.isEmpty { return "Bitte lade mindestens ein Foto hoch." }
+        if age < Self.minAge { return s(.registerErrUnder18) }
+        if age > Self.maxAge { return s(.registerErrBirthdate) }
+        if resolvedCity == nil { return s(.registerErrPostalCode) }
+        if gender == nil { return s(.registerErrGender) }
+        if gymPicker.selectedLabel == nil { return s(.registerErrGym) }
+        if photos.isEmpty { return s(.registerErrPhoto) }
         if !consentSensitiveData || !consentWithdrawalWaiver {
-            return "Bitte beide Zustimmungen ankreuzen, um fortzufahren."
+            return s(.registerErrConsents)
         }
         return nil
     }

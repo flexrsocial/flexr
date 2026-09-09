@@ -11,18 +11,24 @@ struct PreparedPhoto: Equatable, Sendable {
     var mimeType: String = "image/jpeg"
 }
 
+/// Das gewählte Bild ist kleiner als [ImageProcessor.minEdgePx].
+///
+/// Die Meldung für den Nutzer baut das Modell aus `L.photoTooSmall` — nur dort
+/// ist die gewählte Sprache bekannt. Der Text hier bleibt als technische
+/// Beschreibung für Protokolle stehen.
 struct PhotoTooSmallError: LocalizedError {
     let width: Int
     let height: Int
 
     var errorDescription: String? {
-        "Foto zu klein (\(width)×\(height)). Mindestens "
-            + "\(ImageProcessor.minEdgePx)×\(ImageProcessor.minEdgePx) Pixel."
+        "Foto zu klein (\(width)×\(height)), Mindestkante \(ImageProcessor.minEdgePx)px."
     }
 }
 
+/// Siehe [PhotoTooSmallError]: technische Beschreibung, angezeigt wird
+/// `L.photoReadFailed`.
 struct PhotoUnreadableError: LocalizedError {
-    var errorDescription: String? { "Foto konnte nicht geladen werden." }
+    var errorDescription: String? { "Bild nicht lesbar." }
 }
 
 /// Bildaufbereitung vor dem Upload — die native Entsprechung der

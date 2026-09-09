@@ -26,10 +26,12 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
+import flexr.social.app.R
 import flexr.social.app.core.designsystem.component.VerifiedBadge
 import flexr.social.app.core.designsystem.theme.FlexrTheme
 import flexr.social.app.domain.model.MatchSummary
@@ -70,7 +72,7 @@ fun MatchListItem(
         Box(Modifier.size(54.dp)) {
             AsyncImage(
                 model = profile.primaryPhoto?.avatarUrl,
-                contentDescription = "Profilfoto von ${profile.name}",
+                contentDescription = stringResource(R.string.common_profile_photo_of, profile.name),
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
                     .fillMaxSize()
@@ -106,9 +108,13 @@ fun MatchListItem(
                 // leeren" ist der Chat weiterhin gelistet, aber (für einen
                 // selbst) leer.
                 match.lastMessage?.let { message ->
-                    val prefix = if (message.senderId == ownUserId) "Du: " else ""
+                    val prefix = if (message.senderId == ownUserId) {
+                        stringResource(R.string.chats_you_prefix)
+                    } else {
+                        ""
+                    }
                     prefix + message.content
-                } ?: "Chatverlauf geleert"
+                } ?: stringResource(R.string.chats_cleared)
             } else {
                 buildString {
                     append(profile.city)

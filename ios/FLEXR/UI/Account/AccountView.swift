@@ -1,6 +1,8 @@
 import SwiftUI
 
 struct AccountView: View {
+    @Environment(LanguageStore.self) private var languageStore
+    private var s: FlexrStrings { languageStore.strings }
 
     let onOpen: (Route) -> Void
 
@@ -26,6 +28,7 @@ struct AccountView: View {
         .task {
             let created = model ?? AccountModel(
                 container: container,
+                languageStore: languageStore,
                 onMessage: { appModel.show($0) }
             )
             model = created
@@ -58,7 +61,7 @@ struct AccountView: View {
 
                 membershipCard(model).padding(.top, 18)
 
-                SectionTitle(text: "Profil").padding(.top, 26)
+                SectionTitle(text: s(.accountSectionProfile)).padding(.top, 26)
                 PostalCodeField(postalCode: $model.postalCode, lookupState: model.plzLookup)
                 GymPicker(
                     state: $model.gymPicker,
@@ -68,8 +71,8 @@ struct AccountView: View {
                 )
                 FlexrTextField(
                     text: $model.bio,
-                    label: "Bio",
-                    placeholder: "Was du suchst, dein Training, gerne mit Emojis 💪",
+                    label: s(.fieldBio),
+                    placeholder: s(.fieldBioPlaceholder),
                     isSingleLine: false,
                     maxLines: 5,
                     maxLength: AccountModel.bioMaxLength,
@@ -79,12 +82,13 @@ struct AccountView: View {
                 radiusSlider(model)
 
                 FieldError(message: model.saveError)
-                FlexrSecondaryButton(title: "Profil speichern", isLoading: model.isSaving) {
+                FlexrSecondaryButton(title: s(.accountSave), isLoading: model.isSaving) {
                     Task { await model.saveProfile() }
                 }
                 .padding(.top, 16)
 
                 photoSection(model)
+                languageSection
                 notificationSection(model)
                 privacySection(model)
                 accountSection()
@@ -140,18 +144,13 @@ struct AccountView: View {
         }
         // Der Widerruf von „sensitive_data" leert das Deck in beide Richtungen —
         // das ist die einzige Einwilligung, die eine Rückfrage verdient.
-        .alert("Einwilligung widerrufen?", isPresented: $pendingSensitiveRevoke) {
-            Button("Widerruf erklären", role: .destructive) {
+        .alert(s(.consentRevokeTitle), isPresented: $pendingSensitiveRevoke) {
+            Button(s(.consentRevokeConfirm), role: .destructive) {
                 Task { await model.revokeConsent("sensitive_data") }
             }
-            Button("Abbrechen", role: .cancel) {}
+            Button(s(.commonCancel), role: .cancel) {}
         } message: {
-            Text(
-                "Geschlecht und gesuchtes Geschlecht sind die Grundlage des Matchings."
-                    + "\n\nOhne diese Einwilligung schlagen wir dir keine Profile mehr vor "
-                    + "und du erscheinst in keinem Deck. Dein Konto bleibt bestehen."
-                    + "\n\nWillst du ganz weg, lösche stattdessen dein Konto."
-            )
+            Text(s(.consentRevokeBody))
         }
     }
 
@@ -164,7 +163,7 @@ struct AccountView: View {
                 name: model.profile?.name ?? "?",
                 size: 64,
                 ringColor: FlexrColor.plateDim,
-                accessibilityLabel: "Dein Profilfoto"
+                accessibilityLabel: s(.accountOwnPhoto)
             )
 
             VStack(alignment: .leading, spacing: 2) {
@@ -197,14 +196,12 @@ struct AccountView: View {
     /// weder neue noch bestehende Konten.
     private func membershipText(_ membership: Membership) -> String {
         if !membership.billingEnabled {
-            return "FLEXR ist in der Beta-Phase kostenlos — die Mitgliedschaft von "
-                + "5 €/Monat ist bis auf weiteres ausgesetzt. Es ist kein "
-                + "Zahlungsmittel hinterlegt und es wird nichts abgebucht."
+            return s(.accountStatusBetaFree)
         }
         if membership.isSubscribed {
-            return "Dein Abo ist aktiv (5 €/Monat)."
+            return s(.accountStatusActive)
         }
-        return "Noch \(ServerTime.daysUntil(membership.trialEndsAt)) Tag(e) gratis Probemonat."
+        return s(.accountTrialDaysLeft, ServerTime.daysUntil(membership.trialEndsAt))
     }
 
     @ViewBuilder
@@ -221,11 +218,11 @@ struct AccountView: View {
                     // dafür stehen. Ein Abschluss wird während der Gratisphase
                     // gar nicht erst angeboten; der Server lehnt ihn mit 409 ab.
                     if membership.isSubscribed {
-                        FlexrLinkButton(title: "Abo verwalten / kündigen") {
+                        FlexrLinkButton(title: s(.accountManageSubscription)) {
                             model.openBillingPortal()
                         }
                     } else if membership.billingEnabled {
-                        FlexrLinkButton(title: "Jetzt abonnieren") { model.openCheckoutSheet() }
+                        FlexrLinkButton(title: s(.accountSubscribe)) { model.openCheckoutSheet() }
                     }
                 }
             }
@@ -235,7 +232,7 @@ struct AccountView: View {
     private func radiusSlider(_ model: AccountModel) -> some View {
         @Bindable var model = model
         return VStack(alignment: .leading, spacing: 0) {
-            FieldLabel(text: "Suchumkreis")
+            FieldLabel(text: s(.accountRadiusLabel))
             HStack(spacing: 12) {
                 Slider(
                     value: $model.searchRadiusKm,
@@ -249,9 +246,7 @@ struct AccountView: View {
                     .foregroundStyle(FlexrColor.chalk)
             }
             Text(
-                "Ausgangspunkt ist die Adresse deines Gyms — nicht dein Wohnort und nicht "
-                    + "dein aktueller Standort. Im eingestellten Umkreis siehst du auch "
-                    + "Leute aus anderen Studios in der Nähe."
+                s(.accountRadiusHint)
             )
             .flexrText(.bodySmall)
             .foregroundStyle(FlexrColor.chalkDim)
@@ -260,7 +255,7 @@ struct AccountView: View {
 
     private func photoSection(_ model: AccountModel) -> some View {
         VStack(alignment: .leading, spacing: 0) {
-            SectionTitle(text: "Fotos").padding(.top, 28)
+            SectionTitle(text: s(.accountSectionPhotos)).padding(.top, 28)
             PhotoGridEditor(
                 slots: (model.profile?.photos ?? []).map {
                     PhotoSlot(id: $0.id, source: .remote($0.url), status: $0.status)
@@ -277,7 +272,7 @@ struct AccountView: View {
             if model.isUploadingPhoto {
                 HStack(spacing: 8) {
                     ProgressView().controlSize(.mini).tint(FlexrColor.plate)
-                    Text("Foto wird hochgeladen …")
+                    Text(s(.photoUploading))
                         .flexrText(.bodySmall)
                         .foregroundStyle(FlexrColor.chalkDim)
                 }
@@ -289,15 +284,31 @@ struct AccountView: View {
         }
     }
 
+    /// Sprachwahl im Kontobereich — derselbe Regler wie oben in der Kopfzeile,
+    /// gleicher Zustand. Er steht bei den Einstellungen, weil man ihn dort sucht.
+    private var languageSection: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            SectionTitle(text: s(.langRowTitle)).padding(.top, 28)
+            HStack(alignment: .top) {
+                Text(s(.langRowHint))
+                    .flexrText(.bodySmall)
+                    .foregroundStyle(FlexrColor.chalkDim)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                LanguageSwitch()
+            }
+            .padding(.top, 12)
+        }
+    }
+
     private func notificationSection(_ model: AccountModel) -> some View {
         VStack(alignment: .leading, spacing: 0) {
-            SectionTitle(text: "Benachrichtigungen").padding(.top, 28)
+            SectionTitle(text: s(.accountSectionNotifications)).padding(.top, 28)
             HStack {
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("Neue Nachrichten")
+                    Text(s(.accountNewMessages))
                         .flexrText(.bodyLarge)
                         .foregroundStyle(FlexrColor.chalk)
-                    Text("Benachrichtigung, wenn dir ein Match schreibt.")
+                    Text(s(.accountMessagesHint))
                         .flexrText(.bodySmall)
                         .foregroundStyle(FlexrColor.chalkDim)
                 }
@@ -322,10 +333,10 @@ struct AccountView: View {
             } label: {
                 HStack {
                     VStack(alignment: .leading, spacing: 2) {
-                        Text("Matches, Profile & Erinnerungen")
+                        Text(s(.accountNotificationsRow))
                             .flexrText(.bodyLarge)
                             .foregroundStyle(FlexrColor.chalk)
-                        Text("E-Mail und App getrennt einstellen")
+                        Text(s(.accountNotificationsSub))
                             .flexrText(.bodySmall)
                             .foregroundStyle(FlexrColor.chalkDim)
                     }
@@ -346,17 +357,17 @@ struct AccountView: View {
     @ViewBuilder
     private func privacySection(_ model: AccountModel) -> some View {
         VStack(alignment: .leading, spacing: 0) {
-            SectionTitle(text: "Datenschutz & Sicherheit").padding(.top, 28)
+            SectionTitle(text: s(.accountSectionPrivacy)).padding(.top, 28)
 
             Button {
                 withAnimation(.easeOut(duration: 0.18)) { consentsExpanded.toggle() }
             } label: {
                 HStack {
                     VStack(alignment: .leading, spacing: 2) {
-                        Text("Einwilligungen")
+                        Text(s(.accountConsentsTitle))
                             .flexrText(.bodyLarge)
                             .foregroundStyle(FlexrColor.chalk)
-                        Text("Einsehen und widerrufen")
+                        Text(s(.accountConsentsRow))
                             .flexrText(.bodySmall)
                             .foregroundStyle(FlexrColor.chalkDim)
                     }
@@ -398,10 +409,10 @@ struct AccountView: View {
             } label: {
                 HStack {
                     VStack(alignment: .leading, spacing: 2) {
-                        Text("Blockierte Personen")
+                        Text(s(.accountBlocksTitle))
                             .flexrText(.bodyLarge)
                             .foregroundStyle(FlexrColor.chalk)
-                        Text("Blockierungen verwalten und aufheben")
+                        Text(s(.accountBlocksRow))
                             .flexrText(.bodySmall)
                             .foregroundStyle(FlexrColor.chalkDim)
                     }
@@ -431,12 +442,12 @@ struct AccountView: View {
 
     private func accountSection() -> some View {
         VStack(alignment: .leading, spacing: 0) {
-            SectionTitle(text: "Konto").padding(.top, 28)
-            FlexrSecondaryButton(title: "Ausloggen") {
+            SectionTitle(text: s(.commonAccount)).padding(.top, 28)
+            FlexrSecondaryButton(title: s(.commonLogout)) {
                 Task { await appModel.logout() }
             }
             .padding(.top, 12)
-            FlexrDangerButton(title: "Konto löschen") {
+            FlexrDangerButton(title: s(.commonDeleteAccount)) {
                 deletePassword = ""
                 showDeleteDialog = true
             }
@@ -446,7 +457,7 @@ struct AccountView: View {
 
     private func legalSection() -> some View {
         VStack(alignment: .leading, spacing: 0) {
-            SectionTitle(text: "Rechtliches").padding(.top, 28)
+            SectionTitle(text: s(.accountSectionLegal)).padding(.top, 28)
             ForEach(LegalDocument.allCases) { document in
                 NavigationRow(title: document.title) { onOpen(.legal(document)) }
             }
@@ -485,6 +496,8 @@ private struct NavigationRow: View {
 /// Ablauf. Beide Aktionen sind sichtbare Schaltflächen statt einer unsichtbar
 /// anklickbaren Fläche.
 private struct VerificationHint: View {
+    @Environment(LanguageStore.self) private var languageStore
+    private var s: FlexrStrings { languageStore.strings }
 
     let isVerified: Bool
     let status: VerificationStatus
@@ -498,30 +511,27 @@ private struct VerificationHint: View {
     }
 
     private var label: String {
-        if isVerified { return "Verifiziert" }
-        if status == .submitted { return "Prüfung läuft …" }
-        if status.needsDocument { return "Alter bestätigen" }
-        return "Verifizierung"
+        if isVerified { return s(.verifyBadgeVerifiedShort) }
+        if status == .submitted { return s(.verifyBadgeChecking) }
+        if status.needsDocument { return s(.verifyBadgeConfirmAge) }
+        return s(.verifyHintTitle)
     }
 
     private var message: String {
         if isVerified {
-            return "Dein Profil ist verifiziert — andere sehen den blauen Haken neben deinem Namen."
+            return s(.verifyBadgeVerified)
         }
         switch status {
         case .submitted:
-            return "Deine Verifizierung wird geprüft. Nach der Freigabe bekommst du den blauen Haken."
+            return s(.verifyBadgeReviewing)
         case .idRequired, .reuploadRequired:
             // Der Ausweisschritt läuft derzeit nur über flexr.social - die App
             // holt ihn in einer eigenen Version nach.
-            return "Es fehlt noch die Aufnahme deines amtlichen Lichtbildausweises. "
-                + "Diesen Schritt schließt du gerade noch unter flexr.social ab."
+            return s(.verifyBadgeDocumentMissing)
         case .rejected:
-            return "Deine Verifizierung konnte nicht abgeschlossen werden. "
-                + "Bei Fragen: flexr.social@proton.me"
+            return s(.verifyBadgeFailed)
         default:
-            return "Zeig mit einem Live-Selfie und einem Lichtbildausweis, dass du wirklich "
-                + "du bist — und hol dir den blauen Haken."
+            return s(.verifyBadgeStart)
         }
     }
 
@@ -548,14 +558,14 @@ private struct VerificationHint: View {
             if isVerified {
                 HStack {
                     Spacer()
-                    Button("Verstanden", action: onDismiss)
+                    Button(s(.verifyHintUnderstood), action: onDismiss)
                         .flexrText(.labelLarge)
                         .foregroundStyle(tint)
                 }
             } else if canStart {
                 HStack {
                     Spacer()
-                    Button("Zur Verifizierung", action: onStartVerification)
+                    Button(s(.verifyHintStart), action: onStartVerification)
                         .flexrText(.labelLarge)
                         .foregroundStyle(tint)
                 }
@@ -571,6 +581,8 @@ private struct VerificationHint: View {
 /// Konto-Screen nicht mehr erreichbar, die Selbstlöschung muss es aber bleiben
 /// (Punkt 5 der Datenschutzerklärung). Deshalb nicht privat.
 struct DeleteAccountSheet: View {
+    @Environment(LanguageStore.self) private var languageStore
+    private var s: FlexrStrings { languageStore.strings }
 
     @Binding var password: String
     let error: String?
@@ -585,16 +597,14 @@ struct DeleteAccountSheet: View {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 0) {
                         Text(
-                            "Dein Konto wird sofort deaktiviert und ist für andere nicht mehr "
-                                + "sichtbar. Alle Daten inklusive Fotos werden nach 30 Tagen "
-                                + "endgültig und unwiderruflich gelöscht (siehe Datenschutzerklärung)."
+                            s(.deleteBody)
                         )
                         .flexrText(.bodyMedium)
                         .foregroundStyle(FlexrColor.chalkDim)
 
                         FlexrPasswordField(
                             text: $password,
-                            label: "Zur Bestätigung dein Passwort",
+                            label: s(.deletePasswordLabel),
                             placeholder: "••••••••",
                             textContentType: .password,
                             isError: error != nil,
@@ -603,7 +613,7 @@ struct DeleteAccountSheet: View {
 
                         Spacer(minLength: 24)
                         FlexrDangerButton(
-                            title: "Endgültig löschen",
+                            title: s(.deleteConfirm),
                             isEnabled: !isDeleting,
                             isLoading: isDeleting,
                             isSolid: true,
@@ -613,11 +623,11 @@ struct DeleteAccountSheet: View {
                     .padding(20)
                 }
             }
-            .navigationTitle("Konto löschen")
+            .navigationTitle(s(.commonDeleteAccount))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Abbrechen", action: onDismiss)
+                    Button(s(.commonCancel), action: onDismiss)
                         .foregroundStyle(FlexrColor.chalkDim)
                 }
             }
@@ -628,16 +638,18 @@ struct DeleteAccountSheet: View {
 
 // MARK: - Einwilligungen
 
-private let consentLabels: [String: String] = [
-    "sensitive_data": "Verarbeitung von Geschlecht und gesuchtem Geschlecht",
-    "verification_media": "Aufnahmen für die Alters- und Identitätsprüfung",
-    "terms": "Angenommene AGB-Fassung",
+// Textschlüssel statt fertiger Texte: aufgelöst wird erst dort, wo gezeichnet
+// wird — nur da ist die gewählte Sprache bekannt.
+private let consentLabels: [String: L] = [
+    "sensitive_data": .consentSensitive,
+    "verification_media": .consentVerification,
+    "terms": .consentTerms,
 ]
 
-private let consentGrundlage: [String: String] = [
-    "sensitive_data": "Ausdrückliche Einwilligung nach Art. 9 Abs. 2 lit. a DSGVO.",
-    "verification_media": "Ausdrückliche Einwilligung nach Art. 9 Abs. 2 lit. a DSGVO.",
-    "terms": "Vertragsschluss, keine Einwilligung — daher nicht widerrufbar.",
+private let consentGrundlage: [String: L] = [
+    "sensitive_data": .consentBasisExplicit,
+    "verification_media": .consentBasisExplicit,
+    "terms": .consentBasisContract,
 ]
 
 /// „Sofortiger Leistungsbeginn" steht bewusst nicht in dieser Aufzählung: Die
@@ -652,6 +664,8 @@ private let consentRevocable: Set<String> = ["sensitive_data", "verification_med
 /// (`frontend/app/index.html`, `CONSENT_TEXT`/`CONSENT_GRUNDLAGE`) und
 /// Android (`ConsentSection` in `AccountScreen.kt`).
 private struct ConsentList: View {
+    @Environment(LanguageStore.self) private var languageStore
+    private var s: FlexrStrings { languageStore.strings }
 
     let consents: [ConsentDTO]
     let isLoading: Bool
@@ -677,10 +691,10 @@ private struct ConsentList: View {
             if isLoading, visible.isEmpty {
                 HStack(spacing: 8) {
                     ProgressView().controlSize(.mini).tint(FlexrColor.plate)
-                    Text("Lade …").flexrText(.bodySmall).foregroundStyle(FlexrColor.chalkDim)
+                    Text(s(.commonLoading)).flexrText(.bodySmall).foregroundStyle(FlexrColor.chalkDim)
                 }
             } else if visible.isEmpty, error == nil {
-                Text("Keine Einträge.")
+                Text(s(.consentNone))
                     .flexrText(.bodySmall)
                     .foregroundStyle(FlexrColor.chalkDim)
             } else {
@@ -696,9 +710,9 @@ private struct ConsentList: View {
     @ViewBuilder
     private func row(_ consent: ConsentDTO) -> some View {
         VStack(alignment: .leading, spacing: 2) {
-            (Text(consentLabels[consent.consentType] ?? consent.consentType)
+            (Text(consentLabels[consent.consentType].map { s($0) } ?? consent.consentType)
                 .foregroundStyle(FlexrColor.chalk)
-                + Text(consent.active ? "" : "  — widerrufen")
+                + Text(consent.active ? "" : s(.consentRevokedSuffix))
                 .foregroundStyle(FlexrColor.chalkDim))
                 .flexrText(.bodyMedium)
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -711,12 +725,12 @@ private struct ConsentList: View {
             if consentRevocable.contains(consent.consentType) {
                 if consent.active {
                     FlexrLinkButton(
-                        title: "Einwilligung widerrufen",
+                        title: s(.consentRevokeLink),
                         isEnabled: !isBusy
                     ) { onRevoke(consent.consentType) }
                 } else {
                     FlexrLinkButton(
-                        title: "Einwilligung erneut erteilen",
+                        title: s(.consentGrantLink),
                         isEnabled: !isBusy
                     ) { onGrant(consent.consentType) }
                 }
@@ -729,9 +743,9 @@ private struct ConsentList: View {
         let datum = ServerTime.parse(consent.active ? consent.grantedAt : consent.revokedAt)
             .map(ServerTime.formatDay) ?? "—"
         var text = consent.active
-            ? "Erteilt am \(datum), Fassung \(consent.version)."
-            : "Widerrufen am \(datum)."
-        if let grundlage = consentGrundlage[consent.consentType] { text += " " + grundlage }
+            ? s(.consentGrantedVersion, datum, consent.version)
+            : s(.consentRevokedOnDay, datum)
+        if let grundlage = consentGrundlage[consent.consentType] { text += " " + s(grundlage) }
         return text
     }
 }
@@ -741,6 +755,8 @@ private struct ConsentList: View {
 /// Bewusst nur Name, Alter, Vorschaubild und Blockierdatum — kein Bio/Gym/
 /// Entfernung, siehe `backend/app/schemas.py::BlockedUserOut`.
 private struct BlockedUsersList: View {
+    @Environment(LanguageStore.self) private var languageStore
+    private var s: FlexrStrings { languageStore.strings }
 
     let blockedUsers: [BlockedUser]
     let isLoading: Bool
@@ -753,12 +769,11 @@ private struct BlockedUsersList: View {
             if isLoading, blockedUsers.isEmpty {
                 HStack(spacing: 8) {
                     ProgressView().controlSize(.mini).tint(FlexrColor.plate)
-                    Text("Lade …").flexrText(.bodySmall).foregroundStyle(FlexrColor.chalkDim)
+                    Text(s(.commonLoading)).flexrText(.bodySmall).foregroundStyle(FlexrColor.chalkDim)
                 }
             } else if blockedUsers.isEmpty, error == nil {
                 Text(
-                    "Du hast niemanden blockiert. Blockieren geht über das Verbots-Symbol in "
-                        + "jedem Profil und in jedem Chat."
+                    s(.blocksEmpty)
                 )
                 .flexrText(.bodySmall)
                 .foregroundStyle(FlexrColor.chalkDim)
@@ -771,9 +786,7 @@ private struct BlockedUsersList: View {
                 // nach dem Aufheben sind Match und Chatverlauf wieder da
                 // (dieselbe Klarstellung wie in der Web-Fassung).
                 Text(
-                    "Eine Blockierung blendet ein bestehendes Match nur aus, sie löst es "
-                        + "nicht auf. Hebst du sie auf, seht ihr einander wieder im Deck — "
-                        + "und ein früheres Match ist samt Chatverlauf wieder da."
+                    s(.blocksNote)
                 )
                 .flexrText(.bodySmall)
                 .foregroundStyle(FlexrColor.chalkDim)
@@ -790,19 +803,22 @@ private struct BlockedUsersList: View {
                 source: PhotoImageSource(user.photoUrl),
                 name: user.name,
                 size: 44,
-                accessibilityLabel: "Profilfoto von \(user.name)"
+                accessibilityLabel: s(.commonProfilePhotoOf, user.name)
             )
             VStack(alignment: .leading, spacing: 2) {
                 Text(user.name + (user.age.map { ", \($0)" } ?? ""))
                     .flexrText(.bodyMedium)
                     .foregroundStyle(FlexrColor.chalk)
-                Text("Blockiert" + (user.blockedAt.map { " · seit \(ServerTime.formatDay($0))" } ?? ""))
+                Text(
+                    user.blockedAt.map { s(.blocksBlockedSince, ServerTime.formatDay($0)) }
+                        ?? s(.blocksBlocked)
+                )
                     .flexrText(.bodySmall)
                     .foregroundStyle(FlexrColor.chalkDim)
             }
             Spacer()
             FlexrLinkButton(
-                title: "Aufheben",
+                title: s(.blocksUnblock),
                 isEnabled: unblockingUserID == nil
             ) { onUnblock(user.userId) }
         }
@@ -820,6 +836,8 @@ private struct BlockedUsersList: View {
 /// und kein `alert`: Ein Alert trägt keine zwei antippbaren Kästchen mit
 /// mehrzeiligem Fließtext. Nicht privat — die Paywall nutzt denselben Weg.
 struct CheckoutConsentSheet: View {
+    @Environment(LanguageStore.self) private var languageStore
+    private var s: FlexrStrings { languageStore.strings }
 
     @Binding var immediateStart: Bool
     @Binding var withdrawalAck: Bool
@@ -836,23 +854,18 @@ struct CheckoutConsentSheet: View {
                     VStack(alignment: .leading, spacing: 0) {
                         CheckoutConsentRow(
                             isOn: $immediateStart,
-                            text: "Ich stimme ausdrücklich zu, dass FLEXR bereits vor Ablauf der "
-                                + "14-tägigen Rücktrittsfrist mit der Erbringung der "
-                                + "kostenpflichtigen Dienstleistung beginnt."
+                            text: s(.checkoutConsentImmediate)
                         )
                         CheckoutConsentRow(
                             isOn: $withdrawalAck,
-                            text: "Ich bestätige, dass ich zur Kenntnis genommen habe, dass mein "
-                                + "Rücktrittsrecht nach vollständiger Vertragserfüllung durch "
-                                + "FLEXR erlischt, wenn die gesetzlichen Voraussetzungen dafür "
-                                + "erfüllt sind."
+                            text: s(.checkoutConsentWithdrawal)
                         )
 
                         FieldError(message: error)
 
                         Spacer(minLength: 24)
                         FlexrButton(
-                            title: "Weiter zur Zahlung",
+                            title: s(.checkoutContinue),
                             isEnabled: !isStarting,
                             isLoading: isStarting,
                             action: onConfirm
@@ -861,11 +874,11 @@ struct CheckoutConsentSheet: View {
                     .padding(20)
                 }
             }
-            .navigationTitle("Vor der Zahlung")
+            .navigationTitle(s(.checkoutTitle))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Abbrechen", action: onDismiss)
+                    Button(s(.commonCancel), action: onDismiss)
                         .foregroundStyle(FlexrColor.chalkDim)
                 }
             }
@@ -877,6 +890,8 @@ struct CheckoutConsentSheet: View {
 /// Eine der beiden Checkout-Erklärungen — gleiches Muster wie `ConsentCheckbox`
 /// in RegisterView.swift, nur ohne eingebetteten Rechtstext-Link.
 private struct CheckoutConsentRow: View {
+    @Environment(LanguageStore.self) private var languageStore
+    private var s: FlexrStrings { languageStore.strings }
 
     @Binding var isOn: Bool
     let text: String
@@ -911,11 +926,13 @@ private struct CheckoutConsentRow: View {
     }
 }
 
-/// Untermenü „Benachrichtigungen" — drei Anlässe, je getrennt für E-Mail und App.
+/// Untermenü „Benachrichtigungen" — vier Anlässe, je getrennt für E-Mail und App.
 ///
 /// Die Schalter stehen unter dem App-weiten „Neue Nachrichten" im Konto: ist
 /// das aus, zeigt die App gar nichts an, unabhängig von dieser Auswahl.
 private struct NotificationSettingsSheet: View {
+    @Environment(LanguageStore.self) private var languageStore
+    private var s: FlexrStrings { languageStore.strings }
 
     let model: AccountModel
     @Environment(\.dismiss) private var dismiss
@@ -924,39 +941,48 @@ private struct NotificationSettingsSheet: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 0) {
-                    SectionTitle(text: "Neues Match").padding(.top, 20)
+                    SectionTitle(text: s(.notifyMatchTitle)).padding(.top, 20)
                     row(
-                        "E-Mail",
-                        hint: "Wenn jemand dich zurückgeliked hat.",
+                        s(.notifyEmail),
+                        hint: s(.notifyMatchHint),
                         isOn: model.notifications.matchEmail
                     ) { NotificationSettingsRequestDTO(notifyMatchEmail: $0) }
-                    row("App-Benachrichtigung", hint: nil, isOn: model.notifications.matchPush) {
+                    row(s(.notifyPush), hint: nil, isOn: model.notifications.matchPush) {
                         NotificationSettingsRequestDTO(notifyMatchPush: $0)
                     }
 
-                    SectionTitle(text: "Neue Profile im Umkreis").padding(.top, 26)
+                    SectionTitle(text: s(.notifyQueueTitle)).padding(.top, 26)
                     row(
-                        "E-Mail",
-                        hint: "Ab drei wartenden Profilen, höchstens einmal am Tag.",
+                        s(.notifyEmail),
+                        hint: s(.notifyQueueHint),
                         isOn: model.notifications.queueEmail
                     ) { NotificationSettingsRequestDTO(notifyQueueEmail: $0) }
-                    row("App-Benachrichtigung", hint: nil, isOn: model.notifications.queuePush) {
+                    row(s(.notifyPush), hint: nil, isOn: model.notifications.queuePush) {
                         NotificationSettingsRequestDTO(notifyQueuePush: $0)
                     }
 
-                    SectionTitle(text: "Erinnerung bei Inaktivität").padding(.top, 26)
+                    SectionTitle(text: s(.notifyInactiveTitle)).padding(.top, 26)
                     row(
-                        "E-Mail",
-                        hint: "Wenn du sieben Tage nicht in FLEXR warst.",
+                        s(.notifyEmail),
+                        hint: s(.notifyInactiveHint),
                         isOn: model.notifications.inactiveEmail
                     ) { NotificationSettingsRequestDTO(notifyInactiveEmail: $0) }
-                    row("App-Benachrichtigung", hint: nil, isOn: model.notifications.inactivePush) {
+                    row(s(.notifyPush), hint: nil, isOn: model.notifications.inactivePush) {
                         NotificationSettingsRequestDTO(notifyInactivePush: $0)
                     }
 
+                    SectionTitle(text: s(.notifyLikesTitle)).padding(.top, 26)
+                    row(
+                        s(.notifyEmail),
+                        hint: s(.notifyLikesHint),
+                        isOn: model.notifications.pendingLikesEmail
+                    ) { NotificationSettingsRequestDTO(notifyPendingLikesEmail: $0) }
+                    row(s(.notifyPush), hint: nil, isOn: model.notifications.pendingLikesPush) {
+                        NotificationSettingsRequestDTO(notifyPendingLikesPush: $0)
+                    }
+
                     Text(
-                        "Rechtlich nötige Nachrichten — etwa zu Abo, Rücktritt oder "
-                            + "Moderationsentscheidungen — lassen sich hier nicht abschalten."
+                        s(.notifyLegalHint)
                     )
                     .flexrText(.bodySmall)
                     .foregroundStyle(FlexrColor.chalkDim)
@@ -966,11 +992,11 @@ private struct NotificationSettingsSheet: View {
                 .padding(.bottom, 32)
             }
             .background(FlexrColor.ink.ignoresSafeArea())
-            .navigationTitle("Benachrichtigungen")
+            .navigationTitle(s(.accountSectionNotifications))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Fertig") { dismiss() }.tint(FlexrColor.plate)
+                    Button(s(.commonDone)) { dismiss() }.tint(FlexrColor.plate)
                 }
             }
         }

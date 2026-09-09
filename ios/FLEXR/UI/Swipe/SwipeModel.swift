@@ -26,11 +26,19 @@ final class SwipeModel {
     @ObservationIgnored private let onMessage: (String) -> Void
     @ObservationIgnored private let onOpenChat: (String) -> Void
 
+    /// Texte in der gewählten Sprache. Als Referenz auf den Speicher und nicht
+    /// als Kopie: eine Umstellung mitten in der Sitzung wirkt dann sofort auch
+    /// auf Meldungen, die dieses Modell danach erzeugt.
+    @ObservationIgnored private let languageStore: LanguageStore
+    private var s: FlexrStrings { languageStore.strings }
+
     init(
         container: AppContainer,
+        languageStore: LanguageStore,
         onMessage: @escaping (String) -> Void,
         onOpenChat: @escaping (String) -> Void
     ) {
+        self.languageStore = languageStore
         swipes = container.swipes
         profiles = container.profiles
         safety = container.safety
@@ -61,7 +69,7 @@ final class SwipeModel {
             deck = try await swipes.loadDeck()
             currentIndex = 0
         } catch {
-            self.error = (error as? FlexrAPIError)?.message ?? "Profile konnten nicht geladen werden."
+            self.error = (error as? FlexrAPIError)?.message ?? s(.swipeLoadFailed)
         }
         isLoading = false
     }
@@ -86,7 +94,7 @@ final class SwipeModel {
                     _ = try? await matches.refresh()
                 }
             } catch {
-                onMessage((error as? FlexrAPIError)?.message ?? "Swipe fehlgeschlagen.")
+                onMessage((error as? FlexrAPIError)?.message ?? s(.swipeFailed))
             }
         }
     }
@@ -102,7 +110,7 @@ final class SwipeModel {
             if let match = refreshed.first(where: { $0.profile.id == profile.id }) {
                 onOpenChat(match.matchID)
             } else {
-                onMessage("Chat konnte nicht geöffnet werden.")
+                onMessage(s(.chatOpenFailed))
             }
         }
     }

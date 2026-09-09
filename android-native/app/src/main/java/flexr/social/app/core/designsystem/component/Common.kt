@@ -36,8 +36,10 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import flexr.social.app.R
 import flexr.social.app.core.designsystem.theme.EyebrowStyle
 import flexr.social.app.core.designsystem.theme.FlexrTheme
 import flexr.social.app.core.designsystem.theme.MonoStyle
@@ -175,7 +177,7 @@ fun VerifiedBadge(modifier: Modifier = Modifier, size: Int = 16) {
     ) {
         Icon(
             Icons.Filled.Check,
-            contentDescription = "Verifiziertes Profil",
+            contentDescription = stringResource(R.string.common_verified_profile),
             tint = Color.White,
             modifier = Modifier.size((size * 0.7).dp),
         )

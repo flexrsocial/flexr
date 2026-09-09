@@ -10,6 +10,8 @@ import coil.ImageLoaderFactory
 import coil.disk.DiskCache
 import coil.memory.MemoryCache
 import dagger.hilt.android.HiltAndroidApp
+import flexr.social.app.core.locale.AppStrings
+import flexr.social.app.core.network.ApiErrorParser
 import javax.inject.Inject
 
 @HiltAndroidApp
@@ -17,6 +19,13 @@ class FlexrApplication : Application(), Configuration.Provider, ImageLoaderFacto
 
     @Inject
     lateinit var workerFactory: HiltWorkerFactory
+
+    /**
+     * Texte fuer die Standardmeldungen des Fehlerparsers. Siehe die Begruendung
+     * bei [flexr.social.app.core.network.ApiErrorParser.strings].
+     */
+    @Inject
+    lateinit var appStrings: AppStrings
 
     override val workManagerConfiguration: Configuration
         get() = Configuration.Builder()
@@ -26,6 +35,7 @@ class FlexrApplication : Application(), Configuration.Provider, ImageLoaderFacto
 
     override fun onCreate() {
         super.onCreate()
+        ApiErrorParser.strings = appStrings
         createNotificationChannels()
     }
 
@@ -54,14 +64,22 @@ class FlexrApplication : Application(), Configuration.Provider, ImageLoaderFacto
         .crossfade(true)
         .build()
 
+    /**
+     * Kanalnamen kommen ueber [appStrings] und damit in der in der App
+     * gewaehlten Sprache — `getString` haette die Systemsprache genommen und
+     * einem englisch bedienten Geraet deutsche Kanaele in die Einstellungen
+     * gelegt. `createNotificationChannel` aktualisiert Name und Beschreibung
+     * eines bestehenden Kanals, ein Sprachwechsel zieht also beim naechsten
+     * Start nach.
+     */
     private fun createNotificationChannels() {
         val manager = getSystemService(NotificationManager::class.java)
         val messages = NotificationChannel(
             CHANNEL_MESSAGES,
-            getString(R.string.notification_channel_messages),
+            appStrings.get(R.string.notification_channel_messages),
             NotificationManager.IMPORTANCE_DEFAULT,
         ).apply {
-            description = getString(R.string.notification_channel_messages_desc)
+            description = appStrings.get(R.string.notification_channel_messages_desc)
             enableLights(true)
             lightColor = android.graphics.Color.parseColor("#FF5A1F")
         }
@@ -72,10 +90,10 @@ class FlexrApplication : Application(), Configuration.Provider, ImageLoaderFacto
         // Systemeinstellungen leiser stellen, ohne die Nachrichten zu verlieren.
         val activity = NotificationChannel(
             CHANNEL_ACTIVITY,
-            getString(R.string.notification_channel_activity),
+            appStrings.get(R.string.notification_channel_activity),
             NotificationManager.IMPORTANCE_DEFAULT,
         ).apply {
-            description = getString(R.string.notification_channel_activity_desc)
+            description = appStrings.get(R.string.notification_channel_activity_desc)
             enableLights(true)
             lightColor = android.graphics.Color.parseColor("#FF5A1F")
         }

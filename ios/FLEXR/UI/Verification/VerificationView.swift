@@ -24,7 +24,18 @@ final class VerificationModel {
     @ObservationIgnored private let profiles: ProfileRepository
     @ObservationIgnored private let onMessage: (String) -> Void
 
-    init(container: AppContainer, onMessage: @escaping (String) -> Void) {
+    /// Texte in der gewählten Sprache. Als Referenz auf den Speicher und nicht
+    /// als Kopie: eine Umstellung mitten in der Sitzung wirkt dann sofort auch
+    /// auf Meldungen, die dieses Modell danach erzeugt.
+    @ObservationIgnored private let languageStore: LanguageStore
+    private var s: FlexrStrings { languageStore.strings }
+
+    init(
+        container: AppContainer,
+        languageStore: LanguageStore,
+        onMessage: @escaping (String) -> Void
+    ) {
+        self.languageStore = languageStore
         verification = container.verification
         profiles = container.profiles
         self.onMessage = onMessage
@@ -40,18 +51,18 @@ final class VerificationModel {
             captures = []
         } catch {
             self.error = (error as? FlexrAPIError)?.message
-                ?? "Verifizierung konnte nicht gestartet werden."
+                ?? s(.verifyStartFailed)
         }
         isStarting = false
     }
 
     func onCameraDenied() {
-        error = "Kamerazugriff abgelehnt. Die Verifizierung braucht Live-Aufnahmen über die Kamera."
+        error = s(.verifyCameraDenied)
     }
 
     func onCaptured(_ image: UIImage) async {
         guard let data = try? await ImageProcessor.compressSelfie(image) else {
-            error = "Aufnahme fehlgeschlagen, bitte erneut."
+            error = s(.verifyCaptureFailed)
             return
         }
         captures.append(data)
@@ -68,12 +79,12 @@ final class VerificationModel {
                 selfies: Array(zip(prompts, captures)).map { (prompt: $0.0, data: $0.1) }
             )
             _ = try? await profiles.refresh()
-            onMessage("Selfies eingereicht — deine Verifizierung ist in Prüfung.")
+            onMessage(s(.verifySubmitted))
             isFinished = true
         } catch {
             // Aufnahmen behalten, damit nur der Upload wiederholt werden muss.
             self.error = (error as? FlexrAPIError)?.message
-                ?? "Einreichen fehlgeschlagen. Bitte erneut versuchen."
+                ?? s(.verifySubmitFailed)
         }
         isSubmitting = false
     }
@@ -85,6 +96,8 @@ final class VerificationModel {
 }
 
 struct VerificationView: View {
+    @Environment(LanguageStore.self) private var languageStore
+    private var s: FlexrStrings { languageStore.strings }
 
     let onBack: () -> Void
 
@@ -100,12 +113,13 @@ struct VerificationView: View {
             if let model {
                 content(model)
             } else {
-                LoadingStateView(label: "Wird vorbereitet …")
+                LoadingStateView(label: s(.verifyPreparing))
             }
         }
         .task {
             let created = model ?? VerificationModel(
                 container: container,
+                languageStore: languageStore,
                 onMessage: { appModel.show($0) }
             )
             model = created
@@ -121,14 +135,14 @@ struct VerificationView: View {
     @ViewBuilder
     private func content(_ model: VerificationModel) -> some View {
         VStack(alignment: .leading, spacing: 0) {
-            BackHeader(title: "Foto-Verifizierung", onBack: onBack)
+            BackHeader(title: s(.verifyTitle), onBack: onBack)
 
             if model.isStarting {
-                LoadingStateView(label: "Wird vorbereitet …")
+                LoadingStateView(label: s(.verifyPreparing))
             } else {
-                Eyebrow(text: "Aufnahme \(min(model.currentIndex + 1, max(model.total, 1))) / \(model.total)")
+                Eyebrow(text: s(.verifyShotOf, min(model.currentIndex + 1, max(model.total, 1)), model.total))
                     .padding(.top, 18)
-                Text(model.currentPrompt ?? "Fertig!")
+                Text(model.currentPrompt ?? s(.verifyDone))
                     .flexrText(.headlineMedium)
                     .foregroundStyle(FlexrColor.chalk)
 
@@ -143,10 +157,7 @@ struct VerificationView: View {
                 actionButton(model)
                     .padding(.top, 16)
 
-                Text(
-                    "Die Selfies werden ausschließlich manuell mit deinen Profilfotos verglichen "
-                        + "und nach der Prüfung gelöscht. Keine automatisierte biometrische Auswertung."
-                )
+                Text(s(.verifyPrivacyNote))
                 .flexrText(.bodySmall)
                 .foregroundStyle(FlexrColor.chalkDim)
                 .padding(.top, 12)
@@ -169,7 +180,7 @@ struct VerificationView: View {
                     // Spiegel kennt. Die Aufnahme selbst bleibt ungespiegelt.
                     .scaleEffect(x: -1, y: 1)
             } else {
-                Text("Kamerazugriff wird benötigt.")
+                Text(s(.verifyCameraNeeded))
                     .flexrText(.bodyMedium)
                     .foregroundStyle(FlexrColor.chalkDim)
                     .multilineTextAlignment(.center)
@@ -196,7 +207,7 @@ struct VerificationView: View {
                     if let capture = model.captures[safe: index] {
                         PhotoImage(
                             source: .data(capture),
-                            accessibilityLabel: "Aufnahme \(index + 1)"
+                            accessibilityLabel: s(.verifyShotIndex, index + 1)
                         )
                         .clipShape(
                             RoundedRectangle(cornerRadius: FlexrRadius.small, style: .continuous)
@@ -215,13 +226,13 @@ struct VerificationView: View {
     @ViewBuilder
     private func actionButton(_ model: VerificationModel) -> some View {
         if model.isSubmitting {
-            FlexrButton(title: "Wird hochgeladen …", isEnabled: false, isLoading: true) {}
+            FlexrButton(title: s(.verifyUploading), isEnabled: false, isLoading: true) {}
         } else if model.isComplete {
-            FlexrSecondaryButton(title: "Einreichen wiederholen") {
+            FlexrSecondaryButton(title: s(.verifyRetrySubmit)) {
                 Task { await model.retrySubmit() }
             }
         } else if !hasCameraPermission {
-            FlexrSecondaryButton(title: "Kamerazugriff erlauben") {
+            FlexrSecondaryButton(title: s(.verifyAllowCamera)) {
                 Task {
                     hasCameraPermission = await camera.requestPermission()
                     if hasCameraPermission {
@@ -236,10 +247,10 @@ struct VerificationView: View {
                 }
             }
         } else {
-            FlexrButton(title: "Aufnehmen", icon: .symbol(FlexrIcon.camera)) {
+            FlexrButton(title: s(.verifyCapture), icon: .symbol(FlexrIcon.camera)) {
                 Task {
                     guard let image = await camera.capture() else {
-                        appModel.show("Aufnahme fehlgeschlagen, bitte erneut.")
+                        appModel.show(s(.verifyCaptureFailed))
                         return
                     }
                     await model.onCaptured(image)

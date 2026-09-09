@@ -5,10 +5,12 @@ import SwiftUI
 /// Die beiden Avatare fahren beim Erscheinen zusammen — dieselbe Choreografie
 /// wie im Web, hier aber mit SwiftUI-Animationen statt CSS-Keyframes.
 struct MatchOverlay: View {
+    @Environment(LanguageStore.self) private var languageStore
+    private var s: FlexrStrings { languageStore.strings }
 
     let matchedProfile: Profile
     let ownAvatarURL: String?
-    var ownName: String = "Du"
+    var ownName: String = s(.swipeOwnName)
     let onWriteMessage: () -> Void
     let onKeepSwiping: () -> Void
 
@@ -20,7 +22,7 @@ struct MatchOverlay: View {
 
             VStack(spacing: 0) {
                 Eyebrow(text: "Beide interessiert")
-                Text("Match!")
+                Text(s(.matchTitle))
                     .flexrText(.displayLarge)
                     .foregroundStyle(FlexrColor.plate)
 
@@ -39,23 +41,23 @@ struct MatchOverlay: View {
                         size: 104,
                         ringColor: FlexrColor.plate,
                         ringWidth: 3,
-                        accessibilityLabel: "Profilfoto von \(matchedProfile.name)"
+                        accessibilityLabel: s(.commonProfilePhotoOf, matchedProfile.name)
                     )
                 }
                 .padding(.top, 24)
 
-                Text("Du und \(matchedProfile.name) habt euch gegenseitig geliked.")
+                Text(s(.matchSub, matchedProfile.name))
                     .flexrText(.bodyMedium)
                     .foregroundStyle(FlexrColor.chalkDim)
                     .multilineTextAlignment(.center)
                     .padding(.top, 20)
 
-                FlexrButton(title: "Nachricht schreiben", icon: .symbol(FlexrIcon.chats)) {
+                FlexrButton(title: s(.commonWriteMessage), icon: .symbol(FlexrIcon.chats)) {
                     onWriteMessage()
                 }
                 .padding(.top, 26)
 
-                FlexrSecondaryButton(title: "Weiter swipen", action: onKeepSwiping)
+                FlexrSecondaryButton(title: s(.matchContinue), action: onKeepSwiping)
                     .padding(.top, 10)
             }
             .frame(maxWidth: 380)

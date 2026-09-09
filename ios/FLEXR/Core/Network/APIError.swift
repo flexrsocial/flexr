@@ -30,6 +30,9 @@ struct FlexrAPIError: Error, LocalizedError, Equatable {
 /// oder ein Objekt sein — alle drei Formen werden behandelt.
 enum APIErrorParser {
 
+    /// Texte der Standardmeldungen — siehe [FlexrStrings.current].
+    private static var strings: FlexrStrings { FlexrStrings.current }
+
     static func fromResponse(statusCode: Int, body: Data?) -> FlexrAPIError {
         guard
             let body,
@@ -79,24 +82,24 @@ enum APIErrorParser {
             case .timedOut:
                 return FlexrAPIError(
                     statusCode: 0,
-                    message: "Zeitüberschreitung. Bitte Verbindung prüfen und erneut versuchen."
+                    message: strings(.errorTimeout)
                 )
             case .notConnectedToInternet, .dataNotAllowed:
-                return FlexrAPIError(statusCode: 0, message: "Keine Internetverbindung.")
+                return FlexrAPIError(statusCode: 0, message: strings(.errorNoInternet))
             case .cannotFindHost, .cannotConnectToHost, .dnsLookupFailed:
-                return FlexrAPIError(statusCode: 0, message: "Server nicht erreichbar.")
+                return FlexrAPIError(statusCode: 0, message: strings(.errorUnreachable))
             case .cancelled:
-                return FlexrAPIError(statusCode: 0, message: "Abgebrochen.")
+                return FlexrAPIError(statusCode: 0, message: strings(.errorCancelled))
             default:
                 return FlexrAPIError(
                     statusCode: 0,
-                    message: "Verbindung fehlgeschlagen. Bitte erneut versuchen."
+                    message: strings(.errorConnection)
                 )
             }
         }
 
         if error is DecodingError {
-            return FlexrAPIError(statusCode: -1, message: "Unerwartete Antwort des Servers.")
+            return FlexrAPIError(statusCode: -1, message: strings(.errorUnexpectedResponse))
         }
 
         return FlexrAPIError(statusCode: -1, message: error.localizedDescription)
@@ -104,14 +107,14 @@ enum APIErrorParser {
 
     static func defaultMessage(_ code: Int) -> String {
         switch code {
-        case 401: return "Ungültige oder abgelaufene Anmeldung."
-        case 402: return "Probemonat abgelaufen. Bitte Abo abschließen."
-        case 403: return "Zugriff nicht möglich."
-        case 404: return "Nicht gefunden."
-        case 409: return "Bereits vorhanden."
-        case 429: return "Zu viele Versuche. Bitte kurz warten."
-        case 500...599: return "Serverfehler. Bitte später erneut versuchen."
-        default: return "Fehler (\(code))"
+        case 401: return strings(.errorUnauthorized)
+        case 402: return strings(.errorPaymentRequired)
+        case 403: return strings(.errorForbidden)
+        case 404: return strings(.errorNotFound)
+        case 409: return strings(.errorConflict)
+        case 429: return strings(.errorRateLimited)
+        case 500...599: return strings(.errorServer)
+        default: return strings(.errorHttp, code)
         }
     }
 }

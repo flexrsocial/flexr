@@ -55,7 +55,11 @@ flexr/
 │   ├── pytest.ini
 │   └── .env.example
 ├── frontend/
-│   └── index.html              # fetch()-basiert gegen /api/..., inkl. Login
+│   ├── index.html              # oeffentliche Landingpage
+│   ├── app/index.html          # Web-App, fetch()-basiert gegen /api/...
+│   ├── i18n.js                 # Zweisprachigkeit: Maschinerie + Spracherkennung
+│   ├── i18n-landing.js         # Woerterbuch der Landingpage (de/en)
+│   └── app/i18n-app.js         # Woerterbuch der Web-App (de/en)
 ├── deploy/
 │   ├── flexr-api.service       # systemd-Unit (Alternative zu pm2)
 │   ├── ecosystem.config.js     # pm2-Konfiguration

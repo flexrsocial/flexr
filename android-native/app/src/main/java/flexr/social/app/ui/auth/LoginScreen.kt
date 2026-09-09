@@ -20,11 +20,13 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import flexr.social.app.R
 import flexr.social.app.core.designsystem.component.FieldError
 import flexr.social.app.core.designsystem.component.FlexrButton
 import flexr.social.app.core.designsystem.component.FlexrPasswordField
@@ -59,15 +61,15 @@ fun LoginScreen(
 
         Spacer(Modifier.height(24.dp))
         ScreenHeader(
-            eyebrow = "Willkommen zurück",
-            title = "Zurück ins\nGym-Date.",
-            subtitle = "Melde dich mit deinen Zugangsdaten an.",
+            eyebrow = stringResource(R.string.login_eyebrow),
+            title = stringResource(R.string.login_title),
+            subtitle = stringResource(R.string.login_subtitle),
         )
 
         FlexrTextField(
             value = state.email,
             onValueChange = viewModel::onEmailChange,
-            label = "E-Mail",
+            label = stringResource(R.string.field_email),
             placeholder = "max@example.com",
             keyboardType = KeyboardType.Email,
             imeAction = ImeAction.Next,
@@ -76,7 +78,7 @@ fun LoginScreen(
         FlexrPasswordField(
             value = state.password,
             onValueChange = viewModel::onPasswordChange,
-            label = "Passwort",
+            label = stringResource(R.string.field_password),
             placeholder = "••••••••",
             imeAction = ImeAction.Go,
             onImeAction = {
@@ -91,7 +93,7 @@ fun LoginScreen(
         // Wie bei der Registrierung bewusst immer tippbar: Ein gesperrter Knopf
         // sagt nicht, was fehlt. viewModel.login() nennt den Grund beim Tippen.
         FlexrButton(
-            text = "Einloggen",
+            text = stringResource(R.string.login_submit),
             onClick = {
                 keyboard?.hide()
                 viewModel.login()
@@ -101,7 +103,7 @@ fun LoginScreen(
 
         Spacer(Modifier.height(28.dp))
         Text(
-            text = "Neu hier? Erstell dein Profil und teste FLEXR einen Monat gratis.",
+            text = stringResource(R.string.login_register_hint),
             style = MaterialTheme.typography.bodySmall,
             color = FlexrTheme.colors.chalkDim,
             modifier = Modifier.fillMaxWidth(),
@@ -138,7 +140,7 @@ private fun ReactivateAccountDialog(
     AlertDialog(
         onDismissRequest = onDismiss,
         containerColor = MaterialTheme.colorScheme.surface,
-        title = { Text("Konto reaktivieren?", style = MaterialTheme.typography.headlineSmall) },
+        title = { Text(stringResource(R.string.login_reactivate_title), style = MaterialTheme.typography.headlineSmall) },
         text = {
             Text(
                 text = (error ?: message),
@@ -148,12 +150,12 @@ private fun ReactivateAccountDialog(
         },
         confirmButton = {
             TextButton(onClick = onConfirm, enabled = !isReactivating) {
-                Text("Jetzt reaktivieren")
+                Text(stringResource(R.string.login_reactivate_confirm))
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Abbrechen", color = FlexrTheme.colors.chalkDim)
+                Text(stringResource(R.string.common_cancel), color = FlexrTheme.colors.chalkDim)
             }
         },
     )

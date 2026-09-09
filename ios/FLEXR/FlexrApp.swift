@@ -12,6 +12,10 @@ struct FlexrApp: App {
             RootView()
                 .environment(appDelegate.container)
                 .environment(appDelegate.appModel)
+                // Sprachwahl umhuellt alles, was Texte zeigt: jede View liest
+                // ihre Texte ueber `languageStore.strings`, ein Wechsel
+                // zeichnet die Oberflaeche also von selbst neu.
+                .environment(appDelegate.languageStore)
                 .preferredColorScheme(.dark)
                 .tint(FlexrColor.plate)
         }
@@ -28,12 +32,16 @@ final class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCent
 
     let container = AppContainer()
     lazy var appModel = AppModel(container: container)
+    let languageStore = LanguageStore()
 
     func application(
         _ application: UIApplication,
         didFinishLaunchingWithOptions options: [UIApplication.LaunchOptionsKey: Any]? = nil
     ) -> Bool {
         UNUserNotificationCenter.current().delegate = self
+        // Anlegen genügt: der Speicher setzt `APIErrorParser.strings` selbst,
+        // beim Start wie bei jedem späteren Sprachwechsel.
+        _ = languageStore
 
         // Bewusst auf der Hauptwarteschlange: der Abgleich läuft über die
         // MainActor-isolierten Repositories. Mit `nil` liefe der Handler auf

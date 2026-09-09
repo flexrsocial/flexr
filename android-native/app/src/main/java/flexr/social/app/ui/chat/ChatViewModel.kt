@@ -4,6 +4,8 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import flexr.social.app.R
+import flexr.social.app.core.locale.AppStrings
 import flexr.social.app.core.network.FlexrApiException
 import flexr.social.app.data.repository.MatchRepository
 import flexr.social.app.data.repository.MessageRepository
@@ -59,6 +61,7 @@ class ChatViewModel @Inject constructor(
     private val matchRepository: MatchRepository,
     private val safetyRepository: SafetyRepository,
     private val profileRepository: ProfileRepository,
+    private val strings: AppStrings,
 ) : ViewModel() {
 
     val matchId: String = checkNotNull(savedStateHandle["matchId"])
@@ -166,7 +169,7 @@ class ChatViewModel @Inject constructor(
                         if (apiError?.statusCode == 403) refreshMuteState()
                         _events.send(
                             ChatEvent.Message(
-                                apiError?.message ?: "Nachricht konnte nicht gesendet werden.",
+                                apiError?.message ?: strings.get(R.string.chat_send_failed),
                             ),
                         )
                     }
@@ -179,10 +182,10 @@ class ChatViewModel @Inject constructor(
         viewModelScope.launch {
             runCatching { messageRepository.clearHistory(matchId) }
                 .onSuccess {
-                    _events.send(ChatEvent.Message("Chatverlauf geleert."))
+                    _events.send(ChatEvent.Message(strings.get(R.string.chat_cleared)))
                     runCatching { matchRepository.refresh() }
                 }
-                .onFailure { _events.send(ChatEvent.Message(it.message ?: "Leeren fehlgeschlagen.")) }
+                .onFailure { _events.send(ChatEvent.Message(it.message ?: strings.get(R.string.chat_clear_failed))) }
         }
     }
 
@@ -195,10 +198,10 @@ class ChatViewModel @Inject constructor(
         viewModelScope.launch {
             runCatching { matchRepository.deleteChat(matchId) }
                 .onSuccess {
-                    _events.send(ChatEvent.Message("Chat gelöscht."))
+                    _events.send(ChatEvent.Message(strings.get(R.string.chat_deleted)))
                     _events.send(ChatEvent.Closed)
                 }
-                .onFailure { _events.send(ChatEvent.Message(it.message ?: "Löschen fehlgeschlagen.")) }
+                .onFailure { _events.send(ChatEvent.Message(it.message ?: strings.get(R.string.common_delete_failed))) }
         }
     }
 
@@ -209,7 +212,7 @@ class ChatViewModel @Inject constructor(
                 // Art. 16 Abs. 4 DSA: Der Melder bekommt die Bestätigung mit
                 // Aktenzeichen zu sehen, nicht nur ein "danke".
                 .onSuccess { _events.send(ChatEvent.Message(it.message)) }
-                .onFailure { _events.send(ChatEvent.Message(it.message ?: "Meldung fehlgeschlagen.")) }
+                .onFailure { _events.send(ChatEvent.Message(it.message ?: strings.get(R.string.report_failed))) }
         }
     }
 
@@ -219,10 +222,10 @@ class ChatViewModel @Inject constructor(
             runCatching { safetyRepository.block(profile.id) }
                 .onSuccess {
                     matchRepository.removeLocally(matchId)
-                    _events.send(ChatEvent.Message("${profile.name} blockiert."))
+                    _events.send(ChatEvent.Message(strings.get(R.string.block_done, profile.name)))
                     _events.send(ChatEvent.Closed)
                 }
-                .onFailure { _events.send(ChatEvent.Message(it.message ?: "Blockieren fehlgeschlagen.")) }
+                .onFailure { _events.send(ChatEvent.Message(it.message ?: strings.get(R.string.block_failed))) }
         }
     }
 

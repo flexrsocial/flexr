@@ -5,6 +5,8 @@ import SwiftUI
 /// Zeigt dieselbe Karte wie das Deck, aber ohne Wischgeste; stattdessen gibt es
 /// „Match auflösen", „Melden" und „Blockieren" direkt auf der Karte.
 struct MatchProfileView: View {
+    @Environment(LanguageStore.self) private var languageStore
+    private var s: FlexrStrings { languageStore.strings }
 
     let matchID: String
     let onBack: () -> Void
@@ -25,7 +27,7 @@ struct MatchProfileView: View {
     var body: some View {
         VStack(spacing: 0) {
             BackHeader(
-                title: match.map { "\($0.profile.name), \($0.profile.age)" } ?? "Profil",
+                title: match.map { "\($0.profile.name), \($0.profile.age)" } ?? s(.commonProfile),
                 onBack: onBack
             )
 
@@ -46,7 +48,7 @@ struct MatchProfileView: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .padding(.top, 16)
 
-                FlexrButton(title: "Nachricht schreiben", icon: .symbol(FlexrIcon.chats)) {
+                FlexrButton(title: s(.commonWriteMessage), icon: .symbol(FlexrIcon.chats)) {
                     onOpenChat(match.matchID)
                 }
                 .padding(.vertical, 16)
@@ -80,17 +82,16 @@ struct MatchProfileView: View {
         }
         .confirmDialog(
             isPresented: $showBlockDialog,
-            title: match.map { "\($0.profile.name) blockieren?" } ?? "Blockieren?",
-            message: "Ihr seht euch danach nicht mehr — das Match und der Chat verschwinden.",
-            confirmLabel: "Blockieren",
+            title: match.map { s(.reportBlockTitleNamed, $0.profile.name) } ?? s(.matchProfileBlockTitle),
+            message: s(.matchProfileBlockBody),
+            confirmLabel: s(.commonBlock),
             onConfirm: block
         )
         .confirmDialog(
             isPresented: $showUnmatchDialog,
-            title: match.map { "Match mit \($0.profile.name) auflösen?" } ?? "Match auflösen?",
-            message: "Der Chatverlauf wird gelöscht. Die Person kann dir danach erneut "
-                + "im Deck begegnen — eine Sperre ist das ausdrücklich nicht.",
-            confirmLabel: "Auflösen",
+            title: match.map { s(.matchProfileUnmatchTitle, $0.profile.name) } ?? s(.unmatchAction),
+            message: s(.matchProfileUnmatchBody),
+            confirmLabel: s(.matchProfileUnmatchConfirm),
             onConfirm: unmatch
         )
     }
@@ -127,7 +128,7 @@ struct MatchProfileView: View {
         Task {
             do {
                 try await container.matches.unmatch(matchID: matchID)
-                appModel.show("Match mit \(name) aufgelöst.")
+                appModel.show(s(.unmatchDone, name))
                 onBack()
             } catch {
                 appModel.show(error.localizedDescription)

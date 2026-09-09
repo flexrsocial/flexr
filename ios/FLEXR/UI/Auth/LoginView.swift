@@ -16,15 +16,20 @@ final class LoginModel {
     var canSubmit: Bool { !email.isEmpty && !password.isEmpty && !isSubmitting }
 
     @ObservationIgnored private let auth: AuthRepository
+    /// Texte in der gewählten Sprache — siehe [AccountModel] für die Begründung,
+    /// warum hier der Speicher und keine Kopie steht.
+    @ObservationIgnored private let languageStore: LanguageStore
+    private var s: FlexrStrings { languageStore.strings }
 
-    init(auth: AuthRepository) {
+    init(auth: AuthRepository, languageStore: LanguageStore) {
         self.auth = auth
+        self.languageStore = languageStore
     }
 
     func login() async {
         guard !isSubmitting else { return }
         guard !email.isEmpty, !password.isEmpty else {
-            error = "Bitte E-Mail und Passwort angeben."
+            error = s(.loginMissingFields)
             return
         }
 
@@ -40,7 +45,7 @@ final class LoginModel {
                 // liegt noch in der 30-Tage-Karenz und lässt sich zurückholen.
                 reactivateMessage = apiError?.message
             } else {
-                self.error = apiError?.message ?? "Login fehlgeschlagen."
+                self.error = apiError?.message ?? s(.loginFailed)
             }
         }
         isSubmitting = false
@@ -59,7 +64,7 @@ final class LoginModel {
         do {
             try await auth.reactivate(email: email, password: password)
         } catch {
-            self.error = (error as? FlexrAPIError)?.message ?? "Reaktivierung fehlgeschlagen."
+            self.error = (error as? FlexrAPIError)?.message ?? s(.loginReactivateFailed)
         }
         reactivateMessage = nil
         isReactivating = false
@@ -67,6 +72,8 @@ final class LoginModel {
 }
 
 struct LoginView: View {
+    @Environment(LanguageStore.self) private var languageStore
+    private var s: FlexrStrings { languageStore.strings }
 
     let onOpenLegal: (LegalDocument) -> Void
 
@@ -83,7 +90,9 @@ struct LoginView: View {
             }
         }
         .onAppear {
-            if model == nil { model = LoginModel(auth: container.auth) }
+            if model == nil {
+                model = LoginModel(auth: container.auth, languageStore: languageStore)
+            }
         }
         .fullScreenCover(isPresented: $showRegister) {
             RegisterView(
@@ -105,16 +114,16 @@ struct LoginView: View {
                 .padding(.top, 8)
 
                 ScreenHeader(
-                    eyebrow: "Willkommen zurück",
-                    title: "Zurück ins\nGym-Date.",
-                    subtitle: "Melde dich mit deinen Zugangsdaten an."
+                    eyebrow: s(.loginEyebrow),
+                    title: s(.loginTitle),
+                    subtitle: s(.loginSubtitle)
                 )
                 .padding(.top, 24)
 
                 FlexrTextField(
                     text: $model.email,
-                    label: "E-Mail",
-                    placeholder: "max@example.com",
+                    label: s(.fieldEmail),
+                    placeholder: s(.loginEmailPlaceholder),
                     keyboardType: .emailAddress,
                     textContentType: .username,
                     autocapitalization: .never
@@ -122,7 +131,7 @@ struct LoginView: View {
 
                 FlexrPasswordField(
                     text: $model.password,
-                    label: "Passwort",
+                    label: s(.fieldPassword),
                     placeholder: "••••••••",
                     submitLabel: .go,
                     onSubmit: { Task { await model.login() } }
@@ -131,7 +140,7 @@ struct LoginView: View {
                 FieldError(message: model.error)
 
                 FlexrButton(
-                    title: "Einloggen",
+                    title: s(.loginSubmit),
                     isEnabled: model.canSubmit,
                     isLoading: model.isSubmitting
                 ) {
@@ -139,7 +148,7 @@ struct LoginView: View {
                 }
                 .padding(.top, 22)
 
-                Text("Neu hier? Erstell dein Profil und teste FLEXR einen Monat gratis.")
+                Text(s(.loginRegisterHint))
                     .flexrText(.bodySmall)
                     .foregroundStyle(FlexrColor.chalkDim)
                     .padding(.top, 28)
@@ -151,14 +160,14 @@ struct LoginView: View {
         .onChange(of: model.email) { _, _ in model.error = nil }
         .onChange(of: model.password) { _, _ in model.error = nil }
         .alert(
-            "Konto reaktivieren?",
+            s(.loginReactivateTitle),
             isPresented: Binding(
                 get: { model.reactivateMessage != nil },
                 set: { if !$0 { model.dismissReactivate() } }
             )
         ) {
-            Button("Jetzt reaktivieren") { Task { await model.reactivate() } }
-            Button("Abbrechen", role: .cancel) { model.dismissReactivate() }
+            Button(s(.loginReactivateConfirm)) { Task { await model.reactivate() } }
+            Button(s(.commonCancel), role: .cancel) { model.dismissReactivate() }
         } message: {
             Text(model.reactivateMessage ?? "")
         }

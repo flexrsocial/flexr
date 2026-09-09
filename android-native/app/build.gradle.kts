@@ -36,7 +36,9 @@ android {
         versionName = "2.5.5"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        resourceConfigurations += listOf("de")
+        // Nur die Sprachen ausliefern, die es wirklich gibt: Deutsch als
+        // Ausgangssprache, Englisch als Uebersetzung (res/values-en).
+        resourceConfigurations += listOf("de", "en")
     }
 
     signingConfigs {

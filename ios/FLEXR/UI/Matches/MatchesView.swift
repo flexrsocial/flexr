@@ -6,6 +6,8 @@ import SwiftUI
 /// „Matches" zeigt alle, „Chats" nur die mit laufender Unterhaltung — genau die
 /// Trennung, die auch die Web-App vornimmt.
 struct MatchesView: View {
+    @Environment(LanguageStore.self) private var languageStore
+    private var s: FlexrStrings { languageStore.strings }
 
     /// Gleiche Kadenz wie der Web-Poll (`refreshUnreadBadge`, alle 20s).
     private static let pollInterval: Duration = .seconds(20)
@@ -19,12 +21,12 @@ struct MatchesView: View {
     var body: some View {
         MatchListScreen(
             eyebrow: "Trefferquote",
-            title: "Deine Matches",
+            title: s(.matchesTitle),
             matches: container.matches.matches,
             isRefreshing: isRefreshing,
             emptyIcon: .symbol(FlexrIcon.matches),
-            emptyTitle: "Noch keine Matches",
-            emptyMessage: "Weiter swipen — dein nächster Trainingspartner wartet schon.",
+            emptyTitle: s(.matchesEmptyTitle),
+            emptyMessage: s(.matchesEmptySub),
             onRefresh: refresh
         ) { match in
             MatchListItem(match: match, onTap: { onOpenMatchProfile(match.matchID) })
@@ -39,7 +41,7 @@ struct MatchesView: View {
             _ = try await container.matches.refresh()
         } catch {
             appModel.show(
-                (error as? FlexrAPIError)?.message ?? "Matches konnten nicht geladen werden."
+                (error as? FlexrAPIError)?.message ?? s(.matchesLoadFailed)
             )
         }
         isRefreshing = false
@@ -60,6 +62,8 @@ struct MatchesView: View {
 
 /// Nur Matches mit laufender Unterhaltung.
 struct ChatsView: View {
+    @Environment(LanguageStore.self) private var languageStore
+    private var s: FlexrStrings { languageStore.strings }
 
     /// Gleiche Kadenz wie der Web-Poll (`refreshUnreadBadge`, alle 20s).
     private static let pollInterval: Duration = .seconds(20)
@@ -73,13 +77,13 @@ struct ChatsView: View {
 
     var body: some View {
         MatchListScreen(
-            eyebrow: "Im Gespräch",
-            title: "Deine Chats",
+            eyebrow: s(.chatsEyebrow),
+            title: s(.chatsTitle),
             matches: container.matches.conversations,
             isRefreshing: isRefreshing,
             emptyIcon: .symbol(FlexrIcon.chats),
-            emptyTitle: "Noch keine Chats",
-            emptyMessage: "Schreib einem deiner Matches die erste Nachricht.",
+            emptyTitle: s(.chatsEmptyTitle),
+            emptyMessage: s(.chatsEmptySub),
             onRefresh: refresh
         ) { match in
             MatchListItem(
@@ -99,7 +103,7 @@ struct ChatsView: View {
             _ = try await container.matches.refresh()
         } catch {
             appModel.show(
-                (error as? FlexrAPIError)?.message ?? "Matches konnten nicht geladen werden."
+                (error as? FlexrAPIError)?.message ?? s(.matchesLoadFailed)
             )
         }
         isRefreshing = false

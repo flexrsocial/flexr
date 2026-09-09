@@ -1,9 +1,13 @@
 package flexr.social.app.ui.verification
 
 import android.graphics.Bitmap
+import android.net.Uri
+import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import flexr.social.app.R
+import flexr.social.app.core.locale.AppStrings
 import flexr.social.app.core.media.ImageProcessor
 import flexr.social.app.core.network.FlexrApiException
 import flexr.social.app.data.repository.ProfileRepository
@@ -20,9 +24,9 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 /** Vorder- oder Rückseite des Dokuments. */
-enum class DocumentSide(val label: String) {
-    FRONT("Vorderseite"),
-    BACK("Rückseite"),
+enum class DocumentSide(@StringRes val labelRes: Int) {
+    FRONT(R.string.document_side_front),
+    BACK(R.string.document_side_back),
 }
 
 data class DocumentUiState(
@@ -71,6 +75,7 @@ class DocumentViewModel @Inject constructor(
     private val verificationRepository: VerificationRepository,
     private val profileRepository: ProfileRepository,
     private val imageProcessor: ImageProcessor,
+    private val strings: AppStrings,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(DocumentUiState())
@@ -107,7 +112,7 @@ class DocumentViewModel @Inject constructor(
                         it.copy(
                             isLoading = false,
                             error = (throwable as? FlexrApiException)?.message
-                                ?: "Status konnte nicht geladen werden.",
+                                ?: strings.get(R.string.common_status_load_failed),
                         )
                     }
                 }
@@ -130,7 +135,7 @@ class DocumentViewModel @Inject constructor(
         it.copy(
             capturing = null,
             cameraDenied = true,
-            error = "Kamerazugriff abgelehnt. Für die Aufnahme des Ausweises wird die Kamera gebraucht.",
+            error = strings.get(R.string.document_camera_denied),
         )
     }
 
@@ -139,7 +144,27 @@ class DocumentViewModel @Inject constructor(
         viewModelScope.launch {
             val bytes = runCatching { imageProcessor.compressDocument(bitmap) }.getOrElse {
                 _uiState.update {
-                    it.copy(capturing = null, error = "Aufnahme fehlgeschlagen, bitte erneut.")
+                    it.copy(capturing = null, error = strings.get(R.string.document_capture_failed))
+                }
+                return@launch
+            }
+            _uiState.update {
+                it.copy(captures = it.captures + (side to bytes), capturing = null, error = null)
+            }
+        }
+    }
+
+    /**
+     * Eine bestehende Bilddatei statt einer frischen Aufnahme.
+     *
+     * Wer den Ausweis schon gescannt oder vorab geschwaerzt hat, kaeme mit der
+     * Kamera allein nicht weiter.
+     */
+    fun onFilePicked(side: DocumentSide, uri: Uri) {
+        viewModelScope.launch {
+            val bytes = runCatching { imageProcessor.compressDocument(uri) }.getOrElse {
+                _uiState.update {
+                    it.copy(capturing = null, error = strings.get(R.string.document_file_read_failed))
                 }
                 return@launch
             }
@@ -173,7 +198,7 @@ class DocumentViewModel @Inject constructor(
                     it.copy(isSubmitting = false, captures = emptyMap())
                 }
                 runCatching { profileRepository.refresh() }
-                _events.send(DocumentEvent.Message("Verifizierung eingereicht — wir prüfen deine Angaben."))
+                _events.send(DocumentEvent.Message(strings.get(R.string.document_submitted)))
                 _events.send(DocumentEvent.Submitted)
             }.onFailure { throwable ->
                 // Aufnahmen behalten, damit nur der Upload zu wiederholen ist.
@@ -181,7 +206,7 @@ class DocumentViewModel @Inject constructor(
                     it.copy(
                         isSubmitting = false,
                         error = (throwable as? FlexrApiException)?.message
-                            ?: "Einreichen fehlgeschlagen. Bitte erneut versuchen.",
+                            ?: strings.get(R.string.document_submit_failed),
                     )
                 }
             }

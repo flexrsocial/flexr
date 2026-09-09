@@ -25,9 +25,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import flexr.social.app.R
 import flexr.social.app.core.designsystem.component.FlexrButton
 import flexr.social.app.core.designsystem.component.LoadingState
 import flexr.social.app.core.designsystem.icon.FlexrIcons
@@ -79,11 +81,15 @@ fun MatchProfileScreen(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             IconButton(onClick = onBack, modifier = Modifier.size(36.dp)) {
-                Icon(FlexrIcons.Back, contentDescription = "Zurück", tint = FlexrTheme.colors.chalk)
+                Icon(
+                    FlexrIcons.Back,
+                    contentDescription = stringResource(R.string.common_back),
+                    tint = FlexrTheme.colors.chalk,
+                )
             }
             Spacer(Modifier.width(6.dp))
             Text(
-                text = current?.profile?.let { "${it.name}, ${it.age}" } ?: "Profil",
+                text = current?.profile?.let { "${it.name}, ${it.age}" } ?: stringResource(R.string.common_profile),
                 style = MaterialTheme.typography.titleMedium,
                 color = FlexrTheme.colors.chalk,
             )
@@ -115,7 +121,7 @@ fun MatchProfileScreen(
 
         Spacer(Modifier.height(16.dp))
         FlexrButton(
-            text = "Nachricht schreiben",
+            text = stringResource(R.string.common_write_message),
             onClick = { onOpenChat(current.matchId) },
             icon = FlexrIcons.Chats,
         )
@@ -147,9 +153,9 @@ fun MatchProfileScreen(
     }
     if (showBlockDialog && current != null) {
         ConfirmDialog(
-            title = "${current.profile.name} blockieren?",
-            text = "Ihr seht euch danach nicht mehr — das Match und der Chat verschwinden.",
-            confirmLabel = "Blockieren",
+            title = stringResource(R.string.block_dialog_title, current.profile.name),
+            text = stringResource(R.string.match_profile_block_body),
+            confirmLabel = stringResource(R.string.common_block),
             onConfirm = {
                 showBlockDialog = false
                 viewModel.block()
@@ -159,10 +165,9 @@ fun MatchProfileScreen(
     }
     if (showUnmatchDialog && current != null) {
         ConfirmDialog(
-            title = "Match mit ${current.profile.name} auflösen?",
-            text = "Der Chatverlauf wird gelöscht. Die Person kann dir danach erneut " +
-                "im Deck begegnen — eine Sperre ist das ausdrücklich nicht.",
-            confirmLabel = "Auflösen",
+            title = stringResource(R.string.match_profile_unmatch_title, current.profile.name),
+            text = stringResource(R.string.match_profile_unmatch_body),
+            confirmLabel = stringResource(R.string.match_profile_unmatch_confirm),
             onConfirm = {
                 showUnmatchDialog = false
                 viewModel.unmatch()

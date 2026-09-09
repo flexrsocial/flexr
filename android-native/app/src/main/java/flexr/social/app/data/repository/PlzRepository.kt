@@ -6,8 +6,14 @@ import flexr.social.app.data.remote.FlexrApi
 import javax.inject.Inject
 import javax.inject.Singleton
 
-/** Fehler, wenn zu einer eingegebenen PLZ kein österreichischer Ort existiert. */
-class UnknownPostalCodeException : Exception("Postleitzahl nicht gefunden. Bitte prüfen.")
+/**
+ * Fehler, wenn zu einer eingegebenen PLZ kein österreichischer Ort existiert.
+ *
+ * Der Text ist eine technische Beschreibung fuer Protokolle. Was der Nutzer
+ * liest, baut das ViewModel aus `R.string.error_postal_code_unknown` — nur
+ * dort ist die gewaehlte Sprache bekannt.
+ */
+class UnknownPostalCodeException : Exception("Unbekannte Postleitzahl.")
 
 /**
  * Ortsermittlung zur Postleitzahl über das eigene Backend.

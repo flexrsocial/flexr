@@ -122,6 +122,8 @@ struct StatusPill: View {
 struct VerifiedBadge: View {
     var size: CGFloat = 16
 
+    @Environment(LanguageStore.self) private var languageStore
+
     var body: some View {
         ZStack {
             Circle().fill(FlexrColor.verified)
@@ -130,7 +132,7 @@ struct VerifiedBadge: View {
                 .foregroundStyle(.white)
         }
         .frame(width: size, height: size)
-        .accessibilityLabel("Verifiziertes Profil")
+        .accessibilityLabel(languageStore.strings(.commonVerifiedProfile))
     }
 }
 
@@ -214,6 +216,8 @@ struct BackHeader<Trailing: View>: View {
     let onBack: () -> Void
     @ViewBuilder var trailing: () -> Trailing
 
+    @Environment(LanguageStore.self) private var languageStore
+
     var body: some View {
         VStack(spacing: 0) {
             HStack(spacing: 6) {
@@ -224,7 +228,7 @@ struct BackHeader<Trailing: View>: View {
                         .frame(width: 36, height: 36)
                 }
                 .buttonStyle(.plain)
-                .accessibilityLabel("Zurück")
+                .accessibilityLabel(languageStore.strings(.commonBack))
 
                 Text(title)
                     .flexrText(titleStyle)

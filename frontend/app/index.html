@@ -1429,6 +1429,35 @@
   }
   .doc-slot .slot-icon{ width:22px; height:22px; fill:none; stroke:currentColor; stroke-width:1.8; }
 
+  /* Zwei Wege zur Aufnahme: Kamera oder eine Datei vom Geraet. Ein einzelnes
+     <input capture="environment"> haette auf dem Handy direkt die Kamera
+     geoeffnet - wer den Ausweis schon gescannt hat, kam damit nicht weiter.
+     Deshalb zwei getrennte Inputs und darunter zwei sichtbare Knoepfe, damit
+     die Wahl auch auf dem Desktop erkennbar ist (dort ignoriert der Browser
+     capture und beide Wege landen im selben Dateidialog). */
+  .doc-slot-wrap{ display:flex; flex-direction:column; gap:8px; container-type:inline-size; }
+  /* Nebeneinander, solange der Platz reicht. Bei zwei Aufnahmeplaetzen auf
+     einem Telefon ist eine Spalte rund 150px breit - dort brechen "Foto
+     aufnehmen" und "Datei wählen" sonst mitten im Wort um. Deshalb eine
+     Container-Abfrage: sie misst die Spalte, nicht das Fenster, und trifft
+     damit auch den Fall "nur Vorderseite" richtig (ein Platz ueber die volle
+     Breite - da passen die Knoepfe nebeneinander). */
+  .doc-slot-actions{ display:flex; flex-direction:column; gap:6px; }
+  @container (min-width: 260px){
+    .doc-slot-actions{ flex-direction:row; }
+  }
+  .doc-slot-actions button{
+    flex:1; display:flex; align-items:center; justify-content:center; gap:6px;
+    padding:9px 6px; border-radius:10px; border:1px solid var(--steel);
+    background:rgba(255,255,255,.02); color:var(--chalk-dim); cursor:pointer;
+    font-family:'Work Sans', system-ui, sans-serif; font-size:12.5px; line-height:1.2;
+  }
+  .doc-slot-actions button:hover{ border-color:var(--plate-dim); color:var(--chalk); }
+  .doc-slot-actions svg{
+    width:15px; height:15px; flex-shrink:0; fill:none; stroke:currentColor;
+    stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round;
+  }
+
   /* Hinweis auf Schwärzen nicht benötigter Angaben */
   .redact-note{
     display:flex; gap:9px; align-items:flex-start; font-size:12.5px; line-height:1.55;
@@ -1676,6 +1705,41 @@
   .consent-label a:link, .consent-label a:visited{ color:var(--chalk); }
   .consent-note{ margin-top:10px; font-size:12px; color:var(--chalk-dim); text-align:center; }
   .consent-note a:link, .consent-note a:visited{ color:var(--chalk); }
+  /* ---- Sprachregler (Deutsch/Englisch) ----
+     Zwei Segmente mit gleitendem Knopf. Er steht doppelt im Dokument: oben in
+     der Kopfzeile, wo ihn auch ein ausgeloggter Besucher sofort sieht, und im
+     Kontobereich unter "Profil", wo man Einstellungen sucht. Beide Instanzen
+     zeigen denselben Zustand - FlexrI18n haelt sie ueber data-active gleich. */
+  .lang-switch{
+    position:relative; display:inline-flex; align-items:stretch; flex-shrink:0;
+    border:1px solid var(--steel); border-radius:999px; background:var(--surface-2);
+    padding:2px; gap:0;
+  }
+  .lang-switch button{
+    position:relative; z-index:2; border:0; background:transparent; cursor:pointer;
+    padding:4px 10px; border-radius:999px; color:var(--chalk-dim);
+    font-family:'JetBrains Mono', monospace; font-size:10.5px; letter-spacing:0.09em;
+    line-height:1.5; transition:color .18s ease;
+  }
+  .lang-switch button.on{ color:#141414; }
+  .lang-switch .knob{
+    position:absolute; z-index:1; top:2px; bottom:2px; left:2px; width:calc(50% - 2px);
+    border-radius:999px; background:var(--plate);
+    transition:transform .2s cubic-bezier(.4,0,.2,1);
+  }
+  .lang-switch[data-active="en"] .knob{ transform:translateX(100%); }
+  @media (prefers-reduced-motion: reduce){
+    .lang-switch .knob{ transition:none; }
+  }
+  /* Im Kontobereich steht der Regler in einer eigenen Zeile mit Beschriftung,
+     damit er dort nicht wie ein verirrtes Kopfzeilen-Element wirkt. */
+  .lang-row{
+    display:flex; align-items:center; justify-content:space-between; gap:12px;
+    margin-top:4px;
+  }
+  .lang-row .lang-row-label{ font-size:14px; color:var(--chalk); }
+  .lang-row .lang-row-hint{ font-size:12px; color:var(--chalk-dim); margin-top:2px; }
+
   .loading{
     text-align:center; padding:60px 0; color:var(--chalk-dim); font-family:'JetBrains Mono'; font-size:12.5px;
     letter-spacing:0.06em; text-transform:uppercase;
@@ -1703,11 +1767,20 @@
   // an einem await auf /api/me, und der Parser hat den Hero laengst gemalt.
   if(localStorage.getItem('flexr_token')) document.body.classList.remove('landing');
 </script>
-<a class="skip-link" href="#main-content">Zum Inhalt springen</a>
+<!-- Zweisprachigkeit: /i18n.js bringt die Maschinerie und die Spracherkennung
+     (DACH-Raum -> Deutsch), i18n-app.js das Woerterbuch dieser Seite. Beide
+     laufen synchron und damit vor dem DOMContentLoaded, bei dem FlexrI18n die
+     data-i18n-Knoten uebersetzt. -->
+<script src="/i18n.js?v=1"></script>
+<script src="/app/i18n-app.js?v=1"></script>
+<a class="skip-link" href="#main-content" data-i18n="common.skipToContent">Zum Inhalt springen</a>
 <div class="app" id="app">
 
   <header class="top">
     <div class="brand">FLE<span>X</span>R</div>
+    <!-- Sprachregler "on-top": auch ohne Login erreichbar, damit ein Besucher
+         aus dem Ausland die Seite sofort umstellen kann. -->
+    <div class="lang-switch" role="group" data-i18n-aria="lang.group" aria-label="Sprache"><button type="button" data-lang="de" data-i18n-title="lang.de" title="Deutsch">DE</button><button type="button" data-lang="en" data-i18n-title="lang.en" title="Englisch">EN</button><span class="knob" aria-hidden="true"></span></div>
     <div class="status-pill" id="statusPill">—</div>
   </header>
 
@@ -1715,22 +1788,22 @@
 
     <!-- LANDING-HERO (nur sichtbar im Landing-Modus, d.h. ausgeloggt) -->
     <div class="landing-hero">
-      <div class="hero-eyebrow">Dating für Gym-People · Österreich</div>
-      <h1>Match.<br>Train.<br><em>Repeat.</em></h1>
-      <p class="hero-sub">
+      <div class="hero-eyebrow" data-i18n="hero.eyebrow">Dating für Gym-People · Österreich</div>
+      <h1 data-i18n-html="hero.h1">Match.<br>Train.<br><em>Repeat.</em></h1>
+      <p class="hero-sub" data-i18n="hero.sub">
         Dating für Leute, die auch montags Beintag machen. Finde Menschen,
         die dein Training genauso ernst nehmen wie du — in deinem Gym, in deiner Stadt.
       </p>
       <ul class="hero-usps">
-        <li>Matches nach Gym &amp; Stadt — kein Ghosting am anderen Ende Österreichs</li>
+        <li data-i18n-html="hero.usp1">Matches nach Gym &amp; Stadt — kein Ghosting am anderen Ende Österreichs</li>
         <!-- Beta-Gratisphase: Diese Zeile und der Registrierungstext weiter
              unten stehen fest im Markup, weil sie vor dem Login gezeigt werden
              - da gibt es noch keinen /api/billing/status. Wird die Gebuehr
              wieder scharf geschaltet (BILLING_ENABLED=true, siehe
              backend/app/config.py), gehoeren beide zurueck auf "1 Monat gratis,
              danach 5 EUR/Monat". -->
-        <li>In der Beta gratis — die 5&nbsp;€/Monat sind bis auf weiteres ausgesetzt</li>
-        <li>Echte Profile: Melde- &amp; Blockfunktion inklusive</li>
+        <li data-i18n-html="hero.usp2">In der Beta gratis — die 5&nbsp;€/Monat sind bis auf weiteres ausgesetzt</li>
+        <li data-i18n-html="hero.usp3">Echte Profile: Melde- &amp; Blockfunktion inklusive</li>
       </ul>
       <!-- Hier stand bis zum 15.08.2026 ein Demo-Deck mit acht Fotos echter
            Menschen von images.unsplash.com, als FLEXR-Profile beschriftet
@@ -1743,7 +1816,7 @@
            Personen (siehe frontend/brand/demo/README.md fuer Herkunft und
            Rechte) - durchgehend als Beispiel gekennzeichnet, nicht als
            echte Bestandsprofile dargestellt. -->
-      <div class="hero-demo" id="heroDemo" aria-label="Interaktives Beispiel für das Swipe-Deck">
+      <div class="hero-demo" id="heroDemo" data-i18n-aria="hero.demoAria" aria-label="Interaktives Beispiel für das Swipe-Deck">
         <div class="hero-demo-stack" id="heroDemoStack" aria-live="polite">
           <div class="hero-demo-card" tabindex="-1">
             <div class="hero-demo-stamp pass">Nope</div>
@@ -1870,71 +1943,71 @@
           </div>
         </div>
         <div class="hero-demo-actions">
-          <button class="round-btn pass" type="button" data-demo-action="pass" aria-label="Beispielprofil ablehnen">
+          <button class="round-btn pass" type="button" data-demo-action="pass" data-i18n-aria="hero.demoPass" aria-label="Beispielprofil ablehnen">
             <svg class="ico" viewBox="0 0 24 24"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/></svg>
           </button>
-          <button class="round-btn like" type="button" data-demo-action="like" aria-label="Beispielprofil gefällt mir">
+          <button class="round-btn like" type="button" data-demo-action="like" data-i18n-aria="hero.demoLike" aria-label="Beispielprofil gefällt mir">
             <svg class="ico" viewBox="0 0 24 24"><path d="M12 20.3S4.8 15.7 4.8 10.8C4.8 8 6.9 6 9.3 6c1.2 0 2.3.55 2.7 1.4C12.4 6.55 13.5 6 14.7 6c2.4 0 4.5 2 4.5 4.8 0 4.9-7.2 9.5-7.2 9.5z" fill="currentColor" stroke="none"/></svg>
           </button>
         </div>
-        <div class="hero-demo-hint">Ziehen oder tippen · Beispielprofile</div>
+        <div class="hero-demo-hint" data-i18n="hero.demoHint">Ziehen oder tippen · Beispielprofile</div>
       </div>
     </div>
 
     <!-- LOGIN -->
     <section class="screen" id="screen-login">
       <div class="auth-tabs">
-        <button class="auth-tab active" type="button">Einloggen</button>
-        <button class="auth-tab" type="button" id="btnGoRegister">Registrieren</button>
+        <button class="auth-tab active" type="button" data-i18n="login.tabLogin">Einloggen</button>
+        <button class="auth-tab" type="button" id="btnGoRegister" data-i18n="login.tabRegister">Registrieren</button>
       </div>
-      <div class="eyebrow">Willkommen zurück</div>
-      <h1 class="headline">Zurück ins<br>Gym-Date.</h1>
-      <p class="sub">Melde dich mit deinen Zugangsdaten an.</p>
+      <div class="eyebrow" data-i18n="login.eyebrow">Willkommen zurück</div>
+      <h1 class="headline" data-i18n-html="login.h1">Zurück ins<br>Gym-Date.</h1>
+      <p class="sub" data-i18n="login.sub">Melde dich mit deinen Zugangsdaten an.</p>
 
-      <label for="l-email">E-Mail</label>
+      <label for="l-email" data-i18n="login.email">E-Mail</label>
       <input type="email" id="l-email" placeholder="max@example.com" autocomplete="username" inputmode="email">
-      <label for="l-password">Passwort</label>
+      <label for="l-password" data-i18n="login.password">Passwort</label>
       <input type="password" id="l-password" placeholder="••••••••" autocomplete="current-password">
       <div class="field-err" id="loginErr"></div>
       <!-- Begründete Mitteilung nach Art. 17 DSA bei gesperrtem Konto. Der
            Login ist dafür der einzige Kanal - ein Token bekommt der Gesperrte
            nicht, die Mitteilung in der App erreicht ihn also nie. -->
       <div class="chat-mute-banner" id="loginModerationNotice" style="display:none;"></div>
-      <button class="btn" id="btnLogin">Einloggen</button>
+      <button class="btn" id="btnLogin" data-i18n="login.submit">Einloggen</button>
     </section>
 
     <!-- ONBOARDING / CREATE PROFILE -->
     <section class="screen" id="screen-onboard">
       <div class="auth-tabs">
-        <button class="auth-tab" type="button" id="btnGoLogin">Einloggen</button>
-        <button class="auth-tab active" type="button">Registrieren</button>
+        <button class="auth-tab" type="button" id="btnGoLogin" data-i18n="login.tabLogin">Einloggen</button>
+        <button class="auth-tab active" type="button" data-i18n="login.tabRegister">Registrieren</button>
       </div>
-      <div class="eyebrow">Erste Wiederholung</div>
-      <h1 class="headline">Dating für Leute,<br>die auch Montags<br>Beintag machen.</h1>
+      <div class="eyebrow" data-i18n="reg.eyebrow">Erste Wiederholung</div>
+      <h1 class="headline" data-i18n-html="reg.h1">Dating für Leute,<br>die auch Montags<br>Beintag machen.</h1>
       <!-- Beta-Gratisphase, siehe Kommentar bei den Hero-USPs. -->
-      <p class="sub">Erstell dein Profil — kostenlos. Während der Beta-Phase bleibt FLEXR kostenlos; die Mitgliedschaft von 5&nbsp;€/Monat ist bis auf weiteres ausgesetzt. Es wird kein Zahlungsmittel abgefragt. Aktuell nur in Österreich verfügbar.</p>
+      <p class="sub" data-i18n-html="reg.sub">Erstell dein Profil — kostenlos. Während der Beta-Phase bleibt FLEXR kostenlos; die Mitgliedschaft von 5&nbsp;€/Monat ist bis auf weiteres ausgesetzt. Es wird kein Zahlungsmittel abgefragt. Aktuell nur in Österreich verfügbar.</p>
 
-      <label for="f-email">E-Mail</label>
+      <label for="f-email" data-i18n="login.email">E-Mail</label>
       <input type="email" id="f-email" placeholder="max@example.com" autocomplete="email" inputmode="email">
-      <label for="f-password">Passwort</label>
-      <input type="password" id="f-password" placeholder="Mind. 8 Zeichen" autocomplete="new-password">
-      <label for="f-password2">Passwort wiederholen</label>
-      <input type="password" id="f-password2" placeholder="Passwort erneut eingeben" autocomplete="new-password">
+      <label for="f-password" data-i18n="reg.password">Passwort</label>
+      <input type="password" id="f-password" data-i18n-ph="reg.passwordPh" placeholder="Mind. 8 Zeichen" autocomplete="new-password">
+      <label for="f-password2" data-i18n="reg.password2">Passwort wiederholen</label>
+      <input type="password" id="f-password2" data-i18n-ph="reg.password2Ph" placeholder="Passwort erneut eingeben" autocomplete="new-password">
       <div class="field-err" id="pw2Err"></div>
 
-      <label for="f-name">Name</label>
+      <label for="f-name" data-i18n="reg.name">Name</label>
       <input type="text" id="f-name" placeholder="Max" autocomplete="name">
 
       <div class="row2">
         <div>
-          <label for="f-birthdate">Geburtsdatum</label>
+          <label for="f-birthdate" data-i18n="reg.birthdate">Geburtsdatum</label>
           <input type="date" id="f-birthdate" class="date-empty" autocomplete="bday">
         </div>
         <div>
-          <label for="f-plz">Postleitzahl</label>
+          <label for="f-plz" data-i18n="reg.plz">Postleitzahl</label>
           <div class="plz-combo" id="plzCombo">
             <input type="text" id="f-plz" placeholder="1010" inputmode="numeric" maxlength="4" autocomplete="postal-code">
-            <span class="ort-display" id="ortDisplay">— PLZ eingeben —</span>
+            <span class="ort-display" id="ortDisplay" data-i18n="reg.plzPlaceholderHint">— PLZ eingeben —</span>
           </div>
         </div>
       </div>
@@ -1943,46 +2016,46 @@
       <!-- Altersgrenze: serverseitig geprüft (POST /api/auth/age-check). Unter 18
            endet die Registrierung hier, weitere Schritte werden nicht angeboten. -->
       <div class="vcard" id="ageGateBlock" style="display:none; border-color:rgba(227,72,72,.4); background:rgba(227,72,72,.06);">
-        <h3 style="color:var(--danger);">Registrierung nicht möglich</h3>
-        <p id="ageGateBlockText">Du musst mindestens 18 Jahre alt sein, um FLEXR nutzen zu können.</p>
+        <h3 style="color:var(--danger);" data-i18n="reg.ageBlockTitle">Registrierung nicht möglich</h3>
+        <p id="ageGateBlockText" data-i18n="reg.ageBlockText">Du musst mindestens 18 Jahre alt sein, um FLEXR nutzen zu können.</p>
       </div>
       <div class="vcard" id="ageGateNotice" style="display:none;">
-        <h3>Noch ein Schritt: Alters- und Identitätsprüfung</h3>
-        <p>Nach dem Anlegen deines Profils prüfen wir einmalig, ob du mindestens
+        <h3 data-i18n="reg.ageNoticeTitle">Noch ein Schritt: Alters- und Identitätsprüfung</h3>
+        <p data-i18n-html="reg.ageNoticeP1">Nach dem Anlegen deines Profils prüfen wir einmalig, ob du mindestens
           18 Jahre alt bist. Dafür brauchst du <b>ein Live-Selfie</b> und eine
           Aufnahme eines <b>amtlichen Lichtbildausweises</b>.</p>
-        <p>Die Prüfung erfolgt manuell durch einen Menschen, keine automatische
+        <p data-i18n-html="reg.ageNoticeP2">Die Prüfung erfolgt manuell durch einen Menschen, keine automatische
           Gesichtserkennung. Die Aufnahmen werden nach Abschluss der Prüfung
           gelöscht — siehe
-          <a href="/datenschutz.html" class="legal-link" data-legal-page="datenschutz.html">Datenschutzerklärung</a>.
+          <a data-i18n="legal.datenschutz" href="/datenschutz.html" class="legal-link" data-legal-page="datenschutz.html">Datenschutzerklärung</a>.
           Dein Konto wird erst nach bestandener Prüfung freigeschaltet. Die
           Nutzung ist während der Beta-Phase ohnehin kostenlos.</p>
       </div>
 
-      <label for="f-gender">Geschlecht</label>
+      <label for="f-gender" data-i18n="reg.gender">Geschlecht</label>
       <select id="f-gender" required>
-        <option value="" disabled selected>Wähle</option>
-        <option value="mann">Mann</option>
-        <option value="frau">Frau</option>
+        <option value="" disabled selected data-i18n="reg.genderChoose">Wähle</option>
+        <option value="mann" data-i18n="reg.genderMale">Mann</option>
+        <option value="frau" data-i18n="reg.genderFemale">Frau</option>
       </select>
 
-      <label for="f-gym">Gym</label>
+      <label for="f-gym" data-i18n="reg.gym">Gym</label>
       <div class="gym-picker">
-        <input type="text" id="f-gym" placeholder="Gym suchen (Name, Ort oder PLZ) …" autocomplete="off">
+        <input type="text" id="f-gym" data-i18n-ph="reg.gymPh" placeholder="Gym suchen (Name, Ort oder PLZ) …" autocomplete="off">
         <div class="gym-results" id="fGymResults"></div>
       </div>
       <div class="gym-picked" id="fGymPicked"></div>
 
-      <label for="f-bio">Bio</label>
+      <label for="f-bio" data-i18n="reg.bio">Bio</label>
       <div class="bio-wrap">
-        <textarea id="f-bio" placeholder="Was du suchst, dein Training, gerne mit Emojis 💪" maxlength="280"></textarea>
-        <button type="button" class="emoji-btn" id="btnEmojiToggleReg" aria-label="Emoji einfügen">
+        <textarea id="f-bio" data-i18n-ph="reg.bioPh" placeholder="Was du suchst, dein Training, gerne mit Emojis 💪" maxlength="280"></textarea>
+        <button type="button" class="emoji-btn" id="btnEmojiToggleReg" data-i18n-aria="common.emojiInsert" aria-label="Emoji einfügen">
           <svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M9 10h.01M15 10h.01M8.8 14.2c.8 1 1.9 1.6 3.2 1.6s2.4-.6 3.2-1.6"/></svg>
         </button>
         <div class="emoji-panel" id="emojiPanelReg"></div>
       </div>
 
-      <label id="photoGridLabel">Fotos (mind. 1, max. 6)</label>
+      <label id="photoGridLabel" data-i18n="reg.photos">Fotos (mind. 1, max. 6)</label>
       <div class="photo-grid" id="photoGrid" role="group" aria-labelledby="photoGridLabel"></div>
       <input type="file" id="photoInput" accept="image/*" style="display:none">
       <div class="field-err" id="photoErr"></div>
@@ -1990,9 +2063,9 @@
       <div class="consent-row">
         <label class="consent-label">
           <input type="checkbox" id="f-consent-sensitive">
-          <span>Ich willige ein, dass meine Angaben zu Geschlecht und gesuchtem
+          <span data-i18n-html="reg.consentSensitive">Ich willige ein, dass meine Angaben zu Geschlecht und gesuchtem
             Geschlecht (daraus ableitbar: sexuelle Orientierung) gemäß
-            <a href="/datenschutz.html" class="legal-link" data-legal-page="datenschutz.html">Datenschutzerklärung</a>
+            <a data-i18n="legal.datenschutz" href="/datenschutz.html" class="legal-link" data-legal-page="datenschutz.html">Datenschutzerklärung</a>
             verarbeitet werden.</span>
         </label>
         <!-- Hier stand bis zum 15.08.2026 ein Pflicht-Haken: "Ich stimme zu,
@@ -2013,25 +2086,25 @@
       </div>
 
       <div class="field-err" id="formErr"></div>
-      <button class="btn" id="btnCreateProfile">Kostenlos registrieren</button>
-      <p class="consent-note">
+      <button class="btn" id="btnCreateProfile" data-i18n="reg.submit">Kostenlos registrieren</button>
+      <p class="consent-note" data-i18n-html="reg.consentNote">
         Die Registrierung ist kostenlos und begründet keine Zahlungspflicht.
         Mit ihr akzeptierst du die
-        <a href="/agb.html" class="legal-link" data-legal-page="agb.html">AGB</a> und die
-        <a href="/nutzungsrichtlinien.html" class="legal-link" data-legal-page="nutzungsrichtlinien.html">Nutzungsrichtlinien</a>.
+        <a data-i18n="legal.agb" href="/agb.html" class="legal-link" data-legal-page="agb.html">AGB</a> und die
+        <a data-i18n="legal.nutzungsrichtlinien" href="/nutzungsrichtlinien.html" class="legal-link" data-legal-page="nutzungsrichtlinien.html">Nutzungsrichtlinien</a>.
       </p>
     </section>
 
     <!-- SWIPE -->
     <section class="screen" id="screen-swipe">
-      <div class="eyebrow">Heutige Sätze</div>
-      <h2 class="headline" style="font-size:22px; margin-bottom:16px;">Wer trainiert wo du bist</h2>
-      <div class="deck" id="deck"><div class="loading">Lade Profile …</div></div>
+      <div class="eyebrow" data-i18n="swipe.eyebrow">Heutige Sätze</div>
+      <h2 class="headline" style="font-size:22px; margin-bottom:16px;" data-i18n="swipe.h2">Wer trainiert wo du bist</h2>
+      <div class="deck" id="deck"><div class="loading" data-i18n="swipe.loading">Lade Profile …</div></div>
       <div class="swipe-actions" id="swipeActions" style="display:none;">
-        <button class="round-btn pass" id="btnPass" aria-label="Ablehnen">
+        <button class="round-btn pass" id="btnPass" data-i18n-aria="swipe.pass" aria-label="Ablehnen">
           <svg class="ico" viewBox="0 0 24 24"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/></svg>
         </button>
-        <button class="round-btn like" id="btnLike" aria-label="Gefällt mir">
+        <button class="round-btn like" id="btnLike" data-i18n-aria="swipe.like" aria-label="Gefällt mir">
           <svg class="ico" viewBox="0 0 24 24"><path d="M12 20.3S4.8 15.7 4.8 10.8C4.8 8 6.9 6 9.3 6c1.2 0 2.3.55 2.7 1.4C12.4 6.55 13.5 6 14.7 6c2.4 0 4.5 2 4.5 4.8 0 4.9-7.2 9.5-7.2 9.5z" fill="currentColor" stroke="none"/></svg>
         </button>
       </div>
@@ -2039,57 +2112,57 @@
 
     <!-- MATCHES -->
     <section class="screen" id="screen-matches">
-      <div class="eyebrow">Trefferquote</div>
-      <h2 class="headline" style="font-size:22px; margin-bottom:16px;">Deine Matches</h2>
-      <div id="matchList"><div class="loading">Lade Matches …</div></div>
+      <div class="eyebrow" data-i18n="matches.eyebrow">Trefferquote</div>
+      <h2 class="headline" style="font-size:22px; margin-bottom:16px;" data-i18n="matches.h2">Deine Matches</h2>
+      <div id="matchList"><div class="loading" data-i18n="matches.loading">Lade Matches …</div></div>
     </section>
 
     <!-- CHATS -->
     <section class="screen" id="screen-chats">
-      <div class="eyebrow">Im Gespräch</div>
-      <h2 class="headline" style="font-size:22px; margin-bottom:16px;">Deine Chats</h2>
-      <div id="chatList"><div class="loading">Lade Chats …</div></div>
+      <div class="eyebrow" data-i18n="chats.eyebrow">Im Gespräch</div>
+      <h2 class="headline" style="font-size:22px; margin-bottom:16px;" data-i18n="chats.h2">Deine Chats</h2>
+      <div id="chatList"><div class="loading" data-i18n="chats.loading">Lade Chats …</div></div>
     </section>
 
     <!-- MATCH-PROFIL -->
     <section class="screen" id="screen-match-profile">
       <div class="chat-header">
-        <button class="back-btn" id="btnMatchProfileBack" aria-label="Zurück zu Matches"><svg class="ico" viewBox="0 0 24 24"><path d="M14.5 5 8 12l6.5 7"/></svg></button>
-        <div class="nm" id="matchProfileTitle">Profil</div>
+        <button class="back-btn" id="btnMatchProfileBack" data-i18n-aria="chat.backToMatches" aria-label="Zurück zu Matches"><svg class="ico" viewBox="0 0 24 24"><path d="M14.5 5 8 12l6.5 7"/></svg></button>
+        <div class="nm" id="matchProfileTitle" data-i18n="profile.title">Profil</div>
       </div>
       <div class="profile-card-wrap" id="matchProfileCardWrap"></div>
       <button class="btn" id="btnOpenChatFromProfile">
         <svg class="ico" viewBox="0 0 24 24"><path d="M21 11.7a8.2 8.2 0 0 1-8.3 8.1c-1.5 0-2.9-.35-4.1-1L4 19.9l1.1-4.1a8.1 8.1 0 1 1 15.9-4.1z"/></svg>
-        Nachricht schreiben
+        <span data-i18n="common.writeMessage">Nachricht schreiben</span>
       </button>
     </section>
 
     <!-- CHAT -->
     <section class="screen" id="screen-chat">
       <div class="chat-header">
-        <button class="back-btn" id="btnChatBack" aria-label="Zurück zu Matches"><svg class="ico" viewBox="0 0 24 24"><path d="M14.5 5 8 12l6.5 7"/></svg></button>
+        <button class="back-btn" id="btnChatBack" data-i18n-aria="chat.backToMatches" aria-label="Zurück zu Matches"><svg class="ico" viewBox="0 0 24 24"><path d="M14.5 5 8 12l6.5 7"/></svg></button>
         <span class="av" id="chatAvatarWrap"><img id="chatAvatar" src="" alt=""></span>
         <div class="nm" id="chatName">—</div>
         <div class="chat-flag-btns">
-          <button type="button" class="icon-btn" id="btnReportChat" title="Melden" aria-label="Melden"><svg class="ico" viewBox="0 0 24 24"><path d="M6 21V4.5M6 5h11.5l-2.4 3.9 2.4 3.9H6"/></svg></button>
-          <button type="button" class="icon-btn" id="btnBlockChat" title="Blockieren" aria-label="Blockieren"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.2"/><path d="M6.4 6.4l11.2 11.2"/></svg></button>
+          <button type="button" class="icon-btn" id="btnReportChat" data-i18n-title="common.report" data-i18n-aria="common.report" title="Melden" aria-label="Melden"><svg class="ico" viewBox="0 0 24 24"><path d="M6 21V4.5M6 5h11.5l-2.4 3.9 2.4 3.9H6"/></svg></button>
+          <button type="button" class="icon-btn" id="btnBlockChat" data-i18n-title="common.block" data-i18n-aria="common.block" title="Blockieren" aria-label="Blockieren"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.2"/><path d="M6.4 6.4l11.2 11.2"/></svg></button>
           <div class="chat-menu-wrap">
-            <button type="button" class="icon-btn" id="btnChatMenu" title="Mehr" aria-label="Weitere Optionen" aria-haspopup="true" aria-expanded="false"><svg class="ico" viewBox="0 0 24 24" style="fill:currentColor; stroke:none;"><circle cx="12" cy="5" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="12" cy="19" r="1.7"/></svg></button>
+            <button type="button" class="icon-btn" id="btnChatMenu" data-i18n-title="common.more" data-i18n-aria="common.moreOptions" title="Mehr" aria-label="Weitere Optionen" aria-haspopup="true" aria-expanded="false"><svg class="ico" viewBox="0 0 24 24" style="fill:currentColor; stroke:none;"><circle cx="12" cy="5" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="12" cy="19" r="1.7"/></svg></button>
             <div class="chat-menu" id="chatMenu">
-              <button type="button" id="btnClearChat">Chatverlauf leeren</button>
-              <button type="button" id="btnDeleteChat" class="danger">Chat löschen</button>
+              <button type="button" id="btnClearChat" data-i18n="chat.clear">Chatverlauf leeren</button>
+              <button type="button" id="btnDeleteChat" class="danger" data-i18n="chat.delete">Chat löschen</button>
             </div>
           </div>
         </div>
       </div>
-      <div class="chat-messages" id="chatMessages"><div class="loading">Lade Chat …</div></div>
+      <div class="chat-messages" id="chatMessages"><div class="loading" data-i18n="chat.loading">Lade Chat …</div></div>
       <div class="chat-mute-banner" id="chatMuteBanner" style="display:none;"></div>
       <div class="chat-input-row">
-        <button type="button" class="chat-emoji-btn" id="btnChatEmoji" aria-label="Emoji einfügen">
+        <button type="button" class="chat-emoji-btn" id="btnChatEmoji" data-i18n-aria="common.emojiInsert" aria-label="Emoji einfügen">
           <svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M9 10h.01M15 10h.01M8.8 14.2c.8 1 1.9 1.6 3.2 1.6s2.4-.6 3.2-1.6"/></svg>
         </button>
-        <input type="text" id="chatInput" placeholder="Nachricht schreiben…" maxlength="2000">
-        <button class="chat-send-btn" id="btnChatSend" aria-label="Senden">
+        <input type="text" id="chatInput" data-i18n-ph="chat.inputPh" placeholder="Nachricht schreiben…" maxlength="2000">
+        <button class="chat-send-btn" id="btnChatSend" data-i18n-aria="chat.send" aria-label="Senden">
           <svg class="ico" viewBox="0 0 24 24"><path d="M21.5 2.5 11 13M21.5 2.5l-7 19-3.5-8.5-8.5-3.5 19-7z"/></svg>
         </button>
         <div class="emoji-panel chat-emoji-panel" id="chatEmojiPanel"></div>
@@ -2112,42 +2185,56 @@
 
       <div class="account-membership-note">
         <span id="acctStatusText"></span>
-        <button class="membership-link" id="btnSubscribe">Jetzt abonnieren</button>
-        <button class="membership-link" id="btnManageSubscription" style="display:none;">Abo verwalten / kündigen</button>
+        <button class="membership-link" id="btnSubscribe" data-i18n="acct.subscribe">Jetzt abonnieren</button>
+        <button class="membership-link" id="btnManageSubscription" style="display:none;" data-i18n="acct.manageSub">Abo verwalten / kündigen</button>
       </div>
 
       <!-- Profilfelder bleiben bewusst dauerhaft sichtbar. Der Account-Screen
            scrollt als Ganzes; verschachtelte Aufklapper haben auf Mobilgeraeten
            das Scrollen blockiert und werden hier nicht wieder eingefuehrt. -->
       <div class="account-section">
-        <div class="account-section-title">Profil</div>
+        <div class="account-section-title" data-i18n="acct.sectionProfile">Profil</div>
 
-        <label for="a-plz">Postleitzahl</label>
+        <!-- Sprachwahl auch hier, weil Einstellungen im Profil gesucht werden -
+             derselbe Regler wie oben in der Kopfzeile, gleicher Zustand. -->
+        <div class="lang-row">
+          <div>
+            <div class="lang-row-label" data-i18n="lang.label">Sprache</div>
+            <div class="lang-row-hint" data-i18n="lang.hint">Gilt für die gesamte App. Rechtstexte bleiben auf Deutsch verbindlich.</div>
+          </div>
+          <div class="lang-switch" role="group" data-i18n-aria="lang.group" aria-label="Sprache">
+            <button type="button" data-lang="de" data-i18n-title="lang.de" title="Deutsch">DE</button>
+            <button type="button" data-lang="en" data-i18n-title="lang.en" title="Englisch">EN</button>
+            <span class="knob" aria-hidden="true"></span>
+          </div>
+        </div>
+
+        <label for="a-plz" data-i18n="reg.plz">Postleitzahl</label>
         <div class="plz-combo" id="acctPlzCombo">
           <input type="text" id="a-plz" placeholder="1010" inputmode="numeric" maxlength="4" autocomplete="postal-code">
-          <span class="ort-display" id="acctOrtDisplay">— PLZ eingeben —</span>
+          <span class="ort-display" id="acctOrtDisplay" data-i18n="reg.plzPlaceholderHint">— PLZ eingeben —</span>
         </div>
         <div class="field-err" id="acctPlzErr"></div>
 
-        <label for="a-gym">Gym</label>
+        <label for="a-gym" data-i18n="reg.gym">Gym</label>
         <div class="gym-picker">
-          <input type="text" id="a-gym" placeholder="Gym suchen (Name, Ort oder PLZ) …" autocomplete="off">
+          <input type="text" id="a-gym" data-i18n-ph="reg.gymPh" placeholder="Gym suchen (Name, Ort oder PLZ) …" autocomplete="off">
           <div class="gym-results" id="aGymResults"></div>
         </div>
         <div class="gym-picked" id="aGymPicked"></div>
 
-        <label for="a-bio">Bio</label>
+        <label for="a-bio" data-i18n="reg.bio">Bio</label>
         <div class="bio-wrap">
-          <textarea id="a-bio" placeholder="Was du suchst, dein Training, gerne mit Emojis 💪" maxlength="280"></textarea>
-          <button type="button" class="emoji-btn" id="btnEmojiToggle" aria-label="Emoji einfügen">
+          <textarea id="a-bio" data-i18n-ph="reg.bioPh" placeholder="Was du suchst, dein Training, gerne mit Emojis 💪" maxlength="280"></textarea>
+          <button type="button" class="emoji-btn" id="btnEmojiToggle" data-i18n-aria="common.emojiInsert" aria-label="Emoji einfügen">
             <svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M9 10h.01M15 10h.01M8.8 14.2c.8 1 1.9 1.6 3.2 1.6s2.4-.6 3.2-1.6"/></svg>
           </button>
           <div class="emoji-panel" id="emojiPanel"></div>
         </div>
 
-        <label for="a-radius">Suchumkreis<span class="info-hint">
-          <button type="button" aria-label="Wie die Suche funktioniert">i</button>
-          <span class="bubble" role="tooltip">
+        <label for="a-radius"><span data-i18n="acct.radius">Suchumkreis</span><span class="info-hint">
+          <button type="button" data-i18n-aria="acct.radiusInfo" aria-label="Wie die Suche funktioniert">i</button>
+          <span class="bubble" role="tooltip" data-i18n-html="acct.radiusBubble">
             <strong>So sucht FLEXR:</strong> Ausgangspunkt ist die Adresse deines
             Gyms — nicht dein Wohnort und nicht dein aktueller Standort. Innerhalb
             des eingestellten Umkreises siehst du alle passenden Profile, also auch
@@ -2159,14 +2246,14 @@
           <input type="range" id="a-radius" min="2" max="250" step="1" value="20">
           <span class="radius-value mono" id="radiusValue">20 km</span>
         </div>
-        <div class="radius-hint" id="radiusHint">Profile im Umkreis deines Gyms.</div>
+        <div class="radius-hint" id="radiusHint" data-i18n="acct.radiusHint">Profile im Umkreis deines Gyms.</div>
 
         <div class="field-err" id="acctProfileErr"></div>
-        <button class="btn secondary" id="btnSaveProfile" style="margin-top:16px;">Profil speichern</button>
+        <button class="btn secondary" id="btnSaveProfile" style="margin-top:16px;" data-i18n="acct.save">Profil speichern</button>
       </div>
 
       <div class="account-section">
-        <div class="account-section-title">Fotos</div>
+        <div class="account-section-title" data-i18n="acct.sectionPhotos">Fotos</div>
         <div class="photo-grid" id="acctPhotoGrid"></div>
         <div class="photo-hint" id="acctPhotoHint"></div>
         <input type="file" id="acctPhotoInput" accept="image/*" style="display:none">
@@ -2186,17 +2273,17 @@
            Abo-Kuendigung bleibt oben, wo sie hingehoert. -->
 
       <div class="account-section" style="margin-bottom:10px;">
-        <div class="account-section-title">Konto</div>
-        <button class="btn secondary" id="btnLogout">Ausloggen</button>
-        <button class="btn danger-ghost" id="btnDeleteAccount">Konto löschen</button>
+        <div class="account-section-title" data-i18n="common.account">Konto</div>
+        <button class="btn secondary" id="btnLogout" data-i18n="common.logout">Ausloggen</button>
+        <button class="btn danger-ghost" id="btnDeleteAccount" data-i18n="common.deleteAccount">Konto löschen</button>
       </div>
 
       <p class="account-footer-link">
-        <button type="button" id="btnOpenNotifications">Benachrichtigungen</button>
+        <button type="button" id="btnOpenNotifications" data-i18n="acct.notifications">Benachrichtigungen</button>
       </p>
 
       <p class="account-footer-link">
-        <button type="button" id="btnOpenPrivacy">Datenschutz &amp; Sicherheit</button>
+        <button type="button" id="btnOpenPrivacy" data-i18n-html="acct.privacy">Datenschutz &amp; Sicherheit</button>
       </p>
     </section>
 
@@ -2213,83 +2300,107 @@
     -->
     <section class="screen" id="screen-notifications">
       <div class="chat-header">
-        <button class="back-btn" id="btnNotificationsBack" aria-label="Zurück zum Konto"><svg class="ico" viewBox="0 0 24 24"><path d="M14.5 5 8 12l6.5 7"/></svg></button>
-        <div class="nm">Benachrichtigungen</div>
+        <button class="back-btn" id="btnNotificationsBack" data-i18n-aria="notif.backToAccount" aria-label="Zurück zum Konto"><svg class="ico" viewBox="0 0 24 24"><path d="M14.5 5 8 12l6.5 7"/></svg></button>
+        <div class="nm" data-i18n="notif.title">Benachrichtigungen</div>
       </div>
 
       <div class="account-section">
-        <div class="account-section-title">Neues Match</div>
+        <div class="account-section-title" data-i18n="notif.matchTitle">Neues Match</div>
         <div class="switch-row">
           <div class="switch-text">
-            <div class="switch-label">E-Mail</div>
-            <div class="switch-hint">Wenn jemand dich zurückgeliked hat.</div>
+            <div class="switch-label" data-i18n="notif.email">E-Mail</div>
+            <div class="switch-hint" data-i18n="notif.matchEmailHint">Wenn jemand dich zurückgeliked hat.</div>
           </div>
           <label class="switch">
-            <input type="checkbox" data-notify="notify_match_email" aria-label="E-Mail bei neuem Match">
+            <input type="checkbox" data-notify="notify_match_email" data-i18n-aria="notif.matchEmailAria" aria-label="E-Mail bei neuem Match">
             <span class="track"></span>
           </label>
         </div>
         <div class="switch-row">
           <div class="switch-text">
-            <div class="switch-label">App-Benachrichtigung</div>
-            <div class="switch-hint">Nur in der Android- und iOS-App.</div>
+            <div class="switch-label" data-i18n="notif.push">App-Benachrichtigung</div>
+            <div class="switch-hint" data-i18n="notif.pushHint">Nur in der Android- und iOS-App.</div>
           </div>
           <label class="switch">
-            <input type="checkbox" data-notify="notify_match_push" aria-label="App-Benachrichtigung bei neuem Match">
-            <span class="track"></span>
-          </label>
-        </div>
-      </div>
-
-      <div class="account-section">
-        <div class="account-section-title">Neue Profile im Umkreis</div>
-        <div class="switch-row">
-          <div class="switch-text">
-            <div class="switch-label">E-Mail</div>
-            <div class="switch-hint">Sobald mindestens drei neue Profile in deinem Suchradius warten. Höchstens eine Nachricht pro Tag.</div>
-          </div>
-          <label class="switch">
-            <input type="checkbox" data-notify="notify_queue_email" aria-label="E-Mail bei neuen Profilen im Umkreis">
-            <span class="track"></span>
-          </label>
-        </div>
-        <div class="switch-row">
-          <div class="switch-text">
-            <div class="switch-label">App-Benachrichtigung</div>
-            <div class="switch-hint">Nur in der Android- und iOS-App.</div>
-          </div>
-          <label class="switch">
-            <input type="checkbox" data-notify="notify_queue_push" aria-label="App-Benachrichtigung bei neuen Profilen im Umkreis">
+            <input type="checkbox" data-notify="notify_match_push" data-i18n-aria="notif.matchPushAria" aria-label="App-Benachrichtigung bei neuem Match">
             <span class="track"></span>
           </label>
         </div>
       </div>
 
       <div class="account-section">
-        <div class="account-section-title">Erinnerung bei Inaktivität</div>
+        <div class="account-section-title" data-i18n="notif.queueTitle">Neue Profile im Umkreis</div>
         <div class="switch-row">
           <div class="switch-text">
-            <div class="switch-label">E-Mail</div>
-            <div class="switch-hint">Wenn du sieben Tage nicht in FLEXR warst.</div>
+            <div class="switch-label" data-i18n="notif.email">E-Mail</div>
+            <div class="switch-hint" data-i18n="notif.queueEmailHint">Sobald mindestens drei neue Profile in deinem Suchradius warten. Höchstens eine Nachricht pro Tag.</div>
           </div>
           <label class="switch">
-            <input type="checkbox" data-notify="notify_inactive_email" aria-label="E-Mail-Erinnerung bei Inaktivität">
+            <input type="checkbox" data-notify="notify_queue_email" data-i18n-aria="notif.queueEmailAria" aria-label="E-Mail bei neuen Profilen im Umkreis">
             <span class="track"></span>
           </label>
         </div>
         <div class="switch-row">
           <div class="switch-text">
-            <div class="switch-label">App-Benachrichtigung</div>
-            <div class="switch-hint">Nur in der Android- und iOS-App.</div>
+            <div class="switch-label" data-i18n="notif.push">App-Benachrichtigung</div>
+            <div class="switch-hint" data-i18n="notif.pushHint">Nur in der Android- und iOS-App.</div>
           </div>
           <label class="switch">
-            <input type="checkbox" data-notify="notify_inactive_push" aria-label="App-Erinnerung bei Inaktivität">
+            <input type="checkbox" data-notify="notify_queue_push" data-i18n-aria="notif.queuePushAria" aria-label="App-Benachrichtigung bei neuen Profilen im Umkreis">
             <span class="track"></span>
           </label>
         </div>
       </div>
 
-      <p class="photo-hint" id="notifyHint">Rechtlich nötige Nachrichten — etwa zu Abo, Rücktritt oder Moderationsentscheidungen — lassen sich hier nicht abschalten.</p>
+      <div class="account-section">
+        <div class="account-section-title" data-i18n="notif.inactiveTitle">Erinnerung bei Inaktivität</div>
+        <div class="switch-row">
+          <div class="switch-text">
+            <div class="switch-label" data-i18n="notif.email">E-Mail</div>
+            <div class="switch-hint" data-i18n="notif.inactiveEmailHint">Wenn du sieben Tage nicht in FLEXR warst.</div>
+          </div>
+          <label class="switch">
+            <input type="checkbox" data-notify="notify_inactive_email" data-i18n-aria="notif.inactiveEmailAria" aria-label="E-Mail-Erinnerung bei Inaktivität">
+            <span class="track"></span>
+          </label>
+        </div>
+        <div class="switch-row">
+          <div class="switch-text">
+            <div class="switch-label" data-i18n="notif.push">App-Benachrichtigung</div>
+            <div class="switch-hint" data-i18n="notif.pushHint">Nur in der Android- und iOS-App.</div>
+          </div>
+          <label class="switch">
+            <input type="checkbox" data-notify="notify_inactive_push" data-i18n-aria="notif.inactivePushAria" aria-label="App-Erinnerung bei Inaktivität">
+            <span class="track"></span>
+          </label>
+        </div>
+      </div>
+
+      <div class="account-section">
+        <div class="account-section-title" data-i18n="notif.pendingLikesTitle">Offene Likes ohne Match</div>
+        <div class="switch-row">
+          <div class="switch-text">
+            <div class="switch-label" data-i18n="notif.email">E-Mail</div>
+            <div class="switch-hint" data-i18n="notif.pendingLikesEmailHint">Wenn dich jemand geliked hat und ihr noch kein Match seid. Höchstens eine Nachricht pro Woche.</div>
+          </div>
+          <label class="switch">
+            <input type="checkbox" data-notify="notify_pending_likes_email" data-i18n-aria="notif.pendingLikesEmailAria" aria-label="E-Mail bei offenen Likes ohne Match">
+            <span class="track"></span>
+          </label>
+        </div>
+        <div class="switch-row">
+          <div class="switch-text">
+            <div class="switch-label" data-i18n="notif.push">App-Benachrichtigung</div>
+            <div class="switch-hint" data-i18n="notif.pushHint">Nur in der Android- und iOS-App.</div>
+          </div>
+          <label class="switch">
+            <input type="checkbox" data-notify="notify_pending_likes_push" data-i18n-aria="notif.pendingLikesPushAria" aria-label="App-Benachrichtigung bei offenen Likes ohne Match">
+            <span class="track"></span>
+          </label>
+        </div>
+      </div>
+
+      <p class="photo-hint" id="notifyHint" data-i18n="notif.legalHint">Rechtlich nötige Nachrichten — etwa zu Abo, Rücktritt oder Moderationsentscheidungen — lassen sich hier nicht abschalten.</p>
     </section>
 
     <!-- DATENSCHUTZ & SICHERHEIT (Unterseite des Kontobereichs) -->
@@ -2310,42 +2421,42 @@
     -->
     <section class="screen" id="screen-privacy">
       <div class="chat-header">
-        <button class="back-btn" id="btnPrivacyBack" aria-label="Zurück zum Konto"><svg class="ico" viewBox="0 0 24 24"><path d="M14.5 5 8 12l6.5 7"/></svg></button>
-        <div class="nm">Datenschutz &amp; Sicherheit</div>
+        <button class="back-btn" id="btnPrivacyBack" data-i18n-aria="notif.backToAccount" aria-label="Zurück zum Konto"><svg class="ico" viewBox="0 0 24 24"><path d="M14.5 5 8 12l6.5 7"/></svg></button>
+        <div class="nm" data-i18n-html="privacy.title">Datenschutz &amp; Sicherheit</div>
       </div>
 
       <div class="account-section">
-        <div class="account-section-title">Matching-Präferenzen</div>
-        <div id="myConsents"><div class="loading">Lade …</div></div>
+        <div class="account-section-title" data-i18n="privacy.matching">Matching-Präferenzen</div>
+        <div id="myConsents"><div class="loading" data-i18n="common.loading">Lade …</div></div>
       </div>
 
       <div class="account-section">
-        <div class="account-section-title">Blockierte Personen</div>
-        <div id="myBlocks"><div class="loading">Lade …</div></div>
+        <div class="account-section-title" data-i18n="privacy.blocked">Blockierte Personen</div>
+        <div id="myBlocks"><div class="loading" data-i18n="common.loading">Lade …</div></div>
       </div>
 
       <div class="account-section">
-        <div class="account-section-title">Meine Meldungen</div>
-        <div id="myReports"><div class="loading">Lade …</div></div>
+        <div class="account-section-title" data-i18n="privacy.reports">Meine Meldungen</div>
+        <div id="myReports"><div class="loading" data-i18n="common.loading">Lade …</div></div>
       </div>
 
       <div class="account-section">
-        <div class="account-section-title">Rechtliches</div>
-        <nav class="legal-link-list" aria-label="Rechtliche Dokumente">
-          <a href="/datenschutz.html" class="legal-link" data-legal-page="datenschutz.html">Datenschutz</a>
-          <a href="/agb.html" class="legal-link" data-legal-page="agb.html">AGB</a>
-          <a href="/widerruf.html" class="legal-link" data-legal-page="widerruf.html" data-widerruf-link>Rücktrittsrecht</a>
-          <a href="/nutzungsrichtlinien.html" class="legal-link" data-legal-page="nutzungsrichtlinien.html">Nutzungsrichtlinien</a>
-          <a href="/impressum.html" class="legal-link" data-legal-page="impressum.html">Impressum</a>
-          <a href="/meldung.html" class="legal-link" data-legal-page="meldung.html">Inhalt melden</a>
+        <div class="account-section-title" data-i18n="legal.section">Rechtliches</div>
+        <nav class="legal-link-list" data-i18n-aria="legal.docs.aria" aria-label="Rechtliche Dokumente">
+          <a data-i18n="legal.datenschutz" href="/datenschutz.html" class="legal-link" data-legal-page="datenschutz.html">Datenschutz</a>
+          <a data-i18n="legal.agb" href="/agb.html" class="legal-link" data-legal-page="agb.html">AGB</a>
+          <a data-i18n="legal.widerruf" href="/widerruf.html" class="legal-link" data-legal-page="widerruf.html" data-widerruf-link>Rücktrittsrecht</a>
+          <a data-i18n="legal.nutzungsrichtlinien" href="/nutzungsrichtlinien.html" class="legal-link" data-legal-page="nutzungsrichtlinien.html">Nutzungsrichtlinien</a>
+          <a data-i18n="legal.impressum" href="/impressum.html" class="legal-link" data-legal-page="impressum.html">Impressum</a>
+          <a data-i18n="legal.meldung" href="/meldung.html" class="legal-link" data-legal-page="meldung.html">Inhalt melden</a>
         </nav>
       </div>
     </section>
 
     <!-- ALTERS- UND IDENTITÄTSPRÜFUNG: Übersicht/Status -->
     <section class="screen" id="screen-verify-gate">
-      <div class="eyebrow" id="vgateEyebrow">Letzter Satz</div>
-      <h1 class="headline" style="font-size:22px; margin-bottom:14px;" id="vgateTitle">Konto freischalten</h1>
+      <div class="eyebrow" id="vgateEyebrow" data-i18n="vgate.eyebrow">Letzter Satz</div>
+      <h1 class="headline" style="font-size:22px; margin-bottom:14px;" id="vgateTitle" data-i18n="vgate.title">Konto freischalten</h1>
       <div class="vstep-bar" id="vgateSteps">
         <span></span><span></span><span></span>
       </div>
@@ -2355,63 +2466,68 @@
            Start der Prüfung ab, und der Konto-Bildschirm ist von hier aus nicht
            erreichbar. Ohne diesen Weg bliebe das Konto dauerhaft stecken. -->
       <input type="file" id="vgatePhotoInput" accept="image/*" hidden>
-      <button class="btn" id="btnVgatePrimary">Weiter</button>
+      <button class="btn" id="btnVgatePrimary" data-i18n="common.continue">Weiter</button>
       <div class="account-section" style="margin-top:26px;">
-        <div class="account-section-title">Konto</div>
-        <button class="btn secondary" id="btnLogoutGate">Ausloggen</button>
-        <button class="btn danger-ghost" id="btnDeleteAccountGate">Konto löschen</button>
+        <div class="account-section-title" data-i18n="common.account">Konto</div>
+        <button class="btn secondary" id="btnLogoutGate" data-i18n="common.logout">Ausloggen</button>
+        <button class="btn danger-ghost" id="btnDeleteAccountGate" data-i18n="common.deleteAccount">Konto löschen</button>
       </div>
     </section>
 
     <!-- Landeseite des Aktivierungslinks aus der Bestätigungsmail -->
     <section class="screen" id="screen-email-confirm">
-      <div class="eyebrow">E-Mail-Bestätigung</div>
-      <h1 class="headline" style="font-size:22px; margin-bottom:14px;" id="mailConfirmTitle">Einen Moment …</h1>
+      <div class="eyebrow" data-i18n="mail.eyebrow">E-Mail-Bestätigung</div>
+      <h1 class="headline" style="font-size:22px; margin-bottom:14px;" id="mailConfirmTitle" data-i18n="mail.title">Einen Moment …</h1>
       <div class="vcard">
-        <p id="mailConfirmText">Dein Bestätigungslink wird geprüft.</p>
+        <p id="mailConfirmText" data-i18n="mail.text">Dein Bestätigungslink wird geprüft.</p>
       </div>
-      <button class="btn" id="btnMailConfirmContinue" style="display:none;">Weiter zu FLEXR</button>
+      <button class="btn" id="btnMailConfirmContinue" style="display:none;" data-i18n="mail.continue">Weiter zu FLEXR</button>
     </section>
 
     <!-- ALTERS- UND IDENTITÄTSPRÜFUNG: Ausweisaufnahme -->
     <section class="screen" id="screen-verify-id">
       <div class="chat-header">
-        <button class="back-btn" id="btnVidBack" aria-label="Zurück">
+        <button class="back-btn" id="btnVidBack" data-i18n-aria="common.back" aria-label="Zurück">
           <svg class="ico" viewBox="0 0 24 24"><path d="M14.5 5 8 12l6.5 7"/></svg>
         </button>
-        <div class="nm">Alter bestätigen</div>
+        <div class="nm" data-i18n="id.title">Alter bestätigen</div>
       </div>
       <div class="vstep-bar">
         <span class="done"></span><span class="done"></span><span class="active"></span>
       </div>
 
       <div class="vcard">
-        <h3>Warum wir das brauchen</h3>
-        <p>Um FLEXR nutzen zu können, musst du mindestens 18 Jahre alt sein. Lade
-          einmalig einen gültigen amtlichen Lichtbildausweis hoch. Wir verwenden ihn
-          ausschließlich zur Alters- und Identitätsprüfung und löschen die Aufnahme
-          nach Abschluss der Prüfung.</p>
-        <p>Die Prüfung erfolgt <b>manuell durch einen Menschen</b> — es kommt keine
+        <h3 data-i18n="id.whyH3">Warum wir das brauchen</h3>
+        <p data-i18n-html="id.whyP1">Um FLEXR nutzen zu können, musst du mindestens 18 Jahre alt sein. Lade
+          einmalig einen gültigen amtlichen Lichtbildausweis hoch — als Foto oder als
+          Datei von deinem Gerät. Wir verwenden ihn ausschließlich zur Alters- und
+          Identitätsprüfung und löschen die Aufnahme nach Abschluss der Prüfung.</p>
+        <p data-i18n-html="id.whyP2">Die Prüfung erfolgt <b>manuell durch einen Menschen</b> — es kommt keine
           automatische Gesichtserkennung zum Einsatz. Details in der
           <a href="/datenschutz.html" class="legal-link" data-legal-page="datenschutz.html">Datenschutzerklärung</a>.</p>
       </div>
 
-      <label id="vidTypesLabel">Dokumenttyp</label>
+      <label id="vidTypesLabel" data-i18n="id.typeLabel">Dokumenttyp</label>
       <div class="doc-types" id="vidTypes" role="group" aria-labelledby="vidTypesLabel"></div>
 
       <div class="redact-note">
         <svg viewBox="0 0 24 24"><path d="M12 3.2 20 6.5v5.2c0 4.4-3.2 8.1-8 9.1-4.8-1-8-4.7-8-9.1V6.5L12 3.2z"/><path d="M9.5 12.2l1.8 1.8 3.4-3.6"/></svg>
-        <span>Du kannst Informationen schwärzen, die für die Altersprüfung nicht
+        <span data-i18n-html="id.redactNote">Du kannst Informationen schwärzen, die für die Altersprüfung nicht
           benötigt werden. <b>Foto, Geburtsdatum und die zur Prüfung erforderlichen
           Gültigkeitsinformationen müssen sichtbar bleiben.</b></span>
       </div>
 
-      <label id="vidSlotsLabel">Aufnahmen</label>
+      <label id="vidSlotsLabel" data-i18n="id.slotsLabel">Aufnahmen</label>
       <div class="doc-slots" id="vidSlots" role="group" aria-labelledby="vidSlotsLabel"></div>
-      <input type="file" id="vidFileInput" accept="image/jpeg,image/png,image/webp" capture="environment" style="display:none">
+      <p class="photo-hint" data-i18n="id.slotsHint">Tippe auf einen Platz, um zu fotografieren, oder wähle über „Datei wählen“ eine bestehende Aufnahme (JPEG, PNG oder WebP) von deinem Gerät.</p>
+      <!-- Zwei Inputs: einer erzwingt die Kamera (capture), einer laesst den
+           normalen Dateidialog offen. Beide bleiben unsichtbar und werden nur
+           auf einen ausdruecklichen Tipp hin geoeffnet. -->
+      <input type="file" id="vidCameraInput" accept="image/jpeg,image/png,image/webp" capture="environment" style="display:none">
+      <input type="file" id="vidFileInput" accept="image/jpeg,image/png,image/webp" style="display:none">
       <div class="field-err" id="vidErr"></div>
-      <button class="btn" id="btnVidSubmit">Zur Prüfung einreichen</button>
-      <p class="consent-note" id="vidConsentNote">
+      <button class="btn" id="btnVidSubmit" data-i18n="id.submit">Zur Prüfung einreichen</button>
+      <p class="consent-note" id="vidConsentNote" data-i18n="id.consentNote">
         Mit dem Einreichen bestätigst du, dass es dein eigener, gültiger Ausweis ist.
         Die Aufnahmen liegen verschlüsselt und nicht öffentlich abrufbar und werden
         nach der Prüfung gelöscht.
@@ -2421,102 +2537,102 @@
     <!-- FOTO-VERIFIZIERUNG (Live-Kamera, ein Frontselfie) -->
     <section class="screen" id="screen-verify">
       <div class="chat-header">
-        <button class="back-btn" id="btnVerifyBack" aria-label="Zurück zum Konto">
+        <button class="back-btn" id="btnVerifyBack" data-i18n-aria="notif.backToAccount" aria-label="Zurück zum Konto">
           <svg class="ico" viewBox="0 0 24 24"><path d="M14.5 5 8 12l6.5 7"/></svg>
         </button>
-        <div class="nm">Verifizierungs-Selfie</div>
+        <div class="nm" data-i18n="verify.title">Verifizierungs-Selfie</div>
       </div>
-      <div class="verify-step" id="verifyStep">VERIFIZIERUNGS-SELFIE</div>
+      <div class="verify-step" id="verifyStep" data-i18n="verify.step">VERIFIZIERUNGS-SELFIE</div>
       <div class="verify-prompt" id="verifyPrompt">—</div>
       <div class="verify-cam-wrap">
         <video id="verifyVideo" autoplay playsinline muted></video>
       </div>
       <div class="verify-thumbs" id="verifyThumbs"></div>
       <div class="verify-error" id="verifyErr"></div>
-      <button class="btn" id="btnVerifyCapture">📸 Aufnehmen</button>
+      <button class="btn" id="btnVerifyCapture" data-i18n="verify.capture">📸 Aufnehmen</button>
     </section>
 
     <!-- PAYWALL BLOCK -->
     <section class="screen" id="screen-paywall">
       <div class="empty" style="padding-bottom:28px;">
         <div class="empty-icon"><svg class="ico" viewBox="0 0 24 24"><rect x="5.5" y="10.5" width="13" height="9" rx="2.5"/><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5"/></svg></div>
-        <div class="empty-title">Probemonat vorbei</div>
-        <div class="empty-sub">Dein kostenloser Monat ist abgelaufen — es wurde nichts abgebucht und es läuft nichts weiter. Wenn du möchtest, schalte FLEXR jetzt frei.</div>
+        <div class="empty-title" data-i18n="paywall.title">Probemonat vorbei</div>
+        <div class="empty-sub" data-i18n="paywall.sub">Dein kostenloser Monat ist abgelaufen — es wurde nichts abgebucht und es läuft nichts weiter. Wenn du möchtest, schalte FLEXR jetzt frei.</div>
       </div>
       <div class="price-card">
-        <div class="price-eyebrow">Mitgliedschaft</div>
-        <div class="price">5&nbsp;€ <small>/ Monat</small></div>
+        <div class="price-eyebrow" data-i18n="paywall.eyebrow">Mitgliedschaft</div>
+        <div class="price">5&nbsp;€ <small data-i18n="paywall.perMonth">/ Monat</small></div>
         <ul class="price-feats">
-          <li><svg class="ico" viewBox="0 0 24 24"><path d="M5 12.5 10 17 19 7"/></svg>Unbegrenzt swipen &amp; matchen in deiner Stadt</li>
-          <li><svg class="ico" viewBox="0 0 24 24"><path d="M5 12.5 10 17 19 7"/></svg>Chat mit allen Matches inklusive</li>
-          <li><svg class="ico" viewBox="0 0 24 24"><path d="M5 12.5 10 17 19 7"/></svg>Monatlich kündbar, keine Mindestlaufzeit, keine versteckten Kosten</li>
+          <li><svg class="ico" viewBox="0 0 24 24"><path d="M5 12.5 10 17 19 7"/></svg><span data-i18n-html="paywall.feat1">Unbegrenzt swipen &amp; matchen in deiner Stadt</span></li>
+          <li><svg class="ico" viewBox="0 0 24 24"><path d="M5 12.5 10 17 19 7"/></svg><span data-i18n="paywall.feat2">Chat mit allen Matches inklusive</span></li>
+          <li><svg class="ico" viewBox="0 0 24 24"><path d="M5 12.5 10 17 19 7"/></svg><span data-i18n="paywall.feat3">Monatlich kündbar, keine Mindestlaufzeit, keine versteckten Kosten</span></li>
         </ul>
-        <button class="btn" id="btnSubscribe2">Jetzt abonnieren</button>
+        <button class="btn" id="btnSubscribe2" data-i18n="acct.subscribe">Jetzt abonnieren</button>
       </div>
       <!-- Ohne diese beiden Knöpfe wäre der abgelaufene Probemonat eine
            Sackgasse: die untere Navigation ist ausgeblendet, der Konto-Screen
            damit unerreichbar - und mit ihm Ausloggen und die Selbstlöschung,
            auf die Punkt 5 der Datenschutzerklärung ausdrücklich verweist. -->
       <div class="account-section" style="margin-top:24px;">
-        <div class="account-section-title">Konto</div>
-        <button class="btn secondary" id="btnLogoutPaywall">Ausloggen</button>
-        <button class="btn danger-ghost" id="btnDeleteAccountPaywall">Konto löschen</button>
+        <div class="account-section-title" data-i18n="common.account">Konto</div>
+        <button class="btn secondary" id="btnLogoutPaywall" data-i18n="common.logout">Ausloggen</button>
+        <button class="btn danger-ghost" id="btnDeleteAccountPaywall" data-i18n="common.deleteAccount">Konto löschen</button>
       </div>
     </section>
 
   </main>
 
   <footer class="legal-footer">
-    <a href="/faq.html" class="legal-link" data-legal-page="faq.html">FAQ</a>
-    <a href="/impressum.html" class="legal-link" data-legal-page="impressum.html">Impressum</a>
-    <a href="/datenschutz.html" class="legal-link" data-legal-page="datenschutz.html">Datenschutz</a>
+    <a data-i18n="legal.faq" href="/faq.html" class="legal-link" data-legal-page="faq.html">FAQ</a>
+    <a data-i18n="legal.impressum" href="/impressum.html" class="legal-link" data-legal-page="impressum.html">Impressum</a>
+    <a data-i18n="legal.datenschutz" href="/datenschutz.html" class="legal-link" data-legal-page="datenschutz.html">Datenschutz</a>
     <!-- Alle Rechtstexte öffnen im Modal, behalten aber ihre eigene, direkt
          aufrufbare URL im href (und im Permalink oben im Modal). Widerruf und
          Meldung fehlte diese Anbindung bislang - sie fuehrten auf eine neue
          Seite statt ins Modal, obwohl das Modal ihre Formular-Skripte seit
          diesem Fix genauso ausfuehrt wie bei jeder anderen Rechtsseite. -->
-    <a href="/agb.html" class="legal-link" data-legal-page="agb.html">AGB</a>
-    <a href="/widerruf.html" class="legal-link" data-legal-page="widerruf.html" data-widerruf-link>Rücktrittsrecht</a>
-    <a href="/nutzungsrichtlinien.html" class="legal-link" data-legal-page="nutzungsrichtlinien.html">Nutzungsrichtlinien</a>
-    <a href="/sicherheit.html" class="legal-link" data-legal-page="sicherheit.html">Sicherheit</a>
-    <a href="/meldung.html" class="legal-link" data-legal-page="meldung.html">Inhalt melden</a>
-    <a href="/strafverfolgung.html" class="legal-link" data-legal-page="strafverfolgung.html">Strafverfolgung</a>
+    <a data-i18n="legal.agb" href="/agb.html" class="legal-link" data-legal-page="agb.html">AGB</a>
+    <a data-i18n="legal.widerruf" href="/widerruf.html" class="legal-link" data-legal-page="widerruf.html" data-widerruf-link>Rücktrittsrecht</a>
+    <a data-i18n="legal.nutzungsrichtlinien" href="/nutzungsrichtlinien.html" class="legal-link" data-legal-page="nutzungsrichtlinien.html">Nutzungsrichtlinien</a>
+    <a data-i18n="legal.sicherheit" href="/sicherheit.html" class="legal-link" data-legal-page="sicherheit.html">Sicherheit</a>
+    <a data-i18n="legal.meldung" href="/meldung.html" class="legal-link" data-legal-page="meldung.html">Inhalt melden</a>
+    <a data-i18n="legal.strafverfolgung" href="/strafverfolgung.html" class="legal-link" data-legal-page="strafverfolgung.html">Strafverfolgung</a>
   </footer>
 
   <div class="legal-modal-backdrop" id="legalModalBackdrop">
     <div class="legal-modal" role="dialog" aria-modal="true">
-      <button class="legal-modal-close" id="legalModalClose" aria-label="Schließen">✕</button>
-      <div class="legal-modal-body" id="legalModalBody"><div class="loading">Lädt …</div></div>
+      <button class="legal-modal-close" id="legalModalClose" data-i18n-aria="common.close" aria-label="Schließen">✕</button>
+      <div class="legal-modal-body" id="legalModalBody"><div class="loading" data-i18n="common.loading">Lädt …</div></div>
     </div>
   </div>
 
   <div class="match-overlay" id="matchOverlay">
     <div class="match-overlay-inner">
-      <div class="match-eyebrow">Beide interessiert</div>
-      <div class="match-title">Match!</div>
+      <div class="match-eyebrow" data-i18n="match.eyebrow">Beide interessiert</div>
+      <div class="match-title" data-i18n="match.title">Match!</div>
       <div class="match-avatars">
         <div class="mav" id="matchAvatarMe"></div>
         <div class="mav" id="matchAvatarThem"></div>
       </div>
-      <p class="match-sub" id="matchSubText">Ihr habt euch gegenseitig geliked.</p>
+      <p class="match-sub" id="matchSubText" data-i18n="match.sub">Ihr habt euch gegenseitig geliked.</p>
       <button class="btn" id="btnMatchChat">
         <svg class="ico" viewBox="0 0 24 24"><path d="M21 11.7a8.2 8.2 0 0 1-8.3 8.1c-1.5 0-2.9-.35-4.1-1L4 19.9l1.1-4.1a8.1 8.1 0 1 1 15.9-4.1z"/></svg>
-        Nachricht schreiben
+        <span data-i18n="common.writeMessage">Nachricht schreiben</span>
       </button>
-      <button class="btn secondary" id="btnMatchContinue">Weiter swipen</button>
+      <button class="btn secondary" id="btnMatchContinue" data-i18n="match.continue">Weiter swipen</button>
     </div>
   </div>
 
   <!-- FOTO-VOLLBILD (Galerie mit Pfeilen) -->
-  <div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Foto-Ansicht">
-    <button class="lightbox-close" id="lightboxClose" aria-label="Schließen">
+  <div class="lightbox" id="lightbox" role="dialog" aria-modal="true" data-i18n-aria="photo.viewAria" aria-label="Foto-Ansicht">
+    <button class="lightbox-close" id="lightboxClose" data-i18n-aria="common.close" aria-label="Schließen">
       <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>
     </button>
-    <button class="lightbox-nav prev" id="lightboxPrev" aria-label="Vorheriges Foto">
+    <button class="lightbox-nav prev" id="lightboxPrev" data-i18n-aria="photo.prev" aria-label="Vorheriges Foto">
       <svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg>
     </button>
     <img id="lightboxImg" alt="">
-    <button class="lightbox-nav next" id="lightboxNext" aria-label="Nächstes Foto">
+    <button class="lightbox-nav next" id="lightboxNext" data-i18n-aria="photo.next" aria-label="Nächstes Foto">
       <svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg>
     </button>
     <div class="lightbox-dots" id="lightboxDots"></div>
@@ -2525,32 +2641,32 @@
   <!-- GYM-VORSCHLAG -->
   <div class="legal-modal-backdrop" id="gymSuggestBackdrop">
     <div class="legal-modal delete-modal" role="dialog" aria-modal="true">
-      <button class="legal-modal-close" id="gymSuggestClose" aria-label="Schließen">✕</button>
+      <button class="legal-modal-close" id="gymSuggestClose" data-i18n-aria="common.close" aria-label="Schließen">✕</button>
       <div class="legal-modal-body">
-        <h1 style="font-size:20px;">Gym vorschlagen</h1>
-        <p style="margin-top:10px;">
+        <h1 style="font-size:20px;" data-i18n="gym.suggestTitle">Gym vorschlagen</h1>
+        <p style="margin-top:10px;" data-i18n="gym.suggestIntro">
           Dein Gym fehlt in der Liste? Reich es mit Adresse ein - du kannst es
           sofort für dein Profil verwenden, nach Prüfung erscheint es für alle
           in der Auswahl.
         </p>
-        <label for="sg-name" style="margin-top:16px;">Name des Gyms</label>
-        <input type="text" id="sg-name" placeholder="z. B. Eisenschmiede" maxlength="120" autocomplete="organization">
-        <label for="sg-street">Straße</label>
-        <input type="text" id="sg-street" placeholder="z. B. Hauptstraße" maxlength="120">
+        <label for="sg-name" style="margin-top:16px;" data-i18n="gym.name">Name des Gyms</label>
+        <input type="text" id="sg-name" data-i18n-ph="gym.namePh" placeholder="z. B. Eisenschmiede" maxlength="120" autocomplete="organization">
+        <label for="sg-street" data-i18n="gym.street">Straße</label>
+        <input type="text" id="sg-street" data-i18n-ph="gym.streetPh" placeholder="z. B. Hauptstraße" maxlength="120">
         <div class="row2">
           <div>
-            <label for="sg-number">Hausnummer</label>
+            <label for="sg-number" data-i18n="gym.number">Hausnummer</label>
             <input type="text" id="sg-number" placeholder="12" maxlength="20">
           </div>
           <div>
-            <label for="sg-plz">Postleitzahl</label>
+            <label for="sg-plz" data-i18n="gym.plz">Postleitzahl</label>
             <input type="text" id="sg-plz" placeholder="1010" inputmode="numeric" maxlength="4" autocomplete="postal-code">
           </div>
         </div>
         <div class="field-err" id="sgErr"></div>
         <div class="btn-row" style="margin-top:18px;">
-          <button class="btn" id="btnGymSuggestSubmit">Vorschlag einreichen</button>
-          <button class="btn secondary" id="btnGymSuggestCancel">Abbrechen</button>
+          <button class="btn" id="btnGymSuggestSubmit" data-i18n="gym.submit">Vorschlag einreichen</button>
+          <button class="btn secondary" id="btnGymSuggestCancel" data-i18n="common.cancel">Abbrechen</button>
         </div>
       </div>
     </div>
@@ -2559,10 +2675,10 @@
   <!-- KONTO-LÖSCHEN-BESTÄTIGUNG -->
   <div class="legal-modal-backdrop" id="deleteModalBackdrop">
     <div class="legal-modal delete-modal" role="dialog" aria-modal="true">
-      <button class="legal-modal-close" id="deleteModalClose" aria-label="Schließen">✕</button>
+      <button class="legal-modal-close" id="deleteModalClose" data-i18n-aria="common.close" aria-label="Schließen">✕</button>
       <div class="legal-modal-body">
-        <h1 style="font-size:20px;">Konto löschen</h1>
-        <p style="margin-top:10px;">
+        <h1 style="font-size:20px;" data-i18n="del.title">Konto löschen</h1>
+        <p style="margin-top:10px;" data-i18n="del.text">
           Dein Konto wird sofort deaktiviert und ist für andere nicht mehr sichtbar.
           Konto- und Profildaten werden nach Ablauf der 30-tägigen Karenzzeit
           gelöscht. Du bekommst dazu eine Bestätigungsmail. Innerhalb der 30 Tage
@@ -2572,12 +2688,12 @@
           Sicherungskopien bleiben davon unberührt. Einzelheiten findest du
           in der Datenschutzerklärung.
         </p>
-        <label for="deletePassword" style="margin-top:18px;">Zur Bestätigung dein Passwort</label>
+        <label for="deletePassword" style="margin-top:18px;" data-i18n="del.passwordLabel">Zur Bestätigung dein Passwort</label>
         <input type="password" id="deletePassword" placeholder="••••••••" autocomplete="current-password">
         <div class="field-err" id="deleteErr"></div>
         <div class="btn-row" style="margin-top:18px;">
-          <button class="btn danger-solid" id="btnConfirmDelete">Endgültig löschen</button>
-          <button class="btn secondary" id="btnCancelDelete">Abbrechen</button>
+          <button class="btn danger-solid" id="btnConfirmDelete" data-i18n="del.confirm">Endgültig löschen</button>
+          <button class="btn secondary" id="btnCancelDelete" data-i18n="common.cancel">Abbrechen</button>
         </div>
       </div>
     </div>
@@ -2586,22 +2702,22 @@
   <nav class="bottom" id="bottomNav" style="display:none;">
     <button data-screen="swipe" class="active">
       <svg class="ico" viewBox="0 0 24 24"><path d="M7 8.5v7M10.5 6.5v11M17 8.5v7M13.5 6.5v11M10.5 12h3M3.5 10v4M20.5 10v4"/></svg>
-      Swipe
+      <span data-i18n="nav.swipe">Swipe</span>
     </button>
     <button data-screen="matches">
       <svg class="ico" viewBox="0 0 24 24"><path d="M12 20.3 4.6 13a4.7 4.7 0 0 1 6.6-6.7l.8.8.8-.8A4.7 4.7 0 0 1 19.4 13L12 20.3z"/></svg>
-      Matches
+      <span data-i18n="nav.matches">Matches</span>
     </button>
     <button data-screen="chats">
       <span class="nav-ico-wrap">
         <svg class="ico" viewBox="0 0 24 24"><path d="M21 11.7a8.2 8.2 0 0 1-8.3 8.1c-1.5 0-2.9-.35-4.1-1L4 19.9l1.1-4.1a8.1 8.1 0 1 1 15.9-4.1z"/></svg>
         <span class="nav-badge" id="chatsNavBadge" style="display:none;">0</span>
       </span>
-      Chats
+      <span data-i18n="nav.chats">Chats</span>
     </button>
     <button data-screen="account">
       <svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="8.2" r="3.4"/><path d="M5.5 19.5c1-3.4 3.5-5.1 6.5-5.1s5.5 1.7 6.5 5.1"/></svg>
-      Konto
+      <span data-i18n="nav.account">Konto</span>
     </button>
   </nav>
 
@@ -2618,20 +2734,20 @@
 <div id="immediateStartOverlay" class="legal-modal-backdrop" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="istartTitle">
   <div class="legal-modal checkout-modal">
     <div class="legal-modal-body">
-      <h1 id="istartTitle" style="font-size:20px;">Vor der Zahlung</h1>
+      <h1 id="istartTitle" style="font-size:20px;" data-i18n="istart.title">Vor der Zahlung</h1>
       <label class="consent-label" style="margin-top:16px; font-size:14px;">
         <input type="checkbox" id="istartCheckbox">
-        <span>Ich stimme ausdrücklich zu, dass FLEXR bereits vor Ablauf der
+        <span data-i18n="istart.consent1">Ich stimme ausdrücklich zu, dass FLEXR bereits vor Ablauf der
           14-tägigen Rücktrittsfrist mit der Erbringung der kostenpflichtigen
           Dienstleistung beginnt.</span>
       </label>
       <label class="consent-label" style="margin-top:14px; font-size:14px;">
         <input type="checkbox" id="withdrawalAckCheckbox">
-        <span>Ich bestätige, dass ich zur Kenntnis genommen habe, dass mein
+        <span data-i18n="istart.consent2">Ich bestätige, dass ich zur Kenntnis genommen habe, dass mein
           Rücktrittsrecht nach vollständiger Vertragserfüllung durch FLEXR
           erlischt, wenn die gesetzlichen Voraussetzungen dafür erfüllt sind.</span>
       </label>
-      <p id="istartOct1Hinweis" style="display:none; font-size:12.5px; color:var(--chalk-dim); margin-top:12px;">
+      <p id="istartOct1Hinweis" data-i18n="istart.oct1" style="display:none; font-size:12.5px; color:var(--chalk-dim); margin-top:12px;">
         Informationen zum gesetzlichen Rücktrittsrecht und zur
         Online-Rücktrittsfunktion findest du unter „Rücktrittsrecht". Die
         Funktion „Vertrag widerrufen" ist im Bereich „Rechtliches" der Website
@@ -2639,8 +2755,8 @@
       </p>
       <div class="field-err" id="istartErr" style="display:none;"></div>
       <div class="btn-row" style="margin-top:18px;">
-        <button type="button" class="btn" id="istartConfirm">Weiter zur Zahlung</button>
-        <button type="button" class="btn secondary" id="istartCancel">Abbrechen</button>
+        <button type="button" class="btn" id="istartConfirm" data-i18n="istart.confirm">Weiter zur Zahlung</button>
+        <button type="button" class="btn secondary" id="istartCancel" data-i18n="common.cancel">Abbrechen</button>
       </div>
     </div>
   </div>
@@ -2656,16 +2772,16 @@
 <div id="betaBackdrop" class="legal-modal-backdrop" role="dialog" aria-modal="true"
      aria-labelledby="betaTitle" aria-describedby="betaText">
   <div class="legal-modal beta-modal">
-    <button type="button" class="legal-modal-close" id="betaClose" aria-label="Hinweis schließen">✕</button>
+    <button type="button" class="legal-modal-close" id="betaClose" data-i18n-aria="beta.closeAria" aria-label="Hinweis schließen">✕</button>
     <div class="legal-modal-body">
-      <p class="beta-eyebrow">Beta-Phase</p>
-      <h1 id="betaTitle" style="font-size:22px;">FLEXR ist noch im Aufbau</h1>
-      <p id="betaText" style="color:var(--chalk-dim); margin-top:10px;">
+      <p class="beta-eyebrow" data-i18n="beta.eyebrow">Beta-Phase</p>
+      <h1 id="betaTitle" style="font-size:22px;" data-i18n="beta.title">FLEXR ist noch im Aufbau</h1>
+      <p id="betaText" data-i18n="beta.text" style="color:var(--chalk-dim); margin-top:10px;">
         Du kannst FLEXR schon jetzt im Browser nutzen. Weil wir noch in der Beta
         sind, sind manche Regionen dünn besetzt und einzelne Funktionen ändern
         sich noch.
       </p>
-      <div class="beta-free">
+      <div class="beta-free" data-i18n-html="beta.free">
         <b>Solange die Beta läuft, kostet FLEXR nichts.</b>
         Die Mitgliedschaft von 5&nbsp;€ pro Monat ist bis auf weiteres
         ausgesetzt — für neue und für bestehende Konten. Es wird kein
@@ -2673,13 +2789,13 @@
         starten soll, sagen wir das vorher an.
       </div>
       <ul class="beta-dates">
-        <li><b>Android</b><span>Veröffentlichung geplant für Ende September 2026</span></li>
-        <li><b class="as-written">iOS</b><span>folgt im Anschluss</span></li>
+        <li><b>Android</b><span data-i18n="beta.android">Veröffentlichung geplant für Ende September 2026</span></li>
+        <li><b class="as-written">iOS</b><span data-i18n="beta.ios">folgt im Anschluss</span></li>
       </ul>
-      <p style="color:var(--chalk-dim); margin-bottom:0;">
+      <p style="color:var(--chalk-dim); margin-bottom:0;" data-i18n="beta.outro">
         Mit dem Start der Android-App geht FLEXR dann richtig an den Start.
       </p>
-      <button type="button" class="btn" id="betaOk">Verstanden</button>
+      <button type="button" class="btn" id="betaOk" data-i18n="beta.ok">Verstanden</button>
     </div>
   </div>
 </div>
@@ -2756,6 +2872,14 @@
 <script>
 (function(){
   const $ = (id) => document.getElementById(id);
+
+  /* Kurzform fuer Uebersetzungen. Das Woerterbuch steht in /app/i18n-app.js,
+     die Maschinerie in /i18n.js. Statische Texte im Markup uebersetzt
+     FlexrI18n selbst ueber data-i18n; hier drin geht es nur um Texte, die
+     das Skript baut (Listen, Karten, Fehlermeldungen, Bestaetigungsdialoge). */
+  const t = (key, vars) => FlexrI18n.t(key, vars);
+  const dateLocale = () => (FlexrI18n.current() === 'en' ? 'en-GB' : 'de-AT');
+
   const API_BASE = (location.hostname === 'localhost' || location.hostname === '127.0.0.1')
     ? 'http://localhost:8000'
     : '';
@@ -2780,7 +2904,7 @@
     const close = document.createElement('button');
     close.className = 'toast-close';
     close.type = 'button';
-    close.setAttribute('aria-label', 'Schließen');
+    close.setAttribute('aria-label', t('common.close'));
     close.textContent = '✕';
     close.addEventListener('click', () => t.remove());
     t.append(text, close);
@@ -3022,10 +3146,13 @@
     const kopf = st.measure || detail.message;
     if(kopf) zeilen.push(`<strong>${escapeHtml(kopf)}</strong>`);
     const grund = detail.moderation_reason || st.summary;
-    if(grund) zeilen.push(`<strong>Begründung:</strong> ${escapeHtml(grund)}`);
-    if(st.facts) zeilen.push(`<strong>Sachverhalt:</strong> ${escapeHtml(st.facts)}`);
-    if(st.scope) zeilen.push(`<strong>Umfang:</strong> ${escapeHtml(st.scope)}`);
-    if(st.duration) zeilen.push(`<strong>Dauer:</strong> ${escapeHtml(st.duration)}`);
+    // Die Inhalte selbst (Grund, Sachverhalt, Dauer) kommen vom Server und
+    // bleiben in der Sprache, in der die Moderation sie verfasst hat - nur die
+    // Beschriftungen davor sind uebersetzt.
+    if(grund) zeilen.push(`<strong>${escapeHtml(t('chat.reason'))}</strong> ${escapeHtml(grund)}`);
+    if(st.facts) zeilen.push(`<strong>${escapeHtml(t('mod.facts'))}</strong> ${escapeHtml(st.facts)}`);
+    if(st.scope) zeilen.push(`<strong>${escapeHtml(t('mod.scope'))}</strong> ${escapeHtml(st.scope)}`);
+    if(st.duration) zeilen.push(`<strong>${escapeHtml(t('mod.duration'))}</strong> ${escapeHtml(st.duration)}`);
     if(st.source) zeilen.push(escapeHtml(st.source));
     if(st.automated_detection) zeilen.push(escapeHtml(st.automated_detection));
     if(st.legal_basis) zeilen.push(escapeHtml(st.legal_basis));
@@ -3053,9 +3180,10 @@
   function gymName(s){ return String(s || '').split(' — ')[0]; }
 
   // Blauer Verifizierungs-Haken (nach manueller Selfie-Prüfung)
-  const VERIFIED_BADGE_SVG = '<span class="verified-badge" title="Verifiziertes Profil"><svg viewBox="0 0 24 24"><path d="M5.5 12.5 10 17 18.5 7.5"/></svg></span>';
+  const VERIFIED_BADGE_SVG = () => '<span class="verified-badge" title="' + escapeHtml(t('profile.verified'))
+    + '"><svg viewBox="0 0 24 24"><path d="M5.5 12.5 10 17 18.5 7.5"/></svg></span>';
   function verifiedBadge(p){
-    return p && p.is_verified ? VERIFIED_BADGE_SVG : '';
+    return p && p.is_verified ? VERIFIED_BADGE_SVG() : '';
   }
 
   // Für kleine Avatare: Thumbnail bevorzugen, sonst Vollbild (Bestandsfotos)
@@ -3101,7 +3229,7 @@
       setToken(null);
       showScreen('screen-login');
       $('bottomNav').style.display = 'none';
-      throw new Error('Sitzung abgelaufen. Bitte erneut einloggen.');
+      throw new Error(t('err.session'));
     }
     // 402 = Probemonat abgelaufen. Kann mitten in einer offenen Sitzung
     // auftreten (Polling im Chat, Deck nachladen) - dann gehört der Nutzer auf
@@ -3112,7 +3240,7 @@
       stopUnreadPolling();
       $('bottomNav').style.display = 'none';
       showScreen('screen-paywall');
-      throw new Error('Probemonat abgelaufen. Bitte Abo abschließen.');
+      throw new Error(t('err.trialOver'));
     }
     let data = null;
     try{ data = await res.json(); }catch(e){ /* kein JSON-Body */ }
@@ -3138,7 +3266,7 @@
       showScreen('screen-login');
       $('loginErr').textContent = '';
       showLoginModerationNotice(data.detail);
-      const bannErr = new Error(data.detail.message || 'Dein Konto wurde gesperrt.');
+      const bannErr = new Error(data.detail.message || t('err.banned'));
       bannErr.status = res.status;
       bannErr.detail = data.detail;
       throw bannErr;
@@ -3157,7 +3285,7 @@
     }
 
     if(!res.ok){
-      let msg = 'Fehler (' + res.status + ')';
+      let msg = t('err.http', {status: res.status});
       if(data && data.detail){
         if(Array.isArray(data.detail)) msg = data.detail.map(d => d.msg).join(', ');
         else if(typeof data.detail === 'object') msg = data.detail.message || msg;
@@ -3183,7 +3311,7 @@
         const img = new Image();
         img.onload = () => {
           if(img.width < MIN_PHOTO_PX || img.height < MIN_PHOTO_PX){
-            reject(new Error(`Foto zu klein (${img.width}×${img.height}). Mindestens ${MIN_PHOTO_PX}×${MIN_PHOTO_PX} Pixel.`));
+            reject(new Error(t('photo.tooSmall', {w: img.width, h: img.height, min: MIN_PHOTO_PX})));
             return;
           }
           const canvas = document.createElement('canvas');
@@ -3206,9 +3334,9 @@
           thumbCanvas.getContext('2d').drawImage(img, sx, sy, side, side, 0, 0, THUMB, THUMB);
 
           canvas.toBlob((blob) => {
-            if(!blob){ reject(new Error('Bild konnte nicht verarbeitet werden.')); return; }
+            if(!blob){ reject(new Error(t('photo.processFailed'))); return; }
             thumbCanvas.toBlob((thumbBlob) => {
-              if(!thumbBlob){ reject(new Error('Bild konnte nicht verarbeitet werden.')); return; }
+              if(!thumbBlob){ reject(new Error(t('photo.processFailed'))); return; }
               resolve({blob, thumbBlob});
             }, 'image/jpeg', 0.85);
           }, 'image/jpeg', 0.85);
@@ -3224,14 +3352,12 @@
           const heic = /\.(heic|heif)$/.test(name)
             || /image\/hei[cf]/.test(file.type || '');
           reject(new Error(heic
-            ? 'Dieses Foto liegt im iPhone-Format HEIC vor, das dein Browser nicht öffnen kann. '
-              + 'Speichere es als JPEG oder schalte am iPhone unter Einstellungen › Kamera › '
-              + 'Formate auf „Maximale Kompatibilität" um.'
-            : 'Diese Datei konnte nicht als Bild gelesen werden. Bitte wähle ein JPEG oder PNG.'));
+            ? t('photo.heic')
+            : t('photo.notAnImage')));
         };
         img.src = ev.target.result;
       };
-      reader.onerror = () => reject(new Error('Die Datei konnte nicht gelesen werden.'));
+      reader.onerror = () => reject(new Error(t('photo.readFailed')));
       reader.readAsDataURL(file);
     });
   }
@@ -3258,7 +3384,7 @@
     const file = e.target.files[0];
     e.target.value = '';
     if(!file) return;
-    if(pendingPhotos.length >= 6){ $("photoErr").textContent = "Maximal 6 Fotos."; return; }
+    if(pendingPhotos.length >= 6){ $("photoErr").textContent = t('photo.max'); return; }
     $('photoErr').textContent = '';
     try{
       const photo = await preparePhoto(file);
@@ -3294,7 +3420,7 @@
   }
 
   const UPLOAD_TEXT_ALLGEMEIN =
-    'Das Foto konnte nicht hochgeladen werden. Bitte versuche es erneut.';
+    t('photo.uploadFailed');
 
   // Aus einer Presigned-URL bleibt fuers Log nur der Origin uebrig.
   //
@@ -3407,7 +3533,7 @@
     const ortDisplay = $('ortDisplay');
     const plzErr = $('plzErr');
     plzErr.textContent = '';
-    ortDisplay.textContent = 'Lädt …';
+    ortDisplay.textContent = t('plz.loading');
     ortDisplay.classList.remove('resolved');
     resolvedCity = '';
     try{
@@ -3417,11 +3543,11 @@
     }catch(err){
       if(err.status === 404){
         ortDisplay.textContent = '— unbekannte PLZ —';
-        plzErr.textContent = 'Postleitzahl nicht gefunden. Bitte prüfen.';
+        plzErr.textContent = t('plz.notFound');
         return;
       }
       ortDisplay.textContent = '— Lookup fehlgeschlagen —';
-      plzErr.textContent = 'Ort konnte nicht ermittelt werden. Bitte später erneut versuchen.';
+      plzErr.textContent = t('plz.failed');
       console.error(err);
     }
   }
@@ -3461,7 +3587,7 @@
         </div>`).join('');
       results.innerHTML = rows + `
         <div class="gym-result suggest-row" data-suggest="1">
-          ＋ Gym nicht dabei? Jetzt vorschlagen${term ? ` („${escapeHtml(term)}")` : ''}
+          ${term ? escapeHtml(t('gym.suggestRowTerm', {term})) : escapeHtml(t('gym.suggestRow'))}
         </div>`;
       results.classList.add('open');
 
@@ -3529,7 +3655,7 @@
     const number = $('sg-number').value.trim();
     const plz = $('sg-plz').value.trim();
     if(name.length < 2 || street.length < 2 || !number || !/^\d{4}$/.test(plz)){
-      errEl.textContent = 'Bitte Name, Straße, Hausnummer und eine gültige PLZ angeben.';
+      errEl.textContent = t('gym.errFields');
       return;
     }
     // Ort zur PLZ still ermitteln (best effort)
@@ -3551,9 +3677,9 @@
         gymSuggestTargetInput.picked.classList.add('show');
       }
       closeGymSuggest();
-      toast('Danke! Vorschlag eingereicht - du kannst das Gym sofort verwenden.');
+      toast(t('gym.thanks'));
     }catch(err){
-      errEl.textContent = err.message || 'Vorschlag konnte nicht eingereicht werden.';
+      errEl.textContent = err.message || t('gym.errSubmit');
     }finally{
       btn.disabled = false;
     }
@@ -3584,7 +3710,7 @@
     // Sofortige lokale Rückmeldung, damit das Feld nicht "hängt"
     const localAge = calcAge(value);
     if(!isNaN(localAge) && localAge < 18){
-      setAgeGate('blocked', 'Du musst mindestens 18 Jahre alt sein, um FLEXR nutzen zu können.');
+      setAgeGate('blocked', t('reg.ageBlockText'));
     }
     try{
       const res = await api('/api/auth/age-check', {
@@ -3620,7 +3746,7 @@
     return pw2.length > 0 && pw !== pw2;
   }
   function refreshPasswordHint(){
-    $('pw2Err').textContent = passwordMismatch() ? 'Die Passwörter stimmen nicht überein.' : '';
+    $('pw2Err').textContent = passwordMismatch() ? t('reg.errPwMismatchShort') : '';
   }
   $('f-password').addEventListener('input', refreshPasswordHint);
   $('f-password2').addEventListener('input', refreshPasswordHint);
@@ -3647,51 +3773,49 @@
     };
 
     if(!payload.email || !payload.password || payload.password.length < 8 || !payload.name || !payload.birthdate){
-      errEl.textContent = 'Bitte E-Mail, Passwort (min. 8 Zeichen), Name und Geburtsdatum angeben.';
+      errEl.textContent = t('reg.errRequired');
       return;
     }
     if(payload.password !== $('f-password2').value){
       refreshPasswordHint();
-      errEl.textContent = 'Die beiden Passwörter stimmen nicht überein.';
+      errEl.textContent = t('reg.errPwMismatch');
       return;
     }
     const ageFromBirthdate = calcAge(payload.birthdate);
     if(ageGateBlocked || ageFromBirthdate < 18){
-      errEl.textContent = 'Du musst mindestens 18 Jahre alt sein, um FLEXR nutzen zu können.';
+      errEl.textContent = t('reg.errUnder18');
       return;
     }
     if(ageFromBirthdate > 99){
-      errEl.textContent = 'Bitte ein gültiges Geburtsdatum angeben.';
+      errEl.textContent = t('reg.errBirthdate');
       return;
     }
     if(!/^\d{4}$/.test(payload.plz) || !payload.city){
-      errEl.textContent = 'Bitte eine gültige österreichische Postleitzahl eingeben (Ort wird automatisch ermittelt).';
+      errEl.textContent = t('reg.errPlz');
       return;
     }
     if(!payload.gender){
-      errEl.textContent = 'Bitte ein Geschlecht auswählen.';
+      errEl.textContent = t('reg.errGender');
       return;
     }
     if(!payload.gym){
-      errEl.textContent = 'Bitte ein Gym auswählen.';
+      errEl.textContent = t('reg.errGym');
       return;
     }
     if(pendingPhotos.length < 1){
-      $('photoErr').textContent = 'Bitte lade mindestens ein Foto hoch.';
-      errEl.textContent = 'Bitte lade mindestens ein Foto hoch.';
+      $('photoErr').textContent = t('reg.errPhoto');
+      errEl.textContent = t('reg.errPhoto');
       return;
     }
     if(!payload.consent_sensitive_data){
-      errEl.textContent = 'Ohne die Einwilligung zur Verarbeitung von Geschlecht und '
-        + 'gesuchtem Geschlecht können wir dir keine Profile vorschlagen — sie ist die '
-        + 'Grundlage des Matchings.';
+      errEl.textContent = t('reg.errConsent');
       return;
     }
 
     const btn = $('btnCreateProfile');
     const btnText = btn.textContent;
     btn.disabled = true;
-    btn.textContent = 'Konto wird erstellt …';
+    btn.textContent = t('reg.creating');
     try{
       const tokenRes = await api('/api/auth/register', {method: 'POST', body: JSON.stringify(payload)});
       setToken(tokenRes.access_token);
@@ -3703,8 +3827,8 @@
         // Bis zu sechs Fotos, jedes mit zwei PUTs - ohne Fortschritt steht der
         // Knopf hier je nach Verbindung eine gefuehlte Ewigkeit still.
         btn.textContent = pendingPhotos.length > 1
-          ? `Foto ${nr} von ${pendingPhotos.length} wird hochgeladen …`
-          : 'Foto wird hochgeladen …';
+          ? t('reg.photoUploadingN', {nr, total: pendingPhotos.length})
+          : t('reg.photoUploading');
         try{ await uploadPhoto(p); }catch(err){ photoFailures++; logUploadFehler('registrierung', err); }
       }
       const uploadedCount = pendingPhotos.length - photoFailures;
@@ -3714,11 +3838,11 @@
         // Nicht mehr "im Konto nachholen": Der Konto-Screen ist ohne
         // Freischaltung nicht erreichbar. Der Upload wartet stattdessen direkt
         // auf dem Verifizierungs-Screen (siehe renderVerificationGate).
-        toast('Profil erstellt – Foto-Upload fehlgeschlagen. Du kannst das Foto gleich nachreichen.');
+        toast(t('reg.doneNoPhoto'));
       } else if(photoFailures > 0){
-        toast('Profil erstellt – nicht alle Fotos konnten hochgeladen werden.');
+        toast(t('reg.donePartialPhotos'));
       } else {
-        toast('Profil erstellt. Jetzt noch die Alters- und Identitätsprüfung 💪');
+        toast(t('reg.done'));
       }
       await loadCurrentUser();
       goToApp();
@@ -3745,7 +3869,7 @@
     clearLoginModerationNotice();
     const email = $('l-email').value.trim();
     const password = $('l-password').value;
-    if(!email || !password){ errEl.textContent = 'Bitte E-Mail und Passwort angeben.'; return; }
+    if(!email || !password){ errEl.textContent = t('login.errMissing'); return; }
 
     const btn = $('btnLogin');
     if(btn.disabled) return;
@@ -3761,8 +3885,8 @@
       // die Reaktivierung an, statt in eine Sackgasse zu führen.
       if(err.detail && err.detail.code === 'account_deleted'){
         const reaktivieren = confirm(
-          (err.detail.message || 'Dieses Konto wurde gelöscht.')
-          + '\n\nJetzt reaktivieren und wieder einloggen?'
+          (err.detail.message || t('login.deletedAccount'))
+          + t('login.reactivate')
         );
         if(reaktivieren){
           try{
@@ -3770,7 +3894,7 @@
             setToken(tokenRes.access_token);
             await loadCurrentUser();
             $('bottomNav').style.display = 'flex';
-            toast('Dein Konto wurde reaktiviert.');
+            toast(t('login.reactivated'));
             goToApp();
           }catch(err2){
             errEl.textContent = err2.message || 'Reaktivierung fehlgeschlagen.';
@@ -3855,7 +3979,7 @@
     errEl.textContent = '';
     const password = $('deletePassword').value;
     if(!password){
-      errEl.textContent = 'Bitte gib zur Bestätigung dein Passwort ein.';
+      errEl.textContent = t('del.errPassword');
       return;
     }
     const btn = $('btnConfirmDelete');
@@ -3873,9 +3997,9 @@
       membership = null;
       $('bottomNav').style.display = 'none';
       showScreen('screen-login');
-      toast('Dein Konto wurde deaktiviert und wird in 30 Tagen endgültig gelöscht.');
+      toast(t('del.done'));
     }catch(err){
-      errEl.textContent = err.message || 'Löschen fehlgeschlagen.';
+      errEl.textContent = err.message || t('common.deleteFailed');
     }finally{
       btn.disabled = false;
     }
@@ -3909,7 +4033,7 @@
     // Vor der Freischaltung läuft noch kein Probemonat - eine Restlaufzeit
     // anzuzeigen wäre irreführend, sie startet erst mit der Freigabe.
     if(!accountActivated()){
-      pill.textContent = 'In Prüfung'; pill.className = 'status-pill trial';
+      pill.textContent = t('acct.statusChecking'); pill.className = 'status-pill trial';
       return;
     }
     if(!billingActive()){
@@ -3970,7 +4094,7 @@
     // Zwei getrennte Erklärungen, zwei getrennte Checkboxen - beide müssen
     // einzeln angehakt sein, keine ersetzt die andere.
     if(!$('istartCheckbox').checked || !$('withdrawalAckCheckbox').checked){
-      $('istartErr').textContent = 'Bitte bestätige beide Erklärungen, um fortzufahren.';
+      $('istartErr').textContent = t('istart.err');
       $('istartErr').style.display = 'block';
       return;
     }
@@ -3985,7 +4109,7 @@
       // Der Fehler gehört in den Kasten, nicht nur in einen Toast: Das
       // Overlay bleibt offen, und der Nutzer soll dort lesen können, warum
       // es nicht weiterging.
-      const msg = err.message || 'Checkout konnte nicht gestartet werden.';
+      const msg = err.message || t('acct.checkoutFailed');
       $('istartErr').textContent = msg;
       $('istartErr').style.display = 'block';
       toast(msg);
@@ -4008,7 +4132,7 @@
       const res = await api('/api/billing/portal', {method: 'POST'});
       window.location.href = res.portal_url;
     }catch(err){
-      toast(err.message || 'Abo-Verwaltung konnte nicht geöffnet werden.');
+      toast(err.message || t('acct.portalFailed'));
     }
   });
 
@@ -4031,7 +4155,7 @@
     });
   });
 
-  function renderAccount(){
+  function renderAccount(opts){
     $('acctName').innerHTML = escapeHtml(myProfile.name + ', ' + myProfile.age) + verifiedBadge(myProfile);
     renderVerificationSection();
     $('acctSubline').textContent = [myProfile.city, gymName(myProfile.gym)].filter(Boolean).join(' · ');
@@ -4050,17 +4174,15 @@
       // Während der Beta zahlt niemand - weder neue noch bestehende Konten.
       // Der Abo-Knopf verschwindet dann ganz: Ein Angebot anzuzeigen, das der
       // Server mit 409 ablehnt, wäre eine Sackgasse.
-      $('acctStatusText').textContent = 'FLEXR ist in der Beta-Phase kostenlos — '
-        + 'die Mitgliedschaft von 5 €/Monat ist bis auf weiteres ausgesetzt. '
-        + 'Es ist kein Zahlungsmittel hinterlegt und es wird nichts abgebucht.';
+      $('acctStatusText').textContent = t('acct.statusBetaFree');
       $('btnSubscribe').style.display = 'none';
       // Wer noch ein Abo aus der Zeit davor hat, muss es weiterhin kündigen
       // können - der Verwalten-Link bleibt dafür stehen.
       $('btnManageSubscription').style.display = membership.is_subscribed ? 'block' : 'none';
     } else if(membership.is_subscribed){
       $('btnSubscribe').style.display = '';
-      $('acctStatusText').textContent = 'Dein Abo ist aktiv (5 €/Monat).';
-      $('btnSubscribe').textContent = 'Abo aktiv ✓';
+      $('acctStatusText').textContent = t('acct.statusActive');
+      $('btnSubscribe').textContent = t('acct.subActive');
       $('btnSubscribe').disabled = true;
       $('btnManageSubscription').style.display = 'block';
     } else {
@@ -4069,15 +4191,15 @@
       // Bewusst mit dem Zusatz: Der Probemonat wandelt sich nicht von selbst in
       // ein Abo um, es gibt also keine Frist zu versaeumen. Ohne den Satz liest
       // sich ein Countdown wie eine Kuendigungsfrist.
-      const dayLabel = daysLeft === 1 ? '1 Tag' : `${daysLeft} Tage`;
+      const dayLabel = daysLeft === 1 ? t('common.day1') : t('common.dayN', {n: daysLeft});
       $('acctStatusText').textContent = daysLeft > 0
-        ? `Noch ${dayLabel} gratis — danach wird nichts automatisch abgebucht.`
-        : 'Dein Probemonat ist abgelaufen. Es wurde nichts abgebucht.';
+        ? t('acct.statusTrial', {days: dayLabel})
+        : t('acct.statusTrialOver');
       $('btnSubscribe').disabled = false;
-      $('btnSubscribe').textContent = 'Jetzt abonnieren';
+      $('btnSubscribe').textContent = t('acct.subscribe');
       $('btnManageSubscription').style.display = 'none';
     }
-    fillProfileForm();
+    if(!opts || !opts.keepForm) fillProfileForm();
     renderAccountPhotoGrid();
     // Meldungen und Einwilligungen werden nicht mehr hier geladen, sondern
     // erst beim Oeffnen von "Datenschutz & Sicherheit" - zwei Anfragen
@@ -4139,7 +4261,7 @@
         });
       }catch(err){
         myProfile = {...myProfile, [feld]: vorher};
-        toast(err.message || 'Einstellung konnte nicht gespeichert werden.');
+        toast(err.message || t('notif.saveFailed'));
       }
       renderNotificationSettings();
     });
@@ -4158,14 +4280,13 @@
     try{
       const rows = await api('/api/blocks?detail=true');
       if(!rows.length){
-        box.innerHTML = '<p class="photo-hint" style="margin:0;">Du hast niemanden blockiert. '
-          + 'Blockieren geht über das Verbots-Symbol in jedem Profil und in jedem Chat.</p>';
+        box.innerHTML = `<p class="photo-hint" style="margin:0;">${escapeHtml(t('privacy.noBlocks'))}</p>`;
         return;
       }
       box.innerHTML = rows.map(b => {
         const seit = b.blocked_at
-          ? ' · seit ' + new Date(parseServerDate(b.blocked_at)).toLocaleDateString('de-AT')
-          : '';
+          ? t('privacy.blockedSince', {date: new Date(parseServerDate(b.blocked_at)).toLocaleDateString(dateLocale())})
+          : t('privacy.blockedNoDate');
         const avatar = b.photo_url
           ? `<img src="${escapeHtml(b.photo_url)}" alt="">`
           : escapeHtml((b.name || '?').charAt(0).toUpperCase());
@@ -4173,38 +4294,34 @@
             <span class="av">${avatar}</span>
             <div class="info">
               <div class="nm">${escapeHtml(b.name)}${b.age ? ', ' + b.age : ''}</div>
-              <div class="last-msg">Blockiert${escapeHtml(seit)}</div>
+              <div class="last-msg">${escapeHtml(seit)}</div>
             </div>
             <button type="button" class="btn secondary unblock-btn"
                     data-user-id="${escapeHtml(b.user_id)}"
-                    data-name="${escapeHtml(b.name)}">Aufheben</button>
+                    data-name="${escapeHtml(b.name)}">${escapeHtml(t('privacy.unblockBtn'))}</button>
           </div>`;
-      }).join('') + '<p class="photo-hint">Eine Blockierung blendet ein bestehendes '
-        + 'Match nur aus, sie löst es nicht auf. Hebst du sie auf, seht ihr einander '
-        + 'wieder im Deck — und ein früheres Match ist samt Chatverlauf wieder da.</p>';
+      }).join('') + `<p class="photo-hint">${escapeHtml(t('privacy.blockNote'))}</p>`;
       box.querySelectorAll('.unblock-btn').forEach(btn => {
         btn.addEventListener('click', () => unblockUser(btn.dataset.userId, btn.dataset.name));
       });
     }catch(e){
-      box.innerHTML = '<p class="photo-hint" style="margin:0;">Deine Blockierungen konnten '
-        + 'gerade nicht geladen werden.</p>';
+      box.innerHTML = `<p class="photo-hint" style="margin:0;">${escapeHtml(t('privacy.blocksFailed'))}</p>`;
     }
   }
 
   async function unblockUser(userId, name){
-    if(!confirm(`Blockierung von ${name} aufheben? Ihr seht euch danach wieder im Deck; `
-      + `ein früheres Match ist damit auch wieder da.`)) return;
+    if(!confirm(t('privacy.unblockConfirm', {name}))) return;
     try{
       await api(`/api/blocks/${userId}`, {method: 'DELETE'});
-      toast(`Blockierung von ${name} aufgehoben.`);
+      toast(t('privacy.unblocked', {name}));
       loadMyBlocks();
-    }catch(err){ toast(err.message || 'Aufheben fehlgeschlagen.'); }
+    }catch(err){ toast(err.message || t('privacy.unblockFailed')); }
   }
 
   // ---------- Meine Meldungen (Art. 16 Abs. 5 DSA) ----------
   const REPORT_OUTCOME_TEXT = {
-    action_taken: 'Wir sind eingeschritten.',
-    no_action:    'Geprüft — kein Verstoß festgestellt.',
+    action_taken: 'privacy.reportActionTaken',
+    no_action:    'privacy.reportNoAction',
   };
 
   async function loadMyReports(){
@@ -4212,16 +4329,15 @@
     try{
       const rows = await api('/api/reports/mine');
       if(!rows.length){
-        box.innerHTML = '<p class="photo-hint" style="margin:0;">Du hast noch nichts gemeldet. '
-          + 'Melden geht über das Flaggen-Symbol in jedem Profil und in jedem Chat.</p>';
+        box.innerHTML = `<p class="photo-hint" style="margin:0;">${escapeHtml(t('privacy.noReports'))}</p>`;
         return;
       }
       box.innerHTML = rows.map(r => {
-        const datum = new Date(parseServerDate(r.created_at)).toLocaleDateString('de-AT');
+        const datum = new Date(parseServerDate(r.created_at)).toLocaleDateString(dateLocale());
         const offen = r.status === 'open';
         const ergebnis = offen
-          ? '<span style="color:var(--chalk-dim);">In Prüfung. Wir melden uns binnen 72 Stunden.</span>'
-          : escapeHtml(REPORT_OUTCOME_TEXT[r.outcome] || r.outcome || '')
+          ? `<span style="color:var(--chalk-dim);">${escapeHtml(t('privacy.reportPending'))}</span>`
+          : escapeHtml(REPORT_OUTCOME_TEXT[r.outcome] ? t(REPORT_OUTCOME_TEXT[r.outcome]) : (r.outcome || ''))
             + (r.decision_note ? '<br>' + escapeHtml(r.decision_note) : '');
         return `<div class="vcard" style="margin-bottom:10px;">
             <div class="mono" style="font-size:12px;color:var(--chalk-dim);">
@@ -4230,12 +4346,9 @@
             <p style="margin:6px 0 0;font-size:14px;">${escapeHtml(r.reason)}</p>
             <p style="margin:8px 0 0;font-size:13.5px;">${ergebnis}</p>
           </div>`;
-      }).join('') + '<p class="photo-hint">Mit einer Entscheidung nicht einverstanden? '
-        + 'Formlose Mail an flexr.social@proton.me mit dem Aktenzeichen genügt — '
-        + 'wir prüfen erneut und antworten begründet.</p>';
+      }).join('') + `<p class="photo-hint">${escapeHtml(t('privacy.reportAppeal'))}</p>`;
     }catch(e){
-      box.innerHTML = '<p class="photo-hint" style="margin:0;">Deine Meldungen konnten '
-        + 'gerade nicht geladen werden.</p>';
+      box.innerHTML = `<p class="photo-hint" style="margin:0;">${escapeHtml(t('privacy.reportsFailed'))}</p>`;
     }
   }
 
@@ -4244,15 +4357,15 @@
   // darunter, nicht in der Zeile - sonst liest sich die Ansicht wieder wie ein
   // Formular und nicht wie eine Einstellung.
   const CONSENT_TEXT = {
-    sensitive_data:     'Verarbeitung von Geschlecht und gesuchtem Geschlecht',
-    verification_media: 'Aufnahmen für die Alters- und Identitätsprüfung',
-    terms:              'Angenommene AGB-Fassung',
+    sensitive_data:     'privacy.consentSensitive',
+    verification_media: 'privacy.consentVerification',
+    terms:              'privacy.consentTerms',
   };
   // Rechtsgrundlage je Einwilligung - erscheint nur im Detail-Aufklapper.
   const CONSENT_GRUNDLAGE = {
-    sensitive_data:     'Ausdrückliche Einwilligung nach Art. 9 Abs. 2 lit. a DSGVO.',
-    verification_media: 'Ausdrückliche Einwilligung nach Art. 9 Abs. 2 lit. a DSGVO.',
-    terms:              'Vertragsschluss, keine Einwilligung — daher nicht widerrufbar.',
+    sensitive_data:     'privacy.legalBasisConsent',
+    verification_media: 'privacy.legalBasisConsent',
+    terms:              'privacy.legalBasisTerms',
   };
   // Die AGB-Annahme ist Vertragsschluss, keine Einwilligung - sie wird
   // angezeigt, aber nicht als widerrufbar dargestellt.
@@ -4281,31 +4394,31 @@
           return true;
         });
       if(!rows.length){
-        box.innerHTML = '<p class="photo-hint" style="margin:0;">Keine Einträge.</p>';
+        box.innerHTML = `<p class="photo-hint" style="margin:0;">${escapeHtml(t('privacy.noEntries'))}</p>`;
         return;
       }
       // Die Zeile nennt die Sache und den Knopf. Datum und Fassung sind fuer
       // den Nachweis noetig, aber nicht beim ersten Hinsehen - sie stehen
       // hinter "Details".
       box.innerHTML = rows.map(c => {
-        const datum = new Date(parseServerDate(c.granted_at)).toLocaleDateString('de-AT');
-        const label = CONSENT_TEXT[c.consent_type] || c.consent_type;
-        const details = (c.active
-          ? `Erteilt am ${datum}, Fassung ${escapeHtml(c.version)}.`
-          : `Widerrufen am ${new Date(parseServerDate(c.revoked_at)).toLocaleDateString('de-AT')}.`)
-          + ' ' + (CONSENT_GRUNDLAGE[c.consent_type] || '');
+        const datum = new Date(parseServerDate(c.granted_at)).toLocaleDateString(dateLocale());
+        const label = CONSENT_TEXT[c.consent_type] ? t(CONSENT_TEXT[c.consent_type]) : c.consent_type;
+        const details = escapeHtml(c.active
+          ? t('privacy.consentGranted', {date: datum, version: c.version})
+          : t('privacy.consentRevoked', {date: new Date(parseServerDate(c.revoked_at)).toLocaleDateString(dateLocale())}))
+          + ' ' + escapeHtml(CONSENT_GRUNDLAGE[c.consent_type] ? t(CONSENT_GRUNDLAGE[c.consent_type]) : '');
         let knopf = '';
         if(CONSENT_REVOCABLE.indexOf(c.consent_type) !== -1){
           knopf = c.active
-            ? `<div class="consent-setting-action"><button class="membership-link" data-revoke="${escapeHtml(c.consent_type)}">Einwilligung widerrufen</button></div>`
-            : `<div class="consent-setting-action"><button class="membership-link" data-grant="${escapeHtml(c.consent_type)}">Einwilligung erneut erteilen</button></div>`;
+            ? `<div class="consent-setting-action"><button class="membership-link" data-revoke="${escapeHtml(c.consent_type)}">${escapeHtml(t('privacy.consentRevoke'))}</button></div>`
+            : `<div class="consent-setting-action"><button class="membership-link" data-grant="${escapeHtml(c.consent_type)}">${escapeHtml(t('privacy.consentGrant'))}</button></div>`;
         }
         const zustand = c.active ? '' :
-          '<span style="font-size:12.5px;color:var(--chalk-dim);"> — widerrufen</span>';
+          `<span style="font-size:12.5px;color:var(--chalk-dim);">${escapeHtml(t('privacy.consentRevokedTag'))}</span>`;
         return `<div class="vcard" style="margin-bottom:10px;">
             <p style="margin:0;font-size:14px;">${escapeHtml(label)}${zustand}</p>
             <details style="margin-top:4px;">
-              <summary style="font-size:12.5px;color:var(--chalk-dim);cursor:pointer;">Details</summary>
+              <summary style="font-size:12.5px;color:var(--chalk-dim);cursor:pointer;">${escapeHtml(t('common.details'))}</summary>
               <p style="margin:6px 0 0;font-size:12.5px;color:var(--chalk-dim);">${details}</p>
             </details>
             ${knopf}
@@ -4319,8 +4432,7 @@
         btn.addEventListener('click', () => grantConsent(btn.dataset.grant));
       });
     }catch(e){
-      box.innerHTML = '<p class="photo-hint" style="margin:0;">Deine Einwilligungen konnten '
-        + 'gerade nicht geladen werden.</p>';
+      box.innerHTML = `<p class="photo-hint" style="margin:0;">${escapeHtml(t('privacy.consentsFailed'))}</p>`;
     }
   }
 
@@ -4328,11 +4440,7 @@
     // Der Nutzer soll wissen, was er ausloest, bevor er es auslöst - beim
     // Art.-9-Consent bleibt das Konto sonst mit leerem Deck zurueck.
     if(consentType === 'sensitive_data'){
-      const weiter = confirm(
-        'Geschlecht und gesuchtes Geschlecht sind die Grundlage des Matchings.\n\n'
-        + 'Ohne diese Einwilligung schlagen wir dir keine Profile mehr vor und du '
-        + 'erscheinst in keinem Deck. Dein Konto bleibt bestehen.\n\n'
-        + 'Willst du ganz weg, lösche stattdessen dein Konto.\n\nWiderruf jetzt erklären?');
+      const weiter = confirm(t('privacy.revokeConfirm'));
       if(!weiter){ return; }
     }
     try{
@@ -4342,7 +4450,7 @@
       toast(res.consequence || 'Widerruf erfasst.');
       loadMyConsents();
     }catch(e){
-      toast(e.message || 'Der Widerruf konnte nicht erfasst werden.');
+      toast(e.message || t('privacy.revokeFailed'));
     }
   }
 
@@ -4354,7 +4462,7 @@
       toast(res.consequence || 'Einwilligung erneut erteilt.');
       loadMyConsents();
     }catch(e){
-      toast(e.message || 'Die erneute Einwilligung konnte nicht erfasst werden.');
+      toast(e.message || t('privacy.grantFailed'));
     }
   }
 
@@ -4384,7 +4492,7 @@
     $('a-radius').value = myProfile.search_radius_km || 20;
     $('radiusValue').textContent = ($('a-radius').value) + ' km';
     radiusFill();
-    $('radiusHint').textContent = `Profile im Umkreis deines Gyms (${gymName(myProfile.gym)}).`;
+    $('radiusHint').textContent = t('acct.radiusHintGym', {gym: gymName(myProfile.gym)});
     $('acctProfileErr').textContent = '';
   }
 
@@ -4470,7 +4578,7 @@
   async function lookupAcctLocality(plz){
     const ortDisplay = $('acctOrtDisplay');
     $('acctPlzErr').textContent = '';
-    ortDisplay.textContent = 'Lädt …';
+    ortDisplay.textContent = t('plz.loading');
     ortDisplay.classList.remove('resolved');
     acctResolvedCity = '';
     try{
@@ -4480,11 +4588,11 @@
     }catch(err){
       if(err.status === 404){
         ortDisplay.textContent = '— unbekannte PLZ —';
-        $('acctPlzErr').textContent = 'Postleitzahl nicht gefunden. Bitte prüfen.';
+        $('acctPlzErr').textContent = t('plz.notFound');
         return;
       }
       ortDisplay.textContent = '— Lookup fehlgeschlagen —';
-      $('acctPlzErr').textContent = 'Ort konnte nicht ermittelt werden. Bitte später erneut versuchen.';
+      $('acctPlzErr').textContent = t('plz.failed');
       console.error(err);
     }
   }
@@ -4510,11 +4618,11 @@
 
     const plz = $('a-plz').value.trim();
     if(!/^\d{4}$/.test(plz) || !acctResolvedCity){
-      errEl.textContent = 'Bitte eine gültige österreichische Postleitzahl eingeben (Ort wird automatisch ermittelt).';
+      errEl.textContent = t('reg.errPlz');
       return;
     }
     if((myProfile.photos || []).length === 0){
-      errEl.textContent = 'Bitte lade mindestens ein Foto hoch, bevor du speicherst.';
+      errEl.textContent = t('acct.errPhotoBeforeSave');
       return;
     }
 
@@ -4530,7 +4638,7 @@
     try{
       myProfile = await api('/api/profiles/me', {method: 'PATCH', body: JSON.stringify(payload)});
       renderAccount();
-      toast('Profil gespeichert ✓');
+      toast(t('acct.saved'));
     }catch(err){
       errEl.textContent = err.message || 'Speichern fehlgeschlagen.';
     }finally{
@@ -4657,7 +4765,7 @@
       });
     }catch(err){
       myProfile = {...myProfile, photos: vorher};
-      toast(err.message || 'Reihenfolge konnte nicht gespeichert werden.');
+      toast(err.message || t('photo.orderFailed'));
     }
     // renderAccount zeichnet das Raster mit und frischt zugleich den Avatar
     // im Kopfbereich auf - der haengt an photos[0] und zeigt nach dem
@@ -4679,7 +4787,7 @@
           slot.classList.add('uploading');
           slot.innerHTML = `<img src="${acctUpload.vorschau}" alt=""><div class="uploading-ring"></div>`;
           slot.setAttribute('aria-busy', 'true');
-          slot.setAttribute('aria-label', 'Foto wird hochgeladen');
+          slot.setAttribute('aria-label', t('photo.uploading'));
         } else {
           slot.classList.add('failed');
           slot.innerHTML = `<img src="${acctUpload.vorschau}" alt="">`
@@ -4693,7 +4801,7 @@
       if(photos[i]){
         const st = photos[i].status;
         const statusCls = st === 'approved' ? '' : (st === 'rejected' ? 'rejected' : 'pending');
-        const statusLabel = st === 'approved' ? '' : (st === 'rejected' ? 'Abgelehnt' : 'In Prüfung');
+        const statusLabel = st === 'approved' ? '' : (st === 'rejected' ? t('photo.rejected') : t('photo.pending'));
         if(statusCls) slot.classList.add(statusCls);
         slot.innerHTML = `<img src="${photos[i].url}"><div class="remove" data-id="${photos[i].id}">✕</div>${statusLabel ? `<div class="pstatus">${statusLabel}</div>` : ''}`;
         // Sortierbar nur, solange kein Upload laeuft: waehrenddessen belegt der
@@ -4711,15 +4819,15 @@
         slot.querySelector('.remove').onclick = async (e)=>{
           e.stopPropagation();
           if((myProfile.photos || []).length <= 1){
-            $('acctPhotoErr').textContent = 'Mindestens ein Foto ist erforderlich. Lade zuerst ein weiteres hoch.';
+            $('acctPhotoErr').textContent = t('photo.minOne');
             return;
           }
-          if(!confirm('Dieses Foto wirklich entfernen?')) return;
+          if(!confirm(t('photo.confirmRemove'))) return;
           $('acctPhotoErr').textContent = '';
           try{
             myProfile = await api('/api/profiles/me/photos/' + photos[i].id, {method: 'DELETE'});
             renderAccountPhotoGrid();
-          }catch(err){ toast(err.message || 'Löschen fehlgeschlagen.'); }
+          }catch(err){ toast(err.message || t('common.deleteFailed')); }
         };
       } else {
         slot.textContent = '+';
@@ -4742,16 +4850,16 @@
     const hasRejected = photos.some(p => p.status === 'rejected');
     if(photos.length === 0){
       hint.className = 'photo-hint warn';
-      hint.textContent = 'Lade mindestens ein Foto hoch – ohne Foto ist dein Profil in der Suche nicht sichtbar.';
+      hint.textContent = t('photo.hintNone');
     } else if(hasApproved){
       hint.className = 'photo-hint';
-      hint.textContent = 'Dein Profil ist in der Suche sichtbar. Neue Fotos werden vor der Anzeige geprüft.';
+      hint.textContent = t('photo.hintOk');
     } else if(hasPending){
       hint.className = 'photo-hint warn';
-      hint.textContent = 'Deine Fotos werden gerade geprüft. Sobald mindestens eines freigegeben ist, erscheinst du in der Suche.';
+      hint.textContent = t('photo.hintPending');
     } else if(hasRejected){
       hint.className = 'photo-hint warn';
-      hint.textContent = 'Deine Fotos wurden abgelehnt. Bitte lade ein anderes Foto hoch, um in der Suche zu erscheinen.';
+      hint.textContent = t('photo.hintRejected');
     } else {
       hint.className = 'photo-hint';
       hint.textContent = '';
@@ -4774,7 +4882,7 @@
       renderAccountPhotoGrid();
       // Das Foto ist da und im Raster zu sehen; der Hinweis darunter sagt,
       // dass es vor der Anzeige noch geprueft wird.
-      toast('Foto hochgeladen.');
+      toast(t('photo.uploaded'));
     }catch(err){
       logUploadFehler('account', err);
       acctUpload.status = 'fehler';
@@ -4790,7 +4898,7 @@
     if(!file) return;
     if(acctUpload && acctUpload.status === 'laeuft') return;
     if((myProfile.photos || []).length >= 6){
-      $('acctPhotoErr').textContent = 'Maximal 6 Fotos.';
+      $('acctPhotoErr').textContent = t('photo.max');
       return;
     }
     $('acctPhotoErr').textContent = '';
@@ -4822,14 +4930,14 @@
 
   // ---------- Swipe deck ----------
   async function loadDeck(){
-    $('deck').innerHTML = '<div class="loading">Lade Profile …</div>';
+    $('deck').innerHTML = `<div class="loading">${escapeHtml(t('swipe.loading'))}</div>`;
     $('swipeActions').style.display = 'none';
     try{
       deck = await api('/api/swipes/deck');
       deckIdx = 0;
       renderCard();
     }catch(err){
-      $('deck').innerHTML = '<div class="loading">Profile konnten nicht geladen werden.</div>';
+      $('deck').innerHTML = `<div class="loading">${escapeHtml(t('swipe.loadFailed'))}</div>`;
       console.error(err);
     }
   }
@@ -4842,9 +4950,9 @@
       ${interactive ? `
       <div class="flag-btns">
         ${handlers && handlers.onUnmatch ? `
-        <button type="button" class="flag-btn btnUnmatchCard" title="Match auflösen" aria-label="Match auflösen"><svg class="ico" viewBox="0 0 24 24"><path d="M12 20.3 4.6 13a4.7 4.7 0 0 1 6.6-6.7l.8.8.8-.8A4.7 4.7 0 0 1 19.4 13L12 20.3z"/><path d="M4 20 20 4"/></svg></button>` : ''}
-        <button type="button" class="flag-btn btnReportCard" title="Melden" aria-label="Melden"><svg class="ico" viewBox="0 0 24 24"><path d="M6 21V4.5M6 5h11.5l-2.4 3.9 2.4 3.9H6"/></svg></button>
-        <button type="button" class="flag-btn btnBlockCard" title="Blockieren" aria-label="Blockieren"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.2"/><path d="M6.4 6.4l11.2 11.2"/></svg></button>
+        <button type="button" class="flag-btn btnUnmatchCard" title="${escapeHtml(t('swipe.unmatch'))}" aria-label="${escapeHtml(t('swipe.unmatch'))}"><svg class="ico" viewBox="0 0 24 24"><path d="M12 20.3 4.6 13a4.7 4.7 0 0 1 6.6-6.7l.8.8.8-.8A4.7 4.7 0 0 1 19.4 13L12 20.3z"/><path d="M4 20 20 4"/></svg></button>` : ''}
+        <button type="button" class="flag-btn btnReportCard" title="${escapeHtml(t('common.report'))}" aria-label="${escapeHtml(t('common.report'))}"><svg class="ico" viewBox="0 0 24 24"><path d="M6 21V4.5M6 5h11.5l-2.4 3.9 2.4 3.9H6"/></svg></button>
+        <button type="button" class="flag-btn btnBlockCard" title="${escapeHtml(t('common.block'))}" aria-label="${escapeHtml(t('common.block'))}"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.2"/><path d="M6.4 6.4l11.2 11.2"/></svg></button>
       </div>` : ''}
       <div class="stamp like">MATCH</div>
       <div class="stamp pass">NOPE</div>
@@ -4859,7 +4967,7 @@
       </div>
       <div class="body">
         <div class="stat-row">
-          <div class="stat-chip"><svg class="ico" viewBox="0 0 24 24"><path d="M7 8.5v7M10.5 6.5v11M17 8.5v7M13.5 6.5v11M10.5 12h3M3.5 10v4M20.5 10v4"/></svg>${escapeHtml(p.gym||'Kein Gym angegeben')}</div>
+          <div class="stat-chip"><svg class="ico" viewBox="0 0 24 24"><path d="M7 8.5v7M10.5 6.5v11M17 8.5v7M13.5 6.5v11M10.5 12h3M3.5 10v4M20.5 10v4"/></svg>${escapeHtml(p.gym || t('gym.none'))}</div>
           ${p.is_online ? '<div class="stat-chip online-chip"><span class="online-dot"></span>Online</div>' : ''}
         </div>
         <p class="bio-text" style="margin-top:12px;">${escapeHtml(p.bio || 'Keine Bio angegeben.')}</p>
@@ -4994,8 +5102,8 @@
       container.innerHTML = `
         <div class="empty">
           <div class="empty-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M7 8.5v7M10.5 6.5v11M17 8.5v7M13.5 6.5v11M10.5 12h3M3.5 10v4M20.5 10v4"/></svg></div>
-          <div class="empty-title">Alle Sätze absolviert</div>
-          <div class="empty-sub">Keine neuen Profile in deiner Nähe. Schau später nochmal vorbei.</div>
+          <div class="empty-title">${escapeHtml(t('swipe.emptyTitle'))}</div>
+          <div class="empty-sub">${escapeHtml(t('swipe.emptySub'))}</div>
         </div>`;
       $('swipeActions').style.display = 'none';
       return;
@@ -5017,7 +5125,7 @@
 
   // ---------- Generische Melde-/Block-Helfer (Swipe-Karten, Match-Profil, Chat) ----------
   async function reportUser(userId, name){
-    const reason = prompt(`${name} melden. Kurzer Grund:`);
+    const reason = prompt(t('report.prompt', {name}));
     if(!reason || !reason.trim()) return;
     try{
       // Art. 16 Abs. 4 DSA: Das Aktenzeichen aus der Empfangsbestätigung gehört
@@ -5025,27 +5133,27 @@
       // auf eine Übersicht: die gibt es in der Web-Version bewusst nicht.
       const ack = await api('/api/reports', {method: 'POST', body: JSON.stringify({reported_user_id: userId, reason: reason.trim()})});
       toast(ack && ack.reference
-        ? `Meldung eingegangen — Aktenzeichen ${ack.reference}. Wir prüfen sie innerhalb von 72 Stunden.`
-        : 'Meldung gesendet. Danke für dein Feedback.');
+        ? t('report.ack', {ref: ack.reference})
+        : t('report.ackPlain'));
     }catch(err){ toast(err.message || 'Meldung fehlgeschlagen.'); }
   }
 
   async function blockUser(userId, name, onBlocked){
-    if(!confirm(`${name} wirklich blockieren? Ihr seht euch danach nicht mehr.`)) return;
+    if(!confirm(t('block.confirm', {name}))) return;
     try{
       await api('/api/blocks', {method: 'POST', body: JSON.stringify({user_id: userId})});
-      toast(`${name} blockiert.`);
+      toast(t('block.done', {name}));
       if(onBlocked) onBlocked();
     }catch(err){ toast(err.message || 'Blockieren fehlgeschlagen.'); }
   }
 
   async function unmatchMatch(matchId, name, onDone){
-    if(!confirm(`Match mit ${name} wirklich auflösen? Der Chatverlauf wird gelöscht.`)) return;
+    if(!confirm(t('unmatch.confirm', {name}))) return;
     try{
       await api(`/api/matches/${matchId}`, {method: 'DELETE'});
-      toast(`Match mit ${name} aufgelöst.`);
+      toast(t('unmatch.done', {name}));
       if(onDone) onDone();
-    }catch(err){ toast(err.message || 'Auflösen fehlgeschlagen.'); }
+    }catch(err){ toast(err.message || t('unmatch.failed')); }
   }
 
   function reportCurrentCard(){
@@ -5204,7 +5312,7 @@
     matchOverlayProfile = profile;
     fillAvatar($('matchAvatarMe'), photoThumb(myProfile.photos && myProfile.photos[0]), myProfile.name);
     fillAvatar($('matchAvatarThem'), photoThumb(profile.photos && profile.photos[0]), profile.name);
-    $('matchSubText').textContent = `Du und ${profile.name} habt euch gegenseitig geliked.`;
+    $('matchSubText').textContent = t('match.subNamed', {name: profile.name});
     $('matchOverlay').classList.add('open');
   }
 
@@ -5231,7 +5339,7 @@
         loadMatches();
       }
     }catch(err){
-      toast(err.message || 'Chat konnte nicht geöffnet werden.');
+      toast(err.message || t('chat.openFailed'));
     }
   });
 
@@ -5281,14 +5389,14 @@
   }
 
   async function loadMatches(){
-    $('matchList').innerHTML = '<div class="loading">Lade Matches …</div>';
+    $('matchList').innerHTML = `<div class="loading">${escapeHtml(t('matches.loading'))}</div>`;
     lastMatchListHtml = null;
     try{
       matchesCache = await api('/api/matches');
       renderUnreadBadge(matchesCache);
       renderMatches(matchesCache);
     }catch(err){
-      $('matchList').innerHTML = '<div class="loading">Matches konnten nicht geladen werden.</div>';
+      $('matchList').innerHTML = `<div class="loading">${escapeHtml(t('matches.loadFailed'))}</div>`;
       console.error(err);
     }
   }
@@ -5303,8 +5411,8 @@
       html = `
           <div class="empty">
             <div class="empty-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M12 20.3S4.8 15.7 4.8 10.8C4.8 8 6.9 6 9.3 6c1.2 0 2.3.55 2.7 1.4C12.4 6.55 13.5 6 14.7 6c2.4 0 4.5 2 4.5 4.8 0 4.9-7.2 9.5-7.2 9.5z"/></svg></div>
-            <div class="empty-title">Noch keine Matches</div>
-            <div class="empty-sub">Weiter swipen — dein nächster Trainingspartner wartet schon.</div>
+            <div class="empty-title">${escapeHtml(t('matches.emptyTitle'))}</div>
+            <div class="empty-sub">${escapeHtml(t('matches.emptySub'))}</div>
           </div>`;
     } else {
       // Matches-Screen: reine Match-Liste ohne Nachrichten-Vorschau -
@@ -5341,7 +5449,7 @@
       renderUnreadBadge(matchesCache);
       renderChats(matchesCache);
     }catch(err){
-      $('chatList').innerHTML = '<div class="loading">Chats konnten nicht geladen werden.</div>';
+      $('chatList').innerHTML = `<div class="loading">${escapeHtml(t('chats.loadFailed'))}</div>`;
       console.error(err);
     }
   }
@@ -5362,8 +5470,8 @@
       html = `
           <div class="empty">
             <div class="empty-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M21 11.7a8.2 8.2 0 0 1-8.3 8.1c-1.5 0-2.9-.35-4.1-1L4 19.9l1.1-4.1a8.1 8.1 0 1 1 15.9-4.1z"/></svg></div>
-            <div class="empty-title">Noch keine Chats</div>
-            <div class="empty-sub">Schreib einem deiner Matches die erste Nachricht.</div>
+            <div class="empty-title">${escapeHtml(t('chats.emptyTitle'))}</div>
+            <div class="empty-sub">${escapeHtml(t('chats.emptySub'))}</div>
           </div>`;
     } else {
       html = withMessages.map(m => {
@@ -5374,7 +5482,9 @@
         // last_message kann trotz in_chats fehlen: nach "Chatverlauf leeren"
         // ist der Chat weiterhin gelistet, aber (für einen selbst) leer.
         const mine = m.last_message && m.last_message.sender_id === myProfile.id;
-        const preview = m.last_message ? `${mine ? 'Du: ' : ''}${escapeHtml(m.last_message.content)}` : 'Chatverlauf geleert';
+        const preview = m.last_message
+          ? `${mine ? escapeHtml(t('chats.you')) : ''}${escapeHtml(m.last_message.content)}`
+          : escapeHtml(t('chats.cleared'));
         return `
         <div class="${cls}" data-match-id="${m.match_id}">
           <span class="av"><img src="${photo}" title="${m.is_online ? 'Gerade online' : ''}"></span>
@@ -5471,13 +5581,13 @@
   async function showVerificationGate(){
     showScreen('screen-verify-gate');
     $('bottomNav').style.display = 'none';
-    $('vgateBody').innerHTML = '<div class="loading">Lade Status …</div>';
+    $('vgateBody').innerHTML = `<div class="loading">${escapeHtml(t('vgate.loading'))}</div>`;
     $('vgateStatusWrap').innerHTML = '';
     $('btnVgatePrimary').style.display = 'none';
     try{
       await loadVerificationStatus();
     }catch(err){
-      $('vgateBody').innerHTML = `<div class="vcard"><p>${escapeHtml(err.message || 'Status konnte nicht geladen werden.')}</p></div>`;
+      $('vgateBody').innerHTML = `<div class="vcard"><p>${escapeHtml(err.message || t('common.statusLoadFailed'))}</p></div>`;
       return;
     }
     renderVerificationGate();
@@ -5494,34 +5604,28 @@
     if(st.status === 'submitted'){
       // "Verification pending"
       renderGateSteps(3);
-      $('vgateEyebrow').textContent = 'In Prüfung';
-      $('vgateTitle').textContent = 'Verifizierung wird geprüft';
-      statusWrap.innerHTML = gateStatusChip('wait', 'Prüfung läuft');
+      $('vgateEyebrow').textContent = t('vgate.submittedEyebrow');
+      $('vgateTitle').textContent = t('vgate.submittedTitle');
+      statusWrap.innerHTML = gateStatusChip('wait', t('vgate.submittedChip'));
       body.innerHTML = `
         <div class="vcard">
-          <p>Deine Angaben wurden übermittelt. Wir prüfen jetzt, ob du mindestens
-            18 Jahre alt bist und ob die Verifizierung zu deinem Profil gehört.
-            Sobald die Prüfung abgeschlossen ist, kannst du FLEXR vollständig nutzen.</p>
-          <p>Die Aufnahmen deines Ausweises werden nach Abschluss der Prüfung gelöscht.
-            Die Wartezeit kostet dich nichts — FLEXR ist während der Beta-Phase
-            für alle kostenlos.</p>
+          <p>${escapeHtml(t('vgate.submittedP1'))}</p>
+          <p>${escapeHtml(t('vgate.submittedP2'))}</p>
         </div>`;
-      btn.textContent = 'Status aktualisieren';
+      btn.textContent = t('vgate.refresh');
       return;
     }
 
     if(st.status === 'rejected'){
       renderGateSteps(3);
-      $('vgateEyebrow').textContent = 'Abgeschlossen';
-      $('vgateTitle').textContent = 'Verifizierung nicht erfolgreich';
-      statusWrap.innerHTML = gateStatusChip('bad', 'Nicht freigeschaltet');
+      $('vgateEyebrow').textContent = t('vgate.rejectedEyebrow');
+      $('vgateTitle').textContent = t('vgate.rejectedTitle');
+      statusWrap.innerHTML = gateStatusChip('bad', t('vgate.rejectedChip'));
       body.innerHTML = `
         <div class="vcard">
-          <p>${escapeHtml(st.reason || 'Wir konnten deine Verifizierung nicht abschließen.')}</p>
-          <p>Dein Konto wurde nicht freigeschaltet. Wenn du glaubst, dass das ein
-            Fehler ist, schreib uns an
-            <a href="mailto:flexr.social@proton.me">flexr.social@proton.me</a>.</p>
-          <p>Alle Aufnahmen deines Ausweises und dein Verifizierungs-Selfie wurden gelöscht.</p>
+          <p>${escapeHtml(st.reason || t('vgate.rejectedFallback'))}</p>
+          <p>${t('vgate.rejectedP2')}</p>
+          <p>${escapeHtml(t('vgate.rejectedP3'))}</p>
         </div>`;
       btn.style.display = 'none';
       return;
@@ -5532,17 +5636,16 @@
     // begutachten, solange die Adresse nicht dem Nutzer gehört.
     if(st.email_verified === false){
       renderGateSteps(1);
-      $('vgateEyebrow').textContent = 'Schritt 1 von 3';
-      $('vgateTitle').textContent = 'Bestätige deine E-Mail';
-      statusWrap.innerHTML = gateStatusChip('wait', 'Bestätigung offen');
+      $('vgateEyebrow').textContent = t('vgate.mailEyebrow');
+      $('vgateTitle').textContent = t('vgate.mailTitle');
+      statusWrap.innerHTML = gateStatusChip('wait', t('vgate.mailChip'));
       body.innerHTML = `
         <div class="vcard">
-          <p>Wir haben dir eine Mail an <b>${escapeHtml(myProfile.email || '')}</b>
-            geschickt. Klick den Link darin, dann geht es hier weiter.</p>
-          <p>Nichts angekommen? Schau im Spam-Ordner nach. Der Link gilt 24 Stunden.</p>
+          <p>${t('vgate.mailP1', {email: escapeHtml(myProfile.email || '')})}</p>
+          <p>${escapeHtml(t('vgate.mailP2'))}</p>
           <div class="field-err" id="vgateMailErr"></div>
         </div>`;
-      btn.textContent = 'Mail erneut senden';
+      btn.textContent = t('vgate.mailResend');
       return;
     }
 
@@ -5554,72 +5657,62 @@
     // erreichbar. Ohne Ausweg blieb nur Kontolöschung. Also: Upload hierher.
     if(!(myProfile && myProfile.photos && myProfile.photos.length)){
       renderGateSteps(1);
-      $('vgateEyebrow').textContent = 'Profilfoto fehlt';
-      $('vgateTitle').textContent = 'Zuerst dein Profilfoto';
-      statusWrap.innerHTML = gateStatusChip('bad', 'Foto fehlt');
+      $('vgateEyebrow').textContent = t('vgate.photoEyebrow');
+      $('vgateTitle').textContent = t('vgate.photoTitle');
+      statusWrap.innerHTML = gateStatusChip('bad', t('vgate.photoChip'));
       body.innerHTML = `
         <div class="vcard">
-          <p>Für die Prüfung vergleicht ein Mensch dein Profilfoto mit deinem
-            Selfie und deinem Ausweis. Ohne Profilfoto kann sie nicht starten.</p>
-          <p>Beim Anlegen deines Profils hat der Upload nicht geklappt. Hol ihn
-            hier nach — danach geht es normal weiter.</p>
+          <p>${escapeHtml(t('vgate.photoP1'))}</p>
+          <p>${escapeHtml(t('vgate.photoP2'))}</p>
           <div class="field-err" id="vgatePhotoErr"></div>
         </div>`;
-      btn.textContent = 'Profilfoto hinzufügen';
+      btn.textContent = t('vgate.photoAdd');
       return;
     }
 
     if(st.next_step === 'document'){
       renderGateSteps(2);
       const isReupload = st.status === 'reupload_required';
-      $('vgateEyebrow').textContent = isReupload ? 'Nachbesserung' : 'Schritt 2 von 2';
-      $('vgateTitle').textContent = isReupload
-        ? 'Wir konnten deine Verifizierung noch nicht abschließen.'
-        : 'Alter bestätigen';
+      $('vgateEyebrow').textContent = isReupload ? t('vgate.reworkEyebrow') : t('vgate.docEyebrow');
+      $('vgateTitle').textContent = isReupload ? t('vgate.reworkTitle') : t('vgate.docTitle');
       statusWrap.innerHTML = isReupload
-        ? gateStatusChip('bad', 'Neue Aufnahme nötig')
+        ? gateStatusChip('bad', t('vgate.reworkChip'))
         : '';
       body.innerHTML = `
         <div class="vcard">
           ${isReupload ? `<p>${escapeHtml(st.reason || '')}</p>` : ''}
-          <p>Dein Selfie liegt vor. Jetzt fehlt noch eine Aufnahme deines
-            amtlichen Lichtbildausweises, damit wir dein Alter bestätigen können.</p>
+          <p>${escapeHtml(t('vgate.docP1'))}</p>
         </div>`;
-      btn.textContent = isReupload ? 'Erneut hochladen' : 'Ausweis aufnehmen';
+      btn.textContent = isReupload ? t('vgate.docBtnRework') : t('vgate.docBtn');
       return;
     }
 
     // next_step === 'selfie' (oder noch gar nichts passiert)
     renderGateSteps(1);
     const isReupload = st.status === 'reupload_required';
-    $('vgateEyebrow').textContent = isReupload ? 'Nachbesserung' : 'Schritt 1 von 2';
-    $('vgateTitle').textContent = isReupload
-      ? 'Wir konnten deine Verifizierung noch nicht abschließen.'
-      : 'Konto freischalten';
-    statusWrap.innerHTML = isReupload ? gateStatusChip('bad', 'Neue Aufnahme nötig') : '';
+    $('vgateEyebrow').textContent = isReupload ? t('vgate.reworkEyebrow') : t('vgate.selfieEyebrow');
+    $('vgateTitle').textContent = isReupload ? t('vgate.reworkTitle') : t('vgate.selfieTitle');
+    statusWrap.innerHTML = isReupload ? gateStatusChip('bad', t('vgate.reworkChip')) : '';
     body.innerHTML = `
       <div class="vcard">
         ${isReupload ? `<p>${escapeHtml(st.reason || '')}</p>` : ''}
-        <p>FLEXR ist ab 18. Damit hier keine Minderjährigen und keine Fake-Profile
-          landen, prüfen wir einmalig, ob du wirklich du bist und mindestens
-          18 Jahre alt.</p>
-        <h3 style="margin-top:14px;">Das brauchst du</h3>
+        <p>${escapeHtml(t('vgate.selfieP1'))}</p>
+        <h3 style="margin-top:14px;">${escapeHtml(t('vgate.needH3'))}</h3>
         <ul>
-          <li>Ein Live-Selfie, frontal in die Kamera (die Kamera öffnet sich erst, wenn du startest)</li>
-          <li>Eine Aufnahme deines Personalausweises, Reisepasses oder Führerscheins</li>
+          <li>${escapeHtml(t('vgate.needLi1'))}</li>
+          <li>${escapeHtml(t('vgate.needLi2'))}</li>
         </ul>
       </div>
       <div class="vcard">
-        <h3>Was mit den Aufnahmen passiert</h3>
+        <h3>${escapeHtml(t('vgate.mediaH3'))}</h3>
         <ul>
-          <li>Ein Mensch vergleicht Profilfoto, Selfie und Ausweisfoto — keine automatische Gesichtserkennung</li>
-          <li>Die Aufnahmen sind nicht öffentlich abrufbar</li>
-          <li>Nach Abschluss der Prüfung werden sie gelöscht</li>
+          <li>${escapeHtml(t('vgate.mediaLi1'))}</li>
+          <li>${escapeHtml(t('vgate.mediaLi2'))}</li>
+          <li>${escapeHtml(t('vgate.mediaLi3'))}</li>
         </ul>
-        <p style="margin-top:8px;">Details in der
-          <a href="/datenschutz.html" class="legal-link" data-legal-page="datenschutz.html">Datenschutzerklärung</a>.</p>
+        <p style="margin-top:8px;">${t('vgate.privacyDetails')}</p>
       </div>`;
-    btn.textContent = isReupload ? 'Verifizierung wiederholen' : 'Verifizierung starten';
+    btn.textContent = isReupload ? t('vgate.retryBtn') : t('vgate.startBtn');
   }
 
   // Nachträglicher Profilfoto-Upload aus dem Verifizierungs-Screen heraus.
@@ -5631,18 +5724,18 @@
     const btn = $('btnVgatePrimary');
     if(err) err.textContent = '';
     btn.disabled = true;
-    btn.textContent = 'Foto wird hochgeladen …';
+    btn.textContent = t('vgate.photoUploading');
     try{
       const photo = await preparePhoto(file);
       await uploadPhoto({blob: photo.blob, thumbBlob: photo.thumbBlob});
       await loadCurrentUser();
-      toast('Profilfoto gespeichert. Jetzt kann die Prüfung starten.');
+      toast(t('vgate.photoSaved'));
       await showVerificationGate();
     }catch(uploadErr){
       logUploadFehler('verifizierungs-gate', uploadErr);
       if(err) err.textContent = uploadFehlerText(uploadErr);
       btn.disabled = false;
-      btn.textContent = 'Profilfoto hinzufügen';
+      btn.textContent = t('vgate.photoAdd');
     }
   });
 
@@ -5660,7 +5753,7 @@
         const res = await api('/api/auth/email/resend', {method: 'POST'});
         toast(`Neue Mail an ${res.email} unterwegs. Der Link gilt ${res.valid_hours} Stunden.`);
       }catch(sendErr){
-        if(err) err.textContent = sendErr.message || 'Mail konnte nicht gesendet werden.';
+        if(err) err.textContent = sendErr.message || t('vgate.mailSendFailed');
       }finally{
         btn.disabled = false;
         btn.textContent = 'Mail erneut senden';
@@ -5679,7 +5772,7 @@
       try{
         await loadCurrentUser();
         if(accountActivated()){
-          toast('Verifizierung erfolgreich - dein Konto ist freigeschaltet 💪');
+          toast(t('vgate.success'));
           goToApp();
           return;
         }
@@ -5710,8 +5803,8 @@
 
     if(myProfile.is_verified){
       badge.className = 'verify-badge done';
-      badge.innerHTML = `${VERIFIED_BADGE_SVG} Verifiziert`;
-      tip.innerHTML = `${VERIFIED_BADGE_SVG} Dein Profil ist verifiziert - andere sehen den blauen Haken neben deinem Namen.`;
+      badge.innerHTML = `${VERIFIED_BADGE_SVG()} ${escapeHtml(t('vbadge.badge'))}`;
+      tip.innerHTML = t('vbadge.verified', {badge: VERIFIED_BADGE_SVG()});
       return;
     }
 
@@ -5722,24 +5815,24 @@
       const st = await loadVerificationStatus();
       if(st.status === 'submitted'){
         badge.className = 'verify-badge pending';
-        badge.textContent = 'Prüfung läuft …';
-        tip.innerHTML = `Deine Verifizierung wird geprüft. Nach der Freigabe bekommst du den blauen Haken ${VERIFIED_BADGE_SVG} neben deinem Namen.`;
+        badge.textContent = t('vbadge.checking');
+        tip.innerHTML = t('vbadge.checkingTip', {badge: VERIFIED_BADGE_SVG()});
       } else if(st.status === 'rejected'){
         badge.className = 'verify-badge pending';
         badge.textContent = 'Nicht verifiziert';
-        tip.innerHTML = `Deine Verifizierung konnte nicht abgeschlossen werden. Bei Fragen: flexr.social@proton.me`;
+        tip.innerHTML = escapeHtml(t('vbadge.failedTip'));
       } else {
         badge.className = 'verify-badge attention';
         badge.innerHTML = 'Verifizierung <svg class="warn-tri" viewBox="0 0 24 24"><path d="M12 3.5 21.7 20.2H2.3L12 3.5z"/><path d="M12 10v4.3M12 17.2h.01"/></svg>';
         verifyBadgeClickable = true;
         tip.innerHTML = st.next_step === 'document'
-          ? `Es fehlt noch die Aufnahme deines Lichtbildausweises. Tippen zum Fortsetzen.`
-          : `Zeig mit einem Live-Selfie und einem Lichtbildausweis, dass du wirklich du bist - und hol dir den blauen Haken ${VERIFIED_BADGE_SVG} neben deinem Namen. Tippen zum Starten.`;
+          ? escapeHtml(t('vbadge.docMissing'))
+          : t('vbadge.start', {badge: VERIFIED_BADGE_SVG()});
       }
     }catch(err){
       badge.className = 'verify-badge pending';
       badge.textContent = 'Verifizierung';
-      tip.textContent = 'Status konnte nicht geladen werden.';
+      tip.textContent = t('common.statusLoadFailed');
     }
   }
 
@@ -5782,13 +5875,13 @@
       // Ohne diese Abzweigung stünde hier eine Kamera mit der Überschrift
       // "Fertig!", die auf nichts reagiert.
       if(!st.prompts || !st.prompts.length){
-        toast('Dein Selfie liegt bereits vor - weiter geht es mit dem Ausweis.');
+        toast(t('vgate.selfieExists'));
         openIdStep();
         return;
       }
       verifyState = {prompts: st.prompts, idx: 0, blobs: []};
     }catch(err){
-      toast(err.message || 'Verifizierung konnte nicht gestartet werden.');
+      toast(err.message || t('vgate.startFailed'));
       return;
     }
     showScreen('screen-verify');
@@ -5803,7 +5896,7 @@
       });
       $('verifyVideo').srcObject = verifyStream;
     }catch(err){
-      $('verifyErr').textContent = 'Kamera nicht verfügbar oder Zugriff abgelehnt. Die Verifizierung braucht Live-Aufnahmen über die Kamera.';
+      $('verifyErr').textContent = t('verify.camFailed');
       $('btnVerifyCapture').disabled = true;
       console.error(err);
     }
@@ -5858,10 +5951,10 @@
       verifyState = null;
       btn.textContent = CAPTURE_LABEL;
       // Selfies sind durch - weiter zum Ausweisschritt (Schritt 2 von 2)
-      toast('Selfie gespeichert - jetzt noch das Alter bestätigen.');
+      toast(t('verify.saved'));
       openIdStep();
     }catch(err){
-      $('verifyErr').textContent = err.message || 'Einreichen fehlgeschlagen. Bitte erneut versuchen.';
+      $('verifyErr').textContent = err.message || t('verify.submitFailed');
       btn.textContent = 'Einreichen wiederholen';
     }finally{
       btn.disabled = false;
@@ -5887,7 +5980,7 @@
     canvas.height = video.videoHeight;
     canvas.getContext('2d').drawImage(video, 0, 0);
     const blob = await new Promise(res => canvas.toBlob(res, 'image/jpeg', 0.85));
-    if(!blob){ $('verifyErr').textContent = 'Aufnahme fehlgeschlagen, bitte erneut.'; return; }
+    if(!blob){ $('verifyErr').textContent = t('verify.shotFailed'); return; }
 
     verifyState.blobs[verifyState.idx] = blob;
     verifyState.idx++;
@@ -5909,7 +6002,9 @@
   // öffentliche URL. Die Kamera öffnet sich erst, wenn der Nutzer einen
   // Aufnahmeplatz antippt (kein automatischer Zugriff).
   const MAX_ID_BYTES = 8 * 1024 * 1024;
-  const SIDE_LABELS = {front: 'Vorderseite', back: 'Rückseite'};
+  // Seitenbeschriftung erst beim Zeichnen aufloesen - nach einem
+  // Sprachwechsel muss auch ein schon gefuellter Platz neu beschriftet werden.
+  const idSideLabel = (side) => t(side === 'back' ? 'id.sideBack' : 'id.sideFront');
 
   let idState = null; // {types: [...], selected: 'passport', shots: {front: {blob, previewUrl}, back: ...}, activeSide}
 
@@ -5928,30 +6023,41 @@
           canvas.height = Math.round(img.height * scale);
           canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
           canvas.toBlob((blob) => {
-            if(!blob){ reject(new Error('Aufnahme konnte nicht verarbeitet werden.')); return; }
-            if(blob.size > MAX_ID_BYTES){ reject(new Error('Aufnahme zu groß. Bitte mit geringerer Auflösung erneut versuchen.')); return; }
+            if(!blob){ reject(new Error(t('id.err.process'))); return; }
+            if(blob.size > MAX_ID_BYTES){ reject(new Error(t('id.err.tooBig'))); return; }
             resolve(blob);
           }, 'image/jpeg', 0.9);
         };
-        img.onerror = () => reject(new Error('Die Datei ist kein lesbares Bild.'));
+        img.onerror = () => reject(new Error(t('id.err.notImage')));
         img.src = ev.target.result;
       };
-      reader.onerror = () => reject(new Error('Datei konnte nicht gelesen werden.'));
+      reader.onerror = () => reject(new Error(t('id.err.read')));
       reader.readAsDataURL(file);
     });
   }
 
   function idNeedsBack(){
     if(!idState || !idState.selected) return false;
-    const type = idState.types.find(t => t.value === idState.selected);
+    const type = idState.types.find(dt => dt.value === idState.selected);
     return !!(type && type.needs_back);
   }
 
+  // Die Bezeichnung des Dokumenttyps kommt vom Server auf Deutsch. Kennen wir
+  // den Wert (id_card, passport, drivers_license), nehmen wir die eigene,
+  // uebersetzte Bezeichnung; alles Unbekannte bleibt so, wie der Server es
+  // geliefert hat.
+  const ID_TYPE_KEYS = {
+    id_card: 'id.typeIdCard',
+    passport: 'id.typePassport',
+    drivers_license: 'id.typeLicense',
+  };
+  const idTypeLabel = (dt) => ID_TYPE_KEYS[dt.value] ? t(ID_TYPE_KEYS[dt.value]) : dt.label;
+
   function renderIdTypes(){
-    $('vidTypes').innerHTML = idState.types.map(t => `
-      <button type="button" class="doc-type${t.value === idState.selected ? ' selected' : ''}" data-type="${escapeHtml(t.value)}">
-        <span>${escapeHtml(t.label)}
-          <span class="hint">${t.needs_back ? 'Vorder- und Rückseite' : 'Seite mit Foto und Geburtsdatum'}</span>
+    $('vidTypes').innerHTML = idState.types.map(dt => `
+      <button type="button" class="doc-type${dt.value === idState.selected ? ' selected' : ''}" data-type="${escapeHtml(dt.value)}">
+        <span>${escapeHtml(idTypeLabel(dt))}
+          <span class="hint">${escapeHtml(t(dt.needs_back ? 'id.needsBoth' : 'id.needsFront'))}</span>
         </span>
       </button>`).join('');
     $('vidTypes').querySelectorAll('.doc-type').forEach(el => {
@@ -5968,29 +6074,49 @@
     });
   }
 
+  // Ein Tipp auf den Platz selbst nimmt den kuerzesten Weg (Kamera, sofern das
+  // Geraet eine hat); die beiden Knoepfe darunter machen beide Wege sichtbar.
+  function pickIdImage(side, source){
+    idState.activeSide = side;
+    const input = $(source === 'camera' ? 'vidCameraInput' : 'vidFileInput');
+    input.value = '';
+    input.click();   // Kamera/Dateiauswahl nur auf ausdrückliche Aktion
+  }
+
   function renderIdSlots(){
     const sides = idNeedsBack() ? ['front', 'back'] : ['front'];
     $('vidSlots').innerHTML = sides.map(side => {
       const shot = idState.shots[side];
       return `
-        <div class="doc-slot${shot ? ' filled' : ''}" data-side="${side}">
-          ${shot ? `<img src="${shot.previewUrl}" alt="">` : `
-            <svg class="slot-icon" viewBox="0 0 24 24"><rect x="3" y="5.5" width="18" height="13" rx="2.5"/><circle cx="8.5" cy="11" r="2"/><path d="M13.5 10h4M13.5 13.5h4"/></svg>`}
-          <span class="slot-label">${SIDE_LABELS[side]}${shot ? ' ✓' : ''}</span>
+        <div class="doc-slot-wrap">
+          <div class="doc-slot${shot ? ' filled' : ''}" data-side="${side}">
+            ${shot ? `<img src="${shot.previewUrl}" alt="">` : `
+              <svg class="slot-icon" viewBox="0 0 24 24"><rect x="3" y="5.5" width="18" height="13" rx="2.5"/><circle cx="8.5" cy="11" r="2"/><path d="M13.5 10h4M13.5 13.5h4"/></svg>`}
+            <span class="slot-label">${idSideLabel(side)}${shot ? ' ✓' : ''}</span>
+          </div>
+          <div class="doc-slot-actions">
+            <button type="button" data-side="${side}" data-source="camera">
+              <svg viewBox="0 0 24 24"><path d="M4 8.5h3.2l1.6-2.3h6.4l1.6 2.3H20a1 1 0 0 1 1 1v8.2a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9.5a1 1 0 0 1 1-1z"/><circle cx="12" cy="13.4" r="3.3"/></svg>
+              <span>${escapeHtml(t('id.action.camera'))}</span>
+            </button>
+            <button type="button" data-side="${side}" data-source="file">
+              <svg viewBox="0 0 24 24"><path d="M14 3.5H7a1.5 1.5 0 0 0-1.5 1.5v14A1.5 1.5 0 0 0 7 20.5h10a1.5 1.5 0 0 0 1.5-1.5V8z"/><path d="M14 3.5V8h4.5"/></svg>
+              <span>${escapeHtml(t('id.action.file'))}</span>
+            </button>
+          </div>
         </div>`;
     }).join('');
     $('vidSlots').querySelectorAll('.doc-slot').forEach(el => {
-      el.addEventListener('click', () => {
-        idState.activeSide = el.dataset.side;
-        $('vidFileInput').value = '';
-        $('vidFileInput').click();   // Kamera/Dateiauswahl nur auf ausdrückliche Aktion
-      });
+      el.addEventListener('click', () => pickIdImage(el.dataset.side, 'camera'));
+    });
+    $('vidSlots').querySelectorAll('.doc-slot-actions button').forEach(el => {
+      el.addEventListener('click', () => pickIdImage(el.dataset.side, el.dataset.source));
     });
     const ready = sides.every(side => idState.shots[side]);
     $('btnVidSubmit').disabled = !ready;
   }
 
-  $('vidFileInput').addEventListener('change', async (e) => {
+  async function onIdFileChosen(e){
     const file = e.target.files && e.target.files[0];
     if(!file || !idState) return;
     $('vidErr').textContent = '';
@@ -6001,9 +6127,11 @@
       idState.shots[side] = {blob, previewUrl: URL.createObjectURL(blob)};
       renderIdSlots();
     }catch(err){
-      $('vidErr').textContent = err.message || 'Aufnahme konnte nicht verarbeitet werden.';
+      $('vidErr').textContent = err.message || t('id.err.process');
     }
-  });
+  }
+  $('vidFileInput').addEventListener('change', onIdFileChosen);
+  $('vidCameraInput').addEventListener('change', onIdFileChosen);
 
   async function openIdStep(){
     try{
@@ -6016,10 +6144,13 @@
         return;
       }
       idState = {
+        // Rueckfall, falls der Server keine Liste mitschickt. `label` bleibt
+        // leer, weil idTypeLabel() die uebersetzte Bezeichnung ueber den Wert
+        // findet.
         types: st.document_types || [
-          {value: 'id_card', label: 'Personalausweis', needs_back: false},
-          {value: 'passport', label: 'Reisepass', needs_back: false},
-          {value: 'drivers_license', label: 'Führerschein', needs_back: false},
+          {value: 'id_card', label: '', needs_back: false},
+          {value: 'passport', label: '', needs_back: false},
+          {value: 'drivers_license', label: '', needs_back: false},
         ],
         selected: null,
         shots: {},
@@ -6027,12 +6158,12 @@
       };
       idState.selected = idState.types[0].value;
     }catch(err){
-      toast(err.message || 'Status konnte nicht geladen werden.');
+      toast(err.message || t('common.statusLoadFailed'));
       return;
     }
     showScreen('screen-verify-id');
     $('vidErr').textContent = '';
-    $('btnVidSubmit').textContent = 'Zur Prüfung einreichen';
+    $('btnVidSubmit').textContent = t('id.submit');
     renderIdTypes();
     renderIdSlots();
   }
@@ -6047,7 +6178,7 @@
       headers: {'Content-Type': 'image/jpeg'},
       body: blob,
     });
-    if(!res.ok) throw new Error('Upload fehlgeschlagen. Bitte erneut versuchen.');
+    if(!res.ok) throw new Error(t('id.err.upload'));
     return presign.object_key;
   }
 
@@ -6055,12 +6186,12 @@
     if(!idState) return;
     const sides = idNeedsBack() ? ['front', 'back'] : ['front'];
     if(!sides.every(side => idState.shots[side])){
-      $('vidErr').textContent = 'Bitte alle benötigten Aufnahmen hinzufügen.';
+      $('vidErr').textContent = t('id.err.missing');
       return;
     }
     const btn = $('btnVidSubmit');
     btn.disabled = true;
-    btn.textContent = 'Wird übermittelt …';
+    btn.textContent = t('id.submitting');
     $('vidErr').textContent = '';
     try{
       const body = {document_type: idState.selected};
@@ -6076,14 +6207,14 @@
       // Speicher der Seite weiterleben.
       Object.values(idState.shots).forEach(s => URL.revokeObjectURL(s.previewUrl));
       idState = null;
-      toast('Verifizierung eingereicht - wir prüfen deine Angaben.');
+      toast(t('id.submitted'));
       await loadCurrentUser();
       showVerificationGate();
     }catch(err){
-      $('vidErr').textContent = err.message || 'Einreichen fehlgeschlagen. Bitte erneut versuchen.';
+      $('vidErr').textContent = err.message || t('id.submitFailed');
     }finally{
       btn.disabled = false;
-      btn.textContent = 'Zur Prüfung einreichen';
+      btn.textContent = t('id.submit');
     }
   });
 
@@ -6108,7 +6239,7 @@
     // gesehener Match seinen Ring behalten, auch wenn der naechste offline ist.
     $('chatAvatarWrap').classList.toggle('online', !!(match && match.is_online));
     showScreen('screen-chat');
-    $('chatMessages').innerHTML = '<div class="loading">Lade Chat …</div>';
+    $('chatMessages').innerHTML = `<div class="loading">${escapeHtml(t('chat.loading'))}</div>`;
     // Chat-Sperre-Status auffrischen (kann während der Sitzung gesetzt worden sein)
     try{ const me = await api('/api/profiles/me'); if(me) myProfile = me; }catch(e){}
     await refreshModerationNotice();
@@ -6152,23 +6283,22 @@
       // Ohne konkrete Begründung und Widerspruchsweg wäre die Mitteilung nach
       // Art. 17 DSA unvollständig - beides kommt aus /api/moderation/notice.
       const reason = moderationNotice && moderationNotice.reason
-        ? `<br><strong>Begründung:</strong> ${escapeHtml(moderationNotice.reason)}`
+        ? `<br><strong>${escapeHtml(t('chat.reason'))}</strong> ${escapeHtml(moderationNotice.reason)}`
         : '';
       const appeal = moderationNotice && moderationNotice.appeal_hint
         ? `<br>${escapeHtml(moderationNotice.appeal_hint)}`
         : '';
-      banner.innerHTML = `<span class="mute-ico">⚠️</span><span>Deine Chat-Funktion ist vorübergehend gesperrt. `
-        + `Du kannst bis <strong>${when} Uhr</strong> keine Nachrichten senden.`
+      banner.innerHTML = `<span class="mute-ico">⚠️</span><span>${t('chat.mutedBanner', {when: escapeHtml(when)})}`
         + `${reason}${appeal}</span>`;
       banner.style.display = 'flex';
       row.classList.add('disabled');
       $('chatInput').disabled = true;
-      $('chatInput').placeholder = 'Chat vorübergehend gesperrt';
+      $('chatInput').placeholder = t('chat.inputLocked');
     } else {
       banner.style.display = 'none';
       row.classList.remove('disabled');
       $('chatInput').disabled = false;
-      $('chatInput').placeholder = 'Nachricht schreiben…';
+      $('chatInput').placeholder = t('chat.inputPh');
     }
   }
 
@@ -6198,8 +6328,8 @@
       box.innerHTML = `
         <div class="empty" style="flex:1;">
           <div class="empty-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M21.5 2.5 11 13M21.5 2.5l-7 19-3.5-8.5-8.5-3.5 19-7z"/></svg></div>
-          <div class="empty-title">Noch keine Nachrichten</div>
-          <div class="empty-sub">Schreib die erste — ihr habt schließlich gematcht.</div>
+          <div class="empty-title">${escapeHtml(t('chat.emptyTitle'))}</div>
+          <div class="empty-sub">${escapeHtml(t('chat.emptySub'))}</div>
         </div>`;
       return;
     }
@@ -6211,8 +6341,8 @@
       // Empfänger sieht den Grund für den [Link entfernt]-Platzhalter.
       const censorNote = m.was_censored
         ? `<div class="censor-note">🔒 ${mine
-            ? 'Zum Schutz zensiert – der Empfänger sieht keine Links/Kontaktdaten.'
-            : 'Ein Link oder Kontaktdaten wurden zu deinem Schutz entfernt.'}</div>`
+            ? escapeHtml(t('chat.censoredOut'))
+            : escapeHtml(t('chat.censoredIn'))}</div>`
         : '';
       return `<div class="msg-wrap ${mine ? 'mine' : 'theirs'}">
         <div class="msg-bubble ${mine ? 'mine' : 'theirs'}">${escapeHtml(m.content)}<span class="time">${time}${receipt}</span></div>
@@ -6248,7 +6378,7 @@
         }
         if(chatMutedUntil()){ renderChatMuteState(); return; }
       }
-      toast(err.message || 'Nachricht konnte nicht gesendet werden.');
+      toast(err.message || t('chat.sendFailed'));
     }
   }
   $('btnChatSend').addEventListener('click', sendChatMessage);
@@ -6316,7 +6446,7 @@
   $('btnClearChat').addEventListener('click', async () => {
     setChatMenu(false);
     if(!currentChatMatchId) return;
-    if(!confirm('Chatverlauf wirklich leeren? Er wird nur für dich ausgeblendet – die andere Person sieht den Verlauf weiterhin.')) return;
+    if(!confirm(t('chat.confirmClear'))) return;
     try{
       await api(`/api/matches/${currentChatMatchId}/messages`, {method: 'DELETE'});
       toast('Chatverlauf geleert.');
@@ -6330,16 +6460,16 @@
     setChatMenu(false);
     const match = findMatchById(currentChatMatchId);
     if(!match) return;
-    if(!confirm(`Chat mit ${match.profile.name} wirklich löschen? Er verschwindet aus deinen Chats – euer Match bleibt aber bestehen.`)) return;
+    if(!confirm(t('chat.confirmDelete', {name: match.profile.name}))) return;
     try{
       await api(`/api/matches/${currentChatMatchId}/chat`, {method: 'DELETE'});
-      toast('Chat gelöscht.');
+      toast(t('chat.deleted'));
       stopChatPolling();
       currentChatMatchId = null;
       showScreen('screen-chats');
       setNavActive('chats');
       loadChats();
-    }catch(err){ toast(err.message || 'Löschen fehlgeschlagen.'); }
+    }catch(err){ toast(err.message || t('common.deleteFailed')); }
   });
 
   // ---------- Rechtstexte-Modal (Impressum/Datenschutz/AGB) ----------
@@ -6349,7 +6479,7 @@
 
   async function openLegalModal(page){
     legalBackdrop.classList.add('open');
-    legalBody.innerHTML = '<div class="loading">Lädt …</div>';
+    legalBody.innerHTML = `<div class="loading">${escapeHtml(t('common.loading'))}</div>`;
     try{
       if(!legalCache[page]){
         const res = await fetch('/' + page);
@@ -6390,7 +6520,7 @@
           .map(s => s.textContent).join('\n');
         const skriptStart = '<' + 'script>';
         const skriptEnde = '<' + '/script>';
-        legalCache[page] = (wrap ? wrap.innerHTML : '<p>Inhalt konnte nicht geladen werden.</p>')
+        legalCache[page] = (wrap ? wrap.innerHTML : `<p>${escapeHtml(t('err.legalLoad'))}</p>`)
           + (externeSkripte ? skriptStart + externeSkripte + skriptEnde : '');
       }
       // Jeder Rechtstext bleibt unter einer eigenen Adresse erreichbar - das
@@ -6413,7 +6543,7 @@
         alt.replaceWith(neu);
       });
     }catch(err){
-      legalBody.innerHTML = '<p>Inhalt konnte nicht geladen werden. <a href="/' + page + '">Direkt öffnen</a>.</p>';
+      legalBody.innerHTML = `<p>${t('err.legalLoadLink', {page: encodeURIComponent(page)})}</p>`;
     }
   }
 
@@ -6494,8 +6624,8 @@
     weiter.style.display = 'none';
 
     if(!token){
-      titel.textContent = 'Link unvollständig';
-      text.textContent = 'In diesem Link fehlt der Bestätigungscode. Öffne ihn noch einmal direkt aus der E-Mail.';
+      titel.textContent = t('mail.incompleteTitle');
+      text.textContent = t('mail.incompleteText');
       weiter.style.display = 'block';
       return;
     }
@@ -6504,11 +6634,11 @@
       const res = await api('/api/auth/email/confirm', {
         method: 'POST', body: JSON.stringify({token}),
       });
-      titel.textContent = 'E-Mail bestätigt';
-      text.textContent = `Danke, ${res.name}! ${res.email} ist bestätigt. Weiter geht es mit der Alters- und Identitätsprüfung.`;
+      titel.textContent = t('mail.okTitle');
+      text.textContent = t('mail.okText', {name: res.name, email: res.email});
     }catch(err){
-      titel.textContent = 'Bestätigung nicht möglich';
-      text.textContent = err.message || 'Der Link konnte nicht eingelöst werden.';
+      titel.textContent = t('mail.failTitle');
+      text.textContent = err.message || t('mail.failText');
     }
     weiter.style.display = 'block';
   }
@@ -6535,6 +6665,25 @@
     }
     showScreen('screen-login');
   }
+
+  /* Nach einem Sprachwechsel: alles neu zeichnen, was nicht ueber data-i18n
+     laeuft. FlexrI18n uebersetzt das feste Markup selbst; dynamisch gebaute
+     Listen, Karten und Statusbloecke muessen ihre Zeichenfunktion nochmal
+     durchlaufen. Nur der Bildschirm, der gerade sichtbar ist - der Rest wird
+     ohnehin beim naechsten Aufruf frisch gebaut. */
+  FlexrI18n.onChange(() => {
+    const screen = document.body.dataset.screen;
+    try{
+      if(myProfile) renderAccount({keepForm: true});
+      if(screen === 'screen-verify-gate' && verificationStatus) renderVerificationGate();
+      if(screen === 'screen-verify-id' && idState){ renderIdTypes(); renderIdSlots(); }
+      if(screen === 'screen-matches' && matchesCache) renderMatches(matchesCache);
+      if(screen === 'screen-chats' && matchesCache) renderChats(matchesCache);
+      if(screen === 'screen-swipe' && deck.length) renderCard();
+      if(screen === 'screen-privacy'){ loadMyConsents(); loadMyBlocks(); loadMyReports(); }
+    }catch(e){ console.error(e); }
+  });
+
   boot();
 
 })();

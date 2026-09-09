@@ -115,6 +115,8 @@ struct EmojiToggleButton: View {
     /// Siehe [EmojiPickerPanel]: abschließende Closure muss zuletzt stehen.
     let onToggle: () -> Void
 
+    @Environment(LanguageStore.self) private var languageStore
+
     var body: some View {
         Button(action: onToggle) {
             ZStack {
@@ -126,6 +128,6 @@ struct EmojiToggleButton: View {
             .frame(width: size, height: size)
         }
         .buttonStyle(.plain)
-        .accessibilityLabel(isExpanded ? "Emoji-Auswahl schließen" : "Emoji einfügen")
+        .accessibilityLabel(isExpanded ? languageStore.strings(.emojiClose) : languageStore.strings(.emojiInsert))
     }
 }

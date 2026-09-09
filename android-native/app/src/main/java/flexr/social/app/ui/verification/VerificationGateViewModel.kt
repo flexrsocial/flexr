@@ -1,12 +1,15 @@
 package flexr.social.app.ui.verification
 
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import android.net.Uri
 import dagger.hilt.android.lifecycle.HiltViewModel
+import flexr.social.app.R
+import flexr.social.app.core.locale.AppStrings
+import flexr.social.app.core.media.ImageProcessor
 import flexr.social.app.core.media.PhotoPreparer
-import flexr.social.app.core.media.PreparedPhoto
 import flexr.social.app.core.media.PhotoTooSmallException
+import flexr.social.app.core.media.PreparedPhoto
 import flexr.social.app.core.network.FlexrApiException
 import flexr.social.app.data.repository.ProfileRepository
 import flexr.social.app.data.repository.VerificationRepository
@@ -80,6 +83,7 @@ class VerificationGateViewModel @Inject constructor(
     private val verificationRepository: VerificationRepository,
     private val profileRepository: ProfileRepository,
     private val photoPreparer: PhotoPreparer,
+    private val strings: AppStrings,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(VerificationGateUiState())
@@ -115,7 +119,7 @@ class VerificationGateViewModel @Inject constructor(
                         it.copy(
                             isLoading = false,
                             error = (throwable as? FlexrApiException)?.message
-                                ?: "Status konnte nicht geladen werden.",
+                                ?: strings.get(R.string.common_status_load_failed),
                         )
                     }
                 }
@@ -148,7 +152,7 @@ class VerificationGateViewModel @Inject constructor(
                         it.copy(
                             isRefreshing = false,
                             error = (throwable as? FlexrApiException)?.message
-                                ?: "Status konnte nicht geladen werden.",
+                                ?: strings.get(R.string.common_status_load_failed),
                         )
                     }
                 }
@@ -185,9 +189,14 @@ class VerificationGateViewModel @Inject constructor(
                     it.copy(
                         isUploadingPhoto = false,
                         photoError = when (throwable) {
-                            is PhotoTooSmallException -> throwable.message
+                            is PhotoTooSmallException -> strings.get(
+                                R.string.photo_too_small,
+                                throwable.width,
+                                throwable.height,
+                                ImageProcessor.MIN_EDGE_PX,
+                            )
                             is FlexrApiException -> throwable.message
-                            else -> "Foto konnte nicht hochgeladen werden."
+                            else -> strings.get(R.string.vgate_photo_upload_failed)
                         },
                     )
                 }
@@ -214,7 +223,7 @@ class VerificationGateViewModel @Inject constructor(
                         it.copy(
                             isSendingMail = false,
                             mailError = (throwable as? FlexrApiException)?.message
-                                ?: "Mail konnte nicht gesendet werden.",
+                                ?: strings.get(R.string.vgate_mail_send_failed),
                         )
                     }
                 }
@@ -235,7 +244,7 @@ class VerificationGateViewModel @Inject constructor(
     fun confirmDelete(onDeleted: (String) -> Unit) {
         val password = _uiState.value.deletePassword
         if (password.isBlank()) {
-            _uiState.update { it.copy(deleteError = "Bitte gib zur Bestätigung dein Passwort ein.") }
+            _uiState.update { it.copy(deleteError = strings.get(R.string.delete_password_missing)) }
             return
         }
         _uiState.update { it.copy(isDeleting = true, deleteError = null) }
@@ -243,14 +252,14 @@ class VerificationGateViewModel @Inject constructor(
             runCatching { profileRepository.deleteAccount(password) }
                 .onSuccess {
                     _uiState.update { it.copy(isDeleting = false, deleteDialogVisible = false) }
-                    onDeleted("Dein Konto wurde deaktiviert und wird in 30 Tagen endgültig gelöscht.")
+                    onDeleted(strings.get(R.string.delete_done))
                 }
                 .onFailure { throwable ->
                     _uiState.update {
                         it.copy(
                             isDeleting = false,
                             deleteError = (throwable as? FlexrApiException)?.message
-                                ?: "Löschen fehlgeschlagen.",
+                                ?: strings.get(R.string.common_delete_failed),
                         )
                     }
                 }

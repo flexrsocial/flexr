@@ -1,6 +1,8 @@
 import SwiftUI
 
 struct RegisterView: View {
+    @Environment(LanguageStore.self) private var languageStore
+    private var s: FlexrStrings { languageStore.strings }
 
     let onGoToLogin: () -> Void
     let onOpenLegal: (LegalDocument) -> Void
@@ -29,7 +31,8 @@ struct RegisterView: View {
                     auth: container.auth,
                     profiles: container.profiles,
                     gyms: container.gyms,
-                    plz: container.plz
+                    plz: container.plz,
+                    languageStore: languageStore
                 )
             }
         }
@@ -52,38 +55,36 @@ struct RegisterView: View {
                 .padding(.top, 8)
 
                 ScreenHeader(
-                    eyebrow: "Erste Wiederholung",
-                    title: "Dating für Leute,\ndie auch montags\nBeintag machen.",
+                    eyebrow: s(.registerEyebrow),
+                    title: s(.registerTitle),
                     // Beta-Gratisphase: Der Text steht fest im Code, weil vor
                     // dem Login noch kein /api/billing/status abrufbar ist.
                     // Wird die Gebühr wieder scharf geschaltet
                     // (BILLING_ENABLED, backend/app/config.py), gehört hier
                     // "1 Monat gratis testen, danach 5 €/Monat" zurück.
-                    subtitle: "Erstell dein Profil. Während der Beta-Phase kostenlos — "
-                        + "die Mitgliedschaft von 5 €/Monat ist bis auf weiteres ausgesetzt. "
-                        + "Aktuell nur in Österreich verfügbar."
+                    subtitle: s(.registerSubtitle)
                 )
                 .padding(.top, 24)
 
                 FlexrTextField(
                     text: $model.email,
-                    label: "E-Mail",
-                    placeholder: "max@example.com",
+                    label: s(.fieldEmail),
+                    placeholder: s(.loginEmailPlaceholder),
                     keyboardType: .emailAddress,
                     textContentType: .username,
                     autocapitalization: .never
                 )
                 FlexrPasswordField(
                     text: $model.password,
-                    label: "Passwort",
-                    placeholder: "Mind. 8 Zeichen",
+                    label: s(.fieldPassword),
+                    placeholder: s(.registerPasswordPlaceholder),
                     textContentType: .newPassword,
                     submitLabel: .next
                 )
                 FlexrTextField(
                     text: $model.name,
-                    label: "Name",
-                    placeholder: "Max",
+                    label: s(.fieldName),
+                    placeholder: s(.registerNamePlaceholder),
                     textContentType: .givenName,
                     autocapitalization: .words,
                     maxLength: 100
@@ -104,15 +105,15 @@ struct RegisterView: View {
 
                 FlexrTextField(
                     text: $model.bio,
-                    label: "Bio",
-                    placeholder: "Was du suchst, dein Training, gerne mit Emojis 💪",
+                    label: s(.fieldBio),
+                    placeholder: s(.fieldBioPlaceholder),
                     isSingleLine: false,
                     maxLines: 5,
                     maxLength: RegisterModel.bioMaxLength,
                     showsEmojiPicker: true
                 )
 
-                FieldLabel(text: "Fotos (mind. 1, max. 6)")
+                FieldLabel(text: s(.registerPhotosLabel))
                 PhotoGridEditor(
                     slots: model.photos.map {
                         PhotoSlot(id: $0.id, source: .data($0.preview))
@@ -123,7 +124,7 @@ struct RegisterView: View {
                 if model.isPreparingPhoto {
                     HStack(spacing: 8) {
                         ProgressView().controlSize(.mini).tint(FlexrColor.plate)
-                        Text("Foto wird vorbereitet …")
+                        Text(s(.registerPhotoPreparing))
                             .flexrText(.bodySmall)
                             .foregroundStyle(FlexrColor.chalkDim)
                     }
@@ -133,28 +134,25 @@ struct RegisterView: View {
 
                 ConsentCheckbox(
                     isOn: $model.consentSensitiveData,
-                    prefix: "Ich willige ein, dass meine Angaben zu Geschlecht und gesuchtem "
-                        + "Geschlecht (daraus ableitbar: sexuelle Orientierung) gemäß ",
-                    linkText: "Datenschutzerklärung",
-                    suffix: " verarbeitet werden.",
+                    prefix: s(.registerConsentPrefix),
+                    linkText: s(.registerConsentLink),
+                    suffix: s(.registerConsentSuffix),
                     onLinkTap: { legalDocument = .datenschutz }
                 )
                 .padding(.top, 20)
 
                 ConsentCheckbox(
                     isOn: $model.consentWithdrawalWaiver,
-                    prefix: "Ich stimme zu, dass der Zugang sofort mit Registrierung beginnt, und "
-                        + "nehme zur Kenntnis, dass ich dadurch mein 14-tägiges Rücktrittsrecht "
-                        + "verliere (siehe ",
-                    linkText: "AGB",
-                    suffix: ", §18 FAGG).",
+                    prefix: s(.registerWaiverPrefix),
+                    linkText: s(.registerWaiverLink),
+                    suffix: s(.registerWaiverSuffix),
                     onLinkTap: { legalDocument = .agb }
                 )
 
                 FieldError(message: model.error)
 
                 FlexrButton(
-                    title: "Profil erstellen & Probemonat starten",
+                    title: s(.registerSubmit),
                     isEnabled: model.canSubmit,
                     isLoading: model.isSubmitting
                 ) {
@@ -195,6 +193,8 @@ struct RegisterView: View {
 /// Geburtsdatum: nicht tippen, sondern auswählen — der native Kalender mit
 /// 18-Jahres-Grenze. Das Backend prüft ebenso.
 private struct BirthdateField: View {
+    @Environment(LanguageStore.self) private var languageStore
+    private var s: FlexrStrings { languageStore.strings }
 
     @Binding var birthdate: Date?
     let age: Int?
@@ -209,15 +209,15 @@ private struct BirthdateField: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            FieldLabel(text: "Geburtsdatum")
+            FieldLabel(text: s(.registerBirthdateLabel))
             Button { isPresented = true } label: {
                 HStack {
-                    Text(birthdate.map(ServerTime.formatBirthdate) ?? "tt.mm.jjjj")
+                    Text(birthdate.map(ServerTime.formatBirthdate) ?? s(.registerBirthdatePlaceholder))
                         .flexrText(.bodyLarge)
                         .foregroundStyle(birthdate != nil ? FlexrColor.chalk : FlexrColor.chalkDim)
                     Spacer()
                     if let age {
-                        Text("\(age) Jahre")
+                        Text(s(.registerAgeYears, age))
                             .flexrText(.bodyMedium)
                             .foregroundStyle(FlexrColor.chalkDim)
                     }
@@ -234,7 +234,7 @@ private struct BirthdateField: View {
                 ZStack {
                     FlexrBackground()
                     DatePicker(
-                        "Geburtsdatum",
+                        s(.registerBirthdateLabel),
                         selection: $draft,
                         in: range,
                         displayedComponents: .date
@@ -244,15 +244,15 @@ private struct BirthdateField: View {
                     .tint(FlexrColor.plate)
                     .padding(20)
                 }
-                .navigationTitle("Geburtsdatum")
+                .navigationTitle(s(.registerBirthdateLabel))
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar {
                     ToolbarItem(placement: .cancellationAction) {
-                        Button("Abbrechen") { isPresented = false }
+                        Button(s(.commonCancel)) { isPresented = false }
                             .foregroundStyle(FlexrColor.chalkDim)
                     }
                     ToolbarItem(placement: .confirmationAction) {
-                        Button("Übernehmen") {
+                        Button(s(.commonApply)) {
                             birthdate = draft
                             isPresented = false
                         }
@@ -267,17 +267,19 @@ private struct BirthdateField: View {
 }
 
 private struct GenderSelector: View {
+    @Environment(LanguageStore.self) private var languageStore
+    private var s: FlexrStrings { languageStore.strings }
 
     @Binding var selected: Gender?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            FieldLabel(text: "Geschlecht")
+            FieldLabel(text: s(.registerGenderLabel))
             HStack(spacing: 0) {
                 ForEach(Gender.allCases, id: \.self) { gender in
                     let isSelected = selected == gender
                     Button { selected = gender } label: {
-                        Text(gender.label)
+                        Text(s(gender.labelKey))
                             .flexrText(.bodyLarge)
                             .foregroundStyle(isSelected ? FlexrColor.plate : FlexrColor.chalkDim)
                             .frame(maxWidth: .infinity)
@@ -305,6 +307,8 @@ private struct GenderSelector: View {
 
 /// Einwilligung mit eingebettetem Link auf den jeweiligen Rechtstext.
 private struct ConsentCheckbox: View {
+    @Environment(LanguageStore.self) private var languageStore
+    private var s: FlexrStrings { languageStore.strings }
 
     @Binding var isOn: Bool
     let prefix: String

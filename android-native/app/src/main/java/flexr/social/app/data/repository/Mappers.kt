@@ -18,9 +18,9 @@ import flexr.social.app.domain.model.MatchSummary
 import flexr.social.app.domain.model.Membership
 import flexr.social.app.domain.model.Message
 import flexr.social.app.domain.model.MyProfile
+import flexr.social.app.domain.model.NotificationSettings
 import flexr.social.app.domain.model.Photo
 import flexr.social.app.domain.model.PhotoStatus
-import flexr.social.app.domain.model.NotificationSettings
 import flexr.social.app.domain.model.Profile
 import flexr.social.app.domain.model.PushNotification
 import flexr.social.app.domain.model.VerificationDocumentType
@@ -85,6 +85,8 @@ fun MyProfileDto.toDomain() = MyProfile(
         queuePush = notifyQueuePush,
         inactiveEmail = notifyInactiveEmail,
         inactivePush = notifyInactivePush,
+        pendingLikesEmail = notifyPendingLikesEmail,
+        pendingLikesPush = notifyPendingLikesPush,
     ),
 )
 

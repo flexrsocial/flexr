@@ -1,5 +1,7 @@
 package flexr.social.app.domain.model
 
+import androidx.annotation.StringRes
+import flexr.social.app.R
 import java.time.Instant
 import java.time.LocalDate
 
@@ -14,9 +16,9 @@ enum class PhotoStatus { PENDING, APPROVED, REJECTED;
     }
 }
 
-enum class Gender(val apiValue: String, val label: String) {
-    MANN("mann", "Mann"),
-    FRAU("frau", "Frau");
+enum class Gender(val apiValue: String, @StringRes val labelRes: Int) {
+    MANN("mann", R.string.gender_male),
+    FRAU("frau", R.string.gender_female);
 
     companion object {
         fun from(raw: String?): Gender = if (raw?.lowercase() == "frau") FRAU else MANN
@@ -82,7 +84,7 @@ data class MyProfile(
 }
 
 /**
- * Drei Anlaesse, je getrennt fuer E-Mail und App.
+ * Vier Anlaesse, je getrennt fuer E-Mail und App.
  *
  * Ob eine App-Benachrichtigung ueberhaupt entsteht, entscheidet der Server -
  * die Schalter hier sind die Anzeige derselben Einstellung, nicht eine zweite
@@ -95,6 +97,8 @@ data class NotificationSettings(
     val queuePush: Boolean = true,
     val inactiveEmail: Boolean = true,
     val inactivePush: Boolean = true,
+    val pendingLikesEmail: Boolean = true,
+    val pendingLikesPush: Boolean = true,
 )
 
 /** Eine vom Server bereitgelegte, noch nicht angezeigte Benachrichtigung. */

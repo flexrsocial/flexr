@@ -6,12 +6,14 @@ enum TopLevelDestination: String, CaseIterable, Identifiable, Hashable {
 
     var id: String { rawValue }
 
-    var label: String {
+    /// Beschriftung als Textschluessel — aufgeloest wird erst dort, wo
+    /// gezeichnet wird; nur da ist die gewaehlte Sprache bekannt.
+    var labelKey: L {
         switch self {
-        case .swipe: "Swipe"
-        case .matches: "Matches"
-        case .chats: "Chats"
-        case .account: "Konto"
+        case .swipe: .navSwipe
+        case .matches: .navMatches
+        case .chats: .navChats
+        case .account: .navAccount
         }
     }
 
@@ -39,15 +41,18 @@ enum LegalDocument: String, CaseIterable, Identifiable, Hashable {
 
     var id: String { rawValue }
 
-    var title: String {
+    /// Nur der Titel der Ansicht ist uebersetzt — der Inhalt in
+    /// `UI/Legal/LegalContent.swift` bleibt bewusst auf Deutsch, weil er in
+    /// dieser Fassung verbindlich ist.
+    var titleKey: L {
         switch self {
-        case .faq: "Häufige Fragen"
-        case .impressum: "Impressum"
-        case .datenschutz: "Datenschutzerklärung"
-        case .agb: "Allgemeine Geschäftsbedingungen"
-        case .sicherheit: "Sicherheitstipps"
-        case .nutzungsrichtlinien: "Nutzungsrichtlinien"
-        case .strafverfolgung: "Strafverfolgungsbehörden"
+        case .faq: .legalFaq
+        case .impressum: .legalImpressum
+        case .datenschutz: .legalDatenschutz
+        case .agb: .legalAgb
+        case .sicherheit: .legalSicherheit
+        case .nutzungsrichtlinien: .legalNutzungsrichtlinien
+        case .strafverfolgung: .legalStrafverfolgung
         }
     }
 }

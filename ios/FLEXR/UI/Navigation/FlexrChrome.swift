@@ -11,16 +11,20 @@ struct FlexrWordmark: View {
     }
 }
 
-/// Kopfzeile: Wortmarke links, Mitgliedschafts-Status rechts.
+/// Kopfzeile: Wortmarke links, rechts Sprachregler und Mitgliedschafts-Status.
+///
+/// Der Regler steht hier „on-top" und damit auf jedem Bildschirm in Reichweite,
+/// nicht nur im Kontobereich — genauso wie in der Web-App.
 struct FlexrTopBar<Status: View>: View {
 
     @ViewBuilder var status: () -> Status
 
     var body: some View {
         VStack(spacing: 0) {
-            HStack {
+            HStack(spacing: 10) {
                 FlexrWordmark()
                 Spacer()
+                LanguageSwitch()
                 status()
             }
             .padding(.horizontal, 20)
@@ -44,17 +48,20 @@ struct FlexrTopBar<Status: View>: View {
 struct MembershipPill: View {
     let membership: Membership
 
+    @Environment(LanguageStore.self) private var languageStore
+    private var s: FlexrStrings { languageStore.strings }
+
     var body: some View {
         if !membership.billingEnabled {
             // Kein Countdown, solange nichts abläuft - sonst liest sich die
             // Pille wie eine Frist, die es gerade gar nicht gibt.
-            StatusPill(text: "Beta · gratis")
+            StatusPill(text: s(.statusBetaFree))
         } else if membership.isSubscribed {
-            StatusPill(text: "Abo aktiv")
+            StatusPill(text: s(.statusSubscribed))
         } else if membership.isActive {
-            StatusPill(text: "Testmonat: \(ServerTime.daysUntil(membership.trialEndsAt))d")
+            StatusPill(text: s(.statusTrialDays, ServerTime.daysUntil(membership.trialEndsAt)))
         } else {
-            StatusPill(text: "Abgelaufen", isExpired: true)
+            StatusPill(text: s(.statusExpired), isExpired: true)
         }
     }
 }
@@ -68,6 +75,9 @@ struct FlexrTabBar: View {
 
     @Binding var selection: TopLevelDestination
     let unreadCount: Int
+
+    @Environment(LanguageStore.self) private var languageStore
+    private var s: FlexrStrings { languageStore.strings }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -91,7 +101,7 @@ struct FlexrTabBar: View {
                                         .offset(x: 12, y: -8)
                                 }
                             }
-                            Text(destination.label.uppercased()).flexrText(.labelSmall)
+                            Text(s(destination.labelKey).uppercased()).flexrText(.labelSmall)
                         }
                         .foregroundStyle(isSelected ? FlexrColor.plate : FlexrColor.chalkDim)
                         .frame(maxWidth: .infinity)
@@ -99,7 +109,7 @@ struct FlexrTabBar: View {
                         .contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)
-                    .accessibilityLabel(destination.label)
+                    .accessibilityLabel(s(destination.labelKey))
                     .accessibilityAddTraits(isSelected ? [.isSelected] : [])
                 }
             }
@@ -113,6 +123,9 @@ struct FlexrTabBar: View {
 struct ToastOverlay: View {
 
     @Binding var message: String?
+
+    @Environment(LanguageStore.self) private var languageStore
+    private var s: FlexrStrings { languageStore.strings }
 
     var body: some View {
         VStack {
@@ -132,7 +145,7 @@ struct ToastOverlay: View {
                             .frame(width: 24, height: 24)
                     }
                     .buttonStyle(.plain)
-                    .accessibilityLabel("Schließen")
+                    .accessibilityLabel(s(.commonClose))
                 }
                 .padding(.leading, 16)
                 .padding(.trailing, 8)

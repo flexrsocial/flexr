@@ -62,7 +62,9 @@ extension MyProfileDTO {
                 queueEmail: notifyQueueEmail ?? true,
                 queuePush: notifyQueuePush ?? true,
                 inactiveEmail: notifyInactiveEmail ?? true,
-                inactivePush: notifyInactivePush ?? true
+                inactivePush: notifyInactivePush ?? true,
+                pendingLikesEmail: notifyPendingLikesEmail ?? true,
+                pendingLikesPush: notifyPendingLikesPush ?? true
             )
         )
     }

@@ -5,6 +5,8 @@ import SwiftUI
 /// Online-Zustand als oranger Ring um den Avatar, ungelesene Nachrichten als
 /// leuchtender Rahmen plus Zähler — dieselbe Bildsprache wie im Web.
 struct MatchListItem: View {
+    @Environment(LanguageStore.self) private var languageStore
+    private var s: FlexrStrings { languageStore.strings }
 
     let match: MatchSummary
     let onTap: () -> Void
@@ -21,7 +23,7 @@ struct MatchListItem: View {
                     name: match.profile.name,
                     size: 54,
                     ringColor: match.isOnline ? FlexrColor.plateDim : nil,
-                    accessibilityLabel: "Profilfoto von \(match.profile.name)"
+                    accessibilityLabel: s(.commonProfilePhotoOf, match.profile.name)
                 )
 
                 VStack(alignment: .leading, spacing: 3) {
@@ -74,7 +76,7 @@ struct MatchListItem: View {
             // lastMessage kann trotz inChats fehlen: Nach „Chatverlauf leeren"
             // ist der Chat weiterhin gelistet, aber (für einen selbst) leer.
             guard let message = match.lastMessage else { return "Chatverlauf geleert" }
-            let prefix = message.senderID == ownUserID ? "Du: " : ""
+            let prefix = message.senderID == ownUserID ? s(.chatsYouPrefix) : ""
             return prefix + message.content
         }
         var parts = [match.profile.city]

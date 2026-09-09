@@ -25,10 +25,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import flexr.social.app.R
 import flexr.social.app.core.designsystem.component.FieldLabel
 import flexr.social.app.core.designsystem.theme.FlexrTheme
 
@@ -105,7 +107,7 @@ fun PostalCodeField(
             )
             Spacer(Modifier.width(10.dp))
             when (lookupState) {
-                PlzLookupState.Idle -> PlzHint("— PLZ eingeben —", resolved = false)
+                PlzLookupState.Idle -> PlzHint(stringResource(R.string.plz_enter), resolved = false)
                 PlzLookupState.Loading -> Row(verticalAlignment = Alignment.CenterVertically) {
                     CircularProgressIndicator(
                         Modifier.size(13.dp),
@@ -113,10 +115,10 @@ fun PostalCodeField(
                         strokeWidth = 1.5.dp,
                     )
                     Spacer(Modifier.width(8.dp))
-                    PlzHint("Lädt …", resolved = false)
+                    PlzHint(stringResource(R.string.plz_loading), resolved = false)
                 }
                 is PlzLookupState.Resolved -> PlzHint(lookupState.city, resolved = true)
-                is PlzLookupState.Failed -> PlzHint("— unbekannte PLZ —", resolved = false)
+                is PlzLookupState.Failed -> PlzHint(stringResource(R.string.plz_unknown), resolved = false)
             }
         }
         if (lookupState is PlzLookupState.Failed) {

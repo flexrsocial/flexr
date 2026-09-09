@@ -49,6 +49,7 @@ import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -56,6 +57,7 @@ import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
+import flexr.social.app.R
 import flexr.social.app.core.designsystem.component.Eyebrow
 import flexr.social.app.core.designsystem.component.FieldError
 import flexr.social.app.core.designsystem.component.FlexrButton
@@ -139,11 +141,11 @@ fun VerificationScreen(
                     }
 
                     override fun onError(exception: ImageCaptureException) {
-                        onShowMessage("Aufnahme fehlgeschlagen, bitte erneut.")
+                        onShowMessage(context.getString(R.string.verify_capture_failed))
                     }
                 },
             )
-        }.onFailure { onShowMessage("Die Kamera ist noch nicht bereit, bitte gleich erneut.") }
+        }.onFailure { onShowMessage(context.getString(R.string.verify_camera_not_ready)) }
     }
     val canCapture = hasCameraPermission && !state.isSubmitting && !state.isComplete
 
@@ -162,11 +164,11 @@ fun VerificationScreen(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             IconButton(onClick = onBack, modifier = Modifier.size(36.dp)) {
-                Icon(FlexrIcons.Back, contentDescription = "Zurück", tint = colors.chalk)
+                Icon(FlexrIcons.Back, contentDescription = stringResource(R.string.common_back), tint = colors.chalk)
             }
             Spacer(Modifier.width(6.dp))
             Text(
-                text = "Foto-Verifizierung",
+                text = stringResource(R.string.verify_title),
                 style = MaterialTheme.typography.titleMedium,
                 color = colors.chalk,
             )
@@ -174,7 +176,7 @@ fun VerificationScreen(
         Box(Modifier.fillMaxWidth().height(1.dp).background(colors.hairline))
 
         if (state.isStarting) {
-            LoadingState(label = "Verifizierung wird vorbereitet …")
+            LoadingState(label = stringResource(R.string.verify_preparing))
             return@Column
         }
 
@@ -184,23 +186,22 @@ fun VerificationScreen(
         // Kamera samt Überschrift "Fertig!", die auf nichts reagiert hat.
         if (state.prompts.isEmpty()) {
             Spacer(Modifier.height(18.dp))
-            Eyebrow("Nicht gestartet")
+            Eyebrow(stringResource(R.string.verify_not_started))
             Text(
-                text = "Die Verifizierung kann gerade nicht beginnen.",
+                text = stringResource(R.string.verify_cannot_start),
                 style = MaterialTheme.typography.headlineMedium,
                 color = colors.chalk,
             )
             Spacer(Modifier.height(12.dp))
             Text(
-                text = state.error
-                    ?: "Bitte versuche es gleich noch einmal.",
+                text = state.error ?: stringResource(R.string.verify_try_again_soon),
                 style = MaterialTheme.typography.bodyMedium,
                 color = colors.chalkDim,
             )
             Spacer(Modifier.height(18.dp))
-            FlexrButton(text = "Erneut versuchen", onClick = viewModel::start)
+            FlexrButton(text = stringResource(R.string.verify_retry), onClick = viewModel::start)
             Spacer(Modifier.height(8.dp))
-            FlexrSecondaryButton(text = "Zurück", onClick = onBack)
+            FlexrSecondaryButton(text = stringResource(R.string.common_back), onClick = onBack)
             Spacer(Modifier.height(24.dp))
             return@Column
         }
@@ -208,12 +209,18 @@ fun VerificationScreen(
         Spacer(Modifier.height(18.dp))
         // Genau ein Selfie ist der Normalfall - dann ist eine Zählung nur Lärm.
         if (state.total > 1) {
-            Eyebrow("Aufnahme ${(state.currentIndex + 1).coerceAtMost(state.total)} / ${state.total}")
+            Eyebrow(
+                stringResource(
+                    R.string.verify_shot_of,
+                    (state.currentIndex + 1).coerceAtMost(state.total),
+                    state.total,
+                ),
+            )
         } else {
-            Eyebrow("Verifizierungs-Selfie")
+            Eyebrow(stringResource(R.string.verify_selfie_eyebrow))
         }
         Text(
-            text = state.currentPrompt ?: "Aufnahme wird eingereicht …",
+            text = state.currentPrompt ?: stringResource(R.string.verify_submitting),
             style = MaterialTheme.typography.headlineMedium,
             color = colors.chalk,
         )
@@ -262,7 +269,7 @@ fun VerificationScreen(
                 )
             } else {
                 Text(
-                    text = "Kamerazugriff wird benötigt.",
+                    text = stringResource(R.string.verify_camera_needed),
                     style = MaterialTheme.typography.bodyMedium,
                     color = colors.chalkDim,
                     textAlign = TextAlign.Center,
@@ -273,7 +280,7 @@ fun VerificationScreen(
         if (canCapture) {
             Spacer(Modifier.height(10.dp))
             Text(
-                text = "Gesicht mittig im Rahmen halten und unten auf „Aufnehmen“ tippen.",
+                text = stringResource(R.string.verify_frame_hint),
                 style = MaterialTheme.typography.bodyMedium,
                 color = colors.chalkDim,
                 textAlign = TextAlign.Center,
@@ -303,7 +310,7 @@ fun VerificationScreen(
                         if (aufnahme != null) {
                             AsyncImage(
                                 model = aufnahme,
-                                contentDescription = "Aufnahme ${index + 1}",
+                                contentDescription = stringResource(R.string.verify_shot_index, index + 1),
                                 contentScale = ContentScale.Crop,
                                 modifier = Modifier.fillMaxSize(),
                             )
@@ -324,24 +331,24 @@ fun VerificationScreen(
         Spacer(Modifier.height(16.dp))
         when {
             state.isSubmitting -> FlexrButton(
-                text = "Wird hochgeladen …",
+                text = stringResource(R.string.verify_uploading),
                 onClick = {},
                 enabled = false,
                 loading = true,
             )
 
             state.isComplete -> FlexrSecondaryButton(
-                text = "Einreichen wiederholen",
+                text = stringResource(R.string.verify_retry_submit),
                 onClick = viewModel::retrySubmit,
             )
 
             !hasCameraPermission -> FlexrSecondaryButton(
-                text = "Kamerazugriff erlauben",
+                text = stringResource(R.string.verify_allow_camera),
                 onClick = { permissionLauncher.launch(Manifest.permission.CAMERA) },
             )
 
             else -> FlexrButton(
-                text = "Aufnehmen",
+                text = stringResource(R.string.verify_capture),
                 icon = FlexrIcons.Camera,
                 onClick = capture,
             )
@@ -349,8 +356,7 @@ fun VerificationScreen(
 
         Spacer(Modifier.height(12.dp))
         Text(
-            text = "Das Selfie wird ausschließlich manuell mit deinen Profilfotos verglichen " +
-                "und nach der Prüfung gelöscht. Keine automatisierte biometrische Auswertung.",
+            text = stringResource(R.string.verify_privacy_note),
             style = MaterialTheme.typography.bodySmall,
             color = colors.chalkDim,
         )

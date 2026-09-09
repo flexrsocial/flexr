@@ -30,6 +30,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
@@ -42,11 +43,15 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import flexr.social.app.R
 import flexr.social.app.core.browser.openExternalPage
+import flexr.social.app.core.common.ServerTime
 import flexr.social.app.core.designsystem.component.LoadingState
 import flexr.social.app.core.designsystem.component.StatusPill
 import flexr.social.app.core.designsystem.theme.FlexrBackground
-import flexr.social.app.core.common.ServerTime
+import flexr.social.app.core.locale.AppLanguage
+import flexr.social.app.core.locale.AppLanguageViewModel
+import flexr.social.app.core.locale.LocalAppLanguage
 import flexr.social.app.domain.model.Membership
 import flexr.social.app.ui.account.AccountScreen
 import flexr.social.app.ui.auth.LoginScreen
@@ -122,7 +127,7 @@ fun FlexrApp(
         if (intentData?.path == "/mail-bestaetigen") {
             val token = intentData.getQueryParameter("token")
             if (token.isNullOrBlank()) {
-                showMessage("In diesem Link fehlt der Bestätigungscode.")
+                showMessage(context.getString(R.string.mail_link_incomplete))
             } else {
                 viewModel.confirmEmailToken(token, showMessage)
             }
@@ -204,10 +209,24 @@ private fun FlexrSnackbar(data: SnackbarData) {
                 onClick = { data.dismiss() },
                 modifier = Modifier.size(24.dp),
             ) {
-                Icon(Icons.Default.Close, contentDescription = "Schließen")
+                Icon(Icons.Default.Close, contentDescription = stringResource(R.string.common_close))
             }
         }
     }
+}
+
+/**
+ * Sprachregler-Anbindung fuer die Kopfzeile.
+ *
+ * Der aktuelle Wert kommt aus [LocalAppLanguage] - dort hat ihn die
+ * MainActivity hinterlegt, die damit auch die Ressourcen umschaltet. Zum
+ * Setzen holt sich der Aufrufer denselben [AppLanguageViewModel]; er haengt am
+ * Activity-Geltungsbereich und ist an allen Aufrufstellen dieselbe Instanz.
+ */
+@Composable
+private fun rememberLanguageControls(): Pair<AppLanguage, (AppLanguage) -> Unit> {
+    val viewModel: AppLanguageViewModel = hiltViewModel()
+    return LocalAppLanguage.current to viewModel::select
 }
 
 // ---------- Ausgeloggt ----------
@@ -219,11 +238,12 @@ private fun AuthGraph(
     onShowMessage: (String) -> Unit,
 ) {
     val navController = rememberNavController()
+    val (language, onSelectLanguage) = rememberLanguageControls()
 
     Scaffold(
         containerColor = Color.Transparent,
         snackbarHost = { SnackbarHost(snackbarHostState) { data -> FlexrSnackbar(data) } },
-        topBar = { FlexrTopBar(statusSlot = {}) },
+        topBar = { FlexrTopBar(statusSlot = {}, language = language, onSelectLanguage = onSelectLanguage) },
     ) { padding ->
         NavHost(
             navController = navController,
@@ -266,6 +286,7 @@ private fun VerificationGraph(
     onShowMessage: (String) -> Unit,
 ) {
     val navController = rememberNavController()
+    val (language, onSelectLanguage) = rememberLanguageControls()
 
     Scaffold(
         containerColor = Color.Transparent,
@@ -273,7 +294,13 @@ private fun VerificationGraph(
         // "In Prüfung" bekamen auch Konten angezeigt, die noch gar nichts
         // eingereicht hatten. Der Pillentext gilt für den ganzen Graphen,
         // also muss er in jedem Schritt stimmen.
-        topBar = { FlexrTopBar(statusSlot = { StatusPill("Nicht freigeschaltet") }) },
+        topBar = {
+            FlexrTopBar(
+                statusSlot = { StatusPill(stringResource(R.string.status_not_unlocked)) },
+                language = language,
+                onSelectLanguage = onSelectLanguage,
+            )
+        },
     ) { padding ->
         NavHost(
             navController = navController,
@@ -337,12 +364,17 @@ private fun LockedGraph(
     onShowMessage: (String) -> Unit,
 ) {
     val navController = rememberNavController()
+    val (language, onSelectLanguage) = rememberLanguageControls()
 
     Scaffold(
         containerColor = Color.Transparent,
         snackbarHost = { SnackbarHost(snackbarHostState) { data -> FlexrSnackbar(data) } },
         topBar = {
-            FlexrTopBar(statusSlot = { MembershipPill(membership) })
+            FlexrTopBar(
+                statusSlot = { MembershipPill(membership) },
+                language = language,
+                onSelectLanguage = onSelectLanguage,
+            )
         },
     ) { padding ->
         NavHost(
@@ -377,6 +409,7 @@ private fun MainGraph(
     onNotificationTargetHandled: () -> Unit = {},
 ) {
     val navController = rememberNavController()
+    val (language, onSelectLanguage) = rememberLanguageControls()
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route
     val isTopLevel = TopLevelDestination.entries.any { it.route == currentRoute }
@@ -404,7 +437,11 @@ private fun MainGraph(
         snackbarHost = { SnackbarHost(snackbarHostState) { data -> FlexrSnackbar(data) } },
         topBar = {
             if (isTopLevel) {
-                FlexrTopBar(statusSlot = { MembershipPill(membership) })
+                FlexrTopBar(
+                statusSlot = { MembershipPill(membership) },
+                language = language,
+                onSelectLanguage = onSelectLanguage,
+            )
             }
         },
         bottomBar = {
@@ -539,9 +576,11 @@ private fun MembershipPill(membership: Membership) {
     when {
         // Kein Countdown, solange nichts ablaeuft - sonst liest sich die Pille
         // wie eine Frist, die es gerade gar nicht gibt.
-        !membership.billingEnabled -> StatusPill("Beta · gratis")
-        membership.isSubscribed -> StatusPill("Abo aktiv")
-        membership.isActive -> StatusPill("Testmonat: ${ServerTime.daysUntil(membership.trialEndsAt)}d")
-        else -> StatusPill("Abgelaufen", expired = true)
+        !membership.billingEnabled -> StatusPill(stringResource(R.string.status_beta_free))
+        membership.isSubscribed -> StatusPill(stringResource(R.string.status_subscribed))
+        membership.isActive -> StatusPill(
+            stringResource(R.string.status_trial_days, ServerTime.daysUntil(membership.trialEndsAt)),
+        )
+        else -> StatusPill(stringResource(R.string.status_expired), expired = true)
     }
 }

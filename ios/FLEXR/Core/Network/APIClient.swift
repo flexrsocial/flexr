@@ -98,7 +98,7 @@ final class APIClient: @unchecked Sendable {
     /// ein Authorization-Header würde die S3-Signatur ungültig machen.
     func upload(to absoluteURL: String, contentType: String, data: Data) async throws {
         guard let url = URL(string: absoluteURL) else {
-            throw FlexrAPIError(statusCode: -1, message: "Ungültige Upload-Adresse.")
+            throw FlexrAPIError(statusCode: -1, message: FlexrStrings.current(.errorBadUploadURL))
         }
         var request = URLRequest(url: url, timeoutInterval: 60)
         request.httpMethod = HTTPMethod.put.rawValue
@@ -128,13 +128,13 @@ final class APIClient: @unchecked Sendable {
             url: baseURL.appendingPathComponent(path),
             resolvingAgainstBaseURL: false
         ) else {
-            throw FlexrAPIError(statusCode: -1, message: "Ungültige Adresse.")
+            throw FlexrAPIError(statusCode: -1, message: FlexrStrings.current(.errorBadURL))
         }
         if !query.isEmpty {
             components.queryItems = query.map { URLQueryItem(name: $0.key, value: $0.value) }
         }
         guard let url = components.url else {
-            throw FlexrAPIError(statusCode: -1, message: "Ungültige Adresse.")
+            throw FlexrAPIError(statusCode: -1, message: FlexrStrings.current(.errorBadURL))
         }
 
         var request = URLRequest(url: url)
@@ -161,7 +161,7 @@ final class APIClient: @unchecked Sendable {
             do {
                 request.httpBody = try encoder.encode(AnyEncodable(body))
             } catch {
-                throw FlexrAPIError(statusCode: -1, message: "Anfrage konnte nicht erstellt werden.")
+                throw FlexrAPIError(statusCode: -1, message: FlexrStrings.current(.errorBadRequest))
             }
         }
 

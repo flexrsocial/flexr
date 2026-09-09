@@ -1,14 +1,205 @@
 # FLEXR — Handoff für ein anderes Gerät / Claude Code
 
-Stand: **08.09.2026**
+Stand: **09.09.2026**
 
-Produktstand: Jüngster Commit auf `origin/main` ist der robots/nginx-Umbau der
-Sitzung vom **07.09.**, gepusht **und auf dem VPS ausgerollt** — reine
-Auslieferungskonfiguration, kein Backend, keine Migration, kein Neustart.
-Aufbau des Dokuments: erst die Eckdaten, dann **08.09.**, dann die beiden
-Sitzungen vom **07.09.**, dann **06.09.**, dann **05.09.**, dann **31.08.**,
-dann **30.08.**, dann **23.08.**, dann **21.08.**; die Build-,
+Produktstand: Jüngster Commit auf `origin/main` bringt die **Zweisprachigkeit
+(Deutsch/Englisch)** in Web-App, Landingpage, Android- und iOS-App sowie den
+**zweiten Weg beim Ausweis-Upload** (Datei statt nur Kamera). Reines
+Frontend/Client — kein Backend, keine Migration, kein Neustart.
+Aufbau des Dokuments: erst die Eckdaten, dann **09.09.**, dann **08.09.**,
+dann die beiden Sitzungen vom **07.09.**, dann **06.09.**, dann **05.09.**,
+dann **31.08.**, dann **30.08.**, dann **23.08.**, dann **21.08.**; die Build-,
 Test- und Deploy-Abschnitte am Ende gelten sitzungsübergreifend.
+
+## Sitzung 09.09.2026 — Zweisprachigkeit (de/en) und Datei-Upload beim Ausweis
+
+Zwei Aufträge, beide durchgezogen: der Ausweisschritt nimmt jetzt auch eine
+**bestehende Datei** statt nur einer Kameraaufnahme an, und **Web-App,
+Landingpage, Android- und iOS-App sind zweisprachig** — Deutsch als
+Ausgangssprache, Englisch als Übersetzung, mit Schieberegler oben in der
+Kopfzeile und in den Profil-Einstellungen.
+
+### Ausweis-Upload: Kamera **oder** Datei
+
+Der Aufnahmeplatz hatte genau einen Eingabeweg — ein
+`<input type="file" capture="environment">`. Auf dem Handy öffnet das die
+Kamera und sonst nichts. Wer den Ausweis schon gescannt oder vor dem Hochladen
+geschwärzt hatte, kam damit nicht weiter; die Schwärz-Empfehlung im selben
+Kasten lief also ins Leere.
+
+Jetzt stehen unter jedem Platz zwei Knöpfe:
+
+- **Web-App** (`frontend/app/index.html`): zwei getrennte, unsichtbare
+  `<input type="file">` — eines mit `capture`, eines ohne. Beide werden nur auf
+  einen ausdrücklichen Tipp hin geöffnet, der Platz selbst nimmt weiterhin den
+  kürzesten Weg (Kamera).
+- **Android** (`ui/verification/DocumentScreen.kt`): derselbe Aufbau mit
+  `ActivityResultContracts.GetContent()`; die gewählte Datei geht durch das neue
+  `ImageProcessor.compressDocument(uri)` (EXIF-Drehung wird angewandt, die
+  Mindestauflösung gilt hier bewusst **nicht** — ein sauberer Scan darf klein
+  sein, entscheidend ist die Lesbarkeit).
+
+Die Knöpfe stehen bei zwei Aufnahmeplätzen untereinander und bei einem
+nebeneinander. Im Web macht das eine **Container-Abfrage** (`container-type:
+inline-size`) und nicht eine Fenster-Abfrage: bei „nur Vorderseite" spannt sich
+der eine Platz über die volle Breite, dort passen die Knöpfe nebeneinander,
+obwohl das Fenster gleich schmal ist.
+
+**Bewusst weiter nur Bilder** (JPEG/PNG/WebP). PDF-Scans sind der naheliegende
+nächste Wunsch, gehen aber nicht ohne Backend: `schemas.py` lässt für
+`VerificationDocumentPresignRequest.content_type` nur
+`image/jpeg|png|webp` zu, und die Admin-Ansicht zeigt Bilder, keine PDFs.
+
+Die iOS-App hat den Ausweisschritt noch gar nicht (sie verweist dafür auf
+flexr.social) — dort war nichts zu ändern.
+
+### Zweisprachigkeit: eine Regel, vier Umsetzungen
+
+Deutsch ist überall die **Ausgangssprache**: der deutsche Text ist das Original,
+Englisch die Übersetzung, und was in Englisch fehlt, fällt auf Deutsch zurück
+statt auf den nackten Schlüssel. Eine vergessene Übersetzung sieht dann nach
+deutschem Text aus und nicht nach einem Fehler.
+
+| | Texte | Schlüssel | Regler |
+|---|---|---|---|
+| Web-App | `frontend/i18n.js` + `frontend/app/i18n-app.js` | 408 | Kopfzeile + Konto → „Profil" |
+| Landingpage | `frontend/i18n-landing.js` | 114 | Kopfzeile |
+| Android | `res/values/` + `res/values-en/strings.xml` | 411 | Kopfzeile + Konto → „Einstellungen" |
+| iOS | `Core/Locale/FlexrStrings{,+German,+English}.swift` | 303 | Kopfzeile + Konto |
+
+**Spracherkennung beim ersten Aufruf** — identisch in allen vier Fassungen
+(`FlexrI18n.detect`, `AppLanguage.detect` in Kotlin und Swift):
+
+1. Gespeicherte Wahl (localStorage / DataStore / UserDefaults)
+2. `?lang=de|en` (nur Web — erlaubt einen sprachspezifischen Link)
+3. **Zeitzone im DACH-Raum** → Deutsch. Die Liste enthält neben
+   `Europe/Vienna|Berlin|Zurich` auch `Europe/Busingen` (deutsche Exklave in der
+   Schweiz) und `Europe/Vaduz` — beides eigene IANA-Zonen, die sonst als „nicht
+   DACH" durchfielen.
+4. Systemsprache beginnt mit `de` → Deutsch
+5. sonst Englisch
+
+**Abweichung von der ursprünglichen Vorgabe, bewusst:** Die Zeitzone entscheidet
+nur *für* Deutsch, nicht *gegen* es. Wer außerhalb des DACH-Raums ein
+deutschsprachiges Gerät hat, bekommt Deutsch — Englisch ist der Rückfall für
+alles Übrige, nicht die Strafe für eine Zeitzone. Die Regel ist in
+`frontend/i18n.js` ausführlich kommentiert; sie **nur** an der Zeitzone
+festzumachen wäre ein Einzeiler, sollte es je gewünscht sein.
+
+**Der Wechsel wirkt sofort**, ohne Neustart:
+
+- Web: `FlexrI18n.apply()` übersetzt die `data-i18n`-Knoten neu, ein
+  `onChange`-Haken zeichnet die dynamisch gebauten Listen und Karten nach.
+  `renderAccount({keepForm: true})` lässt dabei das Profilformular in Ruhe —
+  sonst hätte ein Sprachwechsel den gerade getippten Bio-Text verworfen.
+- Android: `ProvideAppLanguage` tauscht `LocalContext` und `LocalConfiguration`
+  aus, `stringResource` löst daraufhin neu auf. Bewusst **kein** `recreate()`:
+  so überleben Navigationsstapel und Scrollpositionen den Wechsel.
+- iOS: `LanguageStore` ist `@Observable`, jede View liest ihre Texte über
+  `languageStore.strings` und zeichnet damit von selbst neu.
+
+**Texte außerhalb der Oberfläche** (Netzwerkstapel, Benachrichtigungs-Worker)
+kennen die gewählte Sprache nicht, weil sie nichts von der Oberfläche wissen.
+Beide Apps lösen das mit **einer** gesetzten Fassung, die der Sprachspeicher
+mitführt: `ApiErrorParser.strings` (Android) bzw. `FlexrStrings.current` (iOS).
+Die Begründung steht jeweils am Feld: eine Abhängigkeit durch alle Repositories
+zu fädeln, ohne dass irgendwo eine Entscheidung davon abhinge, wäre teurer als
+diese eine dokumentierte Stelle. Auf Android stehen die deutschen Texte im
+Parser zusätzlich als Rückfall, weil das Feld in reinen JVM-Tests leer bleibt —
+`ApiErrorParserTest` prüft genau diese Fassung.
+
+`AppStrings` ist auf Android **eine Schnittstelle** mit
+`ResourceAppStrings` als Umsetzung, aus demselben Grund wie bei `SessionStore`:
+die Umsetzung hängt am Android-Context und machte jedes ViewModel darüber in
+JVM-Tests unkonstruierbar. Die Tests setzen `FakeAppStrings` ein.
+
+### Was bewusst deutsch geblieben ist
+
+- **Rechtstexte** (AGB, Datenschutz, Nutzungsrichtlinien, Rücktritt,
+  Sicherheit, Meldung, Strafverfolgung) in allen drei Fassungen —
+  `LegalContent.kt`, `LegalContent.swift` und die HTML-Seiten unter
+  `frontend/`. Sie sind in der deutschen Fassung verbindlich; eine nicht
+  anwaltlich geprüfte Zweitfassung wäre ein Haftungsrisiko. Nur die **Titel**
+  der Ansichten sind übersetzt, und der Schlüssel `legal.notice.de` steht für
+  einen Hinweis bereit. Wer das ändern will, braucht dafür eine anwaltliche
+  Prüfung, keinen Übersetzer.
+- **Serverantworten**: Fehlermeldungen, die Art.-17-DSA-Mitteilungen und die
+  Aktivitäts-Benachrichtigungen (Match, Deck, Inaktivität, offene Likes) kommen
+  aus dem Backend und sind dort deutsch. Für echte Zweisprachigkeit bräuchte das
+  Backend ein `Accept-Language` und übersetzte Textbausteine — eigenes Stück
+  Arbeit, hier nicht angefasst. In der Oberfläche sind nur die **Beschriftungen
+  davor** übersetzt („Begründung:", „Dauer:").
+- **JSON-LD auf der Landingpage**: beschreibt die kanonische deutsche Fassung
+  dieser Adresse. Eine per JavaScript umgeschriebene FAQPage-Auszeichnung wäre
+  gegenüber Google nur noch Rauschen.
+
+### Offener Punkt: englische Landingpage ist noch nicht indexierbar
+
+Die Landingpage schaltet Titel, `<meta name="description">` und die
+`og:`-Angaben mit um und trägt jetzt `hreflang`-Verweise auf `/` (de),
+`/?lang=en` (en) und `x-default`. **Das reicht für Menschen, nicht für
+Suchmaschinen:** Googlebot rendert aus einer US-Zeitzone und sähe auf `/`
+englischen Fließtext unter deutscher Auszeichnung. Sauber indexierbar wird
+Englisch erst mit einer eigenen Seite unter `/en/` samt eigenem `canonical`,
+eigener JSON-LD-Auszeichnung und einem Eintrag in `sitemap.xml`. Das ist der
+nächste Arbeitsschritt.
+
+### Ein fremder Anteil in diesem Commit
+
+Im Arbeitsbaum lag **unfertige Client-Arbeit zur Benachrichtigung „Offene Likes
+ohne Match"** (Schalter in Android und iOS, `notify_pending_likes_*` in DTOs,
+Mappern und Modellen). Das Backend dazu ist seit `32ddea6` committet, die
+Client-Seite war es nie. Sie ließ sich nicht sauber abtrennen: dieselben
+Codeblöcke, die die Schalter anlegen, wurden in dieser Sitzung übersetzt. Statt
+einen Commit zu erfinden, der so nie existiert hat, ist der Anteil hier
+**mitcommittet und in der Commit-Beschreibung benannt**.
+
+### Prüfstand
+
+- **Android**: `:app:testProdDebugUnitTest` und `:app:assembleProdDebug` grün
+  (offline, Toolchain aus `~/.bubblewrap/`). `resourceConfigurations` steht
+  jetzt auf `listOf("de", "en")`.
+- **Web-App und Landingpage**: im Browser durchgeklickt. 192 bzw. 115
+  übersetzte Knoten, in **beiden** Sprachen kein roher Schlüssel und kein leerer
+  Text. Spracherkennung mit 14 Fällen als Node-Test durchgespielt (Wien mit
+  englischem System → Deutsch, Mailand mit deutschem System → Deutsch, London →
+  Englisch, gespeicherte Wahl schlägt den Ort, …).
+- **Schlüssel-Parität und Format-Platzhalter** (`%1$s` / `{name}` / `%@`)
+  maschinell über alle vier Wörterbücher abgeglichen — keine Abweichung.
+- **iOS wurde nicht übersetzt.** Auf diesem Gerät gibt es weder Xcode noch eine
+  Swift-Toolchain; das ganze iOS-Projekt ist so entstanden (siehe
+  `ios/README.md`). Gegenprüfen auf dem Mac:
+  `./ios/tools/mac-build.sh test`.
+
+**Wichtig für die nächste Sitzung:** Der iOS-Teil ist der einzige ungeprüfte
+Anteil dieses Commits. Er berührt rund 25 Dateien; Konstruktoren von
+`AccountModel`, `RegisterModel`, `SwipeModel`, `ChatModel`, `VerificationModel`
+und `LoginModel` haben je einen Parameter `languageStore` dazubekommen, und
+`Gender.label` heißt jetzt `Gender.labelKey` (Rückgabetyp `L` statt `String`),
+ebenso `LegalDocument.title` → `titleKey` und `TopLevelDestination.label` →
+`labelKey`. Wenn der Mac-Build meckert, ist das die erste Spur.
+
+### Neue Dateien
+
+```
+frontend/i18n.js                       Maschinerie + Spracherkennung (geteilt)
+frontend/i18n-landing.js               Woerterbuch der Landingpage
+frontend/app/i18n-app.js               Woerterbuch der Web-App
+android-native/.../core/locale/        AppLanguage, LanguageStore, AppStrings,
+                                       ProvideAppLanguage, AppLanguageViewModel
+android-native/.../di/CoroutineModule.kt   @ApplicationScope fuer AppStrings
+android-native/.../di/LocaleModule.kt      bindet AppStrings an ResourceAppStrings
+android-native/.../component/LanguageSwitch.kt
+android-native/app/src/main/res/values-en/strings.xml
+android-native/.../test/.../testing/FakeAppStrings.kt
+ios/FLEXR/Core/Locale/                 AppLanguage, LanguageStore, FlexrStrings
+                                       (+German, +English)
+ios/FLEXR/Core/DesignSystem/Component/LanguageSwitch.swift
+```
+
+Der Service Worker (`frontend/sw.js`) steht auf `flexr-shell-v9` und nimmt
+`/i18n.js`, `/i18n-landing.js` und `/app/i18n-app.js` in die Shell — ohne sie
+zeigte die App offline die rohen Schlüssel.
 
 ## Sitzung 08.09.2026 — Version 2.5.5 gebaut, alle AABs vom VPS gelöscht
 

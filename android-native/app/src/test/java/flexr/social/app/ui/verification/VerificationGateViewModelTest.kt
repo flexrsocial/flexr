@@ -10,13 +10,14 @@ import flexr.social.app.data.remote.dto.PresignPhotoResponseDto
 import flexr.social.app.data.remote.dto.VerificationStatusDto
 import flexr.social.app.data.repository.ProfileRepository
 import flexr.social.app.data.repository.VerificationRepository
+import flexr.social.app.testing.FakeAppStrings
 import flexr.social.app.testing.FakeFlexrApi
 import flexr.social.app.testing.FakeSessionStore
 import flexr.social.app.testing.MainDispatcherRule
+import flexr.social.app.testing.meinProfilDto
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
-import flexr.social.app.testing.meinProfilDto
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
@@ -61,6 +62,7 @@ class VerificationGateViewModelTest {
         verificationRepository = VerificationRepository(api),
         profileRepository = ProfileRepository(api, FakeSessionStore()),
         photoPreparer = preparer,
+        strings = FakeAppStrings(),
     )
 
     private fun inPruefung() = VerificationStatusDto(
@@ -154,6 +156,7 @@ class VerificationGateViewModelTest {
             verificationRepository = VerificationRepository(api),
             profileRepository = profileRepository,
             photoPreparer = { PreparedPhoto(ByteArray(8), ByteArray(4)) },
+            strings = FakeAppStrings(),
         )
 
         // Wie in der App: MainViewModel laedt das Profil, bevor der

@@ -48,6 +48,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
@@ -56,12 +57,13 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
+import flexr.social.app.R
 import flexr.social.app.core.common.ServerTime
 import flexr.social.app.core.designsystem.component.EmojiPickerPanel
 import flexr.social.app.core.designsystem.component.EmojiToggleButton
 import flexr.social.app.core.designsystem.component.EmptyState
-import flexr.social.app.core.designsystem.component.withEmojiInserted
 import flexr.social.app.core.designsystem.component.VerifiedBadge
+import flexr.social.app.core.designsystem.component.withEmojiInserted
 import flexr.social.app.core.designsystem.icon.FlexrIcons
 import flexr.social.app.core.designsystem.theme.FlexrTheme
 import flexr.social.app.core.designsystem.theme.MonoStyle
@@ -154,8 +156,8 @@ fun ChatScreen(
             if (messages.isEmpty() && !state.isLoading) {
                 EmptyState(
                     icon = FlexrIcons.Send,
-                    title = "Noch keine Nachrichten",
-                    description = "Schreib die erste — ihr habt schließlich gematcht.",
+                    title = stringResource(R.string.chat_empty_title),
+                    description = stringResource(R.string.chat_empty_sub),
                 )
             } else {
                 LazyColumn(
@@ -200,9 +202,9 @@ fun ChatScreen(
     }
     if (showBlockDialog) {
         ConfirmDialog(
-            title = "${match?.profile?.name.orEmpty()} blockieren?",
-            text = "Ihr seht euch danach nicht mehr. Das Match und der Chat verschwinden.",
-            confirmLabel = "Blockieren",
+            title = stringResource(R.string.block_dialog_title, match?.profile?.name.orEmpty()),
+            text = stringResource(R.string.chat_block_body),
+            confirmLabel = stringResource(R.string.common_block),
             onConfirm = {
                 showBlockDialog = false
                 viewModel.block()
@@ -212,9 +214,9 @@ fun ChatScreen(
     }
     if (showClearDialog) {
         ConfirmDialog(
-            title = "Chatverlauf leeren?",
-            text = "Der Verlauf wird nur für dich ausgeblendet — die andere Person sieht ihn weiterhin.",
-            confirmLabel = "Leeren",
+            title = stringResource(R.string.chat_clear_title),
+            text = stringResource(R.string.chat_clear_body),
+            confirmLabel = stringResource(R.string.chat_clear_confirm),
             destructive = false,
             onConfirm = {
                 showClearDialog = false
@@ -225,9 +227,9 @@ fun ChatScreen(
     }
     if (showDeleteDialog) {
         ConfirmDialog(
-            title = "Chat löschen?",
-            text = "Der Chat verschwindet aus deinen Chats — euer Match bleibt aber bestehen.",
-            confirmLabel = "Löschen",
+            title = stringResource(R.string.chat_delete_title),
+            text = stringResource(R.string.chat_delete_body),
+            confirmLabel = stringResource(R.string.common_delete),
             onConfirm = {
                 showDeleteDialog = false
                 viewModel.deleteChat()
@@ -259,7 +261,7 @@ private fun ChatHeader(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             IconButton(onClick = onBack, modifier = Modifier.size(36.dp)) {
-                Icon(FlexrIcons.Back, contentDescription = "Zurück", tint = colors.chalk)
+                Icon(FlexrIcons.Back, contentDescription = stringResource(R.string.common_back), tint = colors.chalk)
             }
             Spacer(Modifier.width(6.dp))
             AsyncImage(
@@ -293,7 +295,7 @@ private fun ChatHeader(
                 IconButton(onClick = onMenuToggle, modifier = Modifier.size(34.dp)) {
                     Icon(
                         FlexrIcons.More,
-                        contentDescription = "Weitere Optionen",
+                        contentDescription = stringResource(R.string.common_more_options),
                         tint = colors.chalkDim,
                         modifier = Modifier.size(17.dp),
                     )
@@ -304,7 +306,7 @@ private fun ChatHeader(
                     containerColor = colors.surface2,
                 ) {
                     DropdownMenuItem(
-                        text = { Text("Melden", color = colors.chalk) },
+                        text = { Text(stringResource(R.string.common_report), color = colors.chalk) },
                         onClick = onReport,
                         leadingIcon = {
                             Icon(
@@ -315,7 +317,7 @@ private fun ChatHeader(
                         },
                     )
                     DropdownMenuItem(
-                        text = { Text("Blockieren", color = colors.chalk) },
+                        text = { Text(stringResource(R.string.common_block), color = colors.chalk) },
                         onClick = onBlock,
                         leadingIcon = {
                             Icon(
@@ -326,11 +328,11 @@ private fun ChatHeader(
                         },
                     )
                     DropdownMenuItem(
-                        text = { Text("Chatverlauf leeren", color = colors.chalk) },
+                        text = { Text(stringResource(R.string.chat_clear_action), color = colors.chalk) },
                         onClick = onClearHistory,
                     )
                     DropdownMenuItem(
-                        text = { Text("Chat löschen", color = colors.danger) },
+                        text = { Text(stringResource(R.string.chat_delete_action), color = colors.danger) },
                         onClick = onDeleteChat,
                     )
                 }
@@ -400,11 +402,9 @@ private fun MessageBubble(message: Message, isMine: Boolean) {
         // Empfänger den Grund für den Platzhalter.
         if (message.wasCensored) {
             Text(
-                text = if (isMine) {
-                    "🔒 Zum Schutz zensiert — der Empfänger sieht keine Links/Kontaktdaten."
-                } else {
-                    "🔒 Ein Link oder Kontaktdaten wurden zu deinem Schutz entfernt."
-                },
+                text = stringResource(
+                    if (isMine) R.string.chat_censored_out else R.string.chat_censored_in,
+                ),
                 style = MaterialTheme.typography.bodySmall,
                 color = colors.chalkDim,
                 modifier = Modifier.padding(top = 3.dp, start = 4.dp, end = 4.dp),
@@ -435,14 +435,13 @@ private fun MuteBanner(untilLabel: String, reason: String?, appealHint: String?)
         Text("⚠️", style = MaterialTheme.typography.bodyMedium)
         Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
             Text(
-                text = "Deine Chat-Funktion ist vorübergehend gesperrt. Du kannst bis " +
-                    "$untilLabel Uhr keine Nachrichten senden.",
+                text = stringResource(R.string.chat_muted_banner, untilLabel),
                 style = MaterialTheme.typography.bodySmall,
                 color = Color(0xFFFFB3B3),
             )
             if (!reason.isNullOrBlank()) {
                 Text(
-                    text = "Grund: $reason",
+                    text = stringResource(R.string.chat_mute_reason, reason),
                     style = MaterialTheme.typography.bodySmall,
                     color = colors.chalk,
                 )
@@ -518,7 +517,9 @@ private fun ChatInputRow(
                 decorationBox = { inner ->
                     if (value.isEmpty()) {
                         Text(
-                            text = if (enabled) "Nachricht schreiben…" else "Chat vorübergehend gesperrt",
+                            text = stringResource(
+                                if (enabled) R.string.chat_input_placeholder else R.string.chat_input_locked,
+                            ),
                             style = MaterialTheme.typography.bodyLarge,
                             color = colors.chalkDim,
                         )

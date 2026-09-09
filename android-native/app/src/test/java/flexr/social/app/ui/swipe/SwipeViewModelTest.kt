@@ -7,6 +7,7 @@ import flexr.social.app.data.repository.MatchRepository
 import flexr.social.app.data.repository.ProfileRepository
 import flexr.social.app.data.repository.SafetyRepository
 import flexr.social.app.data.repository.SwipeRepository
+import flexr.social.app.testing.FakeAppStrings
 import flexr.social.app.testing.FakeFlexrApi
 import flexr.social.app.testing.FakeMatchDao
 import flexr.social.app.testing.FakeMessageDao
@@ -83,6 +84,7 @@ class SwipeViewModelTest {
             profileRepository = profileRepository,
             safetyRepository = SafetyRepository(api),
             matchRepository = MatchRepository(api, FakeMatchDao(), FakeMessageDao()),
+            strings = FakeAppStrings(),
         )
         return viewModel to profileRepository
     }

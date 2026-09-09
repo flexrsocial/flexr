@@ -15,9 +15,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import flexr.social.app.R
 import flexr.social.app.core.designsystem.component.EmptyState
 import flexr.social.app.core.designsystem.component.ScreenHeader
 import flexr.social.app.core.designsystem.icon.FlexrIcons
@@ -51,7 +53,10 @@ fun MatchesScreen(
 
     Column(Modifier.fillMaxSize().padding(horizontal = 20.dp)) {
         Spacer(Modifier.height(18.dp))
-        ScreenHeader(eyebrow = "Trefferquote", title = "Deine Matches")
+        ScreenHeader(
+            eyebrow = stringResource(R.string.matches_eyebrow),
+            title = stringResource(R.string.matches_title),
+        )
         Spacer(Modifier.height(16.dp))
 
         PullToRefreshBox(
@@ -63,8 +68,8 @@ fun MatchesScreen(
                 Box(Modifier.fillMaxSize()) {
                     EmptyState(
                         icon = FlexrIcons.Matches,
-                        title = "Noch keine Matches",
-                        description = "Weiter swipen — dein nächster Trainingspartner wartet schon.",
+                        title = stringResource(R.string.matches_empty_title),
+                        description = stringResource(R.string.matches_empty_sub),
                     )
                 }
             } else {
@@ -105,7 +110,10 @@ fun ChatsScreen(
 
     Column(Modifier.fillMaxSize().padding(horizontal = 20.dp)) {
         Spacer(Modifier.height(18.dp))
-        ScreenHeader(eyebrow = "Im Gespräch", title = "Deine Chats")
+        ScreenHeader(
+            eyebrow = stringResource(R.string.chats_eyebrow),
+            title = stringResource(R.string.chats_title),
+        )
         Spacer(Modifier.height(16.dp))
 
         PullToRefreshBox(
@@ -117,8 +125,8 @@ fun ChatsScreen(
                 Box(Modifier.fillMaxSize()) {
                     EmptyState(
                         icon = FlexrIcons.Chats,
-                        title = "Noch keine Chats",
-                        description = "Schreib einem deiner Matches die erste Nachricht.",
+                        title = stringResource(R.string.chats_empty_title),
+                        description = stringResource(R.string.chats_empty_sub),
                     )
                 }
             } else {

@@ -10,7 +10,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
+import flexr.social.app.R
 import flexr.social.app.core.designsystem.component.FlexrTextField
 import flexr.social.app.core.designsystem.theme.FlexrTheme
 
@@ -41,7 +43,7 @@ fun ConfirmDialog(
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Abbrechen", color = FlexrTheme.colors.chalkDim)
+                Text(stringResource(R.string.common_cancel), color = FlexrTheme.colors.chalkDim)
             }
         },
     )
@@ -64,19 +66,19 @@ fun ReportDialog(
     AlertDialog(
         onDismissRequest = onDismiss,
         containerColor = MaterialTheme.colorScheme.surface,
-        title = { Text("$userName melden", style = MaterialTheme.typography.headlineSmall) },
+        title = { Text(stringResource(R.string.report_dialog_title, userName), style = MaterialTheme.typography.headlineSmall) },
         text = {
             Column {
                 Text(
-                    text = "Was ist vorgefallen? Deine Meldung wird von uns geprüft.",
+                    text = stringResource(R.string.report_dialog_body),
                     style = MaterialTheme.typography.bodyMedium,
                     color = FlexrTheme.colors.chalkDim,
                 )
                 FlexrTextField(
                     value = reason,
                     onValueChange = { reason = it },
-                    label = "Grund",
-                    placeholder = "Kurze Beschreibung",
+                    label = stringResource(R.string.report_reason_label),
+                    placeholder = stringResource(R.string.report_reason_placeholder),
                     singleLine = false,
                     maxLines = 4,
                     minHeight = 84,
@@ -87,12 +89,12 @@ fun ReportDialog(
         },
         confirmButton = {
             TextButton(onClick = { onSubmit(reason.trim()) }, enabled = isValid) {
-                Text("Melden", color = if (isValid) FlexrTheme.colors.danger else FlexrTheme.colors.chalkDim)
+                Text(stringResource(R.string.common_report), color = if (isValid) FlexrTheme.colors.danger else FlexrTheme.colors.chalkDim)
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Abbrechen", color = FlexrTheme.colors.chalkDim)
+                Text(stringResource(R.string.common_cancel), color = FlexrTheme.colors.chalkDim)
             }
         },
     )

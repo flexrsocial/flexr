@@ -56,6 +56,8 @@ final class SwipeCardState {
 /// Auslenkung UND Griffpunkt. Ausgelöst wird ab einer Schwelle ODER bei genug
 /// Schwung.
 struct SwipeableCard: View {
+    @Environment(LanguageStore.self) private var languageStore
+    private var s: FlexrStrings { languageStore.strings }
 
     let profile: Profile
     /// Referenztyp — Änderungen wirken direkt, deshalb kein Binding nötig.
@@ -91,14 +93,14 @@ struct SwipeableCard: View {
             )
             .overlay(alignment: .topTrailing) {
                 if isDraggable {
-                    SwipeStamp(text: "Match", color: FlexrColor.lime, rotation: -10)
+                    SwipeStamp(text: s(.swipeStampMatch), color: FlexrColor.lime, rotation: -10)
                         .padding(16)
                         .opacity(state.offset.width > 0 ? state.progress : 0)
                 }
             }
             .overlay(alignment: .topLeading) {
                 if isDraggable {
-                    SwipeStamp(text: "Nope", color: FlexrColor.danger, rotation: 10)
+                    SwipeStamp(text: s(.swipeStampPass), color: FlexrColor.danger, rotation: 10)
                         .padding(16)
                         .opacity(state.offset.width < 0 ? state.progress : 0)
                 }
@@ -175,6 +177,8 @@ struct BackgroundCard: View {
 // MARK: - Karteninhalt
 
 private struct CardContent: View {
+    @Environment(LanguageStore.self) private var languageStore
+    private var s: FlexrStrings { languageStore.strings }
 
     let profile: Profile
     let isInteractive: Bool
@@ -199,7 +203,7 @@ private struct CardContent: View {
         ZStack(alignment: .bottomLeading) {
             PhotoImage(
                 source: PhotoImageSource(profile.photos[safe: photoIndex]?.url),
-                accessibilityLabel: "Profilfoto von \(profile.name)"
+                accessibilityLabel: s(.commonProfilePhotoOf, profile.name)
             )
                 .contentShape(Rectangle())
                 .onTapGesture {
@@ -261,10 +265,10 @@ private struct CardContent: View {
     private var actionButtons: some View {
         HStack(spacing: 6) {
             if let onUnmatch {
-                CardActionButton(icon: FlexrIcon.unmatch, label: "Match auflösen", action: onUnmatch)
+                CardActionButton(icon: FlexrIcon.unmatch, label: s(.unmatchAction), action: onUnmatch)
             }
-            CardActionButton(icon: FlexrIcon.report, label: "Melden", action: onReport)
-            CardActionButton(icon: FlexrIcon.block, label: "Blockieren", action: onBlock)
+            CardActionButton(icon: FlexrIcon.report, label: s(.commonReport), action: onReport)
+            CardActionButton(icon: FlexrIcon.block, label: s(.commonBlock), action: onBlock)
         }
         .padding(.top, 22)
         .padding(.trailing, 10)
@@ -302,7 +306,7 @@ private struct CardContent: View {
             VStack(alignment: .leading, spacing: 12) {
                 HStack(spacing: 8) {
                     StatChip(
-                        text: profile.gym.isEmpty ? "Kein Gym angegeben" : profile.gym,
+                        text: profile.gym.isEmpty ? s(.gymNone) : profile.gym,
                         icon: .dumbbell
                     )
                     if profile.isOnline {
@@ -310,7 +314,7 @@ private struct CardContent: View {
                     }
                     Spacer(minLength: 0)
                 }
-                Text(profile.bio?.isEmpty == false ? profile.bio! : "Keine Bio angegeben.")
+                Text(profile.bio?.isEmpty == false ? profile.bio! : s(.bioNone))
                     .flexrText(.bodyMedium)
                     .foregroundStyle(FlexrColor.chalkDim)
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -343,6 +347,8 @@ private struct CardActionButton: View {
 
 /// MATCH-/NOPE-Stempel, der beim Ziehen sichtbar wird.
 private struct SwipeStamp: View {
+    @Environment(LanguageStore.self) private var languageStore
+    private var s: FlexrStrings { languageStore.strings }
 
     let text: String
     let color: Color

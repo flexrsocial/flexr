@@ -20,10 +20,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import coil.compose.AsyncImage
+import flexr.social.app.R
 import flexr.social.app.core.designsystem.icon.FlexrIcons
 import flexr.social.app.core.designsystem.theme.FlexrTheme
 import flexr.social.app.core.designsystem.theme.MonoStyle
@@ -65,7 +67,7 @@ fun PhotoLightbox(
             ) { page ->
                 AsyncImage(
                     model = photos[page].url,
-                    contentDescription = "Foto ${page + 1} von ${photos.size}",
+                    contentDescription = stringResource(R.string.photo_lightbox_position, page + 1, photos.size),
                     contentScale = ContentScale.Fit,
                     modifier = Modifier
                         .fillMaxSize()
@@ -82,7 +84,7 @@ fun PhotoLightbox(
                     .clip(CircleShape)
                     .background(Color.White.copy(alpha = 0.08f)),
             ) {
-                Icon(FlexrIcons.Close, contentDescription = "Schließen", tint = Color.White)
+                Icon(FlexrIcons.Close, contentDescription = stringResource(R.string.common_close), tint = Color.White)
             }
 
             if (photos.size > 1) {

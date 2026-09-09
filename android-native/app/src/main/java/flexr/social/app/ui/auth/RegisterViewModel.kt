@@ -1,10 +1,13 @@
 package flexr.social.app.ui.auth
 
 import android.net.Uri
+import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import flexr.social.app.R
 import flexr.social.app.core.common.ServerTime
+import flexr.social.app.core.locale.AppStrings
 import flexr.social.app.core.media.ImageProcessor
 import flexr.social.app.core.media.PhotoTooSmallException
 import flexr.social.app.core.media.PreparedPhoto
@@ -64,10 +67,17 @@ data class RegisterUiState(
     /** Zweite Eingabe deckt Tippfehler auf - vergeben wird nur, was zweimal gleich kam. */
     val passwordsMatch: Boolean get() = password == passwordConfirm
 
-    /** Fehlerhinweis am Wiederholungsfeld, aber erst wenn dort etwas steht. */
-    val passwordConfirmError: String?
+    /**
+     * Fehlerhinweis am Wiederholungsfeld, aber erst wenn dort etwas steht.
+     *
+     * Als Ressourcen-Kennung und nicht als fertiger Text: der Zustand kennt
+     * die gewaehlte Sprache nicht, der Bildschirm loest sie mit
+     * `stringResource` auf.
+     */
+    @get:StringRes
+    val passwordConfirmErrorRes: Int?
         get() = if (passwordConfirm.isNotEmpty() && !passwordsMatch) {
-            "Die Passwörter stimmen nicht überein."
+            R.string.register_err_password_mismatch_short
         } else {
             null
         }
@@ -107,6 +117,7 @@ class RegisterViewModel @Inject constructor(
     private val gymRepository: GymRepository,
     private val plzRepository: PlzRepository,
     private val imageProcessor: ImageProcessor,
+    private val strings: AppStrings,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(RegisterUiState())
@@ -148,8 +159,11 @@ class RegisterViewModel @Inject constructor(
                         onSuccess = { city -> PlzLookupState.Resolved(city) },
                         onFailure = { throwable ->
                             PlzLookupState.Failed(
-                                if (throwable is UnknownPostalCodeException) throwable.message.orEmpty()
-                                else "Ort konnte nicht ermittelt werden. Bitte später erneut versuchen.",
+                                if (throwable is UnknownPostalCodeException) {
+                                    strings.get(R.string.error_postal_code_unknown)
+                                } else {
+                                    strings.get(R.string.plz_lookup_failed)
+                                },
                             )
                         },
                     ),
@@ -237,7 +251,7 @@ class RegisterViewModel @Inject constructor(
                             selectedLabel = gym.label,
                             expanded = false,
                         ),
-                        successNotice = "Danke! Vorschlag eingereicht — du kannst das Gym sofort verwenden.",
+                        successNotice = strings.get(R.string.gym_suggest_thanks),
                     )
                 }
             }.onFailure { throwable ->
@@ -245,7 +259,7 @@ class RegisterViewModel @Inject constructor(
                     it.copy(
                         gymSuggestion = suggestion.copy(
                             isSubmitting = false,
-                            error = throwable.message ?: "Vorschlag konnte nicht eingereicht werden.",
+                            error = throwable.message ?: strings.get(R.string.gym_suggest_failed),
                         ),
                     )
                 }
@@ -257,7 +271,9 @@ class RegisterViewModel @Inject constructor(
 
     fun onPhotoPicked(uri: Uri) {
         if (_uiState.value.photos.size >= ImageProcessor.MAX_PHOTOS) {
-            _uiState.update { it.copy(photoError = "Maximal ${ImageProcessor.MAX_PHOTOS} Fotos.") }
+            _uiState.update {
+                it.copy(photoError = strings.get(R.string.register_photo_max, ImageProcessor.MAX_PHOTOS))
+            }
             return
         }
         _uiState.update { it.copy(isPreparingPhoto = true, photoError = null) }
@@ -276,8 +292,13 @@ class RegisterViewModel @Inject constructor(
                         it.copy(
                             isPreparingPhoto = false,
                             photoError = when (throwable) {
-                                is PhotoTooSmallException -> throwable.message
-                                else -> "Foto konnte nicht geladen werden."
+                                is PhotoTooSmallException -> strings.get(
+                                    R.string.photo_too_small,
+                                    throwable.width,
+                                    throwable.height,
+                                    ImageProcessor.MIN_EDGE_PX,
+                                )
+                                else -> strings.get(R.string.register_photo_load_failed)
                             },
                         )
                     }
@@ -329,10 +350,9 @@ class RegisterViewModel @Inject constructor(
                         // gehört zum Hauptgraphen und ist ohne Freischaltung
                         // gar nicht erreichbar. Der Upload wartet jetzt direkt
                         // auf dem Verifizierungs-Schirm (VerificationGateScreen).
-                        failures == state.photos.size ->
-                            "Profil erstellt — Foto-Upload fehlgeschlagen. Du kannst das Foto gleich nachreichen."
-                        failures > 0 -> "Profil erstellt — nicht alle Fotos konnten hochgeladen werden."
-                        else -> "Profil erstellt. Jetzt noch die Alters- und Identitätsprüfung 💪"
+                        failures == state.photos.size -> strings.get(R.string.register_done_no_photo)
+                        failures > 0 -> strings.get(R.string.register_done_partial_photos)
+                        else -> strings.get(R.string.register_done)
                     }
                     _uiState.update {
                         it.copy(isSubmitting = false, success = true, successNotice = notice)
@@ -342,7 +362,7 @@ class RegisterViewModel @Inject constructor(
                         it.copy(
                             isSubmitting = false,
                             error = (throwable as? FlexrApiException)?.message
-                                ?: "Registrierung fehlgeschlagen.",
+                                ?: strings.get(R.string.register_failed),
                         )
                     }
                 }
@@ -368,30 +388,23 @@ class RegisterViewModel @Inject constructor(
             state.name.isBlank() ||
             state.birthdate == null
         ) {
-            return "Bitte E-Mail, Passwort (min. ${RegisterUiState.MIN_PASSWORD_LENGTH} Zeichen), " +
-                "Name und Geburtsdatum angeben."
+            return strings.get(R.string.register_err_required, RegisterUiState.MIN_PASSWORD_LENGTH)
         }
         if (!state.passwordsMatch) {
-            return "Die beiden Passwörter stimmen nicht überein."
+            return strings.get(R.string.register_err_password_mismatch)
         }
         val age = ServerTime.ageFrom(state.birthdate)
         // Wortgleich mit der serverseitigen Antwort (backend/app/age.py) - die
         // Grenze prüft verbindlich der Server, hier geht es nur um die Führung.
         if (age < RegisterUiState.MIN_AGE) {
-            return "Du musst mindestens 18 Jahre alt sein, um FLEXR nutzen zu können."
+            return strings.get(R.string.register_err_under_18)
         }
-        if (age > RegisterUiState.MAX_AGE) return "Bitte ein gültiges Geburtsdatum angeben."
-        if (state.resolvedCity == null) {
-            return "Bitte eine gültige österreichische Postleitzahl eingeben (Ort wird automatisch ermittelt)."
-        }
-        if (state.gender == null) return "Bitte ein Geschlecht auswählen."
-        if (state.gymPicker.selectedLabel == null) return "Bitte ein Gym aus der Liste auswählen."
-        if (state.photos.isEmpty()) return "Bitte lade mindestens ein Foto hoch."
-        if (!state.consentSensitiveData) {
-            return "Ohne die Einwilligung zur Verarbeitung von Geschlecht und gesuchtem " +
-                "Geschlecht können wir dir keine Profile vorschlagen - sie ist die " +
-                "Grundlage des Matchings."
-        }
+        if (age > RegisterUiState.MAX_AGE) return strings.get(R.string.register_err_birthdate)
+        if (state.resolvedCity == null) return strings.get(R.string.register_err_postal_code)
+        if (state.gender == null) return strings.get(R.string.register_err_gender)
+        if (state.gymPicker.selectedLabel == null) return strings.get(R.string.register_err_gym)
+        if (state.photos.isEmpty()) return strings.get(R.string.register_err_photo)
+        if (!state.consentSensitiveData) return strings.get(R.string.register_err_consent)
         return null
     }
 

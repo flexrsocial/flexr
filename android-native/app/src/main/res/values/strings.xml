@@ -1,11 +1,509 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+  Deutsch ist die Ausgangssprache: diese Datei traegt die Originaltexte,
+  values-en/strings.xml die Uebersetzung. Fehlt dort ein Schluessel, faellt
+  Android von selbst hierher zurueck - eine vergessene Uebersetzung sieht dann
+  nach deutschem Text aus und nicht nach einem Absturz.
+
+  Die Rechtstexte (AGB, Datenschutz, Nutzungsrichtlinien) stehen bewusst NICHT
+  hier: sie liegen in ui/legal/LegalContent.kt und bleiben nur auf Deutsch, weil
+  sie in dieser Fassung verbindlich sind. Der Sprachregler weist darauf hin.
+
+  Ordnung nach Bildschirm, nicht nach Alphabet - so steht beisammen, was auch
+  auf dem Schirm beisammensteht.
+-->
 <resources>
     <string name="app_name">FLEXR</string>
 
     <string name="notification_channel_messages">Neue Nachrichten</string>
     <string name="notification_channel_messages_desc">Benachrichtigung, wenn dir ein Match schreibt.</string>
     <string name="notification_new_messages_title">Neue Nachrichten</string>
+    <string name="notification_new_message_from">Neue Nachricht von %1$s</string>
+    <string name="notification_new_messages_count">%1$d neue Nachrichten</string>
 
     <string name="notification_channel_activity">Matches und Erinnerungen</string>
     <string name="notification_channel_activity_desc">Neues Match, neue Profile in deinem Umkreis und Erinnerungen.</string>
+
+    <!-- ==== Sprache ==== -->
+    <string name="lang_switch_label">Sprache</string>
+    <string name="lang_row_title">Sprache</string>
+    <string name="lang_row_hint">Gilt für die gesamte App. Rechtstexte bleiben auf Deutsch verbindlich.</string>
+
+    <!-- ==== Allgemein ==== -->
+    <string name="common_back">Zurück</string>
+    <string name="common_cancel">Abbrechen</string>
+    <string name="common_close">Schließen</string>
+    <string name="common_continue">Weiter</string>
+    <string name="common_loading">Lädt …</string>
+    <string name="common_delete">Löschen</string>
+    <string name="common_report">Melden</string>
+    <string name="common_block">Blockieren</string>
+    <string name="common_more_options">Weitere Optionen</string>
+    <string name="common_apply">Übernehmen</string>
+    <string name="common_account">Konto</string>
+    <string name="common_delete_account">Konto löschen</string>
+    <string name="common_write_message">Nachricht schreiben</string>
+    <string name="common_profile">Profil</string>
+    <string name="common_verified_profile">Verifiziertes Profil</string>
+    <string name="common_profile_photo_of">Profilfoto von %1$s</string>
+    <string name="common_delete_failed">Löschen fehlgeschlagen.</string>
+    <string name="common_status_load_failed">Status konnte nicht geladen werden.</string>
+
+    <string name="status_beta_free">Beta · gratis</string>
+    <string name="status_subscribed">Abo aktiv</string>
+    <string name="status_trial_days">Testmonat: %1$dd</string>
+    <string name="status_expired">Abgelaufen</string>
+    <string name="status_not_unlocked">Nicht freigeschaltet</string>
+
+    <!-- ==== Navigation ==== -->
+    <string name="nav_swipe">Swipe</string>
+    <string name="nav_matches">Matches</string>
+    <string name="nav_chats">Chats</string>
+    <string name="nav_account">Konto</string>
+
+    <!-- ==== Rechtsdokumente (Titel der Ansicht; Inhalt bleibt deutsch) ==== -->
+    <string name="legal_faq">Häufige Fragen</string>
+    <string name="legal_impressum">Impressum</string>
+    <string name="legal_datenschutz">Datenschutzerklärung</string>
+    <string name="legal_agb">Allgemeine Geschäftsbedingungen</string>
+    <string name="legal_sicherheit">Sicherheitstipps</string>
+    <string name="legal_nutzungsrichtlinien">Nutzungsrichtlinien</string>
+    <string name="legal_strafverfolgung">Strafverfolgungsbehörden</string>
+    <string name="legal_only_german">Diese Rechtstexte liegen nur auf Deutsch vor und sind in dieser Fassung verbindlich.</string>
+
+    <!-- ==== Eingabefelder / Bausteine ==== -->
+    <string name="field_email">E-Mail</string>
+    <string name="field_password">Passwort</string>
+    <string name="field_password_show">Passwort anzeigen</string>
+    <string name="field_password_hide">Passwort verbergen</string>
+    <string name="field_name">Name</string>
+    <string name="field_bio">Bio</string>
+    <string name="field_bio_placeholder">Was du suchst, dein Training, gerne mit Emojis 💪</string>
+    <string name="emoji_insert">Emoji einfügen</string>
+    <string name="emoji_close">Emoji-Auswahl schließen</string>
+    <string name="plz_loading">Lädt …</string>
+    <string name="plz_enter">— PLZ eingeben —</string>
+    <string name="plz_unknown">— unbekannte PLZ —</string>
+
+    <!-- ==== Login ==== -->
+    <string name="login_eyebrow">Willkommen zurück</string>
+    <string name="login_title">Zurück ins\nGym-Date.</string>
+    <string name="login_subtitle">Melde dich mit deinen Zugangsdaten an.</string>
+    <string name="login_submit">Einloggen</string>
+    <string name="login_register_hint">Neu hier? Erstell dein Profil und teste FLEXR einen Monat gratis.</string>
+    <string name="login_missing_fields">Bitte E-Mail und Passwort angeben.</string>
+    <string name="login_reactivate_title">Konto reaktivieren?</string>
+    <string name="login_reactivate_confirm">Jetzt reaktivieren</string>
+
+    <!-- ==== Registrierung ==== -->
+    <string name="register_title">Dating für Leute,\ndie auch montags\nBeintag machen.</string>
+    <string name="register_subtitle">Erstell dein Profil. Während der Beta-Phase kostenlos — die Mitgliedschaft von 5 €/Monat ist bis auf weiteres ausgesetzt. Aktuell nur in Österreich verfügbar.</string>
+    <string name="register_password_repeat">Passwort wiederholen</string>
+    <string name="register_password_repeat_placeholder">Passwort erneut eingeben</string>
+    <string name="register_photos_label">Fotos (mind. 1, max. 6)</string>
+    <string name="register_eyebrow">Erste Wiederholung</string>
+    <string name="register_submit">Kostenlos registrieren</string>
+    <string name="register_password_placeholder">Mind. 8 Zeichen</string>
+    <string name="register_name_placeholder">Max</string>
+    <string name="register_birthdate_label">Geburtsdatum</string>
+    <string name="register_birthdate_placeholder">tt.mm.jjjj</string>
+    <string name="register_age_years">%1$d Jahre</string>
+    <string name="register_gender_label">Geschlecht</string>
+    <string name="gender_male">Mann</string>
+    <string name="gender_female">Frau</string>
+    <string name="register_photo_preparing">Foto wird vorbereitet …</string>
+    <string name="register_consent_prefix">Ich willige ein, dass meine Angaben zu Geschlecht und gesuchtem Geschlecht (daraus ableitbar: sexuelle Orientierung) gemäß </string>
+    <string name="register_consent_link">Datenschutzerklärung</string>
+    <string name="register_consent_suffix"> verarbeitet werden.</string>
+    <string name="register_incomplete_hint">Noch nicht vollständig — tippe auf den Knopf, dann zeigen wir dir, was fehlt.</string>
+    <string name="register_err_password_mismatch_short">Die Passwörter stimmen nicht überein.</string>
+    <string name="register_err_required">Bitte E-Mail, Passwort (min. %1$d Zeichen), Name und Geburtsdatum angeben.</string>
+    <string name="register_err_password_mismatch">Die beiden Passwörter stimmen nicht überein.</string>
+    <string name="register_err_under_18">Du musst mindestens 18 Jahre alt sein, um FLEXR nutzen zu können.</string>
+    <string name="register_err_birthdate">Bitte ein gültiges Geburtsdatum angeben.</string>
+    <string name="register_err_postal_code">Bitte eine gültige österreichische Postleitzahl eingeben (Ort wird automatisch ermittelt).</string>
+    <string name="register_err_gender">Bitte ein Geschlecht auswählen.</string>
+    <string name="register_err_gym">Bitte ein Gym aus der Liste auswählen.</string>
+    <string name="register_err_photo">Bitte lade mindestens ein Foto hoch.</string>
+    <string name="register_err_consent">Ohne die Einwilligung zur Verarbeitung von Geschlecht und gesuchtem Geschlecht können wir dir keine Profile vorschlagen - sie ist die Grundlage des Matchings.</string>
+    <string name="register_done_no_photo">Profil erstellt — Foto-Upload fehlgeschlagen. Du kannst das Foto gleich nachreichen.</string>
+    <string name="register_done_partial_photos">Profil erstellt — nicht alle Fotos konnten hochgeladen werden.</string>
+    <string name="register_done">Profil erstellt. Jetzt noch die Alters- und Identitätsprüfung 💪</string>
+    <string name="register_failed">Registrierung fehlgeschlagen.</string>
+    <string name="register_photo_max">Maximal %1$d Fotos.</string>
+    <string name="register_photo_load_failed">Foto konnte nicht geladen werden.</string>
+    <string name="plz_lookup_failed">Ort konnte nicht ermittelt werden. Bitte später erneut versuchen.</string>
+
+    <!-- ==== Gym-Auswahl ==== -->
+    <string name="gym_label">Gym</string>
+    <string name="gym_search_placeholder">Gym suchen (Name, Ort oder PLZ) …</string>
+    <string name="gym_suggest_row">Gym nicht dabei? Jetzt vorschlagen</string>
+    <string name="gym_suggest_title">Gym vorschlagen</string>
+    <string name="gym_suggest_intro">Dein Gym fehlt in der Liste? Reich es mit Adresse ein — du kannst es sofort für dein Profil verwenden, nach Prüfung erscheint es für alle.</string>
+    <string name="gym_name_label">Name des Gyms</string>
+    <string name="gym_street_label">Straße</string>
+    <string name="gym_street_placeholder">z. B. Hauptstraße</string>
+    <string name="gym_suggest_thanks">Danke! Vorschlag eingereicht — du kannst das Gym sofort verwenden.</string>
+    <string name="gym_suggest_failed">Vorschlag konnte nicht eingereicht werden.</string>
+    <string name="gym_searching">Suche …</string>
+    <string name="gym_name_placeholder">z. B. Eisenschmiede</string>
+    <string name="gym_house_number_label">Hausnummer</string>
+    <string name="gym_postal_code_label">Postleitzahl</string>
+    <string name="gym_suggest_submit">Vorschlag einreichen</string>
+    <string name="gym_none">Kein Gym angegeben</string>
+    <string name="bio_none">Keine Bio angegeben.</string>
+
+    <!-- ==== Swipe ==== -->
+    <string name="swipe_eyebrow">Entdecken</string>
+    <string name="swipe_title">Profile in deiner Nähe</string>
+    <string name="swipe_loading">Lade Profile …</string>
+    <string name="swipe_error_title">Nicht geladen</string>
+    <string name="swipe_retry">Erneut versuchen</string>
+    <string name="swipe_reload">Neu laden</string>
+    <string name="swipe_own_name">Du</string>
+    <string name="swipe_radius">%1$d km rund um dein Gym</string>
+    <string name="swipe_empty_title">Alle Sätze absolviert</string>
+    <string name="swipe_empty_sub">Keine neuen Profile in deiner Nähe. Schau später nochmal vorbei.</string>
+    <string name="swipe_like">Gefällt mir</string>
+    <string name="swipe_pass">Ablehnen</string>
+    <string name="swipe_block_body">Ihr seht euch danach nicht mehr — weder im Deck noch in den Matches.</string>
+    <string name="swipe_load_failed">Profile konnten nicht geladen werden.</string>
+    <string name="swipe_failed">Swipe fehlgeschlagen.</string>
+    <string name="swipe_stamp_match">Match</string>
+    <string name="swipe_stamp_pass">Nope</string>
+    <string name="unmatch_action">Match auflösen</string>
+    <string name="block_done">%1$s blockiert.</string>
+    <string name="block_failed">Blockieren fehlgeschlagen.</string>
+
+    <!-- ==== Match-Overlay ==== -->
+    <string name="match_eyebrow">Beide interessiert</string>
+    <string name="match_title">Match!</string>
+    <string name="match_sub">Du und %1$s habt euch gegenseitig geliked.</string>
+    <string name="match_continue">Weiter swipen</string>
+
+    <!-- ==== Matches / Chats ==== -->
+    <string name="matches_eyebrow">Trefferquote</string>
+    <string name="matches_title">Deine Matches</string>
+    <string name="chats_cleared">Chatverlauf geleert</string>
+    <string name="matches_empty_title">Noch keine Matches</string>
+    <string name="matches_empty_sub">Weiter swipen — dein nächster Trainingspartner wartet schon.</string>
+    <string name="matches_load_failed">Matches konnten nicht geladen werden.</string>
+    <string name="chats_eyebrow">Im Gespräch</string>
+    <string name="chats_title">Deine Chats</string>
+    <string name="chats_empty_title">Noch keine Chats</string>
+    <string name="chats_empty_sub">Schreib einem deiner Matches die erste Nachricht.</string>
+    <string name="chats_you_prefix">Du: </string>
+
+    <!-- ==== Match-Profil ==== -->
+    <string name="match_profile_block_body">Ihr seht euch danach nicht mehr — das Match und der Chat verschwinden.</string>
+    <string name="match_profile_unmatch_title">Match mit %1$s auflösen?</string>
+    <string name="match_profile_unmatch_body">Der Chatverlauf wird gelöscht. Die Person kann dir danach erneut im Deck begegnen — eine Sperre ist das ausdrücklich nicht.</string>
+    <string name="match_profile_unmatch_confirm">Auflösen</string>
+    <string name="unmatch_done">Match mit %1$s aufgelöst.</string>
+    <string name="unmatch_failed">Auflösen fehlgeschlagen.</string>
+
+    <!-- ==== Chat ==== -->
+    <string name="chat_empty_title">Noch keine Nachrichten</string>
+    <string name="chat_empty_sub">Schreib die erste — ihr habt schließlich gematcht.</string>
+    <string name="chat_clear_title">Chatverlauf leeren?</string>
+    <string name="chat_clear_confirm">Leeren</string>
+    <string name="chat_muted_banner">Deine Chat-Funktion ist vorübergehend gesperrt. Du kannst bis %1$s Uhr keine Nachrichten senden.</string>
+    <string name="chat_mute_reason">Grund: %1$s</string>
+    <string name="chat_block_body">Ihr seht euch danach nicht mehr. Das Match und der Chat verschwinden.</string>
+    <string name="chat_clear_body">Der Verlauf wird nur für dich ausgeblendet — die andere Person sieht ihn weiterhin.</string>
+    <string name="chat_delete_title">Chat löschen?</string>
+    <string name="chat_delete_body">Der Chat verschwindet aus deinen Chats — euer Match bleibt aber bestehen.</string>
+    <string name="chat_clear_action">Chatverlauf leeren</string>
+    <string name="chat_delete_action">Chat löschen</string>
+    <string name="chat_censored_out">🔒 Zum Schutz zensiert — der Empfänger sieht keine Links/Kontaktdaten.</string>
+    <string name="chat_censored_in">🔒 Ein Link oder Kontaktdaten wurden zu deinem Schutz entfernt.</string>
+    <string name="chat_input_placeholder">Nachricht schreiben…</string>
+    <string name="chat_input_locked">Chat vorübergehend gesperrt</string>
+    <string name="chat_send_failed">Nachricht konnte nicht gesendet werden.</string>
+    <string name="chat_cleared">Chatverlauf geleert.</string>
+    <string name="chat_clear_failed">Leeren fehlgeschlagen.</string>
+    <string name="chat_deleted">Chat gelöscht.</string>
+    <string name="chat_open_failed">Chat konnte nicht geöffnet werden.</string>
+
+    <!-- ==== Melden ==== -->
+    <string name="report_dialog_title">%1$s melden</string>
+    <string name="report_dialog_body">Was ist vorgefallen? Deine Meldung wird von uns geprüft.</string>
+    <string name="report_failed">Meldung fehlgeschlagen.</string>
+    <string name="report_reason_label">Grund</string>
+    <string name="report_reason_placeholder">Kurze Beschreibung</string>
+    <string name="block_dialog_title">%1$s blockieren?</string>
+
+    <!-- ==== Fotos ==== -->
+    <string name="photo_remove">Foto entfernen</string>
+    <string name="photo_add">Foto hinzufügen</string>
+    <string name="photo_pending">In Prüfung</string>
+    <string name="photo_rejected">Abgelehnt</string>
+    <string name="photo_uploading">Foto wird hochgeladen …</string>
+    <string name="photo_hint_none">Mindestens ein Foto ist nötig, damit dein Profil sichtbar ist.</string>
+    <string name="photo_hint_ok">Dein Profil ist sichtbar. Neue Fotos werden kurz geprüft.</string>
+    <string name="photo_hint_pending">Dein Foto wird geprüft.</string>
+    <string name="photo_hint_rejected">Foto abgelehnt. Bitte lade ein anderes hoch.</string>
+    <string name="photo_min_one">Mindestens ein Foto ist erforderlich. Lade zuerst ein weiteres hoch.</string>
+    <string name="photo_upload_failed">Foto-Upload fehlgeschlagen.</string>
+    <string name="photo_order_failed">Reihenfolge konnte nicht gespeichert werden.</string>
+    <string name="photo_lightbox_position">Foto %1$d von %2$d</string>
+    <string name="photo_too_small">Foto zu klein (%1$d×%2$d). Mindestens %3$d×%3$d Pixel.</string>
+    <string name="photo_read_failed">Bild konnte nicht gelesen werden.</string>
+
+    <!-- ==== Konto ==== -->
+    <string name="account_own_photo">Dein Profilfoto</string>
+    <string name="account_trial_days_left">Noch %1$d Tag(e) gratis Probemonat.</string>
+    <string name="account_subscribe">Jetzt abonnieren</string>
+    <string name="account_radius_label">Suchumkreis</string>
+    <string name="account_radius_value">%1$d km</string>
+    <string name="account_section_settings">Einstellungen</string>
+    <string name="account_messages_switch">Nachrichten erhalten</string>
+    <string name="account_notifications_title">Benachrichtigungen</string>
+    <string name="account_legal_title">Hilfe &amp; Rechtliches</string>
+    <string name="account_privacy_title">Datenschutz &amp; Sicherheit</string>
+    <string name="account_blocks_title">Blockierte Personen</string>
+    <string name="consent_revoke_title">Einwilligung widerrufen?</string>
+    <string name="consent_revoked_suffix">  — widerrufen</string>
+    <string name="consent_granted_version">Erteilt am %1$s, Fassung %2$s.</string>
+    <string name="consent_revoked_on_day">Widerrufen am %1$s.</string>
+    <string name="consent_revoke_link">Einwilligung widerrufen</string>
+    <string name="consent_grant_link">Einwilligung erneut erteilen</string>
+    <string name="blocks_unblock">Aufheben</string>
+    <string name="blocks_blocked">Blockiert</string>
+    <string name="blocks_blocked_since">Blockiert · seit %1$s</string>
+    <string name="notify_push">App-Benachrichtigung</string>
+    <string name="verify_hint_title">Verifizierung</string>
+    <string name="verify_hint_start">Zur Verifizierung</string>
+    <string name="verify_hint_document">Ausweis aufnehmen</string>
+    <string name="date_unknown">—</string>
+    <string name="account_section_profile">Profil</string>
+    <string name="account_section_photos">Fotos</string>
+    <string name="account_status_beta_free">FLEXR ist in der Beta-Phase kostenlos — die Mitgliedschaft von 5 €/Monat ist bis auf weiteres ausgesetzt. Es ist kein Zahlungsmittel hinterlegt und es wird nichts abgebucht.</string>
+    <string name="account_status_active">Dein Abo ist aktiv (5 €/Monat).</string>
+    <string name="account_manage_subscription">Abo verwalten / kündigen</string>
+    <string name="account_radius_hint">Radius rund um dein Gym. Dein Gerätestandort wird nicht verwendet.</string>
+    <string name="account_save">Profil speichern</string>
+    <string name="account_saved">Profil gespeichert ✓</string>
+    <string name="account_save_failed">Speichern fehlgeschlagen.</string>
+    <string name="account_err_postal_code">Bitte eine gültige österreichische Postleitzahl eingeben (Ort wird automatisch ermittelt).</string>
+    <string name="account_err_photo_before_save">Bitte lade mindestens ein Foto hoch, bevor du speicherst.</string>
+    <string name="account_err_gym">Bitte ein Gym aus der Liste auswählen.</string>
+    <string name="account_notifications_row">Matches, neue Profile und Erinnerungen</string>
+    <string name="account_legal_row">Sicherheit, Datenschutz und Bedingungen</string>
+    <string name="account_consents_row">Einwilligungen einsehen und widerrufen</string>
+    <string name="account_blocks_row">Blockierungen verwalten und aufheben</string>
+    <string name="account_notification_permission">Ohne Berechtigung können keine Benachrichtigungen angezeigt werden.</string>
+    <string name="account_checkout_consent_missing">Bitte bestätige beide Erklärungen, um fortzufahren.</string>
+    <string name="account_checkout_failed">Checkout konnte nicht gestartet werden.</string>
+    <string name="account_portal_failed">Abo-Verwaltung konnte nicht geöffnet werden.</string>
+    <string name="account_notification_save_failed">Einstellung konnte nicht gespeichert werden.</string>
+
+    <!-- ==== Vor der Zahlung (§ 10 FAGG) ==== -->
+    <string name="checkout_title">Vor der Zahlung</string>
+    <string name="checkout_consent_immediate">Ich stimme ausdrücklich zu, dass FLEXR bereits vor Ablauf der 14-tägigen Rücktrittsfrist mit der Erbringung der kostenpflichtigen Dienstleistung beginnt.</string>
+    <string name="checkout_consent_withdrawal">Ich bestätige, dass ich zur Kenntnis genommen habe, dass mein Rücktrittsrecht nach vollständiger Vertragserfüllung durch FLEXR erlischt, wenn die gesetzlichen Voraussetzungen dafür erfüllt sind.</string>
+    <string name="checkout_continue">Weiter zur Zahlung</string>
+
+    <!-- ==== Einwilligungen / Blockierungen ==== -->
+    <string name="consent_none">Keine Einträge.</string>
+    <string name="consent_granted_on">Erteilt am %1$s</string>
+    <string name="consent_revoked_on">Widerrufen am %1$s</string>
+    <string name="consent_sensitive">Verarbeitung von Geschlecht und gesuchtem Geschlecht</string>
+    <string name="consent_verification">Aufnahmen für die Alters- und Identitätsprüfung</string>
+    <string name="consent_terms">Angenommene AGB-Fassung</string>
+    <string name="consent_basis_explicit">Ausdrückliche Einwilligung nach Art. 9 Abs. 2 lit. a DSGVO.</string>
+    <string name="consent_basis_contract">Vertragsschluss, keine Einwilligung — daher nicht widerrufbar.</string>
+    <string name="consent_revoke_body">Geschlecht und gesuchtes Geschlecht sind die Grundlage des Matchings. Ohne diese Einwilligung schlagen wir dir keine Profile mehr vor und du erscheinst in keinem Deck. Dein Konto bleibt bestehen.\n\nWillst du ganz weg, lösche stattdessen dein Konto.</string>
+    <string name="consent_revoke_confirm">Widerruf erklären</string>
+    <string name="consent_load_failed">Einwilligungen konnten nicht geladen werden.</string>
+    <string name="consent_revoke_failed">Der Widerruf konnte nicht gespeichert werden.</string>
+    <string name="consent_grant_failed">Die erneute Einwilligung konnte nicht gespeichert werden.</string>
+    <string name="blocks_empty">Du hast niemanden blockiert. Blockieren geht über das Verbots-Symbol in jedem Profil und in jedem Chat.</string>
+    <string name="blocks_note">Eine Blockierung blendet ein bestehendes Match nur aus, sie löst es nicht auf. Hebst du sie auf, seht ihr einander wieder im Deck — und ein früheres Match ist samt Chatverlauf wieder da.</string>
+    <string name="blocks_load_failed">Deine Blockierungen konnten nicht geladen werden.</string>
+
+    <!-- ==== Verifizierungs-Kurzstatus im Konto ==== -->
+    <string name="verify_badge_checking">Prüfung läuft …</string>
+    <string name="verify_badge_confirm_age">Alter bestätigen</string>
+    <string name="verify_badge_reviewing">Wir prüfen deine Angaben.</string>
+    <string name="verify_badge_selfie_done">Selfie erledigt. Jetzt noch den Ausweis aufnehmen.</string>
+    <string name="verify_badge_failed">Nicht abgeschlossen. Hilfe bekommst du unter flexr.social@proton.me.</string>
+    <string name="verify_badge_start">Einmalig Selfie und Lichtbildausweis prüfen lassen.</string>
+
+    <!-- ==== Benachrichtigungen ==== -->
+    <string name="notify_match_title">Neues Match</string>
+    <string name="notify_match_hint">Wenn jemand dich zurückgeliked hat.</string>
+    <string name="notify_queue_title">Neue Profile im Umkreis</string>
+    <string name="notify_queue_hint">Ab drei wartenden Profilen, höchstens einmal am Tag.</string>
+    <string name="notify_inactive_title">Erinnerung bei Inaktivität</string>
+    <string name="notify_inactive_hint">Wenn du sieben Tage nicht in FLEXR warst.</string>
+    <string name="notify_likes_title">Offene Likes ohne Match</string>
+    <string name="notify_likes_hint">Wenn dich jemand geliked hat, höchstens einmal pro Woche.</string>
+    <string name="notify_email">E-Mail</string>
+    <string name="notify_legal_hint">Rechtlich nötige Nachrichten — etwa zu Abo, Rücktritt oder Moderationsentscheidungen — lassen sich hier nicht abschalten.</string>
+
+    <!-- ==== Konto löschen ==== -->
+    <string name="delete_body">Dein Konto wird sofort deaktiviert. Deine Daten und Fotos werden nach 30 Tagen endgültig gelöscht. Du bekommst dazu eine Bestätigungsmail. Innerhalb der 30 Tage kannst du dich mit deinem bisherigen Passwort erneut einloggen, um die Löschung rückgängig zu machen.</string>
+    <string name="delete_password_label">Zur Bestätigung dein Passwort</string>
+    <string name="delete_confirm">Endgültig löschen</string>
+    <string name="delete_password_missing">Bitte gib zur Bestätigung dein Passwort ein.</string>
+    <string name="delete_done">Dein Konto wurde deaktiviert und wird in 30 Tagen endgültig gelöscht.</string>
+
+    <!-- ==== Paywall ==== -->
+    <string name="paywall_title">Probemonat vorbei</string>
+    <string name="paywall_membership">Mitgliedschaft</string>
+    <string name="paywall_price">5 €</string>
+    <string name="paywall_per_month"> / Monat</string>
+    <string name="paywall_feature_unlimited">Unbegrenzt swipen &amp; matchen in deinem Umkreis</string>
+    <string name="paywall_subscribe">Jetzt abonnieren</string>
+    <string name="common_logout">Ausloggen</string>
+    <string name="paywall_sub">Dein kostenloser Monat ist abgelaufen. Schalte FLEXR wieder frei.</string>
+    <string name="paywall_feature_chat">Chat mit allen Matches inklusive</string>
+    <string name="paywall_feature_cancel">Monatlich kündbar, keine versteckten Kosten</string>
+    <string name="paywall_return_note">Nach der Zahlung kehrst du automatisch in die App zurück. Falls der Status nicht sofort stimmt: kurz warten und erneut öffnen.</string>
+
+    <!-- ==== Verifizierungs-Gate ==== -->
+    <string name="vgate_need_title">DAS BRAUCHST DU</string>
+    <string name="vgate_media_title">WAS MIT DEN AUFNAHMEN PASSIERT</string>
+    <string name="vgate_start">Verifizierung starten</string>
+    <string name="vgate_retry">Verifizierung wiederholen</string>
+    <string name="vgate_document_btn">Ausweis aufnehmen</string>
+    <string name="vgate_document_btn_rework">Erneut hochladen</string>
+    <string name="vgate_refresh">Status aktualisieren</string>
+    <string name="vgate_mail_sending">Wird gesendet …</string>
+    <string name="vgate_mail_resent">Neue Mail an %1$s unterwegs. Der Link gilt %2$d Stunden.</string>
+    <string name="vgate_done_eyebrow">Geschafft</string>
+    <string name="vgate_unlocked_chip">Freigeschaltet</string>
+    <string name="vgate_rejected_eyebrow">Abgeschlossen</string>
+    <string name="vgate_rejected_chip">Nicht freigeschaltet</string>
+    <string name="vgate_loading">Status wird geladen …</string>
+    <string name="vgate_review_running">Die Prüfung läuft noch.</string>
+    <string name="vgate_step_1_of_2">Schritt 1 von 2</string>
+    <string name="vgate_step_2_of_2">Schritt 2 von 2</string>
+    <string name="vgate_step_1_of_3">Schritt 1 von 3</string>
+    <string name="vgate_rework_title">Wir konnten deine Verifizierung noch nicht abschließen.</string>
+    <string name="vgate_unlock_title">Konto freischalten</string>
+    <string name="vgate_rework_chip">Neue Aufnahme nötig</string>
+    <string name="vgate_intro">FLEXR ist ab 18. Damit hier keine Minderjährigen und keine Fake-Profile landen, prüfen wir einmalig, ob du wirklich du bist und mindestens 18 Jahre alt.</string>
+    <string name="vgate_need_selfie">Ein Live-Selfie, frontal in die Kamera — die Kamera öffnet sich erst, wenn du startest</string>
+    <string name="vgate_need_document">Eine Aufnahme deines Personalausweises, Reisepasses oder Führerscheins</string>
+    <string name="vgate_media_human">Ein Mensch vergleicht Profilfoto, Selfie und Ausweisfoto — keine automatische Gesichtserkennung</string>
+    <string name="vgate_media_private">Die Aufnahmen sind nicht öffentlich abrufbar</string>
+    <string name="vgate_media_deleted">Nach Abschluss der Prüfung werden sie gelöscht</string>
+    <string name="vgate_document_title">Alter bestätigen</string>
+    <string name="vgate_document_body">Dein Selfie liegt vor. Jetzt fehlt noch eine Aufnahme deines amtlichen Lichtbildausweises, damit wir dein Alter bestätigen können.</string>
+    <string name="vgate_submitted_eyebrow">In Prüfung</string>
+    <string name="vgate_submitted_title">Verifizierung wird geprüft</string>
+    <string name="vgate_submitted_chip">Prüfung läuft</string>
+    <string name="vgate_submitted_body">Deine Angaben wurden übermittelt. Wir prüfen jetzt, ob du mindestens 18 Jahre alt bist und ob die Verifizierung zu deinem Profil gehört. Sobald die Prüfung abgeschlossen ist, kannst du FLEXR vollständig nutzen.</string>
+    <string name="vgate_submitted_note">Die Aufnahmen deines Ausweises werden nach Abschluss der Prüfung gelöscht. Dein Probemonat startet erst mit der Freischaltung — die Wartezeit kostet dich nichts.</string>
+    <string name="vgate_checking">Wird geprüft …</string>
+    <string name="vgate_mail_title">Bestätige deine E-Mail</string>
+    <string name="vgate_mail_chip">Bestätigung offen</string>
+    <string name="vgate_mail_sent_to">Wir haben dir eine Mail geschickt an:</string>
+    <string name="vgate_mail_fallback">deine E-Mail-Adresse</string>
+    <string name="vgate_mail_body">Klick den Link darin, dann geht es hier weiter. Nichts angekommen? Schau im Spam-Ordner nach. Der Link gilt 24 Stunden.</string>
+    <string name="vgate_mail_resend">Mail erneut senden</string>
+    <string name="vgate_mail_send_failed">Mail konnte nicht gesendet werden.</string>
+    <string name="vgate_photo_title">Zuerst dein Profilfoto</string>
+    <string name="vgate_rework_eyebrow">Nachbesserung</string>
+    <string name="vgate_photo_eyebrow">Profilfoto fehlt</string>
+    <string name="vgate_photo_chip">Foto fehlt</string>
+    <string name="vgate_photo_body">Für die Prüfung vergleicht ein Mensch dein Profilfoto mit deinem Selfie und deinem Ausweis. Ohne Profilfoto kann sie nicht starten.</string>
+    <string name="vgate_photo_body2">Beim Anlegen deines Profils hat der Upload nicht geklappt. Hol ihn hier nach — danach geht es normal weiter.</string>
+    <string name="vgate_photo_uploading">Foto wird hochgeladen …</string>
+    <string name="vgate_photo_upload_failed">Foto konnte nicht hochgeladen werden.</string>
+    <string name="vgate_unlocked_title">Konto freigeschaltet</string>
+    <string name="vgate_unlocked_body">Deine Prüfung ist durch. Wir laden gerade dein Profil — gleich steht dir FLEXR vollständig offen.</string>
+    <string name="vgate_unlocked_cta">Weiter zu FLEXR</string>
+    <string name="vgate_rejected_title">Verifizierung nicht erfolgreich</string>
+    <string name="vgate_rejected_fallback">Wir konnten deine Verifizierung nicht abschließen.</string>
+    <string name="vgate_rejected_body">Dein Konto wurde nicht freigeschaltet. Wenn du glaubst, dass das ein Fehler ist, schreib uns an flexr.social@proton.me.</string>
+    <string name="vgate_rejected_deleted">Alle Aufnahmen deines Ausweises und dein Verifizierungs-Selfie wurden gelöscht.</string>
+
+    <!-- ==== Selfie-Verifizierung ==== -->
+    <string name="verify_not_started">Nicht gestartet</string>
+    <string name="verify_selfie_eyebrow">Verifizierungs-Selfie</string>
+    <string name="verify_uploading">Wird hochgeladen …</string>
+    <string name="verify_retry_submit">Einreichen wiederholen</string>
+    <string name="verify_allow_camera">Kamerazugriff erlauben</string>
+    <string name="verify_capture">Aufnehmen</string>
+    <string name="verify_retry">Erneut versuchen</string>
+    <string name="verify_title">Foto-Verifizierung</string>
+    <string name="verify_preparing">Verifizierung wird vorbereitet …</string>
+    <string name="verify_cannot_start">Die Verifizierung kann gerade nicht beginnen.</string>
+    <string name="verify_try_again_soon">Bitte versuche es gleich noch einmal.</string>
+    <string name="verify_shot_of">Aufnahme %1$d / %2$d</string>
+    <string name="verify_shot_index">Aufnahme %1$d</string>
+    <string name="verify_submitting">Aufnahme wird eingereicht …</string>
+    <string name="verify_camera_needed">Kamerazugriff wird benötigt.</string>
+    <string name="verify_frame_hint">Gesicht mittig im Rahmen halten und unten auf „Aufnehmen“ tippen.</string>
+    <string name="verify_privacy_note">Das Selfie wird ausschließlich manuell mit deinen Profilfotos verglichen und nach der Prüfung gelöscht. Keine automatisierte biometrische Auswertung.</string>
+    <string name="verify_capture_failed">Aufnahme fehlgeschlagen, bitte erneut.</string>
+    <string name="verify_camera_not_ready">Die Kamera ist noch nicht bereit, bitte gleich erneut.</string>
+    <string name="verify_selfie_exists">Dein Selfie liegt bereits vor. Weiter geht es mit dem Ausweis.</string>
+    <string name="verify_already_submitted">Deine Verifizierung ist bereits in Prüfung.</string>
+    <string name="verify_none_running">Für dieses Konto läuft gerade keine Verifizierung.</string>
+    <string name="verify_start_failed">Verifizierung konnte nicht gestartet werden.</string>
+    <string name="verify_camera_denied">Kamerazugriff abgelehnt. Die Verifizierung braucht Live-Aufnahmen über die Kamera.</string>
+    <string name="verify_selfie_saved">Selfie gespeichert — jetzt noch der Ausweis.</string>
+    <string name="verify_submit_failed">Einreichen fehlgeschlagen. Bitte erneut versuchen.</string>
+
+    <!-- ==== Ausweisaufnahme ==== -->
+    <string name="document_loading">Wird geladen …</string>
+    <string name="document_why_title">WARUM WIR DAS BRAUCHEN</string>
+    <string name="document_type_label">Dokumenttyp</string>
+    <string name="document_shots_label">Aufnahmen</string>
+    <string name="document_side_of_id">%1$s des Ausweises</string>
+    <string name="document_side_done">%1$s ✓ — tippen zum Wiederholen</string>
+    <string name="document_capture_side">%1$s aufnehmen</string>
+    <string name="document_camera_needed">Kamerazugriff wird benötigt.</string>
+    <string name="document_capture">Aufnehmen</string>
+    <string name="document_allow_camera">Kamerazugriff erlauben</string>
+    <string name="document_capture_failed">Aufnahme fehlgeschlagen, bitte erneut.</string>
+    <string name="document_type_id_card">Personalausweis</string>
+    <string name="document_type_passport">Reisepass</string>
+    <string name="document_type_license">Führerschein</string>
+    <string name="document_title">Alter bestätigen</string>
+    <string name="document_why">Um FLEXR nutzen zu können, musst du mindestens 18 Jahre alt sein. Lade einmalig einen gültigen amtlichen Lichtbildausweis hoch — als Foto oder als Datei von deinem Gerät. Wir verwenden ihn ausschließlich zur Alters- und Identitätsprüfung und löschen die Aufnahme nach Abschluss der Prüfung.</string>
+    <string name="document_manual_review">Die Prüfung erfolgt manuell durch einen Menschen — es kommt keine automatische Gesichtserkennung zum Einsatz.</string>
+    <string name="document_submitting">Wird übermittelt …</string>
+    <string name="document_submit">Zur Prüfung einreichen</string>
+    <string name="document_consent_note">Die Aufnahmen sind nicht öffentlich abrufbar und werden nach der Prüfung gelöscht.</string>
+    <string name="document_needs_both">Vorder- und Rückseite</string>
+    <string name="document_needs_front">Seite mit Foto und Geburtsdatum</string>
+    <string name="document_side_front">Vorderseite</string>
+    <string name="document_side_back">Rückseite</string>
+    <string name="document_redact_note">Du kannst Informationen schwärzen, die für die Altersprüfung nicht benötigt werden.</string>
+    <string name="document_redact_note_bold">Foto, Geburtsdatum und die zur Prüfung erforderlichen Gültigkeitsinformationen müssen sichtbar bleiben.</string>
+    <string name="document_frame_hint">Lege den Ausweis flach hin und füll den Rahmen möglichst aus. Achte darauf, dass Foto und Geburtsdatum scharf zu lesen sind.</string>
+    <string name="document_action_camera">Foto aufnehmen</string>
+    <string name="document_action_file">Datei wählen</string>
+    <string name="document_source_hint">Tippe auf einen Platz, um zu fotografieren, oder wähle über „Datei wählen“ eine bestehende Aufnahme von deinem Gerät.</string>
+    <string name="document_camera_denied">Kamerazugriff abgelehnt. Für die Aufnahme des Ausweises wird die Kamera gebraucht.</string>
+    <string name="document_submitted">Verifizierung eingereicht — wir prüfen deine Angaben.</string>
+    <string name="document_submit_failed">Einreichen fehlgeschlagen. Bitte erneut versuchen.</string>
+    <string name="document_file_read_failed">Die Datei konnte nicht als Bild gelesen werden. Bitte wähle ein JPEG oder PNG.</string>
+
+    <!-- ==== E-Mail-Bestätigung ==== -->
+    <string name="mail_link_incomplete">In diesem Link fehlt der Bestätigungscode.</string>
+    <string name="mail_confirmed">Danke, %1$s! Deine E-Mail-Adresse ist bestätigt.</string>
+    <string name="mail_confirm_failed">Der Bestätigungslink konnte nicht eingelöst werden.</string>
+
+    <!-- ==== Netz- und Serverfehler ==== -->
+    <string name="error_timeout">Zeitüberschreitung. Bitte Verbindung prüfen und erneut versuchen.</string>
+    <string name="error_connection">Verbindung fehlgeschlagen. Bitte erneut versuchen.</string>
+    <string name="error_unknown">Unbekannter Fehler.</string>
+    <string name="error_no_internet">Keine Internetverbindung.</string>
+    <string name="error_not_found">Nicht gefunden.</string>
+    <string name="error_conflict">Bereits vorhanden.</string>
+    <string name="error_unauthorized">Ungültige oder abgelaufene Anmeldung.</string>
+    <string name="error_payment_required">Probemonat abgelaufen. Bitte Abo abschließen.</string>
+    <string name="error_forbidden">Zugriff nicht möglich.</string>
+    <string name="error_rate_limited">Zu viele Versuche. Bitte kurz warten.</string>
+    <string name="error_server">Serverfehler. Bitte später erneut versuchen.</string>
+    <string name="error_http">Fehler (%1$d)</string>
+    <string name="error_postal_code_unknown">Postleitzahl nicht gefunden. Bitte prüfen.</string>
+    <string name="error_postal_code_invalid">Ungültige Postleitzahl.</string>
+    <string name="error_city_lookup">Ort konnte nicht ermittelt werden.</string>
 </resources>

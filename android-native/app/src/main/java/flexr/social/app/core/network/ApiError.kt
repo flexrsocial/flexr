@@ -1,6 +1,9 @@
 package flexr.social.app.core.network
 
+import androidx.annotation.StringRes
+import flexr.social.app.R
 import flexr.social.app.core.common.ServerTime
+import flexr.social.app.core.locale.AppStrings
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
@@ -41,24 +44,47 @@ object ApiErrorParser {
 
     private val json = Json { ignoreUnknownKeys = true; isLenient = true }
 
+    /**
+     * Texte fuer die Standardmeldungen, gesetzt in `FlexrApplication.onCreate`.
+     *
+     * Bewusst ein setzbares Feld und kein Konstruktorargument: [apiCall] ist
+     * eine inline-Funktion auf oberster Ebene und wird aus jedem Repository
+     * gerufen. Eine Abhaengigkeit hier muesste durch saemtliche Repositories
+     * und deren Tests gefaedelt werden, ohne dass irgendwo eine Entscheidung
+     * davon abhinge.
+     *
+     * Bleibt das Feld leer — in reinen JVM-Tests ist das der Normalfall —,
+     * gelten die deutschen Texte weiter unten. Sie sind die Ausgangssprache
+     * und stehen wortgleich in `res/values/strings.xml`; `ApiErrorParserTest`
+     * prueft sie in dieser Fassung.
+     */
+    @Volatile
+    var strings: AppStrings? = null
+
+    private fun text(@StringRes id: Int, fallbackDe: String): String =
+        strings?.get(id) ?: fallbackDe
+
+    private fun text(@StringRes id: Int, fallbackDe: String, arg: Any): String =
+        strings?.get(id, arg) ?: fallbackDe
+
     fun toFlexrException(throwable: Throwable): FlexrApiException = when (throwable) {
         is FlexrApiException -> throwable
         is HttpException -> fromHttpException(throwable)
         is SocketTimeoutException -> FlexrApiException(
             statusCode = 0,
-            message = "Zeitüberschreitung. Bitte Verbindung prüfen und erneut versuchen.",
+            message = text(R.string.error_timeout, "Zeitüberschreitung. Bitte Verbindung prüfen und erneut versuchen."),
         )
         is UnknownHostException -> FlexrApiException(
             statusCode = 0,
-            message = "Keine Internetverbindung.",
+            message = text(R.string.error_no_internet, "Keine Internetverbindung."),
         )
         is IOException -> FlexrApiException(
             statusCode = 0,
-            message = "Verbindung fehlgeschlagen. Bitte erneut versuchen.",
+            message = text(R.string.error_connection, "Verbindung fehlgeschlagen. Bitte erneut versuchen."),
         )
         else -> FlexrApiException(
             statusCode = -1,
-            message = throwable.message ?: "Unbekannter Fehler.",
+            message = throwable.message ?: text(R.string.error_unknown, "Unbekannter Fehler."),
         )
     }
 
@@ -92,14 +118,14 @@ object ApiErrorParser {
     }
 
     private fun defaultMessage(code: Int): String = when (code) {
-        401 -> "Ungültige oder abgelaufene Anmeldung."
-        402 -> "Probemonat abgelaufen. Bitte Abo abschließen."
-        403 -> "Zugriff nicht möglich."
-        404 -> "Nicht gefunden."
-        409 -> "Bereits vorhanden."
-        429 -> "Zu viele Versuche. Bitte kurz warten."
-        in 500..599 -> "Serverfehler. Bitte später erneut versuchen."
-        else -> "Fehler ($code)"
+        401 -> text(R.string.error_unauthorized, "Ungültige oder abgelaufene Anmeldung.")
+        402 -> text(R.string.error_payment_required, "Probemonat abgelaufen. Bitte Abo abschließen.")
+        403 -> text(R.string.error_forbidden, "Zugriff nicht möglich.")
+        404 -> text(R.string.error_not_found, "Nicht gefunden.")
+        409 -> text(R.string.error_conflict, "Bereits vorhanden.")
+        429 -> text(R.string.error_rate_limited, "Zu viele Versuche. Bitte kurz warten.")
+        in 500..599 -> text(R.string.error_server, "Serverfehler. Bitte später erneut versuchen.")
+        else -> text(R.string.error_http, "Fehler ($code)", code)
     }
 }
 

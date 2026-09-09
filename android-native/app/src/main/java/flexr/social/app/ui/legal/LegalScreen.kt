@@ -34,8 +34,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import flexr.social.app.R
 import flexr.social.app.core.designsystem.icon.FlexrIcons
 import flexr.social.app.core.designsystem.theme.FlexrTheme
 import flexr.social.app.ui.navigation.LegalDocument
@@ -58,10 +60,10 @@ fun LegalScreen(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             IconButton(onClick = onBack) {
-                Icon(FlexrIcons.Back, contentDescription = "Zurück", tint = colors.chalk)
+                Icon(FlexrIcons.Back, contentDescription = stringResource(R.string.common_back), tint = colors.chalk)
             }
             Text(
-                text = document.title,
+                text = stringResource(document.titleRes),
                 style = MaterialTheme.typography.titleMedium,
                 color = colors.chalk,
             )

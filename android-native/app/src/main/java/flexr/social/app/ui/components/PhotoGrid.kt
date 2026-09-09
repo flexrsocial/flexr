@@ -33,18 +33,20 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.zIndex
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.boundsInWindow
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import coil.compose.AsyncImage
+import flexr.social.app.R
 import flexr.social.app.core.designsystem.theme.FlexrTheme
 import flexr.social.app.core.designsystem.theme.MonoStyle
 import flexr.social.app.core.media.ImageProcessor
@@ -237,7 +239,7 @@ private fun FilledPhotoSlot(
         ) {
             Icon(
                 Icons.Filled.Close,
-                contentDescription = "Foto entfernen",
+                contentDescription = stringResource(R.string.photo_remove),
                 tint = Color.White,
                 modifier = Modifier.size(13.dp),
             )
@@ -263,7 +265,9 @@ private fun FilledPhotoSlot(
         }
         if (showStatus && slot.status != null && slot.status != PhotoStatus.APPROVED) {
             Text(
-                text = if (slot.status == PhotoStatus.REJECTED) "Abgelehnt" else "In Prüfung",
+                text = stringResource(
+                    if (slot.status == PhotoStatus.REJECTED) R.string.photo_rejected else R.string.photo_pending,
+                ),
                 style = MonoStyle.copy(fontSize = androidx.compose.ui.unit.TextUnit(9f, androidx.compose.ui.unit.TextUnitType.Sp)),
                 color = if (slot.status == PhotoStatus.REJECTED) colors.danger else colors.plate,
                 textAlign = TextAlign.Center,
@@ -294,7 +298,7 @@ private fun EmptyPhotoSlot(onClick: () -> Unit) {
     ) {
         Icon(
             Icons.Filled.Add,
-            contentDescription = "Foto hinzufügen",
+            contentDescription = stringResource(R.string.photo_add),
             tint = colors.chalkDim,
             modifier = Modifier.size(26.dp),
         )
@@ -308,19 +312,15 @@ fun PhotoVisibilityHint(
     modifier: Modifier = Modifier,
 ) {
     val colors = FlexrTheme.colors
-    val (text, warn) = when {
-        photoStatuses.isEmpty() ->
-            "Mindestens ein Foto ist nötig, damit dein Profil sichtbar ist." to true
-        photoStatuses.any { it == PhotoStatus.APPROVED } ->
-            "Dein Profil ist sichtbar. Neue Fotos werden kurz geprüft." to false
-        photoStatuses.any { it == PhotoStatus.PENDING } ->
-            "Dein Foto wird geprüft." to true
-        else ->
-            "Foto abgelehnt. Bitte lade ein anderes hoch." to true
+    val (textRes, warn) = when {
+        photoStatuses.isEmpty() -> R.string.photo_hint_none to true
+        photoStatuses.any { it == PhotoStatus.APPROVED } -> R.string.photo_hint_ok to false
+        photoStatuses.any { it == PhotoStatus.PENDING } -> R.string.photo_hint_pending to true
+        else -> R.string.photo_hint_rejected to true
     }
 
     Text(
-        text = text,
+        text = stringResource(textRes),
         style = MaterialTheme.typography.bodySmall,
         color = if (warn) colors.plate else colors.chalkDim,
         modifier = modifier.fillMaxWidth().padding(top = 8.dp),

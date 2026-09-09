@@ -16,6 +16,7 @@ import dagger.assisted.AssistedInject
 import flexr.social.app.FlexrApplication
 import flexr.social.app.MainActivity
 import flexr.social.app.R
+import flexr.social.app.core.locale.AppStrings
 import flexr.social.app.data.repository.MatchRepository
 import flexr.social.app.data.session.SessionStore
 import kotlinx.coroutines.flow.first
@@ -34,6 +35,7 @@ class NewMessageWorker @AssistedInject constructor(
     @Assisted params: WorkerParameters,
     private val matchRepository: MatchRepository,
     private val sessionStore: SessionStore,
+    private val strings: AppStrings,
 ) : CoroutineWorker(appContext, params) {
 
     override suspend fun doWork(): Result {
@@ -73,10 +75,13 @@ class NewMessageWorker @AssistedInject constructor(
         ) == PackageManager.PERMISSION_GRANTED
         if (!granted) return
 
+        // Ueber [AppStrings] und nicht ueber `applicationContext.getString`:
+        // der Worker laeuft ausserhalb der Oberflaeche und saehe sonst die
+        // Systemsprache statt der in der App gewaehlten.
         val title = if (senderNames.size == 1) {
-            "Neue Nachricht von ${senderNames.first()}"
+            strings.get(R.string.notification_new_message_from, senderNames.first())
         } else {
-            "$totalUnread neue Nachrichten"
+            strings.get(R.string.notification_new_messages_count, totalUnread)
         }
         val text = if (senderNames.size == 1) {
             preview.orEmpty()

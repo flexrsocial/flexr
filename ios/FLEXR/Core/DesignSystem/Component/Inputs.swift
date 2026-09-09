@@ -161,6 +161,7 @@ struct FlexrPasswordField: View {
 
     @State private var isVisible = false
     @FocusState private var isFocused: Bool
+    @Environment(LanguageStore.self) private var languageStore
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -190,7 +191,9 @@ struct FlexrPasswordField: View {
                         .foregroundStyle(FlexrColor.chalkDim)
                 }
                 .buttonStyle(.plain)
-                .accessibilityLabel(isVisible ? "Passwort verbergen" : "Passwort anzeigen")
+                .accessibilityLabel(
+                    languageStore.strings(isVisible ? .fieldPasswordHide : .fieldPasswordShow)
+                )
             }
             .padding(.horizontal, 14)
             .padding(.vertical, 14)

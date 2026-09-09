@@ -86,6 +86,8 @@ struct MyProfileDTO: Decodable {
     let notifyQueuePush: Bool?
     let notifyInactiveEmail: Bool?
     let notifyInactivePush: Bool?
+    let notifyPendingLikesEmail: Bool?
+    let notifyPendingLikesPush: Bool?
 }
 
 /// Einzelner Schalter - nur das geaenderte Feld wird geschickt, die uebrigen
@@ -97,6 +99,8 @@ struct NotificationSettingsRequestDTO: Encodable {
     var notifyQueuePush: Bool?
     var notifyInactiveEmail: Bool?
     var notifyInactivePush: Bool?
+    var notifyPendingLikesEmail: Bool?
+    var notifyPendingLikesPush: Bool?
 }
 
 /// Neue Reihenfolge der eigenen Fotos (Drag & Drop im Profil).

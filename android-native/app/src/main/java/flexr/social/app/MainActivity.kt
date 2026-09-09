@@ -10,8 +10,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dagger.hilt.android.AndroidEntryPoint
 import flexr.social.app.core.designsystem.theme.FlexrTheme
+import flexr.social.app.core.locale.AppLanguageViewModel
+import flexr.social.app.core.locale.ProvideAppLanguage
 import flexr.social.app.notifications.ActivityNotificationWorker
 import flexr.social.app.notifications.NewMessageWorker
 import flexr.social.app.ui.FlexrApp
@@ -45,12 +49,20 @@ class MainActivity : ComponentActivity() {
         )
 
         setContent {
-            FlexrTheme {
-                FlexrApp(
-                    intentData = intent?.data,
-                    notificationTarget = notificationTarget,
-                    onNotificationTargetHandled = { notificationTarget = null },
-                )
+            // Die Sprachwahl huellt alles ein, was Texte zeigt: darin loest
+            // `stringResource` gegen die gewaehlte Sprache auf. Bewusst kein
+            // `recreate()` beim Wechsel - so bleiben Navigationsstapel und
+            // Scrollpositionen stehen.
+            val languageViewModel: AppLanguageViewModel = hiltViewModel()
+            val language by languageViewModel.language.collectAsStateWithLifecycle()
+            ProvideAppLanguage(language) {
+                FlexrTheme {
+                    FlexrApp(
+                        intentData = intent?.data,
+                        notificationTarget = notificationTarget,
+                        onNotificationTargetHandled = { notificationTarget = null },
+                    )
+                }
             }
         }
     }

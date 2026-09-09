@@ -28,9 +28,15 @@ data class PreparedPhoto(
     override fun hashCode(): Int = full.contentHashCode()
 }
 
+/**
+ * Das gewaehlte Bild ist kleiner als [ImageProcessor.MIN_EDGE_PX].
+ *
+ * Die Meldung fuer den Nutzer baut das ViewModel aus `R.string.photo_too_small`
+ * — nur dort ist die gewaehlte Sprache bekannt. Der Text hier bleibt als
+ * technische Beschreibung fuer Protokolle stehen.
+ */
 class PhotoTooSmallException(val width: Int, val height: Int) : Exception(
-    "Foto zu klein ($width×$height). Mindestens " +
-        "${ImageProcessor.MIN_EDGE_PX}×${ImageProcessor.MIN_EDGE_PX} Pixel.",
+    "Foto zu klein ($width×$height), Mindestkante ${ImageProcessor.MIN_EDGE_PX}px.",
 )
 
 /**
@@ -101,6 +107,25 @@ class ImageProcessor @Inject constructor(
         val scaled = scaleToMaxEdge(bitmap, DOCUMENT_MAX_EDGE_PX)
         val bytes = scaled.toJpeg(DOCUMENT_JPEG_QUALITY)
         if (scaled !== bitmap) scaled.recycle()
+        bytes
+    }
+
+    /**
+     * Eine bereits vorhandene Bilddatei als Ausweisaufnahme.
+     *
+     * Wer den Ausweis schon eingescannt hat oder ihn vor dem Hochladen
+     * schwaerzen will, kommt mit der Kamera allein nicht weiter — deshalb der
+     * zweite Weg ueber die Dateiauswahl. Die EXIF-Drehung wird angewandt,
+     * damit ein hochkant fotografierter Ausweis nicht liegend ankommt; die
+     * Mindestaufloesung gilt hier bewusst nicht (ein sauberer Scan darf klein
+     * sein, entscheidend ist die Lesbarkeit).
+     */
+    suspend fun compressDocument(uri: Uri): ByteArray = withContext(Dispatchers.Default) {
+        val sampleSize = readBounds(uri).let { calculateInSampleSize(it.width, it.height, DOCUMENT_MAX_EDGE_PX) }
+        val decoded = decode(uri, sampleSize) ?: error("Bild konnte nicht gelesen werden.")
+        val oriented = applyExifRotation(uri, decoded)
+        val bytes = compressDocument(oriented)
+        oriented.recycle()
         bytes
     }
 

@@ -17,10 +17,12 @@ enum Gender: String, CaseIterable, Codable, Sendable {
 
     var apiValue: String { rawValue }
 
-    var label: String {
+    /// Beschriftung als Textschlüssel — aufgelöst wird erst dort, wo gezeichnet
+    /// wird; nur da ist die gewählte Sprache bekannt.
+    var labelKey: L {
         switch self {
-        case .mann: "Mann"
-        case .frau: "Frau"
+        case .mann: .genderMale
+        case .frau: .genderFemale
         }
     }
 
@@ -81,7 +83,7 @@ struct MyProfile: Hashable, Sendable {
     }
 }
 
-/// Drei Anlässe, je getrennt für E-Mail und App.
+/// Vier Anlässe, je getrennt für E-Mail und App.
 ///
 /// Ob eine App-Benachrichtigung überhaupt entsteht, entscheidet der Server —
 /// die Schalter hier zeigen dieselbe Einstellung, sie sind keine zweite Regel
@@ -93,6 +95,8 @@ struct NotificationSettings: Hashable, Sendable {
     var queuePush: Bool = true
     var inactiveEmail: Bool = true
     var inactivePush: Bool = true
+    var pendingLikesEmail: Bool = true
+    var pendingLikesPush: Bool = true
 }
 
 /// Eine vom Server bereitgelegte, noch nicht angezeigte Benachrichtigung.

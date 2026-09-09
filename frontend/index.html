@@ -10,6 +10,14 @@
 <meta name="description" content="FLEXR ist die Dating-App für Gym-People in Österreich: Matches nach Fitnessstudio und Umkreis. In der Beta-Phase kostenlos – die Mitgliedschaft von 5 € pro Monat ist bis auf weiteres ausgesetzt.">
 <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1">
 <link rel="canonical" href="https://flexr.social/">
+<!-- Zweisprachigkeit: die kanonische Adresse ist und bleibt die deutsche
+     Fassung. ?lang=en ist die englische Variante derselben Seite - die
+     Auszeichnung sagt Suchmaschinen, dass es sich um Uebersetzungen und nicht
+     um doppelten Inhalt handelt. -->
+<link rel="alternate" hreflang="de-AT" href="https://flexr.social/">
+<link rel="alternate" hreflang="de" href="https://flexr.social/">
+<link rel="alternate" hreflang="en" href="https://flexr.social/?lang=en">
+<link rel="alternate" hreflang="x-default" href="https://flexr.social/">
 <meta name="theme-color" content="#121212">
 
 <meta property="og:type" content="website">
@@ -165,6 +173,26 @@ p{ margin:0 0 14px; }
 .top nav a{ color:var(--chalk-dim); text-decoration:none; }
 .top nav a:hover{ color:var(--chalk); }
 @media (max-width:560px){ .top nav .hide-s{ display:none; } }
+/* Sprachregler in der Kopfzeile - dieselbe Optik wie in der Web-App. */
+.lang-switch{
+  position:relative; display:inline-flex; align-items:stretch; flex-shrink:0;
+  border:1px solid var(--steel); border-radius:999px; background:var(--surface-2);
+  padding:2px; margin-left:4px;
+}
+.lang-switch button{
+  position:relative; z-index:2; border:0; background:transparent; cursor:pointer;
+  padding:4px 10px; border-radius:999px; color:var(--chalk-dim);
+  font-family:'Work Sans', system-ui, sans-serif; font-size:12px; font-weight:600;
+  letter-spacing:.06em; line-height:1.5; transition:color .18s ease;
+}
+.lang-switch button.on{ color:var(--ink); }
+.lang-switch .knob{
+  position:absolute; z-index:1; top:2px; bottom:2px; left:2px; width:calc(50% - 2px);
+  border-radius:999px; background:var(--plate);
+  transition:transform .2s cubic-bezier(.4,0,.2,1);
+}
+.lang-switch[data-active="en"] .knob{ transform:translateX(100%); }
+@media (prefers-reduced-motion: reduce){ .lang-switch .knob{ transition:none; } }
 
 /* ---- Hero ---- */
 .hero{
@@ -498,18 +526,31 @@ footer{ border-top:1px solid var(--steel); padding:32px 0 60px; margin-top:20px;
 </style>
 </head>
 <body>
-<a class="skip-link" href="#main-content">Zum Inhalt springen</a>
+<!-- Zweisprachigkeit: /i18n.js bringt Maschinerie und Spracherkennung
+     (DACH-Raum -> Deutsch), i18n-landing.js die Texte dieser Seite. Beide
+     laufen synchron und damit vor dem DOMContentLoaded, bei dem FlexrI18n
+     die data-i18n-Knoten uebersetzt. -->
+<script src="/i18n.js?v=1"></script>
+<script src="/i18n-landing.js?v=1"></script>
+<a class="skip-link" href="#main-content" data-i18n="common.skipToContent">Zum Inhalt springen</a>
 
 <header class="top">
   <div class="wrap" style="display:flex; align-items:center; justify-content:space-between; width:100%;">
-    <a href="/" style="text-decoration:none; color:inherit;" aria-label="FLEXR Startseite">
+    <a href="/" style="text-decoration:none; color:inherit;" data-i18n-aria="nav.home" aria-label="FLEXR Startseite">
       <div class="brand">FLE<span>X</span>R</div>
     </a>
-    <nav aria-label="Hauptnavigation">
-      <a href="#so-gehts" class="hide-s">So funktioniert's</a>
-      <a href="#preis" class="hide-s">Preis</a>
-      <a href="#faq" class="hide-s">FAQ</a>
-      <a href="/app/">Einloggen</a>
+    <nav data-i18n-aria="nav.aria" aria-label="Hauptnavigation">
+      <a href="#so-gehts" class="hide-s" data-i18n="nav.how">So funktioniert's</a>
+      <a href="#preis" class="hide-s" data-i18n="nav.price">Preis</a>
+      <a href="#faq" class="hide-s" data-i18n="nav.faq">FAQ</a>
+      <a href="/app/" data-i18n="nav.login">Einloggen</a>
+      <!-- Sprachregler "on-top", damit ein Besucher aus dem Ausland die Seite
+           sofort umstellen kann. -->
+      <span class="lang-switch" role="group" data-i18n-aria="lang.group" aria-label="Sprache">
+        <button type="button" data-lang="de" data-i18n-title="lang.de" title="Deutsch">DE</button>
+        <button type="button" data-lang="en" data-i18n-title="lang.en" title="Englisch">EN</button>
+        <span class="knob" aria-hidden="true"></span>
+      </span>
     </nav>
   </div>
 </header>
@@ -520,17 +561,17 @@ footer{ border-top:1px solid var(--steel); padding:32px 0 60px; margin-top:20px;
     <div class="hero">
       <div class="hero-grid">
         <div class="hero-copy">
-          <p class="eyebrow">FLEXR · Dating für Gym-People</p>
-          <h1>Dating für<br>Gym-People<br>in <em>Österreich</em></h1>
-          <p class="sub">
+          <p class="eyebrow" data-i18n="hero.eyebrow">FLEXR · Dating für Gym-People</p>
+          <h1 data-i18n-html="hero.h1">Dating für<br>Gym-People<br>in <em>Österreich</em></h1>
+          <p class="sub" data-i18n="hero.sub">
             Finde Menschen, die Training genauso ernst nehmen wie du – in deinem
             Gym und in deiner Nähe. Match. Train. Repeat.
           </p>
           <div class="cta-row">
-            <a class="btn" href="/app/">Gratis loslegen</a>
-            <a class="btn ghost" href="/app/">Einloggen</a>
+            <a class="btn" href="/app/" data-i18n="hero.ctaStart">Gratis loslegen</a>
+            <a class="btn ghost" href="/app/" data-i18n="nav.login">Einloggen</a>
           </div>
-          <p class="cta-note">
+          <p class="cta-note" data-i18n="hero.ctaNote">
             Kostenlos registrieren, kein Zahlungsmittel nötig. Ab 18.
           </p>
         </div>
@@ -546,10 +587,10 @@ footer{ border-top:1px solid var(--steel); padding:32px 0 60px; margin-top:20px;
             <img src="/brand/demo/demo-hannah-v2.jpg?v=1" alt="" width="720" height="960" fetchpriority="high">
             <div class="hero-profile-info">
               <b>Hannah, 27</b>
-              <span>Krafttraining · Wien</span>
+              <span data-i18n="hero.cardSub">Krafttraining · Wien</span>
             </div>
           </div>
-          <div class="hero-match-badge">In deiner Nähe</div>
+          <div class="hero-match-badge" data-i18n="hero.badge">In deiner Nähe</div>
           <div class="hero-actions">
             <span class="hero-action hero-action-nope">×</span>
             <span class="hero-action hero-action-like">♥</span>
@@ -558,29 +599,29 @@ footer{ border-top:1px solid var(--steel); padding:32px 0 60px; margin-top:20px;
       </div>
 
       <ul class="usps">
-        <li>Matches nach Gym und Umkreis — nicht am anderen Ende Österreichs</li>
-        <li>In der Beta gratis — die 5&nbsp;€/Monat sind ausgesetzt, <b>nichts wird abgebucht</b></li>
-        <li>Jedes Konto wird vor der Freischaltung auf Volljährigkeit geprüft</li>
+        <li data-i18n-html="hero.usp1">Matches nach Gym und Umkreis — nicht am anderen Ende Österreichs</li>
+        <li data-i18n-html="hero.usp2">In der Beta gratis — die 5&nbsp;€/Monat sind ausgesetzt, <b>nichts wird abgebucht</b></li>
+        <li data-i18n-html="hero.usp3">Jedes Konto wird vor der Freischaltung auf Volljährigkeit geprüft</li>
       </ul>
     </div>
 
     <section id="lifestyle">
-      <h2>Dating, das zu deinem Lifestyle passt</h2>
-      <p>
+      <h2 data-i18n="life.h2">Dating, das zu deinem Lifestyle passt</h2>
+      <p data-i18n-html="life.p1">
         Wer regelmäßig trainiert, kennt das Gespräch: „Du gehst schon
         <i>wieder</i> ins Gym?" Fünf Einheiten die Woche, das Abendessen nach
         dem Training statt davor, der Wecker am Sonntag um sieben – das ist
         kein Hobby, das man nebenbei erklärt. Es ist ein Teil des Tages, um den
         herum der Rest geplant wird.
       </p>
-      <p>
+      <p data-i18n-html="life.p2">
         FLEXR ist für Menschen, die sich das nicht erklären wollen. Nicht, weil
         Training das Einzige wäre, was zählt, sondern weil ein gemeinsames
         Verständnis für Zeitaufwand und Disziplin eine Menge Reibung wegnimmt.
         Wer selbst trainiert, fragt nicht, warum du am Freitagabend noch eine
         Einheit einschiebst – und schlägt vielleicht vor, mitzukommen.
       </p>
-      <p>
+      <p data-i18n-html="life.p3">
         Und damit das klar ist: Es geht <b>nicht</b> um einen bestimmten Körper.
         Kraftsport, Functional Fitness, Ausdauer, Kampfsport, Klettern, der
         dritte Monat nach dem Wiedereinstieg – alles zählt. FLEXR ist kein
@@ -590,26 +631,26 @@ footer{ border-top:1px solid var(--steel); padding:32px 0 60px; margin-top:20px;
     </section>
 
     <section id="gym">
-      <h2>Matches rund um dein Gym</h2>
-      <p>
+      <h2 data-i18n="gym.h2">Matches rund um dein Gym</h2>
+      <p data-i18n="gym.p1">
         Die meisten Dating-Apps fragen dein Handy nach dem Standort und zeigen
         dir dann, wer gerade in der Nähe ist. FLEXR macht das anders – und zwar
         bewusst:
       </p>
       <ul class="plain">
-        <li><b>Du wählst dein Studio.</b> Aus einer Liste österreichischer
+        <li data-i18n-html="gym.li1"><b>Du wählst dein Studio.</b> Aus einer Liste österreichischer
           Fitnessstudios mit Adresse. Fehlt deins, reichst du es mit Adresse
           ein und kannst es sofort verwenden.</li>
-        <li><b>Du stellst deinen Suchradius ein.</b> Von 2 bis 250 Kilometer.
+        <li data-i18n-html="gym.li2"><b>Du stellst deinen Suchradius ein.</b> Von 2 bis 250 Kilometer.
           Größerer Radius heißt mehr Profile, dafür weitere Wege.</li>
-        <li><b>Keine GPS-Ortung.</b> Weder Browser noch App fragen deine
+        <li data-i18n-html="gym.li3"><b>Keine GPS-Ortung.</b> Weder Browser noch App fragen deine
           Geräteposition ab. Gerechnet wird ausschließlich mit der öffentlichen
           Adresse des Studios, das du selbst angegeben hast. Dein Wohnort wird
           niemandem angezeigt – andere sehen nur deine Stadt.</li>
-        <li><b>Du siehst Leute aus Studios im Umkreis</b>, nicht nur aus deinem
+        <li data-i18n-html="gym.li4"><b>Du siehst Leute aus Studios im Umkreis</b>, nicht nur aus deinem
           eigenen. Das Gym ist der Mittelpunkt, nicht der Zaun.</li>
       </ul>
-      <p>
+      <p data-i18n="gym.p2">
         Der praktische Vorteil: Ihr habt von Anfang an einen Ort, den ihr beide
         kennt, und einen naheliegenden Vorschlag fürs erste Treffen.
       </p>
@@ -624,13 +665,13 @@ footer{ border-top:1px solid var(--steel); padding:32px 0 60px; margin-top:20px;
          selbst gehostet (kein Fremdaufruf) und mit Gesichtern, die keine
          reale Person abbilden - siehe frontend/brand/demo/README.md. -->
     <section id="musterprofile">
-      <h2>So könnte dein Match aussehen</h2>
-      <p>
+      <h2 data-i18n="sample.h2">So könnte dein Match aussehen</h2>
+      <p data-i18n="sample.p1">
         Ein Ausschnitt aus dem Deck, wie es beim Swipen aussieht. Zieh die
         Karte oder probier X und Herz aus. Keine echten Mitglieder — die
         Gesichter sind KI-generiert.
       </p>
-      <div class="sample-deck" id="sampleDeck" aria-label="Interaktives Muster-Swipe-Deck">
+      <div class="sample-deck" id="sampleDeck" data-i18n-aria="sample.deckAria" aria-label="Interaktives Muster-Swipe-Deck">
         <div class="sample-deck-stage" id="sampleDeckStage" aria-live="polite">
           <article class="sample-profile-card" tabindex="-1" aria-label="Tobias, 28, John Harris Salzburg">
             <div class="sample-stamp pass">Nope</div><div class="sample-stamp like">Match</div>
@@ -786,24 +827,24 @@ footer{ border-top:1px solid var(--steel); padding:32px 0 60px; margin-top:20px;
           </article>
         </div>
         <div class="sample-actions">
-          <button class="sample-action pass" type="button" data-sample-action="pass" aria-label="Beispielprofil ablehnen">
+          <button class="sample-action pass" type="button" data-sample-action="pass" data-i18n-aria="sample.pass" aria-label="Beispielprofil ablehnen">
             <svg viewBox="0 0 24 24"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/></svg>
           </button>
-          <button class="sample-action like" type="button" data-sample-action="like" aria-label="Beispielprofil gefällt mir">
+          <button class="sample-action like" type="button" data-sample-action="like" data-i18n-aria="sample.like" aria-label="Beispielprofil gefällt mir">
             <svg viewBox="0 0 24 24"><path d="M12 20.3S4.8 15.7 4.8 10.8C4.8 8 6.9 6 9.3 6c1.2 0 2.3.55 2.7 1.4C12.4 6.55 13.5 6 14.7 6c2.4 0 4.5 2 4.5 4.8 0 4.9-7.2 9.5-7.2 9.5z" fill="currentColor" stroke="none"/></svg>
           </button>
         </div>
-        <div class="sample-deck-hint">Ziehen, tippen oder Pfeiltasten verwenden</div>
+        <div class="sample-deck-hint" data-i18n="sample.hint">Ziehen, tippen oder Pfeiltasten verwenden</div>
       </div>
     </section>
 
     <section id="so-gehts">
-      <h2>So funktioniert FLEXR</h2>
+      <h2 data-i18n="how.h2">So funktioniert FLEXR</h2>
       <div class="cards">
         <div class="card">
-          <div class="num">Schritt 1</div>
-          <h3>Profil erstellen</h3>
-          <p>
+          <div class="num" data-i18n="how.step1">Schritt 1</div>
+          <h3 data-i18n="how.step1H3">Profil erstellen</h3>
+          <p data-i18n="how.step1P">
             E-Mail, Geburtsdatum, Postleitzahl, mindestens ein Foto. Kostenlos
             und ohne Zahlungsmittel. Danach prüfen wir einmalig, ob du
             mindestens 18 bist – erst dann geht es weiter, und erst dann
@@ -811,17 +852,17 @@ footer{ border-top:1px solid var(--steel); padding:32px 0 60px; margin-top:20px;
           </p>
         </div>
         <div class="card">
-          <div class="num">Schritt 2</div>
-          <h3>Gym und Radius wählen</h3>
-          <p>
+          <div class="num" data-i18n="how.step2">Schritt 2</div>
+          <h3 data-i18n="how.step2H3">Gym und Radius wählen</h3>
+          <p data-i18n="how.step2P">
             Such dein Studio nach Name, Ort oder Postleitzahl und stell ein, wie
             weit du fahren würdest. Beides kannst du jederzeit im Konto ändern.
           </p>
         </div>
         <div class="card">
-          <div class="num">Schritt 3</div>
-          <h3>Liken, matchen, schreiben</h3>
-          <p>
+          <div class="num" data-i18n="how.step3">Schritt 3</div>
+          <h3 data-i18n="how.step3H3">Liken, matchen, schreiben</h3>
+          <p data-i18n="how.step3P">
             Du siehst passende Profile aus deinem Umkreis. Liken sich zwei
             Leute gegenseitig, entsteht ein Match – und erst dann könnt ihr
             schreiben. Vorher landet bei dir keine ungefragte Nachricht.
@@ -831,14 +872,14 @@ footer{ border-top:1px solid var(--steel); padding:32px 0 60px; margin-top:20px;
     </section>
 
     <section id="oesterreich">
-      <h2>Für Gym-People in ganz Österreich</h2>
-      <p>
+      <h2 data-i18n="at.h2">Für Gym-People in ganz Österreich</h2>
+      <p data-i18n-html="at.p1">
         FLEXR funktioniert mit jeder österreichischen Postleitzahl – in
         <b>Wien</b> genauso wie in <b>Graz</b>, <b>Linz</b>, <b>Salzburg</b>,
         <b>Innsbruck</b>, <b>Klagenfurt</b>, <b>Villach</b>, <b>Wels</b>,
         <b>St. Pölten</b>, <b>Dornbirn</b> oder <b>Wiener Neustadt</b>.
       </p>
-      <p>
+      <p data-i18n="at.p2">
         Ehrlich dazu: Wie viele Profile du siehst, hängt davon ab, wie viele
         Leute in deinem Umkreis dabei sind. In Ballungsräumen sind es mehr als
         am Land. Wir nennen bewusst keine Nutzerzahlen und versprechen keine
@@ -846,7 +887,7 @@ footer{ border-top:1px solid var(--steel); padding:32px 0 60px; margin-top:20px;
         du am Land wohnst, stell den Radius größer ein; die nächste größere
         Stadt ist oft näher, als es sich anfühlt.
       </p>
-      <p>
+      <p data-i18n="at.p3">
         FLEXR ist derzeit auf Österreich beschränkt. Das ist keine
         Übergangslösung, sondern der Punkt: Eine Dating-App, die in einem
         überschaubaren Markt gut funktioniert, ist mehr wert als eine, die
@@ -855,31 +896,31 @@ footer{ border-top:1px solid var(--steel); padding:32px 0 60px; margin-top:20px;
     </section>
 
     <section id="sicherheit">
-      <h2>Geprüfte Profile und Sicherheit</h2>
-      <p>
+      <h2 data-i18n="safe.h2">Geprüfte Profile und Sicherheit</h2>
+      <p data-i18n="safe.p1">
         Dating-Apps ziehen Betrüger an. Dagegen tun wir Folgendes – und das
         sind keine Marketingversprechen, sondern das, was tatsächlich läuft:
       </p>
       <ul class="plain">
-        <li><b>Ab 18, und das wird geprüft.</b> Das Alter wird serverseitig aus
+        <li data-i18n-html="safe.li1"><b>Ab 18, und das wird geprüft.</b> Das Alter wird serverseitig aus
           dem Geburtsdatum berechnet. Vor der Freischaltung vergleicht ein
           Mensch dein Profilbild, ein live aufgenommenes Selfie und ein
           amtliches Lichtbilddokument und gleicht das Geburtsdatum ab.</li>
-        <li><b>Manuelle Prüfung, keine Gesichtserkennung.</b> Es kommt keine
+        <li data-i18n-html="safe.li2"><b>Manuelle Prüfung, keine Gesichtserkennung.</b> Es kommt keine
           automatische biometrische Erkennung zum Einsatz, es werden keine
           Gesichtsmerkmale berechnet oder gespeichert, und die Aufnahmen werden
           nach der Prüfung gelöscht.</li>
-        <li><b>Jedes Foto wird freigegeben, bevor es jemand sieht.</b> Von einem
+        <li data-i18n-html="safe.li3"><b>Jedes Foto wird freigegeben, bevor es jemand sieht.</b> Von einem
           Menschen. Lehnen wir eines ab, sagen wir dir warum.</li>
-        <li><b>Scam-Schutz im Chat.</b> Links und E-Mail-Adressen werden
+        <li data-i18n-html="safe.li4"><b>Scam-Schutz im Chat.</b> Links und E-Mail-Adressen werden
           automatisch entfernt, auffällige Nachrichten der Moderation vorgelegt.
           Profiltexte mit Links, Telefonnummern oder typischen Scam-Begriffen
           werden gar nicht erst veröffentlicht.</li>
-        <li><b>Melden und Blockieren.</b> Blockieren wirkt sofort und
+        <li data-i18n-html="safe.li5"><b>Melden und Blockieren.</b> Blockieren wirkt sofort und
           beidseitig. Beim Melden bekommst du ein Aktenzeichen und siehst die
           Entscheidung samt Begründung in deinem Konto.</li>
       </ul>
-      <p>
+      <p data-i18n-html="safe.p2">
         Was wir <b>nicht</b> behaupten: dass jedes Profil garantiert echt ist
         oder dass FLEXR vollständig sicher wäre. Eine Sichtprüfung erschwert
         Täuschungen, sie schließt sie nicht aus. Lies vor einem ersten Treffen
@@ -889,29 +930,29 @@ footer{ border-top:1px solid var(--steel); padding:32px 0 60px; margin-top:20px;
     </section>
 
     <section id="preis">
-      <h2>Was FLEXR kostet</h2>
+      <h2 data-i18n="price.h2">Was FLEXR kostet</h2>
       <div class="price-card">
-        <p class="price-free">Beta-Phase</p>
-        <div class="price">0&nbsp;€ <small>/ Monat</small></div>
-        <p style="margin:0; font-size:14.5px;">
+        <p class="price-free" data-i18n="price.eyebrow">Beta-Phase</p>
+        <div class="price">0&nbsp;€ <small data-i18n="price.perMonth">/ Monat</small></div>
+        <p style="margin:0; font-size:14.5px;" data-i18n-html="price.note">
           Die Mitgliedschaft von <s>5&nbsp;€ pro Monat</s> ist bis auf weiteres
           ausgesetzt — für neue und für bestehende Konten.
         </p>
         <ul>
-          <li>Unbegrenzt swipen und matchen</li>
-          <li>Chat mit allen Matches</li>
-          <li>Kein Zahlungsmittel nötig, keine In-App-Käufe</li>
-          <li>Keine Mindestlaufzeit, nichts zu kündigen</li>
+          <li data-i18n="price.li1">Unbegrenzt swipen und matchen</li>
+          <li data-i18n="price.li2">Chat mit allen Matches</li>
+          <li data-i18n="price.li3">Kein Zahlungsmittel nötig, keine In-App-Käufe</li>
+          <li data-i18n="price.li4">Keine Mindestlaufzeit, nichts zu kündigen</li>
         </ul>
-        <a class="btn" href="/app/" style="display:block; text-align:center; margin-top:22px;">Kostenlos starten</a>
+        <a class="btn" href="/app/" style="display:block; text-align:center; margin-top:22px;" data-i18n="price.cta">Kostenlos starten</a>
       </div>
-      <p style="margin-top:22px;">
+      <p style="margin-top:22px;" data-i18n-html="price.p1">
         <b>Solange die Beta läuft, wird nichts abgebucht.</b> Bei der
         Registrierung wird kein Zahlungsmittel abgefragt und keines hinterlegt,
         und aus dem Konto kann von selbst kein Abo werden. Du musst nichts
         kündigen und kannst keine Frist versäumen.
       </p>
-      <p>
+      <p data-i18n-html="price.p2">
         Wir behalten uns vor, die Mitgliedschaft später auf 5&nbsp;€ pro Monat
         umzustellen — angekündigt, bevor sie gilt, und ohne dass sich dein
         Konto von selbst in ein Abo verwandelt. Der Preis wäre dann der
@@ -920,70 +961,70 @@ footer{ border-top:1px solid var(--steel); padding:32px 0 60px; margin-top:20px;
     </section>
 
     <section id="faq">
-      <h2>Häufige Fragen</h2>
+      <h2 data-i18n="faq.h2">Häufige Fragen</h2>
       <div class="faq">
         <details>
-          <summary>Was ist FLEXR?</summary>
-          <div class="faq-a">Eine Dating-App für Menschen, denen Training und Gym wichtig sind. Du findest Matches nach deinem Fitnessstudio und deinem Umkreis — in ganz Österreich.</div>
+          <summary data-i18n="faq.q1">Was ist FLEXR?</summary>
+          <div class="faq-a" data-i18n-html="faq.a1">Eine Dating-App für Menschen, denen Training und Gym wichtig sind. Du findest Matches nach deinem Fitnessstudio und deinem Umkreis — in ganz Österreich.</div>
         </details>
         <details>
-          <summary>Für wen ist FLEXR?</summary>
-          <div class="faq-a">Für alle ab 18, die Training ernst nehmen und jemanden mit ähnlichem Lifestyle kennenlernen wollen. Der gemeinsame Nenner ist nicht ein Körper, sondern ein Alltag, in dem das Studio fix eingeplant ist.</div>
+          <summary data-i18n="faq.q2">Für wen ist FLEXR?</summary>
+          <div class="faq-a" data-i18n-html="faq.a2">Für alle ab 18, die Training ernst nehmen und jemanden mit ähnlichem Lifestyle kennenlernen wollen. Der gemeinsame Nenner ist nicht ein Körper, sondern ein Alltag, in dem das Studio fix eingeplant ist.</div>
         </details>
         <details>
-          <summary>Ist FLEXR nur für Bodybuilder?</summary>
-          <div class="faq-a">Nein. Kraftsport, Functional Fitness, Ausdauer, Kampfsport, Klettern — alles zählt, unabhängig vom Level. Es geht um den Lifestyle, nicht um ein bestimmtes Aussehen.</div>
+          <summary data-i18n="faq.q3">Ist FLEXR nur für Bodybuilder?</summary>
+          <div class="faq-a" data-i18n-html="faq.a3">Nein. Kraftsport, Functional Fitness, Ausdauer, Kampfsport, Klettern — alles zählt, unabhängig vom Level. Es geht um den Lifestyle, nicht um ein bestimmtes Aussehen.</div>
         </details>
         <details>
-          <summary>Was kostet FLEXR?</summary>
-          <div class="faq-a">Derzeit nichts. Während der Beta-Phase ist die Mitgliedschaft von 5&nbsp;€ pro Monat bis auf weiteres ausgesetzt — für neue und für bestehende Konten. Sollte die Gebühr später starten, kündigen wir das vorher an; kostenpflichtig wird nichts, ohne dass du dich aktiv dafür entscheidest.</div>
+          <summary data-i18n="faq.q4">Was kostet FLEXR?</summary>
+          <div class="faq-a" data-i18n-html="faq.a4">Derzeit nichts. Während der Beta-Phase ist die Mitgliedschaft von 5&nbsp;€ pro Monat bis auf weiteres ausgesetzt — für neue und für bestehende Konten. Sollte die Gebühr später starten, kündigen wir das vorher an; kostenpflichtig wird nichts, ohne dass du dich aktiv dafür entscheidest.</div>
         </details>
         <details>
-          <summary>Wird mein Konto automatisch kostenpflichtig?</summary>
-          <div class="faq-a"><b>Nein.</b> Bei der Registrierung wird kein Zahlungsmittel hinterlegt, aus einem kostenlosen Konto kann also gar kein Abo werden. Du musst nichts kündigen und keine Frist beachten.</div>
+          <summary data-i18n="faq.q5">Wird mein Konto automatisch kostenpflichtig?</summary>
+          <div class="faq-a" data-i18n-html="faq.a5"><b>Nein.</b> Bei der Registrierung wird kein Zahlungsmittel hinterlegt, aus einem kostenlosen Konto kann also gar kein Abo werden. Du musst nichts kündigen und keine Frist beachten.</div>
         </details>
         <details>
-          <summary>Wie funktionieren Matches?</summary>
-          <div class="faq-a">Du wählst Gym und Suchradius und siehst passende Profile aus diesem Umkreis. Liken sich zwei Personen gegenseitig, entsteht ein Match und ihr könnt schreiben. Vorher kann euch niemand anschreiben.</div>
+          <summary data-i18n="faq.q6">Wie funktionieren Matches?</summary>
+          <div class="faq-a" data-i18n-html="faq.a6">Du wählst Gym und Suchradius und siehst passende Profile aus diesem Umkreis. Liken sich zwei Personen gegenseitig, entsteht ein Match und ihr könnt schreiben. Vorher kann euch niemand anschreiben.</div>
         </details>
         <details>
-          <summary>Muss mein Gym bereits gelistet sein?</summary>
-          <div class="faq-a">Nein. Fehlt dein Studio, reichst du es mit Adresse ein und kannst es sofort für dein Profil verwenden. Nach der Prüfung erscheint es für alle in der Auswahl.</div>
+          <summary data-i18n="faq.q7">Muss mein Gym bereits gelistet sein?</summary>
+          <div class="faq-a" data-i18n-html="faq.a7">Nein. Fehlt dein Studio, reichst du es mit Adresse ein und kannst es sofort für dein Profil verwenden. Nach der Prüfung erscheint es für alle in der Auswahl.</div>
         </details>
         <details>
-          <summary>Wie funktioniert die Altersverifikation?</summary>
-          <div class="faq-a">Du bestätigst deine E-Mail-Adresse, nimmst ein Selfie live über die Kamera auf und lädst eine Aufnahme eines amtlichen Lichtbildausweises hoch. Ein Mensch vergleicht Profilbild, Selfie und Ausweisfoto und prüft das Geburtsdatum — <b>keine automatische Gesichtserkennung</b>. Die Aufnahmen werden danach gelöscht.</div>
+          <summary data-i18n="faq.q8">Wie funktioniert die Altersverifikation?</summary>
+          <div class="faq-a" data-i18n-html="faq.a8">Du bestätigst deine E-Mail-Adresse, nimmst ein Selfie live über die Kamera auf und lädst eine Aufnahme eines amtlichen Lichtbildausweises hoch. Ein Mensch vergleicht Profilbild, Selfie und Ausweisfoto und prüft das Geburtsdatum — <b>keine automatische Gesichtserkennung</b>. Die Aufnahmen werden danach gelöscht.</div>
         </details>
         <details>
-          <summary>Speichert FLEXR meinen Standort?</summary>
-          <div class="faq-a">Nein. Weder Browser noch App fragen eine Geräteposition ab. Die Umkreissuche rechnet ausschließlich mit der öffentlichen Adresse des Studios, das du selbst auswählst.</div>
+          <summary data-i18n="faq.q9">Speichert FLEXR meinen Standort?</summary>
+          <div class="faq-a" data-i18n-html="faq.a9">Nein. Weder Browser noch App fragen eine Geräteposition ab. Die Umkreissuche rechnet ausschließlich mit der öffentlichen Adresse des Studios, das du selbst auswählst.</div>
         </details>
         <details>
-          <summary>Ist FLEXR in ganz Österreich verfügbar?</summary>
-          <div class="faq-a">Ja, jede österreichische Postleitzahl funktioniert. Wie viele Profile du siehst, hängt davon ab, wie viele Leute in deinem Umkreis dabei sind — in Ballungsräumen mehr als am Land.</div>
+          <summary data-i18n="faq.q10">Ist FLEXR in ganz Österreich verfügbar?</summary>
+          <div class="faq-a" data-i18n-html="faq.a10">Ja, jede österreichische Postleitzahl funktioniert. Wie viele Profile du siehst, hängt davon ab, wie viele Leute in deinem Umkreis dabei sind — in Ballungsräumen mehr als am Land.</div>
         </details>
         <details>
-          <summary>Wie kündige ich?</summary>
-          <div class="faq-a">Im Konto-Bereich unter „Abo verwalten / kündigen", jederzeit und ohne Frist. Der Zugang bleibt bis zum Ende der bezahlten Periode aktiv.</div>
+          <summary data-i18n="faq.q11">Wie kündige ich?</summary>
+          <div class="faq-a" data-i18n-html="faq.a11">Im Konto-Bereich unter „Abo verwalten / kündigen", jederzeit und ohne Frist. Der Zugang bleibt bis zum Ende der bezahlten Periode aktiv.</div>
         </details>
         <details>
-          <summary>Wie melde oder blockiere ich jemanden?</summary>
-          <div class="faq-a">Über das Flaggen-Symbol in jedem Profil und Chat. Blockieren wirkt sofort und beidseitig. Beim Melden bekommst du ein Aktenzeichen und siehst das Ergebnis unter „Meine Meldungen". Ohne Konto geht es über das <a href="/meldung.html">öffentliche Meldeformular</a>.</div>
+          <summary data-i18n="faq.q12">Wie melde oder blockiere ich jemanden?</summary>
+          <div class="faq-a" data-i18n-html="faq.a12">Über das Flaggen-Symbol in jedem Profil und Chat. Blockieren wirkt sofort und beidseitig. Beim Melden bekommst du ein Aktenzeichen und siehst das Ergebnis unter „Meine Meldungen". Ohne Konto geht es über das <a href="/meldung.html">öffentliche Meldeformular</a>.</div>
         </details>
       </div>
-      <p style="margin-top:22px;">
+      <p style="margin-top:22px;" data-i18n-html="faq.more">
         Mehr Antworten stehen in den <a href="/faq.html">ausführlichen FAQ</a>.
       </p>
     </section>
 
     <section id="start" style="text-align:center;">
-      <h2>Bereit?</h2>
-      <p style="margin-left:auto; margin-right:auto;">
+      <h2 data-i18n="start.h2">Bereit?</h2>
+      <p style="margin-left:auto; margin-right:auto;" data-i18n="start.p">
         Profil erstellen, Gym auswählen, loslegen. Während der Beta kostet FLEXR
         nichts — ohne Zahlungsmittel, ohne Frist.
       </p>
       <div class="cta-row" style="justify-content:center;">
-        <a class="btn" href="/app/">Gratis loslegen</a>
+        <a class="btn" href="/app/" data-i18n="hero.ctaStart">Gratis loslegen</a>
       </div>
     </section>
 
@@ -996,32 +1037,32 @@ footer{ border-top:1px solid var(--steel); padding:32px 0 60px; margin-top:20px;
       <div>
         <div class="foot-title">FLEXR</div>
         <ul>
-          <li><a href="/app/">Zur App</a></li>
-          <li><a href="#so-gehts">So funktioniert's</a></li>
-          <li><a href="#preis">Preis</a></li>
-          <li><a href="/faq.html">FAQ</a></li>
+          <li><a href="/app/" data-i18n="foot.toApp">Zur App</a></li>
+          <li><a href="#so-gehts" data-i18n="nav.how">So funktioniert's</a></li>
+          <li><a href="#preis" data-i18n="nav.price">Preis</a></li>
+          <li><a href="/faq.html" data-i18n="legal.faq">FAQ</a></li>
         </ul>
       </div>
       <div>
-        <div class="foot-title">Sicherheit</div>
+        <div class="foot-title" data-i18n="foot.safetyTitle">Sicherheit</div>
         <ul>
-          <li><a href="/sicherheit.html">Sicherheitstipps</a></li>
-          <li><a href="/nutzungsrichtlinien.html">Nutzungsrichtlinien</a></li>
-          <li><a href="/meldung.html">Inhalt melden</a></li>
-          <li><a href="/strafverfolgung.html">Für Behörden</a></li>
+          <li><a href="/sicherheit.html" data-i18n="foot.safetyTips">Sicherheitstipps</a></li>
+          <li><a href="/nutzungsrichtlinien.html" data-i18n="legal.nutzungsrichtlinien">Nutzungsrichtlinien</a></li>
+          <li><a href="/meldung.html" data-i18n="legal.meldung">Inhalt melden</a></li>
+          <li><a href="/strafverfolgung.html" data-i18n="foot.authorities">Für Behörden</a></li>
         </ul>
       </div>
       <div>
-        <div class="foot-title">Rechtliches</div>
+        <div class="foot-title" data-i18n="legal.section">Rechtliches</div>
         <ul>
-          <li><a href="/impressum.html">Impressum</a></li>
-          <li><a href="/datenschutz.html">Datenschutz</a></li>
-          <li><a href="/agb.html">AGB</a></li>
-          <li><a href="/widerruf.html" data-widerruf-link>Rücktrittsrecht</a></li>
+          <li><a href="/impressum.html" data-i18n="legal.impressum">Impressum</a></li>
+          <li><a href="/datenschutz.html" data-i18n="legal.datenschutz">Datenschutz</a></li>
+          <li><a href="/agb.html" data-i18n="legal.agb">AGB</a></li>
+          <li><a href="/widerruf.html" data-widerruf-link data-i18n="legal.widerruf">Rücktrittsrecht</a></li>
         </ul>
       </div>
     </div>
-    <p class="foot-note">
+    <p class="foot-note" data-i18n-html="foot.note">
       FLEXR ist eine Marke von Julian Pachernegg, Einzelunternehmer,
       8232 Grafendorf, Österreich. Nutzung ab 18 Jahren. Vollständige
       Anbieterangaben im <a href="/impressum.html">Impressum</a>.
@@ -1218,15 +1259,15 @@ footer{ border-top:1px solid var(--steel); padding:32px 0 60px; margin-top:20px;
 <div class="beta-backdrop" id="betaBackdrop" role="dialog" aria-modal="true"
      aria-labelledby="betaTitle" aria-describedby="betaText">
   <div class="beta-modal">
-    <button type="button" class="beta-close" id="betaClose" aria-label="Hinweis schließen">✕</button>
-    <p class="eyebrow">Beta-Phase</p>
-    <h2 id="betaTitle">FLEXR ist noch im Aufbau</h2>
-    <p id="betaText">
+    <button type="button" class="beta-close" id="betaClose" data-i18n-aria="beta.closeAria" aria-label="Hinweis schließen">✕</button>
+    <p class="eyebrow" data-i18n="beta.eyebrow">Beta-Phase</p>
+    <h2 id="betaTitle" data-i18n="beta.title">FLEXR ist noch im Aufbau</h2>
+    <p id="betaText" data-i18n="beta.text">
       Du kannst FLEXR schon jetzt im Browser nutzen. Weil wir noch in der Beta
       sind, sind manche Regionen dünn besetzt und einzelne Funktionen ändern
       sich noch.
     </p>
-    <div class="beta-free">
+    <div class="beta-free" data-i18n-html="beta.free">
       <b>Solange die Beta läuft, kostet FLEXR nichts.</b>
       Die Mitgliedschaft von 5&nbsp;€ pro Monat ist bis auf weiteres ausgesetzt —
       für neue und für bestehende Konten. Es wird kein Zahlungsmittel abgefragt
@@ -1234,11 +1275,11 @@ footer{ border-top:1px solid var(--steel); padding:32px 0 60px; margin-top:20px;
       vorher an.
     </div>
     <ul class="beta-dates">
-      <li><b>Android</b><span>Veröffentlichung geplant für Ende September 2026</span></li>
-      <li><b class="as-written">iOS</b><span>folgt im Anschluss</span></li>
+      <li><b>Android</b><span data-i18n="beta.android">Veröffentlichung geplant für Ende September 2026</span></li>
+      <li><b class="as-written">iOS</b><span data-i18n="beta.ios">folgt im Anschluss</span></li>
     </ul>
-    <p>Mit dem Start der Android-App geht FLEXR dann richtig an den Start.</p>
-    <button type="button" class="btn" id="betaOk">Verstanden</button>
+    <p data-i18n="beta.outro">Mit dem Start der Android-App geht FLEXR dann richtig an den Start.</p>
+    <button type="button" class="btn" id="betaOk" data-i18n="beta.ok">Verstanden</button>
   </div>
 </div>
 

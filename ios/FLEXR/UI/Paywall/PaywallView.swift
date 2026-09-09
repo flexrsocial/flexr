@@ -5,6 +5,8 @@ import SwiftUI
 /// Der Checkout läuft in einer externen Browser-Sitzung über Stripe — die App
 /// nimmt zu keinem Zeitpunkt Zahlungsdaten entgegen.
 struct PaywallView: View {
+    @Environment(LanguageStore.self) private var languageStore
+    private var s: FlexrStrings { languageStore.strings }
 
     @Environment(AppContainer.self) private var container
     @Environment(AppModel.self) private var appModel
@@ -15,19 +17,21 @@ struct PaywallView: View {
     @State private var showDeleteDialog = false
     @State private var deletePassword = ""
 
-    private let features = [
-        "Unbegrenzt swipen & matchen in deinem Umkreis",
-        "Chat mit allen Matches inklusive",
-        "Monatlich kündbar, keine versteckten Kosten",
-    ]
+    private var features: [String] {
+        [
+            s(.paywallFeatureUnlimited),
+            s(.paywallFeatureChat),
+            s(.paywallFeatureCancel),
+        ]
+    }
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 0) {
                 EmptyStateView(
                     icon: .symbol(FlexrIcon.locked),
-                    title: "Probemonat vorbei",
-                    message: "Dein kostenloser Monat ist abgelaufen. Schalte FLEXR wieder frei."
+                    title: s(.paywallTitle),
+                    message: s(.paywallSub)
                 )
                 .padding(.top, 24)
 
@@ -57,7 +61,7 @@ struct PaywallView: View {
                     }
                     .padding(.top, 10)
 
-                    FlexrButton(title: "Jetzt abonnieren") {
+                    FlexrButton(title: s(.paywallSubscribe)) {
                         accountModel?.openCheckoutSheet()
                     }
                     .padding(.top, 12)
@@ -65,17 +69,14 @@ struct PaywallView: View {
                 .padding(20)
                 .flexrSurface(radius: FlexrRadius.large, border: FlexrColor.plate.opacity(0.3))
 
-                Text(
-                    "Nach der Zahlung kehrst du automatisch in die App zurück. "
-                        + "Falls der Status nicht sofort stimmt: kurz warten und erneut öffnen."
-                )
+                Text(s(.paywallReturnNote))
                 .flexrText(.bodySmall)
                 .foregroundStyle(FlexrColor.chalkDim)
                 .multilineTextAlignment(.center)
                 .frame(maxWidth: .infinity)
                 .padding(.top, 14)
 
-                FlexrSecondaryButton(title: "Ausloggen") {
+                FlexrSecondaryButton(title: s(.commonLogout)) {
                     Task { await appModel.logout() }
                 }
                 .padding(.top, 24)
@@ -83,7 +84,7 @@ struct PaywallView: View {
                 // Nach Ablauf des Probemonats ist der Konto-Screen nicht mehr
                 // erreichbar. Ohne diesen Knopf wäre die Selbstlöschung damit
                 // unerreichbar - Punkt 5 der Datenschutzerklärung sagt sie zu.
-                FlexrDangerButton(title: "Konto löschen") {
+                FlexrDangerButton(title: s(.commonDeleteAccount)) {
                     deletePassword = ""
                     showDeleteDialog = true
                 }
@@ -100,7 +101,9 @@ struct PaywallView: View {
         )
         .task {
             if accountModel == nil {
-                accountModel = AccountModel(container: container) { appModel.show($0) }
+                accountModel = AccountModel(container: container, languageStore: languageStore) {
+                    appModel.show($0)
+                }
             }
         }
         .sheet(isPresented: Binding(

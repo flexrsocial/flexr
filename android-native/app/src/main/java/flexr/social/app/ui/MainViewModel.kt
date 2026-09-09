@@ -3,7 +3,9 @@ package flexr.social.app.ui
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import flexr.social.app.R
 import flexr.social.app.SessionGate
+import flexr.social.app.core.locale.AppStrings
 import flexr.social.app.core.network.FlexrApiException
 import flexr.social.app.data.repository.AuthRepository
 import flexr.social.app.data.repository.BillingRepository
@@ -56,6 +58,7 @@ class MainViewModel @Inject constructor(
     private val verificationRepository: VerificationRepository,
     private val notificationScheduler: MessageNotificationScheduler,
     matchRepository: MatchRepository,
+    private val strings: AppStrings,
 ) : ViewModel() {
 
     private val _appState = MutableStateFlow<AppState>(AppState.Loading)
@@ -127,13 +130,13 @@ class MainViewModel @Inject constructor(
         viewModelScope.launch {
             runCatching { verificationRepository.confirmEmail(token) }
                 .onSuccess { name ->
-                    onResult("Danke, $name! Deine E-Mail-Adresse ist bestätigt.")
+                    onResult(strings.get(R.string.mail_confirmed, name))
                     loadSession()
                 }
                 .onFailure { throwable ->
                     onResult(
                         (throwable as? FlexrApiException)?.message
-                            ?: "Der Bestätigungslink konnte nicht eingelöst werden.",
+                            ?: strings.get(R.string.mail_confirm_failed),
                     )
                 }
         }

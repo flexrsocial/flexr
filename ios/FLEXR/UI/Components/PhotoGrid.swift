@@ -140,6 +140,8 @@ private struct PhotoReorderDropDelegate: DropDelegate {
 }
 
 private struct FilledPhotoSlot: View {
+    @Environment(LanguageStore.self) private var languageStore
+    private var s: FlexrStrings { languageStore.strings }
 
     let slot: PhotoSlot
     let showsStatus: Bool
@@ -179,7 +181,7 @@ private struct FilledPhotoSlot: View {
             }
             .buttonStyle(.plain)
             .padding(4)
-            .accessibilityLabel("Foto entfernen")
+            .accessibilityLabel(s(.photoRemove))
 
             if let position {
                 VStack {
@@ -203,7 +205,7 @@ private struct FilledPhotoSlot: View {
             if showsStatus, let status = slot.status, status != .approved {
                 VStack {
                     Spacer()
-                    Text(status == .rejected ? "Abgelehnt" : "In Prüfung")
+                    Text(status == .rejected ? "Abgelehnt" : s(.photoPending))
                         .font(.flexrMono(9))
                         .foregroundStyle(status == .rejected ? FlexrColor.danger : FlexrColor.plate)
                         .frame(maxWidth: .infinity)
@@ -224,6 +226,8 @@ private struct FilledPhotoSlot: View {
 }
 
 private struct EmptyPhotoSlot: View {
+    @Environment(LanguageStore.self) private var languageStore
+    private var s: FlexrStrings { languageStore.strings }
 
     @Binding var selection: PhotosPickerItem?
 
@@ -240,26 +244,28 @@ private struct EmptyPhotoSlot: View {
             }
             .aspectRatio(3.0 / 4.0, contentMode: .fit)
         }
-        .accessibilityLabel("Foto hinzufügen")
+        .accessibilityLabel(s(.photoAdd))
     }
 }
 
 /// Sichtbarkeitshinweis unter dem Fotoraster (`.photo-hint`).
 struct PhotoVisibilityHint: View {
+    @Environment(LanguageStore.self) private var languageStore
+    private var s: FlexrStrings { languageStore.strings }
 
     let statuses: [PhotoStatus]
 
     private var content: (text: String, warn: Bool) {
         if statuses.isEmpty {
-            return ("Mindestens ein Foto ist nötig, damit dein Profil sichtbar ist.", true)
+            return (s(.photoHintNone), true)
         }
         if statuses.contains(.approved) {
-            return ("Dein Profil ist sichtbar. Neue Fotos werden kurz geprüft.", false)
+            return (s(.photoHintOk), false)
         }
         if statuses.contains(.pending) {
-            return ("Dein Foto wird geprüft.", true)
+            return (s(.photoHintPending), true)
         }
-        return ("Foto abgelehnt. Bitte lade ein anderes hoch.", true)
+        return (s(.photoHintRejected), true)
     }
 
     var body: some View {

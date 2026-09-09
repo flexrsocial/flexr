@@ -43,8 +43,20 @@ final class ChatModel {
     @ObservationIgnored private let profiles: ProfileRepository
     @ObservationIgnored private let onMessage: (String) -> Void
 
-    init(matchID: String, container: AppContainer, onMessage: @escaping (String) -> Void) {
+    /// Texte in der gewählten Sprache. Als Referenz auf den Speicher und nicht
+    /// als Kopie: eine Umstellung mitten in der Sitzung wirkt dann sofort auch
+    /// auf Meldungen, die dieses Modell danach erzeugt.
+    @ObservationIgnored private let languageStore: LanguageStore
+    private var s: FlexrStrings { languageStore.strings }
+
+    init(
+        matchID: String,
+        container: AppContainer,
+        languageStore: LanguageStore,
+        onMessage: @escaping (String) -> Void
+    ) {
         self.matchID = matchID
+        self.languageStore = languageStore
         messageRepository = container.messages
         matches = container.matches
         safety = container.safety
@@ -130,7 +142,7 @@ final class ChatModel {
 
             if apiError?.mutedUntil == nil {
                 if apiError?.statusCode == 403 { await refreshMuteState() }
-                onMessage(apiError?.message ?? "Nachricht konnte nicht gesendet werden.")
+                onMessage(apiError?.message ?? s(.chatSendFailed))
             }
         }
         isSending = false
@@ -155,7 +167,7 @@ final class ChatModel {
             do {
                 try await messageRepository.clearHistory(matchID: matchID)
                 reload()
-                onMessage("Chatverlauf geleert.")
+                onMessage(s(.chatCleared))
                 _ = try? await matches.refresh()
             } catch {
                 onMessage(error.localizedDescription)
@@ -170,7 +182,7 @@ final class ChatModel {
         Task {
             do {
                 try await matches.deleteChat(matchID: matchID)
-                onMessage("Chat gelöscht.")
+                onMessage(s(.chatDeleted))
                 isClosed = true
             } catch {
                 onMessage(error.localizedDescription)

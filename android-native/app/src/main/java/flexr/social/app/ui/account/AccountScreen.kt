@@ -52,6 +52,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.input.ImeAction
@@ -62,6 +63,7 @@ import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
+import flexr.social.app.R
 import flexr.social.app.core.common.ServerTime
 import flexr.social.app.core.designsystem.component.FieldError
 import flexr.social.app.core.designsystem.component.FieldLabel
@@ -70,17 +72,20 @@ import flexr.social.app.core.designsystem.component.FlexrLinkButton
 import flexr.social.app.core.designsystem.component.FlexrPasswordField
 import flexr.social.app.core.designsystem.component.FlexrSecondaryButton
 import flexr.social.app.core.designsystem.component.FlexrTextField
+import flexr.social.app.core.designsystem.component.LanguageSwitch
 import flexr.social.app.core.designsystem.component.SectionTitle
 import flexr.social.app.core.designsystem.component.VerifiedBadge
 import flexr.social.app.core.designsystem.theme.FlexrTheme
 import flexr.social.app.core.designsystem.theme.MonoStyle
+import flexr.social.app.core.locale.AppLanguageViewModel
+import flexr.social.app.core.locale.LocalAppLanguage
 import flexr.social.app.data.remote.dto.ConsentDto
+import flexr.social.app.data.remote.dto.NotificationSettingsRequestDto
 import flexr.social.app.domain.model.BlockedUser
+import flexr.social.app.domain.model.NotificationSettings
 import flexr.social.app.domain.model.VerificationStatus
 import flexr.social.app.ui.components.GymPicker
 import flexr.social.app.ui.components.GymSuggestionDialog
-import flexr.social.app.data.remote.dto.NotificationSettingsRequestDto
-import flexr.social.app.domain.model.NotificationSettings
 import flexr.social.app.ui.components.PhotoGridEditor
 import flexr.social.app.ui.components.PhotoSlot
 import flexr.social.app.ui.components.PhotoVisibilityHint
@@ -116,6 +121,8 @@ fun AccountScreen(
     val colors = FlexrTheme.colors
     val currentProfile = profile
     val context = LocalContext.current
+    // Sprachwahl: derselbe Activity-weite ViewModel wie in der Kopfzeile.
+    val languageViewModel: AppLanguageViewModel = hiltViewModel()
     var legalDialogVisible by remember { mutableStateOf(false) }
     var notificationDialogVisible by remember { mutableStateOf(false) }
     var pendingSensitiveRevoke by remember { mutableStateOf(false) }
@@ -126,7 +133,7 @@ fun AccountScreen(
     ) { granted ->
         if (!granted) {
             viewModel.setNotificationsEnabled(false)
-            onShowMessage("Ohne Berechtigung können keine Benachrichtigungen angezeigt werden.")
+            onShowMessage(context.getString(R.string.account_notification_permission))
         }
     }
 
@@ -152,7 +159,7 @@ fun AccountScreen(
                 if (avatar != null) {
                     AsyncImage(
                         model = avatar,
-                        contentDescription = "Dein Profilfoto",
+                        contentDescription = stringResource(R.string.account_own_photo),
                         contentScale = ContentScale.Crop,
                         modifier = Modifier.fillMaxSize().clip(CircleShape),
                     )
@@ -217,13 +224,12 @@ fun AccountScreen(
             ) {
                 Text(
                     text = when {
-                        !status.billingEnabled ->
-                            "FLEXR ist in der Beta-Phase kostenlos — die Mitgliedschaft " +
-                                "von 5 €/Monat ist bis auf weiteres ausgesetzt. Es ist kein " +
-                                "Zahlungsmittel hinterlegt und es wird nichts abgebucht."
-                        status.isSubscribed -> "Dein Abo ist aktiv (5 €/Monat)."
-                        else ->
-                            "Noch ${ServerTime.daysUntil(status.trialEndsAt)} Tag(e) gratis Probemonat."
+                        !status.billingEnabled -> stringResource(R.string.account_status_beta_free)
+                        status.isSubscribed -> stringResource(R.string.account_status_active)
+                        else -> stringResource(
+                            R.string.account_trial_days_left,
+                            ServerTime.daysUntil(status.trialEndsAt),
+                        )
                     },
                     style = MaterialTheme.typography.bodyMedium,
                     color = colors.chalk,
@@ -234,18 +240,21 @@ fun AccountScreen(
                 // erst angeboten; der Server lehnt ihn mit 409 ab.
                 if (status.isSubscribed) {
                     FlexrLinkButton(
-                        text = "Abo verwalten / kündigen",
+                        text = stringResource(R.string.account_manage_subscription),
                         onClick = viewModel::openBillingPortal,
                     )
                 } else if (status.billingEnabled) {
-                    FlexrLinkButton(text = "Jetzt abonnieren", onClick = viewModel::openCheckoutDialog)
+                    FlexrLinkButton(
+                        text = stringResource(R.string.account_subscribe),
+                        onClick = viewModel::openCheckoutDialog,
+                    )
                 }
             }
         }
 
         // ---------- Profil ----------
         Spacer(Modifier.height(26.dp))
-        SectionTitle("Profil")
+        SectionTitle(stringResource(R.string.account_section_profile))
 
         PostalCodeField(
             postalCode = state.postalCode,
@@ -263,8 +272,8 @@ fun AccountScreen(
         FlexrTextField(
             value = state.bio,
             onValueChange = viewModel::onBioChange,
-            label = "Bio",
-            placeholder = "Was du suchst, dein Training, gerne mit Emojis 💪",
+            label = stringResource(R.string.field_bio),
+            placeholder = stringResource(R.string.field_bio_placeholder),
             singleLine = false,
             maxLines = 5,
             minHeight = 96,
@@ -273,7 +282,7 @@ fun AccountScreen(
             emojiPicker = true,
         )
 
-        FieldLabel("Suchumkreis")
+        FieldLabel(stringResource(R.string.account_radius_label))
         Row(verticalAlignment = Alignment.CenterVertically) {
             Slider(
                 value = state.searchRadiusKm.toFloat(),
@@ -287,10 +296,14 @@ fun AccountScreen(
                 ),
             )
             Spacer(Modifier.width(12.dp))
-            Text("${state.searchRadiusKm} km", style = MonoStyle, color = colors.chalk)
+            Text(
+                stringResource(R.string.account_radius_value, state.searchRadiusKm),
+                style = MonoStyle,
+                color = colors.chalk,
+            )
         }
         Text(
-            text = "Radius rund um dein Gym. Dein Gerätestandort wird nicht verwendet.",
+            text = stringResource(R.string.account_radius_hint),
             style = MaterialTheme.typography.bodySmall,
             color = colors.chalkDim,
         )
@@ -298,14 +311,14 @@ fun AccountScreen(
         FieldError(state.saveError)
         Spacer(Modifier.height(16.dp))
         FlexrSecondaryButton(
-            text = "Profil speichern",
+            text = stringResource(R.string.account_save),
             onClick = viewModel::saveProfile,
             loading = state.isSaving,
         )
 
         // ---------- Fotos ----------
         Spacer(Modifier.height(28.dp))
-        SectionTitle("Fotos")
+        SectionTitle(stringResource(R.string.account_section_photos))
         Spacer(Modifier.height(8.dp))
         PhotoGridEditor(
             slots = currentProfile?.photos?.map {
@@ -326,7 +339,7 @@ fun AccountScreen(
                 CircularProgressIndicator(Modifier.size(14.dp), color = colors.plate, strokeWidth = 1.5.dp)
                 Spacer(Modifier.width(8.dp))
                 Text(
-                    "Foto wird hochgeladen …",
+                    stringResource(R.string.photo_uploading),
                     style = MaterialTheme.typography.bodySmall,
                     color = colors.chalkDim,
                 )
@@ -337,14 +350,38 @@ fun AccountScreen(
 
         // ---------- Einstellungen ----------
         Spacer(Modifier.height(28.dp))
-        SectionTitle("Einstellungen")
+        SectionTitle(stringResource(R.string.account_section_settings))
+
+        // Sprachwahl auch hier, weil Einstellungen im Profil gesucht werden -
+        // derselbe Regler wie oben in der Kopfzeile, gleicher Zustand.
+        Row(
+            Modifier.fillMaxWidth().padding(top = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Column(Modifier.weight(1f).padding(end = 12.dp)) {
+                Text(
+                    stringResource(R.string.lang_row_title),
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = colors.chalk,
+                )
+                Text(
+                    stringResource(R.string.lang_row_hint),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = colors.chalkDim,
+                )
+            }
+            LanguageSwitch(
+                language = LocalAppLanguage.current,
+                onSelect = languageViewModel::select,
+            )
+        }
         Row(
             Modifier.fillMaxWidth().padding(top = 12.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Column(Modifier.weight(1f)) {
                 Text(
-                    "Nachrichten erhalten",
+                    stringResource(R.string.account_messages_switch),
                     style = MaterialTheme.typography.bodyLarge,
                     color = colors.chalk,
                 )
@@ -385,12 +422,12 @@ fun AccountScreen(
         ) {
             Column(Modifier.weight(1f)) {
                 Text(
-                    "Benachrichtigungen",
+                    stringResource(R.string.account_notifications_title),
                     style = MaterialTheme.typography.bodyLarge,
                     color = colors.chalk,
                 )
                 Text(
-                    "Matches, neue Profile und Erinnerungen",
+                    stringResource(R.string.account_notifications_row),
                     style = MaterialTheme.typography.bodySmall,
                     color = colors.chalkDim,
                 )
@@ -413,12 +450,12 @@ fun AccountScreen(
         ) {
             Column(Modifier.weight(1f)) {
                 Text(
-                    "Hilfe & Rechtliches",
+                    stringResource(R.string.account_legal_title),
                     style = MaterialTheme.typography.bodyLarge,
                     color = colors.chalk,
                 )
                 Text(
-                    "Sicherheit, Datenschutz und Bedingungen",
+                    stringResource(R.string.account_legal_row),
                     style = MaterialTheme.typography.bodySmall,
                     color = colors.chalkDim,
                 )
@@ -448,12 +485,12 @@ fun AccountScreen(
         ) {
             Column(Modifier.weight(1f)) {
                 Text(
-                    "Datenschutz & Sicherheit",
+                    stringResource(R.string.account_privacy_title),
                     style = MaterialTheme.typography.bodyLarge,
                     color = colors.chalk,
                 )
                 Text(
-                    "Einwilligungen einsehen und widerrufen",
+                    stringResource(R.string.account_consents_row),
                     style = MaterialTheme.typography.bodySmall,
                     color = colors.chalkDim,
                 )
@@ -500,12 +537,12 @@ fun AccountScreen(
         ) {
             Column(Modifier.weight(1f)) {
                 Text(
-                    "Blockierte Personen",
+                    stringResource(R.string.account_blocks_title),
                     style = MaterialTheme.typography.bodyLarge,
                     color = colors.chalk,
                 )
                 Text(
-                    "Blockierungen verwalten und aufheben",
+                    stringResource(R.string.account_blocks_row),
                     style = MaterialTheme.typography.bodySmall,
                     color = colors.chalkDim,
                 )
@@ -531,11 +568,14 @@ fun AccountScreen(
 
         // ---------- Konto ----------
         Spacer(Modifier.height(28.dp))
-        SectionTitle("Konto")
+        SectionTitle(stringResource(R.string.common_account))
         Spacer(Modifier.height(12.dp))
-        FlexrSecondaryButton(text = "Ausloggen", onClick = onLogout)
+        FlexrSecondaryButton(text = stringResource(R.string.common_logout), onClick = onLogout)
         Spacer(Modifier.height(10.dp))
-        FlexrDangerButton(text = "Konto löschen", onClick = viewModel::showDeleteDialog)
+        FlexrDangerButton(
+            text = stringResource(R.string.common_delete_account),
+            onClick = viewModel::showDeleteDialog,
+        )
 
         Spacer(Modifier.height(40.dp))
     }
@@ -586,13 +626,10 @@ fun AccountScreen(
         AlertDialog(
             onDismissRequest = { pendingSensitiveRevoke = false },
             containerColor = MaterialTheme.colorScheme.surface,
-            title = { Text("Einwilligung widerrufen?", style = MaterialTheme.typography.headlineSmall) },
+            title = { Text(stringResource(R.string.consent_revoke_title), style = MaterialTheme.typography.headlineSmall) },
             text = {
                 Text(
-                    text = "Geschlecht und gesuchtes Geschlecht sind die Grundlage des " +
-                        "Matchings.\n\nOhne diese Einwilligung schlagen wir dir keine Profile " +
-                        "mehr vor und du erscheinst in keinem Deck. Dein Konto bleibt bestehen." +
-                        "\n\nWillst du ganz weg, lösche stattdessen dein Konto.",
+                    text = stringResource(R.string.consent_revoke_body),
                     style = MaterialTheme.typography.bodyMedium,
                     color = FlexrTheme.colors.chalkDim,
                 )
@@ -602,12 +639,12 @@ fun AccountScreen(
                     pendingSensitiveRevoke = false
                     viewModel.revokeConsent("sensitive_data")
                 }) {
-                    Text("Widerruf erklären", color = FlexrTheme.colors.danger)
+                    Text(stringResource(R.string.consent_revoke_confirm), color = FlexrTheme.colors.danger)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { pendingSensitiveRevoke = false }) {
-                    Text("Abbrechen", color = FlexrTheme.colors.chalkDim)
+                    Text(stringResource(R.string.common_cancel), color = FlexrTheme.colors.chalkDim)
                 }
             },
         )
@@ -650,34 +687,30 @@ internal fun CheckoutDialog(
     AlertDialog(
         onDismissRequest = onDismiss,
         containerColor = MaterialTheme.colorScheme.surface,
-        title = { Text("Vor der Zahlung", style = MaterialTheme.typography.headlineSmall) },
+        title = { Text(stringResource(R.string.checkout_title), style = MaterialTheme.typography.headlineSmall) },
         text = {
             Column(Modifier.verticalScroll(rememberScrollState())) {
                 CheckoutConsentRow(
                     checked = immediateStartChecked,
                     onCheckedChange = onImmediateStartChange,
-                    text = "Ich stimme ausdrücklich zu, dass FLEXR bereits vor Ablauf der " +
-                        "14-tägigen Rücktrittsfrist mit der Erbringung der kostenpflichtigen " +
-                        "Dienstleistung beginnt.",
+                    text = stringResource(R.string.checkout_consent_immediate),
                 )
                 CheckoutConsentRow(
                     checked = withdrawalAckChecked,
                     onCheckedChange = onWithdrawalAckChange,
-                    text = "Ich bestätige, dass ich zur Kenntnis genommen habe, dass mein " +
-                        "Rücktrittsrecht nach vollständiger Vertragserfüllung durch FLEXR " +
-                        "erlischt, wenn die gesetzlichen Voraussetzungen dafür erfüllt sind.",
+                    text = stringResource(R.string.checkout_consent_withdrawal),
                 )
                 FieldError(error)
             }
         },
         confirmButton = {
             TextButton(onClick = onConfirm, enabled = !isStarting) {
-                Text("Weiter zur Zahlung", color = colors.plate)
+                Text(stringResource(R.string.checkout_continue), color = colors.plate)
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss, enabled = !isStarting) {
-                Text("Abbrechen", color = colors.chalkDim)
+                Text(stringResource(R.string.common_cancel), color = colors.chalkDim)
             }
         },
     )
@@ -744,6 +777,7 @@ private fun ConsentSection(
     // Angezeigt wird pro Art aber nur die neueste Zeile: eine wachsende Liste
     // aus "widerrufen"/"erteilt"-Karten derselben Sache (z. B. Geschlecht)
     // las sich wie ein Protokoll statt wie eine Einstellung.
+    val revokedSuffix = stringResource(R.string.consent_revoked_suffix)
     val sichtbareConsents = remember(consents) {
         val gesehen = mutableSetOf<String>()
         consents
@@ -754,17 +788,18 @@ private fun ConsentSection(
         loading && sichtbareConsents.isEmpty() -> Row(verticalAlignment = Alignment.CenterVertically) {
             CircularProgressIndicator(Modifier.size(14.dp), color = colors.plate, strokeWidth = 1.5.dp)
             Spacer(Modifier.width(8.dp))
-            Text("Lade …", style = MaterialTheme.typography.bodySmall, color = colors.chalkDim)
+            Text(stringResource(R.string.common_loading), style = MaterialTheme.typography.bodySmall, color = colors.chalkDim)
         }
         sichtbareConsents.isEmpty() && error == null -> Text(
-            "Keine Einträge.",
+            stringResource(R.string.consent_none),
             style = MaterialTheme.typography.bodySmall,
             color = colors.chalkDim,
         )
         else -> Column {
             sichtbareConsents.forEachIndexed { index, consent ->
                 Column(Modifier.fillMaxWidth().padding(vertical = 10.dp)) {
-                    val label = CONSENT_LABELS[consent.consentType] ?: consent.consentType
+                    val label = CONSENT_LABELS[consent.consentType]
+                        ?.let { stringResource(it) } ?: consent.consentType
                     // EIN Text statt Row(Text, Text): "— widerrufen" als Row-
                     // Geschwister neben einem langen Label (z. B. "Verarbeitung
                     // von Geschlecht und gesuchtem Geschlecht") bekam kaum noch
@@ -777,7 +812,7 @@ private fun ConsentSection(
                             append(label)
                             if (!consent.active) {
                                 withStyle(SpanStyle(color = colors.chalkDim)) {
-                                    append("  — widerrufen")
+                                    append(revokedSuffix)
                                 }
                             }
                         },
@@ -787,13 +822,15 @@ private fun ConsentSection(
                     val datum = ServerTime
                         .parse(if (consent.active) consent.grantedAt else consent.revokedAt)
                         ?.let(ServerTime::formatDay)
+                    val tag = datum ?: stringResource(R.string.date_unknown)
+                    val grundlage = CONSENT_GRUNDLAGE[consent.consentType]?.let { stringResource(it) }
                     val details = buildString {
                         if (consent.active) {
-                            append("Erteilt am ${datum ?: "—"}, Fassung ${consent.version}.")
+                            append(stringResource(R.string.consent_granted_version, tag, consent.version))
                         } else {
-                            append("Widerrufen am ${datum ?: "—"}.")
+                            append(stringResource(R.string.consent_revoked_on_day, tag))
                         }
-                        CONSENT_GRUNDLAGE[consent.consentType]?.let { append(" $it") }
+                        grundlage?.let { append(" $it") }
                     }
                     Text(
                         details,
@@ -804,13 +841,13 @@ private fun ConsentSection(
                     if (consent.consentType in CONSENT_REVOCABLE) {
                         if (consent.active) {
                             FlexrLinkButton(
-                                text = "Einwilligung widerrufen",
+                                text = stringResource(R.string.consent_revoke_link),
                                 onClick = { onRevoke(consent.consentType) },
                                 enabled = !busy,
                             )
                         } else {
                             FlexrLinkButton(
-                                text = "Einwilligung erneut erteilen",
+                                text = stringResource(R.string.consent_grant_link),
                                 onClick = { onGrant(consent.consentType) },
                                 enabled = !busy,
                             )
@@ -845,11 +882,10 @@ private fun BlockedUsersSection(
         loading && blockedUsers.isEmpty() -> Row(verticalAlignment = Alignment.CenterVertically) {
             CircularProgressIndicator(Modifier.size(14.dp), color = colors.plate, strokeWidth = 1.5.dp)
             Spacer(Modifier.width(8.dp))
-            Text("Lade …", style = MaterialTheme.typography.bodySmall, color = colors.chalkDim)
+            Text(stringResource(R.string.common_loading), style = MaterialTheme.typography.bodySmall, color = colors.chalkDim)
         }
         blockedUsers.isEmpty() && error == null -> Text(
-            "Du hast niemanden blockiert. Blockieren geht über das Verbots-Symbol in "
-                + "jedem Profil und in jedem Chat.",
+            stringResource(R.string.blocks_empty),
             style = MaterialTheme.typography.bodySmall,
             color = colors.chalkDim,
         )
@@ -862,7 +898,7 @@ private fun BlockedUsersSection(
                 ) {
                     AsyncImage(
                         model = user.photoUrl,
-                        contentDescription = "Profilfoto von ${user.name}",
+                        contentDescription = stringResource(R.string.common_profile_photo_of, user.name),
                         contentScale = ContentScale.Crop,
                         modifier = Modifier
                             .size(44.dp)
@@ -877,13 +913,14 @@ private fun BlockedUsersSection(
                         )
                         val seit = user.blockedAt?.let(ServerTime::formatDay)
                         Text(
-                            text = "Blockiert" + (seit?.let { " · seit $it" } ?: ""),
+                            text = seit?.let { stringResource(R.string.blocks_blocked_since, it) }
+                                ?: stringResource(R.string.blocks_blocked),
                             style = MaterialTheme.typography.bodySmall,
                             color = colors.chalkDim,
                         )
                     }
                     FlexrLinkButton(
-                        text = "Aufheben",
+                        text = stringResource(R.string.blocks_unblock),
                         onClick = { onUnblock(user.userId) },
                         enabled = unblockingUserId == null,
                     )
@@ -896,9 +933,7 @@ private fun BlockedUsersSection(
             // dem Aufheben sind Match und Chatverlauf wieder da (dieselbe
             // Klarstellung wie in der Web-Fassung, siehe HANDOFF.md 23.08.).
             Text(
-                "Eine Blockierung blendet ein bestehendes Match nur aus, sie löst es nicht "
-                    + "auf. Hebst du sie auf, seht ihr einander wieder im Deck — und ein "
-                    + "früheres Match ist samt Chatverlauf wieder da.",
+                stringResource(R.string.blocks_note),
                 style = MaterialTheme.typography.bodySmall,
                 color = colors.chalkDim,
                 modifier = Modifier.padding(top = 8.dp),
@@ -908,16 +943,18 @@ private fun BlockedUsersSection(
     FieldError(error)
 }
 
+// Ressourcen-Kennungen statt fertiger Texte: aufgeloest wird erst dort, wo
+// gezeichnet wird - nur da ist die gewaehlte Sprache bekannt.
 private val CONSENT_LABELS = mapOf(
-    "sensitive_data" to "Verarbeitung von Geschlecht und gesuchtem Geschlecht",
-    "verification_media" to "Aufnahmen für die Alters- und Identitätsprüfung",
-    "terms" to "Angenommene AGB-Fassung",
+    "sensitive_data" to R.string.consent_sensitive,
+    "verification_media" to R.string.consent_verification,
+    "terms" to R.string.consent_terms,
 )
 
 private val CONSENT_GRUNDLAGE = mapOf(
-    "sensitive_data" to "Ausdrückliche Einwilligung nach Art. 9 Abs. 2 lit. a DSGVO.",
-    "verification_media" to "Ausdrückliche Einwilligung nach Art. 9 Abs. 2 lit. a DSGVO.",
-    "terms" to "Vertragsschluss, keine Einwilligung — daher nicht widerrufbar.",
+    "sensitive_data" to R.string.consent_basis_explicit,
+    "verification_media" to R.string.consent_basis_explicit,
+    "terms" to R.string.consent_basis_contract,
 )
 
 // "Sofortiger Leistungsbeginn" erscheint hier gar nicht erst (siehe
@@ -942,21 +979,21 @@ private fun VerificationHint(
 ) {
     val colors = FlexrTheme.colors
     val tint = if (status == VerificationStatus.SUBMITTED) colors.chalkDim else colors.plate
-    val label = when {
-        status == VerificationStatus.SUBMITTED -> "Prüfung läuft …"
-        status.needsDocument -> "Alter bestätigen"
-        else -> "Verifizierung"
-    }
-    val description = when {
-        status == VerificationStatus.SUBMITTED ->
-            "Wir prüfen deine Angaben."
-        status.needsDocument ->
-            "Selfie erledigt. Jetzt noch den Ausweis aufnehmen."
-        status == VerificationStatus.REJECTED ->
-            "Nicht abgeschlossen. Hilfe bekommst du unter flexr.social@proton.me."
-        else ->
-            "Einmalig Selfie und Lichtbildausweis prüfen lassen."
-    }
+    val label = stringResource(
+        when {
+            status == VerificationStatus.SUBMITTED -> R.string.verify_badge_checking
+            status.needsDocument -> R.string.verify_badge_confirm_age
+            else -> R.string.verify_hint_title
+        },
+    )
+    val description = stringResource(
+        when {
+            status == VerificationStatus.SUBMITTED -> R.string.verify_badge_reviewing
+            status.needsDocument -> R.string.verify_badge_selfie_done
+            status == VerificationStatus.REJECTED -> R.string.verify_badge_failed
+            else -> R.string.verify_badge_start
+        },
+    )
 
     Column(
         Modifier
@@ -991,7 +1028,9 @@ private fun VerificationHint(
             ) {
                 TextButton(onClick = onStartVerification) {
                     Text(
-                        text = if (status.needsDocument) "Ausweis aufnehmen" else "Zur Verifizierung",
+                        text = stringResource(
+                            if (status.needsDocument) R.string.verify_hint_document else R.string.verify_hint_start,
+                        ),
                         color = tint,
                         style = MaterialTheme.typography.labelLarge,
                     )
@@ -1006,9 +1045,9 @@ private fun VerificationHint(
  * Einstieg. So bleibt die Profilseite ruhig, ohne notwendige Links zu verlieren.
  */
 /**
- * Untermenü "Benachrichtigungen" - drei Anlässe, je getrennt für E-Mail und App.
+ * Untermenü "Benachrichtigungen" - vier Anlässe, je getrennt für E-Mail und App.
  *
- * Als Dialog und nicht als weiterer Block im Konto: sechs Schalter, die im
+ * Als Dialog und nicht als weiterer Block im Konto: acht Schalter, die im
  * Alltag niemand anfasst, hätten Profil und Fotos nach unten gedrückt.
  *
  * Die Schalter stehen unter dem App-weiten "Nachrichten erhalten" im Konto -
@@ -1025,7 +1064,7 @@ private fun NotificationSettingsDialog(
     AlertDialog(
         onDismissRequest = onDismiss,
         containerColor = MaterialTheme.colorScheme.surface,
-        title = { Text("Benachrichtigungen", style = MaterialTheme.typography.headlineSmall) },
+        title = { Text(stringResource(R.string.account_notifications_title), style = MaterialTheme.typography.headlineSmall) },
         text = {
             Column(
                 Modifier
@@ -1033,52 +1072,65 @@ private fun NotificationSettingsDialog(
                     .heightIn(max = 480.dp)
                     .verticalScroll(rememberScrollState()),
             ) {
-                NotificationGroupTitle("Neues Match")
+                NotificationGroupTitle(stringResource(R.string.notify_match_title))
                 NotificationSwitchRow(
-                    label = "E-Mail",
-                    hint = "Wenn jemand dich zurückgeliked hat.",
+                    label = stringResource(R.string.notify_email),
+                    hint = stringResource(R.string.notify_match_hint),
                     checked = settings.matchEmail,
                     enabled = !saving,
                 ) { onChange(NotificationSettingsRequestDto(notifyMatchEmail = it)) }
                 NotificationSwitchRow(
-                    label = "App-Benachrichtigung",
+                    label = stringResource(R.string.notify_push),
                     hint = null,
                     checked = settings.matchPush,
                     enabled = !saving,
                 ) { onChange(NotificationSettingsRequestDto(notifyMatchPush = it)) }
 
-                NotificationGroupTitle("Neue Profile im Umkreis")
+                NotificationGroupTitle(stringResource(R.string.notify_queue_title))
                 NotificationSwitchRow(
-                    label = "E-Mail",
-                    hint = "Ab drei wartenden Profilen, höchstens einmal am Tag.",
+                    label = stringResource(R.string.notify_email),
+                    hint = stringResource(R.string.notify_queue_hint),
                     checked = settings.queueEmail,
                     enabled = !saving,
                 ) { onChange(NotificationSettingsRequestDto(notifyQueueEmail = it)) }
                 NotificationSwitchRow(
-                    label = "App-Benachrichtigung",
+                    label = stringResource(R.string.notify_push),
                     hint = null,
                     checked = settings.queuePush,
                     enabled = !saving,
                 ) { onChange(NotificationSettingsRequestDto(notifyQueuePush = it)) }
 
-                NotificationGroupTitle("Erinnerung bei Inaktivität")
+                NotificationGroupTitle(stringResource(R.string.notify_inactive_title))
                 NotificationSwitchRow(
-                    label = "E-Mail",
-                    hint = "Wenn du sieben Tage nicht in FLEXR warst.",
+                    label = stringResource(R.string.notify_email),
+                    hint = stringResource(R.string.notify_inactive_hint),
                     checked = settings.inactiveEmail,
                     enabled = !saving,
                 ) { onChange(NotificationSettingsRequestDto(notifyInactiveEmail = it)) }
                 NotificationSwitchRow(
-                    label = "App-Benachrichtigung",
+                    label = stringResource(R.string.notify_push),
                     hint = null,
                     checked = settings.inactivePush,
                     enabled = !saving,
                 ) { onChange(NotificationSettingsRequestDto(notifyInactivePush = it)) }
 
+                NotificationGroupTitle(stringResource(R.string.notify_likes_title))
+                NotificationSwitchRow(
+                    label = stringResource(R.string.notify_email),
+                    hint = stringResource(R.string.notify_likes_hint),
+                    checked = settings.pendingLikesEmail,
+                    enabled = !saving,
+                ) { onChange(NotificationSettingsRequestDto(notifyPendingLikesEmail = it)) }
+                NotificationSwitchRow(
+                    label = stringResource(R.string.notify_push),
+                    hint = null,
+                    checked = settings.pendingLikesPush,
+                    enabled = !saving,
+                ) { onChange(NotificationSettingsRequestDto(notifyPendingLikesPush = it)) }
+
                 Spacer(Modifier.height(14.dp))
                 Text(
-                    "Rechtlich nötige Nachrichten — etwa zu Abo, Rücktritt oder " +
-                        "Moderationsentscheidungen — lassen sich hier nicht abschalten.",
+                    stringResource(R.string.notify_legal_hint),
                     style = MaterialTheme.typography.bodySmall,
                     color = colors.chalkDim,
                 )
@@ -1086,7 +1138,7 @@ private fun NotificationSettingsDialog(
         },
         confirmButton = {
             TextButton(onClick = onDismiss) {
-                Text("Schließen", color = colors.plate)
+                Text(stringResource(R.string.common_close), color = colors.plate)
             }
         },
     )
@@ -1144,7 +1196,7 @@ private fun LegalAndHelpDialog(
     AlertDialog(
         onDismissRequest = onDismiss,
         containerColor = MaterialTheme.colorScheme.surface,
-        title = { Text("Hilfe & Rechtliches", style = MaterialTheme.typography.headlineSmall) },
+        title = { Text(stringResource(R.string.account_legal_title), style = MaterialTheme.typography.headlineSmall) },
         text = {
             Column(
                 Modifier
@@ -1162,7 +1214,7 @@ private fun LegalAndHelpDialog(
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Text(
-                            text = document.title,
+                            text = stringResource(document.titleRes),
                             style = MaterialTheme.typography.bodyLarge,
                             color = colors.chalk,
                             modifier = Modifier.weight(1f),
@@ -1179,7 +1231,7 @@ private fun LegalAndHelpDialog(
         },
         confirmButton = {
             TextButton(onClick = onDismiss) {
-                Text("Schließen", color = colors.plate)
+                Text(stringResource(R.string.common_close), color = colors.plate)
             }
         },
     )
@@ -1203,21 +1255,18 @@ internal fun DeleteAccountDialog(
     AlertDialog(
         onDismissRequest = onDismiss,
         containerColor = MaterialTheme.colorScheme.surface,
-        title = { Text("Konto löschen", style = MaterialTheme.typography.headlineSmall) },
+        title = { Text(stringResource(R.string.common_delete_account), style = MaterialTheme.typography.headlineSmall) },
         text = {
             Column {
                 Text(
-                    text = "Dein Konto wird sofort deaktiviert. Deine Daten und Fotos werden " +
-                        "nach 30 Tagen endgültig gelöscht. Du bekommst dazu eine Bestätigungsmail. " +
-                        "Innerhalb der 30 Tage kannst du dich mit deinem bisherigen Passwort " +
-                        "erneut einloggen, um die Löschung rückgängig zu machen.",
+                    text = stringResource(R.string.delete_body),
                     style = MaterialTheme.typography.bodyMedium,
                     color = FlexrTheme.colors.chalkDim,
                 )
                 FlexrPasswordField(
                     value = password,
                     onValueChange = onPasswordChange,
-                    label = "Zur Bestätigung dein Passwort",
+                    label = stringResource(R.string.delete_password_label),
                     placeholder = "••••••••",
                     isError = error != null,
                     supportingText = error,
@@ -1226,12 +1275,12 @@ internal fun DeleteAccountDialog(
         },
         confirmButton = {
             TextButton(onClick = onConfirm, enabled = !isDeleting) {
-                Text("Endgültig löschen", color = FlexrTheme.colors.danger)
+                Text(stringResource(R.string.delete_confirm), color = FlexrTheme.colors.danger)
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Abbrechen", color = FlexrTheme.colors.chalkDim)
+                Text(stringResource(R.string.common_cancel), color = FlexrTheme.colors.chalkDim)
             }
         },
     )

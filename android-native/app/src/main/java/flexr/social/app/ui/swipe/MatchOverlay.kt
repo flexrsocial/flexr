@@ -30,11 +30,13 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import coil.compose.AsyncImage
+import flexr.social.app.R
 import flexr.social.app.core.designsystem.component.Eyebrow
 import flexr.social.app.core.designsystem.component.FlexrButton
 import flexr.social.app.core.designsystem.component.FlexrSecondaryButton
@@ -84,9 +86,9 @@ fun MatchOverlay(
                     },
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                Eyebrow("Beide interessiert")
+                Eyebrow(stringResource(R.string.match_eyebrow))
                 Text(
-                    text = "Match!",
+                    text = stringResource(R.string.match_title),
                     style = MaterialTheme.typography.displayLarge,
                     color = FlexrTheme.colors.plate,
                 )
@@ -105,7 +107,7 @@ fun MatchOverlay(
 
                 Spacer(Modifier.height(20.dp))
                 Text(
-                    text = "Du und ${matchedProfile.name} habt euch gegenseitig geliked.",
+                    text = stringResource(R.string.match_sub, matchedProfile.name),
                     style = MaterialTheme.typography.bodyMedium,
                     color = FlexrTheme.colors.chalkDim,
                     textAlign = TextAlign.Center,
@@ -113,12 +115,12 @@ fun MatchOverlay(
 
                 Spacer(Modifier.height(26.dp))
                 FlexrButton(
-                    text = "Nachricht schreiben",
+                    text = stringResource(R.string.common_write_message),
                     onClick = onWriteMessage,
                     icon = FlexrIcons.Chats,
                 )
                 Spacer(Modifier.height(10.dp))
-                FlexrSecondaryButton(text = "Weiter swipen", onClick = onKeepSwiping)
+                FlexrSecondaryButton(text = stringResource(R.string.match_continue), onClick = onKeepSwiping)
             }
         }
     }

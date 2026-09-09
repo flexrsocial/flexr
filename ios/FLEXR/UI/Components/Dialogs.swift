@@ -15,7 +15,7 @@ struct ConfirmDialog: ViewModifier {
     func body(content: Content) -> some View {
         content.alert(title, isPresented: $isPresented) {
             Button(confirmLabel, role: isDestructive ? .destructive : nil, action: onConfirm)
-            Button("Abbrechen", role: .cancel) {}
+            Button(s(.commonCancel), role: .cancel) {}
         } message: {
             Text(message)
         }
@@ -49,6 +49,8 @@ extension View {
 /// Im Web war das ein `prompt()` des Browsers — nativ ein richtiger Dialog mit
 /// Längenprüfung (3–500 Zeichen, wie das Backend sie erwartet).
 struct ReportDialog: View {
+    @Environment(LanguageStore.self) private var languageStore
+    private var s: FlexrStrings { languageStore.strings }
 
     let userName: String
     let onSubmit: (String) -> Void
@@ -66,14 +68,14 @@ struct ReportDialog: View {
                 FlexrBackground()
                 ScrollView {
                     VStack(alignment: .leading, spacing: 0) {
-                        Text("Was ist vorgefallen? Deine Meldung wird von uns geprüft.")
+                        Text(s(.reportDialogBody))
                             .flexrText(.bodyMedium)
                             .foregroundStyle(FlexrColor.chalkDim)
 
                         FlexrTextField(
                             text: $reason,
-                            label: "Grund",
-                            placeholder: "Kurze Beschreibung",
+                            label: s(.reportReasonLabel),
+                            placeholder: s(.reportReasonPlaceholder),
                             isSingleLine: false,
                             maxLines: 5,
                             maxLength: 500
@@ -81,18 +83,18 @@ struct ReportDialog: View {
 
                         Spacer(minLength: 24)
 
-                        FlexrDangerButton(title: "Melden", isEnabled: isValid) {
+                        FlexrDangerButton(title: s(.commonReport), isEnabled: isValid) {
                             onSubmit(reason.trimmingCharacters(in: .whitespacesAndNewlines))
                         }
                     }
                     .padding(20)
                 }
             }
-            .navigationTitle("\(userName) melden")
+            .navigationTitle(s(.reportDialogTitle, userName))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Abbrechen", action: onDismiss)
+                    Button(s(.commonCancel), action: onDismiss)
                         .foregroundStyle(FlexrColor.chalkDim)
                 }
             }

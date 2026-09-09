@@ -3,6 +3,8 @@ package flexr.social.app.ui.auth
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import flexr.social.app.R
+import flexr.social.app.core.locale.AppStrings
 import flexr.social.app.core.network.FlexrApiException
 import flexr.social.app.data.repository.AuthRepository
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -28,6 +30,7 @@ data class LoginUiState(
 @HiltViewModel
 class LoginViewModel @Inject constructor(
     private val authRepository: AuthRepository,
+    private val strings: AppStrings,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(LoginUiState())
@@ -41,7 +44,7 @@ class LoginViewModel @Inject constructor(
         val state = _uiState.value
         if (state.isSubmitting) return
         if (state.email.isBlank() || state.password.isBlank()) {
-            _uiState.update { it.copy(error = "Bitte E-Mail und Passwort angeben.") }
+            _uiState.update { it.copy(error = strings.get(R.string.login_missing_fields)) }
             return
         }
 

@@ -4,6 +4,8 @@ import android.graphics.Bitmap
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import flexr.social.app.R
+import flexr.social.app.core.locale.AppStrings
 import flexr.social.app.core.media.ImageProcessor
 import flexr.social.app.core.network.FlexrApiException
 import flexr.social.app.data.repository.ProfileRepository
@@ -49,6 +51,7 @@ class VerificationViewModel @Inject constructor(
     private val verificationRepository: VerificationRepository,
     private val profileRepository: ProfileRepository,
     private val imageProcessor: ImageProcessor,
+    private val strings: AppStrings,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(VerificationUiState())
@@ -78,11 +81,9 @@ class VerificationViewModel @Inject constructor(
                             // also sagen, was stattdessen ansteht.
                             error = if (state.prompts.isEmpty()) {
                                 when (state.nextStep) {
-                                    VerificationStep.DOCUMENT ->
-                                        "Dein Selfie liegt bereits vor. Weiter geht es mit dem Ausweis."
-                                    VerificationStep.WAIT ->
-                                        "Deine Verifizierung ist bereits in Prüfung."
-                                    else -> "Für dieses Konto läuft gerade keine Verifizierung."
+                                    VerificationStep.DOCUMENT -> strings.get(R.string.verify_selfie_exists)
+                                    VerificationStep.WAIT -> strings.get(R.string.verify_already_submitted)
+                                    else -> strings.get(R.string.verify_none_running)
                                 }
                             } else {
                                 null
@@ -95,7 +96,7 @@ class VerificationViewModel @Inject constructor(
                         it.copy(
                             isStarting = false,
                             error = (throwable as? FlexrApiException)?.message
-                                ?: "Verifizierung konnte nicht gestartet werden.",
+                                ?: strings.get(R.string.verify_start_failed),
                         )
                     }
                 }
@@ -105,7 +106,7 @@ class VerificationViewModel @Inject constructor(
     fun onCameraDenied() = _uiState.update {
         it.copy(
             cameraDenied = true,
-            error = "Kamerazugriff abgelehnt. Die Verifizierung braucht Live-Aufnahmen über die Kamera.",
+            error = strings.get(R.string.verify_camera_denied),
         )
     }
 
@@ -115,7 +116,7 @@ class VerificationViewModel @Inject constructor(
         if (_uiState.value.prompts.isEmpty()) return
         viewModelScope.launch {
             val bytes = runCatching { imageProcessor.compressSelfie(bitmap) }.getOrElse {
-                _uiState.update { state -> state.copy(error = "Aufnahme fehlgeschlagen, bitte erneut.") }
+                _uiState.update { state -> state.copy(error = strings.get(R.string.verify_capture_failed)) }
                 return@launch
             }
             val state = _uiState.updateAndGet { current ->
@@ -145,7 +146,7 @@ class VerificationViewModel @Inject constructor(
                 // danach. "In Prüfung" wäre hier schlicht falsch und lässt
                 // Nutzer auf eine Entscheidung warten, die niemand trifft.
                 _events.send(
-                    VerificationEvent.Message("Selfie gespeichert — jetzt noch der Ausweis."),
+                    VerificationEvent.Message(strings.get(R.string.verify_selfie_saved)),
                 )
                 _events.send(VerificationEvent.Finished)
             }.onFailure { throwable ->
@@ -154,7 +155,7 @@ class VerificationViewModel @Inject constructor(
                     it.copy(
                         isSubmitting = false,
                         error = (throwable as? FlexrApiException)?.message
-                            ?: "Einreichen fehlgeschlagen. Bitte erneut versuchen.",
+                            ?: strings.get(R.string.verify_submit_failed),
                     )
                 }
             }

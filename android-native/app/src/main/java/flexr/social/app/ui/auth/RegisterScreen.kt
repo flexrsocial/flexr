@@ -39,6 +39,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextLinkStyles
@@ -50,6 +51,7 @@ import androidx.compose.ui.text.withLink
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import flexr.social.app.R
 import flexr.social.app.core.common.ServerTime
 import flexr.social.app.core.designsystem.component.FieldError
 import flexr.social.app.core.designsystem.component.FieldLabel
@@ -97,29 +99,27 @@ fun RegisterScreen(
 
         Spacer(Modifier.height(24.dp))
         ScreenHeader(
-            eyebrow = "Erste Wiederholung",
-            title = "Dating für Leute,\ndie auch montags\nBeintag machen.",
+            eyebrow = stringResource(R.string.register_eyebrow),
+            title = stringResource(R.string.register_title),
             // Beta-Gratisphase: Der Text steht fest im Code, weil vor dem Login
             // noch kein /api/billing/status abrufbar ist. Wird die Gebuehr
             // wieder scharf geschaltet (BILLING_ENABLED, backend/app/config.py),
             // gehoert hier "1 Monat gratis testen, danach 5 €/Monat" zurueck.
-            subtitle = "Erstell dein Profil. Während der Beta-Phase kostenlos — " +
-                "die Mitgliedschaft von 5 €/Monat ist bis auf weiteres ausgesetzt. " +
-                "Aktuell nur in Österreich verfügbar.",
+            subtitle = stringResource(R.string.register_subtitle),
         )
 
         FlexrTextField(
             value = state.email,
             onValueChange = viewModel::onEmailChange,
-            label = "E-Mail",
+            label = stringResource(R.string.field_email),
             placeholder = "max@example.com",
             keyboardType = KeyboardType.Email,
         )
         FlexrPasswordField(
             value = state.password,
             onValueChange = viewModel::onPasswordChange,
-            label = "Passwort",
-            placeholder = "Mind. 8 Zeichen",
+            label = stringResource(R.string.field_password),
+            placeholder = stringResource(R.string.register_password_placeholder),
             imeAction = ImeAction.Next,
         )
         // Zweite Eingabe gegen Tippfehler: Ein vertipptes Passwort fällt sonst
@@ -127,17 +127,17 @@ fun RegisterScreen(
         FlexrPasswordField(
             value = state.passwordConfirm,
             onValueChange = viewModel::onPasswordConfirmChange,
-            label = "Passwort wiederholen",
-            placeholder = "Passwort erneut eingeben",
+            label = stringResource(R.string.register_password_repeat),
+            placeholder = stringResource(R.string.register_password_repeat_placeholder),
             imeAction = ImeAction.Next,
-            isError = state.passwordConfirmError != null,
-            supportingText = state.passwordConfirmError,
+            isError = state.passwordConfirmErrorRes != null,
+            supportingText = state.passwordConfirmErrorRes?.let { stringResource(it) },
         )
         FlexrTextField(
             value = state.name,
             onValueChange = viewModel::onNameChange,
-            label = "Name",
-            placeholder = "Max",
+            label = stringResource(R.string.field_name),
+            placeholder = stringResource(R.string.register_name_placeholder),
             maxLength = 100,
         )
 
@@ -168,8 +168,8 @@ fun RegisterScreen(
         FlexrTextField(
             value = state.bio,
             onValueChange = viewModel::onBioChange,
-            label = "Bio",
-            placeholder = "Was du suchst, dein Training, gerne mit Emojis 💪",
+            label = stringResource(R.string.field_bio),
+            placeholder = stringResource(R.string.field_bio_placeholder),
             singleLine = false,
             maxLines = 5,
             minHeight = 96,
@@ -178,7 +178,7 @@ fun RegisterScreen(
             emojiPicker = true,
         )
 
-        FieldLabel("Fotos (mind. 1, max. 6)")
+        FieldLabel(stringResource(R.string.register_photos_label))
         PhotoGridEditor(
             slots = state.photos.map { PhotoSlot(key = it.id, model = it.previewUri) },
             onPhotoPicked = viewModel::onPhotoPicked,
@@ -192,7 +192,7 @@ fun RegisterScreen(
                 CircularProgressIndicator(Modifier.size(14.dp), color = FlexrTheme.colors.plate, strokeWidth = 1.5.dp)
                 Spacer(Modifier.size(8.dp))
                 Text(
-                    "Foto wird vorbereitet …",
+                    stringResource(R.string.register_photo_preparing),
                     style = MaterialTheme.typography.bodySmall,
                     color = FlexrTheme.colors.chalkDim,
                 )
@@ -204,10 +204,9 @@ fun RegisterScreen(
         ConsentCheckbox(
             checked = state.consentSensitiveData,
             onCheckedChange = viewModel::onConsentSensitiveDataChange,
-            prefix = "Ich willige ein, dass meine Angaben zu Geschlecht und gesuchtem Geschlecht " +
-                "(daraus ableitbar: sexuelle Orientierung) gemäß ",
-            linkText = "Datenschutzerklärung",
-            suffix = " verarbeitet werden.",
+            prefix = stringResource(R.string.register_consent_prefix),
+            linkText = stringResource(R.string.register_consent_link),
+            suffix = stringResource(R.string.register_consent_suffix),
             onLinkClick = { onOpenLegal(LegalDocument.DATENSCHUTZ) },
         )
         // Hier stand bis zum 15.08.2026 ein zweiter Pflicht-Haken: "Ich stimme
@@ -227,7 +226,7 @@ fun RegisterScreen(
         // verschwunden, und verrät nicht, was noch fehlt. Beim Tippen nennt
         // viewModel.register() über validate() den konkreten Grund.
         FlexrButton(
-            text = "Kostenlos registrieren",
+            text = stringResource(R.string.register_submit),
             onClick = {
                 keyboard?.hide()
                 viewModel.register()
@@ -237,7 +236,7 @@ fun RegisterScreen(
         if (!state.canSubmit && !state.isSubmitting) {
             Spacer(Modifier.height(8.dp))
             Text(
-                text = "Noch nicht vollständig — tippe auf den Knopf, dann zeigen wir dir, was fehlt.",
+                text = stringResource(R.string.register_incomplete_hint),
                 style = MaterialTheme.typography.bodySmall,
                 color = FlexrTheme.colors.chalkDim,
             )
@@ -274,7 +273,7 @@ fun RegisterScreen(
 private fun BirthdateField(birthdate: LocalDate?, age: Int?, onClick: () -> Unit) {
     val colors = FlexrTheme.colors
     Column(Modifier.fillMaxWidth()) {
-        FieldLabel("Geburtsdatum")
+        FieldLabel(stringResource(R.string.register_birthdate_label))
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -285,12 +284,16 @@ private fun BirthdateField(birthdate: LocalDate?, age: Int?, onClick: () -> Unit
             horizontalArrangement = Arrangement.SpaceBetween,
         ) {
             Text(
-                text = birthdate?.let(ServerTime::formatBirthdate) ?: "tt.mm.jjjj",
+                text = birthdate?.let(ServerTime::formatBirthdate) ?: stringResource(R.string.register_birthdate_placeholder),
                 style = MaterialTheme.typography.bodyLarge,
                 color = if (birthdate != null) colors.chalk else colors.chalkDim,
             )
             if (age != null) {
-                Text("$age Jahre", style = MaterialTheme.typography.bodyMedium, color = colors.chalkDim)
+                Text(
+                    stringResource(R.string.register_age_years, age),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = colors.chalkDim,
+                )
             }
         }
     }
@@ -331,15 +334,18 @@ private fun BirthdatePickerDialog(
                         onConfirm(Instant.ofEpochMilli(millis).atZone(ZoneOffset.UTC).toLocalDate())
                     }
                 },
-            ) { Text("Übernehmen", color = FlexrTheme.colors.plate) }
+            ) { Text(stringResource(R.string.common_apply), color = FlexrTheme.colors.plate) }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Abbrechen", color = FlexrTheme.colors.chalkDim)
+                Text(stringResource(R.string.common_cancel), color = FlexrTheme.colors.chalkDim)
             }
         },
     ) {
-        DatePicker(state = pickerState, title = { Text("Geburtsdatum", Modifier.padding(24.dp)) })
+        DatePicker(
+            state = pickerState,
+            title = { Text(stringResource(R.string.register_birthdate_label), Modifier.padding(24.dp)) },
+        )
     }
 }
 
@@ -348,7 +354,7 @@ private fun BirthdatePickerDialog(
 private fun GenderSelector(selected: Gender?, onSelect: (Gender) -> Unit) {
     val colors = FlexrTheme.colors
     Column(Modifier.fillMaxWidth()) {
-        FieldLabel("Geschlecht")
+        FieldLabel(stringResource(R.string.register_gender_label))
         SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
             Gender.entries.forEachIndexed { index, gender ->
                 SegmentedButton(
@@ -364,7 +370,7 @@ private fun GenderSelector(selected: Gender?, onSelect: (Gender) -> Unit) {
                         inactiveBorderColor = colors.steel,
                     ),
                 ) {
-                    Text(gender.label, style = MaterialTheme.typography.bodyLarge)
+                    Text(stringResource(gender.labelRes), style = MaterialTheme.typography.bodyLarge)
                 }
             }
         }

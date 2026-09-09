@@ -1,6 +1,8 @@
 package flexr.social.app.ui.navigation
 
+import androidx.annotation.StringRes
 import androidx.compose.ui.graphics.vector.ImageVector
+import flexr.social.app.R
 import flexr.social.app.core.designsystem.icon.FlexrIcons
 
 /** Alle Ziele der App. Typisierte Routen statt String-Bastelei an den Aufrufstellen. */
@@ -29,24 +31,29 @@ object Routes {
     fun legal(document: LegalDocument) = "legal/${document.name}"
 }
 
-enum class LegalDocument(val title: String) {
-    FAQ("Häufige Fragen"),
-    IMPRESSUM("Impressum"),
-    DATENSCHUTZ("Datenschutzerklärung"),
-    AGB("Allgemeine Geschäftsbedingungen"),
-    SICHERHEIT("Sicherheitstipps"),
-    NUTZUNGSRICHTLINIEN("Nutzungsrichtlinien"),
-    STRAFVERFOLGUNG("Strafverfolgungsbehörden"),
+/**
+ * Die Rechtstexte. Nur der Titel der Ansicht ist uebersetzt - der Inhalt in
+ * [flexr.social.app.ui.legal.LegalContent] bleibt bewusst auf Deutsch, weil er
+ * in dieser Fassung verbindlich ist.
+ */
+enum class LegalDocument(@StringRes val titleRes: Int) {
+    FAQ(R.string.legal_faq),
+    IMPRESSUM(R.string.legal_impressum),
+    DATENSCHUTZ(R.string.legal_datenschutz),
+    AGB(R.string.legal_agb),
+    SICHERHEIT(R.string.legal_sicherheit),
+    NUTZUNGSRICHTLINIEN(R.string.legal_nutzungsrichtlinien),
+    STRAFVERFOLGUNG(R.string.legal_strafverfolgung),
 }
 
 /** Die vier Hauptbereiche der unteren Navigation. */
 enum class TopLevelDestination(
     val route: String,
-    val label: String,
+    @StringRes val labelRes: Int,
     val icon: ImageVector,
 ) {
-    SWIPE(Routes.SWIPE, "Swipe", FlexrIcons.Swipe),
-    MATCHES(Routes.MATCHES, "Matches", FlexrIcons.Matches),
-    CHATS(Routes.CHATS, "Chats", FlexrIcons.Chats),
-    ACCOUNT(Routes.ACCOUNT, "Konto", FlexrIcons.Account),
+    SWIPE(Routes.SWIPE, R.string.nav_swipe, FlexrIcons.Swipe),
+    MATCHES(Routes.MATCHES, R.string.nav_matches, FlexrIcons.Matches),
+    CHATS(Routes.CHATS, R.string.nav_chats, FlexrIcons.Chats),
+    ACCOUNT(Routes.ACCOUNT, R.string.nav_account, FlexrIcons.Account),
 }

@@ -22,14 +22,17 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
+import flexr.social.app.core.designsystem.component.LanguageSwitch
 import flexr.social.app.core.designsystem.theme.BrandStyle
 import flexr.social.app.core.designsystem.theme.FlexrPalette
 import flexr.social.app.core.designsystem.theme.FlexrTheme
+import flexr.social.app.core.locale.AppLanguage
 
 /**
  * Wortmarke im Kopfbereich. Gesetzt nach der verbindlichen Markenvorgabe
@@ -44,11 +47,19 @@ fun FlexrWordmark(modifier: Modifier = Modifier) {
     Text(text = text, style = BrandStyle, modifier = modifier)
 }
 
-/** Kopfzeile: Wortmarke links, Mitgliedschafts-Status rechts. */
+/**
+ * Kopfzeile: Wortmarke links, rechts der Sprachregler und der
+ * Mitgliedschafts-Status.
+ *
+ * Der Regler steht hier "on-top" und damit auf jedem Bildschirm in Reichweite,
+ * nicht nur im Kontobereich - genauso wie in der Web-App.
+ */
 @Composable
 fun FlexrTopBar(
     statusSlot: @Composable () -> Unit,
     modifier: Modifier = Modifier,
+    language: AppLanguage? = null,
+    onSelectLanguage: (AppLanguage) -> Unit = {},
 ) {
     Box(modifier.fillMaxWidth()) {
         Row(
@@ -60,7 +71,15 @@ fun FlexrTopBar(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             FlexrWordmark()
-            statusSlot()
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                if (language != null) {
+                    LanguageSwitch(language = language, onSelect = onSelectLanguage)
+                }
+                statusSlot()
+            }
         }
         Box(
             Modifier
@@ -116,7 +135,7 @@ fun FlexrBottomBar(
                 },
                 label = {
                     Text(
-                        destination.label.uppercase(),
+                        stringResource(destination.labelRes).uppercase(),
                         style = MaterialTheme.typography.labelSmall,
                     )
                 },

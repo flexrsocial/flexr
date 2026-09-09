@@ -19,6 +19,8 @@ enum PlzLookupState: Equatable {
 /// Es gibt bewusst keine Städteauswahl — die PLZ bestimmt den Ort, damit ganz
 /// Österreich abgedeckt ist.
 struct PostalCodeField: View {
+    @Environment(LanguageStore.self) private var languageStore
+    private var s: FlexrStrings { languageStore.strings }
 
     @Binding var postalCode: String
     let lookupState: PlzLookupState
@@ -78,7 +80,7 @@ struct PostalCodeField: View {
         case .loading:
             HStack(spacing: 8) {
                 ProgressView().controlSize(.mini).tint(FlexrColor.plate)
-                hintText("Lädt …", isResolved: false)
+                hintText(s(.plzLoading), isResolved: false)
             }
         case .resolved(let city):
             hintText(city, isResolved: true)

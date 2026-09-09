@@ -16,6 +16,8 @@ struct GymPickerState: Equatable {
 /// Gespeichert wird immer das volle Label „Name — Straße 1, 1100 Wien"; nur das
 /// erkennt das Backend als gültig.
 struct GymPicker: View {
+    @Environment(LanguageStore.self) private var languageStore
+    private var s: FlexrStrings { languageStore.strings }
 
     @Binding var state: GymPickerState
     let onQueryChange: (String) -> Void
@@ -29,8 +31,8 @@ struct GymPicker: View {
                     get: { state.query },
                     set: { onQueryChange($0) }
                 ),
-                label: "Gym",
-                placeholder: "Gym suchen (Name, Ort oder PLZ) …",
+                label: s(.gymLabel),
+                placeholder: s(.gymSearchPlaceholder),
                 autocapitalization: .words,
                 trailingIcon: FlexrIcon.search,
                 submitLabel: .search
@@ -41,7 +43,7 @@ struct GymPicker: View {
                     if state.isSearching {
                         HStack(spacing: 10) {
                             ProgressView().controlSize(.mini).tint(FlexrColor.plate)
-                            Text("Suche …")
+                            Text(s(.gymSearching))
                                 .flexrText(.bodySmall)
                                 .foregroundStyle(FlexrColor.chalkDim)
                             Spacer()
@@ -62,7 +64,7 @@ struct GymPicker: View {
                                 HStack(spacing: 8) {
                                     Image(systemName: FlexrIcon.add)
                                         .font(.system(size: 14, weight: .semibold))
-                                    Text("Gym nicht dabei? Jetzt vorschlagen")
+                                    Text(s(.gymSuggestRow))
                                         .flexrText(.bodyMedium)
                                     Spacer()
                                 }
@@ -97,6 +99,8 @@ struct GymPicker: View {
 }
 
 private struct GymResultRow: View {
+    @Environment(LanguageStore.self) private var languageStore
+    private var s: FlexrStrings { languageStore.strings }
     let gym: Gym
 
     var body: some View {
@@ -139,6 +143,8 @@ struct GymSuggestionState: Equatable {
 /// Dialog „Gym vorschlagen". Der Vorschlag ist sofort für das eigene Profil
 /// verwendbar und erscheint nach Freigabe für alle in der Auswahl.
 struct GymSuggestionSheet: View {
+    @Environment(LanguageStore.self) private var languageStore
+    private var s: FlexrStrings { languageStore.strings }
 
     @Binding var state: GymSuggestionState
     let onSubmit: () -> Void
@@ -150,31 +156,28 @@ struct GymSuggestionSheet: View {
                 FlexrBackground()
                 ScrollView {
                     VStack(alignment: .leading, spacing: 0) {
-                        Text(
-                            "Dein Gym fehlt in der Liste? Reich es mit Adresse ein — du kannst es "
-                                + "sofort für dein Profil verwenden, nach Prüfung erscheint es für alle."
-                        )
+                        Text(s(.gymSuggestIntro))
                         .flexrText(.bodySmall)
                         .foregroundStyle(FlexrColor.chalkDim)
 
                         FlexrTextField(
                             text: $state.name,
-                            label: "Name des Gyms",
-                            placeholder: "z. B. Eisenschmiede",
+                            label: s(.gymNameLabel),
+                            placeholder: s(.gymNamePlaceholder),
                             autocapitalization: .words,
                             maxLength: 120
                         )
                         FlexrTextField(
                             text: $state.street,
-                            label: "Straße",
-                            placeholder: "z. B. Hauptstraße",
+                            label: s(.gymStreetLabel),
+                            placeholder: s(.gymStreetPlaceholder),
                             autocapitalization: .words,
                             maxLength: 120
                         )
                         HStack(alignment: .top, spacing: 10) {
                             FlexrTextField(
                                 text: $state.houseNumber,
-                                label: "Hausnummer",
+                                label: s(.gymHouseNumberLabel),
                                 placeholder: "12",
                                 maxLength: 20
                             )
@@ -183,7 +186,7 @@ struct GymSuggestionSheet: View {
                                     get: { state.postalCode },
                                     set: { state.postalCode = String($0.filter(\.isNumber).prefix(4)) }
                                 ),
-                                label: "Postleitzahl",
+                                label: s(.gymPostalCodeLabel),
                                 placeholder: "1010",
                                 keyboardType: .numberPad,
                                 submitLabel: .done
@@ -194,7 +197,7 @@ struct GymSuggestionSheet: View {
 
                         Spacer(minLength: 24)
                         FlexrButton(
-                            title: "Vorschlag einreichen",
+                            title: s(.gymSuggestSubmit),
                             isEnabled: state.isValid,
                             isLoading: state.isSubmitting,
                             action: onSubmit
@@ -203,11 +206,11 @@ struct GymSuggestionSheet: View {
                     .padding(20)
                 }
             }
-            .navigationTitle("Gym vorschlagen")
+            .navigationTitle(s(.gymSuggestTitle))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Abbrechen", action: onDismiss)
+                    Button(s(.commonCancel), action: onDismiss)
                         .foregroundStyle(FlexrColor.chalkDim)
                 }
             }

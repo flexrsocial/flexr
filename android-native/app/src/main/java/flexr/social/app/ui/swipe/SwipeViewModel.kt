@@ -3,6 +3,8 @@ package flexr.social.app.ui.swipe
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import flexr.social.app.R
+import flexr.social.app.core.locale.AppStrings
 import flexr.social.app.core.network.FlexrApiException
 import flexr.social.app.data.repository.MatchRepository
 import flexr.social.app.data.repository.ProfileRepository
@@ -52,6 +54,7 @@ class SwipeViewModel @Inject constructor(
     private val profileRepository: ProfileRepository,
     private val safetyRepository: SafetyRepository,
     private val matchRepository: MatchRepository,
+    private val strings: AppStrings,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(SwipeUiState())
@@ -111,7 +114,7 @@ class SwipeViewModel @Inject constructor(
                         it.copy(
                             isLoading = false,
                             error = (throwable as? FlexrApiException)?.message
-                                ?: "Profile konnten nicht geladen werden.",
+                                ?: strings.get(R.string.swipe_load_failed),
                         )
                     }
                 }
@@ -139,7 +142,7 @@ class SwipeViewModel @Inject constructor(
             }.onFailure { throwable ->
                 _events.send(
                     SwipeEvent.Message(
-                        (throwable as? FlexrApiException)?.message ?: "Swipe fehlgeschlagen.",
+                        (throwable as? FlexrApiException)?.message ?: strings.get(R.string.swipe_failed),
                     ),
                 )
             }
@@ -158,7 +161,7 @@ class SwipeViewModel @Inject constructor(
             if (match != null) {
                 _events.send(SwipeEvent.OpenChat(match.matchId))
             } else {
-                _events.send(SwipeEvent.Message("Chat konnte nicht geöffnet werden."))
+                _events.send(SwipeEvent.Message(strings.get(R.string.chat_open_failed)))
             }
         }
     }
@@ -169,7 +172,7 @@ class SwipeViewModel @Inject constructor(
                 // Empfangsbestätigung mit Aktenzeichen (Art. 16 Abs. 4 DSA)
                 .onSuccess { _events.send(SwipeEvent.Message(it.message)) }
                 .onFailure {
-                    _events.send(SwipeEvent.Message(it.message ?: "Meldung fehlgeschlagen."))
+                    _events.send(SwipeEvent.Message(it.message ?: strings.get(R.string.report_failed)))
                 }
         }
     }
@@ -183,10 +186,10 @@ class SwipeViewModel @Inject constructor(
                         if (state.current?.id == userId) state.copy(currentIndex = state.currentIndex + 1)
                         else state
                     }
-                    _events.send(SwipeEvent.Message("$name blockiert."))
+                    _events.send(SwipeEvent.Message(strings.get(R.string.block_done, name)))
                 }
                 .onFailure {
-                    _events.send(SwipeEvent.Message(it.message ?: "Blockieren fehlgeschlagen."))
+                    _events.send(SwipeEvent.Message(it.message ?: strings.get(R.string.block_failed)))
                 }
         }
     }

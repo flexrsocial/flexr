@@ -1,6 +1,8 @@
 package flexr.social.app.ui.verification
 
 import android.net.Uri
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -14,8 +16,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -27,12 +27,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import flexr.social.app.ui.account.DeleteAccountDialog
+import flexr.social.app.R
 import flexr.social.app.core.designsystem.component.Eyebrow
 import flexr.social.app.core.designsystem.component.FieldError
 import flexr.social.app.core.designsystem.component.FlexrButton
@@ -43,6 +45,7 @@ import flexr.social.app.core.designsystem.component.LoadingState
 import flexr.social.app.core.designsystem.component.SectionTitle
 import flexr.social.app.core.designsystem.theme.FlexrTheme
 import flexr.social.app.domain.model.VerificationStep
+import flexr.social.app.ui.account.DeleteAccountDialog
 import flexr.social.app.ui.components.PhotoGridEditor
 
 /**
@@ -62,6 +65,10 @@ fun VerificationGateScreen(
     viewModel: VerificationGateViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    // Beide Texte landen in Rueckrufen ausserhalb der Komposition - dort ist
+    // `stringResource` nicht aufrufbar, also hier einmal aufloesen.
+    val context = LocalContext.current
+    val reviewRunningMessage = stringResource(R.string.vgate_review_running)
 
     // Zustand nach der Rückkehr von Selfie- oder Ausweisschritt auffrischen.
     LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { viewModel.load() }
@@ -91,7 +98,7 @@ fun VerificationGateScreen(
     }
 
     if (state.isLoading) {
-        LoadingState(label = "Status wird geladen …")
+        LoadingState(label = stringResource(R.string.vgate_loading))
         return
     }
 
@@ -111,7 +118,7 @@ fun VerificationGateScreen(
                 state.isActivated -> ActivatedContent(onRetry = onActivated)
 
                 state.isWaiting -> WaitingContent(onRefresh = {
-                    viewModel.refresh { onShowMessage("Die Prüfung läuft noch.") }
+                    viewModel.refresh { onShowMessage(reviewRunningMessage) }
                 }, isRefreshing = state.isRefreshing)
 
                 state.isRejected -> RejectedContent(reason = state.verification?.reason)
@@ -124,7 +131,7 @@ fun VerificationGateScreen(
                     error = state.mailError,
                     onResend = {
                         viewModel.resendVerificationEmail { adresse, stunden ->
-                            onShowMessage("Neue Mail an $adresse unterwegs. Der Link gilt $stunden Stunden.")
+                            onShowMessage(context.getString(R.string.vgate_mail_resent, adresse, stunden))
                         }
                     },
                 )
@@ -153,11 +160,11 @@ fun VerificationGateScreen(
             FieldError(state.error)
 
             Spacer(Modifier.height(28.dp))
-            SectionTitle("Konto")
+            SectionTitle(stringResource(R.string.common_account))
             Spacer(Modifier.height(10.dp))
-            FlexrSecondaryButton(text = "Ausloggen", onClick = onLogout)
+            FlexrSecondaryButton(text = stringResource(R.string.common_logout), onClick = onLogout)
             Spacer(Modifier.height(4.dp))
-            FlexrDangerButton(text = "Konto löschen", onClick = viewModel::showDeleteDialog)
+            FlexrDangerButton(text = stringResource(R.string.common_delete_account), onClick = viewModel::showDeleteDialog)
             Spacer(Modifier.height(24.dp))
         }
     }
@@ -173,20 +180,18 @@ private fun SelfiePendingContent(
 ) {
     val colors = FlexrTheme.colors
 
-    Eyebrow(if (needsNewUpload) "Nachbesserung" else "Schritt 1 von 2")
+    Eyebrow(stringResource(if (needsNewUpload) R.string.vgate_rework_eyebrow else R.string.vgate_step_1_of_2))
     Text(
-        text = if (needsNewUpload) {
-            "Wir konnten deine Verifizierung noch nicht abschließen."
-        } else {
-            "Konto freischalten"
-        },
+        text = stringResource(
+            if (needsNewUpload) R.string.vgate_rework_title else R.string.vgate_unlock_title,
+        ),
         style = MaterialTheme.typography.headlineMedium,
         color = colors.chalk,
     )
     Spacer(Modifier.height(14.dp))
     StepBar(current = 1)
     Spacer(Modifier.height(14.dp))
-    if (needsNewUpload) StatusChip("Neue Aufnahme nötig", danger = true)
+    if (needsNewUpload) StatusChip(stringResource(R.string.vgate_rework_chip), danger = true)
 
     FlexrCard {
         Column {
@@ -195,21 +200,19 @@ private fun SelfiePendingContent(
                 Spacer(Modifier.height(10.dp))
             }
             Text(
-                text = "FLEXR ist ab 18. Damit hier keine Minderjährigen und keine Fake-Profile " +
-                    "landen, prüfen wir einmalig, ob du wirklich du bist und mindestens " +
-                    "18 Jahre alt.",
+                text = stringResource(R.string.vgate_intro),
                 style = MaterialTheme.typography.bodyMedium,
                 color = colors.chalkDim,
             )
             Spacer(Modifier.height(12.dp))
             Text(
-                text = "DAS BRAUCHST DU",
+                text = stringResource(R.string.vgate_need_title),
                 style = MaterialTheme.typography.headlineSmall,
                 color = colors.chalk,
             )
             Spacer(Modifier.height(6.dp))
-            Bullet("Ein Live-Selfie, frontal in die Kamera — die Kamera öffnet sich erst, wenn du startest")
-            Bullet("Eine Aufnahme deines Personalausweises, Reisepasses oder Führerscheins")
+            Bullet(stringResource(R.string.vgate_need_selfie))
+            Bullet(stringResource(R.string.vgate_need_document))
         }
     }
 
@@ -217,20 +220,20 @@ private fun SelfiePendingContent(
     FlexrCard {
         Column {
             Text(
-                text = "WAS MIT DEN AUFNAHMEN PASSIERT",
+                text = stringResource(R.string.vgate_media_title),
                 style = MaterialTheme.typography.headlineSmall,
                 color = colors.chalk,
             )
             Spacer(Modifier.height(6.dp))
-            Bullet("Ein Mensch vergleicht Profilfoto, Selfie und Ausweisfoto — keine automatische Gesichtserkennung")
-            Bullet("Die Aufnahmen sind nicht öffentlich abrufbar")
-            Bullet("Nach Abschluss der Prüfung werden sie gelöscht")
+            Bullet(stringResource(R.string.vgate_media_human))
+            Bullet(stringResource(R.string.vgate_media_private))
+            Bullet(stringResource(R.string.vgate_media_deleted))
         }
     }
 
     Spacer(Modifier.height(18.dp))
     FlexrButton(
-        text = if (needsNewUpload) "Verifizierung wiederholen" else "Verifizierung starten",
+        text = stringResource(if (needsNewUpload) R.string.vgate_retry else R.string.vgate_start),
         onClick = onContinue,
     )
 }
@@ -245,20 +248,18 @@ private fun DocumentPendingContent(
 ) {
     val colors = FlexrTheme.colors
 
-    Eyebrow(if (needsNewUpload) "Nachbesserung" else "Schritt 2 von 2")
+    Eyebrow(stringResource(if (needsNewUpload) R.string.vgate_rework_eyebrow else R.string.vgate_step_2_of_2))
     Text(
-        text = if (needsNewUpload) {
-            "Wir konnten deine Verifizierung noch nicht abschließen."
-        } else {
-            "Alter bestätigen"
-        },
+        text = stringResource(
+            if (needsNewUpload) R.string.vgate_rework_title else R.string.vgate_document_title,
+        ),
         style = MaterialTheme.typography.headlineMedium,
         color = colors.chalk,
     )
     Spacer(Modifier.height(14.dp))
     StepBar(current = 2)
     Spacer(Modifier.height(14.dp))
-    if (needsNewUpload) StatusChip("Neue Aufnahme nötig", danger = true)
+    if (needsNewUpload) StatusChip(stringResource(R.string.vgate_rework_chip), danger = true)
 
     FlexrCard {
         Column {
@@ -267,8 +268,7 @@ private fun DocumentPendingContent(
                 Spacer(Modifier.height(10.dp))
             }
             Text(
-                text = "Dein Selfie liegt vor. Jetzt fehlt noch eine Aufnahme deines " +
-                    "amtlichen Lichtbildausweises, damit wir dein Alter bestätigen können.",
+                text = stringResource(R.string.vgate_document_body),
                 style = MaterialTheme.typography.bodyMedium,
                 color = colors.chalkDim,
             )
@@ -277,7 +277,9 @@ private fun DocumentPendingContent(
 
     Spacer(Modifier.height(18.dp))
     FlexrButton(
-        text = if (needsNewUpload) "Erneut hochladen" else "Ausweis aufnehmen",
+        text = stringResource(
+            if (needsNewUpload) R.string.vgate_document_btn_rework else R.string.vgate_document_btn,
+        ),
         onClick = onContinue,
     )
 }
@@ -288,31 +290,27 @@ private fun DocumentPendingContent(
 private fun WaitingContent(onRefresh: () -> Unit, isRefreshing: Boolean) {
     val colors = FlexrTheme.colors
 
-    Eyebrow("In Prüfung")
+    Eyebrow(stringResource(R.string.vgate_submitted_eyebrow))
     Text(
-        text = "Verifizierung wird geprüft",
+        text = stringResource(R.string.vgate_submitted_title),
         style = MaterialTheme.typography.headlineMedium,
         color = colors.chalk,
     )
     Spacer(Modifier.height(14.dp))
     StepBar(current = 3)
     Spacer(Modifier.height(14.dp))
-    StatusChip("Prüfung läuft", danger = false)
+    StatusChip(stringResource(R.string.vgate_submitted_chip), danger = false)
 
     FlexrCard {
         Column {
             Text(
-                text = "Deine Angaben wurden übermittelt. Wir prüfen jetzt, ob du mindestens " +
-                    "18 Jahre alt bist und ob die Verifizierung zu deinem Profil gehört. Sobald " +
-                    "die Prüfung abgeschlossen ist, kannst du FLEXR vollständig nutzen.",
+                text = stringResource(R.string.vgate_submitted_body),
                 style = MaterialTheme.typography.bodyMedium,
                 color = colors.chalkDim,
             )
             Spacer(Modifier.height(10.dp))
             Text(
-                text = "Die Aufnahmen deines Ausweises werden nach Abschluss der Prüfung " +
-                    "gelöscht. Dein Probemonat startet erst mit der Freischaltung — die " +
-                    "Wartezeit kostet dich also keine Gratiszeit.",
+                text = stringResource(R.string.vgate_submitted_note),
                 style = MaterialTheme.typography.bodyMedium,
                 color = colors.chalkDim,
             )
@@ -321,7 +319,7 @@ private fun WaitingContent(onRefresh: () -> Unit, isRefreshing: Boolean) {
 
     Spacer(Modifier.height(18.dp))
     FlexrButton(
-        text = if (isRefreshing) "Wird geprüft …" else "Status aktualisieren",
+        text = stringResource(if (isRefreshing) R.string.vgate_checking else R.string.vgate_refresh),
         onClick = onRefresh,
         enabled = !isRefreshing,
         loading = isRefreshing,
@@ -344,34 +342,33 @@ private fun EmailPendingContent(
 ) {
     val colors = FlexrTheme.colors
 
-    Eyebrow("Schritt 1 von 3")
+    Eyebrow(stringResource(R.string.vgate_step_1_of_3))
     Text(
-        text = "Bestätige deine E-Mail",
+        text = stringResource(R.string.vgate_mail_title),
         style = MaterialTheme.typography.headlineMedium,
         color = colors.chalk,
     )
     Spacer(Modifier.height(14.dp))
     StepBar(current = 1)
     Spacer(Modifier.height(14.dp))
-    StatusChip("Bestätigung offen", danger = false)
+    StatusChip(stringResource(R.string.vgate_mail_chip), danger = false)
 
     FlexrCard {
         Column {
             Text(
-                text = "Wir haben dir eine Mail geschickt an:",
+                text = stringResource(R.string.vgate_mail_sent_to),
                 style = MaterialTheme.typography.bodyMedium,
                 color = colors.chalkDim,
             )
             Spacer(Modifier.height(6.dp))
             Text(
-                text = email.ifBlank { "deine E-Mail-Adresse" },
+                text = email.ifBlank { stringResource(R.string.vgate_mail_fallback) },
                 style = MaterialTheme.typography.bodyLarge,
                 color = colors.chalk,
             )
             Spacer(Modifier.height(10.dp))
             Text(
-                text = "Klick den Link darin, dann geht es hier weiter. Nichts angekommen? " +
-                    "Schau im Spam-Ordner nach. Der Link gilt 24 Stunden.",
+                text = stringResource(R.string.vgate_mail_body),
                 style = MaterialTheme.typography.bodyMedium,
                 color = colors.chalkDim,
             )
@@ -382,7 +379,7 @@ private fun EmailPendingContent(
 
     Spacer(Modifier.height(18.dp))
     FlexrButton(
-        text = if (isSending) "Wird gesendet …" else "Mail erneut senden",
+        text = stringResource(if (isSending) R.string.vgate_mail_sending else R.string.vgate_mail_resend),
         onClick = onResend,
         enabled = !isSending,
         loading = isSending,
@@ -406,29 +403,27 @@ private fun MissingPhotoContent(
 ) {
     val colors = FlexrTheme.colors
 
-    Eyebrow("Profilfoto fehlt")
+    Eyebrow(stringResource(R.string.vgate_photo_eyebrow))
     Text(
-        text = "Zuerst dein Profilfoto",
+        text = stringResource(R.string.vgate_photo_title),
         style = MaterialTheme.typography.headlineMedium,
         color = colors.chalk,
     )
     Spacer(Modifier.height(14.dp))
     StepBar(current = 1)
     Spacer(Modifier.height(14.dp))
-    StatusChip("Foto fehlt", danger = true)
+    StatusChip(stringResource(R.string.vgate_photo_chip), danger = true)
 
     FlexrCard {
         Column {
             Text(
-                text = "Für die Prüfung vergleicht ein Mensch dein Profilfoto mit deinem " +
-                    "Selfie und deinem Ausweis. Ohne Profilfoto kann sie nicht starten.",
+                text = stringResource(R.string.vgate_photo_body),
                 style = MaterialTheme.typography.bodyMedium,
                 color = colors.chalkDim,
             )
             Spacer(Modifier.height(10.dp))
             Text(
-                text = "Beim Anlegen deines Profils hat der Upload nicht geklappt. Hol ihn " +
-                    "hier nach — danach geht es normal weiter.",
+                text = stringResource(R.string.vgate_photo_body2),
                 style = MaterialTheme.typography.bodyMedium,
                 color = colors.chalkDim,
             )
@@ -448,7 +443,7 @@ private fun MissingPhotoContent(
             CircularProgressIndicator(Modifier.size(14.dp), color = colors.plate, strokeWidth = 1.5.dp)
             Spacer(Modifier.width(8.dp))
             Text(
-                "Foto wird hochgeladen …",
+                stringResource(R.string.vgate_photo_uploading),
                 style = MaterialTheme.typography.bodySmall,
                 color = colors.chalkDim,
             )
@@ -470,28 +465,27 @@ private fun MissingPhotoContent(
 private fun ActivatedContent(onRetry: () -> Unit) {
     val colors = FlexrTheme.colors
 
-    Eyebrow("Geschafft")
+    Eyebrow(stringResource(R.string.vgate_done_eyebrow))
     Text(
-        text = "Konto freigeschaltet",
+        text = stringResource(R.string.vgate_unlocked_title),
         style = MaterialTheme.typography.headlineMedium,
         color = colors.chalk,
     )
     Spacer(Modifier.height(14.dp))
     StepBar(current = 3)
     Spacer(Modifier.height(14.dp))
-    StatusChip("Freigeschaltet", danger = false)
+    StatusChip(stringResource(R.string.vgate_unlocked_chip), danger = false)
 
     FlexrCard {
         Text(
-            text = "Deine Prüfung ist durch. Wir laden gerade dein Profil — gleich " +
-                "steht dir FLEXR vollständig offen.",
+            text = stringResource(R.string.vgate_unlocked_body),
             style = MaterialTheme.typography.bodyMedium,
             color = colors.chalkDim,
         )
     }
 
     Spacer(Modifier.height(18.dp))
-    FlexrButton(text = "Weiter zu FLEXR", onClick = onRetry)
+    FlexrButton(text = stringResource(R.string.vgate_unlocked_cta), onClick = onRetry)
 }
 
 // ---------- Endgültig abgelehnt ----------
@@ -500,35 +494,33 @@ private fun ActivatedContent(onRetry: () -> Unit) {
 private fun RejectedContent(reason: String?) {
     val colors = FlexrTheme.colors
 
-    Eyebrow("Abgeschlossen")
+    Eyebrow(stringResource(R.string.vgate_rejected_eyebrow))
     Text(
-        text = "Verifizierung nicht erfolgreich",
+        text = stringResource(R.string.vgate_rejected_title),
         style = MaterialTheme.typography.headlineMedium,
         color = colors.chalk,
     )
     Spacer(Modifier.height(14.dp))
     StepBar(current = 3)
     Spacer(Modifier.height(14.dp))
-    StatusChip("Nicht freigeschaltet", danger = true)
+    StatusChip(stringResource(R.string.vgate_rejected_chip), danger = true)
 
     FlexrCard {
         Column {
             Text(
-                text = reason ?: "Wir konnten deine Verifizierung nicht abschließen.",
+                text = reason ?: stringResource(R.string.vgate_rejected_fallback),
                 style = MaterialTheme.typography.bodyMedium,
                 color = colors.chalk,
             )
             Spacer(Modifier.height(10.dp))
             Text(
-                text = "Dein Konto wurde nicht freigeschaltet. Wenn du glaubst, dass das ein " +
-                    "Fehler ist, schreib uns an flexr.social@proton.me.",
+                text = stringResource(R.string.vgate_rejected_body),
                 style = MaterialTheme.typography.bodyMedium,
                 color = colors.chalkDim,
             )
             Spacer(Modifier.height(10.dp))
             Text(
-                text = "Alle Aufnahmen deines Ausweises und dein Verifizierungs-Selfie wurden " +
-                    "gelöscht.",
+                text = stringResource(R.string.vgate_rejected_deleted),
                 style = MaterialTheme.typography.bodyMedium,
                 color = colors.chalkDim,
             )

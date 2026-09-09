@@ -1,6 +1,8 @@
 import SwiftUI
 
 struct SwipeView: View {
+    @Environment(LanguageStore.self) private var languageStore
+    private var s: FlexrStrings { languageStore.strings }
 
     let onOpenChat: (String) -> Void
 
@@ -26,6 +28,7 @@ struct SwipeView: View {
             guard model == nil else { return }
             let created = SwipeModel(
                 container: container,
+                languageStore: languageStore,
                 onMessage: { appModel.show($0) },
                 onOpenChat: onOpenChat
             )
@@ -54,7 +57,7 @@ struct SwipeView: View {
     @ViewBuilder
     private func content(_ model: SwipeModel) -> some View {
         VStack(alignment: .leading, spacing: 0) {
-            ScreenHeader(eyebrow: "Entdecken", title: "Profile in deiner Nähe")
+            ScreenHeader(eyebrow: "Entdecken", title: s(.swipeTitle))
                 .padding(.top, 18)
 
             Text(locationLabel(model).uppercased())
@@ -93,9 +96,9 @@ struct SwipeView: View {
         }
         .confirmDialog(
             isPresented: $showBlockDialog,
-            title: model.current.map { "\($0.name) blockieren?" } ?? "Blockieren?",
-            message: "Ihr seht euch danach nicht mehr — weder im Deck noch in den Matches.",
-            confirmLabel: "Blockieren"
+            title: model.current.map { "\($0.name) blockieren?" } ?? s(.swipeBlockTitle),
+            message: s(.swipeBlockBody),
+            confirmLabel: s(.commonBlock)
         ) {
             if let profile = model.current {
                 model.block(userID: profile.id, name: profile.name)
@@ -116,7 +119,7 @@ struct SwipeView: View {
     private func locationLabel(_ model: SwipeModel) -> String {
         // Die Umkreissuche geht von der Adresse des eingetragenen Gyms aus,
         // nicht vom Wohnort und nicht von der Geräteposition.
-        "\(model.searchRadiusKm) km rund um dein Gym"
+        s(.swipeRadius, model.searchRadiusKm)
     }
 
     @ViewBuilder
@@ -132,8 +135,8 @@ struct SwipeView: View {
         } else if model.isExhausted {
             EmptyStateView(
                 icon: .dumbbell,
-                title: "Alle Sätze absolviert",
-                message: "Keine neuen Profile in deiner Nähe. Schau später nochmal vorbei."
+                title: s(.swipeEmptyTitle),
+                message: s(.swipeEmptySub)
             ) {
                 FlexrSecondaryButton(title: "Neu laden") {
                     Task { await model.loadDeck() }
@@ -178,7 +181,7 @@ struct SwipeView: View {
                         }
                         RoundActionButton(
                             icon: FlexrIcon.like,
-                            accessibilityLabel: "Gefällt mir",
+                            accessibilityLabel: s(.swipeLike),
                             tint: .white,
                             isLarge: true
                         ) {

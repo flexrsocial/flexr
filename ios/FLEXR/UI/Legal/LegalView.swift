@@ -9,11 +9,13 @@ struct LegalView: View {
     let document: LegalDocument
     let onBack: () -> Void
 
+    @Environment(LanguageStore.self) private var languageStore
+
     private var page: LegalPage { LegalContent.page(for: document) }
 
     var body: some View {
         VStack(spacing: 0) {
-            BackHeader(title: document.title, onBack: onBack)
+            BackHeader(title: languageStore.strings(document.titleKey), onBack: onBack)
                 .padding(.horizontal, 8)
 
             ScrollView {

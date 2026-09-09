@@ -25,10 +25,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import flexr.social.app.R
 import flexr.social.app.core.designsystem.component.EmptyState
 import flexr.social.app.core.designsystem.component.Eyebrow
 import flexr.social.app.core.designsystem.component.FlexrButton
@@ -81,8 +83,8 @@ fun PaywallScreen(
         Spacer(Modifier.height(24.dp))
         EmptyState(
             icon = FlexrIcons.Locked,
-            title = "Probemonat vorbei",
-            description = "Dein kostenloser Monat ist abgelaufen. Schalte FLEXR wieder frei.",
+            title = stringResource(R.string.paywall_title),
+            description = stringResource(R.string.paywall_sub),
         )
 
         Column(
@@ -93,11 +95,15 @@ fun PaywallScreen(
                 .border(1.dp, colors.plate.copy(alpha = 0.3f), MaterialTheme.shapes.large)
                 .padding(20.dp),
         ) {
-            Eyebrow("Mitgliedschaft")
+            Eyebrow(stringResource(R.string.paywall_membership))
             Row(verticalAlignment = Alignment.Bottom) {
-                Text("5 €", style = MaterialTheme.typography.displayMedium, color = colors.chalk)
                 Text(
-                    " / Monat",
+                    stringResource(R.string.paywall_price),
+                    style = MaterialTheme.typography.displayMedium,
+                    color = colors.chalk,
+                )
+                Text(
+                    stringResource(R.string.paywall_per_month),
                     style = MaterialTheme.typography.bodyMedium,
                     color = colors.chalkDim,
                     modifier = Modifier.padding(bottom = 5.dp),
@@ -105,9 +111,9 @@ fun PaywallScreen(
             }
             Spacer(Modifier.height(16.dp))
             listOf(
-                "Unbegrenzt swipen & matchen in deinem Umkreis",
-                "Chat mit allen Matches inklusive",
-                "Monatlich kündbar, keine versteckten Kosten",
+                R.string.paywall_feature_unlimited,
+                R.string.paywall_feature_chat,
+                R.string.paywall_feature_cancel,
             ).forEach { feature ->
                 Row(
                     Modifier.fillMaxWidth().padding(vertical = 6.dp),
@@ -121,20 +127,19 @@ fun PaywallScreen(
                         modifier = Modifier.size(18.dp),
                     )
                     Text(
-                        feature,
+                        stringResource(feature),
                         style = MaterialTheme.typography.bodyMedium,
                         color = colors.chalkDim,
                     )
                 }
             }
             Spacer(Modifier.height(12.dp))
-            FlexrButton(text = "Jetzt abonnieren", onClick = viewModel::openCheckoutDialog)
+            FlexrButton(text = stringResource(R.string.paywall_subscribe), onClick = viewModel::openCheckoutDialog)
         }
 
         Spacer(Modifier.height(14.dp))
         Text(
-            text = "Nach der Zahlung kehrst du automatisch in die App zurück. " +
-                "Falls der Status nicht sofort stimmt: kurz warten und erneut öffnen.",
+            text = stringResource(R.string.paywall_return_note),
             style = MaterialTheme.typography.bodySmall,
             color = colors.chalkDim,
             textAlign = TextAlign.Center,
@@ -142,12 +147,12 @@ fun PaywallScreen(
         )
 
         Spacer(Modifier.height(24.dp))
-        FlexrSecondaryButton(text = "Ausloggen", onClick = onLogout)
+        FlexrSecondaryButton(text = stringResource(R.string.common_logout), onClick = onLogout)
         // Nach Ablauf des Probemonats ist der Konto-Screen nicht mehr
         // navigierbar. Ohne diesen Knopf waere die Selbstloeschung damit
         // unerreichbar - Punkt 5 der Datenschutzerklaerung sagt sie aber zu.
         Spacer(Modifier.height(10.dp))
-        FlexrDangerButton(text = "Konto löschen", onClick = viewModel::showDeleteDialog)
+        FlexrDangerButton(text = stringResource(R.string.common_delete_account), onClick = viewModel::showDeleteDialog)
         Spacer(Modifier.height(40.dp))
     }
 

@@ -79,7 +79,18 @@ final class AccountModel {
     /// auslöst — der Ort steht dort ja schon fest.
     @ObservationIgnored private var lastHandledPostalCode: String?
 
-    init(container: AppContainer, onMessage: @escaping (String) -> Void) {
+    /// Texte in der gewählten Sprache. Als Referenz auf den Speicher und nicht
+    /// als Kopie: eine Umstellung mitten in der Sitzung wirkt dann sofort auch
+    /// auf Meldungen, die dieses Modell danach erzeugt.
+    @ObservationIgnored private let languageStore: LanguageStore
+    private var s: FlexrStrings { languageStore.strings }
+
+    init(
+        container: AppContainer,
+        languageStore: LanguageStore,
+        onMessage: @escaping (String) -> Void
+    ) {
+        self.languageStore = languageStore
         profiles = container.profiles
         billing = container.billing
         gyms = container.gyms
@@ -137,8 +148,8 @@ final class AccountModel {
                 guard !Task.isCancelled else { return }
                 plzLookup = .failed(
                     message: error is UnknownPostalCodeError
-                        ? error.localizedDescription
-                        : "Ort konnte nicht ermittelt werden."
+                        ? s(.errorPostalCodeUnknown)
+                        : s(.errorCityLookup)
                 )
             }
         }
@@ -210,16 +221,15 @@ final class AccountModel {
 
     func saveProfile() async {
         guard let city = resolvedCity else {
-            saveError = "Bitte eine gültige österreichische Postleitzahl eingeben "
-                + "(Ort wird automatisch ermittelt)."
+            saveError = s(.accountErrPostalCode)
             return
         }
         guard let profile, !profile.photos.isEmpty else {
-            saveError = "Bitte lade mindestens ein Foto hoch, bevor du speicherst."
+            saveError = s(.accountErrPhotoBeforeSave)
             return
         }
         guard let gymLabel = gymPicker.selectedLabel else {
-            saveError = "Bitte ein Gym aus der Liste auswählen."
+            saveError = s(.accountErrGym)
             return
         }
 
@@ -233,9 +243,9 @@ final class AccountModel {
                 bio: bio.trimmingCharacters(in: .whitespacesAndNewlines),
                 searchRadiusKm: Int(searchRadiusKm.rounded())
             )
-            onMessage("Profil gespeichert ✓")
+            onMessage(s(.accountSaved))
         } catch {
-            saveError = (error as? FlexrAPIError)?.message ?? "Speichern fehlgeschlagen."
+            saveError = (error as? FlexrAPIError)?.message ?? s(.accountSaveFailed)
         }
         isSaving = false
     }
@@ -249,18 +259,19 @@ final class AccountModel {
             let prepared = try await ImageProcessor.prepare(data: data)
             _ = try await profiles.addPhoto(prepared)
         } catch let error as PhotoTooSmallError {
-            photoError = error.errorDescription
+            photoError = s(.photoTooSmall, error.width, error.height,
+                           ImageProcessor.minEdgePx, ImageProcessor.minEdgePx)
         } catch let error as FlexrAPIError {
             photoError = error.message
         } catch {
-            photoError = "Foto-Upload fehlgeschlagen."
+            photoError = s(.photoUploadFailed)
         }
         isUploadingPhoto = false
     }
 
     func removePhoto(id: String) {
         guard (profile?.photos.count ?? 0) > 1 else {
-            photoError = "Mindestens ein Foto ist erforderlich. Lade zuerst ein weiteres hoch."
+            photoError = s(.photoMinOne)
             return
         }
         photoError = nil
@@ -330,7 +341,7 @@ final class AccountModel {
     func confirmCheckout() async {
         guard !isStartingCheckout else { return }
         guard checkoutImmediateStart, checkoutWithdrawalAck else {
-            checkoutError = "Bitte bestätige beide Erklärungen, um fortzufahren."
+            checkoutError = s(.accountCheckoutConsentMissing)
             return
         }
         isStartingCheckout = true
@@ -341,7 +352,7 @@ final class AccountModel {
             externalURL = ExternalURL(url)
         } catch {
             checkoutError = (error as? FlexrAPIError)?.message
-                ?? "Checkout konnte nicht gestartet werden."
+                ?? s(.accountCheckoutFailed)
         }
         isStartingCheckout = false
     }
@@ -368,7 +379,7 @@ final class AccountModel {
                 notificationsEnabled = false
                 session.notificationsEnabled = false
                 notifications.cancel()
-                onMessage("Ohne Berechtigung können keine Benachrichtigungen angezeigt werden.")
+                onMessage(s(.accountNotificationPermission))
                 return
             }
         }
@@ -386,7 +397,7 @@ final class AccountModel {
             consents = try await profiles.consents()
         } catch {
             consentError = (error as? FlexrAPIError)?.message
-                ?? "Einwilligungen konnten nicht geladen werden."
+                ?? s(.consentLoadFailed)
         }
         consentsLoading = false
     }
@@ -401,7 +412,7 @@ final class AccountModel {
             onMessage(result.consequence)
         } catch {
             consentError = (error as? FlexrAPIError)?.message
-                ?? "Der Widerruf konnte nicht gespeichert werden."
+                ?? s(.consentRevokeFailed)
         }
         revokingConsentType = nil
     }
@@ -417,7 +428,7 @@ final class AccountModel {
             onMessage(result.consequence)
         } catch {
             consentError = (error as? FlexrAPIError)?.message
-                ?? "Die erneute Einwilligung konnte nicht gespeichert werden."
+                ?? s(.consentGrantFailed)
         }
         grantingConsentType = nil
     }
@@ -431,7 +442,7 @@ final class AccountModel {
             blockedUsers = try await safety.blockedUsers()
         } catch {
             blockedUsersError = (error as? FlexrAPIError)?.message
-                ?? "Deine Blockierungen konnten nicht geladen werden."
+                ?? s(.blocksLoadFailed)
         }
         blockedUsersLoading = false
     }
@@ -455,17 +466,17 @@ final class AccountModel {
 
     func deleteAccount(password: String) async {
         guard !password.isEmpty else {
-            deleteError = "Bitte gib zur Bestätigung dein Passwort ein."
+            deleteError = s(.deletePasswordMissing)
             return
         }
         isDeleting = true
         deleteError = nil
         do {
             try await profiles.deleteAccount(password: password)
-            onMessage("Dein Konto wurde deaktiviert und wird in 30 Tagen endgültig gelöscht.")
+            onMessage(s(.deleteDone))
             didDeleteAccount = true
         } catch {
-            deleteError = (error as? FlexrAPIError)?.message ?? "Löschen fehlgeschlagen."
+            deleteError = (error as? FlexrAPIError)?.message ?? s(.commonDeleteFailed)
         }
         isDeleting = false
     }
