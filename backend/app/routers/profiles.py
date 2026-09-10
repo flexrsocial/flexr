@@ -29,7 +29,7 @@ from ..storage import (
     create_presigned_upload,
     inspect_uploaded_photo,
     public_url_for,
-    set_photo_cache_control,
+    set_photo_headers,
 )
 
 logger = logging.getLogger(__name__)
@@ -255,7 +255,7 @@ def presign_photo_upload(
     return PresignPhotoResponse(**result)
 
 
-def _foto_ist_brauchbar(object_key: str) -> bool:
+def _foto_befund(object_key: str) -> dict:
     """Groesse und echter Dateianfang des hochgeladenen Objekts.
 
     Bewusst durchlaessig, wenn die Pruefung selbst scheitert: Ein Zeitfehler
@@ -264,17 +264,23 @@ def _foto_ist_brauchbar(object_key: str) -> bool:
     ein Fehler in dieser Zeile waere ein zweiter Totalausfall des Foto-Uploads.
     Abgewiesen wird deshalb nur, was nachweislich zu gross oder kein Bild ist;
     alles Unklare wird geloggt und durchgelassen.
+
+    Liefert den ganzen Befund statt nur ``ok``, weil der Aufrufer den erkannten
+    Typ gleich weiterverwendet (siehe ``set_photo_headers``) - er stammt aus den
+    Magic Bytes und ist damit belastbarer als die Behauptung des Clients beim
+    Presign. Ohne diese Rueckgabe muesste das Objekt ein zweites Mal gelesen
+    werden, nur um dasselbe Ergebnis zu bekommen.
     """
     try:
         befund = inspect_uploaded_photo(object_key)
     except Exception:  # noqa: BLE001 - siehe Docstring
         logger.warning("Foto konnte nicht geprueft werden: %s", object_key, exc_info=True)
-        return True
+        return {"ok": True, "size": 0, "detected": None}
     if not befund["ok"]:
         logger.info(
             "Foto abgewiesen: %s (%s Byte, erkannt: %s)",
             object_key, befund["size"], befund["detected"])
-    return befund["ok"]
+    return befund
 
 
 @router.post("/me/photos", response_model=MyProfileOut)
@@ -296,15 +302,22 @@ def add_photo(
     # Presigned PUT laeuft am Backend vorbei, der Content-Type ist nur eine
     # Behauptung des Clients. Ohne diesen Schritt kaeme unter "image/jpeg"
     # beliebiger Inhalt in beliebiger Groesse durch.
+    erkannter_typ: dict[str, str | None] = {}
     for key in filter(None, (payload.object_key, payload.thumb_object_key)):
-        if not _foto_ist_brauchbar(key):
+        befund = _foto_befund(key)
+        if not befund["ok"]:
             raise HTTPException(
                 400, "Die hochgeladene Datei ist kein unterstütztes Bild oder zu groß.")
+        erkannter_typ[key] = befund["detected"]
 
-    # Cache-Control nachtraeglich setzen - siehe set_photo_cache_control().
-    set_photo_cache_control(payload.object_key)
+    # Cache-Control und Content-Type nachtraeglich setzen - siehe
+    # set_photo_headers(). Der erkannte Typ kommt aus der Pruefung oben und
+    # kostet hier keinen zweiten Abruf.
+    set_photo_headers(payload.object_key, erkannter_typ.get(payload.object_key))
     if payload.thumb_object_key:
-        set_photo_cache_control(payload.thumb_object_key)
+        set_photo_headers(
+            payload.thumb_object_key, erkannter_typ.get(payload.thumb_object_key)
+        )
 
     # Nächste freie Position aus dem Maximum ableiten, nicht aus der Anzahl:
     # nach dem Löschen eines Fotos aus der Mitte wäre die Anzahl kleiner als die

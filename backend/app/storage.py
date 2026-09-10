@@ -14,6 +14,12 @@ CONTENT_TYPE_EXTENSIONS = {
     "image/webp": "webp",
 }
 
+# Rueckrichtung fuer den Fall, dass nur der Schluessel bekannt ist (Backfill).
+# Der Dateiname traegt die Endung, die beim Presign aus dem *behaupteten*
+# Content-Type abgeleitet wurde - schwaecher als die Magic Bytes, aber besser
+# als gar nichts.
+EXTENSION_CONTENT_TYPES = {ext: ct for ct, ext in CONTENT_TYPE_EXTENSIONS.items()}
+
 
 def get_s3_client():
     return boto3.client(
@@ -256,36 +262,70 @@ def inspect_uploaded_photo(object_key: str) -> dict:
 PHOTO_CACHE_CONTROL = "public, max-age=31536000, immutable"
 
 
-def set_photo_cache_control(object_key: str) -> None:
-    """Setzt Cache-Control auf ein bereits hochgeladenes Objekt.
+def content_type_for_key(object_key: str) -> str | None:
+    """Content-Type aus der Dateiendung des Objektschlüssels."""
+    _, _, ext = object_key.rpartition(".")
+    return EXTENSION_CONTENT_TYPES.get(ext.lower())
+
+
+def set_photo_headers(object_key: str, content_type: str | None = None) -> None:
+    """Setzt Cache-Control **und** Content-Type auf ein hochgeladenes Objekt.
 
     Der Upload läuft als Presigned PUT direkt vom Client zum Storage; ein
     Cache-Control-Header müsste dafür mitsigniert *und* von jedem Client exakt
-    so mitgeschickt werden, sonst schlägt die Signatur fehl. Deshalb wird der
+    so mitgeschickt werden, sonst schlägt die Signatur fehl. Deshalb werden die
     Header hier nachträglich per Copy-auf-sich-selbst gesetzt - der
     Upload-Vertrag bleibt für Web und App unverändert.
 
-    Ohne den Header liefert R2 gar kein Cache-Control. Clients fallen dann auf
-    heuristisches Caching zurück, das sich am Alter des Objekts bemisst - bei
+    Ohne Cache-Control liefert R2 gar keinen solchen Header. Clients fallen dann
+    auf heuristisches Caching zurück, das sich am Alter des Objekts bemisst - bei
     einem gerade hochgeladenen Foto also praktisch null. Jede Anzeige wird zum
     Netz-Roundtrip, und bei wackligem Empfang bleibt das Bild schlicht leer.
     Die Objektschlüssel sind UUIDs und werden nie überschrieben, „immutable"
     ist deshalb korrekt.
 
-    Fehler werden geschluckt: ein fehlender Cache-Header darf einen sonst
+    **Warum hier auch der Content-Type steht** (Befund vom 10.09.2026): Diese
+    Funktion hiess frueher ``set_photo_cache_control`` und uebergab nur
+    ``CacheControl``. ``MetadataDirective="REPLACE"`` ersetzt aber die
+    *gesamten* Systemmetadaten durch das, was im Aufruf steht - der beim
+    Presigned PUT korrekt gesetzte Content-Type wurde damit ausgerechnet von
+    der Funktion geloescht, die das Caching reparieren sollte. R2 lieferte
+    Profilfotos seither ohne Content-Type aus. Aufgefallen ist es nie, weil
+    Browser ``<img>`` trotzdem rendern (``nosniff`` verhindert das Sniffing nur
+    fuer Skripte und Stylesheets). Der Name der Funktion hat den Nebeneffekt
+    mitverdeckt und ist deshalb mitgeaendert worden.
+
+    ``content_type`` sollte der aus den Magic Bytes **erkannte** Typ sein
+    (``inspect_uploaded_photo(...)["detected"]``), nicht der vom Client
+    behauptete - der Presigned PUT bindet nur die Zeichenkette, nicht den
+    Inhalt. Fehlt er, wird die Dateiendung herangezogen und zuletzt der bereits
+    am Objekt stehende Typ bewahrt; keinesfalls darf er wieder verloren gehen.
+
+    Fehler werden geschluckt: ein fehlender Header darf einen sonst
     erfolgreichen Upload nicht scheitern lassen.
     """
     try:
         client = get_s3_client()
-        client.copy_object(
-            Bucket=settings.s3_bucket_name,
-            Key=object_key,
-            CopySource={"Bucket": settings.s3_bucket_name, "Key": object_key},
-            CacheControl=PHOTO_CACHE_CONTROL,
-            MetadataDirective="REPLACE",
-        )
+        typ = content_type or content_type_for_key(object_key)
+        if not typ:
+            # Unbekannte Endung: lieber den vorhandenen Typ uebernehmen als ihn
+            # durch REPLACE zu verlieren.
+            typ = client.head_object(
+                Bucket=settings.s3_bucket_name, Key=object_key
+            ).get("ContentType")
+
+        params = {
+            "Bucket": settings.s3_bucket_name,
+            "Key": object_key,
+            "CopySource": {"Bucket": settings.s3_bucket_name, "Key": object_key},
+            "CacheControl": PHOTO_CACHE_CONTROL,
+            "MetadataDirective": "REPLACE",
+        }
+        if typ:
+            params["ContentType"] = typ
+        client.copy_object(**params)
     except Exception:  # noqa: BLE001 - bewusst breit, siehe Docstring
-        logger.warning("Cache-Control konnte nicht gesetzt werden: %s", object_key, exc_info=True)
+        logger.warning("Foto-Header konnten nicht gesetzt werden: %s", object_key, exc_info=True)
 
 
 def delete_object(object_key: str) -> None:

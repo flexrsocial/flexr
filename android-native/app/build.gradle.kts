@@ -32,7 +32,16 @@ android {
         applicationId = "flexr.social.app"
         minSdk = 26
         targetSdk = 36
-        versionCode = 43
+        // versionCode 43 war in der Play Console schon vergeben ("Versionscode 43
+        // wurde bereits verwendet", 10.09.2026). Bewusst ein Sprung auf 50 statt
+        // auf 44: Welche Nummern die Console sonst noch kennt, laesst sich von
+        // hier aus nicht sehen, und jeder Fehlversuch kostet einen kompletten
+        // Build. Luecken im versionCode sind zulaessig, nur Rueckwaertsspruenge
+        // nicht.
+        //
+        // versionName bleibt 2.6.0: Der Release IST 2.6.0, verbrannt war nur die
+        // Build-Nummer. versionCode ist der Zaehler, versionName die Fassung.
+        versionCode = 50
         versionName = "2.6.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
