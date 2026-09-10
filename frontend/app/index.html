@@ -1125,6 +1125,27 @@
       "usps usps";
     column-gap:clamp(18px,3vw,34px); align-items:center;
   }
+  /* Zwischen 861 und 1080px reicht die Breite nicht fuer Text UND Musterdeck.
+     Gemessen am 10.09.2026: Die rechte Spalte von `body.landing main` nimmt
+     sich bis zu 460px, dem Hero bleiben bei 900px rund 290px - davon 210px
+     fuer das Deck. Der Schlagzeile blieben **53px**, obwohl sie 169px braucht;
+     "MATCH. TRAIN. REPEAT." wurde beschnitten und der Fliesstext stand ein
+     Wort pro Zeile.
+     In diesem Band verschwindet deshalb das Musterdeck und der Hero laeuft
+     einspaltig. Es ist die Vorschau, nicht die Aussage - lieber ohne Deck
+     lesbar als mit Deck zerdrueckt. Ab 1100px passt beides nebeneinander. */
+  @media (min-width: 861px) and (max-width: 1080px){
+    body.landing .landing-hero{
+      grid-template-columns:minmax(0,1fr);
+      grid-template-areas:
+        "eyebrow"
+        "title"
+        "sub"
+        "usps";
+    }
+    body.landing .hero-demo{ display:none; }
+  }
+
   .landing-hero .hero-eyebrow{ grid-area:eyebrow; }
   .landing-hero h1{ grid-area:title; }
   .landing-hero .hero-sub{ grid-area:sub; }
@@ -2103,7 +2124,7 @@
           gelöscht — siehe
           <a data-i18n="legal.datenschutz" href="/datenschutz.html" class="legal-link" data-legal-page="datenschutz.html">Datenschutzerklärung</a>.
           Dein Konto wird erst nach bestandener Prüfung freigeschaltet. Die
-          Nutzung ist während der Beta-Phase ohnehin kostenlos.</p>
+          Nutzung von FLEXR ist ohnehin dauerhaft kostenlos.</p>
       </div>
 
       <label for="f-gender" data-i18n="reg.gender">Geschlecht</label>

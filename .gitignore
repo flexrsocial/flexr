@@ -8,6 +8,11 @@ backend/venv/
 
 # Secrets — nur .env.example wird versioniert
 backend/.env
+# ... und JEDE Ableitung davon. Am 10.09.2026 blieb eine Sicherung als
+# backend/.env.bak-audit liegen, die von "backend/.env" allein nicht erfasst
+# war - ein spaeteres `git add -A` haette die echten Zugangsdaten eingecheckt.
+backend/.env.*
+!backend/.env.example
 
 # Claude Code lokale Einstellungen (maschinenspezifisch)
 .claude/settings.local.json

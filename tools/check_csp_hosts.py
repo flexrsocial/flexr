@@ -71,12 +71,26 @@ def hosts_der_direktive(policy: str, direktive: str) -> list:
 
 
 def photos_proxy_ziel(text: str) -> str | None:
-    """Host, an den die Location /photos/ in nginx-flexr.conf weiterreicht."""
+    """Host, an den die Location /photos/ in nginx-flexr.conf weiterreicht.
+
+    Seit dem 10.09.2026 steht dort keine Zeichenkette mehr, sondern eine
+    Variable (``proxy_pass https://$r2_host``) - nur so loest nginx den Namen
+    zur Laufzeit auf und stirbt nicht beim Start, wenn DNS gerade ausfaellt.
+    Ohne die Aufloesung unten haette dieses Werkzeug fortan bloss "$r2_host"
+    gemeldet und damit gar nichts mehr geprueft.
+    """
     block = re.search(r"location\s+/photos/\s*\{([^}]*)\}", text)
     if not block:
         return None
     treffer = re.search(r"proxy_pass\s+https?://([^/;\s]+)", block.group(1))
-    return treffer.group(1) if treffer else None
+    if not treffer:
+        return None
+    ziel = treffer.group(1)
+    if ziel.startswith("$"):
+        gesetzt = re.search(
+            r"set\s+" + re.escape(ziel) + r"\s+([^;\s]+)\s*;", block.group(1))
+        return gesetzt.group(1) if gesetzt else None
+    return ziel
 
 
 def main() -> int:

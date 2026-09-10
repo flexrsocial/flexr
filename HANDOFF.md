@@ -14,6 +14,83 @@ dann die beiden Sitzungen vom **07.09.**, dann **06.09.**, dann **05.09.**,
 dann **31.08.**, dann **30.08.**, dann **23.08.**, dann **21.08.**; die Build-,
 Test- und Deploy-Abschnitte am Ende gelten sitzungsübergreifend.
 
+## Sitzung 10.09.2026 (Audit, Fortsetzung) — Registrierung, Hero-Layout, Werkzeuge
+
+Zweiter Durchgang über die Teile, die im ersten nicht drankamen.
+
+### Hero im ausgeloggten `/app/` war zwischen 861 und 1080 px zerdrückt
+
+Am 09.09. gemeldet, damals als Gestaltungsfrage liegen gelassen — jetzt
+behoben, weil es messbar kaputt war:
+
+| Fensterbreite | Textspalte | Schlagzeile braucht |
+|---|---|---|
+| 900 px | **53 px** | 169 px |
+| 1000 px | 135 px | 188 px |
+| 1100 px | 232 px | 232 px |
+
+`body.landing main` gibt der rechten Spalte (Login-Karte) bis zu 460 px; dem
+Hero bleiben bei 900 px rund 290 px, davon nimmt das Musterdeck 210 px.
+„MATCH. TRAIN. REPEAT." wurde beschnitten, der Fließtext stand ein Wort pro
+Zeile.
+
+In diesem Band verschwindet jetzt das **Musterdeck** und der Hero läuft
+einspaltig — es ist die Vorschau, nicht die Aussage. Nachgemessen bei 861 /
+1000 / 1080 / 1081 / 1200 px: kein Überlauf mehr, und ab 1081 px steht das Deck
+wieder daneben.
+
+**Nur `/app/` war betroffen.** Die öffentliche Landingpage `/index.html` hat
+eigenes Markup ohne `.landing-hero` — der erste Verdacht dort war falsch.
+
+### Drei weitere Texte behaupteten noch „nur während der Beta gratis"
+
+Beim Durchspielen der Registrierung aufgefallen — dieselbe Sorte Fehler wie im
+Beta-Dialog, an Stellen, die der erste Durchgang nicht berührt hatte:
+
+* `vgate.submittedP2` (Verifizierung läuft): „Die Wartezeit kostet dich nichts
+  — FLEXR ist **während der Beta-Phase** für alle kostenlos."
+* `reg.ageNoticeP2` (Altershinweis im Registrierungsformular): „Die Nutzung ist
+  **während der Beta-Phase** ohnehin kostenlos."
+* dieselbe Zeile fest im Markup von `app/index.html`
+
+Alle drei in beiden Sprachen auf „ist und bleibt kostenlos" bzw. „dauerhaft
+kostenlos" umgestellt. Die Aussage widersprach sonst den eigenen AGB.
+
+### Registrierung und Verifizierungs-Gate durchgespielt
+
+Im ersten Durchgang nur der Login geprüft. Jetzt vollständig gegen den Stub:
+Formular ausfüllen → PLZ löst „Wien" auf → Gym-Suche mit Auswahl aus der Liste
+→ Einwilligung → **echtes Foto** (800×800-Canvas als `File`, damit
+`preparePhoto` samt Mindestauflösung wirklich läuft) → „Kostenlos
+registrieren" → Deck. Ohne Freischaltung landet man korrekt im
+Verifizierungs-Gate: Untere Navigation ausgeblendet, Pille „In Prüfung",
+richtiger Text.
+
+Dabei zwei Endpunkte gefunden, die mein Stub nicht kannte
+(`POST /api/auth/age-check`, `POST /api/profiles/me/photos/presign`) — beides
+Lücken im Stub, nicht in der App. Der fehlende Presign zeigte nebenbei, dass
+die Registrierung einen fehlgeschlagenen Foto-Upload sauber überlebt (Konto
+entsteht, Hinweis erscheint), so wie es dokumentiert ist.
+
+### `tools/check_csp_hosts.py` war durch die nginx-Änderung halb blind
+
+Seit der Umstellung auf `proxy_pass https://$r2_host` meldete es nur noch
+„reicht weiter an **$r2_host**" — die Variable statt des Hosts. Geprüft hat es
+damit nichts mehr. Es löst die Variable jetzt über die `set`-Direktive im
+selben `location`-Block auf und nennt wieder den echten Bucket-Host.
+
+Die eigentliche Prüfung war übrigens nie stärker als „gibt es überhaupt einen
+Proxy" — sie vergleicht den Host nicht mit `S3_ENDPOINT_URL`. Das wäre die
+nächste sinnvolle Ausbaustufe, ist aber nicht gemacht.
+
+### Lokale `.env` angeglichen
+
+`S3_PUBLIC_BASE_URL` zeigte auf diesem Gerät noch direkt auf R2 (Stand vor dem
+16.08.2026) und ließ das Prüfwerkzeug bei jedem Lauf falschen Alarm schlagen.
+Jetzt `https://flexr.social/photos` wie auf dem VPS und wie in
+`.env.example` dokumentiert. Sicherung liegt als `backend/.env.bak-audit`
+(beides außerhalb des Git).
+
 ## Sitzung 10.09.2026 (Audit) — Durchgang über Codebase, Journey, Admin, Texte
 
 Auftrag: die gesamte Codebase durchgehen, Fehler finden und beheben, die
