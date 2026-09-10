@@ -126,12 +126,32 @@ jetzt auf „FLEXR Premium"** statt „Mitgliedschaft".
 
 ### Android 2.6.0
 
-`versionCode 43`, `versionName 2.6.0`, mit dem unveränderten Upload-Key
-`CN=FLEXR` signiert. 7.730.168 Bytes, SHA-256
-`ab19a703026604bdf233e2f97e473a6de27450747bb77146830d755722239685`,
-`versionName` im Bundle-Manifest gegengeprüft.
+**Maßgeblich ist `versionCode 50`:**
 
-    https://flexr.social/dl-a616e78274de323b/flexr-2.6.0.aab
+    https://flexr.social/dl-a616e78274de323b/flexr-2.6.0-vc50.aab
+
+7.730.174 Bytes, SHA-256
+`122759b7d275c41ec90cf7f85bf07de30f8934d4150144d9974694e02ff533f9`, mit dem
+unveränderten Upload-Key `CN=FLEXR` signiert.
+
+**Der erste Anlauf mit `versionCode 43` wurde von der Play Console abgelehnt**
+(„Versionscode 43 wurde bereits verwendet"). Bewusst ein Sprung auf **50** statt
+auf 44: Welche Nummern die Console sonst noch kennt, ist von hier aus nicht
+einsehbar, und jeder Fehlversuch kostet einen kompletten Build. Lücken im
+`versionCode` sind zulässig, nur Rückwärtssprünge nicht.
+
+`versionName` bleibt **2.6.0** — der Release *ist* 2.6.0, verbrannt war nur die
+Build-Nummer. `versionCode` ist der Zähler, `versionName` die Fassung.
+
+Gegengeprüft wurde nicht nur die Gradle-Datei: Das Manifest im AAB liegt als
+**Protobuf** vor (nicht als binäres AXML, `aapt2 dump xmltree` greift dort
+nicht). Der Byte-Vergleich der beiden Manifeste zeigt **genau drei** abweichende
+Bytes — Offset 179 `43` → `50` (der Wert als Varint) und Offsets 163/164
+`"43"` → `"50"` (derselbe Wert als Zeichenkette). `versionName` unverändert.
+
+`https://flexr.social/dl-a616e78274de323b/flexr-2.6.0.aab` (versionCode 43)
+liegt weiterhin daneben, **lässt sich aber nie wieder in die Play Console
+laden**. Wer aufräumt, kann sie löschen.
 
 `:app:compileProdReleaseKotlin` und `:app:testProdReleaseUnitTest` beide
 BUILD SUCCESSFUL. Der `LockedGraph` ist entfallen, `PaywallScreen` ist ein
@@ -207,11 +227,10 @@ Ebenso wenig `proxy_ssl_verify on` — bei Laufzeitauflösung wäre eine
 Zertifikatsprüfung des Upstreams das passende Gegenstück, ändert aber
 Produktionsverhalten.
 
-### Nebenbefund: Profilfotos werden ohne `Content-Type` ausgeliefert
+### Profilfotos wurden ohne `Content-Type` ausgeliefert — behoben
 
-Beim Nachmessen der Foto-Header aufgefallen, **unabhängig von nginx** — R2
-selbst liefert den Header nicht mit. Die Ursache steht in
-`backend/app/storage.py`:
+Beim Nachmessen der Foto-Header aufgefallen, **unabhängig von nginx**: R2 selbst
+lieferte den Header nicht mit. Die Ursache stand in `backend/app/storage.py`:
 
 ```python
 client.copy_object(..., CacheControl=PHOTO_CACHE_CONTROL,
@@ -219,17 +238,86 @@ client.copy_object(..., CacheControl=PHOTO_CACHE_CONTROL,
 ```
 
 `MetadataDirective="REPLACE"` ersetzt die **gesamten** Systemmetadaten durch
-das, was im Aufruf steht. `ContentType` steht dort nicht — der beim Presigned
-PUT korrekt gesetzte Typ wird also von genau der Funktion gelöscht, die das
-`Cache-Control` nachträgt. Aufgefallen ist es nie, weil Browser `<img>`
+das, was im Aufruf steht. `ContentType` stand dort nicht — der beim Presigned
+PUT korrekt gesetzte Typ wurde also von genau der Funktion gelöscht, die das
+`Cache-Control` nachtragen sollte. Aufgefallen ist es nie, weil Browser `<img>`
 trotzdem rendern (`nosniff` verhindert das Sniffing nur für Skripte und
 Stylesheets).
 
-Die Behebung wäre eine Zeile (`ContentType=` im `copy_object` mitgeben, der Typ
-steht über die Dateiendung fest). Offen bleibt die zweite Hälfte: **bestehende
-Objekte behalten den fehlenden Header**, bis sie einmal nachgezogen werden.
-Beides ist **nicht gemacht** — es war nicht beauftragt, und der Backfill ist
-eine eigene Entscheidung.
+**Behoben.** Die Funktion heißt jetzt `set_photo_headers()` — der alte Name
+`set_photo_cache_control` hat den Nebeneffekt mitverdeckt — und setzt beide
+Header. Der Typ kommt bevorzugt aus den **Magic Bytes**: `add_photo()` prüft
+das Objekt ohnehin unmittelbar davor (`_foto_befund`, früher
+`_foto_ist_brauchbar`) und wirft den erkannten Typ seither nicht mehr weg. Das
+kostet keinen zweiten Abruf und ist belastbarer als die Behauptung des Clients
+beim Presign — die Signatur bindet nur die Zeichenkette, nicht den Inhalt.
+Fällt der Befund aus, greifen Dateiendung und zuletzt der bereits am Objekt
+stehende Typ; verloren gehen darf er nicht noch einmal. Vier Regressionstests
+in `tests/test_foto_header.py` halten das fest.
+
+**Backfill gelaufen.** `scripts/backfill_photo_cache_control.py` heißt jetzt
+`backfill_photo_headers.py`, prüft beide Header und kennt `--dry-run`. Der
+frühere Lauf hatte die betroffenen Objekte übersprungen, weil er nur auf
+`Cache-Control` geschaut hat — genau deshalb war der Schaden flächendeckend.
+Trockenlauf und echter Lauf am 10.09.: **26 Objekte**, ausnahmslos mit
+korrektem `Cache-Control` und fehlendem `Content-Type`, alle → `image/jpeg`.
+Zweiter Lauf: 26 übersprungen, 0 gesetzt (idempotent). Ein echtes Foto über
+`flexr.social` liefert seither `Content-Type: image/jpeg` bei unverändertem
+`Cache-Control`.
+
+### nginx prüft jetzt das Zertifikat des R2-Upstreams
+
+nginx tut das von sich aus **nicht** — ohne `proxy_ssl_verify` nimmt es jedes
+vorgelegte Zertifikat an. Das ist das Gegenstück zur Laufzeitauflösung: Wer den
+Namen erst beim Zugriff auflöst, sollte prüfen, mit wem er dann spricht.
+
+```nginx
+proxy_ssl_verify on;
+proxy_ssl_verify_depth 2;
+proxy_ssl_trusted_certificate /etc/ssl/certs/ca-certificates.crt;
+proxy_ssl_name $r2_host;
+```
+
+R2 liefert ein Let's-Encrypt-Zertifikat auf `*.r2.dev`; die Kette ist
+Leaf → Intermediate → Root, `verify_depth 2` deckt sie ab.
+
+Beide Hälften in einer eigenen nginx-Instanz nachgewiesen, ohne die Produktion
+anzufassen:
+
+| Ziel | ohne Prüfung | mit Prüfung |
+|---|---|---|
+| `self-signed.badssl.com` | 200 | 502 — `upstream SSL certificate verify error: (18:self-signed certificate)` |
+| `wrong.host.badssl.com` | — | 502 — `upstream SSL certificate does not match` |
+| `badssl.com` (Kontrolle) | — | 200 |
+
+**Unerklärt geblieben:** Ein erster Versuch, den Namensfehler direkt gegen R2 zu
+provozieren (`proxy_ssl_name falsch.example.com`), lieferte 403 statt 502 und
+keinerlei SSL-Zeile im Log — Cloudflare beantwortet unbekanntes SNI offenbar
+schon auf HTTP-Ebene. Die Testprämisse war also untauglich, nicht die Prüfung;
+die badssl-Fälle oben zeigen zweifelsfrei, dass Kette **und** Name greifen.
+
+### systemd startet nginx nach einem Fehlschlag neu
+
+Zweiter, unabhängiger Schutz neben der Laufzeitauflösung — er greift auch, wenn
+nginx aus ganz anderem Grund stirbt.
+
+```
+/etc/systemd/system/nginx.service.d/restart.conf
+[Unit]   StartLimitIntervalSec=300, StartLimitBurst=10
+[Service] Restart=on-failure, RestartSec=5s
+```
+
+Das StartLimit ist bewusst großzügiger als die Voreinstellung (5 Versuche in
+10 Sekunden): Eine Störung, die länger als zehn Sekunden dauert — und genau so
+eine war der Ausfall am 10.09. —, wäre damit nicht überbrückt. 10 Versuche über
+5 Minuten decken das ab und laufen trotzdem nicht endlos, wenn die
+Konfiguration wirklich kaputt ist.
+
+Geprüft mit `systemctl kill -s SIGKILL nginx`: **nach 6 Sekunden von selbst
+wieder aktiv**, `Scheduled restart job, restart counter is at 1`.
+
+Das Drop-in liegt **nur auf dem VPS** — es ist keine Repository-Datei. Bei einem
+Neuaufsetzen des Servers muss es von Hand wieder angelegt werden.
 
 ### Prüfung
 
