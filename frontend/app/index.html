@@ -2896,8 +2896,9 @@
         Kein Probemonat, keine Mitgliedsgebühr, kein Zahlungsmittel. Nach der
         Beta kommt <b class="inline">FLEXR&nbsp;Premium</b> für 10&nbsp;€ im
         Monat dazu: freiwillig, monatlich kündbar und nur für alle, die mehr
-        wollen als die 20 Likes und 3 Unterhaltungen pro Tag, die dann für
-        Standardkonten gelten. Während der Beta ist auch das unbegrenzt.
+        wollen als die 20 Likes pro Tag und 3 gleichzeitigen Unterhaltungen,
+        die dann für Standardkonten gelten. Während der Beta ist auch das
+        unbegrenzt.
       </div>
       <ul class="beta-dates">
         <li><b>Android</b><span data-i18n="beta.android">Veröffentlichung geplant für Ende September 2026</span></li>
@@ -4228,7 +4229,9 @@
     // knapp werden kann - die Likes. Eine Restlaufzeit gibt es nicht mehr,
     // es laeuft ja nichts ab.
     const rest = likesLeft();
-    pill.textContent = rest === null ? t('acct.statusFree') : t('premium.pillLikes', {n: rest});
+    pill.textContent = rest === null
+      ? t('acct.statusFree')
+      : t(rest === 1 ? 'premium.pillLike1' : 'premium.pillLikes', {n: rest});
     pill.className = rest === 0 ? 'status-pill expired' : 'status-pill trial';
   }
 
@@ -5592,7 +5595,8 @@
     el.classList.toggle('empty-quota', rest === 0);
     el.textContent = rest === 0
       ? t('premium.likesGone')
-      : t('premium.likesLeft', {n: rest, gesamt: membership.free_daily_likes});
+      : t(rest === 1 ? 'premium.likesLeft1' : 'premium.likesLeft',
+          {n: rest, gesamt: membership.free_daily_likes});
     if(premiumOffered()){
       const knopf = document.createElement('button');
       knopf.type = 'button';
@@ -5749,7 +5753,9 @@
     if(!incomingCache || !incomingCache.count){ karte.style.display = 'none'; return; }
     karte.style.display = '';
     $('incomingCount').textContent = incomingCache.count;
-    setI18nText($('incomingTitle'), 'incoming.title', {n: incomingCache.count});
+    // Die Zahl steht im Kreis links daneben - nicht noch einmal im Satz.
+    setI18nText($('incomingTitle'),
+      incomingCache.count === 1 ? 'incoming.title1' : 'incoming.title');
     setI18nText($('incomingSub'),
       incomingCache.premium_required ? 'incoming.subFree' : 'incoming.subPremium');
   }
@@ -5760,7 +5766,9 @@
     if(incomingCache.premium_required){
       liste.innerHTML = `
         <div class="empty">
-          <div class="empty-title">${escapeHtml(t('incoming.lockedTitle', {n: incomingCache.count}))}</div>
+          <div class="empty-title">${escapeHtml(t(
+            incomingCache.count === 1 ? 'incoming.lockedTitle1' : 'incoming.lockedTitle',
+            {n: incomingCache.count}))}</div>
           <div class="empty-sub">${escapeHtml(t('incoming.lockedSub'))}</div>
         </div>`;
       const knopf = document.createElement('button');
@@ -7077,12 +7085,22 @@
   FlexrI18n.onChange(() => {
     const screen = document.body.dataset.screen;
     try{
+      // Die Kopfzeile steht ueber ALLEN Bildschirmen und wird nur beim Laden
+      // der Sitzung und nach einem Swipe gesetzt - ohne diese Zeile blieb sie
+      // nach dem Sprachwechsel in der alten Sprache stehen ("Beta · gratis"
+      // im englischen Modus). Dasselbe gilt fuer den Like-Zaehler unter den
+      // Swipe-Knoepfen und die Karte "Wer dich geliket hat".
+      updateStatusPill();
+      renderLikeCounter();
+      renderIncomingCard();
       if(myProfile) renderAccount({keepForm: true});
       if(screen === 'screen-verify-gate' && verificationStatus) renderVerificationGate();
       if(screen === 'screen-verify-id' && idState){ renderIdTypes(); renderIdSlots(); }
       if(screen === 'screen-matches' && matchesCache) renderMatches(matchesCache);
       if(screen === 'screen-chats' && matchesCache) renderChats(matchesCache);
       if(screen === 'screen-swipe' && deck.length) renderCard();
+      if(screen === 'screen-incoming') renderIncomingList();
+      if(screen === 'screen-premium') renderPremiumScreen();
       if(screen === 'screen-privacy'){ loadMyConsents(); loadMyBlocks(); loadMyReports(); }
     }catch(e){ console.error(e); }
   });

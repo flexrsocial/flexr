@@ -752,7 +752,10 @@ class AdminStats(BaseModel):
     # Karenzzeit stehenden Konten stehen daneben in deleted_users.
     total_users: int
     active_subscriptions: int
-    trial_users: int
+    # Frueher "Konten im laufenden Probemonat". Den gibt es seit dem
+    # 10.09.2026 nicht mehr; gezaehlt werden jetzt die Standardkonten, also
+    # die Gegenzahl zu active_subscriptions.
+    free_users: int
     banned_users: int
     # Konten in der 30-tägigen Karenzzeit nach Selbstlöschung
     deleted_users: int = 0

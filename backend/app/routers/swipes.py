@@ -1,4 +1,5 @@
 import logging
+from datetime import datetime
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
@@ -122,14 +123,6 @@ def swipe(
     if payload.to_user_id == current_user.id:
         raise HTTPException(400, "Du kannst nicht mit dir selbst swipen.")
 
-    # Das Like-Kontingent des Standardkontos. Ein Pass kostet bewusst nichts:
-    # Wer weiterblaettern muss, um an Likes zu sparen, bekommt ein schlechtes
-    # Deck vorgesetzt und wir schlechtere Daten. Auch ein bereits gesetztes
-    # Like erneut zu senden (siehe existing_swipe weiter unten) zaehlt nicht
-    # doppelt - gezaehlt werden Swipe-Zeilen, nicht Aufrufe.
-    if payload.action == "like":
-        premium.ensure_like_allowed(db, current_user)
-
     target_user = (
         db.query(User)
         .filter(
@@ -148,8 +141,30 @@ def swipe(
         .filter(Swipe.from_user_id == current_user.id, Swipe.to_user_id == payload.to_user_id)
         .first()
     )
+
+    # Das Like-Kontingent des Standardkontos. Zwei Feinheiten, die beide erst
+    # nach dem Nachschlagen des vorhandenen Swipes zu treffen sind:
+    #
+    #   * Ein Pass kostet bewusst nichts. Wer weiterblaettern muss, um an Likes
+    #     zu sparen, bekommt ein schlechtes Deck vorgesetzt und wir schlechtere
+    #     Daten.
+    #   * Wer dieselbe Person erneut liked, zahlt nicht doppelt - es entsteht
+    #     ja keine neue Zeile. Wuerde die Grenze schon vorher greifen, bekaeme
+    #     ein aufgebrauchtes Konto eine Absage fuer etwas, das gar nichts
+    #     kostet (etwa wenn ein aelterer Client denselben Swipe wiederholt).
+    neues_like = payload.action == "like" and (
+        existing_swipe is None or existing_swipe.action != "like"
+    )
+    if neues_like:
+        premium.ensure_like_allowed(db, current_user)
+
     if existing_swipe:
         existing_swipe.action = payload.action
+        # Aus einem Pass wird ein Like: Das ist ein Like von JETZT und gehoert
+        # ins laufende 24-Stunden-Fenster. Ohne diese Zeile behielte die Zeile
+        # ihr altes Datum und fiele womoeglich sofort aus der Zaehlung heraus.
+        if neues_like:
+            existing_swipe.created_at = datetime.utcnow()
     else:
         db.add(Swipe(from_user_id=current_user.id, to_user_id=payload.to_user_id, action=payload.action))
     db.commit()

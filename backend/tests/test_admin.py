@@ -237,7 +237,7 @@ def test_admin_stats(client):
     assert resp.status_code == 200
     stats = resp.json()
     assert stats["total_users"] >= 1
-    assert stats["trial_users"] >= 1
+    assert stats["free_users"] >= 1
     # Neue Aufgaben-/Zugriffsfelder vorhanden
     for key in ("pending_verifications", "flagged_messages", "pending_gyms", "open_notices",
                 "active_today", "new_today"):

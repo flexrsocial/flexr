@@ -145,7 +145,8 @@ def test_stats_zaehlen_geloeschte_konten_getrennt(client):
 
 def test_kennzahlen_bleiben_untereinander_stimmig(client):
     """Auf dem Dashboard stand "14 im Probemonat" bei 13 Nutzern gesamt -
-    trial_users zaehlte selbstgeloeschte Konten weiter mit."""
+    Die Kennzahl (heute free_users, frueher trial_users) zaehlte
+    selbstgeloeschte Konten weiter mit."""
     admin_headers, _ = create_admin(client, email="stimmig.admin@example.com")
     headers = register_user(client, "stimmig.geloescht@example.com")
     client.request(
@@ -153,7 +154,7 @@ def test_kennzahlen_bleiben_untereinander_stimmig(client):
     )
 
     stats = client.get("/api/admin/stats", headers=admin_headers).json()
-    assert stats["trial_users"] <= stats["total_users"]
+    assert stats["free_users"] <= stats["total_users"]
     assert stats["active_subscriptions"] <= stats["total_users"]
     assert stats["banned_users"] <= stats["total_users"]
 

@@ -429,3 +429,70 @@ def test_status_liefert_preis_und_grenzen(client, monkeypatch):
     assert status["free_open_chats"] == settings.free_open_chats
     assert status["free_max_radius_km"] == settings.free_max_radius_km
     assert status["likes_remaining"] == settings.free_daily_likes
+
+
+# ---------------------------------------------------------------------------
+# Feinheiten des Like-Kontingents
+# ---------------------------------------------------------------------------
+
+def test_dasselbe_like_erneut_kostet_nichts(client, monkeypatch):
+    """Ein wiederholter Aufruf erzeugt keine neue Zeile - also auch keine Absage.
+
+    Ein aelterer Client, der denselben Swipe wiederholt, bekaeme sonst bei
+    aufgebrauchtem Kontingent eine 403 fuer etwas, das gar nichts kostet.
+    """
+    monkeypatch.setattr(settings, "premium_enabled", True)
+    monkeypatch.setattr(settings, "free_daily_likes", 1)
+
+    headers = register_user_with_photo(client, "wiederholer@example.com")
+    ziel = _user_id(client, register_user_with_photo(client, "einmal@example.com"))
+
+    erst = client.post(
+        "/api/swipes", json={"to_user_id": ziel, "action": "like"}, headers=headers
+    )
+    assert erst.status_code == 200
+    assert erst.json()["likes_remaining"] == 0
+
+    # Kontingent ist leer - dasselbe Like nochmal muss trotzdem durchgehen.
+    nochmal = client.post(
+        "/api/swipes", json={"to_user_id": ziel, "action": "like"}, headers=headers
+    )
+    assert nochmal.status_code == 200
+
+    db = TestingSessionLocal()
+    try:
+        assert db.query(Swipe).filter(Swipe.to_user_id == ziel).count() == 1
+    finally:
+        db.close()
+
+
+def test_aus_pass_wird_like_und_zaehlt_ab_jetzt(client, monkeypatch):
+    """Ein alter Pass, der zum Like wird, ist ein Like von heute.
+
+    Ohne das Nachziehen von created_at behielte die Zeile ihr altes Datum und
+    fiele sofort aus dem 24-Stunden-Fenster - das Like waere gratis.
+    """
+    monkeypatch.setattr(settings, "premium_enabled", True)
+    monkeypatch.setattr(settings, "free_daily_likes", 1)
+
+    headers = register_user_with_photo(client, "umentschieden@example.com")
+    user_id = _user_id(client, headers)
+    ziel = _user_id(client, register_user_with_photo(client, "zweitechance@example.com"))
+
+    client.post("/api/swipes", json={"to_user_id": ziel, "action": "pass"}, headers=headers)
+
+    # Den Pass zwei Tage zurueckdatieren.
+    db = TestingSessionLocal()
+    try:
+        swipe = db.query(Swipe).filter(Swipe.from_user_id == user_id).one()
+        swipe.created_at = datetime.utcnow() - timedelta(days=2)
+        db.commit()
+    finally:
+        db.close()
+
+    resp = client.post(
+        "/api/swipes", json={"to_user_id": ziel, "action": "like"}, headers=headers
+    )
+    assert resp.status_code == 200
+    # Das Kontingent ist damit aufgebraucht - der Like zaehlt ab jetzt.
+    assert resp.json()["likes_remaining"] == 0

@@ -38,8 +38,6 @@
     'common.writeMessage': 'Nachricht schreiben',
     'common.emojiInsert': 'Emoji einfügen',
     'common.statusLoadFailed': 'Status konnte nicht geladen werden.',
-    'common.day1': '1 Tag',
-    'common.dayN': '{n} Tage',
     'common.deleteFailed': 'Löschen fehlgeschlagen.',
 
     // ---- Kopfzeile / Navigation
@@ -119,6 +117,10 @@
     'reg.doneNoPhoto': 'Profil erstellt – Foto-Upload fehlgeschlagen. Du kannst das Foto gleich nachreichen.',
     'reg.donePartialPhotos': 'Profil erstellt – nicht alle Fotos konnten hochgeladen werden.',
     'reg.done': 'Profil erstellt. Jetzt noch die Alters- und Identitätsprüfung 💪',
+
+    // 'common.day1'/'common.dayN' sind mit dem Probemonat entfallen - sie
+    // zaehlten dessen Restlaufzeit. 'acct.subscribe'/'acct.subActive'
+    // ebenso; an ihrer Stelle stehen die premium.*-Schluessel.
 
     // ---- Postleitzahl / Gym-Suche
     'plz.loading': 'Lädt …',
@@ -218,8 +220,6 @@
     // ---- Konto
     'acct.sectionProfile': 'Profil',
     'acct.sectionPhotos': 'Fotos',
-    'acct.subscribe': 'Jetzt abonnieren',
-    'acct.subActive': 'Abo aktiv ✓',
     'acct.manageSub': 'Abo verwalten / kündigen',
     'acct.radius': 'Suchumkreis',
     'acct.radiusInfo': 'Wie die Suche funktioniert',
@@ -241,6 +241,8 @@
     // /api/billing/status - hier steht keine Zahl fest, ausser wo sie Teil
     // eines feststehenden Satzes ist.
     'premium.pill': 'Premium',
+    // Einzahl/Mehrzahl getrennt: "1 Likes" stand sonst in der Kopfzeile.
+    'premium.pillLike1': '1 Like',
     'premium.pillLikes': '{n} Likes',
     'beta.pill': 'Beta · gratis',
     'premium.title': 'FLEXR Premium',
@@ -259,7 +261,8 @@
     'premium.badgeTitle': 'FLEXR Premium',
     'premium.statusActive': 'FLEXR Premium läuft. Jederzeit zum Ende des Abrechnungsmonats kündbar.',
     'premium.statusBeta': 'FLEXR ist und bleibt kostenlos. Während der Beta ist alles unbegrenzt; FLEXR Premium kommt danach und ist freiwillig.',
-    'premium.statusFree': 'Dein Konto ist kostenlos: {likes} Likes pro Tag und {chats} Unterhaltungen gleichzeitig. Mit Premium fällt beides weg.',
+    'premium.statusFree': 'Dein Konto ist kostenlos: {likes} Likes pro Tag und {chats} gleichzeitige Unterhaltungen. Mit Premium fallen beide Grenzen weg.',
+    'premium.likesLeft1': 'Noch 1 von {gesamt} Likes heute',
     'premium.likesLeft': 'Noch {n} von {gesamt} Likes heute',
     'premium.likesGone': 'Likes für heute aufgebraucht',
     'premium.moreLikes': 'Unbegrenzt liken',
@@ -273,12 +276,16 @@
     'premium.rewindFailed': 'Zurücknehmen hat nicht geklappt.',
 
     // ---- Wer dich geliket hat
-    'incoming.title': '{n} haben dich geliket',
+    // Die Zahl steht schon im Kreis daneben - sie gehoert nicht ein zweites
+    // Mal in den Satz ("2 | 2 haben dich geliket").
+    'incoming.title1': 'Jemand hat dich geliket',
+    'incoming.title': 'Leute haben dich geliket',
     'incoming.subFree': 'Mit FLEXR Premium siehst du, wer',
     'incoming.subPremium': 'Ansehen und zurückliken',
     'incoming.eyebrow': 'Offene Likes',
     'incoming.h2': 'Wer dich geliket hat',
     'incoming.loading': 'Lade …',
+    'incoming.lockedTitle1': 'Eine Person wartet auf dich',
     'incoming.lockedTitle': '{n} Leute warten auf dich',
     'incoming.lockedSub': 'Wer genau, siehst du mit FLEXR Premium. Ohne Premium tauchen sie ganz normal in deinem Deck auf.',
     'incoming.none': 'Gerade wartet niemand.',
@@ -512,7 +519,7 @@
     'beta.eyebrow': 'Beta-Phase',
     'beta.title': 'FLEXR ist noch im Aufbau',
     'beta.text': 'Du kannst FLEXR schon jetzt im Browser nutzen. Weil wir noch in der Beta sind, sind manche Regionen dünn besetzt und einzelne Funktionen ändern sich noch.',
-    'beta.free': '<b>FLEXR zu nutzen kostet nichts — dauerhaft.</b> Kein Probemonat, keine Mitgliedsgebühr, kein Zahlungsmittel. Nach der Beta kommt <b class="inline">FLEXR&nbsp;Premium</b> für 10&nbsp;€ im Monat dazu: freiwillig, monatlich kündbar und nur für alle, die mehr wollen als die 20 Likes und 3 Unterhaltungen pro Tag, die dann für Standardkonten gelten. Während der Beta ist auch das unbegrenzt.',
+    'beta.free': '<b>FLEXR zu nutzen kostet nichts — dauerhaft.</b> Kein Probemonat, keine Mitgliedsgebühr, kein Zahlungsmittel. Nach der Beta kommt <b class="inline">FLEXR&nbsp;Premium</b> für 10&nbsp;€ im Monat dazu: freiwillig, monatlich kündbar und nur für alle, die mehr wollen als die 20 Likes pro Tag und 3 gleichzeitigen Unterhaltungen, die dann für Standardkonten gelten. Während der Beta ist auch das unbegrenzt.',
     'beta.android': 'Veröffentlichung geplant für Ende September 2026',
     'beta.ios': 'folgt im Anschluss',
     'beta.outro': 'Mit dem Start der Android-App geht FLEXR dann richtig an den Start.',
@@ -548,8 +555,6 @@
     'common.writeMessage': 'Send a message',
     'common.emojiInsert': 'Insert emoji',
     'common.statusLoadFailed': 'Could not load status.',
-    'common.day1': '1 day',
-    'common.dayN': '{n} days',
     'common.deleteFailed': 'Deletion failed.',
 
     'nav.swipe': 'Swipe',
@@ -714,8 +719,6 @@
 
     'acct.sectionProfile': 'Profile',
     'acct.sectionPhotos': 'Photos',
-    'acct.subscribe': 'Subscribe now',
-    'acct.subActive': 'Subscription active ✓',
     'acct.manageSub': 'Manage / cancel subscription',
     'acct.radius': 'Search radius',
     'acct.radiusInfo': 'How the search works',
@@ -733,6 +736,7 @@
 
     // ---- FLEXR Premium
     'premium.pill': 'Premium',
+    'premium.pillLike1': '1 like',
     'premium.pillLikes': '{n} likes',
     'beta.pill': 'Beta · free',
     'premium.title': 'FLEXR Premium',
@@ -752,6 +756,7 @@
     'premium.statusActive': 'FLEXR Premium is running. Cancel any time, effective at the end of the billing month.',
     'premium.statusBeta': 'FLEXR is and stays free. Everything is unlimited during the beta; FLEXR Premium comes afterwards and is optional.',
     'premium.statusFree': 'Your account is free: {likes} likes per day and {chats} conversations at once. Premium removes both limits.',
+    'premium.likesLeft1': '1 of {gesamt} likes left today',
     'premium.likesLeft': '{n} of {gesamt} likes left today',
     'premium.likesGone': 'No likes left today',
     'premium.moreLikes': 'Like without limits',
@@ -765,12 +770,14 @@
     'premium.rewindFailed': 'Could not undo that swipe.',
 
     // ---- Who liked you
-    'incoming.title': '{n} people liked you',
+    'incoming.title1': 'Someone liked you',
+    'incoming.title': 'people liked you',
     'incoming.subFree': 'FLEXR Premium shows you who',
     'incoming.subPremium': 'Take a look and like back',
     'incoming.eyebrow': 'Open likes',
     'incoming.h2': 'Who liked you',
     'incoming.loading': 'Loading …',
+    'incoming.lockedTitle1': 'One person is waiting for you',
     'incoming.lockedTitle': '{n} people are waiting for you',
     'incoming.lockedSub': 'FLEXR Premium shows you exactly who. Without Premium they simply turn up in your deck as usual.',
     'incoming.none': 'Nobody is waiting right now.',
@@ -991,7 +998,7 @@
     'beta.eyebrow': 'Beta phase',
     'beta.title': 'FLEXR is still being built',
     'beta.text': 'You can already use FLEXR in your browser. Because we are still in beta, some regions are thinly populated and individual features are still changing.',
-    'beta.free': '<b>Using FLEXR costs nothing — permanently.</b> No trial month, no membership fee, no payment method. After the beta, <b class="inline">FLEXR&nbsp;Premium</b> arrives at €10 a month: optional, cancellable any month, and only for those who want more than the 20 likes and 3 conversations a day that will then apply to standard accounts. During the beta even that is unlimited.',
+    'beta.free': '<b>Using FLEXR costs nothing — permanently.</b> No trial month, no membership fee, no payment method. After the beta, <b class="inline">FLEXR&nbsp;Premium</b> arrives at €10 a month: optional, cancellable any month, and only for those who want more than the 20 likes a day and 3 simultaneous conversations that will then apply to standard accounts. During the beta even that is unlimited.',
     'beta.android': 'Release planned for end of September 2026',
     'beta.ios': 'to follow',
     'beta.outro': 'With the launch of the Android app, FLEXR really gets going.',

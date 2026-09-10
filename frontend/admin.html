@@ -421,9 +421,9 @@
           <option value="true">Gesperrt</option>
         </select>
         <select id="userFilterSubscribed">
-          <option value="">Alle Abos</option>
-          <option value="true">Abonniert</option>
-          <option value="false">Nur Trial</option>
+          <option value="">Premium: alle</option>
+          <option value="true">Nur Premium</option>
+          <option value="false">Nur Gratis</option>
         </select>
       </div>
       <div id="usersTableWrap"><div class="loading">Lädt …</div></div>
@@ -801,7 +801,7 @@
         <div class="stat-card"><div class="val">${stats.new_today}</div><div class="lbl">Neu heute</div></div>
         <div class="stat-card"><div class="val">${stats.total_users}</div><div class="lbl">Nutzer gesamt</div></div>
         <div class="stat-card"><div class="val">${stats.active_subscriptions}</div><div class="lbl">Aktive Abos</div></div>
-        <div class="stat-card"><div class="val">${stats.trial_users}</div><div class="lbl">Im Probemonat</div></div>
+        <div class="stat-card"><div class="val">${stats.free_users}</div><div class="lbl">Ohne Premium</div></div>
         <div class="stat-card"><div class="val">${stats.banned_users}</div><div class="lbl">Gesperrt</div></div>
         <div class="stat-card"><div class="val">${stats.deleted_users}</div><div class="lbl">In Löschung</div></div>
       `;
@@ -887,7 +887,7 @@
                 <td>
                   ${u.deleted_at
                     ? `<span class="pill warn" title="Selbstlöschung am ${fmtDate(u.deleted_at)} — Karenzzeit läuft">Gelöscht</span>`
-                    : (u.is_banned ? '<span class="pill warn">Gesperrt</span>' : (u.is_subscribed ? '<span class="pill ok">Abo</span>' : '<span class="pill muted">Trial</span>'))}
+                    : (u.is_banned ? '<span class="pill warn">Gesperrt</span>' : (u.is_subscribed ? '<span class="pill ok">Premium</span>' : '<span class="pill muted">Gratis</span>'))}
                 </td>
                 <td>${fmtDate(u.created_at)}</td>
               </tr>
@@ -922,7 +922,12 @@
       ? '<span class="pill warn">Gelöscht</span>'
       : (u.is_banned
         ? '<span class="pill warn">Gesperrt</span>'
-        : (u.is_active ? (u.is_subscribed ? '<span class="pill ok">Abo aktiv</span>' : '<span class="pill ok">Trial aktiv</span>') : '<span class="pill muted">Inaktiv</span>'));
+        // is_active gibt es seit dem 10.09.2026 nur noch als Altfeld und ist
+        // immer true - die Bezahlwand ist abgeschafft, ein Konto kann nicht
+        // mehr "inaktiv" sein. Unterschieden wird nur noch Premium/Gratis.
+        : (u.is_subscribed
+          ? '<span class="pill ok">FLEXR Premium</span>'
+          : '<span class="pill muted">Gratis</span>'));
 
     $('userModalBody').innerHTML = `
       <h3>${escapeHtml(u.name)}, ${u.age}</h3>
@@ -934,7 +939,8 @@
       <div class="detail-row"><span class="k">Bio</span><span>${escapeHtml(u.bio || '—')}</span></div>
       <div class="detail-row"><span class="k">Registriert am</span><span>${fmtDate(u.created_at)}</span></div>
       ${u.deleted_at ? `<div class="detail-row"><span class="k">Selbst gelöscht</span><span>${fmtDate(u.deleted_at)}${u.purge_at ? ` · endgültige Löschung ${fmtDate(u.purge_at)}` : ''}</span></div>` : ''}
-      <div class="detail-row"><span class="k">Trial endet</span><span>${fmtDate(u.trial_ends_at)}</span></div>
+      <!-- trial_ends_at ist ein Restfeld ohne Bedeutung (kein Probemonat mehr)
+           und wird deshalb nicht mehr angezeigt. -->
       <div class="detail-row"><span class="k">Stripe-Kunde</span><span class="mono">${escapeHtml(u.stripe_customer_id || '—')}</span></div>
       <div class="detail-row"><span class="k">Telefon</span><span>${u.phone ? `${escapeHtml(u.phone)} ${u.phone_verified ? '<span class="pill ok">bestätigt</span>' : '<span class="pill muted">unbestätigt</span>'}` : '—'}</span></div>
       <div class="detail-row"><span class="k">Profil-Verifizierung</span><span>${u.is_verified ? '<span class="pill ok">verifiziert ✓</span>' : '<span class="pill muted">nicht verifiziert</span>'}</span></div>

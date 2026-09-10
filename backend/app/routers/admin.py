@@ -93,7 +93,7 @@ def get_stats(
     # nicht mehr; die Kennzahl waere sonst eine Zaehlung von nichts. An
     # derselben Stelle steht jetzt die Gegenzahl zu den Abos: alle uebrigen
     # lebenden Konten, also die Standardnutzer.
-    trial_users = (
+    free_users = (
         db.query(func.count(User.id))
         .filter(lebend, User.is_subscribed.is_(False))
         .scalar()
@@ -132,7 +132,7 @@ def get_stats(
         total_users=total_users,
         deleted_users=deleted_users,
         active_subscriptions=active_subscriptions,
-        trial_users=trial_users,
+        free_users=free_users,
         banned_users=banned_users,
         pending_photos=pending_photos,
         open_reports=open_reports,

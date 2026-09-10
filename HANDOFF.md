@@ -14,6 +14,122 @@ dann die beiden Sitzungen vom **07.09.**, dann **06.09.**, dann **05.09.**,
 dann **31.08.**, dann **30.08.**, dann **23.08.**, dann **21.08.**; die Build-,
 Test- und Deploy-Abschnitte am Ende gelten sitzungsübergreifend.
 
+## Sitzung 10.09.2026 (Audit) — Durchgang über Codebase, Journey, Admin, Texte
+
+Auftrag: die gesamte Codebase durchgehen, Fehler finden und beheben, die
+komplette User Journey durchspielen (inklusive Admin-Ansicht) und alle Texte
+gegenlesen. Gefunden wurden **sechs echte Fehler**, alle aus dem
+Monetarisierungs-Umbau desselben Tages.
+
+### 1. Sprachwechsel zog die Kopfzeile nicht nach
+
+`FlexrI18n.onChange` zeichnete Konto, Listen und Karten neu — aber **nicht die
+Statuspille in der Kopfzeile**, den Like-Zähler unter den Swipe-Knöpfen und die
+Karte „Wer dich geliket hat". Die Pille steht über *allen* Bildschirmen und
+wurde nur beim Laden der Sitzung und nach einem Swipe gesetzt; nach dem
+Umschalten stand dort weiter „Beta · gratis" statt „Beta · free". Der Handler
+ruft jetzt zusätzlich `updateStatusPill()`, `renderLikeCounter()`,
+`renderIncomingCard()` sowie die Neuzeichner für den Premium- und den
+Incoming-Bildschirm.
+
+### 2. Die Zahl stand doppelt, und die Einzahl brach
+
+Die Karte „Wer dich geliket hat" zeigte den Zähler im Kreis **und** noch einmal
+im Satz: „2 · 2 haben dich geliket". Zugleich brachen alle Zählertexte bei
+`n = 1` („1 Leute warten auf dich", „1 Likes" in der Kopfzeile). Getrennte
+Einzahl-Schlüssel beheben beides:
+
+| | vorher | jetzt |
+|---|---|---|
+| Kopfzeile | „1 Likes" | „1 Like" |
+| Like-Zähler | „Noch 1 von 20 Likes heute" | unverändert (war korrekt) |
+| Incoming-Karte | „2 · 2 haben dich geliket" | „2 · Leute haben dich geliket" |
+| Incoming, n=1 | „1 Leute warten auf dich" | „Eine Person wartet auf dich" |
+
+### 3. „20 Likes und 3 Unterhaltungen pro Tag" — sachlich falsch
+
+Im Beta-Dialog (Web-App **und** Landingpage, de und en). Die drei
+Unterhaltungen sind **gleichzeitig**, nicht pro Tag — die Aussage widersprach
+den AGB (Punkt 7 b) und der eigenen Durchsetzung im Server. Jetzt: „20 Likes
+pro Tag und 3 gleichzeitigen Unterhaltungen". AGB und FAQ formulierten es von
+Anfang an richtig; nur dieser eine Kasten war falsch.
+
+Ebenfalls präzisiert: `premium.statusFree` sagte „Mit Premium fällt beides
+weg" — mehrdeutig (die Funktionen? die Grenzen?). Jetzt „Mit Premium fallen
+beide Grenzen weg". Die englische Fassung war bereits eindeutig.
+
+### 4. Admin-Ansicht sprach noch von „Trial"
+
+Die Bezahlwand ist weg, die Oberfläche kannte das noch nicht:
+
+* Kennzahl „Im Probemonat" → **„Ohne Premium"**
+* Nutzerliste: Pille „Trial" → **„Gratis"**, „Abo" → **„Premium"**
+* Nutzer-Detail: „Trial aktiv"/„Inaktiv" → **„FLEXR Premium"/„Gratis"**.
+  `is_active` ist ein Altfeld und immer wahr — „Inaktiv" war unerreichbar.
+* Zeile „Trial endet" entfernt (`trial_ends_at` hat keine Bedeutung mehr)
+* Filter „Abonniert"/„Nur Trial" → **„Nur Premium"/„Nur Gratis"**
+
+Dazu im Backend `AdminStats.trial_users` → **`free_users`**: Das Feld zählte
+seit dem Umbau die Standardkonten, hieß aber weiter nach dem Probemonat.
+
+### 5. Like-Kontingent: zwei Ungenauigkeiten
+
+* **Ein bereits gesetztes Like erneut zu senden wurde abgewiesen.** Die Grenze
+  griff vor dem Nachschlagen des vorhandenen Swipes — ein Konto mit
+  aufgebrauchtem Kontingent bekam eine 403 für etwas, das gar keine neue Zeile
+  erzeugt (etwa wenn ein älterer Client denselben Swipe wiederholt).
+* **Aus einem Pass wurde ein Like — mit altem Datum.** Die Zeile behielt ihr
+  `created_at`; lag der Pass länger als 24 Stunden zurück, fiel das neue Like
+  sofort aus dem Zählfenster und war gratis.
+
+Beides behoben, indem der vorhandene Swipe *vor* der Prüfung nachgeschlagen
+wird: Die Grenze greift nur noch für ein tatsächlich **neues** Like, und beim
+Umschlagen von Pass auf Like wird `created_at` nachgezogen. Zwei neue Tests
+halten das fest.
+
+### 6. Tote Übersetzungsschlüssel
+
+`acct.subscribe`, `acct.subActive`, `common.day1`, `common.dayN` — mit dem
+Probemonat gegenstandslos geworden, je Sprache entfernt.
+
+### Was geprüft wurde und in Ordnung war
+
+* **Schlüsselabgleich**: 438 Schlüssel definiert, 438 benutzt, keiner fehlt,
+  keine Sprache hinkt hinterher. Ein eigens dafür geschriebener Prüfer meldete
+  zunächst 16 fehlende Schlüssel — Fehlalarm: Er las in `i18n.js` das leere
+  `DICT = {de: {}, en: {}}` ganz oben statt des echten Wörterbuchs weiter unten.
+* **Android**: 451 deutsche, 450 englische Strings; einzige Lücke ist
+  `app_name`, und die ist beabsichtigt (Markenname).
+* **iOS**: beide Stringtabellen belegen alle `L`-Fälle, keine überzähligen.
+* **Zahlenabgleich über 14 Dateien** (AGB, FAQ, Widerruf, Impressum, beide
+  Landingpages, alle drei Wörterbücher, Android- und iOS-Strings,
+  `LegalContent.swift`): Preis 10 €, 20 Likes, 3 Unterhaltungen, 50/250 km
+  überall gleich. **Kein einziger veralteter 5-€-Preis mehr im Bestand.**
+* **User Journey** gegen einen vollständigen `fetch`-Stub: Login → Deck →
+  Like → Match → Matchliste → eingehende Likes → Chats → Chat-Grenze beim
+  vierten Gespräch → Konto → Premium-Bildschirm → Einwilligung (§ 10 FAGG) →
+  Weiterleitung zum Checkout → Umkreis-Kappung → Datenschutz & Sicherheit →
+  Benachrichtigungen, jeweils in beiden Sprachen und in allen drei Zuständen
+  (Beta / Standard / Premium). Keine JS-Fehler, kein unbekannter Endpunkt.
+* **Admin-Ansicht** erstmals durchgespielt: Login, Kennzahlen, Nutzerliste,
+  Nutzer-Detail. Läuft sauber.
+* **Sitemap**: `lastmod` der sieben heute geänderten Seiten auf 2026-09-10.
+
+### Offener Nebenbefund: lokale `.env` ist veraltet
+
+`tools/check_csp_hosts.py` meldet auf diesem Gerät:
+
+> ✗ S3_PUBLIC_BASE_URL zeigt auf einen fremden Host (pub-…r2.dev), den img-src
+> nicht erlaubt — die Anzeige der Profilfotos bricht ab.
+
+**Kein Produktionsfehler.** Auf dem VPS steht korrekt
+`S3_PUBLIC_BASE_URL=https://flexr.social/photos`, und `backend/.env.example`
+dokumentiert genau das (seit dem 16.08.2026). Veraltet ist nur die lokale
+`backend/.env`, die nicht im Git liegt — sie zeigt noch direkt auf R2. Solange
+das so bleibt, schlägt das Prüfwerkzeug bei jedem Lauf falschen Alarm. Eine
+Zeile in der lokalen `.env` behebt es; das ist Gerätekonfiguration und wurde
+deshalb nicht von hier aus geändert.
+
 ## Sitzung 10.09.2026 — Monetarisierung neu: Gratis-Plattform + FLEXR Premium
 
 Der Auftrag: **Die Nutzung von FLEXR ist dauerhaft kostenlos** — nicht nur in
