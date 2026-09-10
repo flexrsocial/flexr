@@ -34,38 +34,43 @@ import flexr.social.app.R
 import flexr.social.app.core.designsystem.component.EmptyState
 import flexr.social.app.core.designsystem.component.Eyebrow
 import flexr.social.app.core.designsystem.component.FlexrButton
-import flexr.social.app.core.designsystem.component.FlexrDangerButton
 import flexr.social.app.core.designsystem.component.FlexrSecondaryButton
 import flexr.social.app.core.designsystem.icon.FlexrIcons
 import flexr.social.app.core.designsystem.theme.FlexrTheme
 import flexr.social.app.ui.account.AccountEvent
 import flexr.social.app.ui.account.AccountViewModel
 import flexr.social.app.ui.account.CheckoutDialog
-import flexr.social.app.ui.account.DeleteAccountDialog
 
 /**
- * Paywall nach Ablauf des Probemonats.
+ * FLEXR Premium — das freiwillige Zusatzpaket.
+ *
+ * War bis zum 10.09.2026 die Bezahlwand, auf der man nach Ablauf des
+ * Probemonats zwangsweise landete. Die Nutzung von FLEXR kostet seither
+ * dauerhaft nichts; dieser Bildschirm erklaert nur, was Premium zusaetzlich
+ * kann, und wird aus dem Kontobereich heraus aufgerufen — nie erzwungen.
  *
  * Der Checkout läuft in einer externen Browser-Sitzung über Stripe — die App
  * nimmt zu keinem Zeitpunkt Zahlungsdaten entgegen.
  */
 @Composable
 fun PaywallScreen(
-    onLogout: () -> Unit,
+    onBack: () -> Unit,
     onOpenUrl: (String) -> Unit,
     onShowMessage: (String) -> Unit,
     viewModel: AccountViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val membership by viewModel.membership.collectAsStateWithLifecycle()
 
     LaunchedEffect(Unit) {
         viewModel.events.collect { event ->
             when (event) {
                 is AccountEvent.Message -> onShowMessage(event.text)
                 is AccountEvent.OpenUrl -> onOpenUrl(event.url)
-                AccountEvent.LoggedOut -> onLogout()
-                // Auf der Paywall gibt es keinen Verifizierungsablauf - beide
-                // Ereignisse können hier gar nicht ausgelöst werden.
+                // Ausloggen und Selbstloeschung sitzen im Kontobereich, von
+                // dem aus dieser Bildschirm aufgerufen wird - hier kann keines
+                // der drei Ereignisse mehr entstehen.
+                AccountEvent.LoggedOut -> Unit
                 AccountEvent.StartVerification -> Unit
                 AccountEvent.ContinueWithDocument -> Unit
             }
@@ -110,11 +115,23 @@ fun PaywallScreen(
                 )
             }
             Spacer(Modifier.height(16.dp))
-            listOf(
-                R.string.paywall_feature_unlimited,
-                R.string.paywall_feature_chat,
-                R.string.paywall_feature_cancel,
-            ).forEach { feature ->
+            // Die Zahlen kommen vom Server, nicht aus dem Text: Wer die
+            // Grenzen in config.py aendert, aendert damit auch diese Liste.
+            val m = membership
+            val vorteile = listOfNotNull(
+                m?.let { stringResource(R.string.premium_feature_likes, it.freeDailyLikes) }
+                    ?: stringResource(R.string.paywall_feature_unlimited),
+                m?.let { stringResource(R.string.premium_feature_chats, it.freeOpenChats) }
+                    ?: stringResource(R.string.paywall_feature_chat),
+                stringResource(R.string.premium_feature_incoming),
+                stringResource(R.string.premium_feature_rewind),
+                m?.let {
+                    stringResource(R.string.premium_feature_radius, it.maxRadiusKm.coerceAtLeast(250), it.freeMaxRadiusKm)
+                },
+                stringResource(R.string.premium_feature_badge),
+                stringResource(R.string.paywall_feature_cancel),
+            )
+            vorteile.forEach { feature ->
                 Row(
                     Modifier.fillMaxWidth().padding(vertical = 6.dp),
                     horizontalArrangement = Arrangement.spacedBy(10.dp),
@@ -127,14 +144,30 @@ fun PaywallScreen(
                         modifier = Modifier.size(18.dp),
                     )
                     Text(
-                        stringResource(feature),
+                        feature,
                         style = MaterialTheme.typography.bodyMedium,
                         color = colors.chalkDim,
                     )
                 }
             }
             Spacer(Modifier.height(12.dp))
-            FlexrButton(text = stringResource(R.string.paywall_subscribe), onClick = viewModel::openCheckoutDialog)
+            // Waehrend der Beta gibt es nichts abzuschliessen: Der Server
+            // lehnt den Checkout mit 409 ab, weil ohnehin fuer alle alles
+            // unbegrenzt ist. Statt eines Knopfes in die Sackgasse steht dann
+            // der Hinweis, dass Premium spaeter kommt.
+            val angebot = membership
+            if (angebot != null && !angebot.premiumEnabled) {
+                Text(
+                    stringResource(R.string.premium_beta_hint),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = colors.chalkDim,
+                )
+            } else {
+                FlexrButton(
+                    text = stringResource(R.string.paywall_subscribe),
+                    onClick = viewModel::openCheckoutDialog,
+                )
+            }
         }
 
         Spacer(Modifier.height(14.dp))
@@ -146,25 +179,12 @@ fun PaywallScreen(
             modifier = Modifier.fillMaxWidth(),
         )
 
+        // Ausloggen und Selbstloeschung standen hier, solange dieser
+        // Bildschirm der einzige erreichbare war. Der Kontobereich ist jetzt
+        // immer navigierbar; beides sitzt dort, wo man es sucht.
         Spacer(Modifier.height(24.dp))
-        FlexrSecondaryButton(text = stringResource(R.string.common_logout), onClick = onLogout)
-        // Nach Ablauf des Probemonats ist der Konto-Screen nicht mehr
-        // navigierbar. Ohne diesen Knopf waere die Selbstloeschung damit
-        // unerreichbar - Punkt 5 der Datenschutzerklaerung sagt sie aber zu.
-        Spacer(Modifier.height(10.dp))
-        FlexrDangerButton(text = stringResource(R.string.common_delete_account), onClick = viewModel::showDeleteDialog)
+        FlexrSecondaryButton(text = stringResource(R.string.common_back), onClick = onBack)
         Spacer(Modifier.height(40.dp))
-    }
-
-    if (state.deleteDialogVisible) {
-        DeleteAccountDialog(
-            password = state.deletePassword,
-            error = state.deleteError,
-            isDeleting = state.isDeleting,
-            onPasswordChange = viewModel::onDeletePasswordChange,
-            onConfirm = viewModel::confirmDelete,
-            onDismiss = viewModel::hideDeleteDialog,
-        )
     }
 
     if (state.checkoutDialogVisible) {

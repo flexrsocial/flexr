@@ -1,6 +1,6 @@
 # FLEXR — Handoff für ein anderes Gerät / Claude Code
 
-Stand: **09.09.2026**
+Stand: **10.09.2026**
 
 Produktstand: Auf `origin/main` liegen zwei Commits dieser Sitzung — die
 **Zweisprachigkeit (Deutsch/Englisch)** in Web-App, Landingpage, Android- und
@@ -13,6 +13,166 @@ Aufbau des Dokuments: erst die Eckdaten, dann **09.09.**, dann **08.09.**,
 dann die beiden Sitzungen vom **07.09.**, dann **06.09.**, dann **05.09.**,
 dann **31.08.**, dann **30.08.**, dann **23.08.**, dann **21.08.**; die Build-,
 Test- und Deploy-Abschnitte am Ende gelten sitzungsübergreifend.
+
+## Sitzung 10.09.2026 — Monetarisierung neu: Gratis-Plattform + FLEXR Premium
+
+Der Auftrag: **Die Nutzung von FLEXR ist dauerhaft kostenlos** — nicht nur in
+der Beta. Bezahlt wird nur noch ein freiwilliges Zusatzpaket, **FLEXR Premium**
+um **10 €/Monat**, jederzeit kündbar. Standardkonten bekommen Grenzen, Premium
+hebt sie auf. Eingeführt wird Premium **nach** der Beta-Phase.
+
+Damit ist die Bezahlwand ersatzlos weg: kein Probemonat, kein `trial_ends_at`,
+das ausläuft, kein 402, kein gesperrtes Konto. Das war die größte Einzeländerung
+dieser Sitzung — sie zieht sich durch Backend, Web, Android, iOS und alle
+Rechtstexte.
+
+### Die vier Zahlen
+
+Vom Nutzer entschieden, sie stehen **wortgleich** in `backend/app/config.py`,
+in der Oberfläche, auf der Landingpage und in den AGB:
+
+| | Standardkonto | FLEXR Premium |
+|---|---|---|
+| Likes | **20** je rollierenden 24 h (ein Pass zählt nicht) | unbegrenzt |
+| Unterhaltungen | **3** gleichzeitig offen | unbegrenzt |
+| Suchumkreis | **50 km** | 250 km |
+| Wer dich geliket hat | nur die Zahl | Namen und Profile |
+| Letzten Swipe zurücknehmen | — | ja |
+| Abzeichen im Profil | — | ja |
+
+**Wer eine dieser Zahlen ändert, ändert eine vertragliche Zusage** — der
+Abgleich mit `frontend/i18n-*.js`, `res/values*/strings.xml`, `agb.html`
+(Punkt 7 b) und `app/legal.py` gehört dazu.
+
+### Ein Schalter, wie gehabt
+
+`PREMIUM_ENABLED` (früher `BILLING_ENABLED`) steht auf **false**. Solange er
+aus ist, ist für alle alles unbegrenzt, niemand trägt ein Premium-Abzeichen und
+`/api/billing/checkout` lehnt mit 409 ab. Das Umlegen braucht keine Migration:
+Bestandskonten verlieren nichts, sie bekommen dieselben Grenzen wie alle.
+
+`STRIPE_TRIAL_DAYS` ist entfallen. **Das hätte beinahe einen Ausfall gegeben:**
+Die `.env` auf dem VPS führt den Schlüssel weiter, und pydantic-settings lehnt
+unbekannte Extras standardmäßig ab — der Dienst wäre beim nächsten Neustart
+nicht mehr hochgekommen, Minuten nach dem Deploy. `Settings.Config` hat deshalb
+jetzt `extra = "ignore"`: Eine Einstellung zu entfernen darf keinen Ausfall
+auslösen können.
+
+### Backend
+
+Neu ist `backend/app/premium.py` — alle Grenzen an einem Ort, weil die
+Oberfläche dieselben Zahlen anzeigen muss, die der Server durchsetzt
+(`GET /api/billing/status` liefert sie mit).
+
+- `User.is_active_member()` → `User.is_premium`. Die Bezahlwand in
+  `security.require_active_membership()` ist eine reine Freischaltungsprüfung
+  geworden; der Name bleibt, damit nicht alle Routen anzufassen waren.
+- Grenzen greifen als **403 mit eigenem `code`** (`like_limit_reached`,
+  `chat_limit_reached`, `premium_required`) — nicht als 402. Ein erschöpftes
+  Like-Kontingent ist kein gesperrtes Konto.
+- Zwei neue Endpunkte: `GET /api/swipes/incoming` (ohne Premium nur die
+  **Anzahl** — das ist die ehrliche Antwort und zugleich der beste Grund,
+  Premium anzusehen) und `POST /api/swipes/rewind`.
+- Der Umkreis wird **gekappt statt abgelehnt** (`premium.clamp_radius`): Wer
+  Premium kündigt, hätte sonst ein Profil, das sich nie wieder speichern lässt.
+- Der Probemonat-Mailjob und die beiden zugehörigen Mails sind entfallen. Die
+  Zähler bleiben mit 0 in der Antwort, damit der Aufrufer unverändert läuft.
+
+**Abwärtskompatibilität, wichtig:** Die Android-Fassung 2.5.5 liest
+`trial_ends_at` und `is_active` als **Pflichtfelder**. Fehlen sie, scheitert
+schon das Parsen. `MembershipStatus` liefert die vier Altfelder
+(`is_subscribed`, `trial_ends_at`, `is_active`, `billing_enabled`) deshalb
+weiter mit, obwohl der Server sie nirgends mehr auswertet. **Entfernen erst,
+wenn keine Fassung vor 2.6.0 mehr im Umlauf ist.**
+
+### Tests
+
+`411 passed`. Neu: `tests/test_premium.py` (17 Tests) für beide Zustände des
+Schalters, alle drei Grenzen und die drei Premium-Funktionen. Entfallen:
+`test_billing_trial.py` und `test_billing_pausiert.py`.
+
+Nebenbei **fünf Tests repariert, die schon vor dieser Sitzung rot waren** — sie
+brachen beim Zweisprachigkeits-Umbau vom 09.09., weil sie auf Textliterale
+prüften, die ins Wörterbuch gewandert sind (`test_journey_befunde.py` ×2,
+`test_public_frontend.py` ×3). Sie prüfen jetzt Schlüssel und Muster statt
+Literale; die Sitemap-Liste kennt außerdem `/en/`, und der Shell-Cache-Name
+wird als Muster geprüft statt als feste Nummer.
+
+### Web-Frontend
+
+- Die Bezahlwand (`screen-paywall`) ist ein **freiwilliger** Premium-Screen
+  geworden, erreichbar aus dem Kontobereich. Ihre beiden Notausgänge
+  (Ausloggen, Konto löschen) sind entfallen — der Kontobereich ist wieder immer
+  erreichbar.
+- Neu: Like-Zähler unter den Swipe-Knöpfen, Zurücknehmen-Knopf (Premium),
+  „Wer dich geliket hat" über der Matchliste samt eigener Ansicht,
+  Premium-Abzeichen neben dem Namen, Umkreis-Hinweis ab der Grenze.
+- Das Like-Limit wird **vor** der Animation geprüft: Die Karte erst wegfliegen
+  zu lassen und nach der Absage des Servers zurückzuholen, sähe wie ein Fehler
+  aus.
+- Landingpage: zwei Preiskarten nebeneinander (kostenlos links, Premium
+  rechts), `/en/` neu erzeugt.
+- Der Beta-Dialog sagt jetzt etwas anderes → Merker auf
+  `flexr_beta_notice_v3` hochgezählt.
+- `/i18n.js` und `/app/i18n-app.js` im Skript-Tag auf `?v=3`.
+
+### Rechtstexte
+
+Fassung **2026-09-10** (`TERMS_VERSION`). AGB Punkt 7 heißt jetzt „Kostenlose
+Nutzung und Nutzungsgrenzen" und nennt die drei Grenzen als vertragliche
+Zusage; Punkt 8 ist „FLEXR Premium", Punkt 9 nennt 10,00 €. Widerruf, FAQ,
+Impressum und Datenschutz nachgezogen. **Das Muster-Widerrufsformular lautet
+jetzt auf „FLEXR Premium"** statt „Mitgliedschaft".
+
+### Android 2.6.0
+
+`versionCode 43`, `versionName 2.6.0`, mit dem unveränderten Upload-Key
+`CN=FLEXR` signiert. 7.730.168 Bytes, SHA-256
+`ab19a703026604bdf233e2f97e473a6de27450747bb77146830d755722239685`,
+`versionName` im Bundle-Manifest gegengeprüft.
+
+    https://flexr.social/dl-a616e78274de323b/flexr-2.6.0.aab
+
+`:app:compileProdReleaseKotlin` und `:app:testProdReleaseUnitTest` beide
+BUILD SUCCESSFUL. Der `LockedGraph` ist entfallen, `PaywallScreen` ist ein
+normales Ziel im Kontobereich, jedes neue DTO-Feld hat einen Standardwert.
+
+### iOS
+
+Zeilenweise dieselbe Änderung (`LockedFlow` weg, `Route.premium` neu,
+`MembershipStatusDTO` durchgehend optional). **Nicht kompiliert** — `xcodebuild`
+gibt es nur unter macOS, das Projekt wurde noch nie gebaut. Statisch geprüft
+wurde, dass beide Stringtabellen **alle** `L`-Fälle belegen und keinen
+unbekannten enthalten (kein fehlender, kein überzähliger Schlüssel).
+
+### Zwischenfall: nginx lag 1 h 45 min
+
+Beim Hochladen des AAB fiel auf, dass **flexr.social nicht erreichbar war** —
+nginx war um **06:35 CEST** gestorben, also lange vor dieser Sitzung, und
+zwar beim Start:
+
+```
+[emerg] host not found in upstream "pub-0fa239128c094c37bb3bf410428cf0ba.r2.dev"
+        in /etc/nginx/sites-enabled/flexr.social:26
+```
+
+nginx löst Upstream-Namen **beim Start** auf und scheitert hart, wenn DNS
+gerade nichts liefert — danach bleibt der Dienst unten, bis jemand ihn startet.
+`nginx -t` lief zum Zeitpunkt der Prüfung sauber durch, die Konfiguration war
+also nie kaputt. Mit `systemctl start nginx` war alles sofort wieder da.
+
+**Das kann jederzeit wieder passieren.** Dauerhaft hilft nur eines von beiden:
+den R2-Host über eine `resolver`-Direktive und eine Variable im `proxy_pass`
+zur Laufzeit auflösen (dann startet nginx auch ohne DNS), oder
+`Restart=on-failure` mit `RestartSec` in einem systemd-Drop-in. **Beides ist
+nicht gemacht** — es war nicht beauftragt und ändert Produktionsverhalten.
+
+### Prüfung
+
+Backend `411 passed`. Web gegen einen `fetch`-Stub in allen drei Zuständen
+(Beta / Standard / Premium) durchgespielt: Pille, Like-Zähler, Limit-Meldung,
+Zurücknehmen, eingehende Likes, Umkreis-Kappung und der Sprachwechsel in beide
+Richtungen. Android compiliert und Unit-Tests grün.
 
 ## Sitzung 09.09.2026 (zweite) — 2.5.5 wieder auf dem VPS, sechs Fehler in `/app`
 

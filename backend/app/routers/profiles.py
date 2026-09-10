@@ -5,7 +5,7 @@ from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
-from .. import consents, mailer, telegram
+from .. import consents, mailer, premium, telegram
 from ..database import get_db
 from ..geo import city_for_plz
 from ..models import GYM_CHOICES, ConsentType, Photo, PhotoStatus, User
@@ -79,6 +79,14 @@ def update_my_profile(
         bio_problem = check_public_text(fields["bio"])
         if bio_problem:
             raise HTTPException(400, bio_problem)
+
+    # Der volle Umkreis (bis 250 km) gehoert zu FLEXR Premium. Gekappt statt
+    # abgelehnt - siehe premium.clamp_radius(): Wer Premium kuendigt, haette
+    # sonst ein Profil, das sich nie wieder speichern laesst.
+    if fields.get("search_radius_km") is not None:
+        fields["search_radius_km"] = premium.clamp_radius(
+            current_user, fields["search_radius_km"]
+        )
 
     for field, value in fields.items():
         if field == "bio" and value == "":

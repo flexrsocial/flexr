@@ -1,26 +1,40 @@
 import SwiftUI
 
-/// Paywall nach Ablauf des Probemonats.
+/// FLEXR Premium — das freiwillige Zusatzpaket.
+///
+/// War bis zum 10.09.2026 die Bezahlwand, auf der man nach Ablauf des
+/// Probemonats zwangsweise landete. Die Nutzung von FLEXR kostet seither
+/// dauerhaft nichts; dieser Bildschirm erklärt nur, was Premium zusätzlich
+/// kann, und wird aus dem Kontobereich heraus aufgerufen — nie erzwungen.
 ///
 /// Der Checkout läuft in einer externen Browser-Sitzung über Stripe — die App
 /// nimmt zu keinem Zeitpunkt Zahlungsdaten entgegen.
 struct PaywallView: View {
+    /// Zurück in den Kontobereich, aus dem dieser Bildschirm aufgerufen wird.
+    let onBack: () -> Void
+
     @Environment(LanguageStore.self) private var languageStore
     private var s: FlexrStrings { languageStore.strings }
 
     @Environment(AppContainer.self) private var container
     @Environment(AppModel.self) private var appModel
 
-    /// Für Selbstlöschung UND Checkout - der Rest des Modells bleibt ungenutzt,
+    /// Nur für den Checkout — der Rest des Modells bleibt ungenutzt,
     /// load() wird bewusst nicht aufgerufen.
     @State private var accountModel: AccountModel?
-    @State private var showDeleteDialog = false
-    @State private var deletePassword = ""
 
+    /// Die Vorteile mit den Zahlen des Servers. Wer die Grenzen in
+    /// `config.py` ändert, ändert damit auch diese Liste.
     private var features: [String] {
-        [
-            s(.paywallFeatureUnlimited),
-            s(.paywallFeatureChat),
+        let m = appModel.membership
+        return [
+            m.map { s(.premiumFeatureLikes, $0.freeDailyLikes) } ?? s(.paywallFeatureUnlimited),
+            m.map { s(.premiumFeatureChats, $0.freeOpenChats) } ?? s(.paywallFeatureChat),
+            s(.premiumFeatureIncoming),
+            s(.premiumFeatureRewind),
+            m.map { s(.premiumFeatureRadius, max($0.maxRadiusKm, 250), $0.freeMaxRadiusKm) }
+                ?? s(.premiumFeatureBadge),
+            s(.premiumFeatureBadge),
             s(.paywallFeatureCancel),
         ]
     }
@@ -36,9 +50,11 @@ struct PaywallView: View {
                 .padding(.top, 24)
 
                 VStack(alignment: .leading, spacing: 0) {
-                    Eyebrow(text: "Mitgliedschaft")
+                    Eyebrow(text: s(.premiumEyebrow))
                     HStack(alignment: .bottom, spacing: 0) {
-                        Text("5 €")
+                        // Preis aus dem Serverstatus, damit "10 €" nirgends im
+                        // Client festgeschrieben ist.
+                        Text(appModel.membership.map { "\($0.priceCents / 100) €" } ?? "10 €")
                             .flexrText(.displayMedium)
                             .foregroundStyle(FlexrColor.chalk)
                         Text(" / Monat")
@@ -61,10 +77,21 @@ struct PaywallView: View {
                     }
                     .padding(.top, 10)
 
-                    FlexrButton(title: s(.paywallSubscribe)) {
-                        accountModel?.openCheckoutSheet()
+                    // Während der Beta gibt es nichts abzuschließen: Der Server
+                    // lehnt den Checkout mit 409 ab, weil ohnehin für alle alles
+                    // unbegrenzt ist. Statt eines Knopfes in die Sackgasse steht
+                    // dann der Hinweis, dass Premium später kommt.
+                    if appModel.membership?.premiumEnabled == false {
+                        Text(s(.premiumBetaHint))
+                            .flexrText(.bodySmall)
+                            .foregroundStyle(FlexrColor.chalkDim)
+                            .padding(.top, 12)
+                    } else {
+                        FlexrButton(title: s(.paywallSubscribe)) {
+                            accountModel?.openCheckoutSheet()
+                        }
+                        .padding(.top, 12)
                     }
-                    .padding(.top, 12)
                 }
                 .padding(20)
                 .flexrSurface(radius: FlexrRadius.large, border: FlexrColor.plate.opacity(0.3))
@@ -76,19 +103,11 @@ struct PaywallView: View {
                 .frame(maxWidth: .infinity)
                 .padding(.top, 14)
 
-                FlexrSecondaryButton(title: s(.commonLogout)) {
-                    Task { await appModel.logout() }
-                }
-                .padding(.top, 24)
-
-                // Nach Ablauf des Probemonats ist der Konto-Screen nicht mehr
-                // erreichbar. Ohne diesen Knopf wäre die Selbstlöschung damit
-                // unerreichbar - Punkt 5 der Datenschutzerklärung sagt sie zu.
-                FlexrDangerButton(title: s(.commonDeleteAccount)) {
-                    deletePassword = ""
-                    showDeleteDialog = true
-                }
-                .padding(.top, 10)
+                // Ausloggen und Selbstlöschung standen hier, solange dieser
+                // Bildschirm der einzige erreichbare war. Der Kontobereich ist
+                // jetzt immer navigierbar; beides sitzt dort, wo man es sucht.
+                FlexrSecondaryButton(title: s(.commonBack)) { onBack() }
+                    .padding(.top, 24)
             }
             .padding(.horizontal, 20)
             .padding(.bottom, 40)
@@ -126,22 +145,6 @@ struct PaywallView: View {
                     onDismiss: accountModel.closeCheckoutSheet
                 )
             }
-        }
-        .sheet(isPresented: $showDeleteDialog) {
-            if let accountModel {
-                DeleteAccountSheet(
-                    password: $deletePassword,
-                    error: accountModel.deleteError,
-                    isDeleting: accountModel.isDeleting,
-                    onConfirm: {
-                        Task { await accountModel.deleteAccount(password: deletePassword) }
-                    },
-                    onDismiss: { showDeleteDialog = false }
-                )
-            }
-        }
-        .onChange(of: accountModel?.didDeleteAccount ?? false) { _, deleted in
-            if deleted { Task { await appModel.logout() } }
         }
     }
 }

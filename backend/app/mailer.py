@@ -220,19 +220,14 @@ VERIFY_SUBJECT = "Bestätige deine E-Mail-Adresse für FLEXR"
 def _nach_der_pruefung_satz() -> str:
     """Was nach der Verifizierung auf den Nutzer wartet.
 
-    Haengt daran, ob die Abogebuehr scharf geschaltet ist: Solange sie
-    ausgesetzt ist, gibt es keinen Gratismonat zu erwaehnen - es ist ohnehin
-    alles gratis. Beide Fassungen stehen hier nebeneinander, damit beim
-    Umlegen von BILLING_ENABLED nichts nachgezogen werden muss.
+    Frueher standen hier zwei Fassungen, je nachdem ob die Mitgliedsgebuehr
+    scharf war - die eine erwaehnte einen Gratismonat. Seit dem 10.09.2026 gibt
+    es weder Gebuehr noch Gratismonat: FLEXR ist dauerhaft kostenlos, und daran
+    aendert auch das Ende der Beta nichts. Damit bleibt eine Fassung.
     """
-    if settings.billing_enabled:
-        return (
-            "erst danach ist dein Konto freigeschaltet, und erst dann startet "
-            "dein Gratismonat. Die Prüfzeit geht dir also nicht ab."
-        )
     return (
-        "erst danach ist dein Konto freigeschaltet. FLEXR ist während der "
-        "Beta-Phase für alle kostenlos - die Prüfzeit kostet dich nichts."
+        "erst danach ist dein Konto freigeschaltet. Die Nutzung von FLEXR ist "
+        "und bleibt kostenlos - die Prüfzeit kostet dich nichts."
     )
 
 
@@ -667,72 +662,11 @@ Dein FLEXR-Team
     return send_email(email, "Dein FLEXR-Abo ist beendet", body, _subscription_ended_html(name))
 
 
-def _free_trial_ending_html(name: str, trial_end: datetime) -> str:
-    end_text = trial_end.replace(tzinfo=timezone.utc).astimezone(VIENNA).strftime("%d.%m.%Y")
-    body = "\n".join([
-        _p(
-            f"dein kostenloser FLEXR-Monat endet am {end_text}. Es erfolgt keine "
-            "automatische Abbuchung: Du hast noch kein kostenpflichtiges Abo "
-            "abgeschlossen."
-        ),
-        _p(
-            'Wenn du FLEXR danach weiter nutzen möchtest, kannst du in der App '
-            'unter "Mitgliedschaft" ein monatlich kündbares Abo abschließen. '
-            "Ohne Abo wird dein Mitgliederzugang nach dem Gratismonat "
-            "pausiert; dein Konto bleibt bestehen."
-        ),
-    ])
-    return _email_shell("Gratismonat endet bald", f"Hallo {html.escape(name)},", body)
-
-
-def send_free_trial_ending(email: str, name: str, trial_end: datetime) -> bool:
-    end_text = trial_end.replace(tzinfo=timezone.utc).astimezone(VIENNA).strftime("%d.%m.%Y")
-    body = f"""Hallo {name},
-
-dein kostenloser FLEXR-Monat endet am {end_text}. Es erfolgt keine automatische
-Abbuchung: Du hast noch kein kostenpflichtiges Abo abgeschlossen.
-
-Wenn du FLEXR danach weiter nutzen möchtest, kannst du in der App unter
-"Mitgliedschaft" ein monatlich kündbares Abo abschließen. Ohne Abo wird dein
-Mitgliederzugang nach dem Gratismonat pausiert; dein Konto bleibt bestehen.
-
-Dein FLEXR-Team
-"""
-    return send_email(
-        email, "Dein kostenloser FLEXR-Monat endet bald", body,
-        _free_trial_ending_html(name, trial_end),
-    )
-
-
-def _free_trial_ended_html(name: str) -> str:
-    body = "\n".join([
-        _p(
-            "dein kostenloser FLEXR-Monat ist beendet. Weil du kein "
-            "kostenpflichtiges Abo abgeschlossen hast, wurde nichts abgebucht "
-            "und dein Mitgliederzugang ist jetzt pausiert. Dein Konto und "
-            "dein Profil bleiben bestehen."
-        ),
-        _p(
-            'Du kannst den Zugang jederzeit in FLEXR unter "Mitgliedschaft" '
-            "mit einem monatlich kündbaren Abo wieder aktivieren."
-        ),
-    ])
-    return _email_shell("Gratismonat beendet", f"Hallo {html.escape(name)},", body)
-
-
-def send_free_trial_ended(email: str, name: str) -> bool:
-    body = f"""Hallo {name},
-
-dein kostenloser FLEXR-Monat ist beendet. Weil du kein kostenpflichtiges Abo
-abgeschlossen hast, wurde nichts abgebucht und dein Mitgliederzugang ist jetzt
-pausiert. Dein Konto und dein Profil bleiben bestehen.
-
-Du kannst den Zugang jederzeit in FLEXR unter "Mitgliedschaft" mit einem
-monatlich kündbaren Abo wieder aktivieren.
-
-Dein FLEXR-Team
-"""
-    return send_email(email, "Dein kostenloser FLEXR-Monat ist beendet", body, _free_trial_ended_html(name))
+# Die Mails "Dein Gratismonat läuft ab" und "... ist beendet" standen hier bis
+# zum 10.09.2026. Es gibt keinen Probemonat mehr, weil die Plattform dauerhaft
+# kostenlos ist - siehe email_jobs.run_daily_emails(). Wer je eine
+# Premium-bezogene Mail braucht: Stripe erzeugt dafuer Ereignisse, der passende
+# Ort ist routers/billing.handle_stripe_event().
 
 
 # ---------------------------------------------------------------------------

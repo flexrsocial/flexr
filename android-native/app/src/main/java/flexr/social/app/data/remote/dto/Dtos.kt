@@ -213,15 +213,41 @@ data class AddPhotoRequestDto(
 
 // ---------- Billing ----------
 
+/**
+ * Antwort von GET /api/billing/status.
+ *
+ * Seit dem 10.09.2026 ist die Nutzung von FLEXR dauerhaft kostenlos; bezahlt
+ * wird nur das freiwillige Zusatzpaket FLEXR Premium. Alle Zahlen - Preis,
+ * Grenzen, Restkontingente - kommen fertig vom Server, damit Web, Android und
+ * iOS nicht dreimal dieselbe Formel treffen muessen.
+ *
+ * **Jedes neue Feld hat einen Standardwert.** Ein Server, der es noch nicht
+ * liefert (oder eine aeltere Fassung), darf die App nicht am Parsen hindern -
+ * genau daran waere die Fassung 2.5.5 gescheitert, haetten wir die Altfelder
+ * unten einfach entfernt.
+ */
 @Serializable
 data class MembershipStatusDto(
-    @SerialName("is_subscribed") val isSubscribed: Boolean,
-    @SerialName("trial_ends_at") val trialEndsAt: String,
-    @SerialName("is_active") val isActive: Boolean,
-    // false = Abogebuehr ausgesetzt, FLEXR ist fuer alle kostenlos (siehe
-    // backend/app/config.py). Der Standard true haelt aeltere Server, die das
-    // Feld noch nicht liefern, beim bisherigen Verhalten.
-    @SerialName("billing_enabled") val billingEnabled: Boolean = true,
+    @SerialName("is_premium") val isPremium: Boolean = false,
+    @SerialName("premium_enabled") val premiumEnabled: Boolean = false,
+    @SerialName("has_stripe_subscription") val hasStripeSubscription: Boolean = false,
+    @SerialName("price_cents") val priceCents: Int = 1000,
+    @SerialName("currency") val currency: String = "EUR",
+    @SerialName("free_daily_likes") val freeDailyLikes: Int = 20,
+    @SerialName("free_open_chats") val freeOpenChats: Int = 3,
+    @SerialName("free_max_radius_km") val freeMaxRadiusKm: Int = 50,
+    @SerialName("max_radius_km") val maxRadiusKm: Int = 250,
+    /** null = unbegrenzt (Beta oder Premium). */
+    @SerialName("likes_remaining") val likesRemaining: Int? = null,
+    @SerialName("open_chats_remaining") val openChatsRemaining: Int? = null,
+    @SerialName("next_like_at") val nextLikeAt: String? = null,
+
+    // ---- Altfelder, vom Server nur noch fuer Clients vor 2.6.0 geliefert.
+    // Diese Fassung wertet sie nicht mehr aus.
+    @SerialName("is_subscribed") val isSubscribed: Boolean = false,
+    @SerialName("trial_ends_at") val trialEndsAt: String? = null,
+    @SerialName("is_active") val isActive: Boolean = true,
+    @SerialName("billing_enabled") val billingEnabled: Boolean = false,
 )
 
 @Serializable

@@ -98,6 +98,7 @@ fun AccountScreen(
     onOpenVerification: () -> Unit,
     onOpenDocumentStep: () -> Unit,
     onOpenLegal: (LegalDocument) -> Unit,
+    onOpenPremium: () -> Unit,
     onOpenUrl: (String) -> Unit,
     onShowMessage: (String) -> Unit,
     viewModel: AccountViewModel = hiltViewModel(),
@@ -211,7 +212,9 @@ fun AccountScreen(
             )
         }
 
-        // ---------- Mitgliedschaft ----------
+        // ---------- FLEXR Premium ----------
+        // Drei Zustaende, und keiner davon ist eine Sperre: Die Nutzung von
+        // FLEXR kostet in allen dreien nichts.
         Spacer(Modifier.height(18.dp))
         membership?.let { status ->
             Column(
@@ -224,29 +227,33 @@ fun AccountScreen(
             ) {
                 Text(
                     text = when {
-                        !status.billingEnabled -> stringResource(R.string.account_status_beta_free)
-                        status.isSubscribed -> stringResource(R.string.account_status_active)
+                        status.isPremium -> stringResource(R.string.premium_status_active)
+                        !status.premiumEnabled -> stringResource(R.string.premium_status_beta)
                         else -> stringResource(
-                            R.string.account_trial_days_left,
-                            ServerTime.daysUntil(status.trialEndsAt),
+                            R.string.premium_status_free,
+                            status.freeDailyLikes,
+                            status.freeOpenChats,
                         )
                     },
                     style = MaterialTheme.typography.bodyMedium,
                     color = colors.chalk,
                 )
-                // Wer noch ein Abo aus der Zeit vor der Aussetzung hat, muss es
-                // weiterhin kuendigen koennen - der Verwalten-Link bleibt dafuer
-                // stehen. Ein Abschluss wird waehrend der Gratisphase gar nicht
-                // erst angeboten; der Server lehnt ihn mit 409 ab.
-                if (status.isSubscribed) {
+                // Wer noch ein Abo aus der Zeit der alten Mitgliedsgebuehr hat,
+                // muss es kuendigen koennen - auch waehrend der Beta, in der
+                // Premium selbst gar nicht abschliessbar ist.
+                if (status.hasStripeSubscription) {
                     FlexrLinkButton(
                         text = stringResource(R.string.account_manage_subscription),
                         onClick = viewModel::openBillingPortal,
                     )
-                } else if (status.billingEnabled) {
+                } else if (status.premiumEnabled) {
+                    // Fuehrt auf den Premium-Bildschirm, schliesst nichts ab:
+                    // Ein Klick im Konto soll nicht unmittelbar in einer
+                    // Zahlungserklaerung enden, ohne dass jemand gelesen hat,
+                    // wofuer.
                     FlexrLinkButton(
-                        text = stringResource(R.string.account_subscribe),
-                        onClick = viewModel::openCheckoutDialog,
+                        text = stringResource(R.string.premium_show_offer),
+                        onClick = onOpenPremium,
                     )
                 }
             }

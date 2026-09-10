@@ -50,14 +50,14 @@ def test_pending_review_does_not_consume_trial(client, storage_stub, monkeypatch
     _add_photo(client, headers)
     _complete_submission(client, headers)
 
-    # Prüfung dauert 10 Tage
+    # Pruefung dauert 10 Tage. Frueher verlaengerte die Freischaltung dafuer
+    # den Probemonat - den gibt es seit dem 10.09.2026 nicht mehr, die Nutzung
+    # ist ohnehin dauerhaft kostenlos. Bleibt zu pruefen, dass die
+    # Freischaltung selbst funktioniert und die Mail rausgeht.
     db = TestingSessionLocal()
     try:
         user = db.query(User).filter(User.id == user_id).first()
         user.created_at = datetime.utcnow() - timedelta(days=10)
-        user.trial_ends_at = datetime.utcnow() + timedelta(
-            days=settings.stripe_trial_days - 10
-        )
         db.commit()
     finally:
         db.close()
@@ -68,12 +68,7 @@ def test_pending_review_does_not_consume_trial(client, storage_stub, monkeypatch
         f"/api/admin/verifications/{req_id}/approve", headers=admin_headers, json=FULL_CHECKLIST
     )
 
-    status = client.get("/api/billing/status", headers=headers).json()
-    remaining_days = (
-        datetime.fromisoformat(status["trial_ends_at"]) - datetime.utcnow()
-    ).days
-    # Volle Gratiszeit ab Freischaltung, nicht ab Registrierung
-    assert remaining_days >= settings.stripe_trial_days - 1
+    assert client.get("/api/profiles/me", headers=headers).json()["is_account_activated"] is True
     assert mails[0][0][2] == "approved"
 
 
@@ -90,15 +85,13 @@ def test_trial_is_not_extended_by_a_second_activation(client, storage_stub):
         user = db.query(User).filter(User.id == user_id).first()
         activate_account(user)
         db.commit()
-        first_end = user.trial_ends_at
         first_activation = user.activated_at
 
-        user.trial_ends_at = datetime.utcnow() + timedelta(days=1)
-        db.commit()
+        # Zweiter Anlauf darf den Zeitpunkt der ERSTEN Freischaltung nicht
+        # ueberschreiben - er ist ein Nachweis, kein Zaehler.
         activate_account(user)
         db.commit()
         assert user.activated_at == first_activation
-        assert user.trial_ends_at < first_end
     finally:
         db.close()
 

@@ -72,9 +72,10 @@ extension FlexrStrings {
         // MARK: Registrierung
         .registerTitle: "Dating für Leute,\ndie auch montags\nBeintag machen.",
         .registerSubtitle: """
-            Erstell dein Profil. Während der Beta-Phase kostenlos — die \
-            Mitgliedschaft von 5 €/Monat ist bis auf weiteres ausgesetzt. \
-            Aktuell nur in Österreich verfügbar.
+            Erstell dein Profil — kostenlos, und das dauerhaft. FLEXR zu nutzen \
+            kostet nichts; es wird kein Zahlungsmittel abgefragt. FLEXR Premium \
+            (10 €/Monat, jederzeit kündbar) kommt nach der Beta und ist \
+            freiwillig. Aktuell nur in Österreich verfügbar.
             """,
         .registerPasswordPlaceholder: "Mind. 8 Zeichen",
         .registerNamePlaceholder: "Max",
@@ -87,7 +88,7 @@ extension FlexrStrings {
             """,
         .registerConsentLink: "Datenschutzerklärung",
         .registerConsentSuffix: " verarbeitet werden.",
-        .registerSubmit: "Profil erstellen & Probemonat starten",
+        .registerSubmit: "Profil kostenlos erstellen",
         .registerErrRequired: "Bitte E-Mail, Passwort (min. %d Zeichen), Name und Geburtsdatum angeben.",
         .registerErrUnder18: "Du musst mindestens 18 Jahre alt sein.",
         .registerErrBirthdate: "Bitte ein gültiges Geburtsdatum angeben.",
@@ -228,12 +229,47 @@ extension FlexrStrings {
         // MARK: Konto
         .accountSectionProfile: "Profil",
         .accountSectionPhotos: "Fotos",
-        .accountStatusBetaFree: """
-            FLEXR ist in der Beta-Phase kostenlos — die Mitgliedschaft von \
-            5 €/Monat ist bis auf weiteres ausgesetzt. Es ist kein \
-            Zahlungsmittel hinterlegt und es wird nichts abgebucht.
+        // MARK: FLEXR Premium
+        .premiumStatusActive: """
+            FLEXR Premium läuft. Jederzeit zum Ende des Abrechnungsmonats \
+            kündbar.
             """,
-        .accountStatusActive: "Dein Abo ist aktiv (5 €/Monat).",
+        .premiumStatusBeta: """
+            FLEXR ist und bleibt kostenlos. Während der Beta ist alles \
+            unbegrenzt; FLEXR Premium kommt danach und ist freiwillig.
+            """,
+        .premiumStatusFree: """
+            Dein Konto ist kostenlos: %d Likes pro Tag und %d Unterhaltungen \
+            gleichzeitig. Mit Premium fällt beides weg.
+            """,
+        .premiumShowOffer: "FLEXR Premium ansehen",
+        .premiumTitle: "FLEXR Premium",
+        .premiumSub: """
+            FLEXR zu nutzen kostet nichts — dauerhaft. Premium ist für alle, \
+            die mehr wollen: ohne Like-Grenze, ohne Chat-Grenze, mit voller \
+            Reichweite.
+            """,
+        .premiumEyebrow: "Monatlich kündbar",
+        .premiumFeatureLikes: "Unbegrenzt liken statt %d pro Tag",
+        .premiumFeatureChats: "So viele Unterhaltungen gleichzeitig, wie du willst (statt %d)",
+        .premiumFeatureIncoming: "Sehen, wer dich schon geliket hat",
+        .premiumFeatureRewind: "Den letzten Swipe zurücknehmen",
+        .premiumFeatureRadius: "Voller Suchumkreis bis %d km statt %d km",
+        .premiumFeatureBadge: "Premium-Abzeichen in deinem Profil",
+        .premiumBetaHint: """
+            FLEXR Premium kommt nach der Beta-Phase. Bis dahin ist alles \
+            unbegrenzt — ohne Kosten und ohne Zahlungsmittel.
+            """,
+        .premiumLikesLeft: "Noch %d von %d Likes heute",
+        .premiumLikesGone: "Likes für heute aufgebraucht",
+        .premiumLikeLimit: """
+            Deine %d Likes für heute sind aufgebraucht. Mit FLEXR Premium \
+            likest du ohne Grenze.
+            """,
+        .premiumChatLimit: """
+            Du hast %d Unterhaltungen offen — mehr gehen gleichzeitig nicht. \
+            Löse ein Match auf oder hol dir FLEXR Premium.
+            """,
         .accountManageSubscription: "Abo verwalten / kündigen",
         .accountRadiusHint: """
             Ausgangspunkt ist die Adresse deines Gyms — nicht dein Wohnort und \
@@ -257,7 +293,6 @@ extension FlexrStrings {
         .accountMessagesHint: "Benachrichtigung, wenn dir ein Match schreibt.",
         .accountNewMessages: "Neue Nachrichten",
         .accountRadiusLabel: "Suchumkreis",
-        .accountTrialDaysLeft: "Noch %d Tag(e) gratis Probemonat.",
         .accountSubscribe: "Jetzt abonnieren",
         .accountSectionNotifications: "Benachrichtigungen",
         .accountSectionPrivacy: "Datenschutz & Sicherheit",
@@ -368,12 +403,17 @@ extension FlexrStrings {
         .deleteDone: "Dein Konto wurde deaktiviert und wird in 30 Tagen endgültig gelöscht.",
 
         // MARK: Paywall
-        .paywallTitle: "Probemonat vorbei",
-        .paywallSub: "Dein kostenloser Monat ist abgelaufen. Schalte FLEXR wieder frei.",
-        .paywallFeatureUnlimited: "Unbegrenzt swipen & matchen in deinem Umkreis",
-        .paywallSubscribe: "Jetzt abonnieren",
-        .paywallFeatureChat: "Chat mit allen Matches inklusive",
-        .paywallFeatureCancel: "Monatlich kündbar, keine versteckten Kosten",
+        // Der Bildschirm heißt weiter paywall*, ist aber keine Bezahlwand mehr,
+        // sondern ein Angebot, das man von sich aus aufruft.
+        .paywallTitle: "FLEXR Premium",
+        .paywallSub: """
+            FLEXR zu nutzen kostet nichts — dauerhaft. Premium hebt die Grenzen \
+            des kostenlosen Kontos auf.
+            """,
+        .paywallFeatureUnlimited: "Unbegrenzt liken statt 20 pro Tag",
+        .paywallSubscribe: "Premium holen",
+        .paywallFeatureChat: "Unbegrenzt viele Unterhaltungen gleichzeitig",
+        .paywallFeatureCancel: "Monatlich kündbar, keine Mindestlaufzeit, keine versteckten Kosten",
         .paywallReturnNote: """
             Nach der Zahlung kehrst du automatisch in die App zurück. Falls der \
             Status nicht sofort stimmt: kurz warten und erneut öffnen.
@@ -403,16 +443,16 @@ extension FlexrStrings {
 
         // MARK: Statuspillen
         .statusBetaFree: "Beta · gratis",
-        .statusSubscribed: "Abo aktiv",
-        .statusTrialDays: "Testmonat: %dd",
-        .statusExpired: "Abgelaufen",
+        .statusPremium: "Premium",
+        .statusFree: "Gratis",
+        .statusLikesLeft: "%d Likes",
 
         // MARK: Netz- und Serverfehler
         .errorTimeout: "Zeitüberschreitung. Bitte Verbindung prüfen und erneut versuchen.",
         .errorUnreachable: "Server nicht erreichbar.",
         .errorConnection: "Verbindung fehlgeschlagen. Bitte erneut versuchen.",
         .errorUnauthorized: "Ungültige oder abgelaufene Anmeldung.",
-        .errorPaymentRequired: "Probemonat abgelaufen. Bitte Abo abschließen.",
+        .errorPaymentRequired: "Diese Funktion steht gerade nicht zur Verfügung.",
         .errorForbidden: "Zugriff nicht möglich.",
         .errorRateLimited: "Zu viele Versuche. Bitte kurz warten.",
         .errorServer: "Serverfehler. Bitte später erneut versuchen.",

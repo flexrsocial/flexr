@@ -63,7 +63,7 @@ enum LegalContent {
             ),
             .faq(
                 question: "Was kostet FLEXR?",
-                answer: "Derzeit nichts: Während der Beta-Phase ist die Mitgliedschaft von 5 € pro Monat bis auf weiteres ausgesetzt — für neue wie für bestehende Konten. Sollte die Gebühr später starten, kündigen wir das vorher an."
+                answer: "Die Nutzung kostet nichts — dauerhaft. Profile ansehen, liken, matchen und schreiben sind und bleiben kostenlos, auch nach der Beta-Phase. Optional gibt es nach der Beta FLEXR Premium um 10 € pro Monat: unbegrenzt liken, unbegrenzt viele Unterhaltungen, sehen wer dich geliket hat, den letzten Swipe zurücknehmen, der volle Suchumkreis bis 250 km und ein Premium-Abzeichen. Ohne Premium gelten 20 Likes pro Tag, 3 gleichzeitige Unterhaltungen und 50 km Suchumkreis; während der Beta gelten auch diese Grenzen noch nicht."
             ),
             .faq(
                 question: "In welchen Städten ist FLEXR verfügbar?",
@@ -163,8 +163,9 @@ enum LegalContent {
                     + "handelt sich um eine Sichtprüfung des vorgelegten Dokuments, nicht um "
                     + "ein behördliches Identifizierungsverfahren.",
                 "Freischaltung. Der Account wird erst nach erfolgreicher Prüfung "
-                    + "freigeschaltet; erst dann sind Swipen, Matchen und Chatten möglich und "
-                    + "erst dann beginnt der Probemonat (siehe Punkt 4). Verläuft die Prüfung "
+                    + "freigeschaltet; erst dann sind Swipen, Matchen und Chatten möglich. "
+                    + "Die Prüfzeit kostet nichts — die Nutzung ist ohnehin unentgeltlich "
+                    + "(siehe Punkt 4). Verläuft die Prüfung "
                     + "nicht erfolgreich — etwa weil das Dokument nicht lesbar ist, die Person "
                     + "nicht übereinstimmt, das Geburtsdatum abweicht oder der Nutzer noch "
                     + "nicht 18 Jahre alt ist — können wir eine neue Aufnahme anfordern oder "
@@ -187,21 +188,32 @@ enum LegalContent {
                     + "zwischen den Nutzern. Wir garantieren keine Matches, keine bestimmte "
                     + "Anzahl an Matches und keinen Erfolg bei der Partnersuche."
             ),
-            .heading("4. Preise, Probemonat, Kündigung"),
+            .heading("4. Kostenlose Nutzung, FLEXR Premium, Kündigung"),
             .lettered([
-                "Während der Beta-Phase ist die Nutzung kostenlos: Das Entgelt von 5 € "
-                    + "pro Monat ist bis auf weiteres ausgesetzt, für neue wie für bestehende "
-                    + "Konten. Das Konto ruht in dieser Zeit auch dann nicht, wenn der "
-                    + "Probemonat abgelaufen ist.",
+                "Die Nutzung von FLEXR ist unbefristet unentgeltlich — nicht nur "
+                    + "während der Beta-Phase. Profile ansehen, liken, matchen und schreiben "
+                    + "kosten nichts; ein Konto ruht nie und wird nie gesperrt, weil nichts "
+                    + "bezahlt wurde.",
+                "Für das kostenlose Konto gelten Nutzungsgrenzen: 20 Likes je 24 Stunden "
+                    + "(ein Ablehnen zählt nicht mit), 3 gleichzeitig laufende "
+                    + "Unterhaltungen (gezählt werden nur Matches, in denen selbst schon "
+                    + "geschrieben wurde; die Zahl der Matches ist nicht begrenzt) und ein "
+                    + "Suchumkreis bis 50 km. Während der Beta-Phase gelten diese Grenzen "
+                    + "nicht; ihr Ende kündigen wir vorher an.",
+                "FLEXR Premium ist ein freiwilliges Zusatzpaket um 10 € pro Monat. Es "
+                    + "hebt die Grenzen aus lit. b auf und enthält zusätzlich: sehen, wer "
+                    + "geliket hat, das Zurücknehmen des letzten Swipes, den vollen "
+                    + "Suchumkreis bis 250 km und ein Premium-Abzeichen im Profil. Premium "
+                    + "ist während der Beta-Phase noch nicht bestellbar.",
                 "Kostenpflichtig wird nichts von selbst: Bei der Registrierung wird kein "
-                    + "Zahlungsmittel erhoben, und ein Abo entsteht nur durch eine "
+                    + "Zahlungsmittel erhoben, und Premium entsteht nur durch eine "
                     + "ausdrückliche Bestellung. Es gibt keine Kündigungsfrist, die "
                     + "versäumt werden könnte.",
-                "Ein abgeschlossenes Abo kostet 5 € pro Monat und verlängert sich jeweils "
-                    + "um einen Monat, bis es gekündigt wird. Keine Mindestlaufzeit.",
-                "Kündigung jederzeit zum Ende der laufenden Abrechnungsperiode "
-                    + "selbstständig über „Abo verwalten / kündigen\" im Konto-Bereich der App "
-                    + "(Stripe Billing Portal).",
+                "Premium verlängert sich jeweils um einen Monat, bis es gekündigt wird. "
+                    + "Keine Mindestlaufzeit. Kündigung jederzeit zum Ende der laufenden "
+                    + "Abrechnungsperiode selbstständig über „Abo verwalten / kündigen\" im "
+                    + "Konto-Bereich der App (Stripe Billing Portal). Danach läuft das Konto "
+                    + "als kostenloses Konto weiter.",
                 "Zahlungsabwicklung über Stripe. Es gelten zusätzlich die "
                     + "Stripe-Nutzungsbedingungen.",
             ]),
@@ -212,8 +224,8 @@ enum LegalContent {
                     + "eindeutige Erklärung genügt; am einfachsten geht es über die "
                     + "Online-Rücktrittsfunktion unter flexr.social/widerruf.html, wo auch die "
                     + "vollständige Belehrung und das Muster-Formular stehen. Für das "
-                    + "kostenlose Konto und den kostenlosen Probemonat besteht kein "
-                    + "Rücktrittsrecht, weil dabei keine Zahlungspflicht entsteht. Bis zum "
+                    + "kostenlose Konto besteht kein Rücktrittsrecht, weil dabei keine "
+                    + "Zahlungspflicht entsteht. Bis zum "
                     + "15.08.2026 musste bei der Registrierung erklärt werden, das "
                     + "Rücktrittsrecht gehe mit dem sofortigen Leistungsbeginn verloren. Diese "
                     + "Erklärung ist entfallen; wir leiten daraus keinen Verzicht ab."

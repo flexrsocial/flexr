@@ -74,8 +74,13 @@ def test_webapp_zeigt_die_begruendung_der_kontosperre():
 
 def test_chat_meldung_nutzt_den_gemeinsamen_helfer():
     """Die eigene Kopie im Chat zeigte statt der Empfangsbestaetigung nur
-    'Meldung gesendet'. Genau ein Aufrufer darf den Toast bauen."""
-    assert APP_HTML.count("Meldung gesendet. Danke für dein Feedback.") == 1
+    'Meldung gesendet'. Genau ein Aufrufer darf den Toast bauen.
+
+    Der Text selbst steht seit dem 09.09.2026 im Woerterbuch
+    (i18n-app.js: report.ackPlain); geprueft wird deshalb, dass es im Skript
+    genau EINE Stelle gibt, die ihn verwendet."""
+    assert APP_HTML.count("t('report.ackPlain')") == 1
+    assert APP_HTML.count("t('report.ack', {ref: ack.reference})") == 1
     assert "reportUser(match.profile.id, match.profile.name)" in APP_HTML
     assert "blockUser(match.profile.id, match.profile.name" in APP_HTML
 
@@ -203,8 +208,10 @@ def test_checkout_ueberschreibt_die_alte_fehlermeldung():
     waehrend der echte Fehler nur als Toast vorbeizog."""
     stelle = APP_HTML.index("async function confirmImmediateStartAndSubscribe()")
     abschnitt = APP_HTML[stelle:stelle + 1800]
+    # Der Text der Meldung steht im Woerterbuch (istart.err) - die Reihenfolge
+    # bleibt der Punkt: erst leeren, dann die neue Meldung setzen.
     assert abschnitt.index("$('istartErr').textContent = '';") < abschnitt.index(
-        "$('istartErr').textContent = 'Bitte bestätige beide Erklärungen"
+        "$('istartErr').textContent = t('istart.err');"
     )
     assert "$('istartErr').textContent = msg;" in abschnitt
 

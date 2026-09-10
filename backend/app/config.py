@@ -10,27 +10,46 @@ class Settings(BaseSettings):
     stripe_secret_key: str = ""
     stripe_webhook_secret: str = ""
     stripe_price_id: str = ""
-    stripe_trial_days: int = 30
 
-    # Abogebuehr scharf geschaltet? In der Beta-Phase ist die Mitgliedschaft
-    # fuer alle - neue wie bestehende Konten - unbefristet kostenlos; die
-    # 5 EUR pro Monat sind "bis auf weiteres ausgesetzt".
+    # ---- FLEXR Premium -----------------------------------------------------
     #
-    # Bewusst ein Schalter und kein Ausbau: Der gesamte Stripe-Pfad
-    # (Checkout, Webhook, Portal, Probemonat, Bezahlwand) bleibt unveraendert
-    # bestehen und wird mit BILLING_ENABLED=true wieder aktiv - ohne
-    # Datenmigration, ohne Code-Aenderung, ohne neues Deployment der Clients.
-    # Die Clients holen den Zustand ueber GET /api/billing/status
-    # (Feld ``billing_enabled``) und zeigen Preise, Bezahlwand und
-    # Abo-Knoepfe nur, solange er wahr ist.
+    # Das Geschaeftsmodell ab 10.09.2026: **Die Plattform selbst ist dauerhaft
+    # kostenlos** - registrieren, Profile sehen, liken, matchen und schreiben
+    # kostet nie etwas, auch nach der Beta nicht. Wer mehr will, kann FLEXR
+    # Premium abschliessen (10 EUR pro Monat, jederzeit kuendbar).
     #
-    # trial_ends_at laeuft waehrend der Gratisphase im Hintergrund weiter,
-    # sperrt aber niemanden aus (User.is_active_member()). Wird die Gebuehr
-    # spaeter aktiviert, haben Bestandskonten mit laengst abgelaufenem
-    # Probemonat sofort keinen Zugang mehr - vor dem Umlegen des Schalters
-    # gehoert deshalb eine Vorankuendigung an die Nutzer und, falls gewollt,
-    # ein neues trial_ends_at fuer Bestandskonten.
-    billing_enabled: bool = False
+    # Damit ist die frueher hier beschriebene Bezahlwand ersatzlos weg: Es gibt
+    # keinen Probemonat mehr, der ablaufen koennte, und kein Konto, das mangels
+    # Zahlung ausgesperrt wird. ``stripe_trial_days`` ist deshalb entfallen -
+    # ein Probemonat auf ein Angebot, dessen Grundnutzung ohnehin gratis ist,
+    # waere sinnlos, und der Preis gilt ab dem ersten Tag.
+    #
+    # Der Schalter unten entscheidet nur, ob Premium **kaufbar** ist und ob die
+    # Grenzen fuer Standardnutzer greifen. Solange er aus ist (Beta), ist alles
+    # unbegrenzt und niemand kann etwas abschliessen. Die Clients holen den
+    # Zustand ueber GET /api/billing/status (Feld ``premium_enabled``) und
+    # zeigen Preis, Vorteile und Abo-Knoepfe nur, solange er wahr ist.
+    #
+    # Das Umlegen ist gefahrlos und braucht keine Datenmigration: Bestandskonten
+    # verlieren nichts, sie bekommen lediglich dieselben Grenzen wie alle
+    # anderen Standardnutzer. ``User.trial_ends_at`` wird nirgends mehr
+    # ausgewertet (die Spalte bleibt nur stehen, um die Tabelle nicht anfassen
+    # zu muessen).
+    premium_enabled: bool = False
+
+    # Preis in Cent, damit Anzeige und Rechnung dieselbe Quelle haben.
+    premium_price_cents: int = 1000
+    premium_currency: str = "EUR"
+
+    # ---- Grenzen fuer Standardnutzer (greifen nur bei premium_enabled) -----
+    #
+    # Zahlen bewusst hier und nicht im Code verstreut: Sie stehen wortgleich in
+    # der Oberflaeche, auf der Landingpage und in den AGB. Wer sie aendert,
+    # aendert eine Zusage - der Abgleich mit ``frontend/i18n-*.js``,
+    # ``res/values*/strings.xml`` und ``agb.html`` gehoert dazu.
+    free_daily_likes: int = 20          # rollierend ueber 24 Stunden
+    free_open_chats: int = 3            # gleichzeitig laufende Unterhaltungen
+    free_max_radius_km: int = 50        # Premium bis zum vollen Regler (250)
 
     frontend_url: str = "https://flexr.social"
     env: str = "development"
@@ -69,6 +88,22 @@ class Settings(BaseSettings):
 
     class Config:
         env_file = ".env"
+
+        # Unbekannte Schluessel in der .env werden ueberlesen statt abgelehnt.
+        #
+        # Der Grund ist ein konkreter Beinahe-Ausfall: Mit dem Wegfall des
+        # Probemonats verschwand ``stripe_trial_days`` aus dieser Klasse, in
+        # der .env auf dem Server stand STRIPE_TRIAL_DAYS aber weiter. Pydantic
+        # lehnt Extras standardmaessig ab - der Dienst waere beim naechsten
+        # Neustart nicht mehr hochgekommen, und zwar erst Minuten nach dem
+        # Deploy, wenn niemand mehr hinsieht.
+        #
+        # Eine Einstellung zu entfernen darf keinen Ausfall ausloesen koennen.
+        # Der Preis dafuer ist, dass ein Tippfehler in einem Schluesselnamen
+        # stillschweigend zum Standardwert fuehrt - vertretbar, weil jede
+        # sicherheitsrelevante Einstellung hier ohne Standard deklariert ist
+        # (database_url, jwt_secret) und ihr Fehlen weiterhin sofort auffaellt.
+        extra = "ignore"
 
 
 settings = Settings()

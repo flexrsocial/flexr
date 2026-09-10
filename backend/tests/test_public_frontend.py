@@ -1,5 +1,6 @@
 """Regressionstests fuer indexierbare Seiten und statische Auslieferung."""
 
+import re
 from html.parser import HTMLParser
 from pathlib import Path
 from urllib.parse import urlparse
@@ -21,6 +22,10 @@ PUBLIC_PAGES = {
     "datenschutz.html": "https://flexr.social/datenschutz.html",
     "impressum.html": "https://flexr.social/impressum.html",
     "strafverfolgung.html": "https://flexr.social/strafverfolgung.html",
+    # Eigene englische Landingpage seit dem 09.09.2026 (build-en.py). Sie ist
+    # indexierbar, hat ihre eigene kanonische Adresse und gehoert deshalb in
+    # die Sitemap - anders als /app/, das noindex traegt.
+    "en/index.html": "https://flexr.social/en/",
 }
 
 
@@ -70,7 +75,8 @@ def test_oeffentliche_seiten_haben_vollstaendige_seo_und_semantik():
             if tag == "link" and attrs.get("rel") == "canonical"
         ]
 
-        assert html.get("lang") == "de-AT", filename
+        erwartete_sprache = "en" if filename.startswith("en/") else "de-AT"
+        assert html.get("lang") == erwartete_sprache, filename
         assert len(mains) == 1 and mains[0].get("id") == "main-content", filename
         assert any(link == "#main-content" for link in parser.links), filename
         assert meta_content(parser, name="description"), filename
@@ -93,9 +99,8 @@ def test_kontoprofil_bleibt_offen_und_scrollbar():
     account = account.split('</section>', 1)[0]
 
     assert '<details class="account-disclosure"' not in account
-    assert '<div class="account-section-title">Profil</div>' in account
-    assert '<div class="account-section-title">Fotos</div>' in account
-    assert '<div class="account-section-title">Konto</div>' in account
+    for schluessel in ("acct.sectionProfile", "acct.sectionPhotos", "common.account"):
+        assert f'<div class="account-section-title" data-i18n="{schluessel}">' in account
     assert '.screen.active{ display:flex; flex-direction:column; flex:1; min-height:0; overflow-y:auto;' in app
     assert '.account-membership-note .membership-link{ margin-top:10px; }' in app
     assert 'color:var(--plate); font-size:12.5px; font-weight:600;' in app
@@ -103,7 +108,10 @@ def test_kontoprofil_bleibt_offen_und_scrollbar():
 
     privacy = app.split('<section class="screen" id="screen-privacy">', 1)[1]
     privacy = privacy.split('</section>', 1)[0]
-    assert '<nav class="legal-link-list" aria-label="Rechtliche Dokumente">' in privacy
+    assert '<nav class="legal-link-list"' in privacy
+    # aria-label steht seit dem 09.09.2026 als data-i18n-aria im Markup und
+    # wird zur Laufzeit gesetzt - der Schluessel ist die pruefbare Zusicherung.
+    assert 'data-i18n-aria="legal.docs.aria"' in privacy
     for page in (
         "datenschutz.html", "agb.html", "widerruf.html",
         "nutzungsrichtlinien.html", "impressum.html", "meldung.html",
@@ -140,7 +148,11 @@ def test_nginx_liefert_echte_404_und_cachet_nur_versionierte_demo_assets():
 
 def test_service_worker_cachet_weder_nutzerfotos_noch_downloads():
     worker = (FRONTEND / "sw.js").read_text(encoding="utf-8")
-    assert "flexr-shell-v8" in worker
+    # Bewusst nur das Muster, nicht die Nummer: Der Shell-Cache wird bei jeder
+    # Aenderung am Shell hochgezaehlt (zuletzt v10). Eine fest verdrahtete
+    # Nummer machte diesen Test bei jedem Hochzaehlen rot, ohne dass an der
+    # geprueften Eigenschaft - was NICHT gecacht wird - etwas dran waere.
+    assert re.search(r"const CACHE = 'flexr-shell-v\d+';", worker)
     assert "url.pathname.startsWith('/photos/')" in worker
     assert "url.pathname.startsWith('/dl-')" in worker
     assert "STATIC_PREFIXES" in worker
@@ -177,4 +189,8 @@ def test_sitemap_enthaelt_nur_oeffentliche_kanonische_seiten():
     ns = {"s": "http://www.sitemaps.org/schemas/sitemap/0.9"}
     urls = {node.text for node in root.findall("s:url/s:loc", ns)}
     assert urls == set(PUBLIC_PAGES.values())
-    assert all(node.text == "2026-08-20" for node in root.findall("s:url/s:lastmod", ns))
+    # lastmod wechselt mit jeder inhaltlichen Aenderung - hier zaehlt nur, dass
+    # ueberall ein plausibles Datum steht und keines vergessen wurde.
+    lastmods = [node.text for node in root.findall("s:url/s:lastmod", ns)]
+    assert len(lastmods) == len(urls)
+    assert all(re.fullmatch(r"20\d\d-\d\d-\d\d", d) for d in lastmods)

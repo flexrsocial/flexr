@@ -2,7 +2,8 @@
 
 Bis dahin setzte der Webhook ``is_subscribed`` nur auf True und nie zurueck.
 Wer ueber das Stripe-Billing-Portal kuendigte, behielt den Zugang dauerhaft -
-``is_active_member()`` ist das Zugangstor in security.py.
+Der Webhook ist die einzige Stelle, die ``is_subscribed`` setzt - und
+``is_subscribed`` entscheidet ueber FLEXR Premium (User.is_premium).
 
 Getestet wird ``handle_stripe_event`` direkt, ohne Signaturpruefung: Die
 Signatur gehoert Stripe, nicht uns, und liesse sich hier nur nachbauen.
@@ -134,30 +135,17 @@ def test_geloeschtes_abo_entzieht_den_zugang(client):
     assert _user_row(user_id).is_subscribed is False
 
 
-def test_nach_kuendigung_und_abgelaufenem_probemonat_ist_das_konto_inaktiv(client):
-    """Zusammenspiel mit dem Zugangstor: erst beides zusammen sperrt wirklich."""
-    user_id = _setup_subscriber(
-        client, trial_ends_at=datetime.utcnow() - timedelta(days=1)
-    )
-    assert _user_row(user_id).is_active_member() is True
+def test_kuendigung_beendet_premium_aber_nicht_den_zugang(client):
+    """Die Kuendigung nimmt Premium - mehr nicht.
 
-    _mit_db(lambda db: handle_stripe_event(
-        _event("customer.subscription.deleted", {
-            "id": "sub_test123",
-            "customer": "cus_test123",
-            "status": "canceled",
-        }),
-        db,
-    ))
-
-    assert _user_row(user_id).is_active_member() is False
-
-
-def test_laufender_probemonat_ueberlebt_die_kuendigung(client):
-    """Wer im Probemonat kuendigt, behaelt ihn bis zum Ende."""
-    user_id = _setup_subscriber(
-        client, trial_ends_at=datetime.utcnow() + timedelta(days=10)
-    )
+    Bis zum 10.09.2026 stand hier das Zusammenspiel mit der Bezahlwand: erst
+    Kuendigung *und* abgelaufener Probemonat sperrten das Konto. Beides gibt es
+    nicht mehr. Was bleibt, ist die eigentliche Wirkung - ``is_premium`` faellt
+    zurueck -, und was ausdruecklich **nicht** passieren darf: dass das Konto
+    dadurch unbenutzbar wird.
+    """
+    user_id = _setup_subscriber(client)
+    assert _user_row(user_id).is_premium is True
 
     _mit_db(lambda db: handle_stripe_event(
         _event("customer.subscription.deleted", {
@@ -170,7 +158,7 @@ def test_laufender_probemonat_ueberlebt_die_kuendigung(client):
 
     user = _user_row(user_id)
     assert user.is_subscribed is False
-    assert user.is_active_member() is True
+    assert user.is_premium is False
 
 
 def test_status_canceled_im_update_entzieht_ebenfalls(client):

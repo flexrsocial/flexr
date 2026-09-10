@@ -5,13 +5,13 @@ import Foundation
 enum AppState: Equatable {
     case loading
     case loggedOut
-    /// Angemeldet, aber Probemonat abgelaufen und kein Abo: nur die Paywall.
-    case locked(Membership)
+    // `case locked` ist am 10.09.2026 entfallen: Es gibt keinen Zustand mehr,
+    // in dem ein angemeldetes Konto die App nicht benutzen darf — die Nutzung
+    // von FLEXR ist dauerhaft kostenlos.
     case ready(profile: MyProfile, membership: Membership)
 }
 
-/// Hält den app-weiten Sitzungszustand: angemeldet, zahlungspflichtig gesperrt
-/// oder einsatzbereit.
+/// Hält den app-weiten Sitzungszustand: abgemeldet, ladend oder einsatzbereit.
 ///
 /// Entspricht der `boot()`/`goToApp()`-Logik des Web-Frontends und dem
 /// `MainViewModel` der Android-App — hier aber als beobachtbarer Zustand statt
@@ -22,6 +22,15 @@ final class AppModel {
 
     private(set) var state: AppState = .loading
     var selectedTab: TopLevelDestination = .swipe
+
+    /// Der aktuelle Premium-Status, sofern die Sitzung schon steht.
+    ///
+    /// Bequemlichkeit für Views, die nur die Zahlen brauchen (Preis, Grenzen,
+    /// Restkontingent) und nicht den ganzen Zustand auseinandernehmen wollen.
+    var membership: Membership? {
+        if case .ready(_, let membership) = state { return membership }
+        return nil
+    }
 
     /// Kurze Rückmeldung am unteren Rand (Ersatz für die Snackbar).
     var toast: String?
@@ -67,15 +76,9 @@ final class AppModel {
         do {
             let profile = try await container.profiles.refresh()
             let membership = try await container.billing.refresh()
-            if membership.isActive {
-                container.notifications.schedule()
-                container.activityNotifications.schedule()
-                state = .ready(profile: profile, membership: membership)
-            } else {
-                container.notifications.cancel()
-                container.activityNotifications.cancel()
-                state = .locked(membership)
-            }
+            container.notifications.schedule()
+            container.activityNotifications.schedule()
+            state = .ready(profile: profile, membership: membership)
         } catch {
             // Token ungültig oder Server nicht erreichbar — bei 401 hat der
             // APIClient bereits abgemeldet und `sessionExpired` gefeuert.

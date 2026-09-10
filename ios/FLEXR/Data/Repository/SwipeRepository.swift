@@ -30,7 +30,8 @@ final class SwipeRepository {
     }
 }
 
-/// Mitgliedschaft: Probemonat, Abo-Status und die Stripe-Übergänge.
+/// FLEXR Premium: Abo-Status, Grenzen des kostenlosen Kontos und die
+/// Stripe-Übergänge.
 ///
 /// Checkout und Kündigung laufen bewusst über eine externe Browser-Sitzung.
 /// Zahlungsdaten werden dadurch nie in der App eingegeben oder verarbeitet —

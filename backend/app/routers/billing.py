@@ -3,7 +3,7 @@ import logging
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.orm import Session
 
-from .. import legal, mailer
+from .. import legal, mailer, premium
 from ..config import settings
 from ..database import get_db
 from ..email_notifications import send_once
@@ -28,12 +28,34 @@ ENTITLING_SUBSCRIPTION_STATUS = {"active", "trialing", "past_due"}
 
 
 @router.get("/status", response_model=MembershipStatus)
-def membership_status(current_user: User = Depends(get_current_user)):
+def membership_status(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Was dieses Konto darf, samt Restkontingenten.
+
+    Die Clients fragen das beim Start und nach jedem Like/Chat neu ab, statt
+    selbst mitzuzaehlen - der Server ist ohnehin die Instanz, die die Grenze
+    durchsetzt, und zwei Zaehler laufen frueher oder spaeter auseinander.
+    """
     return MembershipStatus(
-        is_subscribed=current_user.is_subscribed,
+        is_premium=current_user.is_premium,
+        premium_enabled=settings.premium_enabled,
+        has_stripe_subscription=bool(current_user.is_subscribed),
+        price_cents=settings.premium_price_cents,
+        currency=settings.premium_currency,
+        free_daily_likes=settings.free_daily_likes,
+        free_open_chats=settings.free_open_chats,
+        free_max_radius_km=settings.free_max_radius_km,
+        max_radius_km=premium.max_radius_km(current_user),
+        likes_remaining=premium.likes_remaining(db, current_user),
+        open_chats_remaining=premium.open_chats_remaining(db, current_user),
+        next_like_at=premium.next_like_at(db, current_user),
+        # Altfelder fuer Clients vor 2.6.0 - siehe MembershipStatus.
+        is_subscribed=bool(current_user.is_subscribed),
         trial_ends_at=current_user.trial_ends_at,
-        is_active=current_user.is_active_member(),
-        billing_enabled=settings.billing_enabled,
+        is_active=True,
+        billing_enabled=settings.premium_enabled,
     )
 
 
@@ -43,18 +65,27 @@ def create_checkout(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    # Waehrend die Gebuehr ausgesetzt ist, gibt es nichts zu bezahlen. Die
-    # Clients bieten den Abschluss dann gar nicht erst an; wer den Endpunkt
-    # trotzdem erreicht (alter Client, offener Tab, direkter Aufruf), soll
-    # keinen Vertrag ueber eine Leistung schliessen, die er ohnehin gratis
-    # bekommt. Der Ablehnung geht bewusst jede Consent-Buchung voraus: ohne
-    # Vertrag ist auch nichts zu erklaeren. 409 statt 404 - den Endpunkt gibt
-    # es, nur der Zustand passt nicht.
-    if not settings.billing_enabled:
+    # Solange Premium nicht scharf geschaltet ist, gibt es nichts zu kaufen:
+    # In der Beta ist fuer alle alles unbegrenzt, ein Abo brächte also keine
+    # einzige zusaetzliche Funktion. Die Clients bieten den Abschluss dann gar
+    # nicht erst an; wer den Endpunkt trotzdem erreicht (alter Client, offener
+    # Tab, direkter Aufruf), soll keinen Vertrag ueber eine Leistung
+    # schliessen, die er ohnehin hat. Der Ablehnung geht bewusst jede
+    # Consent-Buchung voraus: ohne Vertrag ist auch nichts zu erklaeren.
+    # 409 statt 404 - den Endpunkt gibt es, nur der Zustand passt nicht.
+    if not settings.premium_enabled:
         raise HTTPException(
             status.HTTP_409_CONFLICT,
-            "FLEXR ist in der Beta-Phase für alle kostenlos - ein Abo ist "
-            "derzeit nicht nötig und kann nicht abgeschlossen werden.",
+            "FLEXR ist in der Beta-Phase für alle unbegrenzt nutzbar - "
+            "FLEXR Premium gibt es erst nach dem Ende der Beta.",
+        )
+
+    # Doppelabschluss verhindern. Stripe wuerde anstandslos ein zweites Abo
+    # anlegen und zweimal abbuchen; der Nutzer haette davon nichts.
+    if current_user.is_subscribed:
+        raise HTTPException(
+            status.HTTP_409_CONFLICT,
+            "Für dieses Konto läuft bereits FLEXR Premium.",
         )
 
     # Beide Erklaerungen sind per Validator schon auf True geprueft - ohne sie
@@ -73,9 +104,6 @@ def create_checkout(
     db.add(checkout_consent)
     db.commit()
 
-    # trial_ends_at wird mitgegeben, damit Stripe nur die seit der Registrierung
-    # verbliebene Gratiszeit als Trial ansetzt und danach sofort abrechnet.
-    #
     # Faellt Stripe aus oder stimmen die Zugangsdaten nicht, darf das nicht als
     # nackter 500 herauskommen: Die CORS-Header der Anwendung haengen an der
     # Middleware und fehlen bei einer unbehandelten Ausnahme - im Browser kam
@@ -83,11 +111,7 @@ def create_checkout(
     # Der Nutzer hat gerade zwei rechtlich erhebliche Erklaerungen abgegeben
     # und soll erfahren, dass es an uns liegt und er es erneut versuchen kann.
     try:
-        url = create_checkout_session(
-            current_user.email,
-            current_user.id,
-            current_user.trial_ends_at,
-        )
+        url = create_checkout_session(current_user.email, current_user.id)
     except Exception:  # noqa: BLE001 - jede Stoerung soll dieselbe Antwort geben
         logger.exception("Stripe-Checkout fehlgeschlagen (user=%s)", current_user.id)
         raise HTTPException(
@@ -102,8 +126,9 @@ def create_checkout(
 def create_portal(current_user: User = Depends(get_current_user)):
     """Self-Service-Verwaltung/Kündigung des Abos über Stripes Billing Portal.
 
-    Bleibt auch bei ausgesetzter Gebuehr erreichbar: Wer aus der Zeit davor
-    noch ein laufendes Abo hat, muss es kuendigen koennen - gerade dann.
+    Bleibt auch bei ausgeschaltetem Premium erreichbar - gerade dann: Wer noch
+    ein Abo aus der Zeit der alten Mitgliedsgebuehr hat, muss es kuendigen
+    koennen, ohne auf das Ende der Beta zu warten.
     """
     if not current_user.stripe_customer_id:
         raise HTTPException(400, "Noch kein Abo abgeschlossen.")

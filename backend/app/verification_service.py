@@ -12,13 +12,12 @@ und nur aus dem Admin-Router heraus vergeben.
 
 import json
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime
 
 from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
 from . import storage
-from .config import settings
 from .models import (
     DOCUMENT_TYPES_WITH_BACK,
     VERIFICATION_OPEN_STATES,
@@ -151,16 +150,17 @@ def account_visible_condition():
 def activate_account(user: User) -> None:
     """Schaltet das Konto nach bestandener Prüfung frei.
 
-    Der Probemonat startet hier neu. Sonst würde eine lange manuelle Prüfung
-    von der Gratiszeit abgehen - der Nutzer konnte in dieser Zeit nichts nutzen.
-    Bereits freigeschaltete Konten werden nicht erneut angefasst, damit die
-    Gratiszeit nicht mehrfach verlängert werden kann.
+    Bis zum 10.09.2026 startete hier zusätzlich der Probemonat neu, damit eine
+    lange manuelle Prüfung nicht von der Gratiszeit abging. Einen Probemonat
+    gibt es nicht mehr - die Plattform ist dauerhaft kostenlos -, also bleibt
+    nur die Freischaltung selbst.
+
+    Bereits freigeschaltete Konten werden nicht erneut angefasst: ``activated_at``
+    ist der Zeitpunkt der *ersten* Freischaltung und soll das bleiben.
     """
     if user.activated_at is not None:
         return
-    now = datetime.utcnow()
-    user.activated_at = now
-    user.trial_ends_at = now + timedelta(days=settings.stripe_trial_days)
+    user.activated_at = datetime.utcnow()
 
 
 def object_keys_for(req: VerificationRequest) -> list[str]:

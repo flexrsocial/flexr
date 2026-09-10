@@ -39,9 +39,9 @@
     <string name="common_status_load_failed">Could not load status.</string>
 
     <string name="status_beta_free">Beta · free</string>
-    <string name="status_subscribed">Subscribed</string>
-    <string name="status_trial_days">Free month: %1$dd</string>
-    <string name="status_expired">Expired</string>
+    <string name="status_premium">Premium</string>
+    <string name="status_free">Free</string>
+    <string name="status_likes_left">%1$d likes</string>
     <string name="status_not_unlocked">Not unlocked</string>
 
     <string name="nav_swipe">Swipe</string>
@@ -81,7 +81,7 @@
     <string name="login_reactivate_confirm">Reactivate now</string>
 
     <string name="register_title">Dating for people\nwho do leg day\non Mondays.</string>
-    <string name="register_subtitle">Create your profile. Free during the beta — the €5/month membership is suspended until further notice. Currently available in Austria only.</string>
+    <string name="register_subtitle">Create your profile — free of charge, permanently. Using FLEXR costs nothing; no payment method is requested. FLEXR Premium (€10/month, cancel any time) arrives after the beta and is optional. Currently available in Austria only.</string>
     <string name="register_password_repeat">Repeat password</string>
     <string name="register_password_repeat_placeholder">Enter password again</string>
     <string name="register_photos_label">Photos (min. 1, max. 6)</string>
@@ -227,7 +227,6 @@
     <string name="photo_read_failed">The image could not be read.</string>
 
     <string name="account_own_photo">Your profile photo</string>
-    <string name="account_trial_days_left">%1$d day(s) of your free month left.</string>
     <string name="account_subscribe">Subscribe now</string>
     <string name="account_radius_label">Search radius</string>
     <string name="account_radius_value">%1$d km</string>
@@ -253,8 +252,24 @@
     <string name="date_unknown">—</string>
     <string name="account_section_profile">Profile</string>
     <string name="account_section_photos">Photos</string>
-    <string name="account_status_beta_free">FLEXR is free during the beta — the €5/month membership is suspended until further notice. No payment method is stored and nothing is charged.</string>
-    <string name="account_status_active">Your subscription is active (€5/month).</string>
+    <string name="premium_status_active">FLEXR Premium is running. Cancel any time, effective at the end of the billing month.</string>
+    <string name="premium_status_beta">FLEXR is and stays free. Everything is unlimited during the beta; FLEXR Premium comes afterwards and is optional.</string>
+    <string name="premium_status_free">Your account is free: %1$d likes per day and %2$d conversations at once. Premium removes both limits.</string>
+    <string name="premium_show_offer">See FLEXR Premium</string>
+    <string name="premium_title">FLEXR Premium</string>
+    <string name="premium_sub">Using FLEXR costs nothing — permanently. Premium is for everyone who wants more: no like limit, no chat limit, full reach.</string>
+    <string name="premium_eyebrow">Cancel any month</string>
+    <string name="premium_feature_likes">Unlimited likes instead of %1$d per day</string>
+    <string name="premium_feature_chats">As many conversations at once as you like (instead of %1$d)</string>
+    <string name="premium_feature_incoming">See who already liked you</string>
+    <string name="premium_feature_rewind">Undo your last swipe</string>
+    <string name="premium_feature_radius">Full search radius up to %1$d km instead of %2$d km</string>
+    <string name="premium_feature_badge">Premium badge on your profile</string>
+    <string name="premium_beta_hint">FLEXR Premium arrives after the beta. Until then everything is unlimited — no cost, no payment method.</string>
+    <string name="premium_likes_left">%1$d of %2$d likes left today</string>
+    <string name="premium_likes_gone">No likes left today</string>
+    <string name="premium_like_limit">You have used your %1$d likes for today. FLEXR Premium lifts the limit.</string>
+    <string name="premium_chat_limit">You have %1$d conversations open — that is the limit at any one time. Unmatch someone or get FLEXR Premium.</string>
     <string name="account_manage_subscription">Manage / cancel subscription</string>
     <string name="account_radius_hint">Radius around your gym. Your device location is not used.</string>
     <string name="account_save">Save profile</string>
@@ -319,16 +334,16 @@
     <string name="delete_password_missing">Please enter your password to confirm.</string>
     <string name="delete_done">Your account has been deactivated and will be permanently deleted in 30 days.</string>
 
-    <string name="paywall_title">Free month over</string>
-    <string name="paywall_membership">Membership</string>
-    <string name="paywall_price">€5</string>
+    <string name="paywall_title">FLEXR Premium</string>
+    <string name="paywall_membership">Cancel any month</string>
+    <string name="paywall_price">€10</string>
     <string name="paywall_per_month"> / month</string>
-    <string name="paywall_feature_unlimited">Unlimited swiping &amp; matching in your area</string>
-    <string name="paywall_subscribe">Subscribe now</string>
+    <string name="paywall_feature_unlimited">Unlimited likes instead of 20 per day</string>
+    <string name="paywall_subscribe">Get Premium</string>
     <string name="common_logout">Log out</string>
-    <string name="paywall_sub">Your free month has ended. Unlock FLEXR again.</string>
-    <string name="paywall_feature_chat">Chat with all your matches included</string>
-    <string name="paywall_feature_cancel">Cancel monthly, no hidden costs</string>
+    <string name="paywall_sub">Using FLEXR costs nothing — permanently. Premium lifts the limits of the free account.</string>
+    <string name="paywall_feature_chat">Unlimited conversations at the same time</string>
+    <string name="paywall_feature_cancel">Cancel monthly, no minimum term, no hidden costs</string>
     <string name="paywall_return_note">After payment you return to the app automatically. If the status is not right immediately: wait a moment and open it again.</string>
 
     <string name="vgate_need_title">WHAT YOU NEED</string>
@@ -364,7 +379,7 @@
     <string name="vgate_submitted_title">Verification under review</string>
     <string name="vgate_submitted_chip">Review in progress</string>
     <string name="vgate_submitted_body">Your details have been submitted. We are now checking that you are at least 18 and that the verification belongs to your profile. As soon as the review is done you can use FLEXR in full.</string>
-    <string name="vgate_submitted_note">The images of your ID are deleted once the review is complete. Your free month only starts once your account is unlocked — waiting costs you nothing.</string>
+    <string name="vgate_submitted_note">The images of your ID are deleted once the review is complete. Waiting costs you nothing — using FLEXR is free anyway.</string>
     <string name="vgate_checking">Being reviewed …</string>
     <string name="vgate_mail_title">Confirm your email</string>
     <string name="vgate_mail_chip">Confirmation pending</string>
@@ -462,7 +477,7 @@
     <string name="error_not_found">Not found.</string>
     <string name="error_conflict">Already exists.</string>
     <string name="error_unauthorized">Invalid or expired sign-in.</string>
-    <string name="error_payment_required">Free month expired. Please subscribe.</string>
+    <string name="error_payment_required">This feature is not available right now.</string>
     <string name="error_forbidden">Access not possible.</string>
     <string name="error_rate_limited">Too many attempts. Please wait a moment.</string>
     <string name="error_server">Server error. Please try again later.</string>

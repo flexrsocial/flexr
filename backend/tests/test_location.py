@@ -8,6 +8,19 @@ from tests.conftest import (
     register_user_with_photo,
 )
 
+
+def _mit_premium(client, headers):
+    """Gibt dem Konto hinter ``headers`` ein laufendes Premium-Abo."""
+    from app.models import User
+
+    user_id = client.get("/api/profiles/me", headers=headers).json()["id"]
+    db = TestingSessionLocal()
+    try:
+        db.query(User).filter(User.id == user_id).one().is_subscribed = True
+        db.commit()
+    finally:
+        db.close()
+
 # Die Umkreissuche geht von der Adresse des eingetragenen Gyms aus, nicht vom
 # Wohnort. PLZ-Koordinaten aus dem gebündelten GeoNames-Datensatz:
 # 1010/1100 Wien ~ (48.21, 16.37), 8010 Graz ~ (47.08, 15.47) -> ~145 km.
@@ -54,10 +67,18 @@ def test_deck_includes_distance_km(client):
     assert deck[0]["distance_km"] <= 20
 
 
-def test_larger_radius_includes_faraway_gyms(client):
+def test_larger_radius_includes_faraway_gyms(client, monkeypatch):
+    """Der volle Umkreis gehoert zu FLEXR Premium.
+
+    Die Suite laeuft mit eingeschaltetem Premium (siehe conftest), ein
+    Standardkonto wuerde hier also auf free_max_radius_km gekappt. Geprueft
+    werden soll die Entfernungsrechnung, nicht die Grenze - deshalb bekommt der
+    Nutzer Premium.
+    """
     headers_a = register_user(client, "radius.m@example.com", gender="mann", gym=GYM_WIEN)
     register_user_with_photo(client, "radius.f@example.com", name="Grazerin",
                              gender="frau", gym=GYM_GRAZ)
+    _mit_premium(client, headers_a)
 
     resp = client.patch("/api/profiles/me", headers=headers_a, json={"search_radius_km": 250})
     assert resp.status_code == 200

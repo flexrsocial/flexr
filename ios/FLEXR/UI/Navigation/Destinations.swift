@@ -33,6 +33,10 @@ enum Route: Hashable {
     case chat(matchID: String)
     case matchProfile(matchID: String)
     case verification
+    /// FLEXR Premium. Früher ein eigener Navigationsbaum (der gesperrte
+    /// Zustand nach Ablauf des Probemonats), seit dem 10.09.2026 ein normales
+    /// Ziel aus dem Kontobereich.
+    case premium
     case legal(LegalDocument)
 }
 

@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy import and_, or_
 from sqlalchemy.orm import Session
 
-from .. import telegram
+from .. import premium, telegram
 from ..database import get_db
 from ..models import Block, Match, Message, ModerationAction, User
 from ..moderation import restriction_detail
@@ -122,6 +122,13 @@ def send_message(
             403,
             restriction_detail(current_user, ModerationAction.mute),
         )
+
+    # Wie viele Unterhaltungen ein Standardkonto gleichzeitig fuehren darf.
+    # Greift nur beim **ersten** eigenen Satz in diesem Chat - siehe
+    # premium.ensure_chat_allowed(). Bewusst nach der Moderationspruefung: Eine
+    # laufende Chatsperre ist der gewichtigere Grund und soll auch dann als
+    # solcher gemeldet werden, wenn zusaetzlich das Kontingent voll ist.
+    premium.ensure_chat_allowed(db, current_user, match_id)
 
     # Automatische Sicherheitsprüfung: auffällige Nachrichten werden zugestellt,
     # aber fürs Admin-Review markiert. Zusätzlich werden Links/Kontaktdaten für

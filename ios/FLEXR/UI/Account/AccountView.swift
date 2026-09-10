@@ -192,16 +192,16 @@ struct AccountView: View {
         .padding(.top, 18)
     }
 
-    /// Statuszeile der Mitgliedschaft - während der Beta-Phase zahlt niemand,
-    /// weder neue noch bestehende Konten.
+    /// Statuszeile zu FLEXR Premium — drei Zustände, und keiner davon ist eine
+    /// Sperre: Die Nutzung von FLEXR kostet in allen dreien nichts.
     private func membershipText(_ membership: Membership) -> String {
-        if !membership.billingEnabled {
-            return s(.accountStatusBetaFree)
+        if membership.isPremium {
+            return s(.premiumStatusActive)
         }
-        if membership.isSubscribed {
-            return s(.accountStatusActive)
+        if !membership.premiumEnabled {
+            return s(.premiumStatusBeta)
         }
-        return s(.accountTrialDaysLeft, ServerTime.daysUntil(membership.trialEndsAt))
+        return s(.premiumStatusFree, membership.freeDailyLikes, membership.freeOpenChats)
     }
 
     @ViewBuilder
@@ -213,16 +213,20 @@ struct AccountView: View {
                         .flexrText(.bodyMedium)
                         .foregroundStyle(FlexrColor.chalk)
 
-                    // Wer noch ein Abo aus der Zeit vor der Aussetzung hat, muss
-                    // es weiterhin kündigen können - der Verwalten-Link bleibt
-                    // dafür stehen. Ein Abschluss wird während der Gratisphase
-                    // gar nicht erst angeboten; der Server lehnt ihn mit 409 ab.
-                    if membership.isSubscribed {
+                    // Wer noch ein Abo aus der Zeit der alten Mitgliedsgebühr
+                    // hat, muss es kündigen können — auch während der Beta, in
+                    // der Premium selbst gar nicht abschließbar ist (der Server
+                    // lehnt den Checkout mit 409 ab).
+                    if membership.hasStripeSubscription {
                         FlexrLinkButton(title: s(.accountManageSubscription)) {
                             model.openBillingPortal()
                         }
-                    } else if membership.billingEnabled {
-                        FlexrLinkButton(title: s(.accountSubscribe)) { model.openCheckoutSheet() }
+                    } else if membership.premiumEnabled {
+                        // Führt auf den Premium-Bildschirm, schließt nichts ab:
+                        // Ein Klick im Konto soll nicht unmittelbar in einer
+                        // Zahlungserklärung enden, ohne dass jemand gelesen hat,
+                        // wofür.
+                        FlexrLinkButton(title: s(.premiumShowOffer)) { onOpen(.premium) }
                     }
                 }
             }
@@ -577,7 +581,8 @@ private struct VerificationHint: View {
     }
 }
 
-/// Auch von der Paywall aus benutzt - nach Ablauf des Probemonats ist der
+/// Auch vom Premium-Bildschirm aus benutzt - frueher war nach Ablauf des
+/// Probemonats der
 /// Konto-Screen nicht mehr erreichbar, die Selbstlöschung muss es aber bleiben
 /// (Punkt 5 der Datenschutzerklärung). Deshalb nicht privat.
 struct DeleteAccountSheet: View {

@@ -57,11 +57,10 @@ struct RegisterView: View {
                 ScreenHeader(
                     eyebrow: s(.registerEyebrow),
                     title: s(.registerTitle),
-                    // Beta-Gratisphase: Der Text steht fest im Code, weil vor
-                    // dem Login noch kein /api/billing/status abrufbar ist.
-                    // Wird die Gebühr wieder scharf geschaltet
-                    // (BILLING_ENABLED, backend/app/config.py), gehört hier
-                    // "1 Monat gratis testen, danach 5 €/Monat" zurück.
+                    // Der Text steht fest im Wörterbuch, weil vor dem Login
+                    // noch kein /api/billing/status abrufbar ist. Er nennt
+                    // deshalb bewusst nur die dauerhaft kostenlose Nutzung und
+                    // den Premium-Preis — keine Restkontingente.
                     subtitle: s(.registerSubtitle)
                 )
                 .padding(.top, 24)

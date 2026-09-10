@@ -3,12 +3,12 @@ import logging
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 
-from .. import consents, notifications
+from .. import consents, notifications, premium
 from ..database import get_db
 from ..gym_geo import coords_for_gym, gym_values_within
 from ..models import Block, Match, Swipe, User
 from ..rate_limit import limiter
-from ..schemas import ProfileOut, SwipeRequest, SwipeResult
+from ..schemas import IncomingLikesOut, ProfileOut, RewindResult, SwipeRequest, SwipeResult
 from ..security import require_active_membership
 from ..verification_service import account_visible_condition
 from .profiles import to_public_profile
@@ -122,6 +122,14 @@ def swipe(
     if payload.to_user_id == current_user.id:
         raise HTTPException(400, "Du kannst nicht mit dir selbst swipen.")
 
+    # Das Like-Kontingent des Standardkontos. Ein Pass kostet bewusst nichts:
+    # Wer weiterblaettern muss, um an Likes zu sparen, bekommt ein schlechtes
+    # Deck vorgesetzt und wir schlechtere Daten. Auch ein bereits gesetztes
+    # Like erneut zu senden (siehe existing_swipe weiter unten) zaehlt nicht
+    # doppelt - gezaehlt werden Swipe-Zeilen, nicht Aufrufe.
+    if payload.action == "like":
+        premium.ensure_like_allowed(db, current_user)
+
     target_user = (
         db.query(User)
         .filter(
@@ -188,4 +196,115 @@ def swipe(
                         )
             matched = True
 
-    return SwipeResult(matched=matched)
+    return SwipeResult(
+        matched=matched,
+        likes_remaining=premium.likes_remaining(db, current_user),
+    )
+
+
+@router.get("/incoming", response_model=IncomingLikesOut)
+def incoming_likes(
+    current_user: User = Depends(require_active_membership),
+    db: Session = Depends(get_db),
+):
+    """Wer dich geliket hat - eine Premium-Funktion.
+
+    Ohne Premium kommt bewusst **keine** 403, sondern nur die Anzahl ohne die
+    Profile: "3 Leute warten auf dich" ist die ehrliche Antwort und zugleich
+    der beste Grund, Premium anzusehen. Eine Fehlermeldung waere beides nicht.
+
+    Gezaehlt und geliefert werden nur Likes, auf die noch nicht zurueckgeswipet
+    wurde - was schon ein Match ist, steht in der Match-Liste, und ein Pass
+    soll nicht als offener Like wieder auftauchen.
+    """
+    eigene_swipes = {
+        row.to_user_id
+        for row in db.query(Swipe.to_user_id).filter(Swipe.from_user_id == current_user.id)
+    }
+    blockiert = {
+        row.blocked_id
+        for row in db.query(Block.blocked_id).filter(Block.blocker_id == current_user.id)
+    } | {
+        row.blocker_id
+        for row in db.query(Block.blocker_id).filter(Block.blocked_id == current_user.id)
+    }
+
+    likers = (
+        db.query(User)
+        .join(Swipe, Swipe.from_user_id == User.id)
+        .filter(
+            Swipe.to_user_id == current_user.id,
+            Swipe.action == "like",
+            User.deleted_at.is_(None),
+            User.is_banned.is_(False),
+            account_visible_condition(),
+        )
+        .order_by(Swipe.created_at.desc())
+        .all()
+    )
+    offen = [
+        u for u in likers if u.id not in eigene_swipes and u.id not in blockiert
+    ]
+
+    if not current_user.is_premium:
+        return IncomingLikesOut(count=len(offen), profiles=[], premium_required=True)
+    return IncomingLikesOut(
+        count=len(offen),
+        profiles=[to_public_profile(u) for u in offen],
+        premium_required=False,
+    )
+
+
+@router.post("/rewind", response_model=RewindResult)
+def rewind_last_swipe(
+    current_user: User = Depends(require_active_membership),
+    db: Session = Depends(get_db),
+):
+    """Den letzten Swipe zuruecknehmen - eine Premium-Funktion.
+
+    Der zurueckgenommene Swipe wird geloescht, das Profil taucht dadurch beim
+    naechsten Laden wieder im Deck auf (``deck_profiles`` schliesst genau die
+    bereits beswipeten aus).
+
+    **Ein Like, aus dem bereits ein Match entstanden ist, laesst sich nicht
+    zuruecknehmen.** Sonst verschwaende auf der Gegenseite ein Match wieder,
+    das ihr schon angezeigt und womoeglich per Mail gemeldet wurde - das
+    Zuruecknehmen ist als Notausgang fuer den eigenen Daumen gedacht, nicht als
+    Eingriff in fremde Chatlisten. Wer das Match wirklich los sein will, loest
+    es auf; das ist der dafuer vorgesehene Weg.
+    """
+    if not current_user.is_premium:
+        raise HTTPException(
+            403,
+            {
+                "code": "premium_required",
+                "message": (
+                    "Den letzten Swipe zurücknehmen gibt es mit FLEXR Premium."
+                ),
+            },
+        )
+
+    letzter = (
+        db.query(Swipe)
+        .filter(Swipe.from_user_id == current_user.id)
+        .order_by(Swipe.created_at.desc())
+        .first()
+    )
+    if not letzter:
+        raise HTTPException(404, "Es gibt keinen Swipe zum Zurücknehmen.")
+
+    a, b = sorted([current_user.id, letzter.to_user_id])
+    if db.query(Match).filter(Match.user_a_id == a, Match.user_b_id == b).first():
+        raise HTTPException(
+            409,
+            "Daraus ist schon ein Match geworden - das lässt sich nur auflösen, "
+            "nicht zurücknehmen.",
+        )
+
+    zurueckgenommen = letzter.to_user_id
+    db.delete(letzter)
+    db.commit()
+    return RewindResult(
+        to_user_id=zurueckgenommen,
+        likes_remaining=premium.likes_remaining(db, current_user),
+    )

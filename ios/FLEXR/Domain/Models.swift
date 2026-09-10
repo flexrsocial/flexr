@@ -108,14 +108,29 @@ struct PushNotification: Identifiable, Hashable, Sendable {
     let target: String?
 }
 
+/// Was dieses Konto darf.
+///
+/// Die Nutzung von FLEXR ist dauerhaft kostenlos — es gibt keinen Zustand mehr,
+/// in dem ein freigeschaltetes Konto die App nicht benutzen darf. Was Premium
+/// zusätzlich kann und wo die Grenzen des kostenlosen Kontos liegen,
+/// entscheidet ausschließlich der Server.
 struct Membership: Hashable, Sendable {
-    let isSubscribed: Bool
-    let trialEndsAt: Date
-    let isActive: Bool
-    /// Ist die Abogebühr überhaupt scharf geschaltet? Während der Beta ist sie
-    /// ausgesetzt: keine Bezahlwand, keine Restlaufzeit, keine Preise.
-    /// Entschieden wird das serverseitig, nicht in der App.
-    let billingEnabled: Bool
+    /// Läuft ein Premium-Abo? Nur wahr, wenn Premium scharf geschaltet ist.
+    let isPremium: Bool
+    /// Ist Premium überhaupt schon kaufbar? In der Beta: nein.
+    let premiumEnabled: Bool
+    /// Ein Stripe-Abo, das gekündigt werden können muss — auch in der Beta.
+    let hasStripeSubscription: Bool
+    let priceCents: Int
+    let currency: String
+    let freeDailyLikes: Int
+    let freeOpenChats: Int
+    let freeMaxRadiusKm: Int
+    let maxRadiusKm: Int
+    /// nil = unbegrenzt (Beta oder Premium).
+    let likesRemaining: Int?
+    let openChatsRemaining: Int?
+    let nextLikeAt: Date?
 }
 
 struct Message: Identifiable, Hashable, Sendable {

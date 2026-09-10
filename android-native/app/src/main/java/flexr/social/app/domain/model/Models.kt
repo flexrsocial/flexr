@@ -110,16 +110,31 @@ data class PushNotification(
     val target: String?,
 )
 
+/**
+ * Was dieses Konto darf.
+ *
+ * Die Nutzung von FLEXR ist dauerhaft kostenlos - es gibt keinen Zustand mehr,
+ * in dem ein freigeschaltetes Konto die App nicht benutzen darf. Was Premium
+ * zusaetzlich kann und wo die Grenzen des kostenlosen Kontos liegen, entscheidet
+ * ausschliesslich der Server.
+ */
 data class Membership(
-    val isSubscribed: Boolean,
-    val trialEndsAt: Instant,
-    val isActive: Boolean,
-    /**
-     * Ist die Abogebuehr ueberhaupt scharf geschaltet? Waehrend der Beta ist
-     * sie ausgesetzt: keine Bezahlwand, keine Restlaufzeit, keine Preise.
-     * Entschieden wird das serverseitig, nicht in der App.
-     */
-    val billingEnabled: Boolean,
+    /** Laeuft ein Premium-Abo? Nur wahr, wenn Premium scharf geschaltet ist. */
+    val isPremium: Boolean,
+    /** Ist Premium ueberhaupt schon kaufbar? In der Beta: nein. */
+    val premiumEnabled: Boolean,
+    /** Ein Stripe-Abo, das gekuendigt werden koennen muss - auch in der Beta. */
+    val hasStripeSubscription: Boolean,
+    val priceCents: Int,
+    val currency: String,
+    val freeDailyLikes: Int,
+    val freeOpenChats: Int,
+    val freeMaxRadiusKm: Int,
+    val maxRadiusKm: Int,
+    /** null = unbegrenzt (Beta oder Premium). */
+    val likesRemaining: Int?,
+    val openChatsRemaining: Int?,
+    val nextLikeAt: Instant?,
 )
 
 data class Message(

@@ -182,13 +182,36 @@ struct AddPhotoRequestDTO: Encodable {
 
 // MARK: - Billing
 
+/// Antwort von `GET /api/billing/status`.
+///
+/// Seit dem 10.09.2026 ist die Nutzung von FLEXR dauerhaft kostenlos; bezahlt
+/// wird nur das freiwillige Zusatzpaket FLEXR Premium. Alle Zahlen — Preis,
+/// Grenzen, Restkontingente — kommen fertig vom Server, damit Web, Android und
+/// iOS nicht dreimal dieselbe Formel treffen müssen.
+///
+/// **Jedes Feld ist optional.** Ein Server, der eines noch nicht liefert, darf
+/// die App nicht am Dekodieren hindern — genau daran wäre eine ältere Fassung
+/// gescheitert, hätten wir die Altfelder unten einfach entfernt.
 struct MembershipStatusDTO: Decodable {
-    let isSubscribed: Bool
-    let trialEndsAt: String
-    let isActive: Bool
-    /// false = Abogebühr ausgesetzt, FLEXR ist für alle kostenlos (siehe
-    /// `backend/app/config.py`). Optional, damit ältere Server, die das Feld
-    /// noch nicht liefern, beim bisherigen Verhalten bleiben.
+    let isPremium: Bool?
+    let premiumEnabled: Bool?
+    let hasStripeSubscription: Bool?
+    let priceCents: Int?
+    let currency: String?
+    let freeDailyLikes: Int?
+    let freeOpenChats: Int?
+    let freeMaxRadiusKm: Int?
+    let maxRadiusKm: Int?
+    /// nil = unbegrenzt (Beta oder Premium).
+    let likesRemaining: Int?
+    let openChatsRemaining: Int?
+    let nextLikeAt: String?
+
+    // Altfelder, vom Server nur noch für Clients vor 2.6.0 geliefert. Diese
+    // Fassung wertet sie nicht mehr aus.
+    let isSubscribed: Bool?
+    let trialEndsAt: String?
+    let isActive: Bool?
     let billingEnabled: Bool?
 }
 

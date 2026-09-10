@@ -113,9 +113,12 @@ fun FlexrApp(
         }
     }
 
-    // Rückkehr aus dem Stripe-Checkout im Browser: Abo-Status neu holen.
+    // Rueckkehr aus dem Stripe-Checkout im Browser: Premium-Status neu holen.
+    // Frueher nur im gesperrten Zustand - den gibt es nicht mehr, also bei
+    // jeder Rueckkehr in den Vordergrund. Der Aufruf ist billig und haelt
+    // zugleich das Like-Kontingent aktuell.
     LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
-        if (appState is AppState.Locked) viewModel.refreshMembership()
+        if (appState is AppState.Ready) viewModel.refreshMembership()
     }
     LaunchedEffect(intentData) {
         if (intentData?.scheme == "flexr") viewModel.refreshMembership()
@@ -149,14 +152,6 @@ fun FlexrApp(
                     snackbarHostState = snackbarHostState,
                     onLogout = viewModel::logout,
                     onReloadSession = viewModel::loadSession,
-                    onShowMessage = showMessage,
-                )
-
-                is AppState.Locked -> LockedGraph(
-                    membership = state.membership,
-                    snackbarHostState = snackbarHostState,
-                    onLogout = viewModel::logout,
-                    onOpenUrl = { context.openExternalPage(it) },
                     onShowMessage = showMessage,
                 )
 
@@ -353,46 +348,11 @@ private fun VerificationGraph(
     }
 }
 
-// ---------- Angemeldet, aber Probemonat abgelaufen ----------
-
-@Composable
-private fun LockedGraph(
-    membership: Membership,
-    snackbarHostState: SnackbarHostState,
-    onLogout: () -> Unit,
-    onOpenUrl: (String) -> Unit,
-    onShowMessage: (String) -> Unit,
-) {
-    val navController = rememberNavController()
-    val (language, onSelectLanguage) = rememberLanguageControls()
-
-    Scaffold(
-        containerColor = Color.Transparent,
-        snackbarHost = { SnackbarHost(snackbarHostState) { data -> FlexrSnackbar(data) } },
-        topBar = {
-            FlexrTopBar(
-                statusSlot = { MembershipPill(membership) },
-                language = language,
-                onSelectLanguage = onSelectLanguage,
-            )
-        },
-    ) { padding ->
-        NavHost(
-            navController = navController,
-            startDestination = Routes.PAYWALL,
-            modifier = Modifier.fillMaxSize().padding(padding),
-        ) {
-            composable(Routes.PAYWALL) {
-                PaywallScreen(
-                    onLogout = onLogout,
-                    onOpenUrl = onOpenUrl,
-                    onShowMessage = onShowMessage,
-                )
-            }
-            legalDestination(navController)
-        }
-    }
-}
+// Hier stand bis zum 10.09.2026 der LockedGraph: der Zustand nach Ablauf des
+// Probemonats, in dem nur noch die Bezahlwand erreichbar war. Die Plattform ist
+// seither dauerhaft kostenlos - es gibt keinen Zustand mehr, in dem ein
+// freigeschaltetes Konto die App nicht benutzen darf. Der Premium-Bildschirm
+// ist jetzt Teil des Kontobereichs und wird aufgerufen, nicht erzwungen.
 
 // ---------- Vollständige App ----------
 
@@ -493,6 +453,18 @@ private fun MainGraph(
                     onOpenVerification = { navController.navigate(Routes.VERIFICATION) },
                     onOpenDocumentStep = { navController.navigate(Routes.VERIFICATION_DOCUMENT) },
                     onOpenLegal = { navController.navigate(Routes.legal(it)) },
+                    onOpenPremium = { navController.navigate(Routes.PAYWALL) },
+                    onOpenUrl = onOpenUrl,
+                    onShowMessage = onShowMessage,
+                )
+            }
+
+            // FLEXR Premium. Frueher der Zwangsbildschirm nach Ablauf des
+            // Probemonats (eigener Navigationsgraph), jetzt ein normales Ziel
+            // im Kontobereich, das man aufruft und wieder verlaesst.
+            composable(Routes.PAYWALL) {
+                PaywallScreen(
+                    onBack = { navController.popBackStack() },
                     onOpenUrl = onOpenUrl,
                     onShowMessage = onShowMessage,
                 )
@@ -570,17 +542,23 @@ private fun androidx.navigation.NavGraphBuilder.legalDestination(navController: 
     }
 }
 
-/** Statusanzeige im Kopf: Abo aktiv, Resttage im Probemonat oder abgelaufen. */
+/**
+ * Statusanzeige im Kopf.
+ *
+ * Es gibt nichts mehr herunterzuzaehlen: Frueher stand hier die Restlaufzeit
+ * des Probemonats. Was knapp werden kann, sind die Likes des kostenlosen
+ * Kontos - und genau die zeigt die Pille jetzt.
+ */
 @Composable
 private fun MembershipPill(membership: Membership) {
+    val rest = membership.likesRemaining
     when {
-        // Kein Countdown, solange nichts ablaeuft - sonst liest sich die Pille
-        // wie eine Frist, die es gerade gar nicht gibt.
-        !membership.billingEnabled -> StatusPill(stringResource(R.string.status_beta_free))
-        membership.isSubscribed -> StatusPill(stringResource(R.string.status_subscribed))
-        membership.isActive -> StatusPill(
-            stringResource(R.string.status_trial_days, ServerTime.daysUntil(membership.trialEndsAt)),
+        membership.isPremium -> StatusPill(stringResource(R.string.status_premium))
+        !membership.premiumEnabled -> StatusPill(stringResource(R.string.status_beta_free))
+        rest == null -> StatusPill(stringResource(R.string.status_free))
+        else -> StatusPill(
+            stringResource(R.string.status_likes_left, rest),
+            expired = rest == 0,
         )
-        else -> StatusPill(stringResource(R.string.status_expired), expired = true)
     }
 }

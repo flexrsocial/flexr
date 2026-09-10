@@ -212,12 +212,11 @@ def englische_kopfdaten(html: str, texte: dict[str, str]) -> str:
             'matches by gym and radius.",',
         ),
         (
-            '"description": "Während der Beta-Phase kostenlos: Die Mitgliedschaft von 5 € '
-            'pro Monat ist bis auf weiteres ausgesetzt, für neue wie bestehende Konten. '
-            'Es wird kein Zahlungsmittel hinterlegt."',
-            '"description": "Free during the beta: the €5 per month membership is suspended '
-            'until further notice, for new and existing accounts alike. '
-            'No payment method is stored."',
+            '"description": "Die Nutzung von FLEXR ist dauerhaft kostenlos; es wird kein '
+            'Zahlungsmittel hinterlegt. FLEXR Premium kostet 10 € pro Monat, ist freiwillig '
+            'und monatlich kündbar."',
+            '"description": "Using FLEXR is permanently free; no payment method is stored. '
+            'FLEXR Premium costs €10 per month, is optional and can be cancelled monthly."',
         ),
         ('"areaServed": { "@type": "Country", "name": "Österreich" }',
          '"areaServed": { "@type": "Country", "name": "Austria" }'),

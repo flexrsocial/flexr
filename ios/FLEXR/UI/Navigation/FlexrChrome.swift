@@ -44,7 +44,11 @@ struct FlexrTopBar<Status: View>: View {
     }
 }
 
-/// Statusanzeige im Kopf: Abo aktiv, Resttage im Probemonat oder abgelaufen.
+/// Statusanzeige im Kopf.
+///
+/// Es gibt nichts mehr herunterzuzählen: Früher stand hier die Restlaufzeit des
+/// Probemonats. Was knapp werden kann, sind die Likes des kostenlosen Kontos —
+/// und genau die zeigt die Pille jetzt.
 struct MembershipPill: View {
     let membership: Membership
 
@@ -52,16 +56,14 @@ struct MembershipPill: View {
     private var s: FlexrStrings { languageStore.strings }
 
     var body: some View {
-        if !membership.billingEnabled {
-            // Kein Countdown, solange nichts abläuft - sonst liest sich die
-            // Pille wie eine Frist, die es gerade gar nicht gibt.
+        if membership.isPremium {
+            StatusPill(text: s(.statusPremium))
+        } else if !membership.premiumEnabled {
             StatusPill(text: s(.statusBetaFree))
-        } else if membership.isSubscribed {
-            StatusPill(text: s(.statusSubscribed))
-        } else if membership.isActive {
-            StatusPill(text: s(.statusTrialDays, ServerTime.daysUntil(membership.trialEndsAt)))
+        } else if let rest = membership.likesRemaining {
+            StatusPill(text: s(.statusLikesLeft, rest), isExpired: rest == 0)
         } else {
-            StatusPill(text: s(.statusExpired), isExpired: true)
+            StatusPill(text: s(.statusFree))
         }
     }
 }

@@ -542,6 +542,53 @@
   .round-btn.like svg.ico{ width:28px; height:28px; }
   .round-btn.like:hover{ transform:translateY(-2px); box-shadow:0 12px 28px rgba(255,90,31,.45), inset 0 1px 0 rgba(255,255,255,.3); }
   .round-btn:active{ transform:scale(0.92); }
+  /* Zuruecknehmen ist die leiseste der drei Aktionen - kleiner und ohne
+     eigene Farbe, damit sie neben Like/Pass nicht wie eine dritte
+     gleichrangige Entscheidung wirkt. */
+  .round-btn.rewind{ width:46px; height:46px; color:var(--chalk-dim); }
+  .round-btn.rewind svg.ico{ width:20px; height:20px; }
+  .round-btn.rewind:hover{ border-color:var(--plate); color:var(--plate); }
+  .round-btn:disabled{ opacity:.4; cursor:default; transform:none; }
+
+  /* Rest-Likes unter den Aktionsknoepfen. Mono, damit die wechselnde Zahl die
+     Zeile nicht in der Breite springen laesst. */
+  .like-counter{
+    text-align:center; margin-top:2px; font-family:'JetBrains Mono', monospace;
+    font-size:11.5px; letter-spacing:0.07em; color:var(--chalk-dim);
+  }
+  .like-counter.empty-quota{ color:var(--plate); }
+  .like-counter button{
+    background:none; border:none; padding:0 0 0 6px; cursor:pointer;
+    font:inherit; color:var(--plate); text-decoration:underline;
+  }
+
+  /* "Wer dich geliket hat" ueber der Match-Liste. */
+  .incoming-card{
+    width:100%; display:flex; align-items:center; gap:14px; text-align:left;
+    padding:14px 16px; margin-bottom:16px; cursor:pointer;
+    background:var(--surface); border:1px solid var(--steel); border-radius:14px;
+    color:var(--chalk); font-family:inherit;
+  }
+  .incoming-card:hover{ border-color:var(--plate); }
+  .incoming-count{
+    flex-shrink:0; min-width:38px; height:38px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    background:linear-gradient(135deg, var(--plate-bright), var(--plate) 55%, #ef4c15);
+    color:#191008; font-family:'Oswald', sans-serif; font-weight:600; font-size:16px;
+  }
+  .incoming-text{ flex:1; min-width:0; display:flex; flex-direction:column; gap:2px; }
+  .incoming-title{ font-size:14px; }
+  .incoming-sub{ font-size:12px; color:var(--chalk-dim); }
+  .incoming-chev{ width:18px; height:18px; color:var(--chalk-dim); flex-shrink:0; }
+
+  /* Premium-Abzeichen neben dem Namen - dieselbe Groesse wie der
+     Verifiziert-Haken, damit beide nebeneinander ruhig wirken. */
+  .premium-badge{
+    display:inline-flex; align-items:center; justify-content:center;
+    width:17px; height:17px; margin-left:5px; vertical-align:-2px;
+    color:var(--plate);
+  }
+  .premium-badge svg{ width:100%; height:100%; fill:currentColor; }
 
   .empty{
     display:flex; flex-direction:column; align-items:center; justify-content:center;
@@ -1584,6 +1631,7 @@
     box-shadow:0 0 0 3px var(--plate-glow), 0 0 10px var(--plate-glow);
   }
   .radius-value{ font-size:12.5px; color:var(--chalk); min-width:52px; text-align:right; }
+  .radius-hint.over-cap{ color:var(--plate); }
   .radius-hint{ font-size:11.5px; color:var(--chalk-dim); margin-top:6px; }
   .account-section-title{
     font-family:'JetBrains Mono', monospace; font-size:11px; letter-spacing:0.1em; text-transform:uppercase;
@@ -1797,8 +1845,8 @@
      (DACH-Raum -> Deutsch), i18n-app.js das Woerterbuch dieser Seite. Beide
      laufen synchron und damit vor dem DOMContentLoaded, bei dem FlexrI18n die
      data-i18n-Knoten uebersetzt. -->
-<script src="/i18n.js?v=2"></script>
-<script src="/app/i18n-app.js?v=2"></script>
+<script src="/i18n.js?v=3"></script>
+<script src="/app/i18n-app.js?v=3"></script>
 <a class="skip-link" href="#main-content" data-i18n="common.skipToContent">Zum Inhalt springen</a>
 <div class="app" id="app">
 
@@ -1828,7 +1876,7 @@
              wieder scharf geschaltet (BILLING_ENABLED=true, siehe
              backend/app/config.py), gehoeren beide zurueck auf "1 Monat gratis,
              danach 5 EUR/Monat". -->
-        <li data-i18n-html="hero.usp2">In der Beta gratis — die 5&nbsp;€/Monat sind bis auf weiteres ausgesetzt</li>
+        <li data-i18n-html="hero.usp2">Dauerhaft gratis — FLEXR Premium (10&nbsp;€/Monat) ist freiwillig</li>
         <li data-i18n-html="hero.usp3">Echte Profile: Melde- &amp; Blockfunktion inklusive</li>
       </ul>
       <!-- Hier stand bis zum 15.08.2026 ein Demo-Deck mit acht Fotos echter
@@ -2011,7 +2059,7 @@
       <div class="eyebrow" data-i18n="reg.eyebrow">Erste Wiederholung</div>
       <h1 class="headline" data-i18n-html="reg.h1">Dating für Leute,<br>die auch Montags<br>Beintag machen.</h1>
       <!-- Beta-Gratisphase, siehe Kommentar bei den Hero-USPs. -->
-      <p class="sub" data-i18n-html="reg.sub">Erstell dein Profil — kostenlos. Während der Beta-Phase bleibt FLEXR kostenlos; die Mitgliedschaft von 5&nbsp;€/Monat ist bis auf weiteres ausgesetzt. Es wird kein Zahlungsmittel abgefragt. Aktuell nur in Österreich verfügbar.</p>
+      <p class="sub" data-i18n-html="reg.sub">Erstell dein Profil — kostenlos, und das dauerhaft. FLEXR zu nutzen kostet nichts; es wird kein Zahlungsmittel abgefragt. FLEXR&nbsp;Premium (10&nbsp;€/Monat, jederzeit kündbar) kommt nach der Beta und ist freiwillig. Aktuell nur in Österreich verfügbar.</p>
 
       <label for="f-email" data-i18n="login.email">E-Mail</label>
       <input type="email" id="f-email" placeholder="max@example.com" autocomplete="email" inputmode="email">
@@ -2127,6 +2175,12 @@
       <h2 class="headline" style="font-size:22px; margin-bottom:16px;" data-i18n="swipe.h2">Wer trainiert wo du bist</h2>
       <div class="deck" id="deck"><div class="loading" data-i18n="swipe.loading">Lade Profile …</div></div>
       <div class="swipe-actions" id="swipeActions" style="display:none;">
+        <!-- Zuruecknehmen steht links vom Ablehnen: Es bezieht sich auf den
+             Swipe davor, nicht auf die Karte, die gerade liegt. Nur mit
+             Premium sichtbar. -->
+        <button class="round-btn rewind" id="btnRewind" style="display:none;" data-i18n-aria="swipe.rewind" aria-label="Letzten Swipe zurücknehmen">
+          <svg class="ico" viewBox="0 0 24 24"><path d="M9 14 4.5 9.5 9 5"/><path d="M4.5 9.5H14a5.5 5.5 0 0 1 0 11h-3"/></svg>
+        </button>
         <button class="round-btn pass" id="btnPass" data-i18n-aria="swipe.pass" aria-label="Ablehnen">
           <svg class="ico" viewBox="0 0 24 24"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/></svg>
         </button>
@@ -2134,13 +2188,35 @@
           <svg class="ico" viewBox="0 0 24 24"><path d="M12 20.3S4.8 15.7 4.8 10.8C4.8 8 6.9 6 9.3 6c1.2 0 2.3.55 2.7 1.4C12.4 6.55 13.5 6 14.7 6c2.4 0 4.5 2 4.5 4.8 0 4.9-7.2 9.5-7.2 9.5z" fill="currentColor" stroke="none"/></svg>
         </button>
       </div>
+      <!-- Nur fuer Standardkonten nach der Beta. Waehrend der Beta und mit
+           Premium gibt es nichts zu zaehlen, dann bleibt die Zeile weg. -->
+      <div class="like-counter" id="likeCounter" style="display:none;" aria-live="polite"></div>
     </section>
 
     <!-- MATCHES -->
     <section class="screen" id="screen-matches">
       <div class="eyebrow" data-i18n="matches.eyebrow">Trefferquote</div>
       <h2 class="headline" style="font-size:22px; margin-bottom:16px;" data-i18n="matches.h2">Deine Matches</h2>
+      <!-- "Wer dich geliket hat". Die ZAHL sieht jeder - sie ist die ehrliche
+           Antwort auf die Frage und zugleich der beste Grund, sich Premium
+           anzusehen. Die Profile dahinter gibt es nur mit Premium. -->
+      <button class="incoming-card" id="incomingLikes" style="display:none;" type="button">
+        <span class="incoming-count" id="incomingCount">0</span>
+        <span class="incoming-text">
+          <span class="incoming-title" id="incomingTitle" data-i18n="incoming.title">Leute haben dich geliket</span>
+          <span class="incoming-sub" id="incomingSub" data-i18n="incoming.subFree">Mit FLEXR Premium siehst du, wer</span>
+        </span>
+        <svg class="ico incoming-chev" viewBox="0 0 24 24"><path d="M9 5.5 16 12l-7 6.5"/></svg>
+      </button>
       <div id="matchList"><div class="loading" data-i18n="matches.loading">Lade Matches …</div></div>
+    </section>
+
+    <!-- Liste der eingehenden Likes (nur mit Premium befuellt) -->
+    <section class="screen" id="screen-incoming">
+      <div class="eyebrow" data-i18n="incoming.eyebrow">Offene Likes</div>
+      <h2 class="headline" style="font-size:22px; margin-bottom:16px;" data-i18n="incoming.h2">Wer dich geliket hat</h2>
+      <div id="incomingList"><div class="loading" data-i18n="incoming.loading">Lade …</div></div>
+      <button class="btn secondary" id="btnIncomingBack" style="margin-top:18px;" data-i18n="common.back">Zurück</button>
     </section>
 
     <!-- CHATS -->
@@ -2211,7 +2287,10 @@
 
       <div class="account-membership-note">
         <span id="acctStatusText"></span>
-        <button class="membership-link" id="btnSubscribe" data-i18n="acct.subscribe">Jetzt abonnieren</button>
+        <!-- Fuehrt auf den Premium-Screen, schliesst nichts ab. Der Abschluss
+             selbst braucht die Erklaerung nach § 10 FAGG und laeuft deshalb
+             ueber dasselbe Overlay wie bisher. -->
+        <button class="membership-link" id="btnSubscribe" data-i18n="premium.showOffer">FLEXR Premium ansehen</button>
         <button class="membership-link" id="btnManageSubscription" style="display:none;" data-i18n="acct.manageSub">Abo verwalten / kündigen</button>
       </div>
 
@@ -2579,30 +2658,35 @@
     </section>
 
     <!-- PAYWALL BLOCK -->
-    <section class="screen" id="screen-paywall">
-      <div class="empty" style="padding-bottom:28px;">
-        <div class="empty-icon"><svg class="ico" viewBox="0 0 24 24"><rect x="5.5" y="10.5" width="13" height="9" rx="2.5"/><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5"/></svg></div>
-        <div class="empty-title" data-i18n="paywall.title">Probemonat vorbei</div>
-        <div class="empty-sub" data-i18n="paywall.sub">Dein kostenloser Monat ist abgelaufen — es wurde nichts abgebucht und es läuft nichts weiter. Wenn du möchtest, schalte FLEXR jetzt frei.</div>
+    <!-- FLEXR Premium. War bis zum 10.09.2026 die Bezahlwand ("Probemonat
+         vorbei"), auf die man nach Ablauf zwangsweise landete. Jetzt ein
+         Angebot, das man von sich aus aufruft: Die Nutzung von FLEXR kostet
+         dauerhaft nichts, dieser Screen erklaert nur, was Premium zusaetzlich
+         kann. Erreichbar ueber den Konto-Bereich, nie erzwungen. -->
+    <section class="screen" id="screen-premium">
+      <div class="empty" style="padding-bottom:24px;">
+        <div class="empty-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M12 3.5 14.6 9l6 .9-4.3 4.2 1 6-5.3-2.8L6.7 20l1-6L3.4 9.9l6-.9z"/></svg></div>
+        <div class="empty-title" data-i18n="premium.title">FLEXR Premium</div>
+        <div class="empty-sub" data-i18n="premium.sub">FLEXR zu nutzen kostet nichts — dauerhaft. Premium ist für alle, die mehr wollen: ohne Like-Grenze, ohne Chat-Grenze, mit voller Reichweite.</div>
       </div>
       <div class="price-card">
-        <div class="price-eyebrow" data-i18n="paywall.eyebrow">Mitgliedschaft</div>
-        <div class="price">5&nbsp;€ <small data-i18n="paywall.perMonth">/ Monat</small></div>
+        <div class="price-eyebrow" data-i18n="premium.eyebrow">Monatlich kündbar</div>
+        <div class="price"><span id="premiumPrice">10&nbsp;€</span> <small data-i18n="premium.perMonth">/ Monat</small></div>
         <ul class="price-feats">
-          <li><svg class="ico" viewBox="0 0 24 24"><path d="M5 12.5 10 17 19 7"/></svg><span data-i18n-html="paywall.feat1">Unbegrenzt swipen &amp; matchen in deiner Stadt</span></li>
-          <li><svg class="ico" viewBox="0 0 24 24"><path d="M5 12.5 10 17 19 7"/></svg><span data-i18n="paywall.feat2">Chat mit allen Matches inklusive</span></li>
-          <li><svg class="ico" viewBox="0 0 24 24"><path d="M5 12.5 10 17 19 7"/></svg><span data-i18n="paywall.feat3">Monatlich kündbar, keine Mindestlaufzeit, keine versteckten Kosten</span></li>
+          <li><svg class="ico" viewBox="0 0 24 24"><path d="M5 12.5 10 17 19 7"/></svg><span id="premiumFeatLikes" data-i18n="premium.featLikes">Unbegrenzt liken statt 20 pro Tag</span></li>
+          <li><svg class="ico" viewBox="0 0 24 24"><path d="M5 12.5 10 17 19 7"/></svg><span id="premiumFeatChats" data-i18n="premium.featChats">So viele Unterhaltungen gleichzeitig, wie du willst</span></li>
+          <li><svg class="ico" viewBox="0 0 24 24"><path d="M5 12.5 10 17 19 7"/></svg><span data-i18n="premium.featIncoming">Sehen, wer dich schon geliket hat</span></li>
+          <li><svg class="ico" viewBox="0 0 24 24"><path d="M5 12.5 10 17 19 7"/></svg><span data-i18n="premium.featRewind">Den letzten Swipe zurücknehmen</span></li>
+          <li><svg class="ico" viewBox="0 0 24 24"><path d="M5 12.5 10 17 19 7"/></svg><span id="premiumFeatRadius" data-i18n="premium.featRadius">Voller Suchumkreis bis 250 km statt 50 km</span></li>
+          <li><svg class="ico" viewBox="0 0 24 24"><path d="M5 12.5 10 17 19 7"/></svg><span data-i18n="premium.featBadge">Premium-Abzeichen in deinem Profil</span></li>
         </ul>
-        <button class="btn" id="btnSubscribe2" data-i18n="acct.subscribe">Jetzt abonnieren</button>
+        <button class="btn" id="btnSubscribe2" data-i18n="premium.subscribe">Premium holen</button>
+        <!-- Solange der Server premium_enabled=false meldet (Beta), steht hier
+             statt des Knopfes der Hinweis, dass es das noch nicht gibt. -->
+        <div class="photo-hint" id="premiumBetaHint" style="display:none;" data-i18n="premium.betaHint">FLEXR Premium kommt nach der Beta-Phase. Bis dahin ist alles unbegrenzt — ohne Kosten und ohne Zahlungsmittel.</div>
       </div>
-      <!-- Ohne diese beiden Knöpfe wäre der abgelaufene Probemonat eine
-           Sackgasse: die untere Navigation ist ausgeblendet, der Konto-Screen
-           damit unerreichbar - und mit ihm Ausloggen und die Selbstlöschung,
-           auf die Punkt 5 der Datenschutzerklärung ausdrücklich verweist. -->
-      <div class="account-section" style="margin-top:24px;">
-        <div class="account-section-title" data-i18n="common.account">Konto</div>
-        <button class="btn secondary" id="btnLogoutPaywall" data-i18n="common.logout">Ausloggen</button>
-        <button class="btn danger-ghost" id="btnDeleteAccountPaywall" data-i18n="common.deleteAccount">Konto löschen</button>
+      <div class="account-section" style="margin-top:20px;">
+        <button class="btn secondary" id="btnPremiumBack" data-i18n="common.back">Zurück</button>
       </div>
     </section>
 
@@ -2808,11 +2892,12 @@
         sich noch.
       </p>
       <div class="beta-free" data-i18n-html="beta.free">
-        <b>Solange die Beta läuft, kostet FLEXR nichts.</b>
-        Die Mitgliedschaft von 5&nbsp;€ pro Monat ist bis auf weiteres
-        ausgesetzt — für neue und für bestehende Konten. Es wird kein
-        Zahlungsmittel abgefragt und nichts abgebucht. Wenn die Gebühr später
-        starten soll, sagen wir das vorher an.
+        <b>FLEXR zu nutzen kostet nichts — dauerhaft.</b>
+        Kein Probemonat, keine Mitgliedsgebühr, kein Zahlungsmittel. Nach der
+        Beta kommt <b class="inline">FLEXR&nbsp;Premium</b> für 10&nbsp;€ im
+        Monat dazu: freiwillig, monatlich kündbar und nur für alle, die mehr
+        wollen als die 20 Likes und 3 Unterhaltungen pro Tag, die dann für
+        Standardkonten gelten. Während der Beta ist auch das unbegrenzt.
       </div>
       <ul class="beta-dates">
         <li><b>Android</b><span data-i18n="beta.android">Veröffentlichung geplant für Ende September 2026</span></li>
@@ -2835,6 +2920,8 @@
     color:var(--chalk-dim); font-size:14px; line-height:1.55;
   }
   .beta-free b{ color:var(--lime); display:block; margin-bottom:3px; }
+  /* Zweite Hervorhebung mitten im Satz - die darf keine eigene Zeile bekommen. */
+  .beta-free b.inline{ display:inline; margin:0; color:var(--plate); }
   .beta-eyebrow{
     font-family:'Oswald', sans-serif; font-size:12px; letter-spacing:.22em;
     text-transform:uppercase; color:var(--plate); margin:0;
@@ -2862,9 +2949,11 @@
 (function(){
   // Der Merker traegt eine Version im Namen: Verschieben sich die Termine,
   // zeigt ein hochgezaehlter Schluessel den Hinweis allen Nutzern erneut.
-  // v2 seit 07.09.2026: Der Dialog nennt jetzt die ausgesetzte Abogebuehr.
-  // Wer v1 schon weggeklickt hatte, soll genau das noch mitbekommen.
-  var KEY = 'flexr_beta_notice_v2';
+  // v3 seit 10.09.2026: Aus der "ausgesetzten Abogebuehr" ist eine dauerhaft
+  // kostenlose Plattform mit optionalem Premium geworden. Das ist die
+  // wichtigste Aussage des Dialogs - wer v2 weggeklickt hatte, saehe sie
+  // sonst nie.
+  var KEY = 'flexr_beta_notice_v3';
   var backdrop = document.getElementById('betaBackdrop');
   if (!backdrop) return;
 
@@ -3240,6 +3329,24 @@
     return p && p.is_verified ? VERIFIED_BADGE_SVG() : '';
   }
 
+  /* Premium-Abzeichen neben dem Namen. Steht immer NACH dem Verifiziert-Haken:
+     verifiziert ist eine Aussage ueber die Person, Premium eine ueber das Abo -
+     die wichtigere zuerst. */
+  const PREMIUM_BADGE_SVG = () =>
+    '<span class="premium-badge" title="' + escapeHtml(t('premium.badgeTitle')) + '" aria-label="' +
+    escapeHtml(t('premium.badgeTitle')) + '"><svg viewBox="0 0 24 24" aria-hidden="true">' +
+    '<path d="M12 3.5 14.6 9l6 .9-4.3 4.2 1 6-5.3-2.8L6.7 20l1-6L3.4 9.9l6-.9z"/></svg></span>';
+
+  function premiumBadge(p){
+    return p && p.is_premium ? PREMIUM_BADGE_SVG() : '';
+  }
+
+  /* Name mit allen Abzeichen - eine Stelle, damit Deck, Matchliste,
+     Match-Profil und Kontokopf nicht auseinanderlaufen. */
+  function nameWithBadges(p, text){
+    return escapeHtml(text) + verifiedBadge(p) + premiumBadge(p);
+  }
+
   // Für kleine Avatare: Thumbnail bevorzugen, sonst Vollbild (Bestandsfotos)
   function photoThumb(photo){
     if(!photo) return '';
@@ -3285,17 +3392,11 @@
       $('bottomNav').style.display = 'none';
       throw new Error(t('err.session'));
     }
-    // 402 = Probemonat abgelaufen. Kann mitten in einer offenen Sitzung
-    // auftreten (Polling im Chat, Deck nachladen) - dann gehört der Nutzer auf
-    // den Paywall-Screen statt in eine Ansicht, die stumm nichts mehr nachlädt.
-    if(res.status === 402){
-      if(membership) membership.is_active = false;
-      stopChatPolling();
-      stopUnreadPolling();
-      $('bottomNav').style.display = 'none';
-      showScreen('screen-paywall');
-      throw new Error(t('err.trialOver'));
-    }
+    // 402 hiess frueher "Probemonat abgelaufen" und schickte den Nutzer auf
+    // die Bezahlwand. Die gibt es seit dem 10.09.2026 nicht mehr, der Server
+    // sendet 402 nirgends. Der Zweig ist deshalb ersatzlos entfallen -
+    // Grenzen des Standardkontos kommen als 403 mit eigenem `code` und werden
+    // dort behandelt, wo sie entstehen (Like, Chat), nicht global.
     let data = null;
     try{ data = await res.json(); }catch(e){ /* kein JSON-Body */ }
 
@@ -3508,9 +3609,9 @@
         body: JSON.stringify({content_type: contentType}),
       });
     }catch(err){
-      // api() beantwortet 401 und 402 schon selbst: Es setzt den Token
-      // zurueck bzw. zeigt die Paywall und wirft dazu einen Satz, den man
-      // lesen kann ("Sitzung abgelaufen. Bitte erneut einloggen."). Den
+      // api() beantwortet 401 schon selbst: Es setzt den Token zurueck und
+      // wirft dazu einen Satz, den man lesen kann ("Sitzung abgelaufen.
+      // Bitte erneut einloggen."). Den
       // ersetzen wir nicht, sonst steht auf dem Login-Screen die falsche
       // Begruendung. Nur Meldungen ohne Aussage werden abgefangen -
       // das erledigt uploadFehlerText().
@@ -3999,10 +4100,10 @@
     showScreen('screen-login');
   }
 
-  // Zweimal verdrahtet: im Konto-Screen und im Paywall-Screen, der nach
-  // Ablauf des Probemonats der einzige erreichbare Screen ist.
+  // Frueher zweimal verdrahtet - der Paywall-Screen war nach Ablauf des
+  // Probemonats der einzige erreichbare und brauchte eigene Notausgaenge.
+  // Ohne Bezahlwand ist der Konto-Screen immer erreichbar, einer genuegt.
   $('btnLogout').addEventListener('click', doLogout);
-  $('btnLogoutPaywall').addEventListener('click', doLogout);
 
   // ---------- Konto löschen (Passwort-Bestätigung, 30-Tage-Karenz) ----------
   const deleteBackdrop = $('deleteModalBackdrop');
@@ -4021,7 +4122,6 @@
   }
 
   $('btnDeleteAccount').addEventListener('click', openDeleteModal);
-  $('btnDeleteAccountPaywall').addEventListener('click', openDeleteModal);
   $('deleteModalClose').addEventListener('click', closeDeleteModal);
   $('btnCancelDelete').addEventListener('click', closeDeleteModal);
   deleteBackdrop.addEventListener('click', (e) => {
@@ -4072,51 +4172,81 @@
     return !myProfile || myProfile.is_account_activated !== false;
   }
 
-  // Ist die Abogebühr überhaupt scharf geschaltet? Der Server entscheidet das
-  // (settings.billing_enabled, siehe backend/app/config.py) und liefert es in
-  // /api/billing/status mit. Solange sie ausgesetzt ist, kostet FLEXR nichts:
-  // keine Bezahlwand, keine Restlaufzeit, keine Preise. Der ganze Abo-Pfad
-  // bleibt im Code und wird wieder sichtbar, sobald der Server true meldet.
-  function billingActive(){
-    return !membership || membership.billing_enabled !== false;
+  /* ---- FLEXR Premium -----------------------------------------------------
+     Die Plattform ist dauerhaft kostenlos. Premium ist eine freiwillige
+     Zusatzstufe; ob es sie ueberhaupt schon gibt, entscheidet der Server
+     (settings.premium_enabled, siehe backend/app/config.py) und liefert es in
+     /api/billing/status mit. Waehrend der Beta ist der Schalter aus: dann gibt
+     es weder Preise noch Grenzen zu zeigen.
+
+     Alle Zahlen kommen aus `membership` - der Client rechnet nichts selbst
+     aus. Sonst muessten Web, Android und iOS dieselbe Formel dreimal gleich
+     treffen. */
+  function premiumOffered(){
+    return !!(membership && membership.premium_enabled);
+  }
+  function isPremium(){
+    return !!(membership && membership.is_premium);
+  }
+  /* Preis in der Sprache des Nutzers. Kommt in Cent vom Server, damit "10 €"
+     nirgends im Client festgeschrieben ist. */
+  function premiumPrice(){
+    if(!membership) return '';
+    const betrag = (membership.price_cents || 0) / 100;
+    try{
+      return new Intl.NumberFormat(dateLocale(), {
+        style: 'currency', currency: membership.currency || 'EUR',
+        minimumFractionDigits: betrag % 1 === 0 ? 0 : 2,
+      }).format(betrag);
+    }catch(e){
+      return betrag + ' ' + (membership.currency || 'EUR');
+    }
+  }
+  /* Restliche Likes, oder null fuer "unbegrenzt". */
+  function likesLeft(){
+    return membership && membership.likes_remaining != null ? membership.likes_remaining : null;
   }
 
   function updateStatusPill(){
     const pill = $('statusPill');
     if(!membership){ pill.textContent = '—'; return; }
-    // Vor der Freischaltung läuft noch kein Probemonat - eine Restlaufzeit
-    // anzuzeigen wäre irreführend, sie startet erst mit der Freigabe.
+    // Vor der Freischaltung sagt die Pille, dass geprüft wird - alles andere
+    // (Likes, Premium) ist bis dahin ohne Belang.
     if(!accountActivated()){
       pill.textContent = t('acct.statusChecking'); pill.className = 'status-pill trial';
       return;
     }
-    if(!billingActive()){
-      // Kein Countdown, wenn nichts abläuft - sonst liest sich die Pille wie
-      // eine Frist, die es gerade gar nicht gibt.
-      pill.textContent = 'Beta · gratis'; pill.className = 'status-pill trial';
+    if(isPremium()){
+      pill.textContent = t('premium.pill'); pill.className = 'status-pill trial';
       return;
     }
-    if(membership.is_subscribed){
-      pill.textContent = 'Abo aktiv'; pill.className = 'status-pill trial';
-    } else if(membership.is_active){
-      const daysLeft = Math.max(0, Math.ceil((parseServerDate(membership.trial_ends_at) - Date.now())/86400000));
-      pill.textContent = `Testmonat: ${daysLeft}d`; pill.className = 'status-pill trial';
-    } else {
-      pill.textContent = 'Abgelaufen'; pill.className = 'status-pill expired';
+    if(!premiumOffered()){
+      pill.textContent = t('beta.pill'); pill.className = 'status-pill trial';
+      return;
     }
+    // Standardkonto nach der Beta: Die Pille zeigt das, was tatsaechlich
+    // knapp werden kann - die Likes. Eine Restlaufzeit gibt es nicht mehr,
+    // es laeuft ja nichts ab.
+    const rest = likesLeft();
+    pill.textContent = rest === null ? t('acct.statusFree') : t('premium.pillLikes', {n: rest});
+    pill.className = rest === 0 ? 'status-pill expired' : 'status-pill trial';
+  }
+
+  /* Nach jedem Like/Chat frisch holen: Der Server ist die Instanz, die zaehlt. */
+  async function refreshMembership(){
+    try{
+      membership = await api('/api/billing/status');
+      updateStatusPill();
+    }catch(e){ /* Zaehler ist Beiwerk - ein Fehler hier darf nichts blockieren */ }
   }
 
   function goToApp(){
-    // Die Alters- und Identitätsprüfung geht der Paywall vor: Ein nicht
-    // freigeschaltetes Konto hat noch keinen laufenden Probemonat.
+    // Einziges Tor vor der App ist die Alters- und Identitätsprüfung. Die
+    // frühere Bezahlwand ("Probemonat abgelaufen") ist am 10.09.2026
+    // ersatzlos entfallen - die Nutzung ist dauerhaft kostenlos.
     if(!accountActivated()){
       $('bottomNav').style.display = 'none';
       showVerificationGate();
-      return;
-    }
-    if(!membership || !membership.is_active){
-      showScreen('screen-paywall');
-      $('bottomNav').style.display = 'none';
       return;
     }
     $('bottomNav').style.display = 'flex';
@@ -4170,11 +4300,40 @@
       $('istartConfirm').disabled = false;
     }
   }
+  /* Der Konto-Knopf zeigt erst das Angebot; abgeschlossen wird auf dem
+     Premium-Screen. Ein Klick im Konto soll nicht unmittelbar in einer
+     Zahlungserklaerung enden, ohne dass jemand gelesen hat, wofuer. */
+  function showPremiumScreen(){
+    renderPremiumScreen();
+    showScreen('screen-premium');
+    setNavActive('account');
+  }
   function subscribeNow(){
     openImmediateStartOverlay();
   }
-  $('btnSubscribe').addEventListener('click', subscribeNow);
+  $('btnSubscribe').addEventListener('click', showPremiumScreen);
   $('btnSubscribe2').addEventListener('click', subscribeNow);
+  $('btnPremiumBack').addEventListener('click', ()=>{
+    showScreen('screen-account');
+    renderAccount();
+  });
+
+  /* Preis und Vorteile mit den Zahlen des Servers fuellen. Die Liste steht
+     fest im Markup (uebersetzbar), nur die Zahlen darin wechseln - so bleibt
+     sie fuer Screenreader und Uebersetzung ein normaler Text. */
+  function renderPremiumScreen(){
+    if(!membership) return;
+    $('premiumPrice').textContent = premiumPrice();
+    setI18nText($('premiumFeatLikes'), 'premium.featLikes', {n: membership.free_daily_likes});
+    setI18nText($('premiumFeatChats'), 'premium.featChats', {n: membership.free_open_chats});
+    setI18nText($('premiumFeatRadius'), 'premium.featRadius', {
+      frei: membership.free_max_radius_km, voll: 250,
+    });
+    // Waehrend der Beta gibt es nichts abzuschliessen.
+    const kaufbar = premiumOffered() && !isPremium();
+    $('btnSubscribe2').style.display = kaufbar ? '' : 'none';
+    $('premiumBetaHint').style.display = premiumOffered() ? 'none' : '';
+  }
   $('istartCancel').addEventListener('click', closeImmediateStartOverlay);
   $('istartConfirm').addEventListener('click', confirmImmediateStartAndSubscribe);
   $('immediateStartOverlay').addEventListener('click', (e)=>{
@@ -4193,7 +4352,6 @@
   // ---------- Nav ----------
   document.querySelectorAll('nav.bottom button').forEach(btn=>{
     btn.addEventListener('click', ()=>{
-      if(!membership || !membership.is_active){ showScreen('screen-paywall'); return; }
       stopChatPolling();
       stopVerifyCamera();
       currentChatMatchId = null;
@@ -4210,7 +4368,10 @@
   });
 
   function renderAccount(opts){
-    $('acctName').innerHTML = escapeHtml(myProfile.name + ', ' + myProfile.age) + verifiedBadge(myProfile);
+    // Das eigene Abzeichen kommt aus dem Abostatus, nicht aus dem Profil:
+    // /api/profiles/me ist die Selbstansicht und traegt kein is_premium.
+    $('acctName').innerHTML = escapeHtml(myProfile.name + ', ' + myProfile.age)
+      + verifiedBadge(myProfile) + (isPremium() ? PREMIUM_BADGE_SVG() : '');
     renderVerificationSection();
     $('acctSubline').textContent = [myProfile.city, gymName(myProfile.gym)].filter(Boolean).join(' · ');
 
@@ -4224,33 +4385,30 @@
       avatarEl.textContent = (myProfile.name || '?').charAt(0).toUpperCase();
     }
 
-    if(!billingActive()){
-      // Während der Beta zahlt niemand - weder neue noch bestehende Konten.
-      // Der Abo-Knopf verschwindet dann ganz: Ein Angebot anzuzeigen, das der
-      // Server mit 409 ablehnt, wäre eine Sackgasse.
-      $('acctStatusText').textContent = t('acct.statusBetaFree');
+    /* Premium-Zeile. Drei Zustaende, und keiner davon ist eine Sperre:
+       die Nutzung von FLEXR kostet in allen dreien nichts. */
+    if(isPremium()){
+      setI18nText($('acctStatusText'), 'premium.statusActive');
       $('btnSubscribe').style.display = 'none';
-      // Wer noch ein Abo aus der Zeit davor hat, muss es weiterhin kündigen
-      // können - der Verwalten-Link bleibt dafür stehen.
-      $('btnManageSubscription').style.display = membership.is_subscribed ? 'block' : 'none';
-    } else if(membership.is_subscribed){
-      $('btnSubscribe').style.display = '';
-      $('acctStatusText').textContent = t('acct.statusActive');
-      $('btnSubscribe').textContent = t('acct.subActive');
-      $('btnSubscribe').disabled = true;
       $('btnManageSubscription').style.display = 'block';
+    } else if(!premiumOffered()){
+      // Beta: unbegrenzt fuer alle. Ein Angebot zu zeigen, das der Server mit
+      // 409 ablehnt, waere eine Sackgasse - der Knopf bleibt weg.
+      setI18nText($('acctStatusText'), 'premium.statusBeta');
+      $('btnSubscribe').style.display = 'none';
+      // Wer noch ein Abo aus der Zeit der alten Mitgliedsgebuehr hat, muss es
+      // kuendigen koennen - der Verwalten-Link bleibt dafuer stehen.
+      $('btnManageSubscription').style.display =
+        membership.has_stripe_subscription ? 'block' : 'none';
     } else {
+      // Standardkonto nach der Beta: Was gerade gilt, in einem Satz.
+      setI18nText($('acctStatusText'), 'premium.statusFree', {
+        likes: membership.free_daily_likes,
+        chats: membership.free_open_chats,
+      });
       $('btnSubscribe').style.display = '';
-      const daysLeft = Math.max(0, Math.ceil((parseServerDate(membership.trial_ends_at) - Date.now())/86400000));
-      // Bewusst mit dem Zusatz: Der Probemonat wandelt sich nicht von selbst in
-      // ein Abo um, es gibt also keine Frist zu versaeumen. Ohne den Satz liest
-      // sich ein Countdown wie eine Kuendigungsfrist.
-      const dayLabel = daysLeft === 1 ? t('common.day1') : t('common.dayN', {n: daysLeft});
-      $('acctStatusText').textContent = daysLeft > 0
-        ? t('acct.statusTrial', {days: dayLabel})
-        : t('acct.statusTrialOver');
       $('btnSubscribe').disabled = false;
-      $('btnSubscribe').textContent = t('acct.subscribe');
+      setI18nText($('btnSubscribe'), 'premium.showOffer');
       $('btnManageSubscription').style.display = 'none';
     }
     if(!opts || !opts.keepForm) fillProfileForm();
@@ -4547,7 +4705,7 @@
     $('a-radius').value = myProfile.search_radius_km || 20;
     $('radiusValue').textContent = ($('a-radius').value) + ' km';
     radiusFill();
-    setI18nText($('radiusHint'), 'acct.radiusHintGym', {gym: gymName(myProfile.gym)});
+    renderRadiusPremiumHint();
     setPlainText($('acctProfileErr'), '');
   }
 
@@ -4563,7 +4721,30 @@
   $('a-radius').addEventListener('input', () => {
     $('radiusValue').textContent = $('a-radius').value + ' km';
     radiusFill();
+    renderRadiusPremiumHint();
   });
+
+  /* Der volle Umkreis gehoert zu Premium. Der Regler bleibt bewusst ueber die
+     ganze Spannweite bedienbar - wer ihn nach rechts zieht, soll SEHEN, was es
+     dort gaebe, statt an einem stummen Anschlag zu haengen. Gespeichert wird
+     ohnehin nur das Erlaubte (der Server kappt, siehe premium.clamp_radius),
+     und der Hinweis darunter sagt genau das. */
+  function radiusCap(){
+    return membership && membership.max_radius_km ? membership.max_radius_km : 250;
+  }
+
+  function renderRadiusPremiumHint(){
+    const gewaehlt = Number($('a-radius').value);
+    const grenze = radiusCap();
+    const hinweis = $('radiusHint');
+    if(gewaehlt > grenze){
+      setI18nText(hinweis, 'premium.radiusCapped', {grenze: grenze});
+      hinweis.classList.add('over-cap');
+      return;
+    }
+    hinweis.classList.remove('over-cap');
+    setI18nText(hinweis, 'acct.radiusHintGym', {gym: gymName(myProfile && myProfile.gym)});
+  }
 
   // ---------- Emoji-Picker für die Bio ----------
   const BIO_EMOJIS = [
@@ -4989,6 +5170,7 @@
   async function loadDeck(){
     $('deck').innerHTML = `<div class="loading">${escapeHtml(t('swipe.loading'))}</div>`;
     $('swipeActions').style.display = 'none';
+    renderLikeCounter();
     try{
       deck = await api('/api/swipes/deck');
       deckIdx = 0;
@@ -5020,7 +5202,7 @@
           <div class="zone zoom"></div>
         </div>
         <div class="photo-index">${(p.photos||[]).map((_,i)=>`<i class="${i===0?'on':''}"></i>`).join('')}</div>
-        <div class="name-row"><div class="nm">${escapeHtml(p.name)}, ${p.age}${verifiedBadge(p)}</div><div class="loc">${escapeHtml(p.city)} · ${escapeHtml(gymName(p.gym))}${p.distance_km != null ? ` · ${p.distance_km} km` : ''}</div></div>
+        <div class="name-row"><div class="nm">${nameWithBadges(p, `${p.name}, ${p.age}`)}</div><div class="loc">${escapeHtml(p.city)} · ${escapeHtml(gymName(p.gym))}${p.distance_km != null ? ` · ${p.distance_km} km` : ''}</div></div>
       </div>
       <div class="body">
         <div class="stat-row">
@@ -5312,6 +5494,14 @@
 
   function commitSwipe(action, velocity){
     if(swipeLocked || deckIdx >= deck.length) return;
+    // Die Grenze VOR der Animation pruefen. Die Karte erst wegfliegen zu
+    // lassen und sie nach der Absage des Servers wieder hereinzuholen waere
+    // ein Ruckeln, das wie ein Fehler aussieht - und der Nutzer haette den
+    // Daumen schon abgesetzt. Der Server prueft trotzdem noch einmal.
+    if(action === 'like' && likesLeft() === 0){
+      showLikeLimit();
+      return;
+    }
     const container = $('deck');
     const card = container.querySelector('.card:last-child');
     if(!card) return;
@@ -5348,8 +5538,87 @@
     const target = deck[deckIdx];
     try{
       const result = await api('/api/swipes', {method: 'POST', body: JSON.stringify({to_user_id: target.id, action})});
+      // Der Server schickt den Reststand gleich mit - kein zweiter Aufruf.
+      if(membership && 'likes_remaining' in result){
+        membership.likes_remaining = result.likes_remaining;
+        updateStatusPill();
+        renderLikeCounter();
+      }
       if(result.matched) showMatchOverlay(target);
-    }catch(err){ toast(err.message || 'Swipe fehlgeschlagen.'); }
+    }catch(err){
+      // Rennen zwischen zwei Geraeten oder ein veralteter Zaehler: Der Server
+      // hat das letzte Wort. Den Stand nachziehen und erklaeren, statt eine
+      // nackte Fehlermeldung zu zeigen.
+      if(err.detail && err.detail.code === 'like_limit_reached'){
+        await refreshMembership();
+        renderLikeCounter();
+        showLikeLimit();
+        loadDeck();   // die abgelehnte Karte kommt zurueck ins Deck
+        return;
+      }
+      toast(err.message || t('swipe.failed'));
+    }
+  }
+
+  /* Was passiert, wenn die Likes fuer heute weg sind. Bewusst kein Toast:
+     Der Nutzer soll verstehen, dass nichts kaputt ist und wann es weitergeht. */
+  function showLikeLimit(){
+    const frei = membership && membership.next_like_at
+      ? new Date(parseServerDate(membership.next_like_at))
+      : null;
+    const wann = frei
+      ? frei.toLocaleTimeString(dateLocale(), {hour: '2-digit', minute: '2-digit'})
+      : null;
+    const text = wann
+      ? t('premium.likeLimitAt', {n: membership.free_daily_likes, zeit: wann})
+      : t('premium.likeLimit', {n: membership ? membership.free_daily_likes : 20});
+    if(premiumOffered()) toast(text + ' ' + t('premium.likeLimitCta'));
+    else toast(text);
+  }
+
+  /* Die Zeile unter den Aktionsknoepfen. Waehrend der Beta und mit Premium
+     gibt es nichts zu zaehlen - dann bleibt sie ganz weg, statt "unbegrenzt"
+     zu behaupten, wo niemand gefragt hat. */
+  function renderLikeCounter(){
+    // Zuruecknehmen nur mit Premium. Steht bewusst vor dem Ausstieg unten:
+    // Premium-Konten haben kein Kontingent und wuerden den Knopf sonst nie zu
+    // sehen bekommen - also genau die, fuer die er gedacht ist.
+    $('btnRewind').style.display = isPremium() ? '' : 'none';
+
+    const el = $('likeCounter');
+    const rest = likesLeft();
+    if(rest === null){ el.style.display = 'none'; el.textContent = ''; return; }
+    el.style.display = '';
+    el.classList.toggle('empty-quota', rest === 0);
+    el.textContent = rest === 0
+      ? t('premium.likesGone')
+      : t('premium.likesLeft', {n: rest, gesamt: membership.free_daily_likes});
+    if(premiumOffered()){
+      const knopf = document.createElement('button');
+      knopf.type = 'button';
+      knopf.textContent = t('premium.moreLikes');
+      knopf.addEventListener('click', showPremiumScreen);
+      el.appendChild(knopf);
+    }
+  }
+
+  /* Letzten Swipe zuruecknehmen (Premium). Danach das Deck neu laden: Das
+     zurueckgenommene Profil taucht dort wieder auf, weil der Server den
+     Swipe geloescht hat. */
+  async function rewindLastSwipe(){
+    const btn = $('btnRewind');
+    btn.disabled = true;
+    try{
+      await api('/api/swipes/rewind', {method: 'POST'});
+      await refreshMembership();
+      renderLikeCounter();
+      toast(t('premium.rewindDone'));
+      loadDeck();
+    }catch(err){
+      toast(err.message || t('premium.rewindFailed'));
+    }finally{
+      btn.disabled = false;
+    }
   }
 
   // ---------- Match-Overlay ----------
@@ -5402,6 +5671,7 @@
 
   $('btnLike').addEventListener('click', ()=> commitSwipe('like', 0));
   $('btnPass').addEventListener('click', ()=> commitSwipe('pass', 0));
+  $('btnRewind').addEventListener('click', rewindLastSwipe);
 
   // ---------- Matches ----------
   let matchesCache = [];
@@ -5448,6 +5718,7 @@
   async function loadMatches(){
     $('matchList').innerHTML = `<div class="loading">${escapeHtml(t('matches.loading'))}</div>`;
     lastMatchListHtml = null;
+    loadIncomingLikes();
     try{
       matchesCache = await api('/api/matches');
       renderUnreadBadge(matchesCache);
@@ -5457,6 +5728,72 @@
       console.error(err);
     }
   }
+
+  /* ---- Wer dich geliket hat ---------------------------------------------
+     Die Karte ueber der Match-Liste zeigt die Zahl immer, die Namen nur mit
+     Premium. Ohne offene Likes bleibt sie ganz weg - eine "0" waere eine
+     Enttaeuschung ohne Anlass. */
+  let incomingCache = null;
+
+  async function loadIncomingLikes(){
+    try{
+      incomingCache = await api('/api/swipes/incoming');
+    }catch(err){
+      incomingCache = null;   // Beiwerk: ein Fehler hier verdirbt nicht die Matchliste
+    }
+    renderIncomingCard();
+  }
+
+  function renderIncomingCard(){
+    const karte = $('incomingLikes');
+    if(!incomingCache || !incomingCache.count){ karte.style.display = 'none'; return; }
+    karte.style.display = '';
+    $('incomingCount').textContent = incomingCache.count;
+    setI18nText($('incomingTitle'), 'incoming.title', {n: incomingCache.count});
+    setI18nText($('incomingSub'),
+      incomingCache.premium_required ? 'incoming.subFree' : 'incoming.subPremium');
+  }
+
+  function renderIncomingList(){
+    const liste = $('incomingList');
+    if(!incomingCache) { liste.innerHTML = ''; return; }
+    if(incomingCache.premium_required){
+      liste.innerHTML = `
+        <div class="empty">
+          <div class="empty-title">${escapeHtml(t('incoming.lockedTitle', {n: incomingCache.count}))}</div>
+          <div class="empty-sub">${escapeHtml(t('incoming.lockedSub'))}</div>
+        </div>`;
+      const knopf = document.createElement('button');
+      knopf.className = 'btn';
+      knopf.textContent = t('premium.showOffer');
+      knopf.addEventListener('click', showPremiumScreen);
+      liste.appendChild(knopf);
+      return;
+    }
+    if(!incomingCache.profiles.length){
+      liste.innerHTML = `<div class="empty"><div class="empty-sub">${escapeHtml(t('incoming.none'))}</div></div>`;
+      return;
+    }
+    // Dieselbe Zeilenform wie die Matchliste, damit die Ansicht nicht wie ein
+    // fremder Teil der App wirkt.
+    liste.innerHTML = incomingCache.profiles.map(p => `
+      <div class="match-item">
+        <span class="av"><img src="${escapeHtml(photoThumb(p.photos && p.photos[0]))}" alt=""></span>
+        <div class="info">
+          <div class="nm">${nameWithBadges(p, `${p.name}, ${p.age}`)}</div>
+          <div class="last-msg">${escapeHtml([p.city, gymName(p.gym)].filter(Boolean).join(' · '))}</div>
+        </div>
+      </div>`).join('');
+  }
+
+  $('incomingLikes').addEventListener('click', ()=>{
+    renderIncomingList();
+    showScreen('screen-incoming');
+  });
+  $('btnIncomingBack').addEventListener('click', ()=>{
+    showScreen('screen-matches');
+    setNavActive('matches');
+  });
 
   // Siehe lastChatListHtml: gleicher Grund, eigene Liste.
   let lastMatchListHtml = null;
@@ -5482,7 +5819,7 @@
         <div class="${cls}" data-match-id="${m.match_id}">
           <span class="av"><img src="${photo}" title="${m.is_online ? 'Gerade online' : ''}"></span>
           <div class="info">
-            <div class="nm">${escapeHtml(p.name)}, ${p.age}${verifiedBadge(p)}</div>
+            <div class="nm">${nameWithBadges(p, `${p.name}, ${p.age}`)}</div>
             <div class="last-msg">${escapeHtml(p.city)}${p.distance_km != null ? ` · ${p.distance_km} km` : ''}${m.is_online ? ' · gerade online' : ''}</div>
           </div>
           <div class="chev"></div>
@@ -5546,7 +5883,7 @@
         <div class="${cls}" data-match-id="${m.match_id}">
           <span class="av"><img src="${photo}" title="${m.is_online ? 'Gerade online' : ''}"></span>
           <div class="info">
-            <div class="nm">${escapeHtml(p.name)}, ${p.age}${verifiedBadge(p)}</div>
+            <div class="nm">${nameWithBadges(p, `${p.name}, ${p.age}`)}</div>
             <div class="last-msg">${preview}</div>
           </div>
           ${unread ? `<div class="unread-badge">${m.unread_count}</div>` : '<div class="chev"></div>'}
@@ -6289,7 +6626,7 @@
     const match = findMatchById(matchId);
     if(match){
       $('chatAvatar').src = photoThumb(match.profile.photos && match.profile.photos[0]);
-      $('chatName').innerHTML = escapeHtml(match.profile.name + ', ' + match.profile.age) + verifiedBadge(match.profile);
+      $('chatName').innerHTML = nameWithBadges(match.profile, match.profile.name + ', ' + match.profile.age);
     }
     // chatAvatarWrap ist ein einzelnes wiederverwendetes Element ueber alle
     // Chats hinweg - ohne dieses Zuruecksetzen haette ein zuvor online
@@ -6428,6 +6765,15 @@
       // den Sperr-Hinweis im Chat zeigen. Bei jedem 403 den Profilstatus
       // gegenprüfen, damit der Banner sicher erscheint.
       if(err.status === 403){
+        // Zu viele gleichzeitige Unterhaltungen (Standardkonto). Kein
+        // Fehler-Toast: Das ist eine Grenze, kein Defekt - der Nutzer soll
+        // wissen, dass er ein Match aufloesen oder Premium holen kann.
+        if(err.detail && err.detail.code === 'chat_limit_reached'){
+          await refreshMembership();
+          toast(t('premium.chatLimit', {n: err.detail.limit})
+                + (premiumOffered() ? ' ' + t('premium.chatLimitCta') : ''));
+          return;
+        }
         if(err.detail && err.detail.reason === 'messaging_muted' && err.detail.muted_until){
           myProfile.messaging_muted_until = err.detail.muted_until;
         } else {

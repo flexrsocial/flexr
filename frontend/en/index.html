@@ -16,9 +16,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>FLEXR – dating for gym people in Austria</title>
 <!-- Unter 160 Zeichen bleiben: Google schneidet das Snippet sonst mitten im
-     Satz ab. Dass der Gratismonat nicht automatisch kostenpflichtig wird, ist
-     der eigentliche Conversion-Vorteil und gehoert deshalb hinein. -->
-<meta name="description" content="FLEXR is the dating app for gym people in Austria: matches by gym and radius. Free during the beta – the €5 per month membership is suspended until further notice.">
+     Satz ab. Dass die Nutzung dauerhaft nichts kostet, ist der eigentliche
+     Conversion-Vorteil und gehoert deshalb hinein. -->
+<meta name="description" content="FLEXR is the dating app for gym people in Austria: matches by gym and radius. Using it is permanently free; FLEXR Premium (€10/month) is optional.">
 <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1">
 <link rel="canonical" href="https://flexr.social/en/">
 <!-- Zweisprachigkeit: die kanonische Adresse ist und bleibt die deutsche
@@ -36,7 +36,7 @@
 <meta property="og:locale" content="en">
 <meta property="og:url" content="https://flexr.social/en/">
 <meta property="og:title" content="FLEXR – dating for gym people in Austria">
-<meta property="og:description" content="Find people who take training as seriously as you do – at your gym and close to you. Free during the beta.">
+<meta property="og:description" content="Find people who take training as seriously as you do – at your gym and close to you. Free to use, permanently.">
 <meta property="og:image" content="https://flexr.social/og-image.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
@@ -45,7 +45,7 @@
 
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="FLEXR – dating for gym people in Austria">
-<meta name="twitter:description" content="Find people who take training as seriously as you do – at your gym and close to you. Free during the beta.">
+<meta name="twitter:description" content="Find people who take training as seriously as you do – at your gym and close to you. Free to use, permanently.">
 <meta name="twitter:image" content="https://flexr.social/og-image.png">
 <meta name="twitter:image:alt" content="FLEXR — dating for gym people in Austria.">
 
@@ -113,7 +113,7 @@
         "priceCurrency": "EUR",
         "category": "subscription",
         "availability": "https://schema.org/InStock",
-        "description": "Free during the beta: the €5 per month membership is suspended until further notice, for new and existing accounts alike. No payment method is stored."
+        "description": "Using FLEXR is permanently free; no payment method is stored. FLEXR Premium costs €10 per month, is optional and can be cancelled monthly."
       }
     }
   ]
@@ -441,9 +441,26 @@ ul.plain li{ margin-bottom:9px; }
   .sample-name{ font-size:24px; }
 }
 /* ---- Preis ---- */
+/* Zwei Karten nebeneinander, ab 720px. Darunter untereinander - die kostenlose
+   zuerst, weil sie das eigentliche Angebot ist. */
+.price-grid{
+  display:grid; gap:18px; margin-top:22px;
+  grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); max-width:900px;
+}
 .price-card{
   background:var(--surface); border:1px solid rgba(255,90,31,.3); border-radius:16px;
-  padding:26px; margin-top:22px; max-width:440px;
+  padding:26px; max-width:440px;
+}
+.price-grid .price-card{ margin-top:0; max-width:none; display:flex; flex-direction:column; }
+.price-grid .price-card > ul{ flex:1; }
+/* Die Premium-Karte ist die zweite Wahl und sieht auch so aus: ruhiger Rahmen
+   statt Orange, damit die kostenlose Karte die Seite fuehrt. */
+.price-card-premium{ border-color:var(--steel); }
+.price-free.premium{ color:var(--plate); }
+.price-soon{
+  margin:22px 0 0; padding:11px 14px; border-radius:10px; text-align:center;
+  background:var(--surface-2); border:1px solid var(--steel);
+  color:var(--chalk-dim); font-size:13.5px;
 }
 .price{ font-family:'Oswald', sans-serif; font-size:46px; line-height:1; margin:6px 0 4px; }
 .price small{ font-size:17px; color:var(--chalk-dim); }
@@ -517,13 +534,15 @@ footer{ border-top:1px solid var(--steel); padding:32px 0 60px; margin-top:20px;
 .beta-modal h2{ font-size:clamp(21px, 5vw, 26px); margin:0 0 12px; }
 .beta-modal p{ font-size:15px; color:var(--chalk-dim); }
 .beta-modal p:last-of-type{ margin-bottom:0; }
-/* Die ausgesetzte Gebuehr ist der Grund, warum viele ueberhaupt bleiben -
+/* Dass die Nutzung dauerhaft nichts kostet, ist der Grund, warum viele
+   ueberhaupt bleiben -
    sie steht deshalb in einem eigenen Kasten und nicht im Fliesstext. */
 .beta-free{
   margin:16px 0 0; padding:13px 15px; border-radius:12px;
   background:var(--surface-2); border:1px solid rgba(199,255,74,0.3);
   color:var(--chalk-dim); font-size:14.5px; line-height:1.55;
 }
+.beta-free b.inline{ display:inline; margin:0; color:var(--plate); }
 .beta-free b{ color:var(--lime); display:block; margin-bottom:3px; }
 /* Die beiden Termine als Liste statt im Fliesstext: Wer den Dialog nur
    ueberfliegt, soll "Android - Ende September 2026" trotzdem mitnehmen. */
@@ -630,7 +649,7 @@ footer{ border-top:1px solid var(--steel); padding:32px 0 60px; margin-top:20px;
 
       <ul class="usps">
         <li data-i18n-html="hero.usp1">Matches by gym and radius — not from the other end of Austria</li>
-        <li data-i18n-html="hero.usp2">Free during the beta — the €5/month fee is suspended, <b>nothing is charged</b></li>
+        <li data-i18n-html="hero.usp2">Free to use, permanently — <b>nothing is charged</b>, Premium is optional</li>
         <li data-i18n-html="hero.usp3">Every account is checked for being of age before it is unlocked</li>
       </ul>
     </div>
@@ -838,7 +857,7 @@ footer{ border-top:1px solid var(--steel); padding:32px 0 60px; margin-top:20px;
         <div class="card">
           <div class="num" data-i18n="how.step1">Step 1</div>
           <h3 data-i18n="how.step1H3">Create your profile</h3>
-          <p data-i18n="how.step1P">Email, date of birth, postal code, at least one photo. Free and without a payment method. Then we check once that you are at least 18 – only then does it continue, and only then does your free month start.</p>
+          <p data-i18n="how.step1P">Email, date of birth, postal code, at least one photo. Free and without a payment method. Then we check once that you are at least 18 – only then does it continue. No costs arise, now or later.</p>
         </div>
         <div class="card">
           <div class="num" data-i18n="how.step2">Step 2</div>
@@ -873,22 +892,40 @@ footer{ border-top:1px solid var(--steel); padding:32px 0 60px; margin-top:20px;
       <p data-i18n-html="safe.p2">What we do <b>not</b> claim: that every profile is guaranteed genuine or that FLEXR is completely safe. A visual check makes deception harder, it does not rule it out. Before a first meeting, please read our <a href="/sicherheit.html">safety tips</a> (German) – they are short and can save you a lot.</p>
     </section>
 
+    <!-- Zwei Karten nebeneinander: kostenlos und Premium. Die kostenlose steht
+         links und zuerst - sie ist das Angebot, nicht der Lockvogel. -->
     <section id="preis">
       <h2 data-i18n="price.h2">What FLEXR costs</h2>
-      <div class="price-card">
-        <p class="price-free" data-i18n="price.eyebrow">Beta phase</p>
-        <div class="price">0&nbsp;€ <small data-i18n="price.perMonth">/ month</small></div>
-        <p style="margin:0; font-size:14.5px;" data-i18n-html="price.note">The <s>€5 per month</s> membership is suspended until further notice — for new and existing accounts alike.</p>
-        <ul>
-          <li data-i18n="price.li1">Unlimited swiping and matching</li>
-          <li data-i18n="price.li2">Chat with all your matches</li>
-          <li data-i18n="price.li3">No payment method needed, no in-app purchases</li>
-          <li data-i18n="price.li4">No minimum term, nothing to cancel</li>
-        </ul>
-        <a class="btn" href="/app/" style="display:block; text-align:center; margin-top:22px;" data-i18n="price.cta">Start for free</a>
+      <p style="margin-top:-6px; margin-bottom:26px;" data-i18n-html="price.lead"><b>Using FLEXR costs nothing — permanently, not just during the beta.</b> Signing up, browsing profiles, liking, matching and chatting are and stay free. No payment method is requested.</p>
+      <div class="price-grid">
+        <div class="price-card">
+          <p class="price-free" data-i18n="price.freeEyebrow">FLEXR</p>
+          <div class="price">0&nbsp;€ <small data-i18n="price.forever">/ forever</small></div>
+          <ul>
+            <li data-i18n="price.free1">Browse profiles and match</li>
+            <li data-i18n="price.free2">20 likes per day</li>
+            <li data-i18n="price.free3">3 conversations at once</li>
+            <li data-i18n="price.free4">Search radius up to 50 km</li>
+            <li data-i18n="price.free5">No payment method, nothing to cancel</li>
+          </ul>
+          <a class="btn" href="/app/" style="display:block; text-align:center; margin-top:22px;" data-i18n="price.cta">Start for free</a>
+        </div>
+        <div class="price-card price-card-premium">
+          <p class="price-free premium" data-i18n="price.premiumEyebrow">FLEXR Premium</p>
+          <div class="price">10&nbsp;€ <small data-i18n="price.perMonth">/ month</small></div>
+          <ul>
+            <li data-i18n="price.prem1">Unlimited likes</li>
+            <li data-i18n="price.prem2">Unlimited conversations</li>
+            <li data-i18n="price.prem3">See who liked you</li>
+            <li data-i18n="price.prem4">Undo your last swipe</li>
+            <li data-i18n="price.prem5">Full search radius up to 250 km</li>
+            <li data-i18n="price.prem6">Premium badge on your profile</li>
+          </ul>
+          <p class="price-soon" data-i18n="price.premiumSoon">Arrives after the beta phase</p>
+        </div>
       </div>
-      <p style="margin-top:22px;" data-i18n-html="price.p1"><b>For as long as the beta runs, nothing is charged.</b> No payment method is requested or stored at sign-up, and an account cannot turn into a subscription by itself. There is nothing to cancel and no deadline to miss.</p>
-      <p data-i18n-html="price.p2">We reserve the right to switch the membership to €5 per month later — announced before it applies, and without your account turning into a subscription by itself. That price would be the final price; VAT is not charged on top.</p>
+      <p style="margin-top:22px;" data-i18n-html="price.p1"><b>A free account never turns into a subscription by itself.</b> No payment method is requested or stored at sign-up. Premium only exists if you explicitly take it out — otherwise there is nothing to cancel and no deadline to miss.</p>
+      <p data-i18n-html="price.p2">FLEXR Premium does not exist yet during the beta: until then likes, conversations and radius are unlimited for everyone. We will announce it before Premium starts. The €10 per month is the final price; VAT is not charged on top, and cancelling takes one click, effective at the end of the current month.</p>
     </section>
 
     <section id="faq">
@@ -908,7 +945,7 @@ footer{ border-top:1px solid var(--steel); padding:32px 0 60px; margin-top:20px;
         </details>
         <details>
           <summary data-i18n="faq.q4">What does FLEXR cost?</summary>
-          <div class="faq-a" data-i18n-html="faq.a4">Nothing at the moment. During the beta the €5 per month membership is suspended until further notice — for new and existing accounts alike. Should the fee start later, we announce it beforehand; nothing becomes chargeable without you actively opting in.</div>
+          <div class="faq-a" data-i18n-html="faq.a4"><b>Nothing.</b> Using FLEXR is permanently free — browsing profiles, liking, matching and chatting cost no money, after the beta too. Optionally, <b>FLEXR&nbsp;Premium</b> arrives after the beta at €10 per month: unlimited likes, unlimited conversations, see who liked you, undo your last swipe and the full search radius. Without Premium, 20 likes per day, 3 conversations at once and a 50&nbsp;km radius apply. Nothing becomes chargeable without you actively opting in.</div>
         </details>
         <details>
           <summary data-i18n="faq.q5">Will my account automatically become chargeable?</summary>
@@ -1185,7 +1222,7 @@ footer{ border-top:1px solid var(--steel); padding:32px 0 60px; margin-top:20px;
     <p class="eyebrow" data-i18n="beta.eyebrow">Beta phase</p>
     <h2 id="betaTitle" data-i18n="beta.title">FLEXR is still being built</h2>
     <p id="betaText" data-i18n="beta.text">You can already use FLEXR in your browser. Because we are still in beta, some regions are thinly populated and individual features are still changing.</p>
-    <div class="beta-free" data-i18n-html="beta.free"><b>For as long as the beta runs, FLEXR costs nothing.</b> The €5 per month membership is suspended until further notice — for new and existing accounts alike. No payment method is requested and nothing is charged. If the fee is to start later, we will announce it beforehand.</div>
+    <div class="beta-free" data-i18n-html="beta.free"><b>Using FLEXR costs nothing — permanently.</b> No trial month, no membership fee, no payment method. After the beta, <b class="inline">FLEXR&nbsp;Premium</b> arrives at €10 a month: optional, cancellable any month, and only for those who want more than the 20 likes and 3 conversations a day that will then apply to standard accounts. During the beta even that is unlimited.</div>
     <ul class="beta-dates">
       <li><b>Android</b><span data-i18n="beta.android">Release planned for end of September 2026</span></li>
       <li><b class="as-written">iOS</b><span data-i18n="beta.ios">to follow</span></li>
@@ -1201,9 +1238,10 @@ footer{ border-top:1px solid var(--steel); padding:32px 0 60px; margin-top:20px;
   // zeigt ein hochgezaehlter Schluessel den Hinweis allen Besuchern erneut.
   // Derselbe Schluessel gilt in /app/ - wer hier bestaetigt hat, bekommt den
   // Dialog dort nicht ein zweites Mal.
-  // v2 seit 07.09.2026: Der Dialog nennt jetzt die ausgesetzte Abogebuehr.
-  // Wer v1 schon weggeklickt hatte, soll genau das noch mitbekommen.
-  var KEY = 'flexr_beta_notice_v2';
+  // v3 seit 10.09.2026: Aus der "ausgesetzten Abogebuehr" ist eine dauerhaft
+  // kostenlose Plattform mit optionalem Premium geworden - die wichtigste
+  // Aussage des Dialogs. Wer v2 weggeklickt hatte, saehe sie sonst nie.
+  var KEY = 'flexr_beta_notice_v3';
   var backdrop = document.getElementById('betaBackdrop');
   if (!backdrop) return;
 

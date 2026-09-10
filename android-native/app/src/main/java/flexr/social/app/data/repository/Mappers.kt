@@ -99,10 +99,18 @@ fun PushNotificationDto.toDomain() = PushNotification(
 )
 
 fun MembershipStatusDto.toDomain() = Membership(
-    isSubscribed = isSubscribed,
-    trialEndsAt = ServerTime.parse(trialEndsAt) ?: Instant.EPOCH,
-    isActive = isActive,
-    billingEnabled = billingEnabled,
+    isPremium = isPremium,
+    premiumEnabled = premiumEnabled,
+    hasStripeSubscription = hasStripeSubscription,
+    priceCents = priceCents,
+    currency = currency,
+    freeDailyLikes = freeDailyLikes,
+    freeOpenChats = freeOpenChats,
+    freeMaxRadiusKm = freeMaxRadiusKm,
+    maxRadiusKm = maxRadiusKm,
+    likesRemaining = likesRemaining,
+    openChatsRemaining = openChatsRemaining,
+    nextLikeAt = nextLikeAt?.let { ServerTime.parse(it) },
 )
 
 fun MessageDto.toDomain() = Message(

@@ -15,13 +15,14 @@ os.environ.setdefault("SMTP_FROM", "")
 os.environ.setdefault("STRIPE_SECRET_KEY", "")
 os.environ.setdefault("STRIPE_WEBHOOK_SECRET", "")
 os.environ.setdefault("STRIPE_PRICE_ID", "")
-# Im Betrieb ist die Abogebuehr derzeit ausgesetzt (BILLING_ENABLED=False,
-# siehe app/config.py). Die Suite prueft trotzdem den kostenpflichtigen Pfad -
-# Probemonat, Bezahlwand, Webhook -, weil genau der spaeter wieder scharf
-# geschaltet wird und bis dahin nicht verrotten darf. Die Gratisphase selbst
-# hat eigene Tests (test_billing_pausiert.py); sie schalten den Wert gezielt
-# per monkeypatch um.
-os.environ.setdefault("BILLING_ENABLED", "true")
+# Im Betrieb ist FLEXR Premium noch nicht scharf geschaltet
+# (PREMIUM_ENABLED=False, siehe app/config.py) - die Beta laeuft fuer alle
+# unbegrenzt. Die Suite laeuft trotzdem im **eingeschalteten** Zustand: Nur so
+# werden Preis, Checkout, Webhook und vor allem die Grenzen fuer
+# Standardnutzer ueberhaupt geprueft, und genau die werden spaeter scharf
+# geschaltet. Der ausgeschaltete Zustand hat eigene Tests (test_premium.py);
+# sie legen den Schalter gezielt per monkeypatch um.
+os.environ.setdefault("PREMIUM_ENABLED", "true")
 
 import pytest
 from fastapi.testclient import TestClient

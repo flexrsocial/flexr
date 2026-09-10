@@ -81,7 +81,7 @@ def operator_inline() -> str:
 # steht sichtbar unter "Stand:" auf jeder Seite.
 # ---------------------------------------------------------------------------
 
-TERMS_VERSION: Final = "2026-09-07"           # AGB (Punkt 7 e/9 a: Entgelt ausgesetzt)
+TERMS_VERSION: Final = "2026-09-10"           # AGB (Punkt 7/9: Gratis-Plattform + FLEXR Premium)
 PRIVACY_VERSION: Final = "2026-08-19"          # Datenschutzerklärung
 AUP_VERSION: Final = "2026-08-19"              # Nutzungsrichtlinien
 LE_GUIDELINES_VERSION: Final = "2026-08-19"    # Strafverfolgungsrichtlinien
@@ -90,27 +90,46 @@ WITHDRAWAL_ACK_VERSION: Final = "2026-08-17"  # Checkout: Kenntnisnahme Erlösch
 
 
 # ---------------------------------------------------------------------------
-# Preis und Vertragsmodell
+# Preis und Vertragsmodell  (Stand 10.09.2026)
 #
 # Maßgeblich ist der Code, nicht dieser Block - er hält nur fest, was
-# routers/billing.py und stripe_client.py tatsächlich tun, damit die Texte
-# nicht davon abweichen:
+# routers/billing.py, premium.py und stripe_client.py tatsächlich tun, damit
+# die Texte nicht davon abweichen:
 #
+#   * **Die Nutzung von FLEXR ist unbefristet unentgeltlich.** Registrieren,
+#     Profile sehen, liken, matchen und schreiben kosten nichts - dauerhaft,
+#     nicht nur während der Beta. Es gibt keine Bezahlwand und keinen
+#     Probemonat; kein Konto wird mangels Zahlung gesperrt.
 #   * Bei der Registrierung wird KEIN Zahlungsmittel erhoben.
-#   * Der Probemonat ist ein reines Datenbankfeld (User.trial_ends_at) und
-#     wandelt sich NICHT von selbst in ein Abo um.
-#   * Ein zahlungspflichtiger Vertrag entsteht erst durch den aktiven Abschluss
-#     im Stripe-Checkout (POST /api/billing/checkout).
+#   * Ein zahlungspflichtiger Vertrag entsteht ausschließlich durch den aktiven
+#     Abschluss von FLEXR Premium im Stripe-Checkout
+#     (POST /api/billing/checkout) - ein Dauerschuldverhältnis über
+#     PRICE_EUR_PER_MONTH pro Monat, jederzeit zum Ende des laufenden
+#     Abrechnungszeitraums kündbar (Stripe Billing Portal, POST /portal).
+#   * Premium schaltet ausschließlich Zusatzfunktionen frei. Ohne Premium
+#     gelten die Grenzen aus ``config.py`` (free_daily_likes,
+#     free_open_chats, free_max_radius_km) - sie schränken den Umfang ein,
+#     nicht den Zugang.
 #
-# Seit dem 07.09.2026 ist die Gebuehr zusaetzlich "bis auf weiteres
-# ausgesetzt": settings.billing_enabled steht auf False, die Nutzung ist fuer
-# neue wie bestehende Konten kostenlos, /api/billing/checkout lehnt mit 409 ab.
-# PRICE_EUR_PER_MONTH bleibt der hinterlegte Preis fuer die Zeit danach - die
-# Rechtstexte nennen ihn weiter, aber ausdruecklich als derzeit ausgesetzt.
+# Premium ist derzeit **noch nicht buchbar**: settings.premium_enabled steht
+# auf False (Beta), /api/billing/checkout lehnt mit 409 ab, und die Grenzen für
+# Standardnutzer greifen noch nicht. Die Rechtstexte nennen Preis und Grenzen
+# deshalb ausdrücklich als "ab dem Ende der Beta-Phase".
+#
+# TRIAL_AUTO_CONVERTS bleibt als Konstante stehen, weil die Rechtstexte die
+# Aussage "wandelt sich nicht selbsttätig in ein Abo um" weiterhin treffen -
+# sie ist heute sogar trivial wahr, da es gar keinen Probezeitraum mehr gibt.
 # ---------------------------------------------------------------------------
 
-PRICE_EUR_PER_MONTH: Final = "5"
+PRICE_EUR_PER_MONTH: Final = "10"
 TRIAL_AUTO_CONVERTS: Final = False
+
+# Grenzen des kostenlosen Kontos, wie sie in den Rechtstexten zugesagt sind.
+# Sie spiegeln settings.free_* - hier gespiegelt, damit die Vertragsfassung
+# nachvollziehbar bleibt, wenn die Betriebswerte später einmal steigen.
+FREE_DAILY_LIKES: Final = "20"
+FREE_OPEN_CHATS: Final = "3"
+FREE_MAX_RADIUS_KM: Final = "50"
 
 
 # ---------------------------------------------------------------------------

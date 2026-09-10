@@ -72,11 +72,22 @@ extension MyProfileDTO {
 
 extension MembershipStatusDTO {
     func toDomain() -> Membership {
+        // Die Standardwerte gelten nur, wenn der Server ein Feld gar nicht
+        // liefert. Sie beschreiben bewusst den zurückhaltendsten Fall: Premium
+        // noch nicht kaufbar, keine Grenzen aktiv.
         Membership(
-            isSubscribed: isSubscribed,
-            trialEndsAt: ServerTime.parse(trialEndsAt) ?? Date(timeIntervalSince1970: 0),
-            isActive: isActive,
-            billingEnabled: billingEnabled ?? true
+            isPremium: isPremium ?? false,
+            premiumEnabled: premiumEnabled ?? false,
+            hasStripeSubscription: hasStripeSubscription ?? isSubscribed ?? false,
+            priceCents: priceCents ?? 1000,
+            currency: currency ?? "EUR",
+            freeDailyLikes: freeDailyLikes ?? 20,
+            freeOpenChats: freeOpenChats ?? 3,
+            freeMaxRadiusKm: freeMaxRadiusKm ?? 50,
+            maxRadiusKm: maxRadiusKm ?? 250,
+            likesRemaining: likesRemaining,
+            openChatsRemaining: openChatsRemaining,
+            nextLikeAt: nextLikeAt.flatMap(ServerTime.parse)
         )
     }
 }

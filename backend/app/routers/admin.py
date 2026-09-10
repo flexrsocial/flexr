@@ -89,9 +89,13 @@ def get_stats(
     active_subscriptions = (
         db.query(func.count(User.id)).filter(lebend, User.is_subscribed.is_(True)).scalar()
     )
+    # Frueher "Konten im laufenden Probemonat". Den gibt es seit dem 10.09.2026
+    # nicht mehr; die Kennzahl waere sonst eine Zaehlung von nichts. An
+    # derselben Stelle steht jetzt die Gegenzahl zu den Abos: alle uebrigen
+    # lebenden Konten, also die Standardnutzer.
     trial_users = (
         db.query(func.count(User.id))
-        .filter(lebend, User.is_subscribed.is_(False), User.trial_ends_at > datetime.utcnow())
+        .filter(lebend, User.is_subscribed.is_(False))
         .scalar()
     )
     banned_users = db.query(func.count(User.id)).filter(lebend, User.is_banned.is_(True)).scalar()
@@ -218,7 +222,7 @@ def list_users(
             is_subscribed=u.is_subscribed,
             is_banned=u.is_banned,
             is_verified=u.is_verified,
-            is_active=u.is_active_member(),
+            is_active=True,   # Bezahlwand abgeschafft - jedes Konto ist nutzbar
             verification_required=u.verification_required,
             is_account_activated=u.is_account_activated,
             age_verified=u.age_verified,
@@ -273,7 +277,7 @@ def get_user_detail(
         is_subscribed=user.is_subscribed,
         is_banned=user.is_banned,
         is_verified=user.is_verified,
-        is_active=user.is_active_member(),
+        is_active=True,   # Bezahlwand abgeschafft - jedes Konto ist nutzbar
         verification_required=user.verification_required,
         is_account_activated=user.is_account_activated,
         age_verified=user.age_verified,

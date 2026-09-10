@@ -1,11 +1,10 @@
 """Taegliche transaktionale E-Mails, fuer die Stripe kein Ereignis erzeugt."""
 
-from datetime import date, datetime, time, timedelta, timezone
+from datetime import datetime, timedelta, timezone
 
 from sqlalchemy.orm import Session
 
 from . import mailer, notifications
-from .config import settings
 from .database import SessionLocal
 from .email_notifications import send_once
 from .models import Swipe, User
@@ -25,68 +24,19 @@ def _utc_naive(value: datetime) -> datetime:
     return value.astimezone(timezone.utc).replace(tzinfo=None)
 
 
-def _vienna_day_window(day: date) -> tuple[datetime, datetime]:
-    start_local = datetime.combine(day, time.min, tzinfo=mailer.VIENNA)
-    end_local = start_local + timedelta(days=1)
-    return _utc_naive(start_local), _utc_naive(end_local)
-
-
 def run_due_email_jobs(db: Session, now: datetime | None = None) -> dict[str, int]:
     """Versendet Faelliges und gibt nur aggregierte Zaehler zurueck."""
     current = now or datetime.now(timezone.utc).replace(tzinfo=None)
-    local_day = current.replace(tzinfo=timezone.utc).astimezone(mailer.VIENNA).date()
-    ending_start, ending_end = _vienna_day_window(local_day + timedelta(days=3))
 
+    # Die beiden Probemonats-Mails ("laeuft in 3 Tagen ab" / "ist abgelaufen")
+    # sind am 10.09.2026 ersatzlos entfallen: Es gibt keinen Probemonat mehr,
+    # weil die Plattform dauerhaft kostenlos ist. Eine Mail ueber das Ende
+    # eines Zeitraums, nach dem sich nichts aendert, waere blanke Verunsicherung
+    # - und die Zaehler dazu haetten nie wieder etwas gezaehlt.
+    #
+    # Die Zaehler bleiben mit 0 in der Antwort stehen, damit der Aufrufer
+    # (scripts/, Admin-Ansicht) unveraendert weiterlaeuft.
     result: dict[str, int] = {"trial_ending_sent": 0, "trial_ended_sent": 0, "failed": 0}
-
-    # Solange die Abogebuehr ausgesetzt ist, endet mit dem Probemonat gar
-    # nichts: der Zugang bleibt (User.is_active_member()). "Dein Probemonat
-    # laeuft ab" waere dann schlicht falsch - beide Mails entfallen, bis
-    # BILLING_ENABLED wieder true ist. Die uebrigen Benachrichtigungen
-    # (wartende Profile, Inaktivitaet) laufen unveraendert weiter.
-    if not settings.billing_enabled:
-        result.update(run_activity_notifications(db, current))
-        return result
-
-    base = db.query(User).filter(
-        User.deleted_at.is_(None),
-        User.is_banned.is_(False),
-        User.email_verified_at.isnot(None),
-        User.is_subscribed.is_(False),
-        User.stripe_subscription_id.is_(None),
-    )
-
-    ending_users = base.filter(
-        User.trial_ends_at >= ending_start,
-        User.trial_ends_at < ending_end,
-    ).all()
-    ended_users = base.filter(
-        User.trial_ends_at <= current,
-        User.trial_ends_at > current - timedelta(days=2),
-    ).all()
-
-    for user in ending_users:
-        key = f"trial:ending:{user.id}:{user.trial_ends_at.isoformat()}"
-        sent = send_once(
-            db,
-            key,
-            "free_trial_ending",
-            lambda user=user: mailer.send_free_trial_ending(
-                user.email, user.name, user.trial_ends_at
-            ),
-        )
-        result["trial_ending_sent" if sent else "failed"] += 1
-
-    for user in ended_users:
-        key = f"trial:ended:{user.id}:{user.trial_ends_at.isoformat()}"
-        sent = send_once(
-            db,
-            key,
-            "free_trial_ended",
-            lambda user=user: mailer.send_free_trial_ended(user.email, user.name),
-        )
-        result["trial_ended_sent" if sent else "failed"] += 1
-
     result.update(run_activity_notifications(db, current))
     return result
 
@@ -166,10 +116,10 @@ def _waiting_count(db: Session, user: User) -> int:
     """
     from .routers.swipes import deck_profiles
 
-    if not user.is_active_member():
-        # Ohne aktive Mitgliedschaft liefert /deck ohnehin nichts - dann über
-        # wartende Profile zu schreiben, wäre eine Einladung in eine Bezahlwand.
-        return 0
+    # Frueher stand hier eine Mitgliedschaftspruefung: Ohne aktives Abo lieferte
+    # /deck nichts, und eine Mail ueber wartende Profile waere eine Einladung in
+    # die Bezahlwand gewesen. Die Bezahlwand gibt es nicht mehr - jedes
+    # freigeschaltete Konto sieht sein Deck.
     return len(deck_profiles(db, user, limit=QUEUE_THRESHOLD))
 
 

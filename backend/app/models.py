@@ -261,10 +261,15 @@ class User(Base):
     bio = Column(String(280), nullable=True)
 
     created_at = Column(DateTime, default=datetime.utcnow)
-    trial_ends_at = Column(
-        DateTime,
-        default=lambda: datetime.utcnow() + timedelta(days=settings.stripe_trial_days),
-    )
+
+    # Rest des alten Probemonats. Seit der Umstellung auf FLEXR Premium
+    # (10.09.2026) ist die Plattform dauerhaft kostenlos - es gibt keinen
+    # Probemonat mehr und niemanden, der nach dessen Ablauf ausgesperrt wuerde.
+    # Die Spalte bleibt nur stehen, damit die Tabelle nicht angefasst werden
+    # muss; **ausgewertet wird sie nirgends**. Wer hier wieder etwas hineinliest,
+    # baut die abgeschaffte Bezahlwand versehentlich neu auf.
+    trial_ends_at = Column(DateTime, default=datetime.utcnow)
+
     is_subscribed = Column(Boolean, default=False)
     stripe_customer_id = Column(String, nullable=True)
     stripe_subscription_id = Column(String, nullable=True)
@@ -416,13 +421,17 @@ class User(Base):
         sind es unverändert; neue Konten erst nach bestandener Prüfung."""
         return not self.verification_required or self.activated_at is not None
 
-    def is_active_member(self) -> bool:
-        # Solange die Abogebuehr ausgesetzt ist (settings.billing_enabled),
-        # hat jedes freigeschaltete Konto Zugang - der Probemonat laeuft im
-        # Hintergrund weiter, sperrt aber nicht aus. Siehe config.py.
-        if not settings.billing_enabled:
-            return True
-        return self.is_subscribed or datetime.utcnow() < self.trial_ends_at
+    @property
+    def is_premium(self) -> bool:
+        """Laeuft fuer dieses Konto ein FLEXR-Premium-Abo?
+
+        Nur wahr, wenn Premium ueberhaupt scharf geschaltet ist: Solange der
+        Schalter aus ist (Beta), hat *niemand* Premium - und braucht es auch
+        nicht, weil dann fuer alle alles unbegrenzt ist. Sonst haetten Konten
+        aus der Zeit der alten Abogebuehr waehrend der Beta ein Abzeichen und
+        Vorteile, die die anderen mangels Grenzen gar nicht vermissen koennen.
+        """
+        return settings.premium_enabled and bool(self.is_subscribed)
 
     @property
     def is_messaging_muted(self) -> bool:

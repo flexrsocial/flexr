@@ -84,8 +84,17 @@ enum L: Hashable, Sendable {
     case photoUploadFailed, photoLightboxPosition, photoTooSmall, photoReadFailed
 
     // Konto
-    case accountSectionProfile, accountSectionPhotos, accountStatusBetaFree
-    case accountStatusActive, accountManageSubscription, accountRadiusHint
+    case accountSectionProfile, accountSectionPhotos
+    case accountManageSubscription, accountRadiusHint
+
+    // FLEXR Premium. Die Nutzung von FLEXR selbst ist dauerhaft kostenlos;
+    // Preis und Grenzen kommen als Platzhalter vom Server.
+    case premiumStatusActive, premiumStatusBeta, premiumStatusFree
+    case premiumShowOffer, premiumTitle, premiumSub, premiumEyebrow
+    case premiumFeatureLikes, premiumFeatureChats, premiumFeatureIncoming
+    case premiumFeatureRewind, premiumFeatureRadius, premiumFeatureBadge
+    case premiumBetaHint, premiumLikesLeft, premiumLikesGone
+    case premiumLikeLimit, premiumChatLimit
     case accountSave, accountSaved, accountSaveFailed, accountErrPostalCode
     case accountErrPhotoBeforeSave, accountErrGym, accountNotificationsRow
     case accountNotificationsSub, accountConsentsRow
@@ -93,7 +102,7 @@ enum L: Hashable, Sendable {
     case accountCheckoutFailed
     case accountBlocksTitle
     case accountMessagesHint, accountNewMessages, accountRadiusLabel
-    case accountTrialDaysLeft, accountSubscribe, accountSectionNotifications
+    case accountSubscribe, accountSectionNotifications
     case accountSectionPrivacy, accountConsentsTitle, accountSectionLegal
     case accountOwnPhoto, verifyBadgeVerifiedShort
     case verifyHintTitle, verifyHintUnderstood, verifyHintStart
@@ -135,7 +144,7 @@ enum L: Hashable, Sendable {
     case verifyAllowCamera, verifyCapture
 
     // Statuspillen
-    case statusBetaFree, statusSubscribed, statusTrialDays, statusExpired
+    case statusBetaFree, statusPremium, statusFree, statusLikesLeft
 
     // Netz- und Serverfehler
     case errorTimeout, errorUnreachable, errorConnection, errorUnauthorized

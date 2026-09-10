@@ -34,20 +34,18 @@ sealed interface AppState {
 
     /**
      * Konto angelegt, aber die Alters- und Identitätsprüfung ist noch nicht
-     * bestanden: nur der Verifizierungsablauf. Steht bewusst VOR der Paywall —
-     * der Probemonat startet erst mit der Freischaltung.
+     * bestanden: nur der Verifizierungsablauf. Das ist seit dem 10.09.2026 das
+     * einzige Tor vor der App — die Bezahlwand (frueher `Locked`) ist mit der
+     * dauerhaft kostenlosen Nutzung entfallen.
      */
     data class NeedsVerification(val profile: MyProfile) : AppState
-
-    /** Angemeldet, aber Probemonat abgelaufen und kein Abo: nur die Paywall. */
-    data class Locked(val membership: Membership) : AppState
 
     data class Ready(val profile: MyProfile, val membership: Membership) : AppState
 }
 
 /**
- * Hält den app-weiten Sitzungszustand: angemeldet, zahlungspflichtig gesperrt
- * oder einsatzbereit. Entspricht der `boot()`/`goToApp()`-Logik des Web-Frontends,
+ * Hält den app-weiten Sitzungszustand: abgemeldet, in Prüfung oder
+ * einsatzbereit. Entspricht der `boot()`/`goToApp()`-Logik des Web-Frontends,
  * hier aber als beobachtbarer Zustand statt als imperativer Bildschirmwechsel.
  */
 @HiltViewModel
@@ -89,20 +87,16 @@ class MainViewModel @Inject constructor(
             }.onSuccess { (profile, membership) ->
                 _appState.value = when {
                     // Ohne bestandene Prüfung gibt es kein Deck, keine Matches
-                    // und keinen Chat - unabhängig vom Abo-Status.
+                    // und keinen Chat. Das ist die einzige Huerde - bezahlen
+                    // muss fuer die Nutzung niemand.
                     !profile.isAccountActivated -> {
                         notificationScheduler.cancel()
                         AppState.NeedsVerification(profile)
                     }
 
-                    membership.isActive -> {
+                    else -> {
                         notificationScheduler.schedule()
                         AppState.Ready(profile, membership)
-                    }
-
-                    else -> {
-                        notificationScheduler.cancel()
-                        AppState.Locked(membership)
                     }
                 }
                 SessionGate.isReady = true
@@ -115,7 +109,7 @@ class MainViewModel @Inject constructor(
         }
     }
 
-    /** Nach Rückkehr aus dem Stripe-Checkout: Abo-Status neu holen. */
+    /** Nach Rückkehr aus dem Stripe-Checkout: Premium-Status neu holen. */
     fun refreshMembership() = loadSession()
 
     /**

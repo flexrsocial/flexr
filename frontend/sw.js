@@ -18,7 +18,7 @@
 // /en/). Beide gehoeren in die Shell, dazu lang-switch.js; i18n-landing.js ist
 // dagegen raus - es ist nur noch Eingabe fuer build-en.py und wird von keiner
 // Seite mehr geladen.
-const CACHE = 'flexr-shell-v10';
+const CACHE = 'flexr-shell-v11';
 // Seit dem 15.08.2026 liegt die App unter /app/, an der Wurzel steht die
 // oeffentliche Landingpage. Beide gehoeren in die Shell: die Landingpage,
 // weil sie der Einstieg ist, die App, weil sie offline funktionieren soll.

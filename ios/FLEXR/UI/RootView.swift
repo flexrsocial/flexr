@@ -24,9 +24,6 @@ struct RootView: View {
             case .loggedOut:
                 AuthFlow()
 
-            case .locked(let membership):
-                LockedFlow(membership: membership)
-
             case .ready(let profile, let membership):
                 MainFlow(ownUserID: profile.id, membership: membership)
             }
@@ -38,8 +35,11 @@ struct RootView: View {
         // steht hier derselbe Ladezustand wie auf dem Startbildschirm — die App
         // springt also nie kurz auf den Login, um dann umzuschalten.
         .onChange(of: scenePhase) { _, phase in
-            // Rückkehr aus dem Stripe-Checkout im Browser: Abo-Status neu holen.
-            guard phase == .active, case .locked = appModel.state else { return }
+            // Rückkehr aus dem Stripe-Checkout im Browser: Premium-Status neu
+            // holen. Früher nur im gesperrten Zustand — den gibt es nicht mehr,
+            // also bei jeder Rückkehr in den Vordergrund. Der Aufruf ist billig
+            // und hält zugleich das Like-Kontingent aktuell.
+            guard phase == .active, case .ready = appModel.state else { return }
             Task { await appModel.refreshMembership() }
         }
         .onOpenURL { url in
@@ -67,24 +67,11 @@ private struct AuthFlow: View {
     }
 }
 
-// MARK: - Angemeldet, aber Probemonat abgelaufen
-
-private struct LockedFlow: View {
-
-    let membership: Membership
-    @State private var path: [Route] = []
-
-    var body: some View {
-        NavigationStack(path: $path) {
-            VStack(spacing: 0) {
-                FlexrTopBar { MembershipPill(membership: membership) }
-                PaywallView()
-            }
-            .navigationBarHidden(true)
-            .flexrRoutes(path: $path)
-        }
-    }
-}
+// Hier stand bis zum 10.09.2026 der `LockedFlow`: der Zustand nach Ablauf des
+// Probemonats, in dem nur noch die Bezahlwand erreichbar war. Die Plattform ist
+// seither dauerhaft kostenlos — es gibt keinen Zustand mehr, in dem ein
+// angemeldetes Konto die App nicht benutzen darf. `PaywallView` ist jetzt ein
+// Ziel im Kontobereich und wird aufgerufen, nicht erzwungen.
 
 // MARK: - Vollständige App
 
@@ -180,6 +167,8 @@ private struct FlexrRoutes: ViewModifier {
                     )
                 case .verification:
                     VerificationView(onBack: { pop() })
+                case .premium:
+                    PaywallView(onBack: { pop() })
                 case .legal(let document):
                     LegalView(document: document, onBack: { pop() })
                 }

@@ -5,6 +5,12 @@ from pydantic import BaseModel, EmailStr, Field, field_validator, model_validato
 
 from .age import is_plausible_birthdate
 
+# Spannweite des Umkreis-Reglers. Benannt statt an jeder Stelle als Zahl:
+# ``premium.max_radius_km()`` kappt gegen dieselbe Obergrenze, und die
+# Oberflaeche stellt den Regler danach.
+MIN_SEARCH_RADIUS_KM = 2
+MAX_SEARCH_RADIUS_KM = 250
+
 
 def _strip(v):
     """Umgebende Leerzeichen entfernen, bevor die Längengrenzen greifen.
@@ -137,6 +143,10 @@ class ProfileOut(BaseModel):
     bio: Optional[str]
     is_online: bool = False
     is_verified: bool = False
+    # Premium-Abzeichen neben dem Namen, analog zum Verifiziert-Haken. Nur
+    # wahr, solange Premium ueberhaupt scharf geschaltet ist - waehrend der
+    # Beta traegt niemand eines (siehe User.is_premium).
+    is_premium: bool = False
     # Entfernung zum anfragenden Nutzer in km (nur im Swipe-Deck gesetzt)
     distance_km: Optional[int] = None
     photos: list[PhotoOut] = []
@@ -231,7 +241,9 @@ class UpdateProfileRequest(BaseModel):
     city: Optional[str] = Field(default=None, min_length=1)
     gym: Optional[str] = None
     bio: Optional[str] = Field(default=None, max_length=280)
-    search_radius_km: Optional[int] = Field(default=None, ge=2, le=250)
+    search_radius_km: Optional[int] = Field(
+        default=None, ge=MIN_SEARCH_RADIUS_KM, le=MAX_SEARCH_RADIUS_KM
+    )
 
     # Eine Bio aus lauter Leerzeichen ist eine leere Bio - und die bedeutet
     # serverseitig "Bio entfernen" (siehe routers/profiles.py).
@@ -245,12 +257,56 @@ class DeleteAccountRequest(BaseModel):
 
 
 class MembershipStatus(BaseModel):
+    """Was dieses Konto darf - die einzige Quelle fuer die Oberflaeche.
+
+    Die Clients rechnen bewusst *nichts* selbst aus: Grenzen, Restzahlen und
+    Preis kommen fertig von hier. Sonst muessten Web-App, Android und iOS
+    dieselbe Formel dreimal gleich treffen und beim naechsten Aendern der
+    Zahlen dreimal gleich nachgezogen werden.
+    """
+
+    # Laeuft ein Premium-Abo? (Nur wahr, wenn Premium ueberhaupt scharf ist.)
+    is_premium: bool
+    # False = Beta: Premium ist nicht kaufbar und **niemand** hat Grenzen.
+    # Die Clients blenden daran Preis, Vorteile und Abo-Knoepfe aus.
+    premium_enabled: bool
+    # Ein Abo aus der Zeit vor der Umstellung bzw. ein laufendes Premium-Abo,
+    # das gekuendigt werden koennen muss - unabhaengig von premium_enabled.
+    has_stripe_subscription: bool
+
+    # Preis, damit "10 €" nirgends im Client fest steht.
+    price_cents: int
+    currency: str
+
+    # Grenzen des Standardkontos. Immer gefuellt, damit die Oberflaeche sie
+    # auch waehrend der Beta schon erklaeren kann ("ab dem Ende der Beta ...").
+    free_daily_likes: int
+    free_open_chats: int
+    free_max_radius_km: int
+    max_radius_km: int
+
+    # Verbrauch. ``None`` heisst unbegrenzt - waehrend der Beta immer, mit
+    # Premium immer, sonst nie.
+    likes_remaining: Optional[int] = None
+    open_chats_remaining: Optional[int] = None
+    next_like_at: Optional[datetime] = None
+
+    # ---- Nur noch fuer alte Clients -------------------------------------
+    #
+    # Die Android-App 2.5.5 liest ``trial_ends_at`` und ``is_active`` als
+    # PFLICHTfelder (Dtos.kt) - fehlen sie, scheitert schon das Parsen der
+    # Antwort und die App steht ohne Statusinformation da. Sie bleiben deshalb
+    # in der Antwort stehen, obwohl der Server sie nirgends mehr auswertet:
+    #
+    #   is_subscribed    - wie has_stripe_subscription
+    #   trial_ends_at    - der Rest der alten Spalte, ohne Bedeutung
+    #   is_active        - immer True; es gibt keine Bezahlwand mehr
+    #   billing_enabled  - wie premium_enabled
+    #
+    # Entfernen, sobald keine App-Fassung vor 2.6.0 mehr im Umlauf ist.
     is_subscribed: bool
     trial_ends_at: datetime
-    is_active: bool
-    # False = Abogebuehr ausgesetzt, die Mitgliedschaft ist fuer alle
-    # kostenlos. Die Clients blenden daran Preise, Bezahlwand und
-    # Abo-Knoepfe aus; ``is_active`` ist dann immer True.
+    is_active: bool = True
     billing_enabled: bool
 
 
@@ -261,6 +317,30 @@ class SwipeRequest(BaseModel):
 
 class SwipeResult(BaseModel):
     matched: bool
+    # Rest des Like-Kontingents nach diesem Swipe; None = unbegrenzt. Kommt
+    # gleich mit zurueck, damit die Oberflaeche den Zaehler ohne zweiten
+    # Aufruf mitfuehren kann.
+    likes_remaining: Optional[int] = None
+
+
+class RewindResult(BaseModel):
+    """Ergebnis von POST /api/swipes/rewind."""
+
+    to_user_id: str
+    likes_remaining: Optional[int] = None
+
+
+class IncomingLikesOut(BaseModel):
+    """Wer dich geliket hat.
+
+    ``count`` steht auch ohne Premium zur Verfuegung - die Zahl darf jeder
+    sehen, die Profile nicht. ``premium_required`` sagt der Oberflaeche, ob sie
+    die Liste oder die Werbung dafuer zeigen soll.
+    """
+
+    count: int
+    profiles: list[ProfileOut] = []
+    premium_required: bool = False
 
 
 class MessageOut(BaseModel):

@@ -166,11 +166,19 @@ def require_activated_account(user: User = Depends(get_current_user)) -> User:
 
 
 def require_active_membership(user: User = Depends(require_activated_account)) -> User:
-    if not user.is_active_member():
-        raise HTTPException(
-            status_code=status.HTTP_402_PAYMENT_REQUIRED,
-            detail="Probemonat abgelaufen. Bitte Abo abschließen.",
-        )
+    """Fruehere Bezahlwand - heute nur noch die Freischaltungspruefung.
+
+    Bis zum 10.09.2026 warf diese Abhaengigkeit 402, sobald der Probemonat
+    abgelaufen war und kein Abo lief. Die Plattform ist seither **dauerhaft
+    kostenlos**: Es gibt keinen Zustand mehr, in dem ein freigeschaltetes Konto
+    die App nicht benutzen darf, und deshalb auch kein 402 mehr.
+
+    Der Name bleibt als Abhaengigkeit erhalten, damit die Routen, die "nur fuer
+    fertig geprueffte Konten" bedeuten, nicht alle angefasst werden mussten -
+    und weil er die Absicht weiter richtig beschreibt. Was Premium
+    *zusaetzlich* erlaubt, steht in ``premium.py`` und wird dort pro Aktion
+    geprueft, nicht pauschal an der Tuer.
+    """
     return user
 
 
