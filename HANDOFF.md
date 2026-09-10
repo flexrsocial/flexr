@@ -145,7 +145,7 @@ gibt es nur unter macOS, das Projekt wurde noch nie gebaut. Statisch geprüft
 wurde, dass beide Stringtabellen **alle** `L`-Fälle belegen und keinen
 unbekannten enthalten (kein fehlender, kein überzähliger Schlüssel).
 
-### Zwischenfall: nginx lag 1 h 45 min
+### Zwischenfall: nginx lag 1 h 45 min — Ursache behoben
 
 Beim Hochladen des AAB fiel auf, dass **flexr.social nicht erreichbar war** —
 nginx war um **06:35 CEST** gestorben, also lange vor dieser Sitzung, und
@@ -158,14 +158,78 @@ zwar beim Start:
 
 nginx löst Upstream-Namen **beim Start** auf und scheitert hart, wenn DNS
 gerade nichts liefert — danach bleibt der Dienst unten, bis jemand ihn startet.
-`nginx -t` lief zum Zeitpunkt der Prüfung sauber durch, die Konfiguration war
-also nie kaputt. Mit `systemctl start nginx` war alles sofort wieder da.
+Die ganze Seite, wegen eines Namens, den nur die Fotos brauchen. `nginx -t`
+lief zum Zeitpunkt der Prüfung sauber durch, die Konfiguration war also nie
+kaputt; `systemctl start nginx` genügte.
 
-**Das kann jederzeit wieder passieren.** Dauerhaft hilft nur eines von beiden:
-den R2-Host über eine `resolver`-Direktive und eine Variable im `proxy_pass`
-zur Laufzeit auflösen (dann startet nginx auch ohne DNS), oder
-`Restart=on-failure` mit `RestartSec` in einem systemd-Drop-in. **Beides ist
-nicht gemacht** — es war nicht beauftragt und ändert Produktionsverhalten.
+**Behoben am selben Tag** (Auftrag „bau den resolver"): Der Hostname steht
+jetzt in einer Variablen, damit nginx ihn zur **Laufzeit** auflöst.
+
+```nginx
+resolver 1.1.1.1 1.0.0.1 valid=300s;
+resolver_timeout 5s;
+set $r2_host pub-0fa239128c094c37bb3bf410428cf0ba.r2.dev;
+rewrite ^/photos/(.*)$ /$1 break;
+proxy_ssl_server_name on;
+proxy_set_header Host $r2_host;
+proxy_pass https://$r2_host;
+```
+
+Drei Dinge, die man dabei wissen muss:
+
+1. **Die `resolver`-Zeile stand schon vorher da und war wirkungslos.** Sie
+   greift ausschließlich, wenn die Adresse in `proxy_pass` eine Variable
+   enthält. Mit einem Literal wird sie stillschweigend ignoriert — genau
+   deshalb sah die Konfiguration aus, als wäre der Fall schon abgedeckt.
+2. **Das `rewrite` ist Pflicht, nicht Kosmetik.** Sobald `proxy_pass` eine
+   Variable enthält, nimmt nginx die Ersetzung des location-Präfixes nicht mehr
+   selbst vor. Ohne diese Zeile landet jede Anfrage auf dem Bucket-Wurzelpfad.
+   Die Objektschlüssel sind `users/<uuid>/<uuid>.<ext>` und damit frei von
+   Zeichen, bei denen das Dekodieren durch `$uri` etwas verändern würde.
+3. **Der Fehlermodus verschiebt sich, er verschwindet nicht.** Fällt DNS im
+   laufenden Betrieb aus, antworten jetzt nur noch `/photos/` mit 502 — die
+   Seite selbst bleibt oben. Das ist der Sinn der Übung.
+
+Nachgewiesen mit einer **eigenen nginx-Instanz** und einem garantiert nicht
+existierenden Hostnamen, ohne die Produktion anzufassen: literal → derselbe
+`[emerg] host not found in upstream`; über Variable → „test is successful".
+Danach an der echten Konfiguration `nginx -t`, `reload` **und** ein
+`systemctl restart` (der Pfad, der am 10.09. scheiterte) — alles sauber, echtes
+Foto weiterhin 200 mit unverändertem `Cache-Control` und allen Schutz-Headern.
+
+Sicherung der vorherigen Fassung liegt als
+`/etc/nginx/sites-available/flexr.social.bak-20260910` auf dem VPS.
+
+**Nicht gemacht, bewusst:** das systemd-Drop-in mit `Restart=on-failure`. Es
+würde einen zweiten, unabhängigen Schutz geben (nginx kommt auch nach einem
+Absturz aus anderer Ursache von selbst wieder), war aber nicht beauftragt.
+Ebenso wenig `proxy_ssl_verify on` — bei Laufzeitauflösung wäre eine
+Zertifikatsprüfung des Upstreams das passende Gegenstück, ändert aber
+Produktionsverhalten.
+
+### Nebenbefund: Profilfotos werden ohne `Content-Type` ausgeliefert
+
+Beim Nachmessen der Foto-Header aufgefallen, **unabhängig von nginx** — R2
+selbst liefert den Header nicht mit. Die Ursache steht in
+`backend/app/storage.py`:
+
+```python
+client.copy_object(..., CacheControl=PHOTO_CACHE_CONTROL,
+                   MetadataDirective="REPLACE")
+```
+
+`MetadataDirective="REPLACE"` ersetzt die **gesamten** Systemmetadaten durch
+das, was im Aufruf steht. `ContentType` steht dort nicht — der beim Presigned
+PUT korrekt gesetzte Typ wird also von genau der Funktion gelöscht, die das
+`Cache-Control` nachträgt. Aufgefallen ist es nie, weil Browser `<img>`
+trotzdem rendern (`nosniff` verhindert das Sniffing nur für Skripte und
+Stylesheets).
+
+Die Behebung wäre eine Zeile (`ContentType=` im `copy_object` mitgeben, der Typ
+steht über die Dateiendung fest). Offen bleibt die zweite Hälfte: **bestehende
+Objekte behalten den fehlenden Header**, bis sie einmal nachgezogen werden.
+Beides ist **nicht gemacht** — es war nicht beauftragt, und der Backfill ist
+eine eigene Entscheidung.
 
 ### Prüfung
 
