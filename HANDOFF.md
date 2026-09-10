@@ -126,32 +126,61 @@ jetzt auf „FLEXR Premium"** statt „Mitgliedschaft".
 
 ### Android 2.6.0
 
-**Maßgeblich ist `versionCode 50`:**
+**Maßgeblich ist `versionCode 100`:**
 
-    https://flexr.social/dl-a616e78274de323b/flexr-2.6.0-vc50.aab
+    https://flexr.social/dl-a616e78274de323b/flexr-2.6.0-vc100.aab
 
-7.730.174 Bytes, SHA-256
-`122759b7d275c41ec90cf7f85bf07de30f8934d4150144d9974694e02ff533f9`, mit dem
+7.730.159 Bytes, SHA-256
+`f6da661da5fa88e0da55441a920b35dfe52c6f044e06691a6c97617d9a371d04`, mit dem
 unveränderten Upload-Key `CN=FLEXR` signiert.
 
-**Der erste Anlauf mit `versionCode 43` wurde von der Play Console abgelehnt**
-(„Versionscode 43 wurde bereits verwendet"). Bewusst ein Sprung auf **50** statt
-auf 44: Welche Nummern die Console sonst noch kennt, ist von hier aus nicht
-einsehbar, und jeder Fehlversuch kostet einen kompletten Build. Lücken im
-`versionCode` sind zulässig, nur Rückwärtssprünge nicht.
+#### Zwei abgelehnte Anläufe — und was sie bedeuten
 
-`versionName` bleibt **2.6.0** — der Release *ist* 2.6.0, verbrannt war nur die
-Build-Nummer. `versionCode` ist der Zähler, `versionName` die Fassung.
+Die Play Console lehnte nacheinander **43** und **50** mit „Versionscode … wurde
+bereits verwendet" ab. Beide Nummern waren an diesem Tag zum ersten Mal gebaut
+worden, und das alte TWA-Projekt unter demselben Paketnamen
+(`flexr.social.app`, `android/app/build.gradle`) steht bei `versionCode 5` —
+es hat die Nummern also nicht verbraucht.
 
-Gegengeprüft wurde nicht nur die Gradle-Datei: Das Manifest im AAB liegt als
-**Protobuf** vor (nicht als binäres AXML, `aapt2 dump xmltree` greift dort
-nicht). Der Byte-Vergleich der beiden Manifeste zeigt **genau drei** abweichende
-Bytes — Offset 179 `43` → `50` (der Wert als Varint) und Offsets 163/164
-`"43"` → `"50"` (derselbe Wert als Zeichenkette). `versionName` unverändert.
+**Daraus folgt: Die Uploads waren erfolgreich.** Eine Nummer kann nur „bereits
+verwendet" sein, wenn ein Bundle mit ihr das Konto erreicht hat. Beide Bundles
+liegen damit in der Bibliothek des Kontos; die Fehlermeldung entstand jeweils
+beim *zweiten* Hochladen derselben Datei in einen neuen Release-Entwurf.
 
-`https://flexr.social/dl-a616e78274de323b/flexr-2.6.0.aab` (versionCode 43)
-liegt weiterhin daneben, **lässt sich aber nie wieder in die Play Console
-laden**. Wer aufräumt, kann sie löschen.
+**Der richtige Griff ist deshalb „Aus der Bibliothek hinzufügen"**, nicht ein
+neuer Build. Was das Konto kennt, zeigt verlässlich nur der
+**App-Bundle-Explorer** (Release → App-Bundle-Explorer) — von der
+Entwicklungsseite aus ist die Play Console eine Blackbox, weshalb zweimal
+danebengeraten wurde.
+
+`versionCode 100` steht bereit, falls die Bibliothek wider Erwarten leer ist.
+Bewusst ein grosser Abstand statt der nächsten freien Nummer, und bewusst
+**kein** datumsbasiertes Schema (`20260910xx`): Das liegt dicht unter der harten
+Obergrenze von 2.100.000.000 und lässt sich nie wieder verkleinern.
+
+`versionName` bleibt in allen Fällen **2.6.0** — der Release *ist* 2.6.0,
+verbrannt sind nur Build-Nummern. `versionCode` ist der Zähler, `versionName`
+die Fassung.
+
+#### Wie der versionCode im Bundle geprüft wird
+
+Nicht über die Gradle-Datei, sondern im gebauten Manifest. Es liegt im AAB als
+**Protobuf** vor (nicht als binäres AXML — `aapt2 dump xmltree` scheitert mit
+„could not identify format of APK"). Der Wert steht dort **zweimal**, direkt
+hinter dem Namen `versionCode`:
+
+```
+vc50:  versionCode  1a 02 "50"   … 3a 02 30 32   (Textfassung, dann Wert 50)
+vc100: versionCode  1a 03 "100"  … 3a 02 30 64   (Textfassung, dann Wert 100)
+```
+
+Ein Byte-Vergleich zweier Manifeste zeigt die Änderung damit unmittelbar; beim
+Schritt 43 → 50 waren es **genau drei** abweichende Bytes (Wert plus die zwei
+Zeichen der Textfassung).
+
+Ältere Bundles liegen weiterhin im selben Ordner
+(`flexr-2.6.0.aab` = vc43, `flexr-2.6.0-vc50.aab` = vc50). **Beide lassen sich
+nie wieder in die Play Console laden**; wer aufräumt, kann sie löschen.
 
 `:app:compileProdReleaseKotlin` und `:app:testProdReleaseUnitTest` beide
 BUILD SUCCESSFUL. Der `LockedGraph` ist entfallen, `PaywallScreen` ist ein
