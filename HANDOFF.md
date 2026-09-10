@@ -2,16 +2,38 @@
 
 Stand: **10.09.2026**
 
-Produktstand: Auf `origin/main` liegen zwei Commits dieser Sitzung — die
-**Zweisprachigkeit (Deutsch/Englisch)** in Web-App, Landingpage, Android- und
-iOS-App samt **zweitem Weg beim Ausweis-Upload** (Datei statt nur Kamera), und
-darauf die **eigene englische Landingpage unter `/en/`**. Beides reines
-Frontend/Client — kein Backend, keine Migration, kein Neustart.
-**Noch nicht committet:** die Nachbesserungen aus der zweiten Sitzung vom
-09.09. (siehe direkt unten) liegen nur im Arbeitsverzeichnis.
-Aufbau des Dokuments: erst die Eckdaten, dann **09.09.**, dann **08.09.**,
-dann die beiden Sitzungen vom **07.09.**, dann **06.09.**, dann **05.09.**,
-dann **31.08.**, dann **30.08.**, dann **23.08.**, dann **21.08.**; die Build-,
+## Wo das Projekt gerade steht
+
+**Alles ist committet, gepusht und deployt.** Arbeitsverzeichnis, `origin/main`
+und der VPS sind auf demselben Stand; `422 Tests` laufen grün.
+
+**Das Geschäftsmodell hat sich am 10.09.2026 grundlegend geändert:**
+
+* **Die Nutzung von FLEXR ist unbefristet unentgeltlich** — nicht nur in der
+  Beta. Es gibt **keine Bezahlwand, keinen Probemonat, kein 402** mehr; kein
+  Konto wird je mangels Zahlung gesperrt.
+* Bezahlt wird nur **FLEXR Premium**: 10 €/Monat, freiwillig, monatlich kündbar.
+* Standardkonten haben Grenzen — **20 Likes je 24 h, 3 gleichzeitige
+  Unterhaltungen, 50 km Umkreis**. Premium hebt sie auf und bringt: sehen wer
+  geliket hat, letzten Swipe zurücknehmen, 250 km, Abzeichen im Profil.
+* **Der Schalter `PREMIUM_ENABLED` steht auf `false`.** Solange er aus ist
+  (Beta), ist für alle alles unbegrenzt und Premium ist nicht kaufbar. Das
+  Umlegen braucht keine Migration.
+
+Die Zahlen stehen in `backend/app/config.py` und sind zugleich eine
+**vertragliche Zusage** (AGB Punkt 7 b). Wer sie ändert, zieht
+`frontend/i18n-*.js`, `res/values*/strings.xml`, `agb.html`, `faq.html` und
+`app/legal.py` mit.
+
+**Aktuelles Android-Bundle:**
+`https://flexr.social/dl-a616e78274de323b/flexr-2.6.0-vc100.aab`
+(versionCode 100, versionName 2.6.0). Die Play Console hatte 43 und 50 schon
+vergeben — Näheres im 10.09.-Abschnitt.
+
+Aufbau des Dokuments: erst diese Eckdaten, dann die **drei Abschnitte vom
+10.09.** (Audit-Fortsetzung, Audit, Monetarisierung), dann **09.09.**, dann
+**08.09.**, dann die beiden Sitzungen vom **07.09.**, dann **06.09.**, dann
+**05.09.**, dann **31.08.**, **30.08.**, **23.08.**, **21.08.**; die Build-,
 Test- und Deploy-Abschnitte am Ende gelten sitzungsübergreifend.
 
 ## Sitzung 10.09.2026 (Audit, Fortsetzung) — Registrierung, Hero-Layout, Werkzeuge
@@ -82,6 +104,44 @@ selben `location`-Block auf und nennt wieder den echten Bucket-Host.
 Die eigentliche Prüfung war übrigens nie stärker als „gibt es überhaupt einen
 Proxy" — sie vergleicht den Host nicht mit `S3_ENDPOINT_URL`. Das wäre die
 nächste sinnvolle Ausbaustufe, ist aber nicht gemacht.
+
+### `check_csp_hosts.py` prüft jetzt gegen `S3_ENDPOINT_URL`
+
+Bis dahin bestätigte das Werkzeug nur, **dass** es eine `location /photos/` mit
+`proxy_pass` gibt — nicht, wohin sie zeigt. Drei echte Gegenprüfungen kamen
+dazu; jede fängt einen Fehler ab, der sonst erst auffällt, wenn Nutzer leere
+Bilder melden:
+
+1. **Der Pfad kommt aus `S3_PUBLIC_BASE_URL`, statt fest verdrahtet zu sein.**
+   Zeigt die Basis-URL auf `/bilder`, nginx hat aber nur `location /photos/`,
+   dann liefert niemand die Fotos aus. Vorher meldete das Werkzeug „alles gut",
+   weil es immer nach `/photos/` suchte.
+2. **Der S3-API-Endpunkt als Proxy-Ziel wird erkannt.** Das ist die
+   naheliegendste Verwechslung: `<account>.r2.cloudflarestorage.com` sieht
+   plausibel aus, verlangt aber SigV4-signierte Anfragen und beantwortet einen
+   nackten GET mit 401/403 — kein Foto würde laden, ohne dass an der
+   Konfiguration etwas falsch *aussähe*.
+3. **Fremde Hosts fallen auf.** Erwartet wird `pub-<32 Hex>.r2.dev`; Tippfehler
+   oder ein Bucket aus einem anderen Konto werden gemeldet.
+
+**Was sich bewusst NICHT prüfen lässt:** ob es derselbe Bucket ist wie in
+`S3_ENDPOINT_URL`. Der öffentliche Host trägt eine eigene, undurchsichtige ID
+(`pub-<32 Hex>`), der Endpunkt die Account-ID — aus der einen folgt die andere
+nicht. Sicher ginge das nur mit einem echten Abruf gegen den Bucket, was ein
+statischer Prüfer nicht leisten soll.
+
+Alle vier Fehlerfälle wurden mit präparierten Kopien von `.env` und
+`nginx-flexr.conf` durchgespielt und schlagen an. Fünf neue Tests in
+`backend/tests/test_csp_storage_hosts.py` halten das fest — darunter einer, der
+sicherstellt, dass die nginx-**Variable** weiterhin aufgelöst wird: Wer das
+entfernt, bekommt `$r2_host` statt eines Hostnamens und prüft gar nichts mehr.
+
+Ausführen:
+
+```bash
+python3 tools/check_csp_hosts.py                       # nimmt backend/.env
+python3 tools/check_csp_hosts.py /flexr/backend/.env   # auf dem VPS
+```
 
 ### Lokale `.env` angeglichen
 

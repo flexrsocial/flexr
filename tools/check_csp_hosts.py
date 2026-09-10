@@ -70,16 +70,23 @@ def hosts_der_direktive(policy: str, direktive: str) -> list:
     return []
 
 
-def photos_proxy_ziel(text: str) -> str | None:
-    """Host, an den die Location /photos/ in nginx-flexr.conf weiterreicht.
+def proxy_ziel_fuer(text: str, pfad: str) -> str | None:
+    """Host, an den die ``location <pfad>/`` in nginx-flexr.conf weiterreicht.
 
-    Seit dem 10.09.2026 steht dort keine Zeichenkette mehr, sondern eine
-    Variable (``proxy_pass https://$r2_host``) - nur so loest nginx den Namen
-    zur Laufzeit auf und stirbt nicht beim Start, wenn DNS gerade ausfaellt.
-    Ohne die Aufloesung unten haette dieses Werkzeug fortan bloss "$r2_host"
-    gemeldet und damit gar nichts mehr geprueft.
+    Der Pfad kommt aus ``S3_PUBLIC_BASE_URL`` und wird NICHT fest verdrahtet:
+    Zeigt die Basis-URL auf ``/bilder``, nginx hat aber nur ``location
+    /photos/``, dann liefert niemand die Fotos aus. Genau das uebersah die
+    fruehere Fassung, weil sie immer nach ``/photos/`` suchte.
+
+    Seit dem 10.09.2026 steht im ``proxy_pass`` keine Zeichenkette mehr,
+    sondern eine Variable (``proxy_pass https://$r2_host``) - nur so loest
+    nginx den Namen zur Laufzeit auf und stirbt nicht beim Start, wenn DNS
+    gerade ausfaellt. Ohne die Aufloesung unten haette dieses Werkzeug fortan
+    bloss "$r2_host" gemeldet und damit gar nichts mehr geprueft.
     """
-    block = re.search(r"location\s+/photos/\s*\{([^}]*)\}", text)
+    pfad = "/" + pfad.strip("/") + "/"
+    block = re.search(
+        r"location\s+" + re.escape(pfad) + r"\s*\{([^}]*)\}", text)
     if not block:
         return None
     treffer = re.search(r"proxy_pass\s+https?://([^/;\s]+)", block.group(1))
@@ -91,6 +98,48 @@ def photos_proxy_ziel(text: str) -> str | None:
             r"set\s+" + re.escape(ziel) + r"\s+([^;\s]+)\s*;", block.group(1))
         return gesetzt.group(1) if gesetzt else None
     return ziel
+
+
+# Oeffentliche R2-Hosts heissen "pub-<32 Hex>.r2.dev"; der S3-API-Endpunkt
+# dagegen "<account>.r2.cloudflarestorage.com". Die beiden zu verwechseln ist
+# der naheliegendste Fehler - siehe pruefe_proxy_ziel().
+R2_PUBLIC = re.compile(r"^pub-[0-9a-f]{32}\.r2\.dev$")
+
+
+def pruefe_proxy_ziel(ziel: str, endpunkt: str) -> list:
+    """Plausibilitaet des Hosts, an den /photos/ weiterreicht.
+
+    Statisch laesst sich **nicht** feststellen, ob es derselbe Bucket ist wie
+    in S3_ENDPOINT_URL: Der oeffentliche Host traegt eine eigene, undurchsichtige
+    ID (``pub-<32 Hex>``), der Endpunkt die Account-ID. Aus der einen folgt die
+    andere nicht. Was sich pruefen laesst, sind die beiden Verwechslungen, die
+    tatsaechlich passieren:
+    """
+    befunde = []
+    endpunkt_host = urlparse(endpunkt).netloc if endpunkt else ""
+
+    # 1. Der S3-API-Endpunkt als Proxy-Ziel. Sieht plausibel aus, liefert aber
+    #    nichts: Dieser Host verlangt SigV4-signierte Anfragen und beantwortet
+    #    einen nackten GET mit 401/403. Jedes Foto waere dann kaputt, ohne dass
+    #    an der Konfiguration etwas falsch AUSSAEHE.
+    if endpunkt_host and ziel == endpunkt_host:
+        befunde.append(
+            f"Die Location reicht an den S3-API-Endpunkt weiter ({ziel}). "
+            f"Der verlangt signierte Anfragen und beantwortet einen einfachen "
+            f"GET mit 401/403 - kein Profilfoto wuerde laden. Ziel muss der "
+            f"oeffentliche Bucket-Host sein (pub-<id>.r2.dev).")
+        return befunde
+
+    # 2. Irgendein anderer Host. Kann ein Tippfehler sein oder ein Bucket, der
+    #    nicht zu diesem Konto gehoert - beides faellt sonst erst auf, wenn
+    #    Nutzer leere Bilder melden.
+    if not R2_PUBLIC.match(ziel):
+        befunde.append(
+            f"Die Location reicht an {ziel} weiter - das sieht nicht nach einem "
+            f"oeffentlichen R2-Bucket aus (erwartet: pub-<32 Hex>.r2.dev). "
+            f"Tippfehler oder falsches Konto fallen sonst erst auf, wenn "
+            f"Nutzer leere Bilder melden.")
+    return befunde
 
 
 def main() -> int:
@@ -146,17 +195,32 @@ def main() -> int:
         print("– S3_PUBLIC_BASE_URL ist nicht gesetzt, img-src nicht pruefbar.")
     else:
         basis_host = urlparse(basis).netloc
+        basis_pfad = urlparse(basis).path.strip("/") or ""
         if EIGENER_URSPRUNG in basis_host:
             print(f"✓ S3_PUBLIC_BASE_URL zeigt auf den eigenen Ursprung ({basis_host}) "
                   f"- fuer die Profilfotos genuegt 'self'.")
-            ziel = photos_proxy_ziel(NGINX_SITE.read_text(encoding="utf-8"))
-            if ziel:
-                print(f"✓ Location /photos/ reicht weiter an {ziel}")
-            else:
+            if not basis_pfad:
                 befunde.append(
-                    f"S3_PUBLIC_BASE_URL zeigt auf {basis_host}, aber "
-                    f"{NGINX_SITE} hat keine Location /photos/ mit proxy_pass. "
-                    f"Fotos haetten dann eine URL, die niemand ausliefert.")
+                    f"S3_PUBLIC_BASE_URL ({basis}) hat keinen Pfad. Erwartet "
+                    f"wird der Pfad der proxy-Location, etwa "
+                    f"https://{EIGENER_URSPRUNG}/photos.")
+            else:
+                ziel = proxy_ziel_fuer(
+                    NGINX_SITE.read_text(encoding="utf-8"), basis_pfad)
+                if not ziel:
+                    befunde.append(
+                        f"S3_PUBLIC_BASE_URL zeigt auf /{basis_pfad}, aber "
+                        f"{NGINX_SITE} hat keine Location /{basis_pfad}/ mit "
+                        f"proxy_pass. Fotos haetten dann eine URL, die niemand "
+                        f"ausliefert.")
+                else:
+                    ziel_befunde = pruefe_proxy_ziel(ziel, endpunkt)
+                    if ziel_befunde:
+                        befunde.extend(ziel_befunde)
+                    else:
+                        print(f"✓ Location /{basis_pfad}/ reicht weiter an {ziel} "
+                              f"(oeffentlicher Bucket, nicht der signierte "
+                              f"S3-Endpunkt)")
         else:
             # Direkter externer Host (z.B. waehrend einer Migration, bevor der
             # Proxy umgestellt ist) - dann muss img-src ihn explizit nennen.

@@ -121,9 +121,58 @@ def test_erkennt_fehlenden_img_src_host_fuer_admin_aufnahmen(pruefer, tmp_path):
 
 def test_photos_proxy_existiert_und_hat_ein_ziel(pruefer):
     text = NGINX_SITE.read_text(encoding="utf-8")
-    ziel = pruefer.photos_proxy_ziel(text)
+    ziel = pruefer.proxy_ziel_fuer(text, "photos")
     assert ziel, "Location /photos/ mit proxy_pass fehlt in deploy/nginx-flexr.conf"
     assert "r2" in ziel, f"Unerwartetes Proxy-Ziel fuer /photos/: {ziel}"
+
+
+def test_proxy_ziel_loest_die_nginx_variable_auf(pruefer):
+    """Seit dem 10.09.2026 steht im proxy_pass eine Variable.
+
+    nginx loest den Upstream-Namen nur dann zur Laufzeit auf (und stirbt nicht
+    beim Start, wenn DNS ausfaellt) - dafuer musste der Host in ein `set`
+    wandern. Wer die Aufloesung hier entfernt, bekommt "$r2_host" statt eines
+    Hostnamens und prueft damit gar nichts mehr.
+    """
+    ziel = pruefer.proxy_ziel_fuer(NGINX_SITE.read_text(encoding="utf-8"), "photos")
+    assert not ziel.startswith("$"), (
+        f"Die Variable wurde nicht aufgeloest: {ziel}")
+    assert pruefer.R2_PUBLIC.match(ziel), (
+        f"Proxy-Ziel sieht nicht nach oeffentlichem R2-Bucket aus: {ziel}")
+
+
+def test_proxy_pfad_kommt_aus_der_basis_url_nicht_fest_verdrahtet(pruefer):
+    """Zeigt S3_PUBLIC_BASE_URL woandershin, muss die Location dort liegen.
+
+    Die fruehere Fassung suchte immer nach `/photos/` und meldete "alles gut",
+    auch wenn die Basis-URL auf `/bilder` zeigte - jedes Foto waere dann eine
+    URL gewesen, die niemand ausliefert.
+    """
+    text = NGINX_SITE.read_text(encoding="utf-8")
+    assert pruefer.proxy_ziel_fuer(text, "photos")
+    assert pruefer.proxy_ziel_fuer(text, "bilder") is None
+
+
+def test_erkennt_den_signierten_s3_endpunkt_als_proxy_ziel(pruefer):
+    """Die naheliegendste Verwechslung: API-Endpunkt statt Bucket-Host.
+
+    Der Endpunkt verlangt SigV4-signierte Anfragen und beantwortet einen
+    nackten GET mit 401/403. Die Konfiguration saehe dabei voellig plausibel
+    aus - kein Foto wuerde laden.
+    """
+    endpunkt = "https://beispiel.r2.cloudflarestorage.com"
+    befunde = pruefer.pruefe_proxy_ziel("beispiel.r2.cloudflarestorage.com", endpunkt)
+    assert befunde and "S3-API-Endpunkt" in befunde[0]
+
+
+def test_erkennt_einen_fremden_host_als_proxy_ziel(pruefer):
+    befunde = pruefer.pruefe_proxy_ziel("example.com", "https://x.r2.cloudflarestorage.com")
+    assert befunde and "oeffentlichen R2-Bucket" in befunde[0]
+
+
+def test_echtes_bucket_ziel_ist_unauffaellig(pruefer):
+    assert pruefer.pruefe_proxy_ziel(
+        "pub-" + "0" * 32 + ".r2.dev", "https://x.r2.cloudflarestorage.com") == []
 
 
 def test_erkennt_fehlenden_connect_src_host(pruefer, tmp_path):
