@@ -48,8 +48,14 @@ android {
         //
         // versionName bleibt 2.6.0: Der Release IST 2.6.0, verbrannt sind nur
         // Build-Nummern. versionCode ist der Zaehler, versionName die Fassung.
-        versionCode = 100
-        versionName = "2.6.0"
+        // 101/2.6.1 am 11.09.2026: 2.6.0 (versionCode 100) stuerzt beim Start ab.
+        // Die Ursache ist nicht gefunden - dieser Build ist ein sauberer
+        // Neubau derselben Quellen (./gradlew clean bundleProdRelease), keine
+        // Fehlerbehebung. Er taugt als Probe, ob ein verunglueckter
+        // inkrementeller Build die Ursache war; sonst crasht er genauso.
+        // Siehe HANDOFF.md, Abschnitt "Absturz beim Start der Android-App".
+        versionCode = 101
+        versionName = "2.6.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         // Nur die Sprachen ausliefern, die es wirklich gibt: Deutsch als

@@ -221,6 +221,23 @@ ist mit dem Bundle hochgegangen, die Play Console zeigt Abstürze also lesbar
 adb logcat -c && adb shell monkey -p flexr.social.app 1 && sleep 4 && adb logcat -d -b crash
 ```
 
+**Version 2.6.1 (versionCode 101) ist vorbereitet, aber nicht gebaut.** Auf der
+Arbeitsmaschine gibt es keine JDK, Gradle laeuft dort nicht. Der Bump steht in
+`android-native/app/build.gradle.kts`; gebaut wird mit
+
+```bash
+cd android-native && ./gradlew clean bundleProdRelease
+# Ergebnis: app/build/outputs/bundle/prodRelease/app-prod-release.aab
+```
+
+`clean` ist dabei der eigentliche Punkt: 2.6.1 enthaelt **keine
+Fehlerbehebung**, es sind dieselben Quellen wie 2.6.0. Der Build probiert
+genau eine Hypothese - dass ein verunglueckter inkrementeller Build (KSP/Hilt/R8
+mit altem Zwischenstand) die Ursache war. Im Ausgabeordner lagen zuletzt ein
+APK vom 07.09. mit versionCode 41 neben einem AAB vom 10.09. mit versionCode
+100, der Ordner war also gemischt. Crasht 2.6.1 genauso, ist die Hypothese
+widerlegt und es braucht den Stacktrace.
+
 **Eine offene Frage zur Installation:** Unter `/dl-…/flexr-2.6.0-vc100.aab`
 liegt ein **App Bundle**, kein APK. Ein `.aab` lässt sich nicht direkt
 installieren; wurde es mit einem Split-Installer aufs Gerät gebracht, sind
