@@ -49,9 +49,6 @@ import flexr.social.app.core.common.ServerTime
 import flexr.social.app.core.designsystem.component.LoadingState
 import flexr.social.app.core.designsystem.component.StatusPill
 import flexr.social.app.core.designsystem.theme.FlexrBackground
-import flexr.social.app.core.locale.AppLanguage
-import flexr.social.app.core.locale.AppLanguageViewModel
-import flexr.social.app.core.locale.LocalAppLanguage
 import flexr.social.app.domain.model.Membership
 import flexr.social.app.ui.account.AccountScreen
 import flexr.social.app.ui.auth.LoginScreen
@@ -210,20 +207,6 @@ private fun FlexrSnackbar(data: SnackbarData) {
     }
 }
 
-/**
- * Sprachregler-Anbindung fuer die Kopfzeile.
- *
- * Der aktuelle Wert kommt aus [LocalAppLanguage] - dort hat ihn die
- * MainActivity hinterlegt, die damit auch die Ressourcen umschaltet. Zum
- * Setzen holt sich der Aufrufer denselben [AppLanguageViewModel]; er haengt am
- * Activity-Geltungsbereich und ist an allen Aufrufstellen dieselbe Instanz.
- */
-@Composable
-private fun rememberLanguageControls(): Pair<AppLanguage, (AppLanguage) -> Unit> {
-    val viewModel: AppLanguageViewModel = hiltViewModel()
-    return LocalAppLanguage.current to viewModel::select
-}
-
 // ---------- Ausgeloggt ----------
 
 @Composable
@@ -233,12 +216,11 @@ private fun AuthGraph(
     onShowMessage: (String) -> Unit,
 ) {
     val navController = rememberNavController()
-    val (language, onSelectLanguage) = rememberLanguageControls()
 
     Scaffold(
         containerColor = Color.Transparent,
         snackbarHost = { SnackbarHost(snackbarHostState) { data -> FlexrSnackbar(data) } },
-        topBar = { FlexrTopBar(statusSlot = {}, language = language, onSelectLanguage = onSelectLanguage) },
+        topBar = { FlexrTopBar(statusSlot = {}) },
     ) { padding ->
         NavHost(
             navController = navController,
@@ -281,7 +263,6 @@ private fun VerificationGraph(
     onShowMessage: (String) -> Unit,
 ) {
     val navController = rememberNavController()
-    val (language, onSelectLanguage) = rememberLanguageControls()
 
     Scaffold(
         containerColor = Color.Transparent,
@@ -292,8 +273,6 @@ private fun VerificationGraph(
         topBar = {
             FlexrTopBar(
                 statusSlot = { StatusPill(stringResource(R.string.status_not_unlocked)) },
-                language = language,
-                onSelectLanguage = onSelectLanguage,
             )
         },
     ) { padding ->
@@ -369,7 +348,6 @@ private fun MainGraph(
     onNotificationTargetHandled: () -> Unit = {},
 ) {
     val navController = rememberNavController()
-    val (language, onSelectLanguage) = rememberLanguageControls()
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route
     val isTopLevel = TopLevelDestination.entries.any { it.route == currentRoute }
@@ -397,11 +375,7 @@ private fun MainGraph(
         snackbarHost = { SnackbarHost(snackbarHostState) { data -> FlexrSnackbar(data) } },
         topBar = {
             if (isTopLevel) {
-                FlexrTopBar(
-                statusSlot = { MembershipPill(membership) },
-                language = language,
-                onSelectLanguage = onSelectLanguage,
-            )
+                FlexrTopBar(statusSlot = { MembershipPill(membership) })
             }
         },
         bottomBar = {

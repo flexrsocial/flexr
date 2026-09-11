@@ -28,11 +28,9 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
-import flexr.social.app.core.designsystem.component.LanguageSwitch
 import flexr.social.app.core.designsystem.theme.BrandStyle
 import flexr.social.app.core.designsystem.theme.FlexrPalette
 import flexr.social.app.core.designsystem.theme.FlexrTheme
-import flexr.social.app.core.locale.AppLanguage
 
 /**
  * Wortmarke im Kopfbereich. Gesetzt nach der verbindlichen Markenvorgabe
@@ -48,18 +46,20 @@ fun FlexrWordmark(modifier: Modifier = Modifier) {
 }
 
 /**
- * Kopfzeile: Wortmarke links, rechts der Sprachregler und der
- * Mitgliedschafts-Status.
+ * Kopfzeile: Wortmarke links, rechts der Mitgliedschafts-Status.
  *
- * Der Regler steht hier "on-top" und damit auf jedem Bildschirm in Reichweite,
- * nicht nur im Kontobereich - genauso wie in der Web-App.
+ * Bis zum 11.09.2026 stand hier zusätzlich der Sprachregler "on-top", analog
+ * zur Web-App. Genau wie dort (Commit 997b0d6) ist er entfernt: Er stand
+ * doppelt im Dokument - hier und im Kontobereich unter "Profil", wo man
+ * Einstellungen sucht. Die einzige verbleibende Stelle ist dort
+ * ([flexr.social.app.ui.account.AccountScreen]); die Spracherkennung
+ * ([flexr.social.app.core.locale.AppLanguage.detect]) bleibt für neue Sitzungen
+ * unveraendert in Betrieb.
  */
 @Composable
 fun FlexrTopBar(
     statusSlot: @Composable () -> Unit,
     modifier: Modifier = Modifier,
-    language: AppLanguage? = null,
-    onSelectLanguage: (AppLanguage) -> Unit = {},
 ) {
     Box(modifier.fillMaxWidth()) {
         Row(
@@ -71,15 +71,7 @@ fun FlexrTopBar(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             FlexrWordmark()
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                if (language != null) {
-                    LanguageSwitch(language = language, onSelect = onSelectLanguage)
-                }
-                statusSlot()
-            }
+            statusSlot()
         }
         Box(
             Modifier

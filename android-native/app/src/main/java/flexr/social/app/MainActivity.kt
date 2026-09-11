@@ -1,6 +1,8 @@
 package flexr.social.app
 
 import android.content.Intent
+import android.content.res.Configuration
+import android.content.res.Resources
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
@@ -8,12 +10,14 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dagger.hilt.android.AndroidEntryPoint
 import flexr.social.app.core.designsystem.theme.FlexrTheme
+import flexr.social.app.core.locale.AppLanguage
 import flexr.social.app.core.locale.AppLanguageViewModel
 import flexr.social.app.core.locale.ProvideAppLanguage
 import flexr.social.app.notifications.ActivityNotificationWorker
@@ -23,6 +27,55 @@ import flexr.social.app.ui.navigation.TopLevelDestination
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+
+    /**
+     * Ressourcen der gerade gewaehlten Sprache - `null`, solange noch keine
+     * angewendet wurde (siehe [applyLanguage]).
+     *
+     * [getResources] liefert diese anstelle der echten Ressourcen der
+     * Activity, sobald sie gesetzt sind. Bewusst ein Feld auf der ECHTEN
+     * Activity statt eines zweiten, per `ContextWrapper` fabrizierten Context
+     * als `LocalContext`, wie es hier bis zum 11.09.2026 stand: Ein
+     * `ContextWrapper` um die Activity ist selbst *keine* Activity mehr - ein
+     * direktes `context as Activity` (Berechtigungsabfragen, CameraX, Custom
+     * Tabs) waere daran mit einer `ClassCastException` gescheitert, obwohl die
+     * echte Activity ueber `baseContext` weiter erreichbar gewesen waere.
+     * Gemeldet wurde ausserdem, dass `stringResource` trotz gewaehlter
+     * Sprache weiter Deutsch auflöste; ob das an genau diesem Wrapper lag,
+     * liess sich mangels Testgeraet nicht abschliessend nachweisen, aber der
+     * Verdacht lag nahe. Mit diesem Feld bleibt `LocalContext.current`
+     * UEBERALL die echte Activity; nur [getResources] liefert je nach Sprache
+     * etwas anderes - dieselbe Technik, mit der Apps schon vor Jetpack
+     * Compose die Sprache zur Laufzeit umgeschaltet haben.
+     */
+    private var localizedResources: Resources? = null
+
+    override fun getResources(): Resources = localizedResources ?: super.getResources()
+
+    /**
+     * Baut die lokalisierten Ressourcen fuer [language] und haelt sie in
+     * [localizedResources] bereit.
+     *
+     * Zwei bewusste Entscheidungen gegen die naheliegenderen Varianten:
+     *
+     * - Die Ausgangskonfiguration kommt aus `super.getResources()`, nicht aus
+     *   `resources` (das waere wegen der Ueberschreibung unten dasselbe Feld,
+     *   das gerade erst gesetzt wird) und nicht aus `applicationContext` (das
+     *   kennt Fenstergroesse und Mehrfenster-/Faltzustand dieser Activity
+     *   nicht, nur die Vorgabe des Geraets).
+     * - `createConfigurationContext` wird auf `applicationContext` aufgerufen,
+     *   nicht auf `this`: Es ist unklar, ob die Systemimplementierung dabei
+     *   intern `getResources()` der aufrufenden Instanz konsultiert - waere
+     *   das so, entstuende mit `this` eine Ringabhaengigkeit auf das Feld
+     *   unten. `applicationContext` ist dafuer eine andere Instanz, an der
+     *   nichts ueberschrieben ist.
+     */
+    private fun applyLanguage(language: AppLanguage) {
+        val configuration = Configuration(super.getResources().configuration).apply {
+            setLocale(language.locale)
+        }
+        localizedResources = applicationContext.createConfigurationContext(configuration).resources
+    }
 
     /**
      * Ziel einer angetippten Benachrichtigung, bis die Navigation es verbraucht
@@ -55,6 +108,11 @@ class MainActivity : ComponentActivity() {
             // Scrollpositionen stehen.
             val languageViewModel: AppLanguageViewModel = hiltViewModel()
             val language by languageViewModel.language.collectAsStateWithLifecycle()
+            // Synchron VOR dem ersten Zeichnen anwenden (derselbe `remember`-
+            // Kniff wie in ProvideAppLanguage fuer die Configuration): Damit
+            // sieht `stringResource` schon im ersten Frame nach jedem Wechsel
+            // die richtige Sprache, nicht erst nach einer weiteren Rekomposition.
+            remember(language) { applyLanguage(language) }
             ProvideAppLanguage(language) {
                 FlexrTheme {
                     FlexrApp(
