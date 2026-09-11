@@ -9,11 +9,13 @@ Stand: **11.09.2026**
 E-Mails in der Profilsprache) ist gelaufen — `alembic current` und `heads`
 zeigen beide `c8d31f6a94b2`.
 
-> **Die Android-App 2.6.0 (versionCode 100) stürzt beim Start ab.** Der Fehler
-> ist am 11.09. gemeldet und **nicht gefunden** worden; er stammt aus dem Build
-> vom 10.09. und liegt **nicht** an der Arbeit vom 11.09. (die ist nie
-> kompiliert worden). Was ausgeschlossen wurde und wie es weitergeht: Abschnitt
-> „Absturz beim Start der Android-App" weiter unten.
+> **Die Android-App 2.6.0 (versionCode 100) stürzt beim Start ab.** Gemeldet am
+> 11.09.; der Fehler liegt **nicht** an der Arbeit vom 11.09. (die ist nie
+> kompiliert worden). Wahrscheinlichste Ursache: Zum Download stand nur ein
+> **`.aab`**, und das ist auf einem Gerät nicht installierbar — ohne die
+> passenden Splits beendet Android die App beim Start sofort. Ab sofort gehört
+> ein **signiertes Universal-APK** neben das Bundle. Einzelheiten und die
+> Gegenprobe: Abschnitt „Absturz beim Start der Android-App" weiter unten.
 
 **Das Geschäftsmodell hat sich am 10.09.2026 grundlegend geändert:**
 
@@ -33,10 +35,21 @@ Die Zahlen stehen in `backend/app/config.py` und sind zugleich eine
 `frontend/i18n-*.js`, `res/values*/strings.xml`, `agb.html`, `faq.html` und
 `app/legal.py` mit.
 
-**Aktuelles Android-Bundle:**
-`https://flexr.social/dl-a616e78274de323b/flexr-2.6.0-vc100.aab`
-(versionCode 100, versionName 2.6.0). Die Play Console hatte 43 und 50 schon
-vergeben — Näheres im 10.09.-Abschnitt.
+**Aktuelles Android-Paket:** 2.6.1 (versionCode 101).
+
+Zum **Installieren auf einem Gerät** taugt nur das **APK**. Das `.aab` ist das
+Veröffentlichungsformat für die Play Console und lässt sich auf einem Telefon
+nicht installieren — wird es trotzdem aufgespielt, startet die App und schließt
+sich sofort wieder. Genau das ist am 11.09. passiert (Abschnitt „Absturz beim
+Start der Android-App"). Beide Dateien gehören deshalb in den Download-Ordner,
+klar benannt:
+
+| Datei | Wofür |
+| --- | --- |
+| `flexr-2.6.1-vc101.apk` | Direkt aufs Gerät laden und antippen |
+| `flexr-2.6.1-vc101.aab` | Nur Upload in die Play Console |
+
+Die Play Console hatte 43 und 50 schon vergeben — Näheres im 10.09.-Abschnitt.
 
 Aufbau des Dokuments: erst diese Eckdaten, dann die **drei Abschnitte vom
 10.09.** (Audit-Fortsetzung, Audit, Monetarisierung), dann **09.09.**, dann
@@ -246,37 +259,79 @@ auf dem Gerät. Die letzte bekannt funktionierende Fassung ist **2.5.5
 | Android-14/15-Verschärfungen | keine `registerReceiver`, keine Services, `PendingIntent` durchgehend `FLAG_IMMUTABLE` |
 | Splash bleibt hängen | `markLoggedOut()` setzt `SessionGate.isReady = true` |
 
-**Was als Nächstes zu tun ist:** einen Stacktrace besorgen. Die `mapping.txt`
-ist mit dem Bundle hochgegangen, die Play Console zeigt Abstürze also lesbar
-(Qualität → Absturz-Diagnose). Alternativ am Gerät:
+**Die wahrscheinlichste Ursache, gefunden am 11.09. abends: Es wurde ein
+`.aab` heruntergeladen und installiert.** Unter der einzigen Download-Adresse
+
+    https://flexr.social/dl-a616e78274de323b/flexr-2.6.0-vc100.aab
+
+liegt ein **App Bundle**, kein APK — und ein APK wurde dort nie angeboten
+(`flexr-2.6.0-vc100.apk` und die naheliegenden Namen antworten mit 404). Ein
+`.aab` ist das Veröffentlichungsformat für Play und **auf einem Gerät nicht
+installierbar**. Wer es trotzdem aufs Telefon bringt — umbenannt oder über
+einen Split-Installer — bekommt eine Installation ohne die passenden Splits.
+Android beendet so eine App beim Start sofort wieder
+(`MissingSplitsPackageException`): **genau das gemeldete Verhalten, und es
+erklärt zugleich, warum im Code keine Ursache zu finden war.**
+
+Gegenprobe, die das stützt: Der Code der Fassung 2.6.0 **baut und läuft
+sauber durch** — `./gradlew clean testProdReleaseUnitTest bundleProdRelease`
+ist am 11.09. ohne Fehler durchgelaufen, die Einheitstests inbegriffen.
+
+**Konsequenz für die Verteilung:** Neben dem AAB für die Play Console gehört
+ein **signiertes Universal-APK** in den Download-Ordner. Das lässt sich direkt
+antippen und installieren:
+
+```bash
+cd android-native
+./gradlew clean assembleProdRelease bundleProdRelease
+# APK (installierbar):  app/build/outputs/apk/prod/release/app-prod-release.apk
+# AAB (nur fuer Play):  app/build/outputs/bundle/prodRelease/app-prod-release.aab
+```
+
+Die Unterscheidung gehört auf die Download-Seite geschrieben, sonst passiert
+dasselbe beim nächsten Mal.
+
+**Falls 2.6.1 trotzdem abstürzt:** Dann war es nicht die Installation, und der
+Stapelabzug liegt jetzt auf dem Gerät — 2.6.1 bringt dafür
+`core/diagnostics/CrashLog.kt` mit. Die Datei findet sich ohne Rechner mit
+jedem Dateimanager unter
+
+    Android/data/flexr.social.app/files/absturz-<datum>.txt
+
+Sie enthält nur Technisches (Zeitpunkt, App- und Android-Fassung, Gerät,
+Stapelabzug) und wird nirgendwohin verschickt. Mit Rechner geht weiterhin:
 
 ```bash
 adb logcat -c && adb shell monkey -p flexr.social.app 1 && sleep 4 && adb logcat -d -b crash
 ```
 
-**Version 2.6.1 (versionCode 101) ist vorbereitet, aber nicht gebaut.** Auf der
-Arbeitsmaschine gibt es keine JDK, Gradle laeuft dort nicht. Der Bump steht in
-`android-native/app/build.gradle.kts`; gebaut wird mit
+Die `mapping.txt` geht mit dem Bundle hoch, die Play Console zeigt Abstürze
+also lesbar (Qualität → Absturz-Diagnose).
 
-```bash
-cd android-native && ./gradlew clean bundleProdRelease
-# Ergebnis: app/build/outputs/bundle/prodRelease/app-prod-release.aab
-```
+### Was 2.6.1 (versionCode 101) enthält
 
-`clean` ist dabei der eigentliche Punkt: 2.6.1 enthaelt **keine
-Fehlerbehebung**, es sind dieselben Quellen wie 2.6.0. Der Build probiert
-genau eine Hypothese - dass ein verunglueckter inkrementeller Build (KSP/Hilt/R8
-mit altem Zwischenstand) die Ursache war. Im Ausgabeordner lagen zuletzt ein
-APK vom 07.09. mit versionCode 41 neben einem AAB vom 10.09. mit versionCode
-100, der Ordner war also gemischt. Crasht 2.6.1 genauso, ist die Hypothese
-widerlegt und es braucht den Stacktrace.
+Zwei Änderungen, keine reine Neuübersetzung derselben Quellen:
 
-**Eine offene Frage zur Installation:** Unter `/dl-…/flexr-2.6.0-vc100.aab`
-liegt ein **App Bundle**, kein APK. Ein `.aab` lässt sich nicht direkt
-installieren; wurde es mit einem Split-Installer aufs Gerät gebracht, sind
-fehlende Splits eine bekannte Ursache für genau dieses Verhalten (App startet,
-schließt sofort). Über die Play Console installiert, stellt sich die Frage
-nicht.
+1. **`core/diagnostics/CrashLog.kt`** — der Absturzbericht oben. Er hängt sich
+   in `FlexrApplication.onCreate()` **vor** `super.onCreate()` ein und fängt
+   damit auch Fehler in der Hilt-Injektion ab. Der vorherige Handler wird
+   danach weiterhin aufgerufen, damit der Prozess normal endet und der
+   Play-Bericht erhalten bleibt.
+
+2. **`core/locale/ProvideAppLanguage.kt`** — dort wurde `LocalContext` durch
+   das Ergebnis von `createConfigurationContext()` ersetzt. Dessen
+   `baseContext`-Kette endet im Anwendungs-Context, **die Activity ist darin
+   nicht mehr zu finden**. Alles, was sie aus `LocalContext` zurückholt
+   (Teile von Compose, CameraX, Custom Tabs, jedes `context as Activity`),
+   scheitert daran. Ersetzt durch einen `ContextWrapper` um den
+   ursprünglichen Context, der nur `getResources()`/`getAssets()` überschreibt
+   — die Kette zur Activity bleibt stehen, `stringResource` löst weiterhin in
+   der gewählten Sprache auf.
+
+   Das ist unabhängig vom Absturz ein Fehler und war der plausibelste
+   Verursacher im Code: Die Zweisprachigkeit kam mit 2.6.0 herein, 2.5.5 lief
+   noch. Ob sie *der* Verursacher war, ist offen — wenn die Installation das
+   Problem war, war der Code nie schuld.
 
 ## Sitzung 11.09.2026 — Sprachregler nur noch im Profil, Statuspille heißt „Beta"
 
