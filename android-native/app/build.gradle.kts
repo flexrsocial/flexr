@@ -63,8 +63,20 @@ android {
         //      2.6.0 herein, 2.5.5 lief noch.
         //
         // Siehe HANDOFF.md, Abschnitt "Absturz beim Start der Android-App".
-        versionCode = 101
-        versionName = "2.6.1"
+        //
+        // 102/2.6.2 am 11.09.2026 (Sitzung 3): 2.6.1 lief zwar an, hatte aber
+        // zwei eigene Fehler - den Sprachregler doppelt (auch oben in der
+        // Kopfzeile statt nur im Profil) und einen Sprachwechsel, der den
+        // Reglerzustand umstellte, aber keinen einzigen Text (siehe HANDOFF,
+        // Sitzung 11.09.2026 (3)). Beide sind hier behoben; dabei zusaetzlich
+        // ein reiner Build-Fehler gefunden (KSP2 verdoppelte Hilt-Klassen im
+        // Release-Build) und mit ksp.useKSP2=false umgangen. Ab hier bekommt
+        // jeder tatsaechlich gebaute und ausgelieferte Stand eine eigene
+        // Versionsnummer statt denselben Code unter derselben Nummer neu zu
+        // bauen - so bleibt am Dateinamen erkennbar, welcher Fix schon drin
+        // ist.
+        versionCode = 102
+        versionName = "2.6.2"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         // Nur die Sprachen ausliefern, die es wirklich gibt: Deutsch als
