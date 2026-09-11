@@ -7086,9 +7086,24 @@
     if(e.key === 'Escape' && legalBackdrop.classList.contains('open')) closeLegalModal();
   });
 
-  // ---------- PWA: Service Worker (nur über HTTPS bzw. localhost aktiv) ----------
-  if('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')){
-    navigator.serviceWorker.register('/sw.js', {scope: '/'}).catch(err => console.error('SW-Registrierung fehlgeschlagen:', err));
+  // ---------- PWA: Service Worker (nur über HTTPS aktiv) ----------
+  // Auf localhost bleibt er bewusst aus. Einmal registriert, überlebt ein
+  // Worker die Sitzung und sogar den Wechsel des Servers hinter dem Port: Er
+  // greift danach jede Navigation auf diesem Port ab — auch die der statischen
+  // Rechtsseiten, die ihn nie registrieren — und liefert bei jedem Netzfehler
+  // eine Shell aus der Vergangenheit. Beim Entwickeln sieht man dann eine alte
+  // oder schlicht die falsche Seite, ohne Hinweis darauf, woher sie kommt.
+  // Zum Prüfen des Offline-Verhaltens einmal mit ?sw laden.
+  if('serviceWorker' in navigator){
+    if(location.protocol === 'https:' || new URLSearchParams(location.search).has('sw')){
+      navigator.serviceWorker.register('/sw.js', {scope: '/'}).catch(err => console.error('SW-Registrierung fehlgeschlagen:', err));
+    } else {
+      // Reste aus früheren Sitzungen abräumen — sonst kapert ein alter Worker
+      // den Port weiter, obwohl hier längst niemand mehr einen registriert.
+      navigator.serviceWorker.getRegistrations()
+        .then(regs => regs.forEach(reg => reg.unregister()))
+        .catch(() => {});
+    }
   }
 
   // ---------- E-Mail-Bestätigung über den Link aus der Mail ----------

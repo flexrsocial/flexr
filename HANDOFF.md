@@ -4,10 +4,10 @@ Stand: **11.09.2026**
 
 ## Wo das Projekt gerade steht
 
-**Committet und gepusht.** Der VPS ist danach **noch nicht** nachgezogen — die
-Sitzung vom 11.09. (Rechtstexte auf Englisch, E-Mails in der Profilsprache)
-braucht einen Deploy **mit Migration**, siehe den Abschnitt unten. Solange das
-aussteht, laufen Arbeitsverzeichnis und `origin/main` dem Server voraus.
+**Committet, gepusht und deployed.** Der VPS steht auf demselben Stand wie
+`origin/main`; die Migration der Sitzung vom 11.09. (Rechtstexte auf Englisch,
+E-Mails in der Profilsprache) ist gelaufen — `alembic current` und `heads`
+zeigen beide `c8d31f6a94b2`.
 
 > **Die Android-App 2.6.0 (versionCode 100) stürzt beim Start ab.** Der Fehler
 > ist am 11.09. gemeldet und **nicht gefunden** worden; er stammt aus dem Build
@@ -92,6 +92,39 @@ Nebenbei ist der **tote `<style>`-Block in `nutzungsrichtlinien.html`**
 gefallen (Rest aus der Zeit vor `legal.css`). Er war der Grund, warum die
 deutsche und die englische Fassung derselben Seite unterschiedlich groß
 gesetzt waren.
+
+### Der Service Worker lieferte die Landingpage unter Rechts-Adressen
+
+Beim Nachprüfen der beiden Fassungen fiel auf, dass `sw.js` den Offline-
+Rückfall für **jede** Navigation anwandte. Wer offline auf „AGB" tippte, bekam
+die **Landingpage** — mit der AGB-Adresse in der Adresszeile. Betroffen waren
+genau die Seiten, die seit v12 bewusst *außerhalb* der Shell liegen. Zwei
+Folgefehler hingen daran:
+
+* War der Cache noch leer (erster Aufruf, geleerter Speicher), lieferte
+  `caches.match()` `undefined`, und `respondWith(undefined)` machte daraus
+  einen **harten Netzfehler** — schlechter als gar kein Service Worker.
+* `/en/` fiel auf `/index.html` zurück, also auf die **deutsche** Landingpage,
+  obwohl `/en/index.html` seit v10 in der Shell liegt.
+
+`shellDocumentFor()` entscheidet jetzt, welche Shell-Seite eine Adresse offline
+überhaupt vertreten darf; alles andere bekommt `Response.error()` und damit die
+Offline-Meldung des Browsers. `CACHE` steht auf `flexr-shell-v14`.
+
+**Der Worker registriert sich nicht mehr auf localhost.** Er gilt für
+`scope: '/'`, überlebt die Sitzung und sogar den Wechsel des Servers hinter dem
+Port — und fängt danach auch die statischen Rechtsseiten ab, die ihn nie
+registrieren. Genau das hat am 11.09. eine Stunde gekostet: Ein Worker aus
+einer früheren Sitzung (`flexr-shell-v12`) beantwortete auf
+`http://localhost:5173` jede Navigation mit der App-Shell, ohne dass ein
+Request je am Server ankam. `app/index.html` räumt alte Registrierungen auf
+localhost jetzt aktiv ab. Zum Prüfen des Offline-Verhaltens einmal mit `?sw`
+laden.
+
+> Der Browser-Pane von Claude Code blockiert `fetch` **innerhalb** eines
+> Service Workers (`ERR_FAILED`), und `unregister()` hängt dort. Das Verhalten
+> des Workers lässt sich damit nicht im Pane prüfen — der Fix ist stattdessen
+> in Node gegen eine nachgebaute `caches`/`fetch`-Umgebung getestet worden.
 
 ### Die E-Mails folgen der Profilsprache
 

@@ -29,7 +29,14 @@
 // Server seine E-Mails in derselben Sprache schreibt. Betrifft /app/index.html
 // und die beiden oeffentlichen Formulare - eine offline eingefrorene alte
 // Fassung wuerde die Sprache nie melden.
-const CACHE = 'flexr-shell-v13';
+// v14: Der Offline-Rueckfall galt fuer jede Navigation und hat damit die
+// Landingpage unter die Adresse jedes Vertragstextes gelegt - also genau die
+// Seiten, die seit v12 bewusst ausserhalb der Shell liegen. War der Cache noch
+// leer, lieferte caches.match() undefined und respondWith() machte daraus einen
+// harten Netzfehler. Der Rueckfall greift jetzt nur noch fuer Adressen, die die
+// Shell wirklich abdeckt; /en/ landet dabei auf der englischen Fassung und
+// nicht mehr auf der deutschen.
+const CACHE = 'flexr-shell-v14';
 // Seit dem 15.08.2026 liegt die App unter /app/, an der Wurzel steht die
 // oeffentliche Landingpage. Beide gehoeren in die Shell: die Landingpage,
 // weil sie der Einstieg ist, die App, weil sie offline funktionieren soll.
@@ -41,6 +48,17 @@ const SHELL = ['/', '/index.html', '/en/', '/en/index.html',
                '/icons/icon-192.png?v=4', '/icons/icon-512.png?v=4'];
 const SHELL_PATHS = new Set(SHELL.map((path) => new URL(path, self.location.origin).pathname));
 const STATIC_PREFIXES = ['/fonts/', '/icons/', '/brand/demo/'];
+
+// Welche Shell-Seite vertritt diese Adresse offline? null heisst: keine - dann
+// bleibt es beim Netzfehler des Browsers.
+function shellDocumentFor(pathname) {
+  // Wer in der App oder im Aktivierungslink war, soll offline die App sehen,
+  // nicht die Marketingseite.
+  if (pathname.startsWith('/app') || pathname === '/mail-bestaetigen') return '/app/index.html';
+  if (pathname === '/en/' || pathname === '/en/index.html') return '/en/index.html';
+  if (pathname === '/' || pathname === '/index.html') return '/index.html';
+  return null;
+}
 
 self.addEventListener('install', (event) => {
   event.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)));
@@ -83,13 +101,19 @@ self.addEventListener('fetch', (event) => {
         }
         return resp;
       })
-      .catch(() => caches.match(event.request).then((hit) => {
+      .catch(() => caches.match(event.request).then(async (hit) => {
         if (hit) return hit;
         if (!isNavigation) return Response.error();
-        // Wer in der App oder im Aktivierungslink war, soll offline die App
-        // sehen, nicht die Marketingseite.
-        const appRoute = url.pathname.startsWith('/app') || url.pathname === '/mail-bestaetigen';
-        return caches.match(appRoute ? '/app/index.html' : '/index.html');
+        // Nur Adressen, die die Shell abdeckt, bekommen einen Rueckfall. Fuer
+        // alles andere - vor allem die Rechtstexte - ist die Offline-Meldung
+        // des Browsers die ehrlichere Auskunft als die Landingpage unter der
+        // Adresse eines Vertragstextes.
+        const fallback = shellDocumentFor(url.pathname);
+        if (!fallback) return Response.error();
+        // Ohne das Oder waere die Antwort undefined, sobald der Cache leer ist
+        // (erster Aufruf, geleerter Speicher); respondWith() macht daraus einen
+        // harten Netzfehler statt einer Offline-Seite.
+        return (await caches.match(fallback)) || Response.error();
       }))
   );
 });
