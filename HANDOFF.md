@@ -1,6 +1,6 @@
 # FLEXR — Handoff für ein anderes Gerät / Claude Code
 
-Stand: **10.09.2026**
+Stand: **11.09.2026**
 
 ## Wo das Projekt gerade steht
 
@@ -35,6 +35,82 @@ Aufbau des Dokuments: erst diese Eckdaten, dann die **drei Abschnitte vom
 **08.09.**, dann die beiden Sitzungen vom **07.09.**, dann **06.09.**, dann
 **05.09.**, dann **31.08.**, **30.08.**, **23.08.**, **21.08.**; die Build-,
 Test- und Deploy-Abschnitte am Ende gelten sitzungsübergreifend.
+
+## Sitzung 11.09.2026 — Sprachregler nur noch im Profil, Statuspille heißt „Beta"
+
+### Der zweite Sprachregler in der Kopfzeile ist weg
+
+`frontend/app/index.html` hatte den Regler **zweimal**: einmal oben in
+`header.top`, einmal im Kontobereich unter „Profil". Auf dem Kontobildschirm
+verbarg eine eigene CSS-Regel den oberen, damit nicht zwei nebeneinander
+stehen — auf allen anderen Bildschirmen standen beide zur Verfügung.
+
+Gewünscht war genau eine Stelle: die Einstellung im Profil. Entfernt wurden
+deshalb der `<div class="lang-switch">` in der Kopfzeile **und** die dadurch
+gegenstandslos gewordene Regel
+
+```css
+body[data-screen="screen-account"] header.top .lang-switch{ display:none; }
+```
+
+Die Kopfzeile enthält jetzt nur noch Wortmarke und Statuspille; das
+`justify-content:space-between` trägt das unverändert (Marke links, Pille
+rechts, geprüft bei 420 px).
+
+**Folge, die bewusst in Kauf genommen ist:** Ein **ausgeloggter** Besucher
+von `/app/` hat in der Seite selbst keinen Umschalter mehr. Er bekommt die
+Sprache weiterhin über die Erkennung in `i18n.js` (Zeitzone/Browsersprache,
+DACH → Deutsch) und über `?lang=de|en`. Beides ist unverändert in Betrieb.
+Wer eingeloggt ist, stellt im Profil um.
+
+`.lang-switch` als CSS-Block bleibt bestehen — er trägt jetzt die eine
+verbliebene Instanz. `FlexrI18n.bindSwitches`/`syncSwitches` iterieren über
+`.lang-switch` und kommen mit einer Instanz genauso zurecht wie mit zweien;
+im Browser gegengeprüft: DE → EN → DE schaltet, `data-active`, `button.on`,
+`<html lang>` und die Beschriftungen ziehen mit.
+
+**Nicht angefasst:** der Regler in der Navigation der Landingpage
+(`frontend/index.html` / `frontend/en/index.html`). Das ist ein anderes
+Bauteil — zwei `<a hreflang>` auf `/` und `/en/`, also echte URL-Varianten
+mit SEO-Bezug. Die Landingpage hat kein Profil, in dem man stattdessen
+umstellen könnte; dort ersatzlos zu entfernen hieße, einen englischsprachigen
+Besucher auf der deutschen Seite festzuhalten.
+
+### Statuspille: „Beta · gratis" → „Beta"
+
+`beta.pill` in `frontend/app/i18n-app.js` lautet in beiden Sprachen jetzt
+schlicht `'Beta'`. Der Zusatz „gratis"/„free" war seit der Umstellung des
+Geschäftsmodells ohnehin missverständlich: Kostenlos ist FLEXR **dauerhaft**,
+nicht nur in der Beta — die Pille legte das Gegenteil nahe.
+
+Angenehmer Nebeneffekt: Der Text ist in beiden Sprachen identisch, die Pille
+ist schmaler und in der Kopfzeile bei schmalen Geräten unkritisch.
+
+### Geprüft
+
+- Kopfzeile enthält genau `brand` + `status-pill`, `header.top .lang-switch`
+  findet null Knoten, im Dokument steht genau ein Regler (im Kontobereich).
+- `beta.pill` liefert in `de` und `en` „Beta".
+- Wörterbuch weiter paarig: 442 Schlüssel je Sprache, keine Waisen; alle im
+  HTML benutzten Schlüssel sind definiert (`lang.*`/`legal.*` stehen wie
+  gehabt in `i18n.js`, nicht in `i18n-app.js`).
+- `tools/check_betreiber.py` und `tools/check_csp_hosts.py` grün.
+- `422 Tests` grün.
+
+### Falle: das venv im Arbeitsverzeichnis war wieder ausgeräumt
+
+Dieselbe MEGA-Sync-Ursache wie am 10.09., diesmal schlimmer: `venv/bin/` war
+leer, `venv/pyvenv.cfg` fehlte, und in `site-packages` waren von etlichen
+Paketen **nur die `__pycache__`-Ordner** übrig (`pytest/` enthielt nichts
+sonst). Die Symlink-Reparatur aus der letzten Sitzung reicht dafür nicht.
+Abhilfe für einen reinen Testlauf, ohne das kaputte venv anzufassen:
+
+```bash
+python3.12 -m venv /tmp/tv && /tmp/tv/bin/pip install -r backend/requirements.txt pytest httpx
+```
+
+`httpx` steht nicht in `requirements.txt`, `starlette.testclient` verlangt es
+aber — sonst brechen alle API-Tests schon beim Import ab.
 
 ## Sitzung 10.09.2026 (Audit, Fortsetzung) — Registrierung, Hero-Layout, Werkzeuge
 

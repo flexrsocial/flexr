@@ -1796,10 +1796,10 @@
   .consent-note{ margin-top:10px; font-size:12px; color:var(--chalk-dim); text-align:center; }
   .consent-note a:link, .consent-note a:visited{ color:var(--chalk); }
   /* ---- Sprachregler (Deutsch/Englisch) ----
-     Zwei Segmente mit gleitendem Knopf. Er steht doppelt im Dokument: oben in
-     der Kopfzeile, wo ihn auch ein ausgeloggter Besucher sofort sieht, und im
-     Kontobereich unter "Profil", wo man Einstellungen sucht. Beide Instanzen
-     zeigen denselben Zustand - FlexrI18n haelt sie ueber data-active gleich. */
+     Zwei Segmente mit gleitendem Knopf. Er steht genau einmal im Dokument, im
+     Kontobereich unter "Profil" - dort, wo man Einstellungen sucht. Die
+     Mehrzahlform hier bleibt trotzdem stehen, weil FlexrI18n alle Instanzen
+     ueber data-active gleich haelt, falls spaeter eine zweite dazukommt. */
   .lang-switch{
     position:relative; display:inline-flex; align-items:stretch; flex-shrink:0;
     border:1px solid var(--steel); border-radius:999px; background:var(--surface-2);
@@ -1821,11 +1821,6 @@
   @media (prefers-reduced-motion: reduce){
     .lang-switch .knob{ transition:none; }
   }
-  /* Im Kontobereich steht der Regler beschriftet unter "Profil" - der zweite,
-     unbeschriftete in der Kopfzeile waere daneben nur ein Doppel. Er
-     verschwindet deshalb genau auf diesem Bildschirm; ueberall sonst (auch
-     ausgeloggt) bleibt er stehen, weil es dort keinen anderen gibt. */
-  body[data-screen="screen-account"] header.top .lang-switch{ display:none; }
   /* Im Kontobereich steht der Regler in einer eigenen Zeile mit Beschriftung,
      damit er dort nicht wie ein verirrtes Kopfzeilen-Element wirkt. */
   .lang-row{
@@ -1873,9 +1868,11 @@
 
   <header class="top">
     <div class="brand">FLE<span>X</span>R</div>
-    <!-- Sprachregler "on-top": auch ohne Login erreichbar, damit ein Besucher
-         aus dem Ausland die Seite sofort umstellen kann. -->
-    <div class="lang-switch" role="group" data-i18n-aria="lang.group" aria-label="Sprache"><button type="button" data-lang="de" data-i18n-title="lang.de" title="Deutsch">DE</button><button type="button" data-lang="en" data-i18n-title="lang.en" title="Englisch">EN</button><span class="knob" aria-hidden="true"></span></div>
+    <!-- Hier stand bis 11.09.2026 ein zweiter Sprachregler. Er ist entfernt:
+         Die Sprache wird im Profil unter "Einstellungen" umgestellt, ein
+         zweiter Schalter in der Kopfzeile war ein Doppel. Ausgeloggte
+         Besucher bekommen weiterhin die richtige Sprache - die Erkennung in
+         i18n.js (Zeitzone/Browsersprache) und ?lang=de|en greifen unveraendert. -->
     <div class="status-pill" id="statusPill">—</div>
   </header>
 
@@ -2321,8 +2318,8 @@
       <div class="account-section">
         <div class="account-section-title" data-i18n="acct.sectionProfile">Profil</div>
 
-        <!-- Sprachwahl auch hier, weil Einstellungen im Profil gesucht werden -
-             derselbe Regler wie oben in der Kopfzeile, gleicher Zustand. -->
+        <!-- Die Sprachwahl steht nur hier, weil Einstellungen im Profil
+             gesucht werden. -->
         <div class="lang-row">
           <div>
             <div class="lang-row-label" data-i18n="lang.label">Sprache</div>
@@ -7108,8 +7105,8 @@
     try{
       // Die Kopfzeile steht ueber ALLEN Bildschirmen und wird nur beim Laden
       // der Sitzung und nach einem Swipe gesetzt - ohne diese Zeile blieb sie
-      // nach dem Sprachwechsel in der alten Sprache stehen ("Beta · gratis"
-      // im englischen Modus). Dasselbe gilt fuer den Like-Zaehler unter den
+      // nach dem Sprachwechsel in der alten Sprache stehen ("Beta"
+      // trifft beide Sprachen, der Like-Zaehler daneben aber nicht). Dasselbe gilt fuer den Like-Zaehler unter den
       // Swipe-Knoepfen und die Karte "Wer dich geliket hat".
       updateStatusPill();
       renderLikeCounter();

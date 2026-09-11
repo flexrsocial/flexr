@@ -244,7 +244,7 @@
     // Einzahl/Mehrzahl getrennt: "1 Likes" stand sonst in der Kopfzeile.
     'premium.pillLike1': '1 Like',
     'premium.pillLikes': '{n} Likes',
-    'beta.pill': 'Beta · gratis',
+    'beta.pill': 'Beta',
     'premium.title': 'FLEXR Premium',
     'premium.sub': 'FLEXR zu nutzen kostet nichts — dauerhaft. Premium ist für alle, die mehr wollen: ohne Like-Grenze, ohne Chat-Grenze, mit voller Reichweite.',
     'premium.eyebrow': 'Monatlich kündbar',
@@ -738,7 +738,7 @@
     'premium.pill': 'Premium',
     'premium.pillLike1': '1 like',
     'premium.pillLikes': '{n} likes',
-    'beta.pill': 'Beta · free',
+    'beta.pill': 'Beta',
     'premium.title': 'FLEXR Premium',
     'premium.sub': 'Using FLEXR costs nothing — permanently. Premium is for everyone who wants more: no like limit, no chat limit, full reach.',
     'premium.eyebrow': 'Cancel any month',
