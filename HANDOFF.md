@@ -9,13 +9,18 @@ Stand: **11.09.2026**
 E-Mails in der Profilsprache) ist gelaufen — `alembic current` und `heads`
 zeigen beide `c8d31f6a94b2`.
 
-> **Die Android-App 2.6.0 (versionCode 100) stürzt beim Start ab.** Gemeldet am
-> 11.09.; der Fehler liegt **nicht** an der Arbeit vom 11.09. (die ist nie
-> kompiliert worden). Wahrscheinlichste Ursache: Zum Download stand nur ein
-> **`.aab`**, und das ist auf einem Gerät nicht installierbar — ohne die
-> passenden Splits beendet Android die App beim Start sofort. Ab sofort gehört
-> ein **signiertes Universal-APK** neben das Bundle. Einzelheiten und die
-> Gegenprobe: Abschnitt „Absturz beim Start der Android-App" weiter unten.
+> **Android 2.6.1 (versionCode 101) — Stand nach der zweiten Sitzung vom
+> 11.09.:** Zwei weitere, vom Nutzer nach dem ersten 2.6.1-APK gemeldete Fehler
+> sind behoben — der Sprachregler stand noch zusätzlich oben in der Kopfzeile
+> (jetzt wie im Web nur noch im Profil), und der Sprachwechsel änderte den
+> Reglerzustand, aber keinen einzigen Text (`ProvideAppLanguage` neu gebaut,
+> ohne den `ContextWrapper`, der vermutlich die eigentliche Ursache war).
+> Dabei zusätzlich ein reiner Werkzeug-Fehler gefunden und behoben: KSP2 hat
+> den `prodRelease`-Build mit verdoppelten Hilt-Klassen zuverlässig zum
+> Scheitern gebracht, unabhängig vom Cache-Zustand — `ksp.useKSP2=false` behebt
+> es. Einzelheiten in „Sitzung 11.09.2026 (3)" weiter unten. Der ursprüngliche
+> Absturz beim Start (2.6.0, versionCode 100) ist separat dokumentiert im
+> Abschnitt „Absturz beim Start der Android-App".
 
 **Das Geschäftsmodell hat sich am 10.09.2026 grundlegend geändert:**
 
@@ -51,11 +56,127 @@ klar benannt:
 
 Die Play Console hatte 43 und 50 schon vergeben — Näheres im 10.09.-Abschnitt.
 
-Aufbau des Dokuments: erst diese Eckdaten, dann die **drei Abschnitte vom
-10.09.** (Audit-Fortsetzung, Audit, Monetarisierung), dann **09.09.**, dann
+Aufbau des Dokuments: erst diese Eckdaten, dann **vier Abschnitte vom
+11.09.** (diese Sitzung als (3), dann (2), dann der Absturz-Befund, dann die
+Ausgangssitzung), dann die **drei Abschnitte vom 10.09.**
+(Audit-Fortsetzung, Audit, Monetarisierung), dann **09.09.**, dann
 **08.09.**, dann die beiden Sitzungen vom **07.09.**, dann **06.09.**, dann
 **05.09.**, dann **31.08.**, **30.08.**, **23.08.**, **21.08.**; die Build-,
 Test- und Deploy-Abschnitte am Ende gelten sitzungsübergreifend.
+
+## Sitzung 11.09.2026 (3) — Sprachregler entfernt, Sprachwechsel repariert, KSP2-Bug umgangen
+
+**Auslöser:** Nutzer installierte das APK aus Sitzung (2) (2.6.1,
+versionCode 101) auf einem echten Gerät und meldete zwei Fehler per
+Screenshot vom Kontobildschirm:
+
+1. Oben in der Kopfzeile stand weiterhin ein DE/EN-Regler, obwohl die
+   Web-App ihn dort bereits am 11.09. entfernt hatte (Commit 997b0d6, siehe
+   Abschnitt (2) weiter unten) — die native App hatte diese Änderung nie
+   nachgezogen.
+2. Der Regler zeigte „EN" als ausgewählt (orange hinterlegt), aber jeder
+   sichtbare Text blieb Deutsch — u. a. „PROFIL" statt „PROFILE",
+   eindeutig zu unterscheiden (kein Lehnwort wie „Bio" oder „Gym").
+
+**Fehler 1 behoben — Sprachregler nur noch im Profil.** Analog zu 997b0d6:
+`FlexrTopBar` (`ui/navigation/FlexrScaffold.kt`) hat die Parameter
+`language`/`onSelectLanguage` und den `LanguageSwitch`-Aufruf verloren, zeigt
+nur noch Wortmarke und Mitgliedschafts-Status. `rememberLanguageControls()`
+in `FlexrApp.kt` war dadurch an keiner Stelle mehr gebraucht und ist ganz
+raus, ebenso die drei Aufrufstellen, die `language`/`onSelectLanguage` an
+`FlexrTopBar` durchgereicht hatten (`AuthGraph`, `VerificationGraph`,
+`MainGraph`). Einzige verbliebene Stelle: `AccountScreen.kt`, unverändert —
+dort holt sich der Bildschirm seinen eigenen `AppLanguageViewModel` und
+zeigt `LocalAppLanguage.current` im „Profil"-Abschnitt an.
+
+**Fehler 2 behoben — mit einem offenen Punkt zur Ursache.** `stringResource`
+löst über `LocalContext.current.resources` auf. Bis dahin tauschte
+`ProvideAppLanguage` `LocalContext` gegen einen `ContextWrapper` aus
+(eingeführt in derselben Sitzung (2), als Fix für den 2.6.0-Startabsturz —
+siehe Abschnitt „Absturz beim Start der Android-App"). Ein `ContextWrapper`
+um eine Activity ist selbst *keine* `Activity` mehr; ein direktes
+`context as Activity`, wie es Berechtigungsabfragen, CameraX oder Custom
+Tabs tun können, wäre daran mit einer `ClassCastException` gescheitert, auch
+wenn die echte Activity über `baseContext` erreichbar geblieben wäre.
+
+Ob **genau dieser Wrapper** die Ursache für den Sprachwechsel-Fehler war,
+ließ sich mangels Testgerät **nicht abschließend zeigen** — die
+Bytecode-Analyse der `stringResource`-Implementierung
+(`androidx.compose.ui:ui-android:1.8.1`, aus dem Gradle-Cache decompiliert)
+ergab keinen offensichtlichen Grund, warum der Wrapper falsch aufgelöst
+haben sollte. Der Verdacht lag trotzdem nahe, und der Wrapper war unabhängig
+davon riskant (siehe oben). Die neue Lösung baut deshalb robuster, nicht nur
+anders:
+
+- `MainActivity` überschreibt `getResources()` **direkt auf sich selbst**
+  (die echte Activity, kein zweites Objekt) und hält die lokalisierten
+  Ressourcen in einem Feld (`localizedResources`).
+- `applyLanguage(language)` befüllt dieses Feld über
+  `applicationContext.createConfigurationContext(configuration).resources`
+  — auf `applicationContext`, nicht auf `this`, um jede denkbare
+  Ringabhängigkeit mit dem gerade überschriebenen `getResources()`
+  auszuschließen. Die Ausgangskonfiguration kommt aus
+  `super.getResources().configuration` (die echte, fenstergrößen-bewusste
+  Konfiguration der Activity), nicht aus `applicationContext` (kennt keine
+  Mehrfenster-/Faltzustände).
+- Aufgerufen wird das synchron über `remember(language) { applyLanguage(language) }`
+  in `MainActivity.onCreate()`, noch vor `ProvideAppLanguage(language) { … }`
+  — damit steht die richtige Sprache schon im ersten Frame nach jedem
+  Wechsel.
+- `ProvideAppLanguage` selbst tauscht `LocalContext` gar nicht mehr aus, nur
+  noch `LocalConfiguration` (löst weiterhin die Rekomposition aus, ihr
+  Inhalt wird von niemandem mehr gelesen). `LocalContext.current` ist damit
+  überall wieder die echte Activity — kein `ContextWrapper`, keine
+  `ClassCastException`-Gefahr, unabhängig davon, ob das je der Grund für den
+  gemeldeten Fehler war.
+
+**Ein dritter, unabhängiger Fehler beim Bauen selbst.** Nach den
+Quelländerungen schlug `assembleProdRelease`/`bundleProdRelease` mit rund 60
+„duplicate class"-Fehlern für von Hilt generierte Klassen fehl
+(`_HiltModules`, `_Factory`, `hilt_aggregated_deps`) — KSP2 hatte sie für
+etliche, thematisch unzusammenhängende Module zusätzlich ein zweites Mal
+unter dem Paket von `ui.verification` angelegt. **Kein Cache-Problem:**
+reproduziert mit vollständig geleertem `app/build`, `.gradle` und globalem
+Gradle-Cache (`~/.gradle/caches`, `~/.gradle/configuration-cache`), sowohl
+mit als auch ohne `--no-build-cache`/`--no-configuration-cache`, zweimal in
+Folge identisch. `testProdDebugUnitTest` lief davon unberührt — betroffen war
+ausschließlich die KSP-Verarbeitung der `prodRelease`-Variante. Behoben mit
+`ksp.useKSP2=false` in `gradle.properties` (zurück auf KSP1); mit dieser
+Einstellung kompiliert, testet und paketiert derselbe Rebuild aus leerem
+Zustand sauber durch. Kommentar mit den Versionsnummern
+(KSP `2.1.20-2.0.0`, Hilt `2.56.2`) steht direkt daneben in der Datei.
+
+**Ergebnis:** `./gradlew --no-configuration-cache clean testProdDebugUnitTest
+testProdReleaseUnitTest assembleProdRelease bundleProdRelease` läuft aus
+leerem Zustand durch, beide Unit-Test-Varianten grün. Neues APK und AAB
+gebaut, **versionCode bleibt 101 / versionName 2.6.1** (derselbe Release,
+kein neuer Versionssprung — nur der Build-Inhalt hat sich geändert, daher
+neue Prüfsummen unten). Signiert mit demselben Upload-Key wie zuvor
+(`CN=FLEXR`, SHA-256-Fingerabdruck `bc64ad3f…e7980`).
+
+```
+sha256sum flexr-2.6.1-vc101.apk
+f39f76cfbc4211e7b268f42b468f2832a5ad1cf36498484441eff7f86fb50cfc
+
+sha256sum flexr-2.6.1-vc101.aab
+3f04bd2bb4b9cff00b67ee4e1d15d80e845ee9aa09252c165ef4332d42748a36
+```
+
+**Wichtig für den Download-Ordner:** Die Dateien unter
+`dl-a616e78274de323b/flexr-2.6.1-vc101.{apk,aab}` aus Sitzung (2) sind mit
+diesem Fix **inhaltlich überholt** (andere Prüfsumme, siehe oben) — der
+Dateiname bleibt gleich, weil sich versionCode/versionName nicht geändert
+haben. Beim nächsten Deploy die beiden Dateien am Server **ersetzen**, nicht
+nur ergänzen.
+
+**Nicht geprüft werden konnte:** ob der Sprachwechsel auf einem echten Gerät
+jetzt tatsächlich alle Texte umstellt. Es gibt im Projekt keinen
+Compose-UI-Test und kein Robolectric-Setup, das `stringResource` gegen eine
+simulierte Konfigurationsänderung prüfen könnte (`gradle/libs.versions.toml`
+enthält weder das eine noch das andere) — nur ein echtes Gerät oder ein
+Emulator kann das zeigen. Wer als Nächstes an dieser Stelle arbeitet: Ein
+Instrumentierungstest, der `ProvideAppLanguage`/`MainActivity.applyLanguage`
+gegen einen `ActivityScenario` prüft, wäre die naheliegende Lücke.
 
 ## Sitzung 11.09.2026 (2) — Rechtstexte auf Englisch, E-Mails in der Profilsprache
 
@@ -235,10 +356,20 @@ pm2 restart flexr-api        # bzw. sudo systemctl restart flexr-api
 Das Frontend ist statisch und mit dem `git pull` erledigt. Der Service Worker
 steht auf `flexr-shell-v13`.
 
-## Absturz beim Start der Android-App (offen)
+## Absturz beim Start der Android-App (durch Indizien erhärtet, nicht mit Sicherheit belegt)
 
 **Symptom:** 2.6.0 (versionCode 100) startet und schließt sich sofort wieder.
 Gemeldet am 11.09.2026.
+
+**Update aus Sitzung (3):** Der Nutzer hat inzwischen das direkt installierbare
+APK aus Sitzung (2) aufgespielt und konnte den Kontobildschirm bedienen (dort
+kamen die beiden in Sitzung (3) behobenen Fehler her — Sprachregler und
+Sprachwechsel). Die App **startet mit dem APK also**. Das stützt die
+`.aab`-Theorie unten, ist aber kein Beweis: Zwischen 2.6.0 und dem für
+Sitzung (3) gebauten 2.6.1 hat sich auch echter Code geändert
+(`ProvideAppLanguage`, `MainActivity`), und ohne einen Test mit dem
+*ursprünglichen* 2.6.0-Bundle als APK lässt sich nicht sauber trennen, ob die
+Installationsart oder eine der Codeänderungen den Ausschlag gab.
 
 **Eingegrenzt:** Das installierte Bundle ist vom 10.09. um 10:22 Uhr, gebaut
 aus `d372c24`. Der letzte Commit, der `android-native/` angefasst hat, ist
