@@ -55,6 +55,25 @@ final class DTOMappingTests: XCTestCase {
         XCTAssertEqual(profile.photos[0].avatarURL, "https://r2/1t")
         // Gespeichert ist das volle Label, angezeigt wird nur der Name.
         XCTAssertEqual(profile.profile.gymName, "Eisenschmiede")
+        // Ohne Feld im JSON gilt die Ausgangssprache - ein aelteres Backend
+        // liefert `language` nicht, und das darf kein leeres Kuerzel ergeben.
+        XCTAssertEqual(profile.language, "de")
+    }
+
+    func testProfilspracheWirdGelesen() throws {
+        let json = """
+        {
+          "id": "u1", "name": "Max", "age": 30, "city": "Wien", "gender": "mann",
+          "gym": "Eisenschmiede", "plz": "1100", "birthdate": "1996-07-26",
+          "language": "en"
+        }
+        """
+        let profile = try decoder.decode(MyProfileDTO.self, from: Data(json.utf8)).toDomain()
+
+        // Die Sprache am Profil sagt, in welcher Sprache der Server seine
+        // E-Mails schreibt. Beim Anmelden gleicht `AppModel.syncLanguage` sie
+        // mit der Wahl auf diesem Geraet ab.
+        XCTAssertEqual(profile.language, "en")
     }
 
     func testFotoOhneThumbnailFaelltAufsVollbildZurueck() throws {

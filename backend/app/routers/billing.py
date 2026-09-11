@@ -243,7 +243,7 @@ def handle_stripe_event(event: dict, db: Session) -> None:
                 db,
                 f"stripe:subscription-confirmation:{user.stripe_subscription_id or obj.get('id')}",
                 "subscription_confirmation",
-                lambda: mailer.send_subscription_confirmation(user.email, user.name),
+                lambda: mailer.send_subscription_confirmation(user.email, user.name, user.language),
             )
         return
 
@@ -270,7 +270,7 @@ def handle_stripe_event(event: dict, db: Session) -> None:
                     f"stripe:cancellation-scheduled:{obj.get('id')}:{end_at}",
                     "cancellation_scheduled",
                     lambda: mailer.send_cancellation_scheduled(
-                        user.email, user.name, end_at
+                        user.email, user.name, end_at, user.language
                     ),
                 )
         return
@@ -283,7 +283,7 @@ def handle_stripe_event(event: dict, db: Session) -> None:
                 _event_object_key(event, obj, "trial-ending"),
                 "trial_ending",
                 lambda: mailer.send_trial_ending(
-                    user.email, user.name, obj.get("trial_end")
+                    user.email, user.name, obj.get("trial_end"), user.language
                 ),
             )
         return
@@ -297,7 +297,7 @@ def handle_stripe_event(event: dict, db: Session) -> None:
                 db,
                 _event_object_key(event, obj, "subscription-ended"),
                 "subscription_ended",
-                lambda: mailer.send_subscription_ended(user.email, user.name),
+                lambda: mailer.send_subscription_ended(user.email, user.name, user.language),
             )
         return
 
@@ -315,6 +315,7 @@ def handle_stripe_event(event: dict, db: Session) -> None:
                     obj.get("amount_due"),
                     obj.get("currency"),
                     charge_at,
+                    user.language,
                 ),
             )
         return
@@ -332,6 +333,7 @@ def handle_stripe_event(event: dict, db: Session) -> None:
                     obj.get("amount_paid"),
                     obj.get("currency"),
                     obj.get("hosted_invoice_url"),
+                    user.language,
                 ),
             )
         return
@@ -357,6 +359,7 @@ def handle_stripe_event(event: dict, db: Session) -> None:
                     obj.get("currency"),
                     obj.get("next_payment_attempt"),
                     obj.get("hosted_invoice_url"),
+                    user.language,
                 ),
             )
         return

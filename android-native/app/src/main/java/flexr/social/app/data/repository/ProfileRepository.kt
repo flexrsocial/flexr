@@ -74,6 +74,26 @@ class ProfileRepository @Inject constructor(
         return updated
     }
 
+    /**
+     * Die gewaehlte Sprache ans Profil melden.
+     *
+     * Der Regler stellt die Oberflaeche sofort um — das laeuft ohne Server.
+     * Der Server muss sie trotzdem erfahren: Er verschickt E-Mails, die ohne
+     * Zutun der App entstehen (Inaktivitaets-Erinnerung aus dem Tagesjob,
+     * Zahlungsmail aus einem Stripe-Webhook, Moderationsmitteilung aus dem
+     * Admin-Bereich) und kann die Einstellung nirgends sonst nachlesen.
+     *
+     * Schickt nur, was sich geaendert hat, und schluckt Fehler: Bleibt die
+     * Meldung aus, ist die Oberflaeche trotzdem umgestellt, und der naechste
+     * Start holt es nach. Eine Fehlermeldung waere hier nur Laerm.
+     */
+    suspend fun reportLanguage(code: String) {
+        if (_myProfile.value?.language == code) return
+        runCatching {
+            apiCall { api.updateMyProfile(UpdateProfileRequestDto(language = code)) }
+        }.onSuccess { _myProfile.value = it.toDomain() }
+    }
+
     suspend fun deleteAccount(password: String) {
         apiCall { api.deleteMyAccount(DeleteAccountRequestDto(password)) }
         _myProfile.value = null

@@ -33,24 +33,45 @@ logger = logging.getLogger("flexr.verification")
 # Sachliche Rückmeldung an den Nutzer je Prüfgrund. Fester Katalog statt
 # Freitext - so entstehen keine sensiblen Notizen zum Ausweis, und interne
 # Prüfheuristiken werden nicht offengelegt.
+#
+# Der Grund geht per E-Mail an den Nutzer (mailer.send_verification_decision)
+# und muss deshalb seiner Profilsprache folgen. Anders als die Moderations-
+# begründung ist das hier ein fester Katalog - er lässt sich übersetzen.
 REASON_TEXTS = {
-    VerificationReviewReason.document_unreadable.value:
-        "Die Aufnahme des Ausweises war nicht gut genug lesbar.",
-    VerificationReviewReason.details_not_visible.value:
-        "Auf der Aufnahme waren nicht alle für die Prüfung nötigen Angaben sichtbar.",
-    VerificationReviewReason.person_mismatch.value:
-        "Wir konnten die Verifizierung deinem Profil nicht zuordnen.",
-    VerificationReviewReason.dob_mismatch.value:
-        "Das Geburtsdatum auf dem Ausweis stimmt nicht mit deiner Angabe bei der "
-        "Registrierung überein.",
-    VerificationReviewReason.underage.value:
-        "Nach dem vorgelegten Ausweis bist du noch nicht 18 Jahre alt.",
-    VerificationReviewReason.document_unsuitable.value:
-        "Das vorgelegte Dokument ist für die Alters- und Identitätsprüfung nicht geeignet.",
-    VerificationReviewReason.selfie_unusable.value:
-        "Die Verifizierungs-Selfies waren nicht verwertbar.",
-    VerificationReviewReason.other.value:
-        "Wir konnten deine Verifizierung nicht abschließen.",
+    VerificationReviewReason.document_unreadable.value: {
+        "de": "Die Aufnahme des Ausweises war nicht gut genug lesbar.",
+        "en": "The image of your ID was not legible enough.",
+    },
+    VerificationReviewReason.details_not_visible.value: {
+        "de": "Auf der Aufnahme waren nicht alle für die Prüfung nötigen Angaben sichtbar.",
+        "en": "Not all the details needed for the check were visible in the image.",
+    },
+    VerificationReviewReason.person_mismatch.value: {
+        "de": "Wir konnten die Verifizierung deinem Profil nicht zuordnen.",
+        "en": "We could not match the verification to your profile.",
+    },
+    VerificationReviewReason.dob_mismatch.value: {
+        "de": "Das Geburtsdatum auf dem Ausweis stimmt nicht mit deiner Angabe bei der "
+              "Registrierung überein.",
+        "en": "The date of birth on the ID does not match the one you gave at "
+              "registration.",
+    },
+    VerificationReviewReason.underage.value: {
+        "de": "Nach dem vorgelegten Ausweis bist du noch nicht 18 Jahre alt.",
+        "en": "According to the ID you presented you are not yet 18 years old.",
+    },
+    VerificationReviewReason.document_unsuitable.value: {
+        "de": "Das vorgelegte Dokument ist für die Alters- und Identitätsprüfung nicht geeignet.",
+        "en": "The document you presented is not suitable for the age and identity check.",
+    },
+    VerificationReviewReason.selfie_unusable.value: {
+        "de": "Die Verifizierungs-Selfies waren nicht verwertbar.",
+        "en": "The verification selfies were not usable.",
+    },
+    VerificationReviewReason.other.value: {
+        "de": "Wir konnten deine Verifizierung nicht abschließen.",
+        "en": "We could not complete your verification.",
+    },
 }
 
 # Verwaiste Uploads (Registrierung abgebrochen, nie eingereicht) werden nach
@@ -251,7 +272,13 @@ def purge_uploads(req: VerificationRequest, *, selfies: bool = True, documents: 
     return not remaining
 
 
-def reason_text(reason_code: str | None) -> str | None:
+def reason_text(reason_code: str | None, lang: str = "de") -> str | None:
+    """Prüfgrund im Klartext, in der Sprache des Empfängers."""
+    from .message_texts import normalise
+
     if not reason_code:
         return None
-    return REASON_TEXTS.get(reason_code, REASON_TEXTS[VerificationReviewReason.other.value])
+    eintrag = REASON_TEXTS.get(
+        reason_code, REASON_TEXTS[VerificationReviewReason.other.value]
+    )
+    return eintrag[normalise(lang)]

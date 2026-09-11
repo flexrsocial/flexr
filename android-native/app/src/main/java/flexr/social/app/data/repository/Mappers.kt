@@ -88,6 +88,7 @@ fun MyProfileDto.toDomain() = MyProfile(
         pendingLikesEmail = notifyPendingLikesEmail,
         pendingLikesPush = notifyPendingLikesPush,
     ),
+    language = language,
 )
 
 fun PushNotificationDto.toDomain() = PushNotification(

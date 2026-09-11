@@ -71,6 +71,13 @@ struct MyProfile: Hashable, Sendable {
     let messagingMutedUntil: Date?
     /// Schalterstellung unter „Benachrichtigungen" im Konto.
     var notifications: NotificationSettings = NotificationSettings()
+    /// Am Profil hinterlegte Sprache („de" oder „en").
+    ///
+    /// Nicht die Sprache der Oberfläche — die kommt aus dem `LanguageStore`
+    /// und gehört dem Gerät. Diese hier sagt, in welcher Sprache der Server
+    /// seine E-Mails schreibt; beide werden beim Anmelden abgeglichen
+    /// (`AppModel.syncLanguage`).
+    var language: String = "de"
 
     var id: String { profile.id }
     var name: String { profile.name }

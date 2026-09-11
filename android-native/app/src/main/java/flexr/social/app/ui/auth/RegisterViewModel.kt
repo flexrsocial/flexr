@@ -7,7 +7,9 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import flexr.social.app.R
 import flexr.social.app.core.common.ServerTime
+import flexr.social.app.core.locale.AppLanguage
 import flexr.social.app.core.locale.AppStrings
+import flexr.social.app.core.locale.LanguageStore
 import flexr.social.app.core.media.ImageProcessor
 import flexr.social.app.core.media.PhotoTooSmallException
 import flexr.social.app.core.media.PreparedPhoto
@@ -22,15 +24,16 @@ import flexr.social.app.domain.model.Gym
 import flexr.social.app.ui.components.GymPickerState
 import flexr.social.app.ui.components.GymSuggestionState
 import flexr.social.app.ui.components.PlzLookupState
+import java.time.LocalDate
+import javax.inject.Inject
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.time.LocalDate
-import javax.inject.Inject
 
 /** Ein im Onboarding gewähltes Foto: Vorschau plus fertig aufbereitete Daten. */
 data class PendingPhoto(
@@ -118,6 +121,7 @@ class RegisterViewModel @Inject constructor(
     private val plzRepository: PlzRepository,
     private val imageProcessor: ImageProcessor,
     private val strings: AppStrings,
+    private val languageStore: LanguageStore,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(RegisterUiState())
@@ -340,6 +344,13 @@ class RegisterViewModel @Inject constructor(
                         gymLabel = requireNotNull(state.gymPicker.selectedLabel),
                         bio = state.bio,
                         consentSensitiveData = state.consentSensitiveData,
+                        // Sprache, in der gerade registriert wird. Der Server
+                        // merkt sie am Profil und schreibt seine Mails danach -
+                        // sie entstehen zum Teil ohne die App (Tagesjob,
+                        // Stripe-Webhook, Moderation) und koennen die
+                        // Einstellung nirgends sonst nachlesen.
+                        language = (languageStore.chosen.first()
+                            ?: AppLanguage.detect()).code,
                     )
                 }.onSuccess {
                     val failures = uploadPhotos(state.photos)

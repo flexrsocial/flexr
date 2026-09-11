@@ -6,6 +6,10 @@
  * sein: Text wird zu "Vertrag widerrufen", dazu ein dezenter Rahmen
  * (.widerruf-hervorgehoben in legal.css).
  *
+ * Die Beschriftung richtet sich nach dem <html lang> der Seite: unter /en/
+ * heißt der Link "Right of withdrawal" bzw. ab dem Stichtag "Withdraw from
+ * contract".
+ *
  * Maßgeblich ist die Serverzeit (Europe/Vienna) aus GET /api/withdrawal/status,
  * nicht die Uhr im Browser - die lässt sich verstellen. Schlägt der Abruf fehl
  * (API nicht erreichbar), bleibt es beim im HTML hinterlegten Vor-Stichtag-
@@ -26,15 +30,22 @@
   // Das Gegenstueck: nur VOR dem Stichtag sichtbar.
   var NUR_VOR_STICHTAG = ['agb-widerruf-oct1-formular'];
 
+  // Seit es die Rechtstexte auch unter /en/ gibt, steht dasselbe Skript auf
+  // deutschen und englischen Seiten. Welche Sprache gilt, sagt das <html lang>
+  // der ausgelieferten Seite - dieselbe Quelle wie in lang-switch.js. Ein
+  // eigenes Woerterbuch waere fuer zwei Begriffspaare zu viel.
+  var SPRACHE = (document.documentElement.getAttribute('lang') || 'de')
+    .slice(0, 2).toLowerCase() === 'en' ? 'en' : 'de';
+
+  var TEXTE = {
+    de: { pflicht: 'Vertrag widerrufen', normal: 'Rücktrittsrecht' },
+    en: { pflicht: 'Withdraw from contract', normal: 'Right of withdrawal' },
+  }[SPRACHE];
+
   function anwenden(pflicht) {
     document.querySelectorAll('a[data-widerruf-link]').forEach(function (a) {
-      if (pflicht) {
-        a.textContent = 'Vertrag widerrufen';
-        a.classList.add('widerruf-hervorgehoben');
-      } else {
-        a.textContent = 'Rücktrittsrecht';
-        a.classList.remove('widerruf-hervorgehoben');
-      }
+      a.textContent = pflicht ? TEXTE.pflicht : TEXTE.normal;
+      a.classList.toggle('widerruf-hervorgehoben', pflicht);
     });
     NUR_AB_STICHTAG.forEach(function (id) {
       var el = document.getElementById(id);

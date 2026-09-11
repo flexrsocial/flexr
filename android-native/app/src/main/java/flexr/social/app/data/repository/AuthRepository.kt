@@ -9,14 +9,14 @@ import flexr.social.app.data.remote.dto.LoginRequestDto
 import flexr.social.app.data.remote.dto.RegisterRequestDto
 import flexr.social.app.data.session.SessionStore
 import flexr.social.app.domain.model.Gender
+import java.time.LocalDate
+import javax.inject.Inject
+import javax.inject.Singleton
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
-import java.time.LocalDate
-import javax.inject.Inject
-import javax.inject.Singleton
 
 /**
  * Registrierung, Anmeldung und Sitzungsende.
@@ -73,6 +73,15 @@ class AuthRepository @Inject constructor(
         gymLabel: String,
         bio: String?,
         consentSensitiveData: Boolean,
+        /**
+         * Sprache, in der gerade registriert wird ("de" oder "en").
+         *
+         * Kommt als Parameter statt aus dem `core.locale.LanguageStore`:
+         * Dieses Repository
+         * soll ohne Android-Context auskommen, damit es sich in den
+         * Einheitstests ohne Rahmenwerk bauen laesst.
+         */
+        language: String,
     ) {
         val response = apiCall {
             api.register(
@@ -87,6 +96,12 @@ class AuthRepository @Inject constructor(
                     gym = gymLabel,
                     bio = bio?.trim()?.takeIf { it.isNotEmpty() },
                     consentSensitiveData = consentSensitiveData,
+                    // Die Sprache, in der gerade registriert wird. Der Server
+                    // merkt sie am Profil und schreibt seine Mails danach -
+                    // sie entstehen zum Teil ohne die App (Tagesjob,
+                    // Stripe-Webhook, Moderation) und koennen die Einstellung
+                    // nirgends sonst nachlesen.
+                    language = language,
                 ),
             )
         }

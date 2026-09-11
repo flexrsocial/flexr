@@ -901,6 +901,12 @@
   .legal-modal-body h2:has(+ details){ border-bottom:none; padding-bottom:0; }
   .legal-modal-body p, .legal-modal-body table, .legal-modal-body ol li{ font-size:14px; }
   .legal-modal-body a{ color:var(--plate); }
+  /* Die Kopfzeile der Rechtsseite gehoert nicht ins Modal: Der Rueckweg
+     ("zurueck zu FLEXR") fuehrt aus der App heraus, und der Sprachregler ist
+     hier der falsche Knopf - die App stellt ihre Sprache selbst um, und das
+     Modal folgt ihr (openLegalModal). Beides wird deshalb ausgeblendet, die
+     Zeile selbst gleich mit. */
+  .legal-modal-body .legal-head{ display:none; }
   .legal-modal-body .back{ display:none; }
   .legal-modal-body table{ width:100%; border-collapse:collapse; margin:12px 0; }
   .legal-modal-body th, .legal-modal-body td{ text-align:left; padding:8px 10px; border-bottom:1px solid var(--steel); vertical-align:top; }
@@ -1861,8 +1867,8 @@
      (DACH-Raum -> Deutsch), i18n-app.js das Woerterbuch dieser Seite. Beide
      laufen synchron und damit vor dem DOMContentLoaded, bei dem FlexrI18n die
      data-i18n-Knoten uebersetzt. -->
-<script src="/i18n.js?v=3"></script>
-<script src="/app/i18n-app.js?v=3"></script>
+<script src="/i18n.js?v=4"></script>
+<script src="/app/i18n-app.js?v=4"></script>
 <a class="skip-link" href="#main-content" data-i18n="common.skipToContent">Zum Inhalt springen</a>
 <div class="app" id="app">
 
@@ -2323,7 +2329,7 @@
         <div class="lang-row">
           <div>
             <div class="lang-row-label" data-i18n="lang.label">Sprache</div>
-            <div class="lang-row-hint" data-i18n="lang.hint">Gilt für die gesamte App. Rechtstexte bleiben auf Deutsch verbindlich.</div>
+            <div class="lang-row-hint" data-i18n="lang.hint">Gilt für die gesamte App und für die E-Mails, die wir dir schicken. Die Rechtstexte gibt es auf Deutsch und Englisch; verbindlich ist die deutsche Fassung.</div>
           </div>
           <div class="lang-switch" role="group" data-i18n-aria="lang.group" aria-label="Sprache">
             <button type="button" data-lang="de" data-i18n-title="lang.de" title="Deutsch">DE</button>
@@ -3381,6 +3387,10 @@
     return age;
   }
 
+  // Zuletzt ans Profil gemeldete Sprache - verhindert, dass jeder
+  // Neuzeichnen-Durchlauf dieselbe PATCH-Anfrage erneut schickt.
+  let gemeldeteSprache = null;
+
   // ---------- API-Helfer ----------
   function setToken(t){
     token = t;
@@ -3944,6 +3954,11 @@
       // Vertrag begruendet. Der Server nimmt das Feld noch entgegen (aeltere
       // App-Fassungen senden es), wertet es aber nicht aus.
       consent_sensitive_data: $('f-consent-sensitive').checked,
+      // Die Sprache, in der gerade registriert wird. Der Server merkt sie am
+      // Profil und schreibt seine Mails danach - sie entstehen zum Teil ohne
+      // Client (Tagesjob, Stripe-Webhook, Moderation) und koennen die
+      // Einstellung deshalb nirgends sonst nachlesen.
+      language: FlexrI18n.current(),
     };
 
     if(!payload.email || !payload.password || payload.password.length < 8 || !payload.name || !payload.birthdate){
@@ -4182,7 +4197,30 @@
   async function loadCurrentUser(){
     myProfile = await api('/api/profiles/me');
     membership = await api('/api/billing/status');
+    gleicheSpracheAb();
     updateStatusPill();
+  }
+
+  /* Sprache zwischen Geraet und Profil abgleichen.
+
+     Wer auf diesem Geraet schon einmal ausdruecklich gewaehlt hat, hat das
+     letzte Wort - die Wahl wird ans Profil gemeldet. Wer noch nie gewaehlt hat
+     (frisches Geraet, neuer Browser), uebernimmt, was am Profil steht: Sonst
+     bekaeme jemand, der auf Englisch gestellt hat, auf dem naechsten Geraet
+     wieder Deutsch, obwohl der Server seine Mails laengst auf Englisch
+     schickt. */
+  function gleicheSpracheAb(){
+    if(!myProfile || !myProfile.language) return;
+    let gewaehlt = null;
+    try{ gewaehlt = localStorage.getItem('flexr_lang'); }catch(e){}
+    if(gewaehlt){
+      gemeldeteSprache = myProfile.language;
+      meldeSpracheAnsProfil();
+    }else if(myProfile.language !== FlexrI18n.current()){
+      // persist:false - das Profil ist die Quelle, nicht eine Wahl auf
+      // diesem Geraet. Erst ein Klick auf den Regler macht daraus eine.
+      FlexrI18n.set(myProfile.language, {persist: false});
+    }
   }
 
   // Konto freigeschaltet? Bestandskonten sind es immer, neue erst nach
@@ -6906,12 +6944,30 @@
   const legalBackdrop = $('legalModalBackdrop');
   const legalBody = $('legalModalBody');
 
+  /* Die Rechtstexte gibt es unter zwei Adressen: deutsch an der Wurzel
+     (/agb.html), englisch darunter (/en/agb.html). Das Modal folgt der
+     Sprache der App - wer auf Englisch gestellt hat, bekommt den englischen
+     Text, ohne dass die Aufrufstellen (data-legal-page, Querverweise im Text)
+     davon wissen muessen.
+
+     Verweise INNERHALB eines englischen Textes zeigen bereits auf /en/… .
+     Deshalb wird ein vorangestelltes "en/" hier zuerst abgeschnitten: sonst
+     landete der naechste Aufruf bei /en/en/agb.html. */
+  function legalSeite(page){
+    return String(page || '').replace(/^en\//, '');
+  }
+  function legalPfad(page){
+    return (FlexrI18n.current() === 'en' ? '/en/' : '/') + legalSeite(page);
+  }
+
   async function openLegalModal(page){
+    page = legalSeite(page);
+    const pfad = legalPfad(page);
     legalBackdrop.classList.add('open');
     legalBody.innerHTML = `<div class="loading">${escapeHtml(t('common.loading'))}</div>`;
     try{
-      if(!legalCache[page]){
-        const res = await fetch('/' + page);
+      if(!legalCache[pfad]){
+        const res = await fetch(pfad);
         const html = await res.text();
         const doc = new DOMParser().parseFromString(html, 'text/html');
         const wrap = doc.querySelector('.wrap');
@@ -6949,15 +7005,15 @@
           .map(s => s.textContent).join('\n');
         const skriptStart = '<' + 'script>';
         const skriptEnde = '<' + '/script>';
-        legalCache[page] = (wrap ? wrap.innerHTML : `<p>${escapeHtml(t('err.legalLoad'))}</p>`)
+        legalCache[pfad] = (wrap ? wrap.innerHTML : `<p>${escapeHtml(t('err.legalLoad'))}</p>`)
           + (externeSkripte ? skriptStart + externeSkripte + skriptEnde : '');
       }
       // Jeder Rechtstext bleibt unter einer eigenen Adresse erreichbar - das
       // Modal nennt sie und verlinkt sie, statt sie zu verstecken.
       legalBody.innerHTML =
-        '<span class="legal-modal-permalink">Eigene Adresse: ' +
-        '<a href="/' + page + '" target="_blank" rel="noopener">flexr.social/' + page + '</a></span>' +
-        legalCache[page];
+        '<span class="legal-modal-permalink">' + escapeHtml(t('legal.permalink')) + ' ' +
+        '<a href="' + pfad + '" target="_blank" rel="noopener">flexr.social' + pfad + '</a></span>' +
+        legalCache[pfad];
       legalBody.scrollTop = 0;
       wireLegalModalLinks(page);
       // Widerruf und Meldung sind keine reinen Lesetexte, sondern Formulare
@@ -7121,7 +7177,35 @@
       if(screen === 'screen-premium') renderPremiumScreen();
       if(screen === 'screen-privacy'){ loadMyConsents(); loadMyBlocks(); loadMyReports(); }
     }catch(e){ console.error(e); }
+    meldeSpracheAnsProfil();
   });
+
+  /* Die Sprachwahl ans Profil melden.
+
+     Der Regler stellt die Oberflaeche sofort um - das laeuft ohne Server. Der
+     Server muss sie trotzdem erfahren: Er verschickt E-Mails, die ohne Client
+     entstehen (Inaktivitaets-Erinnerung aus dem Tagesjob, Zahlungsmail aus
+     einem Stripe-Webhook, Moderationsmitteilung aus dem Admin-Bereich) und
+     kann die Einstellung nirgends sonst nachlesen.
+
+     Nur fuer Angemeldete, und bewusst ohne Fehlerbehandlung nach aussen: Wenn
+     das Melden scheitert, bleibt die Oberflaeche umgestellt und die naechste
+     Profilaenderung schickt die Sprache ohnehin wieder mit. Eine
+     Fehlermeldung waere hier nur Laerm. */
+  async function meldeSpracheAnsProfil(){
+    const lang = FlexrI18n.current();
+    if(!token || lang === gemeldeteSprache) return;
+    gemeldeteSprache = lang;
+    try{
+      await api('/api/profiles/me', {
+        method: 'PATCH', body: JSON.stringify({language: lang}),
+      });
+      if(myProfile) myProfile.language = lang;
+    }catch(e){
+      gemeldeteSprache = null;   // beim naechsten Wechsel erneut versuchen
+      console.warn('Sprache konnte nicht ans Profil gemeldet werden', e);
+    }
+  }
 
   boot();
 

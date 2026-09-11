@@ -18,14 +18,25 @@
 // /en/). Beide gehoeren in die Shell, dazu lang-switch.js; i18n-landing.js ist
 // dagegen raus - es ist nur noch Eingabe fuer build-en.py und wird von keiner
 // Seite mehr geladen.
-const CACHE = 'flexr-shell-v11';
+// v12: Auch die Rechtstexte gibt es jetzt unter /en/. lang-switch.js liest die
+// beiden Adressen einer Seite seither aus dem Regler im Markup und laeuft
+// deshalb auch dort; legal.css und legal-status.js haben sich mitgeaendert.
+// Die Rechtstexte selbst bleiben bewusst AUSSERHALB der Shell: sie sind viele
+// und selten gebraucht, und eine im Cache eingefrorene alte Fassung eines
+// Vertragstextes waere das falsche Offline-Verhalten. "Netz zuerst" holt sie
+// bei jedem Online-Aufruf frisch.
+// v13: Die Sprachwahl geht jetzt ans Profil (PATCH /api/profiles/me), damit der
+// Server seine E-Mails in derselben Sprache schreibt. Betrifft /app/index.html
+// und die beiden oeffentlichen Formulare - eine offline eingefrorene alte
+// Fassung wuerde die Sprache nie melden.
+const CACHE = 'flexr-shell-v13';
 // Seit dem 15.08.2026 liegt die App unter /app/, an der Wurzel steht die
 // oeffentliche Landingpage. Beide gehoeren in die Shell: die Landingpage,
 // weil sie der Einstieg ist, die App, weil sie offline funktionieren soll.
 const SHELL = ['/', '/index.html', '/en/', '/en/index.html',
                '/app/', '/app/index.html',
-               '/lang-switch.js?v=1', '/i18n.js?v=1', '/app/i18n-app.js?v=1',
-               '/manifest.json', '/favicon.ico?v=4', '/legal.css?v=1',
+               '/lang-switch.js?v=2', '/i18n.js?v=4', '/app/i18n-app.js?v=4',
+               '/manifest.json', '/favicon.ico?v=4', '/legal.css?v=2',
                '/fonts/work-sans.woff2?v=1', '/fonts/oswald.woff2?v=1',
                '/icons/icon-192.png?v=4', '/icons/icon-512.png?v=4'];
 const SHELL_PATHS = new Set(SHELL.map((path) => new URL(path, self.location.origin).pathname));

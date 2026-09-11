@@ -65,5 +65,6 @@ def resend_email(
         current_user.name,
         build_link(token),
         TOKEN_TTL_HOURS,
+        current_user.language,
     )
     return EmailResendResponse(email=current_user.email, valid_hours=TOKEN_TTL_HOURS)

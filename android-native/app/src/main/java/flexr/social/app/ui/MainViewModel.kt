@@ -5,7 +5,9 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import flexr.social.app.R
 import flexr.social.app.SessionGate
+import flexr.social.app.core.locale.AppLanguage
 import flexr.social.app.core.locale.AppStrings
+import flexr.social.app.core.locale.LanguageStore
 import flexr.social.app.core.network.FlexrApiException
 import flexr.social.app.data.repository.AuthRepository
 import flexr.social.app.data.repository.BillingRepository
@@ -20,6 +22,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
@@ -52,6 +55,7 @@ sealed interface AppState {
 class MainViewModel @Inject constructor(
     private val authRepository: AuthRepository,
     private val profileRepository: ProfileRepository,
+    private val languageStore: LanguageStore,
     private val billingRepository: BillingRepository,
     private val verificationRepository: VerificationRepository,
     private val notificationScheduler: MessageNotificationScheduler,
@@ -77,6 +81,27 @@ class MainViewModel @Inject constructor(
             .launchIn(viewModelScope)
     }
 
+    /**
+     * Sprache zwischen Geraet und Profil abgleichen.
+     *
+     * Wer auf diesem Geraet schon einmal ausdruecklich gewaehlt hat, hat das
+     * letzte Wort — die Wahl geht ans Profil. Wer noch nie gewaehlt hat
+     * (frische Installation, neues Geraet), uebernimmt, was am Profil steht:
+     * Sonst bekaeme jemand, der auf Englisch gestellt hat, auf dem naechsten
+     * Geraet wieder Deutsch, obwohl der Server seine Mails laengst auf
+     * Englisch schickt.
+     */
+    private suspend fun syncLanguage(profileLanguage: String) {
+        val gewaehlt = languageStore.chosen.first()
+        if (gewaehlt != null) {
+            profileRepository.reportLanguage(gewaehlt.code)
+        } else {
+            AppLanguage.fromCode(profileLanguage)
+                ?.takeIf { it != AppLanguage.detect() }
+                ?.let { languageStore.setLanguage(it) }
+        }
+    }
+
     /** Nach Login/Registrierung: Profil und Mitgliedschaft laden. */
     fun loadSession() {
         viewModelScope.launch {
@@ -85,6 +110,7 @@ class MainViewModel @Inject constructor(
                 val membership = billingRepository.refresh()
                 profile to membership
             }.onSuccess { (profile, membership) ->
+                syncLanguage(profile.language)
                 _appState.value = when {
                     // Ohne bestandene Prüfung gibt es kein Deck, keine Matches
                     // und keinen Chat. Das ist die einzige Huerde - bezahlen

@@ -36,12 +36,16 @@ final class AppModel {
     var toast: String?
 
     @ObservationIgnored private let container: AppContainer
+    /// Gehört dem App-Delegierten, nicht dem Container: Die Sprachwahl ist eine
+    /// Einstellung des Geräts und überlebt das Abmelden (siehe [LanguageStore]).
+    @ObservationIgnored private let languageStore: LanguageStore
     @ObservationIgnored private var cancellables: Set<AnyCancellable> = []
 
     var unreadCount: Int { container.matches.unreadTotal }
 
-    init(container: AppContainer) {
+    init(container: AppContainer, languageStore: LanguageStore) {
         self.container = container
+        self.languageStore = languageStore
 
         // `receive(on:)` ist nicht kosmetisch: Der 401-Zweig des APIClient feuert
         // aus dem URLSession-Thread, der Zustand hier gehört auf den MainActor.
@@ -71,10 +75,27 @@ final class AppModel {
             .store(in: &cancellables)
     }
 
+    /// Sprache zwischen Gerät und Profil abgleichen.
+    ///
+    /// Wer auf diesem Gerät schon einmal ausdrücklich gewählt hat, hat das
+    /// letzte Wort — die Wahl geht ans Profil. Wer noch nie gewählt hat (frische
+    /// Installation, neues Gerät), übernimmt, was am Profil steht: Sonst bekäme
+    /// jemand, der auf Englisch gestellt hat, auf dem nächsten Gerät wieder
+    /// Deutsch, obwohl der Server seine Mails längst auf Englisch schickt.
+    ///
+    private func syncLanguage(profileLanguage: String) async {
+        if languageStore.hasExplicitChoice {
+            await container.profiles.reportLanguage(languageStore.language.rawValue)
+        } else if let vomProfil = AppLanguage(rawValue: profileLanguage) {
+            languageStore.adopt(vomProfil)
+        }
+    }
+
     /// Nach Login/Registrierung: Profil und Mitgliedschaft laden.
     func loadSession() async {
         do {
             let profile = try await container.profiles.refresh()
+            await syncLanguage(profileLanguage: profile.language)
             let membership = try await container.billing.refresh()
             container.notifications.schedule()
             container.activityNotifications.schedule()

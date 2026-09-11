@@ -7,6 +7,10 @@
 <meta name="description" content="Acceptable Use Policy von FLEXR: verbotene Inhalte und Verhaltensweisen sowie die konkreten Schutzprotokolle gegen Menschenhandel, illegale Handlungen, Identitätsmissbrauch und CSAM.">
 <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1">
 <link rel="canonical" href="https://flexr.social/nutzungsrichtlinien.html">
+<link rel="alternate" hreflang="de-AT" href="https://flexr.social/nutzungsrichtlinien.html">
+<link rel="alternate" hreflang="de" href="https://flexr.social/nutzungsrichtlinien.html">
+<link rel="alternate" hreflang="en" href="https://flexr.social/en/nutzungsrichtlinien.html">
+<link rel="alternate" hreflang="x-default" href="https://flexr.social/nutzungsrichtlinien.html">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="FLEXR">
 <meta property="og:locale" content="de_AT">
@@ -16,57 +20,19 @@
 <meta property="og:image" content="https://flexr.social/og-image.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="/favicon.ico" sizes="any">
-<link rel="stylesheet" href="/legal.css?v=1">
-<style>
-  :root{ --ink:#121212; --surface:#1c1c1c; --steel:#3a3a3a; --chalk:#ede9e2; --chalk-dim:#a8a49b; --plate:#ff5a1f; --warn:#e34848; --lime:#c7ff4a; }
-  *{box-sizing:border-box;}
-  body{ margin:0; background:var(--ink); color:var(--chalk); font-family:'Work Sans', system-ui, sans-serif; line-height:1.6; }
-  .wrap{ max-width:720px; margin:0 auto; padding:32px 20px 80px; }
-  a{ color:var(--plate); }
-  h1{ font-size:26px; margin-bottom:4px; }
-  h2{ font-size:17px; color:var(--chalk); border-bottom:1px solid var(--steel); padding-bottom:6px; margin-top:36px; }
-  h3{ font-size:15px; color:var(--chalk); margin-top:24px; margin-bottom:6px; }
-  .back{ display:inline-block; margin-bottom:20px; font-size:13px; color:var(--chalk-dim); text-decoration:none; }
-  .lead{ color:var(--chalk-dim); font-size:14px; }
-  .stand{ color:var(--chalk-dim); font-size:13px; margin-top:0; }
-  ul{ padding-left:20px; margin:8px 0; }
-  ul li{ margin-bottom:7px; }
-  ol.steps{ list-style:none; padding-left:0; margin:8px 0; counter-reset:step; }
-  ol.steps li{ position:relative; padding-left:30px; margin-bottom:9px; }
-  ol.steps li::before{
-    content:counter(step); counter-increment:step;
-    position:absolute; left:0; top:0; color:var(--plate); font-weight:700;
-  }
-  .box{ background:var(--surface); border:1px solid var(--steel); border-radius:10px; padding:14px 16px; margin:14px 0; }
-  .box.alarm{ border-color:var(--warn); }
-  .box h3{ margin-top:0; }
-  .tag{ display:inline-block; font-size:11px; letter-spacing:.06em; text-transform:uppercase;
-    border:1px solid var(--steel); border-radius:20px; padding:2px 9px; color:var(--chalk-dim); margin-bottom:8px; }
-  .tag.zero{ border-color:var(--warn); color:var(--warn); }
-  table{ width:100%; border-collapse:collapse; margin:12px 0; font-size:14px; }
-  th,td{ text-align:left; padding:8px 10px; border-bottom:1px solid var(--steel); vertical-align:top; }
-  th{ color:var(--chalk-dim); font-weight:600; }
-  .toc{ background:var(--surface); border:1px solid var(--steel); border-radius:10px; padding:14px 18px; margin:22px 0 8px; font-size:14px; }
-  .toc b{ display:block; margin-bottom:8px; font-size:12px; letter-spacing:.06em; text-transform:uppercase; color:var(--chalk-dim); }
-  .toc ol{ list-style:none; counter-reset:toc; margin:0; padding-left:4px; }
-  .toc li{ counter-increment:toc; margin-bottom:5px; }
-  .toc li::before{
-    content:counter(toc) "."; display:inline-block; min-width:1.4em;
-    margin-right:10px; color:var(--plate); font-weight:700;
-  }
-  h2[id]{ scroll-margin-top:16px; }
-  .nav-legal{ margin-top:44px; padding-top:16px; border-top:1px solid var(--steel); font-size:13px; }
-  .nav-legal a{ margin-right:16px; }
-  /* Ab 1. Oktober 2026 gesetzlich vorgeschriebene, aber bewusst zurueckhaltende
-     Hervorhebung der Online-Ruecktrittsfunktion (§ 13a FAGG) - siehe
-     legal-status.js. */
-  .nav-legal a.widerruf-hervorgehoben{ border:1px solid var(--plate); border-radius:6px; padding:5px 10px; }
-</style>
+<link rel="stylesheet" href="/legal.css?v=2">
 </head>
 <body>
 <a class="skip-link" href="#main-content">Zum Inhalt springen</a>
 <div class="wrap">
-  <a class="back" href="/">← zurück zu FLEXR</a>
+  <div class="legal-head">
+    <a class="back" href="/">← zurück zu FLEXR</a>
+    <span class="lang-switch" data-active="de" role="group" aria-label="Sprache / Language">
+      <a href="/nutzungsrichtlinien.html" hreflang="de" class="on" aria-current="true" title="Deutsch">DE</a>
+      <a href="/en/nutzungsrichtlinien.html" hreflang="en" title="English">EN</a>
+      <span class="knob" aria-hidden="true"></span>
+    </span>
+  </div>
 
   <main id="main-content">
   <h1>Nutzungsrichtlinien</h1>
@@ -467,6 +433,7 @@
     <a href="/strafverfolgung.html">Strafverfolgung</a>
   </nav>
 </div>
-<script src="/legal-status.js" defer></script>
+<script src="/lang-switch.js?v=2" defer></script>
+<script src="/legal-status.js?v=2" defer></script>
 </body>
 </html>

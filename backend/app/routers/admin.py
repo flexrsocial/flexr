@@ -60,6 +60,63 @@ from ..security import create_admin_access_token, get_current_admin, verify_pass
 from ..verification_service import activate_account, purge_uploads, reason_text
 from .. import storage
 
+# Feste Mitteilungen, die dieser Bereich selbst formuliert - sie gehen per
+# E-Mail an den Betroffenen und folgen deshalb seiner Profilsprache. Die
+# Begruendungen aus statement_of_reasons() kommen aus app/moderation.py, die
+# Pruefgruende aus app/verification_service.py.
+_AUFGEHOBEN = {
+    "ban.measure": {
+        "de": "Die Sperre deines FLEXR-Kontos wurde aufgehoben.",
+        "en": "The block on your FLEXR account has been lifted.",
+    },
+    "ban.summary": {
+        "de": "Die bisherige Kontobeschränkung ist nicht mehr aktiv.",
+        "en": "The previous account restriction is no longer active.",
+    },
+    "mute.measure": {
+        "de": "Deine Chat-Sperre wurde aufgehoben.",
+        "en": "Your chat suspension has been lifted.",
+    },
+    "mute.summary": {
+        "de": "Du kannst in FLEXR wieder Nachrichten senden.",
+        "en": "You can send messages in FLEXR again.",
+    },
+}
+
+#: Ergebnis einer Meldeentscheidung im Klartext (Art. 16 Abs. 5 DSA).
+_OUTCOME_LABELS = {
+    "action_taken": {
+        "de": "Es wurden Maßnahmen ergriffen.",
+        "en": "Measures were taken.",
+    },
+    "no_action": {
+        "de": "Es wurde kein Verstoß festgestellt.",
+        "en": "No breach was found.",
+    },
+    "forwarded": {
+        "de": "Die Meldung wurde an die zuständige Stelle weitergegeben.",
+        "en": "The report was passed on to the competent body.",
+    },
+    "insufficient": {
+        "de": "Die Angaben reichen für eine abschließende Prüfung nicht aus.",
+        "en": "The information given is not sufficient for a final assessment.",
+    },
+}
+
+
+def _text(katalog: dict, schluessel: str, lang: str | None) -> str:
+    from ..message_texts import normalise
+
+    return katalog[schluessel][normalise(lang)]
+
+
+def _outcome_label(outcome: str | None, lang: str | None) -> str:
+    from ..message_texts import normalise
+
+    eintrag = _OUTCOME_LABELS.get(outcome or "")
+    return eintrag[normalise(lang)] if eintrag else (outcome or "")
+
+
 router = APIRouter(prefix="/api/admin", tags=["admin"])
 
 
@@ -317,7 +374,7 @@ def ban_user(
         raise HTTPException(404, "Nutzer nicht gefunden.")
     apply_restriction(user, ModerationAction.ban, payload.reason)
     db.commit()
-    statement = statement_of_reasons(user, ModerationAction.ban)
+    statement = statement_of_reasons(user, ModerationAction.ban, user.language)
     mailer.send_moderation_decision(
         user.email,
         user.name,
@@ -330,6 +387,7 @@ def ban_user(
             statement.get("legal_basis"),
             statement.get("duration"),
         ],
+        lang=user.language,
     )
     return {"is_banned": True, "moderation_reason": user.moderation_reason}
 
@@ -348,9 +406,10 @@ def unban_user(
     mailer.send_moderation_decision(
         user.email,
         user.name,
-        "Die Sperre deines FLEXR-Kontos wurde aufgehoben.",
-        "Die bisherige Kontobeschränkung ist nicht mehr aktiv.",
+        _text(_AUFGEHOBEN, "ban.measure", user.language),
+        _text(_AUFGEHOBEN, "ban.summary", user.language),
         appeal=False,
+        lang=user.language,
     )
     return {"is_banned": False}
 
@@ -375,7 +434,7 @@ def mute_user(
         muted_until=datetime.utcnow() + timedelta(days=payload.days, hours=payload.hours),
     )
     db.commit()
-    statement = statement_of_reasons(user, ModerationAction.mute)
+    statement = statement_of_reasons(user, ModerationAction.mute, user.language)
     mailer.send_moderation_decision(
         user.email,
         user.name,
@@ -388,6 +447,7 @@ def mute_user(
             statement.get("legal_basis"),
             statement.get("duration"),
         ],
+        lang=user.language,
     )
     return {
         "messaging_muted_until": user.messaging_muted_until.isoformat(),
@@ -410,9 +470,10 @@ def unmute_user(
     mailer.send_moderation_decision(
         user.email,
         user.name,
-        "Deine Chat-Sperre wurde aufgehoben.",
-        "Du kannst in FLEXR wieder Nachrichten senden.",
+        _text(_AUFGEHOBEN, "mute.measure", user.language),
+        _text(_AUFGEHOBEN, "mute.summary", user.language),
         appeal=False,
+        lang=user.language,
     )
     return {"messaging_muted_until": None}
 
@@ -525,7 +586,9 @@ def reject_photo(
     )
     if photo.rejection_note:
         reason = f"{reason} {photo.rejection_note}"
-    mailer.send_photo_rejected(photo.user.email, photo.user.name, reason)
+    mailer.send_photo_rejected(
+        photo.user.email, photo.user.name, reason, photo.user.language
+    )
     return {"status": photo.status.value, "reason": photo.rejection_reason}
 
 
@@ -593,17 +656,12 @@ def decide_notice(
     db.commit()
 
     if notice.reporter_email:
-        outcome_labels = {
-            "action_taken": "Es wurden Maßnahmen ergriffen.",
-            "no_action": "Es wurde kein Verstoß festgestellt.",
-            "forwarded": "Die Meldung wurde an die zuständige Stelle weitergegeben.",
-            "insufficient": "Die Angaben reichen für eine abschließende Prüfung nicht aus.",
-        }
         mailer.send_report_decision(
             notice.reporter_email,
             notice.reference,
-            outcome_labels.get(notice.outcome, notice.outcome),
+            _outcome_label(notice.outcome, notice.language),
             notice.decision_reason,
+            notice.language,
         )
 
     return {
@@ -735,7 +793,9 @@ def approve_verification(
     # vom Aufräumlauf erneut versucht - er gilt nicht als erledigt.
     deleted = purge_uploads(req)
     db.commit()
-    mailer.send_verification_decision(user.email, user.name, "approved")
+    mailer.send_verification_decision(
+        user.email, user.name, "approved", lang=user.language
+    )
     return AdminVerificationDecisionOut(
         status=req.status.value,
         documents_deleted=deleted,
@@ -770,7 +830,8 @@ def reject_verification(
         user.email,
         user.name,
         "rejected",
-        reason_text(req.review_reason),
+        reason_text(req.review_reason, user.language),
+        lang=user.language,
     )
     return AdminVerificationDecisionOut(
         status=req.status.value,
@@ -807,8 +868,9 @@ def request_verification_reupload(
         user.email,
         user.name,
         "reupload_required",
-        reason_text(req.review_reason),
+        reason_text(req.review_reason, user.language),
         redo_selfie=payload.redo_selfie,
+        lang=user.language,
     )
     return AdminVerificationDecisionOut(
         status=req.status.value,
@@ -843,7 +905,7 @@ def require_verification(
     # Entscheidung ist er weg.
     user.is_verified = False
     db.commit()
-    mailer.send_verification_required(user.email, user.name)
+    mailer.send_verification_required(user.email, user.name, user.language)
     return {
         "verification_required": True,
         "is_account_activated": user.is_account_activated,
@@ -1076,15 +1138,12 @@ def decide_report(
     db.commit()
     reporter = db.query(User).filter(User.id == report.reporter_id).first()
     if reporter:
-        outcome_labels = {
-            "action_taken": "Es wurden Maßnahmen ergriffen.",
-            "no_action": "Es wurde kein Verstoß festgestellt.",
-        }
         mailer.send_report_decision(
             reporter.email,
             report.reference,
-            outcome_labels.get(report.outcome, report.outcome),
+            _outcome_label(report.outcome, reporter.language),
             report.decision_note,
+            reporter.language,
         )
     return {
         "decided": True,

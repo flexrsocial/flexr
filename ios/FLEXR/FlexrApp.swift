@@ -31,8 +31,8 @@ struct FlexrApp: App {
 final class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDelegate {
 
     let container = AppContainer()
-    lazy var appModel = AppModel(container: container)
     let languageStore = LanguageStore()
+    lazy var appModel = AppModel(container: container, languageStore: languageStore)
 
     func application(
         _ application: UIApplication,
@@ -42,6 +42,16 @@ final class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCent
         // Anlegen genügt: der Speicher setzt `APIErrorParser.strings` selbst,
         // beim Start wie bei jedem späteren Sprachwechsel.
         _ = languageStore
+
+        // Jede Wahl am Regler ans Profil melden. Der Speicher kennt weder
+        // Netzwerk noch Repositories — deshalb wird der Weg hier geknüpft, wo
+        // beide Seiten bekannt sind. Ohne die Meldung schriebe der Server
+        // seine E-Mails weiter in der alten Sprache: Sie entstehen zum Teil
+        // ohne die App (Tagesjob, Stripe-Webhook, Moderation).
+        languageStore.onChange = { [weak self] language in
+            guard let self else { return }
+            Task { await self.container.profiles.reportLanguage(language.rawValue) }
+        }
 
         // Bewusst auf der Hauptwarteschlange: der Abgleich läuft über die
         // MainActor-isolierten Repositories. Mit `nil` liefe der Handler auf

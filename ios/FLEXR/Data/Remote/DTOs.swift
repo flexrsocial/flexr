@@ -23,6 +23,14 @@ struct RegisterRequestDTO: Encodable {
     let bio: String?
     let consentSensitiveData: Bool
     let consentWithdrawalWaiver: Bool
+    /// Sprache, in der gerade registriert wird ("de" oder "en").
+    ///
+    /// Der Server merkt sie am Profil und schreibt seine Mails danach — sie
+    /// entstehen zum Teil ohne die App (Inaktivitäts-Erinnerung aus dem
+    /// Tagesjob, Zahlungsmail aus einem Stripe-Webhook, Moderationsmitteilung
+    /// aus dem Admin-Bereich) und können die Einstellung nirgends sonst
+    /// nachlesen.
+    let language: String?
 }
 
 struct LoginRequestDTO: Encodable {
@@ -88,6 +96,9 @@ struct MyProfileDTO: Decodable {
     let notifyInactivePush: Bool?
     let notifyPendingLikesEmail: Bool?
     let notifyPendingLikesPush: Bool?
+    /// Am Profil hinterlegte Sprache. Optional: ein älteres Backend liefert
+    /// sie nicht, dann gilt die Ausgangssprache.
+    let language: String?
 }
 
 /// Einzelner Schalter - nur das geaenderte Feld wird geschickt, die uebrigen
@@ -127,6 +138,10 @@ struct UpdateProfileRequestDTO: Encodable {
     var gym: String?
     var bio: String?
     var searchRadiusKm: Int?
+    /// Kein Profilfeld im engeren Sinn, sondern die Sprache, in der der Server
+    /// diesem Nutzer schreibt. Wird allein geschickt, sobald jemand den Regler
+    /// bedient — die übrigen Felder bleiben nil und damit unangetastet.
+    var language: String?
 }
 
 struct DeleteAccountRequestDTO: Encodable {

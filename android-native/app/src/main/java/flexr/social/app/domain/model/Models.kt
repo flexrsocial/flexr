@@ -73,6 +73,15 @@ data class MyProfile(
     val ageVerified: Boolean = false,
     /** Schalterstellung unter "Benachrichtigungen" im Konto. */
     val notifications: NotificationSettings = NotificationSettings(),
+    /**
+     * Am Profil hinterlegte Sprache ("de" oder "en").
+     *
+     * Nicht die Sprache der Oberflaeche — die kommt aus dem
+     * `core.locale.LanguageStore` und gehoert dem Geraet. Diese hier sagt, in
+     * welcher Sprache der Server seine E-Mails schreibt; beide werden beim
+     * Anmelden abgeglichen (`ui.MainViewModel.syncLanguage`).
+     */
+    val language: String = "de",
 ) {
     val id: String get() = profile.id
     val name: String get() = profile.name

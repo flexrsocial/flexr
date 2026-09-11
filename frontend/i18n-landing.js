@@ -280,7 +280,7 @@
     'safe.li3': '<b>Every photo is approved before anyone sees it.</b> By a person. If we reject one, we tell you why.',
     'safe.li4': '<b>Scam protection in chat.</b> Links and email addresses are removed automatically, and suspicious messages go to moderation. Profile texts containing links, phone numbers or typical scam wording are not published at all.',
     'safe.li5': '<b>Report and block.</b> Blocking takes effect immediately and both ways. When you report someone you get a reference number and see the decision with its reasons in your account.',
-    'safe.p2': 'What we do <b>not</b> claim: that every profile is guaranteed genuine or that FLEXR is completely safe. A visual check makes deception harder, it does not rule it out. Before a first meeting, please read our <a href="/sicherheit.html">safety tips</a> (German) – they are short and can save you a lot.',
+    'safe.p2': 'What we do <b>not</b> claim: that every profile is guaranteed genuine or that FLEXR is completely safe. A visual check makes deception harder, it does not rule it out. Before a first meeting, please read our <a href="/sicherheit.html">safety tips</a> – they are short and can save you a lot.',
 
     'price.h2': 'What FLEXR costs',
     'price.lead': '<b>Using FLEXR costs nothing — permanently, not just during the beta.</b> Signing up, browsing profiles, liking, matching and chatting are and stay free. No payment method is requested.',
@@ -328,8 +328,8 @@
     'faq.q11': 'How do I cancel?',
     'faq.a11': 'In the account area under “Manage / cancel subscription”, at any time and without notice periods. Access stays active until the end of the paid period.',
     'faq.q12': 'How do I report or block someone?',
-    'faq.a12': 'Via the flag icon in every profile and chat. Blocking takes effect immediately and both ways. When you report someone you get a reference number and see the outcome under “My reports”. Without an account, use the <a href="/meldung.html">public reporting form</a> (German).',
-    'faq.more': 'More answers are in the <a href="/faq.html">detailed FAQ</a> (German).',
+    'faq.a12': 'Via the flag icon in every profile and chat. Blocking takes effect immediately and both ways. When you report someone you get a reference number and see the outcome under “My reports”. Without an account, use the <a href="/meldung.html">public reporting form</a>.',
+    'faq.more': 'More answers are in the <a href="/faq.html">detailed FAQ</a>.',
 
     'start.h2': 'Ready?',
     'start.p': 'Create a profile, pick your gym, get going. During the beta FLEXR costs nothing — no payment method, no deadline.',

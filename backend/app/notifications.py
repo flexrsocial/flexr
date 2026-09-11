@@ -20,6 +20,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from . import mailer
+from .message_texts import t
 from .email_notifications import send_once
 from .models import NotificationTopic, PushNotification, User
 
@@ -128,14 +129,14 @@ def notify_new_match(db: Session, user: User, match_name: str, match_id: str) ->
     key = f"match:{match_id}:{user.id}"
     queue_push(
         db, user, NotificationTopic.new_match,
-        title="Neues Match",
-        body=f"{match_name} hat dich auch geliked.",
+        title=t("push.match.title", user.language),
+        body=t("push.match.body", user.language, other=match_name),
         dedupe_key=key,
         target="matches",
     )
     send_email_once(
         db, user, NotificationTopic.new_match, key,
-        lambda: mailer.send_new_match(user.email, user.name, match_name),
+        lambda: mailer.send_new_match(user.email, user.name, match_name, user.language),
     )
 
 
@@ -148,14 +149,14 @@ def notify_queue_waiting(db: Session, user: User, count: int, period_key: str) -
     key = f"queue:{user.id}:{period_key}"
     queue_push(
         db, user, NotificationTopic.queue_waiting,
-        title=f"{count} neue Profile",
-        body="In deinem Umkreis warten neue Profile auf dich.",
+        title=t("push.queue.title", user.language, count=count),
+        body=t("push.queue.body", user.language),
         dedupe_key=key,
         target="swipe",
     )
     send_email_once(
         db, user, NotificationTopic.queue_waiting, key,
-        lambda: mailer.send_queue_waiting(user.email, user.name, count),
+        lambda: mailer.send_queue_waiting(user.email, user.name, count, user.language),
     )
 
 
@@ -163,14 +164,14 @@ def notify_inactivity(db: Session, user: User, days: int, period_key: str) -> No
     key = f"inactive:{user.id}:{period_key}"
     queue_push(
         db, user, NotificationTopic.inactivity,
-        title="Lange nicht gesehen",
-        body=f"Du warst {days} Tage nicht mehr in FLEXR.",
+        title=t("push.inactive.title", user.language),
+        body=t("push.inactive.body", user.language, days=days),
         dedupe_key=key,
         target="swipe",
     )
     send_email_once(
         db, user, NotificationTopic.inactivity, key,
-        lambda: mailer.send_inactivity_reminder(user.email, user.name, days),
+        lambda: mailer.send_inactivity_reminder(user.email, user.name, days, user.language),
     )
 
 
@@ -182,20 +183,20 @@ def notify_pending_likes(db: Session, user: User, count: int, period_key: str) -
     der tägliche Job in dieser Woche noch läuft.
     """
     key = f"pending_likes:{user.id}:{period_key}"
-    body = (
-        "Ein Mitglied hat dich geliked." if count == 1
-        else f"{count} Mitglieder haben dich geliked."
+    body = t(
+        "push.likes.body.one" if count == 1 else "push.likes.body.many",
+        user.language, count=count,
     )
     queue_push(
         db, user, NotificationTopic.pending_likes,
-        title="Neue Likes",
+        title=t("push.likes.title", user.language),
         body=body,
         dedupe_key=key,
         target="swipe",
     )
     send_email_once(
         db, user, NotificationTopic.pending_likes, key,
-        lambda: mailer.send_pending_likes(user.email, user.name, count),
+        lambda: mailer.send_pending_likes(user.email, user.name, count, user.language),
     )
 
 

@@ -382,6 +382,21 @@ class User(Base):
     # "7 Tage ohne Login"-Mail wäre nie fällig geworden.
     last_active_at = Column(DateTime, nullable=True)
 
+    # ---- Sprache ----
+    # Bis zum 11.09.2026 lebte die Sprachwahl nur im Client (localStorage
+    # `flexr_lang` im Web, LanguageStore in Android und iOS). Fuer die
+    # Oberflaeche reicht das - der Server verschickt aber E-Mails, und die
+    # entstehen ohne den Client: die Inaktivitaets-Erinnerung aus dem
+    # Tagesjob, die Moderationsmitteilung aus dem Admin-Bereich, die
+    # Zahlungsmail aus einem Stripe-Webhook. Damit die in der Sprache des
+    # Empfaengers ankommen, muss sie am Nutzer stehen.
+    #
+    # "de" als server_default, nicht NULL: Bestandskonten haben nie eine
+    # Sprache gemeldet, und Deutsch ist die Ausgangssprache (dieselbe Vorgabe
+    # wie in frontend/i18n.js). Ein NULL haette jede Abfrage zu einem
+    # `or "de"` gezwungen.
+    language = Column(String(2), nullable=False, server_default="de", default="de")
+
     # ---- Benachrichtigungen (pro Thema getrennt nach Kanal schaltbar) ----
     # Voreinstellung an: es sind die drei Ereignisse, wegen derer jemand die
     # App überhaupt installiert. Abschalten geht im Profil unter
@@ -951,6 +966,13 @@ class Notice(Base):
     reporter_email = Column(String, nullable=True)
     # Art. 16 Abs. 2 lit. d: Erklärung in gutem Glauben.
     good_faith = Column(Boolean, nullable=False, default=False)
+
+    # Sprache der Formularseite, ueber die gemeldet wurde. Melden kann jeder,
+    # auch ohne Konto - es gibt also kein Profil, aus dem sich die Sprache
+    # spaeter ablesen liesse. Die Entscheidung nach Art. 16 Abs. 5 kommt aber
+    # erst Tage spaeter aus dem Admin-Bereich und soll denselben Melder in
+    # derselben Sprache erreichen wie die Empfangsbestaetigung.
+    language = Column(String(2), nullable=False, server_default="de", default="de")
 
     created_at = Column(DateTime, nullable=False, default=datetime.utcnow, index=True)
     # Art. 16 Abs. 4: unverzügliche Empfangsbestätigung.

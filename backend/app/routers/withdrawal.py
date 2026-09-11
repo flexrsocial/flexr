@@ -28,6 +28,7 @@ from ..database import get_db
 from ..mailer import email_configured, send_withdrawal_confirmation
 from ..models import User, WithdrawalDeclaration
 from ..rate_limit import limiter
+from ..message_texts import normalise, t
 from ..schemas import WithdrawalAck, WithdrawalRequest, WithdrawalStatus
 from ..security import optional_current_user
 from ..stripe_client import cancel_subscription_immediately
@@ -39,8 +40,37 @@ _VIENNA = ZoneInfo("Europe/Vienna")
 router = APIRouter(prefix="/api/withdrawal", tags=["withdrawal"])
 
 
+#: Bausteine des Wortlauts. Die Erklärung wird in der Sprache aufgezeichnet,
+#: in der sie abgegeben wurde - wer das englische Formular ausfüllt, erklärt
+#: auf Englisch, und genau das wird gespeichert und bestätigt. Eine deutsche
+#: Aufzeichnung einer englisch abgegebenen Erklärung wäre nicht ihr Inhalt,
+#: sondern eine Übersetzung davon.
+_DECLARATION = {
+    "de": {
+        "intro": "Hiermit widerrufe ich den von mir abgeschlossenen Vertrag über die "
+                 "Nutzung von {brand} ({domain}).",
+        "name": "Name: {name}",
+        "contract": "Vertrag/Konto: {contract}",
+        "declared": "Erklärt am: {date} um {time} Uhr (UTC)",
+        "note": "Anmerkung des Erklärenden:",
+    },
+    "en": {
+        "intro": "I hereby give notice that I withdraw from my contract for the use "
+                 "of {brand} ({domain}).",
+        "name": "Name: {name}",
+        "contract": "Contract/account: {contract}",
+        "declared": "Declared on: {date} at {time} (UTC)",
+        "note": "Note from the person declaring:",
+    },
+}
+
+
 def build_declaration_text(
-    name: str, contract_reference: str | None, message: str | None, received_at: datetime
+    name: str,
+    contract_reference: str | None,
+    message: str | None,
+    received_at: datetime,
+    lang: str = "de",
 ) -> str:
     """Der Wortlaut, der bestätigt und gespeichert wird.
 
@@ -48,20 +78,22 @@ def build_declaration_text(
     den Zeitpunkt, weil § 13a Abs. 4 FAGG Datum und Uhrzeit in der Bestätigung
     verlangt.
     """
+    texte = _DECLARATION[normalise(lang)]
     zeilen = [
-        f"Hiermit widerrufe ich den von mir abgeschlossenen Vertrag über die "
-        f"Nutzung von {legal.BRAND} ({legal.DOMAIN}).",
+        texte["intro"].format(brand=legal.BRAND, domain=legal.DOMAIN),
         "",
-        f"Name: {name}",
+        texte["name"].format(name=name),
     ]
     if contract_reference:
-        zeilen.append(f"Vertrag/Konto: {contract_reference}")
+        zeilen.append(texte["contract"].format(contract=contract_reference))
     zeilen.append(
-        f"Erklärt am: {received_at.strftime('%d.%m.%Y')} um "
-        f"{received_at.strftime('%H:%M:%S')} Uhr (UTC)"
+        texte["declared"].format(
+            date=received_at.strftime("%d.%m.%Y"),
+            time=received_at.strftime("%H:%M:%S"),
+        )
     )
     if message:
-        zeilen += ["", "Anmerkung des Erklärenden:", message]
+        zeilen += ["", texte["note"], message]
     return "\n".join(zeilen)
 
 
@@ -106,12 +138,24 @@ def declare_withdrawal(
             .first()
         )
         if bestehend:
-            return _ack_from(bestehend, payload.email)
+            return _ack_from(
+                bestehend,
+                payload.email,
+                lang=normalise(
+                    current_user.language if current_user else payload.language
+                ),
+            )
+
+    # Die Profilsprache geht vor: Wer angemeldet ist, bekommt FLEXR ohnehin in
+    # dieser Sprache. Ohne Konto zaehlt die Formularseite (/widerruf.html oder
+    # /en/widerruf.html) - ein Ruecktritt steht ausdruecklich auch Leuten ohne
+    # Konto offen (§ 13a FAGG), es gibt dort also kein Profil zum Nachschlagen.
+    lang = normalise(current_user.language if current_user else payload.language)
 
     received_at = datetime.utcnow()
     received_at_vienna = received_at.replace(tzinfo=ZoneInfo("UTC")).astimezone(_VIENNA)
     text = build_declaration_text(
-        payload.name, payload.contract_reference, payload.message, received_at
+        payload.name, payload.contract_reference, payload.message, received_at, lang
     )
 
     # Ein zugeordnetes, noch laufendes Abo wird sofort an der weiteren
@@ -141,7 +185,7 @@ def declare_withdrawal(
         message=payload.message,
         declaration_text=text,
         received_at=received_at,
-        received_at_vienna=received_at_vienna.strftime("%d.%m.%Y, %H:%M:%S Uhr (%Z)"),
+        received_at_vienna=_received_at_text(received_at_vienna, lang),
         status="eingegangen",
         subscription_stopped_at=subscription_stopped_at,
     )
@@ -170,6 +214,7 @@ def declare_withdrawal(
             text,
             payload.contract_reference,
             subscription_stopped_at is not None,
+            lang,
         )
     else:
         logger.error(
@@ -184,28 +229,33 @@ def declare_withdrawal(
         subscription_stopped_at is not None,
     )
 
-    return _ack_from(declaration, payload.email, kann_mailen)
+    return _ack_from(declaration, payload.email, kann_mailen, lang)
+
+
+def _received_at_text(value: datetime, lang: str) -> str:
+    """Eingangszeitpunkt für die Bestätigung nach § 13a Abs. 4 FAGG.
+
+    Wird so gespeichert, wie er dem Erklärenden gezeigt und bestätigt wird -
+    deshalb in seiner Sprache formatiert und nicht erst beim Anzeigen
+    umgerechnet."""
+    if normalise(lang) == "en":
+        return f"{value.day} {value.strftime('%B %Y')}, {value.strftime('%H:%M:%S')} ({value.strftime('%Z')})"
+    return value.strftime("%d.%m.%Y, %H:%M:%S Uhr (%Z)")
 
 
 def _ack_from(
-    declaration: WithdrawalDeclaration, email: str, kann_mailen: bool | None = None
+    declaration: WithdrawalDeclaration,
+    email: str,
+    kann_mailen: bool | None = None,
+    lang: str = "de",
 ) -> WithdrawalAck:
     if kann_mailen is None:
         kann_mailen = declaration.confirmation_sent_at is not None
 
-    if kann_mailen:
-        hinweis = (
-            f"Die Bestätigung geht an {email}. Bewahre sie auf — sie ist "
-            "dein Nachweis nach § 13a Abs. 4 FAGG."
-        )
-    else:
-        hinweis = (
-            "Wir können dir gerade keine Bestätigungsmail schicken. Deine "
-            "Erklärung ist trotzdem wirksam — sie gilt mit dem Eingang, nicht "
-            "mit der Bestätigung. Bitte sichere dir den unten angezeigten "
-            "Wortlaut samt Aktenzeichen (Bildschirmfoto genügt) und schreib uns "
-            "zur Sicherheit an flexr.social@proton.me."
-        )
+    hinweis = (
+        t("api.withdrawal.confirmed", lang, email=email) if kann_mailen
+        else t("api.withdrawal.noMail", lang)
+    )
 
     return WithdrawalAck(
         reference=declaration.reference,
@@ -213,8 +263,8 @@ def _ack_from(
         declaration_text=declaration.declaration_text,
         confirmation_sent=kann_mailen,
         status=declaration.status,
-        message=(
-            f"Dein Rücktritt ist erklärt (Aktenzeichen {declaration.reference}). "
-            f"{hinweis}"
+        message=t(
+            "api.withdrawal.received", lang,
+            reference=declaration.reference, hint=hinweis,
         ),
     )

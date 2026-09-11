@@ -26,6 +26,12 @@ data class RegisterRequestDto(
     // consent_withdrawal_waiver wird seit dem 15.08.2026 nicht mehr geschickt.
     // Der Server nimmt das Feld noch entgegen, damit ausgelieferte Fassungen
     // weiter registrieren können, wertet es aber nicht aus.
+    //
+    // Die Sprache merkt sich der Server am Profil: Er verschickt E-Mails, die
+    // ohne Zutun der App entstehen (Inaktivitäts-Erinnerung aus dem Tagesjob,
+    // Zahlungsmail aus einem Stripe-Webhook, Moderationsmitteilung aus dem
+    // Admin-Bereich) und kann die Einstellung nirgends sonst nachlesen.
+    val language: String? = null,
 )
 
 @Serializable
@@ -115,6 +121,9 @@ data class MyProfileDto(
     @SerialName("notify_inactive_push") val notifyInactivePush: Boolean = true,
     @SerialName("notify_pending_likes_email") val notifyPendingLikesEmail: Boolean = true,
     @SerialName("notify_pending_likes_push") val notifyPendingLikesPush: Boolean = true,
+    // Am Profil hinterlegte Sprache. Default "de": ein aelteres Backend ohne
+    // dieses Feld liefert die Ausgangssprache, nicht einen leeren Wert.
+    val language: String = "de",
 )
 
 /** Einzelner Schalter - nur das gesetzte Feld wird geschickt. */
@@ -162,6 +171,10 @@ data class UpdateProfileRequestDto(
     val gym: String? = null,
     val bio: String? = null,
     @SerialName("search_radius_km") val searchRadiusKm: Int? = null,
+    // Kein Profilfeld im engeren Sinn, sondern die Sprache, in der der Server
+    // diesem Nutzer schreibt. Wird allein geschickt, sobald jemand den Regler
+    // bedient — die uebrigen Felder bleiben dabei null und damit unberuehrt.
+    val language: String? = null,
 )
 
 @Serializable

@@ -4,8 +4,16 @@ Stand: **11.09.2026**
 
 ## Wo das Projekt gerade steht
 
-**Alles ist committet, gepusht und deployt.** Arbeitsverzeichnis, `origin/main`
-und der VPS sind auf demselben Stand; `422 Tests` laufen grün.
+**Committet und gepusht.** Der VPS ist danach **noch nicht** nachgezogen — die
+Sitzung vom 11.09. (Rechtstexte auf Englisch, E-Mails in der Profilsprache)
+braucht einen Deploy **mit Migration**, siehe den Abschnitt unten. Solange das
+aussteht, laufen Arbeitsverzeichnis und `origin/main` dem Server voraus.
+
+> **Die Android-App 2.6.0 (versionCode 100) stürzt beim Start ab.** Der Fehler
+> ist am 11.09. gemeldet und **nicht gefunden** worden; er stammt aus dem Build
+> vom 10.09. und liegt **nicht** an der Arbeit vom 11.09. (die ist nie
+> kompiliert worden). Was ausgeschlossen wurde und wie es weitergeht: Abschnitt
+> „Absturz beim Start der Android-App" weiter unten.
 
 **Das Geschäftsmodell hat sich am 10.09.2026 grundlegend geändert:**
 
@@ -35,6 +43,190 @@ Aufbau des Dokuments: erst diese Eckdaten, dann die **drei Abschnitte vom
 **08.09.**, dann die beiden Sitzungen vom **07.09.**, dann **06.09.**, dann
 **05.09.**, dann **31.08.**, **30.08.**, **23.08.**, **21.08.**; die Build-,
 Test- und Deploy-Abschnitte am Ende gelten sitzungsübergreifend.
+
+## Sitzung 11.09.2026 (2) — Rechtstexte auf Englisch, E-Mails in der Profilsprache
+
+Zwei Aufträge, nacheinander: erst die neun Rechts- und Infoseiten auf Englisch,
+dann die E-Mails. Der zweite baut auf dem ersten auf — beide drehen sich darum,
+dass jemand FLEXR durchgehend in seiner Sprache bekommt.
+
+### Die Rechtstexte gibt es jetzt unter `/en/`
+
+Neun Seiten, rund 13.800 Wörter: `impressum`, `agb`, `datenschutz`, `widerruf`,
+`nutzungsrichtlinien`, `sicherheit`, `strafverfolgung`, `meldung`, `faq` —
+jeweils unter **demselben Dateinamen** unter `/en/`. Die Adressen spiegeln sich
+also: `/agb.html` ↔ `/en/agb.html`.
+
+Dieselbe Begründung wie bei der Landingpage: zwei eigene Adressen statt eines
+Umschalters, damit Google je Adresse eindeutig eine Sprache sieht. Anders als
+die Landingpage werden sie aber **nicht erzeugt** — `build-en.py` hängt an
+`data-i18n`-Auszeichnungen, und die in neun Vertragstexte einzuziehen wäre
+aufwendiger und fehleranfälliger als zwei gepflegte Fassungen. Rechtstexte
+ändern sich selten und wollen beim Ändern ohnehin gelesen werden.
+
+**Verbindlich bleibt Deutsch.** Jede englische Seite sagt das oben in einem
+eigenen Absatz (`p.en`); die AGB verweisen dabei auf Punkt 6 c („Die
+Vertragssprache ist Deutsch"), die Datenschutzerklärung auf die Einwilligung
+nach Punkt 4, die sich auf die deutsche Fassung bezieht.
+
+Drumherum:
+
+* **hreflang** wechselseitig auf beiden Fassungen, `x-default` überall auf
+  Deutsch. Die Sitemap ging von 11 auf 20 URLs.
+* **Sprachregler** auf allen 18 Seiten. `lang-switch.js` liest die beiden
+  Adressen seither **aus dem Regler im Markup** statt aus einer festen Karte
+  `{de:'/', en:'/en/'}` — sonst hätte ein gespeichertes „de" von
+  `/en/agb.html` auf die Startseite umgeleitet statt auf `/agb.html`.
+* **`legal-status.js`** beschriftet den §-13a-Link jetzt nach `<html lang>`:
+  ab dem 1.10.2026 „Withdraw from contract" statt „Vertrag widerrufen".
+* **Die Web-App** lädt im Rechts-Modal die Fassung der eingestellten
+  App-Sprache (`openLegalModal` löst den Pfad über `FlexrI18n.current()` auf,
+  Cache pro Sprache). Die Kopfzeile der Rechtsseite wird im Modal ausgeblendet
+  — der Rückweg führte aus der App heraus, der Regler wäre dort der falsche
+  Knopf.
+* **`build-en.py`** biegt die Rechts-Links der englischen Landingpage auf
+  `/en/` um; die „(German)"-Hinweise sind aus den Wörterbüchern raus.
+* **nginx** braucht nichts: `try_files $uri` findet die Dateien.
+
+Nebenbei ist der **tote `<style>`-Block in `nutzungsrichtlinien.html`**
+gefallen (Rest aus der Zeit vor `legal.css`). Er war der Grund, warum die
+deutsche und die englische Fassung derselben Seite unterschiedlich groß
+gesetzt waren.
+
+### Die E-Mails folgen der Profilsprache
+
+Die Sprachwahl lebte nur im Client. Für die Oberfläche reicht das — der Server
+verschickt aber E-Mails, die **ohne Zutun eines Clients** entstehen: die
+Inaktivitäts-Erinnerung aus dem Tagesjob, die Zahlungsmail aus einem
+Stripe-Webhook, die Moderationsmitteilung aus dem Admin-Bereich. Also steht die
+Sprache jetzt am Profil.
+
+**Neue Spalten** (Migration `c8d31f6a94b2`): `users.language` und
+`notices.language`, beide `NOT NULL` mit `server_default "de"`. Die zweite,
+weil eine Meldung nach Art. 16 DSA von jedem kommen darf, auch ohne Konto —
+die Entscheidung nach Abs. 5 kommt aber Tage später und soll denselben Melder
+in derselben Sprache erreichen wie die Empfangsbestätigung.
+
+**`backend/app/message_texts.py`** ist neu: 164 Schlüssel, je `de` und `en`,
+plus sprachabhängige Datums- und Betragsformatierung. Das **Gerüst** der Mails
+(HTML-Karte, Absätze, Tabellenzeilen, Klartext-Umbrüche) bleibt einmalig in
+`mailer.py` — zwei vollständige Mailer nebeneinander wären beim nächsten Umbau
+auseinandergelaufen. Fehlt ein englischer Eintrag, fällt `t()` auf Deutsch
+zurück, dieselbe Regel wie in `frontend/i18n.js`.
+
+Umgestellt sind **alle 22 `send_*`-Funktionen**, dazu:
+
+* die **Push-Benachrichtigungen** (`notifications.py`) — dieselben vier
+  Anlässe, dieselbe Funktion, derselbe `user`;
+* die **Antworttexte der API** für die beiden öffentlichen Formulare;
+* die festen Bausteine der **Art.-17-Begründung** (`moderation.py`) und die
+  **Prüfgründe** der Verifizierung (`verification_service.py`).
+
+**Was deutsch bleibt:** der Freitext des Moderators (`moderation_reason`,
+`moderation_facts`) — den schreibt ein Mensch. Ebenso die Telegram-Meldung an
+den Betreiber (die geht an uns) und die Pydantic-Validierungsfehler; letztere
+fangen die Clients vorher selbst ab.
+
+**Eine inhaltliche Entscheidung:** Wer auf `/en/widerruf.html` zurücktritt,
+dessen Erklärung wird **auf Englisch aufgezeichnet und bestätigt**. § 13a
+Abs. 4 FAGG verlangt die Bestätigung „des Inhalts der Erklärung" — eine
+deutsche Aufzeichnung einer englisch abgegebenen Erklärung wäre eine
+Übersetzung davon, nicht ihr Inhalt.
+
+**Alle drei Clients** melden die Wahl ans Profil, bei der Registrierung und bei
+jedem Umschalten. Beim Anmelden wird abgeglichen: eine ausdrückliche Wahl auf
+dem Gerät schlägt das Profil, ein frisches Gerät übernimmt das Profil. Im Web
+macht das `gleicheSpracheAb()`, in Android `MainViewModel.syncLanguage`, in iOS
+`AppModel.syncLanguage`.
+
+### Deutsch ist dabei unverändert geblieben
+
+Geprüft, indem der alte Mailer aus `HEAD` neben den neuen geladen und 23 Mails
+gegeneinander gerendert wurden: **alle Betreffzeilen und alle Klartext-Bodies
+sind im Wortlaut identisch.** Vier HTML-Fassungen haben sich um je einen
+Buchstaben geändert (`Ein`→`ein`, ein Satzzeichen) — dort standen Klartext und
+HTML schon vorher verschieden da, und zusammengelegt gilt der Klartext, den
+`mailer.py` selbst „die inhaltlich massgebliche Fassung" nennt.
+
+### Was in dieser Sitzung NICHT laufen konnte
+
+**Das venv unter `backend/venv` enthält keine Python-Quellen mehr** — nur leere
+Verzeichnisgerüste. `fastapi`, `pydantic`, `sqlalchemy`, `pytest`: je 0
+`.py`-Dateien. Vermutlich ein Sync-Artefakt von MEGA. Dazu fehlt auf dieser
+Maschine eine **JDK**, also läuft auch Gradle nicht.
+
+Praktische Folge: **Die Backend-Integrationstests und die Kompilierung von
+Android und iOS sind ungelaufen.** Vor dem nächsten Release nachzuholen:
+
+```bash
+cd backend && pip install -r requirements.txt && pytest      # venv neu aufbauen
+cd android-native && ./gradlew test lint
+```
+
+Ersatzweise geprüft wurde:
+
+* alle 54 Mailfassungen (27 Fälle × 2 Sprachen) tatsächlich gerendert, mit
+  gestubbter `app.config` — sonst echter Projektcode;
+* jeder `send_*`-Aufruf per AST gegen seine Signatur (22 Funktionen);
+* die Wörterbuch-Tests aus `tests/test_sprache.py` ohne FastAPI;
+* die neun Regressionstests in `tests/test_public_frontend.py` (brauchen keine
+  Fremdpakete) — grün, inklusive des neuen
+  `test_rechtstexte_gibt_es_zweisprachig_und_wechselseitig_verlinkt`;
+* Kotlin und Swift: Klammernbilanz, Importe, Konstruktoraufrufe in den Tests.
+  **Kein Compilerlauf.**
+
+### Deploy dieser Sitzung
+
+Die Migration **muss vor dem Neustart der API laufen** — ohne
+`users.language` scheitert jede Profilabfrage:
+
+```bash
+cd /flexr && git pull
+cd backend && source venv/bin/activate && alembic upgrade head
+pm2 restart flexr-api        # bzw. sudo systemctl restart flexr-api
+```
+
+Das Frontend ist statisch und mit dem `git pull` erledigt. Der Service Worker
+steht auf `flexr-shell-v13`.
+
+## Absturz beim Start der Android-App (offen)
+
+**Symptom:** 2.6.0 (versionCode 100) startet und schließt sich sofort wieder.
+Gemeldet am 11.09.2026.
+
+**Eingegrenzt:** Das installierte Bundle ist vom 10.09. um 10:22 Uhr, gebaut
+aus `d372c24`. Der letzte Commit, der `android-native/` angefasst hat, ist
+ebendieser — die Arbeit vom 11.09. ist nie kompiliert worden und liegt nicht
+auf dem Gerät. Die letzte bekannt funktionierende Fassung ist **2.5.5
+(versionCode 42, `af71b25`)**. Dazwischen liegen `abb9fe3`
+(Zweisprachigkeit), `7e36e69` (Monetarisierung), `0d0e1b5` und `d372c24`.
+
+**Ausgeschlossen, je mit Beleg:**
+
+| Verdacht | Befund |
+| --- | --- |
+| Room-Schema ohne Migration | `DatabaseModule.kt:25` hat `fallbackToDestructiveMigration(dropAllTables = true)` |
+| WorkManager-Initialisierung vor Hilt | Default-Initializer ist im Manifest entfernt (`tools:node="remove"`) |
+| Zwei DataStores auf einer Datei | `flexr_settings` vs. `flexr_session` |
+| Fehlende/kaputte String-Ressourcen | 451 de / 450 en, einzige Lücke `app_name` (Eigenname); keine abweichenden Formatargumente |
+| Resource Shrinking hat Strings entfernt | `resources.txt`: alle als erreichbar markiert |
+| Android-14/15-Verschärfungen | keine `registerReceiver`, keine Services, `PendingIntent` durchgehend `FLAG_IMMUTABLE` |
+| Splash bleibt hängen | `markLoggedOut()` setzt `SessionGate.isReady = true` |
+
+**Was als Nächstes zu tun ist:** einen Stacktrace besorgen. Die `mapping.txt`
+ist mit dem Bundle hochgegangen, die Play Console zeigt Abstürze also lesbar
+(Qualität → Absturz-Diagnose). Alternativ am Gerät:
+
+```bash
+adb logcat -c && adb shell monkey -p flexr.social.app 1 && sleep 4 && adb logcat -d -b crash
+```
+
+**Eine offene Frage zur Installation:** Unter `/dl-…/flexr-2.6.0-vc100.aab`
+liegt ein **App Bundle**, kein APK. Ein `.aab` lässt sich nicht direkt
+installieren; wurde es mit einem Split-Installer aufs Gerät gebracht, sind
+fehlende Splits eine bekannte Ursache für genau dieses Verhalten (App startet,
+schließt sofort). Über die Play Console installiert, stellt sich die Frage
+nicht.
 
 ## Sitzung 11.09.2026 — Sprachregler nur noch im Profil, Statuspille heißt „Beta"
 

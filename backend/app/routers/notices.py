@@ -27,25 +27,62 @@ from ..database import get_db
 from ..mailer import email_configured, send_notice_acknowledgement
 from ..models import Notice, NoticeCategory
 from ..rate_limit import limiter
+from ..message_texts import normalise, t
 from ..schemas import NoticeAck, NoticeRequest
 
 logger = logging.getLogger("flexr.notices")
 
 router = APIRouter(prefix="/api/notices", tags=["dsa"])
 
-#: Anzeigenamen der Kategorien - erscheinen in der Empfangsbestätigung.
+#: Anzeigenamen der Kategorien - erscheinen in der Empfangsbestätigung und in
+#: der Entscheidung. Beide gehen an den Melder und folgen der Sprache, in der
+#: er das Formular ausgefüllt hat (Notice.language); die Beschriftungen im
+#: Formular selbst stehen in frontend/meldung.html und /en/meldung.html.
 CATEGORY_LABELS = {
-    NoticeCategory.csam: "Darstellung sexuellen Kindesmissbrauchs",
-    NoticeCategory.minor: "Mutmaßlich minderjährige Person",
-    NoticeCategory.trafficking: "Menschenhandel oder sexuelle Ausbeutung",
-    NoticeCategory.threat: "Drohung oder Gefahr für Leib und Leben",
-    NoticeCategory.sexual_content: "Nicht einvernehmliche intime Aufnahmen",
-    NoticeCategory.impersonation: "Identitätsmissbrauch, fremde Fotos",
-    NoticeCategory.fraud: "Betrug, Erpressung, Scam",
-    NoticeCategory.hate: "Hass, Verhetzung, Diskriminierung",
-    NoticeCategory.ip_infringement: "Urheber- oder Kennzeichenrecht",
-    NoticeCategory.data_protection: "Verstoß gegen Datenschutzrecht",
-    NoticeCategory.other_illegal: "Sonstiger mutmaßlich rechtswidriger Inhalt",
+    NoticeCategory.csam: {
+        "de": "Darstellung sexuellen Kindesmissbrauchs",
+        "en": "Child sexual abuse material",
+    },
+    NoticeCategory.minor: {
+        "de": "Mutmaßlich minderjährige Person",
+        "en": "Person suspected of being a minor",
+    },
+    NoticeCategory.trafficking: {
+        "de": "Menschenhandel oder sexuelle Ausbeutung",
+        "en": "Human trafficking or sexual exploitation",
+    },
+    NoticeCategory.threat: {
+        "de": "Drohung oder Gefahr für Leib und Leben",
+        "en": "Threat or danger to life and limb",
+    },
+    NoticeCategory.sexual_content: {
+        "de": "Nicht einvernehmliche intime Aufnahmen",
+        "en": "Non-consensual intimate images",
+    },
+    NoticeCategory.impersonation: {
+        "de": "Identitätsmissbrauch, fremde Fotos",
+        "en": "Impersonation, someone else’s photos",
+    },
+    NoticeCategory.fraud: {
+        "de": "Betrug, Erpressung, Scam",
+        "en": "Fraud, extortion, scam",
+    },
+    NoticeCategory.hate: {
+        "de": "Hass, Verhetzung, Diskriminierung",
+        "en": "Hate, incitement, discrimination",
+    },
+    NoticeCategory.ip_infringement: {
+        "de": "Urheber- oder Kennzeichenrecht",
+        "en": "Copyright or trade mark infringement",
+    },
+    NoticeCategory.data_protection: {
+        "de": "Verstoß gegen Datenschutzrecht",
+        "en": "Breach of data protection law",
+    },
+    NoticeCategory.other_illegal: {
+        "de": "Sonstiger mutmaßlich rechtswidriger Inhalt",
+        "en": "Other allegedly illegal content",
+    },
 }
 
 #: Kategorien, die vorrangig behandelt werden. Der Melder erfährt das sofort,
@@ -58,9 +95,9 @@ URGENT_CATEGORIES = {
 }
 
 
-def category_label(value: str) -> str:
+def category_label(value: str, lang: str = "de") -> str:
     try:
-        return CATEGORY_LABELS[NoticeCategory(value)]
+        return CATEGORY_LABELS[NoticeCategory(value)][normalise(lang)]
     except ValueError:
         return value
 
@@ -82,9 +119,13 @@ def submit_notice(
     """
     now = datetime.utcnow()
     category = NoticeCategory(payload.category)
+    # Die Sprache kommt von der Formularseite (/meldung.html oder
+    # /en/meldung.html). Aeltere Clients schicken sie nicht - dann Deutsch.
+    lang = normalise(payload.language)
 
     notice = Notice(
         category=payload.category,
+        language=lang,
         explanation=payload.explanation,
         content_reference=payload.content_reference,
         reporter_name=payload.reporter_name,
@@ -101,7 +142,7 @@ def submit_notice(
 
     telegram.notify_admin_task(
         f"🆕 Neue DSA-Meldung ({notice.reference}) im FLEXR-Admin-Dashboard: "
-        f"{category_label(payload.category)}"
+        f"{category_label(payload.category)}"  # Admin-Hinweis bleibt deutsch
     )
 
     # Ohne konfiguriertes SMTP kann keine Empfangsbestätigung rausgehen. Das
@@ -114,7 +155,8 @@ def submit_notice(
             payload.reporter_email,
             notice.reference,
             now.strftime("%d.%m.%Y %H:%M:%S UTC"),
-            category_label(payload.category),
+            category_label(payload.category, lang),
+            lang,
         )
     elif payload.reporter_email:
         logger.error(
@@ -130,39 +172,27 @@ def submit_notice(
         category in URGENT_CATEGORIES,
     )
 
-    if category in URGENT_CATEGORIES:
-        frist = (
-            "Meldungen dieser Kategorie behandeln wir vorrangig — spätestens "
-            "binnen 24 Stunden."
-        )
-    else:
-        frist = "Ein Mensch prüft die Meldung, in der Regel binnen 72 Stunden."
+    frist = t(
+        "api.notice.urgent" if category in URGENT_CATEGORIES else "api.notice.normal",
+        lang,
+    )
 
     if payload.reporter_email and ack_sent:
-        zustellung = (
-            f"Die Empfangsbestätigung und später die begründete Entscheidung "
-            f"gehen an {payload.reporter_email}."
-        )
+        zustellung = t("api.notice.delivery", lang, email=payload.reporter_email)
     elif payload.reporter_email:
-        zustellung = (
-            "Wir können dir gerade keine Bestätigungsmail schicken. Deine "
-            f"Meldung ist trotzdem erfasst — notiere dir bitte das Aktenzeichen "
-            f"{notice.reference}. Die Entscheidung geht an "
-            f"{payload.reporter_email}, sobald der Mailversand wieder läuft."
+        zustellung = t(
+            "api.notice.noMail", lang,
+            reference=notice.reference, email=payload.reporter_email,
         )
     else:
-        zustellung = (
-            "Du hast keine Kontaktadresse angegeben — das ist bei dieser "
-            "Kategorie zulässig (Art. 16 Abs. 3 DSA). Wir können dir dann aber "
-            "keine Entscheidung zusenden. Notiere dir das Aktenzeichen."
-        )
+        zustellung = t("api.notice.anonymous", lang)
 
     return NoticeAck(
         reference=notice.reference,
         created_at=now,
         acknowledgement_sent=ack_sent,
-        message=(
-            f"Deine Meldung ist eingegangen (Aktenzeichen {notice.reference}). "
-            f"{frist} {zustellung}"
+        message=t(
+            "api.notice.received", lang,
+            reference=notice.reference, deadline=frist, delivery=zustellung,
         ),
     )

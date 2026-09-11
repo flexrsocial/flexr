@@ -16,6 +16,10 @@ beides zusammen und schreibt das Ergebnis nach `en/index.html`.
 
     python3 frontend/build-en.py
 
+Die Verweise auf die Rechtstexte zeigen in der erzeugten Fassung auf `/en/`
+(siehe `rechtslinks_umbiegen`) - jeden Rechtstext gibt es dort in englischer
+Uebersetzung, unter demselben Dateinamen.
+
 Nach jeder Aenderung an `index.html` oder an den Woerterbuechern erneut laufen
 lassen. Das Skript prueft dabei mit, ob zu jeder Auszeichnung ein englischer
 Text existiert, und bricht sonst ab — eine halb uebersetzte Seite soll gar
@@ -120,6 +124,35 @@ def ersetze_auszeichnungen(html: str, texte: dict[str, str]) -> tuple[str, list[
         )
 
     return html, fehlend
+
+
+#: Rechtstexte, die es unter /en/ ebenfalls gibt. Die Namen bleiben in beiden
+#: Sprachen gleich - /agb.html und /en/agb.html.
+RECHTSTEXTE = [
+    "faq", "impressum", "datenschutz", "agb", "widerruf",
+    "nutzungsrichtlinien", "sicherheit", "meldung", "strafverfolgung",
+]
+
+
+def rechtslinks_umbiegen(html: str) -> str:
+    """Verweise auf die Rechtstexte auf die englische Fassung umstellen.
+
+    Die Adressen stehen an zwei verschiedenen Stellen: in der Fussleiste als
+    Markup in `index.html`, und mitten im Fliesstext einzelner Woerterbuch-
+    Eintraege (etwa `faq.more`). Eine Regel ueber das fertige Dokument erwischt
+    beide - dann muss weder das Markup doppelt gepflegt noch in jedem
+    englischen String die Adresse mitgeaendert werden.
+
+    Sprungmarken bleiben erhalten: /nutzungsrichtlinien.html#kontakt wird zu
+    /en/nutzungsrichtlinien.html#kontakt.
+    """
+    muster = re.compile(
+        r'href="/(%s)\.html' % "|".join(RECHTSTEXTE)
+    )
+    html, anzahl = muster.subn(lambda m: 'href="/en/%s.html' % m.group(1), html)
+    if not anzahl:
+        sys.exit("FEHLER: keine Verweise auf Rechtstexte gefunden")
+    return html
 
 
 def englische_kopfdaten(html: str, texte: dict[str, str]) -> str:
@@ -259,6 +292,7 @@ def main() -> None:
         )
 
     html = englische_kopfdaten(html, texte)
+    html = rechtslinks_umbiegen(html)
     html = hinweis_einfuegen(html)
 
     ZIEL.parent.mkdir(parents=True, exist_ok=True)

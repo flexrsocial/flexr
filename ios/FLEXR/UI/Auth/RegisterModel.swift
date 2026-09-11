@@ -237,7 +237,13 @@ final class RegisterModel {
                 gymLabel: gymLabel,
                 bio: bio,
                 consentSensitiveData: consentSensitiveData,
-                consentWithdrawalWaiver: consentWithdrawalWaiver
+                consentWithdrawalWaiver: consentWithdrawalWaiver,
+                // Sprache, in der gerade registriert wird. Der Server merkt
+                // sie am Profil und schreibt seine Mails danach — sie
+                // entstehen zum Teil ohne die App (Tagesjob, Stripe-Webhook,
+                // Moderation) und können die Einstellung nirgends sonst
+                // nachlesen.
+                language: languageStore.language.rawValue
             )
             let failures = await uploadPhotos()
             if failures == 0 {

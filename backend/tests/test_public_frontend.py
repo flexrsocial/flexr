@@ -11,22 +11,25 @@ REPO = Path(__file__).resolve().parents[2]
 FRONTEND = REPO / "frontend"
 NGINX = REPO / "deploy" / "nginx-flexr.conf"
 
+#: Rechts- und Infoseiten. Es gibt sie zweimal: deutsch an der Wurzel,
+#: englisch unter /en/ mit demselben Dateinamen.
+LEGAL_PAGES = [
+    "faq.html", "sicherheit.html", "nutzungsrichtlinien.html", "meldung.html",
+    "widerruf.html", "agb.html", "datenschutz.html", "impressum.html",
+    "strafverfolgung.html",
+]
+
 PUBLIC_PAGES = {
     "index.html": "https://flexr.social/",
-    "faq.html": "https://flexr.social/faq.html",
-    "sicherheit.html": "https://flexr.social/sicherheit.html",
-    "nutzungsrichtlinien.html": "https://flexr.social/nutzungsrichtlinien.html",
-    "meldung.html": "https://flexr.social/meldung.html",
-    "widerruf.html": "https://flexr.social/widerruf.html",
-    "agb.html": "https://flexr.social/agb.html",
-    "datenschutz.html": "https://flexr.social/datenschutz.html",
-    "impressum.html": "https://flexr.social/impressum.html",
-    "strafverfolgung.html": "https://flexr.social/strafverfolgung.html",
     # Eigene englische Landingpage seit dem 09.09.2026 (build-en.py). Sie ist
     # indexierbar, hat ihre eigene kanonische Adresse und gehoert deshalb in
     # die Sitemap - anders als /app/, das noindex traegt.
     "en/index.html": "https://flexr.social/en/",
 }
+PUBLIC_PAGES.update({name: f"https://flexr.social/{name}" for name in LEGAL_PAGES})
+PUBLIC_PAGES.update(
+    {f"en/{name}": f"https://flexr.social/en/{name}" for name in LEGAL_PAGES}
+)
 
 
 class PageParser(HTMLParser):
@@ -117,6 +120,41 @@ def test_kontoprofil_bleibt_offen_und_scrollbar():
         "nutzungsrichtlinien.html", "impressum.html", "meldung.html",
     ):
         assert f'href="/{page}"' in privacy
+
+
+def test_rechtstexte_gibt_es_zweisprachig_und_wechselseitig_verlinkt():
+    """Jeder Rechtstext existiert deutsch und englisch und verweist aufeinander.
+
+    Die beiden Fassungen sind zwei eigene Adressen (kein Umschalter zur
+    Laufzeit, siehe lang-switch.js). Damit Google sie als Uebersetzungen und
+    nicht als doppelten Inhalt liest, muessen BEIDE Seiten denselben Satz
+    hreflang-Verweise tragen - eine einseitige Angabe wertet Google nicht.
+    """
+    for name in LEGAL_PAGES:
+        deutsch = (FRONTEND / name).read_text(encoding="utf-8")
+        englisch = (FRONTEND / "en" / name).read_text(encoding="utf-8")
+
+        erwartet = {
+            "de-AT": f"https://flexr.social/{name}",
+            "de": f"https://flexr.social/{name}",
+            "en": f"https://flexr.social/en/{name}",
+            # Verbindlich ist die deutsche Fassung - sie ist der Standard.
+            "x-default": f"https://flexr.social/{name}",
+        }
+        for seite, quelle in ((name, deutsch), (f"en/{name}", englisch)):
+            gefunden = dict(
+                re.findall(
+                    r'<link rel="alternate" hreflang="([^"]+)" href="([^"]+)">', quelle
+                )
+            )
+            assert gefunden == erwartet, seite
+
+        # Der Regler fuehrt jeweils auf die andere Fassung derselben Seite.
+        assert f'<a href="/en/{name}" hreflang="en"' in deutsch, name
+        assert f'<a href="/{name}" hreflang="de"' in englisch, name
+
+        # Die englische Fassung sagt, dass die deutsche verbindlich ist.
+        assert "German version" in englisch, name
 
 
 def test_interne_links_zeigen_auf_vorhandene_dateien():

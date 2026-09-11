@@ -100,8 +100,59 @@ h2 {
 h2:has(+ details) { border-bottom: none; padding-bottom: 0; }
 h3 { font-size: 15.5px; color: var(--chalk); margin-top: 24px; margin-bottom: 6px; }
 
+/* Kopfzeile der Rechtsseiten: Rueckweg links, Sprachregler rechts.
+ * Die Seiten gab es lange nur auf Deutsch; seit es sie unter /en/ auch auf
+ * Englisch gibt, braucht der Rueckweg einen Nachbarn. */
+.legal-head {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px; margin-bottom: 20px;
+}
+.legal-head .back { margin-bottom: 0; }
+
 .back { display: inline-block; margin-bottom: 20px; font-size: 13px; color: var(--chalk-dim); text-decoration: none; }
 .back:hover { color: var(--chalk); }
+
+/* Derselbe Regler wie auf der Landingpage - bewusst <a> und nicht <button>:
+ * Deutsch und Englisch sind zwei eigene, indexierbare Adressen
+ * (/agb.html und /en/agb.html). Ein JS-Umschalter haette beide Sprachen unter
+ * derselben URL gezeigt. */
+.lang-switch {
+  position: relative; display: inline-flex; align-items: stretch; flex-shrink: 0;
+  border: 1px solid var(--steel); border-radius: 999px; background: var(--surface-2);
+  padding: 2px;
+}
+.lang-switch a {
+  position: relative; z-index: 2; text-decoration: none; display: block;
+  padding: 4px 10px; border-radius: 999px;
+  font-size: 12px; font-weight: 600; letter-spacing: .06em; line-height: 1.5;
+  transition: color .18s ease;
+}
+.lang-switch a:link, .lang-switch a:visited { color: var(--chalk-dim); }
+.lang-switch a.on, .lang-switch a.on:link, .lang-switch a.on:visited { color: var(--ink); }
+.lang-switch .knob {
+  position: absolute; z-index: 1; top: 2px; bottom: 2px; left: 2px; width: calc(50% - 2px);
+  border-radius: 999px; background: var(--plate);
+  transition: transform .2s cubic-bezier(.4, 0, .2, 1);
+}
+.lang-switch[data-active="en"] .knob { transform: translateX(100%); }
+@media (prefers-reduced-motion: reduce) { .lang-switch .knob { transition: none; } }
+
+/* Hinweiszeile fuer Besucher, deren Standort/Systemsprache auf die andere
+   Fassung deutet. Bewusst ein Hinweis und keine Weiterleitung - siehe die
+   Begruendung in lang-switch.js. Wird per JS eingehaengt, steht also nie im
+   ausgelieferten HTML und verwaessert den indexierten Text nicht. */
+.lang-notice {
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  padding: 10px 20px; font-size: 14px;
+  background: var(--surface-2); border-bottom: 1px solid var(--steel);
+  color: var(--chalk-dim);
+}
+.lang-notice a:link, .lang-notice a:visited { color: var(--plate); font-weight: 600; }
+.lang-notice-close {
+  margin-left: auto; border: 0; background: transparent; cursor: pointer;
+  color: var(--chalk-dim); font-size: 15px; line-height: 1; padding: 4px 6px;
+}
+.lang-notice-close:hover { color: var(--chalk); }
 
 .lead { color: var(--chalk-dim); font-size: 15px; margin-top: 0; }
 .stand { color: var(--chalk-dim); font-size: 13px; margin-top: 0; }

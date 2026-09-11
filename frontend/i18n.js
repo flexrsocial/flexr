@@ -16,6 +16,11 @@
    Diese Datei wird von der Landingpage (/index.html), der Web-App (/app/) und
    den Rechtstexten gemeinsam geladen; sie darf deshalb nichts voraussetzen,
    was es nur in der App gibt.
+
+   Die Rechtstexte selbst schalten die Sprache nicht zur Laufzeit um: Sie
+   liegen als zwei eigene Adressen vor (/agb.html und /en/agb.html), aus
+   demselben SEO-Grund wie die Landingpage. Verbindlich ist die deutsche
+   Fassung; jede englische Fassung sagt das in einem eigenen Absatz.
    ========================================================================== */
 window.FlexrI18n = (function(){
   'use strict';
@@ -206,7 +211,7 @@ window.FlexrI18n = (function(){
       'lang.de': 'Deutsch',
       'lang.en': 'Englisch',
       'lang.label': 'Sprache',
-      'lang.hint': 'Gilt für die gesamte App. Rechtstexte bleiben auf Deutsch verbindlich.',
+      'lang.hint': 'Gilt für die gesamte App und für die E-Mails, die wir dir schicken. Die Rechtstexte gibt es auf Deutsch und Englisch; verbindlich ist die deutsche Fassung.',
       'legal.faq': 'FAQ',
       'legal.impressum': 'Impressum',
       'legal.datenschutz': 'Datenschutz',
@@ -218,14 +223,15 @@ window.FlexrI18n = (function(){
       'legal.strafverfolgung': 'Strafverfolgung',
       'legal.section': 'Rechtliches',
       'legal.docs.aria': 'Rechtliche Dokumente',
-      'legal.notice.de': 'Rechtstexte sind nur auf Deutsch verfügbar und in dieser Fassung verbindlich.'
+      'legal.permalink': 'Eigene Adresse:',
+      'legal.notice.de': 'Die englischen Rechtstexte sind Übersetzungen; verbindlich ist die deutsche Fassung.'
     },
     en: {
       'lang.group': 'Language',
       'lang.de': 'German',
       'lang.en': 'English',
       'lang.label': 'Language',
-      'lang.hint': 'Applies to the whole app. Legal texts remain binding in their German version.',
+      'lang.hint': 'Applies to the whole app and to the emails we send you. The legal texts are available in German and English; the German version is the binding one.',
       'legal.faq': 'FAQ',
       'legal.impressum': 'Legal notice',
       'legal.datenschutz': 'Privacy',
@@ -237,7 +243,8 @@ window.FlexrI18n = (function(){
       'legal.strafverfolgung': 'Law enforcement',
       'legal.section': 'Legal',
       'legal.docs.aria': 'Legal documents',
-      'legal.notice.de': 'Legal texts are available in German only and are binding in that version.'
+      'legal.permalink': 'Own address:',
+      'legal.notice.de': 'The English legal texts are translations; the German version is the binding one.'
     }
   });
 

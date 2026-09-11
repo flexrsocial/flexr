@@ -1,5 +1,9 @@
-/* FLEXR Landingpage — Wegfuehrung zwischen der deutschen und der englischen
-   Fassung.
+/* FLEXR — Wegfuehrung zwischen der deutschen und der englischen Fassung.
+
+   Laeuft auf der Landingpage (/ und /en/) und auf den Rechtstexten
+   (/agb.html und /en/agb.html und so weiter). Welche zwei Adressen zu der
+   gerade offenen Seite gehoeren, liest das Skript aus dem Regler im Markup -
+   es kennt keine feste Liste.
    ============================================================================
    Deutsch und Englisch sind zwei eigene Adressen: `/` und `/en/`. Beide liefern
    ihren Text fertig im HTML aus. Das ist der Unterschied zur Web-App unter
@@ -26,9 +30,25 @@
   'use strict';
 
   var STORE_KEY = 'flexr_lang';           // derselbe Schluessel wie in /i18n.js
-  var URLS = {de: '/', en: '/en/'};
 
   var root = document.documentElement;
+
+  /* Die beiden Adressen dieser Seite stehen im Regler selbst - jedes <a> dort
+     traegt sein hreflang. Frueher war {de:'/', en:'/en/'} fest verdrahtet;
+     seit es auch die Rechtstexte zweisprachig gibt (/agb.html und
+     /en/agb.html), waere das die falsche Karte: Ein gespeichertes "de" haette
+     von /en/agb.html auf die Startseite umgeleitet statt auf /agb.html.
+     Der Rueckfall auf die Startseiten gilt nur, wenn eine Seite gar keinen
+     Regler hat. */
+  function urls(){
+    var map = {de: '/', en: '/en/'};
+    document.querySelectorAll('.lang-switch a[hreflang]').forEach(function(a){
+      var code = String(a.getAttribute('hreflang') || '').slice(0, 2).toLowerCase();
+      if(code === 'de' || code === 'en') map[code] = a.getAttribute('href');
+    });
+    return map;
+  }
+  var URLS = urls();
   /* Welche Sprache diese Adresse ausliefert, steht am <html lang> — "de-AT"
      oder "en". Kein eigenes Attribut noetig. */
   var pageLang = (root.getAttribute('lang') || 'de').slice(0, 2).toLowerCase();

@@ -7,11 +7,15 @@
    Ordnung der Schluessel nach Bildschirm, nicht nach Alphabet - so steht
    beisammen, was auch auf dem Schirm beisammensteht.
 
-   Rechtstexte (AGB, Datenschutz, Nutzungsrichtlinien, Ruecktritt) bleiben
-   bewusst nur auf Deutsch: sie sind in dieser Fassung verbindlich, eine
-   nicht anwaltlich geprueft uebersetzte Zweitfassung waere ein Haftungsrisiko.
-   Die englische Oberflaeche weist an den Stellen, die dorthin verlinken,
-   ueber 'legal.notice.de' darauf hin.
+   Die Rechtstexte (AGB, Datenschutz, Nutzungsrichtlinien, Ruecktritt) gibt es
+   inzwischen auch auf Englisch, unter eigenen Adressen (/en/agb.html und so
+   weiter). Verbindlich bleibt die deutsche Fassung - die englische ist eine
+   Uebersetzung zum Verstaendnis und sagt das in einem eigenen Absatz. Die
+   Oberflaeche weist ueber 'legal.notice.de' darauf hin.
+
+   Die Verweise unten stehen weiter auf den deutschen Dateinamen; welche
+   Fassung geladen wird, entscheidet openLegalModal() in app/index.html
+   anhand der eingestellten Sprache.
    ========================================================================== */
 (function(){
   'use strict';
@@ -923,7 +927,7 @@
     'vgate.mediaLi1': 'A person compares profile photo, selfie and ID photo — no automated facial recognition',
     'vgate.mediaLi2': 'The images are not publicly accessible',
     'vgate.mediaLi3': 'They are deleted once the review is complete',
-    'vgate.privacyDetails': 'Details in the <a href="/datenschutz.html" class="legal-link" data-legal-page="datenschutz.html">privacy policy</a> (German).',
+    'vgate.privacyDetails': 'Details in the <a href="/datenschutz.html" class="legal-link" data-legal-page="datenschutz.html">privacy policy</a>.',
     'vgate.startBtn': 'Start verification',
     'vgate.retryBtn': 'Retry verification',
     'vgate.selfieExists': 'We already have your selfie - next up is your ID.',
@@ -949,7 +953,7 @@
     'id.title': 'Confirm your age',
     'id.whyH3': 'Why we need this',
     'id.whyP1': 'To use FLEXR you must be at least 18 years old. Upload a valid official photo ID once — either as a photo you take now or as a file from your device. We use it solely for the age and identity check and delete the image once the check is complete.',
-    'id.whyP2': 'The check is done <b>manually by a person</b> — no automated facial recognition is used. Details in the <a href="/datenschutz.html" class="legal-link" data-legal-page="datenschutz.html">privacy policy</a> (German).',
+    'id.whyP2': 'The check is done <b>manually by a person</b> — no automated facial recognition is used. Details in the <a href="/datenschutz.html" class="legal-link" data-legal-page="datenschutz.html">privacy policy</a>.',
     'id.typeLabel': 'Document type',
     'id.redactNote': 'You may redact information that is not needed for the age check. <b>The photo, date of birth and the validity details required for the check must remain visible.</b>',
     'id.slotsLabel': 'Images',

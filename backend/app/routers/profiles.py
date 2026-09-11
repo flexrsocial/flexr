@@ -88,6 +88,10 @@ def update_my_profile(
             current_user, fields["search_radius_km"]
         )
 
+    # "language" laeuft ueber denselben generischen Weg wie die Profilfelder.
+    # Sie ist kein Profilfeld im engeren Sinn, sondern die Sprache, in der der
+    # Server diesem Nutzer schreibt (siehe models.User.language) - der
+    # Sprachregler in der Oberflaeche schickt sie mit, sobald jemand umschaltet.
     for field, value in fields.items():
         if field == "bio" and value == "":
             value = None  # leere Bio = Bio entfernen
@@ -233,6 +237,7 @@ def delete_my_account(
         current_user.name,
         purge_at,
         ACCOUNT_GRACE_PERIOD_DAYS,
+        current_user.language,
     )
 
     return {"deleted": True, "purge_after_days": ACCOUNT_GRACE_PERIOD_DAYS}

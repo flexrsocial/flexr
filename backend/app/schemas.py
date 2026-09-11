@@ -11,6 +11,13 @@ from .age import is_plausible_birthdate
 MIN_SEARCH_RADIUS_KM = 2
 MAX_SEARCH_RADIUS_KM = 250
 
+#: Die Sprache, in der ein Client gerade laeuft. Sie steht am Nutzerprofil
+#: (``User.language``) und entscheidet, in welcher Sprache der Server E-Mails
+#: verschickt - die entstehen zum Teil ohne Client (Tagesjob, Stripe-Webhook,
+#: Admin-Bereich). Mehr als diese beiden Sprachen gibt es nicht, siehe
+#: frontend/i18n.js.
+Language = Literal["de", "en"]
+
 
 def _strip(v):
     """Umgebende Leerzeichen entfernen, bevor die Längengrenzen greifen.
@@ -58,6 +65,11 @@ class RegisterRequest(BaseModel):
             "weiter registrieren können."
         ),
     )
+
+    # Sprache, in der der Client gerade laeuft. Optional, damit die
+    # ausgelieferten Android- und iOS-Fassungen weiter registrieren koennen -
+    # sie schicken das Feld noch nicht. Ohne Angabe bleibt es bei Deutsch.
+    language: Optional[Language] = None
 
     _trim = field_validator("name", "bio", mode="before")(_strip)
 
@@ -190,6 +202,9 @@ class MyProfileOut(ProfileOut):
     notify_inactive_push: bool = True
     notify_pending_likes_email: bool = True
     notify_pending_likes_push: bool = True
+    # Damit ein frisch gestarteter Client sieht, was am Profil hinterlegt ist,
+    # und den Regler danach stellen kann.
+    language: str = "de"
 
 
 class NotificationSettingsUpdate(BaseModel):
@@ -244,6 +259,10 @@ class UpdateProfileRequest(BaseModel):
     search_radius_km: Optional[int] = Field(
         default=None, ge=MIN_SEARCH_RADIUS_KM, le=MAX_SEARCH_RADIUS_KM
     )
+    # Kein Profilfeld im engeren Sinn, aber derselbe Weg: Der Sprachregler in
+    # der Oberflaeche schreibt die Wahl hierher, damit der Server weiss, in
+    # welcher Sprache er mailen soll.
+    language: Optional[Language] = None
 
     # Eine Bio aus lauter Leerzeichen ist eine leere Bio - und die bedeutet
     # serverseitig "Bio entfernen" (siehe routers/profiles.py).
@@ -848,6 +867,11 @@ class WithdrawalRequest(BaseModel):
     # auf "Widerruf bestätigen" senden denselben Wert erneut - der Server
     # erkennt daran den Zweitversuch und legt keine zweite Erklärung an.
     request_id: Optional[str] = Field(default=None, max_length=64)
+    # Sprache der Formularseite, ueber die die Erklaerung kam (/widerruf.html
+    # oder /en/widerruf.html). Der Ruecktritt steht ausdruecklich auch Leuten
+    # ohne Konto offen - es gibt also kein Profil, aus dem sich die Sprache
+    # ablesen liesse. Wer angemeldet ist, dessen Profilsprache geht vor.
+    language: Optional[Language] = None
 
     _trim = field_validator("name", "contract_reference", "message", mode="before")(_strip)
 
@@ -906,6 +930,9 @@ class NoticeRequest(BaseModel):
     reporter_email: Optional[EmailStr] = None
     # Art. 16 Abs. 2 lit. d - Erklärung in gutem Glauben.
     good_faith: bool
+    # Sprache der Formularseite (/meldung.html oder /en/meldung.html) - wie bei
+    # WithdrawalRequest: melden kann jeder, auch ohne Konto.
+    language: Optional[Language] = None
 
     _trim = field_validator(
         "explanation", "content_reference", "reporter_name", mode="before"

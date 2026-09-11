@@ -65,7 +65,8 @@ extension MyProfileDTO {
                 inactivePush: notifyInactivePush ?? true,
                 pendingLikesEmail: notifyPendingLikesEmail ?? true,
                 pendingLikesPush: notifyPendingLikesPush ?? true
-            )
+            ),
+            language: language ?? "de"
         )
     }
 }

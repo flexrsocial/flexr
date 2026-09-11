@@ -31,6 +31,25 @@ final class ProfileRepository {
         myProfile = nil
     }
 
+    /// Die gewählte Sprache ans Profil melden.
+    ///
+    /// Der Regler stellt die Oberfläche sofort um — das läuft ohne Server. Der
+    /// Server muss sie trotzdem erfahren: Er verschickt E-Mails, die ohne Zutun
+    /// der App entstehen (Inaktivitäts-Erinnerung aus dem Tagesjob,
+    /// Zahlungsmail aus einem Stripe-Webhook, Moderationsmitteilung aus dem
+    /// Admin-Bereich) und kann die Einstellung nirgends sonst nachlesen.
+    ///
+    /// Schickt nur, was sich geändert hat, und schluckt Fehler: Bleibt die
+    /// Meldung aus, ist die Oberfläche trotzdem umgestellt, und der nächste
+    /// Start holt es nach. Eine Fehlermeldung wäre hier nur Lärm.
+    func reportLanguage(_ code: String) async {
+        guard myProfile?.language != code else { return }
+        let updated = try? await api.updateMyProfile(
+            UpdateProfileRequestDTO(language: code)
+        ).toDomain()
+        if let updated { myProfile = updated }
+    }
+
     @discardableResult
     func updateProfile(
         plz: String,

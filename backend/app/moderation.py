@@ -10,47 +10,129 @@ from typing import Optional
 
 from .models import ModerationAction, ModerationBasis, ModerationSource, User
 
-APPEAL_HINT = (
-    "Du kannst dieser Entscheidung formlos per E-Mail an flexr.social@proton.me "
-    "widersprechen. Wir prüfen sie dann erneut und antworten begründet. "
-    "Der Rechtsweg bleibt dir unbenommen."
-)
+# Alle Bausteine hier gibt es zweisprachig: Sie gehen per E-Mail an den
+# Betroffenen (mailer.send_moderation_decision) und stehen im 403-Detail, das
+# die Apps anzeigen - beides folgt der Profilsprache. Nicht uebersetzt wird
+# der Freitext des Moderators (``moderation_reason``, ``moderation_facts``);
+# den schreibt ein Mensch, und die englische Mail weist ihn als deutsch aus.
+_APPEAL_HINT = {
+    "de": (
+        "Du kannst dieser Entscheidung formlos per E-Mail an flexr.social@proton.me "
+        "widersprechen. Wir prüfen sie dann erneut und antworten begründet. "
+        "Der Rechtsweg bleibt dir unbenommen."
+    ),
+    "en": (
+        "You can object to this decision informally by email to "
+        "flexr.social@proton.me. We then review it again and respond with reasons. "
+        "Your right to take legal action remains unaffected."
+    ),
+}
 
 # Fallback, solange eine Maßnahme aus der Zeit vor der Begründungspflicht
 # stammt (Bestandsdaten ohne moderation_reason).
-FALLBACK_REASON = (
-    "Verstoß gegen die Nutzungsrichtlinien. Die genaue Begründung erhältst du "
-    "auf Anfrage unter flexr.social@proton.me."
-)
+_FALLBACK_REASON = {
+    "de": (
+        "Verstoß gegen die Nutzungsrichtlinien. Die genaue Begründung erhältst du "
+        "auf Anfrage unter flexr.social@proton.me."
+    ),
+    "en": (
+        "Breach of the community guidelines. You can obtain the precise reasons on "
+        "request at flexr.social@proton.me."
+    ),
+}
 
 
 #: Wie die Herkunft der Maßnahme dem Betroffenen erklärt wird (Art. 17 Abs. 3
 #: lit. b DSA - "ob die Entscheidung auf einer Meldung beruht").
 SOURCE_TEXT = {
-    ModerationSource.user_notice: "Anlass war eine Meldung über die Meldefunktion.",
-    ModerationSource.own_initiative: (
-        "Anlass war keine Meldung, sondern unsere eigene Moderation."
-    ),
-    ModerationSource.authority: "Anlass war eine behördliche Anordnung.",
+    ModerationSource.user_notice: {
+        "de": "Anlass war eine Meldung über die Meldefunktion.",
+        "en": "This was prompted by a report via the reporting function.",
+    },
+    ModerationSource.own_initiative: {
+        "de": "Anlass war keine Meldung, sondern unsere eigene Moderation.",
+        "en": "This was not prompted by a report but by our own moderation.",
+    },
+    ModerationSource.authority: {
+        "de": "Anlass war eine behördliche Anordnung.",
+        "en": "This was prompted by an order from an authority.",
+    },
 }
 
 #: Art. 17 Abs. 3 lit. d/e: Rechtswidriger Inhalt oder Vertragsverstoß.
 BASIS_TEXT = {
-    ModerationBasis.illegal_content: "Grundlage ist geltendes Recht",
-    ModerationBasis.terms: "Grundlage ist unsere Nutzungsrichtlinie",
+    ModerationBasis.illegal_content: {
+        "de": "Grundlage ist geltendes Recht",
+        "en": "The basis is applicable law",
+    },
+    ModerationBasis.terms: {
+        "de": "Grundlage ist unsere Nutzungsrichtlinie",
+        "en": "The basis is our community guidelines",
+    },
 }
 
 AUTOMATED_TEXT = {
-    True: (
-        "An der Erkennung war ein automatisiertes Mittel beteiligt (unsere "
-        "Filter für Links, Kontaktdaten und Scam-Begriffe). Die Entscheidung "
-        "selbst hat ein Mensch getroffen."
-    ),
-    False: "Bei der Erkennung war kein automatisiertes Mittel beteiligt.",
+    True: {
+        "de": (
+            "An der Erkennung war ein automatisiertes Mittel beteiligt (unsere "
+            "Filter für Links, Kontaktdaten und Scam-Begriffe). Die Entscheidung "
+            "selbst hat ein Mensch getroffen."
+        ),
+        "en": (
+            "An automated means was involved in the detection (our filters for "
+            "links, contact details and scam terms). The decision itself was taken "
+            "by a human."
+        ),
+    },
+    False: {
+        "de": "Bei der Erkennung war kein automatisiertes Mittel beteiligt.",
+        "en": "No automated means was involved in the detection.",
+    },
+}
+
+_MEASURE_TEXT = {
+    ModerationAction.mute: {
+        "de": "Beschränkung: Du kannst vorübergehend keine Nachrichten senden.",
+        "en": "Restriction: you cannot send messages for the time being.",
+    },
+    None: {
+        "de": "Beschränkung: Dein Konto ist gesperrt.",
+        "en": "Restriction: your account is blocked.",
+    },
+}
+
+_DURATION_TEXT = {
+    "mute": {"de": "befristet bis {until} Uhr", "en": "limited until {until}"},
+    "ban": {
+        "de": "unbefristet, bis die Entscheidung aufgehoben wird",
+        "en": "indefinite, until the decision is lifted",
+    },
 }
 
 
-def statement_of_reasons(user: User, action: ModerationAction) -> dict:
+def _lang(value: str | None) -> str:
+    from .message_texts import normalise
+
+    return normalise(value)
+
+
+#: Bleiben als Modulkonstanten erhalten - Tests und aeltere Aufrufer lesen sie
+#: in der Ausgangssprache.
+APPEAL_HINT = _APPEAL_HINT["de"]
+FALLBACK_REASON = _FALLBACK_REASON["de"]
+
+
+def appeal_hint(lang: str | None = "de") -> str:
+    return _APPEAL_HINT[_lang(lang)]
+
+
+def fallback_reason(lang: str | None = "de") -> str:
+    return _FALLBACK_REASON[_lang(lang)]
+
+
+def statement_of_reasons(
+    user: User, action: ModerationAction, lang: str | None = None
+) -> dict:
     """Begründung nach Art. 17 Abs. 3 DSA, in ihre Bestandteile zerlegt.
 
     Vorher bestand die Begründung aus einem einzigen Satz. Art. 17 Abs. 3
@@ -61,34 +143,40 @@ def statement_of_reasons(user: User, action: ModerationAction) -> dict:
 
     Fehlende Felder werden weggelassen statt erfunden - bei Bestandsmaßnahmen
     aus der Zeit davor bleibt es beim zusammenfassenden Satz.
+
+    ``lang`` steuert nur die festen Bausteine. Der Freitext des Moderators
+    (``moderation_reason``, ``moderation_facts``, ``moderation_basis_detail``)
+    bleibt so stehen, wie er geschrieben wurde - ihn zu übersetzen hieße, eine
+    Begründung zu erfinden. Ohne Angabe gilt die Profilsprache.
     """
+    sprache = _lang(lang if lang is not None else user.language)
     aus: dict = {
         "action": action.value,
-        "measure": _measure_text(user, action),
-        "summary": user.moderation_reason or FALLBACK_REASON,
-        "appeal_hint": APPEAL_HINT,
+        "measure": _measure_text(user, action, sprache),
+        "summary": user.moderation_reason or fallback_reason(sprache),
+        "appeal_hint": appeal_hint(sprache),
     }
     if user.moderation_action_at:
         aus["decided_at"] = user.moderation_action_at.isoformat()
     if user.moderation_scope:
         aus["scope"] = user.moderation_scope
     if action is ModerationAction.mute and user.messaging_muted_until:
-        aus["duration"] = (
-            f"befristet bis {user.messaging_muted_until.strftime('%d.%m.%Y, %H:%M')} Uhr"
+        aus["duration"] = _DURATION_TEXT["mute"][sprache].format(
+            until=user.messaging_muted_until.strftime("%d.%m.%Y, %H:%M")
         )
     elif action is ModerationAction.ban:
-        aus["duration"] = "unbefristet, bis die Entscheidung aufgehoben wird"
+        aus["duration"] = _DURATION_TEXT["ban"][sprache]
     if user.moderation_facts:
         aus["facts"] = user.moderation_facts
     if user.moderation_source:
         try:
-            aus["source"] = SOURCE_TEXT[ModerationSource(user.moderation_source)]
+            aus["source"] = SOURCE_TEXT[ModerationSource(user.moderation_source)][sprache]
         except ValueError:
             pass
-    aus["automated_detection"] = AUTOMATED_TEXT[bool(user.moderation_automated)]
+    aus["automated_detection"] = AUTOMATED_TEXT[bool(user.moderation_automated)][sprache]
     if user.moderation_basis:
         try:
-            grundlage = BASIS_TEXT[ModerationBasis(user.moderation_basis)]
+            grundlage = BASIS_TEXT[ModerationBasis(user.moderation_basis)][sprache]
         except ValueError:
             grundlage = None
         if grundlage:
@@ -98,10 +186,9 @@ def statement_of_reasons(user: User, action: ModerationAction) -> dict:
     return aus
 
 
-def _measure_text(user: User, action: ModerationAction) -> str:
-    if action is ModerationAction.mute:
-        return "Beschränkung: Du kannst vorübergehend keine Nachrichten senden."
-    return "Beschränkung: Dein Konto ist gesperrt."
+def _measure_text(user: User, action: ModerationAction, lang: str = "de") -> str:
+    schluessel = ModerationAction.mute if action is ModerationAction.mute else None
+    return _MEASURE_TEXT[schluessel][lang]
 
 
 def restriction_detail(user: User, action: ModerationAction) -> dict:
@@ -113,13 +200,14 @@ def restriction_detail(user: User, action: ModerationAction) -> dict:
     ältere Clients ignorieren es, neue können die vollständige Begründung nach
     Art. 17 DSA anzeigen.
     """
+    sprache = _lang(user.language)
     detail = {
         "reason": "messaging_muted" if action is ModerationAction.mute else "account_banned",
         "moderation_action": action.value,
-        "moderation_reason": user.moderation_reason or FALLBACK_REASON,
-        "appeal_hint": APPEAL_HINT,
-        "message": _message_for(user, action),
-        "statement": statement_of_reasons(user, action),
+        "moderation_reason": user.moderation_reason or fallback_reason(sprache),
+        "appeal_hint": appeal_hint(sprache),
+        "message": _message_for(user, action, sprache),
+        "statement": statement_of_reasons(user, action, sprache),
     }
     if action is ModerationAction.mute and user.messaging_muted_until:
         detail["muted_until"] = user.messaging_muted_until.isoformat()
@@ -128,13 +216,27 @@ def restriction_detail(user: User, action: ModerationAction) -> dict:
     return detail
 
 
-def _message_for(user: User, action: ModerationAction) -> str:
-    if action is ModerationAction.mute:
-        return (
+_MESSAGE_TEXT = {
+    "mute": {
+        "de": (
             "Deine Chat-Sperre ist noch aktiv - du kannst derzeit keine "
             "Nachrichten senden."
-        )
-    return "Dein Konto wurde gesperrt."
+        ),
+        "en": (
+            "Your chat suspension is still active - you cannot send messages at "
+            "the moment."
+        ),
+    },
+    "ban": {
+        "de": "Dein Konto wurde gesperrt.",
+        "en": "Your account has been blocked.",
+    },
+}
+
+
+def _message_for(user: User, action: ModerationAction, lang: str = "de") -> str:
+    schluessel = "mute" if action is ModerationAction.mute else "ban"
+    return _MESSAGE_TEXT[schluessel][lang]
 
 
 def apply_restriction(

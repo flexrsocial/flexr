@@ -94,7 +94,7 @@ def _status_out(user: User, req: VerificationRequest | None) -> VerificationStat
         status=status,
         prompts=prompts,
         next_step=step,
-        reason=reason_text(req.review_reason) if req is not None else None,
+        reason=reason_text(req.review_reason, user.language) if req is not None else None,
         verification_required=user.verification_required,
         account_activated=user.is_account_activated,
         # Für den Client heißt das Feld "steht die Bestätigung noch an?" - ohne

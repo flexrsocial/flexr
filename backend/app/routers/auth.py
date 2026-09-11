@@ -246,6 +246,9 @@ def register(
         verification_required=True,
         verification_required_at=consent_timestamp,
         activated_at=None,
+        # Sprache des Clients. Aeltere App-Fassungen schicken das Feld nicht -
+        # dann bleibt es bei der Ausgangssprache (models.User.language).
+        language=payload.language or "de",
     )
     db.add(user)
     db.commit()
@@ -275,6 +278,7 @@ def register(
         user.name,
         build_link(verification_token),
         TOKEN_TTL_HOURS,
+        user.language,
     )
 
     token = create_access_token(user.id)

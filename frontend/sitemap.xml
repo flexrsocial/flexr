@@ -4,11 +4,14 @@
   /app/ und alles darunter (noindex), /admin.html, /api/, der
   Bestaetigungspfad /mail-bestaetigen und alle Checkout-Rueckwege.
 
-  Die Landingpage gibt es in zwei Sprachen unter zwei Adressen. Beide sind
-  eingetragen und verweisen ueber xhtml:link wechselseitig aufeinander - so
-  erkennt Google sie als Uebersetzungen und nicht als doppelten Inhalt. Die
-  Rechtstexte sind nur auf Deutsch verbindlich und bekommen deshalb keine
-  englische Entsprechung.
+  Jede oeffentliche Seite gibt es in zwei Sprachen unter zwei Adressen: die
+  Landingpage als / und /en/, die Rechtstexte als /agb.html und /en/agb.html
+  und so weiter. Beide Fassungen sind eingetragen und verweisen ueber
+  xhtml:link wechselseitig aufeinander - so erkennt Google sie als
+  Uebersetzungen und nicht als doppelten Inhalt.
+
+  Verbindlich bleibt die deutsche Fassung; sie ist deshalb ueberall das
+  x-default und hat die hoehere Prioritaet.
 -->
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
         xmlns:xhtml="http://www.w3.org/1999/xhtml">
@@ -34,56 +37,182 @@
   </url>
   <url>
     <loc>https://flexr.social/faq.html</loc>
+    <xhtml:link rel="alternate" hreflang="de-AT" href="https://flexr.social/faq.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://flexr.social/faq.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://flexr.social/en/faq.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://flexr.social/faq.html"/>
     <lastmod>2026-09-10</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://flexr.social/sicherheit.html</loc>
+    <xhtml:link rel="alternate" hreflang="de-AT" href="https://flexr.social/sicherheit.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://flexr.social/sicherheit.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://flexr.social/en/sicherheit.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://flexr.social/sicherheit.html"/>
     <lastmod>2026-08-20</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://flexr.social/nutzungsrichtlinien.html</loc>
+    <xhtml:link rel="alternate" hreflang="de-AT" href="https://flexr.social/nutzungsrichtlinien.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://flexr.social/nutzungsrichtlinien.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://flexr.social/en/nutzungsrichtlinien.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://flexr.social/nutzungsrichtlinien.html"/>
     <lastmod>2026-08-20</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://flexr.social/meldung.html</loc>
+    <xhtml:link rel="alternate" hreflang="de-AT" href="https://flexr.social/meldung.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://flexr.social/meldung.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://flexr.social/en/meldung.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://flexr.social/meldung.html"/>
     <lastmod>2026-08-20</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://flexr.social/widerruf.html</loc>
+    <xhtml:link rel="alternate" hreflang="de-AT" href="https://flexr.social/widerruf.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://flexr.social/widerruf.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://flexr.social/en/widerruf.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://flexr.social/widerruf.html"/>
     <lastmod>2026-09-10</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.4</priority>
   </url>
   <url>
     <loc>https://flexr.social/agb.html</loc>
+    <xhtml:link rel="alternate" hreflang="de-AT" href="https://flexr.social/agb.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://flexr.social/agb.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://flexr.social/en/agb.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://flexr.social/agb.html"/>
     <lastmod>2026-09-10</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.4</priority>
   </url>
   <url>
     <loc>https://flexr.social/datenschutz.html</loc>
+    <xhtml:link rel="alternate" hreflang="de-AT" href="https://flexr.social/datenschutz.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://flexr.social/datenschutz.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://flexr.social/en/datenschutz.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://flexr.social/datenschutz.html"/>
     <lastmod>2026-09-10</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.4</priority>
   </url>
   <url>
     <loc>https://flexr.social/impressum.html</loc>
+    <xhtml:link rel="alternate" hreflang="de-AT" href="https://flexr.social/impressum.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://flexr.social/impressum.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://flexr.social/en/impressum.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://flexr.social/impressum.html"/>
     <lastmod>2026-09-10</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
   <url>
     <loc>https://flexr.social/strafverfolgung.html</loc>
+    <xhtml:link rel="alternate" hreflang="de-AT" href="https://flexr.social/strafverfolgung.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://flexr.social/strafverfolgung.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://flexr.social/en/strafverfolgung.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://flexr.social/strafverfolgung.html"/>
     <lastmod>2026-08-20</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
+  </url>
+  <url>
+    <loc>https://flexr.social/en/faq.html</loc>
+    <xhtml:link rel="alternate" hreflang="de-AT" href="https://flexr.social/faq.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://flexr.social/faq.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://flexr.social/en/faq.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://flexr.social/faq.html"/>
+    <lastmod>2026-09-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://flexr.social/en/sicherheit.html</loc>
+    <xhtml:link rel="alternate" hreflang="de-AT" href="https://flexr.social/sicherheit.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://flexr.social/sicherheit.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://flexr.social/en/sicherheit.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://flexr.social/sicherheit.html"/>
+    <lastmod>2026-08-20</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://flexr.social/en/nutzungsrichtlinien.html</loc>
+    <xhtml:link rel="alternate" hreflang="de-AT" href="https://flexr.social/nutzungsrichtlinien.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://flexr.social/nutzungsrichtlinien.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://flexr.social/en/nutzungsrichtlinien.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://flexr.social/nutzungsrichtlinien.html"/>
+    <lastmod>2026-08-20</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.4</priority>
+  </url>
+  <url>
+    <loc>https://flexr.social/en/meldung.html</loc>
+    <xhtml:link rel="alternate" hreflang="de-AT" href="https://flexr.social/meldung.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://flexr.social/meldung.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://flexr.social/en/meldung.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://flexr.social/meldung.html"/>
+    <lastmod>2026-08-20</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.4</priority>
+  </url>
+  <url>
+    <loc>https://flexr.social/en/widerruf.html</loc>
+    <xhtml:link rel="alternate" hreflang="de-AT" href="https://flexr.social/widerruf.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://flexr.social/widerruf.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://flexr.social/en/widerruf.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://flexr.social/widerruf.html"/>
+    <lastmod>2026-09-10</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
+  <url>
+    <loc>https://flexr.social/en/agb.html</loc>
+    <xhtml:link rel="alternate" hreflang="de-AT" href="https://flexr.social/agb.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://flexr.social/agb.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://flexr.social/en/agb.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://flexr.social/agb.html"/>
+    <lastmod>2026-09-10</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
+  <url>
+    <loc>https://flexr.social/en/datenschutz.html</loc>
+    <xhtml:link rel="alternate" hreflang="de-AT" href="https://flexr.social/datenschutz.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://flexr.social/datenschutz.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://flexr.social/en/datenschutz.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://flexr.social/datenschutz.html"/>
+    <lastmod>2026-09-10</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
+  <url>
+    <loc>https://flexr.social/en/impressum.html</loc>
+    <xhtml:link rel="alternate" hreflang="de-AT" href="https://flexr.social/impressum.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://flexr.social/impressum.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://flexr.social/en/impressum.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://flexr.social/impressum.html"/>
+    <lastmod>2026-09-10</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  <url>
+    <loc>https://flexr.social/en/strafverfolgung.html</loc>
+    <xhtml:link rel="alternate" hreflang="de-AT" href="https://flexr.social/strafverfolgung.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://flexr.social/strafverfolgung.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://flexr.social/en/strafverfolgung.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://flexr.social/strafverfolgung.html"/>
+    <lastmod>2026-08-20</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.2</priority>
   </url>
 </urlset>

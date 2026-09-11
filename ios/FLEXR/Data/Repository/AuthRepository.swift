@@ -35,7 +35,11 @@ final class AuthRepository {
         gymLabel: String,
         bio: String?,
         consentSensitiveData: Bool,
-        consentWithdrawalWaiver: Bool
+        consentWithdrawalWaiver: Bool,
+        /// Sprache, in der gerade registriert wird ("de" oder "en"). Kommt als
+        /// Parameter statt aus dem `LanguageStore`: Der ist an den MainActor
+        /// gebunden, dieses Repository soll es nicht sein müssen.
+        language: String
     ) async throws {
         let trimmedBio = bio?.trimmingCharacters(in: .whitespacesAndNewlines)
         let response = try await api.register(
@@ -50,7 +54,8 @@ final class AuthRepository {
                 gym: gymLabel,
                 bio: (trimmedBio?.isEmpty ?? true) ? nil : trimmedBio,
                 consentSensitiveData: consentSensitiveData,
-                consentWithdrawalWaiver: consentWithdrawalWaiver
+                consentWithdrawalWaiver: consentWithdrawalWaiver,
+                language: language
             )
         )
         session.save(token: response.accessToken)

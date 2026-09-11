@@ -36,6 +36,17 @@ class LanguageStore @Inject constructor(
     val language: Flow<AppLanguage> = context.languageDataStore.data
         .map { AppLanguage.fromCode(it[key]) ?: AppLanguage.detect() }
 
+    /**
+     * Die ausdrueckliche Wahl — `null`, solange der Regler nie bedient wurde.
+     *
+     * [language] verschweigt den Unterschied bewusst (es liefert dann die
+     * Vorgabe aus [AppLanguage.detect]). Beim Abgleich mit dem Profil zaehlt er
+     * aber: Eine Wahl auf diesem Geraet schlaegt das Profil, eine blosse
+     * Vorgabe nicht.
+     */
+    val chosen: Flow<AppLanguage?> = context.languageDataStore.data
+        .map { AppLanguage.fromCode(it[key]) }
+
     suspend fun setLanguage(language: AppLanguage) {
         context.languageDataStore.edit { it[key] = language.code }
     }
