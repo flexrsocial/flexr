@@ -51,7 +51,7 @@ def test_match_benachrichtigt_beide_seiten_per_mail_und_app(client, monkeypatch)
     mails = []
     monkeypatch.setattr(
         "app.notifications.mailer.send_new_match",
-        lambda email, name, match_name: mails.append((email, match_name)) or True,
+        lambda email, name, match_name, lang="de": mails.append((email, match_name)) or True,
     )
 
     headers_a = register_user_with_photo(client, "m.a@example.com", name="A", gender="mann")
@@ -71,7 +71,7 @@ def test_erneuter_like_meldet_dasselbe_match_nicht_noch_einmal(client, monkeypat
     mails = []
     monkeypatch.setattr(
         "app.notifications.mailer.send_new_match",
-        lambda email, name, match_name: mails.append(email) or True,
+        lambda email, name, match_name, lang="de": mails.append(email) or True,
     )
 
     headers_a = register_user_with_photo(client, "r.a@example.com", name="A", gender="mann")
@@ -92,7 +92,7 @@ def test_abgeschalteter_kanal_bleibt_stumm(client, monkeypatch):
     mails = []
     monkeypatch.setattr(
         "app.notifications.mailer.send_new_match",
-        lambda email, name, match_name: mails.append(email) or True,
+        lambda email, name, match_name, lang="de": mails.append(email) or True,
     )
 
     headers_a = register_user_with_photo(client, "s.a@example.com", name="A", gender="mann")
@@ -122,11 +122,11 @@ def test_ab_drei_wartenden_profilen_wird_benachrichtigt(client, monkeypatch):
     mails = []
     monkeypatch.setattr(
         "app.notifications.mailer.send_queue_waiting",
-        lambda email, name, count: mails.append((email, count)) or True,
+        lambda email, name, count, lang="de": mails.append((email, count)) or True,
     )
     monkeypatch.setattr(
         "app.notifications.mailer.send_inactivity_reminder",
-        lambda email, name, days: True,
+        lambda email, name, days, lang="de": True,
     )
 
     headers = register_user_with_photo(client, "q.me@example.com", name="Ich", gender="mann")
@@ -152,11 +152,11 @@ def test_unter_der_schwelle_keine_nachricht(client, monkeypatch):
     mails = []
     monkeypatch.setattr(
         "app.notifications.mailer.send_queue_waiting",
-        lambda email, name, count: mails.append(email) or True,
+        lambda email, name, count, lang="de": mails.append(email) or True,
     )
     monkeypatch.setattr(
         "app.notifications.mailer.send_inactivity_reminder",
-        lambda email, name, days: True,
+        lambda email, name, days, lang="de": True,
     )
 
     headers = register_user_with_photo(client, "u.me@example.com", name="Ich", gender="mann")
@@ -182,11 +182,11 @@ def test_erinnerung_nach_sieben_tagen_ohne_nutzung(client, monkeypatch):
     mails = []
     monkeypatch.setattr(
         "app.notifications.mailer.send_inactivity_reminder",
-        lambda email, name, days: mails.append((email, days)) or True,
+        lambda email, name, days, lang="de": mails.append((email, days)) or True,
     )
     monkeypatch.setattr(
         "app.notifications.mailer.send_queue_waiting",
-        lambda email, name, count: True,
+        lambda email, name, count, lang="de": True,
     )
 
     headers = register_user(client, "i.alt@example.com", name="Alt")
@@ -239,7 +239,8 @@ def test_hintergrundabruf_zaehlt_nicht_als_nutzung(client):
 
 def test_zustellfach_liefert_und_quittiert(client, monkeypatch):
     monkeypatch.setattr(
-        "app.notifications.mailer.send_new_match", lambda email, name, match_name: True
+        "app.notifications.mailer.send_new_match",
+        lambda email, name, match_name, lang="de": True,
     )
 
     headers_a = register_user_with_photo(client, "z.a@example.com", name="A", gender="mann")
@@ -270,7 +271,7 @@ def test_offener_like_wird_woechentlich_gemeldet(client, monkeypatch):
     mails = []
     monkeypatch.setattr(
         "app.notifications.mailer.send_pending_likes",
-        lambda email, name, count: mails.append((email, count)) or True,
+        lambda email, name, count, lang="de": mails.append((email, count)) or True,
     )
 
     headers_a = register_user_with_photo(client, "p.a@example.com", name="A", gender="mann")
@@ -297,10 +298,11 @@ def test_erwiderter_like_zaehlt_nicht_als_offen(client, monkeypatch):
     mails = []
     monkeypatch.setattr(
         "app.notifications.mailer.send_pending_likes",
-        lambda email, name, count: mails.append(email) or True,
+        lambda email, name, count, lang="de": mails.append(email) or True,
     )
     monkeypatch.setattr(
-        "app.notifications.mailer.send_new_match", lambda email, name, match_name: True
+        "app.notifications.mailer.send_new_match",
+        lambda email, name, match_name, lang="de": True,
     )
 
     headers_a = register_user_with_photo(client, "e.a@example.com", name="A", gender="mann")
@@ -323,7 +325,7 @@ def test_bereits_gepasstes_profil_zaehlt_nicht_als_offen(client, monkeypatch):
     mails = []
     monkeypatch.setattr(
         "app.notifications.mailer.send_pending_likes",
-        lambda email, name, count: mails.append(email) or True,
+        lambda email, name, count, lang="de": mails.append(email) or True,
     )
 
     headers_a = register_user_with_photo(client, "g.a@example.com", name="A", gender="mann")
@@ -346,13 +348,13 @@ def test_pending_likes_laeuft_nur_montags(client, monkeypatch):
     mails = []
     monkeypatch.setattr(
         "app.notifications.mailer.send_pending_likes",
-        lambda email, name, count: mails.append(email) or True,
+        lambda email, name, count, lang="de": mails.append(email) or True,
     )
     monkeypatch.setattr(
-        "app.notifications.mailer.send_queue_waiting", lambda email, name, count: True,
+        "app.notifications.mailer.send_queue_waiting", lambda email, name, count, lang="de": True,
     )
     monkeypatch.setattr(
-        "app.notifications.mailer.send_inactivity_reminder", lambda email, name, days: True,
+        "app.notifications.mailer.send_inactivity_reminder", lambda email, name, days, lang="de": True,
     )
 
     headers_a = register_user_with_photo(client, "d.a@example.com", name="A", gender="mann")
@@ -376,7 +378,7 @@ def test_abgeschalteter_kanal_pending_likes_bleibt_stumm(client, monkeypatch):
     mails = []
     monkeypatch.setattr(
         "app.notifications.mailer.send_pending_likes",
-        lambda email, name, count: mails.append(email) or True,
+        lambda email, name, count, lang="de": mails.append(email) or True,
     )
 
     headers_a = register_user_with_photo(client, "x.a@example.com", name="A", gender="mann")
@@ -407,7 +409,8 @@ def test_abgeschalteter_kanal_pending_likes_bleibt_stumm(client, monkeypatch):
 
 def test_fremde_benachrichtigung_laesst_sich_nicht_quittieren(client, monkeypatch):
     monkeypatch.setattr(
-        "app.notifications.mailer.send_new_match", lambda email, name, match_name: True
+        "app.notifications.mailer.send_new_match",
+        lambda email, name, match_name, lang="de": True,
     )
 
     headers_a = register_user_with_photo(client, "f.a@example.com", name="A", gender="mann")

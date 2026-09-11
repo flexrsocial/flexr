@@ -109,8 +109,8 @@ def test_delete_sends_confirmation_mail(client, monkeypatch):
     monkeypatch.setattr(
         profiles_router.mailer,
         "send_account_deletion_confirmation",
-        lambda email, name, purge_at, grace_days: verschickt.append(
-            (email, name, purge_at, grace_days)
+        lambda email, name, purge_at, grace_days, lang="de": verschickt.append(
+            (email, name, purge_at, grace_days, lang)
         )
         or True,
     )
@@ -122,10 +122,12 @@ def test_delete_sends_confirmation_mail(client, monkeypatch):
     assert resp.status_code == 200
 
     assert len(verschickt) == 1
-    email, name, purge_at, grace_days = verschickt[0]
+    email, name, purge_at, grace_days, lang = verschickt[0]
     assert email == "del.mail@example.com"
     assert name == "Mail Test"
     assert grace_days == 30
+    # Die Bestaetigung geht in der am Profil hinterlegten Sprache raus.
+    assert lang == "de"
     # purge_at liegt ~30 Tage nach der Loeschung
     assert timedelta(days=29) < (purge_at - datetime.utcnow()) < timedelta(days=31)
 

@@ -346,7 +346,7 @@ def test_trial_erinnerung_wird_trotz_webhook_wiederholung_nur_einmal_gesendet(
     sent = []
     monkeypatch.setattr(
         "app.routers.billing.mailer.send_trial_ending",
-        lambda email, name, trial_end: sent.append((email, trial_end)) or True,
+        lambda email, name, trial_end, lang="de": sent.append((email, trial_end)) or True,
     )
 
     event = _event(
