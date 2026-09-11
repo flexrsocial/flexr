@@ -10,6 +10,7 @@ import coil.ImageLoaderFactory
 import coil.disk.DiskCache
 import coil.memory.MemoryCache
 import dagger.hilt.android.HiltAndroidApp
+import flexr.social.app.core.diagnostics.CrashLog
 import flexr.social.app.core.locale.AppStrings
 import flexr.social.app.core.network.ApiErrorParser
 import javax.inject.Inject
@@ -34,6 +35,10 @@ class FlexrApplication : Application(), Configuration.Provider, ImageLoaderFacto
             .build()
 
     override fun onCreate() {
+        // Als Allererstes, noch vor super.onCreate(): Ab hier faengt der
+        // Handler alles ab, was beim Start schiefgeht - auch die Hilt-Injektion
+        // in super.onCreate() selbst. Genau dort lag der Blindflug bei 2.6.0.
+        CrashLog.install(this)
         super.onCreate()
         ApiErrorParser.strings = appStrings
         createNotificationChannels()

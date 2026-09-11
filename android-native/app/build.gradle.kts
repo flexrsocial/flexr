@@ -49,10 +49,19 @@ android {
         // versionName bleibt 2.6.0: Der Release IST 2.6.0, verbrannt sind nur
         // Build-Nummern. versionCode ist der Zaehler, versionName die Fassung.
         // 101/2.6.1 am 11.09.2026: 2.6.0 (versionCode 100) stuerzt beim Start ab.
-        // Die Ursache ist nicht gefunden - dieser Build ist ein sauberer
-        // Neubau derselben Quellen (./gradlew clean bundleProdRelease), keine
-        // Fehlerbehebung. Er taugt als Probe, ob ein verunglueckter
-        // inkrementeller Build die Ursache war; sonst crasht er genauso.
+        // Der Stapelabzug war nicht zu bekommen - kein Rechner am Geraet, und
+        // ohne Ursache waere ein blosser Neubau derselben Quellen nur eine
+        // Wette gewesen. Diese Fassung bringt deshalb zweierlei mit:
+        //
+        //   1. core/diagnostics/CrashLog.kt - schreibt den Stapelabzug in
+        //      Android/data/flexr.social.app/files/. Stuerzt sie wieder ab,
+        //      ist die Ursache danach ohne Rechner ablesbar.
+        //   2. Die Korrektur an core/locale/ProvideAppLanguage.kt: Der dort
+        //      untergeschobene LocalContext hatte keine Activity mehr in der
+        //      baseContext-Kette. Das ist unabhaengig vom Absturz falsch und
+        //      der plausibelste Verursacher - die Zweisprachigkeit kam mit
+        //      2.6.0 herein, 2.5.5 lief noch.
+        //
         // Siehe HANDOFF.md, Abschnitt "Absturz beim Start der Android-App".
         versionCode = 101
         versionName = "2.6.1"
