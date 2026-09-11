@@ -9,18 +9,19 @@ Stand: **11.09.2026**
 E-Mails in der Profilsprache) ist gelaufen — `alembic current` und `heads`
 zeigen beide `c8d31f6a94b2`.
 
-> **Android 2.6.1 (versionCode 101) — Stand nach der zweiten Sitzung vom
-> 11.09.:** Zwei weitere, vom Nutzer nach dem ersten 2.6.1-APK gemeldete Fehler
-> sind behoben — der Sprachregler stand noch zusätzlich oben in der Kopfzeile
-> (jetzt wie im Web nur noch im Profil), und der Sprachwechsel änderte den
-> Reglerzustand, aber keinen einzigen Text (`ProvideAppLanguage` neu gebaut,
-> ohne den `ContextWrapper`, der vermutlich die eigentliche Ursache war).
-> Dabei zusätzlich ein reiner Werkzeug-Fehler gefunden und behoben: KSP2 hat
-> den `prodRelease`-Build mit verdoppelten Hilt-Klassen zuverlässig zum
-> Scheitern gebracht, unabhängig vom Cache-Zustand — `ksp.useKSP2=false` behebt
-> es. Einzelheiten in „Sitzung 11.09.2026 (3)" weiter unten. Der ursprüngliche
-> Absturz beim Start (2.6.0, versionCode 100) ist separat dokumentiert im
-> Abschnitt „Absturz beim Start der Android-App".
+> **Android 2.6.2 (versionCode 102) — aktueller Stand.** Auf 2.6.1 (101)
+> folgten zwei vom Nutzer gemeldete Fehler — der Sprachregler stand noch
+> zusätzlich oben in der Kopfzeile (jetzt wie im Web nur noch im Profil), und
+> der Sprachwechsel änderte den Reglerzustand, aber keinen einzigen Text
+> (`ProvideAppLanguage` neu gebaut, ohne den `ContextWrapper`, der vermutlich
+> die eigentliche Ursache war). Dabei zusätzlich ein reiner Werkzeug-Fehler
+> gefunden und behoben: KSP2 hat den `prodRelease`-Build mit verdoppelten
+> Hilt-Klassen zuverlässig zum Scheitern gebracht, unabhängig vom
+> Cache-Zustand — `ksp.useKSP2=false` behebt es. 2.6.2 ist derselbe Stand,
+> nur unter eigener Versionsnummer statt erneut unter 101 gebaut. Einzelheiten
+> in „Sitzung 11.09.2026 (3)" weiter unten. Der ursprüngliche Absturz beim
+> Start (2.6.0, versionCode 100) ist separat dokumentiert im Abschnitt
+> „Absturz beim Start der Android-App".
 
 **Das Geschäftsmodell hat sich am 10.09.2026 grundlegend geändert:**
 
@@ -40,7 +41,7 @@ Die Zahlen stehen in `backend/app/config.py` und sind zugleich eine
 `frontend/i18n-*.js`, `res/values*/strings.xml`, `agb.html`, `faq.html` und
 `app/legal.py` mit.
 
-**Aktuelles Android-Paket:** 2.6.1 (versionCode 101).
+**Aktuelles Android-Paket:** 2.6.2 (versionCode 102).
 
 Zum **Installieren auf einem Gerät** taugt nur das **APK**. Das `.aab` ist das
 Veröffentlichungsformat für die Play Console und lässt sich auf einem Telefon
@@ -51,10 +52,12 @@ klar benannt:
 
 | Datei | Wofür |
 | --- | --- |
-| `flexr-2.6.1-vc101.apk` | Direkt aufs Gerät laden und antippen |
-| `flexr-2.6.1-vc101.aab` | Nur Upload in die Play Console |
+| `flexr-2.6.2-vc102.apk` | Direkt aufs Gerät laden und antippen |
+| `flexr-2.6.2-vc102.aab` | Nur Upload in die Play Console |
 
-Die Play Console hatte 43 und 50 schon vergeben — Näheres im 10.09.-Abschnitt.
+Die `vc101`-Dateien aus der vorigen Sitzung sind hinfällig, siehe den Nachtrag
+am Ende von „Sitzung 11.09.2026 (3)". Die Play Console hatte 43 und 50 schon
+vergeben — Näheres im 10.09.-Abschnitt.
 
 Aufbau des Dokuments: erst diese Eckdaten, dann **vier Abschnitte vom
 11.09.** (diese Sitzung als (3), dann (2), dann der Absturz-Befund, dann die
@@ -177,6 +180,31 @@ enthält weder das eine noch das andere) — nur ein echtes Gerät oder ein
 Emulator kann das zeigen. Wer als Nächstes an dieser Stelle arbeitet: Ein
 Instrumentierungstest, der `ProvideAppLanguage`/`MainActivity.applyLanguage`
 gegen einen `ActivityScenario` prüft, wäre die naheliegende Lücke.
+
+**Nachtrag:** Auf Wunsch des Nutzers bekam dieser Stand eine eigene
+Versionsnummer statt weiter unter 2.6.1/101 zu laufen — **versionCode 102,
+versionName 2.6.2**. Grund und Regel dazu stehen als Kommentar direkt bei
+`versionCode`/`versionName` in `app/build.gradle.kts`: Jeder tatsächlich
+gebaute und ausgelieferte Stand bekommt ab jetzt seine eigene Nummer, damit am
+Dateinamen erkennbar bleibt, welcher Fix schon drin ist. Derselbe Code wie
+oben beschrieben, aus leerem Zustand neu gebaut
+(`./gradlew --no-configuration-cache clean testProdDebugUnitTest
+testProdReleaseUnitTest assembleProdRelease bundleProdRelease`), beide
+Unit-Test-Varianten grün, gleicher Signierschlüssel:
+
+```
+sha256sum flexr-2.6.2-vc102.apk
+e83674790ed2f6952e7bc4dc12f0e5b7db0ce1b0ee5446223518efa71732944b
+
+sha256sum flexr-2.6.2-vc102.aab
+855430adb6522a6ec9decd4e06e57c487f9582e904600e449ff78bfc3249e8a5
+```
+
+Die zuvor unter `dl-a616e78274de323b/flexr-2.6.1-vc101.{apk,aab}` erwähnten
+Dateien sind damit **hinfällig** — dieser Stand heißt jetzt `2.6.2-vc102` statt
+`2.6.1-vc101` mit ausgetauschtem Inhalt. Für den nächsten Deploy auf dem
+Download-Server: `flexr-2.6.2-vc102.apk` und `.aab` neu ablegen; die
+`vc101`-Dateien müssen nicht mehr existieren.
 
 ## Sitzung 11.09.2026 (2) — Rechtstexte auf Englisch, E-Mails in der Profilsprache
 
