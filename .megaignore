@@ -1,0 +1,3 @@
+-d:venv
+-d:build
+-d:node_modules

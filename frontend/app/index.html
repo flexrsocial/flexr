@@ -595,6 +595,15 @@
     text-align:center; padding:48px 24px; color:var(--chalk-dim); gap:4px;
   }
   .deck .empty{ position:absolute; inset:0; }
+  /* Matches und Chats: derselbe Sitz wie im Deck.
+     .empty zentriert seinen Inhalt (justify-content:center), das wirkt aber
+     nur, wenn das Element auch Hoehe hat. Im Deck holt .deck{flex:1} die
+     Restflaeche und .deck .empty spannt sich per inset:0 darueber. Die beiden
+     Listen sind dagegen inhaltshoch - der Leerzustand klebte deshalb oben,
+     rund 280px hoeher als im Deck. Die Klasse setzt der Renderer nur, wenn die
+     Liste leer ist; eine befuellte Liste bleibt unveraendert. */
+  #matchList.is-empty, #chatList.is-empty{ display:flex; flex-direction:column; flex:1; min-height:0; }
+  #matchList.is-empty .empty, #chatList.is-empty .empty{ flex:1; }
   .empty .empty-icon{
     width:68px; height:68px; border-radius:50%; border:1.5px dashed var(--steel);
     display:flex; align-items:center; justify-content:center; color:var(--chalk-dim);
@@ -5802,6 +5811,7 @@
   }
 
   async function loadMatches(){
+    $('matchList').classList.remove('is-empty');
     $('matchList').innerHTML = `<div class="loading">${escapeHtml(t('matches.loading'))}</div>`;
     lastMatchListHtml = null;
     loadIncomingLikes();
@@ -5918,6 +5928,7 @@
     }
     if(html === lastMatchListHtml) return;
     lastMatchListHtml = html;
+    $('matchList').classList.toggle('is-empty', matches.length === 0);
     $('matchList').innerHTML = html;
     $('matchList').querySelectorAll('.match-item').forEach(el => {
       el.addEventListener('click', () => openMatchProfile(el.dataset.matchId));
@@ -5926,6 +5937,7 @@
 
   // ---------- Chats (nur Matches mit laufender Unterhaltung) ----------
   async function loadChats(){
+    $('chatList').classList.remove('is-empty');
     $('chatList').innerHTML = '<div class="loading">Lade Chats …</div>';
     lastChatListHtml = null;
     try{
@@ -5982,6 +5994,7 @@
     }
     if(html === lastChatListHtml) return;
     lastChatListHtml = html;
+    $('chatList').classList.toggle('is-empty', withMessages.length === 0);
     $('chatList').innerHTML = html;
     $('chatList').querySelectorAll('.match-item').forEach(el => {
       el.addEventListener('click', () => openChat(el.dataset.matchId, 'chats'));

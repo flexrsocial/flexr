@@ -14,6 +14,7 @@ import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -65,7 +66,10 @@ fun MatchesScreen(
             modifier = Modifier.fillMaxSize(),
         ) {
             if (matches.isEmpty() && !isRefreshing) {
-                Box(Modifier.fillMaxSize()) {
+                // Mittig wie der Leerzustand im Swipe-Deck - sonst klebt er
+                // oben unter der Ueberschrift, waehrend er dort auf halber
+                // Hoehe steht.
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     EmptyState(
                         icon = FlexrIcons.Matches,
                         title = stringResource(R.string.matches_empty_title),
@@ -122,7 +126,10 @@ fun ChatsScreen(
             modifier = Modifier.fillMaxSize(),
         ) {
             if (conversations.isEmpty() && !isRefreshing) {
-                Box(Modifier.fillMaxSize()) {
+                // Mittig wie der Leerzustand im Swipe-Deck - sonst klebt er
+                // oben unter der Ueberschrift, waehrend er dort auf halber
+                // Hoehe steht.
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     EmptyState(
                         icon = FlexrIcons.Chats,
                         title = stringResource(R.string.chats_empty_title),

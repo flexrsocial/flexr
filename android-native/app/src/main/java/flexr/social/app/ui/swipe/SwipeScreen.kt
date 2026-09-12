@@ -95,6 +95,7 @@ fun SwipeScreen(
                 state.isLoading -> LoadingState(label = stringResource(R.string.swipe_loading))
 
                 state.error != null -> EmptyState(
+                    modifier = Modifier.align(Alignment.Center),
                     icon = FlexrIcons.Swipe,
                     title = stringResource(R.string.swipe_error_title),
                     description = state.error.orEmpty(),
@@ -107,6 +108,7 @@ fun SwipeScreen(
                 )
 
                 state.isExhausted -> EmptyState(
+                    modifier = Modifier.align(Alignment.Center),
                     icon = FlexrIcons.Swipe,
                     title = stringResource(R.string.swipe_empty_title),
                     description = stringResource(R.string.swipe_empty_sub),
