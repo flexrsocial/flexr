@@ -46,9 +46,12 @@ import androidx.navigation.navArgument
 import flexr.social.app.R
 import flexr.social.app.core.browser.openExternalPage
 import flexr.social.app.core.common.ServerTime
+import flexr.social.app.core.designsystem.component.LanguageSwitch
 import flexr.social.app.core.designsystem.component.LoadingState
 import flexr.social.app.core.designsystem.component.StatusPill
 import flexr.social.app.core.designsystem.theme.FlexrBackground
+import flexr.social.app.core.locale.AppLanguageViewModel
+import flexr.social.app.core.locale.LocalAppLanguage
 import flexr.social.app.domain.model.Membership
 import flexr.social.app.ui.account.AccountScreen
 import flexr.social.app.ui.auth.LoginScreen
@@ -220,7 +223,18 @@ private fun AuthGraph(
     Scaffold(
         containerColor = Color.Transparent,
         snackbarHost = { SnackbarHost(snackbarHostState) { data -> FlexrSnackbar(data) } },
-        topBar = { FlexrTopBar(statusSlot = {}) },
+        // Der Sprachregler steht hier, weil er sonst unerreichbar waere: In den
+        // Kontobereich - seine zweite Stelle - kommt nur, wer schon angemeldet
+        // ist. Wer die App zum ersten Mal oeffnet, sieht Login und
+        // Registrierung, und die sollen sich auf Englisch stellen lassen,
+        // bevor man ein Konto anlegt.
+        //
+        // Das weicht bewusst von der Web-App ab: Dort steht der Regler nur im
+        // Kontobereich (app/index.html, "Die Sprachwahl steht nur hier"), aber
+        // dort ist auch niemand gefangen - die Rechtstexte gibt es unter /en/,
+        // und wem die erkannte Sprache nicht passt, der stellt den Browser um.
+        // Eine installierte App hat keinen dieser Auswege.
+        topBar = { FlexrTopBar(statusSlot = { LanguagePicker() }) },
     ) { padding ->
         NavHost(
             navController = navController,
@@ -514,6 +528,22 @@ private fun androidx.navigation.NavGraphBuilder.legalDestination(navController: 
 
         LegalScreen(document = document, onBack = { navController.popBackStack() })
     }
+}
+
+/**
+ * Sprachregler fuer die Kopfzeile des ausgeloggten Graphen.
+ *
+ * Holt sich seinen eigenen [AppLanguageViewModel] - genau wie der Regler im
+ * Kontobereich. Beide sehen denselben Zustand, weil der `LanguageStore`
+ * dahinter ein Singleton ist.
+ */
+@Composable
+private fun LanguagePicker() {
+    val viewModel: AppLanguageViewModel = hiltViewModel()
+    LanguageSwitch(
+        language = LocalAppLanguage.current,
+        onSelect = viewModel::select,
+    )
 }
 
 /**

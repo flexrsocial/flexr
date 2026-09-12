@@ -35,9 +35,9 @@ interface AppStrings {
 /**
  * [AppStrings] auf Basis der Android-Ressourcen.
  *
- * Der Startwert ist [AppLanguage.detect] und damit schon die richtige
- * Vermutung; sobald der gespeicherte Wert aus dem DataStore da ist, zieht der
- * Zustand nach. Das spart einen blockierenden Lesevorgang beim Start.
+ * Der Startwert ist [LanguageStore.current] und damit bereits die
+ * gespeicherte Wahl — seit sie in [android.content.SharedPreferences] liegt,
+ * steht sie sofort fest und muss nicht erst erraten werden.
  */
 @Singleton
 class ResourceAppStrings @Inject constructor(
@@ -47,7 +47,7 @@ class ResourceAppStrings @Inject constructor(
 ) : AppStrings {
 
     private val language: StateFlow<AppLanguage> = languageStore.language
-        .stateIn(scope, SharingStarted.Eagerly, AppLanguage.detect())
+        .stateIn(scope, SharingStarted.Eagerly, languageStore.current)
 
     /**
      * Ein Context mit der gewaehlten Sprache. Wird bei jedem Zugriff neu

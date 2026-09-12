@@ -75,8 +75,15 @@ android {
         // Versionsnummer statt denselben Code unter derselben Nummer neu zu
         // bauen - so bleibt am Dateinamen erkennbar, welcher Fix schon drin
         // ist.
-        versionCode = 102
-        versionName = "2.6.2"
+        //
+        // 103/2.6.3 am 12.09.2026: In 2.6.2 aenderte der Sprachregler weiterhin
+        // keinen einzigen Text, und auf dem Login-Schirm gab es ueberhaupt
+        // keinen mehr. Diese Fassung schaltet die Sprache am Basis-Context der
+        // Activity um (MainActivity.attachBaseContext) statt zur Laufzeit an
+        // den Ressourcen zu drehen, stellt den Regler im ausgeloggten Graphen
+        // wieder auf, und schaltet unten die Sprach-Splits des App Bundles ab.
+        versionCode = 103
+        versionName = "2.6.3"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         // Nur die Sprachen ausliefern, die es wirklich gibt: Deutsch als
@@ -127,6 +134,31 @@ android {
             ndk {
                 debugSymbolLevel = "FULL"
             }
+        }
+    }
+
+    /**
+     * Keine Sprach-Splits im App Bundle.
+     *
+     * Standardmaessig legt das Bundle jede Sprache in ein eigenes Split-APK,
+     * und Play liefert dem Geraet nur die Splits seiner Systemsprache aus. Auf
+     * einem deutsch eingestellten Telefon waere `res/values-en` damit gar nicht
+     * installiert — die App kann dann umschalten, worauf sie will, und faellt
+     * trotzdem auf die deutschen Texte zurueck.
+     *
+     * Genau dieses Bild hat der Nutzer zweimal gemeldet (2.6.1 und 2.6.2: der
+     * Regler sprang um, kein Text aenderte sich). Vom Rechner aus war es nicht
+     * zu sehen, weil das direkt aufgespielte APK aus `assembleProdRelease`
+     * immer alle Sprachen enthaelt; nur der Weg ueber die Play Console
+     * schneidet sie weg.
+     *
+     * Der Aufpreis sind ein paar Kilobyte Downloadgroesse fuer zwei Sprachen.
+     * Das ist die Bedingung dafuer, dass eine App ihre Sprache selbst
+     * umstellen darf.
+     */
+    bundle {
+        language {
+            enableSplit = false
         }
     }
 

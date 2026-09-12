@@ -36,9 +36,10 @@ private val SEGMENT_HEIGHT = 26.dp
  * Zwei Segmente mit gleitendem Knopf — dieselbe Optik wie der Sprachregler der
  * Web-App (`.lang-switch` in frontend/app/index.html).
  *
- * Er steht an zwei Stellen: oben in der Kopfzeile, wo ihn auch ein noch nicht
- * angemeldeter Nutzer sofort sieht, und im Kontobereich unter „Profil", wo man
- * Einstellungen sucht.
+ * Er steht an zwei Stellen: in der Kopfzeile des ausgeloggten Graphen, wo ihn
+ * ein noch nicht angemeldeter Nutzer sofort sieht, und im Kontobereich unter
+ * „Profil", wo man Einstellungen sucht. Angemeldet ist er nur noch dort — in
+ * der Kopfzeile steht dann der Mitgliedschafts-Status.
  */
 @Composable
 fun LanguageSwitch(

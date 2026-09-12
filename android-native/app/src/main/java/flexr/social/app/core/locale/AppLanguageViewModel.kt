@@ -24,21 +24,39 @@ class AppLanguageViewModel @Inject constructor(
     private val profileRepository: ProfileRepository,
 ) : ViewModel() {
 
+    /**
+     * Startwert ist [LanguageStore.current], nicht [AppLanguage.detect]: Die
+     * gespeicherte Wahl steht synchron fest, und
+     * [flexr.social.app.MainActivity] vergleicht diesen Wert mit der Sprache,
+     * mit der sie aufgebaut wurde. Ein Startwert "Vorgabe", der sich einen
+     * Wimpernschlag spaeter korrigiert, wuerde dort einen ueberfluessigen
+     * Neuaufbau ausloesen.
+     */
     val language: StateFlow<AppLanguage> = store.language
-        .stateIn(viewModelScope, SharingStarted.Eagerly, AppLanguage.detect())
+        .stateIn(viewModelScope, SharingStarted.Eagerly, store.current)
 
     /**
      * Sprache waehlen.
      *
-     * Die Oberflaeche stellt sofort um — das laeuft ohne Server. Die Meldung
-     * ans Profil kommt hinterher und darf scheitern: Der Server braucht sie
-     * nur fuer seine E-Mails, und [MainViewModel] holt sie beim naechsten
-     * Start ohnehin nach.
+     * Gespeichert wird sofort und ohne Server; die Oberflaeche zieht nach,
+     * sobald [flexr.social.app.MainActivity] die Activity mit der neuen
+     * Sprache neu aufbaut. Die Meldung ans Profil kommt hinterher und darf
+     * scheitern: Der Server braucht sie nur fuer seine E-Mails, und
+     * [MainViewModel] holt sie beim naechsten Start ohnehin nach.
      */
     fun select(language: AppLanguage) {
         viewModelScope.launch {
             store.setLanguage(language)
-            profileRepository.reportLanguage(language.code)
+            // Nur mit geladenem Profil: Der Regler steht seit dem 12.09.2026
+            // auch auf dem Startbildschirm, und dort gibt es keine Sitzung.
+            // Die Meldung liefe in ein 401, und der SessionExpiryInterceptor
+            // wuerde daraufhin den Token verwerfen. Verloren geht dadurch
+            // nichts - die Registrierung schickt die Sprache selbst mit
+            // (RegisterViewModel), und MainViewModel.syncLanguage holt sie beim
+            // naechsten Login nach.
+            if (profileRepository.myProfile.value != null) {
+                profileRepository.reportLanguage(language.code)
+            }
         }
     }
 }

@@ -1,16 +1,16 @@
 package flexr.social.app
 
+import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
-import android.content.res.Resources
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -19,6 +19,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import flexr.social.app.core.designsystem.theme.FlexrTheme
 import flexr.social.app.core.locale.AppLanguage
 import flexr.social.app.core.locale.AppLanguageViewModel
+import flexr.social.app.core.locale.LanguageStore
 import flexr.social.app.core.locale.ProvideAppLanguage
 import flexr.social.app.notifications.ActivityNotificationWorker
 import flexr.social.app.notifications.NewMessageWorker
@@ -29,52 +30,48 @@ import flexr.social.app.ui.navigation.TopLevelDestination
 class MainActivity : ComponentActivity() {
 
     /**
-     * Ressourcen der gerade gewaehlten Sprache - `null`, solange noch keine
-     * angewendet wurde (siehe [applyLanguage]).
+     * Sprache, mit der diese Activity aufgebaut wurde.
      *
-     * [getResources] liefert diese anstelle der echten Ressourcen der
-     * Activity, sobald sie gesetzt sind. Bewusst ein Feld auf der ECHTEN
-     * Activity statt eines zweiten, per `ContextWrapper` fabrizierten Context
-     * als `LocalContext`, wie es hier bis zum 11.09.2026 stand: Ein
-     * `ContextWrapper` um die Activity ist selbst *keine* Activity mehr - ein
-     * direktes `context as Activity` (Berechtigungsabfragen, CameraX, Custom
-     * Tabs) waere daran mit einer `ClassCastException` gescheitert, obwohl die
-     * echte Activity ueber `baseContext` weiter erreichbar gewesen waere.
-     * Gemeldet wurde ausserdem, dass `stringResource` trotz gewaehlter
-     * Sprache weiter Deutsch auflöste; ob das an genau diesem Wrapper lag,
-     * liess sich mangels Testgeraet nicht abschliessend nachweisen, aber der
-     * Verdacht lag nahe. Mit diesem Feld bleibt `LocalContext.current`
-     * UEBERALL die echte Activity; nur [getResources] liefert je nach Sprache
-     * etwas anderes - dieselbe Technik, mit der Apps schon vor Jetpack
-     * Compose die Sprache zur Laufzeit umgeschaltet haben.
+     * Gesetzt in [attachBaseContext] und ab da unveraenderlich: Der
+     * Basis-Context steht fest, sobald die Activity haengt. Ein Wechsel danach
+     * kann nur noch ueber [recreate] wirken — siehe [onCreate].
      */
-    private var localizedResources: Resources? = null
-
-    override fun getResources(): Resources = localizedResources ?: super.getResources()
+    private var attachedLanguage: AppLanguage = AppLanguage.DEFAULT
 
     /**
-     * Baut die lokalisierten Ressourcen fuer [language] und haelt sie in
-     * [localizedResources] bereit.
+     * Setzt die gewaehlte Sprache am Basis-Context — dem einzigen Ort, an dem
+     * sie zuverlaessig wirkt.
      *
-     * Zwei bewusste Entscheidungen gegen die naheliegenderen Varianten:
+     * Vorgeschichte: Bis zum 11.09.2026 wurde die Sprache zur Laufzeit
+     * umgehaengt, erst ueber einen untergeschobenen `LocalContext`
+     * (`ContextWrapper`), dann ueber ein ueberschriebenes `getResources()` auf
+     * der Activity. Beide Fassungen wurden am Geraet geprueft, und in beiden
+     * blieb jeder Text deutsch, obwohl der Regler umsprang. Auf Papier haetten
+     * beide funktionieren muessen (`stringResource` liest
+     * `LocalContext.current.resources`) — taten sie aber nicht.
      *
-     * - Die Ausgangskonfiguration kommt aus `super.getResources()`, nicht aus
-     *   `resources` (das waere wegen der Ueberschreibung unten dasselbe Feld,
-     *   das gerade erst gesetzt wird) und nicht aus `applicationContext` (das
-     *   kennt Fenstergroesse und Mehrfenster-/Faltzustand dieser Activity
-     *   nicht, nur die Vorgabe des Geraets).
-     * - `createConfigurationContext` wird auf `applicationContext` aufgerufen,
-     *   nicht auf `this`: Es ist unklar, ob die Systemimplementierung dabei
-     *   intern `getResources()` der aufrufenden Instanz konsultiert - waere
-     *   das so, entstuende mit `this` eine Ringabhaengigkeit auf das Feld
-     *   unten. `applicationContext` ist dafuer eine andere Instanz, an der
-     *   nichts ueberschrieben ist.
+     * Diese Fassung raet nicht mehr, sondern nimmt den Weg, den Android selbst
+     * vorsieht: Ein `createConfigurationContext` als Basis der Activity. Damit
+     * liefert *jeder* Context dieser Activity die richtigen Ressourcen —
+     * `stringResource`, `getString`, Dialoge, `LocalConfiguration`,
+     * Systemdialoge — ohne dass irgendwo etwas ueberschrieben waere.
+     *
+     * Der Preis ist ein [recreate] beim Wechsel. Er kostet nichts Sichtbares:
+     * ViewModels ueberleben ihn, und Navigationsstapel wie Scrollpositionen
+     * liegen in `rememberSaveable` und kommen zurueck. Genau so schaltet auch
+     * Android 13 selbst die App-Sprache um.
+     *
+     * Die Wahl kommt aus [LanguageStore] und wird synchron gelesen: Hier gibt
+     * es weder Hilt noch einen Coroutine-Scope, auf die man warten koennte.
      */
-    private fun applyLanguage(language: AppLanguage) {
-        val configuration = Configuration(super.getResources().configuration).apply {
+    override fun attachBaseContext(newBase: Context) {
+        val language = LanguageStore.storedLanguage(newBase) ?: AppLanguage.detect()
+        attachedLanguage = language
+        val configuration = Configuration(newBase.resources.configuration).apply {
             setLocale(language.locale)
+            setLayoutDirection(language.locale)
         }
-        localizedResources = applicationContext.createConfigurationContext(configuration).resources
+        super.attachBaseContext(newBase.createConfigurationContext(configuration))
     }
 
     /**
@@ -102,17 +99,18 @@ class MainActivity : ComponentActivity() {
         )
 
         setContent {
-            // Die Sprachwahl huellt alles ein, was Texte zeigt: darin loest
-            // `stringResource` gegen die gewaehlte Sprache auf. Bewusst kein
-            // `recreate()` beim Wechsel - so bleiben Navigationsstapel und
-            // Scrollpositionen stehen.
             val languageViewModel: AppLanguageViewModel = hiltViewModel()
             val language by languageViewModel.language.collectAsStateWithLifecycle()
-            // Synchron VOR dem ersten Zeichnen anwenden (derselbe `remember`-
-            // Kniff wie in ProvideAppLanguage fuer die Configuration): Damit
-            // sieht `stringResource` schon im ersten Frame nach jedem Wechsel
-            // die richtige Sprache, nicht erst nach einer weiteren Rekomposition.
-            remember(language) { applyLanguage(language) }
+            // Sprache gewechselt: Die Ressourcen dieser Activity stehen seit
+            // `attachBaseContext` fest, also muss sie neu aufgebaut werden.
+            // Loest im Normalfall nie aus - der Startwert des Flusses kommt aus
+            // demselben synchron gelesenen Speicher wie `attachedLanguage`.
+            // Es gibt genau zwei Ausloeser: der Griff an den Regler, und der
+            // erste Start nach dem Umzug vom alten DataStore
+            // (LanguageStore.migrateLegacyChoice).
+            LaunchedEffect(language) {
+                if (language != attachedLanguage && !isFinishing) recreate()
+            }
             ProvideAppLanguage(language) {
                 FlexrTheme {
                     FlexrApp(

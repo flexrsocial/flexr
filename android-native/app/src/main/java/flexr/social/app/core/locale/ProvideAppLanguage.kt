@@ -1,13 +1,9 @@
 package flexr.social.app.core.locale
 
-import android.content.res.Configuration
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.ProvidableCompositionLocal
 import androidx.compose.runtime.compositionLocalOf
-import androidx.compose.runtime.remember
-import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.platform.LocalContext
 
 /**
  * Die gerade gewaehlte Sprache, fuer Stellen, die sie selbst kennen muessen
@@ -17,36 +13,26 @@ val LocalAppLanguage: ProvidableCompositionLocal<AppLanguage> =
     compositionLocalOf { AppLanguage.DEFAULT }
 
 /**
- * Loest `stringResource` innerhalb von [content] in [language] auf.
+ * Stellt [LocalAppLanguage] bereit.
  *
- * Bewusst ueber eine ausgetauschte [LocalConfiguration] und nicht ueber einen
- * Neustart der Activity: `stringResource` beobachtet [LocalConfiguration], ein
- * Sprachwechsel zeichnet die Oberflaeche also einfach neu. Die Activity bleibt
- * stehen, Navigationsstapel und Scrollpositionen ueberleben den Wechsel —
- * anders als bei `recreate()`.
+ * Hier wird an den Ressourcen **nichts** mehr gedreht. Bis zum 11.09.2026
+ * tauschte diese Funktion `LocalContext` bzw. `LocalConfiguration` aus, um
+ * `stringResource` zur Laufzeit umzubiegen; am Geraet blieben die Texte
+ * trotzdem deutsch. Die Umschaltung sitzt jetzt dort, wo Android sie vorsieht:
+ * am Basis-Context der Activity ([flexr.social.app.MainActivity.attachBaseContext]).
+ * Damit loest `stringResource` von sich aus richtig auf — `LocalContext` ist
+ * ueberall die echte, richtig lokalisierte Activity, und `LocalConfiguration`
+ * traegt deren Sprache ohne Zutun.
  *
- * [LocalContext] wird hier bewusst NICHT ausgetauscht (anders als bis zum
- * 11.09.2026): Die eigentliche Umschaltung der Ressourcen passiert in
- * [flexr.social.app.MainActivity.applyLanguage] ueber ein ueberschriebenes
- * `getResources()` auf der Activity selbst. `LocalContext.current` bleibt
- * dadurch ueberall die echte Activity, und `stringResource` liest ueber
- * `LocalContext.current.resources` automatisch die dort hinterlegten,
- * lokalisierten Ressourcen - ganz ohne einen zweiten, fabrizierten Context.
- * Diese [Configuration] hier dient nur noch als Ausloeser fuer die
- * Rekomposition: Ihr Inhalt selbst wird von niemandem mehr gelesen.
+ * Bleibt genau eine Aufgabe: Der Regler muss wissen, welches Segment leuchtet.
  */
 @Composable
 fun ProvideAppLanguage(
     language: AppLanguage,
     content: @Composable () -> Unit,
 ) {
-    val context = LocalContext.current
-    val configuration = remember(language, context) {
-        Configuration(context.resources.configuration).apply { setLocale(language.locale) }
-    }
     CompositionLocalProvider(
         LocalAppLanguage provides language,
-        LocalConfiguration provides configuration,
         content = content,
     )
 }

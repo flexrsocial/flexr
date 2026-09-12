@@ -46,15 +46,17 @@ fun FlexrWordmark(modifier: Modifier = Modifier) {
 }
 
 /**
- * Kopfzeile: Wortmarke links, rechts der Mitgliedschafts-Status.
+ * Kopfzeile: Wortmarke links, rechts der [statusSlot].
  *
- * Bis zum 11.09.2026 stand hier zusätzlich der Sprachregler "on-top", analog
- * zur Web-App. Genau wie dort (Commit 997b0d6) ist er entfernt: Er stand
- * doppelt im Dokument - hier und im Kontobereich unter "Profil", wo man
- * Einstellungen sucht. Die einzige verbleibende Stelle ist dort
- * ([flexr.social.app.ui.account.AccountScreen]); die Spracherkennung
- * ([flexr.social.app.core.locale.AppLanguage.detect]) bleibt für neue Sitzungen
- * unveraendert in Betrieb.
+ * Was rechts steht, entscheidet der Graph. Im angemeldeten Zustand ist es der
+ * Mitgliedschafts-Status, im ausgeloggten der Sprachregler — dort gibt es
+ * keinen Status anzuzeigen, und ohne ihn haette ein noch nicht angemeldeter
+ * Nutzer keine Moeglichkeit, auf Englisch zu stellen (siehe `AuthGraph` in
+ * [flexr.social.app.ui.FlexrApp]).
+ *
+ * Am 11.09.2026 war der Regler hier ganz verschwunden — fest verdrahtet,
+ * also auch auf dem Login-Schirm. Er steht jetzt nicht mehr auf jedem
+ * Bildschirm doppelt, aber eben auch nicht nirgends.
  */
 @Composable
 fun FlexrTopBar(

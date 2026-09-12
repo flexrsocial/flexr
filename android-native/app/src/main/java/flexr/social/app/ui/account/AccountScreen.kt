@@ -122,7 +122,8 @@ fun AccountScreen(
     val colors = FlexrTheme.colors
     val currentProfile = profile
     val context = LocalContext.current
-    // Sprachwahl: derselbe Activity-weite ViewModel wie in der Kopfzeile.
+    // Sprachwahl: derselbe Zustand wie der Regler in der ausgeloggten
+    // Kopfzeile - der LanguageStore dahinter ist ein Singleton.
     val languageViewModel: AppLanguageViewModel = hiltViewModel()
     var legalDialogVisible by remember { mutableStateOf(false) }
     var notificationDialogVisible by remember { mutableStateOf(false) }
@@ -360,7 +361,7 @@ fun AccountScreen(
         SectionTitle(stringResource(R.string.account_section_settings))
 
         // Sprachwahl auch hier, weil Einstellungen im Profil gesucht werden -
-        // derselbe Regler wie oben in der Kopfzeile, gleicher Zustand.
+        // derselbe Regler wie auf dem Startbildschirm, gleicher Zustand.
         Row(
             Modifier.fillMaxWidth().padding(top = 12.dp),
             verticalAlignment = Alignment.CenterVertically,
