@@ -82,8 +82,14 @@ android {
         // Activity um (MainActivity.attachBaseContext) statt zur Laufzeit an
         // den Ressourcen zu drehen, stellt den Regler im ausgeloggten Graphen
         // wieder auf, und schaltet unten die Sprach-Splits des App Bundles ab.
-        versionCode = 103
-        versionName = "2.6.3"
+        //
+        // 104/2.6.4 am 12.09.2026: Statuspille nur noch "Beta", der Hinweis
+        // unter "Sprache" enger gesetzt, und mindestens drei Profilfotos beim
+        // Anlegen eines Kontos. 2.6.3 war zu diesem Zeitpunkt schon gebaut und
+        // aufs Geraet gespielt - deshalb eine eigene Nummer statt eines zweiten
+        // Bundles unter 103 mit anderem Inhalt.
+        versionCode = 104
+        versionName = "2.6.4"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         // Nur die Sprachen ausliefern, die es wirklich gibt: Deutsch als

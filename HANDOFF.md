@@ -1,27 +1,40 @@
 # FLEXR — Handoff für ein anderes Gerät / Claude Code
 
-Stand: **11.09.2026**
+Stand: **12.09.2026**
 
 ## Wo das Projekt gerade steht
 
-**Committet, gepusht und deployed.** Der VPS steht auf demselben Stand wie
-`origin/main`; die Migration der Sitzung vom 11.09. (Rechtstexte auf Englisch,
-E-Mails in der Profilsprache) ist gelaufen — `alembic current` und `heads`
-zeigen beide `c8d31f6a94b2`.
+**Alles committet, gepusht und deployed.** Der VPS steht auf demselben Stand
+wie `origin/main`; die Migration der Sitzung vom 11.09. (Rechtstexte auf
+Englisch, E-Mails in der Profilsprache) ist gelaufen — `alembic current` und
+`heads` zeigen beide `c8d31f6a94b2`. Die Sitzung vom 12.09. **(2)** bringt
+eine Backend-Änderung ohne neue Migration (nur Prüflogik, kein Schema).
 
-> **Android 2.6.2 (versionCode 102) — aktueller Stand.** Auf 2.6.1 (101)
-> folgten zwei vom Nutzer gemeldete Fehler — der Sprachregler stand noch
-> zusätzlich oben in der Kopfzeile (jetzt wie im Web nur noch im Profil), und
-> der Sprachwechsel änderte den Reglerzustand, aber keinen einzigen Text
-> (`ProvideAppLanguage` neu gebaut, ohne den `ContextWrapper`, der vermutlich
-> die eigentliche Ursache war). Dabei zusätzlich ein reiner Werkzeug-Fehler
-> gefunden und behoben: KSP2 hat den `prodRelease`-Build mit verdoppelten
-> Hilt-Klassen zuverlässig zum Scheitern gebracht, unabhängig vom
-> Cache-Zustand — `ksp.useKSP2=false` behebt es. 2.6.2 ist derselbe Stand,
-> nur unter eigener Versionsnummer statt erneut unter 101 gebaut. Einzelheiten
-> in „Sitzung 11.09.2026 (3)" weiter unten. Der ursprüngliche Absturz beim
-> Start (2.6.0, versionCode 100) ist separat dokumentiert im Abschnitt
-> „Absturz beim Start der Android-App".
+> **Android 2.6.4 (versionCode 104) — aktueller Stand.** Statuspille heißt
+> nur noch „Beta", der Hinweis unter „Sprache" ist enger gesetzt, und beim
+> Anlegen eines Kontos sind jetzt **mindestens drei Profilfotos** Pflicht —
+> durchgesetzt am Server, nicht nur in den Clients. Einzelheiten in
+> „Sitzung 12.09.2026 (2)" direkt unten.
+>
+> **Android 2.6.3 (versionCode 103)** war der Stand davor und ist nie
+> veröffentlicht worden (gebaut, aufs Gerät gespielt, nicht hochgeladen). Der
+> Sprachwechsel
+> ist zum dritten Mal angefasst worden, diesmal an der Wurzel: Er sitzt jetzt
+> am **Basis-Context der Activity** (`MainActivity.attachBaseContext`) statt
+> zur Laufzeit an den Ressourcen zu drehen, und das App Bundle legt seine
+> Sprachen nicht mehr in **Sprach-Splits** ab (`bundle { language {
+> enableSplit = false } }`) — auf einem deutschen Gerät war `res/values-en`
+> über Play sonst überhaupt nicht installiert. Dazu steht der Regler wieder in
+> der Kopfzeile des **ausgeloggten** Graphen, weil der Kontobereich ohne
+> Anmeldung unerreichbar ist. Einzelheiten in „Sitzung 12.09.2026" weiter
+> unten. Der Inhalt steckt vollständig in 2.6.4.
+>
+> Vorgeschichte in „Sitzung 11.09.2026 (3)": 2.6.2 entfernte den Regler aus
+> der Kopfzeile und baute `ProvideAppLanguage` ohne `ContextWrapper` neu; der
+> ursprüngliche Absturz beim Start (2.6.0, versionCode 100) steht im Abschnitt
+> „Absturz beim Start der Android-App". Der dort gefundene Werkzeug-Fehler
+> (KSP2 verdoppelt Hilt-Klassen im `prodRelease`-Build, umgangen mit
+> `ksp.useKSP2=false`) gilt unverändert weiter.
 
 **Das Geschäftsmodell hat sich am 10.09.2026 grundlegend geändert:**
 
@@ -41,7 +54,7 @@ Die Zahlen stehen in `backend/app/config.py` und sind zugleich eine
 `frontend/i18n-*.js`, `res/values*/strings.xml`, `agb.html`, `faq.html` und
 `app/legal.py` mit.
 
-**Aktuelles Android-Paket:** 2.6.2 (versionCode 102).
+**Aktuelles Android-Paket:** 2.6.4 (versionCode 104).
 
 Zum **Installieren auf einem Gerät** taugt nur das **APK**. Das `.aab` ist das
 Veröffentlichungsformat für die Play Console und lässt sich auf einem Telefon
@@ -52,20 +65,256 @@ klar benannt:
 
 | Datei | Wofür |
 | --- | --- |
-| `flexr-2.6.2-vc102.apk` | Direkt aufs Gerät laden und antippen |
-| `flexr-2.6.2-vc102.aab` | Nur Upload in die Play Console |
+| `flexr-2.6.4-vc104.apk` | Direkt aufs Gerät laden und antippen |
+| `flexr-2.6.4-vc104.aab` | Nur Upload in die Play Console |
 
-Die `vc101`-Dateien aus der vorigen Sitzung sind hinfällig, siehe den Nachtrag
-am Ende von „Sitzung 11.09.2026 (3)". Die Play Console hatte 43 und 50 schon
-vergeben — Näheres im 10.09.-Abschnitt.
+Die `vc101`-, `vc102`- und `vc103`-Dateien sind hinfällig. Die Play Console hatte 43 und
+50 schon vergeben — Näheres im 10.09.-Abschnitt.
 
-Aufbau des Dokuments: erst diese Eckdaten, dann **vier Abschnitte vom
-11.09.** (diese Sitzung als (3), dann (2), dann der Absturz-Befund, dann die
+> **Zum Prüfen des Sprachwechsels bitte das APK nehmen, nicht den
+> Play-Store-Stand einer älteren Fassung.** Ein über die Play Console
+> ausgeliefertes 2.6.2 oder älter kann die Sprache gar nicht umstellen — die
+> englischen Texte lagen dort in einem Sprach-Split, den ein deutsches Gerät
+> nie herunterlädt. Erst ab 2.6.3 stecken beide Sprachen im Basis-Paket.
+
+Aufbau des Dokuments: erst diese Eckdaten, dann der Abschnitt vom
+**12.09.**, dann **vier Abschnitte vom 11.09.** (diese Sitzung als (3), dann (2), dann der Absturz-Befund, dann die
 Ausgangssitzung), dann die **drei Abschnitte vom 10.09.**
 (Audit-Fortsetzung, Audit, Monetarisierung), dann **09.09.**, dann
 **08.09.**, dann die beiden Sitzungen vom **07.09.**, dann **06.09.**, dann
 **05.09.**, dann **31.08.**, **30.08.**, **23.08.**, **21.08.**; die Build-,
 Test- und Deploy-Abschnitte am Ende gelten sitzungsübergreifend.
+
+## Sitzung 12.09.2026 (2) — „Beta", Sprach-Hinweis, mindestens drei Fotos
+
+Vier Commits (`bb6fbed`, `2aa06b2`, `648f273`, `7456b22`), alle gepusht und
+ausgerollt. `bb6fbed` ist die schon vorhandene, noch nicht committete
+2.6.3-Arbeit aus der Sitzung davor — sie lag unversioniert im Arbeitsbaum und
+ist hier mitgegangen.
+
+### 1. Statuspille und Sprach-Hinweis — `2aa06b2`
+
+Die Pille im Kopf stand auf „Beta · gratis" / „Beta · free"; der Zusatz fällt
+weg, die Web-App sagt seit `997b0d6` schon nur „Beta". Ressourcenname mit
+umbenannt: `status_beta_free` → `status_beta`.
+
+Der Hinweis unter „Sprache" im Kontobereich ist der einzige dort, der über
+mehrere Zeilen läuft. Mit der Zeilenhöhe aus `bodySmall` (20 sp auf 13 sp
+Schrift) standen die Zeilen so weit auseinander, dass der Satz nicht mehr als
+Block las und der Abstand zur Überschrift im Zeilenabstand unterging. Jetzt
+16 sp Zeilenhöhe plus 4 dp eigener Abstand nach oben.
+
+### 2. Mindestens drei Profilfotos — `648f273`
+
+Bisher genügte ein Foto. Ab jetzt sind drei Pflicht, und zwar **am Server
+entschieden**:
+
+- `MIN_PHOTOS`/`MAX_PHOTOS` in `backend/app/models.py`.
+- `/verification/start` verlangt die volle Zahl statt eines Fotos.
+- `DELETE /me/photos/{id}` lehnt ab, was darunter fallen würde. Ohne diese
+  Prüfung ließe sich die Regel umgehen, indem direkt nach der Registrierung
+  zwei der drei Fotos wieder verschwinden. Austauschen geht weiter: erst
+  hochladen (bis sechs), dann löschen. Was die Moderation über
+  `/api/admin/photos` entfernt, bleibt ausgenommen — Moderation schlägt Regel.
+
+**Keine Migration**, es ändert sich kein Schema. Beide Clients ziehen dieselbe
+Grenze bei Registrierung, Speichern und Löschen und zeigen unter dem Raster
+einen Zähler („Noch 2 von 3 Pflichtfotos") — sonst bliebe der Knopf bei zwei
+Fotos grundlos grau, wo früher eines reichte.
+
+**Bestandskonten mit weniger Fotos bleiben nutzbar** und stoßen erst an die
+Grenze, wenn sie ein Foto löschen oder die Prüfung starten wollen. Sollte das
+stören, sind es zwei Stellen: die Prüfung in `start_verification` und die in
+`delete_photo`.
+
+Service Worker auf `flexr-shell-v15`, Wörterbuch auf `?v=5` — eine
+eingefrorene alte Shell hätte sonst weiter „mind. 1" angezeigt.
+
+### 3. Mehrzahl und eine Sackgasse in der Web-App — `7456b22`
+
+Wo ein Text von dem einen Profilfoto sprach, das ein Mensch beim Verifizieren
+vergleicht, steht jetzt die Mehrzahl: AGB und Nutzungsrichtlinien in beiden
+Sprachfassungen, der Verifizierungs-Schirm beider Clients, die im Gerät
+mitgeführten Rechtstexte von Android und iOS. Einzahl bleibt, wo sie stimmt
+(„Ein FLEXR-Profilfoto wurde abgelehnt", Alternativtext eines einzelnen
+Bildes, „Profilfoto-Richtlinien" als Name).
+
+Dabei gefunden: Der Verifizierungs-Schirm der **Web-App** fragte Fotos nur
+nach, wenn überhaupt keines da war (`photos.length`). Seit der Server drei
+verlangt, wäre ein Konto mit ein oder zwei Fotos daran vorbeigelaufen und beim
+Start der Prüfung in den 400 geraten — ohne Weg, dort noch etwas nachzureichen,
+und der Konto-Bildschirm ist von da aus nicht erreichbar. Genau die Sackgasse,
+gegen die es diesen Schirm gibt. Er prüft jetzt gegen `MIN_PHOTOS`. Die
+Android-Fassung konnte das schon mit `648f273`.
+
+### Prüfstand dieser Sitzung
+
+- Backend: **445 Tests grün**.
+- Android: `testProdDebugUnitTest` und `lintVitalProdRelease` grün.
+- Web: Texte im Browser gegengeprüft, Wörterbuch in beiden Sprachen auf
+  vollständige Schlüssel geprüft, Inline-Skripte syntaktisch geprüft.
+
+### Stolperstein: `backend/venv` ist kaputt
+
+`_pytest`, `httpx` und `pip` sind dort **leere Verzeichnisse**, dazu mehrere
+`.dist-info` mit ungültigen Metadaten — sieht nach MEGA-Sync-Schaden aus.
+`python -m pytest` scheitert mit `ImportError: cannot import name
+'__version__' from '_pytest'`. Für diese Sitzung wurde ein sauberes venv
+außerhalb des Projekts gebaut; das Projekt-venv blieb unangetastet. Reparatur:
+
+```bash
+rm -rf backend/venv && python3 -m venv backend/venv \
+  && backend/venv/bin/pip install -r backend/requirements-dev.txt
+```
+
+## Sitzung 12.09.2026 — Sprachwechsel an der Wurzel, Regler zurück auf den Startschirm
+
+**Auslöser:** Nutzer meldete zu 2.6.2 zwei Dinge:
+
+1. Beim ersten Start, noch nicht angemeldet, gibt es **keine Möglichkeit**,
+   auf Englisch zu stellen — der Regler steht seit Sitzung (3) nur noch im
+   Kontobereich, und dorthin kommt nur, wer ein Konto hat.
+2. Die Sprache im Profil umstellen und speichern ändert **weiterhin keinen
+   einzigen Text**. Das ist dieselbe Meldung wie zu 2.6.1, also der zweite
+   fehlgeschlagene Reparaturversuch.
+
+### Fehler 2: warum zwei richtig aussehende Lösungen nichts bewirkt haben
+
+Beide bisherigen Fassungen haben zur Laufzeit an den Ressourcen gedreht — erst
+über einen untergeschobenen `LocalContext` (2.6.1), dann über ein
+überschriebenes `getResources()` auf der Activity (2.6.2). Beide hätten nach
+Lesart des Compose-Quelltextes funktionieren müssen (`stringResource` löst über
+`LocalContext.current.resources` auf; per Bytecode in
+`androidx.compose.ui:ui-android:1.8.1` bestätigt). Am Gerät taten sie es nicht.
+
+Dafür gibt es jetzt zwei Ursachen, und die erste erklärt den Befund ganz ohne
+Compose:
+
+**a) Das App Bundle hat die englischen Texte gar nicht ausgeliefert.**
+Ein Android App Bundle legt standardmäßig **jede Sprache in ein eigenes
+Split-APK**, und Play installiert nur die Splits der Systemsprache des Geräts.
+Auf einem deutsch eingestellten Telefon ist `res/values-en` damit schlicht
+nicht vorhanden. Die App darf dann umschalten, worauf sie will —
+`getString` fällt mangels englischer Tabelle immer auf Deutsch zurück, und
+genau das ist das gemeldete Bild: Regler springt um, kein Text ändert sich.
+
+Vom Rechner aus war das **nicht zu sehen**: Das direkt aufgespielte APK aus
+`assembleProdRelease` ist ein Universal-APK und enthält immer alle Sprachen.
+Nur der Weg über die Play Console schneidet sie weg. Behoben in
+`app/build.gradle.kts`:
+
+```kotlin
+bundle {
+    language {
+        enableSplit = false
+    }
+}
+```
+
+Das ist die Standardbedingung dafür, dass eine App ihre Sprache selbst
+umstellen darf; es kostet ein paar Kilobyte Downloadgröße für zwei Sprachen.
+
+**b) Die Umschaltung saß an der falschen Stelle.** Unabhängig von (a) ist der
+vorgesehene Weg nicht, `getResources()` zu überschreiben, sondern die Sprache
+am **Basis-Context der Activity** zu setzen:
+
+```kotlin
+override fun attachBaseContext(newBase: Context) {
+    val language = LanguageStore.storedLanguage(newBase) ?: AppLanguage.detect()
+    attachedLanguage = language
+    val configuration = Configuration(newBase.resources.configuration).apply {
+        setLocale(language.locale)
+        setLayoutDirection(language.locale)
+    }
+    super.attachBaseContext(newBase.createConfigurationContext(configuration))
+}
+```
+
+Damit liefert **jeder** Context dieser Activity die richtigen Ressourcen:
+`stringResource`, `getString`, Dialoge, `LocalConfiguration`, Systemdialoge —
+ohne dass irgendwo etwas überschrieben oder untergeschoben wäre. So schaltet
+auch Android 13 selbst die App-Sprache um.
+
+Der Preis ist ein `recreate()` beim Wechsel; es kostet nichts Sichtbares
+(ViewModels überleben, Navigationsstapel und Scrollpositionen liegen in
+`rememberSaveable`). Ausgelöst wird es in `MainActivity.onCreate`, wenn die
+beobachtete Sprache von `attachedLanguage` abweicht.
+
+**Folgeänderung: `LanguageStore` liegt jetzt in `SharedPreferences`, nicht mehr
+im DataStore.** `attachBaseContext` kann nicht warten — es entscheidet, welche
+Ressourcen die Activity ihr Leben lang liefert, und läuft ab, bevor Hilt,
+Compose oder ein Coroutine-Scope existieren. DataStore kann das prinzipiell
+nicht bedienen (nur `suspend`), und `runBlocking` auf dem Hauptfaden ist genau
+das, wovor DataStore warnt. Die alte DataStore-Datei (`flexr_settings`) wird
+beim ersten Start einmalig ausgelesen und die Wahl übernommen
+(`LanguageStore.migrateLegacyChoice`); kommt sie an, merkt die Activity die
+Abweichung und baut sich einmal neu auf.
+
+`ProvideAppLanguage` dreht dadurch an **gar nichts** mehr — es stellt nur noch
+`LocalAppLanguage` bereit, damit der Regler weiß, welches Segment leuchtet.
+
+### Fehler 1: Regler zurück in die ausgeloggte Kopfzeile
+
+`FlexrTopBar` hat seinen `statusSlot` behalten; im `AuthGraph` steckt dort
+jetzt der `LanguageSwitch` statt nichts. Angemeldet bleibt es beim
+Mitgliedschafts-Status, der Regler steht dort weiterhin nur im Kontobereich —
+es gibt ihn also nach wie vor nicht doppelt auf einem Bildschirm.
+
+Das weicht bewusst von der Web-App ab, wo er ausschließlich im Kontobereich
+steht: Im Browser ist niemand gefangen (Rechtstexte unter `/en/`, und wem die
+erkannte Sprache nicht passt, der stellt den Browser um). Eine installierte App
+hat keinen dieser Auswege.
+
+`AppLanguageViewModel.select` meldet die Sprache jetzt **nur noch mit geladenem
+Profil** ans Backend. Auf dem Login-Schirm gibt es keine Sitzung; die Meldung
+liefe in ein 401, und der `SessionExpiryInterceptor` würde daraufhin den Token
+verwerfen. Verloren geht dadurch nichts — die Registrierung schickt die Sprache
+selbst mit (`RegisterViewModel`), und `MainViewModel.syncLanguage` gleicht sie
+beim nächsten Login ab.
+
+### Nicht geprüft
+
+Weiterhin **kein Gerätetest von hier aus** möglich, und weiterhin gibt es im
+Projekt weder einen Compose-UI-Test noch Robolectric. Was sich diesmal
+unterscheidet: Ursache (a) ist keine Vermutung, sondern dokumentiertes
+Verhalten des App-Bundle-Formats, und sie erklärt den gemeldeten Befund
+vollständig. Ursache (b) ist der offizielle Weg statt eines Umwegs.
+
+Wer als Nächstes hier arbeitet: Ein Instrumentierungstest, der `ActivityScenario`
+mit gesetzter Sprache startet und einen bekannten String abfragt, wäre die
+naheliegende Lücke — und er würde (a) nicht fangen, weil er gegen ein
+Universal-APK läuft. Der einzige echte Test für (a) ist ein Installieren über
+die Play Console (interner Test) auf einem deutschsprachigen Gerät.
+
+### Ergebnis
+
+`./gradlew --offline --no-configuration-cache testProdDebugUnitTest
+testProdReleaseUnitTest assembleProdRelease bundleProdRelease` läuft durch,
+beide Unit-Test-Varianten grün. **versionCode 103, versionName 2.6.3**,
+signiert mit demselben Upload-Key wie bisher (`CN=FLEXR`, SHA-256
+`bc64ad3f…e7980`, mit `apksigner verify --print-certs` gegengeprüft).
+
+Zwei Dinge sind am fertigen Paket nachgeprüft, nicht nur angenommen:
+
+* `aapt2 dump resources` am APK zeigt zu jedem Text beide Fassungen, z. B.
+  `string/account_section_profile`: `() "Profil"` und `(en) "Profile"`.
+* `BundleConfig.pb` im AAB trägt die Split-Dimension `LANGUAGE` mit
+  `negate = true` — die Sprachen bleiben also im Basis-Modul, Play schneidet
+  keine mehr weg.
+
+```
+sha256sum flexr-2.6.3-vc103.apk
+86ac29f557b53c8424a61825075fe066b660ef8181a4751b1044c7095657d919
+
+sha256sum flexr-2.6.3-vc103.aab
+3865a44f6f3d19d60927746ee6147771452d54b8b4bb88e2eda5a8ce6de2f3eb
+```
+
+Beide Dateien liegen lokal unter `../release-2.6.3/` (samt `SHA256SUMS.txt`),
+analog zu `../release-2.6.2/`. Für den nächsten Deploy auf den
+Download-Server: `flexr-2.6.3-vc103.apk` und `.aab` nach
+`dl-a616e78274de323b/` legen; die `vc101`- und `vc102`-Dateien werden nicht
+mehr gebraucht.
 
 ## Sitzung 11.09.2026 (3) — Sprachregler entfernt, Sprachwechsel repariert, KSP2-Bug umgangen
 
