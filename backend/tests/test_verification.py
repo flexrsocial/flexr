@@ -8,9 +8,11 @@ deshalb über app.storage gepatcht. Gegen echte Bilder wird nie getestet.
 import pytest
 
 from app import storage as app_storage
+from app.models import MIN_PHOTOS
 from tests.conftest import (
     TestingSessionLocal,
     add_approved_photo,
+    add_required_photos,
     create_admin,
     register_raw,
     register_user,
@@ -45,14 +47,21 @@ def storage_stub(monkeypatch):
 
 
 def _add_photo(client, headers):
-    """Verifizierung setzt mindestens ein Profilfoto voraus."""
-    presign = client.post(
-        "/api/profiles/me/photos/presign", headers=headers, json={"content_type": "image/jpeg"}
-    ).json()
-    resp = client.post(
-        "/api/profiles/me/photos", headers=headers, json={"object_key": presign["object_key"]}
-    )
-    assert resp.status_code == 200
+    """Verifizierung setzt die volle Mindestanzahl an Profilfotos voraus.
+
+    Der Name ist aus der Zeit geblieben, in der ein Foto genuegte; geladen wird
+    jetzt MIN_PHOTOS-mal, weil /verification/start sonst ablehnt.
+    """
+    from app.models import MIN_PHOTOS
+
+    for _ in range(MIN_PHOTOS):
+        presign = client.post(
+            "/api/profiles/me/photos/presign", headers=headers, json={"content_type": "image/jpeg"}
+        ).json()
+        resp = client.post(
+            "/api/profiles/me/photos", headers=headers, json={"object_key": presign["object_key"]}
+        )
+        assert resp.status_code == 200
 
 
 def _submit_selfies(client, headers):
@@ -107,10 +116,23 @@ def _complete_submission(client, headers, **kwargs):
 # ---------- Ablauf ----------
 
 
-def test_verification_requires_photo(client):
+def test_verification_requires_photo(client, storage_stub):
+    from app.models import MIN_PHOTOS
+
     headers = register_raw(client, "nophoto@example.com")
     resp = client.post("/api/verification/start", headers=headers)
     assert resp.status_code == 400
+
+    # Ein einzelnes Foto reicht nicht mehr - erst die Mindestanzahl oeffnet
+    # die Pruefung.
+    add_approved_photo(client, headers)
+    zu_wenig = client.post("/api/verification/start", headers=headers)
+    assert zu_wenig.status_code == 400
+    assert str(MIN_PHOTOS) in zu_wenig.json()["detail"]
+
+    for i in range(MIN_PHOTOS - 1):
+        add_approved_photo(client, headers, url=f"https://cdn.example.test/rest{i}.jpg")
+    assert client.post("/api/verification/start", headers=headers).status_code == 200
 
 
 def test_new_account_is_not_activated_before_review(client, storage_stub):
@@ -144,7 +166,7 @@ def test_full_flow_pending_to_approved(client, storage_stub):
     assert entry["user_birthdate"] == "1997-06-15"
     assert entry["user_age"] >= 18
     assert len(entry["selfie_urls"]) == 1
-    assert len(entry["profile_photo_urls"]) == 1
+    assert len(entry["profile_photo_urls"]) == MIN_PHOTOS
     assert entry["document_type"] == "passport"
     assert [d["side"] for d in entry["document_urls"]] == ["front"]
 
@@ -549,7 +571,7 @@ def test_start_is_idempotent_while_in_progress(client):
 def test_verified_badge_visible_in_deck(client, storage_stub):
     headers_a = register_user(client, "badge.m@example.com", gender="mann")
     headers_b = register_raw(client, "badge.f@example.com", name="Verifizierte", gender="frau")
-    add_approved_photo(client, headers_b)
+    add_required_photos(client, headers_b)
     _complete_submission(client, headers_b)
 
     admin_headers, _ = create_admin(client, email="admin.badge@example.com")

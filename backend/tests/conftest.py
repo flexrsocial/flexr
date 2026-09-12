@@ -213,6 +213,20 @@ def add_approved_photo(client, headers, url="https://cdn.example.test/photo.jpg"
         db.close()
 
 
+def add_required_photos(client, headers, prefix="https://cdn.example.test/pflicht"):
+    """Gibt dem Konto so viele freigegebene Fotos, wie MIN_PHOTOS verlangt.
+
+    Vorbedingung fuer alles, was /api/verification/start auslaufen laesst: Der
+    Start der Pruefung verlangt die volle Mindestanzahl, nicht nur ein Foto.
+    """
+    from app.models import MIN_PHOTOS
+
+    return [
+        add_approved_photo(client, headers, url=f"{prefix}{i}.jpg")
+        for i in range(MIN_PHOTOS)
+    ]
+
+
 def register_user_with_photo(client, email, name="Test User", **overrides):
     """Registrierung + freigegebenes Foto - so, wie ein Profil aussehen muss,
     damit es im Swipe-Deck anderer Nutzer auftaucht."""

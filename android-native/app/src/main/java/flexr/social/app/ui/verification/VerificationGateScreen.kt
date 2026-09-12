@@ -44,6 +44,7 @@ import flexr.social.app.core.designsystem.component.FlexrSecondaryButton
 import flexr.social.app.core.designsystem.component.LoadingState
 import flexr.social.app.core.designsystem.component.SectionTitle
 import flexr.social.app.core.designsystem.theme.FlexrTheme
+import flexr.social.app.core.media.ImageProcessor
 import flexr.social.app.domain.model.VerificationStep
 import flexr.social.app.ui.account.DeleteAccountDialog
 import flexr.social.app.ui.components.PhotoGridEditor
@@ -136,9 +137,11 @@ fun VerificationGateScreen(
                     },
                 )
 
-                // Danach: Ohne Profilfoto lehnt der Server den Start ebenfalls
-                // ab, und von hier führt sonst kein Weg zum Upload.
-                !state.hasProfilePhoto -> MissingPhotoContent(
+                // Danach: Unter der Mindestanzahl an Profilfotos lehnt der
+                // Server den Start ebenfalls ab, und von hier führt sonst kein
+                // Weg zum Upload.
+                !state.hasRequiredPhotos -> MissingPhotoContent(
+                    missing = state.missingPhotos,
                     isUploading = state.isUploadingPhoto,
                     error = state.photoError,
                     onPhotoPicked = viewModel::onPhotoPicked,
@@ -386,17 +389,19 @@ private fun EmailPendingContent(
     )
 }
 
-// ---------- Profilfoto fehlt ----------
+// ---------- Zu wenige Profilfotos ----------
 
 /**
- * Der Upload während der Registrierung kann scheitern (Funkloch, Aussetzer im
- * Objekt-Storage) — das Konto existiert dann ohne Foto. Die Prüfung lässt sich
- * so nicht starten, und der Konto-Bildschirm mit der Fotoverwaltung liegt im
- * Hauptgraphen, den ein nicht freigeschaltetes Konto nie zu sehen bekommt.
- * Ohne diesen Nachreich-Weg blieb nur die Kontolöschung.
+ * Die Uploads während der Registrierung können scheitern (Funkloch, Aussetzer
+ * im Objekt-Storage) — das Konto hat dann weniger als die geforderten
+ * [ImageProcessor.MIN_PHOTOS] Fotos. Die Prüfung lässt sich so nicht starten,
+ * und der Konto-Bildschirm mit der Fotoverwaltung liegt im Hauptgraphen, den
+ * ein nicht freigeschaltetes Konto nie zu sehen bekommt. Ohne diesen
+ * Nachreich-Weg blieb nur die Kontolöschung.
  */
 @Composable
 private fun MissingPhotoContent(
+    missing: Int,
     isUploading: Boolean,
     error: String?,
     onPhotoPicked: (Uri) -> Unit,
@@ -417,7 +422,7 @@ private fun MissingPhotoContent(
     FlexrCard {
         Column {
             Text(
-                text = stringResource(R.string.vgate_photo_body),
+                text = stringResource(R.string.vgate_photo_body, ImageProcessor.MIN_PHOTOS),
                 style = MaterialTheme.typography.bodyMedium,
                 color = colors.chalkDim,
             )
@@ -427,15 +432,30 @@ private fun MissingPhotoContent(
                 style = MaterialTheme.typography.bodyMedium,
                 color = colors.chalkDim,
             )
+            Spacer(Modifier.height(10.dp))
+            Text(
+                text = stringResource(
+                    R.string.vgate_photo_missing,
+                    missing,
+                    ImageProcessor.MIN_PHOTOS,
+                ),
+                style = MaterialTheme.typography.bodyMedium,
+                color = colors.plate,
+            )
         }
     }
 
     Spacer(Modifier.height(14.dp))
+    // Genau so viele leere Felder, wie noch fehlen: Die schon hochgeladenen
+    // Bilder zeigt dieser Schirm nicht (er verwaltet keine Fotos, er holt nur
+    // die Mindestanzahl nach), und mit jedem Upload schrumpft das Raster.
+    // Entfernen bleibt aus - unterhalb der Mindestanzahl laesst der Server
+    // ohnehin nichts loeschen.
     PhotoGridEditor(
         slots = emptyList(),
         onPhotoPicked = onPhotoPicked,
         onRemove = {},
-        maxPhotos = 1,
+        maxPhotos = missing,
     )
     if (isUploading) {
         Spacer(Modifier.height(10.dp))

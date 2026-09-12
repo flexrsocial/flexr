@@ -85,6 +85,15 @@ data class RegisterUiState(
             null
         }
 
+    /**
+     * Wie viele Fotos bis zur Mindestanzahl noch fehlen (0, wenn erfuellt).
+     *
+     * Ohne diese Anzeige waere der Registrierungsknopf bei zwei Fotos grau,
+     * ohne dass etwas sichtbar fehlt - frueher genuegte eines.
+     */
+    val missingPhotos: Int
+        get() = (ImageProcessor.MIN_PHOTOS - photos.size).coerceAtLeast(0)
+
     val canSubmit: Boolean
         get() = !isSubmitting &&
             email.isNotBlank() &&
@@ -95,7 +104,7 @@ data class RegisterUiState(
             resolvedCity != null &&
             gender != null &&
             gymPicker.selectedLabel != null &&
-            photos.isNotEmpty() &&
+            photos.size >= ImageProcessor.MIN_PHOTOS &&
             consentSensitiveData
 
     companion object {
@@ -414,7 +423,9 @@ class RegisterViewModel @Inject constructor(
         if (state.resolvedCity == null) return strings.get(R.string.register_err_postal_code)
         if (state.gender == null) return strings.get(R.string.register_err_gender)
         if (state.gymPicker.selectedLabel == null) return strings.get(R.string.register_err_gym)
-        if (state.photos.isEmpty()) return strings.get(R.string.register_err_photo)
+        if (state.photos.size < ImageProcessor.MIN_PHOTOS) {
+            return strings.get(R.string.register_err_photo, ImageProcessor.MIN_PHOTOS)
+        }
         if (!state.consentSensitiveData) return strings.get(R.string.register_err_consent)
         return null
     }

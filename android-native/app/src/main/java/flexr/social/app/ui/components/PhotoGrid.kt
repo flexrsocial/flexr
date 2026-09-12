@@ -312,15 +312,29 @@ fun PhotoVisibilityHint(
     modifier: Modifier = Modifier,
 ) {
     val colors = FlexrTheme.colors
-    val (textRes, warn) = when {
-        photoStatuses.isEmpty() -> R.string.photo_hint_none to true
-        photoStatuses.any { it == PhotoStatus.APPROVED } -> R.string.photo_hint_ok to false
-        photoStatuses.any { it == PhotoStatus.PENDING } -> R.string.photo_hint_pending to true
-        else -> R.string.photo_hint_rejected to true
+    val fehlend = ImageProcessor.MIN_PHOTOS - photoStatuses.size
+    // Die Mindestanzahl steht vor dem Moderationsstand: Wer zu wenige Fotos
+    // hat, muss das zuerst erfahren - ein "Profil ist sichtbar" waere dann
+    // schlicht falsch, denn der Server laesst die Pruefung gar nicht erst
+    // starten.
+    val (text, warn) = when {
+        photoStatuses.isEmpty() ->
+            stringResource(R.string.photo_hint_none, ImageProcessor.MIN_PHOTOS) to true
+        fehlend > 0 ->
+            stringResource(
+                R.string.photo_hint_too_few,
+                fehlend,
+                ImageProcessor.MIN_PHOTOS,
+            ) to true
+        photoStatuses.any { it == PhotoStatus.APPROVED } ->
+            stringResource(R.string.photo_hint_ok) to false
+        photoStatuses.any { it == PhotoStatus.PENDING } ->
+            stringResource(R.string.photo_hint_pending) to true
+        else -> stringResource(R.string.photo_hint_rejected) to true
     }
 
     Text(
-        text = stringResource(textRes),
+        text = text,
         style = MaterialTheme.typography.bodySmall,
         color = if (warn) colors.plate else colors.chalkDim,
         modifier = modifier.fillMaxWidth().padding(top = 8.dp),

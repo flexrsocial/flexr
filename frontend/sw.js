@@ -36,13 +36,17 @@
 // harten Netzfehler. Der Rueckfall greift jetzt nur noch fuer Adressen, die die
 // Shell wirklich abdeckt; /en/ landet dabei auf der englischen Fassung und
 // nicht mehr auf der deutschen.
-const CACHE = 'flexr-shell-v14';
+// v15: Mindestens drei Profilfotos beim Anlegen eines Kontos. Die App und
+// das Woerterbuch haben dafuer neue Texte bekommen; eine eingefrorene alte
+// Shell wuerde weiter "mind. 1" anzeigen und die Registrierung schon bei
+// einem Foto durchwinken - abgelehnt wird sie dann erst vom Server.
+const CACHE = 'flexr-shell-v15';
 // Seit dem 15.08.2026 liegt die App unter /app/, an der Wurzel steht die
 // oeffentliche Landingpage. Beide gehoeren in die Shell: die Landingpage,
 // weil sie der Einstieg ist, die App, weil sie offline funktionieren soll.
 const SHELL = ['/', '/index.html', '/en/', '/en/index.html',
                '/app/', '/app/index.html',
-               '/lang-switch.js?v=2', '/i18n.js?v=4', '/app/i18n-app.js?v=4',
+               '/lang-switch.js?v=2', '/i18n.js?v=4', '/app/i18n-app.js?v=5',
                '/manifest.json', '/favicon.ico?v=4', '/legal.css?v=2',
                '/fonts/work-sans.woff2?v=1', '/fonts/oswald.woff2?v=1',
                '/icons/icon-192.png?v=4', '/icons/icon-512.png?v=4'];

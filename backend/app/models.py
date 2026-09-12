@@ -473,6 +473,21 @@ class User(Base):
         )
 
 
+# Wie viele Profilfotos ein Konto haben muss und haben darf.
+#
+# Die Untergrenze ist eine Produktentscheidung, keine Einstellung: Ein einzelnes
+# Foto sagt zu wenig ueber eine Person und laesst sich zu leicht irgendwo
+# abgreifen. Drei Aufnahmen sind die Mindestanforderung beim Anlegen eines
+# Kontos - und weil ein danach geloeschtes Foto die Anforderung sonst sofort
+# wieder aushebeln wuerde, gilt sie durchgehend fuer das Konto (siehe
+# delete_photo und den Start der Verifizierung).
+#
+# Bestandskonten mit weniger Fotos bleiben nutzbar; sie stossen erst an die
+# Grenze, wenn sie ein Foto loeschen oder die Pruefung starten wollen.
+MIN_PHOTOS = 3
+MAX_PHOTOS = 6
+
+
 class Photo(Base):
     __tablename__ = "photos"
 

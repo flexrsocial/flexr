@@ -226,5 +226,16 @@ class ImageProcessor @Inject constructor(
         const val DOCUMENT_JPEG_QUALITY = 90
         const val JPEG_QUALITY = 85
         const val MAX_PHOTOS = 6
+
+        /**
+         * Pflichtzahl an Profilfotos - beim Anlegen des Kontos und danach.
+         *
+         * Ein einzelnes Bild sagt zu wenig ueber eine Person und laesst sich zu
+         * leicht irgendwo abgreifen; der Server verlangt dieselbe Zahl beim
+         * Start der Alters- und Identitaetspruefung und laesst kein Foto
+         * loeschen, das die Grenze unterschreiten wuerde (backend/app/models.py,
+         * MIN_PHOTOS). Wer tauschen will, laedt erst hoch und loescht dann.
+         */
+        const val MIN_PHOTOS = 3
     }
 }

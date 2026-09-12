@@ -279,8 +279,15 @@ class AccountViewModel @Inject constructor(
             }
             return
         }
-        if (profile.value?.photos.isNullOrEmpty()) {
-            _uiState.update { it.copy(saveError = strings.get(R.string.account_err_photo_before_save)) }
+        if ((profile.value?.photos?.size ?: 0) < ImageProcessor.MIN_PHOTOS) {
+            _uiState.update {
+                it.copy(
+                    saveError = strings.get(
+                        R.string.account_err_photo_before_save,
+                        ImageProcessor.MIN_PHOTOS,
+                    ),
+                )
+            }
             return
         }
         val gymLabel = state.gymPicker.selectedLabel
@@ -344,10 +351,16 @@ class AccountViewModel @Inject constructor(
     }
 
     fun onPhotoRemoved(photoId: String) {
-        if ((profile.value?.photos?.size ?: 0) <= 1) {
+        // Dieselbe Grenze wie beim Anlegen des Kontos: Der Server lehnt das
+        // Loeschen sonst ohnehin ab (backend/app/routers/profiles.py), hier
+        // steht die Meldung nur frueher und in der gewaehlten Sprache.
+        if ((profile.value?.photos?.size ?: 0) <= ImageProcessor.MIN_PHOTOS) {
             _uiState.update {
                 it.copy(
-                    photoError = strings.get(R.string.photo_min_one),
+                    photoError = strings.get(
+                        R.string.photo_min_count,
+                        ImageProcessor.MIN_PHOTOS,
+                    ),
                 )
             }
             return

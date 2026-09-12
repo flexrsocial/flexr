@@ -1,5 +1,6 @@
 package flexr.social.app.ui.verification
 
+import flexr.social.app.core.media.ImageProcessor
 import flexr.social.app.core.media.PhotoPreparer
 import flexr.social.app.core.media.PreparedPhoto
 import flexr.social.app.data.remote.dto.AddPhotoRequestDto
@@ -14,6 +15,7 @@ import flexr.social.app.testing.FakeAppStrings
 import flexr.social.app.testing.FakeFlexrApi
 import flexr.social.app.testing.FakeSessionStore
 import flexr.social.app.testing.MainDispatcherRule
+import flexr.social.app.testing.fotoDto
 import flexr.social.app.testing.meinProfilDto
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.advanceUntilIdle
@@ -122,13 +124,13 @@ class VerificationGateViewModelTest {
 
     /**
      * Scheitert der Foto-Upload während der Registrierung, existiert das Konto
-     * ohne Foto. /verification/start lehnt dann ab ("Lade zuerst mindestens ein
-     * Profilfoto hoch"), und der Konto-Bildschirm mit der Fotoverwaltung liegt
-     * im Hauptgraphen, den ein nicht freigeschaltetes Konto nie erreicht - es
-     * blieb nur die Kontolöschung.
+     * mit zu wenigen Fotos. /verification/start lehnt dann ab ("Lade zuerst
+     * mindestens 3 Profilfotos hoch"), und der Konto-Bildschirm mit der
+     * Fotoverwaltung liegt im Hauptgraphen, den ein nicht freigeschaltetes
+     * Konto nie erreicht - es blieb nur die Kontolöschung.
      */
     @Test
-    fun `fehlendes Profilfoto wird gemeldet und laesst sich nachreichen`() = runTest {
+    fun `zu wenige Profilfotos werden gemeldet und lassen sich nachreichen`() = runTest {
         val api = object : TestApi(listOf(inPruefung())) {
             var registriert: AddPhotoRequestDto? = null
 
@@ -148,7 +150,11 @@ class VerificationGateViewModelTest {
 
             override suspend fun addPhoto(body: AddPhotoRequestDto): MyProfileDto {
                 registriert = body
-                return meinProfilDto()
+                // Der Server antwortet mit dem Profil samt aller Fotos - nach
+                // dem Nachreichen ist die Mindestanzahl erreicht.
+                return meinProfilDto(
+                    photos = List(ImageProcessor.MIN_PHOTOS) { fotoDto(id = "ich-foto-$it") },
+                )
             }
         }
         val profileRepository = ProfileRepository(api, FakeSessionStore())
@@ -163,14 +169,14 @@ class VerificationGateViewModelTest {
         // Verifizierungsgraph ueberhaupt sichtbar wird.
         profileRepository.refresh()
         advanceUntilIdle()
-        assertFalse(viewModel.uiState.value.hasProfilePhoto)
+        assertFalse(viewModel.uiState.value.hasRequiredPhotos)
 
         // Wie onPhotoPicked(), nur ohne android.net.Uri (im JVM-Test null).
         viewModel.storePhoto { PreparedPhoto(ByteArray(8), ByteArray(4)) }
         advanceUntilIdle()
 
         assertNotNull(api.registriert)
-        assertTrue(viewModel.uiState.value.hasProfilePhoto)
+        assertTrue(viewModel.uiState.value.hasRequiredPhotos)
         assertFalse(viewModel.uiState.value.isUploadingPhoto)
     }
 

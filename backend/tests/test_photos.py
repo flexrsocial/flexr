@@ -46,8 +46,10 @@ def test_cannot_register_photo_with_foreign_object_key(client):
 
 
 def test_max_six_photos(client):
+    from app.models import MAX_PHOTOS
+
     headers = register_user(client, "photo3@example.com")
-    for _ in range(6):
+    for _ in range(MAX_PHOTOS):
         presign = client.post(
             "/api/profiles/me/photos/presign",
             headers=headers,
@@ -71,21 +73,23 @@ def test_positions_stay_unique_after_delete_and_readd(client):
     gelöscht und ein neues angelegt, dürfen keine zwei Fotos dieselbe Position
     bekommen - sonst ist die Reihenfolge und damit das Hauptfoto zufällig."""
     headers = register_user(client, "photopos@example.com")
-    for _ in range(3):
+    # Vier statt drei: Nach dem Loeschen muessen noch MIN_PHOTOS uebrig sein,
+    # sonst lehnt der Endpunkt das Loeschen ab.
+    for _ in range(4):
         _add_photo(client, headers)
 
     photos = client.get("/api/profiles/me", headers=headers).json()["photos"]
-    assert [p["position"] for p in photos] == [0, 1, 2]
+    assert [p["position"] for p in photos] == [0, 1, 2, 3]
 
-    # mittleres Foto löschen -> verbleibende Positionen rutschen auf 0,1 nach
+    # mittleres Foto löschen -> verbleibende Positionen rutschen auf 0,1,2 nach
     after_delete = client.delete(
         f"/api/profiles/me/photos/{photos[1]['id']}", headers=headers
     ).json()
-    assert [p["position"] for p in after_delete["photos"]] == [0, 1]
+    assert [p["position"] for p in after_delete["photos"]] == [0, 1, 2]
 
     after_add = _add_photo(client, headers)
     positions = [p["position"] for p in after_add["photos"]]
-    assert positions == [0, 1, 2], positions
+    assert positions == [0, 1, 2, 3], positions
 
 
 def test_photo_order_is_stable(client):
@@ -119,6 +123,10 @@ def test_deleted_photo_is_removed_from_storage(client, monkeypatch):
     monkeypatch.setattr("app.cleanup.delete_storage_objects", lambda keys: deleted.extend(keys))
 
     headers = register_user(client, "photodel@example.com")
+    # Ein einzelnes Foto liesse sich nicht mehr loeschen - erst ueber der
+    # Mindestanzahl gibt der Endpunkt eines frei.
+    for _ in range(3):
+        _add_photo(client, headers)
     photo = _add_photo(client, headers)["photos"][0]
 
     resp = client.delete(f"/api/profiles/me/photos/{photo['id']}", headers=headers)
@@ -143,3 +151,28 @@ def test_admin_deleted_photo_is_removed_from_storage(client, monkeypatch):
     resp = client.delete(f"/api/admin/photos/{photo['id']}", headers=admin_headers)
     assert resp.status_code == 200
     assert deleted == [photo["url"].removeprefix("https://cdn.example/flexr/")]
+
+
+def test_loeschen_unter_die_mindestanzahl_wird_abgelehnt(client):
+    """Die Mindestanzahl darf sich nicht durch Loeschen aushebeln lassen.
+
+    Sonst reichte es, mit MIN_PHOTOS Fotos zu registrieren und direkt danach
+    alle bis auf eines zu entfernen.
+    """
+    from app.models import MIN_PHOTOS
+
+    headers = register_user(client, "photomin@example.com")
+    for _ in range(MIN_PHOTOS):
+        _add_photo(client, headers)
+
+    photos = client.get("/api/profiles/me", headers=headers).json()["photos"]
+    resp = client.delete(f"/api/profiles/me/photos/{photos[0]['id']}", headers=headers)
+    assert resp.status_code == 400
+    assert str(MIN_PHOTOS) in resp.json()["detail"]
+    assert len(client.get("/api/profiles/me", headers=headers).json()["photos"]) == MIN_PHOTOS
+
+    # Mit einem Foto mehr geht es: erst hochladen, dann austauschen.
+    _add_photo(client, headers)
+    frei = client.delete(f"/api/profiles/me/photos/{photos[0]['id']}", headers=headers)
+    assert frei.status_code == 200
+    assert len(frei.json()["photos"]) == MIN_PHOTOS

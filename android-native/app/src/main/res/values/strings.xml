@@ -102,7 +102,7 @@
     <string name="register_subtitle">Erstell dein Profil — kostenlos, und das dauerhaft. FLEXR zu nutzen kostet nichts; es wird kein Zahlungsmittel abgefragt. FLEXR Premium (10 €/Monat, jederzeit kündbar) kommt nach der Beta und ist freiwillig. Aktuell nur in Österreich verfügbar.</string>
     <string name="register_password_repeat">Passwort wiederholen</string>
     <string name="register_password_repeat_placeholder">Passwort erneut eingeben</string>
-    <string name="register_photos_label">Fotos (mind. 1, max. 6)</string>
+    <string name="register_photos_label">Fotos (mind. %1$d, max. %2$d)</string>
     <string name="register_eyebrow">Erste Wiederholung</string>
     <string name="register_submit">Kostenlos registrieren</string>
     <string name="register_password_placeholder">Mind. 8 Zeichen</string>
@@ -126,10 +126,13 @@
     <string name="register_err_postal_code">Bitte eine gültige österreichische Postleitzahl eingeben (Ort wird automatisch ermittelt).</string>
     <string name="register_err_gender">Bitte ein Geschlecht auswählen.</string>
     <string name="register_err_gym">Bitte ein Gym aus der Liste auswählen.</string>
-    <string name="register_err_photo">Bitte lade mindestens ein Foto hoch.</string>
+    <string name="register_err_photo">Bitte lade mindestens %1$d Fotos hoch.</string>
+    <!-- Zaehler unter dem Raster, solange die Mindestanzahl fehlt: Ohne ihn
+         bleibt der Knopf grundlos grau. -->
+    <string name="register_photos_missing">Noch %1$d von %2$d Pflichtfotos.</string>
     <string name="register_err_consent">Ohne die Einwilligung zur Verarbeitung von Geschlecht und gesuchtem Geschlecht können wir dir keine Profile vorschlagen - sie ist die Grundlage des Matchings.</string>
-    <string name="register_done_no_photo">Profil erstellt — Foto-Upload fehlgeschlagen. Du kannst das Foto gleich nachreichen.</string>
-    <string name="register_done_partial_photos">Profil erstellt — nicht alle Fotos konnten hochgeladen werden.</string>
+    <string name="register_done_no_photo">Profil erstellt — der Foto-Upload ist fehlgeschlagen. Du kannst die Fotos gleich nachreichen.</string>
+    <string name="register_done_partial_photos">Profil erstellt — nicht alle Fotos konnten hochgeladen werden. Reiche die fehlenden gleich nach.</string>
     <string name="register_done">Profil erstellt. Jetzt noch die Alters- und Identitätsprüfung 💪</string>
     <string name="register_failed">Registrierung fehlgeschlagen.</string>
     <string name="register_photo_max">Maximal %1$d Fotos.</string>
@@ -241,11 +244,14 @@
     <string name="photo_pending">In Prüfung</string>
     <string name="photo_rejected">Abgelehnt</string>
     <string name="photo_uploading">Foto wird hochgeladen …</string>
-    <string name="photo_hint_none">Mindestens ein Foto ist nötig, damit dein Profil sichtbar ist.</string>
+    <string name="photo_hint_none">Mindestens %1$d Fotos sind nötig, damit dein Profil sichtbar ist.</string>
     <string name="photo_hint_ok">Dein Profil ist sichtbar. Neue Fotos werden kurz geprüft.</string>
-    <string name="photo_hint_pending">Dein Foto wird geprüft.</string>
-    <string name="photo_hint_rejected">Foto abgelehnt. Bitte lade ein anderes hoch.</string>
-    <string name="photo_min_one">Mindestens ein Foto ist erforderlich. Lade zuerst ein weiteres hoch.</string>
+    <string name="photo_hint_pending">Deine Fotos werden geprüft.</string>
+    <string name="photo_hint_rejected">Deine Fotos wurden abgelehnt. Bitte lade andere hoch.</string>
+    <!-- Unter der Mindestanzahl, aber nicht leer - etwa wenn beim Anlegen
+         ein Upload scheiterte. -->
+    <string name="photo_hint_too_few">Noch %1$d von %2$d Pflichtfotos. Ohne sie bleibt dein Profil unsichtbar.</string>
+    <string name="photo_min_count">Mindestens %1$d Fotos sind erforderlich. Lade zuerst ein weiteres hoch.</string>
     <string name="photo_upload_failed">Foto-Upload fehlgeschlagen.</string>
     <string name="photo_order_failed">Reihenfolge konnte nicht gespeichert werden.</string>
     <string name="photo_lightbox_position">Foto %1$d von %2$d</string>
@@ -305,7 +311,7 @@
     <string name="account_saved">Profil gespeichert ✓</string>
     <string name="account_save_failed">Speichern fehlgeschlagen.</string>
     <string name="account_err_postal_code">Bitte eine gültige österreichische Postleitzahl eingeben (Ort wird automatisch ermittelt).</string>
-    <string name="account_err_photo_before_save">Bitte lade mindestens ein Foto hoch, bevor du speicherst.</string>
+    <string name="account_err_photo_before_save">Bitte lade mindestens %1$d Fotos hoch, bevor du speicherst.</string>
     <string name="account_err_gym">Bitte ein Gym aus der Liste auswählen.</string>
     <string name="account_notifications_row">Matches, neue Profile und Erinnerungen</string>
     <string name="account_legal_row">Sicherheit, Datenschutz und Bedingungen</string>
@@ -426,12 +432,13 @@
     <string name="vgate_mail_body">Klick den Link darin, dann geht es hier weiter. Nichts angekommen? Schau im Spam-Ordner nach. Der Link gilt 24 Stunden.</string>
     <string name="vgate_mail_resend">Mail erneut senden</string>
     <string name="vgate_mail_send_failed">Mail konnte nicht gesendet werden.</string>
-    <string name="vgate_photo_title">Zuerst dein Profilfoto</string>
+    <string name="vgate_photo_title">Zuerst deine Profilfotos</string>
     <string name="vgate_rework_eyebrow">Nachbesserung</string>
-    <string name="vgate_photo_eyebrow">Profilfoto fehlt</string>
-    <string name="vgate_photo_chip">Foto fehlt</string>
-    <string name="vgate_photo_body">Für die Prüfung vergleicht ein Mensch dein Profilfoto mit deinem Selfie und deinem Ausweis. Ohne Profilfoto kann sie nicht starten.</string>
+    <string name="vgate_photo_eyebrow">Profilfotos fehlen</string>
+    <string name="vgate_photo_chip">Fotos fehlen</string>
+    <string name="vgate_photo_body">Für die Prüfung vergleicht ein Mensch deine Profilfotos mit deinem Selfie und deinem Ausweis. Ohne mindestens %1$d Fotos kann sie nicht starten.</string>
     <string name="vgate_photo_body2">Beim Anlegen deines Profils hat der Upload nicht geklappt. Hol ihn hier nach — danach geht es normal weiter.</string>
+    <string name="vgate_photo_missing">Noch %1$d von %2$d Pflichtfotos.</string>
     <string name="vgate_photo_uploading">Foto wird hochgeladen …</string>
     <string name="vgate_photo_upload_failed">Foto konnte nicht hochgeladen werden.</string>
     <string name="vgate_unlocked_title">Konto freigeschaltet</string>

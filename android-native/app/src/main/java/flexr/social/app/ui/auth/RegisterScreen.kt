@@ -64,6 +64,7 @@ import flexr.social.app.domain.model.Gender
 import flexr.social.app.ui.components.GymPicker
 import flexr.social.app.ui.components.GymSuggestionDialog
 import flexr.social.app.ui.components.PhotoGridEditor
+import flexr.social.app.core.media.ImageProcessor
 import flexr.social.app.ui.components.PhotoSlot
 import flexr.social.app.ui.components.PostalCodeField
 import flexr.social.app.ui.navigation.LegalDocument
@@ -178,12 +179,32 @@ fun RegisterScreen(
             emojiPicker = true,
         )
 
-        FieldLabel(stringResource(R.string.register_photos_label))
+        FieldLabel(
+            stringResource(
+                R.string.register_photos_label,
+                ImageProcessor.MIN_PHOTOS,
+                ImageProcessor.MAX_PHOTOS,
+            ),
+        )
         PhotoGridEditor(
             slots = state.photos.map { PhotoSlot(key = it.id, model = it.previewUri) },
             onPhotoPicked = viewModel::onPhotoPicked,
             onRemove = viewModel::onPhotoRemoved,
         )
+        // Solange die Pflichtzahl nicht erreicht ist, bleibt der Knopf unten
+        // grau. Ohne diesen Zaehler waere nicht zu sehen, warum.
+        if (state.missingPhotos > 0) {
+            Text(
+                stringResource(
+                    R.string.register_photos_missing,
+                    state.missingPhotos,
+                    ImageProcessor.MIN_PHOTOS,
+                ),
+                style = MaterialTheme.typography.bodySmall,
+                color = FlexrTheme.colors.plate,
+                modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+            )
+        }
         if (state.isPreparingPhoto) {
             Row(
                 Modifier.fillMaxWidth().padding(top = 8.dp),

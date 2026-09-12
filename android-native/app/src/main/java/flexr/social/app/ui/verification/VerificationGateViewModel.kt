@@ -31,12 +31,18 @@ data class VerificationGateUiState(
     val isRefreshing: Boolean = false,
     val error: String? = null,
     /**
-     * Ohne Profilfoto lehnt der Server den Start der Prüfung ab. Das passiert,
-     * wenn der Upload während der Registrierung scheitert - und ohne einen Weg,
-     * das Foto hier nachzureichen, bliebe das Konto dauerhaft stecken: Der
-     * Konto-Bildschirm liegt im Hauptgraphen und ist von hier nicht erreichbar.
+     * Wie viele Profilfotos das Konto hat.
+     *
+     * Unter [ImageProcessor.MIN_PHOTOS] lehnt der Server den Start der Prüfung
+     * ab. Das passiert, wenn Uploads während der Registrierung scheitern - und
+     * ohne einen Weg, sie hier nachzureichen, bliebe das Konto dauerhaft
+     * stecken: Der Konto-Bildschirm liegt im Hauptgraphen und ist von hier
+     * nicht erreichbar.
+     *
+     * Anfangswert ist die Mindestanzahl, damit der Schirm nicht kurz nach
+     * fehlenden Fotos fragt, bevor das Profil geladen ist.
      */
-    val hasProfilePhoto: Boolean = true,
+    val photoCount: Int = ImageProcessor.MIN_PHOTOS,
     val isUploadingPhoto: Boolean = false,
     val photoError: String? = null,
     /** Eigene Adresse - der Nutzer muss sehen, wohin die Mail ging. */
@@ -50,6 +56,13 @@ data class VerificationGateUiState(
     val deleteError: String? = null,
     val isDeleting: Boolean = false,
 ) {
+    /** Wie viele Fotos bis zur Mindestanzahl noch fehlen (0, wenn erfuellt). */
+    val missingPhotos: Int
+        get() = (ImageProcessor.MIN_PHOTOS - photoCount).coerceAtLeast(0)
+
+    /** Genug Fotos, damit der Server den Start der Prüfung annimmt. */
+    val hasRequiredPhotos: Boolean get() = missingPhotos == 0
+
     val step: VerificationStep get() = verification?.nextStep ?: VerificationStep.SELFIE
     val status: VerificationStatus get() = verification?.status ?: VerificationStatus.NONE
     val isWaiting: Boolean get() = status == VerificationStatus.SUBMITTED
@@ -96,7 +109,7 @@ class VerificationGateViewModel @Inject constructor(
             .onEach { profile ->
                 _uiState.update {
                     it.copy(
-                        hasProfilePhoto = profile?.photos?.isNotEmpty() ?: true,
+                        photoCount = profile?.photos?.size ?: it.photoCount,
                         email = profile?.email ?: it.email,
                     )
                 }
@@ -160,12 +173,13 @@ class VerificationGateViewModel @Inject constructor(
     }
 
     /**
-     * Profilfoto nachreichen, wenn der Upload bei der Registrierung scheiterte.
+     * Profilfotos nachreichen, wenn Uploads bei der Registrierung scheiterten.
      *
-     * Der Server verlangt für /verification/start mindestens ein Foto. Ohne
-     * diesen Weg blieb nur Ausloggen (was zurück auf denselben Schirm führt)
-     * oder Kontolöschung - der Konto-Bildschirm samt Fotoverwaltung gehört zum
-     * Hauptgraphen, den ein nicht freigeschaltetes Konto nie erreicht.
+     * Der Server verlangt für /verification/start [ImageProcessor.MIN_PHOTOS]
+     * Fotos. Ohne diesen Weg blieb nur Ausloggen (was zurück auf denselben
+     * Schirm führt) oder Kontolöschung - der Konto-Bildschirm samt
+     * Fotoverwaltung gehört zum Hauptgraphen, den ein nicht freigeschaltetes
+     * Konto nie erreicht.
      */
     fun onPhotoPicked(uri: Uri) {
         _uiState.update { it.copy(isUploadingPhoto = true, photoError = null) }
@@ -180,7 +194,7 @@ class VerificationGateViewModel @Inject constructor(
     internal suspend fun storePhoto(prepare: suspend () -> PreparedPhoto) {
         runCatching { profileRepository.addPhoto(prepare()) }
             .onSuccess {
-                // hasProfilePhoto zieht über den beobachteten Profilfluss nach.
+                // photoCount zieht über den beobachteten Profilfluss nach.
                 _uiState.update { it.copy(isUploadingPhoto = false) }
                 load()
             }

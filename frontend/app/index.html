@@ -1868,7 +1868,7 @@
      laufen synchron und damit vor dem DOMContentLoaded, bei dem FlexrI18n die
      data-i18n-Knoten uebersetzt. -->
 <script src="/i18n.js?v=4"></script>
-<script src="/app/i18n-app.js?v=4"></script>
+<script src="/app/i18n-app.js?v=5"></script>
 <a class="skip-link" href="#main-content" data-i18n="common.skipToContent">Zum Inhalt springen</a>
 <div class="app" id="app">
 
@@ -2153,9 +2153,12 @@
         <div class="emoji-panel" id="emojiPanelReg"></div>
       </div>
 
-      <label id="photoGridLabel" data-i18n="reg.photos">Fotos (mind. 1, max. 6)</label>
+      <label id="photoGridLabel" data-i18n="reg.photos">Fotos (mind. 3, max. 6)</label>
       <div class="photo-grid" id="photoGrid" role="group" aria-labelledby="photoGridLabel"></div>
       <input type="file" id="photoInput" accept="image/*" style="display:none">
+      <!-- Zaehler, solange die Pflichtzahl fehlt: Sonst bleibt der Knopf unten
+           grundlos unerreichbar. -->
+      <div class="photo-hint warn" id="photoCountHint" hidden></div>
       <div class="field-err" id="photoErr"></div>
 
       <div class="consent-row">
@@ -3051,6 +3054,12 @@
   let myProfile = null;
   let membership = null;
   let pendingPhotos = []; // {blob, previewUrl} während Onboarding, vor Registrierung
+  // Pflichtzahl an Profilfotos - beim Anlegen des Kontos und danach. Der Server
+  // verlangt dieselbe Zahl beim Start der Alters- und Identitaetspruefung und
+  // laesst kein Foto loeschen, das die Grenze unterschreiten wuerde
+  // (backend/app/models.py, MIN_PHOTOS). Wer tauschen will, laedt erst hoch.
+  const MIN_PHOTOS = 3;
+  const MAX_PHOTOS = 6;
   let deck = [];
   let deckIdx = 0;
 
@@ -3549,7 +3558,7 @@
   function renderPhotoGrid(){
     const grid = $('photoGrid');
     grid.innerHTML = '';
-    for(let i=0;i<6;i++){
+    for(let i=0;i<MAX_PHOTOS;i++){
       const slot = document.createElement('div');
       slot.className = 'photo-slot';
       if(pendingPhotos[i]){
@@ -3561,6 +3570,13 @@
       }
       grid.appendChild(slot);
     }
+
+    const fehlend = MIN_PHOTOS - pendingPhotos.length;
+    const hinweis = $('photoCountHint');
+    hinweis.hidden = fehlend <= 0;
+    if(fehlend > 0){
+      hinweis.textContent = t('reg.photosMissing', {fehlend, min: MIN_PHOTOS});
+    }
   }
   renderPhotoGrid();
 
@@ -3568,7 +3584,7 @@
     const file = e.target.files[0];
     e.target.value = '';
     if(!file) return;
-    if(pendingPhotos.length >= 6){ $("photoErr").textContent = t('photo.max'); return; }
+    if(pendingPhotos.length >= MAX_PHOTOS){ $("photoErr").textContent = t('photo.max'); return; }
     $('photoErr').textContent = '';
     try{
       const photo = await preparePhoto(file);
@@ -3991,7 +4007,7 @@
       errEl.textContent = t('reg.errGym');
       return;
     }
-    if(pendingPhotos.length < 1){
+    if(pendingPhotos.length < MIN_PHOTOS){
       $('photoErr').textContent = t('reg.errPhoto');
       errEl.textContent = t('reg.errPhoto');
       return;
@@ -4916,7 +4932,7 @@
       setI18nText(errEl, 'reg.errPlz');
       return;
     }
-    if((myProfile.photos || []).length === 0){
+    if((myProfile.photos || []).length < MIN_PHOTOS){
       setI18nText(errEl, 'acct.errPhotoBeforeSave');
       return;
     }
@@ -5115,8 +5131,10 @@
         }
         slot.querySelector('.remove').onclick = async (e)=>{
           e.stopPropagation();
-          if((myProfile.photos || []).length <= 1){
-            $('acctPhotoErr').textContent = t('photo.minOne');
+          // Dieselbe Grenze wie beim Anlegen des Kontos - der Server lehnt
+          // sonst ohnehin ab, hier steht die Meldung nur frueher.
+          if((myProfile.photos || []).length <= MIN_PHOTOS){
+            $('acctPhotoErr').textContent = t('photo.minCount');
             return;
           }
           if(!confirm(t('photo.confirmRemove'))) return;
@@ -5148,6 +5166,13 @@
     if(photos.length === 0){
       hint.className = 'photo-hint warn';
       hint.textContent = t('photo.hintNone');
+    } else if(photos.length < MIN_PHOTOS){
+      // Die Mindestanzahl steht vor dem Moderationsstand: "sichtbar" waere
+      // falsch, solange das Profil die Pflichtzahl nicht erreicht.
+      hint.className = 'photo-hint warn';
+      hint.textContent = t('photo.hintTooFew', {
+        fehlend: MIN_PHOTOS - photos.length, min: MIN_PHOTOS,
+      });
     } else if(hasApproved){
       hint.className = 'photo-hint';
       hint.textContent = t('photo.hintOk');

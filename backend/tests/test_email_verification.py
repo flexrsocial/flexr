@@ -234,12 +234,12 @@ def test_ohne_smtp_blockiert_die_bestaetigung_niemanden(client, monkeypatch):
     weshalb diese Weiche vor dem ersten Deploy eingebaut wurde.
     """
     from app.routers import verification as verification_router
-    from tests.conftest import add_approved_photo
+    from tests.conftest import add_required_photos
 
     monkeypatch.setattr(verification_router, "email_configured", lambda: False)
 
     headers = register_raw(client, "ohne-smtp@example.com", confirm_email=False)
-    add_approved_photo(client, headers)
+    add_required_photos(client, headers)
 
     status = client.get("/api/verification/status", headers=headers).json()
     assert status["email_verified"] is True, "ohne Mailversand steht keine Bestätigung an"
@@ -249,12 +249,12 @@ def test_ohne_smtp_blockiert_die_bestaetigung_niemanden(client, monkeypatch):
 
 def test_mit_smtp_bleibt_die_bestaetigung_pflicht(client, monkeypatch):
     from app.routers import verification as verification_router
-    from tests.conftest import add_approved_photo
+    from tests.conftest import add_required_photos
 
     monkeypatch.setattr(verification_router, "email_configured", lambda: True)
 
     headers = register_raw(client, "mit-smtp@example.com", confirm_email=False)
-    add_approved_photo(client, headers)
+    add_required_photos(client, headers)
 
     status = client.get("/api/verification/status", headers=headers).json()
     assert status["email_verified"] is False

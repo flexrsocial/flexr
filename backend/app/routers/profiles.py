@@ -8,7 +8,15 @@ from sqlalchemy.orm import Session
 from .. import consents, mailer, premium, telegram
 from ..database import get_db
 from ..geo import city_for_plz
-from ..models import GYM_CHOICES, ConsentType, Photo, PhotoStatus, User
+from ..models import (
+    GYM_CHOICES,
+    MAX_PHOTOS,
+    MIN_PHOTOS,
+    ConsentType,
+    Photo,
+    PhotoStatus,
+    User,
+)
 from ..retention import ACCOUNT_GRACE_PERIOD_DAYS
 from ..schemas import (
     AddPhotoRequest,
@@ -253,8 +261,8 @@ def presign_photo_upload(
     direkt dorthin hoch und registriert danach den zurückgegebenen object_key
     über POST /me/photos - es fließen keine Bilddaten durchs Backend."""
     existing_count = db.query(Photo).filter(Photo.user_id == current_user.id).count()
-    if existing_count >= 6:
-        raise HTTPException(400, "Maximal 6 Fotos erlaubt.")
+    if existing_count >= MAX_PHOTOS:
+        raise HTTPException(400, f"Maximal {MAX_PHOTOS} Fotos erlaubt.")
 
     result = create_presigned_upload(current_user.id, payload.content_type)
     return PresignPhotoResponse(**result)
@@ -300,8 +308,8 @@ def add_photo(
         raise HTTPException(400, "Ungültiger thumb_object_key.")
 
     existing_count = db.query(Photo).filter(Photo.user_id == current_user.id).count()
-    if existing_count >= 6:
-        raise HTTPException(400, "Maximal 6 Fotos erlaubt.")
+    if existing_count >= MAX_PHOTOS:
+        raise HTTPException(400, f"Maximal {MAX_PHOTOS} Fotos erlaubt.")
 
     # Erst jetzt laesst sich pruefen, was tatsaechlich im Storage liegt: Der
     # Presigned PUT laeuft am Backend vorbei, der Content-Type ist nur eine
@@ -408,6 +416,19 @@ def delete_photo(
     )
     if not photo:
         raise HTTPException(404, "Foto nicht gefunden.")
+
+    # Die Mindestanzahl gilt nicht nur beim Anlegen des Kontos: Ohne diese
+    # Pruefung liesse sie sich unterlaufen, indem direkt nach der Registrierung
+    # zwei der drei Fotos wieder verschwinden. Wer ein Foto austauschen will,
+    # laedt zuerst das neue hoch (bis MAX_PHOTOS) und loescht dann das alte.
+    verbleibend = db.query(Photo).filter(Photo.user_id == current_user.id).count() - 1
+    if verbleibend < MIN_PHOTOS:
+        raise HTTPException(
+            400,
+            f"Mindestens {MIN_PHOTOS} Fotos sind erforderlich. "
+            "Lade zuerst ein weiteres hoch.",
+        )
+
     # Die Bilddatei mitnehmen: Fotos liegen unter einer öffentlichen URL, die
     # ohne diesen Schritt weiter ausliefert - das Foto wäre nur aus dem Profil
     # verschwunden, nicht aus dem Netz.

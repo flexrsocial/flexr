@@ -23,7 +23,7 @@ from sqlalchemy.orm import Session
 from .. import storage, telegram
 from ..database import get_db
 from ..mailer import email_configured
-from ..models import User, VerificationRequest, VerificationStatus
+from ..models import MIN_PHOTOS, User, VerificationRequest, VerificationStatus
 from ..rate_limit import limiter
 from ..schemas import (
     PresignPhotoRequest,
@@ -127,8 +127,14 @@ def start_verification(
     # entstehen, die danach wieder gelöscht werden müssten.
     if not current_user.email_verified and email_confirmation_enforced():
         raise HTTPException(400, "Bestätige zuerst deine E-Mail-Adresse.")
-    if not current_user.photos:
-        raise HTTPException(400, "Lade zuerst mindestens ein Profilfoto hoch.")
+    # Die Pruefung vergleicht Profilfotos, Selfie und Ausweis - mit einem
+    # einzigen Bild hat der Pruefende dafuer zu wenig in der Hand. Deshalb
+    # dieselbe Mindestanzahl wie bei der Registrierung: Scheitert dort ein
+    # Upload, wird er hier nachgeholt (VerificationGateScreen), statt das Konto
+    # mit zu wenigen Fotos in die Pruefung zu schicken.
+    if len(current_user.photos) < MIN_PHOTOS:
+        raise HTTPException(
+            400, f"Lade zuerst mindestens {MIN_PHOTOS} Profilfotos hoch.")
 
     latest = latest_request(db, current_user.id)
 
