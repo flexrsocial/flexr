@@ -2489,18 +2489,18 @@ nativer Code dazukommt; ein NDK ist dafür aktuell nicht nötig.
   nicht mit FLEXR verwandte Projekte (`tarifbot-*`, `ediktmonitor`,
   `gasfees`, ein `defi`-Ordner). Bei Aufräumarbeiten in `/tmp` oder
   `~/.pm2` etc. nichts anfassen, das nicht eindeutig zu `/flexr` gehört.
-- **AAB-Download: derzeit keiner.** `dl-a616e78274de323b/` wurde am
-  08.09.2026 auf Wunsch geleert (2.4.0–2.4.6, 2.5.0, 2.5.2, 2.5.5) — alle
-  AAB-Links in diesem Dokument liefern 404. Der aktuelle Quellstand ist
-  **2.5.5 / versionCode 42**, gebaut und signiert, SHA-256
-  `a2202dbad901476c7cc0a15683879d4cf45141183551f74bbe74a29ade6f8600`,
-  7.679.482 Bytes, aber nur lokal: unter
-  `android-native/app/build/outputs/bundle/prodRelease/app-prod-release.aab`
-  und als Sicherung `~/Downloads/flexr-2.5.5.aab`. Zum Bereitstellen siehe
-  „Ein neues AAB wird so bereitgestellt".
+- **AAB-Download: `flexr-2.6.4.aab`** liegt seit dem 12.09.2026 wieder in
+  `dl-a616e78274de323b/` — <https://flexr.social/dl-a616e78274de323b/flexr-2.6.4.aab>,
+  SHA-256 `52a374cd5563679a9c04eb548408a2afc9b07a3a51c57b3766045fea1b499a7e`,
+  7.743.157 Bytes, lokale und entfernte Prüfsumme abgeglichen. Alle **älteren**
+  AAB-Links in diesem Dokument liefern weiter 404: Der Ordner war am
+  08.09.2026 auf Wunsch geleert worden (2.4.0–2.4.6, 2.5.0, 2.5.2, 2.5.5).
+  Die zugehörigen Release-Dateien liegen daneben unter
+  `~/MEGA/flexr/release-2.6.4/` (AAB, APK, `SHA256SUMS.txt`).
 - **Namenskonvention** (seit 30.08. vereinheitlicht): neue Bundles landen in
   `dl-a616e78274de323b/` als `flexr-X.Y.Z.aab`, benannt nach dem
-  `versionName` **aus dem Bundle**. Der Ordner ist leer, aber vorhanden.
+  `versionName` **aus dem Bundle** — hier gegengeprüft im Bundle-Manifest
+  (`2.6.4`), nicht nur in der Gradle-Datei.
 - Der zweite Ordner `dl-5d8a93fc22b232c9/` ist ebenfalls leer (enthielt bis
   zum 08.09. das 2.4.9-Bundle als `app-prod-release.aab`) und wird nicht mehr
   gebraucht.
