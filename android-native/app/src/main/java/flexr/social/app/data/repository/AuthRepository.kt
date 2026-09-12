@@ -39,9 +39,9 @@ class AuthRepository @Inject constructor(
      *
      * Das Token wird schon von `register()` gespeichert, die Fotos gehen aber
      * erst danach raus - dazwischen ist das Konto zwar angemeldet, hat aber
-     * noch kein Foto. Wer in diesem Moment auf den Verifizierungsschirm
-     * geschickt wird, bekommt vom Server ein 400 („Lade zuerst mindestens ein
-     * Profilfoto hoch"), obwohl gleich alles da ist.
+     * noch keine Fotos. Wer in diesem Moment auf den Verifizierungsschirm
+     * geschickt wird, bekommt vom Server ein 400 („Lade zuerst mindestens 3
+     * Profilfotos hoch"), obwohl gleich alles da ist.
      */
     private val registrationInFlight = MutableStateFlow(false)
 

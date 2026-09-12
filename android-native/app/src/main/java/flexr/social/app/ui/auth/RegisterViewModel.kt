@@ -338,7 +338,7 @@ class RegisterViewModel @Inject constructor(
             // Bis die Fotos oben sind, gilt das Konto app-intern noch nicht als
             // angemeldet: sonst schaltet MainViewModel schon auf den
             // Verifizierungsschirm um, während der Upload noch läuft, und der
-            // Server lehnt den Start mangels Profilfoto ab.
+            // Server lehnt den Start mangels Profilfotos ab.
             authRepository.beginRegistration()
             try {
                 runCatching {

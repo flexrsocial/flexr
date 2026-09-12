@@ -21,7 +21,7 @@ import javax.inject.Singleton
  * das Selfie entsteht live über die Kamera — kein Galerie-Upload.
  *
  * Schritt 2: eine Aufnahme des amtlichen Lichtbildausweises. Danach vergleicht
- * ein Mensch Profilfoto, Selfie und Ausweisfoto und gleicht das Geburtsdatum
+ * ein Mensch Profilfotos, Selfie und Ausweisfoto und gleicht das Geburtsdatum
  * ab — es findet keine automatisierte biometrische Auswertung statt.
  */
 @Singleton

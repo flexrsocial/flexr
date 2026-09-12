@@ -2594,9 +2594,10 @@
       </div>
       <div id="vgateStatusWrap"></div>
       <div id="vgateBody"></div>
-      <!-- Nachträglicher Profilfoto-Upload: Ohne Foto lehnt das Backend den
-           Start der Prüfung ab, und der Konto-Bildschirm ist von hier aus nicht
-           erreichbar. Ohne diesen Weg bliebe das Konto dauerhaft stecken. -->
+      <!-- Nachträglicher Upload fehlender Profilfotos: Unter der Mindestanzahl
+           lehnt das Backend den Start der Prüfung ab, und der Konto-Bildschirm
+           ist von hier aus nicht erreichbar. Ohne diesen Weg bliebe das Konto
+           dauerhaft stecken. -->
       <input type="file" id="vgatePhotoInput" accept="image/*" hidden>
       <button class="btn" id="btnVgatePrimary" data-i18n="common.continue">Weiter</button>
       <div class="account-section" style="margin-top:26px;">
@@ -6132,21 +6133,29 @@
       return;
     }
 
-    // Ohne Profilfoto kann die Prüfung nicht starten - das Backend lehnt
-    // /verification/start mit "Lade zuerst mindestens ein Profilfoto hoch" ab.
-    // Genau das passiert, wenn der Upload während der Registrierung scheitert
-    // (Funkloch, Storage-Aussetzer). Der Hinweis danach lautete "Bitte im Konto
-    // ein Foto hinzufügen" - nur ist der Konto-Bildschirm von hier aus gar nicht
-    // erreichbar. Ohne Ausweg blieb nur Kontolöschung. Also: Upload hierher.
-    if(!(myProfile && myProfile.photos && myProfile.photos.length)){
+    // Unter der Mindestanzahl kann die Prüfung nicht starten - das Backend
+    // lehnt /verification/start mit "Lade zuerst mindestens 3 Profilfotos
+    // hoch" ab. Genau das passiert, wenn Uploads während der Registrierung
+    // scheitern (Funkloch, Storage-Aussetzer). Der Hinweis danach lautete
+    // "Bitte im Konto ein Foto hinzufügen" - nur ist der Konto-Bildschirm von
+    // hier aus gar nicht erreichbar. Ohne Ausweg blieb nur Kontolöschung.
+    // Also: Upload hierher.
+    //
+    // Die Grenze ist bewusst dieselbe wie beim Anlegen des Kontos und nicht
+    // "gar kein Foto": Sonst käme ein Konto mit ein oder zwei Fotos an diesem
+    // Schirm vorbei und liefe beim Start der Prüfung in den 400 des Servers,
+    // ohne hier noch etwas nachreichen zu können.
+    if(fehlendeGatePhotos() > 0){
+      const fehlend = fehlendeGatePhotos();
       renderGateSteps(1);
       $('vgateEyebrow').textContent = t('vgate.photoEyebrow');
       $('vgateTitle').textContent = t('vgate.photoTitle');
       statusWrap.innerHTML = gateStatusChip('bad', t('vgate.photoChip'));
       body.innerHTML = `
         <div class="vcard">
-          <p>${escapeHtml(t('vgate.photoP1'))}</p>
+          <p>${escapeHtml(t('vgate.photoP1', {min: MIN_PHOTOS}))}</p>
           <p>${escapeHtml(t('vgate.photoP2'))}</p>
+          <p class="photo-hint warn">${escapeHtml(t('vgate.photoMissing', {fehlend, min: MIN_PHOTOS}))}</p>
           <div class="field-err" id="vgatePhotoErr"></div>
         </div>`;
       btn.textContent = t('vgate.photoAdd');
@@ -6198,7 +6207,13 @@
     btn.textContent = isReupload ? t('vgate.retryBtn') : t('vgate.startBtn');
   }
 
-  // Nachträglicher Profilfoto-Upload aus dem Verifizierungs-Screen heraus.
+  /** Wie viele Pflichtfotos dem Konto noch fehlen (0, wenn erfüllt). */
+  function fehlendeGatePhotos(){
+    const vorhanden = (myProfile && myProfile.photos) ? myProfile.photos.length : 0;
+    return Math.max(0, MIN_PHOTOS - vorhanden);
+  }
+
+  // Nachträglicher Upload fehlender Profilfotos aus dem Verifizierungs-Screen.
   $('vgatePhotoInput').addEventListener('change', async (e) => {
     const file = e.target.files[0];
     e.target.value = '';
@@ -6244,7 +6259,7 @@
       return;
     }
 
-    if(!(myProfile && myProfile.photos && myProfile.photos.length) && offeneSchritte){
+    if(fehlendeGatePhotos() > 0 && offeneSchritte){
       $('vgatePhotoInput').click();
       return;
     }

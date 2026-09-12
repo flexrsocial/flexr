@@ -157,7 +157,7 @@ enum LegalContent {
                     + "über die Kamera auf und lädt einmalig eine Aufnahme eines gültigen "
                     + "amtlichen Lichtbildausweises (Personalausweis, Reisepass oder "
                     + "Führerschein) hoch. Die Prüfung erfolgt manuell durch FLEXR — "
-                    + "Profilfoto, Verifizierungs-Selfie und Ausweisfoto werden von einem "
+                    + "Profilfotos, Verifizierungs-Selfie und Ausweisfoto werden von einem "
                     + "Menschen verglichen und das Geburtsdatum abgeglichen. Eine "
                     + "automatisierte biometrische Gesichtserkennung findet nicht statt. Es "
                     + "handelt sich um eine Sichtprüfung des vorgelegten Dokuments, nicht um "

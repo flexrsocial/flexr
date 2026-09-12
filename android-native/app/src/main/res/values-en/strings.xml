@@ -372,7 +372,7 @@
     <string name="vgate_intro">FLEXR is 18+. To keep minors and fake profiles out, we check once that you really are you and at least 18 years old.</string>
     <string name="vgate_need_selfie">A live selfie, facing the camera — the camera only opens once you start</string>
     <string name="vgate_need_document">An image of your identity card, passport or driving licence</string>
-    <string name="vgate_media_human">A person compares profile photo, selfie and ID photo — no automated facial recognition</string>
+    <string name="vgate_media_human">A person compares profile photos, selfie and ID photo — no automated facial recognition</string>
     <string name="vgate_media_private">The images are not publicly accessible</string>
     <string name="vgate_media_deleted">They are deleted once the review is complete</string>
     <string name="vgate_document_title">Confirm your age</string>
