@@ -88,8 +88,12 @@ android {
         // Anlegen eines Kontos. 2.6.3 war zu diesem Zeitpunkt schon gebaut und
         // aufs Geraet gespielt - deshalb eine eigene Nummer statt eines zweiten
         // Bundles unter 103 mit anderem Inhalt.
-        versionCode = 104
-        versionName = "2.6.4"
+        //
+        // 105/2.6.5 am 12.09.2026: Die Leerzustaende von Matches und Chats
+        // stehen jetzt mittig wie der im Swipe-Deck. 2.6.4 war zu diesem
+        // Zeitpunkt schon gebaut und hochgeladen.
+        versionCode = 105
+        versionName = "2.6.5"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         // Nur die Sprachen ausliefern, die es wirklich gibt: Deutsch als

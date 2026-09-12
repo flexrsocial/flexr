@@ -10,11 +10,14 @@ Englisch, E-Mails in der Profilsprache) ist gelaufen — `alembic current` und
 `heads` zeigen beide `c8d31f6a94b2`. Die Sitzung vom 12.09. **(2)** bringt
 eine Backend-Änderung ohne neue Migration (nur Prüflogik, kein Schema).
 
-> **Android 2.6.4 (versionCode 104) — aktueller Stand.** Statuspille heißt
-> nur noch „Beta", der Hinweis unter „Sprache" ist enger gesetzt, und beim
-> Anlegen eines Kontos sind jetzt **mindestens drei Profilfotos** Pflicht —
-> durchgesetzt am Server, nicht nur in den Clients. Einzelheiten in
-> „Sitzung 12.09.2026 (2)" direkt unten.
+> **Android 2.6.5 (versionCode 105) — aktueller Stand.** Wie 2.6.4, zusätzlich
+> stehen die Leerzustände von Matches und Chats mittig wie der im Swipe-Deck.
+>
+> **2.6.4 (versionCode 104)** brachte: Statuspille heißt nur noch „Beta", der
+> Hinweis unter „Sprache" ist enger gesetzt, und beim Anlegen eines Kontos sind
+> **mindestens drei Profilfotos** Pflicht — durchgesetzt am Server, nicht nur in
+> den Clients. Einzelheiten in „Sitzung 12.09.2026 (2)" direkt unten. Das Paket
+> ist veröffentlicht, deshalb bekam der Nachzug eine eigene Nummer.
 >
 > **Android 2.6.3 (versionCode 103)** war der Stand davor und ist nie
 > veröffentlicht worden (gebaut, aufs Gerät gespielt, nicht hochgeladen). Der
@@ -54,7 +57,7 @@ Die Zahlen stehen in `backend/app/config.py` und sind zugleich eine
 `frontend/i18n-*.js`, `res/values*/strings.xml`, `agb.html`, `faq.html` und
 `app/legal.py` mit.
 
-**Aktuelles Android-Paket:** 2.6.4 (versionCode 104).
+**Aktuelles Android-Paket:** 2.6.5 (versionCode 105).
 
 Zum **Installieren auf einem Gerät** taugt nur das **APK**. Das `.aab` ist das
 Veröffentlichungsformat für die Play Console und lässt sich auf einem Telefon
@@ -65,10 +68,10 @@ klar benannt:
 
 | Datei | Wofür |
 | --- | --- |
-| `flexr-2.6.4-vc104.apk` | Direkt aufs Gerät laden und antippen |
-| `flexr-2.6.4-vc104.aab` | Nur Upload in die Play Console |
+| `flexr-2.6.5-vc105.apk` | Direkt aufs Gerät laden und antippen |
+| `flexr-2.6.5-vc105.aab` | Nur Upload in die Play Console |
 
-Die `vc101`-, `vc102`- und `vc103`-Dateien sind hinfällig. Die Play Console hatte 43 und
+Die `vc101`- bis `vc104`-Dateien sind hinfällig. Die Play Console hatte 43 und
 50 schon vergeben — Näheres im 10.09.-Abschnitt.
 
 > **Zum Prüfen des Sprachwechsels bitte das APK nehmen, nicht den
@@ -147,6 +150,38 @@ und der Konto-Bildschirm ist von da aus nicht erreichbar. Genau die Sackgasse,
 gegen die es diesen Schirm gibt. Er prüft jetzt gegen `MIN_PHOTOS`. Die
 Android-Fassung konnte das schon mit `648f273`.
 
+### 4. Leerzustände von Matches und Chats — `aa9bbb2`
+
+Gemeldet am Screenshot: „Noch keine Matches" stand rund 280 px höher als
+„Alle Sätze absolviert". **Der Screenshot kam aus der Web-App, nicht aus der
+Android-App** — erkennbar daran, dass dort weder die Umkreis-Zeile
+(`swipe_radius`) noch der Knopf „Neu laden" zu sehen ist; beides hat nur der
+native Bildschirm.
+
+Ursache ist eine einzige CSS-Regel: `.empty` zentriert seinen Inhalt
+(`justify-content:center`), was aber nur wirkt, wenn das Element selbst Höhe
+hat. Im Deck holt `.deck{flex:1}` die Restfläche und `.deck .empty{position:
+absolute; inset:0}` spannt den Leerzustand darüber. `#matchList` und
+`#chatList` sind inhaltshoch — dort blieb die Zentrierung wirkungslos.
+
+Die Klasse `is-empty` setzt der Renderer nur im Leerfall; Lade- und
+Fehlerzustand räumen sie ab, eine befüllte Liste bleibt unberührt.
+Nachgemessen bei 393×851 mit den echten Texten: Symbol 375, Titel 459,
+Beschreibung 488 — für alle drei Bildschirme identisch.
+
+Android hatte den Sprung nicht (alle drei oben angesetzt, nur um die
+Umkreis-Zeile auseinander, ~23 dp); die Leerzustände stehen dort jetzt
+ebenfalls mittig. Beim Swipe-Bildschirm per Modifier am `EmptyState` statt per
+`contentAlignment` an der `Box` — sonst rutschen Karte und Hintergrundkarte mit.
+
+### `.megaignore` für den Projektordner
+
+`venv`, `build` und `node_modules` gehen nicht mehr in die
+MEGA-Synchronisation (~537 MB in 15.766 Dateien, 88 % des Ordners).
+`.gradle`, `.kotlin` und `.git` deckt die Wurzelregel `-:.*` schon ab. Syntax
+gegen `mega-sync-ignore --help` geprüft: `<TYPE>` ist voreingestellt auf
+`n` (subtree name), wirkt also in jeder Tiefe.
+
 ### Prüfstand dieser Sitzung
 
 - Backend: **445 Tests grün**.
@@ -154,18 +189,27 @@ Android-Fassung konnte das schon mit `648f273`.
 - Web: Texte im Browser gegengeprüft, Wörterbuch in beiden Sprachen auf
   vollständige Schlüssel geprüft, Inline-Skripte syntaktisch geprüft.
 
-### Stolperstein: `backend/venv` ist kaputt
+### `backend/venv` war kaputt — repariert
 
-`_pytest`, `httpx` und `pip` sind dort **leere Verzeichnisse**, dazu mehrere
-`.dist-info` mit ungültigen Metadaten — sieht nach MEGA-Sync-Schaden aus.
-`python -m pytest` scheitert mit `ImportError: cannot import name
-'__version__' from '_pytest'`. Für diese Sitzung wurde ein sauberes venv
-außerhalb des Projekts gebaut; das Projekt-venv blieb unangetastet. Reparatur:
+**25 von 61 Paketen waren leere Verzeichnisse**, darunter `fastapi`,
+`sqlalchemy`, `pydantic`, `alembic`, `starlette`, `cryptography` und `pip`.
+Tückisch: `import fastapi` lief trotzdem durch, weil Python ein leeres
+Verzeichnis als Namespace-Paket importiert — nur Inhalt hatte es keinen.
+`python -m pytest` scheiterte mit `ImportError: cannot import name
+'__version__' from '_pytest'`.
+
+Neu aufgebaut aus `requirements-dev.txt`. Danach: 0 leere Pakete, `pip check`
+sauber, alle 16 gepinnten Versionen exakt getroffen, **445 Tests grün aus dem
+Projekt-venv selbst**, `venv/bin/uvicorn|alembic|pytest` laufen (relevant, weil
+`.claude/launch.json` auf `backend/venv/bin/uvicorn` zeigt). Falls es
+wiederkommt:
 
 ```bash
 rm -rf backend/venv && python3 -m venv backend/venv \
   && backend/venv/bin/pip install -r backend/requirements-dev.txt
 ```
+
+Gegen eine Wiederholung steht jetzt die `.megaignore` oben.
 
 ## Sitzung 12.09.2026 — Sprachwechsel an der Wurzel, Regler zurück auf den Startschirm
 
@@ -2489,14 +2533,15 @@ nativer Code dazukommt; ein NDK ist dafür aktuell nicht nötig.
   nicht mit FLEXR verwandte Projekte (`tarifbot-*`, `ediktmonitor`,
   `gasfees`, ein `defi`-Ordner). Bei Aufräumarbeiten in `/tmp` oder
   `~/.pm2` etc. nichts anfassen, das nicht eindeutig zu `/flexr` gehört.
-- **AAB-Download: `flexr-2.6.4.aab`** liegt seit dem 12.09.2026 wieder in
-  `dl-a616e78274de323b/` — <https://flexr.social/dl-a616e78274de323b/flexr-2.6.4.aab>,
-  SHA-256 `52a374cd5563679a9c04eb548408a2afc9b07a3a51c57b3766045fea1b499a7e`,
-  7.743.157 Bytes, lokale und entfernte Prüfsumme abgeglichen. Alle **älteren**
+- **AAB-Download: `flexr-2.6.5.aab`** liegt seit dem 12.09.2026 in
+  `dl-a616e78274de323b/` — <https://flexr.social/dl-a616e78274de323b/flexr-2.6.5.aab>,
+  SHA-256 `86f74eefd3459b81a1f11f7ae71a8c7b91f625237ce997f7a8a158f7d4becbd0`,
+  7.743.218 Bytes, lokale und entfernte Prüfsumme abgeglichen. `flexr-2.6.4.aab`
+  liegt weiterhin daneben. Alle **älteren**
   AAB-Links in diesem Dokument liefern weiter 404: Der Ordner war am
   08.09.2026 auf Wunsch geleert worden (2.4.0–2.4.6, 2.5.0, 2.5.2, 2.5.5).
   Die zugehörigen Release-Dateien liegen daneben unter
-  `~/MEGA/flexr/release-2.6.4/` (AAB, APK, `SHA256SUMS.txt`).
+  `~/MEGA/flexr/release-2.6.5/` (AAB, APK, `SHA256SUMS.txt`).
 - **Namenskonvention** (seit 30.08. vereinheitlicht): neue Bundles landen in
   `dl-a616e78274de323b/` als `flexr-X.Y.Z.aab`, benannt nach dem
   `versionName` **aus dem Bundle** — hier gegengeprüft im Bundle-Manifest
