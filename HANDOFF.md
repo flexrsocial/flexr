@@ -8,7 +8,9 @@ Stand: **12.09.2026**
 wie `origin/main`; die Migration der Sitzung vom 11.09. (Rechtstexte auf
 Englisch, E-Mails in der Profilsprache) ist gelaufen — `alembic current` und
 `heads` zeigen beide `c8d31f6a94b2`. Die Sitzung vom 12.09. **(2)** bringt
-eine Backend-Änderung ohne neue Migration (nur Prüflogik, kein Schema).
+eine Backend-Änderung ohne neue Migration (nur Prüflogik, kein Schema). Die
+Sitzung vom 12.09. **(3)** ist reines Frontend (SEO/Performance, Commit
+`01adcc8`) und brauchte deshalb nur `git pull` auf dem VPS, keinen Neustart.
 
 > **Android 2.6.5 (versionCode 105) — aktueller Stand.** Wie 2.6.4, zusätzlich
 > stehen die Leerzustände von Matches und Chats mittig wie der im Swipe-Deck.
@@ -80,13 +82,64 @@ Die `vc101`- bis `vc104`-Dateien sind hinfällig. Die Play Console hatte 43 und
 > englischen Texte lagen dort in einem Sprach-Split, den ein deutsches Gerät
 > nie herunterlädt. Erst ab 2.6.3 stecken beide Sprachen im Basis-Paket.
 
-Aufbau des Dokuments: erst diese Eckdaten, dann der Abschnitt vom
-**12.09.**, dann **vier Abschnitte vom 11.09.** (diese Sitzung als (3), dann (2), dann der Absturz-Befund, dann die
+Aufbau des Dokuments: erst diese Eckdaten, dann **drei Abschnitte vom
+12.09.** ((3) SEO/Performance, dann (2) Backend, dann der ungezaehlte erste
+vom selben Tag), dann **vier Abschnitte vom 11.09.** (diese Sitzung als (3), dann (2), dann der Absturz-Befund, dann die
 Ausgangssitzung), dann die **drei Abschnitte vom 10.09.**
 (Audit-Fortsetzung, Audit, Monetarisierung), dann **09.09.**, dann
 **08.09.**, dann die beiden Sitzungen vom **07.09.**, dann **06.09.**, dann
 **05.09.**, dann **31.08.**, **30.08.**, **23.08.**, **21.08.**; die Build-,
 Test- und Deploy-Abschnitte am Ende gelten sitzungsübergreifend.
+
+## Sitzung 12.09.2026 (3) — SEO-Audit: og:locale:alternate, WebP fuer Landingpage-Fotos
+
+Ein Commit (`01adcc8`), gepusht und deployt. Reines Frontend, keine
+Migration, kein Neustart — nur `git pull` auf dem VPS.
+
+### 1. og:locale:alternate fehlte komplett
+
+Auf allen 20 oeffentlichen Seiten (DE+EN) gab es zwar `hreflang` fuer
+Suchmaschinen, aber kein `og:locale:alternate` fuer Facebook/LinkedIn-Parser.
+Jetzt traegt jede Seite die Gegensprache (`en` auf den DE-Seiten, `de_AT` auf
+den EN-Seiten). `build-en.py` bekam dieselbe Ersetzungsregel wie schon fuer
+`og:locale`, damit die Zeile bei jedem Rebuild von `en/index.html` erhalten
+bleibt statt beim naechsten Lauf zu verschwinden.
+
+### 2. Landingpage-Fotos zusaetzlich als WebP
+
+Die rund 25 Demo-Fotos auf der Landingpage lagen nur als JPEG vor (90-120 KB
+je Bild). Mit Pillow (`quality=80`) zusaetzlich als WebP erzeugt und
+`index.html` auf `<picture><source type="image/webp">...<img
+jpg-Fallback></picture>` umgestellt — Browser ohne WebP-Unterstuetzung
+(praktisch keine mehr) bekommen weiter das unveraenderte JPEG. Ersparnis
+rund 52 % (2,3 MB → 1,2 MB), relevant weil Core Web Vitals ein Rankingfaktor
+sind.
+
+`og-image.png` (Social-Preview) bewusst nicht auf WebP umgestellt — dort
+wird PNG/JPEG zuverlaessiger unterstuetzt. `sw.js` brauchte keine Aenderung,
+`/brand/demo/` wird schon ueber ein Praefix-Muster (`STATIC_PREFIXES`)
+gecacht, nicht ueber eine feste Dateiliste.
+
+### Pruefstand dieser Sitzung
+
+`build-en.py` erneut laufen lassen ergibt ein byte-identisches
+`en/index.html`. Seite ueber einen lokalen Testserver im Browser
+gegengeprueft (die `file://`-Vorschau laedt keine lokalen Ressourcen und
+taeuscht kaputte Bilder vor) — alle 25 Fotos kommen als `.webp` mit 200 OK,
+Layout und die auf den Fallback-`src` zielenden CSS-Selektoren
+(`[src*="-v2.jpg"]` etc.) unveraendert, weil der `src` des Fallback-`<img>`
+gleich bleibt. Nach dem Deploy auf `flexr.social` gegengeprueft: `curl` zeigt
+`og:locale:alternate` im HTML und `200 image/webp` fuer die Fotos.
+
+### Noch offen
+
+- Nur die auf der Landingpage verwendeten 25 Fotos wurden konvertiert, nicht
+  der gesamte Bestand in `frontend/brand/demo/` (u. a. die in der Web-App
+  unter `frontend/app/` verwendeten Demoprofile) — falls dort ebenfalls
+  gewuenscht, waere das ein eigener, separat zu testender Schritt.
+- Kein AVIF: Auf diesem Geraet steht nur Pillow ohne AVIF-Plugin zur
+  Verfuegung, kein `cwebp`/`avifenc`/ImageMagick. WebP allein bringt aber
+  schon den Grossteil der Ersparnis.
 
 ## Sitzung 12.09.2026 (2) — „Beta", Sprach-Hinweis, mindestens drei Fotos
 
