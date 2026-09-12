@@ -59,6 +59,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -375,7 +376,15 @@ fun AccountScreen(
                 Text(
                     stringResource(R.string.lang_row_hint),
                     style = MaterialTheme.typography.bodySmall,
+                    // Der einzige Hinweis im Konto, der ueber mehrere Zeilen
+                    // laeuft: Mit der Zeilenhoehe aus bodySmall (20sp auf 13sp
+                    // Schrift) stehen die Zeilen so weit auseinander, dass der
+                    // Satz nicht mehr als Block liest und der Abstand nach oben
+                    // im Zeilenabstand untergeht. Eng gesetzt plus eigener
+                    // Abstand zur Ueberschrift trennt beides wieder sauber.
+                    lineHeight = 16.sp,
                     color = colors.chalkDim,
+                    modifier = Modifier.padding(top = 4.dp),
                 )
             }
             LanguageSwitch(

@@ -49,7 +49,7 @@
     <string name="common_delete_failed">Löschen fehlgeschlagen.</string>
     <string name="common_status_load_failed">Status konnte nicht geladen werden.</string>
 
-    <string name="status_beta_free">Beta · gratis</string>
+    <string name="status_beta">Beta</string>
     <string name="status_premium">Premium</string>
     <string name="status_free">Gratis</string>
     <string name="status_likes_left">%1$d Likes</string>

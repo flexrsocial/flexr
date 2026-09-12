@@ -38,7 +38,7 @@
     <string name="common_delete_failed">Deletion failed.</string>
     <string name="common_status_load_failed">Could not load status.</string>
 
-    <string name="status_beta_free">Beta · free</string>
+    <string name="status_beta">Beta</string>
     <string name="status_premium">Premium</string>
     <string name="status_free">Free</string>
     <string name="status_likes_left">%1$d likes</string>

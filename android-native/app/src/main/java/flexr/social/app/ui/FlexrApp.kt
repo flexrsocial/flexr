@@ -558,7 +558,7 @@ private fun MembershipPill(membership: Membership) {
     val rest = membership.likesRemaining
     when {
         membership.isPremium -> StatusPill(stringResource(R.string.status_premium))
-        !membership.premiumEnabled -> StatusPill(stringResource(R.string.status_beta_free))
+        !membership.premiumEnabled -> StatusPill(stringResource(R.string.status_beta))
         rest == null -> StatusPill(stringResource(R.string.status_free))
         else -> StatusPill(
             stringResource(R.string.status_likes_left, rest),
