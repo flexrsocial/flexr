@@ -168,6 +168,10 @@ def englische_kopfdaten(html: str, texte: dict[str, str]) -> str:
             '<meta property="og:url" content="https://flexr.social/en/">',
         ),
         ('<meta property="og:locale" content="de_AT">', '<meta property="og:locale" content="en">'),
+        (
+            '<meta property="og:locale:alternate" content="en">',
+            '<meta property="og:locale:alternate" content="de_AT">',
+        ),
         # Der Regler zeigt jetzt in die andere Richtung.
         (
             '<a href="/" hreflang="de" class="on" aria-current="true" title="Deutsch">DE</a>\n'
