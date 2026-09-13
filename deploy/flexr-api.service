@@ -6,14 +6,32 @@
 Description=FLEXR API (FastAPI/Uvicorn)
 After=network.target postgresql.service
 
+# Ohne diese beiden Zeilen gilt systemds Default: hoechstens 5 Neustarts
+# innerhalb von 10s, danach bleibt der Dienst unten ("start-limit-hit"), bis
+# ihn jemand von Hand entsperrt (systemctl reset-failed). Bei RestartSec=3s
+# reissen 5 schnell aufeinanderfolgende Abstuerze (z.B. eine kurze DB-
+# Stoerung) genau dieses Limit - der Dienst wuerde ausgerechnet dann fuer
+# immer unten bleiben, wenn Restart=always ihn eigentlich retten sollte.
+# StartLimitIntervalSec=0 schaltet das Limit ab: lieber dauerhaft neu
+# versuchen als eine automatisierbare Wiederherstellung manuell nachholen
+# muessen.
+StartLimitIntervalSec=0
+
 [Service]
 Type=simple
 User=deploy
 WorkingDirectory=/flexr/backend
 EnvironmentFile=/flexr/backend/.env
-ExecStart=/flexr/backend/venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8000
+ExecStart=/flexr/backend/venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8000 --timeout-keep-alive 75
 Restart=always
 RestartSec=3
+
+# Default (oft 1024) reicht schnell nicht mehr: jede offene HTTP-Keep-Alive-
+# Verbindung von nginx UND jede Datenbankverbindung aus dem Pool (siehe
+# app/database.py, bis zu 40) zaehlt mit. Ist der Deckel erreicht, schlagen
+# neue Verbindungen mit "too many open files" fehl statt nur langsamer zu
+# werden - kein Kapazitaetsproblem, sondern ein haerter Ausfall.
+LimitNOFILE=65536
 
 [Install]
 WantedBy=multi-user.target

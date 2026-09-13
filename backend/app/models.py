@@ -492,7 +492,10 @@ class Photo(Base):
     __tablename__ = "photos"
 
     id = Column(String, primary_key=True, default=gen_uuid)
-    user_id = Column(String, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    # index=True: jede Profilansicht, jeder Upload/Löschen-Check fragt nach
+    # allen Fotos eines Nutzers (siehe routers/profiles.py) - ohne Index ein
+    # Sequential Scan über die gesamte Tabelle bei jeder dieser Abfragen.
+    user_id = Column(String, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
     url = Column(Text, nullable=False)  # Objekt-Storage-URL, nicht Base64
     # Quadratisches Thumbnail (256px, clientseitig beim Upload erzeugt) für
     # kleine Avatare (Match-Liste, Chat-Header) - Fallback auf url wenn NULL.
@@ -516,7 +519,11 @@ class Swipe(Base):
 
     id = Column(String, primary_key=True, default=gen_uuid)
     from_user_id = Column(String, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
-    to_user_id = Column(String, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    # index=True: der Unique-Constraint oben deckt Abfragen nach from_user_id
+    # bereits ab (führende Spalte des zusammengesetzten Index), aber "wer hat
+    # mich geliket" (routers/swipes.py:incoming_likes, email_jobs.py) filtert
+    # nach to_user_id allein - ohne eigenen Index dort ein Sequential Scan.
+    to_user_id = Column(String, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
     action = Column(String, nullable=False)  # "like" | "pass"
     created_at = Column(DateTime, default=datetime.utcnow)
 
@@ -527,7 +534,11 @@ class Match(Base):
 
     id = Column(String, primary_key=True, default=gen_uuid)
     user_a_id = Column(String, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
-    user_b_id = Column(String, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    # index=True: routers/matches.py:get_matches filtert mit
+    # or_(user_a_id == ..., user_b_id == ...) - ohne eigenen Index auf
+    # user_b_id (der Unique-Constraint deckt nur user_a_id als führende
+    # Spalte ab) erzwingt die OR-Hälfte einen Sequential Scan.
+    user_b_id = Column(String, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
     created_at = Column(DateTime, default=datetime.utcnow)
 
     # "Chatverlauf leeren" wirkt nur für die leerende Seite: Nachrichten vor

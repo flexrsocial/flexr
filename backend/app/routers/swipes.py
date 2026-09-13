@@ -2,7 +2,7 @@ import logging
 from datetime import datetime
 
 from fastapi import APIRouter, Depends, HTTPException, Request
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 
 from .. import consents, notifications, premium
 from ..database import get_db
@@ -98,7 +98,15 @@ def deck_profiles(db: Session, current_user: User, limit: int = DECK_SIZE) -> li
     profiles = []
     for start in range(0, len(gyms_by_distance), GYM_BATCH_SIZE):
         batch = [value for value, _ in gyms_by_distance[start:start + GYM_BATCH_SIZE]]
-        users = db.query(User).filter(*base_filters, User.gym.in_(batch)).all()
+        # selectinload: to_public_profile() liest user.photos für jedes
+        # Ergebnis - ohne Eager Loading eine Zusatzabfrage pro Nutzer
+        # (N+1) statt einer einzigen IN-Abfrage für den ganzen Batch.
+        users = (
+            db.query(User)
+            .options(selectinload(User.photos))
+            .filter(*base_filters, User.gym.in_(batch))
+            .all()
+        )
         users.sort(key=lambda u: nearby_gyms[u.gym])
         for u in users:
             profile = to_public_profile(u)
@@ -246,6 +254,7 @@ def incoming_likes(
 
     likers = (
         db.query(User)
+        .options(selectinload(User.photos))
         .join(Swipe, Swipe.from_user_id == User.id)
         .filter(
             Swipe.to_user_id == current_user.id,

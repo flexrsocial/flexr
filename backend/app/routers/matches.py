@@ -2,7 +2,7 @@ from datetime import datetime
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import and_, or_
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 
 from ..database import get_db
 from ..models import Block, Match, Message, Swipe, User
@@ -40,6 +40,7 @@ def get_matches(
     users_by_id = {
         u.id: u
         for u in db.query(User)
+        .options(selectinload(User.photos))
         .filter(
             User.id.in_(other_ids),
             User.deleted_at.is_(None),

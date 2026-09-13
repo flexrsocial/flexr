@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
@@ -17,9 +18,32 @@ from .routers import (
 
 app = FastAPI(title="FLEXR API")
 
+
+@app.on_event("startup")
+async def _raise_threadpool_limit() -> None:
+    """Hebt Starlettes Standard-Thread-Limit (40) auf die Größe des DB-Pools.
+
+    Jeder synchrone Endpunkt (die gesamte API, siehe routers/) läuft in einem
+    eigenen Thread aus diesem Pool, nicht auf dem Event-Loop. Bei 40 Threads
+    aber bis zu 40 Datenbankverbindungen (siehe database.py) wäre unter
+    gleichzeitiger Last mal der Thread-, mal der Pool-Deckel die künstliche
+    Grenze - hier auf denselben Wert wie pool_size + max_overflow gesetzt,
+    damit beide gemeinsam ausgeschöpft werden können.
+    """
+    import anyio
+
+    anyio.to_thread.current_default_thread_limiter().total_tokens = 40
+
+
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 app.add_middleware(SlowAPIMiddleware)
+
+# GZip: JSON-Antworten (Decks, Match- und Nachrichtenlisten) sind hochgradig
+# komprimierbar - spürbar weniger Datenvolumen für mobile Clients bei
+# vernachlässigbarer CPU-Last. minimum_size vermeidet den Overhead für die
+# vielen kleinen Antworten (z.B. {"status": "ok"}).
+app.add_middleware(GZipMiddleware, minimum_size=1024)
 
 app.add_middleware(
     CORSMiddleware,
