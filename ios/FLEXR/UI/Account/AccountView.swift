@@ -463,7 +463,7 @@ struct AccountView: View {
         VStack(alignment: .leading, spacing: 0) {
             SectionTitle(text: s(.accountSectionLegal)).padding(.top, 28)
             ForEach(LegalDocument.allCases) { document in
-                NavigationRow(title: document.title) { onOpen(.legal(document)) }
+                NavigationRow(title: s(document.titleKey)) { onOpen(.legal(document)) }
             }
         }
     }
