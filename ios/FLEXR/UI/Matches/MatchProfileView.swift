@@ -114,7 +114,7 @@ struct MatchProfileView: View {
             do {
                 try await container.safety.block(userID: match.profile.id)
                 container.matches.removeLocally(matchID: matchID)
-                appModel.show("\(match.profile.name) blockiert.")
+                appModel.show(s(.blockDone, match.profile.name))
                 onBack()
             } catch {
                 appModel.show(error.localizedDescription)

@@ -61,7 +61,9 @@ private struct AuthFlow: View {
     var body: some View {
         NavigationStack(path: $path) {
             VStack(spacing: 0) {
-                FlexrTopBar { EmptyView() }
+                // Vor dem Login die einzige Stelle, an der die Sprache zu
+                // erreichen ist — der Kontobereich setzt ein Konto voraus.
+                FlexrTopBar { LanguageSwitch() }
                 LoginView(onOpenLegal: { path.append(.legal($0)) })
             }
             .navigationBarHidden(true)
@@ -85,7 +87,9 @@ private struct VerificationGateFlow: View {
     var body: some View {
         NavigationStack(path: $path) {
             VStack(spacing: 0) {
-                FlexrTopBar { EmptyView() }
+                // „Nicht freigeschaltet" gilt für den ganzen Baum, also
+                // steht es im Kopf und nicht in einem einzelnen Schritt.
+                FlexrTopBar { GateStatusPill() }
                 VerificationGateView(
                     // Nach der Rückkehr aus Selfie- oder Ausweisschritt ist der
                     // Prüfstand ein anderer. Die Tiefe des Pfades als Auslöser
@@ -100,6 +104,18 @@ private struct VerificationGateFlow: View {
             .navigationBarHidden(true)
             .flexrRoutes(path: $path)
         }
+    }
+}
+
+/// „Nicht freigeschaltet" im Kopf des Verifizierungsbaums.
+///
+/// Eigener kleiner Typ, weil die Pille die gewählte Sprache braucht und
+/// `VerificationGateFlow` sie sonst nur durchreichen würde.
+private struct GateStatusPill: View {
+    @Environment(LanguageStore.self) private var languageStore
+
+    var body: some View {
+        StatusPill(text: languageStore.strings(.statusNotUnlocked))
     }
 }
 

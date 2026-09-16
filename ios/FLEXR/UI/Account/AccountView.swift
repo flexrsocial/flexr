@@ -54,7 +54,8 @@ struct AccountView: View {
                         isVerified: isVerified,
                         status: model.verificationStatus,
                         onDismiss: model.dismissVerifiedHint,
-                        onStartVerification: { onOpen(.verification) }
+                        onStartVerification: { onOpen(.verification) },
+                        onStartDocument: { onOpen(.verificationDocument) }
                     )
                     .padding(.top, 14)
                 }
@@ -505,6 +506,7 @@ private struct VerificationHint: View {
     let status: VerificationStatus
     let onDismiss: () -> Void
     let onStartVerification: () -> Void
+    let onStartDocument: () -> Void
 
     private var tint: Color {
         if isVerified { return FlexrColor.verified }
@@ -537,9 +539,14 @@ private struct VerificationHint: View {
         }
     }
 
-    /// Ein Startknopf ergibt nur Sinn, wenn es etwas zu starten gibt.
+    /// Ein Startknopf ergibt nur Sinn, wenn es etwas zu starten gibt: nicht
+    /// während der Prüfung und nicht nach einer endgültigen Ablehnung.
+    ///
+    /// Der Ausweisschritt gehörte hier bis zum 16.09.2026 dazu — die App konnte
+    /// ihn nicht, der Hinweis verwies auf die Webseite. Jetzt kann sie ihn, und
+    /// ohne Knopf wäre die Karte für genau diesen Zustand eine Sackgasse.
     private var canStart: Bool {
-        !isVerified && status != .submitted && status != .rejected && !status.needsDocument
+        !isVerified && status != .submitted && status != .rejected
     }
 
     var body: some View {
@@ -565,11 +572,18 @@ private struct VerificationHint: View {
                         .foregroundStyle(tint)
                 }
             } else if canStart {
+                // Liegt das Selfie schon vor, führt der Knopf direkt zum
+                // Ausweis statt über den Selfie-Bildschirm, der dann nur noch
+                // meldet, dass es dort nichts zu tun gibt.
+                let needsDocument = status.needsDocument
+                let labelKey: L = needsDocument ? .verifyHintDocument : .verifyHintStart
                 HStack {
                     Spacer()
-                    Button(s(.verifyHintStart), action: onStartVerification)
-                        .flexrText(.labelLarge)
-                        .foregroundStyle(tint)
+                    Button(s(labelKey)) {
+                        if needsDocument { onStartDocument() } else { onStartVerification() }
+                    }
+                    .flexrText(.labelLarge)
+                    .foregroundStyle(tint)
                 }
             }
         }

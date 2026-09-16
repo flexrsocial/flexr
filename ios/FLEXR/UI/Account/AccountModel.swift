@@ -210,7 +210,7 @@ final class AccountModel {
             gymPicker.query = gym.name
             gymPicker.selectedLabel = gym.label
             gymPicker.isExpanded = false
-            onMessage("Danke! Vorschlag eingereicht — sofort verwendbar.")
+            onMessage(s(.gymSuggestThanks))
         } catch {
             suggestion.isSubmitting = false
             suggestion.error = error.localizedDescription
@@ -474,7 +474,7 @@ final class AccountModel {
             try await safety.unblock(userID: userID)
             blockedUsers.removeAll { $0.userId == userID }
         } catch {
-            blockedUsersError = (error as? FlexrAPIError)?.message ?? "Aufheben fehlgeschlagen."
+            blockedUsersError = (error as? FlexrAPIError)?.message ?? s(.blocksUnblockFailed)
         }
         unblockingUserID = nil
     }

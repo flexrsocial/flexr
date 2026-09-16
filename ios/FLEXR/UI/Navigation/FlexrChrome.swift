@@ -11,10 +11,16 @@ struct FlexrWordmark: View {
     }
 }
 
-/// Kopfzeile: Wortmarke links, rechts Sprachregler und Mitgliedschafts-Status.
+/// Kopfzeile: Wortmarke links, rechts genau eine Anzeige.
 ///
-/// Der Regler steht hier „on-top" und damit auf jedem Bildschirm in Reichweite,
-/// nicht nur im Kontobereich — genauso wie in der Web-App.
+/// Was rechts steht, entscheidet der jeweilige Navigationsbaum — wie in der
+/// Android-App: ausgeloggt der Sprachregler, im Gate die Zustandspille,
+/// in der fertigen App der Mitgliedschaftsstatus.
+///
+/// Der Regler stand hier früher zusätzlich auf jedem Bildschirm. Das war eine
+/// Dopplung: Angemeldet ist er im Kontobereich erreichbar, und dort steht er
+/// mit Beschriftung und Hinweis statt nur als Kürzel. Unerreichbar wäre er nur
+/// vor dem Login — genau dort bleibt er deshalb.
 struct FlexrTopBar<Status: View>: View {
 
     @ViewBuilder var status: () -> Status
@@ -24,7 +30,6 @@ struct FlexrTopBar<Status: View>: View {
             HStack(spacing: 10) {
                 FlexrWordmark()
                 Spacer()
-                LanguageSwitch()
                 status()
             }
             .padding(.horizontal, 20)

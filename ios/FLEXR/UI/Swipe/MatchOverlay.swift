@@ -21,7 +21,7 @@ struct MatchOverlay: View {
             Color.black.opacity(0.88).ignoresSafeArea()
 
             VStack(spacing: 0) {
-                Eyebrow(text: "Beide interessiert")
+                Eyebrow(text: s(.matchEyebrow))
                 Text(s(.matchTitle))
                     .flexrText(.displayLarge)
                     .foregroundStyle(FlexrColor.plate)
@@ -33,7 +33,7 @@ struct MatchOverlay: View {
                         size: 104,
                         ringColor: FlexrColor.plate,
                         ringWidth: 3,
-                        accessibilityLabel: "Dein Profilfoto"
+                        accessibilityLabel: s(.accountOwnPhoto)
                     )
                     AvatarImage(
                         source: PhotoImageSource(matchedProfile.primaryPhoto?.avatarURL),

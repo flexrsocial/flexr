@@ -19,7 +19,32 @@ final class AuthRepository {
         self.store = store
     }
 
-    var isLoggedIn: AnyPublisher<Bool, Never> { session.isLoggedIn }
+    /// Läuft gerade eine Registrierung samt Erstupload?
+    ///
+    /// Siehe [isLoggedIn]: Der Token liegt nach dem Anlegen des Kontos sofort
+    /// vor, die Fotos sind aber noch unterwegs.
+    private let registrationInFlight = CurrentValueSubject<Bool, Never>(false)
+
+    /// Angemeldet **und** einsatzbereit.
+    ///
+    /// Während der Registrierung bleibt das bewusst `false`, bis die Fotos oben
+    /// sind. Sonst schaltet `AppModel` beim Speichern des Tokens sofort auf die
+    /// fertige App um, SwiftUI räumt `RegisterView` ab — und nimmt den noch
+    /// laufenden Upload-Task mit. Das Konto stünde dann ohne Fotos da, was der
+    /// Server als unfertiges Profil behandelt. Entspricht
+    /// `registrationInFlight` der Android-App.
+    var isLoggedIn: AnyPublisher<Bool, Never> {
+        session.isLoggedIn
+            .combineLatest(registrationInFlight)
+            .map { loggedIn, inFlight in loggedIn && !inFlight }
+            .removeDuplicates()
+            .eraseToAnyPublisher()
+    }
+
+    /// Klammer um Registrierung und Erstupload. Immer mit `defer` schließen.
+    func beginRegistration() { registrationInFlight.send(true) }
+
+    func finishRegistration() { registrationInFlight.send(false) }
 
     /// Feuert, sobald das Backend eine Anmeldung als abgelaufen zurückweist (401).
     var sessionExpired: AnyPublisher<Void, Never> { session.sessionExpired }

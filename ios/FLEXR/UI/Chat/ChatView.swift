@@ -228,7 +228,7 @@ private struct ChatHeader: View {
                         .foregroundStyle(FlexrColor.chalkDim)
                         .frame(width: 34, height: 34)
                 }
-                .accessibilityLabel("Weitere Optionen")
+                .accessibilityLabel(s(.commonMoreOptions))
             }
             .padding(.vertical, 10)
 
@@ -336,7 +336,7 @@ private struct MuteBanner: View {
                 .foregroundStyle(Color(hex: 0xFFB3B3))
 
                 if let reason, !reason.isEmpty {
-                    Text("Grund: \(reason)")
+                    Text(s(.chatMuteReason, reason))
                         .flexrText(.bodySmall)
                         .foregroundStyle(FlexrColor.chalk)
                 }

@@ -23,6 +23,7 @@ extension FlexrStrings {
         .commonVerifiedProfile: "Verifiziertes Profil",
         .commonProfilePhotoOf: "Profilfoto von %@",
         .commonDeleteFailed: "Löschen fehlgeschlagen.",
+        .commonMoreOptions: "Weitere Optionen",
 
         // MARK: Sprache
         .langLabel: "Sprache",
@@ -81,6 +82,14 @@ extension FlexrStrings {
             """,
         .registerPasswordPlaceholder: "Mind. 8 Zeichen",
         .registerNamePlaceholder: "Max",
+        .registerPasswordRepeat: "Passwort wiederholen",
+        .registerPasswordRepeatPlaceholder: "Passwort erneut eingeben",
+        .registerErrPasswordMismatch: "Die beiden Passwörter stimmen nicht überein.",
+        .registerErrPasswordMismatchShort: "Die Passwörter stimmen nicht überein.",
+        .registerIncompleteHint: """
+            Noch nicht vollständig — tippe auf den Knopf, dann zeigen wir dir, \
+            was fehlt.
+            """,
         .registerPhotosLabel: "Fotos (mind. %d, max. %d)",
         .registerPhotoPreparing: "Foto wird vorbereitet …",
         .registerConsentPrefix: """
@@ -136,7 +145,14 @@ extension FlexrStrings {
         .bioNone: "Keine Bio angegeben.",
 
         // MARK: Swipe
+        .swipeEyebrow: "Entdecken",
         .swipeTitle: "Profile in deiner Nähe",
+        .swipeLoading: "Lade Profile …",
+        .swipeErrorTitle: "Nicht geladen",
+        .swipeRetry: "Erneut versuchen",
+        .swipeReload: "Neu laden",
+        .swipePass: "Ablehnen",
+        .blockDone: "%@ blockiert.",
         .swipeRadius: "%d km rund um dein Gym",
         .swipeEmptyTitle: "Alle Sätze absolviert",
         .swipeEmptySub: "Keine neuen Profile in deiner Nähe. Schau später nochmal vorbei.",
@@ -151,11 +167,13 @@ extension FlexrStrings {
         .unmatchAction: "Match auflösen",
 
         // MARK: Match-Overlay
+        .matchEyebrow: "Beide interessiert",
         .matchTitle: "Match!",
         .matchSub: "Du und %@ habt euch gegenseitig geliked.",
         .matchContinue: "Weiter swipen",
 
         // MARK: Matches / Chats
+        .matchesEyebrow: "Trefferquote",
         .matchesTitle: "Deine Matches",
         .matchesEmptyTitle: "Noch keine Matches",
         .matchesEmptySub: "Weiter swipen — dein nächster Trainingspartner wartet schon.",
@@ -193,6 +211,7 @@ extension FlexrStrings {
         .chatMutedBanner: "Deine Chat-Funktion ist vorübergehend gesperrt. Du kannst bis %@ Uhr keine Nachrichten senden.",
         .chatInputPlaceholder: "Nachricht schreiben…",
         .chatInputLocked: "Chat vorübergehend gesperrt",
+        .chatMuteReason: "Grund: %@",
         .chatSendFailed: "Nachricht konnte nicht gesendet werden.",
         .chatCleared: "Chatverlauf geleert.",
         .chatDeleted: "Chat gelöscht.",
@@ -299,6 +318,7 @@ extension FlexrStrings {
         .verifyHintTitle: "Verifizierung",
         .verifyHintUnderstood: "Verstanden",
         .verifyHintStart: "Zur Verifizierung",
+        .verifyHintDocument: "Ausweis aufnehmen",
         .blocksBlocked: "Blockiert",
         .commonDone: "Fertig",
         .consentRevokedSuffix: "  — widerrufen",
@@ -353,16 +373,14 @@ extension FlexrStrings {
             """,
         .blocksLoadFailed: "Deine Blockierungen konnten nicht geladen werden.",
         .blocksUnblock: "Aufheben",
+        .blocksUnblockFailed: "Aufheben fehlgeschlagen.",
 
         // MARK: Verifizierungs-Kurzstatus
         .verifyBadgeChecking: "Prüfung läuft …",
         .verifyBadgeConfirmAge: "Alter bestätigen",
         .verifyBadgeVerified: "Dein Profil ist verifiziert — andere sehen den blauen Haken neben deinem Namen.",
         .verifyBadgeReviewing: "Deine Verifizierung wird geprüft. Nach der Freigabe bekommst du den blauen Haken.",
-        .verifyBadgeDocumentMissing: """
-            Es fehlt noch die Aufnahme deines amtlichen Lichtbildausweises. \
-            Diesen Schritt schließt du gerade noch unter flexr.social ab.
-            """,
+        .verifyBadgeDocumentMissing: "Selfie erledigt. Jetzt noch den Ausweis aufnehmen.",
         .verifyBadgeFailed: "Deine Verifizierung konnte nicht abgeschlossen werden. Bei Fragen: flexr.social@proton.me",
         .verifyBadgeStart: """
             Zeig mit einem Live-Selfie und einem Lichtbildausweis, dass du \
@@ -422,7 +440,6 @@ extension FlexrStrings {
         .verifyShotIndex: "Aufnahme %d",
         .verifyCameraNeeded: "Kamerazugriff wird benötigt.",
         .verifyPreparing: "Wird vorbereitet …",
-        .verifyDone: "Fertig!",
         .verifyUploading: "Wird hochgeladen …",
         .verifyRetrySubmit: "Einreichen wiederholen",
         .verifyAllowCamera: "Kamerazugriff erlauben",
@@ -437,6 +454,13 @@ extension FlexrStrings {
         .verifyCameraDenied: "Kamerazugriff abgelehnt. Die Verifizierung braucht Live-Aufnahmen über die Kamera.",
         .verifySubmitted: "Selfies eingereicht — deine Verifizierung ist in Prüfung.",
         .verifySelfieExists: "Dein Selfie liegt bereits vor. Weiter geht es mit dem Ausweis.",
+        .verifyNotStarted: "Nicht gestartet",
+        .verifyCannotStart: "Die Verifizierung kann gerade nicht beginnen.",
+        .verifyRetry: "Erneut versuchen",
+        .verifySelfieEyebrow: "Verifizierungs-Selfie",
+        .verifySubmitting: "Aufnahme wird eingereicht …",
+        .verifyFrameHint: "Gesicht mittig im Rahmen halten und unten auf „Aufnehmen“ tippen.",
+        .verifyCameraNotReady: "Die Kamera ist noch nicht bereit, bitte gleich erneut.",
         .verifyAlreadySubmitted: "Deine Verifizierung ist bereits in Prüfung.",
         .verifyNoneRunning: "Für dieses Konto läuft gerade keine Verifizierung.",
         .verifyContinueToDocument: "Weiter zum Ausweis",
@@ -618,6 +642,7 @@ extension FlexrStrings {
         .statusBetaFree: "Beta · gratis",
         .statusPremium: "Premium",
         .statusFree: "Gratis",
+        .statusNotUnlocked: "Nicht freigeschaltet",
         .statusLikesLeft: "%d Likes",
 
         // MARK: Netz- und Serverfehler

@@ -24,6 +24,9 @@ final class RegisterModel {
 
     var email = ""
     var password = ""
+    /// Zweite Eingabe gegen Tippfehler: Ein vertipptes Passwort fällt sonst
+    /// erst beim nächsten Login auf, wenn niemand mehr weiß, was drinstand.
+    var passwordConfirm = ""
     var name = ""
     var birthdate: Date?
     // Kein `didSet`: Das @Observable-Makro schreibt Stored Properties in
@@ -45,12 +48,26 @@ final class RegisterModel {
     var successNotice: String?
 
     var resolvedCity: String? { plzLookup.city }
+
+    /// Vergeben wird nur, was zweimal gleich kam.
+    var passwordsMatch: Bool { password == passwordConfirm }
+
+    /// Hinweis am Wiederholungsfeld — aber erst, wenn dort etwas steht.
+    /// Sonst stünde die Meldung schon beim ersten Zeichen des ersten Feldes.
+    var passwordConfirmError: String? {
+        guard !passwordConfirm.isEmpty, !passwordsMatch else { return nil }
+        return s(.registerErrPasswordMismatchShort)
+    }
+
+    /// Wie viele Fotos bis zur Mindestanzahl noch fehlen (0, wenn erfüllt).
+    var missingPhotos: Int { max(ImageProcessor.minPhotos - photos.count, 0) }
     var age: Int? { birthdate.map { ServerTime.age(from: $0) } }
 
     var canSubmit: Bool {
         !isSubmitting
             && !email.isEmpty
             && password.count >= Self.minPasswordLength
+            && passwordsMatch
             && !name.isEmpty
             && birthdate != nil
             && resolvedCity != nil
@@ -223,6 +240,11 @@ final class RegisterModel {
 
         isSubmitting = true
         error = nil
+        // Die Klammer um Registrierung *und* Erstupload: Ohne sie schaltet
+        // `AppModel` beim Speichern des Tokens sofort auf die fertige App um
+        // und räumt diesen Bildschirm samt laufendem Upload ab.
+        auth.beginRegistration()
+        defer { auth.finishRegistration() }
         do {
             try await auth.register(
                 email: email,
@@ -275,6 +297,7 @@ final class RegisterModel {
         else {
             return s(.registerErrRequired, Self.minPasswordLength)
         }
+        if !passwordsMatch { return s(.registerErrPasswordMismatch) }
         let age = ServerTime.age(from: birthdate)
         if age < Self.minAge { return s(.registerErrUnder18) }
         if age > Self.maxAge { return s(.registerErrBirthdate) }

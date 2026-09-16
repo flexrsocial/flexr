@@ -121,12 +121,19 @@ final class ChatModel {
 
         draft = ""
         isSending = true
+        // Erst die Zeile anlegen, dann die Liste neu lesen: andersherum wäre
+        // die eigene Nachricht bis zur Antwort des Servers unsichtbar.
+        let pendingID = messageRepository.insertPending(
+            matchID: matchID,
+            senderID: senderID,
+            content: content
+        )
         reload()
 
         do {
             _ = try await messageRepository.send(
                 matchID: matchID,
-                senderID: senderID,
+                pendingID: pendingID,
                 content: content
             )
             reload()
@@ -210,7 +217,7 @@ final class ChatModel {
             do {
                 try await safety.block(userID: profile.id)
                 matches.removeLocally(matchID: matchID)
-                onMessage("\(profile.name) blockiert.")
+                onMessage(s(.blockDone, profile.name))
                 isClosed = true
             } catch {
                 onMessage(error.localizedDescription)

@@ -17,7 +17,7 @@ struct RegisterView: View {
         ZStack {
             FlexrBackground()
             VStack(spacing: 0) {
-                FlexrTopBar { EmptyView() }
+                FlexrTopBar { LanguageSwitch() }
                 if let model {
                     form(model)
                 } else {
@@ -78,6 +78,18 @@ struct RegisterView: View {
                     label: s(.fieldPassword),
                     placeholder: s(.registerPasswordPlaceholder),
                     textContentType: .newPassword,
+                    submitLabel: .next
+                )
+                // Zweite Eingabe gegen Tippfehler: Ein vertipptes Passwort
+                // fällt sonst erst beim nächsten Login auf, wenn niemand mehr
+                // weiß, was drinstand — und „Passwort vergessen" gibt es nicht.
+                FlexrPasswordField(
+                    text: $model.passwordConfirm,
+                    label: s(.registerPasswordRepeat),
+                    placeholder: s(.registerPasswordRepeatPlaceholder),
+                    textContentType: .newPassword,
+                    isError: model.passwordConfirmError != nil,
+                    supportingText: model.passwordConfirmError,
                     submitLabel: .next
                 )
                 FlexrTextField(
@@ -144,14 +156,23 @@ struct RegisterView: View {
 
                 FieldError(message: model.error)
 
+                // Bewusst nicht gesperrt, solange etwas fehlt: Ein grauer Knopf
+                // sagt nicht, *was* fehlt. Der Druck darauf löst die Prüfung
+                // aus, und die benennt die erste offene Stelle.
                 FlexrButton(
                     title: s(.registerSubmit),
-                    isEnabled: model.canSubmit,
                     isLoading: model.isSubmitting
                 ) {
                     Task { await model.register() }
                 }
                 .padding(.top, 22)
+
+                if !model.canSubmit, !model.isSubmitting {
+                    Text(s(.registerIncompleteHint))
+                        .flexrText(.bodySmall)
+                        .foregroundStyle(FlexrColor.chalkDim)
+                        .padding(.top, 8)
+                }
             }
             .padding(.horizontal, 20)
             .padding(.bottom, 40)

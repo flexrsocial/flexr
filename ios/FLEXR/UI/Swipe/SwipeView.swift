@@ -21,7 +21,7 @@ struct SwipeView: View {
             if let model {
                 content(model)
             } else {
-                LoadingStateView(label: "Lade Profile …")
+                LoadingStateView(label: s(.swipeLoading))
             }
         }
         .task {
@@ -57,7 +57,7 @@ struct SwipeView: View {
     @ViewBuilder
     private func content(_ model: SwipeModel) -> some View {
         VStack(alignment: .leading, spacing: 0) {
-            ScreenHeader(eyebrow: "Entdecken", title: s(.swipeTitle))
+            ScreenHeader(eyebrow: s(.swipeEyebrow), title: s(.swipeTitle))
                 .padding(.top, 18)
 
             Text(locationLabel(model).uppercased())
@@ -96,7 +96,7 @@ struct SwipeView: View {
         }
         .confirmDialog(
             isPresented: $showBlockDialog,
-            title: model.current.map { "\($0.name) blockieren?" } ?? s(.swipeBlockTitle),
+            title: model.current.map { s(.reportBlockTitleNamed, $0.name) } ?? s(.swipeBlockTitle),
             message: s(.swipeBlockBody),
             confirmLabel: s(.commonBlock)
         ) {
@@ -126,10 +126,10 @@ struct SwipeView: View {
     @ViewBuilder
     private func deck(_ model: SwipeModel) -> some View {
         if model.isLoading {
-            LoadingStateView(label: "Lade Profile …")
+            LoadingStateView(label: s(.swipeLoading))
         } else if let error = model.error {
-            EmptyStateView(icon: .dumbbell, title: "Nicht geladen", message: error) {
-                FlexrSecondaryButton(title: "Erneut versuchen") {
+            EmptyStateView(icon: .dumbbell, title: s(.swipeErrorTitle), message: error) {
+                FlexrSecondaryButton(title: s(.swipeRetry)) {
                     Task { await model.loadDeck() }
                 }
             }
@@ -139,7 +139,7 @@ struct SwipeView: View {
                 title: s(.swipeEmptyTitle),
                 message: s(.swipeEmptySub)
             ) {
-                FlexrSecondaryButton(title: "Neu laden") {
+                FlexrSecondaryButton(title: s(.swipeReload)) {
                     Task { await model.loadDeck() }
                 }
             }
@@ -171,7 +171,7 @@ struct SwipeView: View {
                     HStack(spacing: 26) {
                         RoundActionButton(
                             icon: FlexrIcon.pass,
-                            accessibilityLabel: "Ablehnen",
+                            accessibilityLabel: s(.swipePass),
                             tint: FlexrColor.danger
                         ) {
                             Task {

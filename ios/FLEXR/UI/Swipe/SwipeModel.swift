@@ -133,7 +133,7 @@ final class SwipeModel {
                 try await safety.block(userID: userID)
                 // Blockierte Person überspringen, ohne dafür einen Swipe zu senden.
                 if current?.id == userID { currentIndex += 1 }
-                onMessage("\(name) blockiert.")
+                onMessage(s(.blockDone, name))
             } catch {
                 onMessage(error.localizedDescription)
             }

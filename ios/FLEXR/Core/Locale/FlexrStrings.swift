@@ -11,6 +11,7 @@ enum L: Hashable, Sendable {
     case commonDelete, commonReport, commonBlock, commonApply, commonAccount
     case commonLogout, commonDeleteAccount, commonWriteMessage, commonProfile
     case commonVerifiedProfile, commonProfilePhotoOf, commonDeleteFailed
+    case commonMoreOptions
 
     // Sprache
     case langLabel, langRowTitle, langRowHint
@@ -35,6 +36,9 @@ enum L: Hashable, Sendable {
     // Registrierung
     case registerTitle, registerSubtitle, registerPasswordPlaceholder
     case registerNamePlaceholder, registerPhotosLabel, registerPhotoPreparing
+    case registerPasswordRepeat, registerPasswordRepeatPlaceholder
+    case registerErrPasswordMismatch, registerErrPasswordMismatchShort
+    case registerIncompleteHint
     case registerConsentPrefix, registerConsentLink, registerConsentSuffix
     case registerSubmit
     case registerErrRequired, registerErrUnder18, registerErrBirthdate
@@ -52,15 +56,18 @@ enum L: Hashable, Sendable {
     case gymSuggestThanks, gymSuggestSubmit, gymSearching, gymNone, bioNone
 
     // Swipe
-    case swipeTitle, swipeRadius, swipeEmptyTitle, swipeEmptySub, swipeLike
+    case swipeEyebrow, swipeTitle, swipeRadius, swipeEmptyTitle, swipeEmptySub
+    case swipeLike, swipePass, swipeLoading, swipeErrorTitle, swipeRetry, swipeReload
+    case blockDone
     case swipeBlockTitle, swipeBlockBody, swipeLoadFailed, swipeFailed
     case swipeStampMatch, swipeStampPass, swipeOwnName, unmatchAction
 
     // Match-Overlay
-    case matchTitle, matchSub, matchContinue
+    case matchEyebrow, matchTitle, matchSub, matchContinue
 
     // Matches / Chats
-    case matchesTitle, matchesEmptyTitle, matchesEmptySub, matchesLoadFailed
+    case matchesEyebrow, matchesTitle, matchesEmptyTitle, matchesEmptySub
+    case matchesLoadFailed
     case chatsEyebrow, chatsTitle, chatsEmptyTitle, chatsEmptySub, chatsYouPrefix
 
     // Match-Profil
@@ -71,7 +78,7 @@ enum L: Hashable, Sendable {
     case chatEmptyTitle, chatEmptySub, chatBlockBody, chatClearTitle, chatClearBody, chatClearConfirm
     case chatDeleteTitle, chatDeleteBody, chatDeleteAction, chatClearAction, chatCleared
     case chatCensoredOut, chatCensoredIn, chatMutedBanner, chatInputPlaceholder
-    case chatInputLocked, chatSendFailed, chatDeleted, chatOpenFailed
+    case chatInputLocked, chatSendFailed, chatDeleted, chatOpenFailed, chatMuteReason
 
     // Melden
     case reportDialogTitle, reportDialogBody, reportReasonLabel, reportReasonPlaceholder
@@ -104,7 +111,7 @@ enum L: Hashable, Sendable {
     case accountSubscribe, accountSectionNotifications
     case accountSectionPrivacy, accountConsentsTitle, accountSectionLegal
     case accountOwnPhoto, verifyBadgeVerifiedShort
-    case verifyHintTitle, verifyHintUnderstood, verifyHintStart
+    case verifyHintTitle, verifyHintUnderstood, verifyHintStart, verifyHintDocument
     case blocksBlocked, blocksBlockedSince, commonDone, consentRevokedSuffix
 
     // Vor der Zahlung
@@ -115,7 +122,7 @@ enum L: Hashable, Sendable {
     case consentVerification, consentTerms, consentBasisExplicit, consentBasisContract
     case consentRevokeTitle, consentRevokeBody, consentRevokeConfirm, consentRevokeLink
     case consentGrantLink, consentLoadFailed, consentRevokeFailed, consentGrantFailed
-    case blocksEmpty, blocksNote, blocksLoadFailed, blocksUnblock
+    case blocksEmpty, blocksNote, blocksLoadFailed, blocksUnblock, blocksUnblockFailed
 
     // Verifizierungs-Kurzstatus
     case verifyBadgeChecking, verifyBadgeConfirmAge, verifyBadgeVerified
@@ -139,8 +146,10 @@ enum L: Hashable, Sendable {
     case verifyTitle, verifyShotOf, verifyShotIndex, verifyCameraNeeded
     case verifyPrivacyNote, verifyCaptureFailed, verifyStartFailed, verifyCameraDenied
     case verifySubmitted, verifySubmitFailed
-    case verifyPreparing, verifyDone, verifyUploading, verifyRetrySubmit
+    case verifyPreparing, verifyUploading, verifyRetrySubmit
     case verifySelfieExists, verifyAlreadySubmitted
+    case verifyNotStarted, verifyCannotStart, verifyRetry
+    case verifySelfieEyebrow, verifySubmitting, verifyFrameHint, verifyCameraNotReady
     case verifyNoneRunning, verifyContinueToDocument
     case verifyAllowCamera, verifyCapture
 
@@ -180,6 +189,7 @@ enum L: Hashable, Sendable {
 
     // Statuspillen
     case statusBetaFree, statusPremium, statusFree, statusLikesLeft
+    case statusNotUnlocked
 
     // Netz- und Serverfehler
     case errorTimeout, errorUnreachable, errorConnection, errorUnauthorized

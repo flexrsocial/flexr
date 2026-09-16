@@ -20,7 +20,7 @@ struct MatchesView: View {
 
     var body: some View {
         MatchListScreen(
-            eyebrow: "Trefferquote",
+            eyebrow: s(.matchesEyebrow),
             title: s(.matchesTitle),
             matches: container.matches.matches,
             isRefreshing: isRefreshing,

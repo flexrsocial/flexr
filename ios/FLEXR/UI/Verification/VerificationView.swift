@@ -24,19 +24,27 @@ final class VerificationModel {
     var total: Int { prompts.count }
     var isComplete: Bool { !prompts.isEmpty && captures.count == prompts.count }
 
-    /// Der Server hat nichts aufzunehmen — entweder liegt das Selfie schon vor
-    /// oder es läuft gerade eine Prüfung. Ohne diesen Zustand zeigte der
-    /// Bildschirm „Fertig" samt scharfer Kamera, während `isComplete` mangels
-    /// Aufgaben für immer falsch blieb: Aufnahmen sammelten sich an, der
-    /// Einreichen-Knopf erschien nie.
-    var hasNothingToCapture: Bool { !isStarting && prompts.isEmpty && error == nil }
+    /// Der Server hat nichts aufzunehmen — das Selfie liegt schon vor, es läuft
+    /// eine Prüfung, oder der Start ist gescheitert. Ohne diesen Zustand zeigte
+    /// der Bildschirm „Fertig" samt scharfer Kamera, während `isComplete`
+    /// mangels Aufgaben für immer falsch blieb: Aufnahmen sammelten sich an,
+    /// der Einreichen-Knopf erschien nie.
+    ///
+    /// Der Fehlerfall gehört ausdrücklich dazu. Solange er ausgenommen war,
+    /// führte ein gescheiterter Start in genau diese Kamera-Ansicht — mit einem
+    /// Auslöser, den `onCaptured` mangels Anweisungen wieder verwarf.
+    var hasNothingToCapture: Bool { !isStarting && prompts.isEmpty }
 
     /// Warum hier nichts aufzunehmen ist — und was stattdessen ansteht.
+    ///
+    /// Die Meldung des Servers hat Vorrang: Sie nennt den konkreten Grund,
+    /// unser Text nur den Regelfall.
     var nothingToCaptureMessage: String {
+        if let error { return error }
         switch nextStep {
-        case .document: s(.verifySelfieExists)
-        case .wait: s(.verifyAlreadySubmitted)
-        case .selfie, .none: s(.verifyNoneRunning)
+        case .document: return s(.verifySelfieExists)
+        case .wait: return s(.verifyAlreadySubmitted)
+        case .selfie, .none: return s(.verifyNoneRunning)
         }
     }
 
@@ -167,29 +175,61 @@ struct VerificationView: View {
             if model.isStarting {
                 LoadingStateView(label: s(.verifyPreparing))
             } else if model.hasNothingToCapture {
+                // Ohne Anweisung läuft kein Vorgang: Der Server hat den Start
+                // abgelehnt oder der Selfie-Schritt liegt schon hinter dem
+                // Konto. Hier stand früher eine scharfe Kamera samt „Fertig!",
+                // die auf nichts reagierte.
+                Eyebrow(text: s(.verifyNotStarted))
+                    .padding(.top, 18)
+                Text(s(.verifyCannotStart))
+                    .flexrText(.headlineMedium)
+                    .foregroundStyle(FlexrColor.chalk)
                 Text(model.nothingToCaptureMessage)
                     .flexrText(.bodyMedium)
                     .foregroundStyle(FlexrColor.chalkDim)
-                    .padding(.top, 24)
-                // Steht der Ausweis an, führt der Knopf dorthin statt zurück —
-                // sonst bliebe die Meldung ein Hinweis ohne Weg.
+                    .padding(.top, 12)
+
+                // Steht der Ausweis an, führt der Knopf dorthin statt ins
+                // Leere — sonst bliebe die Meldung ein Hinweis ohne Weg.
                 if model.nextStep == .document {
                     FlexrButton(title: s(.verifyContinueToDocument), action: onContinueToDocument)
-                        .padding(.top, 16)
+                        .padding(.top, 18)
                 } else {
-                    FlexrSecondaryButton(title: s(.commonBack), action: onBack)
-                        .padding(.top, 16)
+                    FlexrButton(title: s(.verifyRetry)) {
+                        Task { await model.start() }
+                    }
+                    .padding(.top, 18)
                 }
+                FlexrSecondaryButton(title: s(.commonBack), action: onBack)
+                    .padding(.top, 8)
                 Spacer(minLength: 24)
             } else {
-                Eyebrow(text: s(.verifyShotOf, min(model.currentIndex + 1, max(model.total, 1)), model.total))
-                    .padding(.top, 18)
-                Text(model.currentPrompt ?? s(.verifyDone))
+                // Nach der letzten Aufnahme gibt es keinen Zähler mehr zu
+                // zeigen — dann steht dort, worum es ging.
+                if model.currentIndex < model.total {
+                    Eyebrow(text: s(.verifyShotOf, model.currentIndex + 1, model.total))
+                        .padding(.top, 18)
+                } else {
+                    Eyebrow(text: s(.verifySelfieEyebrow))
+                        .padding(.top, 18)
+                }
+                Text(model.currentPrompt ?? s(.verifySubmitting))
                     .flexrText(.headlineMedium)
                     .foregroundStyle(FlexrColor.chalk)
 
                 cameraPane
                     .padding(.top, 16)
+
+                // Wie auf Android: Der Hinweis steht nur, solange es etwas
+                // aufzunehmen gibt — nicht über einer eingefrorenen Vorschau.
+                if hasCameraPermission, !model.isSubmitting, !model.isComplete {
+                    Text(s(.verifyFrameHint))
+                        .flexrText(.bodyMedium)
+                        .foregroundStyle(FlexrColor.chalkDim)
+                        .multilineTextAlignment(.center)
+                        .frame(maxWidth: .infinity)
+                        .padding(.top, 10)
+                }
 
                 thumbnails(model)
                     .padding(.top, 14)
@@ -292,8 +332,12 @@ struct VerificationView: View {
         } else {
             FlexrButton(title: s(.verifyCapture), icon: .symbol(FlexrIcon.camera)) {
                 Task {
+                    // Zwei verschiedene Lagen, zwei verschiedene Sätze: Die
+                    // Kamera läuft noch nicht, oder die Aufnahme selbst ist
+                    // misslungen.
+                    let wasRunning = camera.isRunning
                     guard let image = await camera.capture() else {
-                        appModel.show(s(.verifyCaptureFailed))
+                        appModel.show(wasRunning ? s(.verifyCaptureFailed) : s(.verifyCameraNotReady))
                         return
                     }
                     await model.onCaptured(image)

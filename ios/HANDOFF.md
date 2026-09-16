@@ -147,22 +147,82 @@ Hierarchie stehen, sein `onAppear` feuert beim Zurückkommen nicht verlässlich.
 `apple-app-site-association` auf flexr.social. Der Endpunkt
 (`auth/email/confirm`) liegt seit Runde 1 bereit.
 
-### Offen — kleiner
+### Kleinere Paritätslücken — geschlossen am 16.09.2026
 
-- **Registrierung bricht den Foto-Upload ab.** `session.save(token:)` feuert
-  sofort, `AppModel` schaltet auf `.ready`, SwiftUI räumt `RegisterView` samt
-  laufendem Upload-Task ab. Android hält `isLoggedIn` bis zum Ende des
-  Erstuploads auf `false` (`AuthRepository.beginRegistration`).
-- **Optimistisch gesendete Nachricht** erscheint nicht sofort: `ChatModel.send`
-  ruft `reload()` vor dem Netzaufruf auf, die Pending-Zeile entsteht erst
-  danach im Repository.
-- Kein Passwort-Wiederholungsfeld bei der Registrierung; Registrierknopf ist
-  gesperrt statt zu erklären, was fehlt.
-- Fest verdrahtete deutsche Texte in Swipe, Match-Overlay, Matches und Chat.
-- Chat-Poll endet auf iOS beim Verlassen der Ansicht, auf Android läuft er im
-  `viewModelScope` weiter (abweichende Lesebestätigungen).
-- Sprachumschaltung: Android hat sie am 11.–12.09. überarbeitet (Regler nur
-  noch im Profil, Wechsel am Basis-Context).
+- **Registrierung brach den Foto-Upload ab.** `session.save(token:)` feuerte
+  sofort, `AppModel` schaltete auf `.ready`, SwiftUI räumte `RegisterView` samt
+  laufendem Upload-Task ab — das Konto stand ohne Fotos da. `AuthRepository`
+  hat jetzt wie Android eine Klammer (`beginRegistration`/`finishRegistration`),
+  die `isLoggedIn` bis zum Ende des Erstuploads auf `false` hält.
+- **Optimistisch gesendete Nachricht** erschien erst nach der Serverantwort:
+  `ChatModel.send` rief `reload()` auf, bevor das Repository die Pending-Zeile
+  anlegte. Das Anlegen sitzt jetzt in `insertPending` und läuft synchron vor
+  dem Neulesen.
+- **Passwort-Wiederholungsfeld** bei der Registrierung, mit Hinweis am Feld,
+  sobald beide Eingaben auseinandergehen.
+- **Registrierknopf ist nicht mehr gesperrt.** Ein grauer Knopf sagt nicht,
+  *was* fehlt. Er löst jetzt die Prüfung aus, und darunter steht, solange etwas
+  offen ist, der Hinweis aus `registerIncompleteHint`.
+- **Sprachregler an der richtigen Stelle.** Er stand auf jeder Kopfzeile;
+  angemeldet ist er im Kontobereich erreichbar, und dort steht er mit
+  Beschriftung statt nur als Kürzel. Jetzt wie auf Android: ausgeloggt im Kopf,
+  im Gate die Zustandspille „Nicht freigeschaltet", in der App der
+  Mitgliedschaftsstatus.
+- **Vierzehn fest verdrahtete deutsche Texte** in Swipe, Match-Overlay,
+  Matches, Chat und Konto über Schlüssel aufgelöst.
+- **Veralteter Hinweis im Kontobereich.** `verifyBadgeDocumentMissing` schickte
+  für den Ausweisschritt noch auf flexr.social — den kann die App seit
+  Runde 2 selbst. Der Text ist jetzt Androids („Selfie erledigt. Jetzt noch den
+  Ausweis aufnehmen."), und die Karte hat in diesem Zustand wieder einen Knopf,
+  der direkt zum Ausweis führt statt über den Selfie-Bildschirm.
+- **Selfie-Bildschirm: fünf fehlende Zustände.** Vorzeile „Nicht gestartet"
+  samt Überschrift und Wiederholen-Knopf, Rahmen-Hinweis unter der Vorschau,
+  eigene Vorzeile nach der letzten Aufnahme, „Aufnahme wird eingereicht …"
+  statt „Fertig!", und eine eigene Meldung, wenn die Kamera noch nicht bereit
+  ist.
+- **Fehler:** Scheiterte `verification/start`, blieb `hasNothingToCapture`
+  falsch (die Bedingung schloss `error == nil` ein). Die Ansicht zeigte dann
+  eine scharfe Kamera, deren Auslöser `onCaptured` mangels Anweisungen wieder
+  verwarf — eine Sackgasse. Der Fehlerfall gehört jetzt zum Zustand
+  „nicht gestartet", und die Servermeldung steht darin.
+
+### Bewusste Abweichungen von Android
+
+Nicht alles, was auseinandergeht, ist eine Lücke. Diese Unterschiede bleiben:
+
+- **Chat-Poll.** Auf Android läuft er im `viewModelScope` weiter, auch wenn der
+  Chat nicht sichtbar ist — und markiert dabei Nachrichten als gelesen. Auf iOS
+  endet er mit der Ansicht. Eine Lesebestätigung für etwas, das niemand
+  ansieht, ist falsch; iOS bleibt, wie es ist. **Android sollte nachziehen.**
+- **Preis auf der Bezahlwand.** Android schreibt „10 €" fest, iOS liest ihn aus
+  `billing/status`. Wer die Zahl in `config.py` ändert, ändert damit auch die
+  App — nur auf iOS.
+- **„Aufheben fehlgeschlagen."** war auf beiden Seiten fest verdrahtet; auf iOS
+  liegt der Text jetzt im Wörterbuch. **Android sollte nachziehen.**
+- **„Online"** steht auf beiden Seiten fest im Code — dasselbe Wort in beiden
+  Sprachen.
+- **Gruppierung im Kontobereich.** Android fasst die Sprachwahl unter
+  „Einstellungen", iOS gibt ihr eine eigene Überschrift. Reine Optik.
+
+### Ergebnis des Gesamtabgleichs, 16.09.2026
+
+Maschinell geprüft, nicht nach Augenmaß:
+
+- **Endpunkte:** 44 auf jeder Seite, nach Normalisierung der Platzhalter
+  deckungsgleich. Einzige Abweichung: `POST api/auth/age-check` ist in Androids
+  `FlexrApi.kt` deklariert, wird aber nirgends aufgerufen — toter Code, keine
+  Lücke.
+- **DTO-Felder:** Alle 75 ausdrücklich benannten Felder der Android-DTOs haben
+  auf iOS eine Entsprechung (iOS deckt sie über `convertFromSnakeCase` ab).
+- **Bildschirme:** zwölf zu zwölf, 1:1.
+- **Texte:** 442 Schlüssel, keine Dublette, keine Lücke in Deutsch oder
+  Englisch, keine Waise, keine ungültige Referenz. Von den Anzeigetexten stehen
+  nur noch reine Einsetzungen ohne übersetzbare Wörter im Code („12/280",
+  „50 km", „3 / 6", „Lena, 27") — genau wie auf Android.
+- **Nicht implementiert, auf beiden Seiten:** „Wer hat dich geliket" und
+  „letzten Swipe zurücknehmen" stehen nur als Aufzählungspunkte auf der
+  Bezahlwand; die Endpunkte gibt es, kein Client ruft sie auf. Sieben
+  Premium-Texte aus der Bezahlzeit liegen auf beiden Seiten ungenutzt herum.
 
 ---
 

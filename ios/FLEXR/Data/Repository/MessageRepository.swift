@@ -27,8 +27,14 @@ final class MessageRepository {
         store.replaceSyncedMessages(matchID: matchID, with: remote)
     }
 
-    @discardableResult
-    func send(matchID: String, senderID: String, content: String) async throws -> Message {
+    /// Legt die Zeile sofort örtlich an und liefert ihre Kennung.
+    ///
+    /// Bewusst getrennt von [send] und nicht `async`: Die eigene Nachricht soll
+    /// im selben Bild erscheinen, in dem der Knopf gedrückt wurde — nicht erst
+    /// nach der Antwort des Servers. Vorher steckte das Einfügen im
+    /// Netzaufruf, und die Ansicht lud ihre Liste davor neu: Die Zeile war
+    /// bis zur Serverantwort unsichtbar.
+    func insertPending(matchID: String, senderID: String, content: String) -> String {
         let pendingID = "pending-\(UUID().uuidString)"
         let pending = Message(
             id: pendingID,
@@ -40,7 +46,13 @@ final class MessageRepository {
             wasCensored: false
         )
         store.insert(pending, isPending: true)
+        return pendingID
+    }
 
+    /// Schickt eine mit [insertPending] angelegte Zeile ab und ersetzt sie
+    /// durch die Fassung des Servers (der den Text zensiert haben kann).
+    @discardableResult
+    func send(matchID: String, pendingID: String, content: String) async throws -> Message {
         do {
             let sent = try await api.sendMessage(
                 matchID: matchID,

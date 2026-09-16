@@ -22,6 +22,7 @@ extension FlexrStrings {
         .commonVerifiedProfile: "Verified profile",
         .commonProfilePhotoOf: "Profile photo of %@",
         .commonDeleteFailed: "Deletion failed.",
+        .commonMoreOptions: "More options",
 
         // MARK: Sprache
         .langLabel: "Language",
@@ -80,6 +81,14 @@ extension FlexrStrings {
             """,
         .registerPasswordPlaceholder: "At least 8 characters",
         .registerNamePlaceholder: "Alex",
+        .registerPasswordRepeat: "Repeat password",
+        .registerPasswordRepeatPlaceholder: "Enter password again",
+        .registerErrPasswordMismatch: "The two passwords do not match.",
+        .registerErrPasswordMismatchShort: "The passwords do not match.",
+        .registerIncompleteHint: """
+            Not complete yet — tap the button and we will show you what is \
+            missing.
+            """,
         .registerPhotosLabel: "Photos (min. %d, max. %d)",
         .registerPhotoPreparing: "Preparing photo …",
         .registerConsentPrefix: """
@@ -137,7 +146,14 @@ extension FlexrStrings {
         .bioNone: "No bio given.",
 
         // MARK: Swipe
+        .swipeEyebrow: "Discover",
         .swipeTitle: "Profiles near you",
+        .swipeLoading: "Loading profiles …",
+        .swipeErrorTitle: "Not loaded",
+        .swipeRetry: "Try again",
+        .swipeReload: "Reload",
+        .swipePass: "Pass",
+        .blockDone: "%@ blocked.",
         .swipeRadius: "%d km around your gym",
         .swipeEmptyTitle: "All sets done",
         .swipeEmptySub: "No new profiles near you. Check back later.",
@@ -152,11 +168,13 @@ extension FlexrStrings {
         .unmatchAction: "Remove match",
 
         // MARK: Match-Overlay
+        .matchEyebrow: "Both interested",
         .matchTitle: "It's a match!",
         .matchSub: "You and %@ liked each other.",
         .matchContinue: "Keep swiping",
 
         // MARK: Matches / Chats
+        .matchesEyebrow: "Hit rate",
         .matchesTitle: "Your matches",
         .matchesEmptyTitle: "No matches yet",
         .matchesEmptySub: "Keep swiping — your next training partner is already out there.",
@@ -194,6 +212,7 @@ extension FlexrStrings {
         .chatMutedBanner: "Your chat function is temporarily blocked. You cannot send messages until %@.",
         .chatInputPlaceholder: "Write a message…",
         .chatInputLocked: "Chat temporarily blocked",
+        .chatMuteReason: "Reason: %@",
         .chatSendFailed: "The message could not be sent.",
         .chatCleared: "Chat history cleared.",
         .chatDeleted: "Chat deleted.",
@@ -298,6 +317,7 @@ extension FlexrStrings {
         .verifyHintTitle: "Verification",
         .verifyHintUnderstood: "Got it",
         .verifyHintStart: "Start verification",
+        .verifyHintDocument: "Add photo ID",
         .blocksBlocked: "Blocked",
         .commonDone: "Done",
         .consentRevokedSuffix: "  — revoked",
@@ -351,16 +371,14 @@ extension FlexrStrings {
             """,
         .blocksLoadFailed: "Your blocks could not be loaded.",
         .blocksUnblock: "Unblock",
+        .blocksUnblockFailed: "Unblocking failed.",
 
         // MARK: Verifizierungs-Kurzstatus
         .verifyBadgeChecking: "Review running …",
         .verifyBadgeConfirmAge: "Confirm your age",
         .verifyBadgeVerified: "Your profile is verified — others see the blue check next to your name.",
         .verifyBadgeReviewing: "Your verification is being reviewed. Once approved you get the blue check.",
-        .verifyBadgeDocumentMissing: """
-            The image of your official photo ID is still missing. You complete \
-            that step at flexr.social for now.
-            """,
+        .verifyBadgeDocumentMissing: "Selfie done. Now add your photo ID.",
         .verifyBadgeFailed: "Your verification could not be completed. Questions: flexr.social@proton.me",
         .verifyBadgeStart: """
             Show with a live selfie and a photo ID that you really are you — and \
@@ -418,7 +436,6 @@ extension FlexrStrings {
         .verifyShotIndex: "Shot %d",
         .verifyCameraNeeded: "Camera access is required.",
         .verifyPreparing: "Preparing …",
-        .verifyDone: "Done!",
         .verifyUploading: "Uploading …",
         .verifyRetrySubmit: "Retry submission",
         .verifyAllowCamera: "Allow camera access",
@@ -432,6 +449,13 @@ extension FlexrStrings {
         .verifyCameraDenied: "Camera access denied. Verification needs live camera images.",
         .verifySubmitted: "Selfies submitted — your verification is under review.",
         .verifySelfieExists: "We already have your selfie. Next up is your photo ID.",
+        .verifyNotStarted: "Not started",
+        .verifyCannotStart: "Verification cannot start right now.",
+        .verifyRetry: "Try again",
+        .verifySelfieEyebrow: "Verification selfie",
+        .verifySubmitting: "Submitting the shot …",
+        .verifyFrameHint: "Keep your face centred in the frame and tap “Capture” below.",
+        .verifyCameraNotReady: "The camera is not ready yet, please try again in a moment.",
         .verifyAlreadySubmitted: "Your verification is already under review.",
         .verifyNoneRunning: "No verification is currently running for this account.",
         .verifyContinueToDocument: "Continue to your ID",
@@ -603,6 +627,7 @@ extension FlexrStrings {
         .statusBetaFree: "Beta · free",
         .statusPremium: "Premium",
         .statusFree: "Free",
+        .statusNotUnlocked: "Not unlocked",
         .statusLikesLeft: "%d likes",
 
         // MARK: Netz- und Serverfehler
