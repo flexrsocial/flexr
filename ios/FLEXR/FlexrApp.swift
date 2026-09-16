@@ -34,6 +34,16 @@ final class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCent
     let languageStore = LanguageStore()
     lazy var appModel = AppModel(container: container, languageStore: languageStore)
 
+    /// Info.plist erlaubt dem iPad seit App Store Connect 90474 alle vier
+    /// Ausrichtungen (Pflicht fürs Multitasking-Manifest) — hier wird
+    /// tatsächlich trotzdem auf Hochformat gesperrt, auf beiden Geräten.
+    func application(
+        _ application: UIApplication,
+        supportedInterfaceOrientationsFor window: UIWindow?
+    ) -> UIInterfaceOrientationMask {
+        .portrait
+    }
+
     func application(
         _ application: UIApplication,
         didFinishLaunchingWithOptions options: [UIApplication.LaunchOptionsKey: Any]? = nil

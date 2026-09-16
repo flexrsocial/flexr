@@ -56,6 +56,18 @@
 		<string>UIInterfaceOrientationPortrait</string>
 	</array>
 
+	<!-- iPad-Multitasking (Split View/Slide Over) verlangt laut App Store
+	Connect alle vier Ausrichtungen im Manifest, auch wenn die App tatsächlich
+	nur Hochformat zeigt. Die echte Sperre übernimmt AppDelegate.application(
+	_:supportedInterfaceOrientationsFor:). -->
+	<key>UISupportedInterfaceOrientations~ipad</key>
+	<array>
+		<string>UIInterfaceOrientationPortrait</string>
+		<string>UIInterfaceOrientationPortraitUpsideDown</string>
+		<string>UIInterfaceOrientationLandscapeLeft</string>
+		<string>UIInterfaceOrientationLandscapeRight</string>
+	</array>
+
 	<key>UIAppFonts</key>
 	<array>
 		<string>oswald_variable.ttf</string>
