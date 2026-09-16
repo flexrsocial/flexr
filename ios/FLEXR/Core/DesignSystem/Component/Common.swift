@@ -136,6 +136,25 @@ struct VerifiedBadge: View {
     }
 }
 
+/// Premium-Abzeichen neben dem Namen — ein gefüllter Stern in Plate-Orange.
+///
+/// Bewusst ohne runden Grund, anders als der blaue Haken: Zwei gleich gebaute
+/// Plaketten nebeneinander liest niemand auseinander. Im Web ist es dieselbe
+/// Unterscheidung (`.premium-badge` trägt nur `color`, keine Fläche).
+struct PremiumBadge: View {
+    var size: CGFloat = 16
+
+    @Environment(LanguageStore.self) private var languageStore
+
+    var body: some View {
+        Image(systemName: FlexrIcon.premium)
+            .font(.system(size: size * 0.92, weight: .semibold))
+            .foregroundStyle(FlexrColor.plate)
+            .frame(width: size, height: size)
+            .accessibilityLabel(languageStore.strings(.premiumBadgeTitle))
+    }
+}
+
 /// Merkmal-Chip auf einer Profilkarte (`.stat-chip`).
 struct StatChip: View {
 

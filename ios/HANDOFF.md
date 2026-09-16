@@ -5,6 +5,58 @@ Stand: **16.09.2026**. Für Aufbau, Build-Befehle und die Migrationstabelle sieh
 
 ---
 
+## FLEXR Premium: die drei Zusatzfunktionen, 16.09.2026
+
+Backend und Web-App haben sie seit dem 10.09.2026, die nativen Clients trugen
+bis jetzt nur den Werbetext auf der Paywall. Android und iOS sind im selben Zug
+nachgezogen; die Aufteilung ist auf beiden Seiten dieselbe.
+
+1. **Premium-Abzeichen** — gefüllter Stern (`star.fill`) in Plate-Orange neben
+   dem Namen, in Swipe-Karte, Match-/Chatliste, Chat-Kopfzeile und
+   Kontobereich. `PremiumBadge` steht bewusst **ohne** runden Grund neben dem
+   blauen Verifiziert-Haken: zwei gleich gebaute Plaketten nebeneinander liest
+   niemand auseinander (im Web dieselbe Unterscheidung, `.premium-badge` trägt
+   nur `color`).
+2. **Letzten Swipe zurücknehmen** — kleiner runder Knopf links neben „Nope"
+   (`RoundActionButton` hat dafür `isCompact`), `POST /api/swipes/rewind`. Er
+   erscheint **nur mit Premium**; ohne Abo steht dort nichts statt eines
+   gesperrten Knopfes.
+3. **„Wer dich geliket hat"** — Karte über der Matchliste (Zahl im Kreis) und
+   ein eigener Bildschirm dahinter (`Route.incoming`, `UI/Incoming/`). Ohne
+   Premium liefert der Server die **Anzahl ohne Profile**; die Ansicht zeigt
+   dann „3 Leute warten auf dich" plus den Hinweis, dass dieselben Leute
+   ohnehin im Deck auftauchen — kein Fehlerbildschirm.
+
+**SwiftData**: `MatchEntity.isPremium` ist dazugekommen, mit Vorgabewert
+`false` — aus demselben Grund wie bei `inChats`: So ergänzt SwiftData das Feld
+leichtgewichtig, statt die angelegte Datei zu verwerfen. Folgenlos wäre auch
+das, der Bestand ist reiner Spiegel des Servers.
+
+**`AppModel.membership` liest jetzt durch aufs Repository** statt aus der Kopie
+im `state`. Das Restkontingent ändert sich nach jedem Like und nach jedem
+zurückgenommenen Swipe (beide Antworten tragen `likes_remaining`,
+`BillingRepository.updateLikesRemaining` schreibt es fort). Die Kopie entsteht
+nur beim Anmelden — die Pille im Kopf hätte sonst bis zur nächsten Anmeldung
+den Stand vom App-Start gezeigt.
+
+**Neue Dateien brauchen keinen Eintrag in `FLEXR.xcodeproj`**: Das Projekt
+benutzt `PBXFileSystemSynchronizedRootGroup`, alles unter `ios/FLEXR/` wird von
+Xcode selbst aufgenommen. `UI/Incoming/IncomingView.swift` ist deshalb nur eine
+Datei, kein Projekteingriff.
+
+**Alles hängt weiterhin an `PREMIUM_ENABLED` am Server.** Solange der Schalter
+aus ist, ist `is_premium` für jeden falsch: kein Abzeichen, kein
+Zurücknehmen-Knopf, und die Karte zeigt den gesperrten Text. Es gibt in der App
+keinen zweiten Ort, an dem sich das entscheidet.
+
+**Nicht compilerverifiziert.** Die Android-Seite dieser Änderung ist gebaut und
+getestet (49 Unit-Tests grün); für iOS steht auf diesem Rechner keine
+Swift-Toolchain zur Verfügung, geprüft sind nur Klammerbilanz und die
+Aufrufstellen von Hand. **Der nächste Codemagic-Lauf ist der Nachweis** — und
+er ist mit einiger Wahrscheinlichkeit nicht beim ersten Versuch grün; der
+Abschnitt „Was am 16.09.2026 nachgezogen wurde" zeigt, wie viele latente Fehler
+der erste strenge Durchgang zutage gefördert hat.
+
 ## Bugfixes aus dem ersten TestFlight-Durchgang, 16.09.2026
 
 Drei Befunde vom Gerät, alle rein in der Darstellung — kein Backend, keine

@@ -69,6 +69,10 @@ enum FlexrIcon {
     static let add = "plus"
     static let remove = "minus"
     static let check = "checkmark"
+    /// Premium-Abzeichen neben dem Namen — im Web derselbe gefüllte Stern.
+    static let premium = "star.fill"
+    /// Letzten Swipe zurücknehmen.
+    static let rewind = "arrow.uturn.backward"
     static let warning = "exclamationmark.triangle.fill"
     static let eye = "eye"
     static let eyeOff = "eye.slash"

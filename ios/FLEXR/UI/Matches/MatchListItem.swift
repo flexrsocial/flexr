@@ -33,6 +33,7 @@ struct MatchListItem: View {
                             .foregroundStyle(FlexrColor.chalk)
                             .lineLimit(1)
                         if match.profile.isVerified { VerifiedBadge(size: 14) }
+                        if match.profile.isPremium { PremiumBadge(size: 14) }
                     }
                     Text(secondaryLine)
                         .flexrText(.bodySmall)

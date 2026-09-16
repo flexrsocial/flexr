@@ -14,12 +14,20 @@ final class SwipeModel {
     var matchedWith: Profile?
     var ownAvatarURL: String?
     var searchRadiusKm = 20
+    /// Läuft ein Premium-Abo? Nur dann gibt es den Zurücknehmen-Knopf.
+    var isPremium: Bool { billing.membership?.isPremium == true }
+    var isRewinding = false
 
     var current: Profile? { deck[safe: currentIndex] }
     var next: Profile? { deck[safe: currentIndex + 1] }
     var isExhausted: Bool { !isLoading && currentIndex >= deck.count }
 
     @ObservationIgnored private let swipes: SwipeRepository
+    /// `BillingRepository` ist selbst `@Observable`; `isPremium` liest darauf
+    /// durch, statt den Wert zu kopieren. Wer im Kontobereich abschließt oder
+    /// kündigt, bekommt den Zurücknehmen-Knopf dadurch ohne Neustart — eine
+    /// Kopie im eigenen Zustand wäre ab dem Kopieren veraltet.
+    @ObservationIgnored private let billing: BillingRepository
     @ObservationIgnored private let profiles: ProfileRepository
     @ObservationIgnored private let safety: SafetyRepository
     @ObservationIgnored private let matches: MatchRepository
@@ -40,6 +48,7 @@ final class SwipeModel {
     ) {
         self.languageStore = languageStore
         swipes = container.swipes
+        billing = container.billing
         profiles = container.profiles
         safety = container.safety
         matches = container.matches
@@ -89,6 +98,9 @@ final class SwipeModel {
                 let outcome = isLike
                     ? try await swipes.like(userID: target.id)
                     : try await swipes.pass(userID: target.id)
+                // Der Server rechnet das Kontingent ohnehin schon aus und
+                // liefert es mit - die Pille im Kopf zieht darüber nach.
+                billing.updateLikesRemaining(outcome.likesRemaining)
                 if outcome.matched {
                     matchedWith = target
                     _ = try? await matches.refresh()
@@ -96,6 +108,33 @@ final class SwipeModel {
             } catch {
                 onMessage((error as? FlexrAPIError)?.message ?? s(.swipeFailed))
             }
+        }
+    }
+
+    /// Letzten Swipe zurücknehmen (Premium).
+    ///
+    /// Danach wird das Deck neu geladen: Der Server hat den Swipe gelöscht, das
+    /// Profil gehört also wieder hinein. Ein Zurückschieben des `currentIndex`
+    /// wäre kürzer, aber falsch — der zurückgenommene Swipe muss nicht der
+    /// letzte im aktuellen Deck gewesen sein (etwa nach einem Neuladen wegen
+    /// geänderter Suchkriterien).
+    ///
+    /// Fehler kommen im Klartext des Servers durch: „brauchst Premium" (403)
+    /// und „daraus ist schon ein Match geworden" (409) sind für den Nutzer zwei
+    /// sehr verschiedene Nachrichten.
+    func rewindLastSwipe() {
+        guard !isRewinding else { return }
+        isRewinding = true
+        Task {
+            do {
+                let outcome = try await swipes.rewindLastSwipe()
+                billing.updateLikesRemaining(outcome.likesRemaining)
+                onMessage(s(.premiumRewindDone))
+                await loadDeck()
+            } catch {
+                onMessage((error as? FlexrAPIError)?.message ?? s(.premiumRewindFailed))
+            }
+            isRewinding = false
         }
     }
 

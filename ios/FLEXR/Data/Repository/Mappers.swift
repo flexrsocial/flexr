@@ -27,8 +27,19 @@ extension ProfileDTO {
             bio: bio,
             isOnline: isOnline ?? false,
             isVerified: isVerified ?? false,
+            isPremium: isPremium ?? false,
             distanceKm: distanceKm,
             photos: (photos ?? []).sorted { $0.position ?? 0 < $1.position ?? 0 }.map { $0.toDomain() }
+        )
+    }
+}
+
+extension IncomingLikesDTO {
+    func toDomain() -> IncomingLikes {
+        IncomingLikes(
+            count: count ?? 0,
+            profiles: (profiles ?? []).map { $0.toDomain() },
+            premiumRequired: premiumRequired ?? false
         )
     }
 }
@@ -46,6 +57,7 @@ extension MyProfileDTO {
                 bio: bio,
                 isOnline: isOnline ?? false,
                 isVerified: isVerified ?? false,
+                isPremium: isPremium ?? false,
                 distanceKm: distanceKm,
                 // Die eigene Ansicht zeigt bewusst ALLE Fotos inklusive Moderationsstatus.
                 photos: (photos ?? [])

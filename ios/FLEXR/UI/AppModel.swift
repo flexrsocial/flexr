@@ -38,9 +38,17 @@ final class AppModel {
     ///
     /// Bequemlichkeit für Views, die nur die Zahlen brauchen (Preis, Grenzen,
     /// Restkontingent) und nicht den ganzen Zustand auseinandernehmen wollen.
+    ///
+    /// Gelesen wird **durch** auf das Repository, nicht aus der Kopie im
+    /// `state`: Das Restkontingent ändert sich nach jedem Like und nach jedem
+    /// zurückgenommenen Swipe (`BillingRepository.updateLikesRemaining`). Die
+    /// Kopie im Zustand entsteht nur beim Anmelden — die Pille im Kopf zeigte
+    /// sonst den Stand vom App-Start, bis sich jemand neu anmeldet. Der
+    /// Rückfall auf den Zustand bleibt, damit `.ready` weiterhin das Kriterium
+    /// dafür ist, ob überhaupt etwas anzuzeigen ist.
     var membership: Membership? {
-        if case .ready(_, let membership) = state { return membership }
-        return nil
+        guard case .ready(_, let fromState) = state else { return nil }
+        return container.billing.membership ?? fromState
     }
 
     /// Kurze Rückmeldung am unteren Rand (Ersatz für die Snackbar).

@@ -201,6 +201,7 @@ private struct ChatHeader: View {
                         .foregroundStyle(FlexrColor.chalk)
                         .lineLimit(1)
                     if profile?.isVerified == true { VerifiedBadge(size: 14) }
+                    if profile?.isPremium == true { PremiumBadge(size: 14) }
                 }
                 .padding(.leading, 11)
                 .frame(maxWidth: .infinity, alignment: .leading)

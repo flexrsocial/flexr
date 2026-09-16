@@ -283,6 +283,7 @@ private struct CardContent: View {
                     .foregroundStyle(.white)
                     .lineLimit(1)
                 if profile.isVerified { VerifiedBadge() }
+                if profile.isPremium { PremiumBadge() }
             }
             Text(subtitle.uppercased())
                 .flexrText(.mono)

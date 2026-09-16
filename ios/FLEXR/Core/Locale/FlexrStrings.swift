@@ -101,6 +101,14 @@ enum L: Hashable, Sendable {
     case premiumFeatureRewind, premiumFeatureRadius, premiumFeatureBadge
     case premiumBetaHint, premiumLikesLeft, premiumLikesGone
     case premiumLikeLimit, premiumChatLimit
+    case premiumBadgeTitle, premiumLikesLeftOne, premiumMoreLikes
+    case premiumRewindDone, premiumRewindFailed, swipeRewind
+
+    // „Wer dich geliket hat" (Premium).
+    case incomingTitleOne, incomingTitle, incomingSubFree, incomingSubPremium
+    case incomingEyebrow, incomingHeadline, incomingLoading
+    case incomingLockedTitleOne, incomingLockedTitle, incomingLockedSub
+    case incomingNone, incomingLoadFailed
     case accountSave, accountSaved, accountSaveFailed, accountErrPostalCode
     case accountErrPhotoBeforeSave, accountErrGym, accountNotificationsRow
     case accountNotificationsSub, accountConsentsRow

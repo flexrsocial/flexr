@@ -54,6 +54,11 @@ final class MatchEntity {
     /// bereits angelegten Datei leichtgewichtig ergänzen kann statt die Datei
     /// zu verwerfen (siehe FlexrStore).
     var inChats: Bool = false
+    /// Premium-Abzeichen in der Match-/Chatliste. Vorgabewert aus demselben
+    /// Grund wie bei `inChats` — und folgenlos, falls er je greift: Der
+    /// Bestand ist reiner Spiegel des Servers, beim nächsten Abgleich steht
+    /// der richtige Wert da.
+    var isPremium: Bool = false
 
     init(
         matchID: String,
@@ -74,7 +79,8 @@ final class MatchEntity {
         lastMessageSenderID: String?,
         lastMessageAt: Date?,
         sortedAt: Date,
-        inChats: Bool
+        inChats: Bool,
+        isPremium: Bool
     ) {
         self.matchID = matchID
         self.profileID = profileID
@@ -95,6 +101,7 @@ final class MatchEntity {
         self.lastMessageAt = lastMessageAt
         self.sortedAt = sortedAt
         self.inChats = inChats
+        self.isPremium = isPremium
     }
 }
 
@@ -153,6 +160,7 @@ extension MatchEntity {
                 bio: bio,
                 isOnline: isOnline,
                 isVerified: isVerified,
+                isPremium: isPremium,
                 distanceKm: distanceKm,
                 photos: photos.map { $0.toDomain() }
             ),
@@ -193,6 +201,7 @@ extension MatchEntity {
         lastMessageAt = summary.lastMessage?.createdAt
         sortedAt = summary.lastMessage?.createdAt ?? matchedAt
         inChats = summary.inChats
+        isPremium = summary.profile.isPremium
     }
 
     static func make(_ summary: MatchSummary, matchedAt: Date = Date()) -> MatchEntity {
@@ -215,7 +224,8 @@ extension MatchEntity {
             lastMessageSenderID: summary.lastMessage?.senderID,
             lastMessageAt: summary.lastMessage?.createdAt,
             sortedAt: summary.lastMessage?.createdAt ?? matchedAt,
-            inChats: summary.inChats
+            inChats: summary.inChats,
+            isPremium: summary.profile.isPremium
         )
     }
 

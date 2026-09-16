@@ -26,7 +26,28 @@ final class SwipeRepository {
 
     private func swipe(userID: String, action: String) async throws -> SwipeOutcome {
         let result = try await api.swipe(SwipeRequestDTO(toUserId: userID, action: action))
-        return SwipeOutcome(matched: result.matched)
+        return SwipeOutcome(matched: result.matched, likesRemaining: result.likesRemaining)
+    }
+
+    /// Wer mich geliket hat — eine Premium-Funktion.
+    ///
+    /// Ohne Premium wirft der Server bewusst keinen Fehler, sondern liefert die
+    /// Anzahl ohne Profile. Die Oberfläche unterscheidet die beiden Fälle an
+    /// `IncomingLikes.premiumRequired`.
+    func incomingLikes() async throws -> IncomingLikes {
+        try await api.incomingLikes().toDomain()
+    }
+
+    /// Letzten Swipe zurücknehmen — eine Premium-Funktion.
+    ///
+    /// Ohne Premium kommt 403 mit `code = premium_required`, bei einem bereits
+    /// entstandenen Match 409. Beides reicht der Aufrufer als Meldung durch,
+    /// statt es hier zu verschlucken: Der Unterschied ist für den Nutzer
+    /// erheblich („brauchst Premium" gegen „daraus ist schon ein Match
+    /// geworden").
+    func rewindLastSwipe() async throws -> RewindOutcome {
+        let result = try await api.rewindLastSwipe()
+        return RewindOutcome(toUserID: result.toUserId, likesRemaining: result.likesRemaining)
     }
 }
 
@@ -57,6 +78,17 @@ final class BillingRepository {
 
     func clear() {
         membership = nil
+    }
+
+    /// Restliche Likes nachziehen, ohne `/api/billing/status` erneut zu holen.
+    ///
+    /// Sowohl der Swipe als auch das Zurücknehmen liefern den neuen Stand in
+    /// ihrer eigenen Antwort mit — ein zweiter Aufruf nach jedem Like wäre
+    /// reine Verschwendung. Web und Android machen es an derselben Stelle
+    /// genauso. `nil` heißt unbegrenzt und bleibt dann auch nil.
+    func updateLikesRemaining(_ remaining: Int?) {
+        guard let current = membership else { return }
+        membership = current.withLikesRemaining(remaining)
     }
 
     /// Beide Erklärungen müssen vor dem Aufruf aktiv bestätigt worden sein

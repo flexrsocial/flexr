@@ -167,7 +167,20 @@ struct RoundActionButton: View {
     let accessibilityLabel: String
     var tint: Color = .white
     var isLarge = false
+    /// Kleiner als die beiden Hauptaktionen — fürs Zurücknehmen (`.round-btn.rewind`).
+    var isCompact = false
+    var isEnabled = true
     let action: () -> Void
+
+    private var diameter: CGFloat {
+        if isLarge { return 64 }
+        return isCompact ? 46 : 56
+    }
+
+    private var glyphSize: CGFloat {
+        if isLarge { return 26 }
+        return isCompact ? 19 : 22
+    }
 
     var body: some View {
         Button(action: action) {
@@ -185,12 +198,14 @@ struct RoundActionButton: View {
                     Circle().strokeBorder(FlexrColor.steel, lineWidth: 1)
                 }
                 Image(systemName: icon)
-                    .font(.system(size: isLarge ? 26 : 22, weight: .semibold))
+                    .font(.system(size: glyphSize, weight: .semibold))
                     .foregroundStyle(tint)
             }
-            .frame(width: isLarge ? 64 : 56, height: isLarge ? 64 : 56)
+            .frame(width: diameter, height: diameter)
         }
         .buttonStyle(.plain)
+        .disabled(!isEnabled)
+        .opacity(isEnabled ? 1 : 0.5)
         .accessibilityLabel(accessibilityLabel)
     }
 }

@@ -281,6 +281,27 @@ extension FlexrStrings {
             Deine %d Likes für heute sind aufgebraucht. Mit FLEXR Premium \
             likest du ohne Grenze.
             """,
+        .premiumBadgeTitle: "FLEXR Premium",
+        .premiumLikesLeftOne: "Noch 1 von %d Likes heute",
+        .premiumMoreLikes: "Unbegrenzt liken",
+        .premiumRewindDone: "Swipe zurückgenommen.",
+        .premiumRewindFailed: "Zurücknehmen hat nicht geklappt.",
+        .swipeRewind: "Letzten Swipe zurücknehmen",
+        .incomingTitleOne: "Jemand hat dich geliket",
+        .incomingTitle: "Leute haben dich geliket",
+        .incomingSubFree: "Mit FLEXR Premium siehst du, wer",
+        .incomingSubPremium: "Ansehen und zurückliken",
+        .incomingEyebrow: "Offene Likes",
+        .incomingHeadline: "Wer dich geliket hat",
+        .incomingLoading: "Lade …",
+        .incomingLockedTitleOne: "Eine Person wartet auf dich",
+        .incomingLockedTitle: "%d Leute warten auf dich",
+        .incomingLockedSub: """
+            Wer genau, siehst du mit FLEXR Premium. Ohne Premium tauchen sie \
+            ganz normal in deinem Deck auf.
+            """,
+        .incomingNone: "Gerade wartet niemand.",
+        .incomingLoadFailed: "Die offenen Likes konnten nicht geladen werden.",
         .premiumChatLimit: """
             Du hast %d Unterhaltungen offen — mehr gehen gleichzeitig nicht. \
             Löse ein Match auf oder hol dir FLEXR Premium.

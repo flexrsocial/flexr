@@ -158,7 +158,10 @@ private struct MainFlow: View {
                     }
                 case .matches:
                     NavigationStack(path: $matchesPath) {
-                        MatchesView(onOpenMatchProfile: { matchesPath.append(.matchProfile(matchID: $0)) })
+                        MatchesView(
+                            onOpenMatchProfile: { matchesPath.append(.matchProfile(matchID: $0)) },
+                            onOpenIncoming: { matchesPath.append(.incoming) }
+                        )
                             .navigationBarHidden(true)
                             .flexrRoutes(path: $matchesPath)
                     }
@@ -233,6 +236,14 @@ private struct FlexrRoutes: ViewModifier {
                     DocumentView(onBack: { pop() }, onSubmitted: { pop() })
                 case .premium:
                     PaywallView(onBack: { pop() })
+                // Bewusst kein eigener Tab: Ohne offene Likes gäbe es dort
+                // einen Reiter, der meistens ins Leere führt — so taucht der
+                // Einstieg nur auf, wenn es etwas zu sehen gibt.
+                case .incoming:
+                    IncomingView(
+                        onBack: { pop() },
+                        onOpenPremium: { path.append(.premium) }
+                    )
                 case .legal(let document):
                     LegalView(document: document, onBack: { pop() })
                 }

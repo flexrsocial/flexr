@@ -168,7 +168,24 @@ struct SwipeView: View {
                     // Beim Kartenwechsel wieder auf das erste Foto.
                     .id(current.id)
 
-                    HStack(spacing: 26) {
+                    HStack(spacing: 22) {
+                        // Zurücknehmen gibt es nur mit Premium. Ohne Abo steht
+                        // hier bewusst gar nichts statt eines gesperrten
+                        // Knopfes: Die Reihe ist der meistbenutzte Ort der App,
+                        // ein dauerhaft totes Element daneben wäre eine
+                        // tägliche Belästigung. Wer Premium sucht, findet es im
+                        // Kontobereich.
+                        if model.isPremium {
+                            RoundActionButton(
+                                icon: FlexrIcon.rewind,
+                                accessibilityLabel: s(.swipeRewind),
+                                tint: FlexrColor.chalkDim,
+                                isCompact: true,
+                                isEnabled: !model.isRewinding
+                            ) {
+                                model.rewindLastSwipe()
+                            }
+                        }
                         RoundActionButton(
                             icon: FlexrIcon.pass,
                             accessibilityLabel: s(.swipePass),

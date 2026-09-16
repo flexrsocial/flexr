@@ -52,6 +52,8 @@ struct Profile: Identifiable, Hashable, Sendable {
     let bio: String?
     let isOnline: Bool
     let isVerified: Bool
+    /// Premium-Abzeichen neben dem Namen, analog zum Verifiziert-Haken.
+    let isPremium: Bool
     let distanceKm: Int?
     let photos: [Photo]
 
@@ -148,6 +150,28 @@ struct Membership: Hashable, Sendable {
     let likesRemaining: Int?
     let openChatsRemaining: Int?
     let nextLikeAt: Date?
+
+    /// Kopie mit neuem Restkontingent — für die Nachführung nach einem Swipe
+    /// oder einem zurückgenommenen Swipe, siehe
+    /// `BillingRepository.updateLikesRemaining(_:)`. Alle Felder sind `let`,
+    /// damit niemand versehentlich am Zustand dreht; das hier ist der eine
+    /// vorgesehene Weg.
+    func withLikesRemaining(_ remaining: Int?) -> Membership {
+        Membership(
+            isPremium: isPremium,
+            premiumEnabled: premiumEnabled,
+            hasStripeSubscription: hasStripeSubscription,
+            priceCents: priceCents,
+            currency: currency,
+            freeDailyLikes: freeDailyLikes,
+            freeOpenChats: freeOpenChats,
+            freeMaxRadiusKm: freeMaxRadiusKm,
+            maxRadiusKm: maxRadiusKm,
+            likesRemaining: remaining,
+            openChatsRemaining: openChatsRemaining,
+            nextLikeAt: nextLikeAt
+        )
+    }
 }
 
 struct Message: Identifiable, Hashable, Sendable {
@@ -271,6 +295,25 @@ struct VerificationState: Sendable {
 /// Ergebnis eines Swipes.
 struct SwipeOutcome: Sendable {
     let matched: Bool
+    /// Verbleibende Likes nach diesem Swipe; nil = unbegrenzt.
+    let likesRemaining: Int?
+}
+
+/// Ergebnis eines zurückgenommenen Swipes.
+struct RewindOutcome: Sendable {
+    let toUserID: String
+    let likesRemaining: Int?
+}
+
+/// Wer mich geliket hat, ohne dass ich schon zurückgeswipet hätte.
+///
+/// Ohne Premium ist [profiles] leer und [premiumRequired] wahr — [count] stimmt
+/// trotzdem. Das ist Absicht: „3 Leute warten auf dich" ist die ehrliche
+/// Antwort und zugleich der beste Grund, sich Premium anzusehen.
+struct IncomingLikes: Sendable {
+    let count: Int
+    let profiles: [Profile]
+    let premiumRequired: Bool
 }
 
 /// Bestätigung einer abgegebenen Meldung. Das Aktenzeichen macht sie für den

@@ -41,6 +41,8 @@ enum Route: Hashable {
     /// Zustand nach Ablauf des Probemonats), seit dem 10.09.2026 ein normales
     /// Ziel aus dem Kontobereich.
     case premium
+    /// „Wer dich geliket hat" — aufgerufen aus der Matchliste.
+    case incoming
     case legal(LegalDocument)
 }
 

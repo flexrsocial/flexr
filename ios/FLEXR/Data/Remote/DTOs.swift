@@ -62,6 +62,9 @@ struct ProfileDTO: Decodable {
     let bio: String?
     let isOnline: Bool?
     let isVerified: Bool?
+    /// Premium-Abzeichen neben dem Namen. Während der Beta trägt es niemand —
+    /// der Server liefert es nur, solange Premium scharf geschaltet ist.
+    let isPremium: Bool?
     let distanceKm: Int?
     let photos: [PhotoDTO]?
 }
@@ -76,6 +79,7 @@ struct MyProfileDTO: Decodable {
     let bio: String?
     let isOnline: Bool?
     let isVerified: Bool?
+    let isPremium: Bool?
     let distanceKm: Int?
     let photos: [PhotoDTO]?
     let plz: String
@@ -265,6 +269,23 @@ struct SwipeRequestDTO: Encodable {
 
 struct SwipeResultDTO: Decodable {
     let matched: Bool
+    /// nil = unbegrenzt (Beta oder Premium). Spart nach jedem Like den
+    /// zusätzlichen Aufruf von `/api/billing/status`.
+    let likesRemaining: Int?
+}
+
+/// Antwort von `GET /api/swipes/incoming`.
+struct IncomingLikesDTO: Decodable {
+    let count: Int?
+    /// Ohne Premium liefert der Server die Zahl, aber keine Profile.
+    let profiles: [ProfileDTO]?
+    let premiumRequired: Bool?
+}
+
+/// Antwort von `POST /api/swipes/rewind`.
+struct RewindResultDTO: Decodable {
+    let toUserId: String
+    let likesRemaining: Int?
 }
 
 struct MessageDTO: Decodable {

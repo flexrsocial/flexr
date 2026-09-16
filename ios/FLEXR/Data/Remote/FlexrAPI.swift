@@ -110,6 +110,17 @@ struct FlexrAPI {
         try await client.send(.post, "api/swipes", body: body)
     }
 
+    /// Wer mich geliket hat. Ohne Premium kommt keine Fehlermeldung, sondern
+    /// nur die Anzahl ohne Profile (`premium_required = true`).
+    func incomingLikes() async throws -> IncomingLikesDTO {
+        try await client.send(.get, "api/swipes/incoming")
+    }
+
+    /// Letzten Swipe zurücknehmen — nur mit Premium, sonst 403.
+    func rewindLastSwipe() async throws -> RewindResultDTO {
+        try await client.send(.post, "api/swipes/rewind")
+    }
+
     // MARK: - matches.py / messages.py
 
     func matches() async throws -> [MatchDTO] {

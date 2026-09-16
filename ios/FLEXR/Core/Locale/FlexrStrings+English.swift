@@ -280,6 +280,27 @@ extension FlexrStrings {
         .premiumLikeLimit: """
             You have used your %d likes for today. FLEXR Premium lifts the limit.
             """,
+        .premiumBadgeTitle: "FLEXR Premium",
+        .premiumLikesLeftOne: "1 of %d likes left today",
+        .premiumMoreLikes: "Like without limits",
+        .premiumRewindDone: "Swipe undone.",
+        .premiumRewindFailed: "Could not undo that swipe.",
+        .swipeRewind: "Undo last swipe",
+        .incomingTitleOne: "Someone liked you",
+        .incomingTitle: "people liked you",
+        .incomingSubFree: "FLEXR Premium shows you who",
+        .incomingSubPremium: "Take a look and like back",
+        .incomingEyebrow: "Open likes",
+        .incomingHeadline: "Who liked you",
+        .incomingLoading: "Loading …",
+        .incomingLockedTitleOne: "One person is waiting for you",
+        .incomingLockedTitle: "%d people are waiting for you",
+        .incomingLockedSub: """
+            FLEXR Premium shows you exactly who. Without Premium they simply \
+            turn up in your deck as usual.
+            """,
+        .incomingNone: "Nobody is waiting right now.",
+        .incomingLoadFailed: "Open likes could not be loaded.",
         .premiumChatLimit: """
             You have %d conversations open — that is the limit at any one time. \
             Unmatch someone or get FLEXR Premium.

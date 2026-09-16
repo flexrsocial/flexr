@@ -172,6 +172,7 @@ struct AccountView: View {
                         .foregroundStyle(FlexrColor.chalk)
                         .lineLimit(1)
                     if model.profile?.profile.isVerified == true { VerifiedBadge() }
+                    if model.profile?.profile.isPremium == true { PremiumBadge() }
                 }
                 Text(
                     [
