@@ -110,8 +110,14 @@ android {
         // falsch". Und der Chat-Poll lief im ViewModel-Umfang weiter, auch wenn
         // der Chat nicht zu sehen war, und quittierte dabei Nachrichten als
         // gelesen, die niemand angesehen hatte.
-        versionCode = 108
-        versionName = "2.6.8"
+        // 109/2.6.9 am 16.09.2026: FLEXR Premium bekommt seine drei
+        // Zusatzfunktionen (Abzeichen, letzten Swipe zuruecknehmen, "Wer dich
+        // geliket hat"). Sie sind unsichtbar, solange PREMIUM_ENABLED am
+        // Server aus steht - dann ist is_premium fuer jeden falsch. Dazu der
+        // ersetzte Login-Hinweis: Der versprochene Probemonat existiert seit
+        // dem 10.09.2026 nicht mehr.
+        versionCode = 109
+        versionName = "2.6.9"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         // Nur die Sprachen ausliefern, die es wirklich gibt: Deutsch als
