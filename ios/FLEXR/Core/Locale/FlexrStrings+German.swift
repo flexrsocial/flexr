@@ -436,8 +436,78 @@ extension FlexrStrings {
         .verifyStartFailed: "Verifizierung konnte nicht gestartet werden.",
         .verifyCameraDenied: "Kamerazugriff abgelehnt. Die Verifizierung braucht Live-Aufnahmen über die Kamera.",
         .verifySubmitted: "Selfies eingereicht — deine Verifizierung ist in Prüfung.",
-        .verifyNothingToCapture: "Gerade ist nichts aufzunehmen — dein Selfie liegt dem Prüfteam bereits vor.",
+        .verifySelfieExists: "Dein Selfie liegt bereits vor. Weiter geht es mit dem Ausweis.",
+        .verifyAlreadySubmitted: "Deine Verifizierung ist bereits in Prüfung.",
+        .verifyNoneRunning: "Für dieses Konto läuft gerade keine Verifizierung.",
+        .verifyContinueToDocument: "Weiter zum Ausweis",
         .verifySubmitFailed: "Einreichen fehlgeschlagen. Bitte erneut versuchen.",
+
+        // MARK: Ausweis-Verifizierung
+        .documentTitle: "Alter bestätigen",
+        .documentLoading: "Wird geladen …",
+        .documentStatusLoadFailed: "Status konnte nicht geladen werden.",
+        .documentWhyTitle: "Warum wir das brauchen",
+        .documentWhy: """
+            Um FLEXR nutzen zu können, musst du mindestens 18 Jahre alt sein. \
+            Lade einmalig einen gültigen amtlichen Lichtbildausweis hoch — als \
+            Foto oder als Datei von deinem Gerät. Wir verwenden ihn \
+            ausschließlich zur Alters- und Identitätsprüfung und löschen die \
+            Aufnahme nach Abschluss der Prüfung.
+            """,
+        .documentManualReview: """
+            Die Prüfung erfolgt manuell durch einen Menschen — es kommt keine \
+            automatische Gesichtserkennung zum Einsatz.
+            """,
+        .documentTypeLabel: "Dokumenttyp",
+        .documentTypeIdCard: "Personalausweis",
+        .documentTypePassport: "Reisepass",
+        .documentTypeLicense: "Führerschein",
+        .documentNeedsBoth: "Vorder- und Rückseite",
+        .documentNeedsFront: "Seite mit Foto und Geburtsdatum",
+        .documentRedactNote: """
+            Du kannst Informationen schwärzen, die für die Altersprüfung nicht \
+            benötigt werden.
+            """,
+        .documentRedactNoteBold: """
+            Foto, Geburtsdatum und die zur Prüfung erforderlichen \
+            Gültigkeitsinformationen müssen sichtbar bleiben.
+            """,
+        .documentShotsLabel: "Aufnahmen",
+        .documentSideFront: "Vorderseite",
+        .documentSideBack: "Rückseite",
+        .documentSideOfId: "%@ des Ausweises",
+        .documentSideDone: "%@ ✓ — tippen zum Wiederholen",
+        .documentCaptureSide: "%@ aufnehmen",
+        .documentActionCamera: "Foto aufnehmen",
+        .documentActionFile: "Datei wählen",
+        .documentSourceHint: """
+            Tippe auf einen Platz, um zu fotografieren, oder wähle über „Datei \
+            wählen“ eine bestehende Aufnahme von deinem Gerät.
+            """,
+        .documentFrameHint: """
+            Lege den Ausweis flach hin und füll den Rahmen möglichst aus. Achte \
+            darauf, dass Foto und Geburtsdatum scharf zu lesen sind.
+            """,
+        .documentCameraNeeded: "Kamerazugriff wird benötigt.",
+        .documentCapture: "Aufnehmen",
+        .documentAllowCamera: "Kamerazugriff erlauben",
+        .documentCameraDenied: """
+            Kamerazugriff abgelehnt. Für die Aufnahme des Ausweises wird die \
+            Kamera gebraucht.
+            """,
+        .documentCaptureFailed: "Aufnahme fehlgeschlagen, bitte erneut.",
+        .documentFileReadFailed: """
+            Die Datei konnte nicht als Bild gelesen werden. Bitte wähle ein \
+            JPEG oder PNG.
+            """,
+        .documentSubmit: "Zur Prüfung einreichen",
+        .documentSubmitting: "Wird übermittelt …",
+        .documentSubmitted: "Verifizierung eingereicht — wir prüfen deine Angaben.",
+        .documentSubmitFailed: "Einreichen fehlgeschlagen. Bitte erneut versuchen.",
+        .documentConsentNote: """
+            Die Aufnahmen sind nicht öffentlich abrufbar und werden nach der \
+            Prüfung gelöscht.
+            """,
 
         // MARK: Statuspillen
         .statusBetaFree: "Beta · gratis",

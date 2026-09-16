@@ -166,7 +166,19 @@ private struct FlexrRoutes: ViewModifier {
                         onOpenChat: { path.append(.chat(matchID: $0)) }
                     )
                 case .verification:
-                    VerificationView(onBack: { pop() })
+                    VerificationView(
+                        onBack: { pop() },
+                        // Nach dem Selfie steht der Ausweis an — direkt weiter,
+                        // ohne Umweg über den Kontobereich. Der Selfie-Schritt
+                        // fällt dabei aus dem Pfad: zurück geht es von dort aus
+                        // nicht noch einmal vor die Kamera.
+                        onContinueToDocument: {
+                            if !path.isEmpty { path.removeLast() }
+                            path.append(.verificationDocument)
+                        }
+                    )
+                case .verificationDocument:
+                    DocumentView(onBack: { pop() }, onSubmitted: { pop() })
                 case .premium:
                     PaywallView(onBack: { pop() })
                 case .legal(let document):

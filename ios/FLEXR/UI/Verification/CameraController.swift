@@ -2,17 +2,29 @@ import AVFoundation
 import SwiftUI
 import UIKit
 
-/// Frontkamera für die Live-Verifizierung.
+/// Kamera für die Live-Verifizierung.
 ///
 /// AVFoundation statt CameraX, sonst dieselbe Idee: Vorschau plus Einzelbild.
 /// Das Bild verlässt den Speicher nie als Datei, sondern geht direkt
 /// komprimiert in den Upload.
+///
+/// Die Blickrichtung ist der einzige Unterschied zwischen den beiden Schritten:
+/// das Selfie entsteht vor der Frontkamera, der Ausweis vor der Rückkamera.
 @MainActor
 @Observable
 final class CameraController: NSObject {
 
     private(set) var isRunning = false
     private(set) var isConfigured = false
+
+    /// Wird nur beim Einrichten gelesen; ein Wechsel im laufenden Betrieb ist
+    /// nicht vorgesehen — beide Bildschirme brauchen genau eine Richtung.
+    @ObservationIgnored private let position: AVCaptureDevice.Position
+
+    init(position: AVCaptureDevice.Position = .front) {
+        self.position = position
+        super.init()
+    }
 
     @ObservationIgnored let session = AVCaptureSession()
     @ObservationIgnored private let output = AVCapturePhotoOutput()
@@ -57,7 +69,7 @@ final class CameraController: NSObject {
             let device = AVCaptureDevice.default(
                 .builtInWideAngleCamera,
                 for: .video,
-                position: .front
+                position: position
             ),
             let input = try? AVCaptureDeviceInput(device: device),
             session.canAddInput(input),

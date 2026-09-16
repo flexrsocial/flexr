@@ -16,6 +16,10 @@ final class VerificationModel {
     var error: String?
     var isFinished = false
 
+    /// Was der Server als Nächstes erwartet. Steuert zweierlei: den Text in der
+    /// Sackgasse unten und den Weg nach dem Einreichen.
+    var nextStep: VerificationNextStep = .none
+
     var currentPrompt: String? { prompts[safe: currentIndex] }
     var total: Int { prompts.count }
     var isComplete: Bool { !prompts.isEmpty && captures.count == prompts.count }
@@ -26,6 +30,15 @@ final class VerificationModel {
     /// Aufgaben für immer falsch blieb: Aufnahmen sammelten sich an, der
     /// Einreichen-Knopf erschien nie.
     var hasNothingToCapture: Bool { !isStarting && prompts.isEmpty && error == nil }
+
+    /// Warum hier nichts aufzunehmen ist — und was stattdessen ansteht.
+    var nothingToCaptureMessage: String {
+        switch nextStep {
+        case .document: s(.verifySelfieExists)
+        case .wait: s(.verifyAlreadySubmitted)
+        case .selfie, .none: s(.verifyNoneRunning)
+        }
+    }
 
     @ObservationIgnored private let verification: VerificationRepository
     @ObservationIgnored private let profiles: ProfileRepository
@@ -54,6 +67,7 @@ final class VerificationModel {
         do {
             let state = try await verification.start()
             prompts = state.prompts
+            nextStep = state.nextStep
             currentIndex = 0
             captures = []
         } catch {
@@ -83,9 +97,12 @@ final class VerificationModel {
         isSubmitting = true
         error = nil
         do {
-            _ = try await verification.submit(
+            let state = try await verification.submit(
                 selfies: Array(zip(prompts, captures)).map { (prompt: $0.0, data: $0.1) }
             )
+            // Der Server sagt selbst, was jetzt ansteht — üblicherweise der
+            // Ausweis. Danach richtet sich, wohin die Ansicht weitergeht.
+            nextStep = state.nextStep
             _ = try? await profiles.refresh()
             onMessage(s(.verifySubmitted))
             isFinished = true
@@ -108,6 +125,8 @@ struct VerificationView: View {
     private var s: FlexrStrings { languageStore.strings }
 
     let onBack: () -> Void
+    /// Weiter zu Schritt 2 — dem amtlichen Lichtbildausweis.
+    let onContinueToDocument: () -> Void
 
     @Environment(AppContainer.self) private var container
     @Environment(AppModel.self) private var appModel
@@ -148,12 +167,19 @@ struct VerificationView: View {
             if model.isStarting {
                 LoadingStateView(label: s(.verifyPreparing))
             } else if model.hasNothingToCapture {
-                Text(s(.verifyNothingToCapture))
+                Text(model.nothingToCaptureMessage)
                     .flexrText(.bodyMedium)
                     .foregroundStyle(FlexrColor.chalkDim)
                     .padding(.top, 24)
-                FlexrSecondaryButton(title: s(.commonBack), action: onBack)
-                    .padding(.top, 16)
+                // Steht der Ausweis an, führt der Knopf dorthin statt zurück —
+                // sonst bliebe die Meldung ein Hinweis ohne Weg.
+                if model.nextStep == .document {
+                    FlexrButton(title: s(.verifyContinueToDocument), action: onContinueToDocument)
+                        .padding(.top, 16)
+                } else {
+                    FlexrSecondaryButton(title: s(.commonBack), action: onBack)
+                        .padding(.top, 16)
+                }
                 Spacer(minLength: 24)
             } else {
                 Eyebrow(text: s(.verifyShotOf, min(model.currentIndex + 1, max(model.total, 1)), model.total))
@@ -183,7 +209,8 @@ struct VerificationView: View {
         }
         .padding(.horizontal, 20)
         .onChange(of: model.isFinished) { _, finished in
-            if finished { onBack() }
+            guard finished else { return }
+            if model.nextStep == .document { onContinueToDocument() } else { onBack() }
         }
     }
 

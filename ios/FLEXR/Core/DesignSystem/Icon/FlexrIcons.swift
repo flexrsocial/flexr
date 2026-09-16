@@ -60,6 +60,7 @@ enum FlexrIcon {
     static let send = "paperplane.fill"
     static let more = "ellipsis"
     static let camera = "camera.fill"
+    static let photoLibrary = "photo.on.rectangle"
     static let locked = "lock.fill"
     static let place = "mappin.and.ellipse"
     static let close = "xmark"

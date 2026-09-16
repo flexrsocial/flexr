@@ -33,6 +33,10 @@ enum Route: Hashable {
     case chat(matchID: String)
     case matchProfile(matchID: String)
     case verification
+    /// Schritt 2 derselben Prüfung: der amtliche Lichtbildausweis. Ein eigenes
+    /// Ziel, weil der Selfie-Schritt danach hinter einem liegt — zurück führt
+    /// dorthin, wo die Prüfung angestoßen wurde, nicht zur Kamera.
+    case verificationDocument
     /// FLEXR Premium. Früher ein eigener Navigationsbaum (der gesperrte
     /// Zustand nach Ablauf des Probemonats), seit dem 10.09.2026 ein normales
     /// Ziel aus dem Kontobereich.

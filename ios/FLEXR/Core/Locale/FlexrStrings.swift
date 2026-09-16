@@ -140,8 +140,23 @@ enum L: Hashable, Sendable {
     case verifyPrivacyNote, verifyCaptureFailed, verifyStartFailed, verifyCameraDenied
     case verifySubmitted, verifySubmitFailed
     case verifyPreparing, verifyDone, verifyUploading, verifyRetrySubmit
-    case verifyNothingToCapture
+    case verifySelfieExists, verifyAlreadySubmitted
+    case verifyNoneRunning, verifyContinueToDocument
     case verifyAllowCamera, verifyCapture
+
+    // Ausweis-Verifizierung (Schritt 2)
+    case documentTitle, documentLoading, documentStatusLoadFailed
+    case documentWhyTitle, documentWhy, documentManualReview
+    case documentTypeLabel, documentTypeIdCard, documentTypePassport, documentTypeLicense
+    case documentNeedsBoth, documentNeedsFront
+    case documentRedactNote, documentRedactNoteBold
+    case documentShotsLabel, documentSideFront, documentSideBack
+    case documentSideOfId, documentSideDone, documentCaptureSide
+    case documentActionCamera, documentActionFile, documentSourceHint
+    case documentFrameHint, documentCameraNeeded, documentCapture
+    case documentAllowCamera, documentCameraDenied, documentCaptureFailed
+    case documentFileReadFailed, documentSubmit, documentSubmitting
+    case documentSubmitted, documentSubmitFailed, documentConsentNote
 
     // Statuspillen
     case statusBetaFree, statusPremium, statusFree, statusLikesLeft

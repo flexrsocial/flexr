@@ -88,31 +88,50 @@ erste Teil, der Rest steht unten als offene Liste.
    über Schlüssel aufgelöst; die Fotogrenzen-Texte nennen jetzt die richtige
    Zahl statt „mindestens ein Foto".
 
-### Offen — die Verifizierung ist auf iOS nicht abschließbar
+### Die Verifizierung — in drei Runden nachgezogen
 
-Das ist kein Feinschliff, sondern ein fehlendes Teilsystem. Ohne bestandene
+Das war kein Feinschliff, sondern ein fehlendes Teilsystem: Ohne bestandene
 Prüfung sperrt `require_activated_account` Deck, Matches und Chat; ein frisch
-registriertes iOS-Konto kommt damit nirgendwo hin.
+registriertes iOS-Konto kam damit nirgendwo hin. Nachgebaut wird in drei
+Runden, jede einzeln in Codemagic überprüfbar.
 
-- **Ausweisschritt fehlt ganz.** Android: `ui/verification/DocumentScreen.kt`
-  (~620 Zeilen) + `DocumentViewModel.kt` — Typauswahl, Vorder-/Rückseite,
-  Rückkamera, Datei-Auswahl, Neuaufnahme. iOS endet nach dem Selfie.
-- **Verifizierungs-Gate fehlt.** Android schaltet bei
+**Runde 1 — Datenschicht (erledigt, `dd6bb8b`).**
+Die fünf fehlenden Endpunkte (`verification/document/presign`, `…/submit`,
+`DELETE …/document`, `auth/email/resend`, `auth/email/confirm`), die fehlenden
+DTO-Felder (`MyProfileDTO` um `email`, `email_verified`,
+`verification_required`, `is_account_activated`, `age_verified`;
+`VerificationStatusDTO` von 2 auf 8 Felder) und die zugehörigen
+Repository-Methoden samt `ImageProcessor.compressDocument`.
+
+**Runde 2 — Ausweisbildschirm (erledigt).**
+`UI/Verification/DocumentView.swift` ist die Entsprechung von Androids
+`DocumentScreen.kt` + `DocumentViewModel.kt`: Typauswahl vom Server,
+Vorder-/Rückseite je nach Ausweisart, Rückkamera (`CameraController` kennt
+jetzt beide Blickrichtungen), Auswahl aus der Mediathek als zweiter Weg,
+Neuaufnahme, Einreichen. Dazu:
+
+- neues Ziel `Route.verificationDocument`;
+- der Selfie-Bildschirm führt nach dem Einreichen weiter zum Ausweis statt
+  zurück — und zeigt in der Sackgasse jetzt Androids drei Fälle
+  (`verify_selfie_exists` / `_already_submitted` / `_none_running`) samt Knopf
+  dorthin, wo es weitergeht;
+- `NSCameraUsageDescription` nennt auch die Ausweisaufnahme.
+
+**Runde 3 — Gate (offen).** Der eigentliche Zwang fehlt noch:
+
+- **Verifizierungs-Gate.** Android schaltet bei
   `!profile.isAccountActivated` auf einen eigenen Navigationsgraphen ohne
   Tab-Leiste; iOS kennt nur `loggedOut`/`ready` und zeigt sofort die volle
   App, wo jeder Aufruf in einen 403 läuft.
-- **Fünf Endpunkte fehlen**: `verification/document/presign`, `…/submit`,
-  `DELETE …/document`, `auth/email/resend`, `auth/email/confirm`.
-- **DTO-Felder fehlen**: `MyProfileDTO` ohne `email`, `email_verified`,
-  `verification_required`, `is_account_activated`, `age_verified`;
-  `VerificationStatusDTO` mit 2 von 8 Feldern (kein `next_step`, `reason`,
-  `document_types`, …). Ohne sie ist jede zustandsabhängige Weiterleitung
-  strukturell unmöglich.
 - **`403` mit `detail.code == "verification_required"`** wird nicht
   ausgewertet.
 - **E-Mail-Bestätigung** (Schritt vor der Prüfung) fehlt samt Verarbeitung des
   Bestätigungslinks — Letzteres braucht zusätzlich Associated Domains und
   eine `apple-app-site-association` auf flexr.social.
+
+Bis Runde 3 steht, gilt weiter: **keine externen Tester einladen.** Der
+Ausweisschritt ist jetzt zwar erreichbar, aber nur über den Kontobereich —
+erzwungen wird er nicht.
 
 ### Offen — kleiner
 

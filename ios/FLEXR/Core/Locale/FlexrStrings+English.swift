@@ -431,8 +431,74 @@ extension FlexrStrings {
         .verifyStartFailed: "Verification could not be started.",
         .verifyCameraDenied: "Camera access denied. Verification needs live camera images.",
         .verifySubmitted: "Selfies submitted — your verification is under review.",
-        .verifyNothingToCapture: "Nothing to capture right now — your selfie is already with the review team.",
+        .verifySelfieExists: "We already have your selfie. Next up is your photo ID.",
+        .verifyAlreadySubmitted: "Your verification is already under review.",
+        .verifyNoneRunning: "No verification is currently running for this account.",
+        .verifyContinueToDocument: "Continue to your ID",
         .verifySubmitFailed: "Submission failed. Please try again.",
+
+        // MARK: Ausweis-Verifizierung
+        .documentTitle: "Confirm your age",
+        .documentLoading: "Loading …",
+        .documentStatusLoadFailed: "Could not load status.",
+        .documentWhyTitle: "Why we need this",
+        .documentWhy: """
+            To use FLEXR you must be at least 18 years old. Upload a valid \
+            official photo ID once — either as a photo you take now or as a \
+            file from your device. We use it solely for the age and identity \
+            check and delete the image once the check is complete.
+            """,
+        .documentManualReview: """
+            The check is done manually by a person — no automated facial \
+            recognition is used.
+            """,
+        .documentTypeLabel: "Document type",
+        .documentTypeIdCard: "Identity card",
+        .documentTypePassport: "Passport",
+        .documentTypeLicense: "Driving licence",
+        .documentNeedsBoth: "Front and back",
+        .documentNeedsFront: "Side with photo and date of birth",
+        .documentRedactNote: """
+            You may redact information that is not needed for the age check.
+            """,
+        .documentRedactNoteBold: """
+            The photo, date of birth and the validity details required for the \
+            check must remain visible.
+            """,
+        .documentShotsLabel: "Images",
+        .documentSideFront: "Front",
+        .documentSideBack: "Back",
+        .documentSideOfId: "%@ of your ID",
+        .documentSideDone: "%@ ✓ — tap to redo",
+        .documentCaptureSide: "Capture %@",
+        .documentActionCamera: "Take photo",
+        .documentActionFile: "Choose file",
+        .documentSourceHint: """
+            Tap a slot to take a photo, or use “Choose file” to pick an \
+            existing image from your device.
+            """,
+        .documentFrameHint: """
+            Lay the ID flat and fill the frame as much as possible. Make sure \
+            the photo and date of birth are sharp and readable.
+            """,
+        .documentCameraNeeded: "Camera access is required.",
+        .documentCapture: "Capture",
+        .documentAllowCamera: "Allow camera access",
+        .documentCameraDenied: """
+            Camera access denied. The camera is needed to photograph your ID.
+            """,
+        .documentCaptureFailed: "Capture failed, please try again.",
+        .documentFileReadFailed: """
+            That file could not be read as an image. Please choose a JPEG or PNG.
+            """,
+        .documentSubmit: "Submit for review",
+        .documentSubmitting: "Submitting …",
+        .documentSubmitted: "Verification submitted — we are reviewing your details.",
+        .documentSubmitFailed: "Submission failed. Please try again.",
+        .documentConsentNote: """
+            The images are not publicly accessible and are deleted after the \
+            review.
+            """,
 
         // MARK: Statuspillen
         .statusBetaFree: "Beta · free",
