@@ -10,9 +10,9 @@ dieselbe; die Feldnamen und Längenbegrenzungen sind die von App Store Connect.
 ### Beta-App-Beschreibung
 
 > FLEXR ist Dating für Gym-People in Österreich. In dieser Testfassung geht es
-> um die Kernwege: Profil anlegen samt Foto, Umkreis und Gym einstellen, durch
-> Profile wischen, bei einem Match schreiben, optional das Profil per
-> Selfie verifizieren.
+> um die Kernwege: Profil anlegen samt Foto, Umkreis und Gym einstellen, die
+> Alters- und Identitätsprüfung durchlaufen (Pflicht, ohne sie bleibt das Deck
+> gesperrt), durch Profile wischen, bei einem Match schreiben.
 >
 > Bitte gebt Rückmeldung zu: Ladezeiten der Fotos, Verhalten der Wischgeste,
 > Zustellung der Chatnachrichten und allem, was sich auf eurem Gerät falsch
@@ -26,13 +26,42 @@ dieselbe; die Feldnamen und Längenbegrenzungen sind die von App Store Connect.
 
 **Anmeldedaten:** Ein Testkonto anlegen und hier eintragen — Apple prüft die App
 sonst nicht, weil hinter der Registrierung alles verschlossen ist. Das Konto
-sollte mindestens ein freigegebenes Foto, ein aktives Abo (oder einen laufenden
-Probemonat) und ein Match mit Chatverlauf haben.
+muss die Alters- und Identitätsprüfung bereits bestanden haben (sonst bleiben
+Deck, Matches und Chat gesperrt, siehe `require_activated_account` im Backend)
+und sollte mindestens ein freigegebenes Foto und ein Match mit Chatverlauf
+haben. Ein Abo ist nicht nötig — FLEXR ist derzeit für alle kostenlos.
 
 | Feld | Wert |
 |---|---|
-| E-Mail | *(eintragen)* |
-| Passwort | *(eintragen)* |
+| E-Mail | `appreview@flexr.social` |
+| Passwort | *steht im Passwortspeicher und in App Store Connect — bewusst nicht hier* |
+
+Das Passwort gehört nicht in dieses Repository. Es lebt an genau zwei Stellen:
+im Passwortspeicher und im Feld *Sign-In Information* in App Store Connect.
+
+So entsteht das Konto — beides auf dem **Produktivserver**, nicht lokal; die
+App aus TestFlight spricht mit `https://flexr.social/`:
+
+1. Über die Web-App mit genau diesen Daten registrieren: österreichische
+   Postleitzahl, Studio aus der Liste, mindestens drei Fotos. Das geht nur
+   über Web oder Android — die iOS-App kann die Prüfung noch nicht abschließen.
+2. Auf dem Server freischalten:
+
+   ```
+   cd /flexr/backend && venv/bin/python scripts/activate_review_account.py \
+       --email appreview@flexr.social --dry-run
+   cd /flexr/backend && venv/bin/python scripts/activate_review_account.py \
+       --email appreview@flexr.social
+   ```
+
+Das Skript setzt Freischaltung, Altersprüfung, blauen Haken und bestätigte
+E-Mail und schließt einen etwaigen offenen Prüfvorgang. Es umgeht die
+Prüfung bewusst und gilt nur diesem einen Konto — für alle anderen bleibt der
+Freigabe-Knopf im Admin-Dashboard zuständig.
+
+Danach ein zweites Konto anlegen, beide gegenseitig liken und eine Nachricht
+schreiben: Ein Prüfer mit leerer Match- und Chatliste sieht zwei der vier
+Reiter leer und hält das für einen Fehler.
 
 **Anmerkungen für die Prüfung:**
 
@@ -42,15 +71,19 @@ Probemonat) und ein Match mit Chatverlauf haben.
 > Standortfreigabe ist optional — ohne sie wird die Koordinate der
 > Postleitzahl verwendet.
 >
-> Die Alters- und Identitätsprüfung verlangt ein Live-Selfie über die Frontkamera. Es
-> ist freiwillig und für die Nutzung nicht erforderlich.
+> Die Alters- und Identitätsprüfung verlangt ein Live-Selfie über die Frontkamera
+> und einen amtlichen Lichtbildausweis. Sie ist **Pflicht**: Ohne bestandene
+> Prüfung bleiben Deck, Matches und Chat gesperrt (nur Profil, Fotos,
+> Verifizierung und Kontolöschung sind vorher erreichbar). Ein Mensch
+> entscheidet, keine automatisierte Gesichtserkennung.
 >
-> FLEXR ist während der Beta-Phase für alle kostenlos: Die Mitgliedschaft von
-> 5 €/Monat ist bis auf weiteres ausgesetzt (BILLING_ENABLED=false), die App
-> bietet derzeit keinen Kauf und keinen Abo-Abschluss an. Wird die Gebühr
-> später aktiviert, läuft sie wie bisher über Stripe im externen Browser —
-> **vor der Einreichung zur öffentlichen Veröffentlichung klären**, siehe
-> ios/HANDOFF.md, Abschnitt „Der wahrscheinlichste Streitpunkt im Review".
+> FLEXR ist dauerhaft kostenlos nutzbar, auch über die Beta hinaus. Optional
+> gibt es FLEXR Premium für 10 €/Monat, aktuell aber deaktiviert
+> (`PREMIUM_ENABLED=false` im Backend) — die App bietet derzeit keinen Kauf und
+> keinen Abo-Abschluss an. Wird Premium später aktiviert, läuft der Kauf wie
+> vorgesehen über Stripe im externen Browser — **vor der Einreichung zur
+> öffentlichen Veröffentlichung klären**, siehe ios/HANDOFF.md, Abschnitt „Der
+> wahrscheinlichste Streitpunkt im Review".
 
 ---
 
@@ -72,7 +105,7 @@ Dating für Gym-People
 
 ```
 Dating für Leute, die auch montags Beintag machen. Match nach Gym und Umkreis –
-in ganz Österreich. Erster Monat gratis.
+in ganz Österreich. Kostenlos nutzbar.
 ```
 
 ## Keywords (max. 100 Zeichen, kommagetrennt, ohne Leerzeichen)
@@ -96,7 +129,7 @@ WARUM FLEXR?
 Finde Leute, die im selben Studio oder in deiner Nähe trainieren. Du gibst dein Gym und deinen Radius an – FLEXR zeigt dir passende Profile in der Umgebung.
 
 • Nur verifizierte Profile mit Foto
-Jedes Profil braucht ein echtes Foto. Kein Foto, kein Profil – das hält Fakes draußen und sorgt dafür, dass dein Match auch wirklich die Person ist, die du siehst. Wer will, holt sich mit drei Live-Selfies den blauen Haken.
+Jedes Konto durchläuft eine Alters- und Identitätsprüfung, bevor es matchen und schreiben kann. Kein Foto, kein Profil – das hält Fakes draußen und sorgt dafür, dass dein Match auch wirklich die Person ist, die du siehst.
 
 • Gemeinsame Basis von Anfang an
 Ob Powerlifting, Crossfit, Bodybuilding oder einfach der tägliche Gang aufs Laufband: Ihr habt sofort ein Thema. Und im Zweifel den nächsten Trainingspartner gleich mit dazu.
@@ -120,7 +153,7 @@ Jedes Foto wird von einem Menschen geprüft, bevor es jemand zu sehen bekommt. L
 
 PREIS
 
-Während der Beta-Phase kostenlos: Die Mitgliedschaft von 5 €/Monat ist bis auf weiteres ausgesetzt – für neue wie für bestehende Konten. Kein Zahlungsmittel nötig.
+FLEXR ist kostenlos nutzbar. Optional gibt es FLEXR Premium für 10 €/Monat, jederzeit kündbar.
 
 FLEXR ist für alle ab 18 Jahren.
 
@@ -153,6 +186,7 @@ Erste Fassung für iPhone und iPad.
 | Marketing-URL | `https://flexr.social/` |
 | Datenschutz-URL | `https://flexr.social/datenschutz.html` |
 | Exportbestimmungen | keine nicht ausgenommene Verschlüsselung (steht bereits als `ITSAppUsesNonExemptEncryption` in der Info.plist) |
+| Lizenzvertrag | Apples Standard-EULA — **nichts eintragen**. Ein eigener Vertrag müsste im Volltext hinterlegt und von Apple mitgeprüft werden; die AGB auf flexr.social gelten davon unberührt weiter. |
 
 ### Kontaktangaben für den Review
 
@@ -205,3 +239,17 @@ python3 ios/store/gen.py
 
 Für **TestFlight** sind Screenshots nicht nötig — die braucht erst die
 Einreichung zur Veröffentlichung.
+
+**Vor der Einreichung ersetzen.** Die erzeugten Bilder sind gezeichnete
+Nachbauten der Oberfläche, kein Bildschirmfoto der laufenden App — auf der
+Karte steht ein Platzhalterbuchstabe statt eines Fotos. Richtlinie 2.3.3
+verlangt Aufnahmen, die die App im Gebrauch zeigen. Der Marken-Rahmen darf
+bleiben; hinein gehört eine echte Aufnahme aus Simulator oder Gerät, mit dem
+Prüfkonto und seinen Fotos.
+
+**Die iPad-Bilder entfallen, wenn die App nur fürs iPhone ausgeliefert wird.**
+`TARGETED_DEVICE_FAMILY` steht auf `"1,2"`, deshalb verlangt Apple sie — und
+prüft die App auch auf dem iPad. Auf `"1"` gesetzt, fällt beides weg; iPhone-
+Apps laufen auf dem iPad weiterhin im Kompatibilitätsmodus. Gegen das
+Beibehalten spricht nichts außer Aufwand: Die Oberfläche ist auf Hochformat
+ausgelegt, das iPad zeigt sie entsprechend gestreckt.
