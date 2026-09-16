@@ -210,6 +210,36 @@ struct FlexrAPI {
         try await client.send(.post, "api/verification/submit", body: body)
     }
 
+    /// Schritt 2: amtlicher Lichtbildausweis, privat abgelegt und nur temporär.
+    func presignDocument(
+        _ body: VerificationDocumentPresignRequestDTO
+    ) async throws -> PresignPhotoResponseDTO {
+        try await client.send(.post, "api/verification/document/presign", body: body)
+    }
+
+    func submitDocument(
+        _ body: VerificationDocumentSubmitRequestDTO
+    ) async throws -> VerificationStatusDTO {
+        try await client.send(.post, "api/verification/document/submit", body: body)
+    }
+
+    /// Eingereichte Aufnahmen zurückziehen, solange niemand geprüft hat.
+    func discardDocuments() async throws -> VerificationStatusDTO {
+        try await client.send(.delete, "api/verification/document")
+    }
+
+    // MARK: - E-Mail-Bestätigung (email_verify.py)
+
+    /// Neuen Aktivierungslink anfordern (nur für unbestätigte Adressen).
+    func resendVerificationEmail() async throws -> EmailResendResponseDTO {
+        try await client.send(.post, "api/auth/email/resend")
+    }
+
+    /// Token aus dem Aktivierungslink einlösen — braucht keine Anmeldung.
+    func confirmEmail(_ body: EmailConfirmRequestDTO) async throws -> EmailConfirmResponseDTO {
+        try await client.send(.post, "api/auth/email/confirm", body: body)
+    }
+
     // MARK: - Objekt-Storage (Presigned PUT, absolute URL)
 
     /// Lädt eine Bilddatei direkt in den Objekt-Storage. Es fließen keine

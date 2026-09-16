@@ -47,6 +47,12 @@ enum ImageProcessor {
     static let maxEdgePx = 1080
     static let thumbPx = 256
     static let selfieMaxEdgePx = 1280
+    /// Ausweisaufnahmen dürfen größer sein als Selfies: Der Prüfer muss
+    /// Ausweisnummer und Geburtsdatum lesen können. Gleiche Werte wie Android
+    /// (`DOCUMENT_MAX_EDGE_PX`, `DOCUMENT_JPEG_QUALITY`); der Server lehnt
+    /// alles über 8 MB ab, dort liegt eine Aufnahme weit darunter.
+    static let documentMaxEdgePx = 1600
+    static let documentJpegQuality: CGFloat = 0.90
     static let jpegQuality: CGFloat = 0.85
     static let maxPhotos = 6
 
@@ -89,6 +95,25 @@ enum ImageProcessor {
             guard let data = jpeg(scaled) else { throw PhotoUnreadableError() }
             return data
         }
+    }
+
+    /// Ausweisaufnahme. Bewusst großzügiger als das Selfie: Der Prüfer muss
+    /// Ausweisnummer und Geburtsdatum lesen können, dafür reichen 1280 px an
+    /// der langen Kante nicht zuverlässig.
+    static func compressDocument(_ image: UIImage) async throws -> Data {
+        try await run {
+            let scaled = scaleToMaxEdge(image, maxEdge: documentMaxEdgePx)
+            guard let data = jpeg(scaled, quality: documentJpegQuality) else {
+                throw PhotoUnreadableError()
+            }
+            return data
+        }
+    }
+
+    /// Ausweis aus einer Datei (Fotoauswahl oder Dateien-App).
+    static func compressDocument(data: Data) async throws -> Data {
+        guard let image = UIImage(data: data) else { throw PhotoUnreadableError() }
+        return try await compressDocument(image)
     }
 
     // MARK: - Innenleben
@@ -172,7 +197,7 @@ enum ImageProcessor {
         return UIGraphicsImageRenderer(size: size, format: format).image { _ in draw() }
     }
 
-    private static func jpeg(_ image: UIImage) -> Data? {
-        image.jpegData(compressionQuality: jpegQuality)
+    private static func jpeg(_ image: UIImage, quality: CGFloat = jpegQuality) -> Data? {
+        image.jpegData(compressionQuality: quality)
     }
 }

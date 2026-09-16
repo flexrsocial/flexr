@@ -69,6 +69,16 @@ struct MyProfile: Hashable, Sendable {
     let birthdate: Date?
     let searchRadiusKm: Int
     let messagingMutedUntil: Date?
+    /// Adresse, an die die Bestätigungsmail ging — der Verifizierungsablauf
+    /// zeigt sie an, damit der Nutzer weiß, wo er nachsehen muss.
+    var email: String = ""
+    var emailVerified: Bool = true
+    /// Alters- und Identitätsprüfung. Bestandskonten liefern
+    /// `verificationRequired == false`; die Vorgaben sind so gewählt, dass ein
+    /// älteres Backend ohne diese Felder ein nutzbares Konto ergibt.
+    var verificationRequired: Bool = false
+    var isAccountActivated: Bool = true
+    var ageVerified: Bool = false
     /// Schalterstellung unter „Benachrichtigungen" im Konto.
     var notifications: NotificationSettings = NotificationSettings()
     /// Am Profil hinterlegte Sprache („de" oder „en").
@@ -206,9 +216,56 @@ enum VerificationStatus: String, Sendable {
     var needsDocument: Bool { self == .idRequired || self == .reuploadRequired }
 }
 
+/// Was der Server als Nächstes erwartet.
+///
+/// Der Status allein reicht nicht: `pending` heißt je nach Vorgang „Selfie
+/// aufnehmen" oder „Ausweis nachreichen". Ohne dieses Feld kann die App den
+/// Nutzer nicht führen.
+enum VerificationNextStep: Sendable {
+    case selfie, document, wait, none
+
+    init(raw: String?) {
+        switch raw {
+        case "selfie": self = .selfie
+        case "document": self = .document
+        case "wait": self = .wait
+        default: self = .none
+        }
+    }
+}
+
+/// Antwort auf „Link erneut senden": Adresse und Gültigkeitsdauer, damit der
+/// Nutzer weiß, wo er nachsehen muss und wie lange der Link trägt.
+struct EmailResendInfo: Sendable {
+    let email: String
+    let validHours: Int
+}
+
+/// Eingelöster Aktivierungslink.
+struct EmailConfirmation: Sendable {
+    let email: String
+    let name: String
+    let confirmed: Bool
+}
+
+/// Eine zur Auswahl stehende Ausweisart.
+struct VerificationDocumentType: Hashable, Sendable {
+    let value: String
+    let label: String
+    /// Braucht die Art eine Rückseite? Reisepass etwa nicht.
+    let needsBack: Bool
+}
+
 struct VerificationState: Sendable {
     let status: VerificationStatus
     let prompts: [String]
+    let nextStep: VerificationNextStep
+    /// Sachlicher Grund aus dem festen Katalog, wenn etwas nachzuholen ist.
+    let reason: String?
+    let verificationRequired: Bool
+    let accountActivated: Bool
+    let emailVerified: Bool
+    let documentTypes: [VerificationDocumentType]
 }
 
 /// Ergebnis eines Swipes.

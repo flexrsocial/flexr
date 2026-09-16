@@ -56,6 +56,11 @@ extension MyProfileDTO {
             birthdate: ServerTime.parseDate(birthdate),
             searchRadiusKm: searchRadiusKm ?? 20,
             messagingMutedUntil: ServerTime.parse(messagingMutedUntil),
+            email: email ?? "",
+            emailVerified: emailVerified ?? true,
+            verificationRequired: verificationRequired ?? false,
+            isAccountActivated: isAccountActivated ?? true,
+            ageVerified: ageVerified ?? false,
             notifications: NotificationSettings(
                 matchEmail: notifyMatchEmail ?? true,
                 matchPush: notifyMatchPush ?? true,
@@ -136,7 +141,38 @@ extension GymDTO {
 
 extension VerificationStatusDTO {
     func toDomain() -> VerificationState {
-        VerificationState(status: VerificationStatus(raw: status), prompts: prompts ?? [])
+        VerificationState(
+            status: VerificationStatus(raw: status),
+            prompts: prompts ?? [],
+            nextStep: VerificationNextStep(raw: nextStep),
+            reason: reason,
+            verificationRequired: verificationRequired ?? false,
+            accountActivated: accountActivated ?? true,
+            emailVerified: emailVerified ?? true,
+            documentTypes: (documentTypes ?? []).map { $0.toDomain() }
+        )
+    }
+}
+
+extension EmailResendResponseDTO {
+    func toDomain() -> EmailResendInfo {
+        EmailResendInfo(email: email, validHours: validHours ?? 24)
+    }
+}
+
+extension EmailConfirmResponseDTO {
+    func toDomain() -> EmailConfirmation {
+        EmailConfirmation(email: email, name: name, confirmed: confirmed ?? true)
+    }
+}
+
+extension VerificationDocumentTypeDTO {
+    func toDomain() -> VerificationDocumentType {
+        VerificationDocumentType(
+            value: value,
+            label: label,
+            needsBack: needsBack ?? false
+        )
     }
 }
 

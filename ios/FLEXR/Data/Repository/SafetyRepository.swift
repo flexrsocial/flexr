@@ -105,4 +105,53 @@ final class VerificationRepository {
             VerificationSubmitRequestDTO(selfies: uploaded)
         ).toDomain()
     }
+
+    /// Schritt 2: amtlicher Lichtbildausweis. Rückseite nur, wenn die gewählte
+    /// Ausweisart eine hat (`VerificationDocumentType.needsBack`).
+    func submitDocument(
+        type: String,
+        front: Data,
+        back: Data?
+    ) async throws -> VerificationState {
+        let frontKey = try await uploadDocument(front)
+        var backKey: String?
+        if let back { backKey = try await uploadDocument(back) }
+        return try await api.submitDocument(
+            VerificationDocumentSubmitRequestDTO(
+                documentType: type,
+                frontObjectKey: frontKey,
+                backObjectKey: backKey
+            )
+        ).toDomain()
+    }
+
+    /// Eingereichte Aufnahmen zurückziehen, solange niemand geprüft hat.
+    func discardDocuments() async throws -> VerificationState {
+        try await api.discardDocuments().toDomain()
+    }
+
+    func resendVerificationEmail() async throws -> EmailResendInfo {
+        try await api.resendVerificationEmail().toDomain()
+    }
+
+    func confirmEmail(token: String) async throws -> EmailConfirmation {
+        try await api.confirmEmail(EmailConfirmRequestDTO(token: token)).toDomain()
+    }
+
+    /// Der Presign-Aufruf für Ausweise meldet die Dateigröße mit; verbindlich
+    /// prüft der Server sie nach dem Upload am tatsächlichen Objekt.
+    private func uploadDocument(_ data: Data) async throws -> String {
+        let presign = try await api.presignDocument(
+            VerificationDocumentPresignRequestDTO(
+                contentType: Self.mimeType,
+                byteSize: data.count
+            )
+        )
+        try await api.upload(
+            to: presign.uploadUrl,
+            contentType: Self.mimeType,
+            data: data
+        )
+        return presign.objectKey
+    }
 }

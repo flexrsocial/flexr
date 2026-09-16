@@ -81,6 +81,15 @@ struct MyProfileDTO: Decodable {
     let plz: String
     let birthdate: String
     let searchRadiusKm: Int?
+    /// Nur in der eigenen Ansicht — der Nutzer muss sehen, an welche Adresse
+    /// die Bestätigungsmail ging.
+    let email: String?
+    let emailVerified: Bool?
+    // Alters- und Identitätsprüfung. Optional mit Vorgaben, die ein älteres
+    // Backend ohne diese Felder zu einem nutzbaren Konto machen.
+    let verificationRequired: Bool?
+    let isAccountActivated: Bool?
+    let ageVerified: Bool?
     // phone/phone_verified liefert das Backend zwar mit, die App nutzt sie
     // nicht — die Telefonprüfung ist auch im Web verworfen worden.
     let messagingMutedUntil: String?
@@ -125,6 +134,7 @@ struct PushNotificationDTO: Decodable {
     let title: String
     let body: String
     let target: String?
+    let createdAt: String?
 }
 
 struct MarkDeliveredRequestDTO: Encodable {
@@ -346,6 +356,48 @@ struct BlockedUserOutDTO: Decodable {
 struct VerificationStatusDTO: Decodable {
     let status: String
     let prompts: [String]?
+    /// Was als Nächstes zu tun ist: selfie | document | wait | none.
+    let nextStep: String?
+    /// Sachlicher Grund aus dem festen Katalog, wenn etwas nachzuholen ist.
+    let reason: String?
+    let verificationRequired: Bool?
+    let accountActivated: Bool?
+    let emailVerified: Bool?
+    let documentTypes: [VerificationDocumentTypeDTO]?
+}
+
+struct VerificationDocumentTypeDTO: Decodable {
+    let value: String
+    let label: String
+    let needsBack: Bool?
+}
+
+struct VerificationDocumentPresignRequestDTO: Encodable {
+    let contentType: String
+    let byteSize: Int
+}
+
+struct VerificationDocumentSubmitRequestDTO: Encodable {
+    let documentType: String
+    let frontObjectKey: String
+    let backObjectKey: String?
+}
+
+// MARK: - E-Mail-Bestätigung
+
+struct EmailResendResponseDTO: Decodable {
+    let email: String
+    let validHours: Int?
+}
+
+struct EmailConfirmRequestDTO: Encodable {
+    let token: String
+}
+
+struct EmailConfirmResponseDTO: Decodable {
+    let email: String
+    let name: String
+    let confirmed: Bool?
 }
 
 struct VerificationSelfieDTO: Encodable {
