@@ -92,8 +92,26 @@ android {
         // 105/2.6.5 am 12.09.2026: Die Leerzustaende von Matches und Chats
         // stehen jetzt mittig wie der im Swipe-Deck. 2.6.4 war zu diesem
         // Zeitpunkt schon gebaut und hochgeladen.
-        versionCode = 105
-        versionName = "2.6.5"
+        //
+        // 106/2.6.6 am 12.09.2026: Auch der Leerzustand im Chatverlauf steht
+        // mittig - als einziger im Projekt fehlte dem EmptyState dort das
+        // align(Center), er klebte deshalb oben an der Kopfzeile.
+        //
+        // 107/2.6.7 am 12.09.2026: Der Benachrichtigungs-Schalter im Konto
+        // stand fuer neue Konten von Anfang an auf "an", ohne dass je die
+        // POST_NOTIFICATIONS-Laufzeitberechtigung eingeholt wurde - der Screen
+        // fragt sie jetzt beim ersten Laden einmalig nach und stellt den
+        // Schalter bei Ablehnung zurueck auf "aus".
+        //
+        // 108/2.6.8 am 16.09.2026: Zwei Fehler derselben Bauart. Ein 401 von
+        // /api/auth/login galt als abgelaufene Sitzung, weil der Interceptor
+        // pauschal alles unter /api/auth/ ausnahm bzw. nicht ausnahm - wer
+        // sich vertippte, las "Sitzung abgelaufen" statt "E-Mail oder Passwort
+        // falsch". Und der Chat-Poll lief im ViewModel-Umfang weiter, auch wenn
+        // der Chat nicht zu sehen war, und quittierte dabei Nachrichten als
+        // gelesen, die niemand angesehen hatte.
+        versionCode = 108
+        versionName = "2.6.8"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         // Nur die Sprachen ausliefern, die es wirklich gibt: Deutsch als

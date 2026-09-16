@@ -40,7 +40,13 @@
 // das Woerterbuch haben dafuer neue Texte bekommen; eine eingefrorene alte
 // Shell wuerde weiter "mind. 1" anzeigen und die Registrierung schon bei
 // einem Foto durchwinken - abgelehnt wird sie dann erst vom Server.
-const CACHE = 'flexr-shell-v15';
+// v16: Der Leerzustand des Chatverlaufs sitzt jetzt auf derselben Hoehe wie
+// "Alle Saetze absolviert"; die Regel dafuer steckt im Stil der App.
+// v17: Ein 401 vom Login gilt nicht mehr als abgelaufene Sitzung. Eine
+// eingefrorene alte Shell wuerde weiter "Sitzung abgelaufen" zeigen, wo
+// "E-Mail oder Passwort falsch" stehen muss - der Fehler steckt in index.html,
+// also genau in der Shell.
+const CACHE = 'flexr-shell-v17';
 // Seit dem 15.08.2026 liegt die App unter /app/, an der Wurzel steht die
 // oeffentliche Landingpage. Beide gehoeren in die Shell: die Landingpage,
 // weil sie der Einstieg ist, die App, weil sie offline funktionieren soll.

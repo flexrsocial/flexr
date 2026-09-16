@@ -52,10 +52,25 @@ class SessionExpiryInterceptor @Inject constructor(
     )
     val events: SharedFlow<Unit> = _events
 
+    private companion object {
+        /** Wege ohne Anmeldung: Ein 401 heisst hier "Zugangsdaten falsch". */
+        val SESSIONLESS_PATHS = setOf(
+            "/api/auth/login",
+            "/api/auth/register",
+            "/api/auth/reactivate",
+            "/api/auth/email/confirm",
+            "/api/auth/age-check",
+        )
+    }
+
     override fun intercept(chain: Interceptor.Chain): Response {
         val response = chain.proceed(chain.request())
-        val isOwnBackend = chain.request().url.encodedPath.startsWith("/api/")
-        val isLoginAttempt = chain.request().url.encodedPath.startsWith("/api/auth/")
+        val path = chain.request().url.encodedPath
+        val isOwnBackend = path.startsWith("/api/")
+        // Bewusst eine Liste und kein Praefix-Vergleich auf "/api/auth/":
+        // email/resend liegt dort ebenfalls, braucht aber eine Sitzung - ein
+        // 401 von dort ist ein echtes Sitzungsende und muss ausloggen.
+        val isLoginAttempt = path in SESSIONLESS_PATHS
         if (response.code == 401 && isOwnBackend && !isLoginAttempt) {
             runBlocking { sessionStore.clear() }
             _events.tryEmit(Unit)

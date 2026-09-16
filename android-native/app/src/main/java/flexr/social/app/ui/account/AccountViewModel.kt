@@ -59,6 +59,13 @@ data class AccountUiState(
     val notificationsEnabled: Boolean = true,
     /** Läuft gerade ein Schalter unter "Benachrichtigungen" zum Server? */
     val isSavingNotifications: Boolean = false,
+    /**
+     * Wird erst true, sobald [notificationsEnabled] den echten gespeicherten
+     * Wert traegt statt des Default-Werts oben. Der Screen fragt die
+     * Systemberechtigung erst danach einmalig an - sonst koennte er sie faelschlich
+     * fuer ein Konto anfragen, das Benachrichtigungen bereits deaktiviert hatte.
+     */
+    val notificationsLoaded: Boolean = false,
     val consents: List<ConsentDto> = emptyList(),
     val consentsLoading: Boolean = false,
     val consentError: String? = null,
@@ -137,6 +144,7 @@ class AccountViewModel @Inject constructor(
                 it.copy(
                     notificationsEnabled = notificationsEnabled,
                     verifiedHintDismissed = hintDismissed,
+                    notificationsLoaded = true,
                 )
             }
         }

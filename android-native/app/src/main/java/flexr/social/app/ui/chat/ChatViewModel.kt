@@ -90,11 +90,20 @@ class ChatViewModel @Inject constructor(
 
     init {
         refreshMuteState()
-        startPolling()
         viewModelScope.launch { matchRepository.markRead(matchId) }
     }
 
-    private fun startPolling() {
+    /**
+     * Abgleich starten - aufgerufen, wenn der Chat sichtbar wird.
+     *
+     * Bewusst nicht mehr aus `init` heraus: Der Poll lief dann im
+     * `viewModelScope` weiter, solange der Bildschirm im Rueckstapel lag oder
+     * die App im Hintergrund war. Er markierte dabei Nachrichten als gelesen,
+     * die niemand angesehen hatte - eine Lesebestaetigung fuer ein
+     * ungeoeffnetes Fenster. Die iOS-Fassung bindet den Poll seit jeher an die
+     * Sichtbarkeit der Ansicht.
+     */
+    fun startPolling() {
         pollJob?.cancel()
         pollJob = viewModelScope.launch {
             while (isActive) {
@@ -107,6 +116,12 @@ class ChatViewModel @Inject constructor(
                 delay(POLL_INTERVAL_MS)
             }
         }
+    }
+
+    /** Abgleich anhalten - aufgerufen, wenn der Chat aus dem Blick geraet. */
+    fun stopPolling() {
+        pollJob?.cancel()
+        pollJob = null
     }
 
     override fun onCleared() {

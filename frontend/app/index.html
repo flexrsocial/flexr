@@ -604,6 +604,14 @@
      Liste leer ist; eine befuellte Liste bleibt unveraendert. */
   #matchList.is-empty, #chatList.is-empty{ display:flex; flex-direction:column; flex:1; min-height:0; }
   #matchList.is-empty .empty, #chatList.is-empty .empty{ flex:1; }
+  /* Der Chatverlauf braucht zusaetzlich einen Ausgleich: im Deck ist beim
+     Leerfall die Knopfreihe ausgeblendet, der Chat behaelt seine Eingabezeile.
+     Mittig in .chat-messages saesse der Leerzustand deshalb 29px hoeher als
+     "Alle Saetze absolviert". Ausgeglichen wird die halbe Eingabezeile samt
+     Abstand (64/2), abzueglich des tieferen Starts von .chat-messages (11/2)
+     und zuzueglich ihrer ungleichen Innenabstaende ((12-6)/2). Keiner der drei
+     Werte haengt an der Fensterhoehe, die Verschiebung gilt also ueberall. */
+  #chatMessages .empty{ flex:1; margin-top:58px; }
   .empty .empty-icon{
     width:68px; height:68px; border-radius:50%; border:1.5px dashed var(--steel);
     display:flex; align-items:center; justify-content:center; color:var(--chalk-dim);
@@ -3429,12 +3437,33 @@
     return id;
   }
 
+  // Wege, die ohne Anmeldung auskommen. Ein 401 von hier heisst "Zugangsdaten
+  // falsch", nicht "Sitzung abgelaufen".
+  const ANMELDEWEGE_OHNE_SITZUNG = [
+    '/api/auth/login',
+    '/api/auth/register',
+    '/api/auth/reactivate',
+    '/api/auth/email/confirm',
+    '/api/auth/age-check',
+  ];
+
   async function api(path, opts = {}){
     const headers = Object.assign({'Content-Type': 'application/json'}, opts.headers || {});
     if(token) headers['Authorization'] = 'Bearer ' + token;
     headers['X-Device-Id'] = getDeviceId();
     const res = await fetch(API_BASE + path, Object.assign({}, opts, {headers}));
-    if(res.status === 401){
+    // Ein 401 auf /api/auth/* ist kein Sitzungsende, sondern die Antwort auf
+    // falsche Zugangsdaten - beim Anmelden gibt es keine Sitzung, die ablaufen
+    // koennte. Ohne diese Ausnahme ueberschrieb der Zweig die Meldung des
+    // Servers ("E-Mail oder Passwort falsch.") mit "Sitzung abgelaufen. Bitte
+    // erneut einloggen.": Wer sich vertippte, bekam zu lesen, er sei gerade
+    // ausgeloggt worden, obwohl er nie angemeldet war. Die nativen Apps
+    // nehmen denselben Pfad aus (siehe ios APIClient, isOwnBackend).
+    // Bewusst eine Liste und kein Praefix-Vergleich: Unter /api/auth/ liegt
+    // mit email/resend auch ein Weg, der sehr wohl eine Sitzung braucht - dort
+    // ist ein 401 wieder ein echtes Sitzungsende.
+    const istAnmeldeweg = ANMELDEWEGE_OHNE_SITZUNG.includes(path);
+    if(res.status === 401 && !istAnmeldeweg){
       setToken(null);
       showScreen('screen-login');
       $('bottomNav').style.display = 'none';
@@ -6837,7 +6866,7 @@
     const wasAtBottom = (box.scrollTop + box.clientHeight) >= (box.scrollHeight - 40);
     if(messages.length === 0){
       box.innerHTML = `
-        <div class="empty" style="flex:1;">
+        <div class="empty">
           <div class="empty-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M21.5 2.5 11 13M21.5 2.5l-7 19-3.5-8.5-8.5-3.5 19-7z"/></svg></div>
           <div class="empty-title">${escapeHtml(t('chat.emptyTitle'))}</div>
           <div class="empty-sub">${escapeHtml(t('chat.emptySub'))}</div>

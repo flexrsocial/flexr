@@ -55,6 +55,7 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import flexr.social.app.R
@@ -81,6 +82,14 @@ fun ChatScreen(
     val messages by viewModel.messages.collectAsStateWithLifecycle()
     val match by viewModel.match.collectAsStateWithLifecycle()
     val ownUserId by viewModel.ownUserId.collectAsStateWithLifecycle()
+
+    // Der Abgleich laeuft nur, solange der Chat wirklich zu sehen ist. Lief er
+    // im ViewModel-Umfang durch, markierte er im Hintergrund Nachrichten als
+    // gelesen, die niemand angesehen hatte.
+    LifecycleResumeEffect(Unit) {
+        viewModel.startPolling()
+        onPauseOrDispose { viewModel.stopPolling() }
+    }
 
     val listState = rememberLazyListState()
     var showMenu by remember { mutableStateOf(false) }
@@ -155,6 +164,10 @@ fun ChatScreen(
         Box(Modifier.fillMaxWidth().weight(1f)) {
             if (messages.isEmpty() && !state.isLoading) {
                 EmptyState(
+                    // Wie im Swipe-Deck per Modifier am EmptyState zentriert,
+                    // nicht per contentAlignment an der Box - sonst zoege die
+                    // Ausrichtung auch die LazyColumn des Verlaufs mit.
+                    modifier = Modifier.align(Alignment.Center),
                     icon = FlexrIcons.Send,
                     title = stringResource(R.string.chat_empty_title),
                     description = stringResource(R.string.chat_empty_sub),

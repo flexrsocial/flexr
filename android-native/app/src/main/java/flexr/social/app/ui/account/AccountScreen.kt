@@ -140,6 +140,25 @@ fun AccountScreen(
         }
     }
 
+    // Der Schalter oben zeigt "an", sobald ein Konto entsteht - das ist nur die
+    // gespeicherte Absicht, keine erteilte Systemberechtigung. Ohne diesen Check
+    // bliebe POST_NOTIFICATIONS unter Android 13+ auf ewig ungefragt, solange
+    // niemand den Schalter manuell aus- und wieder einschaltet: Der Screen
+    // fragt deshalb beim ersten Laden einmalig nach, sobald der echte
+    // gespeicherte Wert da ist, und deckt sich danach mit der Systemwahrheit.
+    LaunchedEffect(state.notificationsLoaded) {
+        if (state.notificationsLoaded &&
+            state.notificationsEnabled &&
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+            ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.POST_NOTIFICATIONS,
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+        }
+    }
+
     Column(
         Modifier
             .fillMaxSize()

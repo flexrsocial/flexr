@@ -176,7 +176,7 @@ final class APIClient: @unchecked Sendable {
         guard let http = response as? HTTPURLResponse else { return data }
 
         if http.statusCode == 401, reportsSessionExpiry, isOwnBackend(path: url.path),
-           !url.path.hasPrefix("/api/auth/") {
+           !Self.sessionlessPaths.contains(url.path) {
             // Sitzung ist weg: Token verwerfen und die App zurück auf den Login
             // führen. Entspricht dem 401-Zweig der `api()`-Funktion im Web.
             sessionStore.handleUnauthorized()
@@ -197,6 +197,20 @@ final class APIClient: @unchecked Sendable {
     }
 
     private func isOwnBackend(path: String) -> Bool { path.hasPrefix("/api/") }
+
+    /// Wege ohne Anmeldung: Ein 401 heißt hier „Zugangsdaten falsch", nicht
+    /// „Sitzung abgelaufen".
+    ///
+    /// Bewusst eine Liste und kein Präfix-Vergleich auf `/api/auth/`: Dort
+    /// liegt mit `email/resend` auch ein Weg, der eine Sitzung braucht — ein
+    /// 401 von dort muss abmelden.
+    private static let sessionlessPaths: Set<String> = [
+        "/api/auth/login",
+        "/api/auth/register",
+        "/api/auth/reactivate",
+        "/api/auth/email/confirm",
+        "/api/auth/age-check",
+    ]
 }
 
 /// Erlaubt `any Encodable` als Anfragekörper, ohne jeden Aufruf zu generisieren.
