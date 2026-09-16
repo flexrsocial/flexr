@@ -11,9 +11,11 @@ wie `origin/main` (`c773710`); die Migration der Sitzung vom 11.09.
 12.09. **(2)** bringt eine Backend-Änderung ohne neue Migration (nur
 Prüflogik, kein Schema). Die Sitzung vom 12.09. **(3)** ist reines Frontend
 (SEO/Performance, Commit `01adcc8`) und brauchte deshalb nur `git pull` auf
-dem VPS, keinen Neustart. Dasselbe gilt für die Sitzung vom **16.09.**: Web
+dem VPS, keinen Neustart. Dasselbe gilt für **beide Sitzungen vom 16.09.**: Web
 und beide nativen Clients, kein App-Code im Backend, keine Migration, kein
-Neustart.
+Neustart. Der VPS steht damit weiterhin auf dem Backend-Stand von `c773710`;
+`origin/main` ist inzwischen `6ad6452`, die Differenz ist reines
+Client- und Dokumentationsmaterial.
 
 > **Stolperstein beim `git pull` am 16.09.:** Der Pull brach ab mit *„untracked
 > working tree files would be overwritten"* — `backend/scripts/activate_review_account.py`
@@ -114,12 +116,12 @@ klar benannt:
 | `flexr-X.Y.Z-vcNNN.apk` | Direkt aufs Gerät laden und antippen |
 | `flexr-X.Y.Z-vcNNN.aab` | Nur Upload in die Play Console |
 
-**Stand 16.09.2026 stimmt das für 2.6.8 nicht.** Das Bundle ist direkt im Chat
-übergeben worden, nicht in `dl-a616e78274de323b/` abgelegt; ein APK dieser
-Fassung ist gar nicht gebaut worden. Im Download-Ordner liegt als neuestes
-weiterhin `flexr-2.6.5.aab`, und APKs liegen dort überhaupt keine — die
-Namensschreibweise oben ist die Absicht, nicht der Ist-Zustand. Wer 2.6.8 aufs
-Gerät bringen will, braucht erst `./gradlew assembleProdRelease`.
+**Stand 16.09.2026 stimmt das für 2.6.8 und 2.6.9 nicht.** Beide Bundles sind
+direkt im Chat übergeben worden, nicht in `dl-a616e78274de323b/` abgelegt; ein
+APK ist von keiner der beiden Fassungen gebaut worden. Im Download-Ordner liegt
+als neuestes weiterhin `flexr-2.6.5.aab`, und APKs liegen dort überhaupt keine
+— die Namensschreibweise oben ist die Absicht, nicht der Ist-Zustand. Wer 2.6.9
+aufs Gerät bringen will, braucht erst `./gradlew assembleProdRelease`.
 
 Die `vc101`- bis `vc104`-Dateien sind hinfällig. Die Play Console hatte 43 und
 50 schon vergeben — Näheres im 10.09.-Abschnitt.
@@ -130,7 +132,9 @@ Die `vc101`- bis `vc104`-Dateien sind hinfällig. Die Play Console hatte 43 und
 > englischen Texte lagen dort in einem Sprach-Split, den ein deutsches Gerät
 > nie herunterlädt. Erst ab 2.6.3 stecken beide Sprachen im Basis-Paket.
 
-Aufbau des Dokuments: erst diese Eckdaten, dann der Abschnitt vom **16.09.**,
+Aufbau des Dokuments: erst diese Eckdaten, dann **zwei Abschnitte vom 16.09.**
+((2) FLEXR Premium in den nativen Clients, dann der ungezählte erste vom selben
+Tag über den 401 beim Login),
 dann **drei Abschnitte vom 12.09.** ((3) SEO/Performance, dann (2) Backend,
 dann der ungezaehlte erste vom selben Tag), dann **vier Abschnitte vom 11.09.** (diese Sitzung als (3), dann (2), dann der Absturz-Befund, dann die
 Ausgangssitzung), dann die **drei Abschnitte vom 10.09.**
@@ -138,6 +142,172 @@ Ausgangssitzung), dann die **drei Abschnitte vom 10.09.**
 **08.09.**, dann die beiden Sitzungen vom **07.09.**, dann **06.09.**, dann
 **05.09.**, dann **31.08.**, **30.08.**, **23.08.**, **21.08.**; die Build-,
 Test- und Deploy-Abschnitte am Ende gelten sitzungsübergreifend.
+
+## Sitzung 16.09.2026 (2) — iOS-Bugfixes, FLEXR Premium in beiden nativen Clients, Android 2.6.9
+
+Vier Commits, alle gepusht (`origin/main` = `6ad6452`). **Kein Backend-Code,
+keine Migration, kein VPS-Deploy nötig** — die Sitzung fasst ausschließlich
+`ios/` und `android-native/` an.
+
+    6ad6452 docs: record Android 2.6.9 and its checksum
+    2f9b8b7 android: 2.6.9 (versionCode 109)
+    4587ed5 ios: add the three FLEXR Premium features
+    bd81e3b android: add the three FLEXR Premium features
+    fe6af02 ios: fix the three TestFlight layout findings, drop the stale trial promise
+
+### Teil 1: Drei Befunde aus dem ersten TestFlight-Durchgang
+
+Vom Gerät gemeldet, alle rein in der Darstellung. Einzelheiten samt Begründung
+in [ios/HANDOFF.md](ios/HANDOFF.md), Abschnitt „Bugfixes aus dem ersten
+TestFlight-Durchgang"; hier nur, was übergreifend gilt:
+
+1. **Der gesperrte Login-Knopf war praktisch unsichtbar.** `FlexrButton` legte
+   den Zustand auf `opacity(0.4)` — ein oranger Verlauf auf `#121212`
+   verschwindet dabei fast vollständig, die dunkle Schrift darauf erst recht.
+   **Web und Android hatten genau diesen Fehler längst behoben**, jeweils mit
+   einem Kommentar an der Stelle (`.btn:disabled` in `frontend/app/index.html`,
+   `isBlocked` in Androids `Buttons.kt`); iOS war als einzige Plattform nicht
+   nachgezogen worden. Das ist das wiederkehrende Muster dieses Projekts: Eine
+   Korrektur an zwei von drei Oberflächen ist keine Korrektur.
+2. **Jede Chatblase war 300 pt breit**, auch die um ein Wort — am Text stand
+   `.frame(maxWidth: .infinity)`, und die Blase richtet sich nach ihm. Eine
+   **endliche** `maxWidth` ist eine Obergrenze und schrumpft mit; nur
+   `.infinity` bläst auf.
+3. **Das Fotoraster zerfiel in verschieden große, überlappende Kacheln.**
+   `.aspectRatio(3:4, contentMode: .fill)` darf laut Apples Dokumentation über
+   die angebotene Fläche hinauswachsen. Die Kachel bekommt ihre Größe jetzt von
+   einer `Color.clear` mit festem Verhältnis, das Foto liegt als Overlay darin.
+
+**Verschieben, Löschen und Hochladen der Fotos waren nie kaputt** — sie lagen
+nur unsichtbar unter dem Layoutfehler. Gegen Android und das Backend
+abgeglichen, unverändert gelassen: Die Reihenfolge-Arithmetik ist zeichengleich
+mit Androids, alle vier Foto-Endpunkte und alle DTO-Felder decken sich mit
+`backend/app/routers/profiles.py`.
+
+**Nebenbefund, auf Ansage behoben:** Unter dem Login stand „Erstell dein Profil
+und teste FLEXR einen Monat gratis." — **in iOS und Android**. Einen Probemonat
+gibt es seit dem 10.09.2026 nicht mehr, die AGB sagen dauerhaft unentgeltlich.
+Ersetzt durch den Wortlaut, den `register_subtitle` und `paywall_sub` schon
+führen: „Neu hier? Erstell dein Profil — FLEXR zu nutzen kostet nichts."
+
+### Teil 2: FLEXR Premium bekommt seine drei Zusatzfunktionen
+
+Backend und Web-App haben sie seit dem 10.09.2026. Die nativen Clients trugen
+bis jetzt **nur den Werbetext auf der Paywall** — die Funktionen dahinter gab es
+dort nicht. Beide sind nachgezogen, mit derselben Aufteilung:
+
+| | Web | Android | iOS |
+| --- | --- | --- | --- |
+| Premium-Abzeichen neben dem Namen | seit 10.09. | **neu** | **neu** |
+| Letzten Swipe zurücknehmen | seit 10.09. | **neu** | **neu** |
+| „Wer dich geliket hat" | seit 10.09. | **neu** | **neu** |
+
+Drei Entscheidungen, die auf beiden Plattformen gleich gefallen sind:
+
+* **Das Abzeichen ist ein gefüllter Stern in Plate-Orange, ohne runden Grund** —
+  anders als der blaue Verifiziert-Haken. Zwei gleich gebaute Plaketten
+  nebeneinander liest niemand auseinander. Im Web ist es dieselbe
+  Unterscheidung: `.premium-badge` trägt nur `color`, keine Fläche.
+* **Ohne Abo steht an der Stelle des Zurücknehmen-Knopfes gar nichts**, nicht
+  ein gesperrter Knopf. Die Knopfreihe unter dem Deck ist der meistbenutzte Ort
+  der App; ein dauerhaft totes Element daneben wäre eine tägliche Belästigung.
+* **„Wer dich geliket hat" ist ohne Premium kein Fehlerbildschirm.** Der Server
+  liefert die Anzahl ohne die Profile, und die Ansicht sagt das offen — „3 Leute
+  warten auf dich", dazu der Hinweis, dass dieselben Leute ohnehin im Deck
+  auftauchen. Ohne offene Likes bleibt die Karte über der Matchliste ganz weg;
+  eine „0" wäre eine Enttäuschung ohne Anlass.
+
+**Das Like-Restkontingent zog auf beiden Plattformen nicht nach.** Sowohl der
+Swipe als auch das Zurücknehmen liefern `likes_remaining` in ihrer eigenen
+Antwort mit; bisher las die Statuspille im Kopf aber eine Kopie, die nur beim
+Anmelden entstand — sie zeigte also den Stand vom App-Start, bis sich jemand neu
+anmeldete. Behoben, ohne einen zweiten `/api/billing/status` pro Like:
+
+* **Android:** `BillingRepository.updateLikesRemaining()` schreibt in den
+  zwischengespeicherten `Membership`, `MainViewModel` beobachtet diesen Fluss
+  und aktualisiert `AppState.Ready`.
+* **iOS:** dieselbe Methode am Repository, und `AppModel.membership` liest jetzt
+  **durch** aufs Repository statt aus der Kopie im `state`.
+
+**Schemaänderungen, beide folgenlos:** Room 2 → 3 (`MatchEntity.isPremium`) und
+SwiftData (`MatchEntity.isPremium` mit Vorgabewert `false`). Beide Bestände sind
+reiner Spiegel des Servers — Android verwirft die Tabelle ohnehin
+(`fallbackToDestructiveMigration`), iOS ergänzt das Feld dank Vorgabewert
+leichtgewichtig. Beim nächsten Abgleich steht der richtige Wert da.
+
+**Alles hängt weiterhin am einen Schalter.** Solange `PREMIUM_ENABLED` am Server
+aus steht, ist `is_premium` für jeden falsch: kein Abzeichen, kein
+Zurücknehmen-Knopf, gesperrter Text auf der Likes-Karte. Es gibt in keiner der
+drei Oberflächen einen zweiten Ort, an dem sich das entscheidet.
+
+**Bewusst nicht nachgezogen:** der Like-Zähler unter dem Deck, den die Web-App
+dort führt. Beide nativen Clients zeigen die Restzahl bereits in der Statuspille
+im Kopf — ein zweiter Zähler wenige Zentimeter darunter wäre Dopplung, keine
+Parität. Falls er doch gewünscht wird, gehört er als Zeile unter die Knopfreihe,
+samt „Unbegrenzt liken"-Knopf wie im Web.
+
+### Was geprüft ist — und was nicht
+
+| | Android | iOS |
+| --- | --- | --- |
+| Kotlin-/Swift-Compile | ✅ `:app:compileProdReleaseKotlin` | ❌ keine Toolchain hier |
+| Unit-Tests | ✅ 49 Tests, 0 Fehler | ❌ |
+| Auf einem Gerät ausprobiert | ❌ | ❌ |
+
+Für iOS sind nur Klammerbilanz und Aufrufstellen von Hand geprüft; **der
+Codemagic-Lauf ist der Nachweis**. Die Bugfixes aus Teil 1 sind dort bereits
+grün durchgelaufen und in TestFlight — die Premium-Änderung (`4587ed5`) wurde
+deshalb bewusst **erst danach** gepusht: Wäre sie im selben Stand gelandet und
+hätte sie nicht compiliert, hätte auch der Bugfix-Build nicht mehr erzeugt
+werden können.
+
+Zwei neue Unit-Tests auf der Android-Seite decken das Zurücknehmen ab: Das Deck
+wird danach **neu geladen** (nicht nur der Index zurückgeschoben — der
+zurückgenommene Swipe muss nicht der letzte im aktuellen Deck gewesen sein), und
+ein abgelehntes Zurücknehmen lässt das Deck unangetastet.
+
+### Android 2.6.9 (versionCode 109)
+
+Gebaut, signiert, im Chat als `flexr-2.6.9-vc109.aab` übergeben. 7.772.406
+Bytes, SHA-256
+`c1e37f50981f5c0a2bd5558c473dbd0e55ac968fcbcbe77548831f080ee89612`, Upload-Key
+`CN=FLEXR` unverändert, `jarsigner -verify` sauber. versionCode **und**
+versionName im gebauten Manifest gegengeprüft, nicht nur in der Gradle-Datei.
+
+Für die Play Console: **keine neuen Berechtigungen, keine neuen Datentypen** —
+die bestehenden Data-Safety-Angaben bleiben gültig. Sichtbar ändert sich für
+heutige Nutzer nur der Login-Hinweis, weil Premium am Server ausgeschaltet ist.
+
+### Eigener Fehlgriff, zur Warnung
+
+Ich habe zu Beginn behauptet, auf diesem Rechner sei **kein Android-Build
+möglich** — nach einem `ls ~/android-toolchain` und einem `which java`. Beides
+geht ins Leere, die Toolchain liegt unter **`~/.bubblewrap/`**, und genau das
+steht seit dem 07.09. sowohl weiter unten in diesem Dokument als auch in
+`android-native/HANDOFF.md`. **Erst das Dokument lesen, dann das Dateisystem
+befragen** — die Aussage „geht hier nicht" war eine Viertelstunde lang falsch
+und hätte die halbe Sitzung gekostet.
+
+### Stripe: was am Produkt zu ändern ist (Antwort auf eine Nachfrage)
+
+Steht hier, weil es sonst nur im Gesprächsverlauf existiert. Der alte 5-€-Preis
+gehört zur abgeschafften Mitgliedsgebühr. **Den alten Preis nicht bearbeiten** —
+Beträge sind in Stripe unveränderlich, und laufende Altabos hängen daran:
+
+1. Neuen Preis am Produkt anlegen: **10,00 EUR, wiederkehrend monatlich, ohne
+   Probezeit**. `stripe_client.create_checkout_session()` gibt bewusst kein
+   `trial_end` mehr mit.
+2. Steuerverhalten **„inklusive"** — die AGB (Punkt 9) sagen: Endpreis,
+   Umsatzsteuer wird nicht zusätzlich verrechnet (Kleinunternehmerregelung).
+3. Neue `price_...`-ID als `STRIPE_PRICE_ID` in die `.env` auf dem VPS, alten
+   Preis archivieren.
+4. Billing-Portal: Kündigung zum Periodenende erlauben. Webhook-Ereignisse:
+   `checkout.session.completed`, `customer.subscription.created/updated/deleted`,
+   `invoice.upcoming` (**muss in den Billing-Einstellungen eigens aktiviert
+   werden**), `invoice.paid`, `invoice.payment_succeeded`,
+   `invoice.payment_failed` — alle sieben wertet `routers/billing.py` aus.
+5. `PREMIUM_ENABLED` bleibt `false`. Solange lehnt `/api/billing/checkout` mit
+   409 ab; nichts davon wird sichtbar.
 
 ## Sitzung 16.09.2026 — Ein 401 vom Login ist keine abgelaufene Sitzung
 
@@ -3445,9 +3615,14 @@ echten Löschweg (`delete_storage_objects`/`storage_keys_for_user` +
    nachgezogen wurde". Wichtigster Fund dabei: `POST /api/billing/checkout`
    verlangt seit dem 17.08. einen Körper mit beiden FAGG-Erklärungen — die
    iOS-App schickte keinen, jeder Abo-Abschluss wäre mit 422 gescheitert.
-   **Die iOS-App ist weiterhin nie übersetzt worden** (kein Mac vorhanden);
-   der Mac-Teil steckt jetzt in `ios/tools/mac-build.sh`. Der Blockier-
-   Bildschirm vom 30.08. muss dort als Erstes gegengeprüft werden.
+   ~~**Die iOS-App ist weiterhin nie übersetzt worden**~~ — **überholt seit dem
+   16.09.2026**: Sie wird über **Codemagic** gebaut (`codemagic.yaml` im
+   Wurzelverzeichnis, `mac_mini_m2`, liefert bei Erfolg automatisch nach
+   TestFlight aus) und läuft dort auf einem Gerät. Ein eigener Mac ist dafür
+   nicht nötig; `ios/tools/mac-build.sh` bleibt nur für den lokalen Weg. Was
+   weiterhin gilt: **Auf diesem Entwicklungsrechner ist iOS nicht
+   compilierbar** — jede Swift-Änderung geht ungeprüft in den nächsten
+   Codemagic-Lauf.
 8. **Android AAB 2.4.9 (versionCode 37) ist inzwischen in der Play Console**
    (vom Nutzer selbst hochgeladen). Das neue **2.5.0 (versionCode 38)** vom
    30.08. liegt gebaut, signiert und auf dem VPS bereit (Link in den
@@ -3485,6 +3660,23 @@ echten Löschweg (`delete_storage_objects`/`storage_keys_for_user` +
     `sed`-Fehler). Nur lokal sichtbar, aber sicherheitshalber empfehlenswert:
     Token über @BotFather (`/revoke`) neu erzeugen, `backend/.env` auf dem
     VPS aktualisieren und `flexr-api` neu starten.
+16. **Die iOS-Premium-Änderung (`4587ed5`) ist nie compiliert worden.** Der
+    Codemagic-Lauf danach ist ihr erster Test. Rot heißt: nachbessern und neu
+    pushen; der TestFlight-Stand aus `fe6af02` ist davon unberührt.
+17. **Die drei Premium-Funktionen sind auf keinem Gerät ausprobiert** — weder
+    Android noch iOS. Sie sind ohnehin unsichtbar, solange `PREMIUM_ENABLED`
+    am Server `false` ist. Zum Prüfen entweder den Schalter kurz umlegen oder
+    einem Testkonto `is_premium` verschaffen. Die Android-Seite ist
+    compilerverifiziert und durch 49 grüne Unit-Tests gedeckt, zwei davon neu
+    fürs Zurücknehmen; das ersetzt keinen Blick auf den Bildschirm.
+18. **Android 2.6.9 (versionCode 109) ist noch nicht in der Play Console.**
+    Gebaut, signiert, im Chat übergeben — Prüfsumme im 16.09.-(2)-Abschnitt.
+    Keine neuen Berechtigungen, keine neuen Datentypen: Die bestehenden
+    Data-Safety-Angaben bleiben gültig.
+19. **Stripe: der 10-€-Preis ist noch nicht angelegt.** Die Schritte stehen im
+    16.09.-(2)-Abschnitt unter „Stripe: was am Produkt zu ändern ist". Nichts
+    davon wird sichtbar, solange `PREMIUM_ENABLED` aus ist — der Punkt kann
+    also jederzeit vorbereitet werden.
 
 ## Auf einem anderen Gerät starten
 
@@ -3658,7 +3850,8 @@ print(re.findall(rb"[0-9]+\.[0-9]+\.[0-9]+", d)[:5])' \
 - Nachfragen, ob der neue Abschnitt „Blockierte Personen" (Konto →
   Datenschutz & Sicherheit) so passt — auf allen drei Plattformen
   ausgerollt (Web 23.08., Android + iOS 30.08.), vom Nutzer noch nicht
-  begutachtet. iOS zusätzlich **nie compiliert**.
+  begutachtet. Der iOS-Teil ist seit dem 16.09.2026 immerhin gebaut und in
+  TestFlight (Codemagic), angesehen hat ihn dort aber noch niemand.
 - Das Anheften der Landing-Headline ist auf Wunsch **zurückgenommen**; der
   Hero steht wieder mittig. Nicht erneut „reparieren", ohne zu fragen.
 - Nachfragen/prüfen, ob der zweite Ring-Fix (21.08.) tatsächlich behoben
@@ -3666,11 +3859,10 @@ print(re.findall(rb"[0-9]+\.[0-9]+\.[0-9]+", d)[:5])' \
 - Telegram-Push ist geklärt (kein Bug, siehe Sitzung 30.08. Punkt 3) — noch
   offen ist nur der Sicherheitshinweis dazu: Bot-Token über @BotFather neu
   erzeugen, da er kurz im Terminal sichtbar war (Punkt 15).
-- iOS ist am 23.08.2026 auf 2.4.9 nachgezogen worden (siehe
-  `ios/HANDOFF.md`), plus die Blockier-Liste am 30.08. — aber immer noch
-  **nie übersetzt**. Erster Schritt auf einem Mac:
-  `./ios/tools/mac-build.sh team <TEAM-ID>` und danach
-  `./ios/tools/mac-build.sh all`.
+- ~~iOS ist nie übersetzt worden~~ — **überholt**: Seit dem 16.09.2026 baut
+  **Codemagic** die App und liefert sie nach TestFlight aus (siehe
+  `codemagic.yaml`). Auf diesem Rechner bleibt sie trotzdem nicht
+  compilierbar; jede Swift-Änderung geht ungeprüft in den nächsten Lauf.
 - AAB 2.5.0 (versionCode 38) ist gebaut, signiert und auf dem VPS bereit —
   noch nicht in die Play Console geladen (2.4.9 ist es inzwischen). Ein
   Neubau ist erst nötig, wenn wieder etwas unter `android-native/` geändert
@@ -3679,4 +3871,26 @@ print(re.findall(rb"[0-9]+\.[0-9]+\.[0-9]+", d)[:5])' \
   „Testdaten" oben).
 - Danach kontrollierten Stripe-Testcheckout durchführen (weiterhin offen
   aus früheren Sitzungen) — Kartendaten eingeben bleibt Sache des Nutzers.
-- Erst danach neue Produktfunktionen beginnen.
+
+Neu aus der Sitzung 16.09. (2):
+
+- **Der Codemagic-Lauf über `4587ed5` ist der erste Compilertest der
+  iOS-Premium-Änderung.** Wird er rot, liegt es fast sicher an einer
+  Typ-/Signaturkleinigkeit in `UI/Incoming/IncomingView.swift`,
+  `UI/Matches/MatchesView.swift` (dort ist `MatchListScreen` generisch um einen
+  Kopfbereich erweitert worden) oder `UI/Swipe/SwipeModel.swift`. Der
+  TestFlight-Stand aus `fe6af02` bleibt davon unberührt.
+- **Android 2.6.9 (versionCode 109) ist noch nicht in der Play Console** —
+  gebaut, signiert, im Chat übergeben. Prüfsumme im 16.09.-(2)-Abschnitt.
+- **Von 2.6.8 und 2.6.9 gibt es kein APK.** Zum Testen auf einem Gerät erst
+  `./gradlew assembleProdRelease` laufen lassen.
+- **Die drei Premium-Funktionen sind auf keiner der beiden nativen Plattformen
+  auf einem Gerät ausprobiert.** Sichtbar werden sie ohnehin erst, wenn
+  `PREMIUM_ENABLED` am Server auf `true` geht — zum Prüfen also entweder den
+  Schalter kurz umlegen oder ein Konto mit `is_premium` versehen.
+- **Die Toolchain für den Android-Build liegt unter `~/.bubblewrap/`**, nicht
+  unter `~/android-toolchain/`. Das steht seit dem 07.09. in diesem Dokument und
+  ist am 16.09. trotzdem übersehen worden — siehe „Eigener Fehlgriff" im
+  16.09.-(2)-Abschnitt.
+- Der Like-Zähler unter dem Deck fehlt in beiden nativen Clients bewusst
+  (Begründung im 16.09.-(2)-Abschnitt). Nicht ungefragt „ergänzen".

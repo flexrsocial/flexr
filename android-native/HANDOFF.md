@@ -1,6 +1,8 @@
 # HANDOFF — native Android-App
 
-Stand: **03.08.2026**, Commit `4cf43dd` (gepusht, VPS deployt, Arbeitsverzeichnis sauber).
+Stand: **16.09.2026**, Commit `6ad6452` (gepusht; Android braucht keinen
+VPS-Deploy — der Backend-Vertrag ist unverändert). Der jüngste Abschnitt steht
+oben, ältere folgen darunter.
 Für Aufbau, Build-Befehle und die Migrationstabelle siehe [README.md](README.md) —
 hier steht nur, was daraus *nicht* hervorgeht.
 
@@ -68,7 +70,7 @@ unverändert — die App spricht denselben REST-Vertrag wie das Web-Frontend.
 | | |
 |---|---|
 | applicationId | `flexr.social.app` (unverändert, Play-Store-Kontinuität) |
-| Version | `2.2.8`, versionCode **25** (TWA-Stand war 5) |
+| Version | **`2.6.9`, versionCode 109** (Stand 16.09.2026; die Tabelle nannte lange `2.2.8`/25, der TWA-Stand war 5) |
 | compileSdk / targetSdk / minSdk | 36 / 36 / 26 |
 | Signatur | bestehender Upload-Key `android/android.keystore`, SHA-256 `BC:64:AD:3F:…:14:0E:79:80` |
 
