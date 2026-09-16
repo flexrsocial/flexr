@@ -190,10 +190,12 @@ Hierarchie stehen, sein `onAppear` feuert beim Zurückkommen nicht verlässlich.
 
 Nicht alles, was auseinandergeht, ist eine Lücke. Diese Unterschiede bleiben:
 
-- **Chat-Poll.** Auf Android läuft er im `viewModelScope` weiter, auch wenn der
-  Chat nicht sichtbar ist — und markiert dabei Nachrichten als gelesen. Auf iOS
-  endet er mit der Ansicht. Eine Lesebestätigung für etwas, das niemand
-  ansieht, ist falsch; iOS bleibt, wie es ist. **Android sollte nachziehen.**
+- **Chat-Poll — erledigt, Android hat nachgezogen.** Auf Android lief er im
+  `viewModelScope` weiter, auch wenn der Chat nicht sichtbar war, und
+  markierte dabei Nachrichten als gelesen, die niemand angesehen hatte. Auf
+  iOS endet er seit jeher mit der Ansicht (`.task`). Android hängt ihn seit
+  2.6.8 an `LifecycleResumeEffect`; iOS blieb unverändert, weil es hier
+  richtig war.
 - **Preis auf der Bezahlwand.** Android schreibt „10 €" fest, iOS liest ihn aus
   `billing/status`. Wer die Zahl in `config.py` ändert, ändert damit auch die
   App — nur auf iOS.
@@ -223,6 +225,28 @@ Maschinell geprüft, nicht nach Augenmaß:
   „letzten Swipe zurücknehmen" stehen nur als Aufzählungspunkte auf der
   Bezahlwand; die Endpunkte gibt es, kein Client ruft sie auf. Sieben
   Premium-Texte aus der Bezahlzeit liegen auf beiden Seiten ungenutzt herum.
+
+### Fehlgeschlagene Anmeldung ist keine abgelaufene Sitzung — 16.09.2026
+
+`APIClient.perform` meldete **jeden** 401 des eigenen Backends als
+Sitzungsende an den `SessionStore`. Das galt damit auch für
+`POST /api/auth/login`, wo der Server mit 401 „E-Mail oder Passwort falsch."
+antwortet: Wer sich vertippte, wurde auf den Login geworfen und las, seine
+Sitzung sei abgelaufen — obwohl er nie angemeldet war. Derselbe Fehler steckte
+im Web (`api()` in `frontend/app/index.html`) und in Androids
+`SessionExpiryInterceptor`; alle drei sind gleichzeitig korrigiert worden.
+
+Ausgenommen sind die fünf Wege, die ohne Anmeldung auskommen
+(`Self.sessionlessPaths`): `login`, `register`, `reactivate`, `email/confirm`,
+`age-check`. **Bewusst eine Liste und kein Präfix-Vergleich auf `/api/auth/`:**
+`auth/email/resend` liegt im selben Zweig, braucht aber eine Sitzung — ein 401
+von dort ist ein echtes Sitzungsende und muss abmelden.
+
+Die Meldung bleibt die kombinierte („E-Mail oder Passwort falsch."), auch wenn
+die Adresse gar nicht existiert. Getrennte Meldungen würden verraten, welche
+Adressen ein FLEXR-Konto haben; bei einer Dating-App ist schon die
+Mitgliedschaft die schützenswerte Information. Das ist eine Entscheidung im
+Backend (`routers/auth.py`), nicht in den Clients.
 
 ---
 

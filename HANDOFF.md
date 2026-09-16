@@ -1,18 +1,41 @@
 # FLEXR — Handoff für ein anderes Gerät / Claude Code
 
-Stand: **12.09.2026**
+Stand: **16.09.2026**
 
 ## Wo das Projekt gerade steht
 
 **Alles committet, gepusht und deployed.** Der VPS steht auf demselben Stand
-wie `origin/main`; die Migration der Sitzung vom 11.09. (Rechtstexte auf
-Englisch, E-Mails in der Profilsprache) ist gelaufen — `alembic current` und
-`heads` zeigen beide `c8d31f6a94b2`. Die Sitzung vom 12.09. **(2)** bringt
-eine Backend-Änderung ohne neue Migration (nur Prüflogik, kein Schema). Die
-Sitzung vom 12.09. **(3)** ist reines Frontend (SEO/Performance, Commit
-`01adcc8`) und brauchte deshalb nur `git pull` auf dem VPS, keinen Neustart.
+wie `origin/main` (`c773710`); die Migration der Sitzung vom 11.09.
+(Rechtstexte auf Englisch, E-Mails in der Profilsprache) ist gelaufen —
+`alembic current` und `heads` zeigen beide `c8d31f6a94b2`. Die Sitzung vom
+12.09. **(2)** bringt eine Backend-Änderung ohne neue Migration (nur
+Prüflogik, kein Schema). Die Sitzung vom 12.09. **(3)** ist reines Frontend
+(SEO/Performance, Commit `01adcc8`) und brauchte deshalb nur `git pull` auf
+dem VPS, keinen Neustart. Dasselbe gilt für die Sitzung vom **16.09.**: Web
+und beide nativen Clients, kein App-Code im Backend, keine Migration, kein
+Neustart.
 
-> **Android 2.6.5 (versionCode 105) — aktueller Stand.** Wie 2.6.4, zusätzlich
+> **Stolperstein beim `git pull` am 16.09.:** Der Pull brach ab mit *„untracked
+> working tree files would be overwritten"* — `backend/scripts/activate_review_account.py`
+> war am 15.09. von Hand auf den VPS kopiert worden und lag dort unversioniert,
+> während derselbe Pfad inzwischen im Commit steckte. Prüfsummen verglichen
+> (identisch), die unversionierte Fassung gelöscht, Pull wiederholt. Wer künftig
+> ein Skript vorab auf den Server schiebt, sollte es danach wieder entfernen.
+
+> **Android 2.6.8 (versionCode 108) — aktueller Stand.** Gebaut am 16.09.2026,
+> signiert, prod-Flavor; **noch nicht in die Play Console hochgeladen**. Zwei
+> Korrekturen: Ein 401 vom Login gilt nicht mehr als abgelaufene Sitzung, und
+> der Chat-Poll läuft nur noch, solange der Chat zu sehen ist. Einzelheiten in
+> „Sitzung 16.09.2026" direkt unten.
+>
+> **2.6.7 (versionCode 107)** holt die POST_NOTIFICATIONS-Laufzeitberechtigung
+> beim ersten Laden des Kontobereichs ein und stellt den Schalter bei Ablehnung
+> zurück auf „aus" — vorher stand er für neue Konten von Anfang an auf „an",
+> ohne dass je gefragt worden wäre. **2.6.6 (versionCode 106)** rückt den
+> Leerzustand im Chatverlauf mittig; ihm fehlte als einzigem im Projekt das
+> `align(Center)`. Beide sind im 2.6.8-Paket enthalten.
+>
+> **2.6.5 (versionCode 105)** war der Stand davor: wie 2.6.4, zusätzlich
 > stehen die Leerzustände von Matches und Chats mittig wie der im Swipe-Deck.
 >
 > **2.6.4 (versionCode 104)** brachte: Statuspille heißt nur noch „Beta", der
@@ -59,7 +82,7 @@ Die Zahlen stehen in `backend/app/config.py` und sind zugleich eine
 `frontend/i18n-*.js`, `res/values*/strings.xml`, `agb.html`, `faq.html` und
 `app/legal.py` mit.
 
-**Aktuelles Android-Paket:** 2.6.5 (versionCode 105).
+**Aktuelles Android-Paket:** 2.6.8 (versionCode 108).
 
 Zum **Installieren auf einem Gerät** taugt nur das **APK**. Das `.aab` ist das
 Veröffentlichungsformat für die Play Console und lässt sich auf einem Telefon
@@ -70,8 +93,15 @@ klar benannt:
 
 | Datei | Wofür |
 | --- | --- |
-| `flexr-2.6.5-vc105.apk` | Direkt aufs Gerät laden und antippen |
-| `flexr-2.6.5-vc105.aab` | Nur Upload in die Play Console |
+| `flexr-X.Y.Z-vcNNN.apk` | Direkt aufs Gerät laden und antippen |
+| `flexr-X.Y.Z-vcNNN.aab` | Nur Upload in die Play Console |
+
+**Stand 16.09.2026 stimmt das für 2.6.8 nicht.** Das Bundle ist direkt im Chat
+übergeben worden, nicht in `dl-a616e78274de323b/` abgelegt; ein APK dieser
+Fassung ist gar nicht gebaut worden. Im Download-Ordner liegt als neuestes
+weiterhin `flexr-2.6.5.aab`, und APKs liegen dort überhaupt keine — die
+Namensschreibweise oben ist die Absicht, nicht der Ist-Zustand. Wer 2.6.8 aufs
+Gerät bringen will, braucht erst `./gradlew assembleProdRelease`.
 
 Die `vc101`- bis `vc104`-Dateien sind hinfällig. Die Play Console hatte 43 und
 50 schon vergeben — Näheres im 10.09.-Abschnitt.
@@ -82,14 +112,98 @@ Die `vc101`- bis `vc104`-Dateien sind hinfällig. Die Play Console hatte 43 und
 > englischen Texte lagen dort in einem Sprach-Split, den ein deutsches Gerät
 > nie herunterlädt. Erst ab 2.6.3 stecken beide Sprachen im Basis-Paket.
 
-Aufbau des Dokuments: erst diese Eckdaten, dann **drei Abschnitte vom
-12.09.** ((3) SEO/Performance, dann (2) Backend, dann der ungezaehlte erste
-vom selben Tag), dann **vier Abschnitte vom 11.09.** (diese Sitzung als (3), dann (2), dann der Absturz-Befund, dann die
+Aufbau des Dokuments: erst diese Eckdaten, dann der Abschnitt vom **16.09.**,
+dann **drei Abschnitte vom 12.09.** ((3) SEO/Performance, dann (2) Backend,
+dann der ungezaehlte erste vom selben Tag), dann **vier Abschnitte vom 11.09.** (diese Sitzung als (3), dann (2), dann der Absturz-Befund, dann die
 Ausgangssitzung), dann die **drei Abschnitte vom 10.09.**
 (Audit-Fortsetzung, Audit, Monetarisierung), dann **09.09.**, dann
 **08.09.**, dann die beiden Sitzungen vom **07.09.**, dann **06.09.**, dann
 **05.09.**, dann **31.08.**, **30.08.**, **23.08.**, **21.08.**; die Build-,
 Test- und Deploy-Abschnitte am Ende gelten sitzungsübergreifend.
+
+## Sitzung 16.09.2026 — Ein 401 vom Login ist keine abgelaufene Sitzung
+
+Ein Commit (`c773710`), gepusht und deployt. Web, iOS und Android; im Backend
+nur ein neues eigenständiges Skript, kein App-Code — deshalb **weder Migration
+noch Neustart**, nur `git pull` auf dem VPS.
+
+Die iOS-Arbeit der Tage davor (Verifizierungs-Portierung in drei Runden,
+Paritätsabgleich, App-Review-Konto) steht in
+[ios/HANDOFF.md](ios/HANDOFF.md); hier nur, was Web und Android betrifft.
+
+### 1. Falsche Zugangsdaten meldeten „Sitzung abgelaufen"
+
+Wer sich beim Anmelden vertippte oder eine gar nicht registrierte Adresse
+eingab, bekam **„Sitzung abgelaufen. Bitte erneut einloggen."** zu lesen — er
+war nie angemeldet, es gab keine Sitzung, die hätte ablaufen können.
+
+Die Ursache war in allen drei Clients dieselbe und dieselbe Bauart: Der
+zentrale 401-Zweig antwortete auf **jeden** 401 des eigenen Backends damit, das
+Token zu verwerfen und auf den Login zu schicken. `POST /api/auth/login`
+quittiert falsche Zugangsdaten aber ebenfalls mit 401 (`{"detail":"E-Mail oder
+Passwort falsch."}`) — die Meldung des Servers wurde überschrieben, bevor sie
+jemand zu sehen bekam.
+
+| Datei | Was ausgenommen wird |
+| --- | --- |
+| `frontend/app/index.html` | `ANMELDEWEGE_OHNE_SITZUNG` in `api()` |
+| `ios/FLEXR/Core/Network/APIClient.swift` | `Self.sessionlessPaths` |
+| `.../core/network/Interceptors.kt` | `SESSIONLESS_PATHS` |
+
+Ausgenommen sind dieselben fünf Wege: `auth/login`, `auth/register`,
+`auth/reactivate`, `auth/email/confirm`, `auth/age-check`.
+
+**Bewusst eine Liste und kein Präfix-Vergleich auf `/api/auth/`.** Im selben
+Zweig liegt `auth/email/resend`, und der braucht sehr wohl eine Sitzung — ein
+401 von dort ist ein echtes Sitzungsende und muss abmelden. Ein Präfix hätte
+den Fehler nur in die andere Richtung gedreht.
+
+**Die Meldung bleibt die kombinierte.** Gewünscht war „E-Mail-Adresse existiert
+nicht"; der Server antwortet auf unbekannte Adresse und falsches Passwort
+absichtlich gleich. Getrennte Meldungen verraten, welche Adressen ein
+FLEXR-Konto haben — bei einer Dating-App ist schon die Mitgliedschaft die
+schützenswerte Information, und die Liste ließe sich mit einem Skript
+durchprobieren. Wer das ändern will, ändert `backend/app/routers/auth.py`, nicht
+die Clients.
+
+`frontend/sw.js` steht deshalb auf `flexr-shell-v17`: Der Fehler saß in
+`index.html`, also in der Shell. Ohne das Hochzählen behielten Bestandsnutzer
+im Offline-Rückfall die alte Fassung samt Fehler.
+
+Nach dem Deploy auf flexr.social gegengeprüft — im Browser gegen die echte
+Anmeldemaske, mit einer nicht registrierten Adresse: `loginErr` zeigt
+„E-Mail oder Passwort falsch.", der Bildschirm bleibt `screen-login`, es wird
+kein Token verworfen.
+
+### 2. Der Chat-Poll lief weiter, wenn niemand hinsah
+
+Auf Android startete `ChatViewModel` seinen Poll im `init` und damit im
+`viewModelScope` — er lief, solange das ViewModel lebte, also auch wenn der
+Chat im Rückstapel lag oder die App im Hintergrund war. Dabei quittierte er
+Nachrichten als **gelesen**, die niemand angesehen hatte: eine Lesebestätigung
+für nichts.
+
+`startPolling()` ist jetzt öffentlich und wird nicht mehr aus dem `init`
+gerufen; dazu kam `stopPolling()`. `ChatScreen` hängt beides über
+`LifecycleResumeEffect` an die Sichtbarkeit. Damit verhält Android sich wie
+iOS, wo der Poll seit jeher an `.task` der Ansicht hängt (in
+[ios/HANDOFF.md](ios/HANDOFF.md) stand das bis heute unter „Bewusste
+Abweichungen — Android sollte nachziehen"; der Punkt ist damit erledigt).
+
+### 3. Android 2.6.8 (versionCode 108)
+
+Gebaut mit `JAVA_HOME=~/.bubblewrap/jdk/jdk-17.0.11+9 ./gradlew
+bundleProdRelease`, signiert, prod-Flavor, 7,4 MB;
+`testProdReleaseUnitTest` läuft durch. Enthält außer den beiden Korrekturen
+oben auch 2.6.6 und 2.6.7, die im Baum lagen, aber nie gebaut worden waren.
+
+Das Bundle ist direkt im Chat übergeben worden und liegt **nicht** in
+`dl-a616e78274de323b/`; ein APK dieser Fassung gibt es nicht. Der Upload in
+die Play Console steht noch aus.
+
+> `aapt2 dump badging` kann die Fassung eines **AAB** nicht lesen — das
+> Manifest liegt dort im Protobuf-Format vor, nicht im Binär-XML. Zum
+> Gegenprüfen taugt `unzip -p app-prod-release.aab base/manifest/AndroidManifest.xml | strings | grep 2\.6\.`.
 
 ## Sitzung 12.09.2026 (3) — SEO-Audit: og:locale:alternate, WebP fuer Landingpage-Fotos
 
