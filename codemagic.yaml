@@ -14,6 +14,24 @@ workflows:
         BUNDLE_ID: "social.flexr.app"
       xcode: latest
     scripts:
+      # Apple nimmt jede Build-Nummer nur einmal an: ein zweiter Upload mit
+      # derselben CFBundleVersion scheitert mit 409 (ENTITY_ERROR.ATTRIBUTE
+      # .INVALID.DUPLICATE). Im Projekt steht CURRENT_PROJECT_VERSION fest auf
+      # 1 — sinnvoll fürs lokale Bauen, unbrauchbar für die Auslieferung.
+      # Deshalb setzt die CI sie hier auf Codemagics $BUILD_NUMBER, der je
+      # Anwendung streng aufsteigend zählt. Die Datei wird nur im Klon
+      # geändert, nie zurück ins Repository geschrieben.
+      - name: Set build number
+        script: |
+          set -e
+          if [ -z "$BUILD_NUMBER" ] || [ "$BUILD_NUMBER" -le 1 ]; then
+            echo "BUILD_NUMBER fehlt oder ist nicht größer als 1: '$BUILD_NUMBER'"
+            exit 1
+          fi
+          sed -i '' \
+            "s/CURRENT_PROJECT_VERSION = [0-9.]*;/CURRENT_PROJECT_VERSION = $BUILD_NUMBER;/g" \
+            "$XCODE_PROJECT/project.pbxproj"
+          grep -m1 "CURRENT_PROJECT_VERSION" "$XCODE_PROJECT/project.pbxproj"
       - name: Set up keychain
         script: |
           keychain initialize
