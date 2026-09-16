@@ -21,6 +21,9 @@ Neustart.
 > während derselbe Pfad inzwischen im Commit steckte. Prüfsummen verglichen
 > (identisch), die unversionierte Fassung gelöscht, Pull wiederholt. Wer künftig
 > ein Skript vorab auf den Server schiebt, sollte es danach wieder entfernen.
+> Dieselbe Falle liegt noch scharf: `backend/list_users.py` (21.08., nur
+> lesend) liegt unversioniert am VPS. Sobald dieser Pfad je in einen Commit
+> kommt, bricht der nächste Pull genauso ab.
 
 > **Android 2.6.8 (versionCode 108) — aktueller Stand.** Gebaut am 16.09.2026,
 > signiert, prod-Flavor; **noch nicht in die Play Console hochgeladen**. Zwei
