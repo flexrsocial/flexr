@@ -26,7 +26,7 @@ struct InvalidPostalCodeError: LocalizedError {
 final class PlzRepository {
 
     /// Vier ASCII-Ziffern — dasselbe Muster wie serverseitig.
-    static func isValidPostalCode(_ value: String) -> Bool {
+    nonisolated static func isValidPostalCode(_ value: String) -> Bool {
         value.count == 4 && value.allSatisfy { $0.isASCII && $0.isNumber }
     }
 

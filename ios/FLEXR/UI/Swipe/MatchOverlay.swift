@@ -10,7 +10,7 @@ struct MatchOverlay: View {
 
     let matchedProfile: Profile
     let ownAvatarURL: String?
-    var ownName: String = s(.swipeOwnName)
+    let ownName: String
     let onWriteMessage: () -> Void
     let onKeepSwiping: () -> Void
 

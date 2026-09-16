@@ -109,6 +109,7 @@ struct SwipeView: View {
                 MatchOverlay(
                     matchedProfile: matched,
                     ownAvatarURL: model.ownAvatarURL,
+                    ownName: s(.swipeOwnName),
                     onWriteMessage: model.openChatWithMatch,
                     onKeepSwiping: model.dismissMatchOverlay
                 )
