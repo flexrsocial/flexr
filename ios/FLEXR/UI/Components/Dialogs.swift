@@ -4,6 +4,8 @@ import SwiftUI
 ///
 /// Im Web war das ein `confirm()` des Browsers — nativ ein richtiger Dialog.
 struct ConfirmDialog: ViewModifier {
+    @Environment(LanguageStore.self) private var languageStore
+    private var s: FlexrStrings { languageStore.strings }
 
     @Binding var isPresented: Bool
     let title: String
