@@ -14,8 +14,27 @@ Prüflogik, kein Schema). Die Sitzung vom 12.09. **(3)** ist reines Frontend
 dem VPS, keinen Neustart. Dasselbe gilt für **beide Sitzungen vom 16.09.**: Web
 und beide nativen Clients, kein App-Code im Backend, keine Migration, kein
 Neustart. Der VPS steht damit weiterhin auf dem Backend-Stand von `c773710`;
-`origin/main` ist inzwischen `6ad6452`, die Differenz ist reines
-Client- und Dokumentationsmaterial.
+`origin/main` ist inzwischen **`72ada4c`**, die Differenz ist reines Client- und
+Dokumentationsmaterial. **Ein `git pull` auf dem VPS ist nicht nötig** — es
+liegt nichts darin, was der Server ausliefert oder ausführt.
+
+> **Einstieg für die nächste Sitzung, Stand 16.09.2026 abends.** Arbeitsbaum
+> sauber, `HEAD` = `origin/main` = `72ada4c`. Nichts hängt halbfertig. Die drei
+> Dinge, die als Nächstes anstehen, in dieser Reihenfolge:
+>
+> 1. **Die TestFlight-Fassung auf einem iPhone ansehen** — Login-Knopf mit
+>    leerem Passwortfeld, eine kurze Chatnachricht, und das Fotoraster nicht nur
+>    betrachten, sondern bedienen (verschieben, löschen, neu hochladen). Das
+>    sind die drei Korrekturen dieser Sitzung; ausgeführt hat sie niemand.
+> 2. **Premium gegen ein lokales Backend prüfen** — siehe den eigenen Abschnitt
+>    „FLEXR Premium ausprobieren, ohne die Produktion anzufassen" weiter unten.
+>    Am Schalter der Produktion zu drehen ist dafür **nicht** der richtige Weg.
+> 3. **Android 2.6.9 (versionCode 109) in die Play Console laden.** Das Bundle
+>    ist gebaut, signiert und im Chat übergeben; Prüfsumme im
+>    16.09.-(2)-Abschnitt. Liegt der Chatverlauf nicht mehr vor, neu bauen —
+>    identische Quellen ergeben dasselbe Paket, nur die Prüfsumme ändert sich.
+>
+> Was **nicht** ansteht: ein Backend-Deploy, eine Migration, ein Neustart.
 
 > **Stolperstein beim `git pull` am 16.09.:** Der Pull brach ab mit *„untracked
 > working tree files would be overwritten"* — `backend/scripts/activate_review_account.py`
@@ -3550,6 +3569,60 @@ anderen Test-Doubles erben von `FakeFlexrApi` und beheben sich dadurch von
 selbst. `:app:compileProdReleaseKotlin` (Hauptcode) meldet das **nicht**,
 erst der separate Unit-Test-Compile-Schritt — immer beide laufen lassen,
 nicht nur den ersten.
+
+## FLEXR Premium ausprobieren, ohne die Produktion anzufassen
+
+Die drei Premium-Funktionen sind in allen drei Oberflächen umgesetzt, aber auf
+keinem Gerät je gesehen worden — weil sie es gar nicht sein können, solange
+`PREMIUM_ENABLED` am Server `false` ist.
+
+**Ein Testkonto auf `is_subscribed = true` zu setzen reicht nicht.** Der Wert,
+an dem alles hängt, ist abgeleitet (`backend/app/models.py`):
+
+```python
+@property
+def is_premium(self) -> bool:
+    return settings.premium_enabled and bool(self.is_subscribed)
+```
+
+Beide Bedingungen müssen wahr sein. Ohne den Schalter bleibt `is_premium` also
+falsch, egal was in der Zeile steht.
+
+**Den Schalter in der Produktion umzulegen ist der falsche Weg.** Er schaltet
+nicht nur die Zusatzfunktionen frei, sondern zugleich **die Grenzen für alle
+Standardkonten scharf**: 20 Likes je rollierende 24 Stunden, 3 gleichzeitig
+offene Unterhaltungen, 50 km Umkreis. Das sind nach AGB Punkt 7 b vertragliche
+Zusagen, keine Testeinstellungen — und wer gerade mitten im Wischen ist, stößt
+ohne Vorwarnung an eine Wand. Ein eingestellter Suchumkreis über 50 km wird
+dabei zudem stillschweigend zurückgesetzt (`premium.clamp_radius`).
+
+**Der saubere Weg ist ein lokales Backend.** Die Android-App bringt dafür einen
+eigenen Flavor mit (`local`, `applicationIdSuffix = ".local"`, API-Basis
+`http://10.0.2.2:8000/` — das ist der Host-Rechner aus Sicht des Emulators):
+
+```bash
+# 1. Lokales Backend mit scharfem Schalter
+cd backend
+PREMIUM_ENABLED=true venv/bin/uvicorn app.main:app --host 0.0.0.0 --port 8000
+
+# 2. Testkonto anlegen, dann in der lokalen Datenbank:
+#    UPDATE users SET is_subscribed = true WHERE email = '...';
+
+# 3. App im local-Flavor bauen und aufspielen
+cd ../android-native
+./gradlew :app:installLocalDebug
+```
+
+Damit sind alle drei Funktionen in einem Durchgang prüfbar: Abzeichen neben dem
+Namen (Deck, Matchliste, Chat-Kopf, Konto), der Zurücknehmen-Knopf links neben
+„Nope", und „Wer dich geliket hat" — letzteres lohnt **in beiden Zuständen**,
+mit und ohne Abo, weil der gesperrte Fall eine eigene Ansicht hat und nicht
+bloß eine Fehlermeldung.
+
+Für iOS gibt es keinen entsprechenden Flavor; dort müsste die Basis-URL von Hand
+umgestellt werden. Weil die iOS-Fassung ohnehin nur über Codemagic gebaut wird,
+ist der Android-Weg der praktikable — die Oberflächen sind funktionsgleich
+gebaut, und was dort auffällt, gilt mit hoher Wahrscheinlichkeit auch hier.
 
 ## Testdaten für manuelles Testen (Produktion, angelegt am 21.08.2026)
 
