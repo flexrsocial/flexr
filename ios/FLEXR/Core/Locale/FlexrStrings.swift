@@ -25,7 +25,7 @@ enum L: Hashable, Sendable {
     // Felder
     case fieldEmail, fieldPassword, fieldPasswordShow, fieldPasswordHide
     case fieldName, fieldBio, fieldBioPlaceholder, emojiInsert, emojiClose
-    case plzLoading
+    case plzLoading, plzEnter, plzUnknown
 
     // Login
     case loginEyebrow, loginTitle, loginSubtitle, loginSubmit, loginRegisterHint
@@ -44,7 +44,6 @@ enum L: Hashable, Sendable {
     case registerPhotoMax, registerPhotoLoadFailed, plzLookupFailed
     case registerBirthdateLabel, registerGenderLabel, genderMale, genderFemale
     case registerEyebrow, registerBirthdatePlaceholder, registerAgeYears
-    case registerWaiverPrefix, registerWaiverLink, registerWaiverSuffix
 
     // Gym
     case gymLabel, gymSearchPlaceholder, gymSuggestRow, gymSuggestTitle
@@ -79,8 +78,8 @@ enum L: Hashable, Sendable {
     case reportBlockTitleNamed
 
     // Fotos
-    case photoRemove, photoAdd, photoPending, photoUploading, photoHintNone
-    case photoHintOk, photoHintPending, photoHintRejected, photoMinOne
+    case photoRemove, photoAdd, photoPending, photoRejected, photoUploading, photoHintNone
+    case photoHintOk, photoHintPending, photoHintRejected, photoHintTooFew, photoMinCount
     case photoUploadFailed, photoLightboxPosition, photoTooSmall, photoReadFailed
 
     // Konto
@@ -134,13 +133,14 @@ enum L: Hashable, Sendable {
 
     // Paywall
     case paywallTitle, paywallSub, paywallFeatureUnlimited, paywallFeatureChat
-    case paywallFeatureCancel, paywallReturnNote, paywallSubscribe
+    case paywallFeatureCancel, paywallReturnNote, paywallSubscribe, paywallPerMonth
 
     // Selfie-Verifizierung
     case verifyTitle, verifyShotOf, verifyShotIndex, verifyCameraNeeded
     case verifyPrivacyNote, verifyCaptureFailed, verifyStartFailed, verifyCameraDenied
     case verifySubmitted, verifySubmitFailed
     case verifyPreparing, verifyDone, verifyUploading, verifyRetrySubmit
+    case verifyNothingToCapture
     case verifyAllowCamera, verifyCapture
 
     // Statuspillen

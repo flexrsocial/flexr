@@ -55,6 +55,8 @@ extension FlexrStrings {
         .emojiInsert: "Emoji einfügen",
         .emojiClose: "Emoji-Auswahl schließen",
         .plzLoading: "Lädt …",
+        .plzEnter: "— PLZ eingeben —",
+        .plzUnknown: "— unbekannte PLZ —",
 
         // MARK: Login
         .loginEyebrow: "Willkommen zurück",
@@ -79,7 +81,7 @@ extension FlexrStrings {
             """,
         .registerPasswordPlaceholder: "Mind. 8 Zeichen",
         .registerNamePlaceholder: "Max",
-        .registerPhotosLabel: "Fotos (mind. 1, max. 6)",
+        .registerPhotosLabel: "Fotos (mind. %d, max. %d)",
         .registerPhotoPreparing: "Foto wird vorbereitet …",
         .registerConsentPrefix: """
             Ich willige ein, dass meine Angaben zu Geschlecht und gesuchtem \
@@ -95,8 +97,8 @@ extension FlexrStrings {
         .registerErrPostalCode: "Bitte eine gültige österreichische Postleitzahl eingeben (Ort wird automatisch ermittelt).",
         .registerErrGender: "Bitte ein Geschlecht auswählen.",
         .registerErrGym: "Bitte ein Gym aus der Liste auswählen.",
-        .registerErrPhoto: "Bitte lade mindestens ein Foto hoch.",
-        .registerErrConsents: "Bitte beide Zustimmungen ankreuzen, um fortzufahren.",
+        .registerErrPhoto: "Bitte lade mindestens %d Fotos hoch.",
+        .registerErrConsents: "Ohne die Einwilligung zur Verarbeitung von Geschlecht und gesuchtem Geschlecht können wir dir keine Profile vorschlagen — sie ist die Grundlage des Matchings.",
         .registerFailed: "Registrierung fehlgeschlagen.",
         .registerDone: "Profil erstellt. Willkommen bei FLEXR 💪",
         .registerDoneNoPhoto: "Profil erstellt — Foto-Upload fehlgeschlagen. Bitte im Konto ein Foto hinzufügen.",
@@ -108,14 +110,6 @@ extension FlexrStrings {
         .registerEyebrow: "Erste Wiederholung",
         .registerBirthdatePlaceholder: "tt.mm.jjjj",
         .registerAgeYears: "%d Jahre",
-        .registerWaiverPrefix: """
-            Ich stimme zu, dass der Zugang sofort mit Registrierung beginnt, und \
-            nehme zur Kenntnis, dass ich dadurch mein 14-tägiges Rücktrittsrecht \
-            verliere (siehe \
-
-            """,
-        .registerWaiverLink: "AGB",
-        .registerWaiverSuffix: ", §18 FAGG).",
         .registerGenderLabel: "Geschlecht",
         .genderMale: "Mann",
         .genderFemale: "Frau",
@@ -215,12 +209,14 @@ extension FlexrStrings {
         .photoRemove: "Foto entfernen",
         .photoAdd: "Foto hinzufügen",
         .photoPending: "In Prüfung",
+        .photoRejected: "Abgelehnt",
         .photoUploading: "Foto wird hochgeladen …",
-        .photoHintNone: "Mindestens ein Foto ist nötig, damit dein Profil sichtbar ist.",
+        .photoHintNone: "Mindestens %d Fotos sind nötig, damit dein Profil sichtbar ist.",
         .photoHintOk: "Dein Profil ist sichtbar. Neue Fotos werden kurz geprüft.",
-        .photoHintPending: "Dein Foto wird geprüft.",
-        .photoHintRejected: "Foto abgelehnt. Bitte lade ein anderes hoch.",
-        .photoMinOne: "Mindestens ein Foto ist erforderlich. Lade zuerst ein weiteres hoch.",
+        .photoHintPending: "Deine Fotos werden geprüft.",
+        .photoHintRejected: "Deine Fotos wurden abgelehnt. Bitte lade andere hoch.",
+        .photoHintTooFew: "Noch %d von %d Pflichtfotos. Ohne sie bleibt dein Profil unsichtbar.",
+        .photoMinCount: "Mindestens %d Fotos sind erforderlich. Lade zuerst ein weiteres hoch.",
         .photoUploadFailed: "Foto-Upload fehlgeschlagen.",
         .photoLightboxPosition: "Foto %d von %d",
         .photoTooSmall: "Foto zu klein (%d×%d). Mindestens %d×%d Pixel.",
@@ -280,7 +276,7 @@ extension FlexrStrings {
         .accountSaved: "Profil gespeichert ✓",
         .accountSaveFailed: "Speichern fehlgeschlagen.",
         .accountErrPostalCode: "Bitte eine gültige österreichische Postleitzahl eingeben (Ort wird automatisch ermittelt).",
-        .accountErrPhotoBeforeSave: "Bitte lade mindestens ein Foto hoch, bevor du speicherst.",
+        .accountErrPhotoBeforeSave: "Bitte lade mindestens %d Fotos hoch, bevor du speicherst.",
         .accountErrGym: "Bitte ein Gym aus der Liste auswählen.",
         .accountNotificationsRow: "Matches, Profile & Erinnerungen",
         .accountNotificationsSub: "E-Mail und App getrennt einstellen",
@@ -412,6 +408,7 @@ extension FlexrStrings {
             """,
         .paywallFeatureUnlimited: "Unbegrenzt liken statt 20 pro Tag",
         .paywallSubscribe: "Premium holen",
+        .paywallPerMonth: " / Monat",
         .paywallFeatureChat: "Unbegrenzt viele Unterhaltungen gleichzeitig",
         .paywallFeatureCancel: "Monatlich kündbar, keine Mindestlaufzeit, keine versteckten Kosten",
         .paywallReturnNote: """
@@ -439,6 +436,7 @@ extension FlexrStrings {
         .verifyStartFailed: "Verifizierung konnte nicht gestartet werden.",
         .verifyCameraDenied: "Kamerazugriff abgelehnt. Die Verifizierung braucht Live-Aufnahmen über die Kamera.",
         .verifySubmitted: "Selfies eingereicht — deine Verifizierung ist in Prüfung.",
+        .verifyNothingToCapture: "Gerade ist nichts aufzunehmen — dein Selfie liegt dem Prüfteam bereits vor.",
         .verifySubmitFailed: "Einreichen fehlgeschlagen. Bitte erneut versuchen.",
 
         // MARK: Statuspillen

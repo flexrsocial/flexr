@@ -20,6 +20,13 @@ final class VerificationModel {
     var total: Int { prompts.count }
     var isComplete: Bool { !prompts.isEmpty && captures.count == prompts.count }
 
+    /// Der Server hat nichts aufzunehmen — entweder liegt das Selfie schon vor
+    /// oder es läuft gerade eine Prüfung. Ohne diesen Zustand zeigte der
+    /// Bildschirm „Fertig" samt scharfer Kamera, während `isComplete` mangels
+    /// Aufgaben für immer falsch blieb: Aufnahmen sammelten sich an, der
+    /// Einreichen-Knopf erschien nie.
+    var hasNothingToCapture: Bool { !isStarting && prompts.isEmpty && error == nil }
+
     @ObservationIgnored private let verification: VerificationRepository
     @ObservationIgnored private let profiles: ProfileRepository
     @ObservationIgnored private let onMessage: (String) -> Void
@@ -61,6 +68,7 @@ final class VerificationModel {
     }
 
     func onCaptured(_ image: UIImage) async {
+        guard !prompts.isEmpty else { return }
         guard let data = try? await ImageProcessor.compressSelfie(image) else {
             error = s(.verifyCaptureFailed)
             return
@@ -139,6 +147,14 @@ struct VerificationView: View {
 
             if model.isStarting {
                 LoadingStateView(label: s(.verifyPreparing))
+            } else if model.hasNothingToCapture {
+                Text(s(.verifyNothingToCapture))
+                    .flexrText(.bodyMedium)
+                    .foregroundStyle(FlexrColor.chalkDim)
+                    .padding(.top, 24)
+                FlexrSecondaryButton(title: s(.commonBack), action: onBack)
+                    .padding(.top, 16)
+                Spacer(minLength: 24)
             } else {
                 Eyebrow(text: s(.verifyShotOf, min(model.currentIndex + 1, max(model.total, 1)), model.total))
                     .padding(.top, 18)

@@ -50,6 +50,14 @@ enum ImageProcessor {
     static let jpegQuality: CGFloat = 0.85
     static let maxPhotos = 6
 
+    /// Untergrenze für ein ausspielbares Profil.
+    ///
+    /// Dieselbe Zahl verlangt der Server beim Start der Alters- und
+    /// Identitätsprüfung und lässt kein Foto löschen, das die Grenze
+    /// unterschreiten würde (`backend/app/models.py`, `MIN_PHOTOS`). Wer
+    /// tauschen will, lädt erst hoch und löscht dann.
+    static let minPhotos = 3
+
     /// Aus den Rohdaten einer Bilddatei (Fotoauswahl).
     static func prepare(data: Data) async throws -> PreparedPhoto {
         try await run {

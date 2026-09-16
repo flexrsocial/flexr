@@ -27,16 +27,17 @@ struct PaywallView: View {
     /// `config.py` ändert, ändert damit auch diese Liste.
     private var features: [String] {
         let m = appModel.membership
+        // Der Radius-Eintrag entfällt ohne Serverstatus ganz — ein Rückfall
+        // auf den Abzeichen-Text hätte ihn doppelt gezeigt.
         return [
             m.map { s(.premiumFeatureLikes, $0.freeDailyLikes) } ?? s(.paywallFeatureUnlimited),
             m.map { s(.premiumFeatureChats, $0.freeOpenChats) } ?? s(.paywallFeatureChat),
             s(.premiumFeatureIncoming),
             s(.premiumFeatureRewind),
-            m.map { s(.premiumFeatureRadius, max($0.maxRadiusKm, 250), $0.freeMaxRadiusKm) }
-                ?? s(.premiumFeatureBadge),
+            m.map { s(.premiumFeatureRadius, max($0.maxRadiusKm, 250), $0.freeMaxRadiusKm) },
             s(.premiumFeatureBadge),
             s(.paywallFeatureCancel),
-        ]
+        ].compactMap { $0 }
     }
 
     var body: some View {
@@ -57,7 +58,7 @@ struct PaywallView: View {
                         Text(appModel.membership.map { "\($0.priceCents / 100) €" } ?? "10 €")
                             .flexrText(.displayMedium)
                             .foregroundStyle(FlexrColor.chalk)
-                        Text(" / Monat")
+                        Text(s(.paywallPerMonth))
                             .flexrText(.bodyMedium)
                             .foregroundStyle(FlexrColor.chalkDim)
                             .padding(.bottom, 5)

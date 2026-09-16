@@ -225,8 +225,8 @@ final class AccountModel {
             saveError = s(.accountErrPostalCode)
             return
         }
-        guard let profile, !profile.photos.isEmpty else {
-            saveError = s(.accountErrPhotoBeforeSave)
+        guard let profile, profile.photos.count >= ImageProcessor.minPhotos else {
+            saveError = s(.accountErrPhotoBeforeSave, ImageProcessor.minPhotos)
             return
         }
         guard let gymLabel = gymPicker.selectedLabel else {
@@ -271,8 +271,11 @@ final class AccountModel {
     }
 
     func removePhoto(id: String) {
-        guard (profile?.photos.count ?? 0) > 1 else {
-            photoError = s(.photoMinOne)
+        // Dieselbe Grenze wie beim Anlegen des Kontos: Der Server lehnt das
+        // Löschen sonst ohnehin ab (backend/app/routers/profiles.py), hier
+        // steht die Meldung nur früher und in der gewählten Sprache.
+        guard (profile?.photos.count ?? 0) > ImageProcessor.minPhotos else {
+            photoError = s(.photoMinCount, ImageProcessor.minPhotos)
             return
         }
         photoError = nil

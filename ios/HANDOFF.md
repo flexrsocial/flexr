@@ -52,6 +52,87 @@ lief unter diesem Stand durch.
 
 ---
 
+## Paritätsabgleich mit Android, 16.09.2026
+
+iOS stand auf **2.4.9**, Android auf **2.6.7** — der letzte Abgleich war der
+23.08.2026, seitdem sind 26 Android-Commits ins Repo gegangen. Ein
+Domäne-für-Domäne-Vergleich hat den Rückstand aufgenommen. Behoben ist der
+erste Teil, der Rest steht unten als offene Liste.
+
+### Behoben
+
+1. **Mindestens drei Profilfotos** (`ImageProcessor.minPhotos`). Android und
+   Backend verlangen seit `648f273` drei; iOS prüfte auf eins bzw. „nicht
+   leer". Betroffen waren Registrierung (`RegisterModel.canSubmit`,
+   `validate()`), Speichern und Löschen im Konto (`AccountModel`) sowie der
+   Sichtbarkeitshinweis unter dem Raster, der bei 1–2 Fotos „Profil sichtbar"
+   behauptete, obwohl der Server das Profil gar nicht ausspielt.
+2. **Einwilligung zum Verzicht aufs Rücktrittsrecht entfernt.** Android hat
+   sie am 15.08.2026 ersatzlos gestrichen (sie war an das Abo gebunden, FLEXR
+   ist dauerhaft kostenlos); iOS verlangte sie weiter und schickte
+   `consent_withdrawal_waiver` mit, das im Backend nur noch entgegengenommen
+   und ignoriert wird.
+3. **Sprachmeldung warf ausgeloggte Nutzer aus der App.**
+   `ProfileRepository.reportLanguage` lief auch ohne Sitzung los, der 401
+   löste über `SessionStore.handleUnauthorized()` einen Logout aus — mitten
+   in der Sprachwahl auf dem Login-Schirm.
+4. **Sackgasse in der Selfie-Verifizierung.** Lieferte der Server keine
+   Aufgaben, zeigte der Bildschirm „Fertig" samt scharfer Kamera; `isComplete`
+   blieb mangels Aufgaben für immer falsch, Aufnahmen sammelten sich an, der
+   Einreichen-Knopf erschien nie. Jetzt ein eigener Zustand mit Erklärung und
+   Rückweg.
+5. **Paywall**: „ / Monat" war fest verdrahtet, und ohne Serverstatus erschien
+   das Premium-Abzeichen doppelt (Android lässt die Radius-Zeile per
+   `listOfNotNull` einfach weg).
+6. **Fest verdrahtete deutsche Texte** in `PostalCodeField` und `PhotoGrid`
+   über Schlüssel aufgelöst; die Fotogrenzen-Texte nennen jetzt die richtige
+   Zahl statt „mindestens ein Foto".
+
+### Offen — die Verifizierung ist auf iOS nicht abschließbar
+
+Das ist kein Feinschliff, sondern ein fehlendes Teilsystem. Ohne bestandene
+Prüfung sperrt `require_activated_account` Deck, Matches und Chat; ein frisch
+registriertes iOS-Konto kommt damit nirgendwo hin.
+
+- **Ausweisschritt fehlt ganz.** Android: `ui/verification/DocumentScreen.kt`
+  (~620 Zeilen) + `DocumentViewModel.kt` — Typauswahl, Vorder-/Rückseite,
+  Rückkamera, Datei-Auswahl, Neuaufnahme. iOS endet nach dem Selfie.
+- **Verifizierungs-Gate fehlt.** Android schaltet bei
+  `!profile.isAccountActivated` auf einen eigenen Navigationsgraphen ohne
+  Tab-Leiste; iOS kennt nur `loggedOut`/`ready` und zeigt sofort die volle
+  App, wo jeder Aufruf in einen 403 läuft.
+- **Fünf Endpunkte fehlen**: `verification/document/presign`, `…/submit`,
+  `DELETE …/document`, `auth/email/resend`, `auth/email/confirm`.
+- **DTO-Felder fehlen**: `MyProfileDTO` ohne `email`, `email_verified`,
+  `verification_required`, `is_account_activated`, `age_verified`;
+  `VerificationStatusDTO` mit 2 von 8 Feldern (kein `next_step`, `reason`,
+  `document_types`, …). Ohne sie ist jede zustandsabhängige Weiterleitung
+  strukturell unmöglich.
+- **`403` mit `detail.code == "verification_required"`** wird nicht
+  ausgewertet.
+- **E-Mail-Bestätigung** (Schritt vor der Prüfung) fehlt samt Verarbeitung des
+  Bestätigungslinks — Letzteres braucht zusätzlich Associated Domains und
+  eine `apple-app-site-association` auf flexr.social.
+
+### Offen — kleiner
+
+- **Registrierung bricht den Foto-Upload ab.** `session.save(token:)` feuert
+  sofort, `AppModel` schaltet auf `.ready`, SwiftUI räumt `RegisterView` samt
+  laufendem Upload-Task ab. Android hält `isLoggedIn` bis zum Ende des
+  Erstuploads auf `false` (`AuthRepository.beginRegistration`).
+- **Optimistisch gesendete Nachricht** erscheint nicht sofort: `ChatModel.send`
+  ruft `reload()` vor dem Netzaufruf auf, die Pending-Zeile entsteht erst
+  danach im Repository.
+- Kein Passwort-Wiederholungsfeld bei der Registrierung; Registrierknopf ist
+  gesperrt statt zu erklären, was fehlt.
+- Fest verdrahtete deutsche Texte in Swipe, Match-Overlay, Matches und Chat.
+- Chat-Poll endet auf iOS beim Verlassen der Ansicht, auf Android läuft er im
+  `viewModelScope` weiter (abweichende Lesebestätigungen).
+- Sprachumschaltung: Android hat sie am 11.–12.09. überarbeitet (Regler nur
+  noch im Profil, Wechsel am Basis-Context).
+
+---
+
 ## Was am 23.08.2026 nachgezogen wurde
 
 Die App stand zuletzt auf dem Stand vom 15.08.2026 (Commit `eb93e15`).

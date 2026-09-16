@@ -76,7 +76,7 @@ struct PostalCodeField: View {
     private var hint: some View {
         switch lookupState {
         case .idle:
-            hintText("— PLZ eingeben —", isResolved: false)
+            hintText(s(.plzEnter), isResolved: false)
         case .loading:
             HStack(spacing: 8) {
                 ProgressView().controlSize(.mini).tint(FlexrColor.plate)
@@ -85,7 +85,7 @@ struct PostalCodeField: View {
         case .resolved(let city):
             hintText(city, isResolved: true)
         case .failed:
-            hintText("— unbekannte PLZ —", isResolved: false)
+            hintText(s(.plzUnknown), isResolved: false)
         }
     }
 

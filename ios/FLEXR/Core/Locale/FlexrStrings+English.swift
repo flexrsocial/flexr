@@ -54,6 +54,8 @@ extension FlexrStrings {
         .emojiInsert: "Insert emoji",
         .emojiClose: "Close emoji picker",
         .plzLoading: "Loading …",
+        .plzEnter: "— enter postal code —",
+        .plzUnknown: "— unknown postal code —",
 
         // MARK: Login
         .loginEyebrow: "Welcome back",
@@ -78,7 +80,7 @@ extension FlexrStrings {
             """,
         .registerPasswordPlaceholder: "At least 8 characters",
         .registerNamePlaceholder: "Alex",
-        .registerPhotosLabel: "Photos (min. 1, max. 6)",
+        .registerPhotosLabel: "Photos (min. %d, max. %d)",
         .registerPhotoPreparing: "Preparing photo …",
         .registerConsentPrefix: """
             I consent to the processing of my gender and the gender I am looking \
@@ -95,8 +97,8 @@ extension FlexrStrings {
         .registerErrPostalCode: "Please enter a valid Austrian postal code (the town is filled in automatically).",
         .registerErrGender: "Please select a gender.",
         .registerErrGym: "Please select a gym from the list.",
-        .registerErrPhoto: "Please upload at least one photo.",
-        .registerErrConsents: "Please tick both statements to continue.",
+        .registerErrPhoto: "Please upload at least %d photos.",
+        .registerErrConsents: "Without your consent to processing your gender and the gender you are looking for we cannot suggest any profiles — it is the basis of matching.",
         .registerFailed: "Sign-up failed.",
         .registerDone: "Profile created. Welcome to FLEXR 💪",
         .registerDoneNoPhoto: "Profile created — photo upload failed. Please add a photo in your account.",
@@ -108,13 +110,6 @@ extension FlexrStrings {
         .registerEyebrow: "First rep",
         .registerBirthdatePlaceholder: "dd.mm.yyyy",
         .registerAgeYears: "%d years",
-        .registerWaiverPrefix: """
-            I agree that access begins immediately upon sign-up and acknowledge \
-            that I thereby lose my 14-day right of withdrawal (see \
-
-            """,
-        .registerWaiverLink: "terms",
-        .registerWaiverSuffix: ", §18 FAGG).",
         .registerGenderLabel: "Gender",
         .genderMale: "Man",
         .genderFemale: "Woman",
@@ -215,12 +210,14 @@ extension FlexrStrings {
         .photoRemove: "Remove photo",
         .photoAdd: "Add photo",
         .photoPending: "Under review",
+        .photoRejected: "Rejected",
         .photoUploading: "Uploading photo …",
-        .photoHintNone: "At least one photo is needed for your profile to be visible.",
+        .photoHintNone: "At least %d photos are needed for your profile to be visible.",
         .photoHintOk: "Your profile is visible. New photos are reviewed briefly.",
-        .photoHintPending: "Your photo is being reviewed.",
-        .photoHintRejected: "Photo rejected. Please upload a different one.",
-        .photoMinOne: "At least one photo is required. Upload another one first.",
+        .photoHintPending: "Your photos are being reviewed.",
+        .photoHintRejected: "Your photos were rejected. Please upload different ones.",
+        .photoHintTooFew: "%d of %d required photos still missing. Without them your profile stays hidden.",
+        .photoMinCount: "At least %d photos are required. Upload another one first.",
         .photoUploadFailed: "Photo upload failed.",
         .photoLightboxPosition: "Photo %d of %d",
         .photoTooSmall: "Photo too small (%d×%d). At least %d×%d pixels.",
@@ -278,7 +275,7 @@ extension FlexrStrings {
         .accountSaved: "Profile saved ✓",
         .accountSaveFailed: "Saving failed.",
         .accountErrPostalCode: "Please enter a valid Austrian postal code (the town is filled in automatically).",
-        .accountErrPhotoBeforeSave: "Please upload at least one photo before saving.",
+        .accountErrPhotoBeforeSave: "Please upload at least %d photos before saving.",
         .accountErrGym: "Please select a gym from the list.",
         .accountNotificationsRow: "Matches, profiles & reminders",
         .accountNotificationsSub: "Set email and app separately",
@@ -407,6 +404,7 @@ extension FlexrStrings {
             """,
         .paywallFeatureUnlimited: "Unlimited likes instead of 20 per day",
         .paywallSubscribe: "Get Premium",
+        .paywallPerMonth: " / month",
         .paywallFeatureChat: "Unlimited conversations at the same time",
         .paywallFeatureCancel: "Cancel monthly, no minimum term, no hidden costs",
         .paywallReturnNote: """
@@ -433,6 +431,7 @@ extension FlexrStrings {
         .verifyStartFailed: "Verification could not be started.",
         .verifyCameraDenied: "Camera access denied. Verification needs live camera images.",
         .verifySubmitted: "Selfies submitted — your verification is under review.",
+        .verifyNothingToCapture: "Nothing to capture right now — your selfie is already with the review team.",
         .verifySubmitFailed: "Submission failed. Please try again.",
 
         // MARK: Statuspillen

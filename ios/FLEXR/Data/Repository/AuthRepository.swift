@@ -35,7 +35,6 @@ final class AuthRepository {
         gymLabel: String,
         bio: String?,
         consentSensitiveData: Bool,
-        consentWithdrawalWaiver: Bool,
         /// Sprache, in der gerade registriert wird ("de" oder "en"). Kommt als
         /// Parameter statt aus dem `LanguageStore`: Der ist an den MainActor
         /// gebunden, dieses Repository soll es nicht sein müssen.
@@ -54,7 +53,6 @@ final class AuthRepository {
                 gym: gymLabel,
                 bio: (trimmedBio?.isEmpty ?? true) ? nil : trimmedBio,
                 consentSensitiveData: consentSensitiveData,
-                consentWithdrawalWaiver: consentWithdrawalWaiver,
                 language: language
             )
         )

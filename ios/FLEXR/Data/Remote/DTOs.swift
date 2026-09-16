@@ -22,7 +22,6 @@ struct RegisterRequestDTO: Encodable {
     let gym: String
     let bio: String?
     let consentSensitiveData: Bool
-    let consentWithdrawalWaiver: Bool
     /// Sprache, in der gerade registriert wird ("de" oder "en").
     ///
     /// Der Server merkt sie am Profil und schreibt seine Mails danach — sie

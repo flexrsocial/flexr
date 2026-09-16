@@ -164,7 +164,7 @@ private struct FilledPhotoSlot: View {
 
     var body: some View {
         ZStack(alignment: .topTrailing) {
-            PhotoImage(source: slot.source, accessibilityLabel: "Profilfoto")
+            PhotoImage(source: slot.source, accessibilityLabel: s(.commonProfile))
                 .aspectRatio(3.0 / 4.0, contentMode: .fill)
                 .clipShape(RoundedRectangle(cornerRadius: 11, style: .continuous))
                 .overlay(
@@ -205,7 +205,7 @@ private struct FilledPhotoSlot: View {
             if showsStatus, let status = slot.status, status != .approved {
                 VStack {
                     Spacer()
-                    Text(status == .rejected ? "Abgelehnt" : s(.photoPending))
+                    Text(status == .rejected ? s(.photoRejected) : s(.photoPending))
                         .font(.flexrMono(9))
                         .foregroundStyle(status == .rejected ? FlexrColor.danger : FlexrColor.plate)
                         .frame(maxWidth: .infinity)
@@ -255,9 +255,17 @@ struct PhotoVisibilityHint: View {
 
     let statuses: [PhotoStatus]
 
+    /// Die Mindestanzahl steht vor dem Moderationsstand: Wer zu wenige Fotos
+    /// hat, muss das zuerst erfahren — ein „Profil ist sichtbar" wäre dann
+    /// schlicht falsch, denn der Server lässt die Prüfung gar nicht erst
+    /// starten.
     private var content: (text: String, warn: Bool) {
         if statuses.isEmpty {
-            return (s(.photoHintNone), true)
+            return (s(.photoHintNone, ImageProcessor.minPhotos), true)
+        }
+        let missing = ImageProcessor.minPhotos - statuses.count
+        if missing > 0 {
+            return (s(.photoHintTooFew, missing, ImageProcessor.minPhotos), true)
         }
         if statuses.contains(.approved) {
             return (s(.photoHintOk), false)

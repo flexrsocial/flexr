@@ -43,7 +43,11 @@ final class ProfileRepository {
     /// Meldung aus, ist die Oberfläche trotzdem umgestellt, und der nächste
     /// Start holt es nach. Eine Fehlermeldung wäre hier nur Lärm.
     func reportLanguage(_ code: String) async {
-        guard myProfile?.language != code else { return }
+        // Nur bei geladenem Profil: Auf dem Login- und Registrier-Schirm gibt
+        // es keine Sitzung, der Aufruf liefe dort in einen 401 — und der
+        // wirft über `SessionStore.handleUnauthorized()` den Nutzer aus der
+        // App, mitten in der Sprachwahl.
+        guard let current = myProfile, current.language != code else { return }
         let updated = try? await api.updateMyProfile(
             UpdateProfileRequestDTO(language: code)
         ).toDomain()

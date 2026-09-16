@@ -112,7 +112,9 @@ struct RegisterView: View {
                     showsEmojiPicker: true
                 )
 
-                FieldLabel(text: s(.registerPhotosLabel))
+                FieldLabel(
+                    text: s(.registerPhotosLabel, ImageProcessor.minPhotos, ImageProcessor.maxPhotos)
+                )
                 PhotoGridEditor(
                     slots: model.photos.map {
                         PhotoSlot(id: $0.id, source: .data($0.preview))
@@ -139,14 +141,6 @@ struct RegisterView: View {
                     onLinkTap: { legalDocument = .datenschutz }
                 )
                 .padding(.top, 20)
-
-                ConsentCheckbox(
-                    isOn: $model.consentWithdrawalWaiver,
-                    prefix: s(.registerWaiverPrefix),
-                    linkText: s(.registerWaiverLink),
-                    suffix: s(.registerWaiverSuffix),
-                    onLinkTap: { legalDocument = .agb }
-                )
 
                 FieldError(message: model.error)
 

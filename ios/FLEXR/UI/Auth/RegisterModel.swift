@@ -39,7 +39,6 @@ final class RegisterModel {
     var photoError: String?
     var isPreparingPhoto = false
     var consentSensitiveData = false
-    var consentWithdrawalWaiver = false
     var isSubmitting = false
     var error: String?
     /// Meldung, die nach dem Wechsel in die App eingeblendet wird.
@@ -57,9 +56,8 @@ final class RegisterModel {
             && resolvedCity != nil
             && gender != nil
             && gymPicker.selectedLabel != nil
-            && !photos.isEmpty
+            && photos.count >= ImageProcessor.minPhotos
             && consentSensitiveData
-            && consentWithdrawalWaiver
     }
 
     @ObservationIgnored private let auth: AuthRepository
@@ -237,7 +235,6 @@ final class RegisterModel {
                 gymLabel: gymLabel,
                 bio: bio,
                 consentSensitiveData: consentSensitiveData,
-                consentWithdrawalWaiver: consentWithdrawalWaiver,
                 // Sprache, in der gerade registriert wird. Der Server merkt
                 // sie am Profil und schreibt seine Mails danach — sie
                 // entstehen zum Teil ohne die App (Tagesjob, Stripe-Webhook,
@@ -284,10 +281,10 @@ final class RegisterModel {
         if resolvedCity == nil { return s(.registerErrPostalCode) }
         if gender == nil { return s(.registerErrGender) }
         if gymPicker.selectedLabel == nil { return s(.registerErrGym) }
-        if photos.isEmpty { return s(.registerErrPhoto) }
-        if !consentSensitiveData || !consentWithdrawalWaiver {
-            return s(.registerErrConsents)
+        if photos.count < ImageProcessor.minPhotos {
+            return s(.registerErrPhoto, ImageProcessor.minPhotos)
         }
+        if !consentSensitiveData { return s(.registerErrConsents) }
         return nil
     }
 }
