@@ -117,21 +117,35 @@ Neuaufnahme, Einreichen. Dazu:
   dorthin, wo es weitergeht;
 - `NSCameraUsageDescription` nennt auch die Ausweisaufnahme.
 
-**Runde 3 — Gate (offen).** Der eigentliche Zwang fehlt noch:
+**Runde 3 — Gate (erledigt).**
+`AppState` hat einen dritten Zustand zwischen angemeldet und einsatzbereit:
+`verificationRequired`. `loadSession()` entscheidet am Profil
+(`isAccountActivated`), `RootView` schaltet auf einen eigenen Navigationsbaum
+ohne Tab-Leiste — die Entsprechung des Verifizierungsgraphen der Android-App.
 
-- **Verifizierungs-Gate.** Android schaltet bei
-  `!profile.isAccountActivated` auf einen eigenen Navigationsgraphen ohne
-  Tab-Leiste; iOS kennt nur `loggedOut`/`ready` und zeigt sofort die volle
-  App, wo jeder Aufruf in einen 403 läuft.
-- **`403` mit `detail.code == "verification_required"`** wird nicht
-  ausgewertet.
-- **E-Mail-Bestätigung** (Schritt vor der Prüfung) fehlt samt Verarbeitung des
-  Bestätigungslinks — Letzteres braucht zusätzlich Associated Domains und
-  eine `apple-app-site-association` auf flexr.social.
+`UI/Verification/VerificationGateView.swift` deckt dieselben sechs Zustände ab
+wie Androids `VerificationGateScreen.kt`: E-Mail-Bestätigung, fehlende
+Profilfotos zum Nachreichen, Selfie-Schritt, Ausweisschritt, Wartezustand mit
+„Status aktualisieren", Ablehnung. Abmelden und die passwortbestätigte
+Kontolöschung stehen in jedem davon — ohne sie wäre eine abgelehnte Prüfung
+eine Sackgasse.
 
-Bis Runde 3 steht, gilt weiter: **keine externen Tester einladen.** Der
-Ausweisschritt ist jetzt zwar erreichbar, aber nur über den Kontobereich —
-erzwungen wird er nicht.
+Der 403 mit `detail.code == "verification_required"` wird ausgewertet:
+`FlexrAPIError.isVerificationRequired`, der Netzwerk-Client meldet ihn dem
+`SessionStore`, `AppModel` bestimmt daraufhin den Zustand neu. Anders als beim
+401 bleibt die Anmeldung bestehen — nur die Dating-Funktionen sind zu.
+
+Nachgeladen wird der Stand an drei Stellen: beim Betreten, bei der Rückkehr aus
+dem Hintergrund (der Bestätigungslink öffnet den Browser, nicht die App) und
+nach jedem Prüfschritt. Letzteres über die Tiefe des Navigationspfades statt
+über `onAppear`: Der Wurzelbildschirm bleibt beim Weiterschalten in der
+Hierarchie stehen, sein `onAppear` feuert beim Zurückkommen nicht verlässlich.
+
+**Offen bleibt** die Verarbeitung des Bestätigungslinks in der App. Der Weg
+über den Browser funktioniert; ein Tippen auf den Link, das direkt die App
+öffnet, braucht zusätzlich Associated Domains und eine
+`apple-app-site-association` auf flexr.social. Der Endpunkt
+(`auth/email/confirm`) liegt seit Runde 1 bereit.
 
 ### Offen — kleiner
 

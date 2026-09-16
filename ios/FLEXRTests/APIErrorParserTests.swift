@@ -58,8 +58,25 @@ final class APIErrorParserTests: XCTestCase {
         XCTAssertEqual(error.message, "Dieses Konto wurde gelöscht.")
     }
 
+    /// Deck, Matches und Chat sind gesperrt, solange die Alters- und
+    /// Identitätsprüfung nicht bestanden ist (`require_activated_account`).
+    /// Am Code erkannt und nicht am Text: Die App schaltet daraufhin in das
+    /// Verifizierungs-Gate, und daran darf keine Formulierung hängen.
+    func testGesperrtesKontoWirdAmCodeErkannt() {
+        let error = parse(
+            403,
+            #"{"detail":{"code":"verification_required","message":"Dein Konto ist noch nicht freigeschaltet."}}"#
+        )
+        XCTAssertTrue(error.isVerificationRequired)
+        XCTAssertEqual(error.message, "Dein Konto ist noch nicht freigeschaltet.")
+    }
+
     func testGewoehnlicherFehlerHatKeinenCode() {
         XCTAssertFalse(parse(403, #"{"detail":"Zugriff nicht möglich."}"#).isAccountDeleted)
+        XCTAssertFalse(parse(403, #"{"detail":"Zugriff nicht möglich."}"#).isVerificationRequired)
+        // Derselbe Code mit anderem Status ist nicht dieselbe Lage — der
+        // Gate-Wechsel hängt an beidem.
+        XCTAssertFalse(parse(400, #"{"detail":{"code":"verification_required"}}"#).isVerificationRequired)
     }
 
     func testAbgelaufeneMitgliedschaftWirdErkannt() {

@@ -500,6 +500,105 @@ extension FlexrStrings {
             review.
             """,
 
+        // MARK: Verifizierungs-Gate
+        .vgateLoading: "Loading status …",
+        .vgateStep1of2: "Step 1 of 2",
+        .vgateStep2of2: "Step 2 of 2",
+        .vgateStep1of3: "Step 1 of 3",
+        .vgateUnlockTitle: "Unlock your account",
+        .vgateReworkEyebrow: "Follow-up needed",
+        .vgateReworkTitle: "We could not complete your verification yet.",
+        .vgateReworkChip: "New image required",
+        .vgateIntro: """
+            FLEXR is 18+. To keep minors and fake profiles out, we check once \
+            that you really are you and at least 18 years old.
+            """,
+        .vgateNeedTitle: "What you need",
+        .vgateNeedSelfie: """
+            A live selfie, facing the camera — the camera only opens once you \
+            start
+            """,
+        .vgateNeedDocument: """
+            An image of your identity card, passport or driving licence
+            """,
+        .vgateMediaTitle: "What happens to the images",
+        .vgateMediaHuman: """
+            A person compares profile photos, selfie and ID photo — no \
+            automated facial recognition
+            """,
+        .vgateMediaPrivate: "The images are not publicly accessible",
+        .vgateMediaDeleted: "They are deleted once the review is complete",
+        .vgateStart: "Start verification",
+        .vgateRetry: "Retry verification",
+        .vgateDocumentTitle: "Confirm your age",
+        .vgateDocumentBody: """
+            We have your selfie. All that is missing is an image of your \
+            official photo ID so we can confirm your age.
+            """,
+        .vgateDocumentBtn: "Add photo ID",
+        .vgateDocumentBtnRework: "Upload again",
+        .vgateSubmittedEyebrow: "Under review",
+        .vgateSubmittedTitle: "Verification under review",
+        .vgateSubmittedChip: "Review in progress",
+        .vgateSubmittedBody: """
+            Your details have been submitted. We are now checking that you are \
+            at least 18 and that the verification belongs to your profile. As \
+            soon as the review is done you can use FLEXR in full.
+            """,
+        .vgateSubmittedNote: """
+            The images of your ID are deleted once the review is complete. \
+            Waiting costs you nothing — using FLEXR is free anyway.
+            """,
+        .vgateRefresh: "Refresh status",
+        .vgateChecking: "Being reviewed …",
+        .vgateReviewRunning: "The review is still running.",
+        .vgateMailTitle: "Confirm your email",
+        .vgateMailChip: "Confirmation pending",
+        .vgateMailSentTo: "We sent you an email to:",
+        .vgateMailFallback: "your email address",
+        .vgateMailBody: """
+            Click the link in it and you can continue here. Nothing arrived? \
+            Check your spam folder. The link is valid for 24 hours.
+            """,
+        .vgateMailResend: "Send email again",
+        .vgateMailSending: "Sending …",
+        .vgateMailResent: "A new email to %@ is on its way. The link is valid for %d hours.",
+        .vgateMailSendFailed: "The email could not be sent.",
+        .vgatePhotoEyebrow: "Profile photos missing",
+        .vgatePhotoTitle: "Your profile photos first",
+        .vgatePhotoChip: "Photos missing",
+        .vgatePhotoBody: """
+            For the review a person compares your profile photos with your \
+            selfie and your ID. Without at least %d photos it cannot start.
+            """,
+        .vgatePhotoBody2: """
+            The upload failed while your profile was being created. Add them \
+            here — then everything continues as usual.
+            """,
+        .vgatePhotoMissing: "%d of %d required photos still missing.",
+        .vgatePhotoUploading: "Uploading photo …",
+        .vgatePhotoUploadFailed: "The photo could not be uploaded.",
+        .vgateDoneEyebrow: "Done",
+        .vgateUnlockedTitle: "Account unlocked",
+        .vgateUnlockedChip: "Unlocked",
+        .vgateUnlockedBody: """
+            Your review is done. We are loading your profile — FLEXR will be \
+            fully open to you in a moment.
+            """,
+        .vgateUnlockedCta: "Continue to FLEXR",
+        .vgateRejectedEyebrow: "Completed",
+        .vgateRejectedTitle: "Verification unsuccessful",
+        .vgateRejectedChip: "Not unlocked",
+        .vgateRejectedFallback: "We could not complete your verification.",
+        .vgateRejectedBody: """
+            Your account was not unlocked. If you think this is a mistake, \
+            write to us at flexr.social@proton.me.
+            """,
+        .vgateRejectedDeleted: """
+            All images of your ID and your verification selfie have been \
+            deleted.
+            """,
+
         // MARK: Statuspillen
         .statusBetaFree: "Beta · free",
         .statusPremium: "Premium",

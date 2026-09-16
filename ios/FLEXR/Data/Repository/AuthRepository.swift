@@ -24,6 +24,10 @@ final class AuthRepository {
     /// Feuert, sobald das Backend eine Anmeldung als abgelaufen zurückweist (401).
     var sessionExpired: AnyPublisher<Void, Never> { session.sessionExpired }
 
+    /// Feuert bei einem 403 mit `verification_required` — das Konto ist
+    /// angemeldet, aber nicht freigeschaltet.
+    var verificationRequired: AnyPublisher<Void, Never> { session.verificationRequired }
+
     func register(
         email: String,
         password: String,

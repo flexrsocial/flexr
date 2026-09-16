@@ -21,6 +21,14 @@ struct FlexrAPIError: Error, LocalizedError, Equatable {
     var isMessagingMuted: Bool { mutedUntil != nil }
     var isAccountDeleted: Bool { code == "account_deleted" }
 
+    /// Das Konto hat die Alters- und Identitätsprüfung nicht bestanden und ist
+    /// für Deck, Matches und Chat gesperrt (`require_activated_account`).
+    /// Der Code statt des Textes, damit die App nicht an einer Meldung hängt,
+    /// die sich jederzeit ändern darf.
+    var isVerificationRequired: Bool {
+        statusCode == 403 && code == "verification_required"
+    }
+
     var errorDescription: String? { message }
 }
 

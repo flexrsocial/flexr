@@ -24,6 +24,9 @@ struct RootView: View {
             case .loggedOut:
                 AuthFlow()
 
+            case .verificationRequired:
+                VerificationGateFlow()
+
             case .ready(let profile, let membership):
                 MainFlow(ownUserID: profile.id, membership: membership)
             }
@@ -60,6 +63,39 @@ private struct AuthFlow: View {
             VStack(spacing: 0) {
                 FlexrTopBar { EmptyView() }
                 LoginView(onOpenLegal: { path.append(.legal($0)) })
+            }
+            .navigationBarHidden(true)
+            .flexrRoutes(path: $path)
+        }
+    }
+}
+
+// MARK: - Angemeldet, aber nicht freigeschaltet
+
+/// Der Navigationsbaum eines Kontos, das die Alters- und Identitätsprüfung noch
+/// vor sich hat: nur das Gate und die beiden Prüfschritte, keine Tab-Leiste.
+///
+/// Die Entsprechung des Verifizierungsgraphen der Android-App. Die Rechtstexte
+/// bleiben über `flexrRoutes` erreichbar — die Datenschutzerklärung gehört zu
+/// dem, was man vor dem Hochladen eines Ausweises lesen können muss.
+private struct VerificationGateFlow: View {
+
+    @State private var path: [Route] = []
+
+    var body: some View {
+        NavigationStack(path: $path) {
+            VStack(spacing: 0) {
+                FlexrTopBar { EmptyView() }
+                VerificationGateView(
+                    // Nach der Rückkehr aus Selfie- oder Ausweisschritt ist der
+                    // Prüfstand ein anderer. Die Tiefe des Pfades als Auslöser
+                    // statt `onAppear`: Der Wurzelbildschirm bleibt beim
+                    // Weiterschalten in der Hierarchie stehen, sein `onAppear`
+                    // feuert beim Zurückkommen nicht verlässlich.
+                    reloadToken: path.count,
+                    onStartSelfies: { path.append(.verification) },
+                    onStartDocument: { path.append(.verificationDocument) }
+                )
             }
             .navigationBarHidden(true)
             .flexrRoutes(path: $path)

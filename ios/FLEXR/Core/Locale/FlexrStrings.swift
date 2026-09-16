@@ -158,6 +158,26 @@ enum L: Hashable, Sendable {
     case documentFileReadFailed, documentSubmit, documentSubmitting
     case documentSubmitted, documentSubmitFailed, documentConsentNote
 
+    // Verifizierungs-Gate: der einzige Bildschirm eines gesperrten Kontos
+    case vgateLoading, vgateStep1of2, vgateStep2of2, vgateStep1of3
+    case vgateUnlockTitle, vgateReworkEyebrow, vgateReworkTitle, vgateReworkChip
+    case vgateIntro, vgateNeedTitle, vgateNeedSelfie, vgateNeedDocument
+    case vgateMediaTitle, vgateMediaHuman, vgateMediaPrivate, vgateMediaDeleted
+    case vgateStart, vgateRetry
+    case vgateDocumentTitle, vgateDocumentBody, vgateDocumentBtn, vgateDocumentBtnRework
+    case vgateSubmittedEyebrow, vgateSubmittedTitle, vgateSubmittedChip
+    case vgateSubmittedBody, vgateSubmittedNote, vgateRefresh, vgateChecking
+    case vgateReviewRunning
+    case vgateMailTitle, vgateMailChip, vgateMailSentTo, vgateMailFallback
+    case vgateMailBody, vgateMailResend, vgateMailSending, vgateMailResent
+    case vgateMailSendFailed
+    case vgatePhotoEyebrow, vgatePhotoTitle, vgatePhotoChip, vgatePhotoBody
+    case vgatePhotoBody2, vgatePhotoMissing, vgatePhotoUploading, vgatePhotoUploadFailed
+    case vgateDoneEyebrow, vgateUnlockedTitle, vgateUnlockedChip
+    case vgateUnlockedBody, vgateUnlockedCta
+    case vgateRejectedEyebrow, vgateRejectedTitle, vgateRejectedChip
+    case vgateRejectedFallback, vgateRejectedBody, vgateRejectedDeleted
+
     // Statuspillen
     case statusBetaFree, statusPremium, statusFree, statusLikesLeft
 

@@ -30,8 +30,16 @@ final class SessionStore: @unchecked Sendable {
     /// Feuert, sobald das Backend eine Anmeldung als abgelaufen zurückweist (401).
     private let expiredSubject = PassthroughSubject<Void, Never>()
 
+    /// Feuert bei einem 403 mit `verification_required`: Das Konto ist
+    /// angemeldet, aber nicht freigeschaltet. Anders als beim 401 bleibt die
+    /// Anmeldung bestehen — die App wechselt nur in das Verifizierungs-Gate.
+    private let verificationRequiredSubject = PassthroughSubject<Void, Never>()
+
     var isLoggedIn: AnyPublisher<Bool, Never> { loggedInSubject.removeDuplicates().eraseToAnyPublisher() }
     var sessionExpired: AnyPublisher<Void, Never> { expiredSubject.eraseToAnyPublisher() }
+    var verificationRequired: AnyPublisher<Void, Never> {
+        verificationRequiredSubject.eraseToAnyPublisher()
+    }
     var isLoggedInNow: Bool { loggedInSubject.value }
 
     init(defaults: UserDefaults = .standard) {
@@ -94,6 +102,13 @@ final class SessionStore: @unchecked Sendable {
     func handleUnauthorized() {
         clear()
         expiredSubject.send(())
+    }
+
+    /// Vom Netzwerk-Client bei einem 403 mit `verification_required` aufgerufen.
+    /// Der Token bleibt gültig: Profil, Fotos, Verifizierung und Kontolöschung
+    /// sind weiterhin erreichbar — nur die Dating-Funktionen nicht.
+    func handleVerificationRequired() {
+        verificationRequiredSubject.send(())
     }
 
     // MARK: - Einstellungen

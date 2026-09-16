@@ -6,8 +6,19 @@ enum AppState: Equatable {
     case loading
     case loggedOut
     // `case locked` ist am 10.09.2026 entfallen: Es gibt keinen Zustand mehr,
-    // in dem ein angemeldetes Konto die App nicht benutzen darf — die Nutzung
-    // von FLEXR ist dauerhaft kostenlos.
+    // in dem ein angemeldetes Konto die App aus Zahlungsgründen nicht benutzen
+    // darf — die Nutzung von FLEXR ist dauerhaft kostenlos.
+
+    /// Angemeldet, aber nicht freigeschaltet: Die Alters- und
+    /// Identitätsprüfung steht noch aus oder ist gescheitert.
+    ///
+    /// Ein eigener Zustand und nicht ein Hinweis innerhalb der App, weil das
+    /// Backend Deck, Matches und Chat mit 403 sperrt
+    /// (`require_activated_account`). Ohne ihn zeigte die App die volle
+    /// Oberfläche, in der jeder Aufruf ins Leere liefe — die Entsprechung des
+    /// eigenen Navigationsgraphen der Android-App.
+    case verificationRequired(profile: MyProfile)
+
     case ready(profile: MyProfile, membership: Membership)
 }
 
@@ -73,6 +84,20 @@ final class AppModel {
                 }
             }
             .store(in: &cancellables)
+
+        // 403 `verification_required`: Die Freischaltung wurde während der
+        // laufenden Sitzung entzogen. Die Anmeldung bleibt, der Zustand wird
+        // neu bestimmt — daraufhin steht die App im Gate.
+        container.auth.verificationRequired
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] in
+                MainActor.assumeIsolated {
+                    guard let self else { return }
+                    guard case .ready = self.state else { return }
+                    Task { await self.loadSession() }
+                }
+            }
+            .store(in: &cancellables)
     }
 
     /// Sprache zwischen Gerät und Profil abgleichen.
@@ -96,6 +121,18 @@ final class AppModel {
         do {
             let profile = try await container.profiles.refresh()
             await syncLanguage(profileLanguage: profile.language)
+
+            // Vor allem anderen: Ein nicht freigeschaltetes Konto bekommt nur
+            // das Gate zu sehen. Abo-Status und Benachrichtigungen bleiben
+            // dabei ungefragt — es gibt weder Matches noch Nachrichten, über
+            // die zu benachrichtigen wäre.
+            guard profile.isAccountActivated else {
+                container.notifications.cancel()
+                container.activityNotifications.cancel()
+                state = .verificationRequired(profile: profile)
+                return
+            }
+
             let membership = try await container.billing.refresh()
             container.notifications.schedule()
             container.activityNotifications.schedule()

@@ -509,6 +509,111 @@ extension FlexrStrings {
             Prüfung gelöscht.
             """,
 
+        // MARK: Verifizierungs-Gate
+        .vgateLoading: "Status wird geladen …",
+        .vgateStep1of2: "Schritt 1 von 2",
+        .vgateStep2of2: "Schritt 2 von 2",
+        .vgateStep1of3: "Schritt 1 von 3",
+        .vgateUnlockTitle: "Konto freischalten",
+        .vgateReworkEyebrow: "Nachbesserung",
+        .vgateReworkTitle: "Wir konnten deine Verifizierung noch nicht abschließen.",
+        .vgateReworkChip: "Neue Aufnahme nötig",
+        .vgateIntro: """
+            FLEXR ist ab 18. Damit hier keine Minderjährigen und keine \
+            Fake-Profile landen, prüfen wir einmalig, ob du wirklich du bist \
+            und mindestens 18 Jahre alt.
+            """,
+        .vgateNeedTitle: "Das brauchst du",
+        .vgateNeedSelfie: """
+            Ein Live-Selfie, frontal in die Kamera — die Kamera öffnet sich \
+            erst, wenn du startest
+            """,
+        .vgateNeedDocument: """
+            Eine Aufnahme deines Personalausweises, Reisepasses oder \
+            Führerscheins
+            """,
+        .vgateMediaTitle: "Was mit den Aufnahmen passiert",
+        .vgateMediaHuman: """
+            Ein Mensch vergleicht Profilfotos, Selfie und Ausweisfoto — keine \
+            automatische Gesichtserkennung
+            """,
+        .vgateMediaPrivate: "Die Aufnahmen sind nicht öffentlich abrufbar",
+        .vgateMediaDeleted: "Nach Abschluss der Prüfung werden sie gelöscht",
+        .vgateStart: "Verifizierung starten",
+        .vgateRetry: "Verifizierung wiederholen",
+        .vgateDocumentTitle: "Alter bestätigen",
+        .vgateDocumentBody: """
+            Dein Selfie liegt vor. Jetzt fehlt noch eine Aufnahme deines \
+            amtlichen Lichtbildausweises, damit wir dein Alter bestätigen \
+            können.
+            """,
+        .vgateDocumentBtn: "Ausweis aufnehmen",
+        .vgateDocumentBtnRework: "Erneut hochladen",
+        .vgateSubmittedEyebrow: "In Prüfung",
+        .vgateSubmittedTitle: "Verifizierung wird geprüft",
+        .vgateSubmittedChip: "Prüfung läuft",
+        .vgateSubmittedBody: """
+            Deine Angaben wurden übermittelt. Wir prüfen jetzt, ob du \
+            mindestens 18 Jahre alt bist und ob die Verifizierung zu deinem \
+            Profil gehört. Sobald die Prüfung abgeschlossen ist, kannst du \
+            FLEXR vollständig nutzen.
+            """,
+        .vgateSubmittedNote: """
+            Die Aufnahmen deines Ausweises werden nach Abschluss der Prüfung \
+            gelöscht. Die Wartezeit kostet dich nichts — die Nutzung von FLEXR \
+            ist ohnehin kostenlos.
+            """,
+        .vgateRefresh: "Status aktualisieren",
+        .vgateChecking: "Wird geprüft …",
+        .vgateReviewRunning: "Die Prüfung läuft noch.",
+        .vgateMailTitle: "Bestätige deine E-Mail",
+        .vgateMailChip: "Bestätigung offen",
+        .vgateMailSentTo: "Wir haben dir eine Mail geschickt an:",
+        .vgateMailFallback: "deine E-Mail-Adresse",
+        .vgateMailBody: """
+            Klick den Link darin, dann geht es hier weiter. Nichts angekommen? \
+            Schau im Spam-Ordner nach. Der Link gilt 24 Stunden.
+            """,
+        .vgateMailResend: "Mail erneut senden",
+        .vgateMailSending: "Wird gesendet …",
+        .vgateMailResent: "Neue Mail an %@ unterwegs. Der Link gilt %d Stunden.",
+        .vgateMailSendFailed: "Mail konnte nicht gesendet werden.",
+        .vgatePhotoEyebrow: "Profilfotos fehlen",
+        .vgatePhotoTitle: "Zuerst deine Profilfotos",
+        .vgatePhotoChip: "Fotos fehlen",
+        .vgatePhotoBody: """
+            Für die Prüfung vergleicht ein Mensch deine Profilfotos mit deinem \
+            Selfie und deinem Ausweis. Ohne mindestens %d Fotos kann sie nicht \
+            starten.
+            """,
+        .vgatePhotoBody2: """
+            Beim Anlegen deines Profils hat der Upload nicht geklappt. Hol ihn \
+            hier nach — danach geht es normal weiter.
+            """,
+        .vgatePhotoMissing: "Noch %d von %d Pflichtfotos.",
+        .vgatePhotoUploading: "Foto wird hochgeladen …",
+        .vgatePhotoUploadFailed: "Foto konnte nicht hochgeladen werden.",
+        .vgateDoneEyebrow: "Geschafft",
+        .vgateUnlockedTitle: "Konto freigeschaltet",
+        .vgateUnlockedChip: "Freigeschaltet",
+        .vgateUnlockedBody: """
+            Deine Prüfung ist durch. Wir laden gerade dein Profil — gleich \
+            steht dir FLEXR vollständig offen.
+            """,
+        .vgateUnlockedCta: "Weiter zu FLEXR",
+        .vgateRejectedEyebrow: "Abgeschlossen",
+        .vgateRejectedTitle: "Verifizierung nicht erfolgreich",
+        .vgateRejectedChip: "Nicht freigeschaltet",
+        .vgateRejectedFallback: "Wir konnten deine Verifizierung nicht abschließen.",
+        .vgateRejectedBody: """
+            Dein Konto wurde nicht freigeschaltet. Wenn du glaubst, dass das \
+            ein Fehler ist, schreib uns an flexr.social@proton.me.
+            """,
+        .vgateRejectedDeleted: """
+            Alle Aufnahmen deines Ausweises und dein Verifizierungs-Selfie \
+            wurden gelöscht.
+            """,
+
         // MARK: Statuspillen
         .statusBetaFree: "Beta · gratis",
         .statusPremium: "Premium",

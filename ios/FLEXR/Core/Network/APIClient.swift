@@ -183,7 +183,15 @@ final class APIClient: @unchecked Sendable {
         }
 
         guard (200..<300).contains(http.statusCode) else {
-            throw APIErrorParser.fromResponse(statusCode: http.statusCode, body: data)
+            let error = APIErrorParser.fromResponse(statusCode: http.statusCode, body: data)
+            // Gesperrtes Konto: Die App soll ins Verifizierungs-Gate wechseln,
+            // statt den 403 als beliebigen Fehler anzuzeigen. Das passiert,
+            // wenn die Freischaltung während einer laufenden Sitzung entzogen
+            // wird — beim Start entscheidet das Profil selbst.
+            if error.isVerificationRequired, reportsSessionExpiry, isOwnBackend(path: url.path) {
+                sessionStore.handleVerificationRequired()
+            }
+            throw error
         }
         return data
     }
