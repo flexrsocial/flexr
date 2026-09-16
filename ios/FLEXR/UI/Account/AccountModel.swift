@@ -70,7 +70,7 @@ final class AccountModel {
     @ObservationIgnored private let verification: VerificationRepository
     @ObservationIgnored private let safety: SafetyRepository
     @ObservationIgnored private let session: SessionStore
-    @ObservationIgnored private let notifications: MessageRefreshService
+    @ObservationIgnored private let messageRefresh: MessageRefreshService
     @ObservationIgnored private let onMessage: (String) -> Void
 
     @ObservationIgnored private var plzLookupTask: Task<Void, Never>?
@@ -98,7 +98,7 @@ final class AccountModel {
         verification = container.verification
         safety = container.safety
         session = container.session
-        notifications = container.notifications
+        messageRefresh = container.notifications
         self.onMessage = onMessage
     }
 
@@ -106,6 +106,7 @@ final class AccountModel {
         if let profile = profiles.myProfile { prefill(from: profile) }
         notificationsEnabled = session.notificationsEnabled
         verifiedHintDismissed = session.verifiedHintDismissed
+        await reconcileNotificationPermission()
 
         if let refreshed = try? await profiles.refresh() { prefill(from: refreshed) }
         _ = try? await billing.refresh()
@@ -369,23 +370,36 @@ final class AccountModel {
 
     // MARK: - Benachrichtigungen
 
+    /// Der Schalter zeigt "an", sobald ein Konto entsteht - das ist nur die
+    /// gespeicherte Absicht, keine erteilte Systemberechtigung. Ohne diesen
+    /// Abgleich bliebe die Autorisierung auf ewig ungefragt, solange niemand
+    /// den Schalter manuell aus- und wieder einschaltet: `load()` ruft das
+    /// deshalb bei jedem Öffnen des Kontos auf. `requestAuthorization` fragt
+    /// den Nutzer dabei nur beim allerersten Mal wirklich - ist die
+    /// Berechtigung schon erteilt oder schon verweigert, liefert es sofort
+    /// dasselbe Ergebnis zurück, ohne erneut zu blenden.
+    func reconcileNotificationPermission() async {
+        guard notificationsEnabled else { return }
+        await setNotificationsEnabled(true)
+    }
+
     func setNotificationsEnabled(_ enabled: Bool) async {
         if enabled {
             // Ab iOS braucht das Anzeigen von Benachrichtigungen eine
             // Erlaubnis — hier im Moment des Einschaltens erfragt, wo der Zweck
             // offensichtlich ist.
-            let granted = await notifications.requestNotificationPermission()
+            let granted = await messageRefresh.requestNotificationPermission()
             if !granted {
                 notificationsEnabled = false
                 session.notificationsEnabled = false
-                notifications.cancel()
+                messageRefresh.cancel()
                 onMessage(s(.accountNotificationPermission))
                 return
             }
         }
         notificationsEnabled = enabled
         session.notificationsEnabled = enabled
-        if enabled { notifications.schedule() } else { notifications.cancel() }
+        if enabled { messageRefresh.schedule() } else { messageRefresh.cancel() }
     }
 
     // MARK: - Einwilligungen

@@ -116,9 +116,7 @@ struct AccountView: View {
             }
         }
         .sheet(isPresented: $notificationDetailsVisible) {
-            if let model {
-                NotificationSettingsSheet(model: model)
-            }
+            NotificationSettingsSheet(model: model)
         }
         .sheet(isPresented: $showDeleteDialog) {
             DeleteAccountSheet(
