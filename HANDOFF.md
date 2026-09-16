@@ -25,7 +25,22 @@ Neustart.
 > lesend) liegt unversioniert am VPS. Sobald dieser Pfad je in einen Commit
 > kommt, bricht der nächste Pull genauso ab.
 
-> **Android 2.6.8 (versionCode 108) — aktueller Stand.** Gebaut am 16.09.2026,
+> **Android 2.6.9 (versionCode 109) — aktueller Stand.** Gebaut am 16.09.2026,
+> signiert (Upload-Key `CN=FLEXR`, jarsigner-geprüft), prod-Flavor, 7.772.406
+> Bytes, SHA-256
+> `c1e37f50981f5c0a2bd5558c473dbd0e55ac968fcbcbe77548831f080ee89612`.
+> Im Chat übergeben als `flexr-2.6.9-vc109.aab`, **nicht** in
+> `dl-a616e78274de323b/` abgelegt; ein APK dieser Fassung ist nicht gebaut.
+> Inhalt: die drei FLEXR-Premium-Zusatzfunktionen (Abzeichen, letzten Swipe
+> zurücknehmen, „Wer dich geliket hat") — unsichtbar, solange
+> `PREMIUM_ENABLED` am Server aus steht — plus der ersetzte Login-Hinweis, der
+> keinen Probemonat mehr verspricht. Vor dem Bauen liefen
+> `:app:testProdReleaseUnitTest` (49 Tests, 0 Fehler) und
+> `:app:compileProdReleaseKotlin` grün. Einzelheiten in
+> [android-native/HANDOFF.md](android-native/HANDOFF.md), Abschnitt „FLEXR
+> Premium: die drei Zusatzfunktionen".
+>
+> **2.6.8 (versionCode 108)** war der Stand davor. Gebaut am 16.09.2026,
 > signiert, prod-Flavor; **noch nicht in die Play Console hochgeladen**. Zwei
 > Korrekturen: Ein 401 vom Login gilt nicht mehr als abgelaufene Sitzung, und
 > der Chat-Poll läuft nur noch, solange der Chat zu sehen ist. Einzelheiten in
@@ -85,7 +100,7 @@ Die Zahlen stehen in `backend/app/config.py` und sind zugleich eine
 `frontend/i18n-*.js`, `res/values*/strings.xml`, `agb.html`, `faq.html` und
 `app/legal.py` mit.
 
-**Aktuelles Android-Paket:** 2.6.8 (versionCode 108).
+**Aktuelles Android-Paket:** 2.6.9 (versionCode 109).
 
 Zum **Installieren auf einem Gerät** taugt nur das **APK**. Das `.aab` ist das
 Veröffentlichungsformat für die Play Console und lässt sich auf einem Telefon
