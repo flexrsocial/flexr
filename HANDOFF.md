@@ -250,16 +250,20 @@ samt „Unbegrenzt liken"-Knopf wie im Web.
 
 | | Android | iOS |
 | --- | --- | --- |
-| Kotlin-/Swift-Compile | ✅ `:app:compileProdReleaseKotlin` | ❌ keine Toolchain hier |
+| Kotlin-/Swift-Compile | ✅ `:app:compileProdReleaseKotlin` | ✅ Codemagic (nicht auf diesem Rechner) |
 | Unit-Tests | ✅ 49 Tests, 0 Fehler | ❌ |
 | Auf einem Gerät ausprobiert | ❌ | ❌ |
 
-Für iOS sind nur Klammerbilanz und Aufrufstellen von Hand geprüft; **der
-Codemagic-Lauf ist der Nachweis**. Die Bugfixes aus Teil 1 sind dort bereits
-grün durchgelaufen und in TestFlight — die Premium-Änderung (`4587ed5`) wurde
-deshalb bewusst **erst danach** gepusht: Wäre sie im selben Stand gelandet und
-hätte sie nicht compiliert, hätte auch der Bugfix-Build nicht mehr erzeugt
-werden können.
+Für iOS waren vor dem Push nur Klammerbilanz und Aufrufstellen von Hand
+geprüft; **der Codemagic-Lauf war der Nachweis — und beide Läufe sind beim
+ersten Versuch grün durchgelaufen**, erst `fe6af02` (Bugfixes), dann `4587ed5`
+(Premium). Beides liegt in TestFlight.
+
+Die Reihenfolge war Absicht: Die Premium-Änderung wurde **erst gepusht,
+nachdem** der Bugfix-Build durch war. Wäre beides im selben Stand gelandet und
+hätte der Swift-Teil nicht compiliert, hätte auch der Bugfix-Build nicht mehr
+erzeugt werden können. Dass es zweimal auf Anhieb baute, ist kein Argument
+dafür, diese Reihenfolge künftig fallenzulassen.
 
 Zwei neue Unit-Tests auf der Android-Seite decken das Zurücknehmen ab: Das Deck
 wird danach **neu geladen** (nicht nur der Index zurückgeschoben — der
@@ -3660,9 +3664,9 @@ echten Löschweg (`delete_storage_objects`/`storage_keys_for_user` +
     `sed`-Fehler). Nur lokal sichtbar, aber sicherheitshalber empfehlenswert:
     Token über @BotFather (`/revoke`) neu erzeugen, `backend/.env` auf dem
     VPS aktualisieren und `flexr-api` neu starten.
-16. **Die iOS-Premium-Änderung (`4587ed5`) ist nie compiliert worden.** Der
-    Codemagic-Lauf danach ist ihr erster Test. Rot heißt: nachbessern und neu
-    pushen; der TestFlight-Stand aus `fe6af02` ist davon unberührt.
+16. ~~**Die iOS-Premium-Änderung (`4587ed5`) ist nie compiliert worden.**~~ —
+    **erledigt am 16.09.2026**: Der Codemagic-Lauf war beim ersten Versuch grün,
+    die Fassung liegt in TestFlight. Was offen bleibt, steht in Punkt 17.
 17. **Die drei Premium-Funktionen sind auf keinem Gerät ausprobiert** — weder
     Android noch iOS. Sie sind ohnehin unsichtbar, solange `PREMIUM_ENABLED`
     am Server `false` ist. Zum Prüfen entweder den Schalter kurz umlegen oder
@@ -3874,12 +3878,11 @@ print(re.findall(rb"[0-9]+\.[0-9]+\.[0-9]+", d)[:5])' \
 
 Neu aus der Sitzung 16.09. (2):
 
-- **Der Codemagic-Lauf über `4587ed5` ist der erste Compilertest der
-  iOS-Premium-Änderung.** Wird er rot, liegt es fast sicher an einer
-  Typ-/Signaturkleinigkeit in `UI/Incoming/IncomingView.swift`,
-  `UI/Matches/MatchesView.swift` (dort ist `MatchListScreen` generisch um einen
-  Kopfbereich erweitert worden) oder `UI/Swipe/SwipeModel.swift`. Der
-  TestFlight-Stand aus `fe6af02` bleibt davon unberührt.
+- **Beide iOS-Läufe sind grün** (`fe6af02` Bugfixes, `4587ed5` Premium), beide
+  Fassungen liegen in TestFlight. **Angesehen hat sie dort noch niemand** — die
+  drei Layoutkorrekturen (Login-Knopf, Chatblasen, Fotoraster) sind der erste
+  Punkt, der einen Blick lohnt, und das Fotoraster zusätzlich in der Bedienung:
+  verschieben, löschen, neu hochladen.
 - **Android 2.6.9 (versionCode 109) ist noch nicht in der Play Console** —
   gebaut, signiert, im Chat übergeben. Prüfsumme im 16.09.-(2)-Abschnitt.
 - **Von 2.6.8 und 2.6.9 gibt es kein APK.** Zum Testen auf einem Gerät erst

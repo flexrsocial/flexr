@@ -49,20 +49,26 @@ aus ist, ist `is_premium` für jeden falsch: kein Abzeichen, kein
 Zurücknehmen-Knopf, und die Karte zeigt den gesperrten Text. Es gibt in der App
 keinen zweiten Ort, an dem sich das entscheidet.
 
-**Nicht compilerverifiziert.** Die Android-Seite dieser Änderung ist gebaut und
-getestet (49 Unit-Tests grün); für iOS steht auf diesem Rechner keine
-Swift-Toolchain zur Verfügung, geprüft sind nur Klammerbilanz und die
-Aufrufstellen von Hand. **Der nächste Codemagic-Lauf ist der Nachweis** — und
-er ist mit einiger Wahrscheinlichkeit nicht beim ersten Versuch grün; der
-Abschnitt „Was am 16.09.2026 nachgezogen wurde" zeigt, wie viele latente Fehler
-der erste strenge Durchgang zutage gefördert hat.
+**Compilerverifiziert seit dem 16.09.2026** — der Codemagic-Lauf über `4587ed5`
+ist beim **ersten Versuch** grün durchgelaufen und in TestFlight. Auf diesem
+Entwicklungsrechner steht weiterhin keine Swift-Toolchain zur Verfügung; vor dem
+Push waren nur Klammerbilanz und Aufrufstellen von Hand geprüft. Dass es auf
+Anhieb baute, ist erfreulich und **kein Grund, den Nachweis künftig zu
+überspringen**: Der Abschnitt „Was am 16.09.2026 nachgezogen wurde" zeigt, wie
+viele latente Fehler der erste strenge Durchgang zutage gefördert hat.
+
+**Auf einem Gerät angesehen ist die Premium-Seite trotzdem nicht** — und mit
+`PREMIUM_ENABLED = false` am Server ist sie das auch gar nicht: `is_premium` ist
+dann für jeden falsch, es gibt kein Abzeichen, keinen Zurücknehmen-Knopf, und
+die Likes-Karte zeigt den gesperrten Text. Wer sie sehen will, legt den Schalter
+kurz um oder verschafft einem Testkonto `is_premium`.
 
 ## Bugfixes aus dem ersten TestFlight-Durchgang, 16.09.2026
 
 Drei Befunde vom Gerät, alle rein in der Darstellung — kein Backend, keine
-Migration, keine neuen Zeichenketten. **Nicht compilerverifiziert**: Auf diesem
-Rechner steht keine Swift-Toolchain; der Nachweis ist erst der nächste
-Codemagic-Lauf.
+Migration, keine neuen Zeichenketten. **Compilerverifiziert**: Der
+Codemagic-Lauf über `fe6af02` ist grün durchgelaufen und in TestFlight. Auf
+einem Gerät nachgesehen hat sie dort noch niemand.
 
 1. **Der Login-Knopf sah aus wie ein Fehler, nicht wie „gesperrt".**
    `FlexrButton` legte den gesperrten Zustand auf `opacity(0.4)`. Ein oranger
