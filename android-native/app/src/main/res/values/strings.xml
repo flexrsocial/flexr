@@ -92,7 +92,7 @@
     <string name="login_title">Zurück ins\nGym-Date.</string>
     <string name="login_subtitle">Melde dich mit deinen Zugangsdaten an.</string>
     <string name="login_submit">Einloggen</string>
-    <string name="login_register_hint">Neu hier? Erstell dein Profil und teste FLEXR einen Monat gratis.</string>
+    <string name="login_register_hint">Neu hier? Erstell dein Profil — FLEXR zu nutzen kostet nichts.</string>
     <string name="login_missing_fields">Bitte E-Mail und Passwort angeben.</string>
     <string name="login_reactivate_title">Konto reaktivieren?</string>
     <string name="login_reactivate_confirm">Jetzt reaktivieren</string>

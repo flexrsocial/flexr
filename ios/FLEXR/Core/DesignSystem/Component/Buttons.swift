@@ -14,13 +14,24 @@ struct FlexrButton: View {
 
     private var active: Bool { isEnabled && !isLoading }
 
+    /// Gesperrt heisst: es fehlt noch etwas. Waehrend einer laufenden Aktion
+    /// ist der Knopf ebenfalls nicht tippbar, sieht aber weiter nach Aktion
+    /// aus - deshalb die zweite Bedingung.
+    private var isBlocked: Bool { !isEnabled && !isLoading }
+
+    private var contentColor: Color { isBlocked ? FlexrColor.chalkDim : FlexrColor.plateInk }
+
+    private var shape: RoundedRectangle {
+        RoundedRectangle(cornerRadius: FlexrRadius.button, style: .continuous)
+    }
+
     var body: some View {
         Button(action: action) {
             HStack(spacing: 9) {
                 if isLoading {
                     ProgressView()
                         .controlSize(.small)
-                        .tint(FlexrColor.plateInk)
+                        .tint(contentColor)
                 } else if let icon {
                     FlexrGlyph(icon, size: 17)
                 }
@@ -28,18 +39,30 @@ struct FlexrButton: View {
                     .flexrText(.labelLarge)
                     .multilineTextAlignment(.center)
             }
-            .foregroundStyle(FlexrColor.plateInk)
+            .foregroundStyle(contentColor)
             .frame(maxWidth: .infinity)
             .padding(.horizontal, 18)
             .padding(.vertical, 14)
+            // Der gesperrte Zustand lag frueher auf opacity 0.4. Ein oranger
+            // Verlauf auf #121212 verschwindet dabei fast vollstaendig, und die
+            // dunkle Schrift darauf (plateInk) erst recht - in der Android-App
+            // wurde genau das zweimal als "der Knopf ist weg" gemeldet, im Web
+            // steht die Begruendung an `.btn:disabled`. Statt zu verblassen
+            // wechselt der Knopf die Farbe: deckende Stahlflaeche, Stahlrahmen,
+            // lesbare Schrift - unverwechselbar "noch nicht".
             .background(
-                RoundedRectangle(cornerRadius: FlexrRadius.button, style: .continuous)
-                    .fill(FlexrColor.plateGradient)
+                shape.fill(
+                    isBlocked
+                        ? AnyShapeStyle(FlexrColor.surface3)
+                        : AnyShapeStyle(FlexrColor.plateGradient)
+                )
+            )
+            .overlay(
+                shape.strokeBorder(isBlocked ? FlexrColor.steel : .clear, lineWidth: 1)
             )
         }
         .buttonStyle(.plain)
         .disabled(!active)
-        .opacity(active ? 1 : 0.4)
         .scaleEffect(isPressed ? 0.98 : 1)
         .animation(.easeOut(duration: 0.12), value: isPressed)
         .simultaneousGesture(

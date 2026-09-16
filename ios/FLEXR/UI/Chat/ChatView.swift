@@ -259,10 +259,16 @@ private struct MessageBubble: View {
     var body: some View {
         VStack(alignment: isMine ? .trailing : .leading, spacing: 3) {
             VStack(alignment: isMine ? .trailing : .leading, spacing: 4) {
+                // Bewusst OHNE `.frame(maxWidth: .infinity)`: das zwang den
+                // Text auf die volle angebotene Breite, und weil die Blase sich
+                // nach ihm richtet, war jede Blase 300 pt breit - auch die um
+                // ein Wort. Die Umrandung stand dadurch weit neben dem Text.
+                // Die Ausrichtung macht die umgebende VStack-Achse.
                 Text(message.content)
                     .flexrText(.bodyMedium)
                     .foregroundStyle(isMine ? Color(hex: 0x1C1006) : FlexrColor.chalk)
-                    .frame(maxWidth: .infinity, alignment: isMine ? .trailing : .leading)
+                    .multilineTextAlignment(.leading)
+                    .fixedSize(horizontal: false, vertical: true)
 
                 HStack(spacing: 5) {
                     Text(ServerTime.formatTime(message.createdAt))
@@ -283,6 +289,8 @@ private struct MessageBubble: View {
             }
             .padding(.horizontal, 13)
             .padding(.vertical, 9)
+            // Obergrenze, kein Sollwert: eine endliche maxWidth laesst die
+            // Blase auf ihren Inhalt schrumpfen (anders als .infinity).
             .frame(maxWidth: 300, alignment: isMine ? .trailing : .leading)
             .background {
                 if isMine {

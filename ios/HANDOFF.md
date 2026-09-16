@@ -5,6 +5,84 @@ Stand: **16.09.2026**. Für Aufbau, Build-Befehle und die Migrationstabelle sieh
 
 ---
 
+## Bugfixes aus dem ersten TestFlight-Durchgang, 16.09.2026
+
+Drei Befunde vom Gerät, alle rein in der Darstellung — kein Backend, keine
+Migration, keine neuen Zeichenketten. **Nicht compilerverifiziert**: Auf diesem
+Rechner steht keine Swift-Toolchain; der Nachweis ist erst der nächste
+Codemagic-Lauf.
+
+1. **Der Login-Knopf sah aus wie ein Fehler, nicht wie „gesperrt".**
+   `FlexrButton` legte den gesperrten Zustand auf `opacity(0.4)`. Ein oranger
+   Verlauf auf `#121212` verschwindet dabei fast vollständig, und die dunkle
+   Schrift darauf (`plateInk`) erst recht — übrig blieb ein brauner Balken mit
+   kaum lesbarer Beschriftung. **Genau dieser Fehler ist in Web und Android
+   längst behoben** (siehe Kommentar an `.btn:disabled` in
+   `frontend/app/index.html` und an `isBlocked` in Androids `Buttons.kt`); iOS
+   war als einzige Plattform nicht nachgezogen worden. Der Knopf verblasst
+   jetzt nicht mehr, sondern wechselt die Farbe: deckendes `surface3`,
+   Stahlrahmen, `chalkDim`-Schrift. Während einer laufenden Aktion
+   (`isLoading`) bleibt er bewusst orange — er ist dann nicht tippbar, aber
+   auch nicht „unfertig". `FlexrSecondaryButton`/`FlexrDangerButton` bleiben bei
+   `opacity(0.5)`: Deren Rahmen und Schrift bleiben dabei sichtbar, das Problem
+   gab es nur beim orangefarbenen Vollflächenknopf.
+
+2. **Jede Chatblase war 300 pt breit, auch die um ein Wort.** In
+   `MessageBubble` stand `.frame(maxWidth: .infinity, alignment:)` am
+   Nachrichtentext. Damit nahm der Text immer die volle angebotene Breite, und
+   weil sich Hintergrund und Rahmen nach ihm richten, stand die Umrandung weit
+   neben dem Text. Entfernt; die Ausrichtung macht ohnehin die VStack-Achse.
+   Das `.frame(maxWidth: 300)` um die Blase bleibt — eine **endliche**
+   maxWidth ist eine Obergrenze und lässt die Blase auf ihren Inhalt
+   schrumpfen, nur `.infinity` bläst sie auf. Android macht dasselbe mit
+   `widthIn(max = 300.dp)`.
+
+3. **Das Fotoraster zerfiel in verschieden große, überlappende Kacheln.**
+   `FilledPhotoSlot` hatte `.aspectRatio(3:4, contentMode: .fill)` am Foto.
+   `.fill` darf laut Dokumentation ausdrücklich über die angebotene Fläche
+   hinauswachsen: Das Bild wuchs aus seiner Rasterzelle heraus, das `clipShape`
+   dahinter schnitt nur auf die (bereits zu große) Bildfläche, und die `ZStack`
+   darum übernahm diese Größe — das abschließende `.aspectRatio(…, .fit)` kam
+   zu spät. Die Kachel bekommt ihre Größe jetzt von einer `Color.clear` mit
+   festem 3:4 (volle Spaltenbreite → Höhe daraus); Foto, Rahmen, ✕, Positions-
+   und Statusabzeichen liegen als Overlays darin. `EmptyPhotoSlot` ist auf
+   dieselbe Logik umgestellt, damit belegte und leere Felder in einer Zeile
+   exakt gleich hoch sind.
+
+**Zu „verschieben, löschen, neu hochladen" (ausdrücklich mitgeprüft):** Die
+Logik dahinter war nie kaputt, nur unsichtbar unter dem Layoutfehler. Gegen
+Android und das Backend abgeglichen und unverändert gelassen:
+
+* Verschieben: `PhotoReorderDropDelegate` rechnet
+  `ids.insert(ids.remove(at: from), at: to)` — zeichengleich mit Androids
+  `keys.add(to, keys.removeAt(from))`. Verschieben, nicht tauschen.
+* Löschen: `AccountModel.removePhoto` hält vorab die Mindestanzahl ein
+  (`ImageProcessor.minPhotos`), dieselbe Grenze setzt der Server durch.
+* Hochladen: `presign` → PUT in den Objektspeicher → `POST /me/photos`; alle
+  vier Endpunkte und alle DTO-Felder decken sich mit
+  `backend/app/routers/profiles.py` bzw. `schemas.py`.
+
+Die Trefferfläche jeder Kachel ist zusätzlich als `contentShape` gesetzt —
+`Color.clear` ist von sich aus nicht tippbar, und Ziehen wie Antippen sollen
+auf der ganzen Kachel gelten, nicht nur auf ihren deckenden Stellen.
+
+### Vierter Befund: ein Probemonat, den es nicht mehr gibt
+
+Unter dem Login stand „Erstell dein Profil und teste FLEXR einen Monat
+gratis." (`loginRegisterHint`) — **in iOS und Android**. Einen Probemonat gibt
+es seit dem 10.09.2026 nicht mehr; die AGB sagen ausdrücklich, dass die Nutzung
+dauerhaft unentgeltlich ist. Eine falsche Zusage in zwei Clients, auf Ansage
+des Betreibers ersetzt durch den Wortlaut, den `register_subtitle` und
+`paywall_sub` schon führen:
+
+    Neu hier? Erstell dein Profil — FLEXR zu nutzen kostet nichts.
+    New here? Create your profile — using FLEXR costs nothing.
+
+Vier Stellen: `values/strings.xml`, `values-en/strings.xml`,
+`FlexrStrings+German.swift`, `FlexrStrings+English.swift`. **Android braucht
+dafür einen eigenen Build** — der Text steckt in den Ressourcen, der
+ausgelieferte Stand 2.6.8 führt weiter den alten.
+
 ## Was am 16.09.2026 nachgezogen wurde
 
 Erster produktiver Release-Build über Codemagic eingerichtet (Details zur

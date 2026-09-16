@@ -64,7 +64,7 @@ extension FlexrStrings {
         .loginTitle: "Zurück ins\nGym-Date.",
         .loginSubtitle: "Melde dich mit deinen Zugangsdaten an.",
         .loginSubmit: "Einloggen",
-        .loginRegisterHint: "Neu hier? Erstell dein Profil und teste FLEXR einen Monat gratis.",
+        .loginRegisterHint: "Neu hier? Erstell dein Profil — FLEXR zu nutzen kostet nichts.",
         .loginMissingFields: "Bitte E-Mail und Passwort angeben.",
         .loginReactivateTitle: "Konto reaktivieren?",
         .loginReactivateConfirm: "Jetzt reaktivieren",

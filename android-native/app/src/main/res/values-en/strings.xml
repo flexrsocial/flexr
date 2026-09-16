@@ -75,7 +75,7 @@
     <string name="login_title">Back to the\ngym date.</string>
     <string name="login_subtitle">Sign in with your credentials.</string>
     <string name="login_submit">Log in</string>
-    <string name="login_register_hint">New here? Create your profile and try FLEXR free for a month.</string>
+    <string name="login_register_hint">New here? Create your profile — using FLEXR costs nothing.</string>
     <string name="login_missing_fields">Please enter your email and password.</string>
     <string name="login_reactivate_title">Reactivate account?</string>
     <string name="login_reactivate_confirm">Reactivate now</string>

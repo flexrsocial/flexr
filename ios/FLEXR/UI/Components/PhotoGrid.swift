@@ -162,49 +162,58 @@ private struct FilledPhotoSlot: View {
         }
     }
 
+    private var shape: RoundedRectangle {
+        RoundedRectangle(cornerRadius: 11, style: .continuous)
+    }
+
     var body: some View {
-        ZStack(alignment: .topTrailing) {
-            PhotoImage(source: slot.source, accessibilityLabel: s(.commonProfile))
-                .aspectRatio(3.0 / 4.0, contentMode: .fill)
-                .clipShape(RoundedRectangle(cornerRadius: 11, style: .continuous))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 11, style: .continuous)
-                        .strokeBorder(borderColor, lineWidth: 1.5)
-                )
-
-            Button(action: onRemove) {
-                Image(systemName: FlexrIcon.close)
-                    .font(.system(size: 11, weight: .bold))
-                    .foregroundStyle(.white)
-                    .frame(width: 22, height: 22)
-                    .background(Circle().fill(.black.opacity(0.6)))
+        // Die Kachel bekommt ihre Groesse von dieser leeren Flaeche: volle
+        // Spaltenbreite, Hoehe daraus im Verhaeltnis 3:4. Das Foto liegt als
+        // Overlay darin und wird auf genau diese Kachel beschnitten, die
+        // Bedienelemente liegen darueber.
+        //
+        // Vorher stand `.aspectRatio(3:4, contentMode: .fill)` am Foto selbst.
+        // `.fill` darf ausdruecklich ueber die angebotene Flaeche hinauswachsen:
+        // das Bild wuchs aus seiner Rasterzelle heraus, das `clipShape` schnitt
+        // nur auf die (zu grosse) Bildflaeche, und die ZStack darum uebernahm
+        // diese Groesse. Ergebnis war ein Raster aus verschieden grossen,
+        // einander ueberlappenden Kacheln - Web und Android haben an dieser
+        // Stelle ein festes Seitenverhaeltnis je Zelle.
+        Color.clear
+            .aspectRatio(3.0 / 4.0, contentMode: .fit)
+            .overlay {
+                PhotoImage(source: slot.source, accessibilityLabel: s(.commonProfile))
             }
-            .buttonStyle(.plain)
-            .padding(4)
-            .accessibilityLabel(s(.photoRemove))
-
-            if let position {
-                VStack {
-                    Spacer()
-                    HStack {
-                        Text("\(position)")
-                            .font(.flexrMono(9))
-                            .foregroundStyle(position == 1 ? FlexrColor.plateInk : FlexrColor.chalkDim)
-                            .padding(.horizontal, 5)
-                            .padding(.vertical, 1)
-                            .background(
-                                RoundedRectangle(cornerRadius: 5, style: .continuous)
-                                    .fill(position == 1 ? FlexrColor.plate : .black.opacity(0.62))
-                            )
-                        Spacer()
-                    }
-                    .padding(4)
+            .clipShape(shape)
+            .overlay(shape.strokeBorder(borderColor, lineWidth: 1.5))
+            .overlay(alignment: .topTrailing) {
+                Button(action: onRemove) {
+                    Image(systemName: FlexrIcon.close)
+                        .font(.system(size: 11, weight: .bold))
+                        .foregroundStyle(.white)
+                        .frame(width: 22, height: 22)
+                        .background(Circle().fill(.black.opacity(0.6)))
+                }
+                .buttonStyle(.plain)
+                .padding(4)
+                .accessibilityLabel(s(.photoRemove))
+            }
+            .overlay(alignment: .bottomLeading) {
+                if let position {
+                    Text("\(position)")
+                        .font(.flexrMono(9))
+                        .foregroundStyle(position == 1 ? FlexrColor.plateInk : FlexrColor.chalkDim)
+                        .padding(.horizontal, 5)
+                        .padding(.vertical, 1)
+                        .background(
+                            RoundedRectangle(cornerRadius: 5, style: .continuous)
+                                .fill(position == 1 ? FlexrColor.plate : .black.opacity(0.62))
+                        )
+                        .padding(4)
                 }
             }
-
-            if showsStatus, let status = slot.status, status != .approved {
-                VStack {
-                    Spacer()
+            .overlay(alignment: .bottom) {
+                if showsStatus, let status = slot.status, status != .approved {
                     Text(status == .rejected ? s(.photoRejected) : s(.photoPending))
                         .font(.flexrMono(9))
                         .foregroundStyle(status == .rejected ? FlexrColor.danger : FlexrColor.plate)
@@ -217,11 +226,12 @@ private struct FilledPhotoSlot: View {
                         .padding(4)
                 }
             }
-        }
-        .aspectRatio(3.0 / 4.0, contentMode: .fit)
-        // Das Foto am Finger wird gedimmt, damit sichtbar bleibt, von wo es
-        // gerade weggezogen wird.
-        .opacity(isDragged ? 0.4 : 1)
+            // Das Foto am Finger wird gedimmt, damit sichtbar bleibt, von wo es
+            // gerade weggezogen wird.
+            .opacity(isDragged ? 0.4 : 1)
+            // Trefferflaeche fuer Tippen und Ziehen ist die ganze Kachel, nicht
+            // nur deren deckende Stellen - `Color.clear` ist keine davon.
+            .contentShape(shape)
     }
 }
 
@@ -231,18 +241,24 @@ private struct EmptyPhotoSlot: View {
 
     @Binding var selection: PhotosPickerItem?
 
+    private var shape: RoundedRectangle {
+        RoundedRectangle(cornerRadius: 11, style: .continuous)
+    }
+
     var body: some View {
+        // Gleiche Groessenlogik wie in FilledPhotoSlot, damit belegte und leere
+        // Felder in derselben Zeile exakt gleich hoch sind.
         PhotosPicker(selection: $selection, matching: .images, photoLibrary: .shared()) {
-            ZStack {
-                RoundedRectangle(cornerRadius: 11, style: .continuous)
-                    .fill(Color.white.opacity(0.015))
-                RoundedRectangle(cornerRadius: 11, style: .continuous)
-                    .strokeBorder(FlexrColor.steel, lineWidth: 1.5)
-                Image(systemName: FlexrIcon.add)
-                    .font(.system(size: 24, weight: .medium))
-                    .foregroundStyle(FlexrColor.chalkDim)
-            }
-            .aspectRatio(3.0 / 4.0, contentMode: .fit)
+            Color.clear
+                .aspectRatio(3.0 / 4.0, contentMode: .fit)
+                .overlay(shape.fill(Color.white.opacity(0.015)))
+                .overlay(shape.strokeBorder(FlexrColor.steel, lineWidth: 1.5))
+                .overlay(
+                    Image(systemName: FlexrIcon.add)
+                        .font(.system(size: 24, weight: .medium))
+                        .foregroundStyle(FlexrColor.chalkDim)
+                )
+                .contentShape(shape)
         }
         .accessibilityLabel(s(.photoAdd))
     }
