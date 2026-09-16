@@ -7,6 +7,7 @@ import flexr.social.app.domain.model.Membership
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -33,6 +34,18 @@ class BillingRepository @Inject constructor(
 
     fun clear() {
         _membership.value = null
+    }
+
+    /**
+     * Restliche Likes nachziehen, ohne `/api/billing/status` erneut zu holen.
+     *
+     * Sowohl der Swipe als auch das Zuruecknehmen liefern den neuen Stand in
+     * ihrer eigenen Antwort mit - ein zweiter Aufruf nach jedem Like waere
+     * reine Verschwendung. Die Web-App macht es an derselben Stelle genauso.
+     * `null` heisst unbegrenzt und bleibt dann auch null.
+     */
+    fun updateLikesRemaining(remaining: Int?) {
+        _membership.update { it?.copy(likesRemaining = remaining) }
     }
 
     /**

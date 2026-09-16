@@ -22,10 +22,12 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -78,6 +80,19 @@ class MainViewModel @Inject constructor(
         // 401 vom Backend: Sitzung ist weg, zurück auf den Login.
         authRepository.sessionExpired
             .onEach { logout() }
+            .launchIn(viewModelScope)
+
+        // Die Mitgliedschaft aendert sich auch ohne neuen Anmeldevorgang: nach
+        // jedem Like sinkt das Restkontingent, nach einem zurueckgenommenen
+        // Swipe steigt es wieder. Ohne diese Beobachtung zeigte die Pille im
+        // Kopf den Stand vom App-Start, bis jemand sich neu anmeldet.
+        billingRepository.membership
+            .filterNotNull()
+            .onEach { aktuell ->
+                _appState.update { zustand ->
+                    if (zustand is AppState.Ready) zustand.copy(membership = aktuell) else zustand
+                }
+            }
             .launchIn(viewModelScope)
     }
 

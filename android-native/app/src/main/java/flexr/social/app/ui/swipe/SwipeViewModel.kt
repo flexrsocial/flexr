@@ -6,6 +6,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import flexr.social.app.R
 import flexr.social.app.core.locale.AppStrings
 import flexr.social.app.core.network.FlexrApiException
+import flexr.social.app.data.repository.BillingRepository
 import flexr.social.app.data.repository.MatchRepository
 import flexr.social.app.data.repository.ProfileRepository
 import flexr.social.app.data.repository.SafetyRepository
@@ -31,6 +32,9 @@ data class SwipeUiState(
     val matchedWith: Profile? = null,
     val ownAvatarUrl: String? = null,
     val searchRadiusKm: Int = 20,
+    /** Laeuft ein Premium-Abo? Nur dann gibt es den Zuruecknehmen-Knopf. */
+    val isPremium: Boolean = false,
+    val isRewinding: Boolean = false,
 ) {
     val current: Profile? get() = deck.getOrNull(currentIndex)
     val next: Profile? get() = deck.getOrNull(currentIndex + 1)
@@ -51,6 +55,7 @@ sealed interface SwipeEvent {
 @HiltViewModel
 class SwipeViewModel @Inject constructor(
     private val swipeRepository: SwipeRepository,
+    private val billingRepository: BillingRepository,
     private val profileRepository: ProfileRepository,
     private val safetyRepository: SafetyRepository,
     private val matchRepository: MatchRepository,
@@ -64,8 +69,24 @@ class SwipeViewModel @Inject constructor(
     val events: Flow<SwipeEvent> = _events.receiveAsFlow()
 
     init {
+        observeMembership()
         observeMyProfile()
         loadDeck()
+    }
+
+    /**
+     * Premium-Status mitlesen statt einmalig abfragen: Wer im Kontobereich
+     * abschliesst oder kuendigt, soll den Zuruecknehmen-Knopf ohne Neustart
+     * bekommen oder verlieren. Der Bildschirm bleibt samt ViewModel im
+     * Hintergrund bestehen (siehe observeMyProfile), ein einmaliges Auslesen
+     * fror den Stand vom App-Start ein.
+     */
+    private fun observeMembership() {
+        viewModelScope.launch {
+            billingRepository.membership.filterNotNull().collect { membership ->
+                _uiState.update { it.copy(isPremium = membership.isPremium) }
+            }
+        }
     }
 
     /**
@@ -135,6 +156,9 @@ class SwipeViewModel @Inject constructor(
             runCatching {
                 if (isLike) swipeRepository.like(target.id) else swipeRepository.pass(target.id)
             }.onSuccess { outcome ->
+                // Der Server rechnet das Kontingent ohnehin schon aus und
+                // liefert es mit - die Pille im Kopf zieht darueber nach.
+                billingRepository.updateLikesRemaining(outcome.likesRemaining)
                 if (outcome.matched) {
                     _uiState.update { it.copy(matchedWith = target) }
                     runCatching { matchRepository.refresh() }
@@ -146,6 +170,41 @@ class SwipeViewModel @Inject constructor(
                     ),
                 )
             }
+        }
+    }
+
+    /**
+     * Letzten Swipe zuruecknehmen (Premium).
+     *
+     * Danach wird das Deck neu geladen: Der Server hat den Swipe geloescht,
+     * das Profil taucht dort also wieder auf. Ein Zurueckschieben des
+     * `currentIndex` waere kuerzer, aber falsch - der zurueckgenommene Swipe
+     * muss nicht der letzte im aktuellen Deck gewesen sein (etwa nach einem
+     * Neuladen wegen geaenderter Suchkriterien).
+     *
+     * Fehler kommen im Klartext des Servers durch: "brauchst Premium" (403)
+     * und "daraus ist schon ein Match geworden" (409) sind fuer den Nutzer
+     * zwei sehr verschiedene Nachrichten.
+     */
+    fun rewindLastSwipe() {
+        if (_uiState.value.isRewinding) return
+        _uiState.update { it.copy(isRewinding = true) }
+        viewModelScope.launch {
+            runCatching { swipeRepository.rewindLastSwipe() }
+                .onSuccess { outcome ->
+                    billingRepository.updateLikesRemaining(outcome.likesRemaining)
+                    _events.send(SwipeEvent.Message(strings.get(R.string.premium_rewind_done)))
+                    loadDeck()
+                }
+                .onFailure { throwable ->
+                    _events.send(
+                        SwipeEvent.Message(
+                            (throwable as? FlexrApiException)?.message
+                                ?: strings.get(R.string.premium_rewind_failed),
+                        ),
+                    )
+                }
+            _uiState.update { it.copy(isRewinding = false) }
         }
     }
 

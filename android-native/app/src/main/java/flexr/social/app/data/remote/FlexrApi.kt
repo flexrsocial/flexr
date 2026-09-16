@@ -18,6 +18,7 @@ import flexr.social.app.data.remote.dto.ConsentRevokeResponseDto
 import flexr.social.app.data.remote.dto.DeleteAccountRequestDto
 import flexr.social.app.data.remote.dto.GymDto
 import flexr.social.app.data.remote.dto.GymSuggestRequestDto
+import flexr.social.app.data.remote.dto.IncomingLikesDto
 import flexr.social.app.data.remote.dto.LoginRequestDto
 import flexr.social.app.data.remote.dto.MarkDeliveredRequestDto
 import flexr.social.app.data.remote.dto.MatchDto
@@ -37,6 +38,7 @@ import flexr.social.app.data.remote.dto.ReorderPhotosRequestDto
 import flexr.social.app.data.remote.dto.ReportAckDto
 import flexr.social.app.data.remote.dto.ReportRequestDto
 import flexr.social.app.data.remote.dto.SendMessageRequestDto
+import flexr.social.app.data.remote.dto.RewindResultDto
 import flexr.social.app.data.remote.dto.SwipeRequestDto
 import flexr.social.app.data.remote.dto.SwipeResultDto
 import flexr.social.app.data.remote.dto.TokenResponseDto
@@ -162,6 +164,17 @@ interface FlexrApi {
 
     @POST("api/swipes")
     suspend fun swipe(@Body body: SwipeRequestDto): SwipeResultDto
+
+    /**
+     * Wer mich geliket hat. Ohne Premium kommt keine Fehlermeldung, sondern
+     * nur die Anzahl ohne Profile (`premium_required = true`).
+     */
+    @GET("api/swipes/incoming")
+    suspend fun incomingLikes(): IncomingLikesDto
+
+    /** Letzten Swipe zuruecknehmen - nur mit Premium, sonst 403. */
+    @POST("api/swipes/rewind")
+    suspend fun rewindLastSwipe(): RewindResultDto
 
     // ---------- matches.py / messages.py ----------
 

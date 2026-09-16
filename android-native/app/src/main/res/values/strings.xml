@@ -305,6 +305,27 @@
     <string name="premium_likes_gone">Likes für heute aufgebraucht</string>
     <string name="premium_like_limit">Deine %1$d Likes für heute sind aufgebraucht. Mit FLEXR Premium likest du ohne Grenze.</string>
     <string name="premium_chat_limit">Du hast %1$d Unterhaltungen offen — mehr gehen gleichzeitig nicht. Löse ein Match auf oder hol dir FLEXR Premium.</string>
+    <string name="premium_badge_title">FLEXR Premium</string>
+    <string name="premium_likes_left_one">Noch 1 von %1$d Likes heute</string>
+    <string name="premium_more_likes">Unbegrenzt liken</string>
+    <string name="premium_rewind_done">Swipe zurückgenommen.</string>
+    <string name="premium_rewind_failed">Zurücknehmen hat nicht geklappt.</string>
+    <string name="swipe_rewind">Letzten Swipe zurücknehmen</string>
+
+    <!-- Wer dich geliket hat (Premium). Die Zahl steht im Kreis neben dem
+         Satz - deshalb kommt sie im Satz selbst nicht noch einmal vor. -->
+    <string name="incoming_title_one">Jemand hat dich geliket</string>
+    <string name="incoming_title">Leute haben dich geliket</string>
+    <string name="incoming_sub_free">Mit FLEXR Premium siehst du, wer</string>
+    <string name="incoming_sub_premium">Ansehen und zurückliken</string>
+    <string name="incoming_eyebrow">Offene Likes</string>
+    <string name="incoming_h2">Wer dich geliket hat</string>
+    <string name="incoming_locked_title_one">Eine Person wartet auf dich</string>
+    <string name="incoming_locked_title">%1$d Leute warten auf dich</string>
+    <string name="incoming_locked_sub">Wer genau, siehst du mit FLEXR Premium. Ohne Premium tauchen sie ganz normal in deinem Deck auf.</string>
+    <string name="incoming_loading">Lade …</string>
+    <string name="incoming_none">Gerade wartet niemand.</string>
+    <string name="incoming_load_failed">Die offenen Likes konnten nicht geladen werden.</string>
     <string name="account_manage_subscription">Abo verwalten / kündigen</string>
     <string name="account_radius_hint">Radius rund um dein Gym. Dein Gerätestandort wird nicht verwendet.</string>
     <string name="account_save">Profil speichern</string>

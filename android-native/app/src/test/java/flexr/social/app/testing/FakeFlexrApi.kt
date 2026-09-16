@@ -16,6 +16,7 @@ import flexr.social.app.data.remote.dto.ConsentRevokeResponseDto
 import flexr.social.app.data.remote.dto.DeleteAccountRequestDto
 import flexr.social.app.data.remote.dto.GymDto
 import flexr.social.app.data.remote.dto.GymSuggestRequestDto
+import flexr.social.app.data.remote.dto.IncomingLikesDto
 import flexr.social.app.data.remote.dto.LoginRequestDto
 import flexr.social.app.data.remote.dto.MarkDeliveredRequestDto
 import flexr.social.app.data.remote.dto.MatchDto
@@ -34,6 +35,7 @@ import flexr.social.app.data.remote.dto.RegisterRequestDto
 import flexr.social.app.data.remote.dto.ReorderPhotosRequestDto
 import flexr.social.app.data.remote.dto.ReportAckDto
 import flexr.social.app.data.remote.dto.ReportRequestDto
+import flexr.social.app.data.remote.dto.RewindResultDto
 import flexr.social.app.data.remote.dto.SendMessageRequestDto
 import flexr.social.app.data.remote.dto.SwipeRequestDto
 import flexr.social.app.data.remote.dto.SwipeResultDto
@@ -129,6 +131,10 @@ open class FakeFlexrApi : FlexrApi {
     override suspend fun getDeck(): List<ProfileDto> = nichtVorgesehen("getDeck")
 
     override suspend fun swipe(body: SwipeRequestDto): SwipeResultDto = nichtVorgesehen("swipe")
+
+    override suspend fun incomingLikes(): IncomingLikesDto = nichtVorgesehen("incomingLikes")
+
+    override suspend fun rewindLastSwipe(): RewindResultDto = nichtVorgesehen("rewindLastSwipe")
 
     // ---------- matches.py / messages.py ----------
 

@@ -6,7 +6,8 @@ import androidx.room.TypeConverters
 
 @Database(
     entities = [MatchEntity::class, MessageEntity::class],
-    version = 2,
+    // 3: MatchEntity.isPremium (Premium-Abzeichen in der Match-/Chatliste).
+    version = 3,
     exportSchema = false,
 )
 @TypeConverters(RoomConverters::class)

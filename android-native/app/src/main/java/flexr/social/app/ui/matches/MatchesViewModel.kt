@@ -7,6 +7,8 @@ import flexr.social.app.R
 import flexr.social.app.core.locale.AppStrings
 import flexr.social.app.core.network.FlexrApiException
 import flexr.social.app.data.repository.MatchRepository
+import flexr.social.app.data.repository.SwipeRepository
+import flexr.social.app.domain.model.IncomingLikes
 import flexr.social.app.domain.model.MatchSummary
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -26,6 +28,7 @@ import javax.inject.Inject
 @HiltViewModel
 class MatchesViewModel @Inject constructor(
     private val matchRepository: MatchRepository,
+    private val swipeRepository: SwipeRepository,
     private val strings: AppStrings,
 ) : ViewModel() {
 
@@ -41,8 +44,25 @@ class MatchesViewModel @Inject constructor(
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error.asStateFlow()
 
+    /**
+     * Offene Likes fuer die Karte ueber der Matchliste.
+     *
+     * `null` heisst "noch nicht geladen oder Abruf gescheitert" - in beiden
+     * Faellen bleibt die Karte weg. Bewusst kein eigener Fehlerzustand: Das
+     * ist Beiwerk ueber der Matchliste, ein Fehlerbalken dafuer wuerde einen
+     * funktionierenden Bildschirm wie einen kaputten aussehen lassen.
+     */
+    private val _incoming = MutableStateFlow<IncomingLikes?>(null)
+    val incoming: StateFlow<IncomingLikes?> = _incoming.asStateFlow()
+
     init {
         refresh()
+    }
+
+    fun loadIncoming() {
+        viewModelScope.launch {
+            _incoming.value = runCatching { swipeRepository.incomingLikes() }.getOrNull()
+        }
     }
 
     fun refresh() {
@@ -56,6 +76,7 @@ class MatchesViewModel @Inject constructor(
                 }
             _isRefreshing.value = false
         }
+        loadIncoming()
     }
 
     /**
@@ -69,5 +90,6 @@ class MatchesViewModel @Inject constructor(
         viewModelScope.launch {
             runCatching { matchRepository.refresh() }
         }
+        loadIncoming()
     }
 }

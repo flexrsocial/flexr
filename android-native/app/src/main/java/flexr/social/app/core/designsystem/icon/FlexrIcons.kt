@@ -2,6 +2,7 @@ package flexr.social.app.core.designsystem.icon
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Block
 import androidx.compose.material.icons.filled.CameraAlt
@@ -16,6 +17,8 @@ import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.OutlinedFlag
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Place
+import androidx.compose.material.icons.filled.Replay
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.Color
@@ -87,6 +90,9 @@ object FlexrIcons {
     val Report = Icons.Filled.OutlinedFlag
     val Block = Icons.Filled.Block
     val Back = Icons.AutoMirrored.Filled.ArrowBack
+
+    /** Weiter-Pfeil auf antippbaren Karten (`.incoming-chev`). */
+    val Forward = Icons.AutoMirrored.Filled.KeyboardArrowRight
     val Send = Icons.AutoMirrored.Filled.Send
     val More = Icons.Filled.MoreVert
     val Camera = Icons.Filled.CameraAlt
@@ -97,6 +103,17 @@ object FlexrIcons {
 
     /** Datei vom Geraet - zweiter Weg neben der Kamera bei der Ausweisaufnahme. */
     val Upload = Icons.Filled.InsertDriveFile
+
+    /** Premium-Abzeichen neben dem Namen - im Web derselbe gefuellte Stern. */
+    val Premium = Icons.Filled.Star
+
+    /**
+     * Letzten Swipe zuruecknehmen. Bewusst [Icons.Filled.Replay] und nicht
+     * `Undo`: Letzteres ist inzwischen zugunsten der automatisch gespiegelten
+     * Fassung veraltet, und gespiegelt werden muss hier nichts - der Kreispfeil
+     * liest sich in beiden Schreibrichtungen gleich.
+     */
+    val Rewind = Icons.Filled.Replay
 }
 
 /** Merkt sich das Hantel-Icon über Rekompositionen hinweg. */

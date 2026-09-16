@@ -6,6 +6,57 @@ hier steht nur, was daraus *nicht* hervorgeht.
 
 ---
 
+## FLEXR Premium: die drei Zusatzfunktionen, 16.09.2026
+
+Backend und Web-App haben sie seit dem 10.09.2026, die nativen Clients hatten
+bis jetzt nur den Werbetext auf der Paywall. Nachgezogen sind alle drei:
+
+1. **Premium-Abzeichen** — ein gefüllter Stern in Plate-Orange neben dem Namen,
+   in Swipe-Karte, Match-/Chatliste, Chat-Kopfzeile und Kontobereich.
+   `PremiumBadge` steht bewusst **ohne** runden Grund neben dem blauen
+   Verifiziert-Haken: zwei gleich gebaute Plaketten nebeneinander liest niemand
+   auseinander (im Web dieselbe Unterscheidung, `.premium-badge` trägt nur
+   `color`).
+2. **Letzten Swipe zurücknehmen** — kleiner runder Knopf links neben „Nope",
+   `POST /api/swipes/rewind`. Er erscheint **nur mit Premium**; ohne Abo steht
+   dort nichts statt eines gesperrten Knopfes. Die Knopfreihe ist der
+   meistbenutzte Ort der App, ein dauerhaft totes Element daneben wäre eine
+   tägliche Belästigung.
+3. **„Wer dich geliket hat"** — Karte über der Matchliste (Zahl im Kreis) und
+   ein eigener Bildschirm dahinter (`Routes.INCOMING`, `ui/incoming/`). Ohne
+   Premium liefert der Server die **Anzahl ohne Profile**; die Ansicht zeigt
+   dann „3 Leute warten auf dich" plus den Hinweis, dass dieselben Leute
+   ohnehin im Deck auftauchen — kein Fehlerbildschirm. Ohne offene Likes bleibt
+   die Karte ganz weg, eine „0" wäre eine Enttäuschung ohne Anlass.
+
+**Room-Schema 2 → 3**: `MatchEntity.isPremium` ist dazugekommen, damit das
+Abzeichen auch in der offline gespiegelten Match-/Chatliste steht. Keine
+Migration nötig — die Tabelle ist reiner Cache
+(`fallbackToDestructiveMigration(dropAllTables = true)` in `DatabaseModule`).
+
+**Das Restkontingent zieht jetzt nach.** `SwipeResultDto` und `RewindResultDto`
+liefern `likes_remaining` mit; `BillingRepository.updateLikesRemaining()`
+schreibt es in den zwischengespeicherten `Membership`, und `MainViewModel`
+beobachtet diesen Fluss. Vorher zeigte die Pille im Kopf den Stand vom
+App-Start, bis sich jemand neu anmeldete — ein zweiter `/api/billing/status`
+nach jedem Like wäre die teure Alternative gewesen.
+
+**Alles hängt weiterhin an `PREMIUM_ENABLED` am Server.** Solange der Schalter
+aus ist, ist `is_premium` für jeden falsch: kein Abzeichen, kein
+Zurücknehmen-Knopf, und die Karte zeigt den gesperrten Text. Es gibt in der App
+keinen zweiten Ort, an dem sich das entscheidet.
+
+**Geprüft:** `:app:compileProdReleaseKotlin` und
+`:app:testProdReleaseUnitTest` grün, **49 Tests, 0 Fehler** — zwei davon neu
+für das Zurücknehmen (Deck wird neu geladen; ein abgelehntes Zurücknehmen
+lässt das Deck stehen). Auf einem Gerät ausprobiert ist noch nichts.
+
+**Noch nicht nachgezogen:** der Like-Zähler unter dem Deck, den die Web-App
+dort führt. Auf Android steht die Restzahl bereits in der Statuspille im Kopf
+(`status_likes_left`) — ein zweiter Zähler wenige Zentimeter darunter wäre
+Dopplung, keine Parität. Wenn er doch gewünscht ist, gehört er als Zeile unter
+die Knopfreihe, samt „Unbegrenzt liken"-Knopf wie im Web.
+
 ## Wo das Projekt steht
 
 Die browserbasierte Android-App (TWA in `android/`) wurde vollständig durch eine

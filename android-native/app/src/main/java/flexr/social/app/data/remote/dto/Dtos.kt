@@ -77,6 +77,9 @@ data class ProfileDto(
     val bio: String? = null,
     @SerialName("is_online") val isOnline: Boolean = false,
     @SerialName("is_verified") val isVerified: Boolean = false,
+    // Premium-Abzeichen neben dem Namen. Waehrend der Beta traegt es niemand -
+    // der Server liefert es nur, solange Premium scharf geschaltet ist.
+    @SerialName("is_premium") val isPremium: Boolean = false,
     @SerialName("distance_km") val distanceKm: Int? = null,
     val photos: List<PhotoDto> = emptyList(),
 )
@@ -92,6 +95,7 @@ data class MyProfileDto(
     val bio: String? = null,
     @SerialName("is_online") val isOnline: Boolean = false,
     @SerialName("is_verified") val isVerified: Boolean = false,
+    @SerialName("is_premium") val isPremium: Boolean = false,
     @SerialName("distance_km") val distanceKm: Int? = null,
     val photos: List<PhotoDto> = emptyList(),
     val plz: String,
@@ -284,7 +288,28 @@ data class SwipeRequestDto(
 )
 
 @Serializable
-data class SwipeResultDto(val matched: Boolean)
+data class SwipeResultDto(
+    val matched: Boolean,
+    // null = unbegrenzt (Beta oder Premium). Spart nach jedem Like den
+    // zusaetzlichen Aufruf von /api/billing/status.
+    @SerialName("likes_remaining") val likesRemaining: Int? = null,
+)
+
+/** Antwort von `GET /api/swipes/incoming`. */
+@Serializable
+data class IncomingLikesDto(
+    val count: Int = 0,
+    // Ohne Premium liefert der Server die Zahl, aber keine Profile.
+    val profiles: List<ProfileDto> = emptyList(),
+    @SerialName("premium_required") val premiumRequired: Boolean = false,
+)
+
+/** Antwort von `POST /api/swipes/rewind`. */
+@Serializable
+data class RewindResultDto(
+    @SerialName("to_user_id") val toUserId: String,
+    @SerialName("likes_remaining") val likesRemaining: Int? = null,
+)
 
 @Serializable
 data class MessageDto(

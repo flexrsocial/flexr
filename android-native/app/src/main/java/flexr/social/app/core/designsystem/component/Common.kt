@@ -41,6 +41,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import flexr.social.app.R
 import flexr.social.app.core.designsystem.theme.EyebrowStyle
+import flexr.social.app.core.designsystem.icon.FlexrIcons
 import flexr.social.app.core.designsystem.theme.FlexrTheme
 import flexr.social.app.core.designsystem.theme.MonoStyle
 
@@ -185,6 +186,23 @@ fun VerifiedBadge(modifier: Modifier = Modifier, size: Int = 16) {
 }
 
 val VerifiedBlue = Color(0xFF2D9CDB)
+
+/**
+ * Premium-Abzeichen neben dem Namen - ein gefuellter Stern in Plate-Orange.
+ *
+ * Bewusst ohne runden Grund, anders als der blaue Haken: Zwei gleich gebaute
+ * Plaketten nebeneinander liest niemand auseinander. Im Web ist es dieselbe
+ * Unterscheidung (`.premium-badge` traegt nur `color`, keine Flaeche).
+ */
+@Composable
+fun PremiumBadge(modifier: Modifier = Modifier, size: Int = 16) {
+    Icon(
+        FlexrIcons.Premium,
+        contentDescription = stringResource(R.string.premium_badge_title),
+        tint = FlexrTheme.colors.plate,
+        modifier = modifier.size(size.dp),
+    )
+}
 
 /** Merkmal-Chip auf einer Profilkarte (`.stat-chip`). */
 @Composable

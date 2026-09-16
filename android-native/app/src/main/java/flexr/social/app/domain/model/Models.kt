@@ -46,6 +46,8 @@ data class Profile(
     val bio: String?,
     val isOnline: Boolean,
     val isVerified: Boolean,
+    /** Premium-Abzeichen neben dem Namen, analog zum Verifiziert-Haken. */
+    val isPremium: Boolean,
     val distanceKm: Int?,
     val photos: List<Photo>,
 ) {
@@ -250,7 +252,24 @@ data class AgeCheck(
 )
 
 /** Ergebnis eines Swipes. */
-data class SwipeOutcome(val matched: Boolean)
+data class SwipeOutcome(
+    val matched: Boolean,
+    /** Verbleibende Likes nach diesem Swipe; null = unbegrenzt. */
+    val likesRemaining: Int?,
+)
+
+/**
+ * Wer mich geliket hat, ohne dass ich schon zurueckgeswipet haette.
+ *
+ * Ohne Premium ist [profiles] leer und [premiumRequired] wahr - [count] stimmt
+ * trotzdem. Das ist Absicht: "3 Leute warten auf dich" ist die ehrliche Antwort
+ * und zugleich der beste Grund, sich Premium anzusehen.
+ */
+data class IncomingLikes(
+    val count: Int,
+    val profiles: List<Profile>,
+    val premiumRequired: Boolean,
+)
 
 /**
  * Bestätigung einer abgegebenen Meldung. Das Aktenzeichen macht sie für den

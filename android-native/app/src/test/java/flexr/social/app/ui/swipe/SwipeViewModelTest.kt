@@ -1,8 +1,11 @@
 package flexr.social.app.ui.swipe
 
+import flexr.social.app.core.network.FlexrApiException
 import flexr.social.app.data.remote.dto.MyProfileDto
 import flexr.social.app.data.remote.dto.ProfileDto
+import flexr.social.app.data.remote.dto.RewindResultDto
 import flexr.social.app.data.remote.dto.UpdateProfileRequestDto
+import flexr.social.app.data.repository.BillingRepository
 import flexr.social.app.data.repository.MatchRepository
 import flexr.social.app.data.repository.ProfileRepository
 import flexr.social.app.data.repository.SafetyRepository
@@ -43,7 +46,7 @@ class SwipeViewModelTest {
      * `updateMyProfile` verhält sich wie der echte PATCH: es übernimmt die
      * gesetzten Felder und gibt das vollständige Profil zurück.
      */
-    private class TestApi(
+    private open class TestApi(
         private var profil: MyProfileDto,
         private val decks: List<List<ProfileDto>>,
     ) : FakeFlexrApi() {
@@ -81,6 +84,7 @@ class SwipeViewModelTest {
         profileRepository.refresh()
         val viewModel = SwipeViewModel(
             swipeRepository = SwipeRepository(api),
+            billingRepository = BillingRepository(api),
             profileRepository = profileRepository,
             safetyRepository = SafetyRepository(api),
             matchRepository = MatchRepository(api, FakeMatchDao(), FakeMessageDao()),
@@ -166,5 +170,66 @@ class SwipeViewModelTest {
 
         assertEquals(1, api.deckAufrufe)
         assertEquals(listOf("Lea"), viewModel.uiState.value.deck.map { it.name })
+    }
+
+    /**
+     * Zuruecknehmen laedt das Deck neu, statt nur den Zaehler zurueckzusetzen.
+     *
+     * Der Server loescht den Swipe; das zurueckgenommene Profil gehoert danach
+     * wieder ins Deck. Ein blosses `currentIndex - 1` saehe im Test genauso aus,
+     * waere aber falsch, sobald das Deck zwischendurch neu geladen wurde -
+     * deshalb wird hier die Zahl der Deck-Abrufe geprueft.
+     */
+    @Test
+    fun `zuruecknehmen laedt das deck neu`() = runTest {
+        val api = object : TestApi(
+            profil = meinProfilDto(),
+            decks = listOf(
+                listOf(profilDto(id = "1", name = "Lea")),
+                listOf(profilDto(id = "1", name = "Lea"), profilDto(id = "2", name = "Nora")),
+            ),
+        ) {
+            override suspend fun rewindLastSwipe() =
+                RewindResultDto(toUserId = "2", likesRemaining = 18)
+        }
+        val (viewModel, _) = aufbau(api)
+        advanceUntilIdle()
+        assertEquals(1, api.deckAufrufe)
+
+        viewModel.rewindLastSwipe()
+        advanceUntilIdle()
+
+        assertEquals("Deck ist nach dem Zuruecknehmen neu geladen", 2, api.deckAufrufe)
+        assertEquals(
+            "das zurueckgenommene Profil ist wieder da",
+            listOf("Lea", "Nora"),
+            viewModel.uiState.value.deck.map { it.name },
+        )
+        assertEquals(false, viewModel.uiState.value.isRewinding)
+    }
+
+    /**
+     * Ohne Premium antwortet der Server mit 403 - das Deck bleibt dann stehen.
+     * Ein stillschweigendes Neuladen waere hier das falsche Signal: Es ist
+     * nichts zurueckgenommen worden.
+     */
+    @Test
+    fun `ein abgelehntes zuruecknehmen laesst das deck unveraendert`() = runTest {
+        val api = object : TestApi(
+            profil = meinProfilDto(),
+            decks = listOf(listOf(profilDto(id = "1", name = "Lea"))),
+        ) {
+            override suspend fun rewindLastSwipe(): RewindResultDto =
+                throw FlexrApiException(403, "Den letzten Swipe zurücknehmen gibt es mit FLEXR Premium.")
+        }
+        val (viewModel, _) = aufbau(api)
+        advanceUntilIdle()
+
+        viewModel.rewindLastSwipe()
+        advanceUntilIdle()
+
+        assertEquals("kein zweiter Deck-Abruf", 1, api.deckAufrufe)
+        assertEquals(listOf("Lea"), viewModel.uiState.value.deck.map { it.name })
+        assertEquals(false, viewModel.uiState.value.isRewinding)
     }
 }

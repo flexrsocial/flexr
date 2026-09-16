@@ -32,6 +32,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import flexr.social.app.R
+import flexr.social.app.core.designsystem.component.PremiumBadge
 import flexr.social.app.core.designsystem.component.VerifiedBadge
 import flexr.social.app.core.designsystem.theme.FlexrTheme
 import flexr.social.app.domain.model.MatchSummary
@@ -101,6 +102,10 @@ fun MatchListItem(
                 if (profile.isVerified) {
                     Spacer(Modifier.width(6.dp))
                     VerifiedBadge(size = 14)
+                }
+                if (profile.isPremium) {
+                    Spacer(Modifier.width(6.dp))
+                    PremiumBadge(size = 14)
                 }
             }
             val secondary = if (showLastMessage) {

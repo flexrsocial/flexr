@@ -16,6 +16,9 @@ object Routes {
     const val CHATS = "chats"
     const val ACCOUNT = "account"
 
+    /** „Wer dich geliket hat" - aufgerufen aus der Matchliste. */
+    const val INCOMING = "incoming"
+
     const val MATCH_PROFILE = "matchProfile/{matchId}"
     const val CHAT = "chat/{matchId}?origin={origin}"
     const val VERIFICATION = "verification"

@@ -272,6 +272,25 @@
     <string name="premium_likes_gone">No likes left today</string>
     <string name="premium_like_limit">You have used your %1$d likes for today. FLEXR Premium lifts the limit.</string>
     <string name="premium_chat_limit">You have %1$d conversations open — that is the limit at any one time. Unmatch someone or get FLEXR Premium.</string>
+    <string name="premium_badge_title">FLEXR Premium</string>
+    <string name="premium_likes_left_one">1 of %1$d likes left today</string>
+    <string name="premium_more_likes">Like without limits</string>
+    <string name="premium_rewind_done">Swipe undone.</string>
+    <string name="premium_rewind_failed">Could not undo that swipe.</string>
+    <string name="swipe_rewind">Undo last swipe</string>
+
+    <string name="incoming_title_one">Someone liked you</string>
+    <string name="incoming_title">people liked you</string>
+    <string name="incoming_sub_free">FLEXR Premium shows you who</string>
+    <string name="incoming_sub_premium">Take a look and like back</string>
+    <string name="incoming_eyebrow">Open likes</string>
+    <string name="incoming_h2">Who liked you</string>
+    <string name="incoming_locked_title_one">One person is waiting for you</string>
+    <string name="incoming_locked_title">%1$d people are waiting for you</string>
+    <string name="incoming_locked_sub">FLEXR Premium shows you exactly who. Without Premium they simply turn up in your deck as usual.</string>
+    <string name="incoming_loading">Loading …</string>
+    <string name="incoming_none">Nobody is waiting right now.</string>
+    <string name="incoming_load_failed">Open likes could not be loaded.</string>
     <string name="account_manage_subscription">Manage / cancel subscription</string>
     <string name="account_radius_hint">Radius around your gym. Your device location is not used.</string>
     <string name="account_save">Save profile</string>

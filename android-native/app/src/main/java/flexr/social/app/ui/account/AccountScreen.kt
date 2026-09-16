@@ -75,6 +75,7 @@ import flexr.social.app.core.designsystem.component.FlexrSecondaryButton
 import flexr.social.app.core.designsystem.component.FlexrTextField
 import flexr.social.app.core.designsystem.component.LanguageSwitch
 import flexr.social.app.core.designsystem.component.SectionTitle
+import flexr.social.app.core.designsystem.component.PremiumBadge
 import flexr.social.app.core.designsystem.component.VerifiedBadge
 import flexr.social.app.core.designsystem.theme.FlexrTheme
 import flexr.social.app.core.designsystem.theme.MonoStyle
@@ -206,6 +207,10 @@ fun AccountScreen(
                     if (currentProfile?.profile?.isVerified == true) {
                         Spacer(Modifier.width(6.dp))
                         VerifiedBadge()
+                    }
+                    if (currentProfile?.profile?.isPremium == true) {
+                        Spacer(Modifier.width(6.dp))
+                        PremiumBadge()
                     }
                 }
                 Text(

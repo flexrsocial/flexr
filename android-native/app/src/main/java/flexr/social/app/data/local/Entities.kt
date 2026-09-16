@@ -60,6 +60,9 @@ data class MatchEntity(
     val gym: String,
     val bio: String?,
     val isVerified: Boolean,
+    // Seit Schema 3. Der Inhalt ist reiner Cache, ein fehlender Wert nach dem
+    // Neuaufbau ist deshalb folgenlos - beim naechsten Abgleich steht er da.
+    val isPremium: Boolean,
     val isOnline: Boolean,
     val distanceKm: Int?,
     val photos: List<StoredPhoto>,
@@ -118,6 +121,7 @@ fun MatchEntity.toDomain(): MatchSummary = MatchSummary(
         bio = bio,
         isOnline = isOnline,
         isVerified = isVerified,
+        isPremium = isPremium,
         distanceKm = distanceKm,
         photos = photos.map { it.toDomain() },
     ),
@@ -147,6 +151,7 @@ fun MatchSummary.toEntity(matchedAt: Instant = Instant.now()) = MatchEntity(
     gym = profile.gym,
     bio = profile.bio,
     isVerified = profile.isVerified,
+    isPremium = profile.isPremium,
     isOnline = profile.isOnline,
     distanceKm = profile.distanceKm,
     photos = profile.photos.map { it.toStored() },

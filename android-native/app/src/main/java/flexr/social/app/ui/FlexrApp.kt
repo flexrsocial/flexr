@@ -60,6 +60,7 @@ import flexr.social.app.ui.chat.ChatScreen
 import flexr.social.app.ui.legal.LegalScreen
 import flexr.social.app.ui.matches.ChatsScreen
 import flexr.social.app.ui.matches.MatchProfileScreen
+import flexr.social.app.ui.incoming.IncomingScreen
 import flexr.social.app.ui.matches.MatchesScreen
 import flexr.social.app.ui.navigation.FlexrBottomBar
 import flexr.social.app.ui.navigation.FlexrTopBar
@@ -425,6 +426,18 @@ private fun MainGraph(
             composable(Routes.MATCHES) {
                 MatchesScreen(
                     onOpenMatchProfile = { navController.navigate(Routes.matchProfile(it)) },
+                    onOpenIncoming = { navController.navigate(Routes.INCOMING) },
+                )
+            }
+
+            // „Wer dich geliket hat". Bewusst kein Ziel der unteren Leiste:
+            // Ohne offene Likes gaebe es dort einen Reiter, der meistens ins
+            // Leere fuehrt - so taucht der Einstieg nur auf, wenn es etwas zu
+            // sehen gibt.
+            composable(Routes.INCOMING) {
+                IncomingScreen(
+                    onBack = { navController.popBackStack() },
+                    onOpenPremium = { navController.navigate(Routes.PAYWALL) },
                 )
             }
 

@@ -51,6 +51,7 @@ import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import flexr.social.app.R
 import flexr.social.app.core.designsystem.component.StatChip
+import flexr.social.app.core.designsystem.component.PremiumBadge
 import flexr.social.app.core.designsystem.component.VerifiedBadge
 import flexr.social.app.core.designsystem.icon.FlexrIcons
 import flexr.social.app.core.designsystem.theme.FlexrTheme
@@ -358,6 +359,10 @@ private fun CardContent(
                     if (profile.isVerified) {
                         Spacer(Modifier.size(6.dp))
                         VerifiedBadge()
+                    }
+                    if (profile.isPremium) {
+                        Spacer(Modifier.size(6.dp))
+                        PremiumBadge()
                     }
                 }
                 Text(

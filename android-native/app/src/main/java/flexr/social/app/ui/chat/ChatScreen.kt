@@ -63,6 +63,7 @@ import flexr.social.app.core.common.ServerTime
 import flexr.social.app.core.designsystem.component.EmojiPickerPanel
 import flexr.social.app.core.designsystem.component.EmojiToggleButton
 import flexr.social.app.core.designsystem.component.EmptyState
+import flexr.social.app.core.designsystem.component.PremiumBadge
 import flexr.social.app.core.designsystem.component.VerifiedBadge
 import flexr.social.app.core.designsystem.component.withEmojiInserted
 import flexr.social.app.core.designsystem.icon.FlexrIcons
@@ -138,6 +139,7 @@ fun ChatScreen(
             name = match?.profile?.name,
             age = match?.profile?.age,
             isVerified = match?.profile?.isVerified == true,
+            isPremium = match?.profile?.isPremium == true,
             isOnline = match?.isOnline == true,
             avatarUrl = match?.profile?.primaryPhoto?.avatarUrl,
             onBack = onBack,
@@ -257,6 +259,7 @@ private fun ChatHeader(
     name: String?,
     age: Int?,
     isVerified: Boolean,
+    isPremium: Boolean,
     isOnline: Boolean,
     avatarUrl: String?,
     onBack: () -> Unit,
@@ -302,6 +305,10 @@ private fun ChatHeader(
                 if (isVerified) {
                     Spacer(Modifier.width(6.dp))
                     VerifiedBadge(size = 14)
+                }
+                if (isPremium) {
+                    Spacer(Modifier.width(6.dp))
+                    PremiumBadge(size = 14)
                 }
             }
             Box {

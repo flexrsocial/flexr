@@ -27,6 +27,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -164,9 +165,25 @@ fun SwipeScreen(
                             Modifier
                                 .align(Alignment.BottomCenter)
                                 .padding(bottom = 14.dp),
-                            horizontalArrangement = Arrangement.spacedBy(26.dp),
+                            horizontalArrangement = Arrangement.spacedBy(22.dp),
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
+                            // Zuruecknehmen gibt es nur mit Premium. Ohne Abo
+                            // steht hier bewusst gar nichts statt eines
+                            // gesperrten Knopfes: Die Reihe ist der meistbenutzte
+                            // Ort der App, ein dauerhaft totes Element daneben
+                            // waere eine taegliche Belaestigung. Wer Premium
+                            // sucht, findet es im Kontobereich.
+                            if (state.isPremium) {
+                                RoundActionButton(
+                                    icon = FlexrIcons.Rewind,
+                                    description = stringResource(R.string.swipe_rewind),
+                                    tint = FlexrTheme.colors.chalkDim,
+                                    compact = true,
+                                    enabled = !state.isRewinding,
+                                    onClick = viewModel::rewindLastSwipe,
+                                )
+                            }
                             RoundActionButton(
                                 icon = FlexrIcons.Pass,
                                 description = stringResource(R.string.swipe_pass),
@@ -232,12 +249,20 @@ private fun RoundActionButton(
     tint: Color,
     onClick: () -> Unit,
     large: Boolean = false,
+    /** Kleiner als die beiden Hauptaktionen - fuers Zuruecknehmen (`.round-btn.rewind`). */
+    compact: Boolean = false,
+    enabled: Boolean = true,
 ) {
     val colors = FlexrTheme.colors
-    val size = if (large) 64.dp else 56.dp
+    val size = when {
+        large -> 64.dp
+        compact -> 46.dp
+        else -> 56.dp
+    }
     Box(
         Modifier
             .size(size)
+            .alpha(if (enabled) 1f else 0.5f)
             .clip(CircleShape)
             .then(
                 if (large) {
@@ -254,14 +279,20 @@ private fun RoundActionButton(
                         .border(1.dp, colors.steel, CircleShape)
                 },
             )
-            .clickable(onClick = onClick),
+            .clickable(enabled = enabled, onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {
         Icon(
             icon,
             contentDescription = description,
             tint = tint,
-            modifier = Modifier.size(if (large) 28.dp else 24.dp),
+            modifier = Modifier.size(
+                when {
+                    large -> 28.dp
+                    compact -> 20.dp
+                    else -> 24.dp
+                },
+            ),
         )
     }
 }

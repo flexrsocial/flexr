@@ -3,6 +3,7 @@ package flexr.social.app.data.repository
 import flexr.social.app.core.common.ServerTime
 import flexr.social.app.data.remote.dto.AgeCheckResponseDto
 import flexr.social.app.data.remote.dto.GymDto
+import flexr.social.app.data.remote.dto.IncomingLikesDto
 import flexr.social.app.data.remote.dto.MatchDto
 import flexr.social.app.data.remote.dto.MembershipStatusDto
 import flexr.social.app.data.remote.dto.MessageDto
@@ -14,6 +15,7 @@ import flexr.social.app.data.remote.dto.VerificationStatusDto
 import flexr.social.app.domain.model.AgeCheck
 import flexr.social.app.domain.model.Gender
 import flexr.social.app.domain.model.Gym
+import flexr.social.app.domain.model.IncomingLikes
 import flexr.social.app.domain.model.MatchSummary
 import flexr.social.app.domain.model.Membership
 import flexr.social.app.domain.model.Message
@@ -50,8 +52,15 @@ fun ProfileDto.toDomain() = Profile(
     bio = bio,
     isOnline = isOnline,
     isVerified = isVerified,
+    isPremium = isPremium,
     distanceKm = distanceKm,
     photos = photos.sortedBy { it.position }.map { it.toDomain() },
+)
+
+fun IncomingLikesDto.toDomain() = IncomingLikes(
+    count = count,
+    profiles = profiles.map { it.toDomain() },
+    premiumRequired = premiumRequired,
 )
 
 fun MyProfileDto.toDomain() = MyProfile(
@@ -65,6 +74,7 @@ fun MyProfileDto.toDomain() = MyProfile(
         bio = bio,
         isOnline = isOnline,
         isVerified = isVerified,
+        isPremium = isPremium,
         distanceKm = distanceKm,
         // Die eigene Ansicht zeigt bewusst ALLE Fotos inklusive Moderationsstatus.
         photos = photos.sortedBy { it.position }.map { it.toDomain() },
