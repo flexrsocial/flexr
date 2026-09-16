@@ -1,7 +1,54 @@
 # HANDOFF — native iOS-App
 
-Stand: **23.08.2026**. Für Aufbau, Build-Befehle und die Migrationstabelle siehe
+Stand: **16.09.2026**. Für Aufbau, Build-Befehle und die Migrationstabelle siehe
 [README.md](README.md) — hier steht nur, was daraus *nicht* hervorgeht.
+
+---
+
+## Was am 16.09.2026 nachgezogen wurde
+
+Erster produktiver Release-Build über Codemagic eingerichtet (Details zur
+Konfiguration in der README unter „CI/CD (Codemagic)"). Bis dahin war der
+Xcode-16-Stand nie gegen Xcode 26 / einen frischen, strengeren
+Swift-Compiler archiviert worden — entsprechend kamen beim ersten
+`xcodebuild archive` mehrere latente Bugs hoch, die lokal nie aufgefallen
+waren:
+
+1. **`PlzRepository.isValidPostalCode`** ist eine reine Funktion ohne
+   Actor-Zustand, hing aber am `@MainActor` der Klasse und ließ sich darum
+   nicht mehr synchron aus `GymSuggestionState.isValid` aufrufen. Jetzt
+   `nonisolated`.
+2. **`MatchOverlay.ownName`** hatte `= s(.swipeOwnName)` als Property-Default
+   — ungültig, weil Property-Initializer vor `self` laufen und `s` eine
+   Instanzmethode ist. Der einzige Aufrufer (`SwipeView`) übergibt den
+   lokalisierten Namen jetzt explizit, `ownName` ist ein Pflichtparameter.
+3. **`ConfirmDialog`** (`UI/Components/Dialogs.swift`) nutzte `s(...)`, ohne
+   wie die anderen Dialoge in der Datei einen eigenen `languageStore`/`s`-
+   Zugriff zu deklarieren.
+4. **`AccountView.legalSection()`** griff auf `document.title` zu — das gibt
+   es nicht, `LegalDocument` hat nur `titleKey: L`. Jetzt `s(document.titleKey)`,
+   wie `LegalView` es schon vormacht.
+5. **`AccountModel`** deklarierte `notifications` zweimal: einmal als
+   berechnete `NotificationSettings` (Server-Schalter aus dem Profil), einmal
+   als gespeicherter `MessageRefreshService` (lokale Planung). Der Service
+   heißt jetzt `messageRefresh`.
+6. **`AccountView`**: In `content(_ model:)` schattet `@Bindable var model =
+   model` das äußere optionale `model`. Ein `if let model` in der
+   Benachrichtigungs-Sheet-Closure versuchte, das bereits entpackte `model`
+   nochmal zu entpacken — entfernt, `model` ist dort immer vorhanden.
+7. **iPad-Multitasking-Manifest**: App Store Connect lehnte den Upload mit
+   Fehler 90474 ab — ein iPad-fähiger Build (`TARGETED_DEVICE_FAMILY =
+   "1,2"`) muss alle vier `UISupportedInterfaceOrientations` deklarieren,
+   auch wenn er sie nie zeigt. `Config/Info.plist` bekam einen
+   `~ipad`-Override mit allen vier Werten, `FlexrApp.AppDelegate` sperrt die
+   tatsächliche Ausrichtung weiterhin per
+   `application(_:supportedInterfaceOrientationsFor:)` auf Hochformat — am
+   sichtbaren Verhalten ändert sich nichts.
+
+Alle sieben Punkte sind reine Bugfixes ohne Verhaltensänderung (außer Punkt
+7, der nur das Manifest betrifft, nicht die tatsächliche Ausrichtung).
+Version/Build unverändert bei `2.4.9`/Build 1 — der erste TestFlight-Upload
+lief unter diesem Stand durch.
 
 ---
 

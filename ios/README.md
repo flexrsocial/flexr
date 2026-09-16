@@ -58,6 +58,36 @@ alles andere gilt die Build-Einstellung `FLEXR_API_BASE_URL`
 
 ---
 
+## CI/CD (Codemagic)
+
+[codemagic.yaml](../codemagic.yaml) im Repo-Root baut den Workflow
+**`ios-flexr`** und lädt jeden erfolgreichen Build von `main` automatisch zu
+TestFlight hoch (`submit_to_testflight: true`). Signiert wird vollautomatisch
+über die App Store Connect API — kein lokal gepflegtes Zertifikat, kein
+Provisioning Profile im Repo.
+
+Damit das läuft, braucht der Codemagic-Account zwei Dinge, die **nicht** in
+der YAML stehen (Secrets):
+
+- **Integration `flexr_asc`** (Team settings → Integrations → App Store
+  Connect): ein **Team-Schlüssel** aus App Store Connect mit Zugriff
+  **Administrator:in** — ein `App-Manager`-Schlüssel reicht *nicht*, weil das
+  Erstellen von Zertifikat/Profil beim allerersten Build Admin-Rechte
+  braucht.
+- **Environment-Variable-Gruppe `ios_signing`** (App-Settings →
+  Environment variables) mit einer **secure** Variable
+  `CERTIFICATE_PRIVATE_KEY` (ein generischer 2048-bit-RSA-Key, siehe
+  `openssl genrsa`) — daraus baut `app-store-connect fetch-signing-files`
+  die Zertifikatsanfrage.
+
+Die Signier-Schritte in der YAML fetchen/erzeugen die Signierdateien
+explizit (`app-store-connect fetch-signing-files … --create`, `keychain
+add-certificates`, `xcode-project use-profiles`) statt sich auf den
+kürzeren `ios_signing:`-Umgebungsblock zu verlassen — der hat beim
+allerersten Zertifikat für diese Bundle-ID nicht zuverlässig funktioniert.
+
+---
+
 ## Zielarchitektur
 
 MVVM mit unidirektionalem Datenfluss, Repository-Muster und einem
