@@ -5,7 +5,7 @@ Stand: **17.09.2026**
 ## Wo das Projekt gerade steht
 
 **Alles committet, gepusht und deployed.** Der VPS steht auf demselben Stand
-wie `origin/main` (**`6950764`**, Stand 17.09.2026 nachts) — `git pull` und
+wie `origin/main` (**`46f439b`**, Stand 17.09.2026 nachts) — `git pull` und
 `sudo systemctl restart flexr-api` sind gelaufen, der Health-Check ist grün.
 
 > **FLEXR Premium ist seit dem 17.09.2026 scharf — und in allen drei
@@ -192,6 +192,138 @@ Ausgangssitzung), dann die **drei Abschnitte vom 10.09.**
 **08.09.**, dann die beiden Sitzungen vom **07.09.**, dann **06.09.**, dann
 **05.09.**, dann **31.08.**, **30.08.**, **23.08.**, **21.08.**; die Build-,
 Test- und Deploy-Abschnitte am Ende gelten sitzungsübergreifend.
+
+## Sitzung 17.09.2026 (7) — Push: warum nichts ankam, und was jetzt schickt
+
+**Gemeldet:** „Zum Zeitpunkt eines Nachrichtenerhalts im Chat kam bei der
+Android-App keine Pushnachricht. Erst als ich 1 h später die App manuell
+gestartet habe, ging auch die Pushnachricht gleichzeitig ein."
+
+### Es war kein Fehler im Code
+
+FLEXR hatte **keinen Push-Kanal** — und das stand so im eigenen Code
+(`notifications.py`: *„FLEXR hat bewusst kein FCM/APNs, die Apps holen ihre
+Benachrichtigungen per Hintergrundabgleich ab"*). Was wie eine Push-Nachricht
+aussah, war eine **lokale** Benachrichtigung, die die App sich selbst stellt,
+nachdem ihr WorkManager-Job den Server abgefragt hat.
+
+Dieser Entwurf hat eine Decke, die keine Einstellung verschiebt:
+
+* **15 Minuten** ist das kürzeste Intervall, das WorkManager für periodische
+  Arbeit zulässt.
+* Im **Doze-Modus** schiebt Android auch diesen Lauf in die nächste
+  Wartungsphase — auf einem schlafenden Telefon ein bis zwei Stunden.
+* Nach einem **erzwungenen Beenden** (Akku-Optimierung mancher Hersteller)
+  läuft gar nichts mehr, bis die App von Hand gestartet wird.
+
+Beim Öffnen holt WorkManager den überfälligen Lauf sofort nach. Genau das war
+zu sehen: Die Meldung kam im selben Moment wie der App-Start.
+
+### Was jetzt gebaut ist
+
+Der Server schickt selbst, über **FCM mit `priority: high`** — nur damit weckt
+Android ein Gerät aus dem Doze. Ohne diese Priorität wäre der ganze Umbau
+wirkungslos.
+
+| Teil | Wo |
+|---|---|
+| Tabelle `push_tokens` | Migration `c93f18ad6b27` |
+| Versand (FCM HTTP v1) | `backend/app/push.py` |
+| An-/Abmelden des Geräts | `POST` / `DELETE /api/notifications/token` |
+| Auslöser | `routers/messages.py`, nach dem Speichern |
+| Empfang | `android/.../push/FlexrMessagingService.kt` |
+
+### Vier Entscheidungen, die den Ausschlag geben
+
+**Der Token ist der Schalter.** Wer Benachrichtigungen abschaltet, wird
+abgemeldet; der Server hat dann niemanden, dem er zustellen könnte. Bewusst
+kein zusätzliches Flag am Konto — zwei Quellen für dieselbe Frage laufen
+früher oder später auseinander, und diese hier stimmt auch, wenn jemand die
+App löscht.
+
+**Zugestellt wird der zensierte Text**, nicht das Original. Die
+Benachrichtigung landet auf einem gesperrten Bildschirm; was der Empfänger in
+der App gar nicht zu sehen bekäme (Links, Kontaktdaten — siehe
+`safety_checks.redact_message`), hat dort erst recht nichts verloren. Gekürzt
+wird auf 120 Zeichen.
+
+**Push ist nie Teil des Sendens.** `push.send()` wirft nicht, und die
+Aufrufstelle fängt zusätzlich ab. Das ist keine doppelte Vorsicht, sondern der
+Punkt: Ein Ausfall bei Google darf nicht verhindern, dass jemand eine Nachricht
+schreiben kann — das wäre ein ungleich schlimmerer Fehler als der, der hier
+behoben wurde. Festgehalten in `test_nachricht_kommt_auch_ohne_push_an`.
+
+**Der Hintergrundabgleich bleibt.** Er ist jetzt der Fallback: für Geräte ohne
+Play-Dienste, für verlorene Zustellungen und für den Zustand, in dem FCM noch
+gar nicht eingerichtet ist. Beide benutzen dieselbe Benachrichtigungs-ID — holt
+der Abgleich später dieselbe Nachricht, **ersetzt** er die Meldung, statt eine
+zweite danebenzustellen.
+
+### Android ohne `google-services.json`
+
+Bewusst **ohne** das google-services-Gradle-Plugin: Mit ihm ließe sich die App
+ohne `google-services.json` gar nicht bauen, und die Datei gehört nicht ins
+Repository. Die vier Werte kommen stattdessen aus `gradle.properties` in
+BuildConfig, und `FlexrApplication.initFirebase()` startet Firebase nur, wenn
+alle vier da sind. Fehlen sie, passiert nichts und die App verhält sich wie
+bisher.
+
+Zu setzen in `~/.gradle/gradle.properties` (die Werte stehen in der
+Firebase-Konsole und sind keine Geheimnisse — sie stecken in jeder
+ausgelieferten Android-App):
+
+```
+flexr.firebase.projectId=…
+flexr.firebase.appId=…
+flexr.firebase.apiKey=…
+flexr.firebase.senderId=…
+```
+
+### Was noch fehlt, damit es wirkt
+
+**Ohne diese beiden Schritte bleibt Push aus** — der Server stellt nicht zu,
+die Apps holen weiter ab, alles läuft wie bisher:
+
+1. **Firebase-Projekt anlegen**, Android-App darin registrieren
+   (`flexr.social.app`) → die vier Werte oben.
+2. **Dienstkonto** mit der Rolle *Firebase Cloud Messaging API Admin*, JSON auf
+   den VPS, in die `.env`:
+   ```
+   FCM_SERVICE_ACCOUNT_FILE=/flexr/backend/fcm-service-account.json
+   FCM_PROJECT_ID=<projekt-id>
+   ```
+
+Gegengeprüft nach dem Deploy: `POST /api/notifications/token` → 200, ein zu
+kurzer Token → 422, `DELETE` → 200, `push.configured()` → False (erwartet,
+solange die Zugangsdaten fehlen).
+
+### Android 2.7.1 (versionCode 112)
+
+Enthält FCM und die Rücknahme des Like-Zählers im Beta-Abzeichen. 8,0 MB
+(vorher 7,7 — die Firebase-Bibliothek), signiert, `jarsigner -verify` → „jar
+verified". Abgelegt unter `../release-2.7.1/`:
+
+```
+7955631b452ad429cc6f466796329b9432ff83ba232d6ae24d575688520c5fd3  flexr-2.7.1-vc112.aab
+```
+
+2.7.0 (versionCode 111) ist damit überholt und war nie hochgeladen.
+
+### iOS
+
+Bleibt vorerst beim Hintergrundabgleich. Echte Zustellung bräuchte dort APNs
+(Push-Schlüssel im Apple-Developer-Konto, Entitlement, Registrierung im Client)
+— derselbe Umbau noch einmal, und er lässt sich hier ebenso wenig testen wie
+der StoreKit-Teil. Der Server ist darauf vorbereitet: `push_tokens.platform`
+kennt `ios` bereits, und `push.send()` schickt den APNs-Block mit.
+
+### Geprüft
+
+`backend/tests/test_push.py` (7 Fälle): An- und Abmelden, mehrfaches Anmelden
+desselben Tokens, Wandern des Tokens beim Kontowechsel, kein Versand ohne
+Zugangsdaten, Nachricht kommt auch bei krachendem Push an, zensierter Text,
+Kürzung. Gesamt **488 Backend-Tests grün**, Android kompiliert in allen
+Varianten, Android-Unit-Tests grün.
 
 ## Sitzung 17.09.2026 (6) — Suchumkreis: gespeicherter Wunsch ≠ wirksame Grenze
 
