@@ -86,6 +86,31 @@ Reiter leer und hält das für einen Fehler.
 > öffentlichen Veröffentlichung klären**, siehe ios/HANDOFF.md, Abschnitt „Der
 > wahrscheinlichste Streitpunkt im Review".
 
+**English translation** (das Anmerkungen-Feld ist nicht pro Sprache
+lokalisiert — nur einer der beiden Texte kann dort stehen, nicht beide
+gleichzeitig; Apples Prüfteam liest ohnehin meist Englisch):
+
+> FLEXR is only usable in Austria; registration requires an Austrian postal
+> code (e.g. 1010 for Vienna).
+>
+> Location sharing is not needed and is never requested — the radius search
+> is centered on the gym entered in the profile, whose address (postal code)
+> provides the center point.
+>
+> The age and identity verification requires a live selfie via the front
+> camera and an official photo ID. It is **mandatory**: without passing the
+> check, the deck, matches, and chat remain locked (only profile, photos,
+> verification, and account deletion are accessible beforehand). A human
+> reviewer decides, not automated facial recognition.
+>
+> FLEXR is permanently free to use, even beyond the beta. FLEXR Premium is
+> optionally available for €10/month, but currently disabled
+> (`PREMIUM_ENABLED=false` in the backend) — the app currently offers no
+> purchase and no subscription. Once Premium is enabled, purchases will run
+> through Stripe in the external browser as intended — **to be clarified
+> before submitting for public release**, see ios/HANDOFF.md, section „Der
+> wahrscheinlichste Streitpunkt im Review".
+
 ---
 
 ## App-Name (max. 30 Zeichen)
@@ -167,6 +192,95 @@ Lade FLEXR und finde jemanden, der deine PRs feiert statt sie zu googeln.
 
 ```
 Erste Fassung für iPhone und iPad.
+```
+
+---
+
+## English (zweite Sprache im iOS-App-Store-Eintrag)
+
+Analog zu `android/store/store-texte.md` — dort ist die Wahl auf **English
+(United Kingdom)** begründet (die App übersetzt britisch, nicht amerikanisch).
+Gleiches gilt hier.
+
+### App Name (max. 30 characters)
+
+```
+FLEXR
+```
+
+### Subtitle (max. 30 characters)
+
+```
+Dating for Gym People
+```
+
+*(22 characters. Alternative: „Match by Gym & Radius" — 22 characters.)*
+
+### Promotional Text (max. 170 characters, changeable anytime)
+
+```
+Dating for people who do leg day on Mondays too. Match by gym and radius –
+all over Austria. Free to use.
+```
+
+### Keywords (max. 100 characters, comma-separated, no spaces)
+
+```
+gym,fitness,dating,austria,training,partner,strength,studio,match,sport,flirt,single
+```
+
+*(84 characters. Don't include „FLEXR" — the app name is indexed anyway.)*
+
+### Description (max. 4000 characters)
+
+```
+FLEXR is dating for people who do leg day on Mondays too.
+
+Enough with endless swiping on people who only write "goes to the gym" in their bio. On FLEXR you meet real gym-people near you – all over Austria, from Vienna to Graz, Linz and Innsbruck.
+
+WHY FLEXR?
+
+• Match by gym & radius
+Find people who train at your gym or nearby. Set your gym and your radius – FLEXR shows you matching profiles in the area.
+
+• Verified profiles with a real photo only
+Every account passes an age and identity check before it can match and chat. No photo, no profile – that keeps out fakes and means your match really is the person you see.
+
+• A shared starting point from day one
+Powerlifting, CrossFit, bodybuilding, or just the daily walk on the treadmill: you already have something to talk about. And maybe your next training partner too.
+
+• Chat once you match
+Once it clicks on both sides, you can message. Meet up for a workout together, or a coffee (or protein shake) afterwards.
+
+• Made in Austria
+FLEXR is built for Austria – with real locations and gyms across the country.
+
+HOW IT WORKS
+
+1. Create a profile and upload a photo
+2. Set your gym and radius
+3. Swipe through profiles near you
+4. Match? Start chatting
+
+SAFETY
+
+Every photo is checked by a human before anyone sees it. Links and contact details are automatically removed from messages, and reporting and blocking are available on every profile and in every chat. Minimum age 18, checked server-side.
+
+PRICE
+
+FLEXR is free to use. FLEXR Premium is optionally available for €10/month, cancel anytime.
+
+FLEXR is for everyone 18 and older.
+
+Match. Train. Repeat.
+
+Get FLEXR and find someone who celebrates your PRs instead of googling them.
+```
+
+### What's New (with every update)
+
+```
+First release for iPhone and iPad.
 ```
 
 ---

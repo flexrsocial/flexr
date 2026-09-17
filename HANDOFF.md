@@ -149,7 +149,9 @@ Die `vc101`- bis `vc104`-Dateien sind hinfällig. Die Play Console hatte 43 und
 > englischen Texte lagen dort in einem Sprach-Split, den ein deutsches Gerät
 > nie herunterlädt. Erst ab 2.6.3 stecken beide Sprachen im Basis-Paket.
 
-Aufbau des Dokuments: erst diese Eckdaten, dann **die Sitzung vom 17.09. (2)**
+Aufbau des Dokuments: erst diese Eckdaten, dann **die Sitzung vom 17.09. (3)**
+(Durchsicht vor der Einreichung: Nutzerweg, Admin-Werkzeuge, Rechtstexte),
+dann **die Sitzung vom 17.09. (2)**
 (Verifizierungsablehnung: Fotos löschen, Nutzerliste kennzeichnen), dann **die
 Sitzung vom 17.09.** (Stripe-Umstellung auf FLEXR Premium), dann **zwei
 Abschnitte vom 16.09.**
@@ -162,6 +164,201 @@ Ausgangssitzung), dann die **drei Abschnitte vom 10.09.**
 **08.09.**, dann die beiden Sitzungen vom **07.09.**, dann **06.09.**, dann
 **05.09.**, dann **31.08.**, **30.08.**, **23.08.**, **21.08.**; die Build-,
 Test- und Deploy-Abschnitte am Ende gelten sitzungsübergreifend.
+
+## Sitzung 17.09.2026 (3) — Durchsicht vor der Einreichung: Nutzerweg, Admin-Werkzeuge, Rechtstexte
+
+Auftrag: vor der App-Store-Einreichung alles noch einmal auf Herz und Nieren
+prüfen — sämtliche Nutzerfunktionen, der ganze Nutzerweg, die Admin-Werkzeuge,
+beide Clients und die Rechtstexte gegen den tatsächlichen Stand von Website und
+Apps. Gefundene Fehler direkt beheben.
+
+Ausgangslage: 446 Tests grün. Danach: **452** (sechs neue in
+`backend/tests/test_audit_befunde.py`, eine Fixture korrigiert). Android
+kompiliert (`:app:compileProdReleaseKotlin`) und die Unit-Tests laufen durch
+(`:app:testProdReleaseUnitTest`).
+
+> **Android lässt sich auf dieser Maschine bauen** — das war bis heute nicht
+> notiert und wurde erst auf Nachfrage gefunden: JDK 17 unter
+> `~/.bubblewrap/jdk/jdk-17.0.11+9`, Android-SDK unter
+> `~/.bubblewrap/android_sdk` (Platform 36). Beides liegt nicht im `PATH`:
+>
+> ```bash
+> export JAVA_HOME=~/.bubblewrap/jdk/jdk-17.0.11+9
+> export ANDROID_HOME=~/.bubblewrap/android_sdk
+> export PATH="$JAVA_HOME/bin:$PATH"
+> cd android-native && ./gradlew :app:compileProdReleaseKotlin --offline
+> ```
+
+**Beide nativen Apps brauchen einen neuen Build**: iOS wegen Fix 15, Android
+wegen Fix 12, 13 und 14 (Rechtstexte und Verifizierungs-Weiterleitung stecken
+im Paket, nicht am Server).
+
+### Behoben — Backend
+
+1. **Bezahlwand in der Beta, obwohl Premium aus ist.** `swipes.py` prüfte an
+   zwei Stellen direkt `User.is_premium`. Das ist bei ausgeschaltetem Schalter
+   für *jeden* falsch (`models.py`: `is_premium = premium_enabled and
+   is_subscribed`). In der ausgelieferten Konfiguration bekam damit **jeder**
+   Nutzer `premium_required=True` von `/api/swipes/incoming` und einen harten
+   403 von `/api/swipes/rewind` — genau die Bezahlwand, nach der die
+   App-Prüfung sucht, in einer App, die mit "dauerhaft kostenlos" wirbt.
+   `premium.py` hält im Modulkopf fest, `premium_enabled` sei "der einzige
+   Hebel"; diese zwei Stellen waren der zweite. Neu: `premium.feature_locked()`
+   an einer Stelle, von beiden Routen benutzt.
+
+2. **Fremde Rücktrittserklärung per geratener `request_id` abrufbar.** Die
+   Idempotenz von `POST /api/withdrawal` schlug die client-erzeugte
+   `request_id` **ungebunden** nach und gab bei einem Treffer
+   `declaration_text` zurück — Name, Vertragsbezug und die eigenen Worte des
+   Erklärenden. Unangemeldet aufrufbar. Der Treffer zählt jetzt nur noch für
+   dasselbe Konto bzw. dieselbe E-Mail-Adresse. Kollidiert eine fremde id,
+   wird die Erklärung ohne Idempotenzschlüssel gespeichert statt am
+   Unique-Constraint zu scheitern — sie gilt mit dem Eingang (§ 13a FAGG) und
+   darf nie an einem 500er hängenbleiben.
+
+3. **Sperren verhinderte den Swipe nicht.** Nur Deck und Match-Liste filterten
+   `Block`; `POST /api/swipes` nicht. Aus einem vor der Sperre geladenen Deck
+   (oder einem wiederholten POST) entstand dadurch ein Match samt Mail und
+   Benachrichtigung an genau die Person, die gerade gesperrt hatte — und das
+   Match war für sie unsichtbar, also nicht einmal auflösbar.
+
+4. **Abgelehnte Fotos blieben öffentlich abrufbar.** `reject_photo` setzte nur
+   Status und Grund. Die Bilddatei blieb unter ihrer URL liegen
+   (`Cache-Control: public, max-age=31536000, immutable`, live nachgeprüft) —
+   dauerhaft, obwohl unter den Ablehnungsgründen "sexuell explizite
+   Darstellung", "Gewalt- oder Hassdarstellung" und "zeigt offenkundig eine
+   minderjährige Person" stehen. Jetzt wird das Objekt gelöscht; die Zeile
+   bleibt als Begründungsnachweis (Art. 17 DSA) — dafür braucht es die
+   Aufnahme nicht.
+
+5. **Endgültige Ablehnung sperrte ein Bestandskonto nicht.** `reject_verification`
+   nahm nur `is_verified` zurück. Ein Bestandskonto (`verification_required`
+   False), das sich freiwillig zur Prüfung gestellt hatte, blieb danach voll
+   nutzbar: Fotos weg, aber neu hochladbar und wieder im Deck — auch bei
+   Ablehnungsgrund "underage". Jetzt setzt die Ablehnung `verification_required`
+   und nimmt die Freischaltung zurück, so wie es der Docstring immer schon sagte.
+
+6. **Freigabe ließ die alte Ablehnungsbegründung stehen.** An einem wieder
+   sichtbaren Foto hing weiterhin "zeigt nicht die Person dieses Kontos".
+
+7. **Kontosperre ließ eine laufende Chat-Sperre als Rest zurück.** Ban über
+   aktiven Mute überschrieb dessen Begründung; das spätere Entsperren löschte
+   die Begründung mit, nicht aber `messaging_muted_until`. Ergebnis: weiterhin
+   stumm, ohne Begründung nach Art. 17 DSA. Die Kontosperre nimmt die
+   Chat-Sperre jetzt mit.
+
+8. **Wochenmail zählte Likes von Gesperrten.** "1 Person wartet auf dich",
+   während die Liste in der App leer blieb. `_pending_likes_count` filtert
+   jetzt dieselben Fälle wie `/api/swipes/incoming` (Sperren beidseitig,
+   Freischaltung, widerrufene Art.-9-Einwilligung).
+
+9. **`/api/swipes/incoming` zeigte Konten mit widerrufener Art.-9-Einwilligung.**
+   Das Deck filtert sie seit jeher ("darf in keinem fremden Deck mehr
+   erscheinen"), die eingehenden Likes nicht.
+
+### Behoben — Admin-Dashboard
+
+10. **Gym-Tabs legten die Foto-Freigabe lahm.** Der Foto-Handler hing an jedem
+    `.tab-btn`, also auch an den Gym-Tabs (dieselbe Klasse, aber
+    `data-gym-status`). Ein Klick dort setzte `currentPhotoStatus` auf
+    `undefined` und lud die Foto-Freigabe mit `status=undefined` neu → 400,
+    Fehlermeldung bis zum Neuladen der Seite. Jetzt `.tab-btn[data-status]`.
+
+11. **"Prüfung nachfordern" fehlte genau dort, wo es der einzige Ausweg ist.**
+    Der Knopf erschien nur bei `!verification_required` — also nie bei einem
+    endgültig abgelehnten Konto. Das steckt aber ohne ihn für immer fest:
+    Fotos gelöscht, `/verification/start` verweigert wegen bindender
+    Entscheidung, und `require-verification` ist der einzige Weg, der die
+    frühere Ablehnung durch ein neues `verification_required_at` entwertet.
+
+### Behoben — Rechtstexte
+
+12. **Android nannte 5 € und einen Probemonat.** Beides gibt es nicht:
+    `legal.py` sagt 10 €, `models.py` hält fest, dass die Probemonat-Spalte tot
+    ist, `stripe_client.py` legt "ohne Probezeit" an. iOS und Web waren
+    korrekt, nur die Android-Fassung war stehengeblieben — in AGB § 4, § 5 und
+    im FAQ. Auf den iOS-Wortlaut nachgezogen.
+
+13. **Die Fotolöschung bei endgültiger Ablehnung stand in keiner
+    Datenschutzerklärung.** Sie ist erst in Sitzung (2) heute entstanden. In
+    allen vier Fassungen (Web DE/EN, iOS, Android) als eigener Absatz
+    "Endgültige Ablehnung" ergänzt.
+
+### Behoben — Android
+
+14. **Der 403 „verification_required" wurde gar nicht behandelt.** Das Backend
+    wirft diesen Code ausdrücklich, „damit die Clients gezielt auf den
+    Verifizierungsbildschirm leiten können" (`security.py`). iOS macht das seit
+    jeher: `APIClient` → `SessionStore.handleVerificationRequired()` →
+    `AppModel` wechselt ins Gate. Android kannte den Code nicht und zeigte auf
+    dem Deck nur „Zugriff nicht möglich" — der Nutzer saß fest, ohne Erklärung
+    und ohne Weg. Fix 5 oben macht genau diesen Fall häufiger, weil eine
+    Ablehnung die Freischaltung jetzt entzieht. Neu: `isVerificationRequired`
+    an `FlexrApiException`, ein prozessweites `VerificationGate`-Signal aus dem
+    Fehler-Parser und ein Beobachter im `MainViewModel`, der die Sitzung neu
+    bestimmt — derselbe Weg wie auf iOS.
+
+### Behoben — iOS
+
+15. **Hintergrundabgleich wurde bei jedem App-Start weiter nach hinten
+    geschoben.** `BGTaskScheduler` merkt sich je Kennung einen Auftrag, und
+    jedes `submit` setzt dessen `earliestBeginDate` neu auf "in 15 Minuten".
+    `loadSession()` läuft bei jeder Rückkehr in den Vordergrund und rief genau
+    das auf — wer die App oft öffnete, bei dem kam der Abgleich nie dran.
+    Angemeldet wird jetzt beim Wechsel in den **Hintergrund**, also dann, wenn
+    Apple es vorsieht.
+
+### Nicht behoben — bewusste Entscheidungen und offene Punkte
+
+- **Es gibt keinen echten Push.** FLEXR hat kein APNs/FCM; beide Apps pollen
+  und erzeugen **lokale** Benachrichtigungen (`notifications.py`, Modulkopf;
+  iOS `BGAppRefreshTask`, Android WorkManager). Dass eine Nachricht erst beim
+  Öffnen der App aufpoppt, ist die Bauweise, kein Konfigurationsfehler. Fix 14
+  verbessert das Zeitfenster, beseitigt es aber nicht. Echtzeit gibt es nur mit
+  APNs: Push-Key, Entitlement, Geräte-Token-Endpunkt, serverseitiger
+  APNs-Client, neuer Build. Eigene Entscheidung, nicht nebenbei vor einer
+  Einreichung.
+- **`price_cents` kommt auch bei ausgeschaltetem Premium mit.** Der Agent hielt
+  das für ein Leck; das Schema sagt ausdrücklich das Gegenteil ("Preis, damit
+  '10 €' nirgends im Client fest steht", Grenzen "immer gefüllt, damit die
+  Oberfläche sie auch während der Beta schon erklären kann"). Die Clients
+  blenden an `premium_enabled` aus. Unverändert gelassen.
+- **`optional_current_user` liefert gesperrte und gelöschte Konten.** Der
+  Docstring behauptete das Gegenteil. Das Verhalten ist aber das bessere: An
+  der Zuordnung hängt der automatische Stopp eines laufenden Stripe-Abos beim
+  Rücktritt. Docstring korrigiert, Verhalten belassen.
+- **Native Rechtstexte tragen "Stand: 3. August 2026" für Nutzungsrichtlinien
+  und Strafverfolgungsrichtlinien**, Web und `legal.py` sagen 19. August 2026.
+  Das Datum **nicht** einfach hochgesetzt: Ein Wortschatzvergleich zeigt, dass
+  die native Fassung inhaltlich kürzer ist (u. a. fehlen
+  "Beschwerdemanagementsystem", "Abhilfeverfahren", "Berichtspflicht"). Das
+  Datum zu ändern hieße, eine Fassung zu behaupten, die die App nicht enthält.
+  **Zu entscheiden:** native Texte auf den vollen Stand ziehen (dann Datum
+  mit) oder als bewusst gekürzte Fassung kennzeichnen.
+- **Swipe gilt lokal als gesetzt, bevor der Server geantwortet hat** — auf
+  beiden Clients (`SwipeModel.swift`, `SwipeViewModel.kt`): Der Index wandert
+  weiter, dann erst läuft der Aufruf. Schlägt er fehl, ist die Karte weg und
+  der Like nie angekommen. Nicht angefasst, weil es eine Verhaltensänderung in
+  zwei Clients wäre (Karte zurücklegen und erneut anbieten) und beide dafür neu
+  gebaut und von Hand geprüft werden müssten. **Lohnt sich als Nächstes.**
+- **Offen, gemeldet, nicht angefasst:** doppelter gleichzeitiger Like läuft in
+  einen `IntegrityError` → 500 statt Match (`swipes.py`, check-then-insert
+  gegen `uq_swipe_pair`/`uq_match_pair`); ein `pending` Gym-Vorschlag mit
+  vorhandenem Namen kann Bestandsprofile aus der Suche kippen (`gym_geo.py`);
+  das Dashboard paginiert nirgends (Zähler zeigen Gesamtzahl, Liste 50);
+  `list_users` enthält selbstgelöschte Konten, `get_stats` nicht;
+  Hard-Delete eines Nutzers erledigt offene Meldungen ohne Entscheidung nach
+  Art. 16 Abs. 5 DSA.
+
+### Geprüft und in Ordnung
+
+Live gegen die Produktion: Login mit dem Prüfkonto, Deck/Matches/Incoming
+liefern für ein unverifiziertes Konto 403, Profil und Verifizierungsstatus 200,
+ohne Token 401. Android fordert keine Standortberechtigung (nur Internet,
+Netzwerkstatus, Kamera, Benachrichtigungen). `FakeFlexrApi` ist synchron zu
+`FlexrApi`. Rechtstexte stimmen in allen vier Fassungen bei Standort,
+Aufbewahrungsfristen, Auftragsverarbeitern, Verifizierungsverfahren, Alter und
+Verfügbarkeit überein; die Betreiberangaben sind überall identisch und richtig.
 
 ## Sitzung 17.09.2026 (2) — Verifizierungsablehnung: Fotos löschen, Nutzerliste kennzeichnen
 
