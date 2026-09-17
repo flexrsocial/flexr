@@ -66,7 +66,19 @@ def deck_profiles(db: Session, current_user: User, limit: int = DECK_SIZE) -> li
     if my_coords is None:
         return []
 
-    radius = current_user.search_radius_km or 20
+    # Gekappt, nicht bloss gelesen. ``search_radius_km`` ist der **Wunsch** des
+    # Nutzers; wirksam ist er nur bis zur Grenze, die sein Konto hergibt
+    # (premium.clamp_radius). Ohne diese Zeile suchten Konten weiter mit einem
+    # Wert, den sie eingestellt haben, als es die Grenze noch nicht gab - beim
+    # Scharfschalten von Premium am 17.09.2026 standen drei Konten auf 250 km
+    # und bekamen damit ohne Abo genau das, wofuer Premium bezahlt wird.
+    #
+    # Bewusst hier und nicht als einmalige Datenkorrektur: Der gespeicherte
+    # Wunsch bleibt erhalten und wird von selbst wieder wirksam, sobald jemand
+    # Premium abschliesst. Beim Speichern kappt profiles.py zusaetzlich - das
+    # eine ersetzt das andere nicht, weil ein Konto seine Grenze auch ohne
+    # Speichern verlieren kann (Abo endet, Schalter kippt).
+    radius = premium.clamp_radius(current_user, current_user.search_radius_km or 20)
     # Erst die Studios im Umkreis bestimmen, dann die Nutzer dazu holen. Die
     # Entfernung hängt nur am Gym, und die Gym-Tabelle bleibt klein - so wird
     # nie ein naher Treffer abgeschnitten, weil weiter entfernte Konten die

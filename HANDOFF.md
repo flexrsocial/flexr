@@ -193,6 +193,63 @@ Ausgangssitzung), dann die **drei Abschnitte vom 10.09.**
 **05.09.**, dann **31.08.**, **30.08.**, **23.08.**, **21.08.**; die Build-,
 Test- und Deploy-Abschnitte am Ende gelten sitzungsübergreifend.
 
+## Sitzung 17.09.2026 (6) — Suchumkreis: gespeicherter Wunsch ≠ wirksame Grenze
+
+**Nachgefragt wurde:** ob neu erstellte Profile ohne Premium automatisch auf
+50 km begrenzt sind.
+
+**Die Antwort ist zweigeteilt, und der zweite Teil war ein Fehler.**
+
+Neue Konten starten bei **20 km** (`models.User.search_radius_km`, Standard
+20) — die liegen also ohnehin unter der Grenze. Der Regler selbst ist in allen
+drei Oberflächen **bewusst** über die volle Spannweite bedienbar (2–250 km):
+Wer ihn nach rechts zieht, soll sehen, was es dort gäbe, statt an einem stummen
+Anschlag zu hängen. Gespeichert wird nur das Erlaubte, `profiles.py` kappt beim
+Schreiben über `premium.clamp_radius()`.
+
+**Gesucht wurde aber ungekappt.** `swipes.py` las `search_radius_km` roh aus
+dem Konto. Für Konten, die ihren Wert eingestellt haben, *als es die Grenze
+noch nicht gab*, greift das Kappen beim Speichern nie — sie fassen ihr Profil
+ja nicht an. In der Produktion betraf das beim Nachsehen **drei Konten mit
+250 km**, darunter das Apple-Prüfkonto:
+
+```
+appreview@flexr.social      radius=250  premium=False
+zahariev.bul@gmail.com      radius=250  premium=False
+liisa_koch@hotmail.com      radius=250  premium=False
+```
+
+Sie bekamen damit ohne Abo genau das, wofür Premium bezahlt wird.
+
+**Behoben in `deck_profiles()`**: Der Radius wird jetzt bei der Suche gekappt.
+Bewusst dort und **nicht** als einmalige Datenkorrektur — der gespeicherte
+Wunsch bleibt erhalten und wird von selbst wieder wirksam, sobald jemand
+Premium abschließt. Das Kappen beim Speichern bleibt zusätzlich bestehen; das
+eine ersetzt das andere nicht, weil ein Konto seine Grenze auch ohne Speichern
+verlieren kann (Abo endet, Schalter kippt).
+
+Festgehalten in
+`test_gespeicherter_umkreis_von_frueher_wirkt_nicht_weiter`: 250 km in der Zeit
+ohne Grenzen gespeichert, Premium scharf geschaltet, Wunsch bleibt in der
+Datenbank stehen — wirksam sind 50 km, und mit Premium wieder 250, ohne dass
+jemand sein Profil erneut speichern müsste.
+
+**481 Backend-Tests grün.**
+
+### Nebenbefund für die Einreichung
+
+Das Prüfkonto `appreview` sucht damit ab sofort im 50-km-Umkreis statt 250. Sein
+Deck war ohnehin leer (kein männliches Gegenkonto, siehe Sitzung (3)) — durch
+die Umstellung wird der Umkreis aber zusätzlich enger. Wer dort ein Gegenkonto
+anlegt, muss es **innerhalb von 50 km** um `3D Lady Fit` in Graz platzieren.
+
+### Android 2.7.1 (versionCode 112)
+
+Enthält zusätzlich die Rücknahme des Like-Zählers im Beta-Abzeichen. 2.7.0 war
+noch nicht hochgeladen, bekommt aber trotzdem eine eigene Nummer: Unter
+derselben Nummer liegen sonst zwei verschiedene Inhalte, und am Dateinamen wäre
+nicht mehr erkennbar, welcher davon auf einem Gerät liegt.
+
 ## Sitzung 17.09.2026 (5) — In-App-Käufe: StoreKit und Play Billing
 
 **Auftrag:** „Premium soll aber unbedingt aus den apps heraus kaufbar sein —

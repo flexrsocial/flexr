@@ -344,6 +344,47 @@ def test_umkreis_wird_auf_das_erlaubte_gekappt(client, monkeypatch, premium, erw
     assert resp.json()["search_radius_km"] == erwartet
 
 
+def test_gespeicherter_umkreis_von_frueher_wirkt_nicht_weiter(client, monkeypatch):
+    """Ein Wert aus der Zeit ohne Grenzen darf nicht heimlich weitergelten.
+
+    Der Fall ist real aufgetreten: Beim Scharfschalten von Premium am
+    17.09.2026 standen drei Konten auf 250 km - eingestellt, als das fuer alle
+    erlaubt war. Das Kappen beim *Speichern* greift bei ihnen nie, weil sie ihr
+    Profil nicht anfassen. Gekappt wird deshalb auch bei der Suche.
+    """
+    monkeypatch.setattr(settings, "premium_enabled", False)
+    headers = register_user(client, "altbestand@example.com")
+
+    # In der Zeit ohne Grenzen laesst sich 250 km speichern.
+    resp = client.patch(
+        "/api/profiles/me", json={"search_radius_km": 250}, headers=headers
+    )
+    assert resp.json()["search_radius_km"] == 250
+
+    # Jetzt wird Premium scharf - der gespeicherte Wunsch bleibt stehen ...
+    monkeypatch.setattr(settings, "premium_enabled", True)
+    monkeypatch.setattr(settings, "free_max_radius_km", 50)
+    assert client.get("/api/profiles/me", headers=headers).json()["search_radius_km"] == 250
+
+    # ... aber gesucht wird nur noch mit dem Erlaubten.
+    from app import premium as premium_modul
+    from app.models import User
+
+    db = TestingSessionLocal()
+    try:
+        user = db.query(User).filter(User.email == "altbestand@example.com").one()
+        assert user.search_radius_km == 250, "der Wunsch bleibt gespeichert"
+        assert premium_modul.clamp_radius(user, user.search_radius_km) == 50
+
+        # Und mit Premium wird derselbe Wunsch wieder wirksam, ohne dass
+        # jemand das Profil erneut speichern muesste.
+        user.is_subscribed = True
+        db.commit()
+        assert premium_modul.clamp_radius(user, user.search_radius_km) == 250
+    finally:
+        db.close()
+
+
 # ---------------------------------------------------------------------------
 # Premium-Funktionen
 # ---------------------------------------------------------------------------

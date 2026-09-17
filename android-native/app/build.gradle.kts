@@ -134,8 +134,11 @@ android {
         // gegen die Payments-Policy, also bietet der Server App-Clients gar
         // keinen an (siehe backend/app/clients.py). Gekauft wird im Browser,
         // die Leistung daraus wirkt auch hier.
-        versionCode = 111
-        versionName = "2.7.0"
+        // 112/2.7.1 am 17.09.2026: Das Beta-Abzeichen zeigte seit dem
+        // Scharfschalten "Beta · n Likes" - der Like-Zaehler war der Kopfzeile
+        // zu viel, die Restzahl steht ohnehin im Konto. Zurueck auf "Beta".
+        versionCode = 112
+        versionName = "2.7.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         // Nur die Sprachen ausliefern, die es wirklich gibt: Deutsch als
