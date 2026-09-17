@@ -38,6 +38,12 @@ struct RootView: View {
         // steht hier derselbe Ladezustand wie auf dem Startbildschirm — die App
         // springt also nie kurz auf den Login, um dann umzuschalten.
         .onChange(of: scenePhase) { _, phase in
+            // Hintergrund: Erst hier wird der Abgleich für Nachrichten und
+            // Aktivität angemeldet — siehe AppModel.scheduleBackgroundRefresh().
+            if phase == .background {
+                appModel.scheduleBackgroundRefresh()
+                return
+            }
             // Rückkehr aus dem Stripe-Checkout im Browser: Premium-Status neu
             // holen. Früher nur im gesperrten Zustand — den gibt es nicht mehr,
             // also bei jeder Rückkehr in den Vordergrund. Der Aufruf ist billig

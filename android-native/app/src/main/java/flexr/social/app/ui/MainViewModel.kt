@@ -9,6 +9,7 @@ import flexr.social.app.core.locale.AppLanguage
 import flexr.social.app.core.locale.AppStrings
 import flexr.social.app.core.locale.LanguageStore
 import flexr.social.app.core.network.FlexrApiException
+import flexr.social.app.core.network.VerificationGate
 import flexr.social.app.data.repository.AuthRepository
 import flexr.social.app.data.repository.BillingRepository
 import flexr.social.app.data.repository.MatchRepository
@@ -80,6 +81,15 @@ class MainViewModel @Inject constructor(
         // 401 vom Backend: Sitzung ist weg, zurück auf den Login.
         authRepository.sessionExpired
             .onEach { logout() }
+            .launchIn(viewModelScope)
+
+        // 403 "verification_required" mitten in der Sitzung: Die Freischaltung
+        // wurde entzogen (neue Prüfung angefordert oder Prüfung endgültig
+        // abgelehnt). Sitzung neu bestimmen — loadSession() schaltet dann
+        // anhand von isAccountActivated auf NeedsVerification. Ohne das blieb
+        // der Nutzer auf dem Deck stehen und sah nur "Zugriff nicht möglich".
+        VerificationGate.events
+            .onEach { if (_appState.value is AppState.Ready) loadSession() }
             .launchIn(viewModelScope)
 
         // Die Mitgliedschaft aendert sich auch ohne neuen Anmeldevorgang: nach

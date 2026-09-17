@@ -124,6 +124,22 @@ final class AppModel {
         }
     }
 
+    /// Hintergrundabgleich anmelden, wenn die App in den Hintergrund geht.
+    ///
+    /// Genau dann und nicht bei jedem Laden der Sitzung: `BGTaskScheduler`
+    /// merkt sich je Kennung **einen** Auftrag, und jedes erneute `submit`
+    /// setzt dessen `earliestBeginDate` wieder auf "in 15 Minuten". Da
+    /// `loadSession()` bei jeder Rückkehr in den Vordergrund läuft, schob
+    /// bisher jeder App-Start den frühestmöglichen Lauf weiter nach hinten —
+    /// wer die App oft öffnete, bei dem kam der Abgleich nie dran, und die
+    /// Benachrichtigung erschien erst beim nächsten Öffnen. Der Wechsel in
+    /// den Hintergrund ist auch der von Apple dafür vorgesehene Zeitpunkt.
+    func scheduleBackgroundRefresh() {
+        guard case .ready = state else { return }
+        container.notifications.schedule()
+        container.activityNotifications.schedule()
+    }
+
     /// Nach Login/Registrierung: Profil und Mitgliedschaft laden.
     func loadSession() async {
         do {
@@ -142,8 +158,6 @@ final class AppModel {
             }
 
             let membership = try await container.billing.refresh()
-            container.notifications.schedule()
-            container.activityNotifications.schedule()
             state = .ready(profile: profile, membership: membership)
         } catch {
             // Token ungültig oder Server nicht erreichbar — bei 401 hat der

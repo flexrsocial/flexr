@@ -4,6 +4,9 @@ import androidx.annotation.StringRes
 import flexr.social.app.R
 import flexr.social.app.core.common.ServerTime
 import flexr.social.app.core.locale.AppStrings
+import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
@@ -38,6 +41,44 @@ class FlexrApiException(
     val isPaymentRequired: Boolean get() = statusCode == 402
     val isMessagingMuted: Boolean get() = mutedUntil != null
     val isAccountDeleted: Boolean get() = code == "account_deleted"
+
+    /**
+     * Das Konto ist nicht (mehr) freigeschaltet: Deck, Matches und Chat sind
+     * gesperrt (`require_activated_account` im Backend). Der Code statt des
+     * Textes, damit die App nicht an einer Meldung haengt, die sich jederzeit
+     * aendern darf — genauso wie in der iOS-Fassung.
+     */
+    val isVerificationRequired: Boolean
+        get() = statusCode == 403 && code == "verification_required"
+}
+
+/**
+ * Prozessweites Signal "das Konto ist nicht mehr freigeschaltet".
+ *
+ * Beim Start entscheidet das Profil selbst, welcher Bildschirm laeuft. Wird die
+ * Freischaltung aber *waehrend* einer Sitzung entzogen — der Pruefer fordert
+ * eine neue Pruefung an, oder eine Pruefung wird endgueltig abgelehnt —, dann
+ * merkt die App das nur an einem 403 auf dem naechsten Aufruf. Ohne dieses
+ * Signal blieb der Nutzer auf dem Deck stehen und sah lediglich "Zugriff nicht
+ * moeglich", waehrend dieselbe Kontolage auf iOS sauber ins Verifizierungs-Gate
+ * fuehrt.
+ *
+ * Bewusst ein Singleton und kein injizierter Dienst: [apiCall] ist `inline` und
+ * hat keine Abhaengigkeiten zur Hand, und der Zustand ist prozessweit ohnehin
+ * eindeutig.
+ */
+object VerificationGate {
+
+    private val _events = MutableSharedFlow<Unit>(
+        replay = 0,
+        extraBufferCapacity = 1,
+        onBufferOverflow = BufferOverflow.DROP_OLDEST,
+    )
+    val events: SharedFlow<Unit> = _events
+
+    fun signal() {
+        _events.tryEmit(Unit)
+    }
 }
 
 object ApiErrorParser {
@@ -114,7 +155,12 @@ object ApiErrorParser {
             }
             else -> defaultMessage(code)
         }
-        return FlexrApiException(code, message, mutedUntil, moderationReason, appealHint, errorCode)
+        val exception =
+            FlexrApiException(code, message, mutedUntil, moderationReason, appealHint, errorCode)
+        // Eine entzogene Freischaltung gehoert nicht in eine Fehlermeldung,
+        // sondern in einen Bildschirmwechsel - siehe VerificationGate.
+        if (exception.isVerificationRequired) VerificationGate.signal()
+        return exception
     }
 
     private fun defaultMessage(code: Int): String = when (code) {
