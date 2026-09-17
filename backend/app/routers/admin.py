@@ -813,6 +813,8 @@ def reject_verification(
     """Endgültige Ablehnung: Das Konto wird nicht freigeschaltet, alle
     temporären Aufnahmen werden gelöscht. Ein Neuanlauf ist danach nur über
     "Neue Aufnahme anfordern" möglich."""
+    from ..cleanup import delete_storage_objects, storage_keys_for_photo
+
     req, user = _load_verification(db, request_id)
 
     req.status = VerificationStatus.rejected
@@ -823,6 +825,14 @@ def reject_verification(
     # Eine abgelehnte Prüfung nimmt weder den blauen Haken noch eine früher
     # bestätigte Altersprüfung zurück - beides entsteht nur bei Freigabe.
     user.is_verified = False
+
+    # Ohne bestandene Prüfung darf kein Profilfoto des Kontos irgendwo
+    # abrufbar bleiben - unabhängig vom Freigabestatus (pending/approved/
+    # rejected). Sonst hängen Bilder in der Foto-Freigabe oder unter ihrer
+    # öffentlichen URL weiter herum, obwohl das Konto nie verifiziert wurde.
+    for photo in db.query(Photo).filter(Photo.user_id == user.id).all():
+        delete_storage_objects(storage_keys_for_photo(photo))
+        db.delete(photo)
 
     deleted = purge_uploads(req)
     db.commit()

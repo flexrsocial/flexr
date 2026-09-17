@@ -306,6 +306,7 @@ def test_final_rejection_blocks_account_and_restart(client, storage_stub):
     assert me["is_verified"] is False
     assert me["age_verified"] is False
     assert me["is_account_activated"] is False
+    assert me["photos"] == []  # Profilfotos verschwinden mit der Ablehnung
     assert client.get("/api/swipes/deck", headers=headers).status_code == 403
 
     # Kein Neuanlauf auf Zuruf - sonst wäre die Altersprüfung wirkungslos
