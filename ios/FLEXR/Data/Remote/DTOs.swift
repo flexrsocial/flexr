@@ -223,6 +223,9 @@ struct AddPhotoRequestDTO: Encodable {
 struct MembershipStatusDTO: Decodable {
     let isPremium: Bool?
     let premiumEnabled: Bool?
+    let limitsActive: Bool?
+    let checkoutAvailable: Bool?
+    let betaActive: Bool?
     let hasStripeSubscription: Bool?
     let priceCents: Int?
     let currency: String?

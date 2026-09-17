@@ -4,10 +4,14 @@ import SwiftUI
 ///
 /// Ohne Premium liefert der Server keine Fehlermeldung, sondern die Anzahl ohne
 /// Profile (`premiumRequired`). Diese Unterscheidung bleibt bis in die
-/// Oberfläche erhalten: „3 Leute warten auf dich" ist die ehrliche Antwort und
-/// zugleich der beste Grund, sich Premium anzusehen — eine Fehlermeldung wäre
-/// beides nicht. Wer ohne Abo hier landet, hat nichts verloren; er sieht nur
-/// nicht, wer es ist.
+/// Oberfläche erhalten: „3 Leute warten auf dich" ist die ehrliche Antwort —
+/// eine Fehlermeldung wäre es nicht. Wer ohne Abo hier landet, hat nichts
+/// verloren; er sieht nur nicht, wer es ist.
+///
+/// Der Weg zum Angebot steht hier nur, wenn der Server diesem Client einen
+/// Abschluss überhaupt anbietet. In der App tut er das nicht (App Review
+/// Guideline 3.1.1, siehe `backend/app/clients.py`) — dann bleibt es bei der
+/// Auskunft, ohne Knopf und ohne Preis.
 struct IncomingView: View {
     @Environment(LanguageStore.self) private var languageStore
     private var s: FlexrStrings { languageStore.strings }
@@ -16,6 +20,7 @@ struct IncomingView: View {
     let onOpenPremium: () -> Void
 
     @Environment(AppContainer.self) private var container
+    @Environment(AppModel.self) private var appModel
 
     @State private var likes: IncomingLikes?
     @State private var isLoading = true
@@ -53,8 +58,10 @@ struct IncomingView: View {
                     : s(.incomingLockedTitle, likes.count),
                 message: s(.incomingLockedSub)
             ) {
-                FlexrButton(title: s(.premiumShowOffer), action: onOpenPremium)
-                    .frame(maxWidth: 260)
+                if appModel.membership?.premiumEnabled == true {
+                    FlexrButton(title: s(.premiumShowOffer), action: onOpenPremium)
+                        .frame(maxWidth: 260)
+                }
             }
             .frame(maxHeight: .infinity)
         } else if let likes, !likes.profiles.isEmpty {

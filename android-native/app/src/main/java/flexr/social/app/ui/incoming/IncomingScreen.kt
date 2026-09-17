@@ -54,11 +54,17 @@ import flexr.social.app.domain.model.Profile
  * plus der Hinweis, dass dieselben Leute auch ganz normal im Deck auftauchen.
  * Wer ohne Premium hier landet, hat nichts verloren — er sieht nur nicht, wer
  * es ist.
+ *
+ * Der Weg zum Angebot steht hier nur, wenn der Server diesem Client einen
+ * Abschluss überhaupt anbietet ([premiumOffered]). In der App tut er das nicht
+ * (Play-Payments-Policy, siehe `backend/app/clients.py`) — dann bleibt es bei
+ * der Auskunft, ohne Knopf und ohne Preis.
  */
 @Composable
 fun IncomingScreen(
     onBack: () -> Unit,
     onOpenPremium: () -> Unit,
+    premiumOffered: Boolean,
     viewModel: IncomingViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -125,11 +131,13 @@ fun IncomingScreen(
                         },
                         description = stringResource(R.string.incoming_locked_sub),
                     )
-                    FlexrButton(
-                        text = stringResource(R.string.premium_show_offer),
-                        onClick = onOpenPremium,
-                        modifier = Modifier.padding(top = 4.dp),
-                    )
+                    if (premiumOffered) {
+                        FlexrButton(
+                            text = stringResource(R.string.premium_show_offer),
+                            onClick = onOpenPremium,
+                            modifier = Modifier.padding(top = 4.dp),
+                        )
+                    }
                 }
 
                 else -> LazyColumn(

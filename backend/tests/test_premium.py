@@ -103,7 +103,7 @@ def test_ohne_premium_schalter_ist_alles_unbegrenzt(client, monkeypatch):
     assert client.get("/api/swipes/deck", headers=headers).status_code == 200
 
 
-def test_checkout_erst_nach_der_beta(client, monkeypatch):
+def test_checkout_bei_ausgeschaltetem_premium(client, monkeypatch):
     """Kein Vertrag ueber Funktionen, die es gerade ohnehin unbegrenzt gibt."""
     monkeypatch.setattr(settings, "premium_enabled", False)
     headers = register_user(client, "zufrueh@example.com")
@@ -114,7 +114,7 @@ def test_checkout_erst_nach_der_beta(client, monkeypatch):
         headers=headers,
     )
     assert resp.status_code == 409
-    assert "Beta" in resp.json()["detail"]
+    assert "nicht bestellbar" in resp.json()["detail"]
 
     # Und es bleibt keine Einwilligungs-Buchung zurueck.
     db = TestingSessionLocal()

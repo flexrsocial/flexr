@@ -2726,9 +2726,11 @@
           <li><svg class="ico" viewBox="0 0 24 24"><path d="M5 12.5 10 17 19 7"/></svg><span data-i18n="premium.featBadge">Premium-Abzeichen in deinem Profil</span></li>
         </ul>
         <button class="btn" id="btnSubscribe2" data-i18n="premium.subscribe">Premium holen</button>
-        <!-- Solange der Server premium_enabled=false meldet (Beta), steht hier
-             statt des Knopfes der Hinweis, dass es das noch nicht gibt. -->
-        <div class="photo-hint" id="premiumBetaHint" style="display:none;" data-i18n="premium.betaHint">FLEXR Premium kommt nach der Beta-Phase. Bis dahin ist alles unbegrenzt — ohne Kosten und ohne Zahlungsmittel.</div>
+        <!-- Meldet der Server checkout_available=false, steht hier statt des
+             Knopfes der Hinweis, dass hier nichts zu bestellen ist. Im Browser
+             ist das nur der Fall, wenn Premium serverseitig ausgeschaltet
+             wurde - in den Apps immer (siehe backend/app/clients.py). -->
+        <div class="photo-hint" id="premiumBetaHint" style="display:none;" data-i18n="premium.betaHint">FLEXR Premium ist hier gerade nicht bestellbar. Die Nutzung von FLEXR kostet unverändert nichts.</div>
       </div>
       <div class="account-section" style="margin-top:20px;">
         <button class="btn secondary" id="btnPremiumBack" data-i18n="common.back">Zurück</button>
@@ -2938,12 +2940,11 @@
       </p>
       <div class="beta-free" data-i18n-html="beta.free">
         <b>FLEXR zu nutzen kostet nichts — dauerhaft.</b>
-        Kein Probemonat, keine Mitgliedsgebühr, kein Zahlungsmittel. Nach der
-        Beta kommt <b class="inline">FLEXR&nbsp;Premium</b> für 10&nbsp;€ im
-        Monat dazu: freiwillig, monatlich kündbar und nur für alle, die mehr
-        wollen als die 20 Likes pro Tag und 3 gleichzeitigen Unterhaltungen,
-        die dann für Standardkonten gelten. Während der Beta ist auch das
-        unbegrenzt.
+        Kein Probemonat, keine Mitgliedsgebühr, bei der Registrierung kein
+        Zahlungsmittel. Für Standardkonten gelten 20&nbsp;Likes pro Tag und
+        3&nbsp;gleichzeitige Unterhaltungen; wer mehr will, kann
+        <b class="inline">FLEXR&nbsp;Premium</b> für 10&nbsp;€ im Monat
+        dazunehmen — freiwillig und monatlich kündbar.
       </div>
       <ul class="beta-dates">
         <li><b>Android</b><span data-i18n="beta.android">Veröffentlichung geplant für Ende September 2026</span></li>
@@ -2999,7 +3000,9 @@
   // kostenlose Plattform mit optionalem Premium geworden. Das ist die
   // wichtigste Aussage des Dialogs - wer v2 weggeklickt hatte, saehe sie
   // sonst nie.
-  var KEY = 'flexr_beta_notice_v3';
+  // v4 seit 17.09.2026: Premium ist bestellbar, die Grenzen des kostenlosen
+  // Kontos gelten. Der Dialog hat bis dahin das Gegenteil zugesagt.
+  var KEY = 'flexr_beta_notice_v4';
   var backdrop = document.getElementById('betaBackdrop');
   if (!backdrop) return;
 
@@ -4286,16 +4289,47 @@
 
   /* ---- FLEXR Premium -----------------------------------------------------
      Die Plattform ist dauerhaft kostenlos. Premium ist eine freiwillige
-     Zusatzstufe; ob es sie ueberhaupt schon gibt, entscheidet der Server
-     (settings.premium_enabled, siehe backend/app/config.py) und liefert es in
-     /api/billing/status mit. Waehrend der Beta ist der Schalter aus: dann gibt
-     es weder Preise noch Grenzen zu zeigen.
+     Zusatzstufe; ob es sie zu kaufen gibt, entscheidet der Server und liefert
+     es in /api/billing/status mit.
+
+     Seit 17.09.2026 sind das drei getrennte Fragen, die frueher eine waren:
+
+       checkout_available - darf DIESER Client einen Abschluss anbieten? Im
+                            Browser ja, in den Apps nie (App-Store-Regeln,
+                            siehe backend/app/clients.py).
+       limits_active      - gelten die Grenzen des kostenlosen Kontos? Fuer
+                            alle gleich, unabhaengig vom Geraet.
+       beta_active        - traegt FLEXR noch das Beta-Abzeichen? Das sagt
+                            seither etwas ueber den Reifegrad und nichts mehr
+                            ueber den Tarif.
+
+     Der Rueckfall auf premium_enabled deckt den Moment eines Deploys ab, in
+     dem eine gecachte Oberflaeche auf einen Server trifft, der die neuen
+     Felder noch nicht kennt.
 
      Alle Zahlen kommen aus `membership` - der Client rechnet nichts selbst
      aus. Sonst muessten Web, Android und iOS dieselbe Formel dreimal gleich
      treffen. */
   function premiumOffered(){
-    return !!(membership && membership.premium_enabled);
+    if(!membership) return false;
+    return membership.checkout_available !== undefined
+      ? !!membership.checkout_available
+      : !!membership.premium_enabled;
+  }
+  function limitsActive(){
+    if(!membership) return false;
+    return membership.limits_active !== undefined
+      ? !!membership.limits_active
+      : !!membership.premium_enabled;
+  }
+  function betaActive(){
+    return !membership || membership.beta_active !== false;
+  }
+  /* "Beta" bleibt sichtbar, auch seit Premium kaufbar ist - vorher hing das
+     Abzeichen daran, dass Premium NICHT kaufbar war, und waere beim
+     Scharfschalten stillschweigend verschwunden. */
+  function withBeta(text){
+    return betaActive() ? t('beta.pill') + ' · ' + text : text;
   }
   function isPremium(){
     return !!(membership && membership.is_premium);
@@ -4329,20 +4363,22 @@
       return;
     }
     if(isPremium()){
-      pill.textContent = t('premium.pill'); pill.className = 'status-pill trial';
+      pill.textContent = withBeta(t('premium.pill'));
+      pill.className = 'status-pill trial';
       return;
     }
-    if(!premiumOffered()){
-      pill.textContent = t('beta.pill'); pill.className = 'status-pill trial';
+    if(!limitsActive()){
+      pill.textContent = withBeta(t('acct.statusFree'));
+      pill.className = 'status-pill trial';
       return;
     }
-    // Standardkonto nach der Beta: Die Pille zeigt das, was tatsaechlich
-    // knapp werden kann - die Likes. Eine Restlaufzeit gibt es nicht mehr,
-    // es laeuft ja nichts ab.
+    // Standardkonto mit geltenden Grenzen: Die Pille zeigt das, was
+    // tatsaechlich knapp werden kann - die Likes. Eine Restlaufzeit gibt es
+    // nicht mehr, es laeuft ja nichts ab.
     const rest = likesLeft();
-    pill.textContent = rest === null
+    pill.textContent = withBeta(rest === null
       ? t('acct.statusFree')
-      : t(rest === 1 ? 'premium.pillLike1' : 'premium.pillLikes', {n: rest});
+      : t(rest === 1 ? 'premium.pillLike1' : 'premium.pillLikes', {n: rest}));
     pill.className = rest === 0 ? 'status-pill expired' : 'status-pill trial';
   }
 
@@ -4506,8 +4542,8 @@
       $('btnSubscribe').style.display = 'none';
       $('btnManageSubscription').style.display = 'block';
     } else if(!premiumOffered()){
-      // Beta: unbegrenzt fuer alle. Ein Angebot zu zeigen, das der Server mit
-      // 409 ablehnt, waere eine Sackgasse - der Knopf bleibt weg.
+      // Hier ist nichts zu bestellen. Ein Angebot zu zeigen, das der Server
+      // mit 409 ablehnt, waere eine Sackgasse - der Knopf bleibt weg.
       setI18nText($('acctStatusText'), 'premium.statusBeta');
       $('btnSubscribe').style.display = 'none';
       // Wer noch ein Abo aus der Zeit der alten Mitgliedsgebuehr hat, muss es

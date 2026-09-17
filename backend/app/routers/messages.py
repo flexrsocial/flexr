@@ -128,7 +128,7 @@ def send_message(
     # premium.ensure_chat_allowed(). Bewusst nach der Moderationspruefung: Eine
     # laufende Chatsperre ist der gewichtigere Grund und soll auch dann als
     # solcher gemeldet werden, wenn zusaetzlich das Kontingent voll ist.
-    premium.ensure_chat_allowed(db, current_user, match_id)
+    premium.ensure_chat_allowed(db, current_user, match_id, request)
 
     # Automatische Sicherheitsprüfung: auffällige Nachrichten werden zugestellt,
     # aber fürs Admin-Review markiert. Zusätzlich werden Links/Kontaktdaten für

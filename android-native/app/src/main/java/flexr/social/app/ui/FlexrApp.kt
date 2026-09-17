@@ -438,6 +438,7 @@ private fun MainGraph(
                 IncomingScreen(
                     onBack = { navController.popBackStack() },
                     onOpenPremium = { navController.navigate(Routes.PAYWALL) },
+                    premiumOffered = membership.premiumEnabled,
                 )
             }
 
@@ -569,13 +570,24 @@ private fun LanguagePicker() {
 @Composable
 private fun MembershipPill(membership: Membership) {
     val rest = membership.likesRemaining
-    when {
-        membership.isPremium -> StatusPill(stringResource(R.string.status_premium))
-        !membership.premiumEnabled -> StatusPill(stringResource(R.string.status_beta))
-        rest == null -> StatusPill(stringResource(R.string.status_free))
-        else -> StatusPill(
-            stringResource(R.string.status_likes_left, rest),
-            expired = rest == 0,
-        )
+    // Was gerade knapp werden kann - oder, wenn nichts knapp wird, was das
+    // Konto kostet.
+    val zustand = when {
+        membership.isPremium -> stringResource(R.string.status_premium)
+        membership.limitsActive && rest != null ->
+            stringResource(R.string.status_likes_left, rest)
+        else -> stringResource(R.string.status_free)
     }
+    // "Beta" steht davor, statt den Zustand zu ersetzen: Bis 17.09.2026 hing
+    // das Abzeichen daran, dass Premium noch nicht kaufbar war, und waere beim
+    // Scharfschalten von selbst verschwunden - obwohl FLEXR unveraendert im
+    // Aufbau ist.
+    StatusPill(
+        text = if (membership.betaActive) {
+            stringResource(R.string.status_beta_prefix, zustand)
+        } else {
+            zustand
+        },
+        expired = !membership.isPremium && membership.limitsActive && rest == 0,
+    )
 }

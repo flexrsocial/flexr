@@ -196,7 +196,7 @@ enum L: Hashable, Sendable {
     case vgateRejectedFallback, vgateRejectedBody, vgateRejectedDeleted
 
     // Statuspillen
-    case statusBetaFree, statusPremium, statusFree, statusLikesLeft
+    case statusBetaPrefix, statusPremium, statusFree, statusLikesLeft
     case statusNotUnlocked
 
     // Netz- und Serverfehler

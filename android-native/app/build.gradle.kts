@@ -125,8 +125,17 @@ android {
         // wird endlich behandelt: Bisher blieb der Nutzer auf dem Deck mit
         // "Zugriff nicht moeglich" stehen, statt ins Verifizierungs-Gate
         // geleitet zu werden - auf iOS laeuft das seit jeher richtig.
-        versionCode = 110
-        versionName = "2.6.10"
+        // 111/2.7.0 am 17.09.2026: FLEXR Premium ist scharf geschaltet. Fuer
+        // diese App heisst das zweierlei. Erstens gelten die Grenzen des
+        // kostenlosen Kontos jetzt auch hier - die App hat bis 2.6.10 "Beta,
+        // alles unbegrenzt" angezeigt und waere an der ersten Grenze ohne
+        // Erklaerung stehen geblieben. Zweitens wird hier trotzdem **nichts
+        // verkauft**: Ein Abschluss ausserhalb von Play Billing verstiesse
+        // gegen die Payments-Policy, also bietet der Server App-Clients gar
+        // keinen an (siehe backend/app/clients.py). Gekauft wird im Browser,
+        // die Leistung daraus wirkt auch hier.
+        versionCode = 111
+        versionName = "2.7.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         // Nur die Sprachen ausliefern, die es wirklich gibt: Deutsch als

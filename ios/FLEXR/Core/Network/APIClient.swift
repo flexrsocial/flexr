@@ -147,6 +147,13 @@ final class APIClient: @unchecked Sendable {
                 request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
             }
             request.setValue(sessionStore.deviceID, forHTTPHeaderField: "X-Device-Id")
+            // Weist die Anfrage als aus der iOS-App kommend aus. Der Server
+            // bietet App-Clients keinen Abschluss von FLEXR Premium an —
+            // Kaufen geht nur im Browser, siehe backend/app/clients.py.
+            // Ohne den Header erkennt er die App am User-Agent von
+            // URLSession; das ist der Weg für ältere Fassungen und bleibt
+            // als Rückfall bestehen. Ausdrücklich ist verlässlicher.
+            request.setValue("ios", forHTTPHeaderField: "X-Flexr-Client")
         }
 
         // Zusatz-Header je Aufruf - aktuell nur X-Flexr-Background, mit dem der

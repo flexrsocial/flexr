@@ -136,9 +136,19 @@ struct PushNotification: Identifiable, Hashable, Sendable {
 struct Membership: Hashable, Sendable {
     /// Läuft ein Premium-Abo? Nur wahr, wenn Premium scharf geschaltet ist.
     let isPremium: Bool
-    /// Ist Premium überhaupt schon kaufbar? In der Beta: nein.
+    /// Darf **diese App** einen Abschluss anbieten? Nein — der Server meldet
+    /// das jeder App so, weil ein Kauf außerhalb des App Store gegen App
+    /// Review Guideline 3.1.1 verstieße (siehe `backend/app/clients.py`).
+    /// Das Feld bleibt trotzdem stehen, statt fest auf `false` verdrahtet zu
+    /// werden: Es ist der Server, der das entscheidet, nicht die App.
     let premiumEnabled: Bool
-    /// Ein Stripe-Abo, das gekündigt werden können muss — auch in der Beta.
+    /// Gelten die Grenzen des kostenlosen Kontos? Die hängen am Konto, nicht
+    /// am Gerät — hier ist also sehr wohl `true`, seit Premium läuft.
+    let limitsActive: Bool
+    /// Trägt FLEXR das Beta-Abzeichen? Seit 17.09.2026 ein eigener Schalter
+    /// des Servers: Vorher hing es daran, dass Premium noch nicht kaufbar war.
+    let betaActive: Bool
+    /// Ein Stripe-Abo, das gekündigt werden können muss.
     let hasStripeSubscription: Bool
     let priceCents: Int
     let currency: String
@@ -160,6 +170,8 @@ struct Membership: Hashable, Sendable {
         Membership(
             isPremium: isPremium,
             premiumEnabled: premiumEnabled,
+            limitsActive: limitsActive,
+            betaActive: betaActive,
             hasStripeSubscription: hasStripeSubscription,
             priceCents: priceCents,
             currency: currency,

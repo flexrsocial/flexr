@@ -16,9 +16,16 @@ Dazu drei Funktionen, die es nur mit Premium gibt: eingehende Likes sehen, den
 letzten Swipe zuruecknehmen und das Premium-Abzeichen im Profil.
 
 **Alle Grenzen haengen an ``settings.premium_enabled``.** Solange der Schalter
-aus ist (Beta), ist fuer jeden alles unbegrenzt - die Funktionen hier geben
-dann durchweg "erlaubt" zurueck. Das ist der einzige Hebel; es gibt bewusst
-keinen zweiten Ort, an dem sich das Verhalten in der Beta unterscheidet.
+aus ist, ist fuer jeden alles unbegrenzt - die Funktionen hier geben dann
+durchweg "erlaubt" zurueck. Das ist der einzige Hebel; es gibt bewusst keinen
+zweiten Ort, an dem sich das Verhalten unterscheidet.
+
+Seit 17.09.2026 steht der Schalter scharf. Er gilt fuer **jedes Konto
+gleichermassen**, unabhaengig davon, ob gerade der Browser oder eine App
+anfragt: Die Grenzen haengen am Konto, nicht am Geraet - sonst hebt man sie
+auf, indem man sich abwechselnd hier und dort anmeldet. Vom Client haengt nur
+ab, ob ihm ein Abschluss angeboten werden darf (``clients.py``) und wie die
+Meldung beim Anstossen an eine Grenze formuliert ist.
 
 Warum die Zaehlungen hier stehen und nicht im jeweiligen Router: Die
 Oberflaeche muss dieselben Zahlen anzeigen, die der Server durchsetzt
@@ -28,10 +35,11 @@ laufen genau so lange synchron, bis jemand eine davon anfasst.
 
 from datetime import datetime, timedelta
 
-from fastapi import HTTPException, status
+from fastapi import HTTPException, Request, status
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
+from . import clients
 from .config import settings
 from .models import Match, Message, Swipe, User
 
@@ -106,18 +114,23 @@ def next_like_at(db: Session, user: User, now: datetime | None = None) -> dateti
     return oldest + LIKE_WINDOW if oldest else None
 
 
-def ensure_like_allowed(db: Session, user: User) -> None:
+def ensure_like_allowed(db: Session, user: User, request: Request | None = None) -> None:
     """Wirft 403, wenn das Like-Kontingent aufgebraucht ist.
 
     Bewusst **403 und nicht 402**: 402 hiess frueher "Probemonat abgelaufen,
     Konto gesperrt" und schickte die Clients auf die Bezahlwand, die es nicht
     mehr gibt. Ein erschoepftes Like-Kontingent ist kein gesperrtes Konto -
     alles andere funktioniert weiter.
+
+    ``request`` dient allein dem Wortlaut: In einer App darf die Meldung nicht
+    zum Abschluss auffordern (siehe ``clients.py``), sie nennt dort nur die
+    Grenze und wann es weitergeht.
     """
     remaining = likes_remaining(db, user)
     if remaining is None or remaining > 0:
         return
     frei_ab = next_like_at(db, user)
+    kern = f"Du hast deine {settings.free_daily_likes} Likes für heute aufgebraucht."
     raise HTTPException(
         status_code=status.HTTP_403_FORBIDDEN,
         detail={
@@ -125,9 +138,12 @@ def ensure_like_allowed(db: Session, user: User) -> None:
             "limit": settings.free_daily_likes,
             "next_like_at": frei_ab.isoformat() if frei_ab else None,
             "message": (
-                f"Du hast deine {settings.free_daily_likes} Likes für heute "
-                "aufgebraucht. Mit FLEXR Premium likest du ohne Grenze - "
-                "sonst geht es in ein paar Stunden weiter."
+                f"{kern} In ein paar Stunden geht es weiter."
+                if clients.is_store_app(request)
+                else (
+                    f"{kern} Mit FLEXR Premium likest du ohne Grenze - "
+                    "sonst geht es in ein paar Stunden weiter."
+                )
             ),
         },
     )
@@ -176,13 +192,17 @@ def open_chats_remaining(db: Session, user: User) -> int | None:
     return max(0, settings.free_open_chats - open_chats_used(db, user))
 
 
-def ensure_chat_allowed(db: Session, user: User, match_id: str) -> None:
+def ensure_chat_allowed(
+    db: Session, user: User, match_id: str, request: Request | None = None
+) -> None:
     """Wirft 403, wenn eine **neue** Unterhaltung keinen Platz mehr haette.
 
     In einer bereits begonnenen Unterhaltung ist die Nachrichtenzahl nicht
     begrenzt - die Grenze steht am Anfang eines Gespraechs, nicht mittendrin.
     Jemandem beim dreissigsten Satz das Wort abzuschneiden waere die
     unfreundlichere Variante derselben Grenze.
+
+    Zu ``request`` siehe ``ensure_like_allowed()``.
     """
     if not settings.premium_enabled or user.is_premium:
         return
@@ -197,9 +217,17 @@ def ensure_chat_allowed(db: Session, user: User, match_id: str) -> None:
             "code": "chat_limit_reached",
             "limit": settings.free_open_chats,
             "message": (
-                f"Du hast {settings.free_open_chats} Unterhaltungen offen - mehr "
-                "gehen ohne FLEXR Premium nicht gleichzeitig. Löse ein Match auf "
-                "oder hol dir Premium für unbegrenzt viele Chats."
+                (
+                    f"Du hast {settings.free_open_chats} Unterhaltungen offen - "
+                    "mehr gehen gleichzeitig nicht. Löse ein Match auf, dann "
+                    "wird ein Platz frei."
+                )
+                if clients.is_store_app(request)
+                else (
+                    f"Du hast {settings.free_open_chats} Unterhaltungen offen - "
+                    "mehr gehen ohne FLEXR Premium nicht gleichzeitig. Löse ein "
+                    "Match auf oder hol dir Premium für unbegrenzt viele Chats."
+                )
             ),
         },
     )

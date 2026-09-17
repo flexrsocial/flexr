@@ -247,6 +247,12 @@ data class AddPhotoRequestDto(
 data class MembershipStatusDto(
     @SerialName("is_premium") val isPremium: Boolean = false,
     @SerialName("premium_enabled") val premiumEnabled: Boolean = false,
+    /** Darf **dieser** Client einen Abschluss anbieten? In der App nie. */
+    @SerialName("checkout_available") val checkoutAvailable: Boolean? = null,
+    /** Gelten die Grenzen des kostenlosen Kontos? Am Konto, nicht am Geraet. */
+    @SerialName("limits_active") val limitsActive: Boolean? = null,
+    /** Traegt FLEXR noch das Beta-Abzeichen? Eigener Schalter des Servers. */
+    @SerialName("beta_active") val betaActive: Boolean = true,
     @SerialName("has_stripe_subscription") val hasStripeSubscription: Boolean = false,
     @SerialName("price_cents") val priceCents: Int = 1000,
     @SerialName("currency") val currency: String = "EUR",

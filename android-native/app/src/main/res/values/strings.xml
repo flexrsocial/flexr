@@ -49,7 +49,10 @@
     <string name="common_delete_failed">Löschen fehlgeschlagen.</string>
     <string name="common_status_load_failed">Status konnte nicht geladen werden.</string>
 
-    <string name="status_beta">Beta</string>
+    <!-- Die Pille zeigt "Beta" vor dem eigentlichen Zustand, seit Premium
+         scharf ist: Vorher stand "Beta" allein dafuer, dass es nichts zu
+         kaufen gab, und waere beim Scharfschalten verschwunden. -->
+    <string name="status_beta_prefix">Beta · %1$s</string>
     <string name="status_premium">Premium</string>
     <string name="status_free">Gratis</string>
     <string name="status_likes_left">%1$d Likes</string>
@@ -99,7 +102,9 @@
 
     <!-- ==== Registrierung ==== -->
     <string name="register_title">Dating für Leute,\ndie auch montags\nBeintag machen.</string>
-    <string name="register_subtitle">Erstell dein Profil — kostenlos, und das dauerhaft. FLEXR zu nutzen kostet nichts; es wird kein Zahlungsmittel abgefragt. FLEXR Premium (10 €/Monat, jederzeit kündbar) kommt nach der Beta und ist freiwillig. Aktuell nur in Österreich verfügbar.</string>
+    <!-- Kein Preis und kein Abschluss-Angebot in der App: Der Verkauf laeuft
+         im Browser, siehe backend/app/clients.py. -->
+    <string name="register_subtitle">Erstell dein Profil — kostenlos, und das dauerhaft. FLEXR zu nutzen kostet nichts; es wird kein Zahlungsmittel abgefragt. Aktuell nur in Österreich verfügbar.</string>
     <string name="register_password_repeat">Passwort wiederholen</string>
     <string name="register_password_repeat_placeholder">Passwort erneut eingeben</string>
     <string name="register_photos_label">Fotos (mind. %1$d, max. %2$d)</string>
@@ -288,8 +293,8 @@
     <!-- FLEXR Premium. Die Nutzung von FLEXR selbst ist dauerhaft kostenlos;
          Preis und Grenzen kommen als Platzhalter vom Server. -->
     <string name="premium_status_active">FLEXR Premium läuft. Jederzeit zum Ende des Abrechnungsmonats kündbar.</string>
-    <string name="premium_status_beta">FLEXR ist und bleibt kostenlos. Während der Beta ist alles unbegrenzt; FLEXR Premium kommt danach und ist freiwillig.</string>
-    <string name="premium_status_free">Dein Konto ist kostenlos: %1$d Likes pro Tag und %2$d Unterhaltungen gleichzeitig. Mit Premium fällt beides weg.</string>
+    <string name="premium_status_beta">FLEXR ist und bleibt kostenlos. Derzeit gelten keine Grenzen für Likes, Unterhaltungen und Suchumkreis.</string>
+    <string name="premium_status_free">Dein Konto ist kostenlos: %1$d Likes pro Tag und %2$d Unterhaltungen gleichzeitig.</string>
     <string name="premium_show_offer">FLEXR Premium ansehen</string>
     <string name="premium_title">FLEXR Premium</string>
     <string name="premium_sub">FLEXR zu nutzen kostet nichts — dauerhaft. Premium ist für alle, die mehr wollen: ohne Like-Grenze, ohne Chat-Grenze, mit voller Reichweite.</string>
@@ -300,11 +305,11 @@
     <string name="premium_feature_rewind">Den letzten Swipe zurücknehmen</string>
     <string name="premium_feature_radius">Voller Suchumkreis bis %1$d km statt %2$d km</string>
     <string name="premium_feature_badge">Premium-Abzeichen in deinem Profil</string>
-    <string name="premium_beta_hint">FLEXR Premium kommt nach der Beta-Phase. Bis dahin ist alles unbegrenzt — ohne Kosten und ohne Zahlungsmittel.</string>
+    <string name="premium_beta_hint">FLEXR Premium lässt sich in dieser App nicht abschließen. Die Nutzung von FLEXR kostet unverändert nichts.</string>
     <string name="premium_likes_left">Noch %1$d von %2$d Likes heute</string>
     <string name="premium_likes_gone">Likes für heute aufgebraucht</string>
-    <string name="premium_like_limit">Deine %1$d Likes für heute sind aufgebraucht. Mit FLEXR Premium likest du ohne Grenze.</string>
-    <string name="premium_chat_limit">Du hast %1$d Unterhaltungen offen — mehr gehen gleichzeitig nicht. Löse ein Match auf oder hol dir FLEXR Premium.</string>
+    <string name="premium_like_limit">Deine %1$d Likes für heute sind aufgebraucht. In ein paar Stunden geht es weiter.</string>
+    <string name="premium_chat_limit">Du hast %1$d Unterhaltungen offen — mehr gehen gleichzeitig nicht. Löse ein Match auf, dann wird ein Platz frei.</string>
     <string name="premium_badge_title">FLEXR Premium</string>
     <string name="premium_likes_left_one">Noch 1 von %1$d Likes heute</string>
     <string name="premium_more_likes">Unbegrenzt liken</string>

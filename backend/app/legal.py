@@ -81,7 +81,7 @@ def operator_inline() -> str:
 # steht sichtbar unter "Stand:" auf jeder Seite.
 # ---------------------------------------------------------------------------
 
-TERMS_VERSION: Final = "2026-09-10"           # AGB (Punkt 7/9: Gratis-Plattform + FLEXR Premium)
+TERMS_VERSION: Final = "2026-09-17"           # AGB (Punkt 7/9: Premium bestellbar, Grenzen gelten)
 PRIVACY_VERSION: Final = "2026-09-17"          # Datenschutzerklärung (Fotolöschung bei endgültiger Ablehnung)
 AUP_VERSION: Final = "2026-08-19"              # Nutzungsrichtlinien
 LE_GUIDELINES_VERSION: Final = "2026-08-19"    # Strafverfolgungsrichtlinien
@@ -90,7 +90,7 @@ WITHDRAWAL_ACK_VERSION: Final = "2026-08-17"  # Checkout: Kenntnisnahme Erlösch
 
 
 # ---------------------------------------------------------------------------
-# Preis und Vertragsmodell  (Stand 10.09.2026)
+# Preis und Vertragsmodell  (Stand 17.09.2026)
 #
 # Maßgeblich ist der Code, nicht dieser Block - er hält nur fest, was
 # routers/billing.py, premium.py und stripe_client.py tatsächlich tun, damit
@@ -111,10 +111,23 @@ WITHDRAWAL_ACK_VERSION: Final = "2026-08-17"  # Checkout: Kenntnisnahme Erlösch
 #     free_open_chats, free_max_radius_km) - sie schränken den Umfang ein,
 #     nicht den Zugang.
 #
-# Premium ist derzeit **noch nicht buchbar**: settings.premium_enabled steht
-# auf False (Beta), /api/billing/checkout lehnt mit 409 ab, und die Grenzen für
-# Standardnutzer greifen noch nicht. Die Rechtstexte nennen Preis und Grenzen
-# deshalb ausdrücklich als "ab dem Ende der Beta-Phase".
+# Seit dem 17.09.2026 ist Premium **buchbar**: settings.premium_enabled steht
+# in der Produktion auf True, die Grenzen für Standardnutzer greifen, und
+# /api/billing/checkout legt eine Stripe-Sitzung an. Die Rechtstexte sprechen
+# deshalb in der Gegenwart; das frühere "ab dem Ende der Beta-Phase" ist
+# überall entfallen (AGB Punkt 7 c und 9 e, FAQ, Landingpage, beide Apps).
+#
+# **Verkauft wird nur im Browser.** Aus den Apps heraus lehnt derselbe Endpunkt
+# mit 409 ab und GET /api/billing/status meldet ihnen premium_enabled=false -
+# der Grund steht in clients.py (App Review Guideline 3.1.1, Play-Payments).
+# Für die Rechtstexte heißt das: Der Vertrag kommt ausschließlich über
+# flexr.social zustande, nie über einen App-Store. Es gibt daher weiterhin
+# keine In-App-Käufe - eine Aussage, die AGB Punkt 9 d ausdrücklich trifft.
+#
+# Die Beta-Kennzeichnung bleibt davon unberührt (settings.beta_active). Sie
+# sagt seit dieser Umstellung etwas über den Reifegrad des Angebots aus und
+# nichts mehr über den Tarif - die Rechtstexte knüpfen deshalb keine
+# Leistungszusage mehr an das Wort "Beta".
 #
 # TRIAL_AUTO_CONVERTS bleibt als Konstante stehen, weil die Rechtstexte die
 # Aussage "wandelt sich nicht selbsttätig in ein Abo um" weiterhin treffen -

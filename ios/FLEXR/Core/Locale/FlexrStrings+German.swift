@@ -74,11 +74,13 @@ extension FlexrStrings {
 
         // MARK: Registrierung
         .registerTitle: "Dating für Leute,\ndie auch montags\nBeintag machen.",
+        // Kein Preis und kein Abschluss-Angebot in der App: Der Verkauf läuft
+        // im Browser, und schon die Nennung wäre hier eine Weiterleitung im
+        // Sinne von App Review Guideline 3.1.1 (siehe backend/app/clients.py).
         .registerSubtitle: """
             Erstell dein Profil — kostenlos, und das dauerhaft. FLEXR zu nutzen \
-            kostet nichts; es wird kein Zahlungsmittel abgefragt. FLEXR Premium \
-            (10 €/Monat, jederzeit kündbar) kommt nach der Beta und ist \
-            freiwillig. Aktuell nur in Österreich verfügbar.
+            kostet nichts; es wird kein Zahlungsmittel abgefragt. Aktuell nur \
+            in Österreich verfügbar.
             """,
         .registerPasswordPlaceholder: "Mind. 8 Zeichen",
         .registerNamePlaceholder: "Max",
@@ -250,12 +252,12 @@ extension FlexrStrings {
             kündbar.
             """,
         .premiumStatusBeta: """
-            FLEXR ist und bleibt kostenlos. Während der Beta ist alles \
-            unbegrenzt; FLEXR Premium kommt danach und ist freiwillig.
+            FLEXR ist und bleibt kostenlos. Derzeit gelten keine Grenzen für \
+            Likes, Unterhaltungen und Suchumkreis.
             """,
         .premiumStatusFree: """
             Dein Konto ist kostenlos: %d Likes pro Tag und %d Unterhaltungen \
-            gleichzeitig. Mit Premium fällt beides weg.
+            gleichzeitig.
             """,
         .premiumShowOffer: "FLEXR Premium ansehen",
         .premiumTitle: "FLEXR Premium",
@@ -272,14 +274,14 @@ extension FlexrStrings {
         .premiumFeatureRadius: "Voller Suchumkreis bis %d km statt %d km",
         .premiumFeatureBadge: "Premium-Abzeichen in deinem Profil",
         .premiumBetaHint: """
-            FLEXR Premium kommt nach der Beta-Phase. Bis dahin ist alles \
-            unbegrenzt — ohne Kosten und ohne Zahlungsmittel.
+            FLEXR Premium lässt sich in dieser App nicht abschließen. Die \
+            Nutzung von FLEXR kostet unverändert nichts.
             """,
         .premiumLikesLeft: "Noch %d von %d Likes heute",
         .premiumLikesGone: "Likes für heute aufgebraucht",
         .premiumLikeLimit: """
-            Deine %d Likes für heute sind aufgebraucht. Mit FLEXR Premium \
-            likest du ohne Grenze.
+            Deine %d Likes für heute sind aufgebraucht. In ein paar Stunden \
+            geht es weiter.
             """,
         .premiumBadgeTitle: "FLEXR Premium",
         .premiumLikesLeftOne: "Noch 1 von %d Likes heute",
@@ -304,7 +306,7 @@ extension FlexrStrings {
         .incomingLoadFailed: "Die offenen Likes konnten nicht geladen werden.",
         .premiumChatLimit: """
             Du hast %d Unterhaltungen offen — mehr gehen gleichzeitig nicht. \
-            Löse ein Match auf oder hol dir FLEXR Premium.
+            Löse ein Match auf, dann wird ein Platz frei.
             """,
         .accountManageSubscription: "Abo verwalten / kündigen",
         .accountRadiusHint: """
@@ -660,7 +662,7 @@ extension FlexrStrings {
             """,
 
         // MARK: Statuspillen
-        .statusBetaFree: "Beta · gratis",
+        .statusBetaPrefix: "Beta · %@",
         .statusPremium: "Premium",
         .statusFree: "Gratis",
         .statusNotUnlocked: "Nicht freigeschaltet",

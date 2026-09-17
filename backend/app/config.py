@@ -35,7 +35,28 @@ class Settings(BaseSettings):
     # anderen Standardnutzer. ``User.trial_ends_at`` wird nirgends mehr
     # ausgewertet (die Spalte bleibt nur stehen, um die Tabelle nicht anfassen
     # zu muessen).
+    #
+    # Seit 17.09.2026 steht der Schalter in der Produktion auf True (in der
+    # ``.env`` des Servers, nicht hier - der Standard bleibt aus, damit ein
+    # frisch aufgesetzter Entwicklungsserver niemandem Geld abnimmt).
+    # **Im Browser** ist Premium damit buchbar; in den beiden Apps nicht, siehe
+    # ``clients.py`` - das entscheidet der Server pro Anfrage, nicht dieser
+    # Schalter.
     premium_enabled: bool = False
+
+    # ---- Beta-Kennzeichnung ------------------------------------------------
+    #
+    # Getrennt von ``premium_enabled``, seit die beiden auseinanderfallen: Die
+    # Oberflaechen haben "Beta" bis 17.09.2026 daraus abgeleitet, dass Premium
+    # noch nicht scharf war ("Beta - alles unbegrenzt"). Mit dem Scharfschalten
+    # waere das Beta-Abzeichen ueberall von selbst verschwunden, obwohl FLEXR
+    # unveraendert im Aufbau ist: duenn besetzte Regionen, Funktionen, die sich
+    # noch aendern, Stores, in denen die App gerade erst erscheint.
+    #
+    # "Beta" sagt seither etwas ueber den Reifegrad des Angebots aus und nichts
+    # mehr ueber den Tarif. Die Clients lesen es als ``beta_active`` aus
+    # GET /api/billing/status.
+    beta_active: bool = True
 
     # Preis in Cent, damit Anzeige und Rechnung dieselbe Quelle haben.
     premium_price_cents: int = 1000

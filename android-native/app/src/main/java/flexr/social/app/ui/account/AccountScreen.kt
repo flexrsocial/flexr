@@ -254,7 +254,10 @@ fun AccountScreen(
                 Text(
                     text = when {
                         status.isPremium -> stringResource(R.string.premium_status_active)
-                        !status.premiumEnabled -> stringResource(R.string.premium_status_beta)
+                        // Massgeblich sind die geltenden Grenzen, nicht die
+                        // Frage, ob hier etwas zu kaufen ist: In der App ist
+                        // Letzteres immer "nein", die Grenzen gelten trotzdem.
+                        !status.limitsActive -> stringResource(R.string.premium_status_beta)
                         else -> stringResource(
                             R.string.premium_status_free,
                             status.freeDailyLikes,
@@ -264,9 +267,9 @@ fun AccountScreen(
                     style = MaterialTheme.typography.bodyMedium,
                     color = colors.chalk,
                 )
-                // Wer noch ein Abo aus der Zeit der alten Mitgliedsgebuehr hat,
-                // muss es kuendigen koennen - auch waehrend der Beta, in der
-                // Premium selbst gar nicht abschliessbar ist.
+                // Wer ein Abo hat, muss es kuendigen koennen - auch in der
+                // App, in der Premium selbst nicht abschliessbar ist. Das
+                // Stripe-Portal verkauft nichts, es verwaltet nur.
                 if (status.hasStripeSubscription) {
                     FlexrLinkButton(
                         text = stringResource(R.string.account_manage_subscription),

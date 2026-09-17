@@ -92,10 +92,16 @@ extension MembershipStatusDTO {
     func toDomain() -> Membership {
         // Die Standardwerte gelten nur, wenn der Server ein Feld gar nicht
         // liefert. Sie beschreiben bewusst den zurückhaltendsten Fall: Premium
-        // noch nicht kaufbar, keine Grenzen aktiv.
+        // nicht kaufbar, keine Grenzen aktiv, Beta-Abzeichen an.
+        //
+        // `checkoutAvailable` hat Vorrang vor `premiumEnabled`; ein Server, der
+        // es noch nicht kennt, fällt auf `premiumEnabled` zurück. Beide sind
+        // für diese App ohnehin falsch, solange der Verkauf im Browser läuft.
         Membership(
             isPremium: isPremium ?? false,
-            premiumEnabled: premiumEnabled ?? false,
+            premiumEnabled: checkoutAvailable ?? premiumEnabled ?? false,
+            limitsActive: limitsActive ?? premiumEnabled ?? false,
+            betaActive: betaActive ?? true,
             hasStripeSubscription: hasStripeSubscription ?? isSubscribed ?? false,
             priceCents: priceCents ?? 1000,
             currency: currency ?? "EUR",

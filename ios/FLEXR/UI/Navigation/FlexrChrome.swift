@@ -60,16 +60,31 @@ struct MembershipPill: View {
     @Environment(LanguageStore.self) private var languageStore
     private var s: FlexrStrings { languageStore.strings }
 
-    var body: some View {
-        if membership.isPremium {
-            StatusPill(text: s(.statusPremium))
-        } else if !membership.premiumEnabled {
-            StatusPill(text: s(.statusBetaFree))
-        } else if let rest = membership.likesRemaining {
-            StatusPill(text: s(.statusLikesLeft, rest), isExpired: rest == 0)
-        } else {
-            StatusPill(text: s(.statusFree))
+    /// Was gerade knapp werden kann — oder, wenn nichts knapp wird, was das
+    /// Konto kostet.
+    private var zustand: String {
+        if membership.isPremium { return s(.statusPremium) }
+        if membership.limitsActive, let rest = membership.likesRemaining {
+            return s(.statusLikesLeft, rest)
         }
+        return s(.statusFree)
+    }
+
+    /// Bei erschöpftem Kontingent färbt sich die Pille — mit Premium oder ohne
+    /// geltende Grenzen gibt es nichts zu färben.
+    private var erschoepft: Bool {
+        !membership.isPremium && membership.limitsActive && membership.likesRemaining == 0
+    }
+
+    var body: some View {
+        // „Beta" steht davor, statt den Zustand zu ersetzen: Bis 17.09.2026
+        // hing das Abzeichen daran, dass Premium noch nicht kaufbar war, und
+        // wäre beim Scharfschalten von selbst verschwunden — obwohl FLEXR
+        // unverändert im Aufbau ist.
+        StatusPill(
+            text: membership.betaActive ? s(.statusBetaPrefix, zustand) : zustand,
+            isExpired: erschoepft
+        )
     }
 }
 

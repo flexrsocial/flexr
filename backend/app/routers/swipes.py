@@ -189,7 +189,7 @@ def swipe(
         existing_swipe is None or existing_swipe.action != "like"
     )
     if neues_like:
-        premium.ensure_like_allowed(db, current_user)
+        premium.ensure_like_allowed(db, current_user, request)
 
     if existing_swipe:
         existing_swipe.action = payload.action

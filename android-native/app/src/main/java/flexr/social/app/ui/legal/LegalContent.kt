@@ -52,13 +52,11 @@ object LegalContent {
             LegalBlock.Faq(
                 "Was kostet FLEXR?",
                 "Die Nutzung kostet nichts — dauerhaft. Profile ansehen, liken, matchen " +
-                    "und schreiben sind und bleiben kostenlos, auch nach der Beta-Phase. " +
-                    "Optional gibt es nach der Beta FLEXR Premium um 10 € pro Monat: " +
-                    "unbegrenzt liken, unbegrenzt viele Unterhaltungen, sehen wer dich " +
-                    "geliket hat, den letzten Swipe zurücknehmen, der volle Suchumkreis " +
-                    "bis 250 km und ein Premium-Abzeichen. Ohne Premium gelten 20 Likes " +
-                    "pro Tag, 3 gleichzeitige Unterhaltungen und 50 km Suchumkreis; " +
-                    "während der Beta gelten auch diese Grenzen noch nicht.",
+                    "und schreiben sind und bleiben kostenlos. Für das kostenlose Konto " +
+                    "gelten 20 Likes pro Tag, 3 gleichzeitige Unterhaltungen und 50 km " +
+                    "Suchumkreis. Darüber hinaus gibt es FLEXR Premium um 10 € pro Monat; " +
+                    "abgeschlossen wird es nicht in dieser App, sondern auf flexr.social. " +
+                    "In der App entstehen keine Kosten und es gibt keine In-App-Käufe.",
             ),
             LegalBlock.Faq(
                 "In welchen Städten ist FLEXR verfügbar?",
@@ -197,21 +195,22 @@ object LegalContent {
             LegalBlock.Heading("4. Kostenlose Nutzung, FLEXR Premium, Kündigung"),
             LegalBlock.Lettered(
                 listOf(
-                    "Die Nutzung von FLEXR ist unbefristet unentgeltlich — nicht nur " +
-                        "während der Beta-Phase. Profile ansehen, liken, matchen und " +
-                        "schreiben kosten nichts; ein Konto ruht nie und wird nie " +
-                        "gesperrt, weil nichts bezahlt wurde.",
+                    "Die Nutzung von FLEXR ist unbefristet unentgeltlich. Profile " +
+                        "ansehen, liken, matchen und schreiben kosten nichts; ein Konto " +
+                        "ruht nie und wird nie gesperrt, weil nichts bezahlt wurde.",
                     "Für das kostenlose Konto gelten Nutzungsgrenzen: 20 Likes je 24 " +
                         "Stunden (ein Ablehnen zählt nicht mit), 3 gleichzeitig laufende " +
                         "Unterhaltungen (gezählt werden nur Matches, in denen selbst schon " +
                         "geschrieben wurde; die Zahl der Matches ist nicht begrenzt) und " +
-                        "ein Suchumkreis bis 50 km. Während der Beta-Phase gelten diese " +
-                        "Grenzen nicht; ihr Ende kündigen wir vorher an.",
+                        "ein Suchumkreis bis 50 km. Diese Grenzen gelten seit 17. " +
+                        "September 2026; davor war für alle Konten alles unbegrenzt.",
                     "FLEXR Premium ist ein freiwilliges Zusatzpaket um 10 € pro Monat. Es " +
                         "hebt die Grenzen aus lit. b auf und enthält zusätzlich: sehen, wer " +
                         "geliket hat, das Zurücknehmen des letzten Swipes, den vollen " +
                         "Suchumkreis bis 250 km und ein Premium-Abzeichen im Profil. " +
-                        "Premium ist während der Beta-Phase noch nicht bestellbar.",
+                        "Bestellt wird Premium ausschließlich auf flexr.social; diese " +
+                        "App bietet keinen Abschluss an und rechnet nichts über den " +
+                        "Play Store ab.",
                     "Kostenpflichtig wird nichts von selbst: Bei der Registrierung wird " +
                         "kein Zahlungsmittel erhoben, und Premium entsteht nur durch eine " +
                         "ausdrückliche Bestellung. Es gibt keine Kündigungsfrist, die " +

@@ -75,9 +75,8 @@ extension FlexrStrings {
         .registerTitle: "Dating for people\nwho do leg day\non Mondays.",
         .registerSubtitle: """
             Create your profile — free of charge, permanently. Using FLEXR costs \
-            nothing; no payment method is requested. FLEXR Premium (€10/month, \
-            cancel any time) arrives after the beta and is optional. Currently \
-            available in Austria only.
+            nothing; no payment method is requested. Currently available in \
+            Austria only.
             """,
         .registerPasswordPlaceholder: "At least 8 characters",
         .registerNamePlaceholder: "Alex",
@@ -251,12 +250,12 @@ extension FlexrStrings {
             the billing month.
             """,
         .premiumStatusBeta: """
-            FLEXR is and stays free. Everything is unlimited during the beta; \
-            FLEXR Premium comes afterwards and is optional.
+            FLEXR is and stays free. No limits currently apply to likes, \
+            conversations or search radius.
             """,
         .premiumStatusFree: """
             Your account is free: %d likes per day and %d conversations at \
-            once. Premium removes both limits.
+            once.
             """,
         .premiumShowOffer: "See FLEXR Premium",
         .premiumTitle: "FLEXR Premium",
@@ -272,13 +271,14 @@ extension FlexrStrings {
         .premiumFeatureRadius: "Full search radius up to %d km instead of %d km",
         .premiumFeatureBadge: "Premium badge on your profile",
         .premiumBetaHint: """
-            FLEXR Premium arrives after the beta. Until then everything is \
-            unlimited — no cost, no payment method.
+            FLEXR Premium cannot be purchased in this app. Using FLEXR still \
+            costs nothing.
             """,
         .premiumLikesLeft: "%d of %d likes left today",
         .premiumLikesGone: "No likes left today",
         .premiumLikeLimit: """
-            You have used your %d likes for today. FLEXR Premium lifts the limit.
+            You have used your %d likes for today. More become free in a few \
+            hours.
             """,
         .premiumBadgeTitle: "FLEXR Premium",
         .premiumLikesLeftOne: "1 of %d likes left today",
@@ -303,7 +303,7 @@ extension FlexrStrings {
         .incomingLoadFailed: "Open likes could not be loaded.",
         .premiumChatLimit: """
             You have %d conversations open — that is the limit at any one time. \
-            Unmatch someone or get FLEXR Premium.
+            Unmatch someone to free up a slot.
             """,
         .accountManageSubscription: "Manage / cancel subscription",
         .accountRadiusHint: """
@@ -645,7 +645,7 @@ extension FlexrStrings {
             """,
 
         // MARK: Statuspillen
-        .statusBetaFree: "Beta · free",
+        .statusBetaPrefix: "Beta · %@",
         .statusPremium: "Premium",
         .statusFree: "Free",
         .statusNotUnlocked: "Not unlocked",

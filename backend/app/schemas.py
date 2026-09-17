@@ -286,9 +286,32 @@ class MembershipStatus(BaseModel):
 
     # Laeuft ein Premium-Abo? (Nur wahr, wenn Premium ueberhaupt scharf ist.)
     is_premium: bool
-    # False = Beta: Premium ist nicht kaufbar und **niemand** hat Grenzen.
-    # Die Clients blenden daran Preis, Vorteile und Abo-Knoepfe aus.
+    # Ob dieser Client Preis, Vorteile und Abo-Knoepfe zeigen soll.
+    #
+    # **Pro Anfrage verschieden**, seit Premium scharf ist: In den Apps ist es
+    # immer False, im Browser folgt es ``settings.premium_enabled``. Der Grund
+    # steht in ``clients.py`` - ein Abschluss-Knopf, der aus einer App in einen
+    # Stripe-Checkout fuehrt, verstoesst gegen die Regeln beider Stores.
+    #
+    # Die Apps sehen dadurch dieselbe Oberflaeche wie zuvor in der Beta. Die
+    # Grenzen des kostenlosen Kontos gelten fuer sie trotzdem - sie haengen am
+    # Konto, nicht am Geraet. App-Fassungen ab dieser Umstellung zeigen sie anhand
+    # von ``limits_active``; aeltere halten ihr Konto weiter faelschlich fuer
+    # unbegrenzt und melden erst beim Anstossen an die Grenze, was Sache ist.
+    # Das ist der Preis dafuer, veroeffentlichte Fassungen nicht nachtraeglich
+    # regelwidrig werden zu lassen.
     premium_enabled: bool
+    # Gelten die Grenzen des kostenlosen Kontos? Fuer alle Clients gleich.
+    limits_active: bool
+    # Darf **dieser** Client einen Abschluss anbieten? Nur im Browser, und nur
+    # solange Premium scharf ist. POST /api/billing/checkout prueft dasselbe
+    # noch einmal selbst.
+    checkout_available: bool
+    # Traegt FLEXR noch das Beta-Abzeichen? Seit dem Scharfschalten von Premium
+    # ein eigener Schalter (``settings.beta_active``) - bis dahin hatten die
+    # Oberflaechen "Beta" daraus abgeleitet, dass Premium noch nicht kaufbar
+    # war, und haetten es beim Scharfschalten stillschweigend abgelegt.
+    beta_active: bool
     # Ein Abo aus der Zeit vor der Umstellung bzw. ein laufendes Premium-Abo,
     # das gekuendigt werden koennen muss - unabhaengig von premium_enabled.
     has_stripe_subscription: bool

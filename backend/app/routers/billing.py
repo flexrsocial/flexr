@@ -3,7 +3,7 @@ import logging
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.orm import Session
 
-from .. import legal, mailer, premium
+from .. import clients, legal, mailer, premium
 from ..config import settings
 from ..database import get_db
 from ..email_notifications import send_once
@@ -29,6 +29,7 @@ ENTITLING_SUBSCRIPTION_STATUS = {"active", "trialing", "past_due"}
 
 @router.get("/status", response_model=MembershipStatus)
 def membership_status(
+    request: Request,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
@@ -37,10 +38,19 @@ def membership_status(
     Die Clients fragen das beim Start und nach jedem Like/Chat neu ab, statt
     selbst mitzuzaehlen - der Server ist ohnehin die Instanz, die die Grenze
     durchsetzt, und zwei Zaehler laufen frueher oder spaeter auseinander.
+
+    Die Antwort haengt seit dem Scharfschalten von Premium **auch vom Client
+    ab**: In den Apps aus App Store und Play Store gibt es nichts zu kaufen
+    (siehe ``clients.py``). Was das Konto darf, bleibt davon unberuehrt - nur
+    was der Client davon anbieten darf, unterscheidet sich.
     """
+    verkauf_erlaubt = settings.premium_enabled and not clients.is_store_app(request)
     return MembershipStatus(
         is_premium=current_user.is_premium,
-        premium_enabled=settings.premium_enabled,
+        premium_enabled=verkauf_erlaubt,
+        limits_active=settings.premium_enabled,
+        checkout_available=verkauf_erlaubt,
+        beta_active=settings.beta_active,
         has_stripe_subscription=bool(current_user.is_subscribed),
         price_cents=settings.premium_price_cents,
         currency=settings.premium_currency,
@@ -55,29 +65,43 @@ def membership_status(
         is_subscribed=bool(current_user.is_subscribed),
         trial_ends_at=current_user.trial_ends_at,
         is_active=True,
-        billing_enabled=settings.premium_enabled,
+        billing_enabled=verkauf_erlaubt,
     )
 
 
 @router.post("/checkout")
 def create_checkout(
+    request: Request,
     payload: CheckoutRequest,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     # Solange Premium nicht scharf geschaltet ist, gibt es nichts zu kaufen:
-    # In der Beta ist fuer alle alles unbegrenzt, ein Abo brächte also keine
-    # einzige zusaetzliche Funktion. Die Clients bieten den Abschluss dann gar
-    # nicht erst an; wer den Endpunkt trotzdem erreicht (alter Client, offener
-    # Tab, direkter Aufruf), soll keinen Vertrag ueber eine Leistung
-    # schliessen, die er ohnehin hat. Der Ablehnung geht bewusst jede
-    # Consent-Buchung voraus: ohne Vertrag ist auch nichts zu erklaeren.
+    # Dann ist fuer alle alles unbegrenzt, ein Abo brächte also keine einzige
+    # zusaetzliche Funktion. Die Clients bieten den Abschluss dann gar nicht
+    # erst an; wer den Endpunkt trotzdem erreicht (alter Client, offener Tab,
+    # direkter Aufruf), soll keinen Vertrag ueber eine Leistung schliessen, die
+    # er ohnehin hat. Der Ablehnung geht bewusst jede Consent-Buchung voraus:
+    # ohne Vertrag ist auch nichts zu erklaeren.
     # 409 statt 404 - den Endpunkt gibt es, nur der Zustand passt nicht.
     if not settings.premium_enabled:
         raise HTTPException(
             status.HTTP_409_CONFLICT,
-            "FLEXR ist in der Beta-Phase für alle unbegrenzt nutzbar - "
-            "FLEXR Premium gibt es erst nach dem Ende der Beta.",
+            "FLEXR ist derzeit für alle unbegrenzt nutzbar - "
+            "FLEXR Premium ist noch nicht bestellbar.",
+        )
+
+    # Aus einer App heraus wird hier nichts verkauft. Die Apps zeigen den
+    # Abschluss ohnehin nicht an (``membership_status()`` meldet ihnen
+    # ``checkout_available=false``); diese Pruefung faengt den Fall ab, dass
+    # jemand den Endpunkt aus einer App heraus direkt aufruft. Auch der
+    # Fehlertext nennt bewusst **nicht**, wo sonst abgeschlossen werden kann:
+    # Eine solche Weiterleitung ist nach App Review Guideline 3.1.1 genau das,
+    # was der Knopf auch waere (siehe ``clients.py``).
+    if clients.is_store_app(request):
+        raise HTTPException(
+            status.HTTP_409_CONFLICT,
+            "FLEXR Premium kann in dieser App nicht abgeschlossen werden.",
         )
 
     # Doppelabschluss verhindern. Stripe wuerde anstandslos ein zweites Abo
@@ -128,7 +152,15 @@ def create_portal(current_user: User = Depends(get_current_user)):
 
     Bleibt auch bei ausgeschaltetem Premium erreichbar - gerade dann: Wer noch
     ein Abo aus der Zeit der alten Mitgliedsgebuehr hat, muss es kuendigen
-    koennen, ohne auf das Ende der Beta zu warten.
+    koennen, ohne auf irgendetwas zu warten.
+
+    Bewusst **nicht** fuer Apps gesperrt, anders als der Checkout darueber: Das
+    Portal verkauft nichts. Seine Stripe-Konfiguration erlaubt Kuendigung und
+    Zahlungsmittelwechsel, aber keinen Tarifwechsel (``subscription_update``
+    ist aus) - es ist damit reine Vertragsverwaltung, und die einem
+    App-Nutzer zu verweigern, hiesse ihm die Kuendigung zu erschweren, die
+    Punkt 11 der AGB und § 13a FAGG ihm gerade leicht machen sollen. Zu sehen
+    bekommt den Zugang ohnehin nur, wer bereits ein Abo hat.
     """
     if not current_user.stripe_customer_id:
         raise HTTPException(400, "Noch kein Abo abgeschlossen.")

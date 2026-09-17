@@ -198,7 +198,10 @@ struct AccountView: View {
         if membership.isPremium {
             return s(.premiumStatusActive)
         }
-        if !membership.premiumEnabled {
+        // Maßgeblich sind die geltenden Grenzen, nicht die Frage, ob hier
+        // etwas zu kaufen ist: In der App ist Letzteres immer „nein", die
+        // Grenzen gelten trotzdem (siehe `Membership.limitsActive`).
+        if !membership.limitsActive {
             return s(.premiumStatusBeta)
         }
         return s(.premiumStatusFree, membership.freeDailyLikes, membership.freeOpenChats)

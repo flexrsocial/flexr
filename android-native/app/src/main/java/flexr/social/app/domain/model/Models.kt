@@ -132,9 +132,26 @@ data class PushNotification(
 data class Membership(
     /** Laeuft ein Premium-Abo? Nur wahr, wenn Premium scharf geschaltet ist. */
     val isPremium: Boolean,
-    /** Ist Premium ueberhaupt schon kaufbar? In der Beta: nein. */
+    /**
+     * Darf **diese App** einen Abschluss anbieten? Nein - der Server meldet das
+     * jeder App so, weil ein Kauf ausserhalb von Play Billing gegen die
+     * Payments-Policy verstiesse (siehe `backend/app/clients.py`). Das Feld
+     * bleibt trotzdem stehen, statt fest auf `false` verdrahtet zu werden: Es
+     * ist der Server, der das entscheidet, nicht die App.
+     */
     val premiumEnabled: Boolean,
-    /** Ein Stripe-Abo, das gekuendigt werden koennen muss - auch in der Beta. */
+    /**
+     * Gelten die Grenzen des kostenlosen Kontos? Die haengen am Konto, nicht am
+     * Geraet - hier also sehr wohl `true`, seit Premium laeuft.
+     */
+    val limitsActive: Boolean,
+    /**
+     * Traegt FLEXR das Beta-Abzeichen? Seit 17.09.2026 ein eigener Schalter des
+     * Servers: Vorher hing es daran, dass Premium noch nicht kaufbar war, und
+     * waere beim Scharfschalten stillschweigend verschwunden.
+     */
+    val betaActive: Boolean,
+    /** Ein Stripe-Abo, das gekuendigt werden koennen muss. */
     val hasStripeSubscription: Boolean,
     val priceCents: Int,
     val currency: String,

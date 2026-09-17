@@ -30,6 +30,12 @@ class AuthHeaderInterceptor @Inject constructor(
         runBlocking {
             sessionStore.currentToken()?.let { builder.header("Authorization", "Bearer $it") }
             builder.header("X-Device-Id", sessionStore.deviceId())
+            // Weist die Anfrage als aus der Android-App kommend aus. Der Server
+            // bietet App-Clients keinen Abschluss von FLEXR Premium an - gekauft
+            // wird im Browser, siehe backend/app/clients.py. Ohne den Header
+            // erkennt er die App am OkHttp-User-Agent; das ist der Weg fuer
+            // Fassungen vor 2.7.0 und bleibt als Rueckfall bestehen.
+            builder.header("X-Flexr-Client", "android")
         }
         return chain.proceed(builder.build())
     }

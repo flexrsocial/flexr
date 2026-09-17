@@ -109,9 +109,14 @@ fun PushNotificationDto.toDomain() = PushNotification(
     target = target,
 )
 
+// checkoutAvailable hat Vorrang vor premiumEnabled; ein Server, der das Feld
+// noch nicht kennt, faellt auf premiumEnabled zurueck. Beide sind fuer diese
+// App ohnehin falsch, solange der Verkauf im Browser laeuft.
 fun MembershipStatusDto.toDomain() = Membership(
     isPremium = isPremium,
-    premiumEnabled = premiumEnabled,
+    premiumEnabled = checkoutAvailable ?: premiumEnabled,
+    limitsActive = limitsActive ?: premiumEnabled,
+    betaActive = betaActive,
     hasStripeSubscription = hasStripeSubscription,
     priceCents = priceCents,
     currency = currency,
