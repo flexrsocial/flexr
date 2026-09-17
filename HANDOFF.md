@@ -219,12 +219,26 @@ im Paket, nicht am Server).
 > und Hinweis auf die maßgebliche Langfassung) und die Behandlung des 403
 > „verification_required".
 
-**Testuser2 ist freigeschaltet.** `testuser2@flexr.social` wurde am 17.09.2026
-über `scripts/activate_review_account.py` freigegeben (Deck, Matches und
-eingehende Likes antworten mit 200, alle drei Fotos „approved"). Im Deck steht
-genau ein Profil: das Prüfkonto, 0 km entfernt, weil beide dasselbe Gym
-eingetragen haben. **Noch offen:** gegenseitiges Like und eine Nachricht —
-ohne sie sieht ein Apple-Prüfer zwei der vier Reiter leer.
+**Testuser2 ist freigeschaltet — und bewusst weiblich.**
+`testuser2@flexr.social` wurde am 17.09.2026 über
+`scripts/activate_review_account.py` freigegeben (Deck, Matches und eingehende
+Likes antworten mit 200, alle drei Fotos „approved", Gym `3D Lady Fit`,
+Wohnort 8010 Graz).
+
+Anfangs war das Konto **mann/sucht frau** und passte damit genau zum
+Prüfkonto `appreview` (**frau/sucht mann**) — beide am selben Gym, 0 km. Auf
+Ansage wurde es auf **frau/sucht mann** umgestellt, damit der Betreiber mit
+einem eigenen männlichen Konto matchen kann. Die Folge ist bekannt und
+gewollt: FLEXR matcht ausschließlich gegengeschlechtlich
+(`swipes.py`: `User.gender == current_user.interest` und umgekehrt), also
+sehen sich `appreview` und `testuser2` seither **nicht mehr**. Das Deck von
+Testuser2 ist entsprechend leer.
+
+> **Offener Punkt für die Einreichung:** Das Prüfkonto `appreview` hat damit
+> weiterhin **kein Match und keinen Chatverlauf**. Ein Apple-Prüfer sieht dann
+> zwei der vier Reiter leer und hält das für einen Fehler. Es braucht dafür
+> ein **männliches** Gegenkonto im Umkreis des Prüfkonto-Gyms, gegenseitige
+> Likes und mindestens eine Nachricht.
 
 ### Behoben — Backend
 
