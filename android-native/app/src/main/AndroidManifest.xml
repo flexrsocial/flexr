@@ -74,6 +74,21 @@
         </activity>
 
         <!-- WorkManager wird über Hilt initialisiert, nicht über den Default-Provider. -->
+        <!--
+             Echte Push-Zustellung. Bis zum 17.09.2026 holten sich die Apps ihre
+             Benachrichtigungen selbst ab; das kann eine Chatnachricht
+             prinzipbedingt nicht rechtzeitig zustellen (WorkManager laesst
+             fruehestens 15 Minuten zu, Doze schiebt weiter). Ueber FCM schickt
+             der Server, und das Geraet wacht dafuer auf.
+        -->
+        <service
+            android:name=".push.FlexrMessagingService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
+
         <provider
             android:name="androidx.startup.InitializationProvider"
             android:authorities="${applicationId}.androidx-startup"

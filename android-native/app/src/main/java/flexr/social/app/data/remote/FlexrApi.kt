@@ -31,6 +31,7 @@ import flexr.social.app.data.remote.dto.MyProfileDto
 import flexr.social.app.data.remote.dto.NotificationSettingsRequestDto
 import flexr.social.app.data.remote.dto.PlzLookupDto
 import flexr.social.app.data.remote.dto.PortalUrlDto
+import flexr.social.app.data.remote.dto.PushTokenRequestDto
 import flexr.social.app.data.remote.dto.PresignPhotoRequestDto
 import flexr.social.app.data.remote.dto.PresignPhotoResponseDto
 import flexr.social.app.data.remote.dto.ProfileDto
@@ -152,6 +153,23 @@ interface FlexrApi {
     suspend fun pendingNotifications(
         @Header("X-Flexr-Background") background: String = "1",
     ): List<PushNotificationDto>
+
+    /**
+     * Gerätetoken für echte Push-Zustellung anmelden.
+     *
+     * Wird nach dem Anmelden und bei jedem Start aufgerufen sowie immer, wenn
+     * Firebase den Token erneuert. Mehrfaches Anmelden ist der Normalfall.
+     */
+    @POST("api/notifications/token")
+    suspend fun registerPushToken(@Body body: PushTokenRequestDto)
+
+    /**
+     * Gerätetoken abmelden. `HTTP` statt `DELETE`, weil Retrofits `@DELETE`
+     * keinen Rumpf zulässt - der Server braucht aber den Token, um zu wissen,
+     * welches Gerät gemeint ist.
+     */
+    @HTTP(method = "DELETE", path = "api/notifications/token", hasBody = true)
+    suspend fun unregisterPushToken(@Body body: PushTokenRequestDto)
 
     @POST("api/notifications/delivered")
     suspend fun markNotificationsDelivered(

@@ -84,6 +84,19 @@ class Settings(BaseSettings):
     # Entwicklergeraet darf dort kein echtes Premium erzeugen.
     store_sandbox_allowed: bool = False
 
+    # ---- Push-Zustellung (Firebase Cloud Messaging) ------------------------
+    #
+    # Ohne diese beiden Werte bleibt Push **aus**: Der Server stellt dann nicht
+    # zu, und die Apps holen ihre Benachrichtigungen weiter per
+    # Hintergrundabgleich ab - langsam, aber vollstaendig. Genau dieser
+    # Fallback ist der Grund, warum hier nichts erzwungen wird.
+    #
+    # Das Dienstkonto ist dasselbe Format wie bei der Play-Developer-API
+    # (JSON-Datei), braucht aber die Rolle "Firebase Cloud Messaging API
+    # Admin" im **Firebase**-Projekt.
+    fcm_service_account_file: str = ""
+    fcm_project_id: str = ""
+
     # ---- Beta-Kennzeichnung ------------------------------------------------
     #
     # Getrennt von ``premium_enabled``, seit die beiden auseinanderfallen: Die

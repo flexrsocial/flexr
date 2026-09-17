@@ -1152,3 +1152,45 @@ class StoreSubscription(Base):
     @property
     def is_active(self) -> bool:
         return self.expires_at is not None and self.expires_at > datetime.utcnow()
+
+
+class PushToken(Base):
+    """Geraetekennung fuer echte Push-Zustellung (FCM).
+
+    Bis zum 17.09.2026 hatte FLEXR bewusst keinen Push-Kanal: Die Apps holten
+    ihre Benachrichtigungen per Hintergrundabgleich ab (siehe
+    ``PushNotification``). Das hat eine harte Grenze, die kein Wert und keine
+    Einstellung verschiebt - WorkManager laesst fruehestens 15 Minuten zu, und
+    Android schiebt den Lauf im Doze-Modus in die naechste Wartungsphase. Eine
+    Chatnachricht kam dadurch erst ein bis zwei Stunden spaeter an, im
+    schlimmsten Fall erst beim naechsten Oeffnen der App.
+
+    Mit einem Token hier schickt der Server selbst - das Geraet wacht dafuer
+    auch aus dem Doze auf.
+
+    **Der Token ist zugleich der Schalter.** Wer Benachrichtigungen in der App
+    abschaltet, loescht seinen Token; der Server hat dann niemanden, dem er
+    zustellen koennte. Das ist bewusst so gebaut und nicht als zusaetzliches
+    Flag am Konto: Zwei Quellen fuer dieselbe Frage laufen frueher oder spaeter
+    auseinander, und die hier ist die einzige, die auch stimmt, wenn jemand die
+    App loescht.
+
+    ``token`` ist eindeutig ueber alle Konten: Dasselbe Geraet kann nach einem
+    Kontowechsel denselben Token melden. Er **wandert** dann zum neuen Konto,
+    statt doppelt zu existieren - sonst bekaeme der Vorbesitzer die
+    Benachrichtigungen des neuen Nutzers auf sein Geraet.
+    """
+
+    __tablename__ = "push_tokens"
+    __table_args__ = (UniqueConstraint("token", name="uq_push_token"),)
+
+    id = Column(String, primary_key=True, default=gen_uuid)
+    user_id = Column(
+        String, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    # "android" oder "ios". Nur zur Nachvollziehbarkeit - FCM adressiert allein
+    # ueber den Token.
+    platform = Column(String(10), nullable=False)
+    token = Column(String(512), nullable=False)
+    created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+    last_seen = Column(DateTime, nullable=False, default=datetime.utcnow)

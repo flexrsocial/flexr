@@ -363,6 +363,19 @@ class MembershipStatus(BaseModel):
     billing_enabled: bool
 
 
+class PushTokenRequest(BaseModel):
+    """Geraetetoken fuer echte Push-Zustellung.
+
+    Der Token **ist** der Schalter: Wer Benachrichtigungen abschaltet, meldet
+    ihn ab (DELETE), und der Server hat dann niemanden, dem er zustellen
+    koennte. Kein zusaetzliches Flag am Konto - zwei Quellen fuer dieselbe
+    Frage laufen frueher oder spaeter auseinander.
+    """
+
+    platform: Literal["android", "ios"]
+    token: str = Field(min_length=10, max_length=512)
+
+
 class AppleTransactionRequest(BaseModel):
     """Eine signierte StoreKit-Transaktion, wie die iOS-App sie erhaelt.
 

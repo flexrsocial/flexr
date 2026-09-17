@@ -1,16 +1,19 @@
+import logging
 from datetime import datetime
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy import and_, or_
 from sqlalchemy.orm import Session
 
-from .. import premium, telegram
+from .. import premium, push, telegram
 from ..database import get_db
 from ..models import Block, Match, Message, ModerationAction, User
 from ..moderation import restriction_detail
 from ..rate_limit import limiter
 from ..schemas import MessageOut, SendMessageRequest
 from ..security import require_active_membership
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/matches", tags=["messages"])
 
@@ -54,6 +57,26 @@ def _message_out(m: Message, viewer_id: str) -> MessageOut:
         read_at=m.read_at,
         was_censored=m.was_censored,
     )
+
+
+# Wie lang der Text in der Benachrichtigung höchstens wird. Auf einem
+# gesperrten Bildschirm ist alles darüber ohnehin abgeschnitten, und FCM
+# begrenzt die Nutzlast - lieber hier sauber kürzen als dort hart abschneiden.
+NOTIFICATION_PREVIEW_CHARS = 120
+
+
+def _benachrichtigungstext(m: Message, empfaenger_id: str) -> str:
+    """Der Text, der in der Push-Benachrichtigung steht.
+
+    Bewusst die **zensierte** Fassung: Sie landet auf einem gesperrten
+    Bildschirm, und was der Empfänger in der App nicht zu sehen bekäme (Links,
+    Kontaktdaten - siehe safety_checks.redact_message), hat dort erst recht
+    nichts verloren.
+    """
+    text = _message_out(m, empfaenger_id).content
+    if len(text) <= NOTIFICATION_PREVIEW_CHARS:
+        return text
+    return text[: NOTIFICATION_PREVIEW_CHARS - 1].rstrip() + "…"
 
 
 @router.get("/{match_id}/messages", response_model=list[MessageOut])
@@ -154,5 +177,38 @@ def send_message(
         telegram.notify_admin_task(
             f"🆕 Nachricht markiert im FLEXR-Admin-Dashboard: Grund {flag_reason}"
         )
+
+    # Echte Push-Zustellung an den Empfänger.
+    #
+    # Der entscheidende Teil an der Behebung des gemeldeten Fehlers: Bis hierher
+    # erfuhr der Empfänger von einer Nachricht erst, wenn seine App von sich aus
+    # nachfragte - frühestens nach 15 Minuten, im Doze-Modus nach ein bis zwei
+    # Stunden, nach einem erzwungenen Beenden gar nicht mehr. Jetzt schickt der
+    # Server, und das Gerät wacht dafür auf.
+    #
+    # ``push.send()`` wirft nie und ist ohne Zugangsdaten ein No-op: Eine
+    # Nachricht muss auch dann ankommen, wenn Push nicht eingerichtet ist oder
+    # Google gerade nicht erreichbar - der Hintergrundabgleich der Apps liefert
+    # sie dann wie bisher nach.
+    #
+    # Der zensierte Text, nicht das Original: Was in der Benachrichtigung steht,
+    # steht auf einem gesperrten Bildschirm - dort hat ungefiltertes Zeug nichts
+    # verloren, das der Empfänger in der App gar nicht zu sehen bekäme.
+    #
+    # Das try steht hier und nicht nur in push.send(): Die Zusage "eine
+    # Nachricht kommt auch ohne Push an" darf nicht davon abhaengen, dass eine
+    # andere Funktion sich an ihr Versprechen haelt. Festgehalten in
+    # test_nachricht_kommt_auch_ohne_push_an.
+    try:
+        push.send(
+            db,
+            other,
+            title=current_user.name,
+            body=_benachrichtigungstext(message, other.id),
+            target="chats",
+        )
+    except Exception:  # noqa: BLE001 - Push ist eine Zugabe, kein Teil des Sendens
+        logger.exception("Push-Zustellung fehlgeschlagen (match=%s)", match_id)
+
     # Der Absender bekommt sein Original zurück, plus den Zensur-Hinweis
     return _message_out(message, current_user.id)

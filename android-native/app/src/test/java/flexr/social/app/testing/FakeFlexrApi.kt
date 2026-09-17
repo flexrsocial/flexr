@@ -28,6 +28,7 @@ import flexr.social.app.data.remote.dto.NotificationSettingsRequestDto
 import flexr.social.app.data.remote.dto.PlzLookupDto
 import flexr.social.app.data.remote.dto.GooglePurchaseRequestDto
 import flexr.social.app.data.remote.dto.PortalUrlDto
+import flexr.social.app.data.remote.dto.PushTokenRequestDto
 import flexr.social.app.data.remote.dto.StorePurchaseResultDto
 import flexr.social.app.data.remote.dto.PresignPhotoRequestDto
 import flexr.social.app.data.remote.dto.PresignPhotoResponseDto
@@ -163,6 +164,12 @@ open class FakeFlexrApi : FlexrApi {
         nichtVorgesehen("createCheckout")
 
     override suspend fun createPortal(): PortalUrlDto = nichtVorgesehen("createPortal")
+
+    override suspend fun registerPushToken(body: PushTokenRequestDto) =
+        nichtVorgesehen("registerPushToken")
+
+    override suspend fun unregisterPushToken(body: PushTokenRequestDto) =
+        nichtVorgesehen("unregisterPushToken")
 
     override suspend fun submitGooglePurchase(
         body: GooglePurchaseRequestDto,

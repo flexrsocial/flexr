@@ -51,6 +51,14 @@ class FakeSessionStore(
         notificationsState.value = enabled
     }
 
+    private var gemerkterPushToken: String? = null
+
+    override suspend fun pushToken(): String? = gemerkterPushToken
+
+    override suspend fun setPushToken(token: String?) {
+        gemerkterPushToken = token
+    }
+
     override suspend fun lastNotifiedMessageId(): String? = lastNotifiedId
 
     override suspend fun setLastNotifiedMessageId(id: String) {

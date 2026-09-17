@@ -33,6 +33,7 @@ class DataStoreSessionStore @Inject constructor(
         val USER_ID = stringPreferencesKey("user_id")
         val NOTIFICATIONS_ENABLED = booleanPreferencesKey("notifications_enabled")
         val LAST_NOTIFIED_MESSAGE = stringPreferencesKey("last_notified_message_id")
+        val PUSH_TOKEN = stringPreferencesKey("push_token")
         val VERIFIED_HINT_DISMISSED = booleanPreferencesKey("verified_hint_dismissed")
     }
 
@@ -77,6 +78,15 @@ class DataStoreSessionStore @Inject constructor(
 
     override suspend fun setNotificationsEnabled(enabled: Boolean) {
         context.sessionDataStore.edit { it[Keys.NOTIFICATIONS_ENABLED] = enabled }
+    }
+
+    override suspend fun pushToken(): String? =
+        context.sessionDataStore.data.first()[Keys.PUSH_TOKEN]
+
+    override suspend fun setPushToken(token: String?) {
+        context.sessionDataStore.edit {
+            if (token == null) it.remove(Keys.PUSH_TOKEN) else it[Keys.PUSH_TOKEN] = token
+        }
     }
 
     override suspend fun lastNotifiedMessageId(): String? =

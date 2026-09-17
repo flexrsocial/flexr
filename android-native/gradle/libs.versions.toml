@@ -27,11 +27,20 @@ coroutinesTest = "1.10.1"
 mockwebserver = "4.12.0"
 turbine = "1.2.0"
 billing = "8.0.0"
+firebaseMessaging = "25.1.3"
+coroutinesPlayServices = "1.10.1"
 
 [libraries]
 # Play Billing: der einzige zulaessige Kaufweg fuer digitale Inhalte, die in
 # dieser App wirken (Play-Payments-Policy). Stripe bleibt dem Browser.
 billing-ktx = { group = "com.android.billingclient", name = "billing-ktx", version.ref = "billing" }
+# Firebase Cloud Messaging: der einzige Weg, eine Chatnachricht auf Android
+# sofort zuzustellen. Bewusst OHNE das google-services-Gradle-Plugin, damit
+# sich die App auch ohne google-services.json bauen laesst - die Konfiguration
+# kommt zur Laufzeit aus BuildConfig (siehe FlexrApplication).
+firebase-messaging = { group = "com.google.firebase", name = "firebase-messaging", version.ref = "firebaseMessaging" }
+# Macht aus den Task-APIs der Play-Dienste suspend-Funktionen (Task.await()).
+coroutines-play-services = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-play-services", version.ref = "coroutinesPlayServices" }
 androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "coreKtx" }
 androidx-core-splashscreen = { module = "androidx.core:core-splashscreen", version.ref = "splashscreen" }
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "activityCompose" }

@@ -19,6 +19,7 @@ import flexr.social.app.data.repository.ProfileRepository
 import flexr.social.app.data.repository.SafetyRepository
 import flexr.social.app.data.repository.UnknownPostalCodeException
 import flexr.social.app.data.repository.VerificationRepository
+import flexr.social.app.push.PushTokenRegistrar
 import flexr.social.app.data.session.SessionStore
 import flexr.social.app.domain.model.BlockedUser
 import flexr.social.app.domain.model.Gym
@@ -114,6 +115,7 @@ class AccountViewModel @Inject constructor(
     private val safetyRepository: SafetyRepository,
     private val imageProcessor: ImageProcessor,
     private val sessionStore: SessionStore,
+    private val pushTokenRegistrar: PushTokenRegistrar,
     private val strings: AppStrings,
 ) : ViewModel() {
 
@@ -550,7 +552,16 @@ class AccountViewModel @Inject constructor(
 
     fun setNotificationsEnabled(enabled: Boolean) {
         _uiState.update { it.copy(notificationsEnabled = enabled) }
-        viewModelScope.launch { sessionStore.setNotificationsEnabled(enabled) }
+        viewModelScope.launch {
+            sessionStore.setNotificationsEnabled(enabled)
+            // Der Push-Token **ist** der Schalter: Abgeschaltet heisst
+            // abgemeldet, und der Server hat dann niemanden, dem er zustellen
+            // koennte. Ein zusaetzliches Flag am Konto gaebe es zwei Quellen
+            // fuer dieselbe Frage - die laufen frueher oder spaeter auseinander.
+            runCatching {
+                if (enabled) pushTokenRegistrar.anmelden() else pushTokenRegistrar.abmelden()
+            }
+        }
     }
 
     /**

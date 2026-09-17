@@ -37,6 +37,16 @@ interface SessionStore {
 
     suspend fun setNotificationsEnabled(enabled: Boolean)
 
+    /**
+     * Zuletzt beim Server angemeldeter FCM-Token.
+     *
+     * Lokal gemerkt, weil der Server ihn zum Abmelden braucht und Firebase ihn
+     * beim Abmelden nicht mehr zuverlässig herausgibt.
+     */
+    suspend fun pushToken(): String?
+
+    suspend fun setPushToken(token: String?)
+
     suspend fun lastNotifiedMessageId(): String?
 
     suspend fun setLastNotifiedMessageId(id: String)

@@ -5,6 +5,8 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import androidx.hilt.work.HiltWorkerFactory
 import androidx.work.Configuration
+import com.google.firebase.FirebaseApp
+import com.google.firebase.FirebaseOptions
 import coil.ImageLoader
 import coil.ImageLoaderFactory
 import coil.disk.DiskCache
@@ -42,6 +44,44 @@ class FlexrApplication : Application(), Configuration.Provider, ImageLoaderFacto
         super.onCreate()
         ApiErrorParser.strings = appStrings
         createNotificationChannels()
+        initFirebase()
+    }
+
+    /**
+     * Firebase fuer echte Push-Zustellung starten - **nur**, wenn der Build
+     * dafuer konfiguriert ist.
+     *
+     * Bewusst von Hand statt ueber das google-services-Plugin: Mit dem Plugin
+     * liesse sich die App ohne google-services.json gar nicht bauen, und diese
+     * Datei gehoert nicht ins Repository. Fehlen die Werte, passiert hier
+     * nichts, und die App holt ihre Benachrichtigungen weiter per WorkManager
+     * ab - langsam, aber vollstaendig.
+     *
+     * Die vier Werte stehen in gradle.properties (siehe app/build.gradle.kts);
+     * sie stammen aus der Firebase-Konsole und sind keine Geheimnisse - sie
+     * stecken in jeder ausgelieferten Android-App.
+     */
+    private fun initFirebase() {
+        if (BuildConfig.FIREBASE_PROJECT_ID.isBlank() ||
+            BuildConfig.FIREBASE_APP_ID.isBlank() ||
+            BuildConfig.FIREBASE_API_KEY.isBlank() ||
+            BuildConfig.FIREBASE_SENDER_ID.isBlank()
+        ) {
+            return
+        }
+        if (FirebaseApp.getApps(this).isNotEmpty()) return
+
+        runCatching {
+            FirebaseApp.initializeApp(
+                this,
+                FirebaseOptions.Builder()
+                    .setProjectId(BuildConfig.FIREBASE_PROJECT_ID)
+                    .setApplicationId(BuildConfig.FIREBASE_APP_ID)
+                    .setApiKey(BuildConfig.FIREBASE_API_KEY)
+                    .setGcmSenderId(BuildConfig.FIREBASE_SENDER_ID)
+                    .build(),
+            )
+        }
     }
 
     /**

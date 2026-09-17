@@ -244,6 +244,31 @@ android {
         }
     }
 
+    /**
+     * Firebase-Zugangsdaten fuer Push.
+     *
+     * Bewusst ueber gradle.properties statt google-services.json: Mit dem
+     * google-services-Plugin liesse sich die App ohne diese Datei gar nicht
+     * bauen, und sie gehoert nicht ins Repository. So baut jeder Stand, und wo
+     * die vier Werte fehlen, bleibt Push schlicht aus - die App faellt dann auf
+     * den Hintergrundabgleich zurueck, so wie vor dem 17.09.2026.
+     *
+     * Zu setzen in ~/.gradle/gradle.properties oder per -P:
+     *   flexr.firebase.projectId, flexr.firebase.appId,
+     *   flexr.firebase.apiKey, flexr.firebase.senderId
+     */
+    defaultConfig {
+        val firebase = listOf(
+            "FIREBASE_PROJECT_ID" to "flexr.firebase.projectId",
+            "FIREBASE_APP_ID" to "flexr.firebase.appId",
+            "FIREBASE_API_KEY" to "flexr.firebase.apiKey",
+            "FIREBASE_SENDER_ID" to "flexr.firebase.senderId",
+        )
+        firebase.forEach { (feld, eigenschaft) ->
+            buildConfigField("String", feld, "\"${findProperty(eigenschaft) ?: ""}\"")
+        }
+    }
+
     /** API-Endpunkte pro Build-Typ — Debug kann gegen die lokale Testumgebung laufen. */
     flavorDimensions += "backend"
     productFlavors {
@@ -267,6 +292,8 @@ dependencies {
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.browser)
     implementation(libs.billing.ktx)
+    implementation(libs.firebase.messaging)
+    implementation(libs.coroutines.play.services)
 
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.lifecycle.runtime.compose)

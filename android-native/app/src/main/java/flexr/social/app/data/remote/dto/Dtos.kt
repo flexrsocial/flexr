@@ -277,6 +277,14 @@ data class MembershipStatusDto(
     @SerialName("billing_enabled") val billingEnabled: Boolean = false,
 )
 
+/** Gerätetoken für echte Push-Zustellung. Der Token **ist** der Schalter:
+ *  Wer Benachrichtigungen abschaltet, meldet ihn ab. */
+@Serializable
+data class PushTokenRequestDto(
+    val platform: String,
+    val token: String,
+)
+
 /** Ein Play-Kauf, wie ihn die App einreicht. Mehr braucht der Server nicht -
  *  alles Weitere holt er sich bei Google (siehe backend/app/store_billing.py). */
 @Serializable

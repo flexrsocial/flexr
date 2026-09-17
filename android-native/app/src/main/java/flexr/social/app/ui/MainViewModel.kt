@@ -19,6 +19,7 @@ import flexr.social.app.data.repository.VerificationRepository
 import flexr.social.app.domain.model.Membership
 import flexr.social.app.domain.model.MyProfile
 import flexr.social.app.notifications.MessageNotificationScheduler
+import flexr.social.app.push.PushTokenRegistrar
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -64,6 +65,7 @@ class MainViewModel @Inject constructor(
     private val playBilling: PlayBillingService,
     private val verificationRepository: VerificationRepository,
     private val notificationScheduler: MessageNotificationScheduler,
+    private val pushTokenRegistrar: PushTokenRegistrar,
     matchRepository: MatchRepository,
     private val strings: AppStrings,
 ) : ViewModel() {
@@ -162,6 +164,14 @@ class MainViewModel @Inject constructor(
                 // erst suchen muesste. Laeuft still; wer nichts gekauft hat,
                 // merkt davon nichts.
                 launch { runCatching { playBilling.bestehendeKaeufeAbgleichen() } }
+
+                // Geraet fuer echte Push-Zustellung anmelden. Bei jedem Start,
+                // nicht nur nach dem Anmelden: Firebase vergibt den Token neu,
+                // wenn die App neu installiert oder ihre Daten geloescht
+                // werden - ohne Nachmelden schickte der Server danach an eine
+                // Adresse, die es nicht mehr gibt. Laeuft still; ohne
+                // Firebase-Konfiguration passiert nichts.
+                launch { runCatching { pushTokenRegistrar.anmelden() } }
             }.onFailure {
                 // Token ungültig oder Server nicht erreichbar — der
                 // Interceptor hat bei 401 bereits abgemeldet.
@@ -201,6 +211,11 @@ class MainViewModel @Inject constructor(
     fun logout() {
         viewModelScope.launch {
             notificationScheduler.cancel()
+            // Vor dem Abmelden: Danach ist der Sitzungstoken weg, und der
+            // Server wuerde die Abmeldung des Geraets nicht mehr annehmen -
+            // er bekaeme weiter Nachrichten fuer ein Konto geschickt, das auf
+            // diesem Geraet niemand mehr benutzt.
+            runCatching { pushTokenRegistrar.abmelden() }
             authRepository.logout()
             profileRepository.clear()
             billingRepository.clear()
