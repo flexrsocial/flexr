@@ -425,6 +425,11 @@
           <option value="true">Nur Premium</option>
           <option value="false">Nur Gratis</option>
         </select>
+        <select id="userFilterVerificationRejected">
+          <option value="">Verifizierung: alle</option>
+          <option value="true">Nur abgelehnte</option>
+          <option value="false">Ohne abgelehnte</option>
+        </select>
       </div>
       <div id="usersTableWrap"><div class="loading">Lädt …</div></div>
     </section>
@@ -856,6 +861,7 @@
   $('userSearch').addEventListener('input', scheduleUserReload);
   $('userFilterBanned').addEventListener('change', loadUsers);
   $('userFilterSubscribed').addEventListener('change', loadUsers);
+  $('userFilterVerificationRejected').addEventListener('change', loadUsers);
 
   async function loadUsers(){
     const wrap = $('usersTableWrap');
@@ -864,6 +870,7 @@
     if(q) params.set('q', q);
     if($('userFilterBanned').value) params.set('banned', $('userFilterBanned').value);
     if($('userFilterSubscribed').value) params.set('subscribed', $('userFilterSubscribed').value);
+    if($('userFilterVerificationRejected').value) params.set('verification_rejected', $('userFilterVerificationRejected').value);
     try{
       const users = await api('/api/admin/users?' + params.toString());
       if(users.length === 0){
@@ -887,7 +894,9 @@
                 <td>
                   ${u.deleted_at
                     ? `<span class="pill warn" title="Selbstlöschung am ${fmtDate(u.deleted_at)} — Karenzzeit läuft">Gelöscht</span>`
-                    : (u.is_banned ? '<span class="pill warn">Gesperrt</span>' : (u.is_subscribed ? '<span class="pill ok">Premium</span>' : '<span class="pill muted">Gratis</span>'))}
+                    : (u.is_banned ? '<span class="pill warn">Gesperrt</span>'
+                      : (u.verification_rejected ? '<span class="pill warn" title="Jüngster Verifizierungsversuch endgültig abgelehnt — Fotos bereits gelöscht, Deck/Match/Chat gesperrt">Verifizierung abgelehnt</span>'
+                        : (u.is_subscribed ? '<span class="pill ok">Premium</span>' : '<span class="pill muted">Gratis</span>')))}
                 </td>
                 <td>${fmtDate(u.created_at)}</td>
               </tr>
@@ -922,12 +931,14 @@
       ? '<span class="pill warn">Gelöscht</span>'
       : (u.is_banned
         ? '<span class="pill warn">Gesperrt</span>'
+        : (u.verification_rejected
+          ? '<span class="pill warn" title="Jüngster Verifizierungsversuch endgültig abgelehnt — Fotos bereits gelöscht, Deck/Match/Chat gesperrt">Verifizierung abgelehnt</span>'
         // is_active gibt es seit dem 10.09.2026 nur noch als Altfeld und ist
         // immer true - die Bezahlwand ist abgeschafft, ein Konto kann nicht
         // mehr "inaktiv" sein. Unterschieden wird nur noch Premium/Gratis.
-        : (u.is_subscribed
-          ? '<span class="pill ok">FLEXR Premium</span>'
-          : '<span class="pill muted">Gratis</span>'));
+          : (u.is_subscribed
+            ? '<span class="pill ok">FLEXR Premium</span>'
+            : '<span class="pill muted">Gratis</span>')));
 
     $('userModalBody').innerHTML = `
       <h3>${escapeHtml(u.name)}, ${u.age}</h3>

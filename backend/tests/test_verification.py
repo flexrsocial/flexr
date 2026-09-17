@@ -314,6 +314,43 @@ def test_final_rejection_blocks_account_and_restart(client, storage_stub):
     assert restart.status_code == 400
 
 
+def test_final_rejection_marks_user_in_admin_list(client, storage_stub):
+    """Die Nutzerliste im Admin-Dashboard soll endgültig abgelehnte Konten
+    markieren, statt sie unmarkiert wie jedes andere Konto zu zeigen (siehe
+    admin.html-Badge „Verifizierung abgelehnt")."""
+    headers = register_raw(client, "rejected-flag@example.com")
+    _add_photo(client, headers)
+    _complete_submission(client, headers)
+
+    admin_headers, _ = create_admin(client, email="admin.flag@example.com")
+    req_id = client.get("/api/admin/verifications", headers=admin_headers).json()[0]["id"]
+    client.post(
+        f"/api/admin/verifications/{req_id}/reject",
+        headers=admin_headers,
+        json={"reason_code": "underage"},
+    )
+
+    users = client.get("/api/admin/users", headers=admin_headers).json()
+    entry = next(u for u in users if u["email"] == "rejected-flag@example.com")
+    assert entry["verification_rejected"] is True
+
+    detail = client.get(f"/api/admin/users/{entry['id']}", headers=admin_headers).json()
+    assert detail["verification_rejected"] is True
+
+    # Filter: nur abgelehnte bzw. nur nicht-abgelehnte
+    only_rejected = client.get(
+        "/api/admin/users", headers=admin_headers, params={"verification_rejected": "true"}
+    ).json()
+    assert all(u["verification_rejected"] for u in only_rejected)
+    assert any(u["email"] == "rejected-flag@example.com" for u in only_rejected)
+
+    without_rejected = client.get(
+        "/api/admin/users", headers=admin_headers, params={"verification_rejected": "false"}
+    ).json()
+    assert all(not u["verification_rejected"] for u in without_rejected)
+    assert not any(u["email"] == "rejected-flag@example.com" for u in without_rejected)
+
+
 def test_approve_requires_full_checklist(client, storage_stub):
     headers = register_raw(client, "checklist@example.com")
     _add_photo(client, headers)

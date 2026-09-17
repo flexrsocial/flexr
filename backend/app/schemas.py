@@ -668,6 +668,11 @@ class AdminUserListItem(BaseModel):
     # eine Meldung dazu wäre gegen ein längst deaktiviertes Profil bearbeitet
     # worden.
     deleted_at: Optional[datetime] = None
+    # True, wenn der jüngste Verifizierungsversuch mit "endgültig abgelehnt"
+    # endete (und seither kein neuer Anlauf gestartet wurde). Ohne dieses Feld
+    # verschwanden solche Konten unmarkiert in der allgemeinen Nutzerliste -
+    # das Verifications-Panel filtert sie längst aus seinen Tabs heraus.
+    verification_rejected: bool = False
 
 
 class AdminUserDetailOut(BaseModel):
@@ -709,6 +714,7 @@ class AdminUserDetailOut(BaseModel):
     purge_at: Optional[datetime] = None
     # Geräteprüfung: [{device_id, user_agent, last_seen, shared_with: [Namen]}]
     devices: list[dict] = []
+    verification_rejected: bool = False
 
     class Config:
         from_attributes = True

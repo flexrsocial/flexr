@@ -246,11 +246,35 @@ def list_users(
     q: Optional[str] = None,
     banned: Optional[bool] = None,
     subscribed: Optional[bool] = None,
+    verification_rejected: Optional[bool] = None,
     limit: int = Query(50, le=200),
     offset: int = 0,
     admin: AdminUser = Depends(get_current_admin),
     db: Session = Depends(get_db),
 ):
+    # Jüngster Verifizierungsversuch pro Nutzer: nur dieser entscheidet, ob das
+    # Konto aktuell als "abgelehnt" markiert wird - ein späterer Neuanlauf
+    # (request-reupload, erneute Einreichung) überschreibt die Markierung.
+    latest_per_user = (
+        db.query(
+            VerificationRequest.user_id,
+            func.max(VerificationRequest.created_at).label("max_created"),
+        )
+        .group_by(VerificationRequest.user_id)
+        .subquery()
+    )
+    rejected_user_ids = {
+        user_id
+        for (user_id,) in db.query(VerificationRequest.user_id)
+        .join(
+            latest_per_user,
+            (VerificationRequest.user_id == latest_per_user.c.user_id)
+            & (VerificationRequest.created_at == latest_per_user.c.max_created),
+        )
+        .filter(VerificationRequest.status == VerificationStatus.rejected)
+        .all()
+    }
+
     query = db.query(User)
     if q:
         like = f"%{q}%"
@@ -259,6 +283,9 @@ def list_users(
         query = query.filter(User.is_banned.is_(banned))
     if subscribed is not None:
         query = query.filter(User.is_subscribed.is_(subscribed))
+    if verification_rejected is not None:
+        ids = rejected_user_ids or {""}  # leere IN-Klausel vermeiden
+        query = query.filter(User.id.in_(ids) if verification_rejected else User.id.notin_(ids))
 
     users = query.order_by(User.created_at.desc()).offset(offset).limit(limit).all()
     user_ids = [u.id for u in users]
@@ -286,6 +313,7 @@ def list_users(
             created_at=u.created_at,
             photo_count=photo_counts.get(u.id, 0),
             deleted_at=u.deleted_at,
+            verification_rejected=u.id in rejected_user_ids,
         )
         for u in users
     ]
@@ -300,6 +328,11 @@ def get_user_detail(
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(404, "Nutzer nicht gefunden.")
+
+    from ..verification_service import latest_request
+
+    latest = latest_request(db, user.id)
+    verification_rejected = latest is not None and latest.status == VerificationStatus.rejected
 
     # Geräteprüfung: Geräte des Nutzers inkl. weiterer Konten auf demselben Gerät
     devices = db.query(UserDevice).filter(UserDevice.user_id == user.id).all()
@@ -357,6 +390,7 @@ def get_user_detail(
             if user.deleted_at is not None else None
         ),
         devices=device_infos,
+        verification_rejected=verification_rejected,
     )
 
 
