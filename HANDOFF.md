@@ -5,9 +5,15 @@ Stand: **17.09.2026**
 ## Wo das Projekt gerade steht
 
 **Alles committet, gepusht und deployed.** Der VPS steht auf demselben Stand
-wie `origin/main` (**`c521a82`**, Stand 17.09.2026 abends) — `git pull` und
+wie `origin/main` (**`6950764`**, Stand 17.09.2026 nachts) — `git pull` und
 `sudo systemctl restart flexr-api` sind gelaufen, der Health-Check ist grün.
 
+> **FLEXR Premium ist seit dem 17.09.2026 scharf — und in allen drei
+> Oberflächen kaufbar.** Im Browser über Stripe, in den Apps über StoreKit
+> bzw. Play Billing (`backend/app/store_billing.py`). Der Kauf-Knopf in den
+> Apps erscheint erst, wenn die Store-Produkte angelegt und ihre Kennungen in
+> der `.env` eingetragen sind — siehe Sitzung 17.09.2026 (5).
+>
 > **FLEXR Premium ist seit dem 17.09.2026 scharf.** `PREMIUM_ENABLED=true`
 > steht in der `.env` des VPS (eine Sicherung liegt daneben als
 > `.env.bak-vor-premium-20260917`). Damit gelten die Grenzen des kostenlosen
@@ -186,6 +192,165 @@ Ausgangssitzung), dann die **drei Abschnitte vom 10.09.**
 **08.09.**, dann die beiden Sitzungen vom **07.09.**, dann **06.09.**, dann
 **05.09.**, dann **31.08.**, **30.08.**, **23.08.**, **21.08.**; die Build-,
 Test- und Deploy-Abschnitte am Ende gelten sitzungsübergreifend.
+
+## Sitzung 17.09.2026 (5) — In-App-Käufe: StoreKit und Play Billing
+
+**Auftrag:** „Premium soll aber unbedingt aus den apps heraus kaufbar sein —
+baue das - kann man das nicht über stripe machen?"
+
+**Die Antwort auf die Stripe-Frage lautet nein**, und zwar ohne Grauzone: Was
+in einer App Funktionen freischaltet, muss über deren eigenen Kaufweg laufen
+(App Review Guideline 3.1.1, Google-Play-Payments-Policy). Stripe bleibt dem
+Browser. Gebaut ist deshalb der Weg, den die Stores vorsehen — StoreKit auf
+iOS, Play Billing auf Android.
+
+Deployt als **`6950764`**, Migration `b2e75c41a908` gelaufen, Dienst neu
+gestartet, Health 200.
+
+### Der tragende Gedanke: Die App schaltet nichts frei
+
+Was aus einer App kommt, ist ein **Beleg, kein Ergebnis**. Apple liefert eine
+signierte Transaktion, Google einen Kauf-Token; beide sagen für sich genommen
+nur, dass der Client etwas behauptet. Erst der Server entscheidet:
+
+* **Apple** — das JWS wird vollständig geprüft: Die Zertifikatskette muss bei
+  genau dem Wurzelzertifikat enden, das im Repository liegt
+  (`backend/app/data/AppleRootCA-G3.cer`, von apple.com geladen, SHA-256
+  `63343abf…`), jedes Glied vom nächsten signiert sein, keines abgelaufen, und
+  die Signatur muss vom Blattzertifikat stammen. Danach erst werden `bundleId`
+  und `productId` geprüft. **Ohne App-Store-Connect-Zugangsdaten** — ein
+  StoreKit-Beleg trägt seine Kette selbst.
+* **Google** — ein Play-Token trägt keine prüfbare Signatur, also wird Google
+  gefragt (`purchases.subscriptionsv2`). Dafür braucht es ein Dienstkonto.
+
+### Warum ein Ablaufzeitpunkt und kein „aktiv"-Schalter
+
+`users.store_premium_until` trägt die Berechtigung, nicht ein Boolean. Der
+Grund: **Apple und Google stellen ihre Benachrichtigungen nicht garantiert
+zu.** Ein Schalter, der auf „aktiv" steht und dessen „aus"-Nachricht verloren
+geht, bliebe für immer offen. Ein Zeitpunkt läuft von selbst ab.
+
+Umgekehrt sind 16 Stunden Kulanz aufgeschlagen (`store_billing.GRACE`): Beide
+Stores buchen kurz vor Ablauf ab und melden die Verlängerung danach. Ohne die
+Kulanz stünde ein zahlender Kunde bei jeder verspäteten Meldung stundenlang
+ohne Premium da — die teurere der beiden Unfreundlichkeiten.
+
+Warum die Spalte am Konto und nicht eine Abfrage über `store_subscriptions`:
+`User.is_premium` wird bei **jeder** Profilausgabe gelesen, im Deck also bis zu
+50-mal pro Anfrage. Die Tabelle bleibt der Nachweis, die Spalte ist die
+schnelle Antwort; geschrieben wird beides nur von `apply_subscription()`.
+
+### Ein Kauf, ein Konto
+
+`(provider, external_id)` ist eindeutig. Wer denselben Apple-Zugang auf einem
+zweiten FLEXR-Konto einreicht — im Alltag: Konto neu angelegt, gleiches
+iPhone —, nimmt den Kauf **mit**; das erste Konto verliert die Berechtigung im
+selben Zug. Kopiert wird nichts, sonst hätten zwei Konten Premium für einmal
+Geld. Festgehalten in
+`test_derselbe_kauf_erzeugt_nicht_zweimal_premium`.
+
+### Was die Clients tun (und was nicht)
+
+Beide reichen nur ein. Zusätzlich holen beide ihre laufenden Käufe **bei jedem
+Start** nach (`Transaction.currentEntitlements` bzw. `queryPurchasesAsync`).
+Das ist kein Beiwerk, sondern der Weg zurück aus jeder Störung —
+Gerätewechsel, Neuinstallation, Kauf ohne Verbindung — und ersetzt den Knopf
+„Kauf wiederherstellen", den sonst jeder erst suchen müsste. iOS hört
+außerdem dauerhaft auf `Transaction.updates`; darüber stellt Apple
+Verlängerungen und Rückerstattungen zu, die sonst niemand abholt.
+
+**Der Preis kommt vom Store**, nicht aus unseren Ressourcen: Apple und Google
+rechnen Währung, Steuer und Preisstufe selbst (typischerweise 9,99 € statt
+10,00 €). Die Clients zeigen `displayPrice` bzw. `formattedPrice`.
+
+Bei Google wird der Kauf **serverseitig bestätigt** (`acknowledge`), sobald die
+Berechtigung gutgeschrieben ist — ohne Bestätigung storniert Google nach drei
+Tagen und erstattet das Geld. Der Client bestätigt zusätzlich, falls der Server
+dabei ausfällt.
+
+### Der Kauf-Knopf ist noch unsichtbar — absichtlich
+
+`store_purchase_available` ist nur wahr, wenn eine Produktkennung eingetragen
+ist. Solange nicht, zeigen die Apps keinen Knopf: Einer, der im Store nichts
+findet, ist schlimmer als keiner. **Das ist der einzige Schritt, der noch
+fehlt**, und er braucht keinen neuen Build:
+
+| Wo | Was anzulegen | Dann in die `.env` |
+|---|---|---|
+| App Store Connect | Auto-Renewable Subscription in einer Abo-Gruppe | `APPLE_SUBSCRIPTION_PRODUCT_ID=social.flexr.premium.monthly` |
+| Play Console | Abo mit Basis-Tarif, aktiviert | `GOOGLE_SUBSCRIPTION_PRODUCT_ID=premium_monthly` |
+| Google Cloud | Dienstkonto mit Play-Developer-API-Zugriff | `GOOGLE_SERVICE_ACCOUNT_FILE=/pfad/zur.json` |
+| Play Console → Monetarisierung | RTDN-Pub/Sub-Thema | `GOOGLE_NOTIFICATIONS_TOKEN=<geheim>` |
+| App Store Connect → App-Informationen | Server-Benachrichtigungen V2, Produktions-URL | — |
+
+Die Benachrichtigungs-URLs:
+
+```
+Apple:  https://flexr.social/api/billing/apple/notifications
+Google: https://flexr.social/api/billing/google/notifications/<GOOGLE_NOTIFICATIONS_TOKEN>
+```
+
+Apple signiert seine Benachrichtigungen und weist sich dadurch aus; Googles
+Pub/Sub-Zustellung nicht, deshalb das Geheimnis im Pfad. Ein falsches gibt 404.
+
+`STORE_SANDBOX_ALLOWED` bleibt in der Produktion **aus**: Ein Testkauf aus
+einem Entwicklergerät darf dort kein echtes Premium erzeugen. Zum Testen mit
+einem Sandbox-Konto vorübergehend auf `true`.
+
+### Rechtstexte: Der Vertragspartner hängt jetzt vom Kaufweg ab
+
+Das ist die inhaltlich wichtigste Folge und stand vorher falsch da (die
+Fassung von heute Nachmittag versprach noch „keine In-App-Käufe"):
+
+* **AGB 6 c** (neu) — bei einem In-App-Kauf kommt der Zahlungsvertrag mit
+  Apple bzw. Google zustande; für die Leistung selbst gelten weiter unsere AGB.
+* **AGB 9 e/f** (neu) — drei Bestellwege mit demselben Leistungsumfang, und
+  der Preis im Store darf abweichen. Die 10,00 € gelten für flexr.social.
+* **AGB 10 b** (neu) — bei einem In-App-Kauf erhalten wir **keine
+  Zahlungsdaten**, nur die Bestätigung des Stores.
+* **AGB 12 a** — gekündigt wird dort, wo gekauft wurde. Kein technisches
+  Detail: Bei einem Store-Kauf könnten wir den Vertrag gar nicht beenden.
+* **Rücktrittsbelehrung** — ein Stripe-Abo stoppt der Rücktritt weiterhin
+  automatisch, ein Store-Abo nicht. Die Erklärung wird trotzdem entgegen-
+  genommen und protokolliert; es ist nicht Sache des Kunden, vorher zu wissen,
+  wer sie umzusetzen hat (`routers/withdrawal.py`).
+
+Mitgezogen: FAQ, Landingpage, `i18n-landing.js` und die gekürzten Fassungen in
+beiden Apps — deutsch und englisch.
+
+**`TERMS_VERSION` bleibt `2026-09-17`.** Geprüft, warum das zulässig ist: Die
+Zwischenfassung von nachmittags war rund eine Stunde online, und in dieser Zeit
+hat sich **niemand** registriert — die beiden heutigen Konten (`testuser2`,
+`info@akhunstech.com`) tragen beide noch `terms 2026-09-10`. Es gibt also
+keinen Nutzer, der die Zwischenfassung unter diesem Label akzeptiert hätte.
+
+### Geprüft
+
+`backend/tests/test_store_billing.py` (20 Fälle). Der Schwerpunkt liegt auf den
+**Ablehnungen** — ein Kauf-Beleg ist die einzige Eingabe, mit der sich Geldwert
+erzeugen ließe: fremde Wurzel, veränderte Nutzlast, gebrochene Kette, fremde
+App, fremdes Produkt, Sandbox in der Produktion, Unsinn. Für den positiven Fall
+wird Apples Wurzelzertifikat im Test durch ein selbst erzeugtes ersetzt; anders
+ginge es nicht, und geprüft wird dabei trotzdem genau das, worauf es ankommt.
+
+Gesamt **480 Backend-Tests grün**, Android kompiliert in allen Varianten,
+Android-Unit-Tests grün.
+
+### Was offen bleibt
+
+* **Der iOS-Code ist nie kompiliert worden.** Hier gibt es kein Xcode; der
+  erste Codemagic-Lauf ist gleichzeitig der erste Compile. Android wurde
+  kompiliert und getestet.
+* Die **Store-Produkte** sind anzulegen (Tabelle oben). Bis dahin zeigen die
+  Apps keinen Kauf-Knopf und verhalten sich wie zuvor.
+* Soll der Apple-Prüfer den Kauf mitprüfen, muss das Abo-Produkt **vor** dem
+  Einreichen angelegt und dem Build beigefügt werden.
+* In `AccountModel`/`AccountView` (iOS) steht die Stripe-Checkout-Maschinerie
+  noch, ist aber unerreichbar — die beiden FAGG-Erklärungen gehörten zum
+  Stripe-Weg, bei einem Store-Kauf führt Apple den Vertrag. Bewusst nicht
+  entfernt, weil sich das hier nicht kompilieren lässt; beim nächsten
+  iOS-Durchgang aufräumen.
+* Provision: Apple und Google behalten 15–30 %. Bei 9,99 € bleiben 7–8,50 €.
 
 ## Sitzung 17.09.2026 (4) — FLEXR Premium scharf geschaltet, Verkauf nur im Browser
 
