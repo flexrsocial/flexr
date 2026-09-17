@@ -336,6 +336,20 @@ ginge es nicht, und geprüft wird dabei trotzdem genau das, worauf es ankommt.
 Gesamt **480 Backend-Tests grün**, Android kompiliert in allen Varianten,
 Android-Unit-Tests grün.
 
+### Android 2.7.0 neu gebaut (versionCode 111)
+
+Dasselbe Versionspaar wie am Nachmittag — das Bundle war noch nicht
+hochgeladen, also durfte die Nummer bleiben. Inhalt ist jetzt aber ein
+anderer: Play Billing ist drin. Neue Prüfsumme:
+
+```
+09dc5b81b72e22fe2f110efc8766b7cb1dfcdefa39d397be65626aa92d5e9e6f  flexr-2.7.0-vc111.aab
+```
+
+7,7 MB, signiert (`jarsigner -verify` → „jar verified"), abgelegt unter
+`../release-2.7.0/`. **Das ältere Bundle mit derselben Nummer wurde dabei
+ersetzt** — es hatte die Prüfsumme `b53337da…` und ist damit gegenstandslos.
+
 ### Was offen bleibt
 
 * **Der iOS-Code ist nie kompiliert worden.** Hier gibt es kein Xcode; der
