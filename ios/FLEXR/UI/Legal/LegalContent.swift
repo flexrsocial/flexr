@@ -373,7 +373,7 @@ enum LegalContent {
 
     private static let nutzungsrichtlinien = LegalPage(
         document: .nutzungsrichtlinien,
-        intro: "Verbindliche Verhaltens- und Inhaltsregeln für alle Nutzer von FLEXR. Stand: 3. August 2026.",
+        intro: "Verbindliche Verhaltens- und Inhaltsregeln für alle Nutzer von FLEXR. Stand: 19. August 2026. Diese Fassung ist gekürzt; maßgeblich ist der vollständige Text unter flexr.social/nutzungsrichtlinien.html.",
         blocks: [
             .heading("1. Geltung"),
             .paragraph(
@@ -655,7 +655,7 @@ enum LegalContent {
 
     private static let strafverfolgung = LegalPage(
         document: .strafverfolgung,
-        intro: "Verfahren für behördliche Auskunfts-, Sicherungs- und Notfallersuchen. Stand: 3. August 2026.",
+        intro: "Verfahren für behördliche Auskunfts-, Sicherungs- und Notfallersuchen. Stand: 19. August 2026. Diese Fassung ist gekürzt; maßgeblich ist der vollständige Text unter flexr.social/strafverfolgung.html.",
         blocks: [
             .heading("1. Wer wir sind"),
             .paragraph(

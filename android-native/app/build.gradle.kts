@@ -116,8 +116,17 @@ android {
         // Server aus steht - dann ist is_premium fuer jeden falsch. Dazu der
         // ersetzte Login-Hinweis: Der versprochene Probemonat existiert seit
         // dem 10.09.2026 nicht mehr.
-        versionCode = 109
-        versionName = "2.6.9"
+        // 110/2.6.10 am 17.09.2026: Befunde der Durchsicht vor der
+        // iOS-Einreichung. Die Rechtstexte nannten in dieser App noch 5 € und
+        // einen Probemonat - beides gibt es seit dem 10.09.2026 nicht mehr,
+        // iOS und Web waren laengst richtig. Dazu die Folge der endgueltigen
+        // Ablehnung (alle Profilfotos werden geloescht) in der
+        // Datenschutzerklaerung ergaenzt, und der 403 "verification_required"
+        // wird endlich behandelt: Bisher blieb der Nutzer auf dem Deck mit
+        // "Zugriff nicht moeglich" stehen, statt ins Verifizierungs-Gate
+        // geleitet zu werden - auf iOS laeuft das seit jeher richtig.
+        versionCode = 110
+        versionName = "2.6.10"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         // Nur die Sprachen ausliefern, die es wirklich gibt: Deutsch als

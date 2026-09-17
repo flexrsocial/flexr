@@ -399,7 +399,7 @@ object LegalContent {
     // flexr.social/nutzungsrichtlinien.html — beide Fassungen zusammen pflegen.
     private val nutzungsrichtlinien = LegalPage(
         document = LegalDocument.NUTZUNGSRICHTLINIEN,
-        intro = "Verbindliche Verhaltens- und Inhaltsregeln für alle Nutzer von FLEXR. Stand: 3. August 2026.",
+        intro = "Verbindliche Verhaltens- und Inhaltsregeln für alle Nutzer von FLEXR. Stand: 19. August 2026. Diese Fassung ist gekürzt; maßgeblich ist der vollständige Text unter flexr.social/nutzungsrichtlinien.html.",
         blocks = listOf(
             LegalBlock.Heading("1. Geltung"),
             LegalBlock.Paragraph(
@@ -711,7 +711,7 @@ object LegalContent {
     // flexr.social/strafverfolgung.html — beide Fassungen zusammen pflegen.
     private val strafverfolgung = LegalPage(
         document = LegalDocument.STRAFVERFOLGUNG,
-        intro = "Verfahren für behördliche Auskunfts-, Sicherungs- und Notfallersuchen. Stand: 3. August 2026.",
+        intro = "Verfahren für behördliche Auskunfts-, Sicherungs- und Notfallersuchen. Stand: 19. August 2026. Diese Fassung ist gekürzt; maßgeblich ist der vollständige Text unter flexr.social/strafverfolgung.html.",
         blocks = listOf(
             LegalBlock.Heading("1. Wer wir sind"),
             LegalBlock.Paragraph(
