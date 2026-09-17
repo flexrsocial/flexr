@@ -5,18 +5,16 @@ Stand: **17.09.2026**
 ## Wo das Projekt gerade steht
 
 **Alles committet, gepusht und deployed.** Der VPS steht auf demselben Stand
-wie `origin/main` (`c773710`); die Migration der Sitzung vom 11.09.
-(Rechtstexte auf Englisch, E-Mails in der Profilsprache) ist gelaufen —
-`alembic current` und `heads` zeigen beide `c8d31f6a94b2`. Die Sitzung vom
-12.09. **(2)** bringt eine Backend-Änderung ohne neue Migration (nur
-Prüflogik, kein Schema). Die Sitzung vom 12.09. **(3)** ist reines Frontend
-(SEO/Performance, Commit `01adcc8`) und brauchte deshalb nur `git pull` auf
-dem VPS, keinen Neustart. Dasselbe gilt für **beide Sitzungen vom 16.09.**: Web
-und beide nativen Clients, kein App-Code im Backend, keine Migration, kein
-Neustart. Der VPS steht damit weiterhin auf dem Backend-Stand von `c773710`;
-`origin/main` ist inzwischen **`72ada4c`**, die Differenz ist reines Client- und
-Dokumentationsmaterial. **Ein `git pull` auf dem VPS ist nicht nötig** — es
-liegt nichts darin, was der Server ausliefert oder ausführt.
+wie `origin/main` (**`4c0922c`**, Stand 17.09.2026 abends) — `git pull` und
+`sudo systemctl restart flexr-api` sind gelaufen, `systemctl is-active` zeigt
+`active`, `curl https://flexr.social/api/health` liefert `{"status":"ok"}`.
+Keine Migration nötig: beide Backend-Änderungen der zweiten Sitzung vom 17.09.
+(siehe unten) sind reine Anwendungslogik, kein Schema-Wechsel. Direkt nach dem
+Neustart lieferte derselbe `curl`-Aufruf einmalig `502` — reine Racebedingung
+zwischen "Prozess gestartet" und "Uvicorn nimmt Verbindungen an" (`is-active`
+kommt vor der eigentlichen Anwendungsbereitschaft), Sekunden später war der
+Health-Check grün. Kein Grund zur Sorge, aber beim nächsten Deploy nicht
+direkt im selben Atemzug wie den Neustart-Befehl prüfen.
 
 > **Einstieg für die nächste Sitzung, Stand 16.09.2026 abends.** Arbeitsbaum
 > sauber, `HEAD` = `origin/main` = `72ada4c`. Nichts hängt halbfertig. Die drei
@@ -151,8 +149,10 @@ Die `vc101`- bis `vc104`-Dateien sind hinfällig. Die Play Console hatte 43 und
 > englischen Texte lagen dort in einem Sprach-Split, den ein deutsches Gerät
 > nie herunterlädt. Erst ab 2.6.3 stecken beide Sprachen im Basis-Paket.
 
-Aufbau des Dokuments: erst diese Eckdaten, dann **die Sitzung vom 17.09.**
-(Stripe-Umstellung auf FLEXR Premium), dann **zwei Abschnitte vom 16.09.**
+Aufbau des Dokuments: erst diese Eckdaten, dann **die Sitzung vom 17.09. (2)**
+(Verifizierungsablehnung: Fotos löschen, Nutzerliste kennzeichnen), dann **die
+Sitzung vom 17.09.** (Stripe-Umstellung auf FLEXR Premium), dann **zwei
+Abschnitte vom 16.09.**
 ((2) FLEXR Premium in den nativen Clients, dann der ungezählte erste vom selben
 Tag über den 401 beim Login),
 dann **drei Abschnitte vom 12.09.** ((3) SEO/Performance, dann (2) Backend,
@@ -162,6 +162,68 @@ Ausgangssitzung), dann die **drei Abschnitte vom 10.09.**
 **08.09.**, dann die beiden Sitzungen vom **07.09.**, dann **06.09.**, dann
 **05.09.**, dann **31.08.**, **30.08.**, **23.08.**, **21.08.**; die Build-,
 Test- und Deploy-Abschnitte am Ende gelten sitzungsübergreifend.
+
+## Sitzung 17.09.2026 (2) — Verifizierungsablehnung: Fotos löschen, Nutzerliste kennzeichnen
+
+Zwei zusammenhängende Lücken im Ablehnungsweg der Alters-/Identitätsprüfung
+geschlossen, beide vom Nutzer im Admin-Dashboard entdeckt.
+
+**Fund 1: Profilfotos überlebten die endgültige Ablehnung.**
+`reject_verification` (`POST /admin/verifications/{id}/reject`,
+`backend/app/routers/admin.py`) hat bislang nur die temporären
+Verifizierungs-Uploads (Selfie/Ausweis) über `purge_uploads` gelöscht, nie
+aber die bereits eingereichten Profilfotos (`photos`-Tabelle). Ein Konto, das
+die Prüfung nicht bestanden hatte, blieb damit mit Fotos in der Foto-Freigabe
+und im Objekt-Storage zurück, obwohl es nie verifiziert wurde. Fix: Die
+Endpoint-Funktion löscht jetzt zusätzlich alle `Photo`-Zeilen des Nutzers
+(unabhängig von pending/approved/rejected) inklusive Storage-Objekten,
+derselbe Lösch-Pattern wie beim admin-seitigen Foto-Hard-Delete
+(`DELETE /admin/photos/{id}`) und der Nutzer-Selbstlöschung von Fotos.
+Commit `d73ef1f`.
+
+Kleiner Nebenfund dabei, der zur selben Sitzung gehört: `is_verified` gibt
+keine Auskunft über Standort — die Umkreissuche verwendet nie eine Geräte-
+oder Nutzerposition, sondern ausschließlich die Adresse des im Profil
+eingetragenen Gyms. `ios/store/store-texte.md` und `ios/FLEXR/PrivacyInfo.xcprivacy`
+behaupteten trotzdem eine (nie erhobene) `CoarseLocation` — beide korrigiert,
+siehe Commit `e65a346` (separat, für die iOS-App-Store-Einreichung).
+
+**Fund 2: Endgültig abgelehnte Nutzer standen unmarkiert in der
+Admin-Nutzerliste.** Der Nutzer fragte, ob das ein Bug sei. Antwort: die
+Konto-Zeile selbst bleibt absichtlich bestehen (nicht wie die Fotos ein Bug) —
+zwei Gründe: (a) Ablehnung ist als wiederholbar gedacht, `request_verification_reupload`
+öffnet denselben Verifizierungsvorgang für einen neuen Anlauf wieder; (b) die
+Mehrfachkonto-Erkennung über `UserDevice` in `get_user_detail` braucht die
+Zeile, sonst könnte sich ein abgelehnter Nutzer unerkannt neu registrieren.
+Ein manueller Hard-Delete existiert bereits (`DELETE /admin/users/{id}`,
+Button "Nutzer löschen" im Detail-Modal) — für den Einzelfall reicht das.
+
+Lücke war reines UX: Die Nutzerliste kannte den Ablehnungszustand gar nicht,
+nur das separate Verifications-Panel filtert intern danach. Fix:
+
+- `GET /admin/users` und `GET /admin/users/{id}` liefern jetzt
+  `verification_rejected` (jüngster Verifizierungsversuch des Nutzers —
+  `latest_request`/größtes `created_at` pro `user_id` — hat Status
+  `rejected`). `/admin/users` bekommt zusätzlich den Filter-Query-Param
+  `verification_rejected=true|false`.
+- `frontend/admin.html`: neues Filter-Dropdown "Verifizierung: alle/nur
+  abgelehnte/ohne abgelehnte" in der Toolbar, plus Badge "Verifizierung
+  abgelehnt" in Tabelle und Detail-Modal — eingeordnet in der bestehenden
+  Status-Prioritätskette zwischen "Gesperrt" und "Premium/Gratis" (ein Konto
+  kann banned und/oder rejected und/oder gelöscht gleichzeitig sein, die
+  Badges zeigen nur den jeweils wichtigsten Zustand).
+
+Commit `4c0922c`. Test ergänzt (`test_final_rejection_marks_user_in_admin_list`
+in `backend/tests/test_verification.py`): prüft das Feld in Liste und Detail
+sowie beide Filterrichtungen. `pytest tests/test_verification.py
+tests/test_admin.py` — 35 bzw. 14 Tests grün (letzterer Lauf inkl. des neuen
+Tests), keine Regression.
+
+**Deploy dieser Sitzung:** `git pull --ff-only` auf `flexr-vps`,
+`sudo systemctl restart flexr-api`, `curl https://flexr.social/api/health` →
+`{"status":"ok"}` nach einer einmaligen Race-502 direkt nach dem Neustart
+(siehe „Wo das Projekt gerade steht" oben). Keine Migration — beide Änderungen
+sind reine Anwendungslogik.
 
 ## Sitzung 17.09.2026 — Stripe: FLEXR-Premium-Preis live angelegt, Webhook vervollständigt
 
