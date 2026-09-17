@@ -5,7 +5,20 @@ Stand: **17.09.2026**
 ## Wo das Projekt gerade steht
 
 **Alles committet, gepusht und deployed.** Der VPS steht auf demselben Stand
-wie `origin/main` (**`4c0922c`**, Stand 17.09.2026 abends) — `git pull` und
+wie `origin/main` (**`04a1f28`**, Stand 17.09.2026 nachts) — `git pull` und
+`sudo systemctl restart flexr-api` sind gelaufen, der Health-Check ist grün.
+Nach dem Deploy gegengeprüft: Deck und Matches antworten einem
+unverifizierten Konto weiterhin mit 403, und eine fremde `request_id` am
+Rücktrittsformular gibt keine fremde Erklärung mehr heraus.
+
+> **Zwei Testeinträge in der Produktion:** Die Gegenprobe zum Rücktrittsleck
+> hat zwei echte `withdrawal_declarations` angelegt (Namen "Pruef Zwei" und
+> "Fremder", Adressen auf `example.com`, `request_id`
+> `nicht-erratbar-test-001`). Sie stehen in einer Nachweistabelle nach
+> § 13a FAGG — deshalb bewusst nicht eigenmächtig gelöscht. Wenn sie weg
+> sollen, gezielt über diese `request_id` entfernen.
+
+Der vorige Stand zum Vergleich (**`4c0922c`**): `git pull` und
 `sudo systemctl restart flexr-api` sind gelaufen, `systemctl is-active` zeigt
 `active`, `curl https://flexr.social/api/health` liefert `{"status":"ok"}`.
 Keine Migration nötig: beide Backend-Änderungen der zweiten Sitzung vom 17.09.
