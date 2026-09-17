@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!--
+	     Push-Berechtigung. Der Wert kommt aus der Build-Einstellung
+	     APS_ENVIRONMENT: "development" für Debug-Builds (deren Gerätetokens
+	     nur gegen Apples Sandbox funktionieren), "production" für Release -
+	     also für alles, was über TestFlight oder den App Store geht.
+
+	     Fest verdrahtet wäre es ein Fehler, den man erst am stillen Gerät
+	     bemerkt: Ein Produktions-Build mit "development" bekommt von APNs
+	     BadDeviceToken zurück.
+	-->
+	<key>aps-environment</key>
+	<string>$(APS_ENVIRONMENT)</string>
+</dict>
+</plist>

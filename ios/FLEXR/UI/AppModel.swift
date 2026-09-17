@@ -169,6 +169,13 @@ final class AppModel {
             // gekauft hat, merkt davon nichts.
             container.storeKit.beobachten()
             Task { await container.storeKit.bestehendeKaeufeAbgleichen() }
+
+            // Erlaubnis für echte Push-Zustellung einholen und das Gerät
+            // anmelden. Bewusst erst hier und nicht beim ersten Start: Wer die
+            // App gerade öffnet und noch kein Konto hat, weiß nicht, wofür er
+            // die Erlaubnis geben soll — und ein abgelehnter Dialog kommt auf
+            // iOS kein zweites Mal.
+            Task { await container.push.anfordern() }
         } catch {
             // Token ungültig oder Server nicht erreichbar — bei 401 hat der
             // APIClient bereits abgemeldet und `sessionExpired` gefeuert.
@@ -185,6 +192,10 @@ final class AppModel {
     func logout() async {
         container.notifications.cancel()
         container.activityNotifications.cancel()
+        // Vor dem Abmelden: Danach ist der Sitzungstoken weg, und der Server
+        // nähme die Abmeldung des Geräts nicht mehr an — er schickte weiter
+        // Nachrichten für ein Konto, das auf diesem Gerät niemand mehr nutzt.
+        await container.push.abmelden()
         await container.auth.logout()
         container.profiles.clear()
         container.billing.clear()

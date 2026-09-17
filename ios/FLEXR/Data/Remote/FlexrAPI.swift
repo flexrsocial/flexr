@@ -92,6 +92,28 @@ struct FlexrAPI {
         )
     }
 
+    /// Gerätetoken für echte Push-Zustellung anmelden.
+    ///
+    /// Bei jedem Start, nicht nur nach dem Anmelden: iOS vergibt den Token neu,
+    /// wenn die App neu installiert oder wiederhergestellt wird. Mehrfaches
+    /// Anmelden desselben Tokens ist deshalb der Normalfall und schreibt
+    /// serverseitig nur dieselbe Zeile fort.
+    func registerPushToken(platform: String, token: String) async throws {
+        try await client.send(
+            .post,
+            "api/notifications/token",
+            body: PushTokenRequestDTO(platform: platform, token: token)
+        )
+    }
+
+    func unregisterPushToken(platform: String, token: String) async throws {
+        try await client.send(
+            .delete,
+            "api/notifications/token",
+            body: PushTokenRequestDTO(platform: platform, token: token)
+        )
+    }
+
     func markNotificationsDelivered(_ body: MarkDeliveredRequestDTO) async throws {
         try await client.send(
             .post, "api/notifications/delivered",

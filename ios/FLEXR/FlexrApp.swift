@@ -95,6 +95,28 @@ final class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCent
         return true
     }
 
+    // MARK: - APNs
+
+    /// iOS hat einen Gerätetoken vergeben — beim Server anmelden.
+    ///
+    /// Passiert bei jedem Start, nicht nur einmal: Der Token ändert sich, wenn
+    /// die App neu installiert oder aus einem Backup wiederhergestellt wird.
+    /// Ohne Nachmelden schickte der Server danach an eine Adresse, die es
+    /// nicht mehr gibt.
+    func application(
+        _ application: UIApplication,
+        didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data
+    ) {
+        Task { await container.push.anmelden(deviceToken: deviceToken) }
+    }
+
+    /// Kein Token zu bekommen (Simulator, kein Netz, Erlaubnis entzogen).
+    /// Bewusst still: Der Hintergrundabgleich liefert weiter, nur langsamer.
+    func application(
+        _ application: UIApplication,
+        didFailToRegisterForRemoteNotificationsWithError error: Error
+    ) {}
+
     /// Benachrichtigung bei geöffneter App: dezent anzeigen statt verschlucken.
     func userNotificationCenter(
         _ center: UNUserNotificationCenter,

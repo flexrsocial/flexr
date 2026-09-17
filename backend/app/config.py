@@ -97,6 +97,29 @@ class Settings(BaseSettings):
     fcm_service_account_file: str = ""
     fcm_project_id: str = ""
 
+    # iOS geht **nicht** ueber Firebase, sondern direkt an Apple.
+    #
+    # Der Grund ist nicht Geschmack: Fuer FCM muesste die iOS-App das
+    # Firebase-SDK einbinden, und ein Swift-Package laesst sich nicht so
+    # nebenbei ins Xcode-Projekt haengen wie eine Gradle-Zeile. Direkt an APNs
+    # braucht die App kein einziges fremdes Paket - nur die
+    # Push-Berechtigung. Weniger Abhaengigkeiten, und es geht nichts an
+    # Google, was nicht muss.
+    #
+    # Die .p8-Datei kommt aus dem Apple-Developer-Konto (Keys -> Apple Push
+    # Notification service). Sie wird **einmal** heruntergeladen und ist
+    # danach nicht erneut zu bekommen.
+    apns_key_file: str = ""
+    apns_key_id: str = ""
+    apns_team_id: str = ""
+    # Der Bundle-Identifier der App - APNs nennt ihn "topic".
+    apns_topic: str = "social.flexr.app"
+    # Entwicklungs-Builds (direkt aus Xcode) bekommen Tokens, die nur gegen
+    # Apples Sandbox funktionieren; TestFlight und App Store gegen die
+    # Produktion. Der Server versucht deshalb beides, siehe push.py - dieser
+    # Schalter bestimmt nur, womit er anfaengt.
+    apns_sandbox: bool = False
+
     # ---- Beta-Kennzeichnung ------------------------------------------------
     #
     # Getrennt von ``premium_enabled``, seit die beiden auseinanderfallen: Die

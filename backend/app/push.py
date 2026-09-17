@@ -30,9 +30,11 @@ import logging
 import time
 from pathlib import Path
 
+import httpx
 import requests
 from cryptography.hazmat.primitives import hashes, serialization
-from cryptography.hazmat.primitives.asymmetric import padding
+from cryptography.hazmat.primitives.asymmetric import ec, padding
+from cryptography.hazmat.primitives.asymmetric.utils import decode_dss_signature
 from sqlalchemy.orm import Session
 
 from .config import settings
@@ -92,6 +94,125 @@ def _access_token() -> str:
     return str(_zugriff["wert"])
 
 
+# ---------------------------------------------------------------------------
+# Apple: direkt an APNs, ohne Firebase
+# ---------------------------------------------------------------------------
+#
+# Warum nicht auch ueber FCM: Dafuer muesste die iOS-App das Firebase-SDK
+# einbinden. Ein Swift-Package laesst sich nicht so nebenbei ins Xcode-Projekt
+# haengen wie eine Gradle-Zeile, und die App braucht fuer den direkten Weg kein
+# einziges fremdes Paket - nur die Push-Berechtigung. Dazu kommt, dass so
+# nichts an Google geht, was nicht muss.
+#
+# APNs spricht ausschliesslich HTTP/2, deshalb httpx statt requests.
+
+_APNS_PROD = "https://api.push.apple.com"
+_APNS_SANDBOX = "https://api.sandbox.push.apple.com"
+
+# Apples Token ist eine Stunde gueltig und darf hoechstens alle 20 Minuten neu
+# erzeugt werden. 50 Minuten liegen bequem zwischen beiden Grenzen.
+_apns_jwt: dict[str, object] = {"wert": None, "erzeugt": 0.0}
+
+
+def apns_configured() -> bool:
+    return bool(settings.apns_key_file and settings.apns_key_id and settings.apns_team_id)
+
+
+def _apns_jwt_token() -> str:
+    if _apns_jwt["wert"] and time.time() - float(_apns_jwt["erzeugt"]) < 50 * 60:
+        return str(_apns_jwt["wert"])
+
+    schluessel = serialization.load_pem_private_key(
+        Path(settings.apns_key_file).read_bytes(), password=None
+    )
+
+    def _teil(daten: dict) -> bytes:
+        return base64.urlsafe_b64encode(
+            json.dumps(daten, separators=(",", ":")).encode()
+        ).rstrip(b"=")
+
+    zu_signieren = _teil({"alg": "ES256", "kid": settings.apns_key_id}) + b"." + _teil(
+        {"iss": settings.apns_team_id, "iat": int(time.time())}
+    )
+    der = schluessel.sign(zu_signieren, ec.ECDSA(hashes.SHA256()))
+    # ES256 will r||s, cryptography liefert DER.
+    r, s = decode_dss_signature(der)
+    roh = r.to_bytes(32, "big") + s.to_bytes(32, "big")
+    jwt = zu_signieren + b"." + base64.urlsafe_b64encode(roh).rstrip(b"=")
+
+    _apns_jwt["wert"] = jwt.decode()
+    _apns_jwt["erzeugt"] = time.time()
+    return str(_apns_jwt["wert"])
+
+
+def _apns_send_one(
+    client: httpx.Client, basis: str, jwt: str, eintrag: PushToken, nutzlast: dict
+) -> httpx.Response:
+    return client.post(
+        f"{basis}/3/device/{eintrag.token}",
+        headers={
+            "authorization": f"bearer {jwt}",
+            "apns-topic": settings.apns_topic,
+            "apns-push-type": "alert",
+            # 10 = sofort zustellen und das Geraet dafuer aufwecken. Genau das
+            # ist der Punkt der ganzen Uebung.
+            "apns-priority": "10",
+        },
+        json=nutzlast,
+    )
+
+
+def _send_apns(db: Session, eintraege: list[PushToken], title: str, body: str, target: str | None) -> int:
+    if not apns_configured():
+        return 0
+    try:
+        jwt = _apns_jwt_token()
+    except Exception:  # noqa: BLE001 - Schluesseldatei fehlt oder ist unlesbar
+        logger.exception("APNs-Schluessel nicht verwendbar")
+        return 0
+
+    nutzlast = {
+        "aps": {
+            "alert": {"title": title, "body": body},
+            "sound": "default",
+        },
+        # Flach neben "aps": Die App liest den Schluessel im
+        # Benachrichtigungs-Handler (siehe FlexrApp.swift) und weiss dadurch,
+        # wohin der Tipp fuehrt, ohne den Text zu deuten.
+        "target": target or "",
+    }
+
+    zuerst = _APNS_SANDBOX if settings.apns_sandbox else _APNS_PROD
+    dann = _APNS_PROD if settings.apns_sandbox else _APNS_SANDBOX
+
+    zugestellt = 0
+    with httpx.Client(http2=True, timeout=10) as client:
+        for eintrag in eintraege:
+            try:
+                antwort = _apns_send_one(client, zuerst, jwt, eintrag, nutzlast)
+                # "BadDeviceToken" heisst fast immer: Der Token gehoert zur
+                # jeweils anderen Umgebung. Ein Entwicklungs-Build bekommt
+                # Sandbox-Tokens, TestFlight und App Store Produktions-Tokens -
+                # und beide koennen gleichzeitig im Umlauf sein. Statt das zu
+                # konfigurieren, wird schlicht die andere Seite probiert.
+                if antwort.status_code == 400 and "BadDeviceToken" in antwort.text:
+                    antwort = _apns_send_one(client, dann, jwt, eintrag, nutzlast)
+            except Exception:  # noqa: BLE001
+                logger.warning("APNs nicht erreichbar (user=%s)", eintrag.user_id)
+                continue
+
+            if antwort.status_code == 200:
+                zugestellt += 1
+            elif antwort.status_code in (400, 403, 410):
+                # 410 = Unregistered: Die App ist von diesem Geraet
+                # verschwunden. Der Token ist dauerhaft wertlos.
+                logger.info("APNs verwirft Token (%s): %s", antwort.status_code, antwort.text[:160])
+                db.delete(eintrag)
+            else:
+                logger.warning("APNs antwortet mit %s: %s", antwort.status_code, antwort.text[:160])
+    return zugestellt
+
+
 def register(db: Session, user: User, platform: str, token: str) -> PushToken:
     """Einen Geraetetoken hinterlegen.
 
@@ -126,26 +247,9 @@ def unregister(db: Session, token: str) -> None:
     db.commit()
 
 
-def send(
-    db: Session,
-    user: User,
-    title: str,
-    body: str,
-    target: str | None = None,
-) -> int:
-    """An alle Geraete dieses Nutzers zustellen. Gibt zurueck, wie viele erreicht wurden.
-
-    Wirft bewusst **nie**: Push ist eine Zugabe. Eine Chatnachricht muss auch
-    dann ankommen, wenn Google gerade nicht erreichbar ist oder Push gar nicht
-    eingerichtet wurde.
-    """
+def _send_fcm(db: Session, eintraege: list[PushToken], title: str, body: str, target: str | None) -> int:
     if not configured():
         return 0
-
-    eintraege = db.query(PushToken).filter(PushToken.user_id == user.id).all()
-    if not eintraege:
-        return 0
-
     try:
         kopf = {"Authorization": f"Bearer {_access_token()}"}
     except Exception:  # noqa: BLE001 - Zugangsdaten falsch, Google weg, egal
@@ -169,16 +273,12 @@ def send(
                     "priority": "high",
                     "notification": {"channel_id": "flexr_messages"},
                 },
-                "apns": {
-                    "headers": {"apns-priority": "10"},
-                    "payload": {"aps": {"sound": "default"}},
-                },
             }
         }
         try:
             antwort = requests.post(url, headers=kopf, json=nachricht, timeout=10)
         except Exception:  # noqa: BLE001
-            logger.warning("FCM nicht erreichbar (user=%s)", user.id)
+            logger.warning("FCM nicht erreichbar (user=%s)", eintrag.user_id)
             continue
 
         if antwort.status_code == 200:
@@ -197,6 +297,39 @@ def send(
             db.delete(eintrag)
         else:
             logger.warning("FCM antwortet mit %s: %s", antwort.status_code, antwort.text[:160])
+    return zugestellt
+
+
+def send(
+    db: Session,
+    user: User,
+    title: str,
+    body: str,
+    target: str | None = None,
+) -> int:
+    """An alle Geraete dieses Nutzers zustellen. Gibt zurueck, wie viele erreicht wurden.
+
+    Zwei Wege, je nach Plattform: Android ueber FCM, iOS direkt an APNs (der
+    Grund steht bei ``_send_apns``). Fuer den Aufrufer ist das eine Frage -
+    er weiss nicht, auf welchem Geraet jemand gerade liest, und soll es auch
+    nicht wissen muessen.
+
+    Wirft bewusst **nie**: Push ist eine Zugabe. Eine Chatnachricht muss auch
+    dann ankommen, wenn Apple oder Google gerade nicht erreichbar sind oder
+    Push gar nicht eingerichtet wurde.
+    """
+    eintraege = db.query(PushToken).filter(PushToken.user_id == user.id).all()
+    if not eintraege:
+        return 0
+
+    android = [e for e in eintraege if e.platform == "android"]
+    ios = [e for e in eintraege if e.platform == "ios"]
+
+    zugestellt = 0
+    if android:
+        zugestellt += _send_fcm(db, android, title, body, target)
+    if ios:
+        zugestellt += _send_apns(db, ios, title, body, target)
 
     db.commit()
     return zugestellt

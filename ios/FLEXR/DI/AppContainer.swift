@@ -31,6 +31,9 @@ final class AppContainer {
     /// Käufe über den App Store. Siehe StoreKitService: Freigeschaltet wird
     /// nichts hier, sondern erst serverseitig nach Prüfung des Belegs.
     let storeKit: StoreKitService
+    /// Echte Push-Zustellung über APNs. Der Hintergrundabgleich
+    /// (`notifications`, `activityNotifications`) bleibt als Fallback.
+    let push: PushService
 
     init() {
         let session = SessionStore()
@@ -61,6 +64,7 @@ final class AppContainer {
         pushInbox = inbox
         activityNotifications = ActivityRefreshService(session: session, notifications: inbox)
         storeKit = StoreKitService(api: api)
+        push = PushService(api: api, session: session)
     }
 }
 

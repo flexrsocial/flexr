@@ -255,6 +255,14 @@ struct MembershipStatusDTO: Decodable {
 /// zur Stripe-Seite (§ 10 und § 18 Abs. 1 Z 1 FAGG). Das Backend lehnt `false`
 /// oder ein fehlendes Feld mit 422 ab — ein leerer Aufruf reicht seit dem
 /// 17.08.2026 nicht mehr (`CheckoutRequest` in `backend/app/schemas.py`).
+/// Gerätetoken für echte Push-Zustellung. Der Token **ist** der Schalter:
+/// Wer sich abmeldet, meldet ihn ab, und der Server hat dann niemanden, dem er
+/// zustellen könnte.
+struct PushTokenRequestDTO: Encodable {
+    let platform: String
+    let token: String
+}
+
 /// Eine signierte StoreKit-Transaktion, wie die App sie von Apple erhält.
 ///
 /// Absichtlich nur dieses eine Feld: Alles andere — Produkt, Ablauf, Umgebung —

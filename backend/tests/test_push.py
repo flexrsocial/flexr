@@ -213,3 +213,99 @@ def test_langer_text_wird_gekuerzt(client, monkeypatch):
     )
     assert len(gesendet["text"]) <= NOTIFICATION_PREVIEW_CHARS
     assert gesendet["text"].endswith("…")
+
+
+# ---------------------------------------------------------------------------
+# Zwei Kanaele, eine Frage
+# ---------------------------------------------------------------------------
+
+def test_android_und_ios_gehen_verschiedene_wege(client, monkeypatch):
+    """Android ueber FCM, iOS direkt an APNs - fuer den Aufrufer ist es eines.
+
+    Der Aufrufer weiss nicht, auf welchem Geraet jemand gerade liest, und soll
+    es auch nicht wissen muessen.
+    """
+    headers = register_user(client, "zweigeraete@example.com")
+    for plattform, token in (("android", "android-token-lang"), ("ios", "ios-token-lang-xyz")):
+        client.post(
+            "/api/notifications/token",
+            json={"platform": plattform, "token": token},
+            headers=headers,
+        )
+
+    gerufen = {"fcm": [], "apns": []}
+    monkeypatch.setattr(
+        push, "_send_fcm",
+        lambda db, e, t_, b, z: gerufen["fcm"].extend(x.token for x in e) or len(e),
+    )
+    monkeypatch.setattr(
+        push, "_send_apns",
+        lambda db, e, t_, b, z: gerufen["apns"].extend(x.token for x in e) or len(e),
+    )
+
+    db = TestingSessionLocal()
+    try:
+        anzahl = push.send(db, _user(db, "zweigeraete@example.com"), "Titel", "Text")
+    finally:
+        db.close()
+
+    assert anzahl == 2
+    assert gerufen["fcm"] == ["android-token-lang"]
+    assert gerufen["apns"] == ["ios-token-lang-xyz"]
+
+
+def test_ohne_apns_schluessel_passiert_nichts(client, monkeypatch):
+    monkeypatch.setattr(settings, "apns_key_file", "")
+    headers = register_user(client, "nurios@example.com")
+    client.post(
+        "/api/notifications/token",
+        json={"platform": "ios", "token": "ios-ohne-schluessel"},
+        headers=headers,
+    )
+
+    db = TestingSessionLocal()
+    try:
+        assert push.send(db, _user(db, "nurios@example.com"), "Titel", "Text") == 0
+    finally:
+        db.close()
+
+
+def test_apns_schluessel_wird_zu_einem_jwt(monkeypatch, tmp_path):
+    """Der ES256-Teil - Apple nimmt nichts anderes an.
+
+    Geprueft wird die Form (drei Teile, kid und alg im Kopf, iss in den
+    Angaben) und dass der Token zwischengespeichert wird: Apple laesst ihn
+    hoechstens alle 20 Minuten neu erzeugen.
+    """
+    import base64
+    import json as js
+
+    from cryptography.hazmat.primitives import serialization
+    from cryptography.hazmat.primitives.asymmetric import ec
+
+    schluessel = ec.generate_private_key(ec.SECP256R1())
+    datei = tmp_path / "apns.p8"
+    datei.write_bytes(
+        schluessel.private_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PrivateFormat.PKCS8,
+            encryption_algorithm=serialization.NoEncryption(),
+        )
+    )
+    monkeypatch.setattr(settings, "apns_key_file", str(datei))
+    monkeypatch.setattr(settings, "apns_key_id", "ABC123DEFG")
+    monkeypatch.setattr(settings, "apns_team_id", "TEAM123456")
+    monkeypatch.setattr(push, "_apns_jwt", {"wert": None, "erzeugt": 0.0})
+
+    jwt = push._apns_jwt_token()
+    kopf_b64, angaben_b64, signatur_b64 = jwt.split(".")
+
+    def _lies(teil):
+        return js.loads(base64.urlsafe_b64decode(teil + "=" * (-len(teil) % 4)))
+
+    assert _lies(kopf_b64) == {"alg": "ES256", "kid": "ABC123DEFG"}
+    assert _lies(angaben_b64)["iss"] == "TEAM123456"
+    # r||s, nicht DER.
+    assert len(base64.urlsafe_b64decode(signatur_b64 + "=" * (-len(signatur_b64) % 4))) == 64
+    # Zweiter Aufruf liefert denselben Token, statt einen neuen zu erzeugen.
+    assert push._apns_jwt_token() == jwt
