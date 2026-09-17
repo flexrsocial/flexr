@@ -21,6 +21,7 @@ from datetime import datetime
 from zoneinfo import ZoneInfo
 
 from fastapi import APIRouter, BackgroundTasks, Depends, Request
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from .. import legal
@@ -131,12 +132,26 @@ def declare_withdrawal(
     # zweiten Erklärung samt zweiter Mail geben wir dann einfach die schon
     # gespeicherte zurück - der deaktivierte Button im Browser ist nur die
     # erste, nicht die einzige Absicherung.
-    if payload.request_id:
-        bestehend = (
-            db.query(WithdrawalDeclaration)
-            .filter(WithdrawalDeclaration.request_id == payload.request_id)
-            .first()
+    #
+    # Die request_id kommt vom Client und ist damit frei waehlbar. Ungebunden
+    # nachgeschlagen gaebe ein Treffer die *fremde* Erklaerung im Klartext
+    # zurueck - declaration_text enthaelt Name, Vertragsbezug und die eigenen
+    # Worte des Erklaerenden. Deshalb zaehlt ein Treffer nur, wenn er
+    # demselben Erklaerenden gehoert: dem angemeldeten Konto, sonst derselben
+    # E-Mail-Adresse einer kontolosen Erklaerung.
+    request_id = payload.request_id
+    if request_id:
+        eigene = db.query(WithdrawalDeclaration).filter(
+            WithdrawalDeclaration.request_id == request_id
         )
+        if current_user is not None:
+            eigene = eigene.filter(WithdrawalDeclaration.user_id == current_user.id)
+        else:
+            eigene = eigene.filter(
+                WithdrawalDeclaration.user_id.is_(None),
+                func.lower(WithdrawalDeclaration.email) == payload.email.lower(),
+            )
+        bestehend = eigene.first()
         if bestehend:
             return _ack_from(
                 bestehend,
@@ -145,6 +160,23 @@ def declare_withdrawal(
                     current_user.language if current_user else payload.language
                 ),
             )
+
+        # Kein eigener Treffer, die id ist aber schon vergeben: request_id ist
+        # unique, ein zweiter Datensatz damit scheiterte am Constraint. Die
+        # Erklaerung selbst darf daran nie scheitern (§ 13a FAGG - sie gilt mit
+        # dem Eingang), also wird sie ohne die fremde id gespeichert.
+        fremd = (
+            db.query(WithdrawalDeclaration.id)
+            .filter(WithdrawalDeclaration.request_id == request_id)
+            .first()
+        )
+        if fremd:
+            logger.warning(
+                "Ruecktritt: request_id %r ist bereits fremd vergeben - "
+                "Erklaerung wird ohne Idempotenzschluessel gespeichert.",
+                request_id,
+            )
+            request_id = None
 
     # Die Profilsprache geht vor: Wer angemeldet ist, bekommt FLEXR ohnehin in
     # dieser Sprache. Ohne Konto zaehlt die Formularseite (/widerruf.html oder
@@ -178,7 +210,7 @@ def declare_withdrawal(
 
     declaration = WithdrawalDeclaration(
         user_id=current_user.id if current_user else None,
-        request_id=payload.request_id,
+        request_id=request_id,
         name=payload.name,
         email=payload.email,
         contract_reference=payload.contract_reference,

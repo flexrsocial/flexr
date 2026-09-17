@@ -4,10 +4,11 @@ from datetime import datetime, timedelta, timezone
 
 from sqlalchemy.orm import Session
 
-from . import mailer, notifications
+from . import consents, mailer, notifications
 from .database import SessionLocal
 from .email_notifications import send_once
-from .models import Swipe, User
+from .models import Block, Swipe, User
+from .verification_service import account_visible_condition
 
 # Ab wie vielen wartenden Profilen im Suchradius benachrichtigt wird.
 QUEUE_THRESHOLD = 3
@@ -134,6 +135,12 @@ def _pending_likes_count(db: Session, user: User) -> int:
     offene.
     """
     swiped_ids = db.query(Swipe.to_user_id).filter(Swipe.from_user_id == user.id)
+    # Gesperrte in beide Richtungen: Die Mail darf nichts versprechen, was die
+    # App danach nicht zeigt - GET /api/swipes/incoming filtert sie heraus.
+    # Ohne diese Bedingung stand in der Mail "1 Person wartet auf dich",
+    # während die Liste in der App leer blieb.
+    blocked_ids = db.query(Block.blocked_id).filter(Block.blocker_id == user.id)
+    blocker_ids = db.query(Block.blocker_id).filter(Block.blocked_id == user.id)
     return (
         db.query(Swipe)
         .join(User, User.id == Swipe.from_user_id)
@@ -141,8 +148,12 @@ def _pending_likes_count(db: Session, user: User) -> int:
             Swipe.to_user_id == user.id,
             Swipe.action == "like",
             ~Swipe.from_user_id.in_(swiped_ids),
+            ~Swipe.from_user_id.in_(blocked_ids),
+            ~Swipe.from_user_id.in_(blocker_ids),
             User.deleted_at.is_(None),
             User.is_banned.is_(False),
+            account_visible_condition(),
+            consents.sensitive_data_consent_condition(),
         )
         .count()
     )

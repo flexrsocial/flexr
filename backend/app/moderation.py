@@ -276,6 +276,14 @@ def apply_restriction(
         user.messaging_muted_until = muted_until
     else:
         user.is_banned = True
+        # Die Sperre des ganzen Kontos nimmt eine laufende Chat-Sperre mit.
+        # Sonst bliebe sie nach einem späteren Entsperren als Rest zurück -
+        # die Begründung dazu ist dann längst von der Kontosperre
+        # überschrieben und beim Entsperren mitgelöscht worden. Der Betroffene
+        # könnte also weiterhin nicht schreiben und erführe nicht, warum.
+        # Wer nach dem Entsperren erneut stummschalten will, tut das mit
+        # frischer Begründung.
+        user.messaging_muted_until = None
 
 
 def clear_restriction(user: User, action: ModerationAction) -> None:

@@ -42,6 +42,19 @@ from .models import Match, Message, Swipe, User
 LIKE_WINDOW = timedelta(hours=24)
 
 
+def feature_locked(user: User) -> bool:
+    """Ist eine reine Premium-Funktion fuer dieses Konto gesperrt?
+
+    Gemeint sind die drei Funktionen ohne Zaehler - eingehende Likes sehen und
+    den letzten Swipe zuruecknehmen (das Abzeichen haengt direkt an
+    ``is_premium``). Bei ausgeschaltetem Schalter ist nichts gesperrt: ``User
+    .is_premium`` ist dann fuer *jeden* falsch, und wer nur darauf prueft,
+    sperrt in der Beta die ganze Nutzerschaft aus - genau das, was der
+    Modulkopf ausschliesst.
+    """
+    return settings.premium_enabled and not user.is_premium
+
+
 # ---------------------------------------------------------------------------
 # Likes
 # ---------------------------------------------------------------------------

@@ -2,6 +2,7 @@ import logging
 from datetime import datetime
 
 from fastapi import APIRouter, Depends, HTTPException, Request
+from sqlalchemy import and_, or_
 from sqlalchemy.orm import Session, selectinload
 
 from .. import consents, notifications, premium
@@ -144,6 +145,30 @@ def swipe(
     if not target_user:
         raise HTTPException(404, "Nutzer nicht gefunden.")
 
+    # Eine Sperre in beide Richtungen beendet den Kontakt - auch den, der noch
+    # gar keiner ist. Das Deck filtert Sperren zwar heraus, aber ein Deck, das
+    # vor der Sperre geladen wurde (oder ein wiederholter POST), traegt den
+    # Treffer weiter: ohne diese Pruefung entstuende daraus ein Match samt
+    # Mail und Benachrichtigung an genau die Person, die gerade gesperrt hat.
+    gesperrt = (
+        db.query(Block.id)
+        .filter(
+            or_(
+                and_(
+                    Block.blocker_id == current_user.id,
+                    Block.blocked_id == payload.to_user_id,
+                ),
+                and_(
+                    Block.blocker_id == payload.to_user_id,
+                    Block.blocked_id == current_user.id,
+                ),
+            )
+        )
+        .first()
+    )
+    if gesperrt:
+        raise HTTPException(404, "Nutzer nicht gefunden.")
+
     existing_swipe = (
         db.query(Swipe)
         .filter(Swipe.from_user_id == current_user.id, Swipe.to_user_id == payload.to_user_id)
@@ -262,6 +287,9 @@ def incoming_likes(
             User.deleted_at.is_(None),
             User.is_banned.is_(False),
             account_visible_condition(),
+            # Dieselbe Bedingung wie im Deck: Wer die Art.-9-Einwilligung
+            # widerrufen hat, erscheint in keiner fremden Ansicht mehr.
+            consents.sensitive_data_consent_condition(),
         )
         .order_by(Swipe.created_at.desc())
         .all()
@@ -270,7 +298,7 @@ def incoming_likes(
         u for u in likers if u.id not in eigene_swipes and u.id not in blockiert
     ]
 
-    if not current_user.is_premium:
+    if premium.feature_locked(current_user):
         return IncomingLikesOut(count=len(offen), profiles=[], premium_required=True)
     return IncomingLikesOut(
         count=len(offen),
@@ -297,7 +325,7 @@ def rewind_last_swipe(
     Eingriff in fremde Chatlisten. Wer das Match wirklich los sein will, loest
     es auf; das ist der dafuer vorgesehene Weg.
     """
-    if not current_user.is_premium:
+    if premium.feature_locked(current_user):
         raise HTTPException(
             403,
             {

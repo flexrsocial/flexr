@@ -19,8 +19,9 @@ from datetime import datetime, timedelta
 
 import pytest
 
+from app import consents
 from app.config import settings
-from app.models import Match, Message, Swipe, User
+from app.models import ConsentType, Match, Message, Swipe, User
 from tests.conftest import (
     TestingSessionLocal,
     register_user,
@@ -66,6 +67,14 @@ def _fremde_likes(client, empfaenger_id: str, anzahl: int) -> None:
             )
             db.add(liker)
             db.flush()
+            # Die Einwilligung auch als Nachweiszeile, nicht nur als
+            # Zeitstempel am Konto: Deck und eingehende Likes filtern ueber
+            # consents.sensitive_data_consent_condition(), und die sieht die
+            # Consent-Tabelle. Die Registrierung schreibt beides - ein Konto
+            # mit Zeitstempel, aber ohne Zeile, kann es real nicht geben.
+            consents.grant(
+                db, liker, ConsentType.sensitive_data, commit=False
+            )
             db.add(
                 Swipe(from_user_id=liker.id, to_user_id=empfaenger_id, action="like")
             )

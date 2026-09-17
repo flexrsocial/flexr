@@ -570,6 +570,13 @@ def approve_photo(
     if not photo:
         raise HTTPException(404, "Foto nicht gefunden.")
     photo.status = PhotoStatus.approved
+    # Eine frühere Ablehnung mitnehmen: Sonst hinge an einem sichtbaren Foto
+    # weiterhin die Begründung, aus der es einmal entfernt wurde ("zeigt nicht
+    # die Person dieses Kontos"), und die Akte behauptete das Gegenteil des
+    # tatsächlichen Zustands.
+    photo.rejection_reason = None
+    photo.rejection_note = None
+    photo.rejected_at = None
     db.commit()
     return {"status": photo.status.value}
 
@@ -593,6 +600,8 @@ def reject_photo(
     ``unusable`` abgelehnt - der Nutzer bekommt dann wenigstens den
     allgemeinen Hinweis statt gar keinen.
     """
+    from ..cleanup import delete_storage_objects, storage_keys_for_photo
+
     photo = db.query(Photo).filter(Photo.id == photo_id).first()
     if not photo:
         raise HTTPException(404, "Foto nicht gefunden.")
@@ -602,6 +611,14 @@ def reject_photo(
     )
     photo.rejection_note = payload.note if payload else None
     photo.rejected_at = datetime.utcnow()
+    # Die Bilddatei mitnehmen - wie beim Hard-Delete: Was die Moderation
+    # entfernt, darf nicht unter seiner öffentlichen URL abrufbar bleiben.
+    # Der Bucket liefert jede einmal vergebene URL sonst dauerhaft weiter aus,
+    # und unter den Ablehnungsgründen stehen "sexuell explizite Darstellung",
+    # "Gewalt- oder Hassdarstellung" und "zeigt offenkundig eine minderjährige
+    # Person". Die Zeile bleibt als Begründungsnachweis (Art. 17 DSA) stehen -
+    # dafür braucht es die Aufnahme nicht, nur Grund, Zeitpunkt und Konto.
+    delete_storage_objects(storage_keys_for_photo(photo))
     db.commit()
     rejection_labels = {
         PhotoRejectionReason.no_person.value: "Auf dem Bild ist keine Person erkennbar.",
@@ -859,6 +876,15 @@ def reject_verification(
     # Eine abgelehnte Prüfung nimmt weder den blauen Haken noch eine früher
     # bestätigte Altersprüfung zurück - beides entsteht nur bei Freigabe.
     user.is_verified = False
+
+    # Und das Konto ist ab jetzt gesperrt - so, wie es der Docstring sagt.
+    # Bei einem neuen Konto ergab sich das bisher von selbst (activated_at war
+    # ohnehin nie gesetzt). Ein Bestandskonto dagegen, das sich freiwillig zur
+    # Prüfung gestellt hat, blieb nach der Ablehnung voll nutzbar: Es verlor
+    # zwar seine Fotos, lud sie aber neu hoch und stand wieder im Deck - auch
+    # dann, wenn der Ablehnungsgrund "underage" war.
+    user.verification_required = True
+    user.activated_at = None
 
     # Ohne bestandene Prüfung darf kein Profilfoto des Kontos irgendwo
     # abrufbar bleiben - unabhängig vom Freigabestatus (pending/approved/

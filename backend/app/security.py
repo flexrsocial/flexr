@@ -93,9 +93,14 @@ def optional_current_user(
     keines besitzt, muss trotzdem erklären bzw. melden können.
 
     Anders als get_current_user wirft diese Funktion nie: Ein kaputter Token
-    ist hier gleichbedeutend mit "nicht angemeldet". Gesperrte und gelöschte
-    Konten werden ebenfalls als "nicht angemeldet" behandelt - sie sollen die
-    Funktion nutzen können, nur eben ohne Zuordnung.
+    ist hier gleichbedeutend mit "nicht angemeldet".
+
+    Gesperrte und gelöschte Konten werden **zugeordnet**, nicht anonymisiert.
+    Das ist Absicht: An der Zuordnung hängt der automatische Stopp eines
+    laufenden Stripe-Abos (routers/withdrawal.py). Würde ein gesperrtes Konto
+    hier als anonym gelten, liefe sein Abo nach dem Rücktritt weiter, bis
+    jemand es von Hand beendet - das Gegenteil dessen, was § 13a FAGG will.
+    Erklären und melden kann in beiden Fällen jeder.
     """
     header = request.headers.get("Authorization", "")
     scheme, _, token = header.partition(" ")

@@ -963,9 +963,17 @@
         u.is_account_activated
           ? `<span class="pill ok">ja${u.activated_at ? ' · ' + fmtDate(u.activated_at) : ' (Bestandskonto)'}</span>`
           : '<span class="pill warn">nein — Prüfung offen</span>'}
-        ${u.verification_required
-          ? ''
-          : `<button class="btn secondary small" id="btnRequireVerification" data-user="${escapeHtml(u.id)}" style="margin-left:8px;">Prüfung nachfordern</button>`}
+        ${/* Zwei Fälle brauchen den Knopf: ein Bestandskonto, das noch nie
+              geprüft werden musste - und ein Konto, das an einer endgültigen
+              Ablehnung feststeckt. Beim zweiten war er bislang ausgeblendet,
+              weil verification_required dort gesetzt bleibt. Genau dieses
+              Konto kommt aber ohne ihn nie wieder heraus: Fotos sind gelöscht,
+              /verification/start verweigert wegen der bindenden Entscheidung,
+              und require-verification ist der einzige Weg, der die frühere
+              Ablehnung durch ein neues verification_required_at entwertet. */''}
+        ${(!u.verification_required || !u.is_account_activated)
+          ? `<button class="btn secondary small" id="btnRequireVerification" data-user="${escapeHtml(u.id)}" style="margin-left:8px;">${u.verification_required ? 'Prüfung neu anfordern' : 'Prüfung nachfordern'}</button>`
+          : ''}
       </span></div>
       <div class="detail-row"><span class="k">Chat-Sperre</span><span>${
         isMutedNow(u.messaging_muted_until)
@@ -1024,7 +1032,10 @@
     // Konto ist danach bis zur bestandenen Prüfung nicht mehr nutzbar.
     if($('btnRequireVerification')){
       $('btnRequireVerification').addEventListener('click', async () => {
-        if(!confirm('Alters- und Identitätsprüfung nachfordern? Das Konto ist bis zur bestandenen Prüfung gesperrt.')) return;
+        const erneut = !u.is_account_activated;
+        if(!confirm(erneut
+          ? 'Neuen Prüfungsdurchlauf freigeben? Eine frühere Ablehnung blockiert danach nicht mehr; das Konto bleibt bis zur bestandenen Prüfung gesperrt.'
+          : 'Alters- und Identitätsprüfung nachfordern? Das Konto ist bis zur bestandenen Prüfung gesperrt.')) return;
         try{
           await api(`/api/admin/users/${u.id}/require-verification`, {method: 'POST'});
           toast('Prüfung nachgefordert.');
@@ -1075,9 +1086,15 @@
   });
 
   // ---------- Photos ----------
-  document.querySelectorAll('.tab-btn').forEach(btn => {
+  // Nur die Foto-Tabs, nicht jeder .tab-btn: Die Gym-Tabs tragen dieselbe
+  // Klasse, aber data-gym-status. Ungefiltert fing dieser Handler sie mit ab,
+  // setzte currentPhotoStatus auf undefined und lud die Foto-Freigabe mit
+  // status=undefined neu - das Backend antwortete 400, und die Foto-Freigabe
+  // blieb bis zum Neuladen der Seite auf der Fehlermeldung stehen.
+  const photoTabs = document.querySelectorAll('.tab-btn[data-status]');
+  photoTabs.forEach(btn => {
     btn.addEventListener('click', () => {
-      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      photoTabs.forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       currentPhotoStatus = btn.dataset.status;
       loadPhotos();
