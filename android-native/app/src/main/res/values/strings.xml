@@ -49,10 +49,11 @@
     <string name="common_delete_failed">Löschen fehlgeschlagen.</string>
     <string name="common_status_load_failed">Status konnte nicht geladen werden.</string>
 
-    <!-- Die Pille zeigt "Beta" vor dem eigentlichen Zustand, seit Premium
-         scharf ist: Vorher stand "Beta" allein dafuer, dass es nichts zu
-         kaufen gab, und waere beim Scharfschalten verschwunden. -->
-    <string name="status_beta_prefix">Beta · %1$s</string>
+    <!-- Die Pille zeigt "Beta", solange FLEXR als Beta gekennzeichnet ist -
+         ohne Zusatz. Sie haengt an beta_active und nicht mehr daran, dass
+         Premium nicht kaufbar waere; sonst verschwaende sie beim
+         Scharfschalten von selbst. -->
+    <string name="status_beta">Beta</string>
     <string name="status_premium">Premium</string>
     <string name="status_free">Gratis</string>
     <string name="status_likes_left">%1$d Likes</string>

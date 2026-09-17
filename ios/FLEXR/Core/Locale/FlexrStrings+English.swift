@@ -652,7 +652,7 @@ extension FlexrStrings {
             """,
 
         // MARK: Statuspillen
-        .statusBetaPrefix: "Beta · %@",
+        .statusBeta: "Beta",
         .statusPremium: "Premium",
         .statusFree: "Free",
         .statusNotUnlocked: "Not unlocked",

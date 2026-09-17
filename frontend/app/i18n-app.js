@@ -278,7 +278,7 @@
     'premium.likeLimitCta': 'Mit FLEXR Premium likest du ohne Grenze.',
     'premium.chatLimit': 'Du hast {n} Unterhaltungen offen — mehr gehen gleichzeitig nicht.',
     'premium.chatLimitCta': 'Löse ein Match auf oder hol dir FLEXR Premium.',
-    'premium.radiusCapped': 'Über {grenze} km braucht es FLEXR Premium — gespeichert wird sonst {grenze} km.',
+    'premium.radiusCapped': 'Über {grenze} km braucht es FLEXR Premium - gespeichert kann daher nur ein Suchumkreis <= {grenze} km werden.',
     'premium.rewindDone': 'Swipe zurückgenommen.',
     'premium.rewindFailed': 'Zurücknehmen hat nicht geklappt.',
 
@@ -775,7 +775,7 @@
     'premium.likeLimitCta': 'FLEXR Premium lifts the limit.',
     'premium.chatLimit': 'You have {n} conversations open — that is the limit at any one time.',
     'premium.chatLimitCta': 'Unmatch someone or get FLEXR Premium.',
-    'premium.radiusCapped': 'Beyond {grenze} km needs FLEXR Premium — otherwise {grenze} km is saved.',
+    'premium.radiusCapped': 'Beyond {grenze} km needs FLEXR Premium - so only a search radius <= {grenze} km can be saved.',
     'premium.rewindDone': 'Swipe undone.',
     'premium.rewindFailed': 'Could not undo that swipe.',
 

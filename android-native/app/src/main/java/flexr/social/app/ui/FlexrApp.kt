@@ -578,16 +578,19 @@ private fun MembershipPill(membership: Membership) {
             stringResource(R.string.status_likes_left, rest)
         else -> stringResource(R.string.status_free)
     }
-    // "Beta" steht davor, statt den Zustand zu ersetzen: Bis 17.09.2026 hing
-    // das Abzeichen daran, dass Premium noch nicht kaufbar war, und waere beim
-    // Scharfschalten von selbst verschwunden - obwohl FLEXR unveraendert im
-    // Aufbau ist.
-    StatusPill(
-        text = if (membership.betaActive) {
-            stringResource(R.string.status_beta_prefix, zustand)
-        } else {
-            zustand
-        },
-        expired = !membership.isPremium && membership.limitsActive && rest == 0,
-    )
+    // Solange FLEXR als Beta gekennzeichnet ist, steht genau das in der Pille -
+    // ohne Zusatz. Der Like-Zaehler stand hier am 17.09.2026 kurz mit drin und
+    // war der Kopfzeile zu viel; die Restzahl steht ohnehin im Konto.
+    //
+    // Das Abzeichen haengt bewusst an betaActive und nicht mehr daran, dass
+    // Premium nicht kaufbar waere - sonst verschwaende es beim Scharfschalten
+    // von selbst, obwohl FLEXR im Aufbau bleibt.
+    when {
+        membership.isPremium -> StatusPill(stringResource(R.string.status_premium))
+        membership.betaActive -> StatusPill(stringResource(R.string.status_beta))
+        else -> StatusPill(
+            text = zustand,
+            expired = membership.limitsActive && rest == 0,
+        )
+    }
 }

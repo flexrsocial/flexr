@@ -77,14 +77,21 @@ struct MembershipPill: View {
     }
 
     var body: some View {
-        // „Beta" steht davor, statt den Zustand zu ersetzen: Bis 17.09.2026
-        // hing das Abzeichen daran, dass Premium noch nicht kaufbar war, und
-        // wäre beim Scharfschalten von selbst verschwunden — obwohl FLEXR
-        // unverändert im Aufbau ist.
-        StatusPill(
-            text: membership.betaActive ? s(.statusBetaPrefix, zustand) : zustand,
-            isExpired: erschoepft
-        )
+        // Solange FLEXR als Beta gekennzeichnet ist, steht genau das in der
+        // Pille — ohne Zusatz. Der Like-Zähler stand hier am 17.09.2026 kurz
+        // mit drin und war der Kopfzeile zu viel; die Restzahl steht ohnehin
+        // im Konto und meldet sich, sobald sie knapp wird.
+        //
+        // Das Abzeichen hängt bewusst an `betaActive` und nicht mehr daran,
+        // dass Premium nicht kaufbar wäre — sonst verschwände es beim
+        // Scharfschalten von selbst, obwohl FLEXR im Aufbau bleibt.
+        if membership.isPremium {
+            StatusPill(text: s(.statusPremium))
+        } else if membership.betaActive {
+            StatusPill(text: s(.statusBeta))
+        } else {
+            StatusPill(text: zustand, isExpired: erschoepft)
+        }
     }
 }
 

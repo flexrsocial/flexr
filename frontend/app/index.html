@@ -621,6 +621,26 @@
   .empty .empty-title{ font-family:'Oswald'; text-transform:uppercase; letter-spacing:0.04em; font-size:17px; color:var(--chalk); }
   .empty .empty-sub{ font-size:13px; line-height:1.55; max-width:250px; }
 
+  /* Der Premium-Screen benutzt .empty als **Kopfzeile**, nicht als
+     Leerzustand: Die 48px Innenabstand oben stammen aus dem Deck, wo der Block
+     mittig in der freien Flaeche sitzt und den Abstand braucht. Hier steht
+     darunter die Preiskarte und darunter der Zurueck-Knopf - zusammen schob
+     das den Knopf unter die Falz, obwohl darueber leerer Raum stand.
+     Gemessen bei 488x815 (der Groesse, in der es gemeldet wurde): 125px
+     Ueberstand vorher, 0 nachher. Die Ersparnis verteilt sich bewusst auf
+     viele kleine Stellen, statt eine davon zusammenzudruecken - Symbol,
+     Innenabstaende, Zeilenabstand der Vorteilsliste. Die Textbreite unten
+     spart eine vierte Zeile im Untertitel.
+     Auf sehr kurzen Schirmen (375x667) bleibt Scrollen noetig; der Inhalt ist
+     dort schlicht hoeher als der Schirm. */
+  #screen-premium .empty{ padding:8px 24px 12px; gap:3px; }
+  #screen-premium .empty .empty-icon{ width:44px; height:44px; margin-bottom:6px; }
+  #screen-premium .empty .empty-icon svg.ico{ width:20px; height:20px; }
+  #screen-premium .empty .empty-sub{ max-width:330px; }
+  #screen-premium .price-card{ padding:18px; }
+  #screen-premium .price-feats{ margin:12px 0 2px; gap:6px; }
+  #screen-premium #btnSubscribe2{ margin-top:16px; }
+
   .match-item{
     display:flex; gap:13px; align-items:center; padding:12px 14px;
     background:linear-gradient(180deg, #1f1f1f, #1a1a1a);
@@ -2709,7 +2729,7 @@
          dauerhaft nichts, dieser Screen erklaert nur, was Premium zusaetzlich
          kann. Erreichbar ueber den Konto-Bereich, nie erzwungen. -->
     <section class="screen" id="screen-premium">
-      <div class="empty" style="padding-bottom:24px;">
+      <div class="empty">
         <div class="empty-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M12 3.5 14.6 9l6 .9-4.3 4.2 1 6-5.3-2.8L6.7 20l1-6L3.4 9.9l6-.9z"/></svg></div>
         <div class="empty-title" data-i18n="premium.title">FLEXR Premium</div>
         <div class="empty-sub" data-i18n="premium.sub">FLEXR zu nutzen kostet nichts — dauerhaft. Premium ist für alle, die mehr wollen: ohne Like-Grenze, ohne Chat-Grenze, mit voller Reichweite.</div>
@@ -2732,7 +2752,7 @@
              wurde - in den Apps immer (siehe backend/app/clients.py). -->
         <div class="photo-hint" id="premiumBetaHint" style="display:none;" data-i18n="premium.betaHint">FLEXR Premium ist hier gerade nicht bestellbar. Die Nutzung von FLEXR kostet unverändert nichts.</div>
       </div>
-      <div class="account-section" style="margin-top:20px;">
+      <div class="account-section" style="margin-top:12px;">
         <button class="btn secondary" id="btnPremiumBack" data-i18n="common.back">Zurück</button>
       </div>
     </section>
@@ -4325,12 +4345,6 @@
   function betaActive(){
     return !membership || membership.beta_active !== false;
   }
-  /* "Beta" bleibt sichtbar, auch seit Premium kaufbar ist - vorher hing das
-     Abzeichen daran, dass Premium NICHT kaufbar war, und waere beim
-     Scharfschalten stillschweigend verschwunden. */
-  function withBeta(text){
-    return betaActive() ? t('beta.pill') + ' · ' + text : text;
-  }
   function isPremium(){
     return !!(membership && membership.is_premium);
   }
@@ -4363,22 +4377,30 @@
       return;
     }
     if(isPremium()){
-      pill.textContent = withBeta(t('premium.pill'));
+      pill.textContent = t('premium.pill');
+      pill.className = 'status-pill trial';
+      return;
+    }
+    // Solange FLEXR als Beta gekennzeichnet ist, steht genau das in der Pille -
+    // ohne Zusatz. Der Like-Zaehler stand hier am 17.09.2026 fuer ein paar
+    // Stunden mit drin ("Beta · 19 Likes") und war der Kopfzeile zu viel: Die
+    // Restzahl steht ohnehin im Konto und meldet sich von selbst, sobald sie
+    // knapp wird.
+    if(betaActive()){
+      pill.textContent = t('beta.pill');
       pill.className = 'status-pill trial';
       return;
     }
     if(!limitsActive()){
-      pill.textContent = withBeta(t('acct.statusFree'));
+      pill.textContent = t('acct.statusFree');
       pill.className = 'status-pill trial';
       return;
     }
-    // Standardkonto mit geltenden Grenzen: Die Pille zeigt das, was
-    // tatsaechlich knapp werden kann - die Likes. Eine Restlaufzeit gibt es
-    // nicht mehr, es laeuft ja nichts ab.
+    // Ohne Beta-Kennzeichnung zeigt die Pille das, was knapp werden kann.
     const rest = likesLeft();
-    pill.textContent = withBeta(rest === null
+    pill.textContent = rest === null
       ? t('acct.statusFree')
-      : t(rest === 1 ? 'premium.pillLike1' : 'premium.pillLikes', {n: rest}));
+      : t(rest === 1 ? 'premium.pillLike1' : 'premium.pillLikes', {n: rest});
     pill.className = rest === 0 ? 'status-pill expired' : 'status-pill trial';
   }
 
