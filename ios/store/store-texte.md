@@ -68,8 +68,9 @@ Reiter leer und hält das für einen Fehler.
 > FLEXR ist ausschließlich in Österreich nutzbar; die Registrierung verlangt
 > eine österreichische Postleitzahl (z. B. 1010 für Wien).
 >
-> Standortfreigabe ist optional — ohne sie wird die Koordinate der
-> Postleitzahl verwendet.
+> Standortfreigabe wird nicht benötigt und nicht abgefragt — die
+> Umkreissuche erfolgt rund um das im Profil eingetragene Gym, dessen
+> Adresse (Postleitzahl) den Mittelpunkt liefert.
 >
 > Die Alters- und Identitätsprüfung verlangt ein Live-Selfie über die Frontkamera
 > und einen amtlichen Lichtbildausweis. Sie ist **Pflicht**: Ohne bestandene
@@ -208,7 +209,6 @@ Alle folgenden Punkte: mit dem Nutzer **verknüpft**, Zweck **App-Funktionalitä
 |---|---|---|
 | Kontaktdaten | Name | Vorname im Profil |
 | Kontaktdaten | E-Mail-Adresse | Anmeldung |
-| Standort | Ungenauer Standort | Umkreissuche, kilometergenau; keine Bewegungshistorie |
 | Sensible Daten | Sensible Daten | Geschlecht und gesuchtes Geschlecht (daraus ableitbar: sexuelle Orientierung), mit ausdrücklicher Einwilligung |
 | Benutzerinhalte | Fotos oder Videos | Profilfotos, Verifizierungs-Selfies (letztere werden nach der Prüfung gelöscht) |
 | Benutzerinhalte | E-Mails oder Textnachrichten | Chatnachrichten |
@@ -218,7 +218,9 @@ Alle folgenden Punkte: mit dem Nutzer **verknüpft**, Zweck **App-Funktionalitä
 | Käufe | Kaufhistorie | Abo-Status (Kartendaten liegen ausschließlich bei Stripe) |
 | Andere Daten | Andere Daten | Geburtsdatum (Altersgrenze 18), Postleitzahl |
 
-**Nicht erhoben:** genauer Standort, Kontakte, Gesundheits- und Fitnessdaten,
+**Nicht erhoben:** Standort (weder genau noch ungenau — die Umkreissuche
+verwendet ausschließlich die Adresse des eingetragenen Gyms, nie eine
+Geräte- oder Nutzerposition), Kontakte, Gesundheits- und Fitnessdaten,
 Browser- und Suchverlauf, Nutzungsdaten, Diagnosedaten, Zahlungsdaten.
 
 ---

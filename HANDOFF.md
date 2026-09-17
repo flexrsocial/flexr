@@ -1,6 +1,6 @@
 # FLEXR — Handoff für ein anderes Gerät / Claude Code
 
-Stand: **16.09.2026**
+Stand: **17.09.2026**
 
 ## Wo das Projekt gerade steht
 
@@ -151,7 +151,8 @@ Die `vc101`- bis `vc104`-Dateien sind hinfällig. Die Play Console hatte 43 und
 > englischen Texte lagen dort in einem Sprach-Split, den ein deutsches Gerät
 > nie herunterlädt. Erst ab 2.6.3 stecken beide Sprachen im Basis-Paket.
 
-Aufbau des Dokuments: erst diese Eckdaten, dann **zwei Abschnitte vom 16.09.**
+Aufbau des Dokuments: erst diese Eckdaten, dann **die Sitzung vom 17.09.**
+(Stripe-Umstellung auf FLEXR Premium), dann **zwei Abschnitte vom 16.09.**
 ((2) FLEXR Premium in den nativen Clients, dann der ungezählte erste vom selben
 Tag über den 401 beim Login),
 dann **drei Abschnitte vom 12.09.** ((3) SEO/Performance, dann (2) Backend,
@@ -161,6 +162,82 @@ Ausgangssitzung), dann die **drei Abschnitte vom 10.09.**
 **08.09.**, dann die beiden Sitzungen vom **07.09.**, dann **06.09.**, dann
 **05.09.**, dann **31.08.**, **30.08.**, **23.08.**, **21.08.**; die Build-,
 Test- und Deploy-Abschnitte am Ende gelten sitzungsübergreifend.
+
+## Sitzung 17.09.2026 — Stripe: FLEXR-Premium-Preis live angelegt, Webhook vervollständigt
+
+Antwort auf eine Nachfrage aus früheren Sitzungen (siehe „Sitzung 16.09.2026
+(2)" Abschnitt „Stripe: was am Produkt zu ändern ist" und Punkt 19 unter
+„Noch offen"). Der Nutzer hat die dort beschriebenen Schritte im
+Stripe-Dashboard durchgeführt, diese Sitzung hat die Server-Seite (SSH) und
+die Prüfungen übernommen.
+
+**Neues Produkt statt Preisänderung.** Der alte Preis ließ sich nicht
+bearbeiten — Beträge sind in Stripe unveränderlich, und laufende Altabos
+hängen daran. Es musste ein komplett neues Produkt angelegt werden:
+
+- Produktname **„FLEXR Premium"**, Produkt-ID `prod_VH6teDHT70SoKH`.
+- Neuer Preis `price_1UGYfdIpMumqxPtFzu0d5A6f`: 10,00 EUR, wiederkehrend
+  monatlich, **ohne Probezeit**, Steuerverhalten **„inklusive"** (passend zur
+  Kleinunternehmerregelung, AGB Punkt 9).
+- Alter Preis `price_1TtOB5IpMumqxPtFSfAqS2Rc` (die abgeschaffte
+  5-€-Mitgliedsgebühr) vom Nutzer im Dashboard **archiviert**.
+
+**`.env` auf dem VPS aktualisiert (per SSH, `flexr-vps`):**
+
+- Backup vor der Änderung: `/flexr/backend/.env.bak-stripe-price-20260917-082236`.
+- `STRIPE_PRICE_ID` von `price_1TtOB5IpMumqxPtFSfAqS2Rc` auf
+  `price_1UGYfdIpMumqxPtFzu0d5A6f` geändert (`config.py` liest das als
+  `settings.stripe_price_id`, verwendet in `stripe_client.py` für die
+  Checkout-Session).
+- `flexr-api.service` neu gestartet — `journalctl` zeigt einen sauberen Start
+  („Application startup complete"), keine Fehler beim Einlesen der neuen
+  `.env`.
+
+**Externer Check über den Browser** (nicht per SSH — ein `curl` von der
+VPS-Shell gegen `https://flexr.social` wurde vom Auto-Mode-Classifier dieser
+Sitzung blockiert, deshalb über den built-in Browser geprüft):
+
+- `https://flexr.social` lädt; der Footer zeigt bei FLEXR Premium weiterhin
+  „Kommt nach der Beta-Phase" → bestätigt, dass `PREMIUM_ENABLED` weiterhin
+  `false` ist.
+- `GET /api/billing/status` ohne Token → `401` (korrekt, Endpoint verlangt
+  Auth und crasht nicht).
+- `POST /api/billing/webhook` ohne gültige Signatur → `400` (korrekt, die
+  Signaturprüfung greift).
+
+**Billing-Portal (Kundenportal) im Stripe-Dashboard konfiguriert:** unter
+Einstellungen → Billing → Kundenportal → Stornierungen ist „Abonnement
+kündigen" an und „Am Ende des Abrechnungszeitraums kündigen" ausgewählt
+(nicht „Sofort abbrechen"). **Nicht bestätigt:** ob „Änderungen speichern"
+danach tatsächlich angeklickt wurde — der letzte Screenshot dazu zeigte nur
+den Zustand vor dem Klick. Vor dem Testcheckout gegenprüfen, ob die
+Einstellung wirklich gespeichert ist.
+
+**Webhook-Endpoint `captivating-spark`** (`we_1TtOEQIpMumqxPtFHY4W0U60`, Ziel
+`https://flexr.social/api/billing/webhook`) vervollständigt:
+
+- Ausgangszustand: 8 Events, `invoice.payment_succeeded` fehlte,
+  `customer.subscription.trial_will_end` war dabei (überflüssig, da
+  `create_checkout_session()` bewusst kein `trial_end` mehr mitgibt und dieses
+  Event deshalb nie feuern würde).
+- Nutzer hat `invoice.payment_succeeded` ergänzt und
+  `customer.subscription.trial_will_end` wieder entfernt.
+- Endzustand, per Screenshot bestätigt: genau die sieben von
+  `routers/billing.py` ausgewerteten Events — `checkout.session.completed`,
+  `customer.subscription.created`, `customer.subscription.updated`,
+  `customer.subscription.deleted`, `invoice.upcoming`, `invoice.paid`,
+  `invoice.payment_succeeded`, `invoice.payment_failed`.
+
+Damit ist **Punkt 19 aus „Noch offen" erledigt**. Offen bleibt weiterhin der
+kontrollierte Stripe-Testcheckout (siehe „Erinnerung für die nächste
+Sitzung") — erst danach `PREMIUM_ENABLED` auf `true` setzen. Vor dem
+Testcheckout die Kundenportal-Speicherung gegenprüfen (siehe oben).
+
+Nebenbei besprochen, ohne Aktion: Dauer einer Apple-Beta-App-Review — interne
+TestFlight-Tester brauchen keine Review (nur Build-Processing, meist
+15 Min. bis 2 h), externe Tester durchlaufen eine echte Prüfung, üblicherweise
+24–48 h, vereinzelt auch mehrere Tage. Aktuell laut Sitzung 16.09. ohnehin nur
+interne Tester vorgesehen, also nicht akut.
 
 ## Sitzung 16.09.2026 (2) — iOS-Bugfixes, FLEXR Premium in beiden nativen Clients, Android 2.6.9
 
@@ -3750,10 +3827,13 @@ echten Löschweg (`delete_storage_objects`/`storage_keys_for_user` +
     Gebaut, signiert, im Chat übergeben — Prüfsumme im 16.09.-(2)-Abschnitt.
     Keine neuen Berechtigungen, keine neuen Datentypen: Die bestehenden
     Data-Safety-Angaben bleiben gültig.
-19. **Stripe: der 10-€-Preis ist noch nicht angelegt.** Die Schritte stehen im
-    16.09.-(2)-Abschnitt unter „Stripe: was am Produkt zu ändern ist". Nichts
-    davon wird sichtbar, solange `PREMIUM_ENABLED` aus ist — der Punkt kann
-    also jederzeit vorbereitet werden.
+19. ~~**Stripe: der 10-€-Preis ist noch nicht angelegt.**~~ — **erledigt am
+    17.09.2026:** neues Produkt „FLEXR Premium" (`prod_VH6teDHT70SoKH`), Preis
+    `price_1UGYfdIpMumqxPtFzu0d5A6f` live, `STRIPE_PRICE_ID` auf dem VPS
+    aktualisiert und Backend neu gestartet, Billing-Portal und Webhook-Events
+    geprüft/vervollständigt. Details in der Sitzung 17.09. Offen bleibt nur
+    noch der kontrollierte Testcheckout (Punkt 9) und die Gegenprobe, ob die
+    Kundenportal-Einstellung tatsächlich gespeichert wurde.
 
 ## Auf einem anderen Gerät starten
 
@@ -3948,6 +4028,16 @@ print(re.findall(rb"[0-9]+\.[0-9]+\.[0-9]+", d)[:5])' \
   „Testdaten" oben).
 - Danach kontrollierten Stripe-Testcheckout durchführen (weiterhin offen
   aus früheren Sitzungen) — Kartendaten eingeben bleibt Sache des Nutzers.
+
+Neu aus der Sitzung 17.09.:
+
+- Stripe-Preis für FLEXR Premium ist live (`price_1UGYfdIpMumqxPtFzu0d5A6f`,
+  10 €/Monat), `STRIPE_PRICE_ID` auf dem VPS aktualisiert, Backend neu
+  gestartet, Webhook-Events vollständig. **Vor dem Testcheckout prüfen**, ob
+  im Stripe-Kundenportal unter Stornierungen wirklich „Änderungen speichern"
+  geklickt wurde — das war am Ende der Sitzung nicht bestätigt.
+- Danach: kontrollierten Testcheckout durchführen, erst dann
+  `PREMIUM_ENABLED` auf `true`.
 
 Neu aus der Sitzung 16.09. (2):
 

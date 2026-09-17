@@ -48,21 +48,6 @@
 			</array>
 		</dict>
 
-		<!-- Umkreissuche. Bewusst nur grob: die App fordert
-		     kCLLocationAccuracyKilometer an, eine Bewegungshistorie entsteht nicht. -->
-		<dict>
-			<key>NSPrivacyCollectedDataType</key>
-			<string>NSPrivacyCollectedDataTypeCoarseLocation</string>
-			<key>NSPrivacyCollectedDataTypeLinked</key>
-			<true/>
-			<key>NSPrivacyCollectedDataTypeTracking</key>
-			<false/>
-			<key>NSPrivacyCollectedDataTypePurposes</key>
-			<array>
-				<string>NSPrivacyCollectedDataTypePurposeAppFunctionality</string>
-			</array>
-		</dict>
-
 		<!-- Geschlecht und gesuchtes Geschlecht — daraus ableitbar die sexuelle
 		     Orientierung (Art. 9 DSGVO). Wird bei der Registrierung ausdrücklich
 		     eingewilligt. -->
