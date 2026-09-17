@@ -11,12 +11,11 @@ Nach dem Deploy gegengeprüft: Deck und Matches antworten einem
 unverifizierten Konto weiterhin mit 403, und eine fremde `request_id` am
 Rücktrittsformular gibt keine fremde Erklärung mehr heraus.
 
-> **Zwei Testeinträge in der Produktion:** Die Gegenprobe zum Rücktrittsleck
-> hat zwei echte `withdrawal_declarations` angelegt (Namen "Pruef Zwei" und
-> "Fremder", Adressen auf `example.com`, `request_id`
-> `nicht-erratbar-test-001`). Sie stehen in einer Nachweistabelle nach
-> § 13a FAGG — deshalb bewusst nicht eigenmächtig gelöscht. Wenn sie weg
-> sollen, gezielt über diese `request_id` entfernen.
+> **`withdrawal_declarations` ist leer.** Die Gegenprobe zum Rücktrittsleck
+> hatte zwei echte Erklärungen angelegt; auf Ansage entfernt, zusammen mit
+> einem dritten Testeintrag vom 16.08. ("Test Person", `test@example.com`),
+> der noch aus einer früheren Sitzung stammte. Die Tabelle enthält damit
+> **null** Datensätze — der nächste Eintrag dort ist ein echter.
 
 Der vorige Stand zum Vergleich (**`4c0922c`**): `git pull` und
 `sudo systemctl restart flexr-api` sind gelaufen, `systemctl is-active` zeigt
@@ -206,6 +205,27 @@ kompiliert (`:app:compileProdReleaseKotlin`) und die Unit-Tests laufen durch
 wegen Fix 12, 13 und 14 (Rechtstexte und Verifizierungs-Weiterleitung stecken
 im Paket, nicht am Server).
 
+> **Android 2.6.10 (versionCode 110) ist gebaut** — am 17.09.2026 auf dieser
+> Maschine, prod-Flavor, signiert mit dem Upload-Key `CN=FLEXR`
+> (`jarsigner -verify` → „jar verified"), 7.772.100 Bytes, SHA-256
+> `7c603aecd4f6ee96c977ef8750d1f26bce30764efed757418d2b676a61da841a`.
+> Abgelegt wie die früheren Fassungen unter `../release-2.6.10/` samt
+> `SHA256SUMS.txt` und im Chat übergeben. Vor dem Bauen liefen
+> `:app:testProdReleaseUnitTest` und `:app:compileProdReleaseKotlin` grün.
+> Noch **nicht** in der Play Console hochgeladen.
+>
+> Inhalt gegenüber 2.6.9: berichtigte Rechtstexte (10 € statt 5 €, kein
+> Probemonat, Fotolöschung bei endgültiger Ablehnung offengelegt, Stand-Datum
+> und Hinweis auf die maßgebliche Langfassung) und die Behandlung des 403
+> „verification_required".
+
+**Testuser2 ist freigeschaltet.** `testuser2@flexr.social` wurde am 17.09.2026
+über `scripts/activate_review_account.py` freigegeben (Deck, Matches und
+eingehende Likes antworten mit 200, alle drei Fotos „approved"). Im Deck steht
+genau ein Profil: das Prüfkonto, 0 km entfernt, weil beide dasselbe Gym
+eingetragen haben. **Noch offen:** gegenseitiges Like und eine Nachricht —
+ohne sie sieht ein Apple-Prüfer zwei der vier Reiter leer.
+
 ### Behoben — Backend
 
 1. **Bezahlwand in der Beta, obwohl Premium aus ist.** `swipes.py` prüfte an
@@ -340,14 +360,22 @@ im Paket, nicht am Server).
   Docstring behauptete das Gegenteil. Das Verhalten ist aber das bessere: An
   der Zuordnung hängt der automatische Stopp eines laufenden Stripe-Abos beim
   Rücktritt. Docstring korrigiert, Verhalten belassen.
-- **Native Rechtstexte tragen "Stand: 3. August 2026" für Nutzungsrichtlinien
-  und Strafverfolgungsrichtlinien**, Web und `legal.py` sagen 19. August 2026.
-  Das Datum **nicht** einfach hochgesetzt: Ein Wortschatzvergleich zeigt, dass
-  die native Fassung inhaltlich kürzer ist (u. a. fehlen
-  "Beschwerdemanagementsystem", "Abhilfeverfahren", "Berichtspflicht"). Das
-  Datum zu ändern hieße, eine Fassung zu behaupten, die die App nicht enthält.
-  **Zu entscheiden:** native Texte auf den vollen Stand ziehen (dann Datum
-  mit) oder als bewusst gekürzte Fassung kennzeichnen.
+- **Native Rechtstexte trugen "Stand: 3. August 2026"** für Nutzungsrichtlinien
+  und Strafverfolgungsrichtlinien, Web und `legal.py` sagen 19. August 2026.
+  **Nachträglich entschieden und erledigt** (Nutzer: "setze das Datum hoch, es
+  gibt eh noch keine realen Nutzer"): Datum auf den 19.08. gesetzt — aber nicht
+  nur das. Die native Fassung hat gemessen nur **12 %** des Umfangs der
+  Web-Fassung (2.019 gegenüber 16.195 Zeichen), gab sich aber als
+  vollständiges, verbindliches Regelwerk aus. Im Vorspann steht jetzt beides:
+  das richtige Datum und der Satz, dass die Fassung gekürzt und der
+  vollständige Text auf flexr.social maßgeblich ist.
+- **Die Datenschutzerklärung ist auf Fassung `2026-09-17` gehoben.** Der neue
+  Absatz zur endgültigen Ablehnung ist eine inhaltliche Änderung, und
+  `consents.py` schreibt `PRIVACY_VERSION` als Fassung jeder
+  Art.-9-Einwilligung mit. `legal.py` verlangt dafür ausdrücklich eine höhere
+  Fassung. Erzwungen wird nichts: Alte Einwilligungen bleiben mit ihrer alten
+  Fassung stehen und sind dadurch als "zu einem anderen Text erteilt"
+  erkennbar.
 - **Swipe gilt lokal als gesetzt, bevor der Server geantwortet hat** — auf
   beiden Clients (`SwipeModel.swift`, `SwipeViewModel.kt`): Der Index wandert
   weiter, dann erst läuft der Aufruf. Schlägt er fehl, ist die Karte weg und
