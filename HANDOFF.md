@@ -5,8 +5,18 @@ Stand: **17.09.2026**
 ## Wo das Projekt gerade steht
 
 **Alles committet, gepusht und deployed.** Der VPS steht auf demselben Stand
-wie `origin/main` (**`04a1f28`**, Stand 17.09.2026 nachts) — `git pull` und
+wie `origin/main` (**`c521a82`**, Stand 17.09.2026 abends) — `git pull` und
 `sudo systemctl restart flexr-api` sind gelaufen, der Health-Check ist grün.
+
+> **FLEXR Premium ist seit dem 17.09.2026 scharf.** `PREMIUM_ENABLED=true`
+> steht in der `.env` des VPS (eine Sicherung liegt daneben als
+> `.env.bak-vor-premium-20260917`). Damit gelten die Grenzen des kostenlosen
+> Kontos für alle: 20 Likes/24 h, 3 Unterhaltungen, 50 km. **Verkauft wird
+> ausschließlich im Browser** — aus den Apps heraus bietet der Server keinen
+> Abschluss an, weil beide Stores das verbieten (`backend/app/clients.py`).
+> Die Beta-Kennzeichnung bleibt und hängt jetzt an `settings.beta_active`.
+> Zurückdrehen ginge jederzeit mit `PREMIUM_ENABLED=false` plus Neustart.
+
 Nach dem Deploy gegengeprüft: Deck und Matches antworten einem
 unverifizierten Konto weiterhin mit 403, und eine fremde `request_id` am
 Rücktrittsformular gibt keine fremde Erklärung mehr heraus.
@@ -176,6 +186,204 @@ Ausgangssitzung), dann die **drei Abschnitte vom 10.09.**
 **08.09.**, dann die beiden Sitzungen vom **07.09.**, dann **06.09.**, dann
 **05.09.**, dann **31.08.**, **30.08.**, **23.08.**, **21.08.**; die Build-,
 Test- und Deploy-Abschnitte am Ende gelten sitzungsübergreifend.
+
+## Sitzung 17.09.2026 (4) — FLEXR Premium scharf geschaltet, Verkauf nur im Browser
+
+**Auftrag:** „nimm flexr premium jetzt live — mach alle nötigen anpassungen
+dafür. die app soll aber nach wie vor auf status beta bleiben, auch mit dem
+popup hinweis auf der landingpage."
+
+Deployt als **`c521a82`**, `PREMIUM_ENABLED=true` steht in der `.env` des VPS,
+`sudo systemctl restart flexr-api` ist gelaufen, Health-Check grün (der erste
+`curl` direkt nach dem Neustart gab wieder einmal `502` — dieselbe bekannte
+Racebedingung, Sekunden später `200`).
+
+### Was Premium „live" heißt
+
+`settings.premium_enabled` ist der eine Hebel geblieben, den `premium.py`
+beschreibt. Mit ihm gelten seit heute die Grenzen des kostenlosen Kontos:
+20 Likes je 24 Stunden, 3 gleichzeitige Unterhaltungen, 50 km Suchumkreis.
+Gegengeprüft an `testuser2` in der Produktion — `likes_remaining: 20`,
+`open_chats_remaining: 3`, `max_radius_km: 50`.
+
+Die Stripe-Seite war bereits vollständig vorbereitet und wurde vor dem
+Umlegen nachgeprüft, nicht angenommen:
+
+| Prüfung | Ergebnis |
+|---|---|
+| Preisobjekt | `price_1UGYfdIpMumqxPtFzu0d5A6f`, `livemode`, aktiv, 1000 EUR-Cent, monatlich, kein Trial |
+| Webhook | `https://flexr.social/api/billing/webhook`, `enabled`, `livemode`, alle acht ausgewerteten Ereignisse abonniert |
+| Billing-Portal | Standardkonfiguration aktiv, Kündigung **an**, Tarifwechsel **aus** |
+| Checkout aus dem Browser | HTTP 200, Sitzung beginnt mit `cs_live_` |
+
+Die dabei entstandene `CheckoutConsent`-Zeile von `testuser2` wurde
+anschließend wieder entfernt; in der Tabelle steht nur noch der echte Eintrag
+von `styriatrading@gmail.com` vom 23.08.
+
+### Der Grund für das neue Modul `backend/app/clients.py`
+
+**Beide App-Stores verbieten, in einer App Funktionen freizuschalten, die
+außerhalb ihres eigenen Kaufwegs bezahlt wurden** — Apple in App Review
+Guideline 3.1.1 (dort ausdrücklich auch „buttons, external links, or other
+calls to action"), Google in der Payments-Policy. Die Paywall beider Apps
+führt aber in einen Stripe-Checkout im externen Browser.
+
+Entscheidend: **Diese Logik hängt an `premium_enabled` aus der Serverantwort.**
+Das Umlegen des Schalters hätte also der veröffentlichten Android-Fassung
+*und* dem iOS-Build, der gerade bei Apple in Prüfung liegt, ohne jeden neuen
+Build einen Kauf-Knopf wachsen lassen. Beim Prüfer wäre das mit hoher
+Wahrscheinlichkeit die Ablehnung gewesen.
+
+Deshalb entscheidet **der Server pro Anfrage**, wem er einen Abschluss
+anbietet, und nicht der Client:
+
+* `GET /api/billing/status` meldet App-Clients `premium_enabled: false` —
+  genau das Feld, an dem die ausgelieferten Fassungen ihren Knopf aufhängen.
+  Sie zeigen dadurch unverändert die Oberfläche von gestern.
+* `POST /api/billing/checkout` lehnt aus einer App mit 409 ab, und zwar
+  **ohne zu nennen, wo es sonst ginge** — auch eine solche Weiterleitung wäre
+  3.1.1.
+* Die Meldungen an den Grenzen werben in der App nicht mehr („hol dir FLEXR
+  Premium" ist eine Aufforderung im Sinne der Richtlinie).
+
+Erkannt wird die App am Header `X-Flexr-Client`, den beide Clients ab den
+Fassungen dieser Sitzung mitschicken, und ersatzweise am User-Agent — der
+kommt von URLSession bzw. OkHttp, nicht aus FLEXR-Code, und steht so im
+nginx-Protokoll der Produktion:
+
+```
+FLEXR/24 CFNetwork/3896.100.1.2.1 Darwin/27.0.0     (iOS)
+okhttp/4.12.0                                       (Android)
+```
+
+Erkannt wird bewusst die **App**, nicht der Browser: Alles Unbekannte gilt als
+Web. Andersherum träfe die Sperre jedes Skript, jeden Health-Check und jeden
+Testlauf, und ein Zwischenglied, das den User-Agent umschreibt, machte Premium
+im Browser unverkäuflich.
+
+Live gegengeprüft, dieselbe Anmeldung, drei User-Agents:
+
+| Client | `premium_enabled` | `checkout_available` | `limits_active` | `beta_active` |
+|---|---|---|---|---|
+| Browser | true | true | true | true |
+| iOS-App | **false** | false | **true** | true |
+| Android-App | **false** | false | **true** | true |
+
+`POST /checkout` aus der App: 409. Aus dem Browser: 200 mit `cs_live_…`.
+
+### Die Grenzen hängen am Konto, nicht am Gerät
+
+Bewusst so, und durch `test_grenzen_gelten_am_konto_nicht_am_geraet`
+festgehalten: Wären sie gerätespezifisch, höbe man sie auf, indem man sich
+abwechselnd in App und Browser anmeldet. Umgekehrt wirkt ein im Browser
+gekauftes Premium selbstverständlich auch in der App — untersagt ist der
+*Abschluss* dort, nicht die Leistung daraus. Das Stripe-Portal bleibt den
+Apps deshalb ebenfalls erreichbar: Es verkauft nichts (Tarifwechsel ist in der
+Konfiguration aus), es verwaltet und kündigt.
+
+### Drei Fragen, die bisher an einem Schalter hingen
+
+`MembershipStatus` trennt sie jetzt:
+
+* `checkout_available` — darf **dieser** Client verkaufen?
+* `limits_active` — gelten die Grenzen? Für alle gleich.
+* `beta_active` — trägt FLEXR das Beta-Abzeichen?
+
+### Beta bleibt — und hing vorher am falschen Feld
+
+Aufgefallen beim Umsetzen: Das Beta-Abzeichen wurde in **allen drei**
+Oberflächen aus `!premium_enabled` abgeleitet (`MembershipPill` in
+`FlexrChrome.swift` und `FlexrApp.kt`, `updateStatusPill()` im Web). Mit dem
+Scharfschalten wäre „Beta" also überall stillschweigend verschwunden — das
+Gegenteil des Auftrags.
+
+Jetzt ein eigener Schalter `settings.beta_active` (Standard `true`). Die Pille
+stellt „Beta · " dem eigentlichen Zustand voran, statt ihn zu ersetzen:
+`Beta · 20 Likes`, `Beta · Premium`, `Beta · Gratis`. „Beta" sagt seither
+etwas über den **Reifegrad** und nichts mehr über den Tarif — genau so steht
+es jetzt auch in AGB Punkt 7 c.
+
+Der Hinweis-Dialog auf der Landingpage bleibt unverändert stehen. Entfallen
+ist nur seine inzwischen falsche Zusage „Während der Beta ist auch das
+unbegrenzt"; der localStorage-Merker steht auf `flexr_beta_notice_v4`, damit
+ihn auch sieht, wer v3 weggeklickt hatte.
+
+### Rechtstexte
+
+**AGB-Fassung 2026-09-17** (`TERMS_VERSION`), inhaltlich:
+
+* Punkt 7 a — „nicht nur während der Beta-Phase" entfernt.
+* Punkt 7 c — aus „Während der Beta-Phase gelten diese Grenzen nicht" wird der
+  Geltungsbeginn (17.09.2026) plus die Klarstellung, dass „Beta" den
+  Entwicklungsstand betrifft und daraus **kein Anspruch** auf eine Nutzung
+  ohne die Grenzen folgt.
+* Punkt 9 e — aus „Premium ist derzeit nicht bestellbar" wird der Bestellweg:
+  ausschließlich flexr.social im Browser, kein App-Store, ein bestelltes
+  Premium wirkt in den Apps, Kündigung dort wie hier.
+
+Mitgezogen, deutsch **und** englisch: `faq.html`, Landingpage (Preiskarte,
+Absatz darunter, FAQ-Antwort, Schlussabschnitt), `i18n-landing.js`,
+`i18n-app.js`, die Web-App und die gekürzten Fassungen in beiden Apps
+(`LegalContent.swift`, `LegalContent.kt`). Nach der Durchsicht steht das Wort
+„Beta" in keinem Rechtstext mehr als Tarifaussage.
+
+### In den Apps verschwinden Preis und Kaufaufforderung
+
+* Kein Einstieg mehr in den Premium-Bildschirm — weder aus dem Konto (hing
+  schon an `premiumEnabled`) noch aus „Wer dich geliket hat" (hing an nichts
+  und war der eine Weg, auf dem ein App-Nutzer den Preis zu sehen bekam).
+* Registrierungstext ohne „FLEXR Premium (10 €/Monat …)".
+* `premium_status_free` ohne „Mit Premium fällt beides weg".
+* Like- und Chat-Grenze nennen nur noch die Grenze.
+
+### Android 2.7.0 (versionCode 111)
+
+Gebaut mit `clean testProdReleaseUnitTest bundleProdRelease`, signiert
+(`jarsigner -verify` → „jar verified"), 7,5 MB. Abgelegt unter
+`../release-2.7.0/` samt Prüfsumme:
+
+```
+b53337dabf14de808e42081002f0a46ffa7474aed4822c8277082d65462893f5  flexr-2.7.0-vc111.aab
+```
+
+**Noch nicht in der Play Console hochgeladen** — das ist ein Schritt von Hand.
+
+iOS: Versionsnummern **bewusst nicht angefasst** (`MARKETING_VERSION` steht
+weiter auf 2.4.10). Ein Build liegt bei Apple in Prüfung; welche Fassung als
+nächste geht, gehört nicht ins Repository entschieden. Die Änderungen dieser
+Sitzung wirken erst mit dem nächsten Build — bis dahin schützt die
+Server-Regel den in Prüfung liegenden Build.
+
+### Tests
+
+`backend/tests/test_store_regeln.py` (9 Fälle) hält fest, was hier
+entschieden wurde: dass die App kein `premium_enabled: true` sieht, dass der
+Checkout aus der App abgelehnt wird und der Fehlertext keinen Weg nach draußen
+nennt, dass die Grenzen am Konto hängen, dass ein im Browser gekauftes Premium
+in der App wirkt und dass das Beta-Abzeichen nicht mehr an Premium hängt.
+
+Gesamt: **460 Backend-Tests grün**, Android-Unit-Tests grün,
+`tools/check_betreiber.py` grün.
+
+### Offen / bewusst nicht getan
+
+* **Keine In-App-Käufe.** Der ertragsseitige Preis dieser Lösung: Aus den Apps
+  heraus lässt sich Premium nicht kaufen, die Umwandlung mobiler Nutzer ist
+  damit praktisch null. Der saubere Weg wäre StoreKit 2 (iOS) plus Play
+  Billing (Android) mit serverseitiger Belegprüfung und Abgleich der
+  Berechtigung — ein eigenes Vorhaben, das Produkte in App Store Connect und
+  Play Console, Steuer- und Bankdaten und eine Entscheidung über die 15/30 %
+  Provision voraussetzt. Bis dahin: verkaufen im Browser.
+* **AGB Punkt 18 gegenüber den sechs Bestandskonten.** Punkt 7 c hatte
+  zugesagt, das Ende der Grenzenlosigkeit „vorher anzukündigen"; Punkt 18 c
+  nennt dafür vier Wochen per E-Mail. In der Datenbank stehen acht Konten,
+  davon zwei Testkonten (`appreview`, `testuser2`) — die übrigen sechs haben
+  die Grenzen ohne diese Ankündigung bekommen. Kein Konto hat ein Abo, der
+  Nachteil ist also gering und jederzeit rückgängig zu machen
+  (`PREMIUM_ENABLED=false`). Zu entscheiden: Ankündigung nachreichen oder
+  nicht.
+* Das Prüfkonto `appreview` hat weiterhin **kein Match und keinen
+  Chatverlauf** (siehe Abschnitt der vorigen Sitzung).
 
 ## Sitzung 17.09.2026 (3) — Durchsicht vor der Einreichung: Nutzerweg, Admin-Werkzeuge, Rechtstexte
 
