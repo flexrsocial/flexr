@@ -142,6 +142,49 @@ Dann `sudo systemctl restart flexr-api`.
 Sandbox-Tokens, TestFlight und App Store Produktions-Tokens — beide können
 gleichzeitig im Umlauf sein.
 
+**Erledigt am 17.09.2026.** Der Schlüssel liegt als
+`/flexr/backend/apns-key.p8` (Eigentümer `deploy`, Rechte 600), die vier Werte
+stehen in der `.env`: Key ID `93U96DXUDW`, Team ID `UJ46YJU58D`. Der Schlüssel
+wurde mit Environment *Sandbox & Production* und *Team Scoped (All Topics)*
+angelegt — beides passt zur Umgebungs-Rückfallebene in `push.py`.
+
+Ob Apple den Schlüssel annimmt, lässt sich **ohne Gerät** prüfen: ein Versand an
+ein absichtlich unbrauchbares Geräte-Token. Kommt `400 BadDeviceToken`, dann hat
+Apple das JWT akzeptiert und nur das Token verworfen — Schlüssel, Team und Topic
+stimmen also. Ein `403 InvalidProviderToken` wäre das Gegenteil, ein
+`403 BadTopic` ein falscher Bundle-Identifier.
+
+```bash
+ssh flexr-vps 'cd /flexr/backend && sudo -u deploy env $(grep -E "^(APNS_|DATABASE_URL|JWT_SECRET)" .env | xargs) ./venv/bin/python - <<"PY"
+import httpx
+from app import push
+from app.config import settings
+
+jwt = push._apns_jwt_token()
+falsch = "0" * 64  # absichtlich unbrauchbares Geraete-Token
+for name, host in (("Produktion", push._APNS_PROD), ("Sandbox", push._APNS_SANDBOX)):
+    with httpx.Client(http2=True, timeout=10) as c:
+        r = c.post(
+            f"{host}/3/device/{falsch}",
+            headers={
+                "authorization": f"bearer {jwt}",
+                "apns-topic": settings.apns_topic,
+                "apns-push-type": "alert",
+                "apns-priority": "10",
+            },
+            json={"aps": {"alert": {"title": "x", "body": "y"}}},
+        )
+    print(name, r.status_code, r.text.strip())
+PY'
+```
+
+Beide Umgebungen antworteten `400 BadDeviceToken` — das ist genau der Beleg
+dafür, dass *Sandbox & Production* auch wirklich beides abdeckt.
+
+Was jetzt noch fehlt, damit auf einem iPhone etwas ankommt: die
+Push-Berechtigung auf der App-ID (Schritt **B1**) und ein Build, der die
+`aps-environment`-Berechtigung trägt.
+
 ---
 
 ## C — Play Console: Abo anlegen und aktivieren
