@@ -9,7 +9,7 @@ from .config import settings
 from .rate_limit import limiter
 from .routers import (
     admin, auth, billing, email_verify, geo, gyms, matches, messages, notices,
-    notifications, profiles, safety, swipes,
+    notifications, profiles, safety, store_billing, swipes,
     verification, withdrawal,
 )
 
@@ -83,6 +83,10 @@ app.include_router(matches.router)
 app.include_router(messages.router)
 app.include_router(notifications.router)
 app.include_router(billing.router)
+# Kaeufe in den Apps (App Store / Play Store). Eigener Router, gleiches
+# Praefix: Fuer die Clients ist es dieselbe Abteilung, im Code aber eine
+# ganz andere Vertrauensfrage (siehe routers/store_billing.py).
+app.include_router(store_billing.router)
 app.include_router(safety.router)
 # Beide ohne Anmeldezwang - siehe die Modulkommentare: § 13a FAGG und
 # Art. 16 DSA stehen jedem offen, nicht nur angemeldeten Nutzern.

@@ -84,3 +84,20 @@ def is_store_app(request: Request | None) -> bool:
     Regeln eines App-Stores gelten.
     """
     return platform(request) is not ClientPlatform.web
+
+
+def store_product_id(request: Request | None) -> str | None:
+    """Das Abo-Produkt im Store dieses Clients - oder ``None``.
+
+    ``None`` heisst: In dieser App kann gerade nicht gekauft werden. Das ist
+    der Fall, solange keine Produktkennung eingetragen ist, denn ohne sie
+    findet der Client im Store nichts, und ein Kauf-Knopf, der ins Leere
+    fuehrt, ist schlimmer als keiner.
+    """
+    from .config import settings
+
+    kennung = {
+        ClientPlatform.ios: settings.apple_subscription_product_id,
+        ClientPlatform.android: settings.google_subscription_product_id,
+    }.get(platform(request))
+    return kennung or None

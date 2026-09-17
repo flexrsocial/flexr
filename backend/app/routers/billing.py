@@ -44,12 +44,19 @@ def membership_status(
     (siehe ``clients.py``). Was das Konto darf, bleibt davon unberuehrt - nur
     was der Client davon anbieten darf, unterscheidet sich.
     """
-    verkauf_erlaubt = settings.premium_enabled and not clients.is_store_app(request)
+    # Genau ein Kaufweg je Client: Stripe im Browser, der jeweilige Store in
+    # der App. Beide falsch, solange Premium aus ist - oder, fuer die Apps,
+    # solange keine Produktkennung eingetragen ist.
+    im_browser = not clients.is_store_app(request)
+    verkauf_erlaubt = settings.premium_enabled and im_browser
+    store_produkt = clients.store_product_id(request) if settings.premium_enabled else None
     return MembershipStatus(
         is_premium=current_user.is_premium,
         premium_enabled=verkauf_erlaubt,
         limits_active=settings.premium_enabled,
         checkout_available=verkauf_erlaubt,
+        store_purchase_available=store_produkt is not None,
+        store_product_id=store_produkt,
         beta_active=settings.beta_active,
         has_stripe_subscription=bool(current_user.is_subscribed),
         price_cents=settings.premium_price_cents,

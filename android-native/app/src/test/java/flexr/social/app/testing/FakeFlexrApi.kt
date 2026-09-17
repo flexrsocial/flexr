@@ -26,7 +26,9 @@ import flexr.social.app.data.remote.dto.ModerationNoticeDto
 import flexr.social.app.data.remote.dto.MyProfileDto
 import flexr.social.app.data.remote.dto.NotificationSettingsRequestDto
 import flexr.social.app.data.remote.dto.PlzLookupDto
+import flexr.social.app.data.remote.dto.GooglePurchaseRequestDto
 import flexr.social.app.data.remote.dto.PortalUrlDto
+import flexr.social.app.data.remote.dto.StorePurchaseResultDto
 import flexr.social.app.data.remote.dto.PresignPhotoRequestDto
 import flexr.social.app.data.remote.dto.PresignPhotoResponseDto
 import flexr.social.app.data.remote.dto.ProfileDto
@@ -161,6 +163,10 @@ open class FakeFlexrApi : FlexrApi {
         nichtVorgesehen("createCheckout")
 
     override suspend fun createPortal(): PortalUrlDto = nichtVorgesehen("createPortal")
+
+    override suspend fun submitGooglePurchase(
+        body: GooglePurchaseRequestDto,
+    ): StorePurchaseResultDto = nichtVorgesehen("submitGooglePurchase")
 
     // ---------- safety.py ----------
 

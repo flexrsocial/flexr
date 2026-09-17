@@ -117,12 +117,29 @@ WITHDRAWAL_ACK_VERSION: Final = "2026-08-17"  # Checkout: Kenntnisnahme Erlösch
 # deshalb in der Gegenwart; das frühere "ab dem Ende der Beta-Phase" ist
 # überall entfallen (AGB Punkt 7 c und 9 e, FAQ, Landingpage, beide Apps).
 #
-# **Verkauft wird nur im Browser.** Aus den Apps heraus lehnt derselbe Endpunkt
-# mit 409 ab und GET /api/billing/status meldet ihnen premium_enabled=false -
-# der Grund steht in clients.py (App Review Guideline 3.1.1, Play-Payments).
-# Für die Rechtstexte heißt das: Der Vertrag kommt ausschließlich über
-# flexr.social zustande, nie über einen App-Store. Es gibt daher weiterhin
-# keine In-App-Käufe - eine Aussage, die AGB Punkt 9 d ausdrücklich trifft.
+# **Drei Kaufwege, ein Leistungsumfang** (seit 17.09.2026 abends):
+#
+#   * Browser: Stripe-Checkout (POST /api/billing/checkout). Vertragspartner
+#     für die Zahlung sind wir; gekündigt wird über das Stripe-Portal.
+#   * iOS-App: StoreKit. Vertragspartner für die Zahlung ist **Apple**.
+#   * Android-App: Play Billing. Vertragspartner für die Zahlung ist **Google**.
+#
+# Der Grund für die Trennung ist keine Vorliebe, sondern Store-Recht: Was in
+# einer App Funktionen freischaltet, muss über deren Kaufweg laufen (App Review
+# Guideline 3.1.1, Play-Payments-Policy). Umgekehrt bietet der Server den
+# Stripe-Checkout Apps gar nicht erst an - siehe clients.py.
+#
+# Für die Rechtstexte folgt daraus dreierlei, und alle drei stehen in den AGB:
+#
+#   1. Wer Vertragspartner der Zahlung ist, hängt vom Kaufweg ab (Punkt 6 c).
+#   2. Gekündigt wird dort, wo gekauft wurde (Punkt 12 a) - ein Store-Abo
+#      können wir nicht beenden, auch nicht auf Wunsch.
+#   3. **Der Preis kann abweichen** (Punkt 9 f): Apple und Google rechnen in
+#      eigenen Preisstufen (typischerweise 9,99 EUR statt 10,00 EUR), Währungen
+#      und Steuersätzen. PRICE_EUR_PER_MONTH unten gilt deshalb nur noch für
+#      den Kauf auf flexr.social; in den Apps zeigt der Store seinen eigenen
+#      Preis an, und die Clients zeigen genau den (siehe StoreKitService bzw.
+#      PlayBillingService).
 #
 # Die Beta-Kennzeichnung bleibt davon unberührt (settings.beta_active). Sie
 # sagt seit dieser Umstellung etwas über den Reifegrad des Angebots aus und

@@ -44,6 +44,46 @@ class Settings(BaseSettings):
     # Schalter.
     premium_enabled: bool = False
 
+    # ---- Kaeufe in den Apps (App Store / Play Store) -----------------------
+    #
+    # Premium laesst sich auf drei Wegen kaufen, und welcher es war, aendert
+    # an den Vorteilen nichts:
+    #
+    #   * im Browser ueber Stripe (die Felder ganz oben),
+    #   * in der iOS-App ueber StoreKit,
+    #   * in der Android-App ueber Play Billing.
+    #
+    # Die beiden Stores verlangen ihren eigenen Kaufweg fuer alles, was in
+    # ihrer App wirkt (App Review Guideline 3.1.1, Play-Payments-Policy) - und
+    # behalten dafuer 15 bis 30 Prozent. Der Preis steht deshalb NICHT hier:
+    # Apple und Google kennen nur ihre eigenen Preispunkte (9,99 EUR statt
+    # 10,00 EUR), rechnen Landeswaehrungen und Steuern selbst und liefern den
+    # anzuzeigenden Text mit. Die Clients zeigen ihn, statt ihn zu berechnen -
+    # ``premium_price_cents`` gilt nur noch fuer den Stripe-Weg.
+    #
+    # Ohne Zugangsdaten unten bleiben die App-Kaeufe **aus**: Der Server bietet
+    # sie dann nicht an und lehnt eingereichte Belege ab. Er nimmt lieber
+    # keinen Kauf an, als einen ungeprueften gutzuschreiben.
+    apple_bundle_id: str = "social.flexr.app"
+    apple_subscription_product_id: str = ""
+    google_package_name: str = "flexr.social.app"
+    google_subscription_product_id: str = ""
+
+    # Dienstkonto mit Zugriff auf die Google Play Developer API (JSON-Datei).
+    # Bei Apple braucht es dafuer nichts: Ein StoreKit-Beleg traegt seine
+    # Zertifikatskette selbst und wird gegen Apples Wurzelzertifikat geprueft.
+    google_service_account_file: str = ""
+
+    # Gemeinsames Geheimnis im Pfad der Google-Benachrichtigungen. Apple
+    # signiert seine Benachrichtigungen (und wird darueber geprueft), Googles
+    # Pub/Sub-Zustellung traegt keine Signatur, die wir ohne weitere
+    # Abhaengigkeit pruefen koennten - also ein nicht zu erratender Pfad.
+    google_notifications_token: str = ""
+
+    # Sandbox-Belege annehmen. In der Produktion aus: Ein Testkauf aus einem
+    # Entwicklergeraet darf dort kein echtes Premium erzeugen.
+    store_sandbox_allowed: bool = False
+
     # ---- Beta-Kennzeichnung ------------------------------------------------
     #
     # Getrennt von ``premium_enabled``, seit die beiden auseinanderfallen: Die

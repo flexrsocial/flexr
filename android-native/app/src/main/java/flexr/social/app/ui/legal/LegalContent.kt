@@ -54,9 +54,11 @@ object LegalContent {
                 "Die Nutzung kostet nichts — dauerhaft. Profile ansehen, liken, matchen " +
                     "und schreiben sind und bleiben kostenlos. Für das kostenlose Konto " +
                     "gelten 20 Likes pro Tag, 3 gleichzeitige Unterhaltungen und 50 km " +
-                    "Suchumkreis. Darüber hinaus gibt es FLEXR Premium um 10 € pro Monat; " +
-                    "abgeschlossen wird es nicht in dieser App, sondern auf flexr.social. " +
-                    "In der App entstehen keine Kosten und es gibt keine In-App-Käufe.",
+                    "Suchumkreis. Darüber hinaus gibt es FLEXR Premium. Bestellen kannst " +
+                    "du es direkt hier in der App über Google Play oder auf flexr.social " +
+                    "im Browser — den jeweils geltenden Preis zeigt dir der Play Store vor " +
+                    "dem Kauf an; auf flexr.social sind es 10 € pro Monat. Gekündigt wird " +
+                    "dort, wo du bestellt hast.",
             ),
             LegalBlock.Faq(
                 "In welchen Städten ist FLEXR verfügbar?",
@@ -208,9 +210,12 @@ object LegalContent {
                         "hebt die Grenzen aus lit. b auf und enthält zusätzlich: sehen, wer " +
                         "geliket hat, das Zurücknehmen des letzten Swipes, den vollen " +
                         "Suchumkreis bis 250 km und ein Premium-Abzeichen im Profil. " +
-                        "Bestellt wird Premium ausschließlich auf flexr.social; diese " +
-                        "App bietet keinen Abschluss an und rechnet nichts über den " +
-                        "Play Store ab.",
+                        "Bestellen kannst du Premium in dieser App über Google Play oder " +
+                        "auf flexr.social. Bei einem Kauf über Google Play kommt der " +
+                        "Zahlungsvertrag mit Google zustande: Google rechnet ab, zeigt " +
+                        "den dort geltenden Preis vor dem Kauf an, und gekündigt wird in " +
+                        "der Abo-Verwaltung des Play Store. Was Premium leistet, ist " +
+                        "überall dasselbe.",
                     "Kostenpflichtig wird nichts von selbst: Bei der Registrierung wird " +
                         "kein Zahlungsmittel erhoben, und Premium entsteht nur durch eine " +
                         "ausdrückliche Bestellung. Es gibt keine Kündigungsfrist, die " +

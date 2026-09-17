@@ -225,6 +225,11 @@ struct MembershipStatusDTO: Decodable {
     let premiumEnabled: Bool?
     let limitsActive: Bool?
     let checkoutAvailable: Bool?
+    /// Darf diese App über StoreKit kaufen? Das Gegenstück zu
+    /// `checkoutAvailable` - genau einer von beiden ist wahr, nie beide.
+    let storePurchaseAvailable: Bool?
+    /// Produktkennung im App Store. Preis und Text kommen von dort.
+    let storeProductId: String?
     let betaActive: Bool?
     let hasStripeSubscription: Bool?
     let priceCents: Int?
@@ -250,6 +255,22 @@ struct MembershipStatusDTO: Decodable {
 /// zur Stripe-Seite (§ 10 und § 18 Abs. 1 Z 1 FAGG). Das Backend lehnt `false`
 /// oder ein fehlendes Feld mit 422 ab — ein leerer Aufruf reicht seit dem
 /// 17.08.2026 nicht mehr (`CheckoutRequest` in `backend/app/schemas.py`).
+/// Eine signierte StoreKit-Transaktion, wie die App sie von Apple erhält.
+///
+/// Absichtlich nur dieses eine Feld: Alles andere — Produkt, Ablauf, Umgebung —
+/// steht signiert *im* Beleg. Schickte der Client es daneben mit, wäre die
+/// nächstliegende Frage, welchem von beiden der Server glaubt; die Antwort kann
+/// nur „dem Beleg" lauten, also gibt es das andere gar nicht erst.
+struct AppleTransactionRequestDTO: Encodable {
+    let signedTransaction: String
+}
+
+/// Was nach dem Einreichen gilt. Der Client zeichnet daraufhin sofort neu.
+struct StorePurchaseResultDTO: Decodable {
+    let isPremium: Bool?
+    let premiumUntil: String?
+}
+
 struct CheckoutRequestDTO: Encodable {
     let immediateStart: Bool
     let withdrawalAck: Bool

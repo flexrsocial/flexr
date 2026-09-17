@@ -10,6 +10,7 @@ import flexr.social.app.core.media.ImageProcessor
 import flexr.social.app.core.media.PhotoTooSmallException
 import flexr.social.app.core.network.FlexrApiException
 import flexr.social.app.data.remote.dto.ConsentDto
+import flexr.social.app.data.billing.PlayBillingService
 import flexr.social.app.data.remote.dto.NotificationSettingsRequestDto
 import flexr.social.app.data.repository.BillingRepository
 import flexr.social.app.data.repository.GymRepository
@@ -106,6 +107,7 @@ sealed interface AccountEvent {
 class AccountViewModel @Inject constructor(
     private val profileRepository: ProfileRepository,
     private val billingRepository: BillingRepository,
+    private val playBilling: PlayBillingService,
     private val gymRepository: GymRepository,
     private val plzRepository: PlzRepository,
     private val verificationRepository: VerificationRepository,
@@ -466,6 +468,52 @@ class AccountViewModel @Inject constructor(
                     }
                 }
         }
+    }
+
+    // ---------- Kauf über Google Play ----------
+
+    /** Der Preis, wie der Play Store ihn schreibt - `null`, solange er lädt. */
+    val storePreis: StateFlow<String?> = playBilling.preis
+
+    /** Ausgang des Kaufvorgangs. Google meldet ihn unter Umständen erst
+     *  Minuten später, deshalb ein Fluss und kein Rückgabewert. */
+    val kaufEreignisse = playBilling.ereignisse
+
+    /**
+     * Produktdaten laden, damit der echte Preis dasteht, bevor jemand tippt.
+     *
+     * Ohne das stünde auf dem Knopf ein Preis aus unseren Ressourcen - und der
+     * stimmt nur zufällig: Google rechnet Währung, Steuer und Schreibweise je
+     * nach Land des Kontos.
+     */
+    fun ladePremiumAngebot() {
+        val produktId = membership.value?.storeProductId ?: return
+        viewModelScope.launch { playBilling.produktLaden(produktId) }
+    }
+
+    /**
+     * Kaufvorgang starten. Das Ergebnis kommt über [PlayBillingService.ereignisse] -
+     * Google führt den Kauf in einer eigenen Oberfläche zu Ende.
+     */
+    fun kaufePremium(activity: android.app.Activity) {
+        val produktId = membership.value?.storeProductId ?: return
+        viewModelScope.launch { playBilling.kaufen(activity, produktId) }
+    }
+
+    /**
+     * Kündigen läuft bei einem Play-Kauf über den Play Store, nicht über uns:
+     * Google ist der Händler, wir könnten das Abo gar nicht beenden. Der Link
+     * führt direkt auf die Abo-Seite dieses Produkts.
+     */
+    fun playAboVerwalten() {
+        val produktId = membership.value?.storeProductId
+        val ziel = if (produktId != null) {
+            "https://play.google.com/store/account/subscriptions" +
+                "?sku=$produktId&package=flexr.social.app"
+        } else {
+            "https://play.google.com/store/account/subscriptions"
+        }
+        viewModelScope.launch { _events.send(AccountEvent.OpenUrl(ziel)) }
     }
 
     fun openBillingPortal() {

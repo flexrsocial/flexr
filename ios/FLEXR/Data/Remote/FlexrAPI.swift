@@ -163,6 +163,20 @@ struct FlexrAPI {
         try await client.send(.post, "api/billing/portal")
     }
 
+    /// Eine signierte StoreKit-Transaktion einreichen.
+    ///
+    /// Wird nach jedem Kauf aufgerufen und außerdem beim Start für alle
+    /// laufenden Berechtigungen. Mehrfaches Einreichen desselben Belegs ist
+    /// ausdrücklich vorgesehen und schreibt serverseitig nur dieselbe Zeile
+    /// fort — daran hängt die Wiederherstellung nach einem Gerätewechsel.
+    func submitAppleTransaction(_ signedTransaction: String) async throws -> StorePurchaseResultDTO {
+        try await client.send(
+            .post,
+            "api/billing/apple/transaction",
+            body: AppleTransactionRequestDTO(signedTransaction: signedTransaction)
+        )
+    }
+
     // MARK: - safety.py
 
     func report(_ body: ReportRequestDTO) async throws -> ReportAckDTO {

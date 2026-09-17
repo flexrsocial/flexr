@@ -270,9 +270,26 @@ class User(Base):
     # baut die abgeschaffte Bezahlwand versehentlich neu auf.
     trial_ends_at = Column(DateTime, default=datetime.utcnow)
 
+    # Stripe-Abo (Kauf im Browser). Fuer Kaeufe in den Apps gibt es einen
+    # zweiten Weg, siehe StoreSubscription und store_premium_until darunter.
     is_subscribed = Column(Boolean, default=False)
     stripe_customer_id = Column(String, nullable=True)
     stripe_subscription_id = Column(String, nullable=True)
+
+    # Laufzeitende eines im App Store oder Play Store gekauften Abos.
+    #
+    # Bewusst als Spalte am Konto und nicht als Abfrage ueber
+    # ``store_subscriptions``: ``is_premium`` wird bei jeder Profilausgabe
+    # gelesen - im Deck also bis zu 50-mal pro Anfrage. Eine Unterabfrage je
+    # Profil waere an dieser Stelle teuer und ueberraschend. Die Tabelle
+    # bleibt der Nachweis, diese Spalte ist die schnelle Antwort; geschrieben
+    # wird sie ausschliesslich von ``store_billing.apply_subscription()``.
+    #
+    # Warum ein Zeitpunkt und kein Ja/Nein: Ein Store-Abo endet nicht mit
+    # einem Ereignis, sondern laeuft ab. Bleibt eine Benachrichtigung einmal
+    # aus (Apple und Google stellen sie nicht garantiert zu), erlischt die
+    # Berechtigung hier trotzdem von selbst, statt auf ewig offen zu stehen.
+    store_premium_until = Column(DateTime, nullable=True)
 
     # Nachweis-Zeitstempel der ausdrücklichen Einwilligung nach Art. 9 Abs. 2
     # lit. a DSGVO zur Verarbeitung der aus gender/interest ableitbaren sexuellen
@@ -437,16 +454,38 @@ class User(Base):
         return not self.verification_required or self.activated_at is not None
 
     @property
+    def has_store_premium(self) -> bool:
+        """Laeuft ein im App Store oder Play Store gekauftes Abo?
+
+        Der Zeitpunkt in ``store_premium_until`` traegt die Antwort; hier wird
+        nur gegen die Uhr geprueft. Apple und Google verlaengern jeweils kurz
+        vor Ablauf - die Spalte steht also im Normalbetrieb immer ein Stueck in
+        der Zukunft.
+        """
+        return (
+            self.store_premium_until is not None
+            and self.store_premium_until > datetime.utcnow()
+        )
+
+    @property
     def is_premium(self) -> bool:
         """Laeuft fuer dieses Konto ein FLEXR-Premium-Abo?
 
+        Drei moegliche Quellen, die sich gegenseitig nicht ausschliessen:
+        Stripe (Kauf im Browser), App Store und Play Store (Kauf in der App).
+        Welche es ist, aendert an den Vorteilen nichts - deshalb faellt die
+        Unterscheidung hier weg und lebt nur dort weiter, wo sie zaehlt:
+        beim Kuendigen (jeder Weg wird dort gekuendigt, wo er gekauft wurde).
+
         Nur wahr, wenn Premium ueberhaupt scharf geschaltet ist: Solange der
-        Schalter aus ist (Beta), hat *niemand* Premium - und braucht es auch
-        nicht, weil dann fuer alle alles unbegrenzt ist. Sonst haetten Konten
-        aus der Zeit der alten Abogebuehr waehrend der Beta ein Abzeichen und
-        Vorteile, die die anderen mangels Grenzen gar nicht vermissen koennen.
+        Schalter aus ist, hat *niemand* Premium - und braucht es auch nicht,
+        weil dann fuer alle alles unbegrenzt ist. Sonst haetten Konten mit
+        einem Abo ein Abzeichen und Vorteile, die die anderen mangels Grenzen
+        gar nicht vermissen koennen.
         """
-        return settings.premium_enabled and bool(self.is_subscribed)
+        if not settings.premium_enabled:
+            return False
+        return bool(self.is_subscribed) or self.has_store_premium
 
     @property
     def is_messaging_muted(self) -> bool:
@@ -1033,3 +1072,83 @@ class AdminUser(Base):
     password_hash = Column(String, nullable=False)
     name = Column(String, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
+
+
+class StoreProvider(str, enum.Enum):
+    """Wo ein Abo gekauft wurde. Stripe steht bewusst nicht dabei - dafuer gibt
+    es die Spalten am Konto (``stripe_subscription_id``) und eine eigene,
+    aeltere Vertragslogik."""
+
+    apple = "apple"
+    google = "google"
+
+
+class StoreSubscription(Base):
+    """Ein in einer App gekauftes FLEXR-Premium-Abo.
+
+    Warum ueberhaupt getrennt von Stripe: Ein Store-Abo hat keinen Kunden bei
+    uns, keine Rechnung von uns und keine Kuendigung durch uns. Apple und
+    Google sind Haendler; wir erfahren vom Vertrag nur ueber einen signierten
+    Beleg und danach ueber Benachrichtigungen. Das in die Stripe-Felder zu
+    pressen haette dort Werte erzeugt, die kein Stripe-Aufruf je wiederfindet.
+
+    Diese Tabelle ist der **Nachweis** (wer hat wann was gekauft, in welcher
+    Umgebung, bis wann), ``users.store_premium_until`` die schnelle Antwort auf
+    "darf dieses Konto gerade". Beide schreibt ausschliesslich
+    ``store_billing.apply_subscription()``.
+
+    Die Eindeutigkeit ueber (provider, external_id) ist keine Formalie: Sie
+    verhindert, dass derselbe Kauf auf zwei Konten Premium erzeugt. Wer sich
+    mit einer zweiten Adresse anmeldet und denselben Apple-Kauf noch einmal
+    einreicht, laeuft hier auf - der Kauf wandert dann zum neuen Konto, statt
+    sich zu vervielfaeltigen (siehe apply_subscription()).
+    """
+
+    __tablename__ = "store_subscriptions"
+    __table_args__ = (
+        UniqueConstraint("provider", "external_id", name="uq_store_subscription"),
+    )
+
+    id = Column(String, primary_key=True, default=gen_uuid)
+    user_id = Column(
+        String, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+
+    provider = Column(Enum(StoreProvider), nullable=False)
+
+    # Die Kennung, unter der der Store dieses Abo ueber seine ganze Laufzeit
+    # fuehrt - bei Apple ``originalTransactionId`` (bleibt ueber alle
+    # Verlaengerungen gleich), bei Google der ``purchaseToken`` der letzten
+    # Kaufhandlung. Google gibt bei einem Wiederkauf einen neuen Token aus und
+    # nennt im Beleg den vorherigen; ``apply_subscription()` schreibt die Zeile
+    # dann fort, statt eine zweite anzulegen.
+    external_id = Column(String, nullable=False)
+
+    product_id = Column(String, nullable=False)
+
+    # Wortlaut der Stores, absichtlich nicht auf ein eigenes Vokabular
+    # abgebildet: Beim Nachsehen in der Datenbank soll dastehen, was der Store
+    # gemeldet hat, nicht unsere Uebersetzung davon.
+    status = Column(String(40), nullable=False)
+
+    # Bis wann das Abo bezahlt ist. Massgeblich fuer die Berechtigung.
+    expires_at = Column(DateTime, nullable=True)
+    # Verlaengert es sich automatisch? Nur zur Anzeige und fuer die Frage, ob
+    # eine Kuendigung schon vorgemerkt ist - die Berechtigung haengt allein an
+    # expires_at.
+    auto_renewing = Column(Boolean, nullable=False, default=True)
+
+    # "Sandbox" oder "Production". Ein Sandbox-Kauf aus einem Testgeraet darf
+    # in der Produktion kein Premium erzeugen - geprueft in apply_subscription().
+    environment = Column(String(20), nullable=False, default="Production")
+
+    created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+    updated_at = Column(
+        DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow
+    )
+
+    user = relationship("User")
+
+    @property
+    def is_active(self) -> bool:
+        return self.expires_at is not None and self.expires_at > datetime.utcnow()

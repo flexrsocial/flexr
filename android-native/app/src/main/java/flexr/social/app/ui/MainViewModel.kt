@@ -10,6 +10,7 @@ import flexr.social.app.core.locale.AppStrings
 import flexr.social.app.core.locale.LanguageStore
 import flexr.social.app.core.network.FlexrApiException
 import flexr.social.app.core.network.VerificationGate
+import flexr.social.app.data.billing.PlayBillingService
 import flexr.social.app.data.repository.AuthRepository
 import flexr.social.app.data.repository.BillingRepository
 import flexr.social.app.data.repository.MatchRepository
@@ -60,6 +61,7 @@ class MainViewModel @Inject constructor(
     private val profileRepository: ProfileRepository,
     private val languageStore: LanguageStore,
     private val billingRepository: BillingRepository,
+    private val playBilling: PlayBillingService,
     private val verificationRepository: VerificationRepository,
     private val notificationScheduler: MessageNotificationScheduler,
     matchRepository: MatchRepository,
@@ -151,6 +153,15 @@ class MainViewModel @Inject constructor(
                     }
                 }
                 SessionGate.isReady = true
+
+                // Laufende Play-Kaeufe beim Server nachreichen. Das ist der
+                // Weg zurueck aus jeder Stoerung: Wer beim Kauf gerade keine
+                // Verbindung hatte, das Geraet gewechselt oder die App neu
+                // installiert hat, bekommt sein Premium dadurch von selbst
+                // wieder - ohne einen Knopf "Kauf wiederherstellen", den er
+                // erst suchen muesste. Laeuft still; wer nichts gekauft hat,
+                // merkt davon nichts.
+                launch { runCatching { playBilling.bestehendeKaeufeAbgleichen() } }
             }.onFailure {
                 // Token ungültig oder Server nicht erreichbar — der
                 // Interceptor hat bei 401 bereits abgemeldet.

@@ -11,6 +11,8 @@ import flexr.social.app.data.remote.dto.BlockedUserDto
 import flexr.social.app.data.remote.dto.CheckoutRequestDto
 import flexr.social.app.data.remote.dto.CheckoutUrlDto
 import flexr.social.app.data.remote.dto.ConsentDto
+import flexr.social.app.data.remote.dto.GooglePurchaseRequestDto
+import flexr.social.app.data.remote.dto.StorePurchaseResultDto
 import flexr.social.app.data.remote.dto.ConsentGrantRequestDto
 import flexr.social.app.data.remote.dto.ConsentGrantResponseDto
 import flexr.social.app.data.remote.dto.ConsentRevokeRequestDto
@@ -209,6 +211,20 @@ interface FlexrApi {
 
     @POST("api/billing/portal")
     suspend fun createPortal(): PortalUrlDto
+
+    /**
+     * Einen Play-Kauf einreichen.
+     *
+     * Wird nach jedem Kauf aufgerufen und ausserdem beim Start fuer alle
+     * laufenden Kaeufe. Das zweite ist kein Beiwerk: Wer beim Kauf gerade
+     * keine Verbindung hatte oder das Geraet gewechselt hat, bekommt sein
+     * Premium dadurch von selbst zurueck - ohne einen Knopf "Kauf
+     * wiederherstellen", den er erst suchen muesste.
+     */
+    @POST("api/billing/google/purchase")
+    suspend fun submitGooglePurchase(
+        @Body body: GooglePurchaseRequestDto,
+    ): StorePurchaseResultDto
 
     // ---------- safety.py ----------
 

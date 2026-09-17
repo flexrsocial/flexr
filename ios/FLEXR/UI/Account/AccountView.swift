@@ -216,19 +216,25 @@ struct AccountView: View {
                         .flexrText(.bodyMedium)
                         .foregroundStyle(FlexrColor.chalk)
 
-                    // Wer noch ein Abo aus der Zeit der alten Mitgliedsgebühr
-                    // hat, muss es kündigen können — auch während der Beta, in
-                    // der Premium selbst gar nicht abschließbar ist (der Server
-                    // lehnt den Checkout mit 409 ab).
+                    // Gekündigt wird dort, wo gekauft wurde — das ist keine
+                    // Bequemlichkeitsfrage: Bei einem Kauf über den App Store
+                    // ist Apple der Händler, wir könnten das Abo gar nicht
+                    // beenden.
                     if membership.hasStripeSubscription {
+                        // Im Browser über Stripe gekauft: unser Portal.
                         FlexrLinkButton(title: s(.accountManageSubscription)) {
                             model.openBillingPortal()
                         }
-                    } else if membership.premiumEnabled {
-                        // Führt auf den Premium-Bildschirm, schließt nichts ab:
-                        // Ein Klick im Konto soll nicht unmittelbar in einer
-                        // Zahlungserklärung enden, ohne dass jemand gelesen hat,
-                        // wofür.
+                    } else if membership.isPremium {
+                        // Über den App Store gekauft: Apples Abo-Verwaltung.
+                        FlexrLinkButton(title: s(.accountManageSubscription)) {
+                            Task { await container.storeKit.aboVerwalten() }
+                        }
+                    } else if membership.storePurchaseAvailable {
+                        // Noch kein Abo: Führt auf den Premium-Bildschirm und
+                        // kauft nichts. Ein Klick im Konto soll nicht
+                        // unmittelbar in einem Kauf enden, ohne dass jemand
+                        // gelesen hat, wofür.
                         FlexrLinkButton(title: s(.premiumShowOffer)) { onOpen(.premium) }
                     }
                 }

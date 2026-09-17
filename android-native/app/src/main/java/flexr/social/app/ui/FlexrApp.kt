@@ -438,7 +438,7 @@ private fun MainGraph(
                 IncomingScreen(
                     onBack = { navController.popBackStack() },
                     onOpenPremium = { navController.navigate(Routes.PAYWALL) },
-                    premiumOffered = membership.premiumEnabled,
+                    premiumOffered = membership.storePurchaseAvailable,
                 )
             }
 

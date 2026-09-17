@@ -409,6 +409,7 @@
     <string name="paywall_per_month"> / Monat</string>
     <string name="paywall_feature_unlimited">Unbegrenzt liken statt 20 pro Tag</string>
     <string name="paywall_subscribe">Premium holen</string>
+    <string name="purchase_success">FLEXR Premium läuft. Viel Spaß!</string>
     <string name="common_logout">Ausloggen</string>
     <string name="paywall_sub">FLEXR zu nutzen kostet nichts — dauerhaft. Premium hebt die Grenzen des kostenlosen Kontos auf.</string>
     <string name="paywall_feature_chat">Unbegrenzt viele Unterhaltungen gleichzeitig</string>

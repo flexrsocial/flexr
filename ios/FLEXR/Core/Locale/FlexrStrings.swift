@@ -100,6 +100,8 @@ enum L: Hashable, Sendable {
     case premiumFeatureLikes, premiumFeatureChats, premiumFeatureIncoming
     case premiumFeatureRewind, premiumFeatureRadius, premiumFeatureBadge
     case premiumBetaHint, premiumLikesLeft, premiumLikesGone
+    // Kauf über den App Store, siehe StoreKitService.
+    case purchaseSuccess, purchasePending, purchaseFailed, purchaseUnavailable
     case premiumLikeLimit, premiumChatLimit
     case premiumBadgeTitle, premiumLikesLeftOne, premiumMoreLikes
     case premiumRewindDone, premiumRewindFailed, swipeRewind

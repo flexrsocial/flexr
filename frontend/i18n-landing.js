@@ -137,7 +137,7 @@
     'price.premiumCta': 'Premium holen',
     'price.cta': 'Kostenlos starten',
     'price.p1': '<b>Aus einem kostenlosen Konto wird nie von selbst ein Abo.</b> Bei der Registrierung wird kein Zahlungsmittel abgefragt und keines hinterlegt. Premium entsteht nur, wenn du es ausdrücklich abschließt — du musst sonst nichts kündigen und kannst keine Frist versäumen.',
-    'price.p2': 'FLEXR&nbsp;Premium bestellst du <b>hier auf flexr.social im Browser</b>, in deinem Konto. Die Apps bieten keinen Abschluss an und rechnen nichts über einen App-Store ab — ein bestelltes Premium wirkt dort aber genauso. Die 10&nbsp;€ pro Monat sind der Endpreis; Umsatzsteuer wird nicht zusätzlich verrechnet, und gekündigt wird mit einem Klick zum Ende des laufenden Monats.',
+    'price.p2': 'FLEXR&nbsp;Premium bekommst du auf <b>drei Wegen</b>: hier auf flexr.social in deinem Konto, oder als In-App-Kauf in der iOS- und der Android-App. Gekündigt wird jeweils dort, wo du bestellt hast — mit einem Klick, zum Ende des laufenden Monats. Die 10&nbsp;€ pro Monat sind der Endpreis auf flexr.social; Umsatzsteuer wird nicht zusätzlich verrechnet. Im App&nbsp;Store und im Play&nbsp;Store gelten deren Preisstufen — der Store zeigt dir den Preis vor dem Kauf.',
 
     'faq.h2': 'Häufige Fragen',
     'faq.q1': 'Was ist FLEXR?',
@@ -302,7 +302,7 @@
     'price.premiumCta': 'Get Premium',
     'price.cta': 'Start for free',
     'price.p1': '<b>A free account never turns into a subscription by itself.</b> No payment method is requested or stored at sign-up. Premium only exists if you explicitly take it out — otherwise there is nothing to cancel and no deadline to miss.',
-    'price.p2': 'You order FLEXR&nbsp;Premium <b>here on flexr.social in a browser</b>, from your account. The apps do not offer a purchase and bill nothing through an app store — Premium you have ordered works there just the same. The €10 per month is the final price; VAT is not charged on top, and cancelling takes one click, effective at the end of the current month.',
+    'price.p2': 'You can get FLEXR&nbsp;Premium in <b>three ways</b>: here on flexr.social from your account, or as an in-app purchase in the iOS and Android apps. You cancel wherever you ordered — one click, effective at the end of the current month. The €10 per month is the final price on flexr.social; VAT is not charged on top. In the App&nbsp;Store and Play&nbsp;Store their own price points apply — the store shows you the price before the purchase.',
 
     'faq.h2': 'Frequently asked questions',
     'faq.q1': 'What is FLEXR?',

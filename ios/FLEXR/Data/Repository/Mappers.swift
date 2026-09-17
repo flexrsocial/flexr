@@ -101,6 +101,8 @@ extension MembershipStatusDTO {
             isPremium: isPremium ?? false,
             premiumEnabled: checkoutAvailable ?? premiumEnabled ?? false,
             limitsActive: limitsActive ?? premiumEnabled ?? false,
+            storePurchaseAvailable: storePurchaseAvailable ?? false,
+            storeProductID: storeProductId,
             betaActive: betaActive ?? true,
             hasStripeSubscription: hasStripeSubscription ?? isSubscribed ?? false,
             priceCents: priceCents ?? 1000,

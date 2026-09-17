@@ -146,6 +146,14 @@ data class Membership(
      */
     val limitsActive: Boolean,
     /**
+     * Darf in dieser App ueber Play Billing gekauft werden? Das ist der
+     * Kaufweg der Android-App - `premiumEnabled` (Stripe) ist hier immer
+     * falsch, siehe backend/app/clients.py.
+     */
+    val storePurchaseAvailable: Boolean,
+    /** Produktkennung im Play Store. Preis und Text kommen von dort. */
+    val storeProductId: String?,
+    /**
      * Traegt FLEXR das Beta-Abzeichen? Seit 17.09.2026 ein eigener Schalter des
      * Servers: Vorher hing es daran, dass Premium noch nicht kaufbar war, und
      * waere beim Scharfschalten stillschweigend verschwunden.

@@ -267,20 +267,26 @@ fun AccountScreen(
                     style = MaterialTheme.typography.bodyMedium,
                     color = colors.chalk,
                 )
-                // Wer ein Abo hat, muss es kuendigen koennen - auch in der
-                // App, in der Premium selbst nicht abschliessbar ist. Das
-                // Stripe-Portal verkauft nichts, es verwaltet nur.
-                if (status.hasStripeSubscription) {
-                    FlexrLinkButton(
+                // Gekuendigt wird dort, wo gekauft wurde - das ist keine
+                // Bequemlichkeitsfrage: Bei einem Play-Kauf ist Google der
+                // Haendler, wir koennten das Abo gar nicht beenden.
+                when {
+                    // Im Browser ueber Stripe gekauft: unser Portal.
+                    status.hasStripeSubscription -> FlexrLinkButton(
                         text = stringResource(R.string.account_manage_subscription),
                         onClick = viewModel::openBillingPortal,
                     )
-                } else if (status.premiumEnabled) {
-                    // Fuehrt auf den Premium-Bildschirm, schliesst nichts ab:
-                    // Ein Klick im Konto soll nicht unmittelbar in einer
-                    // Zahlungserklaerung enden, ohne dass jemand gelesen hat,
-                    // wofuer.
-                    FlexrLinkButton(
+                    // Ueber Play gekauft (Premium laeuft, aber ohne Stripe):
+                    // die Abo-Verwaltung des Play Stores.
+                    status.isPremium -> FlexrLinkButton(
+                        text = stringResource(R.string.account_manage_subscription),
+                        onClick = viewModel::playAboVerwalten,
+                    )
+                    // Noch kein Abo: Fuehrt auf den Premium-Bildschirm und
+                    // schliesst nichts ab. Ein Klick im Konto soll nicht
+                    // unmittelbar in einem Kauf enden, ohne dass jemand
+                    // gelesen hat, wofuer.
+                    status.storePurchaseAvailable -> FlexrLinkButton(
                         text = stringResource(R.string.premium_show_offer),
                         onClick = onOpenPremium,
                     )

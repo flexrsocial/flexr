@@ -7,8 +7,15 @@ import SwiftUI
 /// dauerhaft nichts; dieser Bildschirm erklärt nur, was Premium zusätzlich
 /// kann, und wird aus dem Kontobereich heraus aufgerufen — nie erzwungen.
 ///
-/// Der Checkout läuft in einer externen Browser-Sitzung über Stripe — die App
-/// nimmt zu keinem Zeitpunkt Zahlungsdaten entgegen.
+/// Gekauft wird über den **App Store** — der einzige zulässige Weg für
+/// Funktionen, die in dieser App wirken (App Review Guideline 3.1.1).
+/// Zahlungsdaten nimmt die App zu keinem Zeitpunkt entgegen; sie reicht nur
+/// den signierten Beleg beim Server ein, der ihn prüft.
+///
+/// Preis und Währung schreibt der App Store, nicht wir: Apple rechnet sie je
+/// nach Land des Kontos. Solange sie noch nicht geladen sind, steht der Preis
+/// aus dem Serverstatus da — er stimmt für Österreich, ist aber nur der
+/// Platzhalter.
 struct PaywallView: View {
     /// Zurück in den Kontobereich, aus dem dieser Bildschirm aufgerufen wird.
     let onBack: () -> Void
@@ -18,10 +25,6 @@ struct PaywallView: View {
 
     @Environment(AppContainer.self) private var container
     @Environment(AppModel.self) private var appModel
-
-    /// Nur für den Checkout — der Rest des Modells bleibt ungenutzt,
-    /// load() wird bewusst nicht aufgerufen.
-    @State private var accountModel: AccountModel?
 
     /// Die Vorteile mit den Zahlen des Servers. Wer die Grenzen in
     /// `config.py` ändert, ändert damit auch diese Liste.
@@ -55,7 +58,11 @@ struct PaywallView: View {
                     HStack(alignment: .bottom, spacing: 0) {
                         // Preis aus dem Serverstatus, damit "10 €" nirgends im
                         // Client festgeschrieben ist.
-                        Text(appModel.membership.map { "\($0.priceCents / 100) €" } ?? "10 €")
+                        Text(
+                            container.storeKit.preis
+                                ?? appModel.membership.map { "\($0.priceCents / 100) €" }
+                                ?? "10 €"
+                        )
                             .flexrText(.displayMedium)
                             .foregroundStyle(FlexrColor.chalk)
                         Text(s(.paywallPerMonth))
@@ -78,20 +85,24 @@ struct PaywallView: View {
                     }
                     .padding(.top, 10)
 
-                    // Während der Beta gibt es nichts abzuschließen: Der Server
-                    // lehnt den Checkout mit 409 ab, weil ohnehin für alle alles
-                    // unbegrenzt ist. Statt eines Knopfes in die Sackgasse steht
-                    // dann der Hinweis, dass Premium später kommt.
-                    if appModel.membership?.premiumEnabled == false {
+                    // Gekauft werden kann nur, was der Server auch anbietet:
+                    // Er meldet mit `storePurchaseAvailable`, ob dieser Client
+                    // kaufen darf und unter welcher Produktkennung. Fehlt
+                    // beides — weil Premium serverseitig aus ist oder noch kein
+                    // Produkt eingetragen wurde —, steht statt eines Knopfes in
+                    // die Sackgasse der Hinweis.
+                    if let produktID = appModel.membership?.storeProductID,
+                       appModel.membership?.storePurchaseAvailable == true {
+                        FlexrButton(title: s(.paywallSubscribe)) {
+                            Task { await kaufen(produktID) }
+                        }
+                        .padding(.top, 12)
+                        .disabled(container.storeKit.laeuftKauf)
+                    } else {
                         Text(s(.premiumBetaHint))
                             .flexrText(.bodySmall)
                             .foregroundStyle(FlexrColor.chalkDim)
                             .padding(.top, 12)
-                    } else {
-                        FlexrButton(title: s(.paywallSubscribe)) {
-                            accountModel?.openCheckoutSheet()
-                        }
-                        .padding(.top, 12)
                     }
                 }
                 .padding(20)
@@ -113,39 +124,29 @@ struct PaywallView: View {
             .padding(.horizontal, 20)
             .padding(.bottom, 40)
         }
-        .externalPage(
-            Binding(
-                get: { accountModel?.externalURL },
-                set: { accountModel?.externalURL = $0 }
-            )
-        )
         .task {
-            if accountModel == nil {
-                accountModel = AccountModel(container: container, languageStore: languageStore) {
-                    appModel.show($0)
-                }
+            // Den echten Preis holen, bevor jemand tippt.
+            if let produktID = appModel.membership?.storeProductID {
+                await container.storeKit.produktLaden(produktID)
             }
         }
-        .sheet(isPresented: Binding(
-            get: { accountModel?.checkoutSheetVisible ?? false },
-            set: { if !$0 { accountModel?.closeCheckoutSheet() } }
-        )) {
-            if let accountModel {
-                CheckoutConsentSheet(
-                    immediateStart: Binding(
-                        get: { accountModel.checkoutImmediateStart },
-                        set: { accountModel.checkoutImmediateStart = $0 }
-                    ),
-                    withdrawalAck: Binding(
-                        get: { accountModel.checkoutWithdrawalAck },
-                        set: { accountModel.checkoutWithdrawalAck = $0 }
-                    ),
-                    error: accountModel.checkoutError,
-                    isStarting: accountModel.isStartingCheckout,
-                    onConfirm: { Task { await accountModel.confirmCheckout() } },
-                    onDismiss: accountModel.closeCheckoutSheet
-                )
-            }
+    }
+
+    /// Kauf anstoßen und das Ergebnis melden. Ein Abbruch bleibt bewusst
+    /// stumm: Wer selbst abbricht, braucht darüber keine Meldung.
+    private func kaufen(_ produktID: String) async {
+        switch await container.storeKit.kaufen(produktID: produktID) {
+        case .erfolgreich:
+            // Der Server hat den Beleg angenommen — den Status frisch holen,
+            // damit Abzeichen und Grenzen sofort stimmen.
+            await appModel.refreshMembership()
+            appModel.show(s(.purchaseSuccess))
+        case .ausstehend:
+            appModel.show(s(.purchasePending))
+        case .fehlgeschlagen(let meldung):
+            appModel.show(meldung)
+        case .abgebrochen:
+            break
         }
     }
 }

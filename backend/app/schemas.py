@@ -303,10 +303,21 @@ class MembershipStatus(BaseModel):
     premium_enabled: bool
     # Gelten die Grenzen des kostenlosen Kontos? Fuer alle Clients gleich.
     limits_active: bool
-    # Darf **dieser** Client einen Abschluss anbieten? Nur im Browser, und nur
-    # solange Premium scharf ist. POST /api/billing/checkout prueft dasselbe
-    # noch einmal selbst.
+    # Darf **dieser** Client einen Abschluss ueber Stripe anbieten? Nur im
+    # Browser, und nur solange Premium scharf ist. POST /api/billing/checkout
+    # prueft dasselbe noch einmal selbst.
     checkout_available: bool
+    # Darf dieser Client ueber den Store kaufen - StoreKit in der iOS-App,
+    # Play Billing in der Android-App? Das Gegenstueck zu checkout_available:
+    # Genau einer der beiden ist wahr, nie beide. Falsch bleiben beide, solange
+    # Premium aus ist oder der Server keine Store-Zugangsdaten hat.
+    store_purchase_available: bool = False
+    # Die Kennung des Abo-Produkts in dem Store, aus dem dieser Client kommt.
+    # Der Client laedt damit Preis und Beschreibung beim Store selbst - der
+    # Preis steht nirgends im Client und auch nicht in unserer Antwort, weil
+    # Apple und Google ihre eigenen Preispunkte, Waehrungen und Steuersaetze
+    # rechnen.
+    store_product_id: Optional[str] = None
     # Traegt FLEXR noch das Beta-Abzeichen? Seit dem Scharfschalten von Premium
     # ein eigener Schalter (``settings.beta_active``) - bis dahin hatten die
     # Oberflaechen "Beta" daraus abgeleitet, dass Premium noch nicht kaufbar
@@ -350,6 +361,40 @@ class MembershipStatus(BaseModel):
     trial_ends_at: datetime
     is_active: bool = True
     billing_enabled: bool
+
+
+class AppleTransactionRequest(BaseModel):
+    """Eine signierte StoreKit-Transaktion, wie die iOS-App sie erhaelt.
+
+    Absichtlich nur dieses eine Feld: Alles andere - Produkt, Ablauf,
+    Umgebung, Kaeufer - steht signiert *im* Beleg. Wuerde der Client es
+    daneben mitschicken, waere die naechstliegende Frage, welchem von beiden
+    der Server glaubt; die Antwort kann nur "dem Beleg" lauten, also gibt es
+    das andere gar nicht erst.
+    """
+
+    signed_transaction: str = Field(min_length=20, max_length=20000)
+
+
+class GooglePurchaseRequest(BaseModel):
+    """Der Kauf-Token aus Play Billing. Auch er sagt fuer sich genommen
+    nichts - der Server fragt damit bei Google nach (siehe store_billing.py)."""
+
+    purchase_token: str = Field(min_length=10, max_length=4000)
+
+
+class StorePurchaseResult(BaseModel):
+    """Was nach dem Einreichen eines Belegs gilt.
+
+    Der Client zeichnet daraufhin sofort neu, statt auf den naechsten Abruf
+    von /api/billing/status zu warten - zwischen Kauf und Abzeichen soll
+    nichts liegen.
+    """
+
+    is_premium: bool
+    # Bis wann die Store-Berechtigung reicht (inkl. Kulanzfrist). None, wenn
+    # gerade keine laeuft - etwa nach einer Rueckerstattung.
+    premium_until: Optional[datetime] = None
 
 
 class SwipeRequest(BaseModel):

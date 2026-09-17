@@ -208,6 +208,25 @@ def declare_withdrawal(
                 current_user.stripe_subscription_id,
             )
 
+    # Ein im App Store oder Play Store gekauftes Abo lässt sich hier **nicht**
+    # stoppen, und das ist keine Lücke, sondern die Rechtslage: Bei einem Kauf
+    # über einen Store ist Apple bzw. Google der Vertragspartner des Kunden.
+    # Wir haben dort keinen Vertrag zu beenden und auch keine Handhabe dazu -
+    # die Kündigung läuft über die Abo-Verwaltung des jeweiligen Stores, die
+    # Rückerstattung über dessen Verfahren.
+    #
+    # Die Erklärung wird trotzdem entgegengenommen und protokolliert: Sie ist
+    # eine Willenserklärung des Kunden, und es ist nicht seine Aufgabe, vorher
+    # zu wissen, wer sie umzusetzen hat. Der Hinweis auf den richtigen Weg
+    # steht in der Bestätigungsmail (siehe mailer.build_withdrawal_ack) und im
+    # Admin-Dashboard, wo die Erklärung ohnehin gesichtet wird.
+    if current_user and current_user.has_store_premium:
+        logger.info(
+            "Rücktritt bei laufendem Store-Abo (user=%s): Kündigung muss im "
+            "Store erfolgen, hier nicht möglich.",
+            current_user.id,
+        )
+
     declaration = WithdrawalDeclaration(
         user_id=current_user.id if current_user else None,
         request_id=request_id,

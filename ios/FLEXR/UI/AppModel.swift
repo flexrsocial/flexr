@@ -159,6 +159,16 @@ final class AppModel {
 
             let membership = try await container.billing.refresh()
             state = .ready(profile: profile, membership: membership)
+
+            // Laufende App-Store-Käufe beim Server nachreichen und den Strom
+            // der Transaktionen öffnen. Beides ist kein Beiwerk: Über
+            // `Transaction.updates` stellt Apple Verlängerungen und
+            // Rückerstattungen zu, die sonst niemand abholt, und der Abgleich
+            // ist der Weg zurück aus jeder Störung — Gerätewechsel,
+            // Neuinstallation, Kauf ohne Verbindung. Läuft still; wer nichts
+            // gekauft hat, merkt davon nichts.
+            container.storeKit.beobachten()
+            Task { await container.storeKit.bestehendeKaeufeAbgleichen() }
         } catch {
             // Token ungültig oder Server nicht erreichbar — bei 401 hat der
             // APIClient bereits abgemeldet und `sessionExpired` gefeuert.

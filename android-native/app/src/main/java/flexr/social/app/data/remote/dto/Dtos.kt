@@ -247,8 +247,12 @@ data class AddPhotoRequestDto(
 data class MembershipStatusDto(
     @SerialName("is_premium") val isPremium: Boolean = false,
     @SerialName("premium_enabled") val premiumEnabled: Boolean = false,
-    /** Darf **dieser** Client einen Abschluss anbieten? In der App nie. */
+    /** Darf **dieser** Client ueber Stripe abschliessen? In der App nie. */
     @SerialName("checkout_available") val checkoutAvailable: Boolean? = null,
+    /** Darf dieser Client ueber Play Billing kaufen? Das Gegenstueck dazu. */
+    @SerialName("store_purchase_available") val storePurchaseAvailable: Boolean = false,
+    /** Produktkennung im Play Store - der Preis kommt von dort, nicht von uns. */
+    @SerialName("store_product_id") val storeProductId: String? = null,
     /** Gelten die Grenzen des kostenlosen Kontos? Am Konto, nicht am Geraet. */
     @SerialName("limits_active") val limitsActive: Boolean? = null,
     /** Traegt FLEXR noch das Beta-Abzeichen? Eigener Schalter des Servers. */
@@ -271,6 +275,20 @@ data class MembershipStatusDto(
     @SerialName("trial_ends_at") val trialEndsAt: String? = null,
     @SerialName("is_active") val isActive: Boolean = true,
     @SerialName("billing_enabled") val billingEnabled: Boolean = false,
+)
+
+/** Ein Play-Kauf, wie ihn die App einreicht. Mehr braucht der Server nicht -
+ *  alles Weitere holt er sich bei Google (siehe backend/app/store_billing.py). */
+@Serializable
+data class GooglePurchaseRequestDto(
+    @SerialName("purchase_token") val purchaseToken: String,
+)
+
+/** Was nach dem Einreichen gilt. Der Client zeichnet daraufhin sofort neu. */
+@Serializable
+data class StorePurchaseResultDto(
+    @SerialName("is_premium") val isPremium: Boolean = false,
+    @SerialName("premium_until") val premiumUntil: String? = null,
 )
 
 @Serializable

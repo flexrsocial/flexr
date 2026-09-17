@@ -8,10 +8,10 @@ import SwiftUI
 /// eine Fehlermeldung wäre es nicht. Wer ohne Abo hier landet, hat nichts
 /// verloren; er sieht nur nicht, wer es ist.
 ///
-/// Der Weg zum Angebot steht hier nur, wenn der Server diesem Client einen
-/// Abschluss überhaupt anbietet. In der App tut er das nicht (App Review
-/// Guideline 3.1.1, siehe `backend/app/clients.py`) — dann bleibt es bei der
-/// Auskunft, ohne Knopf und ohne Preis.
+/// Der Weg zum Angebot steht hier nur, wenn der Server diesem Client einen Kauf
+/// überhaupt anbietet — in dieser App also über den App Store, und nur mit
+/// eingetragener Produktkennung. Fehlt sie, bleibt es bei der Auskunft, ohne
+/// Knopf und ohne Preis.
 struct IncomingView: View {
     @Environment(LanguageStore.self) private var languageStore
     private var s: FlexrStrings { languageStore.strings }
@@ -58,7 +58,7 @@ struct IncomingView: View {
                     : s(.incomingLockedTitle, likes.count),
                 message: s(.incomingLockedSub)
             ) {
-                if appModel.membership?.premiumEnabled == true {
+                if appModel.membership?.storePurchaseAvailable == true {
                     FlexrButton(title: s(.premiumShowOffer), action: onOpenPremium)
                         .frame(maxWidth: 260)
                 }

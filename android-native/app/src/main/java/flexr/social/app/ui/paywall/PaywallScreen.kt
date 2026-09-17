@@ -1,5 +1,6 @@
 package flexr.social.app.ui.paywall
 
+import android.app.Activity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -37,6 +38,8 @@ import flexr.social.app.core.designsystem.component.FlexrButton
 import flexr.social.app.core.designsystem.component.FlexrSecondaryButton
 import flexr.social.app.core.designsystem.icon.FlexrIcons
 import flexr.social.app.core.designsystem.theme.FlexrTheme
+import androidx.compose.ui.platform.LocalContext
+import flexr.social.app.data.billing.PlayBillingService
 import flexr.social.app.ui.account.AccountEvent
 import flexr.social.app.ui.account.AccountViewModel
 import flexr.social.app.ui.account.CheckoutDialog
@@ -49,8 +52,15 @@ import flexr.social.app.ui.account.CheckoutDialog
  * dauerhaft nichts; dieser Bildschirm erklaert nur, was Premium zusaetzlich
  * kann, und wird aus dem Kontobereich heraus aufgerufen — nie erzwungen.
  *
- * Der Checkout läuft in einer externen Browser-Sitzung über Stripe — die App
- * nimmt zu keinem Zeitpunkt Zahlungsdaten entgegen.
+ * Gekauft wird über **Google Play** — der einzige zulässige Weg für digitale
+ * Inhalte, die in dieser App wirken (Play-Payments-Policy). Zahlungsdaten
+ * nimmt die App zu keinem Zeitpunkt entgegen; sie reicht nur den Kauf-Token
+ * beim Server ein, der ihn bei Google prüft.
+ *
+ * Preis und Währung schreibt der Play Store, nicht wir: Google rechnet sie je
+ * nach Land des Kontos. Solange sie noch nicht geladen sind, steht der Preis
+ * aus den Ressourcen da - er stimmt für Österreich, ist aber nur der
+ * Platzhalter.
  */
 @Composable
 fun PaywallScreen(
@@ -61,6 +71,24 @@ fun PaywallScreen(
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val membership by viewModel.membership.collectAsStateWithLifecycle()
+    val storePreis by viewModel.storePreis.collectAsStateWithLifecycle()
+    val kontext = LocalContext.current
+
+    // Den echten Preis holen, sobald bekannt ist, welches Produkt gemeint ist.
+    LaunchedEffect(membership?.storeProductId) { viewModel.ladePremiumAngebot() }
+
+    // Ausgang des Kaufs. Ein Abbruch bleibt bewusst stumm: Wer selbst
+    // abbricht, braucht darüber keine Meldung.
+    val erfolgstext = stringResource(R.string.purchase_success)
+    LaunchedEffect(Unit) {
+        viewModel.kaufEreignisse.collect { ereignis ->
+            when (ereignis) {
+                is PlayBillingService.Ereignis.Erfolgreich -> onShowMessage(erfolgstext)
+                is PlayBillingService.Ereignis.Fehlgeschlagen -> onShowMessage(ereignis.meldung)
+                is PlayBillingService.Ereignis.Abgebrochen -> Unit
+            }
+        }
+    }
 
     LaunchedEffect(Unit) {
         viewModel.events.collect { event ->
@@ -103,7 +131,7 @@ fun PaywallScreen(
             Eyebrow(stringResource(R.string.paywall_membership))
             Row(verticalAlignment = Alignment.Bottom) {
                 Text(
-                    stringResource(R.string.paywall_price),
+                    storePreis ?: stringResource(R.string.paywall_price),
                     style = MaterialTheme.typography.displayMedium,
                     color = colors.chalk,
                 )
@@ -151,21 +179,22 @@ fun PaywallScreen(
                 }
             }
             Spacer(Modifier.height(12.dp))
-            // Waehrend der Beta gibt es nichts abzuschliessen: Der Server
-            // lehnt den Checkout mit 409 ab, weil ohnehin fuer alle alles
-            // unbegrenzt ist. Statt eines Knopfes in die Sackgasse steht dann
-            // der Hinweis, dass Premium spaeter kommt.
+            // Kaufen laesst sich nur, was der Server auch anbietet: Er
+            // meldet mit store_purchase_available, ob dieser Client kaufen
+            // darf und unter welcher Produktkennung. Fehlt beides - weil
+            // Premium serverseitig aus ist oder noch kein Produkt eingetragen
+            // wurde -, steht statt eines Knopfes in die Sackgasse der Hinweis.
             val angebot = membership
-            if (angebot != null && !angebot.premiumEnabled) {
+            if (angebot != null && angebot.storePurchaseAvailable) {
+                FlexrButton(
+                    text = stringResource(R.string.paywall_subscribe),
+                    onClick = { (kontext as? Activity)?.let(viewModel::kaufePremium) },
+                )
+            } else {
                 Text(
                     stringResource(R.string.premium_beta_hint),
                     style = MaterialTheme.typography.bodySmall,
                     color = colors.chalkDim,
-                )
-            } else {
-                FlexrButton(
-                    text = stringResource(R.string.paywall_subscribe),
-                    onClick = viewModel::openCheckoutDialog,
                 )
             }
         }

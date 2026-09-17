@@ -3,6 +3,8 @@ package flexr.social.app.data.repository
 import flexr.social.app.core.network.apiCall
 import flexr.social.app.data.remote.FlexrApi
 import flexr.social.app.data.remote.dto.CheckoutRequestDto
+import flexr.social.app.data.remote.dto.GooglePurchaseRequestDto
+import flexr.social.app.data.remote.dto.StorePurchaseResultDto
 import flexr.social.app.domain.model.Membership
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -12,11 +14,19 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * Mitgliedschaft: Probemonat, Abo-Status und die Stripe-Übergänge.
+ * Mitgliedschaft: Abo-Status und die Wege, auf denen er entsteht.
  *
- * Checkout und Kündigung laufen bewusst über eine externe Browser-Sitzung
- * (Custom Tab). Zahlungsdaten werden dadurch nie in der App eingegeben oder
- * verarbeitet — die App kennt nur den Status.
+ * Zwei davon gibt es, und welcher gilt, entscheidet der Server (siehe
+ * `backend/app/clients.py`):
+ *
+ *  * **In dieser App:** Play Billing. Der einzige zulässige Kaufweg für
+ *    digitale Inhalte, die in der App wirken.
+ *  * **Im Browser:** Stripe. Die Checkout- und Portal-Aufrufe hier unten
+ *    bedient der Server nur für Web-Clients; sie bleiben stehen, weil das
+ *    Portal weiterhin erreichbar ist, wenn jemand im Browser gekauft hat.
+ *
+ * In beiden Fällen kennt die App nur den Status - Zahlungsdaten werden hier
+ * weder eingegeben noch verarbeitet.
  */
 @Singleton
 class BillingRepository @Inject constructor(
@@ -58,4 +68,19 @@ class BillingRepository @Inject constructor(
 
     /** Self-Service-Verwaltung/Kündigung über das Stripe Billing Portal. */
     suspend fun portalUrl(): String = apiCall { api.createPortal() }.portalUrl
+
+    /**
+     * Einen Play-Kauf beim Server einreichen und den Status neu holen.
+     *
+     * Der Server prüft den Token bei Google und entscheidet; die App schaltet
+     * nichts selbst frei. Das anschließende [refresh] ist kein Beiwerk - ohne
+     * es stünde nach dem Kauf minutenlang der alte Status in der Oberfläche,
+     * bis der nächste Abruf ihn zufällig mitnimmt.
+     */
+    suspend fun playKaufEinreichen(purchaseToken: String) {
+        apiCall<StorePurchaseResultDto> {
+            api.submitGooglePurchase(GooglePurchaseRequestDto(purchaseToken))
+        }
+        refresh()
+    }
 }

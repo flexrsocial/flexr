@@ -55,9 +55,9 @@ import flexr.social.app.domain.model.Profile
  * Wer ohne Premium hier landet, hat nichts verloren — er sieht nur nicht, wer
  * es ist.
  *
- * Der Weg zum Angebot steht hier nur, wenn der Server diesem Client einen
- * Abschluss überhaupt anbietet ([premiumOffered]). In der App tut er das nicht
- * (Play-Payments-Policy, siehe `backend/app/clients.py`) — dann bleibt es bei
+ * Der Weg zum Angebot steht hier nur, wenn der Server diesem Client einen Kauf
+ * überhaupt anbietet ([premiumOffered]) — in dieser App also über Play
+ * Billing, und nur mit eingetragener Produktkennung. Fehlt sie, bleibt es bei
  * der Auskunft, ohne Knopf und ohne Preis.
  */
 @Composable

@@ -277,6 +277,13 @@ extension FlexrStrings {
             FLEXR Premium lässt sich in dieser App nicht abschließen. Die \
             Nutzung von FLEXR kostet unverändert nichts.
             """,
+        .purchaseSuccess: "FLEXR Premium läuft. Viel Spaß!",
+        .purchasePending: """
+            Der Kauf wartet noch auf eine Freigabe. Sobald sie da ist, \
+            schaltet sich Premium von selbst frei.
+            """,
+        .purchaseFailed: "Der Kauf hat nicht geklappt. Bitte versuch es noch einmal.",
+        .purchaseUnavailable: "Das Angebot ist gerade nicht abrufbar.",
         .premiumLikesLeft: "Noch %d von %d Likes heute",
         .premiumLikesGone: "Likes für heute aufgebraucht",
         .premiumLikeLimit: """

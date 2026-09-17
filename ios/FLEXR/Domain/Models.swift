@@ -145,6 +145,11 @@ struct Membership: Hashable, Sendable {
     /// Gelten die Grenzen des kostenlosen Kontos? Die hängen am Konto, nicht
     /// am Gerät — hier ist also sehr wohl `true`, seit Premium läuft.
     let limitsActive: Bool
+    /// Darf in dieser App über den App Store gekauft werden? Das ist der
+    /// Kaufweg der iOS-App; `premiumEnabled` (Stripe) ist hier immer falsch.
+    let storePurchaseAvailable: Bool
+    /// Produktkennung im App Store. Preis und Text kommen von dort.
+    let storeProductID: String?
     /// Trägt FLEXR das Beta-Abzeichen? Seit 17.09.2026 ein eigener Schalter
     /// des Servers: Vorher hing es daran, dass Premium noch nicht kaufbar war.
     let betaActive: Bool
@@ -171,6 +176,8 @@ struct Membership: Hashable, Sendable {
             isPremium: isPremium,
             premiumEnabled: premiumEnabled,
             limitsActive: limitsActive,
+            storePurchaseAvailable: storePurchaseAvailable,
+            storeProductID: storeProductID,
             betaActive: betaActive,
             hasStripeSubscription: hasStripeSubscription,
             priceCents: priceCents,

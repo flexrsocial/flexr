@@ -274,6 +274,13 @@ extension FlexrStrings {
             FLEXR Premium cannot be purchased in this app. Using FLEXR still \
             costs nothing.
             """,
+        .purchaseSuccess: "FLEXR Premium is running. Enjoy!",
+        .purchasePending: """
+            The purchase is still waiting for approval. Premium unlocks by \
+            itself as soon as it comes through.
+            """,
+        .purchaseFailed: "The purchase did not go through. Please try again.",
+        .purchaseUnavailable: "The offer cannot be loaded right now.",
         .premiumLikesLeft: "%d of %d likes left today",
         .premiumLikesGone: "No likes left today",
         .premiumLikeLimit: """

@@ -28,6 +28,9 @@ final class AppContainer {
     /// Abholfach der Aktivitäts-Benachrichtigungen (Match, Deck, Inaktivität).
     let pushInbox: NotificationRepository
     let activityNotifications: ActivityRefreshService
+    /// Käufe über den App Store. Siehe StoreKitService: Freigeschaltet wird
+    /// nichts hier, sondern erst serverseitig nach Prüfung des Belegs.
+    let storeKit: StoreKitService
 
     init() {
         let session = SessionStore()
@@ -57,6 +60,7 @@ final class AppContainer {
         let inbox = NotificationRepository(api: api)
         pushInbox = inbox
         activityNotifications = ActivityRefreshService(session: session, notifications: inbox)
+        storeKit = StoreKitService(api: api)
     }
 }
 
