@@ -82,7 +82,7 @@ def operator_inline() -> str:
 # ---------------------------------------------------------------------------
 
 TERMS_VERSION: Final = "2026-09-10"           # AGB (Punkt 7/9: Gratis-Plattform + FLEXR Premium)
-PRIVACY_VERSION: Final = "2026-08-19"          # Datenschutzerklärung
+PRIVACY_VERSION: Final = "2026-09-17"          # Datenschutzerklärung (Fotolöschung bei endgültiger Ablehnung)
 AUP_VERSION: Final = "2026-08-19"              # Nutzungsrichtlinien
 LE_GUIDELINES_VERSION: Final = "2026-08-19"    # Strafverfolgungsrichtlinien
 WITHDRAWAL_VERSION: Final = "2026-08-17"      # Widerrufsbelehrung
