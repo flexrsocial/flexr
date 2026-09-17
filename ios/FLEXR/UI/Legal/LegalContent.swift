@@ -934,6 +934,16 @@ enum LegalContent {
                     + "werden dann sofort gelöscht."
             ),
             .paragraph(
+                "Endgültige Ablehnung. Wird die Prüfung endgültig abgelehnt, löschen wir "
+                    + "nicht nur Selfie und Ausweisaufnahme, sondern zusätzlich alle "
+                    + "Profilfotos dieses Kontos — unabhängig davon, ob sie bereits "
+                    + "freigegeben waren. Ein Konto, dessen Alter und Identität nicht "
+                    + "feststehen, soll keine Bilder im Dienst hinterlassen. Das Konto selbst "
+                    + "bleibt zunächst bestehen: Es ist gesperrt, ein neuer Prüfungsdurchlauf "
+                    + "ist nur nach ausdrücklicher Freigabe durch uns möglich, und du kannst "
+                    + "es jederzeit selbst löschen."
+            ),
+            .paragraph(
                 "Registrierungsversuche unter 18. Wird bei der Registrierung ein "
                     + "Geburtsdatum unter 18 Jahren angegeben, halten wir zum Schutz vor "
                     + "systematischem Ausprobieren der Altersgrenze fest, dass ein solcher "

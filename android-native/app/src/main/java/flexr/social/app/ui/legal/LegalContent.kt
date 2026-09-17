@@ -51,10 +51,14 @@ object LegalContent {
             ),
             LegalBlock.Faq(
                 "Was kostet FLEXR?",
-                "Derzeit nichts: Während der Beta-Phase ist die Mitgliedschaft von " +
-                    "5 € pro Monat bis auf weiteres ausgesetzt — für neue wie für " +
-                    "bestehende Konten. Sollte die Gebühr später starten, kündigen " +
-                    "wir das vorher an.",
+                "Die Nutzung kostet nichts — dauerhaft. Profile ansehen, liken, matchen " +
+                    "und schreiben sind und bleiben kostenlos, auch nach der Beta-Phase. " +
+                    "Optional gibt es nach der Beta FLEXR Premium um 10 € pro Monat: " +
+                    "unbegrenzt liken, unbegrenzt viele Unterhaltungen, sehen wer dich " +
+                    "geliket hat, den letzten Swipe zurücknehmen, der volle Suchumkreis " +
+                    "bis 250 km und ein Premium-Abzeichen. Ohne Premium gelten 20 Likes " +
+                    "pro Tag, 3 gleichzeitige Unterhaltungen und 50 km Suchumkreis; " +
+                    "während der Beta gelten auch diese Grenzen noch nicht.",
             ),
             LegalBlock.Faq(
                 "In welchen Städten ist FLEXR verfügbar?",
@@ -164,8 +168,9 @@ object LegalContent {
                         "handelt sich um eine Sichtprüfung des vorgelegten Dokuments, nicht " +
                         "um ein behördliches Identifizierungsverfahren.",
                     "Freischaltung. Der Account wird erst nach erfolgreicher Prüfung " +
-                        "freigeschaltet; erst dann sind Swipen, Matchen und Chatten möglich " +
-                        "und erst dann beginnt der Probemonat (siehe Punkt 4). Verläuft die " +
+                        "freigeschaltet; erst dann sind Swipen, Matchen und Chatten " +
+                        "möglich. Die Prüfzeit kostet nichts — die Nutzung ist ohnehin " +
+                        "unentgeltlich (siehe Punkt 4). Verläuft die " +
                         "Prüfung nicht erfolgreich — etwa weil das Dokument nicht lesbar ist, " +
                         "die Person nicht übereinstimmt, das Geburtsdatum abweicht oder der " +
                         "Nutzer noch nicht 18 Jahre alt ist — können wir eine neue Aufnahme " +
@@ -189,23 +194,33 @@ object LegalContent {
                     "zwischen den Nutzern. Wir garantieren keine Matches, keine bestimmte " +
                     "Anzahl an Matches und keinen Erfolg bei der Partnersuche.",
             ),
-            LegalBlock.Heading("4. Preise, Probemonat, Kündigung"),
+            LegalBlock.Heading("4. Kostenlose Nutzung, FLEXR Premium, Kündigung"),
             LegalBlock.Lettered(
                 listOf(
-                    "Während der Beta-Phase ist die Nutzung kostenlos: Das Entgelt von " +
-                        "5 € pro Monat ist bis auf weiteres ausgesetzt, für neue wie für " +
-                        "bestehende Konten. Das Konto ruht in dieser Zeit auch dann nicht, " +
-                        "wenn der Probemonat abgelaufen ist.",
+                    "Die Nutzung von FLEXR ist unbefristet unentgeltlich — nicht nur " +
+                        "während der Beta-Phase. Profile ansehen, liken, matchen und " +
+                        "schreiben kosten nichts; ein Konto ruht nie und wird nie " +
+                        "gesperrt, weil nichts bezahlt wurde.",
+                    "Für das kostenlose Konto gelten Nutzungsgrenzen: 20 Likes je 24 " +
+                        "Stunden (ein Ablehnen zählt nicht mit), 3 gleichzeitig laufende " +
+                        "Unterhaltungen (gezählt werden nur Matches, in denen selbst schon " +
+                        "geschrieben wurde; die Zahl der Matches ist nicht begrenzt) und " +
+                        "ein Suchumkreis bis 50 km. Während der Beta-Phase gelten diese " +
+                        "Grenzen nicht; ihr Ende kündigen wir vorher an.",
+                    "FLEXR Premium ist ein freiwilliges Zusatzpaket um 10 € pro Monat. Es " +
+                        "hebt die Grenzen aus lit. b auf und enthält zusätzlich: sehen, wer " +
+                        "geliket hat, das Zurücknehmen des letzten Swipes, den vollen " +
+                        "Suchumkreis bis 250 km und ein Premium-Abzeichen im Profil. " +
+                        "Premium ist während der Beta-Phase noch nicht bestellbar.",
                     "Kostenpflichtig wird nichts von selbst: Bei der Registrierung wird " +
-                        "kein Zahlungsmittel erhoben, und ein Abo entsteht nur durch eine " +
+                        "kein Zahlungsmittel erhoben, und Premium entsteht nur durch eine " +
                         "ausdrückliche Bestellung. Es gibt keine Kündigungsfrist, die " +
                         "versäumt werden könnte.",
-                    "Ein abgeschlossenes Abo kostet 5 € pro Monat und verlängert sich " +
-                        "jeweils um einen Monat, bis es gekündigt wird. Keine " +
-                        "Mindestlaufzeit.",
-                    "Kündigung jederzeit zum Ende der laufenden Abrechnungsperiode " +
-                        "selbstständig über „Abo verwalten / kündigen\" im Konto-Bereich der " +
-                        "App (Stripe Billing Portal).",
+                    "Premium verlängert sich jeweils um einen Monat, bis es gekündigt " +
+                        "wird. Keine Mindestlaufzeit. Kündigung jederzeit zum Ende der " +
+                        "laufenden Abrechnungsperiode selbstständig über „Abo verwalten / " +
+                        "kündigen\" im Konto-Bereich der App (Stripe Billing Portal). " +
+                        "Danach läuft das Konto als kostenloses Konto weiter.",
                     "Zahlungsabwicklung über Stripe. Es gelten zusätzlich die " +
                         "Stripe-Nutzungsbedingungen.",
                 ),
@@ -217,7 +232,7 @@ object LegalContent {
                     "eindeutige Erklärung genügt; am einfachsten geht es über die " +
                     "Online-Rücktrittsfunktion unter flexr.social/widerruf.html, wo auch die " +
                     "vollständige Belehrung und das Muster-Formular stehen. Für das " +
-                    "kostenlose Konto und den kostenlosen Probemonat besteht kein " +
+                    "kostenlose Konto besteht kein " +
                     "Rücktrittsrecht, weil dabei keine Zahlungspflicht entsteht. Bis zum " +
                     "15.08.2026 musste bei der Registrierung erklärt werden, das " +
                     "Rücktrittsrecht gehe mit dem sofortigen Leistungsbeginn verloren. Diese " +
@@ -996,6 +1011,16 @@ object LegalContent {
                     "kann jederzeit mit Wirkung für die Zukunft widerrufen werden — noch " +
                     "nicht geprüfte Aufnahmen lassen sich in der App selbst zurückziehen und " +
                     "werden dann sofort gelöscht.",
+            ),
+            LegalBlock.Paragraph(
+                "Endgültige Ablehnung. Wird die Prüfung endgültig abgelehnt, löschen wir " +
+                    "nicht nur Selfie und Ausweisaufnahme, sondern zusätzlich alle " +
+                    "Profilfotos dieses Kontos — unabhängig davon, ob sie bereits " +
+                    "freigegeben waren. Ein Konto, dessen Alter und Identität nicht " +
+                    "feststehen, soll keine Bilder im Dienst hinterlassen. Das Konto selbst " +
+                    "bleibt zunächst bestehen: Es ist gesperrt, ein neuer Prüfungsdurchlauf " +
+                    "ist nur nach ausdrücklicher Freigabe durch uns möglich, und du kannst " +
+                    "es jederzeit selbst löschen.",
             ),
             LegalBlock.Paragraph(
                 "Registrierungsversuche unter 18. Wird bei der Registrierung ein " +
