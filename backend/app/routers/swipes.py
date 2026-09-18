@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session, selectinload
 from .. import consents, notifications, premium
 from ..database import get_db
 from ..gym_geo import coords_for_gym, gym_values_within
-from ..models import Block, Match, Swipe, User
+from ..models import Block, ConsentType, Match, Swipe, User
 from ..rate_limit import limiter
 from ..schemas import IncomingLikesOut, ProfileOut, RewindResult, SwipeRequest, SwipeResult
 from ..security import require_active_membership
@@ -29,6 +29,36 @@ DECK_SIZE = 50
 GYM_BATCH_SIZE = 40
 
 
+def matching_erlaubt(db: Session, user: User) -> bool:
+    """Darf fuer dieses Konto ueberhaupt noch gematcht werden?
+
+    Die Art.-9-Einwilligung deckt die Verarbeitung von ``gender`` und
+    ``interest`` ab - und das Matching besteht aus nichts anderem. Nach einem
+    Widerruf darf es deshalb in **beide** Richtungen nicht mehr stattfinden:
+    weder erscheint das Konto in fremden Decks (dafuer sorgt
+    ``consents.sensitive_data_consent_condition()`` in den Filtern unten) noch
+    bekommt es selbst noch Vorschlaege oder kann swipen.
+
+    Nur die zweite Haelfte fehlte bisher, und damit lief der Widerruf ins
+    Leere: Das eigene Deck wurde weiter ueber gender/interest zusammengestellt,
+    ein Like erzeugte weiter ein Match. Genau das verspricht die Rueckmeldung
+    beim Widerruf (routers/profiles.py) nicht.
+
+    Konten ohne Einwilligungszeile gibt es nicht: Migration 9c4e1a7f2b83 hat
+    sie fuer den Bestand nachgetragen. "Keine aktive Zeile" heisst also
+    tatsaechlich "widerrufen" und nicht "Altkonto".
+    """
+    return consents.active(db, user.id, ConsentType.sensitive_data) is not None
+
+
+WIDERRUFEN_HINWEIS = (
+    "Du hast die Einwilligung in die Verarbeitung von Geschlecht und "
+    "gesuchtem Geschlecht widerrufen - ohne sie können wir niemanden "
+    "vorschlagen und kein Match herstellen. Du kannst sie in den "
+    "Einstellungen jederzeit wieder erteilen."
+)
+
+
 @router.get("/deck", response_model=list[ProfileOut])
 def get_deck(
     current_user: User = Depends(require_active_membership),
@@ -45,6 +75,9 @@ def deck_profiles(db: Session, current_user: User, limit: int = DECK_SIZE) -> li
     zwangsläufig von dieser hier abweichen, sobald jemand die Filter anfasst -
     und dann Mails über Profile verschicken, die im Deck gar nicht auftauchen.
     """
+    if not matching_erlaubt(db, current_user):
+        return []
+
     already_swiped_ids = [
         row.to_user_id
         for row in db.query(Swipe.to_user_id).filter(Swipe.from_user_id == current_user.id)
@@ -144,6 +177,12 @@ def swipe(
 ):
     if payload.to_user_id == current_user.id:
         raise HTTPException(400, "Du kannst nicht mit dir selbst swipen.")
+
+    # Ein vor dem Widerruf geladenes Deck liegt weiter im Browser. Ohne diese
+    # Pruefung entstuende daraus noch ein Match - aus genau den Daten, deren
+    # Verarbeitung gerade widerrufen wurde.
+    if not matching_erlaubt(db, current_user):
+        raise HTTPException(403, WIDERRUFEN_HINWEIS)
 
     target_user = (
         db.query(User)
@@ -302,6 +341,10 @@ def incoming_likes(
     wurde - was schon ein Match ist, steht in der Match-Liste, und ein Pass
     soll nicht als offener Like wieder auftauchen.
     """
+    # Auch das sind Profilvorschlaege, und sie beruhen auf denselben Angaben.
+    if not matching_erlaubt(db, current_user):
+        return IncomingLikesOut(count=0, profiles=[], premium_required=False)
+
     eigene_swipes = {
         row.to_user_id
         for row in db.query(Swipe.to_user_id).filter(Swipe.from_user_id == current_user.id)

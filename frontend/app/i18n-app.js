@@ -162,6 +162,8 @@
     'swipe.like': 'Gefällt mir',
     'swipe.emptyTitle': 'Alle Sätze absolviert',
     'swipe.emptySub': 'Keine neuen Profile in deiner Nähe. Schau später nochmal vorbei.',
+    'swipe.revokedTitle': 'Einwilligung widerrufen',
+    'swipe.revokedSub': 'Ohne die Einwilligung zur Verarbeitung von Geschlecht und gesuchtem Geschlecht können wir dir niemanden vorschlagen. Unter Einstellungen → Datenschutz kannst du sie jederzeit wieder erteilen.',
     'swipe.unmatch': 'Match auflösen',
 
     // ---- Match-Overlay
@@ -670,6 +672,8 @@
     'swipe.like': 'Like',
     'swipe.emptyTitle': 'All sets done',
     'swipe.emptySub': 'No new profiles near you. Check back later.',
+    'swipe.revokedTitle': 'Consent revoked',
+    'swipe.revokedSub': 'Without your consent to processing your gender and the gender you are looking for we cannot suggest anyone. You can give it again at any time under Settings → Privacy.',
     'swipe.unmatch': 'Remove match',
 
     'match.eyebrow': 'Both interested',

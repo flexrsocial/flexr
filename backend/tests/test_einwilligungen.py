@@ -207,6 +207,84 @@ def test_widerruf_kann_zurueckgenommen_werden(client):
     assert eintraege["sensitive_data"]["revoked_at"] is None
 
 
+def _widerrufen(client, headers):
+    resp = client.post(
+        "/api/profiles/me/consents/revoke",
+        json={"consent_type": "sensitive_data"},
+        headers=headers,
+    )
+    assert resp.status_code == 200, resp.text
+
+
+def test_widerruf_leert_das_eigene_deck(client):
+    """Die andere Haelfte des Versprechens beim Widerruf: nicht nur "du
+    erscheinst in keinem Deck", sondern auch "dir werden keine Profile mehr
+    vorgeschlagen". Das Deck faehrt ueber gender/interest - genau die
+    Verarbeitung, die widerrufen wurde."""
+    (headers_a, user_a), (headers_b, user_b) = make_pair(client)
+    assert client.get("/api/swipes/deck", headers=headers_a).json()
+
+    _widerrufen(client, headers_a)
+
+    assert client.get("/api/swipes/deck", headers=headers_a).json() == []
+
+
+def test_nach_widerruf_entsteht_aus_altem_deck_kein_match(client):
+    """Ein vor dem Widerruf geladenes Deck liegt weiter im Browser. Nimmt der
+    Server einen Swipe darauf an, entsteht ein Match aus widerrufenen Daten -
+    der Widerruf waere dann nur Kosmetik."""
+    (headers_a, user_a), (headers_b, user_b) = make_pair(client)
+    # B liked A vorher: ohne die Sperre waere der Gegen-Like sofort ein Match.
+    client.post(
+        "/api/swipes",
+        json={"to_user_id": user_a["id"], "action": "like"},
+        headers=headers_b,
+    )
+
+    _widerrufen(client, headers_a)
+
+    resp = client.post(
+        "/api/swipes",
+        json={"to_user_id": user_b["id"], "action": "like"},
+        headers=headers_a,
+    )
+    assert resp.status_code == 403, resp.text
+    assert client.get("/api/matches", headers=headers_b).json() == []
+
+
+def test_widerruf_verbirgt_eingehende_likes(client):
+    """"Wer dich geliket hat" ist ebenfalls ein Profilvorschlag und beruht auf
+    denselben Angaben."""
+    (headers_a, user_a), (headers_b, user_b) = make_pair(client)
+    client.post(
+        "/api/swipes",
+        json={"to_user_id": user_a["id"], "action": "like"},
+        headers=headers_b,
+    )
+    assert client.get("/api/swipes/incoming", headers=headers_a).json()["count"] == 1
+
+    _widerrufen(client, headers_a)
+
+    assert client.get("/api/swipes/incoming", headers=headers_a).json()["count"] == 0
+
+
+def test_erneute_einwilligung_bringt_das_eigene_deck_zurueck(client):
+    """Sonst bliebe das Konto nach einem Klick zurueck dauerhaft leer."""
+    (headers_a, user_a), (headers_b, user_b) = make_pair(client)
+    _widerrufen(client, headers_a)
+    assert client.get("/api/swipes/deck", headers=headers_a).json() == []
+
+    resp = client.post(
+        "/api/profiles/me/consents/grant",
+        json={"consent_type": "sensitive_data"},
+        headers=headers_a,
+    )
+    assert resp.status_code == 200, resp.text
+
+    deck = client.get("/api/swipes/deck", headers=headers_a).json()
+    assert any(p["id"] == user_b["id"] for p in deck)
+
+
 def test_erneute_einwilligung_erscheint_im_deck(client):
     """Der eigentliche Zweck: nach dem Widerruf verschwindet man aus fremden
     Decks, nach der erneuten Einwilligung taucht man wieder auf."""

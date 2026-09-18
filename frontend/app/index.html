@@ -1905,7 +1905,7 @@
      laufen synchron und damit vor dem DOMContentLoaded, bei dem FlexrI18n die
      data-i18n-Knoten uebersetzt. -->
 <script src="/i18n.js?v=4"></script>
-<script src="/app/i18n-app.js?v=5"></script>
+<script src="/app/i18n-app.js?v=6"></script>
 <a class="skip-link" href="#main-content" data-i18n="common.skipToContent">Zum Inhalt springen</a>
 <div class="app" id="app">
 
@@ -3103,6 +3103,23 @@
   const MAX_PHOTOS = 6;
   let deck = [];
   let deckIdx = 0;
+  // Wurde die Art.-9-Einwilligung widerrufen? Der Server liefert dann bewusst
+  // kein Deck mehr (backend/app/routers/swipes.py, matching_erlaubt). Ohne
+  // diesen Merker stuende im leeren Deck "Alle Saetze absolviert" - der Grund
+  // waere verschwiegen, obwohl er mit einem Klick behebbar ist.
+  let matchingWiderrufen = false;
+
+  async function pruefeMatchingEinwilligung(){
+    try{
+      // Die Liste kommt neueste zuerst - der erste Treffer ist der geltende Stand.
+      const aktuell = (await api('/api/profiles/me/consents'))
+        .find(c => c.consent_type === 'sensitive_data');
+      matchingWiderrufen = !!aktuell && !aktuell.active;
+    }catch(err){
+      // Beiwerk: Laesst sich der Stand nicht klaeren, bleibt es beim
+      // allgemeinen Leertext statt bei einer falschen Begruendung.
+    }
+  }
 
   // Mindestanzeigedauer 20s (vorher 2600ms, dann 10s) - bei den Widerrufs-
   // Folgetexten (z.B. revokeConsent) war das zu kurz, um sie in Ruhe zu
@@ -4833,6 +4850,16 @@
       });
       toast(res.consequence || 'Widerruf erfasst.');
       loadMyConsents();
+      if(consentType === 'sensitive_data'){
+        // Das geladene Deck stammt aus der Zeit vor dem Widerruf. Es weiter
+        // anzuzeigen hiesse, die widerrufenen Angaben weiter zu verwenden -
+        // einen Swipe darauf nimmt der Server ohnehin nicht mehr an.
+        matchingWiderrufen = true;
+        deck = [];
+        deckIdx = 0;
+        renderCard();
+        loadIncomingLikes();
+      }
     }catch(e){
       toast(e.message || t('privacy.revokeFailed'));
     }
@@ -4845,6 +4872,11 @@
       });
       toast(res.consequence || 'Einwilligung erneut erteilt.');
       loadMyConsents();
+      if(consentType === 'sensitive_data'){
+        matchingWiderrufen = false;
+        loadDeck();
+        loadIncomingLikes();
+      }
     }catch(e){
       toast(e.message || t('privacy.grantFailed'));
     }
@@ -5355,6 +5387,7 @@
     try{
       deck = await api('/api/swipes/deck');
       deckIdx = 0;
+      if(!deck.length) await pruefeMatchingEinwilligung();
       renderCard();
     }catch(err){
       $('deck').innerHTML = `<div class="loading">${escapeHtml(t('swipe.loadFailed'))}</div>`;
@@ -5522,8 +5555,8 @@
       container.innerHTML = `
         <div class="empty">
           <div class="empty-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M7 8.5v7M10.5 6.5v11M17 8.5v7M13.5 6.5v11M10.5 12h3M3.5 10v4M20.5 10v4"/></svg></div>
-          <div class="empty-title">${escapeHtml(t('swipe.emptyTitle'))}</div>
-          <div class="empty-sub">${escapeHtml(t('swipe.emptySub'))}</div>
+          <div class="empty-title">${escapeHtml(t(matchingWiderrufen ? 'swipe.revokedTitle' : 'swipe.emptyTitle'))}</div>
+          <div class="empty-sub">${escapeHtml(t(matchingWiderrufen ? 'swipe.revokedSub' : 'swipe.emptySub'))}</div>
         </div>`;
       $('swipeActions').style.display = 'none';
       return;
