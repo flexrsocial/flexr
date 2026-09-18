@@ -1,7 +1,7 @@
 import logging
 from datetime import datetime
 
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
 from sqlalchemy import and_, or_
 from sqlalchemy.orm import Session
 
@@ -94,14 +94,32 @@ def list_messages(
         query = query.filter(Message.created_at > cleared_at)
     messages = query.order_by(Message.created_at.asc()).all()
 
-    unread = [m for m in messages if m.sender_id == other_id and m.read_at is None]
-    if unread:
-        now = datetime.utcnow()
-        for m in unread:
-            m.read_at = now
+    now = datetime.utcnow()
+    unread_ids = {m.id for m in messages if m.sender_id == other_id and m.read_at is None}
+
+    # Die Antwort wird vor dem Commit gebaut (und read_at für die eben als
+    # gelesen markierten hier direkt am Ausgabeobjekt gesetzt, nicht am
+    # ORM-Objekt): expire_on_commit räumt nach einem commit() sonst den
+    # Attribut-Cache aller Objekte in der Session leer, und jeder folgende
+    # Attributzugriff (hier: für jede einzelne Nachricht) löst eine eigene
+    # Nachlade-Abfrage aus.
+    result = []
+    for m in messages:
+        out = _message_out(m, current_user.id)
+        if m.id in unread_ids:
+            out.read_at = now
+        result.append(out)
+
+    if unread_ids:
+        # Ein UPDATE für alle betroffenen Zeilen statt eines pro Nachricht
+        # (SQLAlchemys Unit-of-Work würde bei N einzeln geänderten ORM-
+        # Objekten N einzelne UPDATE-Statements ausführen).
+        db.query(Message).filter(Message.id.in_(unread_ids)).update(
+            {Message.read_at: now}, synchronize_session=False
+        )
         db.commit()
 
-    return [_message_out(m, current_user.id) for m in messages]
+    return result
 
 
 @router.delete("/{match_id}/messages", status_code=204)
@@ -126,6 +144,7 @@ def send_message(
     request: Request,
     match_id: str,
     payload: SendMessageRequest,
+    background_tasks: BackgroundTasks,
     current_user: User = Depends(require_active_membership),
     db: Session = Depends(get_db),
 ):
@@ -186,29 +205,30 @@ def send_message(
     # Stunden, nach einem erzwungenen Beenden gar nicht mehr. Jetzt schickt der
     # Server, und das Gerät wacht dafür auf.
     #
-    # ``push.send()`` wirft nie und ist ohne Zugangsdaten ein No-op: Eine
+    # Als BackgroundTask statt eines direkten Aufrufs: push.send() macht
+    # Netzwerkaufrufe an FCM/APNs (bis zu mehrere Sekunden, siehe app/push.py)
+    # - ohne das hier wuerde jede Chatnachricht auf diese Zustellung warten,
+    # bevor der Absender ueberhaupt sein 201 sieht. send_async() oeffnet dafuer
+    # eine eigene, kurzlebige Session (siehe deren Docstring): die Request-
+    # Session ist zu diesem Zeitpunkt schon geschlossen.
+    #
+    # ``push.send_async()`` wirft nie und ist ohne Zugangsdaten ein No-op: Eine
     # Nachricht muss auch dann ankommen, wenn Push nicht eingerichtet ist oder
     # Google gerade nicht erreichbar - der Hintergrundabgleich der Apps liefert
-    # sie dann wie bisher nach.
+    # sie dann wie bisher nach. Festgehalten in
+    # test_nachricht_kommt_auch_ohne_push_an.
     #
     # Der zensierte Text, nicht das Original: Was in der Benachrichtigung steht,
     # steht auf einem gesperrten Bildschirm - dort hat ungefiltertes Zeug nichts
-    # verloren, das der Empfänger in der App gar nicht zu sehen bekäme.
-    #
-    # Das try steht hier und nicht nur in push.send(): Die Zusage "eine
-    # Nachricht kommt auch ohne Push an" darf nicht davon abhaengen, dass eine
-    # andere Funktion sich an ihr Versprechen haelt. Festgehalten in
-    # test_nachricht_kommt_auch_ohne_push_an.
-    try:
-        push.send(
-            db,
-            other,
-            title=current_user.name,
-            body=_benachrichtigungstext(message, other.id),
-            target="chats",
-        )
-    except Exception:  # noqa: BLE001 - Push ist eine Zugabe, kein Teil des Sendens
-        logger.exception("Push-Zustellung fehlgeschlagen (match=%s)", match_id)
+    # verloren, das der Empfänger in der App gar nicht zu sehen bekäme. Wird
+    # hier, nicht im Hintergrund-Task, aus der noch lebenden Session gelesen.
+    background_tasks.add_task(
+        push.send_async,
+        other.id,
+        current_user.name,
+        _benachrichtigungstext(message, other.id),
+        "chats",
+    )
 
     # Der Absender bekommt sein Original zurück, plus den Zensur-Hinweis
     return _message_out(message, current_user.id)

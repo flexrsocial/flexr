@@ -257,6 +257,171 @@ Ausgangssitzung), dann die **drei Abschnitte vom 10.09.**
 **05.09.**, dann **31.08.**, **30.08.**, **23.08.**, **21.08.**; die Build-,
 Test- und Deploy-Abschnitte am Ende gelten sitzungsübergreifend.
 
+## Sitzung 18.09.2026 (3) — Kompletter Bug-/Performance-/Cleanup-Durchgang, Testdaten für Premium
+
+Ein Commit, **zwei Migrationen** (neue Indizes + `phone_verifications`
+entfernen), **Backend-Neustart nötig**, **Nginx-Reload nötig**
+(`deploy/nginx-flexr.conf` geändert). Android und iOS sind **nicht
+angefasst** — reiner Server- und Web-Frontend-Durchgang, siehe unten „Müssen
+Android/iOS neu gebaut werden?".
+
+### Wie geprüft wurde
+
+Komplette Backend-Testsuite (491 Tests) nach jeder Änderungsgruppe grün.
+Die beiden neuen Migrationen gegen einen frisch mit `initdb` erzeugten
+**echten Postgres** (nicht sqlite — die Testsuite läuft nur gegen sqlite via
+`Base.metadata.create_all`, Migrationen selbst also sonst ungeprüft)
+hoch- und wieder runtergefahren, Indizes und Partial-Index-Bedingungen per
+`\d`/`pg_indexes` gegengeprüft. Zusätzlich ein Live-Smoke-Test: Backend lokal
+per `uvicorn` gestartet, zwei Konten über echte HTTP-Requests registriert,
+gematcht, Nachricht geschickt/gelesen — bestätigt, dass die neu geschriebene
+`GET /api/matches`-Abfrage (siehe unten) reale Werte liefert, nicht nur was
+die Tests erwarten. Frontend-Änderungen im Browser gegen den lokalen
+Dev-Server geprüft (Landingpage DE/EN, App-Shell, Konsole fehlerfrei).
+
+### Backend: Bugs
+
+1. **Race Condition bei gleichzeitigem Doppel-Swipe/Doppel-Match**
+   (`routers/swipes.py`): Zwei praktisch gleichzeitige identische Requests
+   (Doppel-Tap, Retry nach Timeout) liefen in die Unique-Constraints
+   `uq_swipe_pair`/`uq_match_pair` und damit in einen rohen 500er. Jetzt
+   `IntegrityError` abgefangen, `rollback()`, bestehende Zeile
+   weiterverwendet statt Fehler.
+2. **Zeitlich unsicherer Vergleich** des Google-Pub/Sub-Pfad-Geheimnisses
+   (`routers/store_billing.py`): `!=` statt `secrets.compare_digest`.
+3. **Drei Webhook-Handler blockierten die Event-Loop** (Stripe, Apple,
+   Google): `async def`, aber mit synchronen, teils sekundenlangen
+   DB-/Netzwerk-Aufrufen direkt drin — auf dem Ein-Prozess-Uvicorn (kein
+   `--workers`) hätte das *alle* gleichzeitigen Anfragen an den ganzen
+   Server ausgebremst, nicht nur den Webhook selbst. Jetzt über
+   `run_in_threadpool` entkoppelt.
+
+### Backend: Performance
+
+1. **`GET /api/matches`** (`routers/matches.py`): lief mit 3×N
+   Datenbankabfragen für N Matches (jeder App-Start). Umgebaut auf eine
+   Handvoll fester Abfragen unabhängig von N — `last_message` per
+   Window-Function (`ROW_NUMBER() OVER (PARTITION BY match_id ...)`),
+   `unread_count`/`in_chats` per gruppierter Abfrage mit den
+   Ausblend-Zeitpunkten aller Matches auf einmal statt einzeln.
+2. **Nachrichten als gelesen markieren** (`routers/messages.py`): lief als
+   Python-Schleife mit einem UPDATE-Statement pro Nachricht; zusätzlich
+   löste `expire_on_commit` (SQLAlchemy-Default) nach dem `commit()` für
+   jede Nachricht der Antwort eine eigene Nachlade-Abfrage aus. Jetzt ein
+   Bulk-UPDATE, Antwort wird vor dem Commit aus bereits geladenen Werten
+   gebaut.
+3. **Umkreissuche liest bei jedem Deck-Aufruf die komplette Gym-Tabelle**
+   (`gym_geo.py`) — inklusive einmal pro Kandidat im täglichen
+   Warteschlangen-Mail-Job. Jetzt 60 s gecacht (Testsuite räumt den Cache
+   zwischen Testfällen selbst weg, siehe `conftest.py`).
+4. Fehlende Indizes ergänzt: `users.gym` (Hauptfilter im Deck), Partial-
+   Indizes auf `photos.status='pending'` und `messages.is_flagged`
+   (Admin-Dashboard bei jedem Seitenaufruf).
+5. **Push-Zustellung beim Nachrichtenversand** (`routers/messages.py`) lief
+   synchron vor der Antwort — der Absender wartete auf FCM/APNs, bevor er
+   sein 201 sah. Jetzt `BackgroundTasks`; `push.send_async()` öffnet dafür
+   eine **eigene** DB-Session (`database.SessionLocal`, als Modul
+   nachgeschlagen statt beim Import gebunden — die Request-Session ist zu
+   dem Zeitpunkt schon geschlossen, FastAPI räumt `yield`-Dependencies vor
+   den BackgroundTasks weg). `conftest.py` tauscht dafür
+   `database.SessionLocal`/`.engine` testweise gegen die StaticPool-Session
+   aus, sonst würde ein Hintergrund-Task testweise an eine leere,
+   eigenständige sqlite-`:memory:`-Verbindung geraten statt an die mit
+   Testdaten befüllte.
+6. `security.py`: bis zu zwei `db.commit()` pro authentifiziertem Request
+   (last_seen_at, last_active_at) auf einen zusammengeführt.
+
+### Backend: totes aufgeräumt
+
+Die nie registrierte SMS-Telefonverifizierung vollständig entfernt:
+`routers/phone.py`, `app/sms.py`, `PhoneVerification`-Modell samt
+Datenbanktabelle (Migration `5f8ae574bc95`). War seit ihrer Einführung nie
+in `main.py` eingebunden — `test_phone_verification_is_not_exposed` prüfte
+genau das schon vorher absichtlich.
+
+### Frontend
+
+- **XSS-Lücke**: Foto-URLs in Match-/Chat-Liste (`app/index.html`) wurden
+  ungeschützt ins `<img src>` interpoliert, inkonsistent zur sonst
+  durchgängigen `escapeHtml()`. Behoben, plus fehlende `alt`-Attribute an
+  5 Stellen ergänzt.
+- Service Worker (`sw.js`, jetzt `flexr-shell-v18`): cachte
+  `/favicon.ico?v=4`, angefordert wird überall `/favicon.ico` ohne Query —
+  der Eintrag griff nie. Statische, versionierte Assets (Fonts/Icons/
+  Demo-Bilder) laufen jetzt Cache-first statt Netz-first.
+- `app/index.html` lud `legal-status.js` ohne Versions-Query, `404.html`
+  noch `legal.css?v=1` statt `?v=2` — beide Cache-Busting-Lücken
+  geschlossen. `en/index.html` per `build-en.py` neu erzeugt (war leicht
+  veraltet).
+- `icon-512.png` verlustfrei nachkomprimiert (−7 %, Pixel-für-Pixel
+  identisch geprüft). `favicon.ico` (98 KB, 6 Auflösungen) versucht,
+  aber ohne Erfolg — ohne `pngquant`/`optipng` in dieser Umgebung ließ sich
+  über Pillows Standard-Encoder keine Einsparung erzielen; nicht
+  weiterverfolgt.
+- Nginx: `location /brand/` liefert jetzt `404` (ausgenommen
+  `/brand/demo/`, weiterhin öffentlich) — Logo-Rohdaten und `build_*.py`
+  waren zuvor unbeabsichtigt öffentlich erreichbar, weil `root` direkt auf
+  `frontend/` zeigt.
+
+### Aufgeräumt (Dateien)
+
+- `backend/venv` war durch die MEGA-Cloud-Sync beschädigt (leere
+  Paket-Unterordner) — neu aufgebaut. Dabei einen echten
+  Versionskonflikt in `requirements-dev.txt` gefunden und behoben
+  (`httpx` dort abweichend von `requirements.txt` gepinnt, pip konnte
+  beides nie gleichzeitig installieren).
+- Gelöscht (nach Rückfrage): alte TWA-Android-Build-Reste, `HANDOVER.md`
+  (unreferenzierte Einmal-Doku vom Gerätewechsel), 9 verwaiste Demo-Fotos
+  in `frontend/brand/demo/`.
+- Diverse Logs, `__pycache__`-Ordner projektweit entfernt.
+
+### FLEXR Premium für `styriatrading@gmail.com`
+
+Auf Wunsch **dauerhaft** freigeschaltet — `store_premium_until` auf
+`2099-12-31` gesetzt (nicht `is_subscribed`, um keine Stripe-Vertrags-
+Semantik vorzutäuschen; `has_store_premium` ist genau für „Premium ohne
+Stripe-Abo" gedacht, siehe Docstring in `models.py`). Konto existierte
+bereits (`Julian`, `is_banned=False`, nicht gelöscht).
+
+### Testdaten: 30+30 Konten für den Premium-Funktionstest
+
+`~/MEGA/flexr/seed/seed_testuser.py` (außerhalb des Repos, siehe dessen
+README) von 10+10 auf **30 weibliche und 30 männliche** `@flexrtest.at`-
+Konten erweitert — je 20 mit Gym in Wien (über die Bezirke verteilt), 10
+mit Gym anderswo in Österreich (Salzburg, Innsbruck, Klagenfurt,
+St. Pölten, Bregenz, Villach, Wels, Krems, Dornbirn, Leoben — plus die
+bestehenden Graz/Linz/Vösendorf/Baden/Wr. Neustadt). Passwort weiterhin
+`FlexrQA2026!`. Fotos: 40 zusätzliche, bereits früher kuratierte
+Unsplash-Kandidaten aus `holen.sh` (nie verwendeter Rest der dortigen
+Auswahl), vor der Verwendung stichprobenartig im Browser gegengeprüft.
+
+Dabei nebenbei einen Altlast-Bug im Skript gefunden und behoben:
+`settings.stripe_trial_days` existiert seit der Umstellung auf FLEXR
+Premium nicht mehr (siehe `config.py`), das Skript brach beim ersten
+`--apply`-Lauf ab. `trial_ends_at` wird jetzt gar nicht mehr gesetzt (der
+Spalten-Default reicht, die Spalte wird laut `models.py` ohnehin nirgends
+mehr ausgewertet).
+
+Mit `deckcheck.py` gegen alle 60 Konten verifiziert: 58 bekommen ein
+gefülltes Deck, 2 (Salzburg, Innsbruck — beide mit eher engem Radius) ein
+leeres, weil ihre „anderswo"-Gegenstücke weiter entfernt liegen als ihr
+Radius reicht. Kein Bug, sondern die erwartete Geometrie bei nur 10
+Fernkonten je Geschlecht.
+
+Die Testkonten unter `@flexrtest.at` in „Testdaten für manuelles Testen"
+unten waren mit „nicht mehr aktuell" vermerkt — das stimmt seit dieser
+Sitzung nicht mehr, sie sind wieder der aktuelle Stand für dieses Batch.
+
+### Müssen Android/iOS neu gebaut werden?
+
+**Nein.** Alle Backend-Änderungen sind serverintern (Bugfixes, Performance,
+totes entfernt) oder API-Antwortform-erhaltend — kein Client, egal ob
+Web, Android oder iOS, sieht einen anderen Vertrag als vorher. Die
+entfernten Telefon-Endpunkte waren nie in `main.py` eingebunden, also auch
+nie von einem Client erreichbar. Die Frontend-Änderungen betreffen
+ausschließlich die Web-App (`frontend/`) — Android und iOS sind eigene,
+native Clients ohne WebView auf diesen Code und bleiben unberührt.
+
 ## Sitzung 18.09.2026 (2) — Android-Absturz beim Start: PlayBillingService fehlte enableOneTimeProducts()
 
 **Gemeldet:** Die Android-App (2.7.2, versionCode 114 — die Fassung aus der
@@ -5120,8 +5285,9 @@ kein rohes SQL), Fotos per `storage.get_s3_client()` nach R2 hochgeladen —
 kein eigenes Skript-File hinterlassen (`/tmp` auf dem VPS danach geleert).
 Bei Bedarf lässt sich das Vorgehen aus diesem Handoff-Abschnitt und den
 Git-Commits jener Sitzung rekonstruieren, oder aus
-`~/MEGA/flexr/seed/README.md` (älteres, anderes Testkonten-Batch,
-`@flexrtest.at`, nicht mehr aktuell).
+`~/MEGA/flexr/seed/README.md` (anderes, separates Testkonten-Batch,
+`@flexrtest.at`, seit Sitzung 18.09.2026 (3) wieder aktuell: 30+30 Konten
+für den Premium-Funktionstest).
 
 **Bewusst nicht angerührt:** `teresa.pachernegg@gmail.com` — weiterhin
 unklar, ob Testkonto, auf Nutzerwunsch erhalten.

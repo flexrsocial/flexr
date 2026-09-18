@@ -30,6 +30,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
+from app import database
 from app.database import Base, get_db
 from app.main import app
 from app.rate_limit import limiter
@@ -53,6 +54,16 @@ def override_get_db():
 app.dependency_overrides[get_db] = override_get_db
 limiter.enabled = False
 
+# push.send_async() oeffnet fuer BackgroundTasks bewusst eine eigene Session
+# ueber "database.SessionLocal()" (als Modul nachgeschlagen, nicht beim Import
+# gebunden - siehe dessen Docstring), gerade damit dieser Austausch hier
+# greift. Ohne ihn wuerde ein Hintergrund-Task an die echte (leere)
+# sqlite-":memory:"-Verbindung von app.database.engine geraten statt an die
+# mit Testdaten befuellte StaticPool-Verbindung oben - je nachdem, in welchem
+# Thread Starlette den Task ausfuehrt, sogar nur manchmal.
+database.engine = engine
+database.SessionLocal = TestingSessionLocal
+
 
 # Die Umkreissuche geht von der Gym-Adresse aus (app/gym_geo.py), nicht mehr
 # vom Wohnort. Die Test-Gyms brauchen deshalb echte PLZ, und Tests, die
@@ -66,6 +77,12 @@ GYM_OHNE_ADRESSE = "Anderes Studio"
 
 @pytest.fixture(autouse=True)
 def reset_database():
+    # gym_geo cacht die Studio-Tabelle kurz (siehe app/gym_geo.py) - über
+    # Testfälle hinweg im selben Prozess bliebe sonst der Gym-Datensatz einer
+    # früheren, längst verworfenen In-Memory-DB gültig, bis die TTL abläuft.
+    from app import gym_geo
+    gym_geo._gym_cache["rows"] = None
+
     Base.metadata.create_all(bind=engine)
     # Gym-Seed: Registrierung validiert gegen die gyms-Tabelle (in Produktion
     # per Migration befüllt, hier minimal für die Testfälle)

@@ -507,17 +507,6 @@ class PlzLookupOut(BaseModel):
     city: str
 
 
-# ---------- Telefonprüfung ----------
-
-class PhoneRequestRequest(BaseModel):
-    # E.164-Format, z. B. +436761234567
-    phone: str = Field(pattern=r"^\+[1-9]\d{6,14}$")
-
-
-class PhoneConfirmRequest(BaseModel):
-    code: str = Field(pattern=r"^\d{6}$")
-
-
 # ---------- E-Mail-Bestätigung ----------
 
 class EmailConfirmRequest(BaseModel):

@@ -3,6 +3,7 @@ from datetime import datetime
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy import and_, or_
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, selectinload
 
 from .. import consents, notifications, premium
@@ -212,7 +213,18 @@ def swipe(
             existing_swipe.created_at = datetime.utcnow()
     else:
         db.add(Swipe(from_user_id=current_user.id, to_user_id=payload.to_user_id, action=payload.action))
-    db.commit()
+    try:
+        db.commit()
+    except IntegrityError:
+        # Ein zweiter, praktisch gleichzeitiger Request (Doppel-Tap, Retry
+        # nach Timeout) hat dieselbe Zeile schon angelegt - uq_swipe_pair
+        # greift. Kein Fehlerfall fuer den Nutzer, sondern derselbe Swipe.
+        db.rollback()
+        existing_swipe = (
+            db.query(Swipe)
+            .filter(Swipe.from_user_id == current_user.id, Swipe.to_user_id == payload.to_user_id)
+            .first()
+        )
 
     matched = False
     if payload.action == "like":
@@ -235,7 +247,20 @@ def swipe(
             if not existing_match:
                 new_match = Match(user_a_id=a, user_b_id=b)
                 db.add(new_match)
-                db.commit()
+                try:
+                    db.commit()
+                except IntegrityError:
+                    # uq_match_pair: der Gegen-Swipe kam parallel rein und hat
+                    # das Match bereits angelegt - fuer diesen Request bleibt
+                    # nur noch, es nicht ein zweites Mal zu melden.
+                    db.rollback()
+                    new_match = None
+                if new_match is None:
+                    matched = True
+                    return SwipeResult(
+                        matched=matched,
+                        likes_remaining=premium.likes_remaining(db, current_user),
+                    )
                 # Beide Seiten benachrichtigen, nicht nur die wartende: für den
                 # Swipenden ist das Match genauso neu, er sieht es nur zufällig
                 # gerade im Vordergrund. Der Versand darf den Swipe nicht

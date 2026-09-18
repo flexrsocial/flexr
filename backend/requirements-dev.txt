@@ -1,3 +1,6 @@
 -r requirements.txt
 pytest==8.3.3
-httpx==0.27.2
+# httpx wird schon von requirements.txt gepinnt (dort seit dem APNs-HTTP/2-
+# Bedarf auf 0.28.1) - eine zweite, abweichende Version hier fuehrt pip in
+# einen unloesbaren Konflikt (ResolutionImpossible), sobald beide Dateien
+# zusammen installiert werden.

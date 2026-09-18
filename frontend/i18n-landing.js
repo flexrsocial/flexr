@@ -2,6 +2,12 @@
    ============================================================================
    Ergaenzt /i18n.js um die Texte der oeffentlichen Startseite.
 
+   Wird von KEINER Seite geladen (siehe sw.js, v10) - reine Eingabe fuer
+   build-en.py, das den de:/en:-Block unten per Regex einliest und daraus
+   /en/index.html erzeugt. Titel, Beschreibung und og:-Angaben landen dabei
+   direkt und sprachspezifisch im erzeugten HTML (ueber data-i18n-content in
+   index.html), nicht per Laufzeit-Skript.
+
    Was hier bewusst NICHT uebersetzt wird:
 
    * Die JSON-LD-Auszeichnung im <head>. Sie beschreibt die kanonische, deutsche
@@ -9,10 +15,6 @@
      FAQPage-Auszeichnung waere gegenueber Google nur noch Rauschen.
    * Die Rechtstexte hinter den Links der Fussleiste - sie sind in der
      deutschen Fassung verbindlich.
-
-   Titel, Beschreibung und og:-Angaben werden dagegen mitgeschaltet, damit ein
-   geteilter Link in der Sprache erscheint, in der der Teilende die Seite
-   gelesen hat.
    ========================================================================== */
 (function(){
   'use strict';
@@ -351,27 +353,4 @@
     'beta.closeAria': 'Close notice'
   }
   });
-
-  /* Titel und Social-Angaben mitschalten. Die kanonische URL und die
-     JSON-LD-Auszeichnung bleiben unberuehrt - sie beschreiben die deutsche
-     Fassung dieser Adresse. */
-  function applyMeta(){
-    document.title = FlexrI18n.t('meta.title');
-    const set = (sel, value) => {
-      const el = document.querySelector(sel);
-      if(el) el.setAttribute('content', value);
-    };
-    set('meta[name="description"]', FlexrI18n.t('meta.description'));
-    set('meta[property="og:title"]', FlexrI18n.t('meta.ogTitle'));
-    set('meta[property="og:description"]', FlexrI18n.t('meta.ogDescription'));
-    set('meta[property="og:locale"]', FlexrI18n.t('meta.ogLocale'));
-    set('meta[name="twitter:title"]', FlexrI18n.t('meta.ogTitle'));
-    set('meta[name="twitter:description"]', FlexrI18n.t('meta.ogDescription'));
-  }
-  FlexrI18n.onChange(applyMeta);
-  if(document.readyState === 'loading'){
-    document.addEventListener('DOMContentLoaded', applyMeta);
-  }else{
-    applyMeta();
-  }
 })();

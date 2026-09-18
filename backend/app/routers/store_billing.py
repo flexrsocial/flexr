@@ -17,9 +17,11 @@ was einreichen darf und was der Client als Antwort braucht.
 import base64
 import json
 import logging
+import secrets
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.orm import Session
+from starlette.concurrency import run_in_threadpool
 
 from .. import store_billing
 from ..config import settings
@@ -123,7 +125,7 @@ async def apple_notifications(request: Request, db: Session = Depends(get_db)):
     """
     try:
         rumpf = await request.json()
-        nachricht = store_billing.verify_apple_jws(rumpf["signedPayload"])
+        nachricht = await run_in_threadpool(store_billing.verify_apple_jws, rumpf["signedPayload"])
     except store_billing.StoreVerificationError as fehler:
         logger.warning("Apple-Benachrichtigung abgelehnt: %s", fehler)
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Ungueltige Signatur.")
@@ -140,7 +142,7 @@ async def apple_notifications(request: Request, db: Session = Depends(get_db)):
         return {"received": True}
 
     try:
-        beleg = store_billing.apple_transaction_from_jws(signierte_transaktion)
+        beleg = await run_in_threadpool(store_billing.apple_transaction_from_jws, signierte_transaktion)
     except store_billing.StoreVerificationError as fehler:
         logger.warning("Apple-Benachrichtigung (%s) abgelehnt: %s", art, fehler)
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Ungueltiger Beleg.")
@@ -154,7 +156,7 @@ async def apple_notifications(request: Request, db: Session = Depends(get_db)):
         beleg["status"] = "revoked"
 
     try:
-        store_billing.apply_subscription(db, None, beleg)
+        await run_in_threadpool(store_billing.apply_subscription, db, None, beleg)
     except store_billing.StoreVerificationError as fehler:
         logger.info("Apple-Benachrichtigung (%s) ohne Wirkung: %s", art, fehler)
     return {"received": True}
@@ -178,7 +180,7 @@ async def google_notifications(
     duerfte sonst eine neuere ueberschreiben.
     """
     erwartet = settings.google_notifications_token
-    if not erwartet or token != erwartet:
+    if not erwartet or not secrets.compare_digest(token, erwartet):
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Nicht gefunden.")
 
     try:
@@ -196,8 +198,10 @@ async def google_notifications(
         return {"received": True}
 
     try:
-        beleg = store_billing.google_subscription_from_token(abo["purchaseToken"])
-        store_billing.apply_subscription(db, None, beleg)
+        beleg = await run_in_threadpool(
+            store_billing.google_subscription_from_token, abo["purchaseToken"]
+        )
+        await run_in_threadpool(store_billing.apply_subscription, db, None, beleg)
     except store_billing.StoreVerificationError as fehler:
         logger.info("Play-Benachrichtigung ohne Wirkung: %s", fehler)
     return {"received": True}

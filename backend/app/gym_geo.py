@@ -13,12 +13,52 @@ eindeutigen Punkt - diese Profile nehmen an der Umkreissuche nicht teil, bis
 das Gym neu aus der Liste gewählt wurde.
 """
 
+import time
 from typing import Iterable, Optional
 
 from sqlalchemy.orm import Session
 
 from .geo import coords_for_plz, haversine_km
-from .models import Gym, GymStatus
+from .models import Gym, GymStatus, gym_label
+
+# Kurzlebiger Cache der Studio-Tabelle fuer gym_values_within(): Die Tabelle
+# aendert sich nur durch eine Admin-Freigabe oder einen neuen Gym-Vorschlag -
+# beides seltene Schreibvorgaenge. Ohne Cache liest aber jeder Deck-Aufruf
+# (und jeder Kandidat im taeglichen Warteschlangen-Mail-Job, siehe
+# email_jobs.run_activity_notifications) die komplette Tabelle neu ein und
+# berechnet fuer jede Zeile erneut die Haversine-Distanz. Eine neu
+# vorgeschlagene oder freigegebene Adresse braucht dadurch bis zu
+# _GYM_CACHE_TTL_SECONDS, bis sie in der Umkreissuche auftaucht - unkritisch
+# fuer Referenzdaten, die sich derart selten aendern.
+_GYM_CACHE_TTL_SECONDS = 60
+_gym_cache: dict[str, object] = {"rows": None, "gueltig_bis": 0.0}
+
+
+def _approved_gym_rows(db: Session) -> list[tuple[str, str, str]]:
+    """(name, label, plz) aller Studios mit aufloesbarer Adresse, kurz gecacht.
+
+    ``Gym.label`` ist eine Python-Property (aus Name/Straße/PLZ/Ort
+    zusammengesetzt), keine Spalte - lässt sich daher nicht direkt in eine
+    Spaltenabfrage aufnehmen. Stattdessen werden die Rohspalten gelesen und
+    ``label`` per ``gym_label()`` (derselben Funktion, die auch die Property
+    speist) daraus gebaut.
+    """
+    now = time.monotonic()
+    if _gym_cache["rows"] is None or now >= _gym_cache["gueltig_bis"]:
+        raw = (
+            db.query(Gym.name, Gym.street, Gym.house_number, Gym.plz, Gym.city)
+            .filter(
+                Gym.status.in_([GymStatus.approved, GymStatus.pending]),
+                Gym.plz != "",
+            )
+            .all()
+        )
+        _gym_cache["rows"] = [
+            (name, gym_label(name, street, house_number, plz, city), plz)
+            for name, street, house_number, plz, city in raw
+        ]
+        _gym_cache["gueltig_bis"] = now + _GYM_CACHE_TTL_SECONDS
+    return _gym_cache["rows"]
 
 
 def gym_name_part(gym_value: Optional[str]) -> str:
@@ -97,30 +137,23 @@ def gym_values_within(
     das volle Label und - wo der Name eindeutig ist - der blanke Name von
     Bestandsprofilen. Die Auflösungsregeln entsprechen ``coords_for_gyms``.
     """
-    rows = (
-        db.query(Gym)
-        .filter(
-            Gym.status.in_([GymStatus.approved, GymStatus.pending]),
-            Gym.plz != "",
-        )
-        .all()
-    )
+    rows = _approved_gym_rows(db)
 
-    by_name: dict[str, list[Gym]] = {}
-    for gym in rows:
-        by_name.setdefault(gym.name, []).append(gym)
+    by_name: dict[str, list[str]] = {}
+    for name, label, plz in rows:
+        by_name.setdefault(name, []).append(label)
 
     within: dict[str, float] = {}
-    for gym in rows:
-        coords = coords_for_plz(gym.plz)
+    for name, label, plz in rows:
+        coords = coords_for_plz(plz)
         if not coords:
             continue
         distance = haversine_km(center[0], center[1], coords[0], coords[1])
         if distance > radius_km:
             continue
-        within[gym.label] = distance
+        within[label] = distance
         # Blanker Name nur, wenn er auf genau ein Studio zeigt - sonst wäre der
         # Punkt nicht eindeutig (siehe Modulkopf).
-        if len(by_name[gym.name]) == 1:
-            within[gym.name] = distance
+        if len(by_name[name]) == 1:
+            within[name] = distance
     return within

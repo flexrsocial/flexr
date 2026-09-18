@@ -2,6 +2,7 @@ import logging
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.orm import Session
+from starlette.concurrency import run_in_threadpool
 
 from .. import clients, legal, mailer, premium
 from ..config import settings
@@ -414,6 +415,10 @@ async def stripe_webhook(request: Request, db: Session = Depends(get_db)):
     except Exception:
         raise HTTPException(400, "Ungültige Webhook-Signatur.")
 
-    handle_stripe_event(event, db)
+    # handle_stripe_event ist synchron (DB-Zugriffe, ggf. ein blockierender
+    # SMTP-Versand) - im Threadpool ausgefuehrt, damit ein einzelner Webhook
+    # nicht die Event-Loop und damit alle anderen gleichzeitigen Requests
+    # blockiert (der Prozess laeuft ohne mehrere Worker).
+    await run_in_threadpool(handle_stripe_event, event, db)
 
     return {"received": True}

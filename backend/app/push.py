@@ -333,3 +333,33 @@ def send(
 
     db.commit()
     return zugestellt
+
+
+def send_async(user_id: str, title: str, body: str, target: str | None = None) -> None:
+    """Wie ``send()``, aber mit einer eigenen, kurzlebigen DB-Session - fuer
+    den Aufruf aus ``BackgroundTasks`` heraus.
+
+    FastAPI schliesst Dependencies mit ``yield`` (also die Request-Session)
+    **vor** den BackgroundTasks (siehe der Kommentar dazu in
+    ``routers/auth.py``) - ``send()`` bekaeme von dort aus schon eine
+    geschlossene Session uebergeben. Deshalb hier bewusst ``database`` als
+    Modul importiert und ``database.SessionLocal`` erst beim Aufruf
+    nachgeschlagen (nicht ``from .database import SessionLocal`` oben im
+    Modul): Tests ersetzen die Session-Fabrik fuer genau diesen Weg, ein
+    Import zum Ladezeitpunkt der Datei wuerde die alte Fabrik einfrieren.
+
+    Wirft wie ``send()`` bewusst nie - hier gibt es zusaetzlich keinen
+    Aufrufer mehr, der einen Fehler ohnehin nur wegloggen wuerde.
+    """
+    from . import database
+
+    db = database.SessionLocal()
+    try:
+        user = db.query(User).filter(User.id == user_id).first()
+        if user is None:
+            return
+        send(db, user, title, body, target)
+    except Exception:  # noqa: BLE001 - siehe Docstring
+        logger.exception("Push-Zustellung im Hintergrund fehlgeschlagen (user=%s)", user_id)
+    finally:
+        db.close()

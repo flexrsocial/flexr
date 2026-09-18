@@ -46,14 +46,21 @@
 // eingefrorene alte Shell wuerde weiter "Sitzung abgelaufen" zeigen, wo
 // "E-Mail oder Passwort falsch" stehen muss - der Fehler steckt in index.html,
 // also genau in der Shell.
-const CACHE = 'flexr-shell-v17';
+// v18: favicon.ico stand hier mit "?v=4" in der Shell, angefordert wird es von
+// jeder Seite aber ohne Query (siehe app/index.html) - der Eintrag traf also
+// nie zu und cachte eine URL, die niemand abruft. Ausserdem: STATIC_PREFIXES
+// (Fonts, Icons, Demo-Bilder) sind ueber "?v=" schon eindeutig benannt und
+// damit unveraenderlich - "Netz zuerst" ergab dort nie einen Frische-Vorteil,
+// nur einen unnoetigen Roundtrip bei jedem Laden. Diese Gruppe ist jetzt
+// Cache zuerst; fuer die Shell-Dokumente selbst gilt weiter "Netz zuerst".
+const CACHE = 'flexr-shell-v18';
 // Seit dem 15.08.2026 liegt die App unter /app/, an der Wurzel steht die
 // oeffentliche Landingpage. Beide gehoeren in die Shell: die Landingpage,
 // weil sie der Einstieg ist, die App, weil sie offline funktionieren soll.
 const SHELL = ['/', '/index.html', '/en/', '/en/index.html',
                '/app/', '/app/index.html',
                '/lang-switch.js?v=2', '/i18n.js?v=4', '/app/i18n-app.js?v=5',
-               '/manifest.json', '/favicon.ico?v=4', '/legal.css?v=2',
+               '/manifest.json', '/favicon.ico', '/legal.css?v=2',
                '/fonts/work-sans.woff2?v=1', '/fonts/oswald.woff2?v=1',
                '/icons/icon-192.png?v=4', '/icons/icon-512.png?v=4'];
 const SHELL_PATHS = new Set(SHELL.map((path) => new URL(path, self.location.origin).pathname));
@@ -101,11 +108,33 @@ self.addEventListener('fetch', (event) => {
   // fehlenden Bild offline nicht versehentlich die HTML-Landingpage.
   if (!isNavigation && !isStaticAsset && !isShellAsset) return;
 
+  // STATIC_PREFIXES sind ueber "?v=" schon eindeutig benannt - ein Treffer im
+  // Cache ist garantiert aktuell, ein Netz-Roundtrip davor waere reine
+  // Wartezeit. Nur bei einem Cache-Miss (erster Aufruf, neue Version) wird
+  // tatsaechlich geladen.
+  if (isStaticAsset) {
+    event.respondWith(
+      caches.match(event.request).then((hit) => {
+        if (hit) return hit;
+        return fetch(event.request)
+          .then((resp) => {
+            if (resp.ok) {
+              const copy = resp.clone();
+              caches.open(CACHE).then((c) => c.put(event.request, copy));
+            }
+            return resp;
+          })
+          .catch(() => Response.error());
+      })
+    );
+    return;
+  }
+
   event.respondWith(
     fetch(event.request)
       .then((resp) => {
         // Nur explizit freigegebene, nicht-personenbezogene Assets speichern.
-        if (resp.ok && (isStaticAsset || isShellAsset)) {
+        if (resp.ok && isShellAsset) {
           const copy = resp.clone();
           caches.open(CACHE).then((c) => c.put(event.request, copy));
         }

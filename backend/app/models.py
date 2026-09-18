@@ -213,6 +213,20 @@ GYM_CHOICES = [
 ]
 
 
+def gym_label(name: str, street: str, house_number: str, plz: str, city: str) -> str:
+    """Anzeigename inkl. Adresse, z. B. "FITINN — Johnstraße 65, 1150 Wien".
+
+    Als freie Funktion statt nur als ``Gym.label``-Property, damit sie auch
+    dort verwendbar ist, wo nur einzelne Spalten (nicht ein geladenes
+    ``Gym``-Objekt) vorliegen - siehe gym_geo._approved_gym_rows(), die aus
+    Cache-Gruenden gezielt Spalten statt ganzer Zeilen abfragt.
+    """
+    addr = f"{street} {house_number}".strip()
+    place = f"{plz} {city}".strip()
+    parts = [p for p in (addr, place) if p]
+    return f"{name} — {', '.join(parts)}" if parts else name
+
+
 class Gym(Base):
     """Fitnessstudios in Österreich: Basisdaten aus OpenStreetMap (Name,
     Straße, Hausnummer, PLZ), ergänzt um Nutzer-Vorschläge, die nach
@@ -234,11 +248,7 @@ class Gym(Base):
 
     @property
     def label(self) -> str:
-        """Anzeigename inkl. Adresse, z. B. "FITINN — Johnstraße 65, 1150 Wien"."""
-        addr = f"{self.street} {self.house_number}".strip()
-        place = f"{self.plz} {self.city}".strip()
-        parts = [p for p in (addr, place) if p]
-        return f"{self.name} — {', '.join(parts)}" if parts else self.name
+        return gym_label(self.name, self.street, self.house_number, self.plz, self.city)
 
 class User(Base):
     __tablename__ = "users"
@@ -635,21 +645,6 @@ class Message(Base):
     # daten ersetzt). was_censored = ob überhaupt etwas ersetzt wurde.
     display_content = Column(String(2000), nullable=True)
     was_censored = Column(Boolean, default=False, nullable=False)
-
-
-class PhoneVerification(Base):
-    """Laufende Telefonprüfung: 6-stelliger Code (nur als Hash gespeichert),
-    10 Minuten gültig, max. 5 Fehlversuche."""
-
-    __tablename__ = "phone_verifications"
-
-    id = Column(String, primary_key=True, default=gen_uuid)
-    user_id = Column(String, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
-    phone = Column(String, nullable=False)
-    code_hash = Column(String, nullable=False)
-    expires_at = Column(DateTime, nullable=False)
-    attempts = Column(Integer, default=0, nullable=False)
-    created_at = Column(DateTime, default=datetime.utcnow)
 
 
 class EmailVerification(Base):

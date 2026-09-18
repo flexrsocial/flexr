@@ -63,10 +63,11 @@ def get_current_user(
     # Online-Anzeige: last_seen_at gedrosselt aktualisieren (max. 1 Schreibzugriff
     # pro Minute), damit nicht jeder Request eine DB-Schreiboperation auslöst.
     now = datetime.utcnow()
+    dirty = False
     if user.last_seen_at is None or now - user.last_seen_at > timedelta(seconds=60):
         user.last_seen_at = now
         _record_daily_access(db, user)
-        db.commit()
+        dirty = True
 
     # last_active_at zählt nur echte Vordergrund-Nutzung. Die nativen Apps
     # gleichen im Hintergrund ab (WorkManager/BGTaskScheduler) und schicken
@@ -76,7 +77,15 @@ def get_current_user(
     if request.headers.get("X-Flexr-Background") != "1":
         if user.last_active_at is None or now - user.last_active_at > timedelta(seconds=60):
             user.last_active_at = now
-            db.commit()
+            dirty = True
+
+    # Ein Commit fuer beide Aktualisierungen zusammen statt bis zu zwei pro
+    # Request (beide Bedingungen greifen typischerweise gemeinsam, naemlich
+    # sobald jemand nach einer Pause die App wieder oeffnet) - bei der
+    # Anfragemenge, die durch diese Dependency laeuft, ein spuerbarer
+    # Unterschied.
+    if dirty:
+        db.commit()
 
     return user
 

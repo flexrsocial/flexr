@@ -3624,7 +3624,7 @@
       const slot = document.createElement('div');
       slot.className = 'photo-slot';
       if(pendingPhotos[i]){
-        slot.innerHTML = `<img src="${pendingPhotos[i].previewUrl}"><div class="remove" data-i="${i}">✕</div>`;
+        slot.innerHTML = `<img src="${pendingPhotos[i].previewUrl}" alt=""><div class="remove" data-i="${i}">✕</div>`;
         slot.querySelector('.remove').onclick = (e)=>{ e.stopPropagation(); pendingPhotos.splice(i,1); renderPhotoGrid(); };
       } else {
         slot.textContent = '+';
@@ -5213,7 +5213,7 @@
         const statusCls = st === 'approved' ? '' : (st === 'rejected' ? 'rejected' : 'pending');
         const statusLabel = st === 'approved' ? '' : (st === 'rejected' ? t('photo.rejected') : t('photo.pending'));
         if(statusCls) slot.classList.add(statusCls);
-        slot.innerHTML = `<img src="${photos[i].url}"><div class="remove" data-id="${photos[i].id}">✕</div>${statusLabel ? `<div class="pstatus">${statusLabel}</div>` : ''}`;
+        slot.innerHTML = `<img src="${photos[i].url}" alt=""><div class="remove" data-id="${photos[i].id}">✕</div>${statusLabel ? `<div class="pstatus">${statusLabel}</div>` : ''}`;
         // Sortierbar nur, solange kein Upload laeuft: waehrenddessen belegt der
         // Upload einen Platz, und eine jetzt gespeicherte Reihenfolge wuerde
         // das gleich eintreffende Foto an eine zufaellige Stelle setzen.
@@ -6004,7 +6004,7 @@
         const cls = ['match-item', m.is_online ? 'online' : ''].filter(Boolean).join(' ');
         return `
         <div class="${cls}" data-match-id="${m.match_id}">
-          <span class="av"><img src="${photo}" title="${m.is_online ? 'Gerade online' : ''}"></span>
+          <span class="av"><img src="${escapeHtml(photo)}" alt="" title="${m.is_online ? 'Gerade online' : ''}"></span>
           <div class="info">
             <div class="nm">${nameWithBadges(p, `${p.name}, ${p.age}`)}</div>
             <div class="last-msg">${escapeHtml(p.city)}${p.distance_km != null ? ` · ${p.distance_km} km` : ''}${m.is_online ? ' · gerade online' : ''}</div>
@@ -6070,7 +6070,7 @@
           : escapeHtml(t('chats.cleared'));
         return `
         <div class="${cls}" data-match-id="${m.match_id}">
-          <span class="av"><img src="${photo}" title="${m.is_online ? 'Gerade online' : ''}"></span>
+          <span class="av"><img src="${escapeHtml(photo)}" alt="" title="${m.is_online ? 'Gerade online' : ''}"></span>
           <div class="info">
             <div class="nm">${nameWithBadges(p, `${p.name}, ${p.age}`)}</div>
             <div class="last-msg">${preview}</div>
@@ -6461,7 +6461,7 @@
     const thumbs = $('verifyThumbs');
     thumbs.style.display = mehrere ? '' : 'none';
     thumbs.innerHTML = !mehrere ? '' : verifyState.prompts.map((_, i) => {
-      if(verifyState.blobs[i]) return `<img src="${URL.createObjectURL(verifyState.blobs[i])}">`;
+      if(verifyState.blobs[i]) return `<img src="${URL.createObjectURL(verifyState.blobs[i])}" alt="">`;
       return `<div class="placeholder">${i + 1}</div>`;
     }).join('');
   }
@@ -7366,6 +7366,6 @@
 
 })();
 </script>
-<script src="/legal-status.js" defer></script>
+<script src="/legal-status.js?v=2" defer></script>
 </body>
 </html>
