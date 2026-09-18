@@ -259,55 +259,20 @@ private struct MessageBubble: View {
 
     var body: some View {
         VStack(alignment: isMine ? .trailing : .leading, spacing: 3) {
-            VStack(alignment: isMine ? .trailing : .leading, spacing: 4) {
-                // Bewusst OHNE `.frame(maxWidth: .infinity)`: das zwang den
-                // Text auf die volle angebotene Breite, und weil die Blase sich
-                // nach ihm richtet, war jede Blase 300 pt breit - auch die um
-                // ein Wort. Die Umrandung stand dadurch weit neben dem Text.
-                // Die Ausrichtung macht die umgebende VStack-Achse.
-                Text(message.content)
-                    .flexrText(.bodyMedium)
-                    .foregroundStyle(isMine ? Color(hex: 0x1C1006) : FlexrColor.chalk)
-                    .multilineTextAlignment(.leading)
-                    .fixedSize(horizontal: false, vertical: true)
-
-                HStack(spacing: 5) {
-                    Text(ServerTime.formatTime(message.createdAt))
-                        .flexrText(.mono)
-                        .foregroundStyle(
-                            (isMine ? Color(hex: 0x1C1006) : FlexrColor.chalkDim).opacity(0.6)
-                        )
-                    if isMine {
-                        Text(message.readAt != nil ? "✓✓" : "✓")
-                            .flexrText(.mono)
-                            .foregroundStyle(
-                                message.readAt != nil
-                                    ? Color(hex: 0x1E5F74)
-                                    : Color(hex: 0x1C1006).opacity(0.6)
-                            )
-                    }
-                }
+            // HStack + Spacer statt allein auf `.frame(maxWidth: 300)` zu
+            // vertrauen, das schrumpfen sollte, aber am 18.09.2026 auf einem
+            // echten Gerät weiterhin volle Zeilenbreite zeigte (auch bei
+            // Ein-Wort-Nachrichten wie "test" oder "bjj"). Ein
+            // `Spacer(minLength: 0)` nimmt garantiert den ganzen Rest der
+            // Zeile, egal was frame(maxWidth:) intern tut - die Blase daneben
+            // bekommt dadurch nie mehr zugewiesen als ihren eigenen Inhalt.
+            // Dasselbe Prinzip wie Androids Column+widthIn in einem äußeren
+            // Row (siehe ChatScreen.kt), nur mit dem robusteren Primitiv.
+            HStack(spacing: 0) {
+                if isMine { Spacer(minLength: 0) }
+                bubble
+                if !isMine { Spacer(minLength: 0) }
             }
-            .padding(.horizontal, 13)
-            .padding(.vertical, 9)
-            // Obergrenze, kein Sollwert: eine endliche maxWidth laesst die
-            // Blase auf ihren Inhalt schrumpfen (anders als .infinity).
-            .frame(maxWidth: 300, alignment: isMine ? .trailing : .leading)
-            .background {
-                if isMine {
-                    bubbleShape.fill(
-                        LinearGradient(
-                            colors: [FlexrColor.plateBright, FlexrColor.plate],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
-                } else {
-                    bubbleShape.fill(FlexrColor.surface2)
-                    bubbleShape.strokeBorder(FlexrColor.hairline, lineWidth: 1)
-                }
-            }
-            .clipShape(bubbleShape)
 
             // Zensur-Hinweis: der Absender erfährt, dass geschützt wurde, der
             // Empfänger den Grund für den Platzhalter.
@@ -321,6 +286,55 @@ private struct MessageBubble: View {
             }
         }
         .frame(maxWidth: .infinity, alignment: isMine ? .trailing : .leading)
+    }
+
+    /// Der eigentliche Blasen-Inhalt: Text und Zeitstempel mit fester
+    /// Innenpolsterung. `.frame(maxWidth: 300)` bleibt als Obergrenze für
+    /// sehr lange Nachrichten auf breiten Bildschirmen (iPad) - den
+    /// Rest der Zeile übernimmt der Spacer in `body`, nicht diese Grenze.
+    private var bubble: some View {
+        VStack(alignment: isMine ? .trailing : .leading, spacing: 4) {
+            Text(message.content)
+                .flexrText(.bodyMedium)
+                .foregroundStyle(isMine ? Color(hex: 0x1C1006) : FlexrColor.chalk)
+                .multilineTextAlignment(.leading)
+                .fixedSize(horizontal: false, vertical: true)
+
+            HStack(spacing: 5) {
+                Text(ServerTime.formatTime(message.createdAt))
+                    .flexrText(.mono)
+                    .foregroundStyle(
+                        (isMine ? Color(hex: 0x1C1006) : FlexrColor.chalkDim).opacity(0.6)
+                    )
+                if isMine {
+                    Text(message.readAt != nil ? "✓✓" : "✓")
+                        .flexrText(.mono)
+                        .foregroundStyle(
+                            message.readAt != nil
+                                ? Color(hex: 0x1E5F74)
+                                : Color(hex: 0x1C1006).opacity(0.6)
+                        )
+                }
+            }
+        }
+        .padding(.horizontal, 13)
+        .padding(.vertical, 9)
+        .frame(maxWidth: 300, alignment: isMine ? .trailing : .leading)
+        .background {
+            if isMine {
+                bubbleShape.fill(
+                    LinearGradient(
+                        colors: [FlexrColor.plateBright, FlexrColor.plate],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+            } else {
+                bubbleShape.fill(FlexrColor.surface2)
+                bubbleShape.strokeBorder(FlexrColor.hairline, lineWidth: 1)
+            }
+        }
+        .clipShape(bubbleShape)
     }
 }
 
