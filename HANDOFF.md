@@ -335,10 +335,14 @@ Abschnitt B3, und ist wiederholbar.
   auf dem Server unversioniert. Die Regel ist Versicherung gegen ein späteres
   `git add -A`.
 
-> **Achtung, bekannte Falle:** `backend/apns-key.p8` liegt auf dem VPS
-> unversioniert — wie `backend/list_users.py`. Käme dieser Pfad je in einen
-> Commit, bräche der nächste `git pull` dort mit *„untracked working tree files
-> would be overwritten"* ab. Genau das ist am 16.09. schon einmal passiert.
+> **Die bekannte Falle ist für diesen Pfad zu.** `backend/apns-key.p8` liegt
+> auf dem VPS unversioniert; wäre der Pfad je in einen Commit geraten, hätte
+> der nächste `git pull` dort mit *„untracked working tree files would be
+> overwritten"* abgebrochen — genau das ist am 16.09. schon einmal passiert.
+> Durch `*.p8` in der `.gitignore` kann das für Schlüssel nicht mehr
+> vorkommen, und `git status` auf dem VPS zeigt die Datei seither gar nicht
+> mehr an. **Offen bleibt `backend/list_users.py`** (21.08., nur lesend, dort
+> von Hand hingelegt): Für diesen Pfad ist die Falle weiter scharf.
 
 ### Was jetzt noch fehlt
 
