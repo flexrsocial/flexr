@@ -146,8 +146,21 @@ android {
         // 114/2.7.2 am 18.09.2026: 2.7.1 gab es schon (112, 113) - eigener
         // Versionsname, damit in der Play Console keine Verwechslung entsteht.
         // Quellcode weiterhin unveraendert zu 113.
-        versionCode = 114
-        versionName = "2.7.2"
+        // 115/2.7.3 am 18.09.2026: 114 startet auf einem echten Geraet nicht
+        // mehr (sofortiger Absturz, generischer Systemdialog "FLEXR
+        // geschlossen"). Kein Code-Fehler gefunden, der das erklaeren wuerde -
+        // Unit-Tests und ein sauberer clean-Build mit R8 laufen unveraendert
+        // durch. Deckt sich stattdessen mit dem 2.6.0-Muster (11.09.2026):
+        // release-2.6.6 bis 2.7.1 haben allesamt NUR ein .aab exportiert,
+        // keine installierbare Universal-APK mehr - wer ein .aab direkt (oder
+        // umbenannt) aufspielt statt es ueber Play zu installieren, bekommt
+        // eine Installation ohne die passenden Splits, und Android beendet
+        // die App beim Start sofort wieder. Deshalb diesmal wieder beides
+        // exportiert. Bleibt der Absturz bestehen, braucht es den
+        // Absturzbericht vom Geraet (Android/data/flexr.social.app/files/) -
+        // dann ist es doch ein echter Code-Fehler.
+        versionCode = 115
+        versionName = "2.7.3"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         // Nur die Sprachen ausliefern, die es wirklich gibt: Deutsch als
