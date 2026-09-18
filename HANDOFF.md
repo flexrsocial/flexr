@@ -1,12 +1,48 @@
 # FLEXR — Handoff für ein anderes Gerät / Claude Code
 
-Stand: **17.09.2026**
+Stand: **17.09.2026 abends**
 
 ## Wo das Projekt gerade steht
 
-**Alles committet, gepusht und deployed.** Der VPS steht auf demselben Stand
-wie `origin/main` (**`46f439b`**, Stand 17.09.2026 nachts) — `git pull` und
-`sudo systemctl restart flexr-api` sind gelaufen, der Health-Check ist grün.
+**Alles committet, gepusht und deployed.** Der VPS steht auf `origin/main`.
+Der letzte Commit, der **laufenden Code** ändert, ist **`9304363`** (iOS-Push
+über APNs); alles danach ist Dokumentation und braucht keinen Neustart.
+`systemctl is-active` zeigt `active`, `/api/health` liefert 200.
+
+> **Einstieg für die nächste Sitzung — 18.09.2026.**
+>
+> Arbeitsbaum sauber, nichts hängt halbfertig. Am 17.09. abends ist **Block B
+> der Einrichtungsanleitung fertig geworden**: APNs-Schlüssel angelegt, auf dem
+> Server eingerichtet und gegen Apple geprüft, Push für die App-ID
+> freigeschaltet, iOS-Build wieder grün. Einzelheiten in „Sitzung 17.09.2026
+> (8)" direkt unten.
+>
+> Offen sind die Blöcke **A**, **C** und **D** aus
+> [EINRICHTUNG-PUSH-UND-KAUF.md](EINRICHTUNG-PUSH-UND-KAUF.md), in dieser
+> Reihenfolge:
+>
+> 1. **A — Firebase** (~20 min): Projekt anlegen, Android-App `flexr.social.app`
+>    registrieren, die vier Werte in die Gradle-Properties, Dienstkonto für den
+>    Server. Ohne diese Werte bleibt Android-Push wirkungslos — der Empfang ist
+>    in 2.7.1 schon eingebaut.
+> 2. **C — Play Console** (~30 min): Abo `premium_monthly` anlegen, Dienstkonto
+>    für die Kaufprüfung, Produkt-ID in die `.env`.
+> 3. **D — App Store Connect** (~30 min): Abo `social.flexr.premium.monthly`
+>    anlegen, Produkt-ID in die `.env`.
+>
+> **A und C zusammen erledigen und dann einmal neu bauen** — beide wirken sich
+> auf denselben Android-Build aus, zweimal bauen wäre verschenkt.
+>
+> Was **nicht** ansteht: ein Backend-Deploy, eine Migration, ein Neustart.
+>
+> Weiterhin offen aus früheren Sitzungen:
+>
+> * **Android 2.7.1 (versionCode 112) ist nicht in der Play Console.** Gebaut
+>   und im Chat übergeben, aber nicht hochgeladen. Wird ohnehin von Block A
+>   überholt — siehe oben, lieber einmal mit Firebase-Werten neu bauen.
+> * **Das Prüfkonto `appreview` hat kein Match und keinen Chatverlauf.** Für die
+>   App-Prüfung fehlt ein männliches Gegenstück im Umkreis von 50 km um
+>   `3D Lady Fit` in Graz.
 
 > **FLEXR Premium ist seit dem 17.09.2026 scharf — und in allen drei
 > Oberflächen kaufbar.** Im Browser über Stripe, in den Apps über StoreKit
@@ -44,7 +80,8 @@ kommt vor der eigentlichen Anwendungsbereitschaft), Sekunden später war der
 Health-Check grün. Kein Grund zur Sorge, aber beim nächsten Deploy nicht
 direkt im selben Atemzug wie den Neustart-Befehl prüfen.
 
-> **Einstieg für die nächste Sitzung, Stand 16.09.2026 abends.** Arbeitsbaum
+> **Überholt — Einstieg vom 16.09.2026 abends** (steht als Verlauf hier,
+> der gültige Einstieg ist der oben). Arbeitsbaum
 > sauber, `HEAD` = `origin/main` = `72ada4c`. Nichts hängt halbfertig. Die drei
 > Dinge, die als Nächstes anstehen, in dieser Reihenfolge:
 >
@@ -192,6 +229,126 @@ Ausgangssitzung), dann die **drei Abschnitte vom 10.09.**
 **08.09.**, dann die beiden Sitzungen vom **07.09.**, dann **06.09.**, dann
 **05.09.**, dann **31.08.**, **30.08.**, **23.08.**, **21.08.**; die Build-,
 Test- und Deploy-Abschnitte am Ende gelten sitzungsübergreifend.
+
+## Sitzung 17.09.2026 (8) — APNs eingerichtet, iOS-Build wieder grün
+
+Kurz: **iOS-Push ist serverseitig fertig und gegen Apple geprüft.** Was noch
+fehlt, damit auf einem iPhone etwas ankommt, ist kein Server-Thema mehr.
+
+### Der Codemagic-Abbruch mit Status 65 — die Diagnose stimmte
+
+Der Build davor scheiterte im Archiv-Schritt. Im Log stand nur *„Step 7 script
+`Build ipa` exited with status code 65"*; `-showBuildSettings` war vorher
+durchgelaufen, die `project.pbxproj` also strukturell in Ordnung.
+
+Die Ursache war die Kette dahinter: Der Workflow holt sein Provisioning-Profil
+mit `app-store-connect fetch-signing-files "$BUNDLE_ID" --type IOS_APP_STORE
+--create`. Ein so erzeugtes Profil enthält **genau die Berechtigungen, die im
+Developer-Portal für die App-ID freigeschaltet sind** — nicht die, die das
+Xcode-Projekt verlangt. Die Sitzung davor hatte der App das
+`aps-environment`-Entitlement gegeben (`ios/Config/FLEXR.entitlements`), im
+Portal war Push für `social.flexr.app` aber nie eingeschaltet. `codesign`
+verweigert dann, und xcodebuild meldet das als 65.
+
+Nach dem Haken im Portal lief **derselbe Build unverändert durch**. Kein
+Code-Eingriff nötig, und das vorbereitete Zurücknehmen der Entitlement-Zeilen
+blieb ungenutzt.
+
+> **Merksatz für das nächste Entitlement:** erst im Portal freischalten, dann
+> bauen. Projekt und Profil müssen dasselbe wissen, und der Fehler zeigt sich
+> erst ganz am Ende eines CI-Laufs.
+
+### Der APNs-Schlüssel
+
+Beim Anlegen fragt Apple zwei Dinge, die sich **nach dem Speichern nie wieder
+ändern lassen**. Gewählt wurde:
+
+| Feld | Wert | Warum |
+|---|---|---|
+| Environment | *Sandbox & Production* | von `push.py` vorausgesetzt |
+| Key Restriction | *Team Scoped (All Topics)* | eine App, Unterschied heute null |
+
+Das Environment ist der wichtige der beiden. `_send_apns()` schickt an eine
+Umgebung und probiert bei `BadDeviceToken` die andere — weil
+Entwicklungs-Builds Sandbox-Tokens bekommen, TestFlight und App Store
+Produktions-Tokens, und beide gleichzeitig im Umlauf sind. Ein Schlüssel für
+nur eine Umgebung hätte die andere Hälfte mit `InvalidProviderToken` abgewiesen,
+und zwar still — ein solcher Fehlschlag steht nur im Log.
+
+Bei der Key Restriction wäre *Topic Scoped* das engere gewesen: Bei einem Leck
+ließen sich damit nur FLEXR-Nutzer beschicken statt jeder App des Kontos. Bei
+genau einer App im Team ist der Unterschied heute keiner; er entstünde erst mit
+einer zweiten App. Vertretbar, zumal Apple nur zwei aktive APNs-Schlüssel je
+Konto zulässt — „pro App ein Schlüssel" trägt ohnehin nicht weit.
+
+### Was auf dem Server steht
+
+| | |
+|---|---|
+| Schlüssel | `/flexr/backend/apns-key.p8`, Eigentümer `deploy`, Rechte 600 |
+| `APNS_KEY_ID` | `93U96DXUDW` |
+| `APNS_TEAM_ID` | `UJ46YJU58D` |
+| `APNS_TOPIC` | `social.flexr.app` |
+| `APNS_SANDBOX` | **bewusst nicht gesetzt** — siehe oben |
+
+Sicherung der vorigen `.env`: `/flexr/backend/.env.bak-vor-apns-20260917`.
+Dienst neu gestartet, `systemctl is-active` → `active`, `/api/health` → 200.
+
+> Direkt nach dem Neustart kam wieder einmalig ein **502** — dieselbe
+> Racebedingung wie beim letzten Deploy (`is-active` meldet den Prozess, nicht
+> die Bereitschaft von Uvicorn). Sekunden später grün. Das ist inzwischen zum
+> zweiten Mal aufgetreten und kein Zufall: **nach einem Neustart ein paar
+> Sekunden warten, bevor man den Health-Check aufruft.**
+
+### Wie geprüft wurde, ohne ein iPhone zu haben
+
+Ein Push an ein absichtlich unbrauchbares Geräte-Token. Die Antwort trennt
+sauber, was sonst nur ein Gerät zeigen würde:
+
+| Antwort | Bedeutung |
+|---|---|
+| `400 BadDeviceToken` | JWT **akzeptiert**, nur das Token verworfen — alles richtig |
+| `403 InvalidProviderToken` | Schlüssel, Key ID oder Team ID falsch |
+| `403 BadTopic` | Bundle-Identifier falsch |
+
+Beide Umgebungen antworteten `400 BadDeviceToken`. Damit ist zweierlei belegt:
+Der Schlüssel stimmt, **und** *Sandbox & Production* deckt tatsächlich beides
+ab — die Rückfallebene in `push.py` trifft also auf das, was sie erwartet.
+
+Das JWT selbst wurde mitgeprüft: `alg: ES256`, `kid`, `iss`, und eine
+**64-Byte-Signatur im r‖s-Format**. Das ist die Stelle, an der
+APNs-Anbindungen sonst scheitern — Bibliotheken liefern gern DER, Apple
+verlangt rohes r‖s.
+
+Der Befehl steht in [EINRICHTUNG-PUSH-UND-KAUF.md](EINRICHTUNG-PUSH-UND-KAUF.md),
+Abschnitt B3, und ist wiederholbar.
+
+### Zwei Dinge zur Schlüsselhygiene
+
+* **Der private Schlüssel ist durch den Chat gegangen.** Er wurde als Anhang
+  übergeben und musste gelesen werden, um ihn zu kopieren — damit steht er im
+  Transkript dieser Sitzung. Wer das nicht will, widerruft ihn im Portal und
+  legt einen neuen an (ein Slot ist frei); der Ablauf ist derselbe, nur mit
+  neuer Key ID.
+* **`*.p8` steht jetzt in der `.gitignore`.** Die beiden Schlüssel liegen
+  außerhalb des Repos in `~/MEGA/FLEXR/` (dort von 664 auf **600** gesetzt),
+  auf dem Server unversioniert. Die Regel ist Versicherung gegen ein späteres
+  `git add -A`.
+
+> **Achtung, bekannte Falle:** `backend/apns-key.p8` liegt auf dem VPS
+> unversioniert — wie `backend/list_users.py`. Käme dieser Pfad je in einen
+> Commit, bräche der nächste `git pull` dort mit *„untracked working tree files
+> would be overwritten"* ab. Genau das ist am 16.09. schon einmal passiert.
+
+### Was jetzt noch fehlt
+
+Der Server **kann** senden, aber kein Gerät hat je ein Token registriert. Dafür
+braucht es eine iOS-Fassung mit der Push-Berechtigung auf einem echten Gerät
+(TestFlight) — der Simulator bekommt keine APNs-Tokens.
+
+Offen sind damit die Blöcke **A**, **C** und **D** der Einrichtungsanleitung.
+
+---
 
 ## Sitzung 17.09.2026 (7) — Push: warum nichts ankam, und was jetzt schickt
 

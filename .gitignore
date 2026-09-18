@@ -20,6 +20,13 @@ backend/.env.*
 # OS
 .DS_Store
 
+# Private Schluessel von Apple und Google (.p8): APNs-Schluessel und
+# App-Store-Connect-API-Schluessel. Sie gehoeren in den Passwortspeicher und auf
+# den Server (/flexr/backend/apns-key.p8, dort unversioniert und 600), niemals
+# in einen Commit. Die Regel steht hier, damit ein spaeteres "git add -A" den
+# Schluessel nicht einsammelt, falls ihn jemand in den Ordner legt.
+*.p8
+
 # Android/TWA-Build (Keystore + Build-Artefakte niemals versionieren)
 android/android.keystore
 android/*.keystore

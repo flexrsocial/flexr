@@ -1,13 +1,14 @@
 # Was noch von Hand zu erledigen ist
 
-Stand: 17.09.2026. Vier Blöcke, unabhängig voneinander abzuarbeiten:
+Stand: 17.09.2026 abends. Vier Blöcke, unabhängig voneinander abzuarbeiten —
+**B ist erledigt**, A, C und D stehen noch offen:
 
-| Block | Wirkung | Dauer |
-|---|---|---|
-| A — Firebase | Push auf Android | ~20 min |
-| B — APNs | Push auf iOS | ~15 min |
-| C — Play Console | Kauf-Knopf in der Android-App | ~30 min + Prüfung |
-| D — App Store Connect | Kauf-Knopf in der iOS-App | ~30 min + Prüfung |
+| Block | Wirkung | Dauer | Stand |
+|---|---|---|---|
+| A — Firebase | Push auf Android | ~20 min | **offen** |
+| B — APNs | Push auf iOS | ~15 min | ✓ erledigt 17.09.2026 |
+| C — Play Console | Kauf-Knopf in der Android-App | ~30 min + Prüfung | **offen** |
+| D — App Store Connect | Kauf-Knopf in der iOS-App | ~30 min + Prüfung | **offen** |
 
 **Alles ist so gebaut, dass nichts kaputtgeht, solange du nichts davon machst.**
 Ohne Zugangsdaten bleibt Push aus (die Apps holen weiter selbst ab), ohne
@@ -103,6 +104,17 @@ Kein Firebase. Die iOS-App spricht direkt mit Apple.
 > verlangt jetzt das `aps-environment`-Entitlement, und das Profil muss es
 > hergeben.
 
+**Erledigt am 17.09.2026** — und es war genau diese fehlende Freigabe. Der
+Codemagic-Lauf davor brach im Archiv-Schritt mit Status 65 ab: Der Workflow
+holt sein Profil mit `app-store-connect fetch-signing-files --create`, und ein
+so erzeugtes Profil enthält nur die Berechtigungen, die im Portal für die
+App-ID freigeschaltet sind. Der Haken war nicht gesetzt, das Profil kannte
+`aps-environment` nicht, `codesign` verweigerte. Nach dem Setzen lief derselbe
+Build unverändert durch.
+
+Merksatz für das nächste Entitlement: **Erst im Portal freischalten, dann
+bauen.** Xcode-Projekt und Profil müssen dasselbe wissen.
+
 ### B2. APNs-Schlüssel erzeugen
 
 1. **Keys → +**
@@ -118,6 +130,22 @@ Notiere dazu:
 * **Key ID** — die zehn Zeichen im Dateinamen, z. B. `ABC123DEFG`
 * **Team ID** — steht rechts oben im Developer-Portal unter deinem Namen,
   ebenfalls zehn Zeichen
+
+Beim Anlegen fragt Apple zwei Dinge, die sich **nach dem Speichern nicht mehr
+ändern lassen**:
+
+* **Environment** → *Sandbox & Production*. Nicht optional, sondern von
+  `push.py` vorausgesetzt: Der Server probiert bei `BadDeviceToken` die jeweils
+  andere Umgebung, und Entwicklungs-Builds (Sandbox-Tokens) und
+  TestFlight/App Store (Produktions-Tokens) sind gleichzeitig im Umlauf. Ein
+  Schlüssel für nur eine Umgebung würde die andere Hälfte mit
+  `InvalidProviderToken` abweisen.
+* **Key Restriction** → *Team Scoped (All Topics)* oder *Topic Scoped*. Beides
+  funktioniert, weil der Server `apns-topic` ohnehin mitschickt. Topic Scoped
+  ist das engere: Bei einem Leck ließen sich nur FLEXR-Nutzer beschicken, nicht
+  jede App des Kontos. Bei genau einer App ist der Unterschied heute null.
+
+**Erledigt am 17.09.2026**, mit *Sandbox & Production* und *Team Scoped*.
 
 ### B3. Auf den Server
 
@@ -332,18 +360,28 @@ hier kein Geheimnis im Pfad nötig.
 
 ---
 
-## Reihenfolge, wenn du alles an einem Tag machst
+## Reihenfolge
 
-1. **B** (APNs) — schnell, unabhängig
-2. **A** (Firebase) — danach Android neu bauen lassen
-3. **C5 + C4** (Play: erst Dienstkonto, dann Produkt-ID)
-4. **D2 + D3** (App Store: Produkt anlegen, dann freischalten)
-5. Erst dann die nächste iOS-Version einreichen — mit dem Abo zusammen
+~~1. **B** (APNs)~~ — erledigt am 17.09.2026.
+
+Was noch offen ist, in dieser Reihenfolge:
+
+1. **A** (Firebase) — danach Android neu bauen lassen, sonst wirken die vier
+   Werte nicht
+2. **C5 + C4** (Play: erst Dienstkonto, dann Produkt-ID)
+3. **D2 + D3** (App Store: Produkt anlegen, dann freischalten)
+4. Erst dann die nächste iOS-Version einreichen — mit dem Abo zusammen
+
+A und C hängen beide am Android-Build: Es lohnt sich, sie zusammen zu erledigen
+und **einmal** neu zu bauen statt zweimal.
 
 ## Was danach noch zu tun ist
 
-* **Android neu bauen** mit den Firebase-Werten (Block A3).
-* **iOS neu bauen** — die Push-Berechtigung ist neu im Projekt.
+* **Android neu bauen** mit den Firebase-Werten (Block A3). Der letzte Stand
+  ist 2.7.1 (versionCode 112) und enthält den Push-Empfang schon — ohne die
+  Firebase-Werte bleibt er aber wirkungslos.
+* ~~**iOS neu bauen**~~ — am 17.09.2026 erledigt, der Build mit der
+  Push-Berechtigung lief nach Block B1 durch.
 * **Testen**: Zwei Geräte, eine Nachricht. Kommt sie sofort an, läuft Push.
   Zum Testen des Kaufs braucht es bei Apple ein Sandbox-Konto, bei Google einen
   Lizenztester (Play Console → Einstellungen → Lizenztests).
