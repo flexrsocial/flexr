@@ -15,13 +15,13 @@ Stand: **18.09.2026**
 > `release-2.7.5/flexr-2.7.5-vc117.aab` sofort hochladen.
 
 **Alles committet, gepusht und deployed.** Der VPS steht auf `origin/main`
-(**`65a0793`**, Sitzung 18.09.2026 (4) — Fix für "Swipe zurücknehmen").
-Das ist jetzt der aktuelle Backend-Code-Stand (löst `9304363` vom 17.09. als
-Referenz ab). Migration bis `5f8ae574bc95` gelaufen (Sitzung (3)), `flexr-api`
-zweimal neu gestartet (zuletzt fuer (4), keine neue Migration dabei), Nginx
-neu geladen (`/brand/`-Sperre, Sitzung (3)). `systemctl is-active` zeigt
-`active`, `/api/health` liefert 200, Login gegen ein `@flexrtest.at`-Konto
-gegengeprüft.
+(**`c36c074`**, Sitzung 18.09.2026 (5) — Widerruf der Art.-9-Einwilligung
+wirkt jetzt in beide Richtungen). Das ist jetzt der aktuelle Code-Stand
+(löst `65a0793` als Referenz ab). Migration bis `5f8ae574bc95` gelaufen
+(Sitzung (3)), `flexr-api` dreimal neu gestartet (zuletzt für (5), seit (3)
+keine neue Migration mehr dabei), Nginx neu geladen (`/brand/`-Sperre,
+Sitzung (3)). `systemctl is-active` zeigt `active`, `/api/health` liefert
+200, Deck-Abruf gegen ein `@flexrtest.at`-Konto gegengeprüft (32 Profile).
 
 > **FLEXR Premium ist seit dem 18.09.2026 in allen drei Oberflächen fertig
 > eingerichtet — nicht nur scharf geschaltet, sondern auch tatsächlich
@@ -258,6 +258,77 @@ Ausgangssitzung), dann die **drei Abschnitte vom 10.09.**
 **08.09.**, dann die beiden Sitzungen vom **07.09.**, dann **06.09.**, dann
 **05.09.**, dann **31.08.**, **30.08.**, **23.08.**, **21.08.**; die Build-,
 Test- und Deploy-Abschnitte am Ende gelten sitzungsübergreifend.
+
+## Sitzung 18.09.2026 (5) — Widerruf der Art.-9-Einwilligung wirkte nur halb
+
+**Gemeldet:** Nach dem Widerruf standen im Swipe-Deck weiter die Profile aus
+dem Ladevorgang davor. Der Nutzer erwartete — zu Recht — ein leeres Deck und
+außerdem, selbst nicht mehr angezeigt zu werden.
+
+**Befund, schlimmer als gemeldet.** Der Widerruf hielt nur die Hälfte seines
+Versprechens. „Du erscheinst in keinem Deck" stimmte: Dafür sorgt
+`consents.sensitive_data_consent_condition()` in den Deck-Filtern. „Es werden
+dir keine Profile mehr vorgeschlagen" stimmte **nicht** — `deck_profiles()`
+prüfte nur den Consent der *anderen* Nutzer und stellte das eigene Deck
+unverändert über `gender`/`interest` zusammen. Ein Reload half also gar nicht;
+die alten Karten waren nur der auffälligste Teil. Ein Like darauf wurde weiter
+angenommen und erzeugte weiter ein Match — aus genau den Daten, deren
+Verarbeitung gerade widerrufen worden war.
+
+**Fix (Backend, `routers/swipes.py`).** Neue Funktion `matching_erlaubt()`,
+geprüft an drei Stellen:
+
+* `deck_profiles()` liefert `[]`. Der Deck-Zähler des Benachrichtigungsjobs
+  (`email_jobs.py`) hängt an derselben Funktion und verschickt damit
+  ebenfalls keine „X Profile warten auf dich"-Mails mehr.
+* `swipe()` antwortet 403 — sonst entstünde aus einem vor dem Widerruf
+  geladenen Deck weiterhin ein Match.
+* `incoming_likes()` liefert 0 — „wer dich geliket hat" ist ebenfalls ein
+  Profilvorschlag auf derselben Grundlage.
+
+Kein Altkonto-Risiko: Migration `9c4e1a7f2b83` hat die Consent-Zeilen für den
+Bestand nachgetragen, „keine aktive Zeile" heißt also wirklich „widerrufen".
+
+**Fix (Frontend, `app/index.html`).** Das im Browser liegende Deck wird beim
+Widerruf sofort geräumt, die erneute Einwilligung lädt es wieder. Der leere
+Zustand nennt jetzt den Grund (`swipe.revokedTitle`/`swipe.revokedSub` in
+`i18n-app.js`), statt „Alle Sätze absolviert" zu behaupten — der Grund ist
+mit einem Klick behebbar, das darf nicht verschwiegen werden. `i18n-app.js`
+auf `?v=6`, Service-Worker-Cache auf `flexr-shell-v19`.
+
+**Geprüft:** 5 neue Tests in `test_einwilligungen.py`, 496 grün. Zusätzlich
+lokal im Browser durchgespielt (Karte verschwindet sofort, Leertext richtig,
+Weg zurück funktioniert) und nach dem Deploy gegen Produktion gegengeprüft,
+dass ein Konto *mit* Einwilligung weiterhin ein volles Deck bekommt (32
+Profile). Keine Migration, Backend neu gestartet (**`c36c074`**,
+`/api/health` → 200).
+
+> Beim Neustart liefert `/api/health` rund fünf Sekunden lang 502 — der
+> Uvicorn-Start braucht so lange. Ein Health-Check nach 3 s Wartezeit
+> erschreckt grundlos.
+
+### Mailtexte: „Antworte einfach auf diese Mail" ist korrekt
+
+Auf Nachfrage geprüft, weil als Absender `noreply@flexr.social` erscheint.
+Kein Widerspruch: `mailer.send_email()` setzt bei **jeder** Mail
+`Reply-To: flexr.social@proton.me` (`settings.support_email`), und aller
+Versand läuft über genau diese eine Funktion — es gibt keinen zweiten
+`smtplib`-Pfad. Ein Klick auf „Antworten" landet also im Support-Postfach,
+nicht bei `noreply@`. Am erzeugten Mailobjekt gegengeprüft. Keine einzige
+Vorlage sagt umgekehrt „bitte nicht antworten". Kein Änderungsbedarf —
+offen bleibt allein, ob Post an `noreply@flexr.social` selbst (von Hand
+adressiert) irgendwo landet oder ins Leere geht.
+
+### Testkonto für den Fiverr-Tester
+
+`~/MEGA/flexr/seed/seed_fiverr.py` (außerhalb des Repos, siehe dessen README)
+legt `testuserfiverr@flexrtest.at` an: Prüfung bestanden, E-Mail bestätigt,
+FLEXR Premium dauerhaft (`store_premium_until` = 31.12.2099, wie bei
+`styriatrading@gmail.com` — nicht `is_subscribed`), drei freigegebene Fotos,
+Gym in 1090 Wien, Umkreis 250 km (der volle Premium-Regler; Standardkonten
+werden bei 50 km gekappt). Deck gegengeprüft: 32 Profile. Die drei Portraits
+stammen aus derselben Unsplash-Serie, damit das Profil nicht nach drei
+verschiedenen Männern aussieht (`fotos_bauen.py`, Eintrag `testuserfiverr`).
 
 ## Sitzung 18.09.2026 (4) — "Swipe zurücknehmen" blieb an einem Match hängen
 
