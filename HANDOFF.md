@@ -15,13 +15,19 @@ Stand: **18.09.2026**
 > `release-2.7.5/flexr-2.7.5-vc117.aab` sofort hochladen.
 
 **Alles committet, gepusht und deployed.** Der VPS steht auf `origin/main`
-(**`c36c074`**, Sitzung 18.09.2026 (5) — Widerruf der Art.-9-Einwilligung
-wirkt jetzt in beide Richtungen). Das ist jetzt der aktuelle Code-Stand
-(löst `65a0793` als Referenz ab). Migration bis `5f8ae574bc95` gelaufen
-(Sitzung (3)), `flexr-api` dreimal neu gestartet (zuletzt für (5), seit (3)
-keine neue Migration mehr dabei), Nginx neu geladen (`/brand/`-Sperre,
-Sitzung (3)). `systemctl is-active` zeigt `active`, `/api/health` liefert
-200, Deck-Abruf gegen ein `@flexrtest.at`-Konto gegengeprüft (32 Profile).
+(**`c5582aa`**, Sitzung 18.09.2026 (6) — Bug-Durchgang in allen drei
+Oberflächen). Das ist jetzt der aktuelle Code-Stand (löst `c36c074` als
+Referenz ab). Migration bis `5f8ae574bc95` gelaufen (Sitzung (3)), Nginx neu
+geladen (`/brand/`-Sperre, Sitzung (3)). `systemctl is-active` zeigt
+`active`, `/api/health` liefert 200.
+
+> **Sitzung (6) hat das Backend nicht angefasst** — keine Migration, kein
+> Neustart, der `git pull` allein reicht. Live wirkt davon nur die Web-App
+> (Balken über dem Profilfoto springen an); die Änderungen an iOS und Android
+> liegen im Repo und brauchen einen Build. **Die 13 geänderten
+> Swift-Dateien sind noch nie kompiliert worden**, hier gibt es keine
+> Swift-Toolchain — der nächste Xcode-Build ist der eigentliche Beweis.
+> Android kompiliert (49 Unit-Tests grün).
 
 > **FLEXR Premium ist seit dem 18.09.2026 in allen drei Oberflächen fertig
 > eingerichtet — nicht nur scharf geschaltet, sondern auch tatsächlich
@@ -240,7 +246,11 @@ Die `vc101`- bis `vc104`-Dateien sind hinfällig. Die Play Console hatte 43 und
 > englischen Texte lagen dort in einem Sprach-Split, den ein deutsches Gerät
 > nie herunterlädt. Erst ab 2.6.3 stecken beide Sprachen im Basis-Paket.
 
-Aufbau des Dokuments: erst diese Eckdaten, dann **die Sitzung vom 18.09. (2)**
+Aufbau des Dokuments: erst diese Eckdaten, dann **die Sitzung vom 18.09. (6)**
+(Bug-Durchgang in allen drei Oberflächen), dann **18.09. (5)** (Widerruf der
+Art.-9-Einwilligung wirkte nur halb), dann **18.09. (4)** („Swipe
+zurücknehmen" blieb an einem Match hängen), dann **18.09. (3)** (Kompletter
+Bug-/Performance-/Cleanup-Durchgang), dann **die Sitzung vom 18.09. (2)**
 (Android-Absturz beim Start: PlayBillingService fehlte enableOneTimeProducts,
 2.7.3 bis 2.7.5), dann **die Sitzung vom 18.09.** (Block A, C, D fertig: Push
 und Kauf), dann **die Sitzung vom 17.09. (3)**
@@ -258,6 +268,241 @@ Ausgangssitzung), dann die **drei Abschnitte vom 10.09.**
 **08.09.**, dann die beiden Sitzungen vom **07.09.**, dann **06.09.**, dann
 **05.09.**, dann **31.08.**, **30.08.**, **23.08.**, **21.08.**; die Build-,
 Test- und Deploy-Abschnitte am Ende gelten sitzungsübergreifend.
+
+## Sitzung 18.09.2026 (6) — Bug-Durchgang in allen drei Oberflächen
+
+**Gemeldet** (iOS zuerst, Android nachgereicht): Profilkarte falsch gezeichnet
+und Zurück-Knopf tot; Leerzustände unterschiedlich hoch; „Datenschutz &
+Sicherheit" zweizeilig; Suchumkreis ohne Premium beliebig weit; vergrößerte
+Chat-Blasen weiterhin da; **die Chatpartnerin bekam keine Nachrichten**; in der
+Web-App blättern die Balken über dem Foto nur weiter, statt anzuspringen; auf
+Android dasselbe Umkreis-Problem, das Schlosssymbol drängt den Zurück-Knopf
+aus dem Bild, und die Aboverwaltung soll aus der Profilkarte in die
+Einstellungen.
+
+Code-Stand: **`c5582aa`**. Backend unverändert — keine Migration, kein
+Neustart nötig.
+
+### Profilkarte und Zurück-Knopf: eine Ursache, zwei Symptome
+
+`PhotoImage` meldete eine **zu große Höhe**. `Image.resizable()`
+`.aspectRatio(contentMode: .fill)` überragt den Vorschlag bewusst — anders
+ginge ein Cover-Zuschnitt gar nicht. Der `ZStack` darum übernahm diese
+Meldung, und `.clipped()` schnitt an genau diesem zu großen Rahmen, also gar
+nicht.
+
+Am Screenshot nachgemessen: Karte 604 pt hoch, Fotofläche soll 350 pt
+bekommen (0,58), gezeichnet wurden rund 465 pt. Die überschüssigen ~58 pt
+liefen nach **unten** in den Merkmalsbereich — dort landete der Namensblock
+auf Chip und Bio — und nach **oben** über die Kopfzeile. Oben war der
+Überstand unsichtbar (die Karte hat einen `clipShape`), aber weiterhin
+tippempfindlich: Genau das schluckte den Zurück-Knopf.
+
+Behoben an der Wurzel, in `PhotoImage`: Das Foto liegt jetzt als `overlay`
+über dem Platzhalter statt als Kind eines `ZStack`. Ein Overlay wirkt nie auf
+die Größe seines Gastgebers zurück; `PhotoImage` ist damit immer exakt so
+groß wie vorgeschlagen, und `.clipped()` schneidet den Überstand wirklich weg.
+
+> **Derselbe Fehler war schon einmal da.** Im Fotoraster
+> (`UI/Components/PhotoGrid.swift`) steht seit dem Umbau ein Kommentar, der
+> ihn wörtlich beschreibt: „…nur auf die (zu grosse) Bildflaeche, und die
+> ZStack darum uebernahm diese Groesse. Ergebnis war ein Raster aus
+> verschieden grossen, einander ueberlappenden Kacheln." Dort wurde er mit
+> einem `Color.clear.aspectRatio(…).overlay { … }` umgangen, statt an der
+> Quelle behoben — deshalb schlug er in der Swipe-Karte ein zweites Mal zu.
+> Der Umweg im Raster funktioniert weiterhin, wird aber nicht mehr gebraucht.
+
+Zusätzlich abgesichert: In `CardContent` steht `.frame(height:)` jetzt **vor**
+`.clipped()` (vorher umgekehrt — dann schneidet das Clipping an der Größe des
+Stapels statt an der halben Kartenhöhe), und der Zurück-Knopf im `BackHeader`
+hat ein 44-×-44-Ziel mit `contentShape` statt 36 × 36. Die senkrechte
+Polsterung der Zeile geht im Gegenzug von 10 auf 6, die Kopfzeile bleibt
+damit exakt gleich hoch.
+
+### Nachrichten kamen beim Empfänger nicht an
+
+Der auffälligste Befund der Sitzung, und der am schwersten zu sehende.
+
+**Das Backend war es nicht.** 496 Tests laufen grün, darunter
+`test_reading_messages_marks_them_read`, das genau diesen Weg abdeckt: A
+schickt, B sieht die Nachricht und `unread_count == 1`. Die Nachricht wird vor
+dem Push committet; selbst ein völlig totes APNs ändert daran nichts.
+
+**Der lokale Bestand der iOS-App war es.** `FlexrStore.replaceSyncedMessages`
+löschte alle bestätigten Zeilen eines Chats und legte anschließend dieselben
+Kennungen neu an — in **einem** Speichervorgang, gegen ein
+`@Attribute(.unique) var messageID`. Und `save()` war ein `try?`.
+
+Geht ein `save()` schief, bleiben die Änderungen offen im `ModelContext`
+stehen. Der nächste Abgleich legt seine eigenen obendrauf und scheitert am
+selben Konflikt, und so weiter. Der Bestand steht dann **dauerhaft still** —
+über App-Neustarts hinweg, denn die Oberfläche liest brav weiter, was in der
+Datei steht, nur kommt dort nichts Neues mehr an. Das passt genau auf die
+Meldung: nichts im Chat sichtbar, auch nach Neustart.
+
+Jetzt derselbe Weg wie bei den Matches (`replaceMatches` machte es von Anfang
+an richtig): vorhandene Zeilen werden beschrieben (`MessageEntity.apply()`),
+nur wirklich Verschwundenes wird gelöscht. Den Konflikt gibt es damit gar
+nicht erst. `save()` rollt bei einem Fehler zurück und bricht in Debug-Builds
+mit `assertionFailure` ab.
+
+> **Warum Android nicht betroffen ist.** `MessageDao.replaceSynced` sieht
+> gleich aus (`deleteSyncedForMatch` + `upsertAll` in einer `@Transaction`),
+> ist aber echtes SQL: Room führt `DELETE` und `INSERT OR REPLACE`
+> nacheinander aus, beide greifen wirklich. Die iOS-Fassung hat die *Form*
+> übernommen, aber SwiftData arbeitet auf einem Objektgraphen und nicht auf
+> Anweisungen. Das ist die Art Portierungsfehler, die keine Übersetzung
+> auffängt.
+
+**Dass es so lange unsichtbar blieb, ist der zweite Teil des Fehlers.**
+`ChatModel.poll()` schluckte jeden Abgleichsfehler kommentarlos, und ein Chat,
+der nicht geladen werden kann, sah damit exakt aus wie ein leerer:
+„Noch keine Nachrichten — schreib die erste." Jetzt trennt die Ansicht die
+beiden Fälle; bei leerem Bestand und fehlgeschlagenem Abruf steht der Fehler
+da, mit „Erneut versuchen". Bei vorhandenem Verlauf bleibt es stumm, ein
+Aussetzer alle vier Sekunden ist kein Bannergrund.
+
+> **Noch nicht am Gerät bestätigt.** Die Diagnose stützt sich auf den Code und
+> darauf, dass der Server nachweislich liefert; hier gibt es kein iPhone.
+> Falls es nach dem nächsten TestFlight-Build weiterhin klemmt: einmal neu
+> installieren lassen (das wirft den festgefahrenen Bestand weg). Kommt es
+> danach zurück, liegt es woanders.
+
+### Chat-Blasen: der Spacer vom 18.09. konnte nicht wirken
+
+Am 18.09. (Commit `feadf87`) wurde ein `Spacer(minLength: 0)` neben die Blase
+gesetzt, weil `frame(maxWidth: 300)` „schrumpfen sollte, aber auf einem echten
+Gerät weiterhin volle Zeilenbreite zeigte". Der Spacer war die richtige Idee
+mit der falschen Zahl: `frame(maxWidth:)` schrumpft nicht auf den Inhalt,
+sondern nimmt, was angeboten wird — und gegen einen Spacer, der bei 0
+anfängt, setzt sich der gierige Rahmen durch.
+
+Der Rahmen ist jetzt weg, die Obergrenze setzt `Spacer(minLength: 56)`: Der
+Blase bleibt die Zeilenbreite minus 56 pt (auf dem Telefon rund 294 pt, also
+dieselbe Grenze wie gedacht), darunter bestimmt sie ihre Breite selbst.
+
+### Premium-Grenzen: der Regler log, und das Deck verschluckte Profile
+
+Der Server kappt den Suchumkreis für Standardkonten längst bei 50 km
+(`premium.clamp_radius`, seit Sitzung 17.09.2026 (6)). Beide Apps ließen den
+Regler trotzdem bis 250 km ziehen — gespeichert wurden 50, angezeigt 250. Der
+Regler endet jetzt an `max_radius_km` aus `GET /api/billing/status`, also an
+derselben Zahl, die der Server durchsetzt, mit einem Hinweis darunter. Ein
+älterer Wert über der Grenze (etwa nach einer Kündigung) wird mitgezogen; auf
+Android wird der Mitgliedsstand dafür beobachtet und nicht einmalig gelesen,
+weil Kauf und Ablauf mitten in der Sitzung greifen.
+
+> Die Web-App macht es bewusst anders: Dort bleibt der Regler über die volle
+> Spannweite bedienbar und ein Hinweis erklärt die Kappung
+> (`renderRadiusPremiumHint`, Kommentar in `app/index.html`). Das ist eine
+> gewollte Entscheidung und kein Versehen — in den Apps war es aber nach
+> ausdrücklichem Wunsch ein harter Anschlag.
+
+Beim Durchgehen der übrigen Grenzen fiel ein zweiter Fehler auf, in **beiden**
+Apps: Beim Swipe wird `currentIndex` sofort hochgezählt, damit sich die
+Oberfläche nie am Netz aufhält. Lehnt der Server den Like danach wegen des
+aufgebrauchten Kontingents ab (403, `like_limit_reached`), blieb die Karte
+trotzdem weg — das Profil war ohne Zutun übersprungen und im Deck nicht wieder
+zu finden. Jetzt kommt sie zurück, und zwar auf den Index der *abgelehnten*
+Karte (`min`/`coerceAtMost`, nicht „einen zurück"): Wer schnell wischt, hat
+bis zur Antwort vielleicht schon weitergewischt.
+
+Stand der Grenzen nach dieser Sitzung:
+
+| Grenze | Server | iOS | Android |
+|---|---|---|---|
+| 20 Likes/Tag | durchgesetzt | Karte kommt zurück | Karte kommt zurück |
+| 3 offene Chats | durchgesetzt | stehendes Banner im Chat | Meldung des Servers |
+| 50 km Umkreis | durchgesetzt | Regler endet dort | Regler endet dort |
+| Eingehende Likes | durchgesetzt | gesperrt dargestellt | gesperrt dargestellt |
+| Swipe zurücknehmen | durchgesetzt | Knopf nur mit Premium | Knopf nur mit Premium |
+
+Das Chat-Kontingent bekam in iOS ein **stehendes** Banner statt einer
+Einblendung: Wer dort ansteht, bekommt in diesem Chat nie eine Nachricht
+durch, solange kein Platz frei wird — eine Meldung, die nach 20 Sekunden
+verschwindet, liest sich dann wie eine Störung. Der Wortlaut kommt vom Server,
+damit die Zahl nicht an zwei Stellen gepflegt wird.
+
+### Kleinigkeiten in iOS
+
+* Leerzustände in Matches und Chats standen oben an der Überschrift (in der
+  Matchliste je nach offenen Likes noch eine Karte tiefer), im Deck und im
+  Chat dagegen mittig. Jetzt überall mittig
+  (`containerRelativeFrame(.vertical)`), Ziehen zum Aktualisieren bleibt.
+* „Datenschutz & Sicherheit" brach zweizeilig um: Der `HairlineDivider` neben
+  der Überschrift ist `maxWidth: .infinity` und nahm ihr den Platz weg.
+  `layoutPriority(1)` dreht die Reihenfolge um, `minimumScaleFactor(0.7)`
+  fängt lange Übersetzungen ab.
+
+### Android: Premium-Bildschirm und Aboverwaltung
+
+Das Schlosssymbol ist weg und der Kopf enger gesetzt — nur in der
+Android-App, iOS und Web bleiben, wie sie sind. Der gemeinsame `EmptyState`
+brachte 68 dp Symbolkreis plus je 48 dp Polsterung mit; ersetzt durch
+Überschrift und Untertitel direkt. Zusammen mit knapperen Abständen unter dem
+Zurück-Knopf werden **186 dp** frei. Nachgerechnet am Screenshot (≈1,55 px/dp):
+Der Knopf endete bei ~1389 px, die Navigationsleiste beginnt bei ~1210 px —
+es fehlten rund 179 px, frei werden ~288 px.
+
+> **Gerechnet, nicht am Gerät gesehen** — hier läuft kein Emulator. Falls es
+> knapp bleibt, ist die nächste Reserve die Innenpolsterung der Preiskarte
+> (20 dp).
+
+Das Schloss war ohnehin ein Überbleibsel der alten Bezahlwand: Seit dem
+10.09.2026 ist dort nichts mehr gesperrt, und ein Vorhängeschloss über einem
+freiwilligen Zusatzpaket sagt das Gegenteil.
+
+Die Verwaltung eines laufenden Abos sitzt jetzt als eigener Abschnitt
+**„Aboverwaltung"** unten in den Einstellungen statt in der Statuskarte unter
+dem Profilbild. Er steht bewusst als letzter *inhaltlicher* Abschnitt vor
+„Konto": Ausloggen und Kontolöschung gehören ans Ende. Gibt es nichts zu
+verwalten, bleibt der Abschnitt ganz weg statt als leere Überschrift
+dazustehen. Das **Angebot** für Nicht-Abonnenten bleibt oben in der Karte —
+das ist keine Verwaltung, und es gehört dorthin, wo man es findet. Gekündigt
+wird weiterhin dort, wo gekauft wurde: Bei einem Play-Kauf ist Google der
+Händler, wir könnten das Abo gar nicht beenden.
+
+### Web: Balken über dem Profilfoto springen an
+
+Bisher blätterten die Zonen links und rechts nur eines weiter; in beiden Apps
+springt ein Tipp auf einen Balken direkt auf dieses Foto. Die Web-App hat
+dafür jetzt einen 44 px hohen Streifen (`.photo-nav .zone.bars`) über den
+Balken, der die Tippstelle in eine Foto-Nummer umrechnet. Die Balken selbst
+nehmen weiterhin keine Tipper an (`pointer-events: none`), darunter bleibt es
+beim Blättern nach links und rechts.
+
+Im Browser gegen das echte CSS gemessen: Der Streifen gewinnt das Hit-Testing
+über die volle Breite (links, Mitte, rechts → `zone bars`), darunter greifen
+weiter `zone prev`/`zone next`, und die Segmentrechnung trifft bei drei Fotos
+die Indizes 0/0/1/2/2. Nur `app/index.html` betroffen — die App ist zur
+Laufzeit übersetzt (`i18n-app.js`), `en/` enthält nur Landing- und
+Rechtstexte.
+
+### Geprüft
+
+* **496 Backend-Tests grün.** Das Backend ist in dieser Sitzung unverändert
+  geblieben; die Suite lief als Gegenprobe.
+* **Android:** `:app:compileProdDebugKotlin` und die Test-Quellen kompilieren,
+  49 Unit-Tests grün, 0 Fehler. (JDK unter
+  `~/.bubblewrap/jdk/jdk-17.0.11+9`, SDK unter `~/.bubblewrap/android_sdk`,
+  Gradle läuft mit `--offline`.)
+* **Web:** im Browser gegen das echte CSS gemessen, siehe oben.
+* **iOS:** nicht kompiliert — auf diesem Gerät gibt es keine Swift-Toolchain.
+  Die Änderungen sind von Hand gegen die umgebenden Muster geprüft. **Das ist
+  die einzige Lücke dieser Sitzung**; der nächste Xcode-Build ist der
+  eigentliche Beweis.
+
+### Offen
+
+1. **iOS-Build.** Die 13 geänderten Swift-Dateien sind ungebaut. Neue
+   Symbole, an denen ein Tippfehler auffiele: `MessageEntity.apply(_:)`,
+   `ChatModel.limitNotice`/`loadError`/`retryLoad()`,
+   `AccountModel.maxSelectableRadiusKm`/`isRadiusCapped`, `L.chatLoadFailed`,
+   `L.accountRadiusCapped`.
+2. **Nachrichtenzustellung am Gerät gegenprüfen**, sobald der Build in
+   TestFlight ist — siehe den Kasten oben.
+3. **Android-Bildschirm ansehen**: passt der Zurück-Knopf auf der
+   Premium-Seite jetzt wirklich ohne Scrollen aufs Bild?
 
 ## Sitzung 18.09.2026 (5) — Widerruf der Art.-9-Einwilligung wirkte nur halb
 
