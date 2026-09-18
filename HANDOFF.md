@@ -216,7 +216,7 @@ Die Zahlen stehen in `backend/app/config.py` und sind zugleich eine
 `frontend/i18n-*.js`, `res/values*/strings.xml`, `agb.html`, `faq.html` und
 `app/legal.py` mit.
 
-**Aktuelles Android-Paket:** 2.6.9 (versionCode 109).
+**Aktuelles Android-Paket:** 2.7.7 (versionCode 119), Stand 18.09.2026.
 
 Zum **Installieren auf einem Gerät** taugt nur das **APK**. Das `.aab` ist das
 Veröffentlichungsformat für die Play Console und lässt sich auf einem Telefon
@@ -246,7 +246,8 @@ Die `vc101`- bis `vc104`-Dateien sind hinfällig. Die Play Console hatte 43 und
 > englischen Texte lagen dort in einem Sprach-Split, den ein deutsches Gerät
 > nie herunterlädt. Erst ab 2.6.3 stecken beide Sprachen im Basis-Paket.
 
-Aufbau des Dokuments: erst diese Eckdaten, dann **die Sitzung vom 18.09. (6)**
+Aufbau des Dokuments: erst diese Eckdaten, dann **die Sitzung vom 18.09. (7)**
+(Aboverwaltung im Web, Push bei beendeter Android-App), dann **18.09. (6)**
 (Bug-Durchgang in allen drei Oberflächen), dann **18.09. (5)** (Widerruf der
 Art.-9-Einwilligung wirkte nur halb), dann **18.09. (4)** („Swipe
 zurücknehmen" blieb an einem Match hängen), dann **18.09. (3)** (Kompletter
@@ -268,6 +269,148 @@ Ausgangssitzung), dann die **drei Abschnitte vom 10.09.**
 **08.09.**, dann die beiden Sitzungen vom **07.09.**, dann **06.09.**, dann
 **05.09.**, dann **31.08.**, **30.08.**, **23.08.**, **21.08.**; die Build-,
 Test- und Deploy-Abschnitte am Ende gelten sitzungsübergreifend.
+
+## Sitzung 18.09.2026 (7) — Aboverwaltung im Web, Push bei beendeter Android-App
+
+Drei Aufträge: die Aboverwaltung in der Web-App an dieselbe Stelle wie in der
+Android-App; Android-Benachrichtigungen, die bei vollständig geschlossener App
+ausbleiben; und zwei Einblendungen beim Zurücknehmen eines Swipes, die weg
+sollten. Code-Stand am Ende: **`e9b069b`**. Backend unverändert — keine
+Migration, kein Neustart.
+
+### Web: „Aboverwaltung" zwischen Benachrichtigungen und Datenschutz
+
+Die Verwaltung eines laufenden Abos saß in der Statuskarte unter dem
+Profilbild; in der Android-App ist sie seit 18.09. (6) unten in den
+Einstellungen. Jetzt auch im Web, als dritte Zeile **zwischen**
+„Benachrichtigungen" und „Datenschutz & Sicherheit". Das *Angebot* für
+Nicht-Abonnenten bleibt oben in der Karte — das verwaltet nichts.
+
+Dabei ist eine Sackgasse aufgefallen und mit behoben: Die Web-App zeigte den
+Verwalten-Link bei jedem `is_premium`, auch wenn das Abo aus einer der Apps
+stammt. `/api/billing/portal` antwortet darauf mit 400 („Noch kein Abo
+abgeschlossen"), weil es keinen Stripe-Kunden gibt. Jetzt zwei Fälle, die sich
+gegenseitig ausschließen:
+
+| Zustand | Zeile |
+| --- | --- |
+| `has_stripe_subscription` | Link „Aboverwaltung" → Stripe-Kundenportal |
+| `is_premium` ohne Stripe | Satz: Abo läuft über App Store bzw. Google Play |
+| sonst | die Zeile bleibt ganz weg |
+
+Der Stripe-Fall gilt bewusst auch bei ausgeschaltetem Premium: Ein Altabo muss
+kündbar bleiben (siehe `billing.create_portal`).
+
+`acct.manageSub` ist damit unbenutzt und aus `i18n-app.js` entfernt; neu sind
+`acct.subscription` und `acct.subStoreHint` (DE und EN).
+
+**Geprüft:** Reihenfolge und Darstellung im Browser gegen das echte CSS, beide
+Fälle und beide Sprachen; die Zustandslogik zusätzlich in einem Node-Lauf über
+alle fünf Fälle (Stripe-Abo, Store-Abo, Altabo bei ausgeschaltetem Premium,
+Gratiskonto, Status noch nicht geladen). 496 Backend-Tests grün. Deployt und
+per Prüfsumme gegengeprüft (`63337577…`).
+
+### Android: Push kommt nur, solange der Prozess noch lebt
+
+**Gemeldet:** Im Hintergrund geöffnet kommen Chat-Benachrichtigungen sofort;
+nach dem Wischen aus der Übersicht kommt keine einzige.
+
+**Am Server liegt es nicht.** Belege, nicht Vermutungen: `push.py` schickt in
+beiden Fällen dieselbe Nachricht mit `notification`-Nutzlast und
+`priority: high`, das VPS-Journal zeigt über drei Tage **keinen** FCM-Fehler
+und keine verworfenen Token, und der Android-Token des Kontos steht mit
+frischem `last_seen` in der Datenbank. Firebase nimmt die Nachricht in beiden
+Fällen an.
+
+**Der Unterschied entsteht auf dem Gerät.** Ist der Prozess weg, muss Android
+ihn für die Zustellung neu starten — die Benachrichtigung zeichnet in diesem
+Fall das Firebase-SDK im App-Prozess, nicht Google Play Services für uns.
+Genau diesen Neustart verweigern die Akku-Optimierung und, deutlich schärfer,
+die Hersteller-Ruhemodi darüber (Samsungs „Apps im Ruhemodus", Xiaomis
+Autostart-Sperre). Kein Code in der App kann das umgehen; es ist eine
+Entscheidung des Systems **über** die App. Passend dazu, dass auch der
+15-Minuten-Fallback (`MessageNotificationScheduler`) nichts nachliefert: Ein
+schlafen gelegtes Paket führt auch keine WorkManager-Aufträge mehr aus.
+
+Was in unserer Hand liegt, ist jetzt drin (`android-native`):
+
+1. **Hinweis auf die Ausnahme.** Die Benachrichtigungseinstellungen lesen
+   `PowerManager.isIgnoringBatteryOptimizations` und führen mit einem Tipp in
+   die Systemliste. Bewusst **nicht** über den Einzeldialog
+   `ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS`: Dessen Berechtigung lässt
+   Google nur für Alarme, Anrufe und Gerätesteuerung zu — eine Dating-App
+   fliegt damit aus der Prüfung. Steht die Ausnahme schon, sagt die Zeile das
+   (nützlich beim Nachstellen des Fehlers). Neu gelesen bei der Rückkehr aus
+   den Einstellungen.
+2. **Das SDK zeichnet jetzt wie die App.** Bei beendeter App läuft
+   `onMessageReceived()` **nicht** — das gilt für jede Nachricht mit
+   `notification`-Nutzlast, sobald die App nicht im Vordergrund ist. Ohne
+   Manifest-Angaben nahm das SDK dafür das Launcher-Symbol, die Standardfarbe
+   und notfalls einen Ersatzkanal „Sonstiges". Jetzt stehen
+   `default_notification_icon`, `default_notification_color` und
+   `default_notification_channel_id` im Manifest.
+3. **Der Tipp führt wieder in die Chats.** Das SDK legt die Datennutzlast als
+   Extras in den Start-Intent — der Schlüssel heißt dort `target`, so wie in
+   der Nutzlast. `MainActivity` las bisher nur die eigenen Schlüssel
+   (`open_chats`, `notification_target`); ein Tipp auf die SDK-Benachrichtigung
+   landete also stumm auf dem Startbildschirm. Neuer Unit-Test
+   `PushZustellungTest` hält Manifest, Server-Nutzlast und Kotlin-Konstanten
+   zusammen — drei Orte, die kein Compiler vergleicht.
+
+> **Nicht am Gerät geprüft.** Hier läuft kein Emulator. Der Beweis ist der
+> nächste Versuch mit dem 2.7.7-APK: App ganz schließen, Nachricht schicken.
+> Kommt weiterhin nichts, ist die Akku-Ausnahme der nächste Griff — sie steht
+> jetzt im selben Dialog.
+
+### Android: zwei Einblendungen beim Zurücknehmen weg
+
+Beide auf ausdrücklichen Wunsch, beide **nur in der Android-App**:
+
+* „Swipe zurückgenommen." verdeckte genau die Karte, die gerade
+  zurückgekommen ist — die Karte sagt es selbst.
+* „Daraus ist schon ein Match geworden …" (409) erschien am Anfang des Decks
+  bei jedem Versuch: Dort liegen in der Regel nur gematchte Swipes, es gibt
+  also schlicht nichts zurückzunehmen. Der 404 („Es gibt keinen Swipe zum
+  Zurücknehmen") ist aus demselben Grund mit verstummt.
+
+Die Absage mangels Premium (403) bleibt sichtbar — sie ist die einzige, an der
+der Nutzer etwas ändern kann; dafür gibt es jetzt eine Zusicherung im Test.
+`premium_rewind_done` ist damit unbenutzt und aus beiden `strings.xml`
+entfernt. **Web und iOS zeigen beide Meldungen weiterhin** (nicht beauftragt).
+
+### Geprüft
+
+* **496 Backend-Tests grün** (Backend in dieser Sitzung unverändert).
+* **Android:** 53 Unit-Tests grün (4 neue), Kotlin- und Test-Quellen
+  kompilieren, Release-Build durch. Die drei Manifest-Angaben stehen
+  nachweislich im gebauten APK (`aapt2 dump xmltree`), Symbol und Farbe haben
+  den Ressourcen-Shrinker überlebt (`aapt2 dump resources`).
+* **Web:** im Browser gegen das echte CSS, beide Zustände und beide Sprachen.
+* **iOS:** nicht angefasst.
+
+### Android 2.7.7 (versionCode 119)
+
+Gebaut mit `clean testProdReleaseUnitTest assembleProdRelease
+bundleProdRelease`, signiert mit demselben Upload-Key wie bisher
+(SHA-256 `bc64ad3f…`, gegen `release-2.7.6/` gegengeprüft). `.aab` und `.apk`
+liegen mit `SHA256SUMS.txt` in `release-2.7.7/` und sind im Chat übergeben.
+
+| | |
+|---|---|
+| AAB (Play Console) | `flexr-2.7.7-vc119.aab`, 8,4 MB |
+| APK (direkt installierbar) | `flexr-2.7.7-vc119.apk`, 4,4 MB |
+
+### Offen
+
+1. **2.7.7 ist noch nicht in der Play Console** — wie schon 2.7.6.
+2. **Der Push-Befund ist unbestätigt.** Nachstellen mit dem 2.7.7-APK: App
+   komplett schließen, Nachricht vom zweiten Konto schicken. Kommt sie, war es
+   der Kanal/Neustart-Pfad; kommt sie nicht, in Konto → Benachrichtigungen die
+   Akku-Ausnahme setzen und denselben Versuch wiederholen. Welches Telefon und
+   welche Android-Fassung — steht nirgends und wäre für die nächste Runde
+   nützlich.
+3. **Web und iOS:** Sollen die beiden Rewind-Meldungen dort auch weg? Bisher
+   bewusst nicht angefasst.
 
 ## Sitzung 18.09.2026 (6) — Bug-Durchgang in allen drei Oberflächen
 
@@ -5931,13 +6074,29 @@ print(re.findall(rb"[0-9]+\.[0-9]+\.[0-9]+", d)[:5])' \
 
 ## Erinnerung für die nächste Sitzung
 
+Neu aus der Sitzung 18.09. (7):
+
+- **Android 2.7.7 (versionCode 119) ist noch nicht in der Play Console** —
+  gebaut, signiert, im Chat übergeben (AAB und APK, Prüfsummen im
+  18.09.-(7)-Abschnitt).
+- **Der Push-Befund „nichts bei beendeter App" ist unbestätigt.** Der nächste
+  Versuch mit dem 2.7.7-APK ist der Beweis; führt er zu nichts, ist die
+  Akku-Ausnahme dran (steht jetzt in Konto → Benachrichtigungen ganz oben).
+  **Telefonmodell und Android-Fassung erfragen** — beides fehlt bisher und
+  entscheidet, wie streng der Hersteller die App schlafen legt.
+- Nachfragen, ob die beiden Rewind-Meldungen auch in **Web und iOS**
+  verschwinden sollen — in der Android-App sind sie weg, dort nicht.
+- Die **Aboverwaltung in der Web-App** (Konto, zwischen „Benachrichtigungen"
+  und „Datenschutz & Sicherheit") ist ausgerollt, aber vom Nutzer noch nicht
+  begutachtet — samt neuem Hinweis für Abos aus den Stores.
+
 - Zuerst `git fetch origin` + HEAD-Abgleich (siehe oben), erst danach
   irgendetwas anfassen. Beim Deploy den Deploy-Key mitgeben (siehe
   „Normaler Commit- und Deploy-Ablauf"), sonst scheitert der Pull.
-- **Der lokale Ordner `~/MEGA/flexr/flexr` ist git-seitig veraltet** (Inhalt
-  stimmt, Historie nicht) — siehe Sitzung 05.09. Einmal
-  `git reset --mixed origin/main` nachholen, sonst wiederholt sich die
-  Worktree-Umgehung in jeder Sitzung.
+- ~~**Der lokale Ordner `~/MEGA/flexr/flexr` ist git-seitig veraltet**~~ —
+  **erledigt**: Am 18.09. (7) stand `HEAD` auf demselben Commit wie
+  `origin/main`, der Arbeitsbaum war sauber, und beide Commits der Sitzung
+  gingen ohne Umweg durch. Die Worktree-Umgehung ist nicht mehr nötig.
 - Der **Beta-Hinweis nennt „Ende September 2026"** als Android-Termin.
   Verschiebt sich der Termin oder erscheint die App, den Text anpassen **und**
   den localStorage-Schlüssel auf `flexr_beta_notice_v2` hochzählen — sonst
