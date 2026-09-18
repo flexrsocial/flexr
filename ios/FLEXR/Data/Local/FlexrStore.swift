@@ -92,22 +92,53 @@ final class FlexrStore {
     }
 
     /// Serverstand für einen Chat übernehmen: bestätigte Nachrichten werden
-    /// ersetzt, noch nicht zugestellte (optimistische) bleiben erhalten.
+    /// aktualisiert, neue angelegt, verschwundene entfernt. Noch nicht
+    /// zugestellte (optimistische) bleiben unangetastet.
+    ///
+    /// Bis zum 18.09.2026 stand hier „alles löschen, alles neu einfügen". Das
+    /// ist bei `@Attribute(.unique)` (siehe `MessageEntity.messageID`) genau
+    /// der Fall, den man nicht bauen darf: Löschung und Neuanlage **derselben**
+    /// Kennung liegen dann in einem einzigen Speichervorgang, und der
+    /// eindeutige Schlüssel entscheidet den Konflikt. Scheitert das Speichern
+    /// dabei, bleiben die Änderungen offen im Kontext stehen, jeder folgende
+    /// `save()` läuft in denselben Konflikt — und die Oberfläche zeigt
+    /// unverändert den alten Stand, ohne dass irgendwo ein Fehler auftaucht.
+    ///
+    /// Jetzt derselbe Weg wie bei den Matches (`replaceMatches`): vorhandene
+    /// Zeilen werden beschrieben, nicht ersetzt. Damit gibt es den Konflikt
+    /// gar nicht erst.
     func replaceSyncedMessages(matchID: String, with messages: [Message]) {
-        for existing in self.messages(matchID: matchID) where !existing.isPending {
-            context.delete(existing)
+        let vorhanden = Dictionary(
+            self.messages(matchID: matchID).map { ($0.messageID, $0) },
+            uniquingKeysWith: { first, _ in first }
+        )
+        let vomServer = Set(messages.map(\.id))
+
+        // Entfernt wird nur, was der Server nicht mehr kennt — wer noch auf
+        // seine Zustellung wartet, bleibt stehen.
+        for (id, entity) in vorhanden where !entity.isPending && !vomServer.contains(id) {
+            context.delete(entity)
         }
         for message in messages {
-            context.insert(MessageEntity.make(message))
+            if let entity = vorhanden[message.id] {
+                entity.apply(message)
+            } else {
+                context.insert(MessageEntity.make(message))
+            }
         }
         save()
     }
 
     func insert(_ message: Message, isPending: Bool) {
+        // Beschreiben statt löschen-und-neu-anlegen, aus demselben Grund wie in
+        // `replaceSyncedMessages`: Beides in einem Speichervorgang stellt den
+        // eindeutigen Schlüssel gegen sich selbst.
         if let existing = self.message(id: message.id) {
-            context.delete(existing)
+            existing.apply(message)
+            existing.isPending = isPending
+        } else {
+            context.insert(MessageEntity.make(message, isPending: isPending))
         }
-        context.insert(MessageEntity.make(message, isPending: isPending))
         save()
     }
 
@@ -134,7 +165,29 @@ final class FlexrStore {
         save()
     }
 
+    /// Speichern — und ein Scheitern nicht verschlucken.
+    ///
+    /// `try?` allein war hier die gefährlichere Hälfte des Fehlers vom
+    /// 18.09.2026: Geht ein `save()` schief, bleiben die Änderungen offen im
+    /// Kontext liegen. Der nächste Abgleich legt seine eigenen obendrauf,
+    /// scheitert am selben Konflikt — und so weiter. Der Bestand steht dann
+    /// dauerhaft still, über App-Neustarts hinweg, ohne eine einzige Meldung:
+    /// Die Oberfläche liest ja brav, was in der Datei steht, nur kommt dort
+    /// nichts Neues mehr an.
+    ///
+    /// `rollback()` verwirft den kaputten Stapel und macht den Kontext wieder
+    /// arbeitsfähig. Verloren geht dabei nichts, was nicht zu ersetzen wäre:
+    /// Der Bestand ist reiner Spiegel des Servers, der nächste Abruf füllt ihn
+    /// neu. In Debug-Builds bricht es stattdessen ab — so ein Konflikt ist ein
+    /// Fehler im Programm und soll nicht erst beim Nutzer auffallen.
     private func save() {
-        try? context.save()
+        do {
+            try context.save()
+        } catch {
+            #if DEBUG
+            assertionFailure("FlexrStore: Speichern fehlgeschlagen — \(error)")
+            #endif
+            context.rollback()
+        }
     }
 }

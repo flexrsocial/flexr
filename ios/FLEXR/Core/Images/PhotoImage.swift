@@ -29,22 +29,38 @@ struct PhotoImage: View {
     @State private var isLoading = false
 
     var body: some View {
-        ZStack {
-            FlexrColor.surface2
-            if let image {
-                Image(uiImage: image)
-                    .resizable()
-                    .aspectRatio(contentMode: contentMode)
-                    .transition(.opacity)
+        // Der Platzhalter bestimmt die Groesse, das Foto liegt als `overlay`
+        // darueber. Das ist der entscheidende Unterschied zu einem ZStack:
+        //
+        // `Image.resizable().aspectRatio(contentMode: .fill)` meldet bewusst
+        // eine Groesse, die den Vorschlag **ueberragt** - anders ginge ein
+        // Cover-Zuschnitt gar nicht. In einem ZStack uebernimmt der Stapel
+        // diese zu grosse Meldung, und `.clipped()` schneidet dann nichts ab,
+        // weil es an genau diesen zu grossen Rahmen geschnitten hat. Die
+        // Umgebung rechnete danach mit einer zu hohen Bildflaeche.
+        //
+        // Ein `overlay` wirkt nie auf die Groesse seines Gastgebers zurueck:
+        // `PhotoImage` ist damit immer exakt so gross wie vorgeschlagen, und
+        // `.clipped()` schneidet den Ueberstand wirklich weg. Genau dieser
+        // Fehler hatte im Fotoraster schon einmal zugeschlagen (siehe den
+        // Kommentar in PhotoGrid.swift) - dort mit einem Umweg umgangen,
+        // hier jetzt an der Wurzel behoben.
+        FlexrColor.surface2
+            .overlay {
+                if let image {
+                    Image(uiImage: image)
+                        .resizable()
+                        .aspectRatio(contentMode: contentMode)
+                        .transition(.opacity)
+                }
             }
-        }
-        .clipped()
-        .task(id: source) { await load() }
-        .animation(.easeOut(duration: 0.2), value: image != nil)
-        .accessibilityElement()
-        .accessibilityLabel(accessibilityLabel ?? "")
-        .accessibilityAddTraits(accessibilityLabel == nil ? [] : .isImage)
-        .accessibilityHidden(accessibilityLabel == nil)
+            .clipped()
+            .task(id: source) { await load() }
+            .animation(.easeOut(duration: 0.2), value: image != nil)
+            .accessibilityElement()
+            .accessibilityLabel(accessibilityLabel ?? "")
+            .accessibilityAddTraits(accessibilityLabel == nil ? [] : .isImage)
+            .accessibilityHidden(accessibilityLabel == nil)
     }
 
     private func load() async {

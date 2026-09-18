@@ -150,6 +150,7 @@ class SwipeViewModel @Inject constructor(
         val target = _uiState.value.current ?: return
         // Die Karte ist bereits weggeflogen — sofort weiterschalten, damit sich
         // die Oberfläche nie am Netz aufhält.
+        val gewischterIndex = _uiState.value.currentIndex
         _uiState.update { it.copy(currentIndex = it.currentIndex + 1) }
 
         viewModelScope.launch {
@@ -164,10 +165,22 @@ class SwipeViewModel @Inject constructor(
                     runCatching { matchRepository.refresh() }
                 }
             }.onFailure { throwable ->
+                val fehler = throwable as? FlexrApiException
+                // Aufgebrauchtes Like-Kontingent: Die Karte kommt zurueck.
+                // Vorher blieb sie weg, obwohl der Like nie gezaehlt hat - das
+                // Profil war damit ohne Zutun uebersprungen und im Deck nicht
+                // wieder zu finden.
+                //
+                // `coerceAtMost` und nicht "einen zurueck": Wer schnell wischt,
+                // hat bis zur Antwort des Servers vielleicht schon
+                // weitergewischt. Auf den Index der abgelehnten Karte
+                // zurueckzugehen ist dann richtig, ein Schritt zurueck waere
+                // eine beliebige andere Karte.
+                if (fehler?.code == "like_limit_reached") {
+                    _uiState.update { it.copy(currentIndex = it.currentIndex.coerceAtMost(gewischterIndex)) }
+                }
                 _events.send(
-                    SwipeEvent.Message(
-                        (throwable as? FlexrApiException)?.message ?: strings.get(R.string.swipe_failed),
-                    ),
+                    SwipeEvent.Message(fehler?.message ?: strings.get(R.string.swipe_failed)),
                 )
             }
         }

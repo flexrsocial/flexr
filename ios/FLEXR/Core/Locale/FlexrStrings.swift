@@ -75,7 +75,8 @@ enum L: Hashable, Sendable {
     case matchProfileUnmatchBody, matchProfileUnmatchConfirm, unmatchDone
 
     // Chat
-    case chatEmptyTitle, chatEmptySub, chatBlockBody, chatClearTitle, chatClearBody, chatClearConfirm
+    case chatEmptyTitle, chatEmptySub, chatLoadFailed
+    case chatBlockBody, chatClearTitle, chatClearBody, chatClearConfirm
     case chatDeleteTitle, chatDeleteBody, chatDeleteAction, chatClearAction, chatCleared
     case chatCensoredOut, chatCensoredIn, chatMutedBanner, chatInputPlaceholder
     case chatInputLocked, chatSendFailed, chatDeleted, chatOpenFailed, chatMuteReason
@@ -91,7 +92,7 @@ enum L: Hashable, Sendable {
 
     // Konto
     case accountSectionProfile, accountSectionPhotos
-    case accountManageSubscription, accountRadiusHint
+    case accountManageSubscription, accountRadiusHint, accountRadiusCapped
 
     // FLEXR Premium. Die Nutzung von FLEXR selbst ist dauerhaft kostenlos;
     // Preis und Grenzen kommen als Platzhalter vom Server.

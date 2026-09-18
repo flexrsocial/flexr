@@ -172,7 +172,13 @@ private struct MatchListScreen<Row: View, Header: View>: View {
 
             if matches.isEmpty, !isRefreshing {
                 ScrollView {
+                    // Mittig im verbleibenden Platz, wie der Leerzustand im
+                    // Deck und im Chat (beide `.frame(maxHeight: .infinity)`).
+                    // Ohne das klebte er hier oben an der Ueberschrift — und
+                    // in der Matchliste noch eine Karte tiefer als in den
+                    // Chats, je nachdem ob offene Likes anstehen.
                     EmptyStateView(icon: emptyIcon, title: emptyTitle, message: emptyMessage)
+                        .containerRelativeFrame(.vertical, alignment: .center)
                 }
                 .refreshable { await onRefresh() }
             } else {

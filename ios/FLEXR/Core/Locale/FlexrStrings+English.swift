@@ -213,6 +213,7 @@ extension FlexrStrings {
         .chatInputLocked: "Chat temporarily blocked",
         .chatMuteReason: "Reason: %@",
         .chatSendFailed: "The message could not be sent.",
+        .chatLoadFailed: "The conversation could not be loaded.",
         .chatCleared: "Chat history cleared.",
         .chatDeleted: "Chat deleted.",
         .chatOpenFailed: "The chat could not be opened.",
@@ -313,6 +314,7 @@ extension FlexrStrings {
             Unmatch someone to free up a slot.
             """,
         .accountManageSubscription: "Manage / cancel subscription",
+        .accountRadiusCapped: "Without FLEXR Premium the search reaches %d km.",
         .accountRadiusHint: """
             The starting point is your gym's address — not your home and not \
             your current location. Within the radius you set you also see people \

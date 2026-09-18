@@ -445,6 +445,12 @@
      Markup und damit ueber den beiden Haelften, reicht aber bewusst weder an
      den oberen Rand noch bis zur Namenszeile. */
   .card .photo-nav .zone.zoom{ left:28%; right:28%; top:34%; bottom:26%; cursor:zoom-in; }
+  /* Streifen ganz oben, ueber den beiden Blaetter-Haelften: Ein Tipp auf einen
+     Balken (bzw. den Bereich darunter) springt direkt auf dieses Foto, statt
+     Foto fuer Foto zu blaettern - so wie es die Apps schon machen. 44px hoch,
+     weil die Balken selbst mit 3px viel zu schmal zum Treffen waeren; darunter
+     bleibt es beim Blaettern nach links und rechts. */
+  .card .photo-nav .zone.bars{ left:0; right:0; top:0; height:44px; }
   /* Reine Anzeige - Tipper sollen zu den Zonen darunter durchfallen. */
   .card .photo-index, .card .photo .name-row{ pointer-events:none; }
   .card .photo .name-row{ z-index:2; }
@@ -5413,6 +5419,7 @@
         <div class="photo-nav">
           <div class="zone prev" data-dir="-1"></div>
           <div class="zone next" data-dir="1"></div>
+          ${(p.photos||[]).length > 1 ? '<div class="zone bars"></div>' : ''}
           <div class="zone zoom"></div>
         </div>
         <div class="photo-index">${(p.photos||[]).map((_,i)=>`<i class="${i===0?'on':''}"></i>`).join('')}</div>
@@ -5470,6 +5477,19 @@
         if(e.target.closest('.flag-btn')) return;
         if(Math.abs(e.clientX - downX) > 8 || Math.abs(e.clientY - downY) > 8) return;
         const zone = e.target.closest('.photo-nav .zone');
+        // Streifen oben: direkt auf das angetippte Foto, nicht eines weiter.
+        // Die Balken selbst nehmen keine Tipper an (pointer-events:none), der
+        // Streifen darunter rechnet die Stelle in eine Foto-Nummer um - genau
+        // wie der photoSelector der iOS-App und der Android-Fassung.
+        if(zone && zone.classList.contains('bars') && photos.length > 1){
+          const rect = zone.getBoundingClientRect();
+          const breite = rect.width / photos.length;
+          showPhoto(Math.min(
+            photos.length - 1,
+            Math.max(0, Math.floor((e.clientX - rect.left) / breite))
+          ));
+          return;
+        }
         // Bei nur einem Foto gibt es nichts zu blättern - dann vergrössert
         // jeder Tipp, sonst wären zwei Drittel der Fläche wirkungslos.
         if(zone && zone.dataset.dir && photos.length > 1){

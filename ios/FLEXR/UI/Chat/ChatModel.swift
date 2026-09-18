@@ -25,6 +25,27 @@ final class ChatModel {
     /// Begründung und Widerspruchshinweis zur Sperre (Art. 17 DSA).
     var muteReason: String?
     var appealHint: String?
+    /// Das Kontingent an gleichzeitigen Unterhaltungen ist voll
+    /// (`premium.ensure_chat_allowed`, Code `chat_limit_reached`).
+    ///
+    /// Als eigener Zustand und nicht nur als flüchtige Meldung: Wer hier
+    /// anstößt, bekommt in *diesem* Chat nie eine Nachricht durch, solange kein
+    /// Platz frei wird. Eine Einblendung, die nach 20 Sekunden verschwindet,
+    /// liest sich dann wie eine Störung — und es sieht aus, als käme beim
+    /// Gegenüber einfach nichts an. Der Hinweis bleibt deshalb stehen, bis es
+    /// wirklich klappt.
+    var limitNotice: String?
+    /// Der Verlauf ließ sich nicht holen und es gibt auch örtlich keinen.
+    ///
+    /// Bis zum 18.09.2026 verschwand ein solcher Fehler spurlos — der
+    /// Hintergrundabgleich schluckte ihn, und die Ansicht zeigte denselben
+    /// Leerzustand wie ein Chat, in dem wirklich noch nichts steht
+    /// („Schreib die erste"). Wer keine Nachrichten bekam, konnte gar nicht
+    /// unterscheiden, ob keine da sind oder keine ankommen.
+    ///
+    /// Nur bei leerem örtlichem Bestand: Ein Aussetzer über einem vorhandenen
+    /// Verlauf ist kein Grund, den Verlauf gegen eine Fehlerseite zu tauschen.
+    var loadError: String?
     /// Signalisiert der Ansicht, dass sie sich schließen soll.
     var isClosed = false
 
@@ -77,17 +98,39 @@ final class ChatModel {
     /// Verlassen ab, deshalb braucht es keinen eigenen Abbruchmechanismus.
     private func poll() async {
         while !Task.isCancelled {
-            do {
-                try await messageRepository.refresh(matchID: matchID)
-                matches.markRead(matchID: matchID)
-            } catch {
-                // Ohne Netz bleibt der lokale Stand stehen — kein Fehlerbanner
-                // für einen Hintergrundabgleich.
-            }
-            reload()
+            await refreshOnce()
             isLoading = false
             try? await Task.sleep(for: Self.pollInterval)
         }
+    }
+
+    /// Ein Abgleich mit dem Server.
+    ///
+    /// Ohne Netz bleibt der örtliche Stand stehen — dafür gibt es kein
+    /// Fehlerbanner, das wäre bei einem Abgleich alle vier Sekunden eine
+    /// Belästigung. Steht aber gar nichts da, dann ist der Fehler die einzige
+    /// Auskunft, die es gibt, und er gehört auf den Schirm: Sonst sieht ein
+    /// Chat, der nicht geladen werden kann, genauso aus wie ein leerer.
+    private func refreshOnce() async {
+        do {
+            try await messageRepository.refresh(matchID: matchID)
+            matches.markRead(matchID: matchID)
+            loadError = nil
+        } catch {
+            loadError = messageRepository.messages(matchID: matchID).isEmpty
+                ? ((error as? FlexrAPIError)?.message ?? s(.chatLoadFailed))
+                : nil
+        }
+        reload()
+    }
+
+    /// „Erneut versuchen" aus dem Fehlerzustand heraus — ohne auf den nächsten
+    /// Durchlauf des Abgleichs zu warten.
+    func retryLoad() async {
+        loadError = nil
+        isLoading = true
+        await refreshOnce()
+        isLoading = false
     }
 
     private func reload() {
@@ -137,6 +180,7 @@ final class ChatModel {
                 content: content
             )
             reload()
+            limitNotice = nil
             _ = try? await matches.refresh()
         } catch {
             let apiError = error as? FlexrAPIError
@@ -147,7 +191,14 @@ final class ChatModel {
             appealHint = apiError?.appealHint ?? appealHint
             reload()
 
-            if apiError?.mutedUntil == nil {
+            if apiError?.code == "chat_limit_reached" {
+                // Stehender Hinweis statt Einblendung — und bewusst nicht
+                // beides, das wäre dieselbe Nachricht zweimal. Der Wortlaut
+                // kommt vom Server: Dort steht die Zahl, die auch durchgesetzt
+                // wird; hier eine eigene zu führen hiesse, sie an zwei Stellen
+                // zu pflegen.
+                limitNotice = apiError?.message ?? s(.chatSendFailed)
+            } else if apiError?.mutedUntil == nil {
                 if apiError?.statusCode == 403 { await refreshMuteState() }
                 onMessage(apiError?.message ?? s(.chatSendFailed))
             }

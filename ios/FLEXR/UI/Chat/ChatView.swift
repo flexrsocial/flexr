@@ -59,6 +59,12 @@ struct ChatView: View {
                     reason: model.muteReason,
                     appealHint: model.appealHint
                 )
+            } else if let notice = model.limitNotice {
+                // Volles Chat-Kontingent. Bewusst ein stehender Hinweis und
+                // keine Einblendung: Ohne freien Platz geht in diesem Chat
+                // dauerhaft nichts raus — als kurz aufblitzende Meldung sieht
+                // das aus wie ein Aussetzer und nicht wie eine Grenze.
+                LimitBanner(text: notice)
             }
 
             ChatInputRow(
@@ -110,7 +116,21 @@ struct ChatView: View {
 
     @ViewBuilder
     private func messageList(_ model: ChatModel) -> some View {
-        if model.messages.isEmpty, !model.isLoading {
+        if model.messages.isEmpty, !model.isLoading, let fehler = model.loadError {
+            // Ein Chat, der nicht geladen werden konnte, darf nicht aussehen
+            // wie ein Chat, in dem noch nichts steht.
+            EmptyStateView(
+                icon: .symbol(FlexrIcon.chats),
+                title: s(.swipeErrorTitle),
+                message: fehler
+            ) {
+                FlexrSecondaryButton(title: s(.swipeRetry)) {
+                    Task { await model.retryLoad() }
+                }
+                .frame(maxWidth: 220)
+            }
+            .frame(maxHeight: .infinity)
+        } else if model.messages.isEmpty, !model.isLoading {
             EmptyStateView(
                 icon: .symbol(FlexrIcon.send),
                 title: s(.chatEmptyTitle),
@@ -259,19 +279,25 @@ private struct MessageBubble: View {
 
     var body: some View {
         VStack(alignment: isMine ? .trailing : .leading, spacing: 3) {
-            // HStack + Spacer statt allein auf `.frame(maxWidth: 300)` zu
-            // vertrauen, das schrumpfen sollte, aber am 18.09.2026 auf einem
-            // echten Gerät weiterhin volle Zeilenbreite zeigte (auch bei
-            // Ein-Wort-Nachrichten wie "test" oder "bjj"). Ein
-            // `Spacer(minLength: 0)` nimmt garantiert den ganzen Rest der
-            // Zeile, egal was frame(maxWidth:) intern tut - die Blase daneben
-            // bekommt dadurch nie mehr zugewiesen als ihren eigenen Inhalt.
-            // Dasselbe Prinzip wie Androids Column+widthIn in einem äußeren
-            // Row (siehe ChatScreen.kt), nur mit dem robusteren Primitiv.
+            // Der Spacer ist das Maß, nicht `.frame(maxWidth:)`.
+            //
+            // `.frame(maxWidth: 300)` schrumpft nicht auf den Inhalt: Der
+            // Rahmen nimmt, was ihm angeboten wird, bis zur Grenze — auf dem
+            // Telefon also immer die vollen 300 pt, auch bei "test" oder
+            // "bjj". Genau das war am 18.09.2026 zu sehen, und der zusätzliche
+            // `Spacer(minLength: 0)` half nicht: Gegen einen Spacer, der bei 0
+            // anfängt, setzt sich der gierige Rahmen durch.
+            //
+            // `Spacer(minLength: 56)` dreht das um. Der Blase bleibt die
+            // Zeilenbreite minus 56 pt (auf dem Telefon rund 294 pt, also
+            // dieselbe Obergrenze wie bisher), und darunter bestimmt sie ihre
+            // Breite selbst — kurze Nachrichten werden wieder kurze Blasen.
+            // Dasselbe Prinzip wie Androids `widthIn(max = …)` in einem
+            // äußeren Row (siehe ChatScreen.kt).
             HStack(spacing: 0) {
-                if isMine { Spacer(minLength: 0) }
+                if isMine { Spacer(minLength: 56) }
                 bubble
-                if !isMine { Spacer(minLength: 0) }
+                if !isMine { Spacer(minLength: 56) }
             }
 
             // Zensur-Hinweis: der Absender erfährt, dass geschützt wurde, der
@@ -289,9 +315,10 @@ private struct MessageBubble: View {
     }
 
     /// Der eigentliche Blasen-Inhalt: Text und Zeitstempel mit fester
-    /// Innenpolsterung. `.frame(maxWidth: 300)` bleibt als Obergrenze für
-    /// sehr lange Nachrichten auf breiten Bildschirmen (iPad) - den
-    /// Rest der Zeile übernimmt der Spacer in `body`, nicht diese Grenze.
+    /// Innenpolsterung.
+    ///
+    /// Bewusst **ohne** `.frame(maxWidth:)` — die Blase soll sich auf ihren
+    /// Inhalt zusammenziehen. Die Obergrenze setzt der Spacer in `body`.
     private var bubble: some View {
         VStack(alignment: isMine ? .trailing : .leading, spacing: 4) {
             Text(message.content)
@@ -319,7 +346,6 @@ private struct MessageBubble: View {
         }
         .padding(.horizontal, 13)
         .padding(.vertical, 9)
-        .frame(maxWidth: 300, alignment: isMine ? .trailing : .leading)
         .background {
             if isMine {
                 bubbleShape.fill(
@@ -376,6 +402,35 @@ private struct MuteBanner: View {
         .flexrSurface(
             fill: FlexrColor.danger.opacity(0.12),
             border: FlexrColor.danger.opacity(0.4)
+        )
+        .padding(.top, 12)
+    }
+}
+
+/// Hinweis, wenn eine Grenze des kostenlosen Kontos das Senden verhindert
+/// (derzeit: zu viele gleichzeitige Unterhaltungen).
+///
+/// Bewusst in Plate-Orange und nicht in Rot wie [MuteBanner]: Das hier ist
+/// keine Maßnahme gegen den Nutzer, sondern eine Tarifgrenze. Der Wortlaut
+/// kommt vom Server, damit die Zahl nicht an zwei Stellen gepflegt wird.
+private struct LimitBanner: View {
+
+    let text: String
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 9) {
+            FlexrGlyph(.symbol(FlexrIcon.premium), size: 14)
+                .foregroundStyle(FlexrColor.plate)
+            Text(text)
+                .flexrText(.bodySmall)
+                .foregroundStyle(FlexrColor.chalk)
+            Spacer(minLength: 0)
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 11)
+        .flexrSurface(
+            fill: FlexrColor.plate.opacity(0.1),
+            border: FlexrColor.plateDim
         )
         .padding(.top, 12)
     }

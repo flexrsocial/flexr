@@ -293,6 +293,8 @@
     <string name="incoming_load_failed">Open likes could not be loaded.</string>
     <string name="account_manage_subscription">Manage / cancel subscription</string>
     <string name="account_radius_hint">Radius around your gym. Your device location is not used.</string>
+    <string name="account_radius_capped">Without FLEXR Premium the search reaches %1$d km.</string>
+    <string name="account_section_subscription">Subscription</string>
     <string name="account_save">Save profile</string>
     <string name="account_saved">Profile saved ✓</string>
     <string name="account_save_failed">Saving failed.</string>

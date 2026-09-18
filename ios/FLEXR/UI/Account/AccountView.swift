@@ -247,9 +247,14 @@ struct AccountView: View {
         return VStack(alignment: .leading, spacing: 0) {
             FieldLabel(text: s(.accountRadiusLabel))
             HStack(spacing: 12) {
+                // Der Regler endet dort, wo der Server kappt. Ohne Grenze für
+                // dieses Konto ist das der volle Ausschlag, mit Grenze die
+                // erlaubten Kilometer — ein Regler, der über etwas hinausgeht,
+                // das gar nicht gespeichert wird, ist keine Auswahl, sondern
+                // eine Falle.
                 Slider(
                     value: $model.searchRadiusKm,
-                    in: Double(AccountModel.minRadiusKm)...Double(AccountModel.maxRadiusKm),
+                    in: Double(AccountModel.minRadiusKm)...Double(model.maxSelectableRadiusKm),
                     step: 1
                 )
                 .tint(FlexrColor.plate)
@@ -257,6 +262,12 @@ struct AccountView: View {
                 Text("\(Int(model.searchRadiusKm)) km")
                     .flexrText(.mono)
                     .foregroundStyle(FlexrColor.chalk)
+            }
+            if model.isRadiusCapped {
+                Text(s(.accountRadiusCapped, model.maxSelectableRadiusKm))
+                    .flexrText(.bodySmall)
+                    .foregroundStyle(FlexrColor.plate)
+                    .padding(.bottom, 4)
             }
             Text(
                 s(.accountRadiusHint)

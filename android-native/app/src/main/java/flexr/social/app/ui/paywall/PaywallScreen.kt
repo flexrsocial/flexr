@@ -32,11 +32,9 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import flexr.social.app.R
-import flexr.social.app.core.designsystem.component.EmptyState
 import flexr.social.app.core.designsystem.component.Eyebrow
 import flexr.social.app.core.designsystem.component.FlexrButton
 import flexr.social.app.core.designsystem.component.FlexrSecondaryButton
-import flexr.social.app.core.designsystem.icon.FlexrIcons
 import flexr.social.app.core.designsystem.theme.FlexrTheme
 import androidx.compose.ui.platform.LocalContext
 import flexr.social.app.data.billing.PlayBillingService
@@ -113,12 +111,36 @@ fun PaywallScreen(
             .navigationBarsPadding()
             .padding(horizontal = 20.dp),
     ) {
+        // Kopf ohne Schlosssymbol und ohne die grosszuegigen Abstaende des
+        // gemeinsamen `EmptyState`.
+        //
+        // Der Grund ist Platz: Mit Symbolkreis (68 dp), seinen Abstaenden und
+        // den 48 dp Polsterung oben und unten reichte der Bildschirm auf einem
+        // Telefon nicht bis zum Zurueck-Knopf - man musste scrollen, um aus
+        // einer Seite wieder herauszukommen, die niemand erzwungen aufruft.
+        // Ohne das Schloss passt alles auf einen Schirm.
+        //
+        // Das Schloss war ausserdem ein Ueberbleibsel der alten Bezahlwand:
+        // Seit dem 10.09.2026 ist hier nichts mehr gesperrt, FLEXR kostet
+        // dauerhaft nichts. Ein Vorhaengeschloss ueber einem freiwilligen
+        // Zusatzpaket sagt das Gegenteil.
         Spacer(Modifier.height(24.dp))
-        EmptyState(
-            icon = FlexrIcons.Locked,
-            title = stringResource(R.string.paywall_title),
-            description = stringResource(R.string.paywall_sub),
+        Text(
+            text = stringResource(R.string.paywall_title).uppercase(),
+            style = MaterialTheme.typography.headlineSmall,
+            color = colors.chalk,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.fillMaxWidth(),
         )
+        Spacer(Modifier.height(6.dp))
+        Text(
+            text = stringResource(R.string.paywall_sub),
+            style = MaterialTheme.typography.bodySmall,
+            color = colors.chalkDim,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.fillMaxWidth(),
+        )
+        Spacer(Modifier.height(20.dp))
 
         Column(
             Modifier
@@ -211,9 +233,13 @@ fun PaywallScreen(
         // Ausloggen und Selbstloeschung standen hier, solange dieser
         // Bildschirm der einzige erreichbare war. Der Kontobereich ist jetzt
         // immer navigierbar; beides sitzt dort, wo man es sucht.
-        Spacer(Modifier.height(24.dp))
+        //
+        // Die Abstaende hier sind knapp gehalten, damit der Zurueck-Knopf ohne
+        // Scrollen erreichbar bleibt; `navigationBarsPadding()` oben haelt ihn
+        // schon von der Systemleiste frei.
+        Spacer(Modifier.height(16.dp))
         FlexrSecondaryButton(text = stringResource(R.string.common_back), onClick = onBack)
-        Spacer(Modifier.height(40.dp))
+        Spacer(Modifier.height(16.dp))
     }
 
     if (state.checkoutDialogVisible) {

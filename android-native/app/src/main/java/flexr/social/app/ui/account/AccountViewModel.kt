@@ -51,6 +51,21 @@ data class AccountUiState(
     val gymSuggestion: GymSuggestionState? = null,
     val bio: String = "",
     val searchRadiusKm: Int = 20,
+    /**
+     * Groesster Umkreis, den dieses Konto einstellen darf.
+     *
+     * Kommt vom Server (`GET /api/billing/status`, Feld `max_radius_km`) und
+     * ist damit dieselbe Zahl, die der Server auch durchsetzt - er kappt jeden
+     * Wunsch darueber stillschweigend (`premium.clamp_radius`). Der Regler
+     * endet deshalb genau hier: Ein Standardkonto konnte ihn bisher bis 250 km
+     * ziehen, gespeichert wurden aber 50 km, und die Oberflaeche zeigte
+     * anschliessend eine Zahl, nach der gar nicht gesucht wurde.
+     *
+     * Bis der Mitgliedsstand geladen ist, steht der volle Regler: lieber kurz
+     * zu viel anbieten als einem Premium-Konto ohne Grund den halben Regler
+     * wegzunehmen - durchgesetzt wird ohnehin serverseitig.
+     */
+    val maxSelectableRadiusKm: Int = AccountViewModel.MAX_RADIUS_KM,
     val isSaving: Boolean = false,
     val saveError: String? = null,
     val photoError: String? = null,
@@ -88,6 +103,9 @@ data class AccountUiState(
     val isDeleting: Boolean = false,
 ) {
     val resolvedCity: String? get() = (plzLookup as? PlzLookupState.Resolved)?.city
+
+    /** Gilt fuer dieses Konto ueberhaupt eine Grenze, oder steht der Regler offen? */
+    val isRadiusCapped: Boolean get() = maxSelectableRadiusKm < AccountViewModel.MAX_RADIUS_KM
 }
 
 sealed interface AccountEvent {
@@ -136,6 +154,14 @@ class AccountViewModel @Inject constructor(
 
     init {
         profileRepository.myProfile.value?.let(::prefillFrom)
+        // Die Grenze haengt am Mitgliedsstand und kann sich waehrend der
+        // Sitzung aendern (Kauf, Kuendigung, Ablauf) - deshalb beobachtet statt
+        // einmalig gelesen. `uebernehmeRadiusGrenze` kappt einen zu grossen
+        // gespeicherten Wert gleich mit: Wer Premium kuendigt, kommt sonst mit
+        // 250 km zurueck und sieht einen Regler, der nichts mehr bewirkt.
+        viewModelScope.launch {
+            membership.collect(::uebernehmeRadiusGrenze)
+        }
         viewModelScope.launch {
             runCatching { profileRepository.refresh() }.getOrNull()?.let(::prefillFrom)
             runCatching { billingRepository.refresh() }
@@ -169,7 +195,29 @@ class AccountViewModel @Inject constructor(
                     expanded = false,
                 ),
                 bio = profile.profile.bio.orEmpty(),
-                searchRadiusKm = profile.searchRadiusKm,
+                searchRadiusKm = profile.searchRadiusKm.coerceAtMost(state.maxSelectableRadiusKm),
+            )
+        }
+    }
+
+    /**
+     * Neue Radius-Grenze aus dem Mitgliedsstand uebernehmen und einen darueber
+     * liegenden Reglerstand darauf zurueckholen.
+     *
+     * Ohne geladenen Stand (`null`), ohne geltende Grenzen oder mit Premium
+     * steht der volle Regler - dieselbe Bedingung, nach der der Server
+     * entscheidet (`premium.max_radius_km`).
+     */
+    private fun uebernehmeRadiusGrenze(status: Membership?) {
+        val grenze = if (status == null || !status.limitsActive || status.isPremium) {
+            MAX_RADIUS_KM
+        } else {
+            status.maxRadiusKm.coerceAtMost(MAX_RADIUS_KM)
+        }
+        _uiState.update {
+            it.copy(
+                maxSelectableRadiusKm = grenze,
+                searchRadiusKm = it.searchRadiusKm.coerceAtMost(grenze),
             )
         }
     }
@@ -278,7 +326,11 @@ class AccountViewModel @Inject constructor(
 
     fun onBioChange(value: String) = _uiState.update { it.copy(bio = value.take(BIO_MAX_LENGTH)) }
 
-    fun onSearchRadiusChange(value: Int) = _uiState.update { it.copy(searchRadiusKm = value) }
+    fun onSearchRadiusChange(value: Int) = _uiState.update {
+        // Auch hier kappen und nicht nur am Regler: Der Wertebereich der
+        // Oberflaeche ist eine Anzeige, die Grenze gehoert an den Zustand.
+        it.copy(searchRadiusKm = value.coerceIn(MIN_RADIUS_KM, it.maxSelectableRadiusKm))
+    }
 
     fun saveProfile() {
         val state = _uiState.value

@@ -215,6 +215,7 @@ extension FlexrStrings {
         .chatInputLocked: "Chat vorübergehend gesperrt",
         .chatMuteReason: "Grund: %@",
         .chatSendFailed: "Nachricht konnte nicht gesendet werden.",
+        .chatLoadFailed: "Der Verlauf konnte nicht geladen werden.",
         .chatCleared: "Chatverlauf geleert.",
         .chatDeleted: "Chat gelöscht.",
         .chatOpenFailed: "Chat konnte nicht geöffnet werden.",
@@ -316,6 +317,7 @@ extension FlexrStrings {
             Löse ein Match auf, dann wird ein Platz frei.
             """,
         .accountManageSubscription: "Abo verwalten / kündigen",
+        .accountRadiusCapped: "Ohne FLEXR Premium reicht die Suche bis %d km.",
         .accountRadiusHint: """
             Ausgangspunkt ist die Adresse deines Gyms — nicht dein Wohnort und \
             nicht dein aktueller Standort. Im eingestellten Umkreis siehst du \

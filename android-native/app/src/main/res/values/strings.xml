@@ -334,6 +334,8 @@
     <string name="incoming_load_failed">Die offenen Likes konnten nicht geladen werden.</string>
     <string name="account_manage_subscription">Abo verwalten / kündigen</string>
     <string name="account_radius_hint">Radius rund um dein Gym. Dein Gerätestandort wird nicht verwendet.</string>
+    <string name="account_radius_capped">Ohne FLEXR Premium reicht die Suche bis %1$d km.</string>
+    <string name="account_section_subscription">Aboverwaltung</string>
     <string name="account_save">Profil speichern</string>
     <string name="account_saved">Profil gespeichert ✓</string>
     <string name="account_save_failed">Speichern fehlgeschlagen.</string>

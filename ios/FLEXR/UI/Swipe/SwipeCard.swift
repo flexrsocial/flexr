@@ -193,8 +193,10 @@ private struct CardContent: View {
             VStack(spacing: 0) {
                 photoSection
                     .frame(height: geometry.size.height * 0.58)
+                    .clipped()
                 detailSection
                     .frame(height: geometry.size.height * 0.42)
+                    .clipped()
             }
         }
     }
@@ -233,7 +235,10 @@ private struct CardContent: View {
 
             nameBlock
         }
-        .clipped()
+        // Kein `.clipped()` hier: Es schnitte an der Groesse dieses Stapels,
+        // nicht an der halben Kartenhoehe, die er bekommen soll. Geschnitten
+        // wird oben in `body` — erst `.frame(height:)`, dann `.clipped()`.
+        // Andersherum lief der Name in die Merkmale darunter (18.09.2026).
     }
 
     /// Die Striche sind die Foto-Auswahl: ein Tipp auf einen Strich (bzw. den

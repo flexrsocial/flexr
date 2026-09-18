@@ -248,6 +248,23 @@ extension MessageEntity {
         )
     }
 
+    /// Serverstand in einen bestehenden Datensatz übernehmen — das Gegenstück
+    /// zu `MatchEntity.apply(_:)`.
+    ///
+    /// Die Kennung bleibt, wie sie ist: Sie ist der eindeutige Schlüssel, unter
+    /// dem dieser Datensatz gefunden wurde. Zensur und Lesestatus können sich
+    /// dagegen nachträglich ändern, der Text durch eine Moderation ebenfalls.
+    func apply(_ message: Message) {
+        matchID = message.matchID
+        senderID = message.senderID
+        content = message.content
+        createdAt = message.createdAt
+        readAt = message.readAt
+        wasCensored = message.wasCensored
+        // Vom Server bestätigt — was hier ankommt, wartet nicht mehr.
+        isPending = false
+    }
+
     static func make(_ message: Message, isPending: Bool = false) -> MessageEntity {
         MessageEntity(
             messageID: message.id,

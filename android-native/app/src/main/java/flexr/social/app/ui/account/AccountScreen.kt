@@ -267,26 +267,18 @@ fun AccountScreen(
                     style = MaterialTheme.typography.bodyMedium,
                     color = colors.chalk,
                 )
-                // Gekuendigt wird dort, wo gekauft wurde - das ist keine
-                // Bequemlichkeitsfrage: Bei einem Play-Kauf ist Google der
-                // Haendler, wir koennten das Abo gar nicht beenden.
-                when {
-                    // Im Browser ueber Stripe gekauft: unser Portal.
-                    status.hasStripeSubscription -> FlexrLinkButton(
-                        text = stringResource(R.string.account_manage_subscription),
-                        onClick = viewModel::openBillingPortal,
-                    )
-                    // Ueber Play gekauft (Premium laeuft, aber ohne Stripe):
-                    // die Abo-Verwaltung des Play Stores.
-                    status.isPremium -> FlexrLinkButton(
-                        text = stringResource(R.string.account_manage_subscription),
-                        onClick = viewModel::playAboVerwalten,
-                    )
-                    // Noch kein Abo: Fuehrt auf den Premium-Bildschirm und
-                    // schliesst nichts ab. Ein Klick im Konto soll nicht
-                    // unmittelbar in einem Kauf enden, ohne dass jemand
-                    // gelesen hat, wofuer.
-                    status.storePurchaseAvailable -> FlexrLinkButton(
+                // Hier steht nur noch das Angebot, nicht mehr die Verwaltung
+                // eines laufenden Abos: Wer etwas beenden oder umstellen will,
+                // sucht das in den Einstellungen und nicht unter seinem
+                // Profilbild. Der Punkt dafuer sitzt jetzt weiter unten
+                // ("Aboverwaltung", direkt ueber dem Konto-Abschnitt).
+                //
+                // Das Angebot bleibt oben: Es fuehrt auf den
+                // Premium-Bildschirm und schliesst nichts ab. Ein Klick im
+                // Konto soll nicht unmittelbar in einem Kauf enden, ohne dass
+                // jemand gelesen hat, wofuer.
+                if (!status.isPremium && !status.hasStripeSubscription && status.storePurchaseAvailable) {
+                    FlexrLinkButton(
                         text = stringResource(R.string.premium_show_offer),
                         onClick = onOpenPremium,
                     )
@@ -326,10 +318,14 @@ fun AccountScreen(
 
         FieldLabel(stringResource(R.string.account_radius_label))
         Row(verticalAlignment = Alignment.CenterVertically) {
+            // Der Regler endet dort, wo der Server kappt. Ohne Grenze fuer
+            // dieses Konto ist das der volle Ausschlag, mit Grenze die
+            // erlaubten Kilometer - ein Regler, der ueber etwas hinausgeht, das
+            // gar nicht gespeichert wird, ist keine Auswahl, sondern eine Falle.
             Slider(
                 value = state.searchRadiusKm.toFloat(),
                 onValueChange = { viewModel.onSearchRadiusChange(it.toInt()) },
-                valueRange = AccountViewModel.MIN_RADIUS_KM.toFloat()..AccountViewModel.MAX_RADIUS_KM.toFloat(),
+                valueRange = AccountViewModel.MIN_RADIUS_KM.toFloat()..state.maxSelectableRadiusKm.toFloat(),
                 modifier = Modifier.weight(1f),
                 colors = SliderDefaults.colors(
                     thumbColor = colors.plate,
@@ -342,6 +338,14 @@ fun AccountScreen(
                 stringResource(R.string.account_radius_value, state.searchRadiusKm),
                 style = MonoStyle,
                 color = colors.chalk,
+            )
+        }
+        if (state.isRadiusCapped) {
+            Text(
+                text = stringResource(R.string.account_radius_capped, state.maxSelectableRadiusKm),
+                style = MaterialTheme.typography.bodySmall,
+                color = colors.plate,
+                modifier = Modifier.padding(bottom = 4.dp),
             )
         }
         Text(
@@ -614,6 +618,36 @@ fun AccountScreen(
                 unblockingUserId = state.unblockingUserId,
                 onUnblock = viewModel::unblockUser,
             )
+        }
+
+        // ---------- Aboverwaltung ----------
+        // Ein laufendes Abo wird hier beendet, nicht mehr oben in der
+        // Statuskarte unter dem Profilbild. Der Abschnitt steht bewusst als
+        // letzter *inhaltlicher* vor "Konto": Ausloggen und Kontoloeschung
+        // gehoeren ans Ende, alles andere davor.
+        //
+        // Gekuendigt wird dort, wo gekauft wurde - das ist keine
+        // Bequemlichkeitsfrage: Bei einem Play-Kauf ist Google der Haendler,
+        // wir koennten das Abo gar nicht beenden. Gibt es nichts zu verwalten,
+        // bleibt der Abschnitt ganz weg statt als leere Ueberschrift dazustehen.
+        membership?.let { status ->
+            val verwaltung: (() -> Unit)? = when {
+                // Im Browser ueber Stripe gekauft: unser Portal.
+                status.hasStripeSubscription -> viewModel::openBillingPortal
+                // Ueber Play gekauft (Premium laeuft, aber ohne Stripe):
+                // die Abo-Verwaltung des Play Stores.
+                status.isPremium -> viewModel::playAboVerwalten
+                else -> null
+            }
+            if (verwaltung != null) {
+                Spacer(Modifier.height(28.dp))
+                SectionTitle(stringResource(R.string.account_section_subscription))
+                Spacer(Modifier.height(4.dp))
+                FlexrLinkButton(
+                    text = stringResource(R.string.account_manage_subscription),
+                    onClick = verwaltung,
+                )
+            }
         }
 
         // ---------- Konto ----------

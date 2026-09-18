@@ -206,9 +206,20 @@ struct SectionTitle: View {
 
     var body: some View {
         HStack(spacing: 12) {
+            // Die Ueberschrift bekommt ihren Platz zuerst, der Strich nimmt,
+            // was uebrig bleibt. Ohne `layoutPriority` teilt der HStack beiden
+            // gleichermassen zu, und der Strich (`maxWidth: .infinity`) nimmt
+            // der Ueberschrift so viel weg, dass laengere Titel umbrechen —
+            // „Datenschutz & Sicherheit" stand deshalb zweizeilig da.
+            // `minimumScaleFactor` faengt den Fall ab, dass ein Titel selbst
+            // ueber die volle Breite nicht passt (lange Uebersetzungen,
+            // grosse Systemschrift): dann wird er kleiner statt abgeschnitten.
             Text(text.uppercased())
                 .flexrText(.headlineSmall)
                 .foregroundStyle(FlexrColor.chalk)
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
+                .layoutPriority(1)
             HairlineDivider()
         }
         .padding(.bottom, 4)
@@ -240,11 +251,17 @@ struct BackHeader<Trailing: View>: View {
     var body: some View {
         VStack(spacing: 0) {
             HStack(spacing: 6) {
+                // 44 × 44 statt 36 × 36: Apples Mindestmass fuer eine
+                // Tippflaeche. `contentShape` macht die ganze Flaeche
+                // treffsicher und nicht nur die Striche des Zeichens — die
+                // senkrechte Polsterung der Zeile geht im Gegenzug von 10 auf
+                // 6 zurueck, damit die Kopfzeile gleich hoch bleibt.
                 Button(action: onBack) {
                     Image(systemName: FlexrIcon.back)
                         .font(.system(size: 18, weight: .semibold))
                         .foregroundStyle(FlexrColor.chalk)
-                        .frame(width: 36, height: 36)
+                        .frame(width: 44, height: 44)
+                        .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel(languageStore.strings(.commonBack))
@@ -257,7 +274,7 @@ struct BackHeader<Trailing: View>: View {
                 Spacer(minLength: 8)
                 trailing()
             }
-            .padding(.vertical, 10)
+            .padding(.vertical, 6)
             HairlineDivider()
         }
     }

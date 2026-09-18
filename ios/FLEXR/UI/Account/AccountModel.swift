@@ -35,6 +35,29 @@ final class AccountModel {
     /// Schalterstellung unter „Benachrichtigungen". Kommt mit dem Profil mit,
     /// braucht also keinen eigenen Ladeschritt.
     var notifications: NotificationSettings { profile?.notifications ?? NotificationSettings() }
+
+    /// Der größte Umkreis, den dieses Konto einstellen darf.
+    ///
+    /// Kommt vom Server (`GET /api/billing/status`, Feld `max_radius_km`) und
+    /// ist damit dieselbe Zahl, die der Server auch durchsetzt — er kappt
+    /// jeden Wunsch darüber stillschweigend (`premium.clamp_radius`). Der
+    /// Regler endet deshalb genau hier: Ein Standardkonto konnte ihn bisher
+    /// bis 250 km ziehen, gespeichert wurden aber 50 km, und die Oberfläche
+    /// zeigte anschließend eine Zahl, nach der gar nicht gesucht wurde.
+    ///
+    /// Ohne geladenen Status (erster Start, kein Netz) bleibt der volle Regler
+    /// stehen: lieber kurz zu viel anbieten als dem Premium-Konto ohne Grund
+    /// den halben Regler wegnehmen — durchgesetzt wird ohnehin serverseitig.
+    var maxSelectableRadiusKm: Int {
+        guard let membership, membership.limitsActive, !membership.isPremium else {
+            return Self.maxRadiusKm
+        }
+        return min(membership.maxRadiusKm, Self.maxRadiusKm)
+    }
+
+    /// Gilt für dieses Konto überhaupt eine Grenze, oder steht der Regler offen?
+    var isRadiusCapped: Bool { maxSelectableRadiusKm < Self.maxRadiusKm }
+
     // Einwilligungen (Art. 7 Abs. 3 DSGVO)
     var consents: [ConsentDTO] = []
     var consentsLoading = false
@@ -110,6 +133,11 @@ final class AccountModel {
 
         if let refreshed = try? await profiles.refresh() { prefill(from: refreshed) }
         _ = try? await billing.refresh()
+        // Erst jetzt steht die Grenze fest — das Profil war vorher da. Ein
+        // Konto, dessen gespeicherter Umkreis über der Grenze liegt (etwa nach
+        // dem Ende eines Premium-Abos), findet den Regler danach dort, wo er
+        // wirklich wirkt.
+        clampRadiusToLimit()
         await refreshVerificationStatus()
         await refreshConsents()
         await refreshBlockedUsers()
@@ -124,6 +152,17 @@ final class AccountModel {
         gymPicker.isExpanded = false
         bio = profile.profile.bio ?? ""
         searchRadiusKm = Double(profile.searchRadiusKm)
+        clampRadiusToLimit()
+    }
+
+    /// Hält den Regler innerhalb dessen, was das Konto einstellen darf.
+    ///
+    /// Nötig, weil der gespeicherte Wert älter sein kann als die Grenze: Wer
+    /// Premium hatte und kündigt, kommt mit 250 km zurück. Der Server kappt
+    /// beim nächsten Speichern ohnehin, hier wird nur sichtbar, worauf.
+    private func clampRadiusToLimit() {
+        let grenze = Double(maxSelectableRadiusKm)
+        if searchRadiusKm > grenze { searchRadiusKm = grenze }
     }
 
     // MARK: - PLZ

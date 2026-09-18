@@ -91,6 +91,7 @@ final class SwipeModel {
         guard let target = current else { return }
         // Die Karte ist bereits weggeflogen — sofort weiterschalten, damit sich
         // die Oberfläche nie am Netz aufhält.
+        let gewischterIndex = currentIndex
         currentIndex += 1
 
         Task {
@@ -106,7 +107,20 @@ final class SwipeModel {
                     _ = try? await matches.refresh()
                 }
             } catch {
-                onMessage((error as? FlexrAPIError)?.message ?? s(.swipeFailed))
+                let apiError = error as? FlexrAPIError
+                // Aufgebrauchtes Like-Kontingent: Die Karte kommt zurück.
+                // Vorher blieb sie weg, obwohl der Like nie gezählt hat — das
+                // Profil war damit ohne Zutun und ohne Hinweis übersprungen und
+                // im Deck nicht wieder zu finden.
+                //
+                // `min` und nicht `-= 1`: Wer schnell wischt, hat bis zur
+                // Antwort des Servers vielleicht schon weitergewischt. Auf den
+                // Index der abgelehnten Karte zurückzugehen ist dann richtig,
+                // einen Schritt zurück wäre eine beliebige andere Karte.
+                if apiError?.code == "like_limit_reached" {
+                    currentIndex = min(currentIndex, gewischterIndex)
+                }
+                onMessage(apiError?.message ?? s(.swipeFailed))
             }
         }
     }
