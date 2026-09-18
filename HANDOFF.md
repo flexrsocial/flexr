@@ -15,11 +15,12 @@ Stand: **18.09.2026**
 > `release-2.7.5/flexr-2.7.5-vc117.aab` sofort hochladen.
 
 **Alles committet, gepusht und deployed.** Der VPS steht auf `origin/main`
-(**`3aa9cd6`**). Der letzte Commit, der **Backend-Code** ändert, ist weiterhin
-`9304363` vom 17.09. (iOS-Push über APNs) — alles danach sind Client-Änderungen
-(iOS-Sprechblasen, Android-Versionsnummern 2.7.2 bis 2.7.5) und Dokumentation,
-beides ohne Server-Neustart. `systemctl is-active` zeigt `active`,
-`/api/health` liefert 200.
+(**`5e9f016`**, Sitzung 18.09.2026 (3) — Bug-/Performance-/Cleanup-Durchgang).
+Das ist jetzt der aktuelle Backend-Code-Stand (löst `9304363` vom 17.09. als
+Referenz ab). Migration bis `5f8ae574bc95` gelaufen, `flexr-api` neu
+gestartet, Nginx neu geladen (`/brand/`-Sperre). `systemctl is-active` zeigt
+`active`, `/api/health` liefert 200, Login gegen ein `@flexrtest.at`-Konto
+gegengeprüft.
 
 > **FLEXR Premium ist seit dem 18.09.2026 in allen drei Oberflächen fertig
 > eingerichtet — nicht nur scharf geschaltet, sondern auch tatsächlich
@@ -421,6 +422,19 @@ entfernten Telefon-Endpunkte waren nie in `main.py` eingebunden, also auch
 nie von einem Client erreichbar. Die Frontend-Änderungen betreffen
 ausschließlich die Web-App (`frontend/`) — Android und iOS sind eigene,
 native Clients ohne WebView auf diesen Code und bleiben unberührt.
+
+### Deploy
+
+Commit `5e9f016` gepusht, auf dem VPS gepullt, beide Migrationen bis
+`5f8ae574bc95` gelaufen, `flexr-api` neu gestartet (`systemctl is-active`:
+`active`). Nginx-Live-Konfiguration (`/etc/nginx/sites-available/flexr.social`
+— **weicht von `deploy/nginx-flexr.conf` ab**, siehe deren Kopfkommentar, nicht
+blind überschreiben) um denselben `/brand/`-Sperrblock von Hand ergänzt statt
+die Vorlage zu kopieren, vorher als
+`flexr.social.bak-vor-brand-sperre-20260918` gesichert. `nginx -t` vor dem
+Reload geprüft. Gegenprobe: `GET /brand/build_icons.py` liefert `404`,
+`GET /brand/demo/*` weiterhin `200`, `GET /api/health` weiterhin `200`,
+Login gegen `lea@flexrtest.at` erfolgreich.
 
 ## Sitzung 18.09.2026 (2) — Android-Absturz beim Start: PlayBillingService fehlte enableOneTimeProducts()
 
