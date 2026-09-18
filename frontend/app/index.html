@@ -558,8 +558,13 @@
 
   /* Rest-Likes unter den Aktionsknoepfen. Mono, damit die wechselnde Zahl die
      Zeile nicht in der Breite springen laesst. */
+  /* Abstand zur Knopfreihe darueber: Mit 2px klebte die Zeile an X und Herz.
+     Senkrechte Aussenabstaende fallen zusammen, es gilt also der groessere von
+     beiden - die 4px unter `.swipe-actions` bleiben wirkungslos, die 18px hier
+     zaehlen. Dieselbe Zahl steht ueber der Knopfreihe: Die Reihe sitzt damit
+     gleich weit von Karte und Zeile entfernt. */
   .like-counter{
-    text-align:center; margin-top:2px; font-family:'JetBrains Mono', monospace;
+    text-align:center; margin-top:18px; font-family:'JetBrains Mono', monospace;
     font-size:11.5px; letter-spacing:0.07em; color:var(--chalk-dim);
   }
   .like-counter.empty-quota{ color:var(--plate); }

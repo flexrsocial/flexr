@@ -181,8 +181,15 @@ android {
         // App-Start, sobald Hilt PlayBillingService konstruiert. Weder
         // Firebase noch die .aab/.apk-Distribution (115/116) waren die
         // Ursache - beides Fehlspuren ohne Absturzbericht.
-        versionCode = 117
-        versionName = "2.7.5"
+        // 118/2.7.6 am 18.09.2026: Bug-Durchgang (c5582aa). Suchumkreis endet
+        // jetzt dort, wo der Server kappt (50 km ohne Premium statt 250 am
+        // Regler), die Karte kommt bei aufgebrauchtem Like-Kontingent zurueck
+        // statt verschluckt zu werden, das Schlosssymbol ist vom
+        // Premium-Bildschirm verschwunden (der Zurueck-Knopf passte sonst
+        // nicht aufs Bild), und die Aboverwaltung sitzt unten in den
+        // Einstellungen statt unter dem Profilbild.
+        versionCode = 118
+        versionName = "2.7.6"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         // Nur die Sprachen ausliefern, die es wirklich gibt: Deutsch als

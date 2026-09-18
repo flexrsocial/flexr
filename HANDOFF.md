@@ -492,6 +492,30 @@ Rechtstexte.
   die einzige Lücke dieser Sitzung**; der nächste Xcode-Build ist der
   eigentliche Beweis.
 
+### Android 2.7.6 (versionCode 118)
+
+Gebaut mit `clean testProdReleaseUnitTest assembleProdRelease
+bundleProdRelease`, signiert mit demselben Upload-Key wie bisher
+(SHA-256 `bc64ad3f…`, gegen `release-2.7.5/` gegengeprüft — sonst nimmt die
+Play Console die Aktualisierung nicht an). 49 Unit-Tests grün. `.aab` und
+`.apk` liegen mit `SHA256SUMS.txt` in `release-2.7.6/`.
+
+| | |
+|---|---|
+| AAB (Play Console) | `flexr-2.7.6-vc118.aab`, 8,4 MB |
+| APK (direkt installierbar) | `flexr-2.7.6-vc118.apk`, 4,4 MB |
+
+### Web nachgeschoben: Like-Kontingent klebte an den Knöpfen
+
+„Likes für heute aufgebraucht — Unbegrenzt liken" stand mit 2 px unter der
+Reihe aus X und Herz. Jetzt 18 px, dieselbe Zahl wie über der Reihe: Die
+Knöpfe sitzen damit gleich weit von Karte und Zeile entfernt.
+
+> Die 4 px Aussenabstand unter `.swipe-actions` sind dabei wirkungslos —
+> senkrechte Abstände benachbarter Geschwister fallen zusammen, es gilt der
+> größere von beiden. Wer den Abstand ändern will, ändert ihn an
+> `.like-counter`.
+
 ### Offen
 
 1. **iOS-Build.** Die 13 geänderten Swift-Dateien sind ungebaut. Neue
