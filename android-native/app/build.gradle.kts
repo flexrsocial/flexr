@@ -171,8 +171,18 @@ android {
         // Downloads/ ab (ueber MediaStore, ohne Sonderrechte erreichbar).
         // Quellcode sonst unveraendert - dieser Build dient nur dazu, den
         // naechsten Absturz tatsaechlich einsehen zu koennen.
-        versionCode = 116
-        versionName = "2.7.4"
+        // 117/2.7.5 am 18.09.2026: Die Downloads-Kopie aus 116 hat den
+        // Absturzbericht tatsaechlich geliefert - der eigentliche Fehler,
+        // gefunden und behoben. PlayBillingService baute den BillingClient
+        // mit einem LEEREN PendingPurchasesParams; seit Billing Library 7
+        // verlangt das build() zwingend enableOneTimeProducts(), sonst wirft
+        // es "Pending purchases for one-time products must be supported." -
+        // und das synchron als Property-Initializer, also bei jedem
+        // App-Start, sobald Hilt PlayBillingService konstruiert. Weder
+        // Firebase noch die .aab/.apk-Distribution (115/116) waren die
+        // Ursache - beides Fehlspuren ohne Absturzbericht.
+        versionCode = 117
+        versionName = "2.7.5"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         // Nur die Sprachen ausliefern, die es wirklich gibt: Deutsch als

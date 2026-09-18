@@ -85,7 +85,18 @@ class PlayBillingService @Inject constructor(
         .setListener(::onPurchasesUpdated)
         // Ohne diese Angabe verweigert die Bibliothek beim Start den Dienst.
         // FLEXR verkauft nur ein Abo, aber der Parameter ist trotzdem Pflicht.
-        .enablePendingPurchases(PendingPurchasesParams.newBuilder().build())
+        // Seit Billing Library 7 genuegt ein leerer PendingPurchasesParams-
+        // Builder nicht mehr: build() wirft dann "Pending purchases for
+        // one-time products must be supported." - ungefangen, weil das hier
+        // ein Property-Initializer ist, also bei jedem App-Start, sobald Hilt
+        // diesen Singleton konstruiert. enableOneTimeProducts() ist deshalb
+        // Pflicht, obwohl FLEXR gar keine Einmalkaeufe anbietet (Fund vom
+        // 18.09.2026, Absturzbericht aus Downloads/ geholt).
+        .enablePendingPurchases(
+            PendingPurchasesParams.newBuilder()
+                .enableOneTimeProducts()
+                .build(),
+        )
         // Verbindung bricht bei Updates des Play Stores regelmässig ab; ohne
         // das hier müsste jede Aufrufstelle den Wiederaufbau selbst regeln.
         .enableAutoServiceReconnection()
