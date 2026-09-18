@@ -159,8 +159,20 @@ android {
         // exportiert. Bleibt der Absturz bestehen, braucht es den
         // Absturzbericht vom Geraet (Android/data/flexr.social.app/files/) -
         // dann ist es doch ein echter Code-Fehler.
-        versionCode = 115
-        versionName = "2.7.3"
+        // 116/2.7.4 am 18.09.2026: 115 stuerzt weiterhin sofort beim Start ab -
+        // die Universal-APK war also doch nicht die Ursache, es ist ein
+        // echter Code-Fehler. Nur ist der Absturzbericht unter
+        // Android/data/flexr.social.app/files/ auf dem betroffenen Geraet
+        // nicht mehr zu holen: Weder "Eigene Dateien" noch X-plore (auch
+        // nicht mit dessen SAF-Grant-Trick) kommen seit Android 11 noch an
+        // Android/data heran, und Rechner (USB, gleiches WLAN fuer
+        // kabelloses ADB) steht keiner zur Verfuegung. Deshalb rein
+        // diagnostisch: CrashLog.kt legt den Bericht jetzt zusaetzlich in
+        // Downloads/ ab (ueber MediaStore, ohne Sonderrechte erreichbar).
+        // Quellcode sonst unveraendert - dieser Build dient nur dazu, den
+        // naechsten Absturz tatsaechlich einsehen zu koennen.
+        versionCode = 116
+        versionName = "2.7.4"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         // Nur die Sprachen ausliefern, die es wirklich gibt: Deutsch als
