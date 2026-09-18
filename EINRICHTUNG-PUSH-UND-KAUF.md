@@ -1,14 +1,18 @@
 # Was noch von Hand zu erledigen ist
 
-Stand: 17.09.2026 abends. Vier Blöcke, unabhängig voneinander abzuarbeiten —
-**B ist erledigt**, A, C und D stehen noch offen:
+Stand: 18.09.2026. **Alle vier Blöcke sind erledigt:**
 
 | Block | Wirkung | Dauer | Stand |
 |---|---|---|---|
-| A — Firebase | Push auf Android | ~20 min | **offen** |
+| A — Firebase | Push auf Android | ~20 min | ✓ erledigt 18.09.2026 |
 | B — APNs | Push auf iOS | ~15 min | ✓ erledigt 17.09.2026 |
-| C — Play Console | Kauf-Knopf in der Android-App | ~30 min + Prüfung | **offen** |
-| D — App Store Connect | Kauf-Knopf in der iOS-App | ~30 min + Prüfung | **offen** |
+| C — Play Console | Kauf-Knopf in der Android-App | ~30 min + Prüfung | ✓ erledigt 18.09.2026 |
+| D — App Store Connect | Kauf-Knopf in der iOS-App | ~30 min + Prüfung | ✓ eingereicht 18.09.2026, bei Apple in Prüfung |
+
+Diese Anleitung bleibt als Nachschlagewerk stehen - für den nächsten
+Produkt-Relaunch, ein zweites Land oder falls ein Schlüssel/Dienstkonto je
+erneuert werden muss. Was am 18.09. tatsächlich passiert ist, mit allen
+Stolpersteinen, steht in `HANDOFF.md` unter „Sitzung 18.09.2026".
 
 **Alles ist so gebaut, dass nichts kaputtgeht, solange du nichts davon machst.**
 Ohne Zugangsdaten bleibt Push aus (die Apps holen weiter selbst ab), ohne

@@ -1,48 +1,61 @@
 # FLEXR — Handoff für ein anderes Gerät / Claude Code
 
-Stand: **17.09.2026 abends**
+Stand: **18.09.2026**
 
 ## Wo das Projekt gerade steht
 
-**Alles committet, gepusht und deployed.** Der VPS steht auf `origin/main`.
-Der letzte Commit, der **laufenden Code** ändert, ist **`9304363`** (iOS-Push
-über APNs); alles danach ist Dokumentation und braucht keinen Neustart.
-`systemctl is-active` zeigt `active`, `/api/health` liefert 200.
+**Alles committet, gepusht und deployed.** Der VPS steht auf `origin/main`
+(**`76f74ef`**). Der letzte Commit, der **Backend-Code** ändert, ist weiterhin
+`9304363` vom 17.09. (iOS-Push über APNs) — alles danach sind Client-Änderungen
+(iOS-Sprechblasen, Android-Versionsnummer) und Dokumentation, beides ohne
+Server-Neustart. `systemctl is-active` zeigt `active`, `/api/health` liefert
+200.
 
-> **Einstieg für die nächste Sitzung — 18.09.2026.**
+> **FLEXR Premium ist seit dem 18.09.2026 in allen drei Oberflächen fertig
+> eingerichtet — nicht nur scharf geschaltet, sondern auch tatsächlich
+> kaufbar.** Alle vier Blöcke der [Einrichtungsanleitung](EINRICHTUNG-PUSH-UND-KAUF.md)
+> sind durch:
 >
-> Arbeitsbaum sauber, nichts hängt halbfertig. Am 17.09. abends ist **Block B
-> der Einrichtungsanleitung fertig geworden**: APNs-Schlüssel angelegt, auf dem
-> Server eingerichtet und gegen Apple geprüft, Push für die App-ID
-> freigeschaltet, iOS-Build wieder grün. Einzelheiten in „Sitzung 17.09.2026
-> (8)" direkt unten.
+> * **A — Firebase (Android-Push):** eingerichtet und verifiziert.
+> * **B — APNs (iOS-Push):** eingerichtet und verifiziert (17.09.).
+> * **C — Play Console (Android-Kauf):** Dienstkonto, API-Freischaltung und
+>   Produkt-ID stehen; der Kauf-Knopf ist in der Android-App live.
+> * **D — App Store Connect (iOS-Kauf):** Abo angelegt, Produkt-ID gesetzt,
+>   **Version 1.0 + Abo bei Apple zur Prüfung eingereicht** — Ausgang offen,
+>   typisch 24–48 h.
 >
-> Offen sind die Blöcke **A**, **C** und **D** aus
-> [EINRICHTUNG-PUSH-UND-KAUF.md](EINRICHTUNG-PUSH-UND-KAUF.md), in dieser
-> Reihenfolge:
+> Einzelheiten, samt aller Stolpersteine unterwegs, in „Sitzung 18.09.2026"
+> direkt unten.
 >
-> 1. **A — Firebase** (~20 min): Projekt anlegen, Android-App `flexr.social.app`
->    registrieren, die vier Werte in die Gradle-Properties, Dienstkonto für den
->    Server. Ohne diese Werte bleibt Android-Push wirkungslos — der Empfang ist
->    in 2.7.1 schon eingebaut.
-> 2. **C — Play Console** (~30 min): Abo `premium_monthly` anlegen, Dienstkonto
->    für die Kaufprüfung, Produkt-ID in die `.env`.
-> 3. **D — App Store Connect** (~30 min): Abo `social.flexr.premium.monthly`
->    anlegen, Produkt-ID in die `.env`.
+> **Einstieg für die nächste Sitzung.** Nichts hängt technisch halbfertig.
+> Zwei Tests stehen noch aus, unabhängig vom Ausgang der Apple-Prüfung:
 >
-> **A und C zusammen erledigen und dann einmal neu bauen** — beide wirken sich
-> auf denselben Android-Build aus, zweimal bauen wäre verschenkt.
+> 1. **Sandbox-Kauf auf einem echten Gerät.** Bei Apple: App Store Connect →
+>    Benutzer und Zugriffsrechte → Sandbox → Tester anlegen, dann auf dem
+>    iPhone unter Einstellungen → App Store → Sandbox-Konto anmelden. Bei
+>    Google: Play Console → Einstellungen → Lizenztests → die eigene
+>    Google-Kontoadresse als Lizenztester eintragen. Erst danach lässt sich der
+>    Kauf-Knopf in beiden Apps tatsächlich durchklicken, ohne echtes Geld zu
+>    bewegen.
+> 2. **Push mit zwei echten Geräten.** Eine Chat-Nachricht schicken und
+>    prüfen, ob sie **sofort** ankommt - nicht erst nach manuellem Öffnen der
+>    App. Das war der ursprünglich gemeldete Fehler (Sitzung 17.09.2026 (7));
+>    dieser Test ist der eigentliche Beweis, dass er behoben ist.
 >
-> Was **nicht** ansteht: ein Backend-Deploy, eine Migration, ein Neustart.
+> Der iOS-Sandbox-Kauf lässt sich erst nach Apples Freigabe von Version 1.0
+> sinnvoll testen (das Abo hängt an dieser Einreichung). Der Android-Weg und
+> der Push-Test sind schon jetzt möglich, unabhängig von Apples Entscheidung.
 >
-> Weiterhin offen aus früheren Sitzungen:
+> Nebenbei erledigt: Das Prüfkonto `appreview` trainiert jetzt in einem Wiener
+> Gym (Clever fit, Seidengasse 9-11, 1070 Wien) statt in Graz - siehe unten,
+> „Sitzung 18.09.2026". Es lässt sich jetzt reell liken/matchen; sobald das
+> geschehen ist, hat das Konto endlich Match- und Chatverlauf für die
+> App-Prüfung.
 >
-> * **Android 2.7.1 (versionCode 112) ist nicht in der Play Console.** Gebaut
->   und im Chat übergeben, aber nicht hochgeladen. Wird ohnehin von Block A
->   überholt — siehe oben, lieber einmal mit Firebase-Werten neu bauen.
-> * **Das Prüfkonto `appreview` hat kein Match und keinen Chatverlauf.** Für die
->   App-Prüfung fehlt ein männliches Gegenstück im Umkreis von 50 km um
->   `3D Lady Fit` in Graz.
+> Was **nicht** ansteht: ein Backend-Deploy, eine Migration, ein weiterer
+> Android- oder iOS-Build allein wegen Store-Einrichtung — beides ist bereits
+> passiert (Android 2.7.2 / versionCode 114 liegt in der Play Console, der
+> iOS-Stand von gestern liegt bei Apple).
 
 > **FLEXR Premium ist seit dem 17.09.2026 scharf — und in allen drei
 > Oberflächen kaufbar.** Im Browser über Stripe, in den Apps über StoreKit
@@ -50,14 +63,15 @@ Der letzte Commit, der **laufenden Code** ändert, ist **`9304363`** (iOS-Push
 > Apps erscheint erst, wenn die Store-Produkte angelegt und ihre Kennungen in
 > der `.env` eingetragen sind — siehe Sitzung 17.09.2026 (5).
 >
-> **FLEXR Premium ist seit dem 17.09.2026 scharf.** `PREMIUM_ENABLED=true`
-> steht in der `.env` des VPS (eine Sicherung liegt daneben als
-> `.env.bak-vor-premium-20260917`). Damit gelten die Grenzen des kostenlosen
-> Kontos für alle: 20 Likes/24 h, 3 Unterhaltungen, 50 km. **Verkauft wird
-> ausschließlich im Browser** — aus den Apps heraus bietet der Server keinen
-> Abschluss an, weil beide Stores das verbieten (`backend/app/clients.py`).
-> Die Beta-Kennzeichnung bleibt und hängt jetzt an `settings.beta_active`.
-> Zurückdrehen ginge jederzeit mit `PREMIUM_ENABLED=false` plus Neustart.
+> **Überholt seit 18.09.2026** — der Satz „Verkauft wird ausschließlich im
+> Browser" stimmt nicht mehr, siehe oben (Block C/D). Der Rest bleibt
+> gültig: **FLEXR Premium ist seit dem 17.09.2026 scharf.**
+> `PREMIUM_ENABLED=true` steht in der `.env` des VPS (eine Sicherung liegt
+> daneben als `.env.bak-vor-premium-20260917`). Damit gelten die Grenzen des
+> kostenlosen Kontos für alle: 20 Likes/24 h, 3 Unterhaltungen, 50 km. Die
+> Beta-Kennzeichnung bleibt und hängt an `settings.beta_active`. Zurückdrehen
+> ginge jederzeit mit `PREMIUM_ENABLED=false` plus Neustart — das würde jetzt
+> aber auch die drei Store-Kaufwege mit abschalten, nicht nur Stripe.
 
 Nach dem Deploy gegengeprüft: Deck und Matches antworten einem
 unverifizierten Konto weiterhin mit 403, und eine fremde `request_id` am
@@ -229,6 +243,177 @@ Ausgangssitzung), dann die **drei Abschnitte vom 10.09.**
 **08.09.**, dann die beiden Sitzungen vom **07.09.**, dann **06.09.**, dann
 **05.09.**, dann **31.08.**, **30.08.**, **23.08.**, **21.08.**; die Build-,
 Test- und Deploy-Abschnitte am Ende gelten sitzungsübergreifend.
+
+## Sitzung 18.09.2026 — Block A, C, D fertig: Push und Kauf in allen drei Oberflächen
+
+Kurz: **Die Einrichtungsanleitung ist komplett abgearbeitet.** Firebase,
+Play Console und App Store Connect stehen; der Kauf-Knopf ist in der
+Android-App live, in der iOS-App eingereicht und wartet auf Apples Prüfung.
+
+### A — Firebase für Android-Push
+
+Projekt `flexr-a0625` in der Firebase-Konsole angelegt, Android-App
+`flexr.social.app` registriert. Die vier Werte (Projekt-ID, App-ID,
+API-Schlüssel, Sender-ID) kamen als `google-services.json` und stehen jetzt in
+`~/.gradle/gradle.properties` — nicht im Repository, wie in
+`app/build.gradle.kts` dokumentiert.
+
+Das Dienstkonto für den Server (`firebase-adminsdk`, eigener privater
+Schlüssel) liegt als `/flexr/backend/fcm-service-account.json` (600,
+`deploy`). `.env` um `FCM_SERVICE_ACCOUNT_FILE` und `FCM_PROJECT_ID` ergänzt,
+Sicherung `.env.bak-vor-fcm-20260918`.
+
+**Geprüft ohne Gerät:** ein Sendeversuch an ein erfundenes Token. Antwort:
+`400 „registration token is not a valid FCM registration token"` — das
+Dienstkonto wird akzeptiert, nur das Fantasie-Token nicht. Genau das
+gewünschte Ergebnis, analog zu Apples `BadDeviceToken`.
+
+### Android neu gebaut — zweimal, aus einem guten Grund
+
+**versionCode 113 (2.7.1)** entstand zuerst, mit den frischen Firebase-Werten,
+aber ohne Quellcode-Änderung gegenüber 112. Danach der Hinweis: 2.7.1 gab es
+schon (112, vom Vortag) - zwei verschiedene Bundles mit demselben
+Versionsnamen wären in der Play Console verwechselbar gewesen. Also
+**versionCode 114, versionName 2.7.2** - wieder ohne Quellcode-Unterschied,
+nur der Name geändert (`android-native/app/build.gradle.kts`). 114 ist die
+Fassung, die der Nutzer in die Play Console geladen hat.
+
+Nebenbei mit erledigt: Der JDK- und SDK-Pfad auf dieser Maschine war nicht
+gesetzt (`JAVA_HOME` fehlte, `gradlew` brach sofort ab). Gefunden unter
+`~/.bubblewrap/jdk/jdk-17.0.11+9` und `~/.bubblewrap/android_sdk` (Letzteres
+auch in `android-native/local.properties` als `sdk.dir` hinterlegt) - für
+künftige Builds auf dieser Maschine gültig, keine Neuinstallation nötig.
+
+### iOS: Sprechblasen noch einmal repariert
+
+Der Fix vom 16.09. (`fe6af02`, `frame(maxWidth: 300)` + `fixedSize`) folgte
+exakt dem dokumentierten SwiftUI-Muster und entspricht Androids
+funktionierendem `Column + widthIn`. Trotzdem zeigte ein echtes iPhone am
+18.09. wieder das alte Symptom: Ein-Wort-Nachrichten („test", „bjj", „26262")
+füllten die ganze Zeile. Laut `HANDOFF.md` vom 16.09. hatte bis dahin
+**niemand** die TestFlight-Fassung tatsächlich auf einem Gerät angesehen - ob
+es sich um eine echte Regression oder einen veralteten Teststand handelte,
+ließ sich im Nachhinein nicht mehr trennen.
+
+Neu gebaut mit dem robusteren Primitiv: `HStack` + `Spacer(minLength: 0)`
+statt sich allein auf das Schrumpfverhalten von `frame(maxWidth:)` zu
+verlassen - der Spacer nimmt garantiert den Rest der Zeile, unabhängig davon,
+was die Frame-Berechnung intern tut. Die 300-pt-Obergrenze für sehr lange
+Nachrichten (iPad) bleibt, sitzt jetzt aber auf einem ausgelagerten `bubble`-
+Baustein (`ios/FLEXR/UI/Chat/ChatView.swift`). Commit `feadf87`.
+
+### C — Play Console: der Weg zum Dienstkonto ist nicht mehr da, wo er stand
+
+Play Console hat den API-Zugriff aus den Kontoeinstellungen entfernt.
+Dienstkonten werden jetzt **in der Google Cloud Console** angelegt (IAM &
+Verwaltung → Dienstkonten, im selben Projekt `flexr-a0625` wie Firebase - das
+Firebase-Projekt lag „ohne Organisation", nicht unter `pachernegg-org`, daher
+in der Projektauswahl zunächst nicht sichtbar) und dann in der Play Console
+unter **„Nutzer und Berechtigungen" → „Neue Nutzer einladen"** wie ein
+gewöhnlicher Nutzer eingeladen - mit der Dienstkonto-E-Mail-Adresse statt
+einer Personen-Adresse.
+
+Drei Fehlschläge auf dem Weg zum funktionierenden Zugriff, jeder mit eigener,
+eindeutiger Fehlermeldung:
+
+1. `403 SERVICE_DISABLED` - die Google Play Android Developer API war im
+   Cloud-Projekt schlicht noch nie aktiviert. Direktlink aus der
+   Fehlermeldung selbst behoben.
+2. `401 permissionDenied` - die App-spezifische Freigabe für FLEXR fehlte
+   noch (ein eigener Dialog **„Berechtigungen für FLEXR"** neben den
+   Kontoberechtigungen, mit eigenem „Anwenden"-Knopf - leicht zu übersehen).
+3. `400 Invalid Value` - der Zielzustand: Google akzeptiert Schlüssel und
+   Berechtigung, meckert nur noch über das absichtlich erfundene Test-Token.
+
+Dienstkonto: `play-billing-verification@flexr-a0625.iam.gserviceaccount.com`,
+Schlüssel liegt als `/flexr/backend/play-service-account.json` (600,
+`deploy`). `.env` um `GOOGLE_SERVICE_ACCOUNT_FILE` und
+`GOOGLE_SUBSCRIPTION_PRODUCT_ID=premium_monthly` ergänzt (bewusst **zusammen**
+in einem Schritt, nicht einzeln - sonst hätte der Kauf-Knopf kurzzeitig ohne
+funktionierende Kaufprüfung angezeigt).
+
+### D — App Store Connect: Vertrag, DAC7, Abo, Einreichung
+
+**Vertrag für gebührenpflichtige Apps** stand auf „Neu", nicht „Aktiv" -
+zuerst Rechtsträger-Angaben aktualisiert, dann Bankverbindung (N26, IBAN
+`DE33...`, Kontonummer aus der IBAN selbst hergeleitet - deutsche BBAN-Regel:
+erste 8 Ziffern nach der Länderkennung sind die BLZ, die restlichen 10 die
+Kontonummer) und Steuerformular eingereicht.
+
+**Abo angelegt:** Gruppe `FLEXR Premium`, Tarif `FLEXR Premium Monatlich`,
+Produkt-ID `social.flexr.premium.monthly` (exakt wie in der Anleitung, nicht
+mehr änderbar), 1 Monat Laufzeit, 9,99 € (DACH-Verfügbarkeit - bewusst so
+eingeschränkt, deckt sich mit dem restlichen App-Vertrieb).
+
+**Kein iPhone zur Hand für den Pflicht-Screenshot** (App Review Screenshot,
+von Apple für die erste Einreichung eines Abos zwingend verlangt, nicht
+optional trotz fehlendem Stern im Formular). Gelöst ohne Gerät: Der
+tatsächliche `PaywallView.swift`-Code (Texte, Farben aus `FlexrColor`, Layout)
+als HTML nachgebaut und mit `google-chrome --headless --screenshot` auf exakt
+640×920 px gerendert - der Screenshot geht ohnehin nur an Apples Prüfer, nie
+an echte Nutzer. Dieselbe Technik für das optionale 1024×1024-Werbebild
+(App-Icon + „PREMIUM"-Schriftzug).
+
+**DAC7-Compliance-Frage** („Bieten deine Apps persönliche Dienste an?") mit
+**Nein** beantwortet: DAC7 meint zeit-/aufgabenbasierte Arbeit, die ein Nutzer
+für einen anderen gegen Bezahlung erbringt und die die Plattform nur
+vermittelt (Fahrdienst, Nachhilfe, Handwerk). FLEXR verkauft ein Abo direkt an
+die eigenen Nutzer für App-Funktionen - kein Nutzer bezahlt einen anderen.
+
+**Reihenfolge-Falle bei der Einreichung**, zweimal in Folge:
+
+1. Erster Versuch: „Kann nicht zur Prüfung übermittelt werden - Dein Abo mit
+   automatischer Verlängerung muss mit seiner Abo-Gruppe übermittelt werden."
+   Ursache: Version 1.0 war schon eingereicht («Warten auf Prüfung»), ein
+   neues Abo lässt sich nicht nachträglich anhängen. Bewusste Entscheidung
+   (Option B): Version 1.0 aus der Prüfung genommen, um Premium gleich mit
+   dem ersten Release auszuliefern statt erst mit einem Folge-Update.
+2. Zweiter Versuch, neue Fehlermeldung: „Füge mindestens eine Lokalisierung
+   für die Abo-**Gruppe** hinzu." Die Lokalisierung, die wir ausgefüllt
+   hatten, war die des einzelnen Tarifs - die Gruppe selbst (der Container,
+   der Nutzer in den iOS-Einstellungen unter „Abonnements" sehen) brauchte
+   ihre eigene: Anzeigename `FLEXR Premium`.
+
+Danach nebenbei aufgetreten: eine zweite, unabhängige Blockade beim
+Einreichen wegen fehlender **DAC7-Angaben** - derselbe Vertrag-Abschnitt unter
+„Geschäftliches", nicht Teil des Abo-Formulars selbst, aber ebenfalls
+Voraussetzung fürs Einreichen.
+
+**Ergebnis:** Version 1.0 + `FLEXR Premium Monatlich` wurden zusammen zur
+Prüfung eingereicht. Serverseitig `APPLE_SUBSCRIPTION_PRODUCT_ID=
+social.flexr.premium.monthly` gesetzt und neu gestartet, noch **vor** der
+Einreichung - damit ließ sich der echte Kauf-Bildschirm samt Preis schon in
+der laufenden TestFlight-Fassung anschauen, ohne auf den neuen Build zu
+warten (derselbe Trick wie bei C4: Server-Freischaltung wirkt sofort, ganz
+ohne neuen Build).
+
+**D5 (optional)** hat der Nutzer selbst erledigt: App Store Server
+Notifications auf `https://flexr.social/api/billing/apple/notifications`
+gesetzt.
+
+### appreview zieht nach Wien um
+
+Das Prüfkonto trainierte bisher in `3D Lady Fit`, Graz - ohne männliches
+Gegenstück in der Nähe blieben Match und Chatverlauf leer. Auf Wunsch auf ein
+zentrales, freigegebenes Gym umgezogen: **Clever fit, Seidengasse 9-11, 1070
+Wien** (`User.gym`, `User.plz`, `User.city` direkt in der DB aktualisiert -
+das Feld muss exakt dem `Gym.label` aus der `gyms`-Tabelle entsprechen, sonst
+nimmt das Profil laut `gym_geo.py` an der Umkreissuche gar nicht teil). Der
+Nutzer kann das Konto jetzt von seinem eigenen aus liken/matchen.
+
+### Was jetzt noch fehlt
+
+Zwei Tests, unabhängig von Apples Entscheidung zur Einreichung:
+
+1. **Sandbox-Kauf auf einem echten Gerät** - bei Apple ein Sandbox-Tester
+   anlegen (wartet ohnehin auf die Freigabe von Version 1.0), bei Google
+   einen Lizenztester eintragen (Play Console → Einstellungen →
+   Lizenztests) - das geht schon jetzt.
+2. **Push mit zwei echten Geräten** - der eigentliche Beweis, dass der am
+   17.09. gemeldete Fehler (Nachricht kam erst nach manuellem App-Start) nun
+   wirklich behoben ist.
+
+---
 
 ## Sitzung 17.09.2026 (8) — APNs eingerichtet, iOS-Build wieder grün
 
