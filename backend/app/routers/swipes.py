@@ -349,7 +349,8 @@ def rewind_last_swipe(
     current_user: User = Depends(require_active_membership),
     db: Session = Depends(get_db),
 ):
-    """Den letzten Swipe zuruecknehmen - eine Premium-Funktion.
+    """Den letzten (noch nicht gematchten) Swipe zuruecknehmen - eine
+    Premium-Funktion.
 
     Der zurueckgenommene Swipe wird geloescht, das Profil taucht dadurch beim
     naechsten Laden wieder im Deck auf (``deck_profiles`` schliesst genau die
@@ -360,7 +361,9 @@ def rewind_last_swipe(
     das ihr schon angezeigt und womoeglich per Mail gemeldet wurde - das
     Zuruecknehmen ist als Notausgang fuer den eigenen Daumen gedacht, nicht als
     Eingriff in fremde Chatlisten. Wer das Match wirklich los sein will, loest
-    es auf; das ist der dafuer vorgesehene Weg.
+    es auf; das ist der dafuer vorgesehene Weg. Ein solcher Swipe wird dabei
+    uebersprungen, nicht blockierend behandelt: zurueckgenommen wird der
+    letzte Swipe **ohne** Match, auch wenn dazwischen einer mit Match liegt.
     """
     if premium.feature_locked(current_user):
         raise HTTPException(
@@ -373,15 +376,49 @@ def rewind_last_swipe(
             },
         )
 
-    letzter = (
+    # Die zuletzt beswipeten zuerst, damit der jüngste unter ihnen zuerst dran
+    # ist. Begrenzt auf DECK_SIZE: ein Match irgendwo weiter zurueck als das
+    # soll den "Notausgang fuer den eigenen Daumen" nicht beliebig weit in die
+    # eigene Historie graben lassen.
+    letzte_swipes = (
         db.query(Swipe)
         .filter(Swipe.from_user_id == current_user.id)
         .order_by(Swipe.created_at.desc())
-        .first()
+        .limit(DECK_SIZE)
+        .all()
     )
-    if not letzter:
+    if not letzte_swipes:
         raise HTTPException(404, "Es gibt keinen Swipe zum Zurücknehmen.")
 
+    gematchte_partner_ids = {
+        m.user_b_id if m.user_a_id == current_user.id else m.user_a_id
+        for m in db.query(Match).filter(
+            or_(Match.user_a_id == current_user.id, Match.user_b_id == current_user.id)
+        )
+    }
+    # Ein bereits gematchter Swipe bleibt gesperrt (unten der eigentliche
+    # Grund dafuer), darf aber nicht den Weg zu aelteren, noch ungematchten
+    # Swipes davor versperren. Ohne dieses Uebergehen haette ein Match
+    # irgendwo in der juengeren Vergangenheit denselben 409 bei jedem
+    # weiteren Klick wiederholt, weil die gematchte Zeile - da nie geloescht -
+    # fuer immer "der letzte Swipe" bliebe: aeltere, an sich zuruecknehmbare
+    # Swipes waeren dann auf Dauer unerreichbar.
+    letzter = next(
+        (s for s in letzte_swipes if s.to_user_id not in gematchte_partner_ids), None
+    )
+    if letzter is None:
+        # Alle in Reichweite sind gematcht (der Normalfall: genau einer,
+        # naemlich der letzte selbst).
+        raise HTTPException(
+            409,
+            "Daraus ist schon ein Match geworden - das lässt sich nur auflösen, "
+            "nicht zurücknehmen.",
+        )
+
+    # Doppelt haelt besser: zwischen der Abfrage von gematchte_partner_ids
+    # oben und dem Loeschen unten koennte in seltenen Faellen ein neues Match
+    # entstanden sein (die Gegenseite liked in genau diesem Moment zurueck) -
+    # diese Pruefung faengt genau dieses schmale Zeitfenster ab.
     a, b = sorted([current_user.id, letzter.to_user_id])
     if db.query(Match).filter(Match.user_a_id == a, Match.user_b_id == b).first():
         raise HTTPException(

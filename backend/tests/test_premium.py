@@ -453,6 +453,36 @@ def test_rewind_faellt_bei_bestehendem_match_aus(client, monkeypatch):
         db.close()
 
 
+def test_rewind_ueberspringt_gematchten_swipe_und_nimmt_aelteren_zurueck(client, monkeypatch):
+    """Ein Match in der juengsten Swipe-Historie darf aeltere, noch
+    ungematchte Swipes nicht dauerhaft blockieren - sonst wiederholt jeder
+    weitere Klick denselben 409, ohne je wieder ein Profil freizugeben."""
+    monkeypatch.setattr(settings, "premium_enabled", True)
+
+    headers = register_user_with_photo(client, "reihenfolge@example.com")
+    _set_premium(_user_id(client, headers))
+
+    aelterer = register_user_with_photo(client, "aelterer-swipe@example.com")
+    partner = register_user_with_photo(client, "matchpartner@example.com")
+    aelterer_id = _user_id(client, aelterer)
+
+    client.post(
+        "/api/swipes", json={"to_user_id": aelterer_id, "action": "pass"}, headers=headers
+    )
+    _match_mit(client, headers, partner)  # jetzt der zuletzt gemachte Swipe
+
+    resp = client.post("/api/swipes/rewind", headers=headers)
+    assert resp.status_code == 200, resp.text
+    assert resp.json()["to_user_id"] == aelterer_id
+
+    db = TestingSessionLocal()
+    try:
+        assert db.query(Match).count() == 1
+        assert db.query(Swipe).filter(Swipe.to_user_id == aelterer_id).count() == 0
+    finally:
+        db.close()
+
+
 def test_premium_abzeichen_steht_im_fremdprofil(client, monkeypatch):
     monkeypatch.setattr(settings, "premium_enabled", True)
 
