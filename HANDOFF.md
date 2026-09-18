@@ -4,12 +4,22 @@ Stand: **18.09.2026**
 
 ## Wo das Projekt gerade steht
 
+> **Dringend zu prüfen beim Einstieg: Ist Android 2.7.5 (versionCode 117) in
+> der Play Console live?** Der Nutzer hat 116 (2.7.4) auf ausdrücklichen
+> Wunsch **direkt in Produktion** hochgeladen, obwohl diese Fassung den
+> Absturz beim Start noch **nicht** behoben hat (siehe „Sitzung 18.09.2026
+> (2)" unten) — 117 wurde ihm danach übergeben, ob der Play-Console-Upload von
+> 117 tatsächlich passiert ist, ist von hier aus nicht einsehbar. Falls nicht:
+> **Jeder Nutzer, der gerade aktualisiert, bekommt eine App, die sofort nach
+> dem Start abstürzt.** Play Console prüfen, im Zweifel 117 aus
+> `release-2.7.5/flexr-2.7.5-vc117.aab` sofort hochladen.
+
 **Alles committet, gepusht und deployed.** Der VPS steht auf `origin/main`
-(**`76f74ef`**). Der letzte Commit, der **Backend-Code** ändert, ist weiterhin
+(**`3aa9cd6`**). Der letzte Commit, der **Backend-Code** ändert, ist weiterhin
 `9304363` vom 17.09. (iOS-Push über APNs) — alles danach sind Client-Änderungen
-(iOS-Sprechblasen, Android-Versionsnummer) und Dokumentation, beides ohne
-Server-Neustart. `systemctl is-active` zeigt `active`, `/api/health` liefert
-200.
+(iOS-Sprechblasen, Android-Versionsnummern 2.7.2 bis 2.7.5) und Dokumentation,
+beides ohne Server-Neustart. `systemctl is-active` zeigt `active`,
+`/api/health` liefert 200.
 
 > **FLEXR Premium ist seit dem 18.09.2026 in allen drei Oberflächen fertig
 > eingerichtet — nicht nur scharf geschaltet, sondern auch tatsächlich
@@ -228,7 +238,10 @@ Die `vc101`- bis `vc104`-Dateien sind hinfällig. Die Play Console hatte 43 und
 > englischen Texte lagen dort in einem Sprach-Split, den ein deutsches Gerät
 > nie herunterlädt. Erst ab 2.6.3 stecken beide Sprachen im Basis-Paket.
 
-Aufbau des Dokuments: erst diese Eckdaten, dann **die Sitzung vom 17.09. (3)**
+Aufbau des Dokuments: erst diese Eckdaten, dann **die Sitzung vom 18.09. (2)**
+(Android-Absturz beim Start: PlayBillingService fehlte enableOneTimeProducts,
+2.7.3 bis 2.7.5), dann **die Sitzung vom 18.09.** (Block A, C, D fertig: Push
+und Kauf), dann **die Sitzung vom 17.09. (3)**
 (Durchsicht vor der Einreichung: Nutzerweg, Admin-Werkzeuge, Rechtstexte),
 dann **die Sitzung vom 17.09. (2)**
 (Verifizierungsablehnung: Fotos löschen, Nutzerliste kennzeichnen), dann **die
@@ -243,6 +256,151 @@ Ausgangssitzung), dann die **drei Abschnitte vom 10.09.**
 **08.09.**, dann die beiden Sitzungen vom **07.09.**, dann **06.09.**, dann
 **05.09.**, dann **31.08.**, **30.08.**, **23.08.**, **21.08.**; die Build-,
 Test- und Deploy-Abschnitte am Ende gelten sitzungsübergreifend.
+
+## Sitzung 18.09.2026 (2) — Android-Absturz beim Start: PlayBillingService fehlte enableOneTimeProducts()
+
+**Gemeldet:** Die Android-App (2.7.2, versionCode 114 — die Fassung aus der
+vorigen Sitzung, die der Nutzer in die Play Console geladen hatte) startet auf
+einem echten Gerät nicht mehr; sie schließt sich sofort mit dem generischen
+Systemdialog "FLEXR geschlossen, da diese App einen Fehler enthält". Drei
+Fehlversuche, bevor der echte Stack Trace zu fassen war — festgehalten, damit
+niemand dieselben Sackgassen noch einmal durchläuft.
+
+### Fehlspur 1: das 2.6.0-Distributionsmuster (115/2.7.3)
+
+Der naheliegende Verdacht war eine Wiederholung des 2.6.0-Vorfalls vom
+11.09.2026 (Abschnitt „Absturz beim Start der Android-App" weiter unten):
+`release-2.6.6` bis `release-2.7.1` enthalten allesamt **nur** ein `.aab`,
+keine installierbare Universal-APK mehr — ein `.aab` lässt sich nicht direkt
+installieren, und wer es trotzdem versucht (umbenannt oder per
+Split-Installer ohne passende Splits), bekommt eine Installation ohne die
+richtigen Splits, die Android beim Start sofort wieder beendet. `versionCode
+115`/`2.7.3` wurde deshalb quellcodegleich zu 114 gebaut, diesmal aber mit
+`assembleProdRelease` **und** `bundleProdRelease`, beide nach
+`release-2.7.3/` mit `SHA256SUMS.txt`, Signatur mit `apksigner verify
+--print-certs` gegen den bekannten Fingerabdruck `bc64ad3f…e7980` geprüft.
+
+**Ergebnis: Die sauber installierte Universal-APK stürzte genauso ab.** Die
+Distributionstheorie war falsch — es ist ein echter Code-Fehler. (Die
+Erkenntnis "seit 2.6.6 fehlt die APK" bleibt trotzdem richtig und die Lücke
+sollte langfristig nicht wieder auftreten — sie ist nur diesmal nicht die
+Ursache.)
+
+### Fehlspur 2: Firebase/FCM (Verdacht, nie bestätigt)
+
+Naheliegend war außerdem: 114 war der erste Build mit **echten**
+Firebase-Werten (113 hatte sie auch schon, aber nie in die Play Console
+geladen) — vorher liefen alle FCM-Codepfade wegen leerer `BuildConfig`-Felder
+nie wirklich. Eine gründliche Codedurchsicht (`FlexrApplication.initFirebase()`,
+`PushTokenRegistrar`, `FlexrMessagingService`, das gemergte Manifest aus einem
+echten Build, R8-Warnungen) fand aber **nichts** — jeder riskante Aufruf steckt
+bereits in `runCatching`. Diese Spur wurde nie verifiziert oder widerlegt,
+sie wurde nur durch den späteren echten Fund gegenstandslos (siehe unten:
+der tatsächliche Fehler liegt in `PlayBillingService`, unabhängig von Firebase).
+
+### Der eigentliche Blocker: kein Stack Trace zu bekommen
+
+Ohne echten Absturzbericht blieb alles Raten. `CrashLog.kt` (seit 2.6.1,
+11.09.2026) schreibt ihn nach `Android/data/flexr.social.app/files/` — aber
+dieser Ordner war auf dem betroffenen Gerät **nicht mehr erreichbar**:
+
+* Samsungs "Eigene Dateien" zeigt für seine eigene App-Berechtigungsseite gar
+  keine "Alle Dateien verwalten"-Option an.
+* **X-plore File Manager** (der übliche Königsweg für genau diesen Fall) kommt
+  bei `Android/media` noch durch seinen SAF-Grant-Trick, bei `Android/data`
+  und `Android/obb` zeigt er nur noch "Zugriff verweigert" — offenbar hat
+  dieses Android (16, API 36) die Lücke inzwischen geschlossen, über die
+  X-plore bisher kam.
+* USB/adb ging nicht: der Nutzer saß an einem anderen Rechner als dem, auf dem
+  diese Session läuft. Kabelloses ADB ging auch nicht: Handy und Session-
+  Rechner sind nicht im selben WLAN.
+
+**Lösung (116/2.7.4):** `CrashLog.kt` legt den Bericht jetzt **zusätzlich** in
+die `MediaStore`-Downloads-Sammlung — seit Android 10 ohne jede Berechtigung
+beschreibbar (eine App darf dort eigene Dateien anlegen), und der Ordner ist
+in jedem Dateimanager ganz normal sichtbar, ohne SAF-Tricks. Die
+`Android/data`-Kopie bleibt als Fallback bestehen; beide Ablageorte räumen
+für sich die ältesten Berichte auf (`MAX_DATEIEN = 5`). Diese Fassung behebt
+den Absturz **nicht** — sie dient rein dazu, den nächsten tatsächlich
+einsehen zu können. Auf ausdrücklichen Nutzerwunsch trotzdem direkt in
+Produktion hochgeladen (siehe Warnhinweis ganz oben im Dokument).
+
+### Der Fund
+
+Aus der Downloads-Kopie:
+
+```
+java.lang.IllegalArgumentException: Pending purchases for one-time products must be supported.
+    at b5.f.get(SourceFile:269)
+    ...
+    at androidx.compose.ui.platform.AndroidCompositionLocals_androidKt.a(SourceFile:643)
+    ...
+    at t1.t.onAttachedToWindow(SourceFile:121)
+```
+
+`PlayBillingService` (`android-native/app/src/main/java/flexr/social/app/data/billing/PlayBillingService.kt`)
+baute den `BillingClient` mit einem **leeren** `PendingPurchasesParams`:
+
+```kotlin
+.enablePendingPurchases(PendingPurchasesParams.newBuilder().build())
+```
+
+Seit **Play Billing Library 7** (das Projekt ist auf `8.0.0`) verlangt
+`build()` zwingend `enableOneTimeProducts()` — auch für Apps wie FLEXR, die
+ausschließlich ein Abo verkaufen und nie ein Einmalprodukt anbieten werden.
+Ohne das wirft `build()` sofort. Der `client`-Wert ist ein
+**Property-Initializer**, kein `lazy` und kein `runCatching` drumherum — die
+Exception fliegt also synchron und ungefangen, sobald Hilt `PlayBillingService`
+konstruiert. Das passiert bei **jedem** App-Start, weil `MainViewModel` den
+Service im Konstruktor verlangt (Hilt baut ihn beim ersten `hiltViewModel()`-
+Aufruf in `MainActivity.setContent`) — daher der Stack Trace mitten im
+Compose-Attach-Vorgang, und daher die 100-prozentige Reproduzierbarkeit.
+
+**Vermutlich schon seit der ersten Play-Billing-Einreichung im Code** (Commit
+`6950764`, 17.09.2026) — nur ist seither offenbar niemand mit einem frischen
+Prozess auf einem echten Gerät gelandet, bevor `MainViewModel`/
+`PlayBillingService` gebraucht wurden. Weder Unit-Tests noch der R8-Build
+hätten das je gefangen: `BillingClient.newBuilder(...).build()` ist ein
+echter Google-Play-Services-Aufruf, den Robolectric-freie JVM-Unit-Tests gar
+nicht ausführen.
+
+**Fix (117/2.7.5):**
+
+```kotlin
+.enablePendingPurchases(
+    PendingPurchasesParams.newBuilder()
+        .enableOneTimeProducts()
+        .build(),
+)
+```
+
+Quellcode sonst identisch zu 116. Gebaut, signiert (derselbe Fingerabdruck),
+getestet (`testProdReleaseUnitTest` grün), `.aab` und `.apk` nach
+`release-2.7.5/` mit `SHA256SUMS.txt`, dem Nutzer übergeben.
+
+### iOS ist nicht betroffen
+
+Kurz nachgeprüft, weil naheliegend: `ios/FLEXR/Data/Store/StoreKitService.swift`
+hat keinen eager Property-Initializer wie Android — `init(api:)` ist trivial,
+jeder StoreKit-Aufruf steckt in `do/try/catch` bzw. ist `async throws` mit
+Fehlerbehandlung. Das Android-spezifische Konzept
+`PendingPurchasesParams`/`enableOneTimeProducts()` existiert bei StoreKit
+schlicht nicht. Kein Handlungsbedarf auf der iOS-Seite.
+
+### Offen
+
+* **Play Console prüfen**, ob 117 tatsächlich hochgeladen wurde (siehe
+  Warnhinweis ganz oben) — 116 behebt den Absturz nicht.
+* Die release-2.6.6-bis-2.7.1-Lücke (kein APK exportiert) ist mit 2.7.3ff.
+  nur für diese Versionen behoben, nicht strukturell — es gibt weiterhin kein
+  Skript, das `assembleProdRelease` automatisch neben `bundleProdRelease`
+  laufen lässt. Käme mal jemand dazu, das in `android/build.sh` oder ein
+  neues `android-native`-Äquivalent zu gießen, würde diese Lücke nicht wieder
+  aufreißen.
+* Die beiden noch offenen Tests aus der vorigen Sitzung (Sandbox-Kauf,
+  Push mit zwei Geräten) stehen weiterhin aus — zusätzlich zur Frage, ob der
+  Kauf-Knopf mit dem jetzt reparierten `PlayBillingService` überhaupt zum
+  ersten Mal fehlerfrei durchläuft.
 
 ## Sitzung 18.09.2026 — Block A, C, D fertig: Push und Kauf in allen drei Oberflächen
 
