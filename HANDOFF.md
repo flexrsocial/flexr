@@ -15,10 +15,11 @@ Stand: **18.09.2026**
 > `release-2.7.5/flexr-2.7.5-vc117.aab` sofort hochladen.
 
 **Alles committet, gepusht und deployed.** Der VPS steht auf `origin/main`
-(**`5e9f016`**, Sitzung 18.09.2026 (3) — Bug-/Performance-/Cleanup-Durchgang).
+(**`65a0793`**, Sitzung 18.09.2026 (4) — Fix für "Swipe zurücknehmen").
 Das ist jetzt der aktuelle Backend-Code-Stand (löst `9304363` vom 17.09. als
-Referenz ab). Migration bis `5f8ae574bc95` gelaufen, `flexr-api` neu
-gestartet, Nginx neu geladen (`/brand/`-Sperre). `systemctl is-active` zeigt
+Referenz ab). Migration bis `5f8ae574bc95` gelaufen (Sitzung (3)), `flexr-api`
+zweimal neu gestartet (zuletzt fuer (4), keine neue Migration dabei), Nginx
+neu geladen (`/brand/`-Sperre, Sitzung (3)). `systemctl is-active` zeigt
 `active`, `/api/health` liefert 200, Login gegen ein `@flexrtest.at`-Konto
 gegengeprüft.
 
@@ -257,6 +258,32 @@ Ausgangssitzung), dann die **drei Abschnitte vom 10.09.**
 **08.09.**, dann die beiden Sitzungen vom **07.09.**, dann **06.09.**, dann
 **05.09.**, dann **31.08.**, **30.08.**, **23.08.**, **21.08.**; die Build-,
 Test- und Deploy-Abschnitte am Ende gelten sitzungsübergreifend.
+
+## Sitzung 18.09.2026 (4) — "Swipe zurücknehmen" blieb an einem Match hängen
+
+**Gemeldet beim Testen mit dem neuen Testdaten-Batch:** Wiederholtes
+Zurücknehmen zeigte immer wieder denselben Hinweis "Daraus ist schon ein
+Match geworden", ohne je ein älteres Profil freizugeben - wirkte, als bliebe
+man "am Anfang des Decks hängen".
+
+**Ursache:** `rewind_last_swipe()` (`routers/swipes.py`) nahm immer nur den
+einen allerletzten Swipe. War der bereits gematcht, blieb er (da nie
+gelöscht) für immer "der letzte" - jeder weitere Klick traf exakt dieselbe
+Zeile erneut. Ältere, an sich zurücknehmbare Swipes davor waren dadurch
+dauerhaft unerreichbar, sobald irgendwo in der jüngeren Vergangenheit ein
+Match lag.
+
+**Fix:** Springt jetzt über gematchte Swipes hinweg zum jüngsten ohne Match
+(begrenzt auf `DECK_SIZE` zurück, damit der "Notausgang für den eigenen
+Daumen" nicht beliebig weit in die Historie gräbt). Bleiben nur gematchte
+Swipes übrig (der Normalfall: genau einer), weiterhin derselbe 409 wie
+bisher - der Fall aus dem bestehenden Test
+`test_rewind_faellt_bei_bestehendem_match_aus` ändert sich also nicht.
+Neuer Regressionstest:
+`test_rewind_ueberspringt_gematchten_swipe_und_nimmt_aelteren_zurueck`.
+
+492 Tests grün, keine Migration, Backend neu gestartet
+(**`65a0793`**, `/api/health` → 200).
 
 ## Sitzung 18.09.2026 (3) — Kompletter Bug-/Performance-/Cleanup-Durchgang, Testdaten für Premium
 
