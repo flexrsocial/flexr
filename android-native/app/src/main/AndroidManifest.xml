@@ -89,6 +89,30 @@
             </intent-filter>
         </service>
 
+        <!--
+             Wer die Benachrichtigung zeichnet, haengt vom Zustand der App ab:
+             Im Vordergrund ruft das Firebase-SDK unser onMessageReceived() auf
+             (siehe FlexrMessagingService), im Hintergrund und bei **beendeter
+             App** zeigt es die Nachricht selbst an - dann laeuft kein eigener
+             Code. Ohne diese drei Angaben nimmt es dafuer das Launcher-Symbol
+             (bunt und quadratisch, Android zeichnet es als weissen Klecks),
+             die Standardfarbe und, falls der Kanal aus der Nutzlast einmal
+             fehlt, einen eigenen Ersatzkanal "Sonstiges" - dieselbe Nachricht
+             saehe je nach Zustand der App verschieden aus und haenge an einem
+             Kanal, den niemand kennt.
+
+             Die Werte sind bewusst dieselben wie in FlexrMessagingService.
+        -->
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_icon"
+            android:resource="@drawable/ic_dumbbell" />
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_color"
+            android:resource="@color/plate" />
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_channel_id"
+            android:value="flexr_messages" />
+
         <provider
             android:name="androidx.startup.InitializationProvider"
             android:authorities="${applicationId}.androidx-startup"

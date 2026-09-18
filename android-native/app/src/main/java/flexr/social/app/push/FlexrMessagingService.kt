@@ -71,7 +71,7 @@ class FlexrMessagingService : FirebaseMessagingService() {
 
         val intent = Intent(this, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
-            if (message.data["target"] == "chats") {
+            if (message.data[DATA_TARGET] == "chats") {
                 putExtra(NewMessageWorker.EXTRA_OPEN_CHATS, true)
             }
         }
@@ -97,7 +97,19 @@ class FlexrMessagingService : FirebaseMessagingService() {
         NotificationManagerCompat.from(this).notify(NOTIFICATION_ID, notification)
     }
 
-    private companion object {
-        const val NOTIFICATION_ID = 1001
+    companion object {
+        private const val NOTIFICATION_ID = 1001
+
+        /**
+         * Schluessel des Ziels in der Datennutzlast des Servers (siehe
+         * `backend/app/push.py`).
+         *
+         * Steht hier und nicht nur als Zeichenkette in [onMessageReceived],
+         * weil ihn eine zweite Stelle braucht: Ist die App **beendet**, zeigt
+         * das Firebase-SDK die Benachrichtigung selbst an und legt die
+         * Datennutzlast als Extras in den Start-Intent - unter genau diesem
+         * Namen. [MainActivity] liest ihn dort aus.
+         */
+        const val DATA_TARGET = "target"
     }
 }

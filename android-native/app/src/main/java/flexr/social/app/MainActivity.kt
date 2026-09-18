@@ -23,6 +23,7 @@ import flexr.social.app.core.locale.LanguageStore
 import flexr.social.app.core.locale.ProvideAppLanguage
 import flexr.social.app.notifications.ActivityNotificationWorker
 import flexr.social.app.notifications.NewMessageWorker
+import flexr.social.app.push.FlexrMessagingService
 import flexr.social.app.ui.FlexrApp
 import flexr.social.app.ui.navigation.TopLevelDestination
 
@@ -146,6 +147,14 @@ class MainActivity : ComponentActivity() {
      * übernommen: ein unbekannter Wert aus einer neueren Serverfassung soll
      * die App einfach öffnen, nicht auf eine leere Route führen.
      *
+     * **Drei Quellen, nicht zwei.** War die App beendet, hat kein eigener Code
+     * die Benachrichtigung gezeichnet: Das Firebase-SDK zeigt sie dann selbst
+     * an und legt die Datennutzlast des Servers als Extras in den
+     * Start-Intent - `target` heisst dort genau so wie in der Nutzlast
+     * ([FlexrMessagingService.DATA_TARGET]). Ohne diese dritte Quelle landete
+     * ein Tipp aus dem gemeldeten Fall - Telefon gesperrt, App beendet -
+     * stumm auf dem Startbildschirm der App statt im Chat.
+     *
      * Bewusst getrennt von `intent.data`: darüber läuft der Bestätigungslink
      * aus der Registrierungsmail, und der bleibt hier unangetastet.
      */
@@ -155,6 +164,7 @@ class MainActivity : ComponentActivity() {
             return TopLevelDestination.CHATS.route
         }
         val target = intent.getStringExtra(ActivityNotificationWorker.EXTRA_TARGET)
+            ?: intent.getStringExtra(FlexrMessagingService.DATA_TARGET)
         return TopLevelDestination.entries.firstOrNull { it.route == target }?.route
     }
 }

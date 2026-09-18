@@ -314,7 +314,6 @@
     <string name="premium_badge_title">FLEXR Premium</string>
     <string name="premium_likes_left_one">Noch 1 von %1$d Likes heute</string>
     <string name="premium_more_likes">Unbegrenzt liken</string>
-    <string name="premium_rewind_done">Swipe zurückgenommen.</string>
     <string name="premium_rewind_failed">Zurücknehmen hat nicht geklappt.</string>
     <string name="swipe_rewind">Letzten Swipe zurücknehmen</string>
 
@@ -385,6 +384,12 @@
     <string name="verify_badge_start">Einmalig Selfie und Lichtbildausweis prüfen lassen.</string>
 
     <!-- ==== Benachrichtigungen ==== -->
+    <!-- Steht als Erstes im Dialog: Legt das System die App schlafen,
+         nuetzt kein Schalter darunter etwas. Siehe Akkuoptimierung.kt. -->
+    <string name="notify_closed_app_title">Bei geschlossener App</string>
+    <string name="notify_battery_hint">Android legt FLEXR schlafen, sobald du die App aus der Übersicht wischst — Nachrichten kommen dann erst, wenn du sie wieder öffnest. Nimm FLEXR von der Akku-Optimierung aus, dann wacht dein Telefon auch für eine Chatnachricht auf.</string>
+    <string name="notify_battery_action">Akku-Einstellungen öffnen</string>
+    <string name="notify_battery_ok">FLEXR ist von der Akku-Optimierung ausgenommen — Nachrichten kommen auch bei geschlossener App an.</string>
     <string name="notify_match_title">Neues Match</string>
     <string name="notify_match_hint">Wenn jemand dich zurückgeliked hat.</string>
     <string name="notify_queue_title">Neue Profile im Umkreis</string>

@@ -275,7 +275,6 @@
     <string name="premium_badge_title">FLEXR Premium</string>
     <string name="premium_likes_left_one">1 of %1$d likes left today</string>
     <string name="premium_more_likes">Like without limits</string>
-    <string name="premium_rewind_done">Swipe undone.</string>
     <string name="premium_rewind_failed">Could not undo that swipe.</string>
     <string name="swipe_rewind">Undo last swipe</string>
 
@@ -340,6 +339,10 @@
     <string name="verify_badge_failed">Not completed. You can get help at flexr.social@proton.me.</string>
     <string name="verify_badge_start">Have your selfie and photo ID checked once.</string>
 
+    <string name="notify_closed_app_title">When the app is closed</string>
+    <string name="notify_battery_hint">Android puts FLEXR to sleep as soon as you swipe the app away — messages then only arrive once you open it again. Exclude FLEXR from battery optimisation and your phone will wake up for a chat message too.</string>
+    <string name="notify_battery_action">Open battery settings</string>
+    <string name="notify_battery_ok">FLEXR is excluded from battery optimisation — messages arrive even when the app is closed.</string>
     <string name="notify_match_title">New match</string>
     <string name="notify_match_hint">When someone liked you back.</string>
     <string name="notify_queue_title">New profiles nearby</string>

@@ -1,8 +1,10 @@
 package flexr.social.app.ui.account
 
 import android.Manifest
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
+import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -86,6 +88,7 @@ import flexr.social.app.data.remote.dto.NotificationSettingsRequestDto
 import flexr.social.app.domain.model.BlockedUser
 import flexr.social.app.domain.model.NotificationSettings
 import flexr.social.app.domain.model.VerificationStatus
+import flexr.social.app.notifications.Akkuoptimierung
 import flexr.social.app.ui.components.GymPicker
 import flexr.social.app.ui.components.GymSuggestionDialog
 import flexr.social.app.ui.components.PhotoGridEditor
@@ -1145,6 +1148,21 @@ private fun NotificationSettingsDialog(
     onDismiss: () -> Unit,
 ) {
     val colors = FlexrTheme.colors
+    val context = LocalContext.current
+
+    /* Steht als Erstes im Dialog, noch vor jedem Schalter: Ist die App vom
+       System schlafen gelegt, nuetzt kein einziger davon etwas - eine
+       Chatnachricht kommt dann erst, wenn jemand die App von Hand oeffnet.
+       Der Hintergrund steht bei [Akkuoptimierung].
+
+       Neu gelesen bei jeder Rueckkehr aus den Einstellungen (daher der
+       Launcher statt eines schlichten startActivity): Wer die Ausnahme dort
+       gerade gesetzt hat, soll nicht denselben Hinweis wiederfinden. */
+    var akkuAusgenommen by remember { mutableStateOf(Akkuoptimierung.istAusgenommen(context)) }
+    val akkuEinstellungen = rememberLauncherForActivityResult(
+        ActivityResultContracts.StartActivityForResult(),
+    ) { akkuAusgenommen = Akkuoptimierung.istAusgenommen(context) }
+
     AlertDialog(
         onDismissRequest = onDismiss,
         containerColor = MaterialTheme.colorScheme.surface,
@@ -1156,6 +1174,38 @@ private fun NotificationSettingsDialog(
                     .heightIn(max = 480.dp)
                     .verticalScroll(rememberScrollState()),
             ) {
+                NotificationGroupTitle(stringResource(R.string.notify_closed_app_title))
+                if (akkuAusgenommen) {
+                    Text(
+                        stringResource(R.string.notify_battery_ok),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = colors.chalkDim,
+                    )
+                } else {
+                    Text(
+                        stringResource(R.string.notify_battery_hint),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = colors.chalkDim,
+                    )
+                    Spacer(Modifier.height(6.dp))
+                    FlexrLinkButton(
+                        text = stringResource(R.string.notify_battery_action),
+                        onClick = {
+                            // Nur die Systemliste laesst sich mit einem
+                            // Ergebnis starten; der Rueckfall auf die
+                            // App-Detailseite steckt in Akkuoptimierung und
+                            // kommt ohne Ergebnis zurueck - dann wird der
+                            // Stand beim naechsten Oeffnen des Dialogs
+                            // gelesen.
+                            runCatching {
+                                akkuEinstellungen.launch(
+                                    Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS),
+                                )
+                            }.onFailure { Akkuoptimierung.oeffneEinstellungen(context) }
+                        },
+                    )
+                }
+
                 NotificationGroupTitle(stringResource(R.string.notify_match_title))
                 NotificationSwitchRow(
                     label = stringResource(R.string.notify_email),

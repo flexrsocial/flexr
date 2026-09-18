@@ -188,8 +188,15 @@ android {
         // Premium-Bildschirm verschwunden (der Zurueck-Knopf passte sonst
         // nicht aufs Bild), und die Aboverwaltung sitzt unten in den
         // Einstellungen statt unter dem Profilbild.
-        versionCode = 118
-        versionName = "2.7.6"
+        // 119/2.7.7 am 18.09.2026: Benachrichtigungen bei **beendeter** App.
+        // Das Firebase-SDK zeichnet sie in diesem Fall selbst - es bekommt
+        // jetzt Symbol, Farbe und Kanal ueber das Manifest mit, und ein Tipp
+        // darauf fuehrt wieder in die Chats. Dazu der Hinweis auf die
+        // Akku-Ausnahme in den Benachrichtigungseinstellungen (ohne sie legt
+        // Android die App schlafen, und dann kommt gar nichts) und zwei
+        // Einblendungen weniger beim Zuruecknehmen eines Swipes.
+        versionCode = 119
+        versionName = "2.7.7"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         // Nur die Sprachen ausliefern, die es wirklich gibt: Deutsch als

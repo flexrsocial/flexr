@@ -195,9 +195,18 @@ class SwipeViewModel @Inject constructor(
      * muss nicht der letzte im aktuellen Deck gewesen sein (etwa nach einem
      * Neuladen wegen geaenderter Suchkriterien).
      *
-     * Fehler kommen im Klartext des Servers durch: "brauchst Premium" (403)
-     * und "daraus ist schon ein Match geworden" (409) sind fuer den Nutzer
-     * zwei sehr verschiedene Nachrichten.
+     * **Ohne Meldung, wenn es geklappt hat** (seit 18.09.2026): Das
+     * zurueckgenommene Profil steht danach wieder vor einem - eine Einblendung
+     * sagt dasselbe noch einmal und verdeckt dabei genau die Karte, um die es
+     * geht. Auch stumm bleiben die beiden Faelle, in denen es schlicht nichts
+     * zurueckzunehmen gibt: "daraus ist schon ein Match geworden" (409) und
+     * "es gibt keinen Swipe zum Zuruecknehmen" (404). Beides ist kein Fehler
+     * des Nutzers und nichts, woran er etwas aendern koennte; gemeldet wurde
+     * die 409-Einblendung am Anfang des Decks ausdruecklich als Stoerung.
+     *
+     * Alles andere kommt weiter im Klartext des Servers durch - vor allem
+     * "brauchst Premium" (403): Das ist die eine Absage, die der Nutzer
+     * aufloesen kann.
      */
     fun rewindLastSwipe() {
         if (_uiState.value.isRewinding) return
@@ -206,10 +215,11 @@ class SwipeViewModel @Inject constructor(
             runCatching { swipeRepository.rewindLastSwipe() }
                 .onSuccess { outcome ->
                     billingRepository.updateLikesRemaining(outcome.likesRemaining)
-                    _events.send(SwipeEvent.Message(strings.get(R.string.premium_rewind_done)))
                     loadDeck()
                 }
                 .onFailure { throwable ->
+                    val status = (throwable as? FlexrApiException)?.statusCode
+                    if (status == 409 || status == 404) return@onFailure
                     _events.send(
                         SwipeEvent.Message(
                             (throwable as? FlexrApiException)?.message

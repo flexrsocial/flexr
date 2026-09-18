@@ -19,6 +19,8 @@ import flexr.social.app.testing.MainDispatcherRule
 import flexr.social.app.testing.meinProfilDto
 import flexr.social.app.testing.profilDto
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -209,9 +211,51 @@ class SwipeViewModelTest {
     }
 
     /**
+     * Gemeldet am 18.09.2026: Die Einblendung "Daraus ist schon ein Match
+     * geworden" erschien am Anfang des Decks bei jedem Versuch - dort liegen
+     * in der Regel nur gematchte Swipes, der Server antwortet also mit 409.
+     * Zurueckzunehmen gibt es dann schlicht nichts, und eine Meldung darueber
+     * ist kein Hinweis, sondern eine Stoerung. Dasselbe gilt fuer den 404
+     * ("es gibt keinen Swipe zum Zuruecknehmen"). Die Erfolgsmeldung ist aus
+     * demselben Grund weg: Die zurueckgekommene Karte sagt es selbst.
+     */
+    @Test
+    fun `zuruecknehmen meldet weder erfolg noch ein bestehendes match`() = runTest {
+        for (fall in listOf<Pair<String, (suspend () -> RewindResultDto)>>(
+            "Erfolg" to { RewindResultDto(toUserId = "2", likesRemaining = 18) },
+            "409" to {
+                throw FlexrApiException(409, "Daraus ist schon ein Match geworden - ...")
+            },
+            "404" to { throw FlexrApiException(404, "Es gibt keinen Swipe zum Zurücknehmen.") },
+        )) {
+            val (beschreibung, antwort) = fall
+            val api = object : TestApi(
+                profil = meinProfilDto(),
+                decks = listOf(listOf(profilDto(id = "1", name = "Lea"))),
+            ) {
+                override suspend fun rewindLastSwipe(): RewindResultDto = antwort()
+            }
+            val (viewModel, _) = aufbau(api)
+            advanceUntilIdle()
+            val meldungen = mutableListOf<SwipeEvent>()
+            val sammler = launch { viewModel.events.toList(meldungen) }
+
+            viewModel.rewindLastSwipe()
+            advanceUntilIdle()
+
+            assertEquals("keine Einblendung bei: " + beschreibung, emptyList<SwipeEvent>(), meldungen)
+            assertEquals(false, viewModel.uiState.value.isRewinding)
+            sammler.cancel()
+        }
+    }
+
+    /**
      * Ohne Premium antwortet der Server mit 403 - das Deck bleibt dann stehen.
      * Ein stillschweigendes Neuladen waere hier das falsche Signal: Es ist
      * nichts zurueckgenommen worden.
+     *
+     * Und anders als 409 und 404 wird diese Absage **gezeigt**: Sie ist die
+     * eine, an der der Nutzer etwas aendern kann.
      */
     @Test
     fun `ein abgelehntes zuruecknehmen laesst das deck unveraendert`() = runTest {
@@ -224,6 +268,8 @@ class SwipeViewModelTest {
         }
         val (viewModel, _) = aufbau(api)
         advanceUntilIdle()
+        val meldungen = mutableListOf<SwipeEvent>()
+        val sammler = launch { viewModel.events.toList(meldungen) }
 
         viewModel.rewindLastSwipe()
         advanceUntilIdle()
@@ -231,5 +277,11 @@ class SwipeViewModelTest {
         assertEquals("kein zweiter Deck-Abruf", 1, api.deckAufrufe)
         assertEquals(listOf("Lea"), viewModel.uiState.value.deck.map { it.name })
         assertEquals(false, viewModel.uiState.value.isRewinding)
+        assertEquals(
+            "die Absage mangels Premium wird gezeigt",
+            listOf(SwipeEvent.Message("Den letzten Swipe zurücknehmen gibt es mit FLEXR Premium.")),
+            meldungen,
+        )
+        sammler.cancel()
     }
 }
