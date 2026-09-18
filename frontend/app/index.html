@@ -1758,6 +1758,14 @@
   }
   .account-footer-link button:hover{ color:var(--plate-bright); }
 
+  /* Steht anstelle des Aboverwaltungs-Links, wenn das Abo aus einer der Apps
+     stammt: ein Satz statt eines Knopfes, weil es hier nichts zu klicken gibt.
+     Gleiche Zeile, deshalb dieselben Aussenabstaende wie .account-footer-link. */
+  .account-footer-note{
+    text-align:center; margin:10px auto 8px; max-width:340px; padding:0 8px;
+    font-size:12px; line-height:1.5; color:var(--chalk-dim);
+  }
+
   /* Der Widerruf bleibt nach Art. 7 Abs. 3 DSGVO direkt erreichbar, steht aber
      als eigene Aktion unter dem Inhalt statt gequetscht im Fliesstext. */
   .consent-setting-action{
@@ -2360,13 +2368,18 @@
         </div>
       </div>
 
+      <!-- Hier steht nur noch das Angebot, nicht mehr die Verwaltung eines
+           laufenden Abos: Wer etwas beenden oder umstellen will, sucht das bei
+           den Einstellungen und nicht unter seinem Profilbild. Der Punkt dafuer
+           sitzt seit dem 18.09.2026 unten zwischen "Benachrichtigungen" und
+           "Datenschutz & Sicherheit" - dieselbe Umraeumung wie in der
+           Android-App. -->
       <div class="account-membership-note">
         <span id="acctStatusText"></span>
         <!-- Fuehrt auf den Premium-Screen, schliesst nichts ab. Der Abschluss
              selbst braucht die Erklaerung nach § 10 FAGG und laeuft deshalb
              ueber dasselbe Overlay wie bisher. -->
         <button class="membership-link" id="btnSubscribe" data-i18n="premium.showOffer">FLEXR Premium ansehen</button>
-        <button class="membership-link" id="btnManageSubscription" style="display:none;" data-i18n="acct.manageSub">Abo verwalten / kündigen</button>
       </div>
 
       <!-- Profilfelder bleiben bewusst dauerhaft sichtbar. Der Account-Screen
@@ -2461,6 +2474,19 @@
       <p class="account-footer-link">
         <button type="button" id="btnOpenNotifications" data-i18n="acct.notifications">Benachrichtigungen</button>
       </p>
+
+      <!-- ABOVERWALTUNG
+           Gekuendigt wird dort, wo gekauft wurde - das ist keine
+           Bequemlichkeitsfrage: Im Browser ist Stripe der Haendler (unser
+           Portal), bei einem Kauf in einer der Apps der jeweilige Store, den
+           wir gar nicht beenden koennten. Deshalb zwei Faelle, die sich
+           gegenseitig ausschliessen; gibt es nichts zu verwalten, bleibt die
+           Zeile ganz weg statt als toter Link dazustehen. -->
+      <p class="account-footer-link" id="acctSubscriptionRow" style="display:none;">
+        <button type="button" id="btnManageSubscription" data-i18n="acct.subscription">Aboverwaltung</button>
+      </p>
+
+      <p class="account-footer-note" id="acctSubscriptionStoreHint" style="display:none;" data-i18n="acct.subStoreHint">Dein Abo läuft über den App Store bzw. Google Play — verwalten und kündigen lässt es sich nur dort.</p>
 
       <p class="account-footer-link">
         <button type="button" id="btnOpenPrivacy" data-i18n-html="acct.privacy">Datenschutz &amp; Sicherheit</button>
@@ -4540,6 +4566,27 @@
     if(e.target.id === 'immediateStartOverlay') closeImmediateStartOverlay();
   });
 
+  /* ---- Aboverwaltung -----------------------------------------------------
+     Seit 18.09.2026 unten im Konto zwischen "Benachrichtigungen" und
+     "Datenschutz & Sicherheit" statt in der Statuskarte unter dem Profilbild:
+     Wer sein Abo beenden will, sucht das bei den Einstellungen. (Dieselbe
+     Umraeumung wie in der Android-App, dort als eigener Abschnitt.)
+
+     Zwei Faelle, die sich gegenseitig ausschliessen:
+       - has_stripe_subscription -> im Browser gekauft, also unser Portal. Gilt
+         auch bei ausgeschaltetem Premium: Ein Altabo muss kuendbar bleiben,
+         ohne auf irgendetwas zu warten (siehe billing.create_portal).
+       - is_premium ohne Stripe  -> in einer der Apps gekauft. Das Portal
+         antwortete darauf mit 400 "Noch kein Abo abgeschlossen"; statt dieser
+         Sackgasse steht dort jetzt ein Satz, der auf den Store verweist.
+     Sonst bleibt die Zeile weg - es gibt nichts zu verwalten. */
+  function renderSubscriptionRow(){
+    const ueberStripe = !!(membership && membership.has_stripe_subscription);
+    const ueberStore  = isPremium() && !ueberStripe;
+    $('acctSubscriptionRow').style.display = ueberStripe ? '' : 'none';
+    $('acctSubscriptionStoreHint').style.display = ueberStore ? '' : 'none';
+  }
+
   $('btnManageSubscription').addEventListener('click', async ()=>{
     try{
       const res = await api('/api/billing/portal', {method: 'POST'});
@@ -4586,20 +4633,17 @@
     }
 
     /* Premium-Zeile. Drei Zustaende, und keiner davon ist eine Sperre:
-       die Nutzung von FLEXR kostet in allen dreien nichts. */
+       die Nutzung von FLEXR kostet in allen dreien nichts. Die Karte zeigt nur
+       noch das Angebot; die Verwaltung eines laufenden Abos steht unten
+       (renderSubscriptionRow). */
     if(isPremium()){
       setI18nText($('acctStatusText'), 'premium.statusActive');
       $('btnSubscribe').style.display = 'none';
-      $('btnManageSubscription').style.display = 'block';
     } else if(!premiumOffered()){
       // Hier ist nichts zu bestellen. Ein Angebot zu zeigen, das der Server
       // mit 409 ablehnt, waere eine Sackgasse - der Knopf bleibt weg.
       setI18nText($('acctStatusText'), 'premium.statusBeta');
       $('btnSubscribe').style.display = 'none';
-      // Wer noch ein Abo aus der Zeit der alten Mitgliedsgebuehr hat, muss es
-      // kuendigen koennen - der Verwalten-Link bleibt dafuer stehen.
-      $('btnManageSubscription').style.display =
-        membership.has_stripe_subscription ? 'block' : 'none';
     } else {
       // Standardkonto nach der Beta: Was gerade gilt, in einem Satz.
       setI18nText($('acctStatusText'), 'premium.statusFree', {
@@ -4609,8 +4653,8 @@
       $('btnSubscribe').style.display = '';
       $('btnSubscribe').disabled = false;
       setI18nText($('btnSubscribe'), 'premium.showOffer');
-      $('btnManageSubscription').style.display = 'none';
     }
+    renderSubscriptionRow();
     if(!opts || !opts.keepForm) fillProfileForm();
     renderAccountPhotoGrid();
     // Meldungen und Einwilligungen werden nicht mehr hier geladen, sondern

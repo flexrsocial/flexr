@@ -229,7 +229,6 @@
     // ---- Konto
     'acct.sectionProfile': 'Profil',
     'acct.sectionPhotos': 'Fotos',
-    'acct.manageSub': 'Abo verwalten / kündigen',
     'acct.radius': 'Suchumkreis',
     'acct.radiusInfo': 'Wie die Suche funktioniert',
     'acct.radiusBubble': '<strong>So sucht FLEXR:</strong> Ausgangspunkt ist die Adresse deines Gyms — nicht dein Wohnort und nicht dein aktueller Standort. Innerhalb des eingestellten Umkreises siehst du alle passenden Profile, also auch Leute aus anderen Studios in der Nähe. Größerer Umkreis heißt mehr Profile, dafür weitere Wege.',
@@ -240,6 +239,11 @@
     'acct.errPhotoBeforeSave': 'Bitte lade mindestens 3 Fotos hoch, bevor du speicherst.',
     'acct.saveFailed': 'Speichern fehlgeschlagen.',
     'acct.notifications': 'Benachrichtigungen',
+    // Die Zeile zwischen "Benachrichtigungen" und "Datenschutz &
+    // Sicherheit". Ueberschrift-artig kurz wie ihre beiden Nachbarn; was
+    // dahinter passiert, sagt das Stripe-Portal bzw. acct.subStoreHint.
+    'acct.subscription': 'Aboverwaltung',
+    'acct.subStoreHint': 'Dein Abo läuft über den App Store bzw. Google Play — verwalten und kündigen lässt es sich nur dort.',
     'acct.privacy': 'Datenschutz &amp; Sicherheit',
     'acct.statusChecking': 'In Prüfung',
     'acct.statusFree': 'Gratis',
@@ -733,7 +737,6 @@
 
     'acct.sectionProfile': 'Profile',
     'acct.sectionPhotos': 'Photos',
-    'acct.manageSub': 'Manage / cancel subscription',
     'acct.radius': 'Search radius',
     'acct.radiusInfo': 'How the search works',
     'acct.radiusBubble': '<strong>How FLEXR searches:</strong> the starting point is your gym’s address — not your home and not your current location. Within the radius you set you see all matching profiles, including people from other gyms nearby. A larger radius means more profiles, but longer trips.',
@@ -744,6 +747,8 @@
     'acct.errPhotoBeforeSave': 'Please upload at least 3 photos before saving.',
     'acct.saveFailed': 'Saving failed.',
     'acct.notifications': 'Notifications',
+    'acct.subscription': 'Subscription',
+    'acct.subStoreHint': 'Your subscription runs through the App Store or Google Play — it can only be managed and cancelled there.',
     'acct.privacy': 'Privacy &amp; safety',
     'acct.statusChecking': 'Under review',
     'acct.statusFree': 'Free',
