@@ -137,8 +137,17 @@ android {
         // 112/2.7.1 am 17.09.2026: Das Beta-Abzeichen zeigte seit dem
         // Scharfschalten "Beta · n Likes" - der Like-Zaehler war der Kopfzeile
         // zu viel, die Restzahl steht ohnehin im Konto. Zurueck auf "Beta".
-        versionCode = 112
-        versionName = "2.7.1"
+        // 113/2.7.1 am 18.09.2026: Kein Quellcode-Unterschied zu 112 - erst
+        // jetzt stehen die vier Firebase-Werte in gradle.properties (Block A
+        // der Einrichtungsanleitung), FCM_SERVICE_ACCOUNT_FILE auf dem Server.
+        // 112 wurde nie in die Play Console geladen; trotzdem eine neue
+        // Nummer statt derselben wiederzuverwenden, damit spaeter zweifelsfrei
+        // feststeht, welche .aab tatsaechlich Push zustellen kann.
+        // 114/2.7.2 am 18.09.2026: 2.7.1 gab es schon (112, 113) - eigener
+        // Versionsname, damit in der Play Console keine Verwechslung entsteht.
+        // Quellcode weiterhin unveraendert zu 113.
+        versionCode = 114
+        versionName = "2.7.2"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         // Nur die Sprachen ausliefern, die es wirklich gibt: Deutsch als
