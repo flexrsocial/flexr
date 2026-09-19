@@ -109,7 +109,14 @@ data class AccountUiState(
 }
 
 sealed interface AccountEvent {
-    data class Message(val text: String) : AccountEvent
+    /**
+     * [brief]: true fuer Bestaetigungen, die von selbst verschwinden sollen
+     * (bisher nur das Profil-Speichern) - siehe `showBriefMessage` in
+     * `FlexrApp.kt`. Fehler und Folgetexte (Loeschen fehlgeschlagen,
+     * Widerrufshinweise, Moderationsgruende) bleiben bei false: die sollen
+     * gelesen werden koennen, nicht in zwei Sekunden verschwinden.
+     */
+    data class Message(val text: String, val brief: Boolean = false) : AccountEvent
     data class OpenUrl(val url: String) : AccountEvent
     data object LoggedOut : AccountEvent
     data object StartVerification : AccountEvent
@@ -372,7 +379,7 @@ class AccountViewModel @Inject constructor(
                 )
             }.onSuccess {
                 _uiState.update { it.copy(isSaving = false) }
-                _events.send(AccountEvent.Message(strings.get(R.string.account_saved)))
+                _events.send(AccountEvent.Message(strings.get(R.string.account_saved), brief = true))
             }.onFailure { throwable ->
                 _uiState.update {
                     it.copy(

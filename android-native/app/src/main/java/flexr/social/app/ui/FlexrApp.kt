@@ -79,6 +79,16 @@ import kotlinx.coroutines.launch
 private const val MIN_MESSAGE_DURATION_MS = 20_000L
 
 /**
+ * Anzeigedauer der **kurzen** Bestaetigungen (`showBriefMessage`) - bisher nur
+ * "Profil gespeichert ✓". Anders als eine Fehlermeldung oder ein
+ * Widerrufs-Folgetext gibt es hier nichts zu lesen, das laenger als einen
+ * Blick braucht, und die Karte darunter zeigt den gespeicherten Stand ohnehin
+ * schon. Verschwindet von selbst - der Schliessen-Knopf bleibt trotzdem, falls
+ * es schneller gehen soll.
+ */
+private const val BRIEF_MESSAGE_DURATION_MS = 2_000L
+
+/**
  * Einstiegspunkt der Oberfläche.
  *
  * Je nach Sitzungszustand läuft ein eigener Navigationsgraph: ausgeloggt,
@@ -100,19 +110,22 @@ fun FlexrApp(
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
 
-    val showMessage: (String) -> Unit = { message ->
+    // Gemeinsame Umsetzung fuer beide Anzeigedauern: SnackbarDuration.Long
+    // sitzt fest bei 10s, das war schon fuer die normalen Meldungen zu kurz -
+    // ein eigener Timer macht die Dauer pro Aufrufer einstellbar.
+    fun showMessageFor(message: String, dauerMs: Long) {
         scope.launch {
-            // Erst 10s, dann laut Rueckmeldung immer noch zu kurz - jetzt 20s.
-            // Eigener Timer statt SnackbarDuration.Long (fix bei 10s), damit die
-            // Dauer hier direkt im Code einstellbar ist.
             val autoDismiss = launch {
-                delay(MIN_MESSAGE_DURATION_MS)
+                delay(dauerMs)
                 snackbarHostState.currentSnackbarData?.dismiss()
             }
             snackbarHostState.showSnackbar(message, withDismissAction = true, duration = SnackbarDuration.Indefinite)
             autoDismiss.cancel()
         }
     }
+    val showMessage: (String) -> Unit = { message -> showMessageFor(message, MIN_MESSAGE_DURATION_MS) }
+    // Fuer Bestaetigungen wie "Profil gespeichert ✓" - siehe BRIEF_MESSAGE_DURATION_MS.
+    val showBriefMessage: (String) -> Unit = { message -> showMessageFor(message, BRIEF_MESSAGE_DURATION_MS) }
 
     // Rueckkehr aus dem Stripe-Checkout im Browser: Premium-Status neu holen.
     // Frueher nur im gesperrten Zustand - den gibt es nicht mehr, also bei
@@ -164,6 +177,7 @@ fun FlexrApp(
                     onLogout = viewModel::logout,
                     onOpenUrl = { context.openExternalPage(it) },
                     onShowMessage = showMessage,
+                    onShowBriefMessage = showBriefMessage,
                     notificationTarget = notificationTarget,
                     onNotificationTargetHandled = onNotificationTargetHandled,
                 )
@@ -359,6 +373,7 @@ private fun MainGraph(
     onLogout: () -> Unit,
     onOpenUrl: (String) -> Unit,
     onShowMessage: (String) -> Unit,
+    onShowBriefMessage: (String) -> Unit,
     notificationTarget: String? = null,
     onNotificationTargetHandled: () -> Unit = {},
 ) {
@@ -458,6 +473,7 @@ private fun MainGraph(
                     onOpenPremium = { navController.navigate(Routes.PAYWALL) },
                     onOpenUrl = onOpenUrl,
                     onShowMessage = onShowMessage,
+                    onShowBriefMessage = onShowBriefMessage,
                 )
             }
 

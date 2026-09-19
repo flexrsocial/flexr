@@ -195,8 +195,16 @@ android {
         // Akku-Ausnahme in den Benachrichtigungseinstellungen (ohne sie legt
         // Android die App schlafen, und dann kommt gar nichts) und zwei
         // Einblendungen weniger beim Zuruecknehmen eines Swipes.
-        versionCode = 119
-        versionName = "2.7.7"
+        // 120/2.7.8 am 19.09.2026: Feinschliff im Konto-Bereich. "Profil
+        // gespeichert" verschwindet jetzt von selbst nach 2s statt auf einen
+        // Klick zu warten; die Statuskarte "FLEXR Premium laeuft ..." ist fuer
+        // Premium-Konten komplett weg (Profil ruekt nach); "Aboverwaltung"
+        // heisst nur noch "Abo verwalten" und steht in normaler weisser
+        // Schrift statt als Link. Die beiden Rewind-Einblendungen aus 2.7.7
+        // waren in den gemeldeten Screenshots noch zu sehen, weil dort ein
+        // aelterer Build lief - der Code dafuer ist unveraendert seit 2.7.7.
+        versionCode = 120
+        versionName = "2.7.8"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         // Nur die Sprachen ausliefern, die es wirklich gibt: Deutsch als

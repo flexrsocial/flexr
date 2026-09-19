@@ -293,7 +293,6 @@
     <string name="account_section_photos">Fotos</string>
     <!-- FLEXR Premium. Die Nutzung von FLEXR selbst ist dauerhaft kostenlos;
          Preis und Grenzen kommen als Platzhalter vom Server. -->
-    <string name="premium_status_active">FLEXR Premium läuft. Jederzeit zum Ende des Abrechnungsmonats kündbar.</string>
     <string name="premium_status_beta">FLEXR ist und bleibt kostenlos. Derzeit gelten keine Grenzen für Likes, Unterhaltungen und Suchumkreis.</string>
     <string name="premium_status_free">Dein Konto ist kostenlos: %1$d Likes pro Tag und %2$d Unterhaltungen gleichzeitig.</string>
     <string name="premium_show_offer">FLEXR Premium ansehen</string>
@@ -331,7 +330,7 @@
     <string name="incoming_loading">Lade …</string>
     <string name="incoming_none">Gerade wartet niemand.</string>
     <string name="incoming_load_failed">Die offenen Likes konnten nicht geladen werden.</string>
-    <string name="account_manage_subscription">Abo verwalten / kündigen</string>
+    <string name="account_manage_subscription">Abo verwalten</string>
     <string name="account_radius_hint">Radius rund um dein Gym. Dein Gerätestandort wird nicht verwendet.</string>
     <string name="account_radius_capped">Ohne FLEXR Premium reicht die Suche bis %1$d km.</string>
     <string name="account_section_subscription">Aboverwaltung</string>

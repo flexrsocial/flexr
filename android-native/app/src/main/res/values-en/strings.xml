@@ -254,7 +254,6 @@
     <string name="date_unknown">—</string>
     <string name="account_section_profile">Profile</string>
     <string name="account_section_photos">Photos</string>
-    <string name="premium_status_active">FLEXR Premium is running. Cancel any time, effective at the end of the billing month.</string>
     <string name="premium_status_beta">FLEXR is and stays free. No limits currently apply to likes, conversations or search radius.</string>
     <string name="premium_status_free">Your account is free: %1$d likes per day and %2$d conversations at once.</string>
     <string name="premium_show_offer">See FLEXR Premium</string>
@@ -290,7 +289,7 @@
     <string name="incoming_loading">Loading …</string>
     <string name="incoming_none">Nobody is waiting right now.</string>
     <string name="incoming_load_failed">Open likes could not be loaded.</string>
-    <string name="account_manage_subscription">Manage / cancel subscription</string>
+    <string name="account_manage_subscription">Manage subscription</string>
     <string name="account_radius_hint">Radius around your gym. Your device location is not used.</string>
     <string name="account_radius_capped">Without FLEXR Premium the search reaches %1$d km.</string>
     <string name="account_section_subscription">Subscription</string>

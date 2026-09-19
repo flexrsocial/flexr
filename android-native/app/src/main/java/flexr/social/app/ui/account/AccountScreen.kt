@@ -106,6 +106,7 @@ fun AccountScreen(
     onOpenPremium: () -> Unit,
     onOpenUrl: (String) -> Unit,
     onShowMessage: (String) -> Unit,
+    onShowBriefMessage: (String) -> Unit,
     viewModel: AccountViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -115,7 +116,8 @@ fun AccountScreen(
     LaunchedEffect(Unit) {
         viewModel.events.collect { event ->
             when (event) {
-                is AccountEvent.Message -> onShowMessage(event.text)
+                is AccountEvent.Message ->
+                    if (event.brief) onShowBriefMessage(event.text) else onShowMessage(event.text)
                 is AccountEvent.OpenUrl -> onOpenUrl(event.url)
                 AccountEvent.LoggedOut -> onLogout()
                 AccountEvent.StartVerification -> onOpenVerification()
@@ -242,49 +244,50 @@ fun AccountScreen(
         }
 
         // ---------- FLEXR Premium ----------
-        // Drei Zustaende, und keiner davon ist eine Sperre: Die Nutzung von
-        // FLEXR kostet in allen dreien nichts.
-        Spacer(Modifier.height(18.dp))
+        // Nur noch fuer Nicht-Premium-Konten: der Beta- oder Frei-Grenzen-Text
+        // plus, falls kaufbar, das Angebot. Fuer Premium-Konten stand hier bis
+        // 19.09.2026 nur "FLEXR Premium laeuft ...", ohne dass es etwas zum
+        // Handeln beitrug - der Premium-Badge im Kopf sagt es bereits, und das
+        // Kuendigen selbst gehoert nicht hierher (unten unter
+        // "Aboverwaltung"). Auf Wunsch entfernt; die ganze Karte faellt fuer
+        // Premium-Konten damit weg, statt als leerer Rahmen zwischen Kopf und
+        // "Profil" stehenzubleiben - "Profil" ruekt dadurch von selbst nach.
         membership?.let { status ->
-            Column(
-                Modifier
-                    .fillMaxWidth()
-                    .clip(MaterialTheme.shapes.medium)
-                    .background(MaterialTheme.colorScheme.surface)
-                    .border(1.dp, colors.hairline, MaterialTheme.shapes.medium)
-                    .padding(14.dp),
-            ) {
-                Text(
-                    text = when {
-                        status.isPremium -> stringResource(R.string.premium_status_active)
-                        // Massgeblich sind die geltenden Grenzen, nicht die
-                        // Frage, ob hier etwas zu kaufen ist: In der App ist
-                        // Letzteres immer "nein", die Grenzen gelten trotzdem.
-                        !status.limitsActive -> stringResource(R.string.premium_status_beta)
-                        else -> stringResource(
-                            R.string.premium_status_free,
-                            status.freeDailyLikes,
-                            status.freeOpenChats,
-                        )
-                    },
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = colors.chalk,
-                )
-                // Hier steht nur noch das Angebot, nicht mehr die Verwaltung
-                // eines laufenden Abos: Wer etwas beenden oder umstellen will,
-                // sucht das in den Einstellungen und nicht unter seinem
-                // Profilbild. Der Punkt dafuer sitzt jetzt weiter unten
-                // ("Aboverwaltung", direkt ueber dem Konto-Abschnitt).
-                //
-                // Das Angebot bleibt oben: Es fuehrt auf den
-                // Premium-Bildschirm und schliesst nichts ab. Ein Klick im
-                // Konto soll nicht unmittelbar in einem Kauf enden, ohne dass
-                // jemand gelesen hat, wofuer.
-                if (!status.isPremium && !status.hasStripeSubscription && status.storePurchaseAvailable) {
-                    FlexrLinkButton(
-                        text = stringResource(R.string.premium_show_offer),
-                        onClick = onOpenPremium,
+            if (!status.isPremium) {
+                Spacer(Modifier.height(18.dp))
+                Column(
+                    Modifier
+                        .fillMaxWidth()
+                        .clip(MaterialTheme.shapes.medium)
+                        .background(MaterialTheme.colorScheme.surface)
+                        .border(1.dp, colors.hairline, MaterialTheme.shapes.medium)
+                        .padding(14.dp),
+                ) {
+                    Text(
+                        text = when {
+                            // Massgeblich sind die geltenden Grenzen, nicht die
+                            // Frage, ob hier etwas zu kaufen ist: In der App ist
+                            // Letzteres immer "nein", die Grenzen gelten trotzdem.
+                            !status.limitsActive -> stringResource(R.string.premium_status_beta)
+                            else -> stringResource(
+                                R.string.premium_status_free,
+                                status.freeDailyLikes,
+                                status.freeOpenChats,
+                            )
+                        },
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = colors.chalk,
                     )
+                    // Das Angebot fuehrt auf den Premium-Bildschirm und
+                    // schliesst nichts ab. Ein Klick im Konto soll nicht
+                    // unmittelbar in einem Kauf enden, ohne dass jemand
+                    // gelesen hat, wofuer.
+                    if (!status.hasStripeSubscription && status.storePurchaseAvailable) {
+                        FlexrLinkButton(
+                            text = stringResource(R.string.premium_show_offer),
+                            onClick = onOpenPremium,
+                        )
+                    }
                 }
             }
         }
@@ -645,11 +648,33 @@ fun AccountScreen(
             if (verwaltung != null) {
                 Spacer(Modifier.height(28.dp))
                 SectionTitle(stringResource(R.string.account_section_subscription))
-                Spacer(Modifier.height(4.dp))
-                FlexrLinkButton(
-                    text = stringResource(R.string.account_manage_subscription),
-                    onClick = verwaltung,
-                )
+                // Gleiche Zeilen-Optik wie "Blockierte Personen" & Co. darueber
+                // - weisse Schrift statt Link-Farbe/Unterstreichung, das ist
+                // eine Aktion unter Einstellungen, kein Hyperlink. Fuehrt
+                // direkt zum Stripe-Portal bzw. zur Play-Store-Abo-Verwaltung,
+                // beides ausserhalb der App - kein Aufklapp-Pfeil, der eine
+                // Ansicht *innerhalb* suggerieren wuerde.
+                Row(
+                    Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(10.dp))
+                        .clickable(onClick = verwaltung)
+                        .padding(vertical = 15.dp, horizontal = 2.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        stringResource(R.string.account_manage_subscription),
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = colors.chalk,
+                        modifier = Modifier.weight(1f),
+                    )
+                    Icon(
+                        Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                        contentDescription = null,
+                        tint = colors.chalkDim,
+                        modifier = Modifier.size(18.dp),
+                    )
+                }
             }
         }
 
