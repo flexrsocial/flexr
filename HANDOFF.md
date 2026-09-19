@@ -15,12 +15,14 @@ Stand: **18.09.2026**
 > `release-2.7.5/flexr-2.7.5-vc117.aab` sofort hochladen.
 
 **Alles committet, gepusht und deployed.** Der VPS steht auf `origin/main`
-(**`c8eafb6`**, Sitzung 19.09.2026 (9) — Web: Inhalt auf Swipe/Matches/Chats/
-Premium war 6px zu weit links statt mittig, `scrollbar-gutter:stable` auf
-`main` war eine Dopplung zur eigenen Reservierung der aktiven `.screen` und
-zog unbedingt Platz vom rechten Rand ab, auch ganz ohne Scrollbalken -
-entfernt, per DOM-Messung bestaetigt). Reines Frontend, kein Backend-Neustart
-noetig. Davor **`a93defe`** (Sitzung (8), Web-Teil — "Premium
+(**`5a42d50`**, Sitzung 19.09.2026 (10) — Web: Die Zentrierungskorrektur aus
+Sitzung (9) war unvollständig; live nachgemessen, war weiterhin ein Versatz
+da. `.screen.active` reservierte selbst genauso unbedingt Gutter wie zuvor
+`main` - sogar auf Screens mit `overflow:hidden` (Swipe, Chat-Einzelansicht),
+wo nie ein Scrollbalken erscheinen kann. Auch dort entfernt, jetzt per
+Live-Messung auf flexr.social bestätigt: 72px/72px symmetrisch). Reines
+Frontend, kein Backend-Neustart nötig. Davor **`c8eafb6`** (Sitzung (9), erster
+- unvollständiger - Versuch), **`a93defe`** (Sitzung (8), Web-Teil — "Premium
 aktivieren"-Knopf im Kopf, Premium-Screen gekürzt, "geliket" -> "geliked" auf
 allen drei Oberflächen) und **`a14ff0f`** (Sitzung (8), Backend-Teil — echter
 Fund: Liker tauchten im eigenen Deck nicht auf, wenn sie ausserhalb des
@@ -259,10 +261,13 @@ Die `vc101`- bis `vc104`-Dateien sind hinfällig. Die Play Console hatte 43 und
 > englischen Texte lagen dort in einem Sprach-Split, den ein deutsches Gerät
 > nie herunterlädt. Erst ab 2.6.3 stecken beide Sprachen im Basis-Paket.
 
-Aufbau des Dokuments: erst diese Eckdaten, dann **die Sitzung vom 19.09. (9)**
+Aufbau des Dokuments: erst diese Eckdaten, dann **die Sitzung vom 19.09. (10)**
+(Web: Zentrierung wirklich behoben - `.screen.active` reservierte selbst
+unbedingt Gutter, auch auf Screens mit `overflow:hidden`), dann **die Sitzung
+vom 19.09. (9)**
 (Web: Inhalt auf Swipe/Matches/Chats/Premium war 6px zu weit links -
-`scrollbar-gutter:stable`-Dopplung auf `main` entfernt), dann **die Sitzung
-vom 19.09. (8)**
+`scrollbar-gutter:stable`-Dopplung auf `main` entfernt, erster - unvollstän-
+diger - Versuch), dann **die Sitzung vom 19.09. (8)**
 (Backend: Liker tauchen im Deck auch ausserhalb des eigenen Suchradius auf;
 Web: "Premium aktivieren"-Knopf im Kopf, Premium-Screen gekürzt, "geliket" ->
 "geliked"), dann **die Sitzung vom 19.09. (7)**
@@ -299,6 +304,61 @@ Ausgangssitzung), dann die **drei Abschnitte vom 10.09.**
 **08.09.**, dann die beiden Sitzungen vom **07.09.**, dann **06.09.**, dann
 **05.09.**, dann **31.08.**, **30.08.**, **23.08.**, **21.08.**; die Build-,
 Test- und Deploy-Abschnitte am Ende gelten sitzungsübergreifend.
+
+## Sitzung 19.09.2026 (10) — Web: Zentrierung wirklich behoben (Sitzung (9) war unvollständig)
+
+Rückmeldung: Der Zentrierungsfehler aus Sitzung (9) war live weiterhin
+sichtbar - Swipe-Deck, leere Matches und der Premium-Screen standen
+weiterhin zu weit links. Code-Stand **`5a42d50`**, committet, gepusht,
+deployed. Reines Frontend, kein Backend-Neustart.
+
+### Der erste Versuch hatte nur die Hälfte der Ursache gefunden
+
+Sitzung (9) hatte `scrollbar-gutter:stable` von `main{}` entfernt und lokal
+per DOM-Messung bestätigt. Diesmal direkt **live auf flexr.social**
+nachgemessen (nicht nur lokal) - bei einer Fensterbreite (534px), bei der
+`main` selbst nachweislich keinen Gutter mehr zieht (`clientWidth ==
+offsetWidth`), stand der Inhalt trotzdem noch 10px zu weit links.
+
+Ursache: `.screen.active{...; scrollbar-gutter:stable}` reservierte genauso
+unbedingt wie zuvor `main` - **sogar auf Screens mit `overflow:hidden`**
+(`#screen-swipe.active`, `#screen-chat.active`), wo niemals ein Scrollbalken
+erscheinen kann. Direkt am DOM gemessen: `#screen-swipe` reservierte 10px,
+obwohl sein `overflow` explizit `hidden` ist. Reine Platzverschwendung ohne
+jeden Nutzen - kein Scrollbalken kann dort je erscheinen, den es zu
+stabilisieren gäbe.
+
+`scrollbar-gutter:stable` jetzt auch von `.screen.active` entfernt
+(Standardwert `auto` - reserviert nur noch, wenn tatsächlich überlaufender
+Inhalt gescrollt wird). **Bewusster Kompromiss:** Wächst eine Liste (Matches,
+Chats) während sie offen ist über die Scroll-Schwelle, kann sich ihre Breite
+in dem Moment einmalig ändern - das genau war der ursprüngliche Grund für
+"stable" (siehe Kommentar im Code, Chat-Kachel-Hover-Jittern). Seltener und
+harmloser als der bisherige, dauerhaft sichtbare Versatz auf praktisch jedem
+kurzen Bildschirminhalt.
+
+### Geprüft
+
+Per Live-Messung (`getBoundingClientRect()`) direkt auf **https://flexr.social**
+(nicht nur lokal) auf allen vier gemeldeten Screens bestätigt: 72px/72px
+symmetrisch bei 534px Fensterbreite (vorher 72px/82px) - mit Screenshot
+gegengeprüft. Die Konto-Seite bleibt korrekt: Ihr Inhalt überläuft dort
+tatsächlich (`scrollHeight` 1028px > `clientHeight` 741px im Test), der
+reservierte Platz gehört also einem echten, funktionierenden Scrollbalken -
+exakt der Fall, den der Nutzer selbst als in Ordnung beschrieben hatte.
+`test_public_frontend.py` (9 Tests) grün.
+
+### Offen
+
+**Diesmal sollte auf einem echten Gerät bzw. im echten Browser
+gegengeprüft werden, nicht nur per Messung.** Der bewusste Kompromiss
+(einmalige Breitenänderung, wenn eine Liste während des Betrachtens über die
+Scroll-Schwelle wächst) ist rein theoretisch hergeleitet, nicht beobachtet -
+sollte er auffallen, ist eine gezielte Lösung nötig (z. B. `scrollbar-gutter:
+stable` nur auf den Listen-Screens, deren Inhalt sich während des Anzeigens
+tatsächlich ändern kann). Unverändert aus den Sitzungen davor: iOS zeigt die
+beiden Rewind-Meldungen weiterhin; kein echtes Premium-/verifiziertes
+Testkonto zur Hand.
 
 ## Sitzung 19.09.2026 (9) — Web: Zentrierungsfehler auf Swipe/Matches/Chats/Premium behoben
 
