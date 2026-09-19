@@ -14,24 +14,25 @@ Stand: **18.09.2026**
 > dem Start abstürzt.** Play Console prüfen, im Zweifel 117 aus
 > `release-2.7.5/flexr-2.7.5-vc117.aab` sofort hochladen.
 
-**Alles committet, gepusht und deployed.** Der VPS steht auf `origin/main`
-(**`5a42d50`**, Sitzung 19.09.2026 (10) — Web: Die Zentrierungskorrektur aus
-Sitzung (9) war unvollständig; live nachgemessen, war weiterhin ein Versatz
-da. `.screen.active` reservierte selbst genauso unbedingt Gutter wie zuvor
-`main` - sogar auf Screens mit `overflow:hidden` (Swipe, Chat-Einzelansicht),
-wo nie ein Scrollbalken erscheinen kann. Auch dort entfernt, jetzt per
-Live-Messung auf flexr.social bestätigt: 72px/72px symmetrisch). Reines
-Frontend, kein Backend-Neustart nötig. Davor **`c8eafb6`** (Sitzung (9), erster
-- unvollständiger - Versuch), **`a93defe`** (Sitzung (8), Web-Teil — "Premium
-aktivieren"-Knopf im Kopf, Premium-Screen gekürzt, "geliket" -> "geliked" auf
-allen drei Oberflächen) und **`a14ff0f`** (Sitzung (8), Backend-Teil — echter
-Fund: Liker tauchten im eigenen Deck nicht auf, wenn sie ausserhalb des
-eigenen Suchradius lagen; **mit Backend-Neustart**, kein Migrationsschritt,
-Migrationsstand weiterhin `5f8ae574bc95` aus Sitzung (3)). Davor `ac8a243`
-(Sitzung (7)), `9cb2932` (Sitzung (6) — Android 2.7.9/versionCode 121),
-`21190e0` (Sitzung (5)), `6c5eb68` (Sitzung (4)), `8b9c9bf` (Sitzung (3)),
-`c6a49c7` (Sitzung (2)), `c5582aa` (Sitzung 18.09.2026 (6)); dazwischen liegt
-`8985c36` (Android-Konto-Feinschliff nach 2.7.7, reines Android-Repo).
+**Alles committet und gepusht.** Neuester Commit auf `origin/main` ist
+**`726a619`** (Sitzung 19.09.2026 (11) — Android 2.7.10/versionCode 122:
+Haken/Stern-Ausrichtung korrigiert, nachdem der alignByBaseline()-Versuch aus
+2.7.9 es sichtbar schlimmer gemacht hatte; neuer "Premium aktivieren"-Knopf
+im Kopf, analog zum Web) — **reines Android-Repo, kein VPS-Deploy nötig.**
+Der VPS selbst steht auf `9232c99`/Web-Code-Stand `5a42d50` (Sitzung (10) —
+die Zentrierungskorrektur aus Sitzung (9) war unvollständig, `.screen.active`
+reservierte selbst genauso unbedingt Scrollbalken-Gutter wie zuvor `main`,
+sogar auf Screens mit `overflow:hidden`; jetzt per Live-Messung auf
+flexr.social bestätigt: 72px/72px symmetrisch). Reines Frontend, kein
+Backend-Neustart nötig für (9)/(10). Davor **`a93defe`**/**`a14ff0f`**
+(Sitzung (8) — Web: "Premium aktivieren"-Knopf, Premium-Screen gekürzt,
+"geliket"->"geliked"; Backend: Liker tauchten im eigenen Deck nicht auf,
+wenn sie ausserhalb des eigenen Suchradius lagen, **mit Backend-Neustart**,
+kein Migrationsschritt, Migrationsstand weiterhin `5f8ae574bc95` aus Sitzung
+(3)). Davor `ac8a243` (Sitzung (7)), `9cb2932` (Sitzung (6) — Android
+2.7.9/versionCode 121), `21190e0` (Sitzung (5)), `6c5eb68` (Sitzung (4)),
+`8b9c9bf` (Sitzung (3)), `c6a49c7` (Sitzung (2)), `c5582aa` (Sitzung
+18.09.2026 (6)); dazwischen `8985c36` (Android-Konto-Feinschliff nach 2.7.7).
 Nginx-Konfiguration weiterhin die aus Sitzung (3) (`/brand/`-Sperre). Nach dem
 `git pull` per `md5sum`-Vergleich (`curl https://flexr.social/app/` gegen die
 lokale Datei) und `/api/health` gegengeprüft, beides passt.
@@ -261,7 +262,9 @@ Die `vc101`- bis `vc104`-Dateien sind hinfällig. Die Play Console hatte 43 und
 > englischen Texte lagen dort in einem Sprach-Split, den ein deutsches Gerät
 > nie herunterlädt. Erst ab 2.6.3 stecken beide Sprachen im Basis-Paket.
 
-Aufbau des Dokuments: erst diese Eckdaten, dann **die Sitzung vom 19.09. (10)**
+Aufbau des Dokuments: erst diese Eckdaten, dann **die Sitzung vom 19.09. (11)**
+(Android 2.7.10/versionCode 122: Haken/Stern-Ausrichtung korrigiert, neuer
+"Premium aktivieren"-Knopf im Kopf), dann **die Sitzung vom 19.09. (10)**
 (Web: Zentrierung wirklich behoben - `.screen.active` reservierte selbst
 unbedingt Gutter, auch auf Screens mit `overflow:hidden`), dann **die Sitzung
 vom 19.09. (9)**
@@ -304,6 +307,83 @@ Ausgangssitzung), dann die **drei Abschnitte vom 10.09.**
 **08.09.**, dann die beiden Sitzungen vom **07.09.**, dann **06.09.**, dann
 **05.09.**, dann **31.08.**, **30.08.**, **23.08.**, **21.08.**; die Build-,
 Test- und Deploy-Abschnitte am Ende gelten sitzungsübergreifend.
+
+## Sitzung 19.09.2026 (11) — Android 2.7.10: Haken/Stern-Ausrichtung korrigiert, Premium-Knopf im Kopf
+
+Rückmeldung zum Konto-Screenshot: Der `alignByBaseline()`-Versuch aus 2.7.9
+hatte den blauen Verifizierungshaken und den Premium-Stern nicht etwa
+zentriert, sondern **sichtbar schlimmer gemacht** - viel zu weit oben.
+Code-Stand **`726a619`**, committet, gepusht - reines Android-Repo, kein
+VPS-Deploy nötig.
+
+### Haken/Stern: zweiter Anlauf, diesmal ohne die Badges selbst anzufassen
+
+Die erste Korrektur (2.7.9) hatte `Modifier.alignByBaseline()` auf Text und
+Badges gesetzt, in der Annahme, das würde die Box-Zentrierung durch eine
+Ausrichtung an der echten Textgrundlinie ersetzen. Das Ergebnis war laut
+Rückmeldung schlechter als vorher - vermutlich, weil Oswalds Grundlinie
+innerhalb ihrer eigenen Zeilenbox ungewöhnlich tief liegt und Compose's
+Baseline-Verteilung im Row den (an seiner Unterkante ausgerichteten) Haken
+dadurch weit nach oben gezogen hat, statt ihn zu zentrieren. Ohne echtes
+Gerät zum Nachmessen war das eine zweite, ebenso theoretische Korrektur -
+diesmal mit einem robusteren, in Compose etablierten Ansatz statt eines
+weiteren Alignment-Modifiers:
+
+Die Zeilenbox des Namens selbst wird auf ihre tatsächlichen Schriftmetriken
+zusammengezogen - `PlatformTextStyle(includeFontPadding = false)` schaltet
+das Android-Legacy-"Font Padding" ab (zusätzlicher Leerraum oberhalb der
+Versalien, gedacht für seltene hohe Glyphen/Akzente, die hier nie vorkommen),
+`LineHeightStyle(alignment = Center, trim = Both)` trimmt die Differenz
+zwischen der eingestellten Zeilenhöhe (25sp) und den echten Schriftmetriken
+symmetrisch weg. Ergebnis: Die Box um Text und Badges ist so eng wie möglich
+am sichtbaren Schriftbild, wodurch die ursprüngliche, einfache
+`Row.verticalAlignment = CenterVertically` von selbst richtig zentriert -
+ganz ohne Sonderbehandlung von `VerifiedBadge`/`PremiumBadge`. Beide
+`alignByBaseline()`-Aufrufe sind damit wieder entfernt.
+
+### Neuer "Premium aktivieren"-Knopf im Kopf
+
+Links von der Beta/Status-Pille, analog zum gleichnamigen Knopf im Web
+(Sitzung (8)). Sichtbar nur, wenn es überhaupt etwas zu aktivieren gibt
+(nicht schon Premium, Kauf serverseitig möglich -
+`membership.storePurchaseAvailable`), führt auf den Premium-Screen. Neue
+`PremiumActivatePill`-Komponente in `Common.kt` (Markenfarbe statt der
+neutralen `StatusPill`-Optik, weil das ein Knopf ist, keine Statusanzeige),
+neuer String `premium_activate_cta` (DE/EN).
+
+### Android 2.7.10 (versionCode 122)
+
+Gebaut mit `testProdDebugUnitTest` (53 Tests grün) und `bundleProdRelease`,
+signiert mit demselben Upload-Key wie bisher (`jarsigner -verify` bestätigt).
+Nur die `.aab` gebaut, kein APK.
+
+| | |
+|---|---|
+| AAB (Play Console) | `flexr-2.7.10-vc122.aab` |
+
+### Geprüft
+
+53 Unit-Tests grün, Release-Build durch, Bundle-Signatur verifiziert.
+**Nicht am Gerät geprüft** - hier läuft kein Emulator. Die Haken/Stern-
+Korrektur ist damit die **zweite** unverifizierte Änderung an dieser Stelle
+in Folge - beide Male nur aus Schriftmetrik-Überlegungen hergeleitet, nicht
+aus einer echten Messung an gerenderten Pixeln (anders als beim Web-Fix in
+Sitzung (10), wo eine Live-Messung möglich war und den ersten Versuch
+tatsächlich als unvollständig entlarvt hat). Sollte auch diese Korrektur
+nicht (oder nur teilweise) helfen, lohnt sich vor einem dritten Versuch eine
+grundsätzlich andere Herangehensweise: ein echtes Gerät oder ein Android-
+Studio-Preview zum tatsächlichen Nachmessen, statt eine weitere Theorie zu
+den Schriftmetriken von Oswald aufzustellen.
+
+### Offen
+
+1. **2.7.10 ist noch nicht in der Play Console** (2.7.9 war es zum Zeitpunkt
+   dieser Sitzung ebenfalls noch nicht - siehe „Dringend zu prüfen" oben zu
+   2.7.5/117, der Stand seither ist von hier aus nicht einsehbar).
+2. **Die Haken/Stern-Korrektur braucht dringend eine echte Sichtprüfung**,
+   siehe oben - das ist jetzt der zweite Versuch ohne visuelle Bestätigung.
+3. Unverändert: Web und iOS zeigen die beiden Rewind-Meldungen weiterhin auf
+   iOS; kein echtes Premium-/verifiziertes Testkonto zur Hand.
 
 ## Sitzung 19.09.2026 (10) — Web: Zentrierung wirklich behoben (Sitzung (9) war unvollständig)
 
