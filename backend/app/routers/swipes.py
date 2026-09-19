@@ -8,7 +8,8 @@ from sqlalchemy.orm import Session, selectinload
 
 from .. import consents, notifications, premium
 from ..database import get_db
-from ..gym_geo import coords_for_gym, gym_values_within
+from ..geo import haversine_km
+from ..gym_geo import coords_for_gym, coords_for_gyms, gym_values_within
 from ..models import Block, ConsentType, Match, Swipe, User
 from ..rate_limit import limiter
 from ..schemas import IncomingLikesOut, ProfileOut, RewindResult, SwipeRequest, SwipeResult
@@ -113,13 +114,6 @@ def deck_profiles(db: Session, current_user: User, limit: int = DECK_SIZE) -> li
     # eine ersetzt das andere nicht, weil ein Konto seine Grenze auch ohne
     # Speichern verlieren kann (Abo endet, Schalter kippt).
     radius = premium.clamp_radius(current_user, current_user.search_radius_km or 20)
-    # Erst die Studios im Umkreis bestimmen, dann die Nutzer dazu holen. Die
-    # Entfernung hängt nur am Gym, und die Gym-Tabelle bleibt klein - so wird
-    # nie ein naher Treffer abgeschnitten, weil weiter entfernte Konten die
-    # Abfrage gefüllt haben.
-    nearby_gyms = gym_values_within(db, my_coords, radius)
-    if not nearby_gyms:
-        return []
 
     base_filters = [
         User.id != current_user.id,
@@ -138,11 +132,49 @@ def deck_profiles(db: Session, current_user: User, limit: int = DECK_SIZE) -> li
     if excluded_ids:
         base_filters.append(~User.id.in_(excluded_ids))
 
+    profiles = []
+    seen_ids: set[str] = set()
+
+    # Wer mich schon geliked hat, taucht zuerst auf - unabhaengig vom eigenen
+    # Suchradius. Sonst koennte ein Premium-Konto (bis 250 km) jemanden liken,
+    # der selbst nur die freien 50 km sieht: Ohne diese Ausnahme faende diese
+    # Person ihn nie im eigenen Deck, der Like waere nie erwiderbar. Das
+    # entspricht dem Versprechen in incoming.lockedSub - "Ohne Premium tauchen
+    # sie ganz normal in deinem Deck auf" gilt bisher nur zufaellig, wenn der
+    # Liker ohnehin schon im eigenen Umkreis liegt.
+    liker_users = (
+        db.query(User)
+        .options(selectinload(User.photos))
+        .join(Swipe, Swipe.from_user_id == User.id)
+        .filter(Swipe.to_user_id == current_user.id, Swipe.action == "like", *base_filters)
+        .order_by(Swipe.created_at.desc())
+        .all()
+    )
+    liker_coords = coords_for_gyms(db, {u.gym for u in liker_users if u.gym})
+    for u in liker_users:
+        profile = to_public_profile(u)
+        if not profile.photos:
+            continue
+        coords = liker_coords.get(u.gym)
+        profile.distance_km = round(haversine_km(*my_coords, *coords)) if coords else None
+        profiles.append(profile)
+        seen_ids.add(u.id)
+        if len(profiles) >= limit:
+            return profiles[:limit]
+
+    # Erst die Studios im Umkreis bestimmen, dann die Nutzer dazu holen. Die
+    # Entfernung hängt nur am Gym, und die Gym-Tabelle bleibt klein - so wird
+    # nie ein naher Treffer abgeschnitten, weil weiter entfernte Konten die
+    # Abfrage gefüllt haben.
+    nearby_gyms = gym_values_within(db, my_coords, radius)
+    if not nearby_gyms:
+        return profiles[:limit]
+    remaining_filters = [*base_filters, ~User.id.in_(seen_ids)] if seen_ids else base_filters
+
     # Gyms nach Entfernung abarbeiten und abbrechen, sobald das Deck voll ist:
     # Ein Stapel enthält nur Studios, die näher liegen als alle folgenden, die
     # Reihenfolge bleibt also über alle Stapel hinweg korrekt sortiert.
     gyms_by_distance = sorted(nearby_gyms.items(), key=lambda pair: pair[1])
-    profiles = []
     for start in range(0, len(gyms_by_distance), GYM_BATCH_SIZE):
         batch = [value for value, _ in gyms_by_distance[start:start + GYM_BATCH_SIZE]]
         # selectinload: to_public_profile() liest user.photos für jedes
@@ -151,7 +183,7 @@ def deck_profiles(db: Session, current_user: User, limit: int = DECK_SIZE) -> li
         users = (
             db.query(User)
             .options(selectinload(User.photos))
-            .filter(*base_filters, User.gym.in_(batch))
+            .filter(*remaining_filters, User.gym.in_(batch))
             .all()
         )
         users.sort(key=lambda u: nearby_gyms[u.gym])

@@ -102,10 +102,17 @@ def test_kontoprofil_bleibt_offen_und_scrollbar():
     account = account.split('</section>', 1)[0]
 
     assert '<details class="account-disclosure"' not in account
+    # ".lg" seit c6a49c7 (groessere, weisse Fettschrift fuer die drei
+    # Untermenueueberschriften) - dieselbe Klasse an gleicher Stelle im
+    # Verifizierungs-Gate (#screen-verify-gate) bleibt bewusst ohne ".lg".
     for schluessel in ("acct.sectionProfile", "acct.sectionPhotos", "common.account"):
-        assert f'<div class="account-section-title" data-i18n="{schluessel}">' in account
+        assert f'<div class="account-section-title lg" data-i18n="{schluessel}">' in account
     assert '.screen.active{ display:flex; flex-direction:column; flex:1; min-height:0; overflow-y:auto;' in app
-    assert '.account-membership-note .membership-link{ margin-top:10px; }' in app
+    # Die Statuskarte "Dein Konto ist kostenlos ..." (.account-membership-note)
+    # ist seit Sitzung 19.09.2026 (7) komplett entfernt - fuer alle Kontostufen,
+    # nicht nur fuer Premium. .membership-link lebt weiter fuer Einwilligungen
+    # widerrufen/erteilen (assertion unten).
+    assert 'account-membership-note' not in app
     assert 'color:var(--plate); font-size:12.5px; font-weight:600;' in app
     assert '<div class="consent-setting-action"><button class="membership-link"' in app
 
