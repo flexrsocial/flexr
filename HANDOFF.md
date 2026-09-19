@@ -15,23 +15,27 @@ Stand: **18.09.2026**
 > `release-2.7.5/flexr-2.7.5-vc117.aab` sofort hochladen.
 
 **Alles committet, gepusht und deployed.** Der VPS steht auf `origin/main`
-(**`ac8a243`**, Sitzung 19.09.2026 (7) — Web: Konto-Statuskarte auch für
-Nicht-Premium entfernt, spiegelt die Android-Änderung aus Sitzung (6)).
-Davor `9cb2932` (Sitzung (6) — Android 2.7.9/versionCode 121:
-Konto-Statuskarte auch für Nicht-Premium weg, blauer Haken an der Grundlinie
-statt box-zentriert, alle Popups nach 2 s, Premium-Bildschirm gekürzt) —
-reines Android-Repo, kein VPS-Deploy nötig. Davor `21190e0` (Sitzung (5) —
-Sprachzeile auf Schalter + Info-Punkt verschlankt), `6c5eb68` (Sitzung (4)),
-`8b9c9bf` (Sitzung (3)), `c6a49c7` (Sitzung (2)), `c5582aa` (Sitzung
+(**`a93defe`**, Sitzung 19.09.2026 (8) — Web: "Premium aktivieren"-Knopf im
+Kopf, Premium-Screen gekürzt, "geliket" -> "geliked" auf allen drei
+Oberflächen). Davor **`a14ff0f`** (Sitzung (8), Backend-Teil — echter Fund:
+Liker tauchten im eigenen Deck nicht auf, wenn sie ausserhalb des eigenen
+Suchradius lagen; siehe unten). **Dieses Mal mit Backend-Neustart** -
+`swipes.py` hat sich geändert, ein reines `git pull` hätte den alten
+Deck-Code weiterlaufen lassen. Kein Migrationsschritt (reine Abfragelogik,
+kein Schema-Wechsel) - Migrationsstand weiterhin `5f8ae574bc95` (Sitzung (3)).
+Direkt nach `sudo systemctl restart flexr-api` lieferte `/api/health` einmalig
+502 (dieselbe bekannte Racebedingung wie schon einmal, siehe weiter unten im
+Dokument), Sekunden später grün. Davor `ac8a243` (Sitzung (7) — Web:
+Konto-Statuskarte auch für Nicht-Premium entfernt), `9cb2932` (Sitzung (6) —
+Android 2.7.9/versionCode 121), `21190e0` (Sitzung (5)), `6c5eb68` (Sitzung
+(4)), `8b9c9bf` (Sitzung (3)), `c6a49c7` (Sitzung (2)), `c5582aa` (Sitzung
 18.09.2026 (6)); dazwischen liegt `8985c36` (Sitzung 19.09.2026,
-Android-Konto-Feinschliff nach 2.7.7) — ebenfalls reines Android-Repo.
-`ac8a243` ist wie die Web-Sitzungen davor reines Frontend (`frontend/app/`),
-daher **keine neue Migration, kein Backend-Neustart** - Migrationsstand
-weiterhin `5f8ae574bc95` (Sitzung (3)), Nginx-Konfiguration weiterhin die aus
-Sitzung (3) (`/brand/`-Sperre). Nach dem `git pull` per `md5sum`-Vergleich
-(`curl https://flexr.social/app/` und `curl https://flexr.social/app/i18n-app.js`
-gegen die lokalen Dateien) und `/api/health`
-gegengeprüft, beides passt.
+Android-Konto-Feinschliff nach 2.7.7) — reines Android-Repo. Nginx-Konfiguration
+weiterhin die aus Sitzung (3) (`/brand/`-Sperre). Nach dem `git pull` per
+`md5sum`-Vergleich (`curl https://flexr.social/app/`,
+`curl https://flexr.social/app/i18n-app.js`, `curl https://flexr.social/`,
+`curl https://flexr.social/faq.html`, `curl https://flexr.social/i18n-landing.js`
+gegen die lokalen Dateien) und `/api/health` gegengeprüft, beides passt.
 
 > **Sitzung (6) hat das Backend nicht angefasst** — keine Migration, kein
 > Neustart, der `git pull` allein reicht. Live wirkt davon nur die Web-App
@@ -258,7 +262,10 @@ Die `vc101`- bis `vc104`-Dateien sind hinfällig. Die Play Console hatte 43 und
 > englischen Texte lagen dort in einem Sprach-Split, den ein deutsches Gerät
 > nie herunterlädt. Erst ab 2.6.3 stecken beide Sprachen im Basis-Paket.
 
-Aufbau des Dokuments: erst diese Eckdaten, dann **die Sitzung vom 19.09. (7)**
+Aufbau des Dokuments: erst diese Eckdaten, dann **die Sitzung vom 19.09. (8)**
+(Backend: Liker tauchen im Deck auch ausserhalb des eigenen Suchradius auf;
+Web: "Premium aktivieren"-Knopf im Kopf, Premium-Screen gekürzt, "geliket" ->
+"geliked"), dann **die Sitzung vom 19.09. (7)**
 (Web: Konto-Statuskarte auch für Nicht-Premium entfernt), dann **die Sitzung
 vom 19.09. (6)**
 (Android 2.7.9/versionCode 121: Konto-Statuskarte auch für Nicht-Premium weg,
@@ -292,6 +299,107 @@ Ausgangssitzung), dann die **drei Abschnitte vom 10.09.**
 **08.09.**, dann die beiden Sitzungen vom **07.09.**, dann **06.09.**, dann
 **05.09.**, dann **31.08.**, **30.08.**, **23.08.**, **21.08.**; die Build-,
 Test- und Deploy-Abschnitte am Ende gelten sitzungsübergreifend.
+
+## Sitzung 19.09.2026 (8) — Backend: Liker-Radius-Fehler behoben; Web: Premium-Knopf im Kopf, "geliket" -> "geliked"
+
+Rückmeldung zum Premium-Screen (Screenshot), dabei eine wichtige, vom Nutzer
+selbst aufgeworfene Frage zur Matching-Logik nachgegangen: Sieht ein
+Nicht-Premium-Konto einen Premium-Liker, der ausserhalb der eigenen freien
+50 km liegt, ueberhaupt jemals im eigenen Deck? Antwort: **bisher nein - ein
+echter Fehler.** Code-Stand **`a14ff0f`** (Backend) und **`a93defe`** (Web),
+committet, gepusht, deployed. **Mit Backend-Neustart** (`swipes.py` geaendert),
+kein Migrationsschritt.
+
+### Backend: Liker tauchen im Deck auf, auch ausserhalb des eigenen Suchradius
+
+`deck_profiles()` baute das Deck bisher ausschliesslich ueber den Umkreis des
+eigenen Gyms. Liked ein Premium-Konto (bis 250 km) jemanden mit den freien
+50 km oder der 20-km-Voreinstellung, der weiter entfernt liegt, fand diese
+Person den Liker **nie** im eigenen Deck - der Like war nie erwiderbar. Das
+widersprach dem eigenen Versprechen im Code (`incoming.lockedSub`: "Ohne
+Premium tauchen sie ganz normal in deinem Deck auf") - das stimmte bisher nur
+zufaellig, wenn der Liker ohnehin im eigenen Umkreis lag.
+
+Fix: `deck_profiles()` holt jetzt zuerst alle offenen (nicht
+zurueckgeswipeten) Liker unabhaengig vom Radius, danach wie bisher die
+Umkreissuche - Liker werden dort ausgeschlossen, damit niemand doppelt im
+Deck steht. Die tatsaechliche Entfernung der Liker wird weiterhin berechnet
+(`coords_for_gyms` + `haversine_km`), nur nicht mehr als harter Cutoff
+verwendet.
+
+Neuer Regressionstest (`test_deck_shows_liker_beyond_own_search_radius`,
+Wien-Graz-Paar) bestaetigt nachweislich beides: schlaegt ohne den Fix fehl
+(per `git stash` gegengeprueft), ist mit dem Fix gruen.
+
+**Nebenfund beim ersten vollstaendigen Testlauf seit mehreren Sitzungen:**
+zwei laengst faellige, von diesem Fix unabhaengige Luecken in
+`test_public_frontend.py` behoben - eine Assertion pruefte noch die
+inzwischen entfernte `.account-membership-note`-Karte (Sitzung (7)), eine
+andere die Untermenueueberschriften ohne die `.lg`-Klasse (Web-Sitzung (2)
+vom selben Tag, Commit `c6a49c7`). Beide Luecken bestanden schon vorher,
+unbemerkt, weil rein-frontend-Sitzungen bisher nur `node --check` plus
+Browser-Verifikation liefen, nicht die volle Backend-Suite. **Lehre daraus:
+Aenderungen an `frontend/app/index.html` kuenftig auch gegen die volle
+Backend-Suite pruefen** - `test_public_frontend.py` haelt einige Markup-Stellen
+wortwoertlich fest.
+
+### Web: "Premium aktivieren"-Knopf im Kopf
+
+Neuer Knopf links neben der Status-Pille (`#statusPill`) im Header, sichtbar
+unter derselben Bedingung, unter der die Pille sonst "Beta" oder die
+Like-Reste zeigt (Konto geladen, freigeschaltet, nicht schon Premium, Kauf
+serverseitig moeglich - `premiumOffered()`). Fuehrt auf den Premium-Screen;
+dort schliesst "Premium holen" den Kauf ab - ein Klick im Kopf soll nicht
+unmittelbar in der Zahlungserklaerung enden. `premium.activateCta` neu in
+`i18n-app.js` (DE/EN).
+
+### Web: Premium-Screen gekürzt
+
+Der Absatz zwischen der Ueberschrift "FLEXR PREMIUM" und der Preiskachel
+("FLEXR zu nutzen kostet nichts ...") ist weg, die Kachel ruekt von selbst
+nach oben. `premium.sub` damit in beiden Sprachen unbenutzt und aus
+`i18n-app.js` entfernt. `i18n-app.js` auf `?v=9` gezogen.
+
+### Sprachlich: "geliket" -> "geliked"
+
+Falsch geschriebene Form korrigiert, in allen Anzeigetexten auf allen drei
+Oberflaechen: Web-App (`frontend/app/index.html`, `i18n-app.js`),
+Landingpage + FAQ (`frontend/index.html`, `frontend/faq.html`,
+`i18n-landing.js`), Android (`strings.xml`), iOS (`FlexrStrings+German.swift`).
+Bewusst **nicht** angefasst: interne Code-Kommentare (bis auf einen, der die
+korrigierte Zeile direkt zitierte), die AGB (`agb.html` - Rechtstext, dort
+nicht ausdruecklich angefragt) und HANDOFF.md (historisches Protokoll, wird
+nicht rueckwirkend umgeschrieben).
+
+### Android-Preis-Rueckfrage (ohne Codeaenderung)
+
+Nutzerfrage: In der Play Console wurde der Preis von faelschlich 11,99 € auf
+10 € korrigiert - ist das auch im Code so beschrieben? Gepruefte Antwort:
+**ja, und es gibt nichts zu aendern.** Der angezeigte Preis auf dem
+Android-Premium-Screen kommt zur Laufzeit direkt aus der Play Billing
+Library (`ProductDetails.subscriptionOfferDetails[...].formattedPrice`),
+nirgends im Code steht ein Betrag fest ausser dem Platzhalter fuer den Fall,
+dass der Store-Preis noch nicht geladen ist (`paywall_price` = "10 €" /
+"€10", schon vorher korrekt). Die 11,99 € waren ausschliesslich eine
+Fehlkonfiguration in der Play Console selbst - mit deren Korrektur behebt
+sich das von selbst, sobald Google den neuen Preis ausliefert. Kein neuer
+Android-Build noetig.
+
+### Geprüft
+
+Backend: 497 Tests gruen (voller Lauf), inklusive des neuen
+Regressionstests. Web: `node --check` auf `i18n-app.js` und dem
+Haupt-Skript sauber, am echten Konto-/Premium-Screen (lokaler Dev-Server,
+ohne Login per DOM-Injektion sichtbar gemacht) bestaetigt: Knopf sitzt links
+neben der Pille, Klick fuehrt auf den Premium-Screen, dort ist der Absatz
+weg und die Kachel ruekt sichtbar nach oben. Deployt und per `md5sum`
+gegen fuenf betroffene Dateien sowie `/api/health` gegengeprueft.
+
+### Offen
+
+Unverändert aus den Sitzungen davor: iOS zeigt die beiden Rewind-Meldungen
+weiterhin; kein echtes Premium-/verifiziertes Testkonto zur Hand, um die
+neue Liker-Radius-Logik auch live (nicht nur per Regressionstest) zu sehen.
 
 ## Sitzung 19.09.2026 (7) — Web: Konto-Statuskarte auch für Nicht-Premium entfernt
 
