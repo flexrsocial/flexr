@@ -1911,13 +1911,14 @@
     border:1px solid var(--steel); border-radius:999px; background:var(--surface-2);
     padding:2px; gap:0;
   }
+  /* Beide Segmente immer weiss und fett - welches gerade gilt, zeigt der
+     gleitende orange Knopf darunter, nicht mehr ein Farbunterschied im Text. */
   .lang-switch button{
     position:relative; z-index:2; border:0; background:transparent; cursor:pointer;
-    padding:4px 10px; border-radius:999px; color:var(--chalk-dim);
+    padding:4px 10px; border-radius:999px; color:var(--chalk); font-weight:700;
     font-family:'JetBrains Mono', monospace; font-size:10.5px; letter-spacing:0.09em;
-    line-height:1.5; transition:color .18s ease;
+    line-height:1.5;
   }
-  .lang-switch button.on{ color:#141414; }
   .lang-switch .knob{
     position:absolute; z-index:1; top:2px; bottom:2px; left:2px; width:calc(50% - 2px);
     border-radius:999px; background:var(--plate);
@@ -1927,14 +1928,13 @@
   @media (prefers-reduced-motion: reduce){
     .lang-switch .knob{ transition:none; }
   }
-  /* Im Kontobereich steht der Regler in einer eigenen Zeile mit Beschriftung,
-     damit er dort nicht wie ein verirrtes Kopfzeilen-Element wirkt. */
+  /* Nur noch Schalter + Info-Punkt in einer Zeile, linksbuendig - der
+     erklaerende Text steht seit dieser Aenderung im "i" statt fest daneben
+     (siehe HTML-Kommentar bei .lang-row). */
   .lang-row{
-    display:flex; align-items:center; justify-content:space-between; gap:12px;
+    display:flex; align-items:center; gap:8px;
     margin-top:4px;
   }
-  .lang-row .lang-row-label{ font-size:14px; color:var(--chalk); }
-  .lang-row .lang-row-hint{ font-size:12px; color:var(--chalk-dim); margin-top:2px; }
 
   .loading{
     text-align:center; padding:60px 0; color:var(--chalk-dim); font-family:'JetBrains Mono'; font-size:12.5px;
@@ -1967,7 +1967,7 @@
      (DACH-Raum -> Deutsch), i18n-app.js das Woerterbuch dieser Seite. Beide
      laufen synchron und damit vor dem DOMContentLoaded, bei dem FlexrI18n die
      data-i18n-Knoten uebersetzt. -->
-<script src="/i18n.js?v=4"></script>
+<script src="/i18n.js?v=5"></script>
 <script src="/app/i18n-app.js?v=7"></script>
 <a class="skip-link" href="#main-content" data-i18n="common.skipToContent">Zum Inhalt springen</a>
 <div class="app" id="app">
@@ -2439,17 +2439,20 @@
         <div class="account-section-title lg" data-i18n="acct.sectionProfile">Profil</div>
 
         <!-- Die Sprachwahl steht nur hier, weil Einstellungen im Profil
-             gesucht werden. -->
+             gesucht werden. Frueher stand daneben ein erklaerender Absatz
+             fest im Text; der ist jetzt das "i" (dasselbe Muster wie beim
+             Suchumkreis-Infopunkt unten), damit die Zeile nicht schwerer
+             wirkt als der Schalter selbst. -->
         <div class="lang-row">
-          <div>
-            <div class="lang-row-label" data-i18n="lang.label">Sprache</div>
-            <div class="lang-row-hint" data-i18n="lang.hint">Gilt für die gesamte App und für die E-Mails, die wir dir schicken. Die Rechtstexte gibt es auf Deutsch und Englisch; verbindlich ist die deutsche Fassung.</div>
-          </div>
           <div class="lang-switch" role="group" data-i18n-aria="lang.group" aria-label="Sprache">
             <button type="button" data-lang="de" data-i18n-title="lang.de" title="Deutsch">DE</button>
             <button type="button" data-lang="en" data-i18n-title="lang.en" title="Englisch">EN</button>
             <span class="knob" aria-hidden="true"></span>
           </div>
+          <span class="info-hint">
+            <button type="button" data-i18n-aria="lang.infoAria" aria-label="Was die Sprachwahl bedeutet">i</button>
+            <span class="bubble" role="tooltip" data-i18n="lang.hint">Gilt für die gesamte App und für die E-Mails, die wir dir schicken. Die Rechtstexte gibt es auf Deutsch und Englisch; verbindlich ist die deutsche Fassung.</span>
+          </span>
         </div>
 
         <label for="a-plz" data-i18n="reg.plz">Postleitzahl</label>
