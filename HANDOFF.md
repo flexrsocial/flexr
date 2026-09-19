@@ -15,15 +15,16 @@ Stand: **18.09.2026**
 > `release-2.7.5/flexr-2.7.5-vc117.aab` sofort hochladen.
 
 **Alles committet, gepusht und deployed.** Der VPS steht auf `origin/main`
-(**`c6a49c7`**, Sitzung 19.09.2026 (2) — Web: Konto-Feinschliff). Das löst
-`c5582aa` (Sitzung 18.09.2026 (6)) als Referenz ab; dazwischen liegt
-`8985c36` (Sitzung 19.09.2026, Android-Konto-Feinschliff) — reines
-Android-Repo, kein VPS-Deploy nötig. `c6a49c7` ist reines Frontend
-(`frontend/app/`), daher **keine neue Migration, kein Backend-Neustart** -
-Migrationsstand weiterhin `5f8ae574bc95` (Sitzung (3)), Nginx-Konfiguration
-weiterhin die aus Sitzung (3) (`/brand/`-Sperre). Nach dem `git pull` per
-`md5sum`-Vergleich (`curl https://flexr.social/app/` gegen die lokale Datei)
-und `/api/health` gegengeprüft, beides passt.
+(**`8b9c9bf`**, Sitzung 19.09.2026 (3) — Web: Konto-Nachbesserung). Das löst
+`c6a49c7` (Sitzung 19.09.2026 (2)) als Referenz ab, davor `c5582aa` (Sitzung
+18.09.2026 (6)); dazwischen liegt `8985c36` (Sitzung 19.09.2026,
+Android-Konto-Feinschliff) — reines Android-Repo, kein VPS-Deploy nötig.
+`8b9c9bf` ist wie `c6a49c7` reines Frontend (`frontend/app/`), daher
+**keine neue Migration, kein Backend-Neustart** - Migrationsstand weiterhin
+`5f8ae574bc95` (Sitzung (3)), Nginx-Konfiguration weiterhin die aus Sitzung
+(3) (`/brand/`-Sperre). Nach dem `git pull` per `md5sum`-Vergleich (`curl
+https://flexr.social/app/` gegen die lokale Datei) und `/api/health`
+gegengeprüft, beides passt.
 
 > **Sitzung (6) hat das Backend nicht angefasst** — keine Migration, kein
 > Neustart, der `git pull` allein reicht. Live wirkt davon nur die Web-App
@@ -250,10 +251,11 @@ Die `vc101`- bis `vc104`-Dateien sind hinfällig. Die Play Console hatte 43 und
 > englischen Texte lagen dort in einem Sprach-Split, den ein deutsches Gerät
 > nie herunterlädt. Erst ab 2.6.3 stecken beide Sprachen im Basis-Paket.
 
-Aufbau des Dokuments: erst diese Eckdaten, dann **die Sitzung vom 19.09. (2)**
-(Web: Konto-Feinschliff — Toast-Timing, Badges, Bio-Limit, Meldungen), dann
-**die Sitzung vom 19.09.** (Android: Konto-Feinschliff nach 2.7.7), dann
-**die Sitzung vom 18.09. (7)**
+Aufbau des Dokuments: erst diese Eckdaten, dann **die Sitzung vom 19.09. (3)**
+(Web: Konto-Nachbesserung — Badge-Ausrichtung, Verifiziert-Pille, Bio
+kleiner), dann **die Sitzung vom 19.09. (2)** (Web: Konto-Feinschliff —
+Toast-Timing, Badges, Bio-Limit, Meldungen), dann **die Sitzung vom 19.09.**
+(Android: Konto-Feinschliff nach 2.7.7), dann **die Sitzung vom 18.09. (7)**
 (Aboverwaltung im Web, Push bei beendeter Android-App), dann **18.09. (6)**
 (Bug-Durchgang in allen drei Oberflächen), dann **18.09. (5)** (Widerruf der
 Art.-9-Einwilligung wirkte nur halb), dann **18.09. (4)** („Swipe
@@ -276,6 +278,110 @@ Ausgangssitzung), dann die **drei Abschnitte vom 10.09.**
 **08.09.**, dann die beiden Sitzungen vom **07.09.**, dann **06.09.**, dann
 **05.09.**, dann **31.08.**, **30.08.**, **23.08.**, **21.08.**; die Build-,
 Test- und Deploy-Abschnitte am Ende gelten sitzungsübergreifend.
+
+## Sitzung 19.09.2026 (3) — Web: Konto-Nachbesserung (Badge-Ausrichtung, Verifiziert-Pille, Bio kleiner)
+
+Rückmeldung auf Sitzung (2) direkt darunter, noch am selben Tag: der
+Verifiziert-Haken saß trotz der ersten Korrektur weiterhin sichtbar zu tief,
+die separate „Verifiziert"-Pille war redundant, das Bio-Feld sollte kleiner
+werden, und der Store-Abo-Hinweis sollte kein eigener Satz in „Datenschutz &
+Sicherheit" mehr sein, sondern ein Hover-Text auf dem Premium-Stern. Fünf
+Punkte, Code-Stand **`8b9c9bf`**, committet, gepusht, auf dem VPS deployt
+(wieder reines Frontend, kein Backend/Migration/Neustart — per `md5sum`
+gegen `curl https://flexr.social/app/` und `/api/health` bestätigt).
+
+### Verifiziert-Haken jetzt wirklich mittig zu Name/Alter
+
+Die erste Korrektur in Sitzung (2) (gleiche Box wie `.premium-badge`, 17px,
+`vertical-align:-2px`) reichte nicht — beide Badges hatten danach zwar
+identische CSS-Werte, saßen aber trotzdem unterschiedlich tief. Ursache,
+per `getBoundingClientRect()` + `canvas.measureText()` gegen die
+tatsächliche Ziffern-Tinte von „37" nachgewiesen statt nur nach Augenmaß
+beurteilt: Ein `inline-flex`-Element ohne eigene Text-Baseline übernimmt als
+`vertical-align`-Bezug die Unterkante seines ersten Kindes. Das
+Haken-SVG war mit `width/height:62%` kleiner als sein 17px-Kasten, das
+Stern-SVG mit 100 % genauso groß wie seiner — dadurch lagen die
+Bezugskanten der beiden Badges unterschiedlich, ein reiner CSS-Wertevergleich
+hätte das nie gezeigt. Fix: beide SVGs jetzt auf 100 %, das optische
+Padding fürs Haken-Icon steckt stattdessen in der `viewBox` (`-7 -7 38 38`
+statt `0 0 24 24`), `vertical-align` beider Badges von `-2px` auf `0px`.
+Rechnerisch verifiziert: Differenz zwischen Ink-Center von „37" und beiden
+Badge-Centern jetzt exakt 0px, zusätzlich per Screenshot bei 2,5-facher
+Vergrößerung gegengeprüft.
+
+### Separate „Verifiziert"-Pille weg, wenn das Konto schon verifiziert ist
+
+Stand rechts oben neben dem Testmonat-Pill, sagte im verifizierten Zustand
+nichts, was der Haken beim Namen nicht schon zeigt. `renderVerificationSection()`
+blendet `#verifyBadgeWrap` jetzt aus, sobald `myProfile.is_verified` wahr
+ist. In jedem anderen Zustand (Prüfung läuft, abgelehnt, noch nicht
+gestartet) bleibt sie unverändert stehen — dort ist sie der Einstieg in die
+Verifizierung (Klick startet `startVerification()`/`openIdStep()`), kein
+reines Abzeichen, und durfte nicht verschwinden. `vbadge.badge` und
+`vbadge.verified` dadurch unbenutzt und aus `i18n-app.js` entfernt (DE+EN).
+
+### Bio-Feld verkleinert und strukturell robuster gemacht
+
+Höhe von 235px (Sitzung (2), damit die vollen 280 Zeichen nie scrollen
+mussten) auf 110px reduziert. Damit das nicht denselben Anzeigefehler wie
+vor Sitzung (2) zurückbringt, gleich mit umgebaut: Emoji-Knopf und
+Zeichenzähler lagen bisher als Überlagerung in einem per `padding-bottom`
+freigehaltenen Streifen ÜBER dem Textfeld — bei einer kleineren, jetzt
+wieder öfter scrollenden Fläche wäre das erneut angreifbar gewesen. Beide
+liegen jetzt in einer eigenen `.bio-toolbar`-Zeile UNTER dem Textfeld, im
+normalen Dokumentfluss statt als Overlay — dadurch kann unabhängig von
+Feldhöhe oder Scroll-Stand nichts mehr mit echtem Text überlappen. Das
+Emoji-Panel öffnet entsprechend relativ zur Toolbar (`bottom:100%`) statt zu
+einem festen Pixelwert. Am echten Registrierungsformular (375px Breite) mit
+280 „W" (Worst Case fürs Zeilenumbruch) geprüft: zeigt jetzt einen normalen
+Scrollbalken ohne jede Überlappung, wo vorher der Fehler saß.
+
+### Store-Abo-Hinweis jetzt Hover-Text auf dem Premium-Stern
+
+Stand seit Sitzung (2) als eigener Satz ganz unten in „Datenschutz &
+Sicherheit" — auf Wunsch jetzt stattdessen der Hover-Text (`title`) auf dem
+Premium-Stern neben dem Namen. `PREMIUM_BADGE_SVG` nimmt dafür einen
+optionalen Titel; `renderAccount()` setzt ihn auf den Kündigungshinweis,
+wenn `is_premium && !has_stripe_subscription` (Store-Kauf), sonst bleibt es
+beim Standardtitel „FLEXR Premium". Abzeichen auf FREMDEN Profilen
+(Deck/Matches/Chat, `premiumBadge(p)`) bleiben unverändert beim
+Standardtitel — dort wäre ein Hinweis zum eigenen Abo unsinnig. Die Zeile in
+„Datenschutz & Sicherheit" (`#acctSubscriptionStoreHint`,
+`.account-footer-note`) ist komplett entfernt; `renderSubscriptionRow()`
+kümmert sich jetzt nur noch um den Stripe-Knopf.
+
+### Überschriften unter „Benachrichtigungen" und „Datenschutz & Sicherheit" in Weiß
+
+Neue Modifier-Klasse `.account-section-title.white` (nur `color:var(--chalk)`,
+keine Größen-/Gewichtsänderung) auf Matching-Präferenzen, Blockierte
+Personen, Meine Meldungen, Rechtliches und die vier
+Benachrichtigungs-Abschnitte angewendet — bewusst getrennt von `.lg`
+(Profil/Fotos/Konto), das zusätzlich größer und fett ist. Per
+DOM-Injektion ohne Login sichtbar gemacht und geprüft.
+
+### Geprüft
+
+`node --check` auf Haupt-Skript und `i18n-app.js` sauber. Badge-Zentrierung
+rechnerisch nachgewiesen (siehe oben) statt nur nach Augenmaß. Bio-Feld und
+Emoji-Panel-Position am echten Registrierungsformular auf dem lokalen
+Dev-Server bestätigt. Weiße Überschriften und der Wegfall des
+Store-Hinweises aus „Datenschutz & Sicherheit" per DOM-Injektion ohne Login
+sichtbar gemacht. Nach dem Deploy: `md5sum` lokale Datei gegen
+`curl https://flexr.social/app/` identisch, `/api/health` liefert
+`{"status":"ok"}`.
+
+**Nicht geprüft:** die „Verifiziert"-Pille (`renderVerificationSection`) und
+der Hover-Text auf dem Premium-Stern an einem echten eingeloggten Konto —
+weiterhin keine Zugangsdaten für ein Premium-/verifiziertes Testkonto (siehe
+Sitzung (2)); der Hover-Text-Inhalt selbst ist per JS bestätigt
+(`.title`-Attribut), nur nicht am echten Browser-Tooltip gesehen.
+
+### Offen
+
+Unverändert aus Sitzung (2): iOS zeigt die beiden Rewind-Meldungen weiterhin
+(Android-Sitzung, „Offen" Punkt 3); der mögliche Datenabgleich-Punkt zu
+Julians Konto (`has_stripe_subscription` vs. tatsächlichem Kaufweg) weiterhin
+nur vermutet, nicht geprüft.
 
 ## Sitzung 19.09.2026 (2) — Web: Konto-Feinschliff (Toast-Timing, Badges, Bio-Limit, Meldungen)
 
