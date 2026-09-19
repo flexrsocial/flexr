@@ -216,7 +216,7 @@ Die Zahlen stehen in `backend/app/config.py` und sind zugleich eine
 `frontend/i18n-*.js`, `res/values*/strings.xml`, `agb.html`, `faq.html` und
 `app/legal.py` mit.
 
-**Aktuelles Android-Paket:** 2.7.7 (versionCode 119), Stand 18.09.2026.
+**Aktuelles Android-Paket:** 2.7.8 (versionCode 120), Stand 19.09.2026.
 
 Zum **Installieren auf einem Gerät** taugt nur das **APK**. Das `.aab` ist das
 Veröffentlichungsformat für die Play Console und lässt sich auf einem Telefon
@@ -246,7 +246,8 @@ Die `vc101`- bis `vc104`-Dateien sind hinfällig. Die Play Console hatte 43 und
 > englischen Texte lagen dort in einem Sprach-Split, den ein deutsches Gerät
 > nie herunterlädt. Erst ab 2.6.3 stecken beide Sprachen im Basis-Paket.
 
-Aufbau des Dokuments: erst diese Eckdaten, dann **die Sitzung vom 18.09. (7)**
+Aufbau des Dokuments: erst diese Eckdaten, dann **die Sitzung vom 19.09.**
+(Android: Konto-Feinschliff nach 2.7.7), dann **die Sitzung vom 18.09. (7)**
 (Aboverwaltung im Web, Push bei beendeter Android-App), dann **18.09. (6)**
 (Bug-Durchgang in allen drei Oberflächen), dann **18.09. (5)** (Widerruf der
 Art.-9-Einwilligung wirkte nur halb), dann **18.09. (4)** („Swipe
@@ -269,6 +270,73 @@ Ausgangssitzung), dann die **drei Abschnitte vom 10.09.**
 **08.09.**, dann die beiden Sitzungen vom **07.09.**, dann **06.09.**, dann
 **05.09.**, dann **31.08.**, **30.08.**, **23.08.**, **21.08.**; die Build-,
 Test- und Deploy-Abschnitte am Ende gelten sitzungsübergreifend.
+
+## Sitzung 19.09.2026 — Android: Konto-Feinschliff nach 2.7.7
+
+Rückmeldung zu 2.7.7 (vier Screenshots): zwei davon zeigten die
+Rewind-Einblendungen, die in 2.7.7 bereits entfernt waren — der Vergleich
+gegen den Code (`e9b069b`) bestätigt das, die Screenshots kamen von einem
+noch nicht aktualisierten Gerät. Kein Codewechsel nötig, nur klargestellt.
+Die anderen beiden Punkte waren neu und sind jetzt umgesetzt. Code-Stand:
+**`8985c36`**. Backend unverändert.
+
+### „Profil gespeichert" verschwindet jetzt von selbst
+
+Die geteilte Snackbar-Anzeigedauer (`showMessage` in `FlexrApp.kt`) stand
+fest bei 20 s samt Schließen-Knopf — richtig für eine Fehlermeldung, die man
+in Ruhe lesen soll, falsch für eine reine Bestätigung, die die gespeicherte
+Karte darunter ohnehin schon zeigt. `AccountEvent.Message` trägt jetzt ein
+`brief`-Flag; `showBriefMessage` (neu, 2 s) räumt danach selbst auf, der
+Schließen-Knopf bleibt für alle Faelle stehen. Nur der Speichern-Erfolg
+bekommt das Flag — Löschen-fehlgeschlagen, Widerrufs-Folgetexte und
+Moderationsgründe bleiben bei den bisherigen 20 s.
+
+### Statuskarte „FLEXR Premium läuft …" ist für Premium-Konten weg
+
+Trug nichts zum Handeln bei — der Premium-Badge im Kopf sagt es bereits, und
+das Kündigen sitzt unten unter „Aboverwaltung". Die ganze Karte (Rahmen,
+Text, Abstand) fällt für Premium-Konten jetzt weg statt als leerer Rahmen
+zwischen Kopf und „Profil" stehenzubleiben — „Profil" rückt dadurch von
+selbst nach oben. Für Nicht-Premium-Konten (Beta-Hinweis oder
+Grenzen-Text plus ggf. Angebotsknopf) unverändert. `premium_status_active`
+ist damit in beiden `strings.xml` unbenutzt und entfernt.
+
+### „Aboverwaltung": nur noch „Abo verwalten", kein Link mehr
+
+Text verkürzt (weg mit „/ kündigen") und umgestylt: dieselbe weiße
+Zeilen-Optik wie „Blockierte Personen" & Co. — kein orange, keine
+Unterstreichung mehr, das ist eine Aktion in den Einstellungen, kein
+Hyperlink. Verhalten unverändert: führt direkt zum Stripe-Portal
+beziehungsweise zur Play-Store-Abo-Verwaltung, außerhalb der App.
+
+### Geprüft
+
+53 Unit-Tests grün, Kotlin- und Test-Quellen kompilieren, Release-Build durch
+(inkl. Release-Unit-Tests). Der geänderte String „Abo verwalten" steht
+nachweislich im gebauten APK (`aapt2 dump resources`). **Nicht am Gerät
+geprüft** — hier läuft kein Emulator.
+
+### Android 2.7.8 (versionCode 120)
+
+Gebaut mit `clean testProdReleaseUnitTest assembleProdRelease
+bundleProdRelease`, signiert mit demselben Upload-Key wie bisher
+(SHA-256 `bc64ad3f…`, gegen `release-2.7.6/` gegengeprüft). `.aab` und `.apk`
+liegen mit `SHA256SUMS.txt` in `release-2.7.8/` und sind im Chat übergeben.
+
+| | |
+|---|---|
+| AAB (Play Console) | `flexr-2.7.8-vc120.aab` |
+| APK (direkt installierbar) | `flexr-2.7.8-vc120.apk` |
+
+### Offen
+
+1. **2.7.8 ist noch nicht in der Play Console** (2.7.6 und 2.7.7 waren es
+   zum Zeitpunkt dieser Sitzung ebenfalls noch nicht).
+2. **Der Push-Befund aus 2.7.7 ist weiterhin unbestätigt** — siehe
+   18.09.-(7)-Abschnitt. Mit dem 2.7.8-APK nachstellen: App ganz schließen,
+   Nachricht schicken.
+3. Web und iOS zeigen die beiden Rewind-Meldungen weiterhin (siehe
+   18.09.-(7), Punkt „Offen" 3) — unverändert offen.
 
 ## Sitzung 18.09.2026 (7) — Aboverwaltung im Web, Push bei beendeter Android-App
 
@@ -6074,18 +6142,26 @@ print(re.findall(rb"[0-9]+\.[0-9]+\.[0-9]+", d)[:5])' \
 
 ## Erinnerung für die nächste Sitzung
 
-Neu aus der Sitzung 18.09. (7):
+Neu aus der Sitzung 19.09.:
 
-- **Android 2.7.7 (versionCode 119) ist noch nicht in der Play Console** —
+- **Android 2.7.8 (versionCode 120) ist noch nicht in der Play Console** —
   gebaut, signiert, im Chat übergeben (AAB und APK, Prüfsummen im
-  18.09.-(7)-Abschnitt).
-- **Der Push-Befund „nichts bei beendeter App" ist unbestätigt.** Der nächste
-  Versuch mit dem 2.7.7-APK ist der Beweis; führt er zu nichts, ist die
-  Akku-Ausnahme dran (steht jetzt in Konto → Benachrichtigungen ganz oben).
-  **Telefonmodell und Android-Fassung erfragen** — beides fehlt bisher und
+  19.09.-Abschnitt).
+- Vier Konto-Feinschliffe umgesetzt: „Profil gespeichert" verschwindet nach
+  2 s von selbst, die Statuskarte „FLEXR Premium läuft …" ist für
+  Premium-Konten weg, „Aboverwaltung" heißt nur noch „Abo verwalten" und
+  ist kein Link mehr. **Keins davon am Gerät geprüft** — hier läuft kein
+  Emulator.
+- **Der Push-Befund „nichts bei beendeter App" ist weiterhin unbestätigt.**
+  Der nächste Versuch mit dem 2.7.8-APK ist der Beweis; führt er zu nichts,
+  ist die Akku-Ausnahme dran (steht in Konto → Benachrichtigungen ganz oben).
+  **Telefonmodell und Android-Fassung weiterhin offen** — beides fehlt und
   entscheidet, wie streng der Hersteller die App schlafen legt.
 - Nachfragen, ob die beiden Rewind-Meldungen auch in **Web und iOS**
-  verschwinden sollen — in der Android-App sind sie weg, dort nicht.
+  verschwinden sollen — in der Android-App sind sie seit 2.7.7 weg, dort
+  nicht. (Zwei der vier Screenshots aus der 19.09.-Rückmeldung zeigten genau
+  diese Meldungen noch — Ursache war ein auf dem Testgerät noch nicht
+  aktualisierter Build, kein neuer Bug.)
 - Die **Aboverwaltung in der Web-App** (Konto, zwischen „Benachrichtigungen"
   und „Datenschutz & Sicherheit") ist ausgerollt, aber vom Nutzer noch nicht
   begutachtet — samt neuem Hinweis für Abos aus den Stores.
