@@ -136,8 +136,15 @@
      ob ein Scrollbalken da ist - z. B. verschwand rechts der abgerundete
      Rand einer Chat-Kachel beim Hover (transform:translateX schob sie exakt
      unter den Scrollbalken, der auf manchen Desktops den rechten Rand des
-     20px-Innenabstands auffrisst). */
-  main{ flex:1; padding:22px 20px 100px; overflow-y:auto; overflow-x:hidden; scrollbar-gutter:stable; display:flex; flex-direction:column; }
+     20px-Innenabstands auffrisst). Seit .screen.active selbst scrollt (siehe
+     unten) uebernimmt dessen eigene scrollbar-gutter-Reservierung genau das -
+     hier auf main selbst stand sie nur noch als Dopplung: main scrollt in der
+     Praxis nie selbst (das erledigt immer die aktive .screen darunter), hat
+     die Gutter-Reservierung aber trotzdem unbedingt gezogen - auf jedem
+     Screen ohne echten Scrollbalken (Swipe-Deck, leere Match-/Chat-Liste,
+     Premium-Seite ...) sass der Inhalt dadurch sichtbar 6px zu weit links,
+     mit mehr Abstand rechts als links. Am 19.09.2026 entfernt. */
+  main{ flex:1; padding:22px 20px 100px; overflow-y:auto; overflow-x:hidden; display:flex; flex-direction:column; }
   .screen{ display:none; animation:fade .25s ease; }
   .screen.active{ display:flex; flex-direction:column; flex:1; min-height:0; overflow-y:auto; overflow-x:hidden; scrollbar-gutter:stable; }
   /* Der Chat füllt den Screen exakt (Nachrichten scrollen intern) - kein
