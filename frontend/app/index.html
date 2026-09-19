@@ -1816,6 +1816,7 @@
   }
   .legal-link-list{
     display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:9px 14px;
+    text-align:center;
   }
   .legal-link-list a:link, .legal-link-list a:visited{
     color:var(--plate); font-size:12.5px; line-height:1.4;
@@ -3517,14 +3518,12 @@
 
   /* Premium-Abzeichen neben dem Namen. Steht immer NACH dem Verifiziert-Haken:
      verifiziert ist eine Aussage ueber die Person, Premium eine ueber das Abo -
-     die wichtigere zuerst.
-     `title` optional: im eigenen Kontokopf (renderAccount) ersetzt ihn der
-     Store-Kuendigungshinweis, wenn das Abo ueber App Store/Google Play laeuft
-     - auf fremden Profilen (Deck, Matches, Chat) bleibt es immer beim
-     Standardtitel, dort waere ein Hinweis zum EIGENEN Abo unsinnig. */
-  const PREMIUM_BADGE_SVG = (title) =>
-    '<span class="premium-badge" title="' + escapeHtml(title || t('premium.badgeTitle')) + '" aria-label="' +
-    escapeHtml(title || t('premium.badgeTitle')) + '"><svg viewBox="0 0 24 24" aria-hidden="true">' +
+     die wichtigere zuerst. Der Store-Kuendigungshinweis haengt NICHT an
+     diesem Stern, sondern am "Premium"-Pill im Kopf (#statusPill, siehe
+     updateStatusPill) - zwei getrennte Abzeichen. */
+  const PREMIUM_BADGE_SVG = () =>
+    '<span class="premium-badge" title="' + escapeHtml(t('premium.badgeTitle')) + '" aria-label="' +
+    escapeHtml(t('premium.badgeTitle')) + '"><svg viewBox="0 0 24 24" aria-hidden="true">' +
     '<path d="M12 3.5 14.6 9l6 .9-4.3 4.2 1 6-5.3-2.8L6.7 20l1-6L3.4 9.9l6-.9z"/></svg></span>';
 
   function premiumBadge(p){
@@ -4484,6 +4483,10 @@
 
   function updateStatusPill(){
     const pill = $('statusPill');
+    // Nur im Premium-Zweig unten je nach Kaufweg wieder gesetzt - sonst
+    // bliebe ein einmal gesetzter Store-Kuendigungshinweis stehen, auch
+    // nachdem die Pille laengst wieder "Beta" oder Like-Reste zeigt.
+    pill.removeAttribute('title');
     if(!membership){ pill.textContent = '—'; return; }
     // Vor der Freischaltung sagt die Pille, dass geprüft wird - alles andere
     // (Likes, Premium) ist bis dahin ohne Belang.
@@ -4494,6 +4497,12 @@
     if(isPremium()){
       pill.textContent = t('premium.pill');
       pill.className = 'status-pill trial';
+      // Store-Kauf (App Store/Google Play): das Web-Portal kann so ein Abo
+      // nicht verwalten, siehe renderSubscriptionRow() - der Hover-Text
+      // sagt, wo es stattdessen geht. Bei Stripe-Kauf bleibt es ohne Titel.
+      if(membership && !membership.has_stripe_subscription){
+        pill.title = t('acct.subStoreHint');
+      }
       return;
     }
     // Solange FLEXR als Beta gekennzeichnet ist, steht genau das in der Pille -
@@ -4677,13 +4686,8 @@
   function renderAccount(opts){
     // Das eigene Abzeichen kommt aus dem Abostatus, nicht aus dem Profil:
     // /api/profiles/me ist die Selbstansicht und traegt kein is_premium.
-    // Bei einem Store-Abo (App Store/Google Play) ersetzt der Hover-Text des
-    // Sterns den Standardtitel durch den Kuendigungshinweis - das Web-Portal
-    // kann so ein Abo ohnehin nicht verwalten, siehe renderSubscriptionRow().
-    const ueberStoreBadge = isPremium() && !(membership && membership.has_stripe_subscription);
     $('acctName').innerHTML = escapeHtml(myProfile.name + ', ' + myProfile.age)
-      + verifiedBadge(myProfile)
-      + (isPremium() ? PREMIUM_BADGE_SVG(ueberStoreBadge ? t('acct.subStoreHint') : null) : '');
+      + verifiedBadge(myProfile) + (isPremium() ? PREMIUM_BADGE_SVG() : '');
     renderVerificationSection();
     $('acctSubline').textContent = [myProfile.city, gymName(myProfile.gym)].filter(Boolean).join(' · ');
 
