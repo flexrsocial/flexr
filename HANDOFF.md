@@ -15,11 +15,15 @@ Stand: **18.09.2026**
 > `release-2.7.5/flexr-2.7.5-vc117.aab` sofort hochladen.
 
 **Alles committet, gepusht und deployed.** Der VPS steht auf `origin/main`
-(**`c5582aa`**, Sitzung 18.09.2026 (6) — Bug-Durchgang in allen drei
-Oberflächen). Das ist jetzt der aktuelle Code-Stand (löst `c36c074` als
-Referenz ab). Migration bis `5f8ae574bc95` gelaufen (Sitzung (3)), Nginx neu
-geladen (`/brand/`-Sperre, Sitzung (3)). `systemctl is-active` zeigt
-`active`, `/api/health` liefert 200.
+(**`c6a49c7`**, Sitzung 19.09.2026 (2) — Web: Konto-Feinschliff). Das löst
+`c5582aa` (Sitzung 18.09.2026 (6)) als Referenz ab; dazwischen liegt
+`8985c36` (Sitzung 19.09.2026, Android-Konto-Feinschliff) — reines
+Android-Repo, kein VPS-Deploy nötig. `c6a49c7` ist reines Frontend
+(`frontend/app/`), daher **keine neue Migration, kein Backend-Neustart** -
+Migrationsstand weiterhin `5f8ae574bc95` (Sitzung (3)), Nginx-Konfiguration
+weiterhin die aus Sitzung (3) (`/brand/`-Sperre). Nach dem `git pull` per
+`md5sum`-Vergleich (`curl https://flexr.social/app/` gegen die lokale Datei)
+und `/api/health` gegengeprüft, beides passt.
 
 > **Sitzung (6) hat das Backend nicht angefasst** — keine Migration, kein
 > Neustart, der `git pull` allein reicht. Live wirkt davon nur die Web-App
@@ -246,8 +250,10 @@ Die `vc101`- bis `vc104`-Dateien sind hinfällig. Die Play Console hatte 43 und
 > englischen Texte lagen dort in einem Sprach-Split, den ein deutsches Gerät
 > nie herunterlädt. Erst ab 2.6.3 stecken beide Sprachen im Basis-Paket.
 
-Aufbau des Dokuments: erst diese Eckdaten, dann **die Sitzung vom 19.09.**
-(Android: Konto-Feinschliff nach 2.7.7), dann **die Sitzung vom 18.09. (7)**
+Aufbau des Dokuments: erst diese Eckdaten, dann **die Sitzung vom 19.09. (2)**
+(Web: Konto-Feinschliff — Toast-Timing, Badges, Bio-Limit, Meldungen), dann
+**die Sitzung vom 19.09.** (Android: Konto-Feinschliff nach 2.7.7), dann
+**die Sitzung vom 18.09. (7)**
 (Aboverwaltung im Web, Push bei beendeter Android-App), dann **18.09. (6)**
 (Bug-Durchgang in allen drei Oberflächen), dann **18.09. (5)** (Widerruf der
 Art.-9-Einwilligung wirkte nur halb), dann **18.09. (4)** („Swipe
@@ -270,6 +276,162 @@ Ausgangssitzung), dann die **drei Abschnitte vom 10.09.**
 **08.09.**, dann die beiden Sitzungen vom **07.09.**, dann **06.09.**, dann
 **05.09.**, dann **31.08.**, **30.08.**, **23.08.**, **21.08.**; die Build-,
 Test- und Deploy-Abschnitte am Ende gelten sitzungsübergreifend.
+
+## Sitzung 19.09.2026 (2) — Web: Konto-Feinschliff (Toast-Timing, Badges, Bio-Limit, Meldungen)
+
+Acht Wünsche aus der Rückmeldung zum Web-Konto-Screen, das Web-Gegenstück zur
+Android-Sitzung direkt darunter — inklusive zweier Punkte, die dort schon als
+"in Android erledigt, Web/iOS offen" standen (siehe deren Abschnitt „Offen",
+Punkt 3). Code-Stand: **`c6a49c7`**, committet, gepusht, auf dem VPS deployt
+(reines Frontend, kein Backend/Migration/Neustart nötig — per `md5sum`
+gegen `curl https://flexr.social/app/` und `/api/health` bestätigt).
+
+### Toasts verschwinden jetzt nach 2 s von selbst
+
+`toast()` (`frontend/app/index.html`) stand pauschal bei 20 s inkl.
+Schließen-Knopf — für eine Fehlermeldung richtig, für eine reine Bestätigung
+("Profil gespeichert", "{name} blockiert") nicht. Neuer Parameter
+`opts.sticky` für die eine bewusste Ausnahme: die Melde-Bestätigung mit
+Aktenzeichen (Art. 16 Abs. 4 DSA, `reportUser`) bleibt stehen, bis sie aktiv
+geschlossen wird — das Aktenzeichen soll man sich ohne Zeitdruck notieren
+können. Alle anderen Meldungen (auch die Widerrufs-Folgetexte, die am
+23.08./18.09. extra auf 20 s verlängert worden waren) laufen jetzt ebenfalls
+nach 2 s aus — bewusst so gewünscht, nicht übersehen.
+
+### Verifiziert-Haken sitzt jetzt mittig zu Name/Alter
+
+`.verified-badge` nutzte `width/height:1em` und `vertical-align:-0.08em` —
+dadurch größer als der danebenstehende `.premium-badge` (17px,
+`vertical-align:-2px`) und sichtbar zu tief. Jetzt dieselbe Box wie
+`.premium-badge`. Vorab in einer isolierten Kopie der echten CSS-Regeln
+3-fach vergrößert verglichen, bevor die echte Datei angefasst wurde.
+
+### Statuskarte „FLEXR Premium läuft …" ist für Premium-Konten weg
+
+Dieselbe Änderung wie in der Android-Sitzung direkt darunter, auf das Web
+übertragen: Die ganze Box (`#acctMembershipNote`) fällt für Premium-Konten
+jetzt weg statt leer mit Rahmen stehenzubleiben, „Profil" rückt nach.
+Nicht-Premium-Zustände (Beta-Hinweis, Grenzen-Text + Angebotsknopf)
+unverändert.
+
+### Profil/Fotos/Konto-Überschriften größer, weiß, fett
+
+Neue Modifier-Klasse `.account-section-title.lg` (15px, fett, `--chalk`
+statt `--chalk-dim`) nur auf diese drei Überschriften im Konto-Hauptscreen
+angewendet — die übrigen Untermenüs (Benachrichtigungen, Datenschutz &
+Sicherheit) behalten die kleine graue Mono-Zeile.
+
+### Die beiden Rewind-Meldungen sind jetzt auch im Web weg
+
+Schließt Punkt 3 aus dem „Offen"-Abschnitt der Android-Sitzung darunter für
+das Web ab (iOS bleibt offen). "Swipe zurückgenommen" (Erfolg) ist ganz
+gestrichen — die wieder im Deck auftauchende Karte ist die Bestätigung.
+"Daraus ist schon ein Match geworden …" (409 bei `/api/swipes/rewind`) wird
+gezielt für diesen Statuscode unterdrückt; andere Rewind-Fehler (Premium
+nötig, kein Swipe vorhanden, Netzwerk) melden sich weiterhin — bewusst kein
+kompletter Kill-Switch für alle Rewind-Fehler.
+
+### Anzeigefehler im Bio-Feld behoben + sichtbares Zeichenlimit
+
+Gemeldeter Bug: bei viel Text zeigte die rechte untere Ecke des Bio-Felds
+einen Anzeigefehler. Ursache gefunden und in einer isolierten Kopie der
+echten CSS-Regeln nachgestellt: Das Feld war nur 80px hoch und scrollte
+intern; Emoji-Knopf und der native `resize:vertical`-Griff sitzen an einer
+festen Position über dem Textfeld und lagen nur dann wirklich auf leerem
+Grund, wenn exakt bis ans Ende gescrollt war — bei jeder anderen Scroll-
+Position (z. B. nach Einfügen eines langen Textblocks per Skript/Paste)
+lag echter Text darunter.
+
+Behoben mit `resize:none` plus einer festen Höhe (235px), die die vollen
+280 Zeichen ohne internes Scrollen zeigt (auf 375px-Breite mit echtem
+280-Zeichen-Text geprüft, am echten Registrierungsformular auf dem lokalen
+Dev-Server). Dazu ein Zeichenzähler ("123/280") und ein Skript-Clamp
+(`bindBioCounter`), der `.value` auch dann auf 280 kappt, wenn das
+`maxlength`-Attribut nicht greift (Profil laden, Emoji-Einfügen per Klick).
+Serverseitig war die 280-Zeichen-Grenze bereits hart (`schemas.py`
+`max_length=280`, `models.py` `String(280)`) — dort musste nichts geändert
+werden, ein längeres Abspeichern war nie möglich.
+
+### „Meine Meldungen": bereits bearbeitete Meldungen lassen sich ausblenden
+
+Neuer "Ausblenden"-Knopf pro Meldung, sobald `status !== 'open'`. Rein
+geräte-lokal über `localStorage` (`flexr_hidden_reports`) — die Meldung
+selbst und das Aktenzeichen bleiben serverseitig unverändert gültig für
+einen späteren Widerspruch (`privacy.reportAppeal`), es wird nichts
+gelöscht oder beim Server markiert.
+
+### Store-Abo-Hinweis umgezogen nach „Datenschutz & Sicherheit"
+
+Auf ausdrücklichen Wunsch nach der ersten Rückmeldung zur neuen
+Aboverwaltung (Sitzung 18.09.2026 (7)): „Dein Abo läuft über den App Store
+bzw. Google Play — verwalten und kündigen lässt es sich nur dort." stand
+zwischen den Kontoeinstellungen, steht jetzt ganz am Fuß von „Datenschutz &
+Sicherheit" (`#screen-privacy`), unterhalb von „Rechtliches". Die
+Stripe-Aboverwaltung (Browser-Kauf, `#acctSubscriptionRow` mit dem Knopf)
+bleibt an ihrem bisherigen Platz im Konto-Screen — nur der reine
+Hinweistext für Store-Abos ist umgezogen. Sichtbarkeit beider Elemente setzt
+weiterhin dieselbe `renderSubscriptionRow()`, die bei jedem Screen-Wechsel
+über `renderAccount()` neu ausgewertet wird, unabhängig davon, wo das
+Element im DOM steht.
+
+Dabei aufgefallen: Julians Screenshot (Auslöser dieser Rückmeldung) zeigte
+den Store-Hinweis, obwohl unklar ist, ob sein Abo tatsächlich über eine App
+gekauft wurde — falls er über den Browser gekauft hat, wäre
+`has_stripe_subscription` für sein Konto falsch gesetzt (Datenproblem, kein
+UI-Bug). Nicht geprüft, nur als möglicher Folgepunkt notiert.
+
+### Aufgeräumt
+
+Unbenutzte i18n-Schlüssel `premium.rewindDone` und `premium.statusActive`
+aus `i18n-app.js` entfernt (DE+EN) — beide waren nach den Änderungen oben
+durch keinen Codepfad mehr erreichbar. `i18n-app.js` auf `?v=7` gezogen.
+Nebenbei der äußere `.claude/launch.json` (eine Ebene über diesem Repo, wo
+diese Sitzung lief) um eine `flexr-backend`-Konfiguration ergänzt — vorher
+kannte er nur `flexr-frontend`, ein Abgleich zur inneren
+`flexr/.claude/launch.json`. Rein lokale Entwicklungswerkzeug-Ergänzung,
+nicht Teil dieses Repos.
+
+### Geprüft
+
+`node --check` auf dem eingebetteten Haupt-Skript sauber (vor und nach allen
+Änderungen). Badge-Ausrichtung, die entfernte Statuskarte, die größeren
+Überschriften und der Bio-Anzeigefehler vorab in einer isolierten Kopie der
+echten CSS-Regeln nachgebaut und Vorher/Nachher verglichen, bevor die echte
+Datei angefasst wurde. Danach am echten Registrierungsformular (lokaler
+Dev-Server, `flexr-frontend` + `flexr-backend` aus `.claude/launch.json`,
+375px Breite) mit vollen 280 Zeichen ohne Scrollen bestätigt, ebenso die
+neue Position des Store-Hinweises im Datenschutz-Screen (dafür den
+Privacy-Screen ohne Login per DOM-Manipulation sichtbar gemacht). Nach dem
+Deploy: `md5sum`-Vergleich lokale Datei gegen `curl https://flexr.social/app/`
+identisch, `/api/health` liefert `{"status":"ok"}`, keine Konsolenfehler auf
+der Live-Seite.
+
+**Nicht geprüft:**
+
+1. **Kein echtes Premium-/verifiziertes Konto zur Hand** — die neun
+   `bugtest-*`-Testkonten in der lokalen DB haben unbekannte Passwörter,
+   `seed_testuser.py` legt keine premium/verifizierten Konten an. Die
+   Badge-Ausrichtung und die entfernte Statuskarte sind daher nur in der
+   isolierten CSS-Kopie, nicht im echten eingeloggten Zustand gesehen.
+2. **Der reale „schon ein Match"-Rewind-Fall** (409 mit bereits bestehendem
+   Match) wurde nicht mit echten Daten ausgelöst, nur am Code nachvollzogen.
+3. Keine echten Fotos hochgeladen und keine vollständige Registrierung
+   durchlaufen — `S3_PUBLIC_BASE_URL` in der lokalen `.env` zeigt auf den
+   **echten** `flexr-photos`-Bucket, ein Testupload hätte reale
+   Cloud-Ressourcen angefasst statt einer isolierten Dev-Umgebung.
+
+### Offen
+
+1. **iOS zeigt die beiden Rewind-Meldungen weiterhin** (siehe Android-
+   Sitzung darunter, „Offen" Punkt 3) — dort noch nicht nachgezogen.
+2. Der oben notierte möglicher Datenabgleich-Punkt zu Julians Konto
+   (`has_stripe_subscription` vs. tatsächlichem Kaufweg) — nicht geprüft,
+   nur aufgefallen.
+3. Der Wunsch „harte, sinnvolle Zeichenbeschränkung fürs Bio-Feld" bezog
+   sich nur auf die 280-Zeichen-Grenze; Nutzer, die viele Enter-Zeilenumbrüche
+   statt Fließtext eingeben, können das 235px-Feld theoretisch weiterhin zum
+   Scrollen bringen (serverseitiges 280-Zeichen-Limit bleibt davon
+   unberührt) — als Grenzfall bewusst nicht adressiert.
 
 ## Sitzung 19.09.2026 — Android: Konto-Feinschliff nach 2.7.7
 
