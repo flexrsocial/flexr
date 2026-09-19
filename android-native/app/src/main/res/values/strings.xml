@@ -293,8 +293,6 @@
     <string name="account_section_photos">Fotos</string>
     <!-- FLEXR Premium. Die Nutzung von FLEXR selbst ist dauerhaft kostenlos;
          Preis und Grenzen kommen als Platzhalter vom Server. -->
-    <string name="premium_status_beta">FLEXR ist und bleibt kostenlos. Derzeit gelten keine Grenzen für Likes, Unterhaltungen und Suchumkreis.</string>
-    <string name="premium_status_free">Dein Konto ist kostenlos: %1$d Likes pro Tag und %2$d Unterhaltungen gleichzeitig.</string>
     <string name="premium_show_offer">FLEXR Premium ansehen</string>
     <string name="premium_title">FLEXR Premium</string>
     <string name="premium_sub">FLEXR zu nutzen kostet nichts — dauerhaft. Premium ist für alle, die mehr wollen: ohne Like-Grenze, ohne Chat-Grenze, mit voller Reichweite.</string>
@@ -418,10 +416,8 @@
     <string name="paywall_subscribe">Premium holen</string>
     <string name="purchase_success">FLEXR Premium läuft. Viel Spaß!</string>
     <string name="common_logout">Ausloggen</string>
-    <string name="paywall_sub">FLEXR zu nutzen kostet nichts — dauerhaft. Premium hebt die Grenzen des kostenlosen Kontos auf.</string>
     <string name="paywall_feature_chat">Unbegrenzt viele Unterhaltungen gleichzeitig</string>
     <string name="paywall_feature_cancel">Monatlich kündbar, keine Mindestlaufzeit, keine versteckten Kosten</string>
-    <string name="paywall_return_note">Nach der Zahlung kehrst du automatisch in die App zurück. Falls der Status nicht sofort stimmt: kurz warten und erneut öffnen.</string>
 
     <!-- ==== Verifizierungs-Gate ==== -->
     <string name="vgate_need_title">DAS BRAUCHST DU</string>

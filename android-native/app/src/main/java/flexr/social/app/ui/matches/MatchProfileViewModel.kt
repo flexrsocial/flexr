@@ -19,7 +19,12 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 sealed interface MatchProfileEvent {
-    data class Message(val text: String) : MatchProfileEvent
+    /**
+     * [sticky]: true nur fuer die Empfangsbestaetigung mit Aktenzeichen einer
+     * Profilmeldung (Art. 16 Abs. 4 DSA) - siehe `showStickyMessage` in
+     * `FlexrApp.kt`.
+     */
+    data class Message(val text: String, val sticky: Boolean = false) : MatchProfileEvent
     data object Closed : MatchProfileEvent
 }
 
@@ -44,7 +49,7 @@ class MatchProfileViewModel @Inject constructor(
         viewModelScope.launch {
             runCatching { safetyRepository.report(userId, reason) }
                 // Empfangsbestätigung mit Aktenzeichen (Art. 16 Abs. 4 DSA)
-                .onSuccess { _events.send(MatchProfileEvent.Message(it.message)) }
+                .onSuccess { _events.send(MatchProfileEvent.Message(it.message, sticky = true)) }
                 .onFailure {
                     _events.send(MatchProfileEvent.Message(it.message ?: strings.get(R.string.report_failed)))
                 }

@@ -51,6 +51,7 @@ fun MatchProfileScreen(
     onBack: () -> Unit,
     onOpenChat: (String) -> Unit,
     onShowMessage: (String) -> Unit,
+    onShowStickyMessage: (String) -> Unit,
     viewModel: MatchProfileViewModel = hiltViewModel(),
 ) {
     val match by viewModel.match.collectAsStateWithLifecycle()
@@ -63,7 +64,8 @@ fun MatchProfileScreen(
     LaunchedEffect(Unit) {
         viewModel.events.collect { event ->
             when (event) {
-                is MatchProfileEvent.Message -> onShowMessage(event.text)
+                is MatchProfileEvent.Message ->
+                    if (event.sticky) onShowStickyMessage(event.text) else onShowMessage(event.text)
                 MatchProfileEvent.Closed -> onBack()
             }
         }

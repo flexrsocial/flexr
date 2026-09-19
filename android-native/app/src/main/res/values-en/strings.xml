@@ -254,8 +254,6 @@
     <string name="date_unknown">—</string>
     <string name="account_section_profile">Profile</string>
     <string name="account_section_photos">Photos</string>
-    <string name="premium_status_beta">FLEXR is and stays free. No limits currently apply to likes, conversations or search radius.</string>
-    <string name="premium_status_free">Your account is free: %1$d likes per day and %2$d conversations at once.</string>
     <string name="premium_show_offer">See FLEXR Premium</string>
     <string name="premium_title">FLEXR Premium</string>
     <string name="premium_sub">Using FLEXR costs nothing — permanently. Premium is for everyone who wants more: no like limit, no chat limit, full reach.</string>
@@ -367,10 +365,8 @@
     <string name="paywall_subscribe">Get Premium</string>
     <string name="purchase_success">FLEXR Premium is running. Enjoy!</string>
     <string name="common_logout">Log out</string>
-    <string name="paywall_sub">Using FLEXR costs nothing — permanently. Premium lifts the limits of the free account.</string>
     <string name="paywall_feature_chat">Unlimited conversations at the same time</string>
     <string name="paywall_feature_cancel">Cancel monthly, no minimum term, no hidden costs</string>
-    <string name="paywall_return_note">After payment you return to the app automatically. If the status is not right immediately: wait a moment and open it again.</string>
 
     <string name="vgate_need_title">WHAT YOU NEED</string>
     <string name="vgate_media_title">WHAT HAPPENS TO THE IMAGES</string>

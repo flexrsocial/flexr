@@ -43,7 +43,13 @@ data class SwipeUiState(
 
 /** Einmalige Rückmeldungen an die Oberfläche. */
 sealed interface SwipeEvent {
-    data class Message(val text: String) : SwipeEvent
+    /**
+     * [sticky]: true nur fuer die Empfangsbestaetigung mit Aktenzeichen einer
+     * Profilmeldung (Art. 16 Abs. 4 DSA) - die bleibt stehen, bis sie manuell
+     * weggetippt wird, statt nach zwei Sekunden zu verschwinden wie jede
+     * andere Meldung. Siehe `showStickyMessage` in `FlexrApp.kt`.
+     */
+    data class Message(val text: String, val sticky: Boolean = false) : SwipeEvent
     data class OpenChat(val matchId: String) : SwipeEvent
 }
 
@@ -252,7 +258,7 @@ class SwipeViewModel @Inject constructor(
         viewModelScope.launch {
             runCatching { safetyRepository.report(userId, reason) }
                 // Empfangsbestätigung mit Aktenzeichen (Art. 16 Abs. 4 DSA)
-                .onSuccess { _events.send(SwipeEvent.Message(it.message)) }
+                .onSuccess { _events.send(SwipeEvent.Message(it.message, sticky = true)) }
                 .onFailure {
                     _events.send(SwipeEvent.Message(it.message ?: strings.get(R.string.report_failed)))
                 }

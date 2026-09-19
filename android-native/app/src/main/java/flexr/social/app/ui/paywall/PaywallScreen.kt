@@ -132,14 +132,6 @@ fun PaywallScreen(
             textAlign = TextAlign.Center,
             modifier = Modifier.fillMaxWidth(),
         )
-        Spacer(Modifier.height(6.dp))
-        Text(
-            text = stringResource(R.string.paywall_sub),
-            style = MaterialTheme.typography.bodySmall,
-            color = colors.chalkDim,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.fillMaxWidth(),
-        )
         Spacer(Modifier.height(20.dp))
 
         Column(
@@ -220,15 +212,6 @@ fun PaywallScreen(
                 )
             }
         }
-
-        Spacer(Modifier.height(14.dp))
-        Text(
-            text = stringResource(R.string.paywall_return_note),
-            style = MaterialTheme.typography.bodySmall,
-            color = colors.chalkDim,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.fillMaxWidth(),
-        )
 
         // Ausloggen und Selbstloeschung standen hier, solange dieser
         // Bildschirm der einzige erreichbare war. Der Kontobereich ist jetzt

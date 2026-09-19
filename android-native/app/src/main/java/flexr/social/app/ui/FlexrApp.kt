@@ -75,18 +75,16 @@ import flexr.social.app.ui.verification.VerificationScreen
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-/** Mindestanzeigedauer der Snackbar-Meldungen (`showMessage` in `FlexrApp`). */
-private const val MIN_MESSAGE_DURATION_MS = 20_000L
-
 /**
- * Anzeigedauer der **kurzen** Bestaetigungen (`showBriefMessage`) - bisher nur
- * "Profil gespeichert ✓". Anders als eine Fehlermeldung oder ein
- * Widerrufs-Folgetext gibt es hier nichts zu lesen, das laenger als einen
- * Blick braucht, und die Karte darunter zeigt den gespeicherten Stand ohnehin
- * schon. Verschwindet von selbst - der Schliessen-Knopf bleibt trotzdem, falls
- * es schneller gehen soll.
+ * Anzeigedauer aller Popup-Meldungen (`showMessage` in `FlexrApp`).
+ *
+ * Bis 19.09.2026 hatte nur "Profil gespeichert ✓" diese kurze Dauer, alles
+ * andere blieb 20 Sekunden lang stehen. Auf Wunsch (wie zuvor schon in der
+ * Web-App) gilt sie jetzt fuer jede Meldung - einzige Ausnahme ist die
+ * Empfangsbestaetigung mit Aktenzeichen einer Profilmeldung, siehe
+ * `showStickyMessage`.
  */
-private const val BRIEF_MESSAGE_DURATION_MS = 2_000L
+private const val MESSAGE_DURATION_MS = 2_000L
 
 /**
  * Einstiegspunkt der Oberfläche.
@@ -110,22 +108,30 @@ fun FlexrApp(
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
 
-    // Gemeinsame Umsetzung fuer beide Anzeigedauern: SnackbarDuration.Long
-    // sitzt fest bei 10s, das war schon fuer die normalen Meldungen zu kurz -
-    // ein eigener Timer macht die Dauer pro Aufrufer einstellbar.
-    fun showMessageFor(message: String, dauerMs: Long) {
+    // SnackbarDuration.Long sitzt fest bei 10s - ein eigener Timer macht die
+    // Dauer einstellbar; `dauerMs = null` laesst die Meldung stehen, bis der
+    // Schliessen-Knopf angetippt wird oder eine neue Meldung sie ersetzt.
+    fun showMessageFor(message: String, dauerMs: Long?) {
         scope.launch {
-            val autoDismiss = launch {
-                delay(dauerMs)
-                snackbarHostState.currentSnackbarData?.dismiss()
+            val autoDismiss = dauerMs?.let { ms ->
+                launch {
+                    delay(ms)
+                    snackbarHostState.currentSnackbarData?.dismiss()
+                }
             }
             snackbarHostState.showSnackbar(message, withDismissAction = true, duration = SnackbarDuration.Indefinite)
-            autoDismiss.cancel()
+            autoDismiss?.cancel()
         }
     }
-    val showMessage: (String) -> Unit = { message -> showMessageFor(message, MIN_MESSAGE_DURATION_MS) }
-    // Fuer Bestaetigungen wie "Profil gespeichert ✓" - siehe BRIEF_MESSAGE_DURATION_MS.
-    val showBriefMessage: (String) -> Unit = { message -> showMessageFor(message, BRIEF_MESSAGE_DURATION_MS) }
+    val showMessage: (String) -> Unit = { message -> showMessageFor(message, MESSAGE_DURATION_MS) }
+
+    /**
+     * Bleibt stehen, bis sie manuell weggetippt wird - fuer die
+     * Empfangsbestaetigung mit Aktenzeichen einer Profilmeldung
+     * (Art. 16 Abs. 4 DSA). Das Aktenzeichen ist der einzige Text in der App,
+     * den man womoeglich abschreiben will; zwei Sekunden reichen dafuer nicht.
+     */
+    val showStickyMessage: (String) -> Unit = { message -> showMessageFor(message, null) }
 
     // Rueckkehr aus dem Stripe-Checkout im Browser: Premium-Status neu holen.
     // Frueher nur im gesperrten Zustand - den gibt es nicht mehr, also bei
@@ -177,7 +183,7 @@ fun FlexrApp(
                     onLogout = viewModel::logout,
                     onOpenUrl = { context.openExternalPage(it) },
                     onShowMessage = showMessage,
-                    onShowBriefMessage = showBriefMessage,
+                    onShowStickyMessage = showStickyMessage,
                     notificationTarget = notificationTarget,
                     onNotificationTargetHandled = onNotificationTargetHandled,
                 )
@@ -373,7 +379,7 @@ private fun MainGraph(
     onLogout: () -> Unit,
     onOpenUrl: (String) -> Unit,
     onShowMessage: (String) -> Unit,
-    onShowBriefMessage: (String) -> Unit,
+    onShowStickyMessage: (String) -> Unit,
     notificationTarget: String? = null,
     onNotificationTargetHandled: () -> Unit = {},
 ) {
@@ -435,6 +441,7 @@ private fun MainGraph(
                         navController.navigate(Routes.chat(matchId, Routes.CHATS))
                     },
                     onShowMessage = onShowMessage,
+                    onShowStickyMessage = onShowStickyMessage,
                 )
             }
 
@@ -473,7 +480,6 @@ private fun MainGraph(
                     onOpenPremium = { navController.navigate(Routes.PAYWALL) },
                     onOpenUrl = onOpenUrl,
                     onShowMessage = onShowMessage,
-                    onShowBriefMessage = onShowBriefMessage,
                 )
             }
 
@@ -498,6 +504,7 @@ private fun MainGraph(
                         navController.navigate(Routes.chat(matchId, Routes.MATCHES))
                     },
                     onShowMessage = onShowMessage,
+                    onShowStickyMessage = onShowStickyMessage,
                 )
             }
 
@@ -514,6 +521,7 @@ private fun MainGraph(
                 ChatScreen(
                     onBack = { navController.popBackStack() },
                     onShowMessage = onShowMessage,
+                    onShowStickyMessage = onShowStickyMessage,
                 )
             }
 

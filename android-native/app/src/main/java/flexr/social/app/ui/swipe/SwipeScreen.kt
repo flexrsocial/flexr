@@ -51,6 +51,7 @@ import kotlin.math.abs
 fun SwipeScreen(
     onOpenChat: (String) -> Unit,
     onShowMessage: (String) -> Unit,
+    onShowStickyMessage: (String) -> Unit,
     viewModel: SwipeViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -66,7 +67,8 @@ fun SwipeScreen(
     LaunchedEffect(Unit) {
         viewModel.events.collect { event ->
             when (event) {
-                is SwipeEvent.Message -> onShowMessage(event.text)
+                is SwipeEvent.Message ->
+                    if (event.sticky) onShowStickyMessage(event.text) else onShowMessage(event.text)
                 is SwipeEvent.OpenChat -> onOpenChat(event.matchId)
             }
         }

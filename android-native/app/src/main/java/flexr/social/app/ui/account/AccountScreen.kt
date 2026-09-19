@@ -106,7 +106,6 @@ fun AccountScreen(
     onOpenPremium: () -> Unit,
     onOpenUrl: (String) -> Unit,
     onShowMessage: (String) -> Unit,
-    onShowBriefMessage: (String) -> Unit,
     viewModel: AccountViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -116,8 +115,7 @@ fun AccountScreen(
     LaunchedEffect(Unit) {
         viewModel.events.collect { event ->
             when (event) {
-                is AccountEvent.Message ->
-                    if (event.brief) onShowBriefMessage(event.text) else onShowMessage(event.text)
+                is AccountEvent.Message -> onShowMessage(event.text)
                 is AccountEvent.OpenUrl -> onOpenUrl(event.url)
                 AccountEvent.LoggedOut -> onLogout()
                 AccountEvent.StartVerification -> onOpenVerification()
@@ -208,14 +206,21 @@ fun AccountScreen(
                         color = colors.chalk,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
+                        // alignByBaseline statt der Row-weiten Zentrierung: Die
+                        // Zeilenhoehe von titleLarge traegt oberhalb der
+                        // Versalien mehr Luft als unterhalb der Grundlinie
+                        // (Schriftmetrik von Oswald) - box-zentriert sass der
+                        // Haken dadurch sichtbar zu hoch, auf Hoehe der
+                        // Versalienoberkante statt mittig im Wort.
+                        modifier = Modifier.alignByBaseline(),
                     )
                     if (currentProfile?.profile?.isVerified == true) {
                         Spacer(Modifier.width(6.dp))
-                        VerifiedBadge()
+                        VerifiedBadge(modifier = Modifier.alignByBaseline())
                     }
                     if (currentProfile?.profile?.isPremium == true) {
                         Spacer(Modifier.width(6.dp))
-                        PremiumBadge()
+                        PremiumBadge(modifier = Modifier.alignByBaseline())
                     }
                 }
                 Text(
@@ -243,56 +248,12 @@ fun AccountScreen(
             )
         }
 
-        // ---------- FLEXR Premium ----------
-        // Nur noch fuer Nicht-Premium-Konten: der Beta- oder Frei-Grenzen-Text
-        // plus, falls kaufbar, das Angebot. Fuer Premium-Konten stand hier bis
-        // 19.09.2026 nur "FLEXR Premium laeuft ...", ohne dass es etwas zum
-        // Handeln beitrug - der Premium-Badge im Kopf sagt es bereits, und das
-        // Kuendigen selbst gehoert nicht hierher (unten unter
-        // "Aboverwaltung"). Auf Wunsch entfernt; die ganze Karte faellt fuer
-        // Premium-Konten damit weg, statt als leerer Rahmen zwischen Kopf und
-        // "Profil" stehenzubleiben - "Profil" ruekt dadurch von selbst nach.
-        membership?.let { status ->
-            if (!status.isPremium) {
-                Spacer(Modifier.height(18.dp))
-                Column(
-                    Modifier
-                        .fillMaxWidth()
-                        .clip(MaterialTheme.shapes.medium)
-                        .background(MaterialTheme.colorScheme.surface)
-                        .border(1.dp, colors.hairline, MaterialTheme.shapes.medium)
-                        .padding(14.dp),
-                ) {
-                    Text(
-                        text = when {
-                            // Massgeblich sind die geltenden Grenzen, nicht die
-                            // Frage, ob hier etwas zu kaufen ist: In der App ist
-                            // Letzteres immer "nein", die Grenzen gelten trotzdem.
-                            !status.limitsActive -> stringResource(R.string.premium_status_beta)
-                            else -> stringResource(
-                                R.string.premium_status_free,
-                                status.freeDailyLikes,
-                                status.freeOpenChats,
-                            )
-                        },
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = colors.chalk,
-                    )
-                    // Das Angebot fuehrt auf den Premium-Bildschirm und
-                    // schliesst nichts ab. Ein Klick im Konto soll nicht
-                    // unmittelbar in einem Kauf enden, ohne dass jemand
-                    // gelesen hat, wofuer.
-                    if (!status.hasStripeSubscription && status.storePurchaseAvailable) {
-                        FlexrLinkButton(
-                            text = stringResource(R.string.premium_show_offer),
-                            onClick = onOpenPremium,
-                        )
-                    }
-                }
-            }
-        }
-
         // ---------- Profil ----------
+        // Die Karte mit dem Beta-/Frei-Grenzen-Text ("Dein Konto ist
+        // kostenlos ...") stand bis 19.09.2026 hier, fuer Premium-Konten schon
+        // seit dem Vortag entfernt. Auf Wunsch faellt sie jetzt auch fuer
+        // Nicht-Premium-Konten weg; "Profil" ruekt direkt unter den Kopf bzw.
+        // den Verifizierungs-Hinweis nach.
         Spacer(Modifier.height(26.dp))
         SectionTitle(stringResource(R.string.account_section_profile))
 

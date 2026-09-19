@@ -43,7 +43,12 @@ data class ChatUiState(
 }
 
 sealed interface ChatEvent {
-    data class Message(val text: String) : ChatEvent
+    /**
+     * [sticky]: true nur fuer die Empfangsbestaetigung mit Aktenzeichen einer
+     * Profilmeldung (Art. 16 Abs. 4 DSA) - siehe `showStickyMessage` in
+     * `FlexrApp.kt`.
+     */
+    data class Message(val text: String, val sticky: Boolean = false) : ChatEvent
     data object Closed : ChatEvent
 }
 
@@ -226,7 +231,7 @@ class ChatViewModel @Inject constructor(
             runCatching { safetyRepository.report(userId, reason) }
                 // Art. 16 Abs. 4 DSA: Der Melder bekommt die Bestätigung mit
                 // Aktenzeichen zu sehen, nicht nur ein "danke".
-                .onSuccess { _events.send(ChatEvent.Message(it.message)) }
+                .onSuccess { _events.send(ChatEvent.Message(it.message, sticky = true)) }
                 .onFailure { _events.send(ChatEvent.Message(it.message ?: strings.get(R.string.report_failed))) }
         }
     }

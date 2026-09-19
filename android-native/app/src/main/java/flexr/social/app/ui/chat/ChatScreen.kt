@@ -77,6 +77,7 @@ import flexr.social.app.ui.components.ReportDialog
 fun ChatScreen(
     onBack: () -> Unit,
     onShowMessage: (String) -> Unit,
+    onShowStickyMessage: (String) -> Unit,
     viewModel: ChatViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -102,7 +103,8 @@ fun ChatScreen(
     LaunchedEffect(Unit) {
         viewModel.events.collect { event ->
             when (event) {
-                is ChatEvent.Message -> onShowMessage(event.text)
+                is ChatEvent.Message ->
+                    if (event.sticky) onShowStickyMessage(event.text) else onShowMessage(event.text)
                 ChatEvent.Closed -> onBack()
             }
         }

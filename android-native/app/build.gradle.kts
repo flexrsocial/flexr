@@ -203,8 +203,22 @@ android {
         // Schrift statt als Link. Die beiden Rewind-Einblendungen aus 2.7.7
         // waren in den gemeldeten Screenshots noch zu sehen, weil dort ein
         // aelterer Build lief - der Code dafuer ist unveraendert seit 2.7.7.
-        versionCode = 120
-        versionName = "2.7.8"
+        // 121/2.7.9 am 19.09.2026: Zweiter Feinschliff im Konto-Bereich, auf
+        // Screenshots hin. Die Statuskarte "Dein Konto ist kostenlos ..."
+        // faellt jetzt auch fuer Nicht-Premium-Konten weg - "Profil" ruekt
+        // direkt unter den Kopf bzw. den Verifizierungs-Hinweis nach. Der
+        // blaue Haken haengt jetzt an der Grundlinie von Name+Alter
+        // (alignByBaseline) statt an der Zeilenhoehe box-zentriert zu sein -
+        // er sass dadurch sichtbar zu hoch, auf Hoehe der Versalienoberkante.
+        // Alle Popup-Meldungen verschwinden jetzt nach zwei Sekunden von
+        // selbst, wie schon zuvor in der Web-App - einzige Ausnahme bleibt die
+        // Empfangsbestaetigung mit Aktenzeichen beim Melden eines Profils
+        // (Art. 16 Abs. 4 DSA), die bleibt stehen. Auf dem Premium-Bildschirm
+        // sind die beiden erklaerenden Absaetze ("FLEXR zu nutzen kostet
+        // nichts ..." und "Nach der Zahlung kehrst du automatisch ...") weg;
+        // der Zurueck-Knopf ruekt dadurch weiter nach oben.
+        versionCode = 121
+        versionName = "2.7.9"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         // Nur die Sprachen ausliefern, die es wirklich gibt: Deutsch als
