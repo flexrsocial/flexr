@@ -57,6 +57,10 @@
     <string name="status_premium">Premium</string>
     <string name="status_free">Gratis</string>
     <string name="status_likes_left">%1$d Likes</string>
+    <!-- Eigener Knopf im Kopf, links neben der Status-Pille - direkter Weg
+         zum Premium-Angebot, unabhaengig davon, welcher Bildschirm gerade
+         offen ist. Entspricht premium.activateCta im Web. -->
+    <string name="premium_activate_cta">Premium aktivieren</string>
     <!-- status_subscribed/status_trial_days/status_expired sind mit der
          Bezahlwand am 10.09.2026 entfallen. -->
     <string name="status_not_unlocked">Nicht freigeschaltet</string>

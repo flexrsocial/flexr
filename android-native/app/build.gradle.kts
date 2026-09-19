@@ -217,8 +217,20 @@ android {
         // sind die beiden erklaerenden Absaetze ("FLEXR zu nutzen kostet
         // nichts ..." und "Nach der Zahlung kehrst du automatisch ...") weg;
         // der Zurueck-Knopf ruekt dadurch weiter nach oben.
-        versionCode = 121
-        versionName = "2.7.9"
+        // 122/2.7.10 am 19.09.2026: Die alignByBaseline()-Korrektur aus 2.7.9
+        // hat den Haken/Stern sichtbar schlimmer gemacht (viel zu weit oben) -
+        // Oswald's Grundlinie liegt in der Zeile ungewoehnlich tief, die
+        // Row-Baseline-Verteilung hat den Haken dadurch weit nach oben
+        // gezogen. Stattdessen wird jetzt die Zeilenbox des Namens selbst auf
+        // ihre tatsaechlichen Schriftmetriken zusammengezogen (kein
+        // Android-Legacy-"Font Padding", Zeilenhoehe mittig getrimmt) - das
+        // macht die Box um Text und Abzeichen so eng wie moeglich an das
+        // sichtbare Schriftbild, wodurch die normale Row-Zentrierung von
+        // selbst passt, ganz ohne Sonderbehandlung der Abzeichen. Dazu ein
+        // neuer "Premium aktivieren"-Knopf im Kopf, links von der
+        // Beta/Status-Pille, analog zum Web - fuehrt auf den Premium-Screen.
+        versionCode = 122
+        versionName = "2.7.10"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         // Nur die Sprachen ausliefern, die es wirklich gibt: Deutsch als

@@ -42,6 +42,7 @@
     <string name="status_premium">Premium</string>
     <string name="status_free">Free</string>
     <string name="status_likes_left">%1$d likes</string>
+    <string name="premium_activate_cta">Activate Premium</string>
     <string name="status_not_unlocked">Not unlocked</string>
 
     <string name="nav_swipe">Swipe</string>

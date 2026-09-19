@@ -1,6 +1,7 @@
 package flexr.social.app.ui
 
 import android.net.Uri
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -48,6 +49,7 @@ import flexr.social.app.core.browser.openExternalPage
 import flexr.social.app.core.common.ServerTime
 import flexr.social.app.core.designsystem.component.LanguageSwitch
 import flexr.social.app.core.designsystem.component.LoadingState
+import flexr.social.app.core.designsystem.component.PremiumActivatePill
 import flexr.social.app.core.designsystem.component.StatusPill
 import flexr.social.app.core.designsystem.theme.FlexrBackground
 import flexr.social.app.core.locale.AppLanguageViewModel
@@ -411,7 +413,24 @@ private fun MainGraph(
         snackbarHost = { SnackbarHost(snackbarHostState) { data -> FlexrSnackbar(data) } },
         topBar = {
             if (isTopLevel) {
-                FlexrTopBar(statusSlot = { MembershipPill(membership) })
+                FlexrTopBar(
+                    statusSlot = {
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            // Direkter Weg zum Angebot, unabhaengig vom
+                            // Bildschirm - sichtbar nur, wenn es ueberhaupt
+                            // etwas zu aktivieren gibt (nicht schon Premium,
+                            // Kauf serverseitig moeglich). Entspricht dem
+                            // Knopf im Web (#premiumCtaPill).
+                            if (!membership.isPremium && membership.storePurchaseAvailable) {
+                                PremiumActivatePill(onClick = { navController.navigate(Routes.PAYWALL) })
+                            }
+                            MembershipPill(membership)
+                        }
+                    },
+                )
             }
         },
         bottomBar = {

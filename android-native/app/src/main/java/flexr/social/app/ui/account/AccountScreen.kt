@@ -55,9 +55,11 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.PlatformTextStyle
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
@@ -202,25 +204,39 @@ fun AccountScreen(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
                         text = currentProfile?.let { "${it.name}, ${it.profile.age}" } ?: "—",
-                        style = MaterialTheme.typography.titleLarge,
+                        // Box-zentriert (Row.verticalAlignment) sass der Haken
+                        // bisher zu hoch, weil titleLarge's Zeilenhoehe (25sp)
+                        // oberhalb der Versalien mehr Luft traegt als
+                        // unterhalb der Grundlinie (Schriftmetrik von Oswald)
+                        // plus die zusaetzliche Android-Legacy-"Font Padding"
+                        // ueber der Versalienoberkante. alignByBaseline() war
+                        // ein erster Versuch, hat es aber sichtbar schlimmer
+                        // gemacht (die Grundlinie liegt bei Oswald ihrerseits
+                        // ungewoehnlich tief in der Zeile). Stattdessen wird
+                        // die Zeilenbox selbst auf ihre tatsaechlichen
+                        // Schriftmetriken zusammengezogen (kein Font-Padding,
+                        // Zeilenhoehe mittig getrimmt) - das macht die Box um
+                        // Text und Haken herum so eng wie moeglich an das
+                        // sichtbare Schriftbild, wodurch die normale
+                        // Row-Zentrierung von selbst passt.
+                        style = MaterialTheme.typography.titleLarge.copy(
+                            platformStyle = PlatformTextStyle(includeFontPadding = false),
+                            lineHeightStyle = LineHeightStyle(
+                                alignment = LineHeightStyle.Alignment.Center,
+                                trim = LineHeightStyle.Trim.Both,
+                            ),
+                        ),
                         color = colors.chalk,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
-                        // alignByBaseline statt der Row-weiten Zentrierung: Die
-                        // Zeilenhoehe von titleLarge traegt oberhalb der
-                        // Versalien mehr Luft als unterhalb der Grundlinie
-                        // (Schriftmetrik von Oswald) - box-zentriert sass der
-                        // Haken dadurch sichtbar zu hoch, auf Hoehe der
-                        // Versalienoberkante statt mittig im Wort.
-                        modifier = Modifier.alignByBaseline(),
                     )
                     if (currentProfile?.profile?.isVerified == true) {
                         Spacer(Modifier.width(6.dp))
-                        VerifiedBadge(modifier = Modifier.alignByBaseline())
+                        VerifiedBadge()
                     }
                     if (currentProfile?.profile?.isPremium == true) {
                         Spacer(Modifier.width(6.dp))
-                        PremiumBadge(modifier = Modifier.alignByBaseline())
+                        PremiumBadge()
                     }
                 }
                 Text(

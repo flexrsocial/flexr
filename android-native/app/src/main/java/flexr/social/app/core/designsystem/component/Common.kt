@@ -8,6 +8,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -163,6 +164,28 @@ fun StatusPill(text: String, expired: Boolean = false, modifier: Modifier = Modi
             .padding(horizontal = 10.dp, vertical = 5.dp),
     ) {
         Text(text, style = MonoStyle, color = contentColor)
+    }
+}
+
+/**
+ * Aufruf zum Handeln im Kopf, links neben der Status-Pille - direkter Weg
+ * zum Premium-Angebot, unabhaengig davon, welcher Bildschirm gerade offen
+ * ist. Markenfarbe statt der neutralen [StatusPill]-Optik, weil das hier
+ * keine Statusanzeige ist, sondern ein Knopf. Entspricht `.premium-cta-pill`
+ * im Web.
+ */
+@Composable
+fun PremiumActivatePill(onClick: () -> Unit, modifier: Modifier = Modifier) {
+    val colors = FlexrTheme.colors
+    Box(
+        modifier = modifier
+            .clip(RoundedCornerShape(20.dp))
+            .background(colors.plate.copy(alpha = 0.08f))
+            .border(1.dp, colors.plate, RoundedCornerShape(20.dp))
+            .clickable(onClick = onClick)
+            .padding(horizontal = 10.dp, vertical = 5.dp),
+    ) {
+        Text(stringResource(R.string.premium_activate_cta), style = MonoStyle, color = colors.plate)
     }
 }
 
