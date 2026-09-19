@@ -14,21 +14,22 @@ Stand: **18.09.2026**
 > dem Start abstürzt.** Play Console prüfen, im Zweifel 117 aus
 > `release-2.7.5/flexr-2.7.5-vc117.aab` sofort hochladen.
 
-**Alles committet und gepusht; der VPS steht auf dem letzten Frontend-Stand.**
-Neuester Commit auf `origin/main` ist **`9cb2932`** (Sitzung 19.09.2026 (6) —
-Android 2.7.9/versionCode 121: Konto-Statuskarte auch für Nicht-Premium weg,
-blauer Haken an der Grundlinie statt box-zentriert, alle Popups nach 2 s,
-Premium-Bildschirm gekürzt) — **reines Android-Repo, kein VPS-Deploy nötig.**
-Der VPS selbst steht weiterhin auf `21190e0` (Sitzung (5) — Sprachzeile auf
-Schalter + Info-Punkt verschlankt). Davor `6c5eb68` (Sitzung (4)), `8b9c9bf`
-(Sitzung (3)), `c6a49c7` (Sitzung (2)), `c5582aa` (Sitzung 18.09.2026 (6));
-dazwischen liegt `8985c36` (Sitzung 19.09.2026, Android-Konto-Feinschliff nach
-2.7.7) — ebenfalls reines Android-Repo. `21190e0` ist wie die Sitzungen davor
-reines Frontend (`frontend/app/`, `frontend/i18n.js`), daher **keine neue
-Migration, kein Backend-Neustart** - Migrationsstand weiterhin `5f8ae574bc95`
-(Sitzung (3)), Nginx-Konfiguration weiterhin die aus Sitzung (3)
-(`/brand/`-Sperre). Nach dem `git pull` per `md5sum`-Vergleich
-(`curl https://flexr.social/app/` und `curl https://flexr.social/i18n.js`
+**Alles committet, gepusht und deployed.** Der VPS steht auf `origin/main`
+(**`ac8a243`**, Sitzung 19.09.2026 (7) — Web: Konto-Statuskarte auch für
+Nicht-Premium entfernt, spiegelt die Android-Änderung aus Sitzung (6)).
+Davor `9cb2932` (Sitzung (6) — Android 2.7.9/versionCode 121:
+Konto-Statuskarte auch für Nicht-Premium weg, blauer Haken an der Grundlinie
+statt box-zentriert, alle Popups nach 2 s, Premium-Bildschirm gekürzt) —
+reines Android-Repo, kein VPS-Deploy nötig. Davor `21190e0` (Sitzung (5) —
+Sprachzeile auf Schalter + Info-Punkt verschlankt), `6c5eb68` (Sitzung (4)),
+`8b9c9bf` (Sitzung (3)), `c6a49c7` (Sitzung (2)), `c5582aa` (Sitzung
+18.09.2026 (6)); dazwischen liegt `8985c36` (Sitzung 19.09.2026,
+Android-Konto-Feinschliff nach 2.7.7) — ebenfalls reines Android-Repo.
+`ac8a243` ist wie die Web-Sitzungen davor reines Frontend (`frontend/app/`),
+daher **keine neue Migration, kein Backend-Neustart** - Migrationsstand
+weiterhin `5f8ae574bc95` (Sitzung (3)), Nginx-Konfiguration weiterhin die aus
+Sitzung (3) (`/brand/`-Sperre). Nach dem `git pull` per `md5sum`-Vergleich
+(`curl https://flexr.social/app/` und `curl https://flexr.social/app/i18n-app.js`
 gegen die lokalen Dateien) und `/api/health`
 gegengeprüft, beides passt.
 
@@ -257,7 +258,9 @@ Die `vc101`- bis `vc104`-Dateien sind hinfällig. Die Play Console hatte 43 und
 > englischen Texte lagen dort in einem Sprach-Split, den ein deutsches Gerät
 > nie herunterlädt. Erst ab 2.6.3 stecken beide Sprachen im Basis-Paket.
 
-Aufbau des Dokuments: erst diese Eckdaten, dann **die Sitzung vom 19.09. (6)**
+Aufbau des Dokuments: erst diese Eckdaten, dann **die Sitzung vom 19.09. (7)**
+(Web: Konto-Statuskarte auch für Nicht-Premium entfernt), dann **die Sitzung
+vom 19.09. (6)**
 (Android 2.7.9/versionCode 121: Konto-Statuskarte auch für Nicht-Premium weg,
 Haken an der Grundlinie, Popups nach 2 s, Premium-Bildschirm gekürzt), dann
 **die Sitzung vom 19.09. (5)**
@@ -289,6 +292,45 @@ Ausgangssitzung), dann die **drei Abschnitte vom 10.09.**
 **08.09.**, dann die beiden Sitzungen vom **07.09.**, dann **06.09.**, dann
 **05.09.**, dann **31.08.**, **30.08.**, **23.08.**, **21.08.**; die Build-,
 Test- und Deploy-Abschnitte am Ende gelten sitzungsübergreifend.
+
+## Sitzung 19.09.2026 (7) — Web: Konto-Statuskarte auch für Nicht-Premium entfernt
+
+Rückmeldung auf einen Screenshot der Web-App (englische Fassung), direkt im
+Anschluss an die Android-Sitzung (6) darunter: dieselbe Statuskarte sollte
+jetzt auch im Web weg. Code-Stand **`ac8a243`**, committet, gepusht, auf dem
+VPS deployt (reines Frontend, keine Migration, kein Neustart — per
+`md5sum` gegen `curl https://flexr.social/app/` und
+`curl https://flexr.social/app/i18n-app.js` sowie `/api/health` bestätigt).
+
+### Statuskarte „Dein Konto ist kostenlos …" komplett weg
+
+Bisher fiel die Karte (`#acctMembershipNote`) nur für Premium-Konten weg
+(`renderAccount()` schaltete sie für Beta/Frei-Konten weiterhin sichtbar,
+mit Angebotsknopf „FLEXR Premium ansehen"). Jetzt fällt der ganze Block
+unabhängig vom Kontostatus weg, spiegelt exakt die eben gemachte
+Android-Änderung (Sitzung (6), 2.7.9) — „Profil" rückt direkt unter den
+Kopf nach.
+
+Entfernt: das `<div id="acctMembershipNote">`-Markup samt `acctStatusText`
+und dem `btnSubscribe`-Knopf, die zugehörigen CSS-Regeln
+(`.account-membership-note*`; `.membership-link` selbst bleibt — wird noch
+für Einwilligungen widerrufen/erteilen gebraucht), die Drei-Zustände-Logik
+in `renderAccount()` und der `btnSubscribe`-Klick-Handler. `premium.statusBeta`
+und `premium.statusFree` sind damit in beiden Sprachen unbenutzt und aus
+`i18n-app.js` entfernt; `i18n-app.js` auf `?v=8` gezogen.
+
+### Geprüft
+
+`node --check` auf `i18n-app.js` und dem Haupt-Skript sauber. Am echten
+Konto-Screen (lokaler Dev-Server, ohne Login per DOM-Injektion sichtbar
+gemacht) bestätigt: Karte ist weg, „Profil" schließt direkt an den Kopf an,
+keine Konsolenfehler (insbesondere kein `addEventListener` auf `null` durch
+den entfernten `btnSubscribe`).
+
+### Offen
+
+Unverändert aus den Sitzungen davor: iOS zeigt die beiden Rewind-Meldungen
+weiterhin; kein echtes Premium-/verifiziertes Testkonto zur Hand.
 
 ## Sitzung 19.09.2026 (6) — Android 2.7.9: Konto-Statuskarte weg, Haken an Grundlinie, Popups nach 2s
 
