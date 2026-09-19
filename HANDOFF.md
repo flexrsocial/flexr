@@ -15,16 +15,18 @@ Stand: **18.09.2026**
 > `release-2.7.5/flexr-2.7.5-vc117.aab` sofort hochladen.
 
 **Alles committet, gepusht und deployed.** Der VPS steht auf `origin/main`
-(**`6c5eb68`**, Sitzung 19.09.2026 (4) — Rechtliches zentriert, Store-Hinweis
-vom Stern zum Premium-Pill). Davor `8b9c9bf` (Sitzung (3)), `c6a49c7`
-(Sitzung (2)), `c5582aa` (Sitzung 18.09.2026 (6)); dazwischen liegt `8985c36`
-(Sitzung 19.09.2026, Android-Konto-Feinschliff) — reines Android-Repo, kein
-VPS-Deploy nötig. `6c5eb68` ist wie die beiden davor reines Frontend
-(`frontend/app/`), daher **keine neue Migration, kein Backend-Neustart** -
-Migrationsstand weiterhin `5f8ae574bc95` (Sitzung (3)), Nginx-Konfiguration
-weiterhin die aus Sitzung (3) (`/brand/`-Sperre). Nach dem `git pull` per
-`md5sum`-Vergleich (`curl https://flexr.social/app/` gegen die lokale Datei)
-und `/api/health`
+(**`21190e0`**, Sitzung 19.09.2026 (5) — Sprachzeile auf Schalter +
+Info-Punkt verschlankt). Davor `6c5eb68` (Sitzung (4)), `8b9c9bf` (Sitzung
+(3)), `c6a49c7` (Sitzung (2)), `c5582aa` (Sitzung 18.09.2026 (6));
+dazwischen liegt `8985c36` (Sitzung 19.09.2026, Android-Konto-Feinschliff)
+— reines Android-Repo, kein VPS-Deploy nötig. `21190e0` ist wie die
+Sitzungen davor reines Frontend (`frontend/app/`, `frontend/i18n.js`),
+daher **keine neue Migration, kein Backend-Neustart** - Migrationsstand
+weiterhin `5f8ae574bc95` (Sitzung (3)), Nginx-Konfiguration weiterhin die
+aus Sitzung (3) (`/brand/`-Sperre). Nach dem `git pull` per
+`md5sum`-Vergleich (`curl https://flexr.social/app/` und
+`curl https://flexr.social/i18n.js` gegen die lokalen Dateien) und
+`/api/health`
 gegengeprüft, beides passt.
 
 > **Sitzung (6) hat das Backend nicht angefasst** — keine Migration, kein
@@ -252,9 +254,10 @@ Die `vc101`- bis `vc104`-Dateien sind hinfällig. Die Play Console hatte 43 und
 > englischen Texte lagen dort in einem Sprach-Split, den ein deutsches Gerät
 > nie herunterlädt. Erst ab 2.6.3 stecken beide Sprachen im Basis-Paket.
 
-Aufbau des Dokuments: erst diese Eckdaten, dann **die Sitzung vom 19.09. (4)**
-(Web: Rechtliches zentriert, Store-Hinweis vom Stern zum Premium-Pill), dann
-**die Sitzung vom 19.09. (3)** (Web: Konto-Nachbesserung — Badge-Ausrichtung,
+Aufbau des Dokuments: erst diese Eckdaten, dann **die Sitzung vom 19.09. (5)**
+(Web: Sprachzeile auf Schalter + Info-Punkt verschlankt), dann **die Sitzung
+vom 19.09. (4)** (Web: Rechtliches zentriert, Store-Hinweis vom Stern zum
+Premium-Pill), dann **die Sitzung vom 19.09. (3)** (Web: Konto-Nachbesserung — Badge-Ausrichtung,
 Verifiziert-Pille, Bio kleiner), dann **die Sitzung vom 19.09. (2)** (Web: Konto-Feinschliff —
 Toast-Timing, Badges, Bio-Limit, Meldungen), dann **die Sitzung vom 19.09.**
 (Android: Konto-Feinschliff nach 2.7.7), dann **die Sitzung vom 18.09. (7)**
@@ -280,6 +283,50 @@ Ausgangssitzung), dann die **drei Abschnitte vom 10.09.**
 **08.09.**, dann die beiden Sitzungen vom **07.09.**, dann **06.09.**, dann
 **05.09.**, dann **31.08.**, **30.08.**, **23.08.**, **21.08.**; die Build-,
 Test- und Deploy-Abschnitte am Ende gelten sitzungsübergreifend.
+
+## Sitzung 19.09.2026 (5) — Web: Sprachzeile auf Schalter + Info-Punkt verschlankt
+
+Zwei weitere kleine Korrekturen zur laufenden Rückmeldungsrunde, Code-Stand
+**`21190e0`**, committet, gepusht, auf dem VPS deployt (wieder reines
+Frontend, kein Backend/Migration/Neustart — per `md5sum` gegen
+`curl https://flexr.social/app/` und `curl https://flexr.social/i18n.js`
+sowie `/api/health` bestätigt).
+
+### Sprachzeile unter „Profil" verschlankt
+
+Stand bisher als Label „Sprache" plus fest danebenstehendem Erklärtext,
+DE/EN-Schalter rechts daneben. Jetzt: der Schalter steht zuerst (links),
+direkt daneben derselbe „i"-Infopunkt wie beim Suchumkreis darunter
+(`.info-hint`, wiederverwendet statt neu gebaut) — der bisherige
+Erklärtext (`lang.hint`) steckt jetzt in dessen Sprechblase statt fest in
+der Zeile zu stehen. DE/EN sind jetzt immer weiß und fett (vorher: aktive
+Sprache dunkel auf dem orangen Knopf, inaktive grau) — welche Sprache
+gilt, zeigt allein noch der gleitende Knopf darunter. `lang.label` dadurch
+unbenutzt und aus `frontend/i18n.js` entfernt (DE+EN — dieselbe
+gemeinsame Datei wie `lang.hint`, nicht `app/i18n-app.js`), dafür
+`lang.infoAria` für das aria-label des neuen „i"-Knopfs ergänzt.
+`i18n.js` auf `?v=5` gezogen.
+
+### Rechtliches-Links zentriert
+
+Bereits in Sitzung (4) umgesetzt (`6c5eb68`) — hier nur zur Vollständigkeit
+erwähnt, da dieselbe Rückmeldungsrunde.
+
+### Geprüft
+
+`node --check` auf `i18n.js` und dem Haupt-Skript sauber. Am echten
+Konto-Screen (lokaler Dev-Server, ohne Login per DOM-Injektion sichtbar
+gemacht, 375px Breite) bestätigt: Schalter+Info-Punkt linksbündig, DE/EN
+weiß und fett auf grauem wie auf orangem Untergrund gut lesbar, Hover/Klick
+auf das „i" zeigt den alten Erklärtext in derselben Sprechblase wie beim
+Suchumkreis, Sprachumschalten selbst funktioniert unverändert bestätigt
+(Tab-Titel und Fließtext wechseln nach Klick auf EN korrekt).
+
+### Offen
+
+Unverändert aus den Sitzungen davor: iOS zeigt die beiden Rewind-Meldungen
+weiterhin; kein echtes Premium-/verifiziertes Testkonto zur Hand, um die
+Web-Sitzungen (2)–(5) dieses Tages am Stück live gegenzuprüfen.
 
 ## Sitzung 19.09.2026 (4) — Web: Rechtliches zentriert, Store-Hinweis vom Stern zum Premium-Pill
 
