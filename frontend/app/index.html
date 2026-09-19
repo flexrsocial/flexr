@@ -1386,13 +1386,6 @@
   }
   .account-id{ flex:1; min-width:0; }
   .account-sub{ font-size:12.5px; color:var(--chalk-dim); margin-top:2px; }
-  .account-membership-note{
-    display:block; padding:14px 16px; margin:0 0 26px;
-    border:1px solid var(--hairline); border-radius:12px;
-    background:rgba(255,255,255,.018);
-    font-size:12.5px; line-height:1.55; color:var(--chalk-dim);
-  }
-  .account-membership-note > span{ display:block; }
   .membership-link{
     display:inline-flex; align-items:center; background:none; border:none;
     color:var(--plate); font-size:12.5px; font-weight:600; line-height:1.4;
@@ -1401,7 +1394,6 @@
   }
   .membership-link:hover{ color:var(--plate-bright); }
   .membership-link:disabled{ text-decoration:none; cursor:default; opacity:0.7; }
-  .account-membership-note .membership-link{ margin-top:10px; }
 
   /* "Ausblenden" bei bereits bearbeiteten Meldungen - bewusst dezent (grau
      statt Markenfarbe), das ist kein Angebot, sondern Aufraeumen. */
@@ -1968,7 +1960,7 @@
      laufen synchron und damit vor dem DOMContentLoaded, bei dem FlexrI18n die
      data-i18n-Knoten uebersetzt. -->
 <script src="/i18n.js?v=5"></script>
-<script src="/app/i18n-app.js?v=7"></script>
+<script src="/app/i18n-app.js?v=8"></script>
 <a class="skip-link" href="#main-content" data-i18n="common.skipToContent">Zum Inhalt springen</a>
 <div class="app" id="app">
 
@@ -2413,23 +2405,6 @@
           <button type="button" class="verify-badge" id="verifyBadge">—</button>
           <div class="verify-tooltip" id="verifyTooltip"></div>
         </div>
-      </div>
-
-      <!-- Hier steht nur noch das Angebot, nicht mehr die Verwaltung eines
-           laufenden Abos: Wer etwas beenden oder umstellen will, sucht das bei
-           den Einstellungen und nicht unter seinem Profilbild. Der Punkt dafuer
-           sitzt seit dem 18.09.2026 unten zwischen "Benachrichtigungen" und
-           "Datenschutz & Sicherheit" - dieselbe Umraeumung wie in der
-           Android-App.
-           Mit Premium gibt es hier nichts mehr anzubieten - die ganze Box
-           bleibt dann weg (renderAccount), statt leer stehenzubleiben, damit
-           das Profil direkt darunter nachrueckt. -->
-      <div class="account-membership-note" id="acctMembershipNote">
-        <span id="acctStatusText"></span>
-        <!-- Fuehrt auf den Premium-Screen, schliesst nichts ab. Der Abschluss
-             selbst braucht die Erklaerung nach § 10 FAGG und laeuft deshalb
-             ueber dasselbe Overlay wie bisher. -->
-        <button class="membership-link" id="btnSubscribe" data-i18n="premium.showOffer">FLEXR Premium ansehen</button>
       </div>
 
       <!-- Profilfelder bleiben bewusst dauerhaft sichtbar. Der Account-Screen
@@ -4610,7 +4585,6 @@
   function subscribeNow(){
     openImmediateStartOverlay();
   }
-  $('btnSubscribe').addEventListener('click', showPremiumScreen);
   $('btnSubscribe2').addEventListener('click', subscribeNow);
   $('btnPremiumBack').addEventListener('click', ()=>{
     showScreen('screen-account');
@@ -4704,31 +4678,6 @@
       avatarEl.textContent = (myProfile.name || '?').charAt(0).toUpperCase();
     }
 
-    /* Premium-Zeile. Drei Zustaende, und keiner davon ist eine Sperre:
-       die Nutzung von FLEXR kostet in allen dreien nichts. Die Karte zeigt nur
-       noch das Angebot; die Verwaltung eines laufenden Abos steht unten
-       (renderSubscriptionRow). Mit Premium gibt es kein Angebot mehr zu
-       zeigen - die Box faellt dann ganz weg statt leer mit Rahmen
-       stehenzubleiben, und das Profil darunter rueckt nach. */
-    if(isPremium()){
-      $('acctMembershipNote').style.display = 'none';
-    } else if(!premiumOffered()){
-      // Hier ist nichts zu bestellen. Ein Angebot zu zeigen, das der Server
-      // mit 409 ablehnt, waere eine Sackgasse - der Knopf bleibt weg.
-      $('acctMembershipNote').style.display = '';
-      setI18nText($('acctStatusText'), 'premium.statusBeta');
-      $('btnSubscribe').style.display = 'none';
-    } else {
-      $('acctMembershipNote').style.display = '';
-      // Standardkonto nach der Beta: Was gerade gilt, in einem Satz.
-      setI18nText($('acctStatusText'), 'premium.statusFree', {
-        likes: membership.free_daily_likes,
-        chats: membership.free_open_chats,
-      });
-      $('btnSubscribe').style.display = '';
-      $('btnSubscribe').disabled = false;
-      setI18nText($('btnSubscribe'), 'premium.showOffer');
-    }
     renderSubscriptionRow();
     if(!opts || !opts.keepForm) fillProfileForm();
     renderAccountPhotoGrid();
