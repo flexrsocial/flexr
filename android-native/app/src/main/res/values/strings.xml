@@ -299,7 +299,7 @@
     <string name="premium_eyebrow">Monatlich kündbar</string>
     <string name="premium_feature_likes">Unbegrenzt liken statt %1$d pro Tag</string>
     <string name="premium_feature_chats">So viele Unterhaltungen gleichzeitig, wie du willst (statt %1$d)</string>
-    <string name="premium_feature_incoming">Sehen, wer dich schon geliket hat</string>
+    <string name="premium_feature_incoming">Sehen, wer dich schon geliked hat</string>
     <string name="premium_feature_rewind">Den letzten Swipe zurücknehmen</string>
     <string name="premium_feature_radius">Voller Suchumkreis bis %1$d km statt %2$d km</string>
     <string name="premium_feature_badge">Premium-Abzeichen in deinem Profil</string>
@@ -314,14 +314,14 @@
     <string name="premium_rewind_failed">Zurücknehmen hat nicht geklappt.</string>
     <string name="swipe_rewind">Letzten Swipe zurücknehmen</string>
 
-    <!-- Wer dich geliket hat (Premium). Die Zahl steht im Kreis neben dem
+    <!-- Wer dich geliked hat (Premium). Die Zahl steht im Kreis neben dem
          Satz - deshalb kommt sie im Satz selbst nicht noch einmal vor. -->
-    <string name="incoming_title_one">Jemand hat dich geliket</string>
-    <string name="incoming_title">Leute haben dich geliket</string>
+    <string name="incoming_title_one">Jemand hat dich geliked</string>
+    <string name="incoming_title">Leute haben dich geliked</string>
     <string name="incoming_sub_free">Mit FLEXR Premium siehst du, wer</string>
     <string name="incoming_sub_premium">Ansehen und zurückliken</string>
     <string name="incoming_eyebrow">Offene Likes</string>
-    <string name="incoming_h2">Wer dich geliket hat</string>
+    <string name="incoming_h2">Wer dich geliked hat</string>
     <string name="incoming_locked_title_one">Eine Person wartet auf dich</string>
     <string name="incoming_locked_title">%1$d Leute warten auf dich</string>
     <string name="incoming_locked_sub">Wer genau, siehst du mit FLEXR Premium. Ohne Premium tauchen sie ganz normal in deinem Deck auf.</string>

@@ -113,6 +113,7 @@
   body.landing header.top::after{ display:none; }
   .brand{ font-size:22px; font-weight:700; letter-spacing:0.06em; }
   .brand span{ color:var(--plate); }
+  .header-actions{ display:flex; align-items:center; gap:8px; }
   .status-pill{
     font-family:'JetBrains Mono', monospace; font-size:11px;
     padding:5px 10px; border-radius:20px; border:1px solid var(--steel); color:var(--chalk-dim);
@@ -120,6 +121,14 @@
   }
   .status-pill.trial{ color:var(--lime); border-color:rgba(199,255,74,0.3); }
   .status-pill.expired{ color:var(--danger); border-color:rgba(227,72,72,0.4); }
+  /* Aufruf zum Handeln, keine Statusanzeige - deshalb Markenfarbe statt der
+     neutralen .status-pill-Optik, und ein echter Knopf statt eines div. */
+  .premium-cta-pill{
+    font-family:'JetBrains Mono', monospace; font-size:11px; font-weight:600;
+    padding:5px 10px; border-radius:20px; border:1px solid var(--plate);
+    color:var(--plate); background:rgba(255,90,31,.08); cursor:pointer;
+  }
+  .premium-cta-pill:hover{ background:rgba(255,90,31,.16); }
 
   /* scrollbar-gutter:stable reserviert den Platz für einen (nicht-Overlay-)
      Scrollbalken immer, egal ob der Inhalt gerade lang genug zum Scrollen
@@ -1116,6 +1125,7 @@
   }
   body.landing .brand{ font-size:30px; text-shadow:0 2px 18px rgba(0,0,0,.6); }
   body.landing .status-pill{ display:none; }
+  body.landing .premium-cta-pill{ display:none; }
   body.landing main{
     display:grid; grid-template-columns:minmax(0,1.15fr) minmax(340px,460px);
     gap:clamp(24px,5vw,80px); align-items:center;
@@ -1960,7 +1970,7 @@
      laufen synchron und damit vor dem DOMContentLoaded, bei dem FlexrI18n die
      data-i18n-Knoten uebersetzt. -->
 <script src="/i18n.js?v=5"></script>
-<script src="/app/i18n-app.js?v=8"></script>
+<script src="/app/i18n-app.js?v=9"></script>
 <a class="skip-link" href="#main-content" data-i18n="common.skipToContent">Zum Inhalt springen</a>
 <div class="app" id="app">
 
@@ -1971,7 +1981,14 @@
          zweiter Schalter in der Kopfzeile war ein Doppel. Ausgeloggte
          Besucher bekommen weiterhin die richtige Sprache - die Erkennung in
          i18n.js (Zeitzone/Browsersprache) und ?lang=de|en greifen unveraendert. -->
-    <div class="status-pill" id="statusPill">—</div>
+    <div class="header-actions">
+      <!-- Direkter Weg zum Premium-Angebot, unabhaengig vom Bildschirm.
+           Sichtbar nur, wenn es ueberhaupt etwas zu aktivieren gibt - siehe
+           updateStatusPill(), das dieselbe Bedingung fuer die Pille daneben
+           auswertet. -->
+      <button type="button" class="premium-cta-pill" id="premiumCtaPill" style="display:none;" data-i18n="premium.activateCta">Premium aktivieren</button>
+      <div class="status-pill" id="statusPill">—</div>
+    </div>
   </header>
 
   <main id="main-content">
@@ -2325,7 +2342,7 @@
       <button class="incoming-card" id="incomingLikes" style="display:none;" type="button">
         <span class="incoming-count" id="incomingCount">0</span>
         <span class="incoming-text">
-          <span class="incoming-title" id="incomingTitle" data-i18n="incoming.title">Leute haben dich geliket</span>
+          <span class="incoming-title" id="incomingTitle" data-i18n="incoming.title">Leute haben dich geliked</span>
           <span class="incoming-sub" id="incomingSub" data-i18n="incoming.subFree">Mit FLEXR Premium siehst du, wer</span>
         </span>
         <svg class="ico incoming-chev" viewBox="0 0 24 24"><path d="M9 5.5 16 12l-7 6.5"/></svg>
@@ -2336,7 +2353,7 @@
     <!-- Liste der eingehenden Likes (nur mit Premium befuellt) -->
     <section class="screen" id="screen-incoming">
       <div class="eyebrow" data-i18n="incoming.eyebrow">Offene Likes</div>
-      <h2 class="headline" style="font-size:22px; margin-bottom:16px;" data-i18n="incoming.h2">Wer dich geliket hat</h2>
+      <h2 class="headline" style="font-size:22px; margin-bottom:16px;" data-i18n="incoming.h2">Wer dich geliked hat</h2>
       <div id="incomingList"><div class="loading" data-i18n="incoming.loading">Lade …</div></div>
       <button class="btn secondary" id="btnIncomingBack" style="margin-top:18px;" data-i18n="common.back">Zurück</button>
     </section>
@@ -2800,7 +2817,6 @@
       <div class="empty">
         <div class="empty-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M12 3.5 14.6 9l6 .9-4.3 4.2 1 6-5.3-2.8L6.7 20l1-6L3.4 9.9l6-.9z"/></svg></div>
         <div class="empty-title" data-i18n="premium.title">FLEXR Premium</div>
-        <div class="empty-sub" data-i18n="premium.sub">FLEXR zu nutzen kostet nichts — dauerhaft. Premium ist für alle, die mehr wollen: ohne Like-Grenze, ohne Chat-Grenze, mit voller Reichweite.</div>
       </div>
       <div class="price-card">
         <div class="price-eyebrow" data-i18n="premium.eyebrow">Monatlich kündbar</div>
@@ -2808,7 +2824,7 @@
         <ul class="price-feats">
           <li><svg class="ico" viewBox="0 0 24 24"><path d="M5 12.5 10 17 19 7"/></svg><span id="premiumFeatLikes" data-i18n="premium.featLikes">Unbegrenzt liken statt 20 pro Tag</span></li>
           <li><svg class="ico" viewBox="0 0 24 24"><path d="M5 12.5 10 17 19 7"/></svg><span id="premiumFeatChats" data-i18n="premium.featChats">So viele Unterhaltungen gleichzeitig, wie du willst</span></li>
-          <li><svg class="ico" viewBox="0 0 24 24"><path d="M5 12.5 10 17 19 7"/></svg><span data-i18n="premium.featIncoming">Sehen, wer dich schon geliket hat</span></li>
+          <li><svg class="ico" viewBox="0 0 24 24"><path d="M5 12.5 10 17 19 7"/></svg><span data-i18n="premium.featIncoming">Sehen, wer dich schon geliked hat</span></li>
           <li><svg class="ico" viewBox="0 0 24 24"><path d="M5 12.5 10 17 19 7"/></svg><span data-i18n="premium.featRewind">Den letzten Swipe zurücknehmen</span></li>
           <li><svg class="ico" viewBox="0 0 24 24"><path d="M5 12.5 10 17 19 7"/></svg><span id="premiumFeatRadius" data-i18n="premium.featRadius">Voller Suchumkreis bis 250 km statt 50 km</span></li>
           <li><svg class="ico" viewBox="0 0 24 24"><path d="M5 12.5 10 17 19 7"/></svg><span data-i18n="premium.featBadge">Premium-Abzeichen in deinem Profil</span></li>
@@ -4461,10 +4477,14 @@
 
   function updateStatusPill(){
     const pill = $('statusPill');
+    const cta = $('premiumCtaPill');
     // Nur im Premium-Zweig unten je nach Kaufweg wieder gesetzt - sonst
     // bliebe ein einmal gesetzter Store-Kuendigungshinweis stehen, auch
     // nachdem die Pille laengst wieder "Beta" oder Like-Reste zeigt.
     pill.removeAttribute('title');
+    // Der Aktivieren-Knopf daneben gilt nur, solange es ueberhaupt etwas zu
+    // aktivieren gibt - erst unten in den Nicht-Premium-Zweigen wieder an.
+    cta.style.display = 'none';
     if(!membership){ pill.textContent = '—'; return; }
     // Vor der Freischaltung sagt die Pille, dass geprüft wird - alles andere
     // (Likes, Premium) ist bis dahin ohne Belang.
@@ -4483,6 +4503,10 @@
       }
       return;
     }
+    // Nichts zu kaufen (Premium serverseitig aus oder kein Produkt
+    // eingetragen) - derselbe Fall, in dem der Premium-Screen selbst nur
+    // premiumBetaHint statt eines Kauf-Knopfs zeigt.
+    if(premiumOffered()) cta.style.display = '';
     // Solange FLEXR als Beta gekennzeichnet ist, steht genau das in der Pille -
     // ohne Zusatz. Der Like-Zaehler stand hier am 17.09.2026 fuer ein paar
     // Stunden mit drin ("Beta · 19 Likes") und war der Kopfzeile zu viel: Die
@@ -4585,6 +4609,7 @@
   function subscribeNow(){
     openImmediateStartOverlay();
   }
+  $('premiumCtaPill').addEventListener('click', showPremiumScreen);
   $('btnSubscribe2').addEventListener('click', subscribeNow);
   $('btnPremiumBack').addEventListener('click', ()=>{
     showScreen('screen-account');

@@ -258,13 +258,15 @@
     'premium.pillLike1': '1 Like',
     'premium.pillLikes': '{n} Likes',
     'beta.pill': 'Beta',
+    // Eigener Knopf im Kopf, links neben der Status-Pille - direkter Weg zum
+    // Angebot, unabhaengig davon, welcher Bildschirm gerade offen ist.
+    'premium.activateCta': 'Premium aktivieren',
     'premium.title': 'FLEXR Premium',
-    'premium.sub': 'FLEXR zu nutzen kostet nichts — dauerhaft. Premium ist für alle, die mehr wollen: ohne Like-Grenze, ohne Chat-Grenze, mit voller Reichweite.',
     'premium.eyebrow': 'Monatlich kündbar',
     'premium.perMonth': '/ Monat',
     'premium.featLikes': 'Unbegrenzt liken statt {n} pro Tag',
     'premium.featChats': 'So viele Unterhaltungen gleichzeitig, wie du willst (statt {n})',
-    'premium.featIncoming': 'Sehen, wer dich schon geliket hat',
+    'premium.featIncoming': 'Sehen, wer dich schon geliked hat',
     'premium.featRewind': 'Den letzten Swipe zurücknehmen',
     'premium.featRadius': 'Voller Suchumkreis bis {voll} km statt {frei} km',
     'premium.featBadge': 'Premium-Abzeichen in deinem Profil',
@@ -284,15 +286,15 @@
     'premium.radiusCapped': 'Über {grenze} km braucht es FLEXR Premium - gespeichert kann daher nur ein Suchumkreis <= {grenze} km werden.',
     'premium.rewindFailed': 'Zurücknehmen hat nicht geklappt.',
 
-    // ---- Wer dich geliket hat
+    // ---- Wer dich geliked hat
     // Die Zahl steht schon im Kreis daneben - sie gehoert nicht ein zweites
-    // Mal in den Satz ("2 | 2 haben dich geliket").
-    'incoming.title1': 'Jemand hat dich geliket',
-    'incoming.title': 'Leute haben dich geliket',
+    // Mal in den Satz ("2 | 2 haben dich geliked").
+    'incoming.title1': 'Jemand hat dich geliked',
+    'incoming.title': 'Leute haben dich geliked',
     'incoming.subFree': 'Mit FLEXR Premium siehst du, wer',
     'incoming.subPremium': 'Ansehen und zurückliken',
     'incoming.eyebrow': 'Offene Likes',
-    'incoming.h2': 'Wer dich geliket hat',
+    'incoming.h2': 'Wer dich geliked hat',
     'incoming.loading': 'Lade …',
     'incoming.lockedTitle1': 'Eine Person wartet auf dich',
     'incoming.lockedTitle': '{n} Leute warten auf dich',
@@ -753,8 +755,8 @@
     'premium.pillLike1': '1 like',
     'premium.pillLikes': '{n} likes',
     'beta.pill': 'Beta',
+    'premium.activateCta': 'Activate Premium',
     'premium.title': 'FLEXR Premium',
-    'premium.sub': 'Using FLEXR costs nothing — permanently. Premium is for everyone who wants more: no like limit, no chat limit, full reach.',
     'premium.eyebrow': 'Cancel any month',
     'premium.perMonth': '/ month',
     'premium.featLikes': 'Unlimited likes instead of {n} per day',
