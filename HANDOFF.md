@@ -15,19 +15,22 @@ Stand: **18.09.2026**
 > `release-2.7.5/flexr-2.7.5-vc117.aab` sofort hochladen.
 
 **Alles committet, gepusht und deployed.** Der VPS steht auf `origin/main`
-(**`2153b24`**, Sitzung 19.09.2026 (12) — Web: Orangener Kartenrand der
-obersten Swipe-Karte fehlte links, abgeschnitten vom `overflow-x:hidden`
-des Scroll-Containers - derselbe Fehler wie zuvor schon bei `.plz-combo` und
-den Formularfeldern, gleicher Fix: Rand liegt jetzt `inset` statt aussen).
-Reines Frontend, kein Backend-Neustart. Davor **`726a619`** (Sitzung (11) —
-Android 2.7.10/versionCode 122, reines Android-Repo, kein VPS-Deploy: Haken/
-Stern-Ausrichtung korrigiert, neuer "Premium aktivieren"-Knopf im Kopf) und
-**`5a42d50`**/**`9232c99`** (Sitzung (10) — Web-Zentrierung wirklich behoben,
-`.screen.active` reservierte selbst unbedingt Scrollbalken-Gutter). Davor
-**`a93defe`**/**`a14ff0f`** (Sitzung (8) — Web: "Premium aktivieren"-Knopf,
-Premium-Screen gekürzt, "geliket"->"geliked"; Backend: Liker-Radius-Fehler,
-**mit Backend-Neustart**, kein Migrationsschritt, Migrationsstand weiterhin
-`5f8ae574bc95` aus Sitzung (3)). Ältere Stände (Sitzungen (2)-(7), 18.09.
+(**`223bc90`**, Sitzung 19.09.2026 (13) — Web: Kartenrand jetzt als echter
+CSS-`border` statt `box-shadow`. Dritter Anlauf an derselben Stelle: aussen
+liegend wurde er vom `overflow-x:hidden` des Scroll-Containers abgeschnitten
+(Sitzung (12) davor), `inset` verschwand daraufhin unter dem blickdichten
+Foto-Kind. Ein echter `border` liegt in der eigenen Border-Box und entgeht
+beiden Fehlern zugleich). Reines Frontend, kein Backend-Neustart. Davor
+**`2153b24`** (Sitzung (12), erster Korrekturversuch - unvollständig) und
+**`726a619`** (Sitzung (11) — Android 2.7.10/versionCode 122, reines
+Android-Repo, kein VPS-Deploy: Haken/Stern-Ausrichtung korrigiert, neuer
+"Premium aktivieren"-Knopf im Kopf) und **`5a42d50`**/**`9232c99`** (Sitzung
+(10) — Web-Zentrierung wirklich behoben, `.screen.active` reservierte selbst
+unbedingt Scrollbalken-Gutter). Davor **`a93defe`**/**`a14ff0f`** (Sitzung
+(8) — Web: "Premium aktivieren"-Knopf, Premium-Screen gekürzt, "geliket"->
+"geliked"; Backend: Liker-Radius-Fehler, **mit Backend-Neustart**, kein
+Migrationsschritt, Migrationsstand weiterhin `5f8ae574bc95` aus Sitzung (3)).
+Ältere Stände (Sitzungen (2)-(7), 18.09.
 (6)) in den jeweiligen Abschnitten unten. Nginx-Konfiguration weiterhin die
 aus Sitzung (3) (`/brand/`-Sperre). Nach dem `git pull` per `md5sum`-Vergleich
 (`curl https://flexr.social/app/` gegen die lokale Datei) und `/api/health`
@@ -258,9 +261,12 @@ Die `vc101`- bis `vc104`-Dateien sind hinfällig. Die Play Console hatte 43 und
 > englischen Texte lagen dort in einem Sprach-Split, den ein deutsches Gerät
 > nie herunterlädt. Erst ab 2.6.3 stecken beide Sprachen im Basis-Paket.
 
-Aufbau des Dokuments: erst diese Eckdaten, dann **die Sitzung vom 19.09. (12)**
-(Web: Orangener Kartenrand links wieder sichtbar - inset statt aussenliegend),
-dann **die Sitzung vom 19.09. (11)**
+Aufbau des Dokuments: erst diese Eckdaten, dann **die Sitzung vom 19.09. (13)**
+(Web: Kartenrand jetzt als echter `border` statt `box-shadow` - dritter
+Anlauf), dann **die Sitzung vom 19.09. (12)**
+(Web: Orangener Kartenrand links wieder sichtbar - inset statt aussenliegend,
+zweiter - ebenfalls unvollständiger - Anlauf), dann **die Sitzung vom 19.09.
+(11)**
 (Android 2.7.10/versionCode 122: Haken/Stern-Ausrichtung korrigiert, neuer
 "Premium aktivieren"-Knopf im Kopf), dann **die Sitzung vom 19.09. (10)**
 (Web: Zentrierung wirklich behoben - `.screen.active` reservierte selbst
@@ -305,6 +311,50 @@ Ausgangssitzung), dann die **drei Abschnitte vom 10.09.**
 **08.09.**, dann die beiden Sitzungen vom **07.09.**, dann **06.09.**, dann
 **05.09.**, dann **31.08.**, **30.08.**, **23.08.**, **21.08.**; die Build-,
 Test- und Deploy-Abschnitte am Ende gelten sitzungsübergreifend.
+
+## Sitzung 19.09.2026 (13) — Web: Kartenrand als echter border (dritter Anlauf)
+
+Rückmeldung zu Sitzung (12): "jetzt ist der Rahmen nur unten wie ein U um
+das halbe Profil, deckt aber oben nicht ab" - der `inset`-Fix hatte ein
+neues Problem an derselben Stelle aufgemacht. Code-Stand **`223bc90`**,
+committet, gepusht, deployed. Reines Frontend, kein Backend-Neustart.
+
+### Warum `inset` auch nicht gereicht hat
+
+`.card .photo` (die Bildfläche, oberste 58 % der Karte) ist ein normales
+Flusskind ohne eigene `inset:0`-Positionierung, aber blickdicht (Foto bzw.
+Farbverlauf als Hintergrund). Kind-Elemente werden immer über dem eigenen
+`box-shadow` ihres Elternelements gezeichnet - ein `inset`-Schatten auf
+`.card` verschwindet deshalb überall dort, wo ein blickdichtes Kind direkt
+darüberliegt. Genau das ist die Bildfläche; nur im unteren, durchscheinenden
+Textbereich blieb der Rand sichtbar - daher das gemeldete halbe "U".
+
+Damit ist jede der drei denkbaren `box-shadow`-Varianten an dieser Stelle
+gescheitert: außen abgeschnitten vom `overflow-x:hidden` des
+Scroll-Containers (Sitzung (12) davor), `inset` vom eigenen Foto-Kind
+verdeckt (diese Sitzung). Ein **echter CSS-`border`** umgeht beide Fehler
+grundsätzlich: Er liegt in der eigenen Border-Box (globales
+`box-sizing:border-box`, Zeile 66) - ragt nicht über die Kartenkante hinaus
+(nichts zum Abschneiden durch den Scroll-Container) und liegt außerhalb des
+Content-Bereichs, in den Kind-Elemente wie `.photo` hineingelegt werden
+(nichts zum Verdecken durch das Foto). Ersetzt den bisherigen
+Haarlinien-`border` von `.card` für die oberste Karte bzw. die
+Match-Profil-Einzelkarte.
+
+### Geprüft
+
+Per DOM-Injektion mit einer `.photo` wie im echten Deck (blickdichter
+Farbverlauf statt Foto-URL, exakt der Fall, der die vorige Korrektur zu Fall
+gebracht hat) bestätigt: Rand jetzt lückenlos auf allen vier Seiten
+sichtbar, auch über der Bildfläche und in beiden oberen Ecken. `node
+--check` sauber. `test_public_frontend.py` (9 Tests) grün.
+
+### Offen
+
+Unverändert aus den Sitzungen davor: 2.7.10 ist noch nicht in der Play
+Console, die Android-Haken/Stern-Korrektur aus Sitzung (11) braucht noch
+eine echte Sichtprüfung auf einem Gerät; iOS zeigt die beiden Rewind-
+Meldungen weiterhin; kein echtes Premium-/verifiziertes Testkonto zur Hand.
 
 ## Sitzung 19.09.2026 (12) — Web: Orangener Kartenrand links wieder sichtbar
 
