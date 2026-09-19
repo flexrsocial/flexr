@@ -272,7 +272,6 @@
     'premium.showOffer': 'FLEXR Premium ansehen',
     'premium.betaHint': 'FLEXR Premium ist hier gerade nicht bestellbar. Die Nutzung von FLEXR kostet unverändert nichts.',
     'premium.badgeTitle': 'FLEXR Premium',
-    'premium.statusActive': 'FLEXR Premium läuft. Jederzeit zum Ende des Abrechnungsmonats kündbar.',
     'premium.statusBeta': 'FLEXR ist und bleibt kostenlos. Derzeit ist alles unbegrenzt; FLEXR Premium ist freiwillig.',
     'premium.statusFree': 'Dein Konto ist kostenlos: {likes} Likes pro Tag und {chats} gleichzeitige Unterhaltungen. Mit Premium fallen beide Grenzen weg.',
     'premium.likesLeft1': 'Noch 1 von {gesamt} Likes heute',
@@ -285,7 +284,6 @@
     'premium.chatLimit': 'Du hast {n} Unterhaltungen offen — mehr gehen gleichzeitig nicht.',
     'premium.chatLimitCta': 'Löse ein Match auf oder hol dir FLEXR Premium.',
     'premium.radiusCapped': 'Über {grenze} km braucht es FLEXR Premium - gespeichert kann daher nur ein Suchumkreis <= {grenze} km werden.',
-    'premium.rewindDone': 'Swipe zurückgenommen.',
     'premium.rewindFailed': 'Zurücknehmen hat nicht geklappt.',
 
     // ---- Wer dich geliket hat
@@ -382,6 +380,7 @@
     'privacy.reportAppeal': 'Mit einer Entscheidung nicht einverstanden? Formlose Mail an flexr.social@proton.me mit dem Aktenzeichen genügt — wir prüfen erneut und antworten begründet.',
     'privacy.reportActionTaken': 'Wir sind eingeschritten.',
     'privacy.reportNoAction': 'Geprüft — kein Verstoß festgestellt.',
+    'privacy.reportHide': 'Ausblenden',
     'privacy.noEntries': 'Keine Einträge.',
     'privacy.consentSensitive': 'Verarbeitung von Geschlecht und gesuchtem Geschlecht',
     'privacy.consentVerification': 'Aufnahmen für die Alters- und Identitätsprüfung',
@@ -772,7 +771,6 @@
     'premium.showOffer': 'See FLEXR Premium',
     'premium.betaHint': 'FLEXR Premium cannot be ordered here right now. Using FLEXR still costs nothing.',
     'premium.badgeTitle': 'FLEXR Premium',
-    'premium.statusActive': 'FLEXR Premium is running. Cancel any time, effective at the end of the billing month.',
     'premium.statusBeta': 'FLEXR is and stays free. Everything is unlimited at the moment; FLEXR Premium is optional.',
     'premium.statusFree': 'Your account is free: {likes} likes per day and {chats} conversations at once. Premium removes both limits.',
     'premium.likesLeft1': '1 of {gesamt} likes left today',
@@ -785,7 +783,6 @@
     'premium.chatLimit': 'You have {n} conversations open — that is the limit at any one time.',
     'premium.chatLimitCta': 'Unmatch someone or get FLEXR Premium.',
     'premium.radiusCapped': 'Beyond {grenze} km needs FLEXR Premium - so only a search radius <= {grenze} km can be saved.',
-    'premium.rewindDone': 'Swipe undone.',
     'premium.rewindFailed': 'Could not undo that swipe.',
 
     // ---- Who liked you
@@ -877,6 +874,7 @@
     'privacy.reportAppeal': 'Disagree with a decision? An informal email to flexr.social@proton.me quoting the reference is enough — we review it again and reply with reasons.',
     'privacy.reportActionTaken': 'We took action.',
     'privacy.reportNoAction': 'Reviewed — no violation found.',
+    'privacy.reportHide': 'Hide',
     'privacy.noEntries': 'No entries.',
     'privacy.consentSensitive': 'Processing of gender and the gender you are looking for',
     'privacy.consentVerification': 'Images for the age and identity check',

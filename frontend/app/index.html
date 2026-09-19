@@ -1403,13 +1403,25 @@
   .membership-link:disabled{ text-decoration:none; cursor:default; opacity:0.7; }
   .account-membership-note .membership-link{ margin-top:10px; }
 
+  /* "Ausblenden" bei bereits bearbeiteten Meldungen - bewusst dezent (grau
+     statt Markenfarbe), das ist kein Angebot, sondern Aufraeumen. */
+  .report-hide-btn{
+    display:block; margin:10px 0 0 auto; background:none; border:none;
+    color:var(--chalk-dim); font-size:12px; text-decoration:underline;
+    text-underline-offset:3px; cursor:pointer; padding:0; font-family:inherit;
+  }
+  .report-hide-btn:hover{ color:var(--chalk); }
+
   .account-section{ margin-bottom:26px; }
 
-  /* Blauer Verifizierungs-Haken */
+  /* Blauer Verifizierungs-Haken - dieselbe Box wie .premium-badge (feste
+     Groesse statt 1em, gleiches vertical-align), damit beide Abzeichen
+     nebeneinander mittig zu Namen und Alter stehen statt gegeneinander
+     versetzt zu wirken. */
   .verified-badge{
     display:inline-flex; align-items:center; justify-content:center;
-    width:1em; height:1em; border-radius:50%; background:#1d9bf0; flex-shrink:0;
-    vertical-align:-0.08em; margin-left:0.28em;
+    width:17px; height:17px; border-radius:50%; background:#1d9bf0; flex-shrink:0;
+    vertical-align:-2px; margin-left:5px;
   }
   .verified-badge svg{ width:62%; height:62%; fill:none; stroke:#fff; stroke-width:3.4; stroke-linecap:round; stroke-linejoin:round; }
 
@@ -1639,7 +1651,16 @@
   .gym-picked.show{ display:block; }
 
   .bio-wrap{ position:relative; }
-  .bio-wrap textarea{ padding-bottom:38px; }
+  /* Feste Hoehe statt der generischen min-height:80px, damit die 280 Zeichen
+     des Zeichenlimits auch auf schmalen Handybreiten ohne internes Scrollen
+     hineinpassen. Ungescrolltes Textfeld heisst: der leere Streifen unten
+     (padding-bottom, fuer Emoji-Knopf und Zaehler) ist immer wirklich leer -
+     bei einem scrollbaren Feld liegen Knopf und Zaehler dagegen an einer
+     festen Position ueber dem Text und ueberlappten ihn, sobald viel Text
+     nicht bis ganz ans Ende gescrollt war (der Anzeigefehler in der rechten
+     unteren Ecke bei langen Bios). resize:none, weil ein manuell verkleinertes
+     Feld denselben Fehler wieder herbeifuehren wuerde. */
+  .bio-wrap textarea{ padding-bottom:38px; height:235px; resize:none; }
   .emoji-btn{
     position:absolute; bottom:8px; left:10px; width:28px; height:28px;
     background:none; border:none; cursor:pointer; color:var(--chalk-dim);
@@ -1648,6 +1669,11 @@
   }
   .emoji-btn:hover{ color:var(--chalk); background:var(--surface-2); }
   .emoji-btn svg.ico{ width:19px; height:19px; }
+  .bio-counter{
+    position:absolute; bottom:13px; right:14px; font-family:'JetBrains Mono', monospace;
+    font-size:11px; color:var(--chalk-dim); pointer-events:none;
+  }
+  .bio-counter.at-limit{ color:var(--plate); }
   .emoji-panel{
     display:none; position:absolute; bottom:42px; left:6px; right:6px; z-index:5;
     background:var(--surface-2); border:1px solid var(--steel); border-radius:12px;
@@ -1716,6 +1742,11 @@
   .account-section-title::before{
     content:''; width:3px; height:11px; background:var(--plate); border-radius:2px; flex-shrink:0;
   }
+  /* Die drei Hauptueberschriften im Konto-Screen (Profil/Fotos/Konto) staerker
+     gewichten als die uebrigen Untermenues (Benachrichtigungen, Datenschutz):
+     groesser, weiss, fett statt der kleinen grauen Mono-Zeile. */
+  .account-section-title.lg{ font-size:15px; font-weight:700; color:var(--chalk); }
+  .account-section-title.lg::before{ height:13px; }
   /* ---- Schieberegler fuer die Benachrichtigungen ----
      Eine echte Checkbox traegt den Zustand (Tastatur, Screenreader, :checked),
      sichtbar ist nur die Bahn davor. Kein div mit role=switch: das muesste
@@ -1924,7 +1955,7 @@
      laufen synchron und damit vor dem DOMContentLoaded, bei dem FlexrI18n die
      data-i18n-Knoten uebersetzt. -->
 <script src="/i18n.js?v=4"></script>
-<script src="/app/i18n-app.js?v=6"></script>
+<script src="/app/i18n-app.js?v=7"></script>
 <a class="skip-link" href="#main-content" data-i18n="common.skipToContent">Zum Inhalt springen</a>
 <div class="app" id="app">
 
@@ -2206,6 +2237,7 @@
         <button type="button" class="emoji-btn" id="btnEmojiToggleReg" data-i18n-aria="common.emojiInsert" aria-label="Emoji einfügen">
           <svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M9 10h.01M15 10h.01M8.8 14.2c.8 1 1.9 1.6 3.2 1.6s2.4-.6 3.2-1.6"/></svg>
         </button>
+        <span class="bio-counter" id="fBioCounter">0/280</span>
         <div class="emoji-panel" id="emojiPanelReg"></div>
       </div>
 
@@ -2373,8 +2405,11 @@
            den Einstellungen und nicht unter seinem Profilbild. Der Punkt dafuer
            sitzt seit dem 18.09.2026 unten zwischen "Benachrichtigungen" und
            "Datenschutz & Sicherheit" - dieselbe Umraeumung wie in der
-           Android-App. -->
-      <div class="account-membership-note">
+           Android-App.
+           Mit Premium gibt es hier nichts mehr anzubieten - die ganze Box
+           bleibt dann weg (renderAccount), statt leer stehenzubleiben, damit
+           das Profil direkt darunter nachrueckt. -->
+      <div class="account-membership-note" id="acctMembershipNote">
         <span id="acctStatusText"></span>
         <!-- Fuehrt auf den Premium-Screen, schliesst nichts ab. Der Abschluss
              selbst braucht die Erklaerung nach § 10 FAGG und laeuft deshalb
@@ -2386,7 +2421,7 @@
            scrollt als Ganzes; verschachtelte Aufklapper haben auf Mobilgeraeten
            das Scrollen blockiert und werden hier nicht wieder eingefuehrt. -->
       <div class="account-section">
-        <div class="account-section-title" data-i18n="acct.sectionProfile">Profil</div>
+        <div class="account-section-title lg" data-i18n="acct.sectionProfile">Profil</div>
 
         <!-- Die Sprachwahl steht nur hier, weil Einstellungen im Profil
              gesucht werden. -->
@@ -2422,6 +2457,7 @@
           <button type="button" class="emoji-btn" id="btnEmojiToggle" data-i18n-aria="common.emojiInsert" aria-label="Emoji einfügen">
             <svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M9 10h.01M15 10h.01M8.8 14.2c.8 1 1.9 1.6 3.2 1.6s2.4-.6 3.2-1.6"/></svg>
           </button>
+          <span class="bio-counter" id="aBioCounter">0/280</span>
           <div class="emoji-panel" id="emojiPanel"></div>
         </div>
 
@@ -2446,7 +2482,7 @@
       </div>
 
       <div class="account-section">
-        <div class="account-section-title" data-i18n="acct.sectionPhotos">Fotos</div>
+        <div class="account-section-title lg" data-i18n="acct.sectionPhotos">Fotos</div>
         <div class="photo-grid" id="acctPhotoGrid"></div>
         <div class="photo-hint" id="acctPhotoHint"></div>
         <input type="file" id="acctPhotoInput" accept="image/*" style="display:none">
@@ -2466,7 +2502,7 @@
            Abo-Kuendigung bleibt oben, wo sie hingehoert. -->
 
       <div class="account-section" style="margin-bottom:10px;">
-        <div class="account-section-title" data-i18n="common.account">Konto</div>
+        <div class="account-section-title lg" data-i18n="common.account">Konto</div>
         <button class="btn secondary" id="btnLogout" data-i18n="common.logout">Ausloggen</button>
         <button class="btn danger-ghost" id="btnDeleteAccount" data-i18n="common.deleteAccount">Konto löschen</button>
       </div>
@@ -2479,14 +2515,14 @@
            Gekuendigt wird dort, wo gekauft wurde - das ist keine
            Bequemlichkeitsfrage: Im Browser ist Stripe der Haendler (unser
            Portal), bei einem Kauf in einer der Apps der jeweilige Store, den
-           wir gar nicht beenden koennten. Deshalb zwei Faelle, die sich
-           gegenseitig ausschliessen; gibt es nichts zu verwalten, bleibt die
-           Zeile ganz weg statt als toter Link dazustehen. -->
+           wir gar nicht beenden koennten. Der Stripe-Fall bleibt hier als
+           Knopf; der Store-Hinweis (kein Knopf, nur ein Satz) steht seit
+           19.09.2026 stattdessen ganz unten in "Datenschutz & Sicherheit"
+           (#acctSubscriptionStoreHint dort) - beide Sichtbarkeiten setzt
+           weiterhin renderSubscriptionRow() ueber dieselbe ID. -->
       <p class="account-footer-link" id="acctSubscriptionRow" style="display:none;">
         <button type="button" id="btnManageSubscription" data-i18n="acct.subscription">Aboverwaltung</button>
       </p>
-
-      <p class="account-footer-note" id="acctSubscriptionStoreHint" style="display:none;" data-i18n="acct.subStoreHint">Dein Abo läuft über den App Store bzw. Google Play — verwalten und kündigen lässt es sich nur dort.</p>
 
       <p class="account-footer-link">
         <button type="button" id="btnOpenPrivacy" data-i18n-html="acct.privacy">Datenschutz &amp; Sicherheit</button>
@@ -2657,6 +2693,13 @@
           <a data-i18n="legal.meldung" href="/meldung.html" class="legal-link" data-legal-page="meldung.html">Inhalt melden</a>
         </nav>
       </div>
+
+      <!-- Hinweis fuer Abos aus den Stores, ganz am Fuss des Screens statt
+           zwischen den Kontoeinstellungen: siehe Begruendung bei
+           #acctSubscriptionRow im Konto-Screen. Sichtbarkeit setzt weiterhin
+           renderSubscriptionRow() ueber dieselbe ID, egal wo das Element im
+           DOM steht. -->
+      <p class="account-footer-note" id="acctSubscriptionStoreHint" style="display:none;" data-i18n="acct.subStoreHint">Dein Abo läuft über den App Store bzw. Google Play — verwalten und kündigen lässt es sich nur dort.</p>
     </section>
 
     <!-- ALTERS- UND IDENTITÄTSPRÜFUNG: Übersicht/Status -->
@@ -3158,16 +3201,17 @@
     }
   }
 
-  // Mindestanzeigedauer 20s (vorher 2600ms, dann 10s) - bei den Widerrufs-
-  // Folgetexten (z.B. revokeConsent) war das zu kurz, um sie in Ruhe zu
-  // lesen. Zusaetzlich per Knopf schliessbar statt nur automatisch zu
-  // verschwinden.
+  // Verschwindet automatisch nach 2s - kurze Bestaetigung, kein Text zum
+  // Lesen. Ausnahme: opts.sticky (aktuell nur das Melde-Aktenzeichen aus
+  // reportUser, Art. 16 Abs. 4 DSA) bleibt stehen, bis der Nutzer selbst
+  // schliesst - das Aktenzeichen soll er sich ohne Zeitdruck notieren
+  // koennen.
   // Die Box heisst bewusst `box` und nicht `t`: `t` ist weiter oben die
   // Uebersetzungsfunktion. Als lokales `const t` verdeckte das Element sie,
   // und `t('common.close')` warf dann "t is not a function" - sichtbar wurde
   // das als Fehlermeldung beim Profilspeichern, obwohl das Speichern selbst
   // schon durch war.
-  function toast(msg){
+  function toast(msg, opts){
     const box = document.createElement('div');
     box.className = 'toast';
     const text = document.createElement('span');
@@ -3181,7 +3225,7 @@
     close.addEventListener('click', () => box.remove());
     box.append(text, close);
     document.body.appendChild(box);
-    setTimeout(()=> box.remove(), 20000);
+    if(!(opts && opts.sticky)) setTimeout(()=> box.remove(), 2000);
   }
 
   // ---------- Interaktives Musterdeck im ausgeloggten Hero ----------
@@ -4635,16 +4679,19 @@
     /* Premium-Zeile. Drei Zustaende, und keiner davon ist eine Sperre:
        die Nutzung von FLEXR kostet in allen dreien nichts. Die Karte zeigt nur
        noch das Angebot; die Verwaltung eines laufenden Abos steht unten
-       (renderSubscriptionRow). */
+       (renderSubscriptionRow). Mit Premium gibt es kein Angebot mehr zu
+       zeigen - die Box faellt dann ganz weg statt leer mit Rahmen
+       stehenzubleiben, und das Profil darunter rueckt nach. */
     if(isPremium()){
-      setI18nText($('acctStatusText'), 'premium.statusActive');
-      $('btnSubscribe').style.display = 'none';
+      $('acctMembershipNote').style.display = 'none';
     } else if(!premiumOffered()){
       // Hier ist nichts zu bestellen. Ein Angebot zu zeigen, das der Server
       // mit 409 ablehnt, waere eine Sackgasse - der Knopf bleibt weg.
+      $('acctMembershipNote').style.display = '';
       setI18nText($('acctStatusText'), 'premium.statusBeta');
       $('btnSubscribe').style.display = 'none';
     } else {
+      $('acctMembershipNote').style.display = '';
       // Standardkonto nach der Beta: Was gerade gilt, in einem Satz.
       setI18nText($('acctStatusText'), 'premium.statusFree', {
         likes: membership.free_daily_likes,
@@ -4780,10 +4827,27 @@
     no_action:    'privacy.reportNoAction',
   };
 
+  // Nur ein Ausblenden auf diesem Geraet (localStorage), kein Loeschen: Die
+  // Meldung selbst bleibt beim Server bestehen, das Aktenzeichen bleibt
+  // gueltig fuer einen spaeteren Widerspruch (privacy.reportAppeal) - hier
+  // geht es nur darum, bereits bearbeitete Meldungen aus der eigenen Liste
+  // raeumen zu koennen.
+  function hiddenReportRefs(){
+    try{ return new Set(JSON.parse(localStorage.getItem('flexr_hidden_reports') || '[]')); }
+    catch(e){ return new Set(); }
+  }
+  function hideReport(ref){
+    try{
+      const refs = hiddenReportRefs();
+      refs.add(ref);
+      localStorage.setItem('flexr_hidden_reports', JSON.stringify([...refs]));
+    }catch(e){ /* privater Modus o.ae. - dann bleibt die Meldung sichtbar */ }
+  }
+
   async function loadMyReports(){
     const box = $('myReports');
     try{
-      const rows = await api('/api/reports/mine');
+      const rows = (await api('/api/reports/mine')).filter(r => !hiddenReportRefs().has(r.reference));
       if(!rows.length){
         box.innerHTML = `<p class="photo-hint" style="margin:0;">${escapeHtml(t('privacy.noReports'))}</p>`;
         return;
@@ -4795,18 +4859,29 @@
           ? `<span style="color:var(--chalk-dim);">${escapeHtml(t('privacy.reportPending'))}</span>`
           : escapeHtml(REPORT_OUTCOME_TEXT[r.outcome] ? t(REPORT_OUTCOME_TEXT[r.outcome]) : (r.outcome || ''))
             + (r.decision_note ? '<br>' + escapeHtml(r.decision_note) : '');
+        // Ausblenden nur fuer bereits bearbeitete Meldungen: eine offene
+        // Meldung soll nicht aus Versehen aus dem Blick verschwinden, bevor
+        // ueberhaupt eine Antwort da ist.
+        const hideBtn = offen ? '' : `<button type="button" class="report-hide-btn" data-ref="${escapeHtml(r.reference)}">${escapeHtml(t('privacy.reportHide'))}</button>`;
         return `<div class="vcard" style="margin-bottom:10px;">
             <div class="mono" style="font-size:12px;color:var(--chalk-dim);">
               ${escapeHtml(r.reference)} · ${datum}
             </div>
             <p style="margin:6px 0 0;font-size:14px;">${escapeHtml(r.reason)}</p>
             <p style="margin:8px 0 0;font-size:13.5px;">${ergebnis}</p>
+            ${hideBtn}
           </div>`;
       }).join('') + `<p class="photo-hint">${escapeHtml(t('privacy.reportAppeal'))}</p>`;
     }catch(e){
       box.innerHTML = `<p class="photo-hint" style="margin:0;">${escapeHtml(t('privacy.reportsFailed'))}</p>`;
     }
   }
+  $('myReports').addEventListener('click', (e) => {
+    const btn = e.target.closest('.report-hide-btn');
+    if(!btn) return;
+    hideReport(btn.dataset.ref);
+    loadMyReports();
+  });
 
   // ---------- Einwilligungen (Art. 7 DSGVO) ----------
   // Kurz und in normaler Sprache. Die Paragraphen stehen im Detail-Aufklapper
@@ -4961,6 +5036,7 @@
       $('aGymPicked').classList.remove('show');
     }
     $('a-bio').value = myProfile.bio || '';
+    updateABioCounter();
     $('a-radius').value = myProfile.search_radius_km || 20;
     $('radiusValue').textContent = ($('a-radius').value) + ' km';
     radiusFill();
@@ -5054,6 +5130,7 @@
       const next = target.value.slice(0, start) + emoji + target.value.slice(end);
       if(maxLen && next.length > maxLen) return;
       target.value = next;
+      target.dispatchEvent(new Event('input'));
       const pos = start + emoji.length;
       target.focus();
       target.setSelectionRange(pos, pos);
@@ -5069,6 +5146,28 @@
   initEmojiPicker('btnEmojiToggle', 'emojiPanel', 'a-bio', '.bio-wrap', 280);
   initEmojiPicker('btnEmojiToggleReg', 'emojiPanelReg', 'f-bio', '.bio-wrap', 280);
   initEmojiPicker('btnChatEmoji', 'chatEmojiPanel', 'chatInput', '.chat-input-row', 2000);
+
+  // Zeichenzaehler + hartes Limit fuers Bio-Feld. Das maxlength-Attribut allein
+  // schuetzt nur getippten/eingefuegten Text; wird der Wert per Skript gesetzt
+  // (Profil laden, Emoji-Klick), greift es nicht - deshalb hier zusaetzlich per
+  // Hand gekappt. So kann auch ein Bestandswert, der aelter als das 280er-Limit
+  // ist, nie unbemerkt laenger als das Limit angezeigt oder wieder gespeichert
+  // werden.
+  function bindBioCounter(textareaId, counterId, maxLen){
+    const field = $(textareaId);
+    const counter = $(counterId);
+    function update(){
+      if(field.value.length > maxLen) field.value = field.value.slice(0, maxLen);
+      const len = field.value.length;
+      counter.textContent = len + '/' + maxLen;
+      counter.classList.toggle('at-limit', len >= maxLen);
+    }
+    field.addEventListener('input', update);
+    update();
+    return update;
+  }
+  const updateABioCounter = bindBioCounter('a-bio', 'aBioCounter', 280);
+  bindBioCounter('f-bio', 'fBioCounter', 280);
 
   async function lookupAcctLocality(plz){
     const ortDisplay = $('acctOrtDisplay');
@@ -5653,10 +5752,12 @@
       // Art. 16 Abs. 4 DSA: Das Aktenzeichen aus der Empfangsbestätigung gehört
       // dem Melder gezeigt - er soll sich darauf berufen können. Kein Verweis
       // auf eine Übersicht: die gibt es in der Web-Version bewusst nicht.
+      // Bleibt deshalb als einziger Toast stehen, bis er ihn selbst schliesst
+      // (siehe toast()) - fuer das Aktenzeichen soll niemand mitschreiben muessen.
       const ack = await api('/api/reports', {method: 'POST', body: JSON.stringify({reported_user_id: userId, reason: reason.trim()})});
       toast(ack && ack.reference
         ? t('report.ack', {ref: ack.reference})
-        : t('report.ackPlain'));
+        : t('report.ackPlain'), {sticky: !!(ack && ack.reference)});
     }catch(err){ toast(err.message || 'Meldung fehlgeschlagen.'); }
   }
 
@@ -5888,7 +5989,12 @@
 
   /* Letzten Swipe zuruecknehmen (Premium). Danach das Deck neu laden: Das
      zurueckgenommene Profil taucht dort wieder auf, weil der Server den
-     Swipe geloescht hat. */
+     Swipe geloescht hat. Kein Erfolgstoast - das wieder auftauchende Profil
+     im Deck ist die Bestaetigung.
+     409 = der letzte Swipe (und jeder erreichbare davor) ist schon ein
+     Match - der Server begruendet das ausfuehrlich, aber dieser Text bleibt
+     bewusst ungezeigt statt als Toast aufzutauchen; andere Fehler (Premium
+     abgelaufen, kein Swipe vorhanden, Netzwerk) werden weiterhin gemeldet. */
   async function rewindLastSwipe(){
     const btn = $('btnRewind');
     btn.disabled = true;
@@ -5896,10 +6002,9 @@
       await api('/api/swipes/rewind', {method: 'POST'});
       await refreshMembership();
       renderLikeCounter();
-      toast(t('premium.rewindDone'));
       loadDeck();
     }catch(err){
-      toast(err.message || t('premium.rewindFailed'));
+      if(err.status !== 409) toast(err.message || t('premium.rewindFailed'));
     }finally{
       btn.disabled = false;
     }
