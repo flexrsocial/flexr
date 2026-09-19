@@ -15,27 +15,24 @@ Stand: **18.09.2026**
 > `release-2.7.5/flexr-2.7.5-vc117.aab` sofort hochladen.
 
 **Alles committet, gepusht und deployed.** Der VPS steht auf `origin/main`
-(**`a93defe`**, Sitzung 19.09.2026 (8) — Web: "Premium aktivieren"-Knopf im
-Kopf, Premium-Screen gekürzt, "geliket" -> "geliked" auf allen drei
-Oberflächen). Davor **`a14ff0f`** (Sitzung (8), Backend-Teil — echter Fund:
-Liker tauchten im eigenen Deck nicht auf, wenn sie ausserhalb des eigenen
-Suchradius lagen; siehe unten). **Dieses Mal mit Backend-Neustart** -
-`swipes.py` hat sich geändert, ein reines `git pull` hätte den alten
-Deck-Code weiterlaufen lassen. Kein Migrationsschritt (reine Abfragelogik,
-kein Schema-Wechsel) - Migrationsstand weiterhin `5f8ae574bc95` (Sitzung (3)).
-Direkt nach `sudo systemctl restart flexr-api` lieferte `/api/health` einmalig
-502 (dieselbe bekannte Racebedingung wie schon einmal, siehe weiter unten im
-Dokument), Sekunden später grün. Davor `ac8a243` (Sitzung (7) — Web:
-Konto-Statuskarte auch für Nicht-Premium entfernt), `9cb2932` (Sitzung (6) —
-Android 2.7.9/versionCode 121), `21190e0` (Sitzung (5)), `6c5eb68` (Sitzung
-(4)), `8b9c9bf` (Sitzung (3)), `c6a49c7` (Sitzung (2)), `c5582aa` (Sitzung
-18.09.2026 (6)); dazwischen liegt `8985c36` (Sitzung 19.09.2026,
-Android-Konto-Feinschliff nach 2.7.7) — reines Android-Repo. Nginx-Konfiguration
-weiterhin die aus Sitzung (3) (`/brand/`-Sperre). Nach dem `git pull` per
-`md5sum`-Vergleich (`curl https://flexr.social/app/`,
-`curl https://flexr.social/app/i18n-app.js`, `curl https://flexr.social/`,
-`curl https://flexr.social/faq.html`, `curl https://flexr.social/i18n-landing.js`
-gegen die lokalen Dateien) und `/api/health` gegengeprüft, beides passt.
+(**`c8eafb6`**, Sitzung 19.09.2026 (9) — Web: Inhalt auf Swipe/Matches/Chats/
+Premium war 6px zu weit links statt mittig, `scrollbar-gutter:stable` auf
+`main` war eine Dopplung zur eigenen Reservierung der aktiven `.screen` und
+zog unbedingt Platz vom rechten Rand ab, auch ganz ohne Scrollbalken -
+entfernt, per DOM-Messung bestaetigt). Reines Frontend, kein Backend-Neustart
+noetig. Davor **`a93defe`** (Sitzung (8), Web-Teil — "Premium
+aktivieren"-Knopf im Kopf, Premium-Screen gekürzt, "geliket" -> "geliked" auf
+allen drei Oberflächen) und **`a14ff0f`** (Sitzung (8), Backend-Teil — echter
+Fund: Liker tauchten im eigenen Deck nicht auf, wenn sie ausserhalb des
+eigenen Suchradius lagen; **mit Backend-Neustart**, kein Migrationsschritt,
+Migrationsstand weiterhin `5f8ae574bc95` aus Sitzung (3)). Davor `ac8a243`
+(Sitzung (7)), `9cb2932` (Sitzung (6) — Android 2.7.9/versionCode 121),
+`21190e0` (Sitzung (5)), `6c5eb68` (Sitzung (4)), `8b9c9bf` (Sitzung (3)),
+`c6a49c7` (Sitzung (2)), `c5582aa` (Sitzung 18.09.2026 (6)); dazwischen liegt
+`8985c36` (Android-Konto-Feinschliff nach 2.7.7, reines Android-Repo).
+Nginx-Konfiguration weiterhin die aus Sitzung (3) (`/brand/`-Sperre). Nach dem
+`git pull` per `md5sum`-Vergleich (`curl https://flexr.social/app/` gegen die
+lokale Datei) und `/api/health` gegengeprüft, beides passt.
 
 > **Sitzung (6) hat das Backend nicht angefasst** — keine Migration, kein
 > Neustart, der `git pull` allein reicht. Live wirkt davon nur die Web-App
@@ -262,7 +259,10 @@ Die `vc101`- bis `vc104`-Dateien sind hinfällig. Die Play Console hatte 43 und
 > englischen Texte lagen dort in einem Sprach-Split, den ein deutsches Gerät
 > nie herunterlädt. Erst ab 2.6.3 stecken beide Sprachen im Basis-Paket.
 
-Aufbau des Dokuments: erst diese Eckdaten, dann **die Sitzung vom 19.09. (8)**
+Aufbau des Dokuments: erst diese Eckdaten, dann **die Sitzung vom 19.09. (9)**
+(Web: Inhalt auf Swipe/Matches/Chats/Premium war 6px zu weit links -
+`scrollbar-gutter:stable`-Dopplung auf `main` entfernt), dann **die Sitzung
+vom 19.09. (8)**
 (Backend: Liker tauchen im Deck auch ausserhalb des eigenen Suchradius auf;
 Web: "Premium aktivieren"-Knopf im Kopf, Premium-Screen gekürzt, "geliket" ->
 "geliked"), dann **die Sitzung vom 19.09. (7)**
@@ -299,6 +299,52 @@ Ausgangssitzung), dann die **drei Abschnitte vom 10.09.**
 **08.09.**, dann die beiden Sitzungen vom **07.09.**, dann **06.09.**, dann
 **05.09.**, dann **31.08.**, **30.08.**, **23.08.**, **21.08.**; die Build-,
 Test- und Deploy-Abschnitte am Ende gelten sitzungsübergreifend.
+
+## Sitzung 19.09.2026 (9) — Web: Zentrierungsfehler auf Swipe/Matches/Chats/Premium behoben
+
+Rückmeldung zu drei Screenshots: Swipe-Deck, leere Matches-Liste und der
+Premium-Screen standen alle sichtbar zu weit links, mit mehr Abstand zum
+rechten Rand als zum linken - der Konto-Screen war davon laut Nutzer nicht
+betroffen ("weil rechts der Scrollbalken angezeigt werden muss"). Code-Stand
+**`c8eafb6`**, committet, gepusht, deployed. Reines Frontend, kein
+Backend-Neustart.
+
+### Ursache: doppelte Scrollbalken-Gutter-Reservierung
+
+`main{...}` UND die jeweils aktive `.screen.active` trugen beide unabhängig
+voneinander `scrollbar-gutter:stable` - reserviert **unbedingt** Platz für
+einen nicht-Overlay-Scrollbalken, auch wenn nichts zu scrollen ist. `main`
+selbst scrollt in der Praxis aber nie: Das erledigt immer die gerade aktive
+`.screen` darunter (eigenes `overflow-y:auto` samt eigener
+Gutter-Reservierung, dokumentiert seit der "Scrollbalken mittig
+positionieren"-Änderung). `main`s eigene Reservierung war damit reine
+Dopplung - zog aber trotzdem 6px vom rechten Rand ab, auf jedem Screen ohne
+echten Scrollbalken (Swipe-Deck, leere Match-/Chat-Liste, Premium-Seite).
+
+Per direkter DOM-Messung (`getBoundingClientRect()` bei 375px Breite)
+bestätigt: 20px/26px (links/rechts) vorher auf allen vier gemeldeten
+Screens, exakt 20px/20px nachher - mit Screenshot gegengeprüft. Die
+Konto-Seite bleibt unberührt: Ihre eigene -13px/+13px-Verschiebung (die den
+tatsächlichen Scrollbalken mittig zwischen Feldrand und Hintergrundende
+positioniert, siehe Kommentar im Code) verändert die Position des Inhalts
+selbst nachweislich nicht - die "Profil"-Überschrift sitzt dort weiterhin
+exakt bei 20px/20px, unabhängig von `main`s Gutter.
+
+Fix: `scrollbar-gutter:stable` aus `main{}` entfernt, die Reservierung auf
+`.screen.active{}` (dort, wo tatsächlich gescrollt wird) bleibt bestehen.
+
+### Geprüft
+
+Per DOM-Injektion (ohne Login) auf allen vier gemeldeten Screens sowie dem
+Konto-Screen gemessen, Screenshot des Premium-Screens bestätigt die
+zentrierte Kachel visuell. Backend-Suite (`test_public_frontend.py`, die
+Markup-Ausschnitte dieser Datei wörtlich prüft) grün - reine CSS-Änderung,
+keine Markup-Änderung, entsprechend unberührt.
+
+### Offen
+
+Unverändert aus den Sitzungen davor: iOS zeigt die beiden Rewind-Meldungen
+weiterhin; kein echtes Premium-/verifiziertes Testkonto zur Hand.
 
 ## Sitzung 19.09.2026 (8) — Backend: Liker-Radius-Fehler behoben; Web: Premium-Knopf im Kopf, "geliket" -> "geliked"
 
