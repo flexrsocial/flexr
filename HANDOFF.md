@@ -14,28 +14,24 @@ Stand: **18.09.2026**
 > dem Start abstürzt.** Play Console prüfen, im Zweifel 117 aus
 > `release-2.7.5/flexr-2.7.5-vc117.aab` sofort hochladen.
 
-**Alles committet und gepusht.** Neuester Commit auf `origin/main` ist
-**`726a619`** (Sitzung 19.09.2026 (11) — Android 2.7.10/versionCode 122:
-Haken/Stern-Ausrichtung korrigiert, nachdem der alignByBaseline()-Versuch aus
-2.7.9 es sichtbar schlimmer gemacht hatte; neuer "Premium aktivieren"-Knopf
-im Kopf, analog zum Web) — **reines Android-Repo, kein VPS-Deploy nötig.**
-Der VPS selbst steht auf `9232c99`/Web-Code-Stand `5a42d50` (Sitzung (10) —
-die Zentrierungskorrektur aus Sitzung (9) war unvollständig, `.screen.active`
-reservierte selbst genauso unbedingt Scrollbalken-Gutter wie zuvor `main`,
-sogar auf Screens mit `overflow:hidden`; jetzt per Live-Messung auf
-flexr.social bestätigt: 72px/72px symmetrisch). Reines Frontend, kein
-Backend-Neustart nötig für (9)/(10). Davor **`a93defe`**/**`a14ff0f`**
-(Sitzung (8) — Web: "Premium aktivieren"-Knopf, Premium-Screen gekürzt,
-"geliket"->"geliked"; Backend: Liker tauchten im eigenen Deck nicht auf,
-wenn sie ausserhalb des eigenen Suchradius lagen, **mit Backend-Neustart**,
-kein Migrationsschritt, Migrationsstand weiterhin `5f8ae574bc95` aus Sitzung
-(3)). Davor `ac8a243` (Sitzung (7)), `9cb2932` (Sitzung (6) — Android
-2.7.9/versionCode 121), `21190e0` (Sitzung (5)), `6c5eb68` (Sitzung (4)),
-`8b9c9bf` (Sitzung (3)), `c6a49c7` (Sitzung (2)), `c5582aa` (Sitzung
-18.09.2026 (6)); dazwischen `8985c36` (Android-Konto-Feinschliff nach 2.7.7).
-Nginx-Konfiguration weiterhin die aus Sitzung (3) (`/brand/`-Sperre). Nach dem
-`git pull` per `md5sum`-Vergleich (`curl https://flexr.social/app/` gegen die
-lokale Datei) und `/api/health` gegengeprüft, beides passt.
+**Alles committet, gepusht und deployed.** Der VPS steht auf `origin/main`
+(**`2153b24`**, Sitzung 19.09.2026 (12) — Web: Orangener Kartenrand der
+obersten Swipe-Karte fehlte links, abgeschnitten vom `overflow-x:hidden`
+des Scroll-Containers - derselbe Fehler wie zuvor schon bei `.plz-combo` und
+den Formularfeldern, gleicher Fix: Rand liegt jetzt `inset` statt aussen).
+Reines Frontend, kein Backend-Neustart. Davor **`726a619`** (Sitzung (11) —
+Android 2.7.10/versionCode 122, reines Android-Repo, kein VPS-Deploy: Haken/
+Stern-Ausrichtung korrigiert, neuer "Premium aktivieren"-Knopf im Kopf) und
+**`5a42d50`**/**`9232c99`** (Sitzung (10) — Web-Zentrierung wirklich behoben,
+`.screen.active` reservierte selbst unbedingt Scrollbalken-Gutter). Davor
+**`a93defe`**/**`a14ff0f`** (Sitzung (8) — Web: "Premium aktivieren"-Knopf,
+Premium-Screen gekürzt, "geliket"->"geliked"; Backend: Liker-Radius-Fehler,
+**mit Backend-Neustart**, kein Migrationsschritt, Migrationsstand weiterhin
+`5f8ae574bc95` aus Sitzung (3)). Ältere Stände (Sitzungen (2)-(7), 18.09.
+(6)) in den jeweiligen Abschnitten unten. Nginx-Konfiguration weiterhin die
+aus Sitzung (3) (`/brand/`-Sperre). Nach dem `git pull` per `md5sum`-Vergleich
+(`curl https://flexr.social/app/` gegen die lokale Datei) und `/api/health`
+gegengeprüft, beides passt.
 
 > **Sitzung (6) hat das Backend nicht angefasst** — keine Migration, kein
 > Neustart, der `git pull` allein reicht. Live wirkt davon nur die Web-App
@@ -262,7 +258,9 @@ Die `vc101`- bis `vc104`-Dateien sind hinfällig. Die Play Console hatte 43 und
 > englischen Texte lagen dort in einem Sprach-Split, den ein deutsches Gerät
 > nie herunterlädt. Erst ab 2.6.3 stecken beide Sprachen im Basis-Paket.
 
-Aufbau des Dokuments: erst diese Eckdaten, dann **die Sitzung vom 19.09. (11)**
+Aufbau des Dokuments: erst diese Eckdaten, dann **die Sitzung vom 19.09. (12)**
+(Web: Orangener Kartenrand links wieder sichtbar - inset statt aussenliegend),
+dann **die Sitzung vom 19.09. (11)**
 (Android 2.7.10/versionCode 122: Haken/Stern-Ausrichtung korrigiert, neuer
 "Premium aktivieren"-Knopf im Kopf), dann **die Sitzung vom 19.09. (10)**
 (Web: Zentrierung wirklich behoben - `.screen.active` reservierte selbst
@@ -307,6 +305,54 @@ Ausgangssitzung), dann die **drei Abschnitte vom 10.09.**
 **08.09.**, dann die beiden Sitzungen vom **07.09.**, dann **06.09.**, dann
 **05.09.**, dann **31.08.**, **30.08.**, **23.08.**, **21.08.**; die Build-,
 Test- und Deploy-Abschnitte am Ende gelten sitzungsübergreifend.
+
+## Sitzung 19.09.2026 (12) — Web: Orangener Kartenrand links wieder sichtbar
+
+Rückmeldung zum Swipe-Screenshot, nachdem die Zentrierung (Sitzung (10))
+bestätigt als behoben galt: "links fehlt jetzt noch der orange Rahmen -
+sonst sollte es passen von der Positionierung". Code-Stand **`2153b24`**,
+committet, gepusht, deployed. Reines Frontend, kein Backend-Neustart.
+
+### Derselbe Fehler wie bei `.plz-combo` - diesmal an der Swipe-Karte
+
+Der Marken-Rand der obersten Swipe-Karte (`.deck .card:last-child`, ebenso
+`.profile-card-wrap .card` im Match-Profil) stand oben, rechts und unten
+korrekt in Orange, links fehlte er. Dieselbe Ursache, die im Code schon an
+zwei anderen Stellen dokumentiert und behoben war (Fokus-Rahmen der
+Formularfelder, `.plz-combo.focused` - siehe deren Kommentare weiter oben in
+`index.html`): Die Karte liegt bündig am linken Rand von `.screen.active`
+(`overflow-x:hidden`). Ein **außen** liegender `box-shadow` (wie er für den
+Marken-Rand verwendet wurde: `0 0 0 1.5px rgba(255,90,31,.3)`, ohne
+Versatz/Weichzeichnung, wirkt wie eine gleichmäßige Kontur) wird dort vom
+Scroll-Container abgeschnitten, sobald er über dessen eigene Kante hinausragt
+- links passiert genau das, rechts bleibt durch die vorhandene Restbreite
+genug Luft.
+
+Fix: derselbe wie an den beiden anderen Stellen im selben Dokument - der
+Rand liegt jetzt **inset** (`inset 0 0 0 1.5px rgba(255,90,31,.3)`), bleibt
+damit innerhalb der eigenen Box und ist nie vom Rand des Scroll-Containers
+betroffen. Die Elevations-Schatten (`0 22px 46px rgba(...)`) bleiben
+unverändert außen - die sind weich/groß genug, dass ein teilweises
+Abschneiden am Rand nicht auffällt, anders als eine scharfe 1.5px-Kontur.
+
+Bewusst nur an dieser einen, gemeldeten Stelle behoben, nicht auch an der
+Demo-Karte auf der Landingpage (`.hero-demo-card:last-child`, dieselbe
+CSS-Eigenschaft) - die sitzt zentriert mit eigenem Rand in ihrem Bereich, ist
+nicht bündig an einem `overflow:hidden`-Rand und wurde nicht gemeldet.
+
+### Geprüft
+
+Per DOM-Injektion (Karte mit dunklem Platzhalter statt echtem Foto, damit
+der dünne Rand gegen den Hintergrund sichtbar ist) bestätigt: Rand jetzt auf
+allen vier Seiten sichtbar, auch in der oberen linken Ecke. `node --check`
+sauber. `test_public_frontend.py` (9 Tests) grün.
+
+### Offen
+
+Unverändert aus den Sitzungen davor: 2.7.10 ist noch nicht in der Play
+Console, die Android-Haken/Stern-Korrektur aus Sitzung (11) braucht noch
+eine echte Sichtprüfung auf einem Gerät; iOS zeigt die beiden Rewind-
+Meldungen weiterhin; kein echtes Premium-/verifiziertes Testkonto zur Hand.
 
 ## Sitzung 19.09.2026 (11) — Android 2.7.10: Haken/Stern-Ausrichtung korrigiert, Premium-Knopf im Kopf
 
