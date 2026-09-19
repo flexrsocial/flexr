@@ -15,15 +15,16 @@ Stand: **18.09.2026**
 > `release-2.7.5/flexr-2.7.5-vc117.aab` sofort hochladen.
 
 **Alles committet, gepusht und deployed.** Der VPS steht auf `origin/main`
-(**`8b9c9bf`**, Sitzung 19.09.2026 (3) — Web: Konto-Nachbesserung). Das löst
-`c6a49c7` (Sitzung 19.09.2026 (2)) als Referenz ab, davor `c5582aa` (Sitzung
-18.09.2026 (6)); dazwischen liegt `8985c36` (Sitzung 19.09.2026,
-Android-Konto-Feinschliff) — reines Android-Repo, kein VPS-Deploy nötig.
-`8b9c9bf` ist wie `c6a49c7` reines Frontend (`frontend/app/`), daher
-**keine neue Migration, kein Backend-Neustart** - Migrationsstand weiterhin
-`5f8ae574bc95` (Sitzung (3)), Nginx-Konfiguration weiterhin die aus Sitzung
-(3) (`/brand/`-Sperre). Nach dem `git pull` per `md5sum`-Vergleich (`curl
-https://flexr.social/app/` gegen die lokale Datei) und `/api/health`
+(**`6c5eb68`**, Sitzung 19.09.2026 (4) — Rechtliches zentriert, Store-Hinweis
+vom Stern zum Premium-Pill). Davor `8b9c9bf` (Sitzung (3)), `c6a49c7`
+(Sitzung (2)), `c5582aa` (Sitzung 18.09.2026 (6)); dazwischen liegt `8985c36`
+(Sitzung 19.09.2026, Android-Konto-Feinschliff) — reines Android-Repo, kein
+VPS-Deploy nötig. `6c5eb68` ist wie die beiden davor reines Frontend
+(`frontend/app/`), daher **keine neue Migration, kein Backend-Neustart** -
+Migrationsstand weiterhin `5f8ae574bc95` (Sitzung (3)), Nginx-Konfiguration
+weiterhin die aus Sitzung (3) (`/brand/`-Sperre). Nach dem `git pull` per
+`md5sum`-Vergleich (`curl https://flexr.social/app/` gegen die lokale Datei)
+und `/api/health`
 gegengeprüft, beides passt.
 
 > **Sitzung (6) hat das Backend nicht angefasst** — keine Migration, kein
@@ -251,9 +252,10 @@ Die `vc101`- bis `vc104`-Dateien sind hinfällig. Die Play Console hatte 43 und
 > englischen Texte lagen dort in einem Sprach-Split, den ein deutsches Gerät
 > nie herunterlädt. Erst ab 2.6.3 stecken beide Sprachen im Basis-Paket.
 
-Aufbau des Dokuments: erst diese Eckdaten, dann **die Sitzung vom 19.09. (3)**
-(Web: Konto-Nachbesserung — Badge-Ausrichtung, Verifiziert-Pille, Bio
-kleiner), dann **die Sitzung vom 19.09. (2)** (Web: Konto-Feinschliff —
+Aufbau des Dokuments: erst diese Eckdaten, dann **die Sitzung vom 19.09. (4)**
+(Web: Rechtliches zentriert, Store-Hinweis vom Stern zum Premium-Pill), dann
+**die Sitzung vom 19.09. (3)** (Web: Konto-Nachbesserung — Badge-Ausrichtung,
+Verifiziert-Pille, Bio kleiner), dann **die Sitzung vom 19.09. (2)** (Web: Konto-Feinschliff —
 Toast-Timing, Badges, Bio-Limit, Meldungen), dann **die Sitzung vom 19.09.**
 (Android: Konto-Feinschliff nach 2.7.7), dann **die Sitzung vom 18.09. (7)**
 (Aboverwaltung im Web, Push bei beendeter Android-App), dann **18.09. (6)**
@@ -278,6 +280,57 @@ Ausgangssitzung), dann die **drei Abschnitte vom 10.09.**
 **08.09.**, dann die beiden Sitzungen vom **07.09.**, dann **06.09.**, dann
 **05.09.**, dann **31.08.**, **30.08.**, **23.08.**, **21.08.**; die Build-,
 Test- und Deploy-Abschnitte am Ende gelten sitzungsübergreifend.
+
+## Sitzung 19.09.2026 (4) — Web: Rechtliches zentriert, Store-Hinweis vom Stern zum Premium-Pill
+
+Zwei kleine Korrekturen zur Rückmeldung auf Sitzung (3) direkt darunter,
+noch am selben Tag. Code-Stand **`6c5eb68`**, committet, gepusht, auf dem
+VPS deployt (wieder reines Frontend, kein Backend/Migration/Neustart — per
+`md5sum` gegen `curl https://flexr.social/app/` und `/api/health`
+bestätigt).
+
+### Rechtstext-Links unter „Rechtliches" zentriert
+
+Die zweispaltige Liste (Datenschutz/AGB/Rücktrittsrecht/...) stand bisher
+linksbündig in ihren Grid-Spalten und wirkte dadurch zerklüftet, sobald die
+Länge der Linktexte stark variierte („Datenschutz" kurz, „Nutzungsrichtlinien"
+lang). `.legal-link-list` bekommt `text-align:center` — passt jetzt zum
+selben zentrierten Link-Stil wie `.account-footer-link`
+(Benachrichtigungen, Datenschutz & Sicherheit) und zur Fußzeile ganz unten
+auf der Landingpage, statt als einziges linksbündiges Element aus der Reihe
+zu fallen.
+
+### Store-Kündigungshinweis umgehängt: vom Premium-Stern zum "Premium"-Pill im Kopf
+
+In Sitzung (2) war der Hinweis als Hover-Text auf den Premium-Stern neben
+dem Namen gewandert (`.premium-badge`, `renderAccount`). Rückmeldung: das
+ist der falsche Ort — gemeint war der separate „Premium"-Pill oben neben
+dem FLEXR-Logo (`#statusPill`), nicht der Stern. Beide sind unterschiedliche
+Abzeichen mit unterschiedlichem Zweck (Stern: Abzeichen neben dem eigenen
+Namen, wie es andere sehen; Pill: eigener Status im Kopf, nur für einen
+selbst sichtbar). `PREMIUM_BADGE_SVG` wieder auf den festen Standardtitel
+zurückgesetzt; `updateStatusPill()` setzt stattdessen `pill.title` auf den
+Kündigungshinweis, wenn Premium über Store statt Stripe läuft, und räumt
+ihn in jedem anderen Zustand (Beta, Free, Likes-Rest, Prüfung läuft)
+explizit wieder ab, damit kein einmal gesetzter Hinweis an der Pille
+hängen bleibt, nachdem sie längst etwas anderes zeigt.
+
+### Geprüft
+
+`node --check` sauber. Die zentrierten Rechtliches-Links per DOM-Injektion
+(Datenschutz-Screen ohne Login sichtbar gemacht) auf 375px Breite geprüft —
+sehen jetzt wie die App-eigene Fußzeile aus. Der Pill-Hover-Text ist
+code-seitig dieselbe Bedingung wie zuvor am Stern, nur am anderen Element,
+aber **weiterhin nicht an einem echten Premium-Store-Konto gesehen** —
+unverändert keine passenden Zugangsdaten (siehe Sitzung (2) und (3)).
+
+### Offen
+
+Unverändert: iOS zeigt die beiden Rewind-Meldungen weiterhin; der mögliche
+Datenabgleich-Punkt zu Julians Konto (`has_stripe_subscription` vs.
+tatsächlichem Kaufweg); kein echtes Premium-/verifiziertes Testkonto zur
+Hand, um die drei Web-Sitzungen dieses Tages (2)–(4) am Stück live
+gegenzuprüfen.
 
 ## Sitzung 19.09.2026 (3) — Web: Konto-Nachbesserung (Badge-Ausrichtung, Verifiziert-Pille, Bio kleiner)
 
