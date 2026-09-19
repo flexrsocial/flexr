@@ -14,19 +14,22 @@ Stand: **18.09.2026**
 > dem Start abstürzt.** Play Console prüfen, im Zweifel 117 aus
 > `release-2.7.5/flexr-2.7.5-vc117.aab` sofort hochladen.
 
-**Alles committet, gepusht und deployed.** Der VPS steht auf `origin/main`
-(**`21190e0`**, Sitzung 19.09.2026 (5) — Sprachzeile auf Schalter +
-Info-Punkt verschlankt). Davor `6c5eb68` (Sitzung (4)), `8b9c9bf` (Sitzung
-(3)), `c6a49c7` (Sitzung (2)), `c5582aa` (Sitzung 18.09.2026 (6));
-dazwischen liegt `8985c36` (Sitzung 19.09.2026, Android-Konto-Feinschliff)
-— reines Android-Repo, kein VPS-Deploy nötig. `21190e0` ist wie die
-Sitzungen davor reines Frontend (`frontend/app/`, `frontend/i18n.js`),
-daher **keine neue Migration, kein Backend-Neustart** - Migrationsstand
-weiterhin `5f8ae574bc95` (Sitzung (3)), Nginx-Konfiguration weiterhin die
-aus Sitzung (3) (`/brand/`-Sperre). Nach dem `git pull` per
-`md5sum`-Vergleich (`curl https://flexr.social/app/` und
-`curl https://flexr.social/i18n.js` gegen die lokalen Dateien) und
-`/api/health`
+**Alles committet und gepusht; der VPS steht auf dem letzten Frontend-Stand.**
+Neuester Commit auf `origin/main` ist **`9cb2932`** (Sitzung 19.09.2026 (6) —
+Android 2.7.9/versionCode 121: Konto-Statuskarte auch für Nicht-Premium weg,
+blauer Haken an der Grundlinie statt box-zentriert, alle Popups nach 2 s,
+Premium-Bildschirm gekürzt) — **reines Android-Repo, kein VPS-Deploy nötig.**
+Der VPS selbst steht weiterhin auf `21190e0` (Sitzung (5) — Sprachzeile auf
+Schalter + Info-Punkt verschlankt). Davor `6c5eb68` (Sitzung (4)), `8b9c9bf`
+(Sitzung (3)), `c6a49c7` (Sitzung (2)), `c5582aa` (Sitzung 18.09.2026 (6));
+dazwischen liegt `8985c36` (Sitzung 19.09.2026, Android-Konto-Feinschliff nach
+2.7.7) — ebenfalls reines Android-Repo. `21190e0` ist wie die Sitzungen davor
+reines Frontend (`frontend/app/`, `frontend/i18n.js`), daher **keine neue
+Migration, kein Backend-Neustart** - Migrationsstand weiterhin `5f8ae574bc95`
+(Sitzung (3)), Nginx-Konfiguration weiterhin die aus Sitzung (3)
+(`/brand/`-Sperre). Nach dem `git pull` per `md5sum`-Vergleich
+(`curl https://flexr.social/app/` und `curl https://flexr.social/i18n.js`
+gegen die lokalen Dateien) und `/api/health`
 gegengeprüft, beides passt.
 
 > **Sitzung (6) hat das Backend nicht angefasst** — keine Migration, kein
@@ -254,7 +257,10 @@ Die `vc101`- bis `vc104`-Dateien sind hinfällig. Die Play Console hatte 43 und
 > englischen Texte lagen dort in einem Sprach-Split, den ein deutsches Gerät
 > nie herunterlädt. Erst ab 2.6.3 stecken beide Sprachen im Basis-Paket.
 
-Aufbau des Dokuments: erst diese Eckdaten, dann **die Sitzung vom 19.09. (5)**
+Aufbau des Dokuments: erst diese Eckdaten, dann **die Sitzung vom 19.09. (6)**
+(Android 2.7.9/versionCode 121: Konto-Statuskarte auch für Nicht-Premium weg,
+Haken an der Grundlinie, Popups nach 2 s, Premium-Bildschirm gekürzt), dann
+**die Sitzung vom 19.09. (5)**
 (Web: Sprachzeile auf Schalter + Info-Punkt verschlankt), dann **die Sitzung
 vom 19.09. (4)** (Web: Rechtliches zentriert, Store-Hinweis vom Stern zum
 Premium-Pill), dann **die Sitzung vom 19.09. (3)** (Web: Konto-Nachbesserung — Badge-Ausrichtung,
@@ -283,6 +289,93 @@ Ausgangssitzung), dann die **drei Abschnitte vom 10.09.**
 **08.09.**, dann die beiden Sitzungen vom **07.09.**, dann **06.09.**, dann
 **05.09.**, dann **31.08.**, **30.08.**, **23.08.**, **21.08.**; die Build-,
 Test- und Deploy-Abschnitte am Ende gelten sitzungsübergreifend.
+
+## Sitzung 19.09.2026 (6) — Android 2.7.9: Konto-Statuskarte weg, Haken an Grundlinie, Popups nach 2s
+
+Vier Rückmeldungen zu drei Screenshots (Konto-Kopf, Swipe-Deck,
+Premium-Bildschirm). Code-Stand **`9cb2932`**, committet und gepusht — reines
+Android-Repo, kein VPS-Deploy nötig, Backend unverändert.
+
+### Statuskarte „Dein Konto ist kostenlos …" jetzt auch für Nicht-Premium weg
+
+Seit 2.7.8 (Sitzung 19.09., Android-Konto-Feinschliff) fiel die Karte nur für
+Premium-Konten weg; der gemeldete Screenshot zeigte ein Gratiskonto, bei dem
+sie weiterhin stand. Jetzt fällt der ganze Block (Beta-Hinweis oder
+Grenzen-Text plus ggf. Angebotsknopf) unabhängig vom Kontostatus weg —
+„Profil" rückt direkt unter den Kopf bzw. den Verifizierungs-Hinweis nach.
+`premium_status_free`, `premium_status_beta` sind damit in beiden
+`strings.xml` unbenutzt und entfernt; `premium_show_offer` bleibt (wird noch
+von `IncomingScreen` gebraucht).
+
+### Blauer Haken jetzt an der Textgrundlinie statt box-zentriert
+
+Gemeldet: Der Haken neben Name/Alter beginnt an der oberen Kante des Namens
+statt mittig zu stehen. Ursache ist dieselbe Klasse von Fehler wie beim
+Web-Badge in Sitzung 19.09. (3), nur mit Compose statt CSS: `Row(
+verticalAlignment = Alignment.CenterVertically)` zentriert Kind-Elemente
+anhand ihrer Layout-Box, nicht anhand der sichtbaren Zeichen. Die Zeilenhöhe
+von `titleLarge` (25sp) trägt bei Oswald deutlich mehr Luft oberhalb der
+Versalien als unterhalb der Grundlinie — der 16dp-Kreis saß dadurch
+box-zentriert sichtbar zu hoch. Fix: `Modifier.alignByBaseline()` auf Text,
+`VerifiedBadge` und `PremiumBadge` im Kopf-Row von `AccountScreen.kt` — richtet
+beide Abzeichen an der tatsächlichen Grundlinie des Namens aus statt an der
+Zeilenhöhe. Bewusst nur an dieser einen Stelle geändert, nicht in
+`SwipeCard.kt`/`ChatScreen.kt`/`MatchListItem.kt`, die denselben
+`CenterVertically`-Aufbau verwenden, aber nicht gemeldet wurden.
+
+### Alle Popup-Meldungen verschwinden jetzt nach zwei Sekunden
+
+Bisher lag die geteilte Snackbar-Dauer (`showMessage` in `FlexrApp.kt`) bei
+20 s, nur „Profil gespeichert ✓" hatte über ein `brief`-Flag die kurze 2s-Dauer
+(seit 2.7.8). Jetzt gilt die kurze Dauer für jede Meldung — wie zuvor schon in
+der Web-App (Sitzung 19.09. (2)) —, das `brief`-Flag ist damit hinfällig und
+entfernt. Einzige Ausnahme bleibt die Empfangsbestätigung mit Aktenzeichen
+beim Melden eines Profils (Art. 16 Abs. 4 DSA): `SwipeEvent.Message`,
+`ChatEvent.Message` und `MatchProfileEvent.Message` tragen dafür ein neues
+`sticky`-Flag, `FlexrApp.kt` zeigt sie über die neue `showStickyMessage` ganz
+ohne Auto-Dismiss-Timer (bleibt stehen, bis der Schließen-Knopf angetippt
+wird) — das Aktenzeichen ist der einzige Text in der App, den man womöglich
+abschreiben will.
+
+### Premium-Bildschirm: beide erklärenden Absätze weg
+
+„FLEXR zu nutzen kostet nichts — dauerhaft. Premium hebt die Grenzen …" unter
+der Überschrift und „Nach der Zahlung kehrst du automatisch in die App
+zurück …" über dem Zurück-Knopf sind beide entfernt; der Zurück-Knopf rückt
+dadurch weiter nach oben, ohne dass am Bildschirm gescrollt werden muss.
+`paywall_sub`, `paywall_return_note` damit in beiden `strings.xml` unbenutzt
+und entfernt.
+
+### Android 2.7.9 (versionCode 121)
+
+Gebaut mit `testProdDebugUnitTest` (53 Unit-Tests grün) und
+`bundleProdRelease`, signiert mit demselben Upload-Key wie bisher (Zertifikat
+weiterhin `CN=FLEXR`, `jarsigner -verify` bestätigt). Nur die `.aab` gebaut
+und im Chat übergeben — kein APK, war diesmal nicht verlangt.
+
+| | |
+|---|---|
+| AAB (Play Console) | `flexr-2.7.9-vc121.aab` |
+
+### Geprüft
+
+53 Unit-Tests grün, Kotlin- und Release-Quellen kompilieren, `bundleProdRelease`
+durch, Bundle-Signatur gegen den Upload-Key verifiziert. **Nicht am Gerät
+geprüft** — hier läuft kein Emulator; insbesondere die `alignByBaseline()`-Änderung
+am Haken ist nur aus den Schriftmetriken hergeleitet, nicht optisch
+gegengeprüft.
+
+### Offen
+
+1. **Die Haken-Ausrichtung sollte am nächsten echten Build angeschaut
+   werden** — falls `alignByBaseline()` optisch nicht reicht (der Font könnte
+   ein anderes Verhältnis von Versalienhöhe zu Zeilenhöhe haben als
+   angenommen), braucht es einen zusätzlichen kleinen `offset()`.
+2. **2.7.9 ist noch nicht in der Play Console** (2.7.8 war es zum Zeitpunkt
+   dieser Sitzung ebenfalls noch nicht — siehe „Dringend zu prüfen" oben zu
+   2.7.5/117, der Stand seither ist von hier aus nicht einsehbar).
+3. Unverändert: Web und iOS zeigen die beiden Rewind-Meldungen weiterhin; kein
+   echtes Premium-/verifiziertes Testkonto zur Hand.
 
 ## Sitzung 19.09.2026 (5) — Web: Sprachzeile auf Schalter + Info-Punkt verschlankt
 
