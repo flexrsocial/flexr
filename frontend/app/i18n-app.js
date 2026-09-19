@@ -458,8 +458,6 @@
     'vgate.success': 'Verifizierung erfolgreich - dein Konto ist freigeschaltet 💪',
 
     // ---- Verifizierungs-Badge im Konto
-    'vbadge.verified': '{badge} Dein Profil ist verifiziert - andere sehen den blauen Haken neben deinem Namen.',
-    'vbadge.badge': 'Verifiziert',
     'vbadge.checking': 'Prüfung läuft …',
     'vbadge.checkingTip': 'Deine Verifizierung wird geprüft. Nach der Freigabe bekommst du den blauen Haken {badge} neben deinem Namen.',
     'vbadge.failedTip': 'Deine Verifizierung konnte nicht abgeschlossen werden. Bei Fragen: flexr.social@proton.me',
@@ -949,8 +947,6 @@
     'vgate.startFailed': 'Verification could not be started.',
     'vgate.success': 'Verification successful - your account is unlocked 💪',
 
-    'vbadge.verified': '{badge} Your profile is verified - others see the blue check next to your name.',
-    'vbadge.badge': 'Verified',
     'vbadge.checking': 'Review running …',
     'vbadge.checkingTip': 'Your verification is being reviewed. Once approved you get the blue check {badge} next to your name.',
     'vbadge.failedTip': 'Your verification could not be completed. Questions: flexr.social@proton.me',

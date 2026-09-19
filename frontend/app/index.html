@@ -596,7 +596,7 @@
      Verifiziert-Haken, damit beide nebeneinander ruhig wirken. */
   .premium-badge{
     display:inline-flex; align-items:center; justify-content:center;
-    width:17px; height:17px; margin-left:5px; vertical-align:-2px;
+    width:17px; height:17px; margin-left:5px; vertical-align:0;
     color:var(--plate);
   }
   .premium-badge svg{ width:100%; height:100%; fill:currentColor; }
@@ -1421,9 +1421,18 @@
   .verified-badge{
     display:inline-flex; align-items:center; justify-content:center;
     width:17px; height:17px; border-radius:50%; background:#1d9bf0; flex-shrink:0;
-    vertical-align:-2px; margin-left:5px;
+    vertical-align:0; margin-left:5px;
   }
-  .verified-badge svg{ width:62%; height:62%; fill:none; stroke:#fff; stroke-width:3.4; stroke-linecap:round; stroke-linejoin:round; }
+  /* svg bewusst auf 100% statt sichtbar kleiner: ein inline-flex-Element ohne
+     eigene Text-Baseline uebernimmt als vertical-align-Bezug die Unterkante
+     seines ersten Kindes - bei einem kleiner skalierten Kind (vorher 62%)
+     lag diese Unterkante hoeher im Kasten als beim gleich grossen Kind von
+     .premium-badge (100%), wodurch der Haken trotz identischer Box- und
+     vertical-align-Werte sichtbar tiefer sass als der Stern. Das Padding fuer
+     die kleinere Wirkung steckt jetzt im viewBox (-7 -7 38 38 statt 0 0 24 24)
+     statt in width/height, damit beide Abzeichen dieselbe Kindgroesse und
+     damit denselben Vertical-Align-Bezug haben. */
+  .verified-badge svg{ width:100%; height:100%; fill:none; stroke:#fff; stroke-width:3.4; stroke-linecap:round; stroke-linejoin:round; }
 
   /* Verifizierungs-Screen (Live-Kamera + Anweisung) */
   .verify-status-row{ display:flex; align-items:center; gap:10px; font-size:13.5px; color:var(--chalk-dim); }
@@ -1651,18 +1660,23 @@
   .gym-picked.show{ display:block; }
 
   .bio-wrap{ position:relative; }
-  /* Feste Hoehe statt der generischen min-height:80px, damit die 280 Zeichen
-     des Zeichenlimits auch auf schmalen Handybreiten ohne internes Scrollen
-     hineinpassen. Ungescrolltes Textfeld heisst: der leere Streifen unten
-     (padding-bottom, fuer Emoji-Knopf und Zaehler) ist immer wirklich leer -
-     bei einem scrollbaren Feld liegen Knopf und Zaehler dagegen an einer
-     festen Position ueber dem Text und ueberlappten ihn, sobald viel Text
-     nicht bis ganz ans Ende gescrollt war (der Anzeigefehler in der rechten
-     unteren Ecke bei langen Bios). resize:none, weil ein manuell verkleinertes
-     Feld denselben Fehler wieder herbeifuehren wuerde. */
-  .bio-wrap textarea{ padding-bottom:38px; height:235px; resize:none; }
+  /* Kompakteres Feld auf Wunsch (vorher 235px, damit die vollen 280 Zeichen
+     nie scrollen mussten). Emoji-Knopf und Zaehler liegen seit dieser
+     Aenderung nicht mehr ALS UEBERLAGERUNG in einem per padding-bottom
+     freigehaltenen Streifen ueber dem Text, sondern in einer eigenen Zeile
+     UNTER dem Textfeld (.bio-toolbar, normaler Dokumentfluss) - dadurch kann
+     bei einem kleineren, ggf. wieder scrollenden Feld nichts mehr mit
+     echtem Text ueberlappen, unabhaengig von Feldhoehe oder Scroll-Stand
+     (das war der eigentliche Anzeigefehler in der rechten unteren Ecke bei
+     langen Bios). resize:none bleibt, damit ein von Hand vergroessertes Feld
+     nicht wieder den alten "Knopf liegt auf dem Rahmen"-Eindruck erweckt. */
+  .bio-wrap textarea{ height:110px; resize:none; }
+  .bio-toolbar{
+    position:relative; display:flex; align-items:center; justify-content:space-between;
+    margin-top:6px;
+  }
   .emoji-btn{
-    position:absolute; bottom:8px; left:10px; width:28px; height:28px;
+    width:28px; height:28px;
     background:none; border:none; cursor:pointer; color:var(--chalk-dim);
     display:flex; align-items:center; justify-content:center; border-radius:50%;
     transition:color .15s ease, background .15s ease;
@@ -1670,12 +1684,14 @@
   .emoji-btn:hover{ color:var(--chalk); background:var(--surface-2); }
   .emoji-btn svg.ico{ width:19px; height:19px; }
   .bio-counter{
-    position:absolute; bottom:13px; right:14px; font-family:'JetBrains Mono', monospace;
-    font-size:11px; color:var(--chalk-dim); pointer-events:none;
+    font-family:'JetBrains Mono', monospace; font-size:11px; color:var(--chalk-dim);
   }
   .bio-counter.at-limit{ color:var(--plate); }
+  /* bottom:100% relativ zu .bio-toolbar (nicht mehr zu .bio-wrap) - so
+     oeffnet sich das Panel immer direkt ueber der Knopfzeile, unabhaengig
+     von der Textfeldhoehe. */
   .emoji-panel{
-    display:none; position:absolute; bottom:42px; left:6px; right:6px; z-index:5;
+    display:none; position:absolute; bottom:100%; margin-bottom:8px; left:0; right:0; z-index:5;
     background:var(--surface-2); border:1px solid var(--steel); border-radius:12px;
     padding:10px; box-shadow:0 14px 34px rgba(0,0,0,.5);
     grid-template-columns:repeat(8, 1fr); gap:2px;
@@ -1743,10 +1759,14 @@
     content:''; width:3px; height:11px; background:var(--plate); border-radius:2px; flex-shrink:0;
   }
   /* Die drei Hauptueberschriften im Konto-Screen (Profil/Fotos/Konto) staerker
-     gewichten als die uebrigen Untermenues (Benachrichtigungen, Datenschutz):
-     groesser, weiss, fett statt der kleinen grauen Mono-Zeile. */
+     gewichten als die uebrigen Untermenues: groesser, weiss, fett statt der
+     kleinen grauen Mono-Zeile. */
   .account-section-title.lg{ font-size:15px; font-weight:700; color:var(--chalk); }
   .account-section-title.lg::before{ height:13px; }
+  /* Benachrichtigungen und Datenschutz & Sicherheit bekommen dieselbe weisse
+     Farbe wie oben, aber bewusst ohne die groessere/fette Schrift - das sind
+     Untermenues, keine Hauptueberschriften. */
+  .account-section-title.white{ color:var(--chalk); }
   /* ---- Schieberegler fuer die Benachrichtigungen ----
      Eine echte Checkbox traegt den Zustand (Tastatur, Screenreader, :checked),
      sichtbar ist nur die Bahn davor. Kein div mit role=switch: das muesste
@@ -1788,14 +1808,6 @@
     text-decoration:underline; text-underline-offset:3px; cursor:pointer;
   }
   .account-footer-link button:hover{ color:var(--plate-bright); }
-
-  /* Steht anstelle des Aboverwaltungs-Links, wenn das Abo aus einer der Apps
-     stammt: ein Satz statt eines Knopfes, weil es hier nichts zu klicken gibt.
-     Gleiche Zeile, deshalb dieselben Aussenabstaende wie .account-footer-link. */
-  .account-footer-note{
-    text-align:center; margin:10px auto 8px; max-width:340px; padding:0 8px;
-    font-size:12px; line-height:1.5; color:var(--chalk-dim);
-  }
 
   /* Der Widerruf bleibt nach Art. 7 Abs. 3 DSGVO direkt erreichbar, steht aber
      als eigene Aktion unter dem Inhalt statt gequetscht im Fliesstext. */
@@ -2234,11 +2246,13 @@
       <label for="f-bio" data-i18n="reg.bio">Bio</label>
       <div class="bio-wrap">
         <textarea id="f-bio" data-i18n-ph="reg.bioPh" placeholder="Was du suchst, dein Training, gerne mit Emojis 💪" maxlength="280"></textarea>
-        <button type="button" class="emoji-btn" id="btnEmojiToggleReg" data-i18n-aria="common.emojiInsert" aria-label="Emoji einfügen">
-          <svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M9 10h.01M15 10h.01M8.8 14.2c.8 1 1.9 1.6 3.2 1.6s2.4-.6 3.2-1.6"/></svg>
-        </button>
-        <span class="bio-counter" id="fBioCounter">0/280</span>
-        <div class="emoji-panel" id="emojiPanelReg"></div>
+        <div class="bio-toolbar">
+          <button type="button" class="emoji-btn" id="btnEmojiToggleReg" data-i18n-aria="common.emojiInsert" aria-label="Emoji einfügen">
+            <svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M9 10h.01M15 10h.01M8.8 14.2c.8 1 1.9 1.6 3.2 1.6s2.4-.6 3.2-1.6"/></svg>
+          </button>
+          <span class="bio-counter" id="fBioCounter">0/280</span>
+          <div class="emoji-panel" id="emojiPanelReg"></div>
+        </div>
       </div>
 
       <label id="photoGridLabel" data-i18n="reg.photos">Fotos (mind. 3, max. 6)</label>
@@ -2394,7 +2408,7 @@
           <h2 class="headline" style="font-size:20px; margin-bottom:2px;" id="acctName">—</h2>
           <div class="account-sub" id="acctSubline"></div>
         </div>
-        <div class="verify-badge-wrap">
+        <div class="verify-badge-wrap" id="verifyBadgeWrap">
           <button type="button" class="verify-badge" id="verifyBadge">—</button>
           <div class="verify-tooltip" id="verifyTooltip"></div>
         </div>
@@ -2454,11 +2468,13 @@
         <label for="a-bio" data-i18n="reg.bio">Bio</label>
         <div class="bio-wrap">
           <textarea id="a-bio" data-i18n-ph="reg.bioPh" placeholder="Was du suchst, dein Training, gerne mit Emojis 💪" maxlength="280"></textarea>
-          <button type="button" class="emoji-btn" id="btnEmojiToggle" data-i18n-aria="common.emojiInsert" aria-label="Emoji einfügen">
-            <svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M9 10h.01M15 10h.01M8.8 14.2c.8 1 1.9 1.6 3.2 1.6s2.4-.6 3.2-1.6"/></svg>
-          </button>
-          <span class="bio-counter" id="aBioCounter">0/280</span>
-          <div class="emoji-panel" id="emojiPanel"></div>
+          <div class="bio-toolbar">
+            <button type="button" class="emoji-btn" id="btnEmojiToggle" data-i18n-aria="common.emojiInsert" aria-label="Emoji einfügen">
+              <svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M9 10h.01M15 10h.01M8.8 14.2c.8 1 1.9 1.6 3.2 1.6s2.4-.6 3.2-1.6"/></svg>
+            </button>
+            <span class="bio-counter" id="aBioCounter">0/280</span>
+            <div class="emoji-panel" id="emojiPanel"></div>
+          </div>
         </div>
 
         <label for="a-radius"><span data-i18n="acct.radius">Suchumkreis</span><span class="info-hint">
@@ -2516,10 +2532,10 @@
            Bequemlichkeitsfrage: Im Browser ist Stripe der Haendler (unser
            Portal), bei einem Kauf in einer der Apps der jeweilige Store, den
            wir gar nicht beenden koennten. Der Stripe-Fall bleibt hier als
-           Knopf; der Store-Hinweis (kein Knopf, nur ein Satz) steht seit
-           19.09.2026 stattdessen ganz unten in "Datenschutz & Sicherheit"
-           (#acctSubscriptionStoreHint dort) - beide Sichtbarkeiten setzt
-           weiterhin renderSubscriptionRow() ueber dieselbe ID. -->
+           Knopf; der Store-Hinweis stand zwischenzeitlich als eigener Satz
+           unten in "Datenschutz & Sicherheit", sitzt seit 19.09.2026 (2)
+           stattdessen als Hover-Text auf dem Premium-Stern neben dem Namen
+           (renderAccount) - dort, wo das Abzeichen sowieso schon steht. -->
       <p class="account-footer-link" id="acctSubscriptionRow" style="display:none;">
         <button type="button" id="btnManageSubscription" data-i18n="acct.subscription">Aboverwaltung</button>
       </p>
@@ -2547,7 +2563,7 @@
       </div>
 
       <div class="account-section">
-        <div class="account-section-title" data-i18n="notif.matchTitle">Neues Match</div>
+        <div class="account-section-title white" data-i18n="notif.matchTitle">Neues Match</div>
         <div class="switch-row">
           <div class="switch-text">
             <div class="switch-label" data-i18n="notif.email">E-Mail</div>
@@ -2571,7 +2587,7 @@
       </div>
 
       <div class="account-section">
-        <div class="account-section-title" data-i18n="notif.queueTitle">Neue Profile im Umkreis</div>
+        <div class="account-section-title white" data-i18n="notif.queueTitle">Neue Profile im Umkreis</div>
         <div class="switch-row">
           <div class="switch-text">
             <div class="switch-label" data-i18n="notif.email">E-Mail</div>
@@ -2595,7 +2611,7 @@
       </div>
 
       <div class="account-section">
-        <div class="account-section-title" data-i18n="notif.inactiveTitle">Erinnerung bei Inaktivität</div>
+        <div class="account-section-title white" data-i18n="notif.inactiveTitle">Erinnerung bei Inaktivität</div>
         <div class="switch-row">
           <div class="switch-text">
             <div class="switch-label" data-i18n="notif.email">E-Mail</div>
@@ -2619,7 +2635,7 @@
       </div>
 
       <div class="account-section">
-        <div class="account-section-title" data-i18n="notif.pendingLikesTitle">Offene Likes ohne Match</div>
+        <div class="account-section-title white" data-i18n="notif.pendingLikesTitle">Offene Likes ohne Match</div>
         <div class="switch-row">
           <div class="switch-text">
             <div class="switch-label" data-i18n="notif.email">E-Mail</div>
@@ -2668,22 +2684,22 @@
       </div>
 
       <div class="account-section">
-        <div class="account-section-title" data-i18n="privacy.matching">Matching-Präferenzen</div>
+        <div class="account-section-title white" data-i18n="privacy.matching">Matching-Präferenzen</div>
         <div id="myConsents"><div class="loading" data-i18n="common.loading">Lade …</div></div>
       </div>
 
       <div class="account-section">
-        <div class="account-section-title" data-i18n="privacy.blocked">Blockierte Personen</div>
+        <div class="account-section-title white" data-i18n="privacy.blocked">Blockierte Personen</div>
         <div id="myBlocks"><div class="loading" data-i18n="common.loading">Lade …</div></div>
       </div>
 
       <div class="account-section">
-        <div class="account-section-title" data-i18n="privacy.reports">Meine Meldungen</div>
+        <div class="account-section-title white" data-i18n="privacy.reports">Meine Meldungen</div>
         <div id="myReports"><div class="loading" data-i18n="common.loading">Lade …</div></div>
       </div>
 
       <div class="account-section">
-        <div class="account-section-title" data-i18n="legal.section">Rechtliches</div>
+        <div class="account-section-title white" data-i18n="legal.section">Rechtliches</div>
         <nav class="legal-link-list" data-i18n-aria="legal.docs.aria" aria-label="Rechtliche Dokumente">
           <a data-i18n="legal.datenschutz" href="/datenschutz.html" class="legal-link" data-legal-page="datenschutz.html">Datenschutz</a>
           <a data-i18n="legal.agb" href="/agb.html" class="legal-link" data-legal-page="agb.html">AGB</a>
@@ -2693,13 +2709,6 @@
           <a data-i18n="legal.meldung" href="/meldung.html" class="legal-link" data-legal-page="meldung.html">Inhalt melden</a>
         </nav>
       </div>
-
-      <!-- Hinweis fuer Abos aus den Stores, ganz am Fuss des Screens statt
-           zwischen den Kontoeinstellungen: siehe Begruendung bei
-           #acctSubscriptionRow im Konto-Screen. Sichtbarkeit setzt weiterhin
-           renderSubscriptionRow() ueber dieselbe ID, egal wo das Element im
-           DOM steht. -->
-      <p class="account-footer-note" id="acctSubscriptionStoreHint" style="display:none;" data-i18n="acct.subStoreHint">Dein Abo läuft über den App Store bzw. Google Play — verwalten und kündigen lässt es sich nur dort.</p>
     </section>
 
     <!-- ALTERS- UND IDENTITÄTSPRÜFUNG: Übersicht/Status -->
@@ -3495,19 +3504,27 @@
   // kompakte Zeilen (Header, Karten-Ortszeile) reicht der Name-Teil.
   function gymName(s){ return String(s || '').split(' — ')[0]; }
 
-  // Blauer Verifizierungs-Haken (nach manueller Selfie-Prüfung)
+  // Blauer Verifizierungs-Haken (nach manueller Selfie-Prüfung). Die viewBox
+  // ist groesser als der gezeichnete Pfad (statt 0 0 24 24) - das schafft
+  // denselben optischen Rand wie frueher width/height:62%, ohne dass das svg
+  // selbst kleiner als sein 17px-Kasten ist (siehe Kommentar bei
+  // .verified-badge svg zum vertical-align-Bezug).
   const VERIFIED_BADGE_SVG = () => '<span class="verified-badge" title="' + escapeHtml(t('profile.verified'))
-    + '"><svg viewBox="0 0 24 24"><path d="M5.5 12.5 10 17 18.5 7.5"/></svg></span>';
+    + '"><svg viewBox="-7 -7 38 38"><path d="M5.5 12.5 10 17 18.5 7.5"/></svg></span>';
   function verifiedBadge(p){
     return p && p.is_verified ? VERIFIED_BADGE_SVG() : '';
   }
 
   /* Premium-Abzeichen neben dem Namen. Steht immer NACH dem Verifiziert-Haken:
      verifiziert ist eine Aussage ueber die Person, Premium eine ueber das Abo -
-     die wichtigere zuerst. */
-  const PREMIUM_BADGE_SVG = () =>
-    '<span class="premium-badge" title="' + escapeHtml(t('premium.badgeTitle')) + '" aria-label="' +
-    escapeHtml(t('premium.badgeTitle')) + '"><svg viewBox="0 0 24 24" aria-hidden="true">' +
+     die wichtigere zuerst.
+     `title` optional: im eigenen Kontokopf (renderAccount) ersetzt ihn der
+     Store-Kuendigungshinweis, wenn das Abo ueber App Store/Google Play laeuft
+     - auf fremden Profilen (Deck, Matches, Chat) bleibt es immer beim
+     Standardtitel, dort waere ein Hinweis zum EIGENEN Abo unsinnig. */
+  const PREMIUM_BADGE_SVG = (title) =>
+    '<span class="premium-badge" title="' + escapeHtml(title || t('premium.badgeTitle')) + '" aria-label="' +
+    escapeHtml(title || t('premium.badgeTitle')) + '"><svg viewBox="0 0 24 24" aria-hidden="true">' +
     '<path d="M12 3.5 14.6 9l6 .9-4.3 4.2 1 6-5.3-2.8L6.7 20l1-6L3.4 9.9l6-.9z"/></svg></span>';
 
   function premiumBadge(p){
@@ -4622,13 +4639,12 @@
          ohne auf irgendetwas zu warten (siehe billing.create_portal).
        - is_premium ohne Stripe  -> in einer der Apps gekauft. Das Portal
          antwortete darauf mit 400 "Noch kein Abo abgeschlossen"; statt dieser
-         Sackgasse steht dort jetzt ein Satz, der auf den Store verweist.
+         Sackgasse steht der Kuendigungshinweis als Hover-Text auf dem
+         Premium-Stern (siehe renderAccount).
      Sonst bleibt die Zeile weg - es gibt nichts zu verwalten. */
   function renderSubscriptionRow(){
     const ueberStripe = !!(membership && membership.has_stripe_subscription);
-    const ueberStore  = isPremium() && !ueberStripe;
     $('acctSubscriptionRow').style.display = ueberStripe ? '' : 'none';
-    $('acctSubscriptionStoreHint').style.display = ueberStore ? '' : 'none';
   }
 
   $('btnManageSubscription').addEventListener('click', async ()=>{
@@ -4661,8 +4677,13 @@
   function renderAccount(opts){
     // Das eigene Abzeichen kommt aus dem Abostatus, nicht aus dem Profil:
     // /api/profiles/me ist die Selbstansicht und traegt kein is_premium.
+    // Bei einem Store-Abo (App Store/Google Play) ersetzt der Hover-Text des
+    // Sterns den Standardtitel durch den Kuendigungshinweis - das Web-Portal
+    // kann so ein Abo ohnehin nicht verwalten, siehe renderSubscriptionRow().
+    const ueberStoreBadge = isPremium() && !(membership && membership.has_stripe_subscription);
     $('acctName').innerHTML = escapeHtml(myProfile.name + ', ' + myProfile.age)
-      + verifiedBadge(myProfile) + (isPremium() ? PREMIUM_BADGE_SVG() : '');
+      + verifiedBadge(myProfile)
+      + (isPremium() ? PREMIUM_BADGE_SVG(ueberStoreBadge ? t('acct.subStoreHint') : null) : '');
     renderVerificationSection();
     $('acctSubline').textContent = [myProfile.city, gymName(myProfile.gym)].filter(Boolean).join(' · ');
 
@@ -6602,16 +6623,21 @@
   let verifyBadgeClickable = false;
 
   async function renderVerificationSection(){
+    const wrap = $('verifyBadgeWrap');
     const badge = $('verifyBadge');
     const tip = $('verifyTooltip');
     verifyBadgeClickable = false;
 
+    // Verifiziert steht bereits als Haken direkt beim Namen (acctName) - die
+    // separate "Verifiziert"-Pille daneben sagt in diesem Zustand nichts
+    // Neues mehr und faellt deshalb ganz weg. Fuer alle anderen Zustaende
+    // bleibt sie da: sie ist dort der Einstieg in die Verifizierung, kein
+    // reines Abzeichen.
     if(myProfile.is_verified){
-      badge.className = 'verify-badge done';
-      badge.innerHTML = `${VERIFIED_BADGE_SVG()} ${escapeHtml(t('vbadge.badge'))}`;
-      tip.innerHTML = t('vbadge.verified', {badge: VERIFIED_BADGE_SVG()});
+      wrap.style.display = 'none';
       return;
     }
+    wrap.style.display = '';
 
     badge.className = 'verify-badge pending';
     badge.textContent = '…';
