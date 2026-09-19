@@ -430,9 +430,15 @@
     transition:transform .35s cubic-bezier(.2,.8,.3,1), opacity .3s ease;
   }
   /* Oberste Karte (bzw. Einzelkarte im Match-Profil) bekommt den Marken-Rand,
-     wie die Demo-Karten auf der Landingpage */
+     wie die Demo-Karten auf der Landingpage.
+     Der Marken-Rand liegt INSET, nicht aussen: die Karte sitzt buendig am
+     linken Rand von .screen.active (overflow-x:hidden, siehe Kommentar bei
+     .plz-combo.focused weiter oben - derselbe Fehler). Ein aussen liegender
+     Rand wuerde links vom Scroll-Container abgeschnitten - oben, rechts und
+     unten orange, links fehlend. Inset bleibt innerhalb der eigenen Box und
+     damit immer sichtbar. */
   .deck .card:last-child, .profile-card-wrap .card{
-    box-shadow:0 22px 46px rgba(0,0,0,0.55), 0 0 0 1.5px rgba(255,90,31,.3);
+    box-shadow:0 22px 46px rgba(0,0,0,0.55), inset 0 0 0 1.5px rgba(255,90,31,.3);
   }
   .card.dragging{ cursor:grabbing; transition:none; }
   .card .stamp{
