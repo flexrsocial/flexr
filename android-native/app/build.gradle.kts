@@ -260,8 +260,14 @@ android {
         // sichtbar zu hoch (Oswalds Versal-/Ascent-Luecke, siehe Kommentar
         // in AccountScreen.kt) - analog zum Web-Haken jetzt mit einem
         // kleinen manuellen Offset nach unten korrigiert.
-        versionCode = 125
-        versionName = "2.7.13"
+        // 126/2.7.14 am 20.09.2026: Gym laesst sich nur noch alle 3 Monate
+        // aendern (Umgehungsschutz fuer den per Gym-Adresse berechneten
+        // FLEXR-Premium-Suchumkreis), mit erklaerendem Info-Dialog am
+        // Gym-Feld. Ausserdem derselbe Oswald-Offset wie beim Haken oben
+        // jetzt auch am Premium-Stern daneben (sass sichtbar hoeher) und an
+        // den Kopf-Badges "Premium"/"Beta"-Pille neben der FLEXR-Wortmarke.
+        versionCode = 126
+        versionName = "2.7.14"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         // Nur die Sprachen ausliefern, die es wirklich gibt: Deutsch als
