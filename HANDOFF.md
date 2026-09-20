@@ -1,20 +1,24 @@
 # FLEXR — Handoff für ein anderes Gerät / Claude Code
 
-Stand: **18.09.2026**
+Stand: **20.09.2026**
 
 ## Wo das Projekt gerade steht
 
-> **Dringend zu prüfen beim Einstieg: Ist Android 2.7.5 (versionCode 117) in
-> der Play Console live?** Der Nutzer hat 116 (2.7.4) auf ausdrücklichen
-> Wunsch **direkt in Produktion** hochgeladen, obwohl diese Fassung den
-> Absturz beim Start noch **nicht** behoben hat (siehe „Sitzung 18.09.2026
-> (2)" unten) — 117 wurde ihm danach übergeben, ob der Play-Console-Upload von
-> 117 tatsächlich passiert ist, ist von hier aus nicht einsehbar. Falls nicht:
-> **Jeder Nutzer, der gerade aktualisiert, bekommt eine App, die sofort nach
-> dem Start abstürzt.** Play Console prüfen, im Zweifel 117 aus
-> `release-2.7.5/flexr-2.7.5-vc117.aab` sofort hochladen.
+> **Die alte "Dringend zu prüfen"-Notiz zu Android 2.7.5/versionCode 117
+> (Absturz beim Start) ist überholt und entfernt** — seither sind ohne
+> Rückmeldung eines erneuten Absturzes bereits die Fassungen 2.7.6 bis 2.7.13
+> gebaut und mehrfach committet/gepusht worden; das Problem gilt als erledigt.
 
 **Alles committet, gepusht und deployed.** Der VPS steht auf `origin/main`
+(**`4a3cfed`**, Sitzung 20.09.2026 (2) — Android 2.7.13/versionCode 125:
+Benachrichtigungs-Text korrigiert/gekürzt, Verifiziert-Haken im Konto-Kopf
+dritter Anlauf, diesmal per Pixelmessung. Reines Android-Repo, kein
+VPS-Deploy für diesen Commit) und **`826808b`** (dieselbe Sitzung — Web:
+dieselbe Textkorrektur, **deployed**) sowie **`4c34d58`** (Sitzung davor —
+Android 2.7.12/versionCode 124: Benachrichtigungen-Dialog-Layout,
+Impressum-Tabelle, ebenfalls reines Android-Repo). AAB für 2.7.13 liegt unter
+`dl-a616e78274de323b/flexr-2.7.13.aab`; **noch nicht in der Play Console
+hochgeladen** (bleibt manueller Schritt). Davor
 (**`223bc90`**, Sitzung 19.09.2026 (13) — Web: Kartenrand jetzt als echter
 CSS-`border` statt `box-shadow`. Dritter Anlauf an derselben Stelle: aussen
 liegend wurde er vom `overflow-x:hidden` des Scroll-Containers abgeschnitten
@@ -63,13 +67,18 @@ gegengeprüft, beides passt.
 > **Einstieg für die nächste Sitzung.** Nichts hängt technisch halbfertig.
 > Zwei Tests stehen noch aus, unabhängig vom Ausgang der Apple-Prüfung:
 >
-> 1. **Sandbox-Kauf auf einem echten Gerät.** Bei Apple: App Store Connect →
->    Benutzer und Zugriffsrechte → Sandbox → Tester anlegen, dann auf dem
->    iPhone unter Einstellungen → App Store → Sandbox-Konto anmelden. Bei
->    Google: Play Console → Einstellungen → Lizenztests → die eigene
+> 1. **Sandbox-Kauf auf einem echten Gerät.**
+>    ~~Google: Play Console → Einstellungen → Lizenztests → die eigene
 >    Google-Kontoadresse als Lizenztester eintragen. Erst danach lässt sich der
->    Kauf-Knopf in beiden Apps tatsächlich durchklicken, ohne echtes Geld zu
->    bewegen.
+>    Kauf-Knopf tatsächlich durchklicken, ohne echtes Geld zu bewegen.~~ —
+>    **erledigt am 20.09.2026**, siehe „Sitzung 20.09.2026" unten: Ohne den
+>    Eintrag scheiterte der Kauf mit "Artikel nicht gefunden", obwohl Produkt
+>    und Preis korrekt geladen wurden. Nach Eintragung lief der Testkauf bis
+>    zum Server durch; die Freischaltung blieb dabei absichtlich aus (Sandbox-
+>    Käufe werden auf Produktion nicht angenommen, siehe dort).
+>    Bei Apple weiterhin offen: App Store Connect → Benutzer und
+>    Zugriffsrechte → Sandbox → Tester anlegen, dann auf dem iPhone unter
+>    Einstellungen → App Store → Sandbox-Konto anmelden.
 > 2. **Push mit zwei echten Geräten.** Eine Chat-Nachricht schicken und
 >    prüfen, ob sie **sofort** ankommt - nicht erst nach manuellem Öffnen der
 >    App. Das war der ursprünglich gemeldete Fehler (Sitzung 17.09.2026 (7));
@@ -311,6 +320,177 @@ Ausgangssitzung), dann die **drei Abschnitte vom 10.09.**
 **08.09.**, dann die beiden Sitzungen vom **07.09.**, dann **06.09.**, dann
 **05.09.**, dann **31.08.**, **30.08.**, **23.08.**, **21.08.**; die Build-,
 Test- und Deploy-Abschnitte am Ende gelten sitzungsübergreifend.
+
+## Sitzung 20.09.2026 (2) — Benachrichtigungs-Texte (Android + Web), Verifiziert-Haken im Android-Konto-Header dritter Anlauf
+
+Rückmeldung anhand zweier Android-Screenshots (Benachrichtigungen-Dialog,
+Konto-Kopf).
+
+### 1. Zwei Textkorrekturen, Android und Web gleichlautend
+
+- `notify_inactive_hint` / `notif.inactiveEmailHint`: "Wenn du sieben Tage
+  nicht **in** FLEXR warst" hieß korrekt "... nicht **auf** FLEXR warst".
+- `notify_legal_hint` / `notif.legalHint`: von "Rechtlich nötige Nachrichten
+  — etwa zu Abo, Rücktritt oder Moderationsentscheidungen — lassen sich hier
+  nicht abschalten." auf einen Satz gekürzt: "Rechtlich nötige Nachrichten
+  lassen sich nicht deaktivieren."
+
+Android in `strings.xml`, Web sowohl in `i18n-app.js` (Quelle) als auch im
+statischen Fallback-Text in `index.html` (`data-i18n`-Attribut lädt zur
+Laufzeit aus der i18n-Datei, der Fallback im HTML selbst muss trotzdem
+gleichlautend gepflegt werden, sonst zeigt eine JS-Fehlersituation den alten
+Text). Die englische Fassung ("... on FLEXR ...") hatte den Tippfehler nicht
+und blieb unverändert.
+
+### 2. Verifiziert-Haken im Konto-Kopf: dritter Anlauf, diesmal mit echter Pixelmessung
+
+**Vorgeschichte, wichtig für die Einordnung:** Sitzung 19.09.2026 (6) hatte
+`alignByBaseline()` versucht - laut Rückmeldung sichtbar schlimmer. Sitzung
+19.09.2026 (11) hat das zurückgenommen und stattdessen die Zeilenbox des
+Namens auf ihre Schriftmetriken getrimmt (`includeFontPadding = false`,
+`LineHeightStyle(Center, Trim.Both)`), in der Annahme, `Row.CenterVertically`
+zentriere dann von selbst richtig - **ausdrücklich unverifiziert**, kein
+Gerät/Emulator zur Hand, siehe dortiger Abschnitt "Geprüft" mit der
+expliziten Warnung, vor einem dritten Versuch nicht wieder nur eine weitere
+Schriftmetrik-Theorie aufzustellen, sondern echt zu messen.
+
+Der jetzt vorgelegte Screenshot zeigt genau den Zustand nach diesem
+getrimmten Fix - und der Haken sitzt dort tatsächlich noch sichtbar zu hoch.
+Diesmal **an den Pixeln des Screenshots nachgemessen** (PIL, Blaumaske für
+den Kreis gegen Weißmaske für "37"): Haken-Mittelpunkt bei y≈219, sichtbare
+Ziffernmitte bei y≈221 (Screenshot 591×1280, Badge-Durchmesser dort ≈25px
+für die eingestellten 16dp) - eine Verschiebung von rund **1,5dp nach
+unten**. Umgesetzt als `Modifier.offset(y = 1.5.dp)` direkt auf den
+`VerifiedBadge()`-Aufruf in `AccountScreen.kt`, mit Kommentar zur Ursache
+(Oswalds Versal-/Ascent-Lücke ist größer als sein Descent, wodurch selbst
+die auf reine Schriftmetriken getrimmte Zeilenbox geometrisch höher liegt
+als die sichtbare Glyphenmitte) statt eines weiteren Alignment-Modifiers auf
+dem Text.
+
+**Trotzdem weiterhin nicht am Gerät geprüft** - kein Emulator auf diesem
+Gerät, wie schon in Sitzung (11). Neu ist nur, dass die Korrektur diesmal aus
+einer echten Messung am eingesendeten Screenshot stammt statt aus einer
+weiteren Theorie; die nächste Rückmeldung mit Screenshot ist der eigentliche
+Beweis. `PremiumBadge` daneben war im Screenshot nicht zu sehen (Julian ist
+nicht Premium) und wurde nicht angefasst - falls derselbe Versatz dort
+gebraucht wird, ist das ein eigener, noch unbestätigter Verdacht.
+
+### Android 2.7.13 (versionCode 125) — Build
+
+Gebaut mit `testProdDebugUnitTest` (grün) und
+`./gradlew --offline --no-build-cache :app:bundleProdRelease
+:app:assembleProdRelease` (5m38s, Toolchain unter `~/.bubblewrap/` wie
+dokumentiert). Beide Artefakte gebaut, nicht nur die `.aab`:
+
+| | SHA-256 | Größe |
+|---|---|---|
+| AAB (Play Console) | `9ac67dd813a475942aa1451eab892dd7adc6f348d98d0912688d11dc678a811f` | 8.453.194 Bytes |
+| APK (Sideload/Download) | `6bdad0814c3fda32db19b0ee83a2a9b9f2a89ece1a541339e4bb4f238d4fba53` | 4.376.670 Bytes |
+
+`versionName` im Bundle-Manifest gegengeprüft (nicht nur in der
+Gradle-Datei): `2.7.13`. Signatur mit `apksigner verify --print-certs` auf
+der APK geprüft (nicht `jarsigner` - der meldet bei reiner v2/v3-Signierung
+faelschlich "jar is unsigned", weil er nur das alte JAR-Signing-Schema
+kennt): Signer-Zertifikat `SHA-256 BC:64:AD:3F:...:79:80`, identisch mit dem
+in `KEYSTORE-CREDENTIALS.txt` hinterlegten Fingerprint - derselbe Upload-Key
+wie bisher.
+
+**Build-Umgebung während dieser Sitzung ungewöhnlich knapp:** Neben dem
+Gradle-Daemon liefen gleichzeitig die Claude-Code-Desktop-App und ein
+Chrome-Fenster mit mehreren Tabs - zusammen kaum noch 300 MB freier RAM,
+rund 3 GB Swap in Benutzung, Ladeschnitt (`load average`) zeitweise nahe 10.
+Der Build lief trotzdem durch (kein OOM-Kill, `minifyProdReleaseWithR8`
+allein hat unter dem Druck mehrere Minuten gebraucht), aber der Rest des
+Desktops wirkte für den Nutzer währenddessen eingefroren - keine
+Fehlfunktion, sondern echtes Swap-Thrashing. Zwei ungenutzte Browser-Pane-
+Tabs wurden deshalb während des laufenden Builds geschlossen; nennenswert
+Speicher brachte das nicht zurück. Für den nächsten Release-Build:
+nach Möglichkeit andere Anwendungen vorher schließen, siehe auch die
+bestehende RAM-Warnung weiter unten im Abschnitt "Android-Build - Toolchain
+auf diesem Gerät".
+
+### Commit, Push, Deploy
+
+Drei Commits, wie in dieser Sitzung sonst auch nach Ober­fläche/Zweck
+getrennt: **`826808b`** (Web-Textkorrektur), **`4a3cfed`** (Android
+2.7.13/versionCode 125, Text + Haken-Offset + Versionsbump) - beide gepusht,
+zusammen mit dem schon vorher lokal wartenden, noch ungepushten **`4c34d58`**
+(Sitzung von vorhin, Android 2.7.12). Web per `ssh flexr-vps 'cd /flexr &&
+git pull --ff-only origin main'` deployed, reines Frontend, kein
+Backend-Neustart nötig - `md5sum`-Vergleich (`curl https://flexr.social/app/`
+gegen die lokale Datei) und `/api/health` passen, beide korrigierten Texte
+live nachgeprüft.
+
+Neues AAB nach `dl-a616e78274de323b/flexr-2.7.13.aab` hochgeladen (SHA-256
+lokal/entfernt abgeglichen, `curl -fsSI` liefert `200 OK`). **Nicht in der
+Play Console hochgeladen** - das bleibt wie bisher ein manueller Schritt für
+den Nutzer, hier nur der Download-Link vorbereitet. Das AAB wurde dem Nutzer
+zusätzlich direkt in den Chat gereicht.
+
+## Sitzung 20.09.2026 — Android-Kauf: "Artikel nicht gefunden" durch fehlenden Lizenztester-Eintrag
+
+Rückmeldung: Beim Testkauf von FLEXR Premium im nativen Android-Client zeigte
+Google Play zunächst neben der hinterlegten Visa-Karte "Artikel in deinem
+Land nicht verfügbar". Nach Ergänzung aller 174 Länder/Regionen im
+Basis-Tarif (`premium_monthly` → `monthly`, dort vorher unvollständig
+gepflegt) blieb stattdessen "Der Artikel, den du kaufen willst, konnte nicht
+gefunden werden" - reproduzierbar mit mehreren Karten, auch nach Play-Store-
+Cache leeren. Reine Diagnose, kein Code geändert, kein Deploy.
+
+### Eingrenzung
+
+Kartenunabhängig und trotz vollständiger Länderliste - das schied einen
+Zahlungsprofil- oder Länder-Mismatch aus. `PlayBillingService.kaufen()`
+(`android-native/app/src/main/java/flexr/social/app/data/billing/PlayBillingService.kt`)
+lädt die Produktdetails vor dem eigentlichen Kauf per
+`queryProductDetailsAsync` - das gelang, der Preis "€10,00/Monat" wurde in
+der App korrekt angezeigt. Das Scheitern trat erst beim nachfolgenden
+`launchBillingFlow` auf, also bei einer Play-seitigen Berechtigungsprüfung
+fürs Konto, nicht bei einer Katalog-Frage.
+
+### Ursache
+
+Bereits oben im Dokument und in `EINRICHTUNG-PUSH-UND-KAUF.md` als offener
+Punkt vermerkt, aber noch nicht erledigt: Ohne Eintrag als **Lizenztester**
+(Play Console → Einstellungen → Lizenztests) lässt sich der Kauf-Knopf nicht
+durchklicken. Play meldet das nicht als "kein Lizenztester", sondern mit
+demselben generischen "Artikel nicht gefunden" wie bei einer echten
+Katalog-Lücke - daher der Umweg über Land/Karte, bevor der eigentliche Grund
+auffiel.
+
+**Behoben:** Google-Kontoadresse als Lizenztester eingetragen → Kauf lief
+bis zum Server durch.
+
+### Anschlussfrage: Warum kein Premium nach dem Testkauf?
+
+Erwartet, kein Bug. Server-Log (`journalctl -u flexr-api`):
+
+```
+Play-Kauf abgelehnt (user=...): Testkaeufe werden auf diesem Server nicht angenommen.
+```
+
+Google liefert für Lizenztester-Käufe `environment: "Sandbox"` statt
+`"Production"`. `apply_subscription()` (`backend/app/store_billing.py`,
+Zeile ~396) lehnt das auf Produktion ab, solange `STORE_SANDBOX_ALLOWED`
+(Standard `false`, `backend/app/config.py`, Zeile ~85) nicht auf `true`
+steht - Absicht, damit kein Lizenztester-Konto sich kostenlos echtes Premium
+verschafft. Bewusst nicht umgestellt, um die Lücke nicht auch nur
+kurzzeitig zu öffnen; der Kauf-Flow selbst gilt damit als bis zum Server
+verifiziert.
+
+### Geprüft
+
+Per `ssh flexr-vps`: `GOOGLE_SUBSCRIPTION_PRODUCT_ID` (`premium_monthly`)
+und `GOOGLE_SERVICE_ACCOUNT_FILE` korrekt gesetzt, Datei vorhanden.
+
+### Offen
+
+iOS-Sandbox-Kauf weiterhin ungetestet (hängt an Apples Freigabe von Version
+1.0, siehe oben). Falls die tatsächliche Freischaltung serverseitig einmal
+end-to-end geprüft werden soll: `STORE_SANDBOX_ALLOWED=true` temporär in der
+Server-`.env`, `systemctl restart flexr-api`, Testkauf wiederholen (oder
+`bestehendeKaeufeAbgleichen` beim nächsten App-Start triggert ihn erneut),
+danach unbedingt wieder auf `false`.
 
 ## Sitzung 19.09.2026 (13) — Web: Kartenrand als echter border (dritter Anlauf)
 
