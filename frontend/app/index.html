@@ -541,7 +541,7 @@
   }
   .lightbox-dots i.on{ background:var(--plate); transform:scale(1.25); }
   .card .name-row{ position:absolute; bottom:12px; left:16px; right:16px; }
-  .card .name-row .nm{ font-family:'Oswald'; font-size:26px; text-transform:none; letter-spacing:0; text-shadow:0 2px 10px rgba(0,0,0,.55); display:flex; align-items:center; }
+  .card .name-row .nm{ font-family:'Oswald'; font-size:26px; text-transform:none; letter-spacing:0; text-shadow:0 2px 10px rgba(0,0,0,.55); }
   .card .name-row .loc{
     font-family:'JetBrains Mono'; font-size:10.5px; color:var(--chalk-dim);
     text-transform:uppercase; letter-spacing:0.07em; margin-top:3px;
@@ -715,7 +715,7 @@
     box-shadow:0 0 12px var(--plate-glow);
   }
   .match-item .info{ flex:1; min-width:0; }
-  .match-item .info .nm{ font-family:'Oswald'; font-size:16px; letter-spacing:0.01em; display:flex; align-items:center; }
+  .match-item .info .nm{ font-family:'Oswald'; font-size:16px; letter-spacing:0.01em; }
   .match-item .info .last-msg{ font-size:12.5px; color:var(--chalk-dim); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:3px; }
   .match-item.unread .info .last-msg{ color:var(--chalk); font-weight:500; }
   /* Ungelesene Nachrichten: Rahmen leuchtet orange wie der Online-Ring */
@@ -796,7 +796,7 @@
     width:100%; height:100%; border-radius:50%; object-fit:cover; background:var(--surface-2); display:block;
     border:2px solid var(--ink); box-sizing:border-box;
   }
-  .chat-header .nm{ font-family:'Oswald'; font-size:16px; flex:1; min-width:0; letter-spacing:0.01em; display:flex; align-items:center; }
+  .chat-header .nm{ font-family:'Oswald'; font-size:16px; flex:1; min-width:0; letter-spacing:0.01em; }
   .chat-header .chat-flag-btns{ display:flex; gap:6px; align-items:center; }
   .chat-menu-wrap{ position:relative; display:inline-flex; }
   .chat-menu{
@@ -1450,19 +1450,10 @@
      Groesse statt 1em, gleiches vertical-align), damit beide Abzeichen
      nebeneinander mittig zu Namen und Alter stehen statt gegeneinander
      versetzt zu wirken.
-     vertical-align allein reicht dafuer nicht: weder baseline (richtet die
-     UNTERKANTE der 17px-Box an der Textgrundlinie aus, Box ragt oben ueber
-     die Versalhoehe hinaus) noch middle (zentriert auf Grundlinie + halbe
-     x-Hoehe, die 17px-Box haengt dadurch unten ueber die Grundlinie hinaus -
-     beides je nach Schriftgroesse einige Pixel daneben, gemessen per
-     Canvas-measureText-Ink-Bounds). Tatsaechlich zentriert wird der Haken
-     dort, wo er neben einem Namen steht, per display:flex + align-items:
-     center auf dem umgebenden .nm (siehe .match-item .info .nm, .card
-     .name-row .nm, .chat-header .nm) - das zentriert auf die gerenderte
-     Zeilenbox statt auf Schriftmetriken und trifft daher unabhaengig von
-     Schriftgroesse/-metrik. vertical-align:middle bleibt hier nur als
-     Fallback fuer Stellen ohne solchen Flex-Container (siehe
-     .verify-tooltip .verified-badge, Haken mitten im Fliesstext). */
+     vertical-align:middle statt :0 (baseline) - baseline richtet die
+     UNTERKANTE der 17px-Box an der Textgrundlinie aus, wodurch die Box nach
+     oben ueber die Versalhoehe hinausragt (bei 16px Oswald sichtbar zu hoch).
+     middle zentriert die Box stattdessen auf Hoehe von Versal-/x-Hoehe. */
   .verified-badge{
     display:inline-flex; align-items:center; justify-content:center;
     width:17px; height:17px; border-radius:50%; background:#1d9bf0; flex-shrink:0;
