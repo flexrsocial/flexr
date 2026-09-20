@@ -229,6 +229,10 @@
     // ---- Konto
     'acct.sectionProfile': 'Profil',
     'acct.sectionPhotos': 'Fotos',
+    'acct.gymInfoAria': 'Warum sich das Gym nur selten ändern lässt',
+    'acct.gymBubble': 'Der Suchumkreis wird ab der Adresse deines Gyms berechnet. Damit sich der mit FLEXR Premium bezahlte größere Umkreis nicht durch häufiges Wechseln umgehen lässt, kannst du dein Gym nur alle 3 Monate ändern.',
+    'acct.gymFieldTitle': 'Kann nur alle 3 Monate geändert werden',
+    'acct.gymLocked': 'Nächste Änderung erst wieder ab {date} möglich.',
     'acct.radius': 'Suchumkreis',
     'acct.radiusInfo': 'Wie die Suche funktioniert',
     'acct.radiusBubble': '<strong>So sucht FLEXR:</strong> Ausgangspunkt ist die Adresse deines Gyms — nicht dein Wohnort und nicht dein aktueller Standort. Innerhalb des eingestellten Umkreises siehst du alle passenden Profile, also auch Leute aus anderen Studios in der Nähe. Größerer Umkreis heißt mehr Profile, dafür weitere Wege.',
@@ -734,6 +738,10 @@
 
     'acct.sectionProfile': 'Profile',
     'acct.sectionPhotos': 'Photos',
+    'acct.gymInfoAria': 'Why the gym can only be changed rarely',
+    'acct.gymBubble': 'Your search radius is calculated from your gym’s address. To stop the larger radius that comes with FLEXR Premium from being bypassed by switching gyms often, you can only change your gym every 3 months.',
+    'acct.gymFieldTitle': 'Can only be changed every 3 months',
+    'acct.gymLocked': 'Next change possible from {date}.',
     'acct.radius': 'Search radius',
     'acct.radiusInfo': 'How the search works',
     'acct.radiusBubble': '<strong>How FLEXR searches:</strong> the starting point is your gym’s address — not your home and not your current location. Within the radius you set you see all matching profiles, including people from other gyms nearby. A larger radius means more profiles, but longer trips.',

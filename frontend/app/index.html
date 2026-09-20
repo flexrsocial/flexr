@@ -1686,6 +1686,13 @@
     font-family:'JetBrains Mono', monospace;
   }
   .gym-picked.show{ display:block; }
+  /* Karenz zwischen zwei Gym-Wechseln (Umgehungsschutz fuer den per
+     Gym-Adresse berechneten FLEXR-Premium-Suchumkreis) - Feld gesperrt,
+     Datum der naechsten moeglichen Aenderung sichtbar statt erst beim
+     Speichern als Fehler zu ueberraschen. */
+  .gym-picker input:disabled{ opacity:.55; cursor:not-allowed; }
+  .gym-lock-hint{ display:none; margin-top:6px; font-size:11.5px; color:var(--plate); }
+  .gym-lock-hint.show{ display:block; }
 
   .bio-wrap{ position:relative; }
   /* Kompakteres Feld auf Wunsch (vorher 235px, damit die vollen 280 Zeichen
@@ -1996,7 +2003,7 @@
      laufen synchron und damit vor dem DOMContentLoaded, bei dem FlexrI18n die
      data-i18n-Knoten uebersetzt. -->
 <script src="/i18n.js?v=5"></script>
-<script src="/app/i18n-app.js?v=9"></script>
+<script src="/app/i18n-app.js?v=10"></script>
 <a class="skip-link" href="#main-content" data-i18n="common.skipToContent">Zum Inhalt springen</a>
 <div class="app" id="app">
 
@@ -2480,12 +2487,16 @@
         </div>
         <div class="field-err" id="acctPlzErr"></div>
 
-        <label for="a-gym" data-i18n="reg.gym">Gym</label>
+        <label for="a-gym"><span data-i18n="reg.gym">Gym</span><span class="info-hint">
+          <button type="button" data-i18n-aria="acct.gymInfoAria" aria-label="Warum sich das Gym nur selten ändern lässt">i</button>
+          <span class="bubble" role="tooltip" data-i18n="acct.gymBubble">Der Suchumkreis wird ab der Adresse deines Gyms berechnet. Damit sich der mit FLEXR Premium bezahlte größere Umkreis nicht durch häufiges Wechseln umgehen lässt, kannst du dein Gym nur alle 3 Monate ändern.</span>
+        </span></label>
         <div class="gym-picker">
-          <input type="text" id="a-gym" data-i18n-ph="reg.gymPh" placeholder="Gym suchen (Name, Ort oder PLZ) …" autocomplete="off">
+          <input type="text" id="a-gym" data-i18n-ph="reg.gymPh" data-i18n-title="acct.gymFieldTitle" title="Kann nur alle 3 Monate geändert werden" placeholder="Gym suchen (Name, Ort oder PLZ) …" autocomplete="off">
           <div class="gym-results" id="aGymResults"></div>
         </div>
         <div class="gym-picked" id="aGymPicked"></div>
+        <div class="gym-lock-hint" id="acctGymLockHint"></div>
 
         <label for="a-bio" data-i18n="reg.bio">Bio</label>
         <div class="bio-wrap">
@@ -5042,6 +5053,7 @@
       delete $('a-gym').dataset.committed;
       $('aGymPicked').classList.remove('show');
     }
+    renderGymLockState();
     $('a-bio').value = myProfile.bio || '';
     updateABioCounter();
     $('a-radius').value = myProfile.search_radius_km || 20;
@@ -7077,6 +7089,28 @@
   function chatMutedUntil(){
     const d = parseServerDate(myProfile && myProfile.messaging_muted_until);
     return d && d > new Date() ? d : null;
+  }
+
+  // Karenz zwischen zwei Gym-Wechseln: liefert das Datum der naechsten
+  // moeglichen Aenderung, solange sie aktiv ist, sonst null.
+  function gymChangeLockedUntil(){
+    const d = parseServerDate(myProfile && myProfile.gym_change_locked_until);
+    return d && d > new Date() ? d : null;
+  }
+
+  // Sperrt das Gym-Feld waehrend der Karenz und zeigt das Datum der naechsten
+  // moeglichen Aenderung - sonst erfaehrt der Nutzer die Sperre erst als
+  // Fehlermeldung beim Speichern.
+  function renderGymLockState(){
+    const locked = gymChangeLockedUntil();
+    $('a-gym').disabled = !!locked;
+    const hint = $('acctGymLockHint');
+    if(locked){
+      setI18nText(hint, 'acct.gymLocked', {date: locked.toLocaleDateString(dateLocale())});
+      hint.classList.add('show');
+    } else {
+      hint.classList.remove('show');
+    }
   }
 
   /* Art. 17 DSA: Die begründete Mitteilung zur laufenden Maßnahme. Wird beim
