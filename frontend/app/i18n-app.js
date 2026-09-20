@@ -341,7 +341,7 @@
     'notif.pushHint': 'Nur in der Android- und iOS-App.',
     'notif.matchEmailHint': 'Wenn jemand dich zurückgeliked hat.',
     'notif.queueEmailHint': 'Sobald mindestens drei neue Profile in deinem Suchradius warten. Höchstens eine Nachricht pro Tag.',
-    'notif.inactiveEmailHint': 'Wenn du sieben Tage nicht in FLEXR warst.',
+    'notif.inactiveEmailHint': 'Wenn du sieben Tage nicht auf FLEXR warst.',
     'notif.pendingLikesEmailHint': 'Wenn dich jemand geliked hat und ihr noch kein Match seid. Höchstens eine Nachricht pro Woche.',
     'notif.matchEmailAria': 'E-Mail bei neuem Match',
     'notif.matchPushAria': 'App-Benachrichtigung bei neuem Match',
@@ -351,7 +351,7 @@
     'notif.inactivePushAria': 'App-Erinnerung bei Inaktivität',
     'notif.pendingLikesEmailAria': 'E-Mail bei offenen Likes ohne Match',
     'notif.pendingLikesPushAria': 'App-Benachrichtigung bei offenen Likes ohne Match',
-    'notif.legalHint': 'Rechtlich nötige Nachrichten — etwa zu Abo, Rücktritt oder Moderationsentscheidungen — lassen sich hier nicht abschalten.',
+    'notif.legalHint': 'Rechtlich nötige Nachrichten lassen sich nicht deaktivieren.',
     'notif.saveFailed': 'Einstellung konnte nicht gespeichert werden.',
 
     // ---- Datenschutz & Sicherheit
