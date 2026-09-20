@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -150,7 +151,16 @@ fun LoadingState(modifier: Modifier = Modifier, label: String? = null) {
     }
 }
 
-/** Statusanzeige im Kopfbereich: Testmonat / Abo aktiv / abgelaufen. */
+/**
+ * Statusanzeige im Kopfbereich: Testmonat / Abo aktiv / abgelaufen.
+ *
+ * Steht immer neben [FlexrWordmark] in [flexr.social.app.ui.navigation.FlexrTopBar]
+ * dessen Row zwar `Alignment.CenterVertically` setzt, an der reinen Zeilenbox
+ * zentriert sitzt die Pille dabei aber sichtbar hoeher als die Wortmarke -
+ * dieselbe Art Font-Metrik-Versatz wie beim Verifiziert-Haken/Premium-Stern
+ * im Konto-Kopf. Der feste Versatz gehoert deshalb hierher statt an jede der
+ * vier Aufrufstellen einzeln.
+ */
 @Composable
 fun StatusPill(text: String, expired: Boolean = false, modifier: Modifier = Modifier) {
     val colors = FlexrTheme.colors
@@ -158,6 +168,7 @@ fun StatusPill(text: String, expired: Boolean = false, modifier: Modifier = Modi
     val borderColor = if (expired) colors.danger.copy(alpha = 0.4f) else colors.lime.copy(alpha = 0.3f)
     Box(
         modifier = modifier
+            .offset(y = 1.5.dp)
             .clip(RoundedCornerShape(20.dp))
             .background(Color.White.copy(alpha = 0.02f))
             .border(1.dp, borderColor, RoundedCornerShape(20.dp))
@@ -173,12 +184,15 @@ fun StatusPill(text: String, expired: Boolean = false, modifier: Modifier = Modi
  * ist. Markenfarbe statt der neutralen [StatusPill]-Optik, weil das hier
  * keine Statusanzeige ist, sondern ein Knopf. Entspricht `.premium-cta-pill`
  * im Web.
+ *
+ * Derselbe Versatz wie [StatusPill] - steht in derselben Kopfzeile daneben.
  */
 @Composable
 fun PremiumActivatePill(onClick: () -> Unit, modifier: Modifier = Modifier) {
     val colors = FlexrTheme.colors
     Box(
         modifier = modifier
+            .offset(y = 1.5.dp)
             .clip(RoundedCornerShape(20.dp))
             .background(colors.plate.copy(alpha = 0.08f))
             .border(1.dp, colors.plate, RoundedCornerShape(20.dp))

@@ -250,7 +250,12 @@ fun AccountScreen(
                     }
                     if (currentProfile?.profile?.isPremium == true) {
                         Spacer(Modifier.width(6.dp))
-                        PremiumBadge()
+                        // Derselbe Versatz wie beim Verifiziert-Haken oben, aus
+                        // demselben Grund: an der Zeilenbox zentriert sitzt der
+                        // Stern sonst sichtbar hoeher als der Haken daneben,
+                        // per Screenshot nachgemessen (Zentren beider Abzeichen
+                        // vorher rund 2.3px auseinander bei ~1.5px/dp).
+                        PremiumBadge(modifier = Modifier.offset(y = 1.5.dp))
                     }
                 }
                 Text(
