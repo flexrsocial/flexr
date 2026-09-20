@@ -635,7 +635,7 @@
      Verifiziert-Haken, damit beide nebeneinander ruhig wirken. */
   .premium-badge{
     display:inline-flex; align-items:center; justify-content:center;
-    width:17px; height:17px; margin-left:5px; vertical-align:middle;
+    width:17px; height:17px; margin-left:5px; vertical-align:0;
     color:var(--plate);
   }
   .premium-badge svg{ width:100%; height:100%; fill:currentColor; }
@@ -1449,15 +1449,11 @@
   /* Blauer Verifizierungs-Haken - dieselbe Box wie .premium-badge (feste
      Groesse statt 1em, gleiches vertical-align), damit beide Abzeichen
      nebeneinander mittig zu Namen und Alter stehen statt gegeneinander
-     versetzt zu wirken.
-     vertical-align:middle statt :0 (baseline) - baseline richtet die
-     UNTERKANTE der 17px-Box an der Textgrundlinie aus, wodurch die Box nach
-     oben ueber die Versalhoehe hinausragt (bei 16px Oswald sichtbar zu hoch).
-     middle zentriert die Box stattdessen auf Hoehe von Versal-/x-Hoehe. */
+     versetzt zu wirken. */
   .verified-badge{
     display:inline-flex; align-items:center; justify-content:center;
     width:17px; height:17px; border-radius:50%; background:#1d9bf0; flex-shrink:0;
-    vertical-align:middle; margin-left:5px;
+    vertical-align:0; margin-left:5px;
   }
   /* svg bewusst auf 100% statt sichtbar kleiner: ein inline-flex-Element ohne
      eigene Text-Baseline uebernimmt als vertical-align-Bezug die Unterkante
