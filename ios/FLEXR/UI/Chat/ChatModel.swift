@@ -63,6 +63,10 @@ final class ChatModel {
     @ObservationIgnored private let safety: SafetyRepository
     @ObservationIgnored private let profiles: ProfileRepository
     @ObservationIgnored private let onMessage: (String) -> Void
+    /// Nur fuer die Empfangsbestaetigung mit Aktenzeichen einer Profilmeldung
+    /// (Art. 16 Abs. 4 DSA) - bleibt stehen statt nach zwei Sekunden zu
+    /// verschwinden (siehe AppModel.showSticky).
+    @ObservationIgnored private let onStickyMessage: (String) -> Void
 
     /// Texte in der gewählten Sprache. Als Referenz auf den Speicher und nicht
     /// als Kopie: eine Umstellung mitten in der Sitzung wirkt dann sofort auch
@@ -74,7 +78,8 @@ final class ChatModel {
         matchID: String,
         container: AppContainer,
         languageStore: LanguageStore,
-        onMessage: @escaping (String) -> Void
+        onMessage: @escaping (String) -> Void,
+        onStickyMessage: @escaping (String) -> Void
     ) {
         self.matchID = matchID
         self.languageStore = languageStore
@@ -83,6 +88,7 @@ final class ChatModel {
         safety = container.safety
         profiles = container.profiles
         self.onMessage = onMessage
+        self.onStickyMessage = onStickyMessage
         messages = messageRepository.messages(matchID: matchID)
     }
 
@@ -255,7 +261,7 @@ final class ChatModel {
                 // Art. 16 Abs. 4 DSA: Der Melder bekommt die Bestätigung mit
                 // Aktenzeichen zu sehen, nicht nur ein „danke".
                 let ack = try await safety.report(userID: userID, reason: reason)
-                onMessage(ack.message)
+                onStickyMessage(ack.message)
             } catch {
                 onMessage(error.localizedDescription)
             }

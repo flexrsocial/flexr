@@ -101,7 +101,7 @@ struct MatchProfileView: View {
             do {
                 // Empfangsbestätigung mit Aktenzeichen (Art. 16 Abs. 4 DSA)
                 let ack = try await container.safety.report(userID: userID, reason: reason)
-                appModel.show(ack.message)
+                appModel.showSticky(ack.message)
             } catch {
                 appModel.show(error.localizedDescription)
             }

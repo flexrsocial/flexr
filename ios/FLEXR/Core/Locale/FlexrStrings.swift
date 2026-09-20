@@ -93,12 +93,16 @@ enum L: Hashable, Sendable {
 
     // Konto
     case accountSectionProfile, accountSectionPhotos
+    case accountSectionSubscription
     case accountManageSubscription, accountRadiusHint, accountRadiusCapped
 
     // FLEXR Premium. Die Nutzung von FLEXR selbst ist dauerhaft kostenlos;
     // Preis und Grenzen kommen als Platzhalter vom Server.
-    case premiumStatusActive, premiumStatusBeta, premiumStatusFree
     case premiumShowOffer, premiumTitle, premiumSub, premiumEyebrow
+    /// Knopf im Kopf, links neben der Status-Pille - direkter Weg zum
+    /// Premium-Angebot, unabhaengig davon, welcher Bildschirm gerade offen
+    /// ist. Entspricht premium.activateCta im Web.
+    case premiumActivateCta
     case premiumFeatureLikes, premiumFeatureChats, premiumFeatureIncoming
     case premiumFeatureRewind, premiumFeatureRadius, premiumFeatureBadge
     case premiumBetaHint, premiumLikesLeft, premiumLikesGone
@@ -151,8 +155,8 @@ enum L: Hashable, Sendable {
     case deleteBody, deletePasswordLabel, deleteConfirm, deletePasswordMissing, deleteDone
 
     // Paywall
-    case paywallTitle, paywallSub, paywallFeatureUnlimited, paywallFeatureChat
-    case paywallFeatureCancel, paywallReturnNote, paywallSubscribe, paywallPerMonth
+    case paywallTitle, paywallFeatureUnlimited, paywallFeatureChat
+    case paywallFeatureCancel, paywallSubscribe, paywallPerMonth
 
     // Selfie-Verifizierung
     case verifyTitle, verifyShotOf, verifyShotIndex, verifyCameraNeeded

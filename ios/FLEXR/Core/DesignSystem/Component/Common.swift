@@ -42,7 +42,10 @@ struct EmptyStateView<Action: View>: View {
 
     let icon: FlexrGlyph.Kind
     let title: String
-    let message: String
+    /// Optional, weil der Paywall-Screen seit dem 19.09.2026 ohne erklärenden
+    /// Untertitel auskommt (Icon + Überschrift reichen, die Preiskachel rückt
+    /// dadurch nach oben - analog zu Web/Android).
+    var message: String?
     @ViewBuilder var action: () -> Action
 
     var body: some View {
@@ -61,12 +64,14 @@ struct EmptyStateView<Action: View>: View {
                 .multilineTextAlignment(.center)
                 .padding(.top, 12)
 
-            Text(message)
-                .flexrText(.bodySmall)
-                .foregroundStyle(FlexrColor.chalkDim)
-                .multilineTextAlignment(.center)
-                .frame(maxWidth: 260)
-                .padding(.top, 4)
+            if let message {
+                Text(message)
+                    .flexrText(.bodySmall)
+                    .foregroundStyle(FlexrColor.chalkDim)
+                    .multilineTextAlignment(.center)
+                    .frame(maxWidth: 260)
+                    .padding(.top, 4)
+            }
 
             action().padding(.top, 20)
         }
@@ -77,7 +82,7 @@ struct EmptyStateView<Action: View>: View {
 }
 
 extension EmptyStateView where Action == EmptyView {
-    init(icon: FlexrGlyph.Kind, title: String, message: String) {
+    init(icon: FlexrGlyph.Kind, title: String, message: String? = nil) {
         self.init(icon: icon, title: title, message: message, action: { EmptyView() })
     }
 }
@@ -125,6 +130,34 @@ struct StatusPill: View {
                 )
             )
             .offset(y: 1.5)
+    }
+}
+
+/// Aufruf zum Handeln im Kopf, links neben der Status-Pille - direkter Weg
+/// zum Premium-Angebot, unabhaengig davon, welcher Bildschirm gerade offen
+/// ist. Markenfarbe statt der neutralen [StatusPill]-Optik, weil das hier
+/// keine Statusanzeige ist, sondern ein Knopf. Entspricht `.premium-cta-pill`
+/// im Web und `PremiumActivatePill` in der Android-Fassung.
+///
+/// Derselbe Versatz wie [StatusPill] - steht in derselben Kopfzeile daneben.
+struct PremiumActivatePill: View {
+    let action: () -> Void
+
+    @Environment(LanguageStore.self) private var languageStore
+    private var s: FlexrStrings { languageStore.strings }
+
+    var body: some View {
+        Button(action: action) {
+            Text(s(.premiumActivateCta))
+                .flexrText(.mono)
+                .foregroundStyle(FlexrColor.plate)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 5)
+                .background(Capsule().fill(FlexrColor.plate.opacity(0.08)))
+                .overlay(Capsule().strokeBorder(FlexrColor.plate, lineWidth: 1))
+        }
+        .buttonStyle(.plain)
+        .offset(y: 1.5)
     }
 }
 

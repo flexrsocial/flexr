@@ -60,8 +60,6 @@ struct AccountView: View {
                     .padding(.top, 14)
                 }
 
-                membershipCard(model).padding(.top, 18)
-
                 SectionTitle(text: s(.accountSectionProfile)).padding(.top, 26)
                 PostalCodeField(postalCode: $model.postalCode, lookupState: model.plzLookup)
                 GymPicker(
@@ -93,6 +91,7 @@ struct AccountView: View {
                 photoSection(model)
                 languageSection
                 notificationSection(model)
+                subscriptionSection(model)
                 privacySection(model)
                 accountSection()
                 legalSection()
@@ -204,52 +203,44 @@ struct AccountView: View {
         .padding(.top, 18)
     }
 
-    /// Statuszeile zu FLEXR Premium — drei Zustände, und keiner davon ist eine
-    /// Sperre: Die Nutzung von FLEXR kostet in allen dreien nichts.
-    private func membershipText(_ membership: Membership) -> String {
-        if membership.isPremium {
-            return s(.premiumStatusActive)
-        }
-        // Maßgeblich sind die geltenden Grenzen, nicht die Frage, ob hier
-        // etwas zu kaufen ist: In der App ist Letzteres immer „nein", die
-        // Grenzen gelten trotzdem (siehe `Membership.limitsActive`).
-        if !membership.limitsActive {
-            return s(.premiumStatusBeta)
-        }
-        return s(.premiumStatusFree, membership.freeDailyLikes, membership.freeOpenChats)
-    }
-
+    /// Ein laufendes Abo wird hier beendet, nicht mehr in einer Statuskarte
+    /// unter dem Profilbild (die ist mit ihr entfallen - der Status selbst
+    /// steht seither nur noch in der Kopf-Pille, siehe `MembershipPill`).
+    /// Analog zu Web (zwischen "Benachrichtigungen" und "Datenschutz &
+    /// Sicherheit") und Android (als letzter inhaltlicher Abschnitt vor
+    /// "Konto"). Gibt es nichts zu verwalten, bleibt der Abschnitt ganz weg
+    /// statt als leere Überschrift dazustehen.
     @ViewBuilder
-    private func membershipCard(_ model: AccountModel) -> some View {
-        if let membership = model.membership {
-            FlexrCard {
-                VStack(alignment: .leading, spacing: 0) {
-                    Text(membershipText(membership))
-                        .flexrText(.bodyMedium)
-                        .foregroundStyle(FlexrColor.chalk)
+    private func subscriptionSection(_ model: AccountModel) -> some View {
+        if let membership = model.membership, membership.hasStripeSubscription || membership.isPremium {
+            VStack(alignment: .leading, spacing: 0) {
+                SectionTitle(text: s(.accountSectionSubscription)).padding(.top, 28)
 
-                    // Gekündigt wird dort, wo gekauft wurde — das ist keine
+                Button {
+                    // Gekündigt wird dort, wo gekauft wurde - das ist keine
                     // Bequemlichkeitsfrage: Bei einem Kauf über den App Store
                     // ist Apple der Händler, wir könnten das Abo gar nicht
                     // beenden.
                     if membership.hasStripeSubscription {
                         // Im Browser über Stripe gekauft: unser Portal.
-                        FlexrLinkButton(title: s(.accountManageSubscription)) {
-                            model.openBillingPortal()
-                        }
-                    } else if membership.isPremium {
+                        model.openBillingPortal()
+                    } else {
                         // Über den App Store gekauft: Apples Abo-Verwaltung.
-                        FlexrLinkButton(title: s(.accountManageSubscription)) {
-                            Task { await container.storeKit.aboVerwalten() }
-                        }
-                    } else if membership.storePurchaseAvailable {
-                        // Noch kein Abo: Führt auf den Premium-Bildschirm und
-                        // kauft nichts. Ein Klick im Konto soll nicht
-                        // unmittelbar in einem Kauf enden, ohne dass jemand
-                        // gelesen hat, wofür.
-                        FlexrLinkButton(title: s(.premiumShowOffer)) { onOpen(.premium) }
+                        Task { await container.storeKit.aboVerwalten() }
                     }
+                } label: {
+                    HStack {
+                        Text(s(.accountManageSubscription))
+                            .flexrText(.bodyLarge)
+                            .foregroundStyle(FlexrColor.chalk)
+                        Spacer(minLength: 12)
+                        Image(systemName: "chevron.right")
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundStyle(FlexrColor.chalkDim)
+                    }
+                    .padding(.vertical, 14)
                 }
+                .buttonStyle(.plain)
             }
         }
     }

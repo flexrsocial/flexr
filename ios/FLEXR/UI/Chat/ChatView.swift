@@ -29,7 +29,8 @@ struct ChatView: View {
                 matchID: matchID,
                 container: container,
                 languageStore: languageStore,
-                onMessage: { appModel.show($0) }
+                onMessage: { appModel.show($0) },
+                onStickyMessage: { appModel.showSticky($0) }
             )
             model = created
             await created.start()

@@ -250,18 +250,6 @@ extension FlexrStrings {
         .accountSectionProfile: "Profile",
         .accountSectionPhotos: "Photos",
         // MARK: FLEXR Premium
-        .premiumStatusActive: """
-            FLEXR Premium is running. Cancel any time, effective at the end of \
-            the billing month.
-            """,
-        .premiumStatusBeta: """
-            FLEXR is and stays free. No limits currently apply to likes, \
-            conversations or search radius.
-            """,
-        .premiumStatusFree: """
-            Your account is free: %d likes per day and %d conversations at \
-            once.
-            """,
         .premiumShowOffer: "See FLEXR Premium",
         .premiumTitle: "FLEXR Premium",
         .premiumSub: """
@@ -269,6 +257,7 @@ extension FlexrStrings {
             who wants more: no like limit, no chat limit, full reach.
             """,
         .premiumEyebrow: "Cancel any month",
+        .premiumActivateCta: "Activate Premium",
         .premiumFeatureLikes: "Unlimited likes instead of %d per day",
         .premiumFeatureChats: "As many conversations at once as you like (instead of %d)",
         .premiumFeatureIncoming: "See who already liked you",
@@ -317,6 +306,7 @@ extension FlexrStrings {
             You have %d conversations open — that is the limit at any one time. \
             Unmatch someone to free up a slot.
             """,
+        .accountSectionSubscription: "Subscription",
         .accountManageSubscription: "Manage / cancel subscription",
         .accountRadiusCapped: "Without FLEXR Premium the search reaches %d km.",
         .accountRadiusHint: """
@@ -450,19 +440,11 @@ extension FlexrStrings {
 
         // MARK: Paywall
         .paywallTitle: "FLEXR Premium",
-        .paywallSub: """
-            Using FLEXR costs nothing — permanently. Premium lifts the limits \
-            of the free account.
-            """,
         .paywallFeatureUnlimited: "Unlimited likes instead of 20 per day",
         .paywallSubscribe: "Get Premium",
         .paywallPerMonth: " / month",
         .paywallFeatureChat: "Unlimited conversations at the same time",
         .paywallFeatureCancel: "Cancel monthly, no minimum term, no hidden costs",
-        .paywallReturnNote: """
-            After payment you return to the app automatically. If the status is \
-            not right immediately: wait a moment and open it again.
-            """,
 
         // MARK: Selfie-Verifizierung
         .verifyTitle: "Photo verification",

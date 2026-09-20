@@ -152,6 +152,10 @@ struct FlexrTabBar: View {
 struct ToastOverlay: View {
 
     @Binding var message: String?
+    /// True nur fuer die Empfangsbestaetigung mit Aktenzeichen einer
+    /// Profilmeldung (Art. 16 Abs. 4 DSA) - die bleibt stehen, bis sie
+    /// manuell weggetippt wird.
+    var isSticky = false
 
     @Environment(LanguageStore.self) private var languageStore
     private var s: FlexrStrings { languageStore.strings }
@@ -184,11 +188,14 @@ struct ToastOverlay: View {
                 .padding(.bottom, 12)
                 .transition(.move(edge: .bottom).combined(with: .opacity))
                 .onTapGesture { self.message = nil }
-                // Erst 4 s, dann 10 s — laut Rückmeldung immer noch zu kurz.
-                // Widerrufs-Folgetexte (AccountView, revokeConsent) sind lang;
-                // dazu jetzt ein Schließen-Knopf, damit 20 s nicht im Weg sind.
+                // Zwei Sekunden fuer jede Meldung, wie in Android/Web seit
+                // 19./20.09.2026 - einzige Ausnahme ist die Empfangs-
+                // bestaetigung mit Aktenzeichen (isSticky), die bleibt stehen,
+                // bis sie manuell weggetippt wird oder eine neue Meldung sie
+                // ersetzt (siehe AppModel.showSticky).
                 .task(id: message) {
-                    try? await Task.sleep(for: .seconds(20))
+                    guard !isSticky else { return }
+                    try? await Task.sleep(for: .seconds(2))
                     if !Task.isCancelled { self.message = nil }
                 }
             }

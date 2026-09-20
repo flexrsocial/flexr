@@ -30,6 +30,7 @@ struct SwipeView: View {
                 container: container,
                 languageStore: languageStore,
                 onMessage: { appModel.show($0) },
+                onStickyMessage: { appModel.showSticky($0) },
                 onOpenChat: onOpenChat
             )
             model = created

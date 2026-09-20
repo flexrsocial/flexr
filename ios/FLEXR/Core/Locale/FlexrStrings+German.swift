@@ -252,18 +252,6 @@ extension FlexrStrings {
         .accountSectionProfile: "Profil",
         .accountSectionPhotos: "Fotos",
         // MARK: FLEXR Premium
-        .premiumStatusActive: """
-            FLEXR Premium läuft. Jederzeit zum Ende des Abrechnungsmonats \
-            kündbar.
-            """,
-        .premiumStatusBeta: """
-            FLEXR ist und bleibt kostenlos. Derzeit gelten keine Grenzen für \
-            Likes, Unterhaltungen und Suchumkreis.
-            """,
-        .premiumStatusFree: """
-            Dein Konto ist kostenlos: %d Likes pro Tag und %d Unterhaltungen \
-            gleichzeitig.
-            """,
         .premiumShowOffer: "FLEXR Premium ansehen",
         .premiumTitle: "FLEXR Premium",
         .premiumSub: """
@@ -272,6 +260,7 @@ extension FlexrStrings {
             Reichweite.
             """,
         .premiumEyebrow: "Monatlich kündbar",
+        .premiumActivateCta: "Premium aktivieren",
         .premiumFeatureLikes: "Unbegrenzt liken statt %d pro Tag",
         .premiumFeatureChats: "So viele Unterhaltungen gleichzeitig, wie du willst (statt %d)",
         .premiumFeatureIncoming: "Sehen, wer dich schon geliked hat",
@@ -320,6 +309,7 @@ extension FlexrStrings {
             Du hast %d Unterhaltungen offen — mehr gehen gleichzeitig nicht. \
             Löse ein Match auf, dann wird ein Platz frei.
             """,
+        .accountSectionSubscription: "Aboverwaltung",
         .accountManageSubscription: "Abo verwalten / kündigen",
         .accountRadiusCapped: "Ohne FLEXR Premium reicht die Suche bis %d km.",
         .accountRadiusHint: """
@@ -429,15 +419,12 @@ extension FlexrStrings {
         .notifyQueueTitle: "Neue Profile im Umkreis",
         .notifyQueueHint: "Ab drei wartenden Profilen, höchstens einmal am Tag.",
         .notifyInactiveTitle: "Erinnerung bei Inaktivität",
-        .notifyInactiveHint: "Wenn du sieben Tage nicht in FLEXR warst.",
+        .notifyInactiveHint: "Wenn du sieben Tage nicht auf FLEXR warst.",
         .notifyLikesTitle: "Offene Likes ohne Match",
         .notifyLikesHint: "Wenn dich jemand geliked hat, höchstens einmal pro Woche.",
         .notifyEmail: "E-Mail",
         .notifyPush: "App-Benachrichtigung",
-        .notifyLegalHint: """
-            Rechtlich nötige Nachrichten — etwa zu Abo, Rücktritt oder \
-            Moderationsentscheidungen — lassen sich hier nicht abschalten.
-            """,
+        .notifyLegalHint: "Rechtlich nötige Nachrichten lassen sich nicht deaktivieren.",
         .notifyNewMessageFrom: "Neue Nachricht von %@",
         .notifyNewMessagesCount: "%d neue Nachrichten",
 
@@ -456,19 +443,11 @@ extension FlexrStrings {
         // Der Bildschirm heißt weiter paywall*, ist aber keine Bezahlwand mehr,
         // sondern ein Angebot, das man von sich aus aufruft.
         .paywallTitle: "FLEXR Premium",
-        .paywallSub: """
-            FLEXR zu nutzen kostet nichts — dauerhaft. Premium hebt die Grenzen \
-            des kostenlosen Kontos auf.
-            """,
         .paywallFeatureUnlimited: "Unbegrenzt liken statt 20 pro Tag",
         .paywallSubscribe: "Premium holen",
         .paywallPerMonth: " / Monat",
         .paywallFeatureChat: "Unbegrenzt viele Unterhaltungen gleichzeitig",
         .paywallFeatureCancel: "Monatlich kündbar, keine Mindestlaufzeit, keine versteckten Kosten",
-        .paywallReturnNote: """
-            Nach der Zahlung kehrst du automatisch in die App zurück. Falls der \
-            Status nicht sofort stimmt: kurz warten und erneut öffnen.
-            """,
 
         // MARK: Selfie-Verifizierung
         .verifyTitle: "Foto-Verifizierung",

@@ -46,10 +46,13 @@ struct PaywallView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 0) {
+                // Der erklaerende Absatz darunter ("FLEXR zu nutzen kostet
+                // nichts ...") ist seit dem 19.09.2026 weg (analog zu Web/
+                // Android) - die Preiskachel darunter ruekt dadurch von
+                // selbst nach oben.
                 EmptyStateView(
                     icon: .symbol(FlexrIcon.locked),
-                    title: s(.paywallTitle),
-                    message: s(.paywallSub)
+                    title: s(.paywallTitle)
                 )
                 .padding(.top, 24)
 
@@ -107,13 +110,6 @@ struct PaywallView: View {
                 }
                 .padding(20)
                 .flexrSurface(radius: FlexrRadius.large, border: FlexrColor.plate.opacity(0.3))
-
-                Text(s(.paywallReturnNote))
-                .flexrText(.bodySmall)
-                .foregroundStyle(FlexrColor.chalkDim)
-                .multilineTextAlignment(.center)
-                .frame(maxWidth: .infinity)
-                .padding(.top, 14)
 
                 // Ausloggen und Selbstlöschung standen hier, solange dieser
                 // Bildschirm der einzige erreichbare war. Der Kontobereich ist

@@ -53,6 +53,10 @@ final class AppModel {
 
     /// Kurze Rückmeldung am unteren Rand (Ersatz für die Snackbar).
     var toast: String?
+    /// True nur fuer die Empfangsbestaetigung mit Aktenzeichen einer
+    /// Profilmeldung (Art. 16 Abs. 4 DSA, siehe `showSticky`) - dann bleibt
+    /// [toast] stehen, statt nach zwei Sekunden zu verschwinden.
+    var toastSticky = false
 
     @ObservationIgnored private let container: AppContainer
     /// Gehört dem App-Delegierten, nicht dem Container: Die Sprachwahl ist eine
@@ -205,6 +209,18 @@ final class AppModel {
     }
 
     func show(_ message: String) {
+        toastSticky = false
+        toast = message
+    }
+
+    /// Bleibt stehen, bis sie manuell weggetippt wird oder eine neue Meldung
+    /// sie ersetzt - fuer die Empfangsbestaetigung mit Aktenzeichen einer
+    /// Profilmeldung (Art. 16 Abs. 4 DSA). Das Aktenzeichen ist der einzige
+    /// Text in der App, den man womoeglich abschreiben will; zwei Sekunden
+    /// reichen dafuer nicht (analog zu `showStickyMessage` in der
+    /// Android-Fassung).
+    func showSticky(_ message: String) {
+        toastSticky = true
         toast = message
     }
 

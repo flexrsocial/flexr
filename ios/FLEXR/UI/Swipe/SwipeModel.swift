@@ -32,6 +32,10 @@ final class SwipeModel {
     @ObservationIgnored private let safety: SafetyRepository
     @ObservationIgnored private let matches: MatchRepository
     @ObservationIgnored private let onMessage: (String) -> Void
+    /// Nur fuer die Empfangsbestaetigung mit Aktenzeichen einer Profilmeldung
+    /// (Art. 16 Abs. 4 DSA) - bleibt stehen statt nach zwei Sekunden zu
+    /// verschwinden (siehe AppModel.showSticky).
+    @ObservationIgnored private let onStickyMessage: (String) -> Void
     @ObservationIgnored private let onOpenChat: (String) -> Void
 
     /// Texte in der gewählten Sprache. Als Referenz auf den Speicher und nicht
@@ -44,6 +48,7 @@ final class SwipeModel {
         container: AppContainer,
         languageStore: LanguageStore,
         onMessage: @escaping (String) -> Void,
+        onStickyMessage: @escaping (String) -> Void,
         onOpenChat: @escaping (String) -> Void
     ) {
         self.languageStore = languageStore
@@ -53,6 +58,7 @@ final class SwipeModel {
         safety = container.safety
         matches = container.matches
         self.onMessage = onMessage
+        self.onStickyMessage = onStickyMessage
         self.onOpenChat = onOpenChat
     }
 
@@ -173,7 +179,7 @@ final class SwipeModel {
             do {
                 // Empfangsbestätigung mit Aktenzeichen (Art. 16 Abs. 4 DSA)
                 let ack = try await safety.report(userID: userID, reason: reason)
-                onMessage(ack.message)
+                onStickyMessage(ack.message)
             } catch {
                 onMessage(error.localizedDescription)
             }

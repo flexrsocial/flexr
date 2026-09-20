@@ -31,7 +31,7 @@ struct RootView: View {
                 MainFlow(ownUserID: profile.id, membership: membership)
             }
         }
-        .overlay(ToastOverlay(message: $model.toast))
+        .overlay(ToastOverlay(message: $model.toast, isSticky: model.toastSticky))
         // Der Sitzungszustand kommt aus dem `isLoggedIn`-Strom des
         // SessionStore; `AppModel` abonniert ihn bei seiner Erzeugung und
         // startet von sich aus mit `.loading`. Bis das Profil geladen ist,
@@ -151,7 +151,22 @@ private struct MainFlow: View {
 
         VStack(spacing: 0) {
             if isTopLevel {
-                FlexrTopBar { MembershipPill(membership: membership) }
+                FlexrTopBar {
+                    HStack(spacing: 10) {
+                        // Direkter Weg zum Angebot, unabhaengig vom
+                        // Bildschirm - sichtbar nur, wenn es ueberhaupt
+                        // etwas zu aktivieren gibt (nicht schon Premium,
+                        // Kauf serverseitig moeglich). Entspricht dem Knopf
+                        // im Web (#premiumCtaPill) und in der Android-App.
+                        if !membership.isPremium && membership.storePurchaseAvailable {
+                            PremiumActivatePill {
+                                appModel.selectedTab = .account
+                                accountPath.append(.premium)
+                            }
+                        }
+                        MembershipPill(membership: membership)
+                    }
+                }
             }
 
             Group {
