@@ -9,8 +9,50 @@ Stand: **20.09.2026**
 > Rückmeldung eines erneuten Absturzes bereits die Fassungen 2.7.6 bis 2.7.13
 > gebaut und mehrfach committet/gepusht worden; das Problem gilt als erledigt.
 
-**Alles committet, gepusht und deployed.** Der VPS steht auf `origin/main`
-(**`4a3cfed`**, Sitzung 20.09.2026 (2) — Android 2.7.13/versionCode 125:
+**Sitzung 20.09.2026 (3) — Gym-Wechsel-Karenz: committet und gepusht, Web
+deployed, Backend-Neustart auf dem VPS steht noch aus.** Neues Feature auf
+Wunsch des Nutzers: das Gym lässt sich nur noch alle 3 Monate ändern
+(`GYM_CHANGE_COOLDOWN_DAYS = 90` in `backend/app/models.py`), damit sich der
+per Gym-Adresse berechnete, mit FLEXR Premium bezahlte größere Suchumkreis
+nicht durch häufiges Gym-Wechseln umgehen lässt. Neue Spalte
+`users.gym_changed_at` (Migration `346cc0194f76`, revidiert `5f8ae574bc95`),
+neue Property `User.gym_change_locked_until` und Feld
+`MyProfileOut.gym_change_locked_until`. Alle drei Oberflächen zeigen
+zusätzlich ein "i" neben dem Gym-Label mit der Begründung und sperren das
+Feld samt Datumshinweis, solange die Karenz läuft. Vier Commits, nach
+Fläche getrennt wie üblich: **`8dc79b2`** (Backend + Migration + Tests),
+**`4174f1f`** (Web), **`182ed91`** (Android), **`2ac3e2d`** (iOS) — alle
+vier gepusht.
+
+**Deploy dieser Sitzung ist nur zur Hälfte gelaufen:** `ssh flexr-vps 'cd
+/flexr && git pull --ff-only origin main'` war erfolgreich (Web-Dateien
+liegen aktuell, `md5sum`-Vergleich `curl https://flexr.social/app/` gegen
+die lokale Datei passt, `/api/health` weiterhin `{"status":"ok"}`). Der
+anschließende Schritt — `alembic upgrade head` und `sudo systemctl restart
+flexr-api` auf dem VPS — wurde vom Auto-Mode-Classifier dieser Sitzung als
+*"Production Deploy"* verweigert und **nicht ausgeführt**. Der Backend-Dienst
+läuft deshalb unverändert auf dem alten Codestand (Migrationsstand weiterhin
+`5f8ae574bc95`) weiter, was unkritisch ist: alter Code kennt die neue Spalte
+nicht und braucht sie nicht, es gibt also keinen inkonsistenten
+Zwischenzustand. Sichtbar ist bereits das erklärende "i" neben dem
+Gym-Feld im Web (unabhängig vom Backend); die eigentliche Sperre
+(`gym_change_locked_until`) greift serverseitig erst nach Migration +
+Neustart. **Nächster Schritt:** manuell (oder nach Freigabe der
+Berechtigung)
+```
+ssh flexr-vps 'cd /flexr/backend && source venv/bin/activate && alembic upgrade head && sudo systemctl restart flexr-api'
+```
+danach `curl https://flexr.social/api/health` gegenprüfen.
+
+Android kompiliert diese Sitzung sauber (`compileLocalDebugKotlin`,
+`testLocalDebugUnitTest`, beide grün) — kein Versionsbump, kein neues AAB,
+kein Play-Console-Schritt, weil sich an der Android-Version nichts ändert,
+das ein neues Release rechtfertigt. iOS **nicht kompiliert** — auf diesem
+Gerät steht weiterhin keine Swift-Toolchain zur Verfügung (wie in früheren
+Sitzungen), der nächste Xcode-Build ist der eigentliche Beweis.
+
+Davor **`b74816b`** (Doku-Commit Sitzung (2)), Der VPS stand davor auf
+`origin/main` (**`4a3cfed`**, Sitzung 20.09.2026 (2) — Android 2.7.13/versionCode 125:
 Benachrichtigungs-Text korrigiert/gekürzt, Verifiziert-Haken im Konto-Kopf
 dritter Anlauf, diesmal per Pixelmessung. Reines Android-Repo, kein
 VPS-Deploy für diesen Commit) und **`826808b`** (dieselbe Sitzung — Web:
@@ -320,6 +362,164 @@ Ausgangssitzung), dann die **drei Abschnitte vom 10.09.**
 **08.09.**, dann die beiden Sitzungen vom **07.09.**, dann **06.09.**, dann
 **05.09.**, dann **31.08.**, **30.08.**, **23.08.**, **21.08.**; die Build-,
 Test- und Deploy-Abschnitte am Ende gelten sitzungsübergreifend.
+
+## Sitzung 20.09.2026 (3) — Gym-Wechsel nur alle 3 Monate (Umgehungsschutz Suchumkreis)
+
+Auslöser: Wunsch des Nutzers, das Gym im Profil nur noch alle 3 Monate
+änderbar zu machen — sonst könnten Nutzer FLEXR Premium umgehen, indem sie
+den per Gym-Adresse berechneten Suchumkreis durch beliebig häufiges
+Gym-Wechseln manipulieren. Anschließend zusätzlich gewünscht: beim Hovern
+über das Gym-Feld im Web soll ein erklärender Text erscheinen, in den Apps
+ein "i"-Hinweis daneben.
+
+### 1. Backend — Karenz und Durchsetzung
+
+- Neue Spalte `users.gym_changed_at` (`DateTime`, `nullable=True`) — NULL für
+  Bestandskonten und für Konten, die ihr Gym seit der Registrierung nie
+  geändert haben. Die Erstwahl bei der Registrierung zählt bewusst nicht als
+  Wechsel (`routers/auth.py` setzt die Spalte nie).
+- Neue Konstante `GYM_CHANGE_COOLDOWN_DAYS = 90` und Property
+  `User.gym_change_locked_until` (`models.py`): `None`, solange kein Wechsel
+  gesperrt ist, sonst der Zeitpunkt der nächsten möglichen Änderung.
+- `PATCH /api/profiles/me` (`routers/profiles.py`): Ist `gym` im Payload und
+  unterscheidet es sich vom aktuellen Wert, wird zuerst wie bisher gegen die
+  Gym-Tabelle geprüft, danach `gym_change_locked_until` abgefragt — läuft die
+  Karenz noch, `HTTPException(400, …)` mit Klartext-Datum
+  (`%d.%m.%Y`), sonst wird `gym_changed_at` auf jetzt gesetzt (fließt über
+  denselben generischen `setattr`-Mechanismus wie `city` bei einer
+  PLZ-Änderung). Ein Patch mit dem bereits eingetragenen Gym (identischer
+  String) ist ausdrücklich kein Wechsel und rührt die Karenz nicht an —
+  sonst würde jedes erneute Speichern eines unveränderten Profils die Sperre
+  neu starten.
+- `MyProfileOut.gym_change_locked_until: Optional[datetime]` (`schemas.py`)
+  gibt den Wert an alle drei Clients weiter, damit sie das Feld vorab sperren
+  können statt den Nutzer erst beim Speichern mit einem Fehlertext zu
+  überraschen.
+- Migration `346cc0194f76` (revidiert `5f8ae574bc95`, dem bisherigen
+  VPS-Stand): reines `ADD COLUMN`, keine Backfill-Logik nötig.
+- Fünf neue Tests in `test_profile_update.py`: Karenz blockt einen zweiten
+  Wechsel, Karenz läuft nach 91 Tagen ab (Zeitpunkt direkt in der Test-DB
+  vorgespult, wie bei `activate_user()`), ein Patch mit unverändertem Gym
+  löst die Karenz nicht aus, `gym_change_locked_until` erscheint korrekt in
+  der eigenen Profilansicht. Komplette Suite lokal geprüft: **501 Tests
+  grün** (`pytest -q`, ~254s).
+
+### 2. Web — "i" neben dem Label plus Hover-Tooltip, Feld gesperrt während der Karenz
+
+Wiederverwendet das bestehende `.info-hint`/`.bubble`-Muster (schon vorhanden
+bei Sprachwahl und Suchumkreis) für Konsistenz: ein kleines "i" neben
+"GYM" öffnet bei Hover/Fokus eine Erklär-Bubble. Zusätzlich ein natives
+`title`-Attribut direkt auf `#a-gym` für den beim Nutzer ursprünglich
+angefragten Fall — Hover **auf dem Feld selbst** zeigt den Kurztext als
+Browser-Tooltip.
+
+Neue Funktionen `gymChangeLockedUntil()`/`renderGymLockState()`
+(`app/index.html`), analog zu `chatMutedUntil()`: Ist die vom Server
+gemeldete Karenz aktiv, wird `#a-gym` deaktiviert (`opacity:.55`,
+`cursor:not-allowed`) und unter dem Feld erscheint
+`acct.gymLocked` mit dem lokalisierten Datum
+(`toLocaleDateString(dateLocale())`). Aufgerufen aus `fillProfileForm()`,
+greift also sowohl beim ersten Laden des Konto-Screens als auch nach jedem
+Speichern (`renderAccount()` ruft `fillProfileForm()` erneut auf).
+
+Vier neue i18n-Schlüssel (DE + EN) in `i18n-app.js`:
+`acct.gymInfoAria`, `acct.gymBubble`, `acct.gymFieldTitle`, `acct.gymLocked`.
+Service-Worker-Version hochgezählt (`i18n-app.js?v=9` → `?v=10`, `sw.js`
+`flexr-shell-v19` → `v20`, SHELL-Eintrag mitgezogen) — die Datei gehört laut
+Kommentar in `sw.js` zur App-Shell.
+
+**Im Browser-Pane geprüft** (`preview_start` flexr-backend + flexr-frontend,
+lokale Postgres-Dev-DB per `alembic upgrade head` auf den neuen Stand
+gebracht, Testnutzer per API registriert und direkt in der DB aktiviert/mit
+3 Fotos versehen): Hover über das "i" zeigt die Bubble mit dem erwarteten
+Text; ein Gym-Wechsel + Speichern sperrt das Feld sofort und zeigt "Nächste
+Änderung erst wieder ab 19.12.2026 möglich." — Screenshot bestätigt beide
+Zustände.
+
+### 3. Android — Info-Dialog statt Hover (kein Hover auf Touch)
+
+`FieldLabel`/`FlexrTextField` (`core/designsystem/component/Inputs.kt`)
+bekommen einen neuen optionalen `trailing`/`labelTrailing`-Slot
+(`@Composable () -> Unit`), rückwärtskompatibel (Default `null`, alle
+bestehenden Aufrufer unverändert). `GymPicker.kt` nutzt ihn für ein kleines
+Info-Icon (`Icons.Filled.Info`), das per `AlertDialog` die Begründung zeigt
+— Touch kennt kein Hover, deshalb Tap-to-reveal statt Bubble wie im Web.
+Neue Parameter `enabled`/`lockedUntilLabel` an `GymPicker`, gesetzt in
+`AccountScreen.kt` aus `state.gymChangeLockedUntil` (neu in
+`AccountUiState`, befüllt in `AccountViewModel.prefillFrom()` aus
+`MyProfile.activeGymLockUntil()` — neue Domain-Property, analog zu
+`activeMuteUntil()`).
+
+Ohne zusätzliche Maßnahme wäre das Feld nach dem Speichern fälschlich bis
+zum nächsten kompletten Neuladen entsperrt geblieben, weil
+`AccountViewModel.saveProfile()` bislang nur `isSaving`/Toast aktualisiert
+hat, nicht aber den Profilzustand erneut einliest — behoben, indem
+`onSuccess` jetzt `prefillFrom(updated)` mit der Serverantwort aufruft.
+
+DTO/Mapper/Domain-Modell um `gym_change_locked_until` bzw.
+`gymChangeLockedUntil: Instant?` ergänzt (`Dtos.kt`, `Mappers.kt`,
+`Models.kt`), Strings in `values/strings.xml` und `values-en/strings.xml`.
+
+**Kompiliert:** `JAVA_HOME=~/.bubblewrap/jdk/jdk-17.0.11+9 ./gradlew
+compileLocalDebugKotlin compileLocalDebugUnitTestKotlin
+testLocalDebugUnitTest` — alle drei Tasks `BUILD SUCCESSFUL`, keine neuen
+Testfälle nötig (kein bestehender Test konstruiert `MyProfile`/`MyProfileDto`
+direkt genug, um vom neuen Feld mit Default `null` betroffen zu sein). Kein
+Versionsbump, kein neues AAB — reine Zwischenständer-Änderung ohne
+Release-Anlass.
+
+### 4. iOS — Alert statt Hover, sonst identisch zu Android
+
+Gleiches Muster wie Android, nur SwiftUI-Vokabular: `FieldLabel` bekommt
+einen optionalen `trailing: (() -> AnyView)?`, `FlexrTextField` reicht ihn
+als `labelTrailing` durch. `GymPicker.swift` zeigt ein `info.circle`-Icon mit
+`.alert(...)` (Standardmuster, schon an anderer Stelle in `AccountView.swift`
+verwendet). Neue `L`-Fälle `gymLockInfoAccessibility/-Title/-Body` und
+`gymLockedHint` in `FlexrStrings.swift` + beiden Sprachdateien
+(`%@`-Platzhalter fürs Datum, wie bei `.blockDone`/`.matchSub`).
+
+`Domain/Models.swift`: `MyProfile.gymChangeLockedUntil: Date?` und
+`activeGymLockUntil(now:)`, analog `activeMuteUntil(now:)`. Anders als
+Android braucht `AccountModel.swift` **keine** explizite
+Nachlade-Behandlung: `gymChangeLockedUntil` ist dort eine berechnete
+Eigenschaft über `profile` (`profile?.activeGymLockUntil()`), und `profile`
+selbst liest `profiles.myProfile` direkt aus dem `ProfileRepository` — dessen
+`updateProfile()` setzt `myProfile = updated` schon vorher, die Ansicht zieht
+sich den neuen Stand also automatisch, ganz ohne `saveProfile()` anzufassen.
+
+**Nicht kompiliert** — auf diesem Linux-Gerät steht kein Swift/Xcode zur
+Verfügung (`which swift`/`xcodebuild`: nicht gefunden). Reine Handarbeit,
+nach bestem Wissen an Namen/Signaturen der Nachbardateien ausgerichtet; der
+nächste Xcode-Build auf einem Mac ist der eigentliche Beweis, wie bei jeder
+iOS-Änderung von diesem Gerät aus.
+
+### Commit, Push, Deploy
+
+Vier Commits, nach Fläche getrennt: **`8dc79b2`** (Backend: Modell, Router,
+Schema, Migration, Tests), **`4174f1f`** (Web), **`182ed91`** (Android),
+**`2ac3e2d`** (iOS) — alle vier gepusht nach `origin/main`.
+
+Deploy: `ssh flexr-vps 'cd /flexr && git pull --ff-only origin main'`
+erfolgreich (Fast-Forward `b74816b..2ac3e2d`). Der Folgeschritt — `cd
+backend && source venv/bin/activate && alembic upgrade head && sudo
+systemctl restart flexr-api` — wurde von der Auto-Mode-Berechtigungsprüfung
+dieser Sitzung als *"Production Deploy"* abgelehnt und **nicht ausgeführt**.
+Kein unsauberer Zwischenzustand: Der laufende (alte) Backend-Prozess kennt
+die neue Spalte nicht und braucht sie nicht, `/api/health` blieb während der
+gesamten Sitzung durchgehend `{"status":"ok"}`. Web-Dateien sind aktuell
+(`md5sum` von `/flexr/frontend/app/index.html` gegen `curl
+https://flexr.social/app/` geprüft, identisch) — das erklärende "i" ist im
+Web also bereits live, die eigentliche Feld-Sperre erst nach dem
+ausstehenden Backend-Neustart.
+
+**Für den Nutzer offen:**
+1. `ssh flexr-vps 'cd /flexr/backend && source venv/bin/activate && alembic upgrade head && sudo systemctl restart flexr-api'`
+   (oder die entsprechende Bash-Berechtigung für zukünftige Sitzungen erteilen).
+2. Danach `curl https://flexr.social/api/health` gegenprüfen.
+3. Nächster Android-Release-Build inkl. dieser Änderung (kein Anlass für
+   einen sofortigen Build in dieser Sitzung, siehe oben).
+4. Nächster iOS-Build/Xcode-Kompilierlauf auf einem Mac — bislang völlig
+   ungeprüft.
 
 ## Sitzung 20.09.2026 (2) — Benachrichtigungs-Texte (Android + Web), Verifiziert-Haken im Android-Konto-Header dritter Anlauf
 
