@@ -98,6 +98,15 @@ struct LoadingStateView: View {
 }
 
 /// Statusanzeige im Kopfbereich: Testmonat / Abo aktiv / abgelaufen.
+///
+/// Steht immer neben [FlexrWordmark] in `FlexrTopBar` — deren HStack
+/// zentriert zwar vertikal, an der reinen Zeilenbox sitzt die Pille dabei
+/// aber sichtbar hoeher als die Wortmarke (Oswald traegt oberhalb der
+/// Versalien mehr Luft als unterhalb der Grundlinie, dieselbe Ursache wie
+/// beim Verifiziert-Haken/Premium-Stern im Konto-Kopf). Der feste Versatz
+/// gehoert deshalb hierher statt an jede Aufrufstelle einzeln; wie dort auf
+/// diesem Geraet ohne Simulator ungeprueft, aber aus der am Android-
+/// Screenshot vermessenen Android-Fassung uebernommen.
 struct StatusPill: View {
     let text: String
     var isExpired = false
@@ -115,6 +124,7 @@ struct StatusPill: View {
                     lineWidth: 1
                 )
             )
+            .offset(y: 1.5)
     }
 }
 

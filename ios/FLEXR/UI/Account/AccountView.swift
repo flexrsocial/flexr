@@ -173,8 +173,18 @@ struct AccountView: View {
                         .flexrText(.titleLarge)
                         .foregroundStyle(FlexrColor.chalk)
                         .lineLimit(1)
-                    if model.profile?.profile.isVerified == true { VerifiedBadge() }
-                    if model.profile?.profile.isPremium == true { PremiumBadge() }
+                    // Oswald (titleLarge) traegt oberhalb der Versalien mehr
+                    // Luft als unterhalb der Grundlinie - an der Zeilenbox
+                    // zentriert sitzen beide Abzeichen dadurch sichtbar zu
+                    // hoch. Derselbe Versatz wie in der Android-Fassung
+                    // (dort per Screenshot vermessen); auf diesem Geraet ohne
+                    // Simulator ungeprueft.
+                    if model.profile?.profile.isVerified == true {
+                        VerifiedBadge().offset(y: 1.5)
+                    }
+                    if model.profile?.profile.isPremium == true {
+                        PremiumBadge().offset(y: 1.5)
+                    }
                 }
                 Text(
                     [
