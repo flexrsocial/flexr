@@ -9,6 +9,27 @@ Stand: **20.09.2026**
 > Rückmeldung eines erneuten Absturzes bereits die Fassungen 2.7.6 bis 2.7.13
 > gebaut und mehrfach committet/gepusht worden; das Problem gilt als erledigt.
 
+**Sitzung 20.09.2026 (6) — iOS-Nachzügler: fünf Lücken zu Web/Android der letzten 2-3 Tage geschlossen.**
+Auf Bitte des Nutzers per Git-Log geprüft, was seit dem 18.09.2026 auf
+Web/Android geändert wurde und auf iOS fehlte. Gefunden und nachgezogen
+(Commit **`0fce8b9`**, gepusht): (1) die beiden Benachrichtigungstext-
+Korrekturen aus Sitzung (2) - nur Deutsch, Englisch war schon richtig; (2)
+der "Premium aktivieren"-Knopf im Kopf (Android 2.7.10/Web (8)), neue
+`PremiumActivatePill`; (3) die Konto-Statuskarte ist weg, "Aboverwaltung"
+zog in einen eigenen Abschnitt zwischen Benachrichtigungen und Datenschutz
+um (Android 2.7.9/Web (8)) - App-Store-Abos bekommen dabei wie in Android
+eine echte anklickbare Zeile zu Apples nativer Abo-Verwaltung, nicht nur
+einen Hover-Hinweis wie im Web (das kann aus dem Browser nicht nativ
+verwalten, iOS schon); (4) Popup-Meldungen verschwinden jetzt nach 2 statt
+20 Sekunden (Android 2.7.9), einzige Ausnahme bleibt die DSA-
+Empfangsbestätigung mit Aktenzeichen (`AppModel.showSticky`); (5) die zwei
+erklärenden Absätze auf dem Premium-Screen sind weg (Android 2.7.9,
+`paywallSub` auch im Web weg). Reine Web-CSS-Bugfixes (Scrollbalken-Gutter,
+Box-Shadow-Rand, Margin-Collapsing) bewusst **nicht** übernommen - die
+betreffen nur die Browser-Darstellung, SwiftUI kennt diese Fehlerklassen
+nicht. **Nicht kompiliert** (keine Swift-Toolchain hier) - der Nutzer baut
+im Anschluss selbst eine neue Version, das ist der eigentliche Beweis.
+
 **Sitzung 20.09.2026 (5) — Web-Ausrichtung nachverifiziert (Nutzer bestätigt: passt), Android 2.7.14 (versionCode 126) gebaut.**
 Nutzer bezweifelte, dass die Web-Badge-Ausrichtung aus Sitzung (4) wirklich
 passt. Zweite, strengere Prüfung diesmal an den tatsächlich sichtbaren
