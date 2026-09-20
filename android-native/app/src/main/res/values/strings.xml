@@ -396,11 +396,11 @@
     <string name="notify_queue_title">Neue Profile im Umkreis</string>
     <string name="notify_queue_hint">Ab drei wartenden Profilen, höchstens einmal am Tag.</string>
     <string name="notify_inactive_title">Erinnerung bei Inaktivität</string>
-    <string name="notify_inactive_hint">Wenn du sieben Tage nicht in FLEXR warst.</string>
+    <string name="notify_inactive_hint">Wenn du sieben Tage nicht auf FLEXR warst.</string>
     <string name="notify_likes_title">Offene Likes ohne Match</string>
     <string name="notify_likes_hint">Wenn dich jemand geliked hat, höchstens einmal pro Woche.</string>
     <string name="notify_email">E-Mail</string>
-    <string name="notify_legal_hint">Rechtlich nötige Nachrichten — etwa zu Abo, Rücktritt oder Moderations­entscheidungen — lassen sich hier nicht abschalten.</string>
+    <string name="notify_legal_hint">Rechtlich nötige Nachrichten lassen sich nicht deaktivieren.</string>
 
     <!-- ==== Konto löschen ==== -->
     <string name="delete_body">Dein Konto wird sofort deaktiviert. Deine Daten und Fotos werden nach 30 Tagen endgültig gelöscht. Du bekommst dazu eine Bestätigungsmail. Innerhalb der 30 Tage kannst du dich mit deinem bisherigen Passwort erneut einloggen, um die Löschung rückgängig zu machen.</string>

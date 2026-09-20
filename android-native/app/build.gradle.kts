@@ -252,8 +252,16 @@ android {
         // rutschen und eine Luecke zu hinterlassen. Zwischen der "E-Mail"/
         // "App-Benachrichtigung"-Beschriftung und dem erklaerenden Text
         // darunter ist jetzt ebenfalls ein kleiner Abstand (3dp).
-        versionCode = 124
-        versionName = "2.7.12"
+        // 125/2.7.13 am 20.09.2026: "Wenn du sieben Tage nicht in FLEXR
+        // warst" hiess korrekt "... nicht AUF FLEXR warst"; der Rechtstext
+        // im Benachrichtigungen-Dialog ist jetzt auf einen Satz gekuerzt
+        // ("Rechtlich noetige Nachrichten lassen sich nicht deaktivieren.").
+        // Im Konto-Header sass der blaue Verifiziert-Haken neben Name/Alter
+        // sichtbar zu hoch (Oswalds Versal-/Ascent-Luecke, siehe Kommentar
+        // in AccountScreen.kt) - analog zum Web-Haken jetzt mit einem
+        // kleinen manuellen Offset nach unten korrigiert.
+        versionCode = 125
+        versionName = "2.7.13"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         // Nur die Sprachen ausliefern, die es wirklich gibt: Deutsch als

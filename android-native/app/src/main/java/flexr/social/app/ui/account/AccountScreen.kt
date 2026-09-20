@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -233,7 +234,19 @@ fun AccountScreen(
                     )
                     if (currentProfile?.profile?.isVerified == true) {
                         Spacer(Modifier.width(6.dp))
-                        VerifiedBadge()
+                        // Oswalds Versalhoehe sitzt deutlich unterhalb der
+                        // Font-Ascent (mehr Luft ueber den Versalien als
+                        // Descent darunter) - selbst mit auf die reinen
+                        // Schriftmetriken getrimmter Zeilenbox (oben) liegt
+                        // deren geometrische Mitte dadurch noch ueber der
+                        // sichtbaren Mitte von Text wie "37", wodurch der an
+                        // der Box zentrierte Haken zu hoch sitzt. Kein
+                        // Text-Metrik-Trick loest das (siehe Kommentar oben);
+                        // der Web-Haken hat dasselbe Problem und behebt es
+                        // ebenfalls mit einem festen Versatz statt ueber
+                        // Metriken. Hier daher analog ein kleiner manueller
+                        // Versatz nach unten.
+                        VerifiedBadge(modifier = Modifier.offset(y = 1.5.dp))
                     }
                     if (currentProfile?.profile?.isPremium == true) {
                         Spacer(Modifier.width(6.dp))
