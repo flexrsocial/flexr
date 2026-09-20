@@ -9,6 +9,29 @@ Stand: **20.09.2026**
 > Rückmeldung eines erneuten Absturzes bereits die Fassungen 2.7.6 bis 2.7.13
 > gebaut und mehrfach committet/gepusht worden; das Problem gilt als erledigt.
 
+**Sitzung 20.09.2026 (5) — Web-Ausrichtung nachverifiziert (Nutzer bestätigt: passt), Android 2.7.14 (versionCode 126) gebaut.**
+Nutzer bezweifelte, dass die Web-Badge-Ausrichtung aus Sitzung (4) wirklich
+passt. Zweite, strengere Prüfung diesmal an den tatsächlich sichtbaren
+Icon-**Pfaden** statt nur am äußeren Span (`getBoundingClientRect()` auf
+`svg path` und per `Range.getBoundingClientRect()` auf die echten
+Text-Glyphen von `.brand`/`.status-pill`, zusätzlich am Livesystem
+`flexr.social` per `md5sum` gegen den lokalen Stand abgeglichen - identisch,
+kein Deploy-Drift), an Desktop- **und** Mobile-Viewport (375×812): Haken-
+und Stern-Pfad-Zentren 0,25px auseinander, Wortmarke/Pille exakt auf
+y=31. Per Rückfrage (`AskUserQuestion`) geklärt statt einfach blind
+nachzubessern - Nutzer bestätigt: **"es ist ok so"**, keine Web-Änderung.
+
+Anschließend Android-Release gebaut, weil die Karenz- und Badge-Fixes aus
+Sitzung (3)/(4) noch in keinem Bundle steckten: **2.7.14 (versionCode
+126)**, `testProdDebugUnitTest` grün, `bundleProdRelease`/`assembleProdRelease`
+(5m07s). AAB+APK dem Nutzer direkt im Chat übergeben (nicht nur als
+Server-Link) und zusätzlich unter `release-2.7.14/` mit `SHA256SUMS.txt`
+abgelegt (Ordner absichtlich außerhalb von Git, wie `release-2.7.11`-`.13`
+davor). Signatur mit demselben Upload-Key wie bisher
+(`BC:64:AD:3F:...:79:80`). **Nicht in der Play Console hochgeladen** - bleibt
+manueller Schritt. Commit **`979da53`** (nur der Versionsbump in
+`build.gradle.kts` - Bundle/APK selbst sind Build-Artefakte, kein Git).
+
 **Sitzung 20.09.2026 (4) — Hinweistext gekürzt, VPS-Deploy komplett
 nachgeholt, Premium-Stern/Kopf-Badges an Android+iOS ausgerichtet.** Der in
 Sitzung (3) verweigerte Backend-Neustart wurde auf explizite Anweisung des
