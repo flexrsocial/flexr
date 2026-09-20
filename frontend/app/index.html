@@ -1451,6 +1451,16 @@
     width:17px; height:17px; border-radius:50%; background:#1d9bf0; flex-shrink:0;
     vertical-align:middle; margin-left:5px;
   }
+  /* middle zentriert exakt auf die x-Hoehe, nicht die Versalhoehe - im
+     Fliesstext des Verify-Tooltips (Kleinbuchstaben ringsum) ist das
+     richtig, neben dem Namen aber falsch: "JULIAN, 37" hat nur Versalien
+     und Ziffern, also keine x-Hoehen-Referenz im Text, wodurch das Abzeichen
+     dort sichtbar zu tief sitzt. Nur dort (.nm, siehe nameWithBadges) auf
+     die Versalhoehen-Mitte anheben. Versatz aus Oswalds Cap-/x-Hoehen-
+     Verhaeltnis (per canvas.measureText vermessen: capHeight 0.813em,
+     xHeight 0.578em, Differenz halbiert) - in em, gilt dadurch fuer jede
+     Schriftgroesse gleich (16px Liste, 26px Deck-Karte). */
+  .nm .verified-badge, .nm .premium-badge{ position:relative; top:-0.117em; }
   /* svg bewusst auf 100% statt sichtbar kleiner: ein inline-flex-Element ohne
      eigene Text-Baseline uebernimmt als vertical-align-Bezug die Unterkante
      seines ersten Kindes - bei einem kleiner skalierten Kind (vorher 62%)
