@@ -298,6 +298,8 @@ fun AccountScreen(
             onQueryChange = viewModel::onGymQueryChange,
             onSelect = viewModel::onGymSelected,
             onSuggestRequested = viewModel::openGymSuggestion,
+            enabled = state.gymChangeLockedUntil == null,
+            lockedUntilLabel = state.gymChangeLockedUntil?.let(ServerTime::formatDay),
         )
 
         FlexrTextField(

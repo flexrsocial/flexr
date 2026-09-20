@@ -108,6 +108,8 @@ data class MyProfileDto(
     // phone/phone_verified liefert das Backend zwar mit, die App nutzt sie
     // nicht — die Telefonprüfung ist auch im Web verworfen worden.
     @SerialName("messaging_muted_until") val messagingMutedUntil: String? = null,
+    // Karenz zwischen zwei Gym-Wechseln (alle 3 Monate) - siehe MyProfile.gymChangeLockedUntil.
+    @SerialName("gym_change_locked_until") val gymChangeLockedUntil: String? = null,
     // Alters- und Identitätsprüfung. Bestandskonten liefern verification_required
     // = false; Defaults hier so gewählt, dass ein älteres Backend ohne diese
     // Felder ein nutzbares Konto ergibt.

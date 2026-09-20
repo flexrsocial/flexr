@@ -63,6 +63,13 @@ data class MyProfile(
     val searchRadiusKm: Int,
     val messagingMutedUntil: Instant?,
     /**
+     * Karenz zwischen zwei Gym-Wechseln (siehe Backend GYM_CHANGE_COOLDOWN_DAYS):
+     * der Suchumkreis wird ab der Gym-Adresse berechnet, ohne Sperre liesse sich
+     * der mit FLEXR Premium bezahlte groessere Radius durch haeufiges Wechseln
+     * umgehen. Null, solange gerade kein Wechsel gesperrt ist.
+     */
+    val gymChangeLockedUntil: Instant? = null,
+    /**
      * Alters- und Identitätsprüfung. Ein Konto mit verificationRequired = true
      * und isAccountActivated = false ist angelegt, aber noch nicht nutzbar:
      * kein Deck, keine Matches, kein Chat.
@@ -92,6 +99,10 @@ data class MyProfile(
     /** Aktive Chat-Sperre ("Abmahnung"), sonst null. */
     fun activeMuteUntil(now: Instant = Instant.now()): Instant? =
         messagingMutedUntil?.takeIf { it.isAfter(now) }
+
+    /** Naechster erlaubter Gym-Wechsel, solange die Karenz noch laeuft - sonst null. */
+    fun activeGymLockUntil(now: Instant = Instant.now()): Instant? =
+        gymChangeLockedUntil?.takeIf { it.isAfter(now) }
 }
 
 /**

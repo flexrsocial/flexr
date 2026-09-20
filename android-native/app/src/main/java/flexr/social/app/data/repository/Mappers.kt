@@ -83,6 +83,7 @@ fun MyProfileDto.toDomain() = MyProfile(
     birthdate = ServerTime.parseDate(birthdate),
     searchRadiusKm = searchRadiusKm,
     messagingMutedUntil = ServerTime.parse(messagingMutedUntil),
+    gymChangeLockedUntil = ServerTime.parse(gymChangeLockedUntil),
     verificationRequired = verificationRequired,
     isAccountActivated = isAccountActivated,
     email = email,

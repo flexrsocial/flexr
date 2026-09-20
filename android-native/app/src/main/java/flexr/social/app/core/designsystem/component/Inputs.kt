@@ -21,6 +21,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
@@ -38,13 +39,27 @@ import flexr.social.app.core.designsystem.theme.FlexrTheme
 
 /** Feldbeschriftung im FLEXR-Stil: klein, gesperrt, Versalien, gedämpft. */
 @Composable
-fun FieldLabel(text: String, modifier: Modifier = Modifier) {
-    Text(
-        text = text.uppercase(),
-        style = MaterialTheme.typography.bodySmall.copy(fontSize = 12.sp, letterSpacing = 0.04.em),
-        color = FlexrTheme.colors.chalkDim,
+fun FieldLabel(text: String, modifier: Modifier = Modifier, trailing: (@Composable () -> Unit)? = null) {
+    if (trailing == null) {
+        Text(
+            text = text.uppercase(),
+            style = MaterialTheme.typography.bodySmall.copy(fontSize = 12.sp, letterSpacing = 0.04.em),
+            color = FlexrTheme.colors.chalkDim,
+            modifier = modifier.padding(top = 16.dp, bottom = 6.dp),
+        )
+        return
+    }
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
         modifier = modifier.padding(top = 16.dp, bottom = 6.dp),
-    )
+    ) {
+        Text(
+            text = text.uppercase(),
+            style = MaterialTheme.typography.bodySmall.copy(fontSize = 12.sp, letterSpacing = 0.04.em),
+            color = FlexrTheme.colors.chalkDim,
+        )
+        trailing()
+    }
 }
 
 /**
@@ -73,6 +88,8 @@ fun FlexrTextField(
     onImeAction: (() -> Unit)? = null,
     /** Blendet einen Emoji-Umschalter ins Feld ein (Parität zum Web-Frontend). */
     emojiPicker: Boolean = false,
+    /** Optionales Erklär-"i" neben der Beschriftung (Parität zum Web-Frontend). */
+    labelTrailing: (@Composable () -> Unit)? = null,
 ) {
     val colors = FlexrTheme.colors
     var emojiOpen by remember { mutableStateOf(false) }
@@ -86,7 +103,7 @@ fun FlexrTextField(
     }
 
     Column(modifier.fillMaxWidth()) {
-        FieldLabel(label)
+        FieldLabel(label, trailing = labelTrailing)
         OutlinedTextField(
             value = fieldValue,
             onValueChange = { new ->

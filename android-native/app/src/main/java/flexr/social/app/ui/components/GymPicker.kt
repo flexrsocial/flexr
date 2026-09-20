@@ -12,18 +12,25 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -61,8 +68,12 @@ fun GymPicker(
     onSelect: (Gym) -> Unit,
     onSuggestRequested: () -> Unit,
     modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+    /** Datum der naechsten moeglichen Aenderung, solange die Karenz laeuft. */
+    lockedUntilLabel: String? = null,
 ) {
     val colors = FlexrTheme.colors
+    var showLockInfo by remember { mutableStateOf(false) }
 
     Column(modifier.fillMaxWidth()) {
         FlexrTextField(
@@ -72,7 +83,47 @@ fun GymPicker(
             placeholder = stringResource(R.string.gym_search_placeholder),
             imeAction = ImeAction.Search,
             trailingIcon = Icons.Filled.Search,
+            enabled = enabled,
+            labelTrailing = {
+                IconButton(onClick = { showLockInfo = true }, modifier = Modifier.size(20.dp)) {
+                    Icon(
+                        Icons.Filled.Info,
+                        contentDescription = stringResource(R.string.gym_lock_info_content_description),
+                        tint = colors.chalkDim,
+                        modifier = Modifier.size(15.dp),
+                    )
+                }
+            },
         )
+
+        if (lockedUntilLabel != null) {
+            Text(
+                text = stringResource(R.string.gym_locked_hint, lockedUntilLabel),
+                style = MaterialTheme.typography.bodySmall,
+                color = colors.plate,
+                modifier = Modifier.padding(top = 6.dp),
+            )
+        }
+
+        if (showLockInfo) {
+            AlertDialog(
+                onDismissRequest = { showLockInfo = false },
+                containerColor = MaterialTheme.colorScheme.surface,
+                title = { Text(stringResource(R.string.gym_lock_info_title), style = MaterialTheme.typography.headlineSmall) },
+                text = {
+                    Text(
+                        text = stringResource(R.string.gym_lock_info_body),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = colors.chalkDim,
+                    )
+                },
+                confirmButton = {
+                    TextButton(onClick = { showLockInfo = false }) {
+                        Text(stringResource(R.string.common_close), color = colors.plate)
+                    }
+                },
+            )
+        }
 
         if (state.expanded) {
             Column(

@@ -42,6 +42,7 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.time.Instant
 import javax.inject.Inject
 
 data class AccountUiState(
@@ -66,6 +67,8 @@ data class AccountUiState(
      * wegzunehmen - durchgesetzt wird ohnehin serverseitig.
      */
     val maxSelectableRadiusKm: Int = AccountViewModel.MAX_RADIUS_KM,
+    /** Solange gesetzt, ist ein Gym-Wechsel gesperrt (siehe MyProfile.activeGymLockUntil). */
+    val gymChangeLockedUntil: Instant? = null,
     val isSaving: Boolean = false,
     val saveError: String? = null,
     val photoError: String? = null,
@@ -196,6 +199,7 @@ class AccountViewModel @Inject constructor(
                 ),
                 bio = profile.profile.bio.orEmpty(),
                 searchRadiusKm = profile.searchRadiusKm.coerceAtMost(state.maxSelectableRadiusKm),
+                gymChangeLockedUntil = profile.activeGymLockUntil(),
             )
         }
     }
@@ -370,7 +374,11 @@ class AccountViewModel @Inject constructor(
                     bio = state.bio.trim(),
                     searchRadiusKm = state.searchRadiusKm,
                 )
-            }.onSuccess {
+            }.onSuccess { updated ->
+                // Uebernimmt u.a. eine frisch gesetzte Gym-Wechsel-Karenz - ohne
+                // das bliebe das Feld nach dem Speichern faelschlich entsperrt,
+                // bis das Profil ein naechstes Mal komplett neu geladen wird.
+                prefillFrom(updated)
                 _uiState.update { it.copy(isSaving = false) }
                 _events.send(AccountEvent.Message(strings.get(R.string.account_saved)))
             }.onFailure { throwable ->
