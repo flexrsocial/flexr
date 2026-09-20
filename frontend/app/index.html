@@ -688,9 +688,18 @@
     background:linear-gradient(180deg, #1f1f1f, #1a1a1a);
     border-radius:14px; margin-bottom:10px; border:1px solid var(--hairline);
     cursor:pointer; position:relative;
-    transition:background .15s ease, border-color .15s ease, transform .15s ease;
+    transition:background .15s ease, border-color .15s ease;
   }
-  .match-item:hover{ border-color:rgba(255,90,31,.35); transform:translateX(2px); }
+  /* Kein transform:translateX mehr - die Kachel liegt buendig an der
+     rechten Kante von .screen.active (overflow-x:hidden, siehe Kommentar
+     bei .plz-combo.focused weiter oben, derselbe Fehler). Ein Verschieben
+     nach rechts schob den rechten Rand der Kachel mitsamt Border ueber
+     diese Kante hinaus - oben, links und unten orange, rechts abgeschnitten.
+     Per getBoundingClientRect nachgemessen: Kachel ragte bei :hover exakt
+     um die 2px des translateX ueber screen.active hinaus (scrollWidth
+     342px gegen clientWidth 340px). Die Randfarbe alleine reicht als
+     Hover-Feedback. */
+  .match-item:hover{ border-color:rgba(255,90,31,.35); }
   .match-item .av{
     position:relative; width:54px; height:54px; flex-shrink:0; display:block;
   }
@@ -1458,12 +1467,24 @@
      dort sichtbar zu tief sitzt. Nur dort auf die Versalhoehen-Mitte
      anheben - .nm deckt nameWithBadges() ab (Deck-Karte, Matches/Chats-
      Liste, Chat-Kopf), #acctName den eigenen Namen im Konto-Screen, der
-     dieselben Badges per eigener Zeile ohne .nm setzt. Versatz aus Oswalds
-     Cap-/x-Hoehen-Verhaeltnis (per canvas.measureText vermessen: capHeight
-     0.813em, xHeight 0.578em, Differenz halbiert) - in em, gilt dadurch
-     fuer jede Schriftgroesse gleich (16px Liste, 20px Konto, 26px Karte). */
+     dieselben Badges per eigener Zeile ohne .nm setzt. -0.117em war aus
+     Oswalds Cap-/x-Hoehen-Verhaeltnis errechnet (per canvas.measureText bei
+     400px vermessen: capHeight 0.813em, xHeight 0.578em, Differenz
+     halbiert) und blieb dadurch als generischer Fallback stehen - reicht
+     als grobe Naeherung, aber Hinting rundet die Versalhoehe bei kleinen
+     Pixelgroessen zusaetzlich auf ganze Pixel, nicht linear zur Schriftgroesse
+     (bei 16px z.B. auf 14px statt der rechnerischen 13px). Die drei Regeln
+     darunter ersetzen das je Kontext durch einen an echtem, gerastertem
+     16/20/26px-Text nachgemessenen Pixel-Versatz (Badge-Mitte gegen
+     Canvas-Ink-Mitte des Grossbuchstabens, nicht mehr gegen den
+     rechnerischen Wert) und wirken dank hoeherer Selektor-Spezifitaet
+     zusaetzlich zum Fallback. */
   .nm .verified-badge, .nm .premium-badge,
   #acctName .verified-badge, #acctName .premium-badge{ position:relative; top:-0.117em; }
+  .match-item .info .nm .verified-badge, .match-item .info .nm .premium-badge,
+  .chat-header .nm .verified-badge, .chat-header .nm .premium-badge{ top:-2.9px; }
+  #acctName .verified-badge, #acctName .premium-badge{ top:-3.2px; }
+  .card .name-row .nm .verified-badge, .card .name-row .nm .premium-badge{ top:-3.5px; }
   /* svg bewusst auf 100% statt sichtbar kleiner: ein inline-flex-Element ohne
      eigene Text-Baseline uebernimmt als vertical-align-Bezug die Unterkante
      seines ersten Kindes - bei einem kleiner skalierten Kind (vorher 62%)
