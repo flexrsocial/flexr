@@ -261,11 +261,11 @@ extension FlexrStrings {
             """,
         .premiumEyebrow: "Monatlich kündbar",
         .premiumActivateCta: "Premium aktivieren",
-        .premiumFeatureLikes: "Unbegrenzt liken statt %d pro Tag",
-        .premiumFeatureChats: "So viele Unterhaltungen gleichzeitig, wie du willst (statt %d)",
+        .premiumFeatureLikes: "Unbegrenzt liken",
+        .premiumFeatureChats: "So viele Unterhaltungen gleichzeitig, wie du willst",
         .premiumFeatureIncoming: "Sehen, wer dich schon geliked hat",
         .premiumFeatureRewind: "Den letzten Swipe zurücknehmen",
-        .premiumFeatureRadius: "Voller Suchumkreis bis %d km statt %d km",
+        .premiumFeatureRadius: "Voller Suchumkreis bis 250 km",
         .premiumFeatureBadge: "Premium-Abzeichen in deinem Profil",
         .premiumBetaHint: """
             FLEXR Premium lässt sich in dieser App nicht abschließen. Die \
@@ -443,7 +443,7 @@ extension FlexrStrings {
         // Der Bildschirm heißt weiter paywall*, ist aber keine Bezahlwand mehr,
         // sondern ein Angebot, das man von sich aus aufruft.
         .paywallTitle: "FLEXR Premium",
-        .paywallFeatureUnlimited: "Unbegrenzt liken statt 20 pro Tag",
+        .paywallFeatureUnlimited: "Unbegrenzt liken",
         .paywallSubscribe: "Premium holen",
         .paywallPerMonth: " / Monat",
         .paywallFeatureChat: "Unbegrenzt viele Unterhaltungen gleichzeitig",

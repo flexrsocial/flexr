@@ -258,11 +258,11 @@ extension FlexrStrings {
             """,
         .premiumEyebrow: "Cancel any month",
         .premiumActivateCta: "Activate Premium",
-        .premiumFeatureLikes: "Unlimited likes instead of %d per day",
-        .premiumFeatureChats: "As many conversations at once as you like (instead of %d)",
+        .premiumFeatureLikes: "Unlimited likes",
+        .premiumFeatureChats: "As many conversations at once as you like",
         .premiumFeatureIncoming: "See who already liked you",
         .premiumFeatureRewind: "Undo your last swipe",
-        .premiumFeatureRadius: "Full search radius up to %d km instead of %d km",
+        .premiumFeatureRadius: "Full search radius up to 250 km",
         .premiumFeatureBadge: "Premium badge on your profile",
         .premiumBetaHint: """
             FLEXR Premium cannot be purchased in this app. Using FLEXR still \
@@ -440,7 +440,7 @@ extension FlexrStrings {
 
         // MARK: Paywall
         .paywallTitle: "FLEXR Premium",
-        .paywallFeatureUnlimited: "Unlimited likes instead of 20 per day",
+        .paywallFeatureUnlimited: "Unlimited likes",
         .paywallSubscribe: "Get Premium",
         .paywallPerMonth: " / month",
         .paywallFeatureChat: "Unlimited conversations at the same time",

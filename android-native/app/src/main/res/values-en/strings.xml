@@ -263,11 +263,11 @@
     <string name="premium_title">FLEXR Premium</string>
     <string name="premium_sub">Using FLEXR costs nothing — permanently. Premium is for everyone who wants more: no like limit, no chat limit, full reach.</string>
     <string name="premium_eyebrow">Cancel any month</string>
-    <string name="premium_feature_likes">Unlimited likes instead of %1$d per day</string>
-    <string name="premium_feature_chats">As many conversations at once as you like (instead of %1$d)</string>
+    <string name="premium_feature_likes">Unlimited likes</string>
+    <string name="premium_feature_chats">As many conversations at once as you like</string>
     <string name="premium_feature_incoming">See who already liked you</string>
     <string name="premium_feature_rewind">Undo your last swipe</string>
-    <string name="premium_feature_radius">Full search radius up to %1$d km instead of %2$d km</string>
+    <string name="premium_feature_radius">Full search radius up to 250 km</string>
     <string name="premium_feature_badge">Premium badge on your profile</string>
     <string name="premium_beta_hint">FLEXR Premium cannot be purchased in this app. Using FLEXR still costs nothing.</string>
     <string name="premium_likes_left">%1$d of %2$d likes left today</string>
@@ -366,7 +366,7 @@
     <string name="paywall_membership">Cancel any month</string>
     <string name="paywall_price">€10</string>
     <string name="paywall_per_month"> / month</string>
-    <string name="paywall_feature_unlimited">Unlimited likes instead of 20 per day</string>
+    <string name="paywall_feature_unlimited">Unlimited likes</string>
     <string name="paywall_subscribe">Get Premium</string>
     <string name="purchase_success">FLEXR Premium is running. Enjoy!</string>
     <string name="common_logout">Log out</string>

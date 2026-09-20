@@ -26,21 +26,17 @@ struct PaywallView: View {
     @Environment(AppContainer.self) private var container
     @Environment(AppModel.self) private var appModel
 
-    /// Die Vorteile mit den Zahlen des Servers. Wer die Grenzen in
-    /// `config.py` ändert, ändert damit auch diese Liste.
+    /// Die feste Vorteil-Liste, ohne Zahlen aus dem Serverstatus.
     private var features: [String] {
-        let m = appModel.membership
-        // Der Radius-Eintrag entfällt ohne Serverstatus ganz — ein Rückfall
-        // auf den Abzeichen-Text hätte ihn doppelt gezeigt.
-        return [
-            m.map { s(.premiumFeatureLikes, $0.freeDailyLikes) } ?? s(.paywallFeatureUnlimited),
-            m.map { s(.premiumFeatureChats, $0.freeOpenChats) } ?? s(.paywallFeatureChat),
+        [
+            s(.premiumFeatureLikes),
+            s(.premiumFeatureChats),
             s(.premiumFeatureIncoming),
             s(.premiumFeatureRewind),
-            m.map { s(.premiumFeatureRadius, max($0.maxRadiusKm, 250), $0.freeMaxRadiusKm) },
+            s(.premiumFeatureRadius),
             s(.premiumFeatureBadge),
             s(.paywallFeatureCancel),
-        ].compactMap { $0 }
+        ]
     }
 
     var body: some View {

@@ -157,19 +157,13 @@ fun PaywallScreen(
                 )
             }
             Spacer(Modifier.height(16.dp))
-            // Die Zahlen kommen vom Server, nicht aus dem Text: Wer die
-            // Grenzen in config.py aendert, aendert damit auch diese Liste.
-            val m = membership
-            val vorteile = listOfNotNull(
-                m?.let { stringResource(R.string.premium_feature_likes, it.freeDailyLikes) }
-                    ?: stringResource(R.string.paywall_feature_unlimited),
-                m?.let { stringResource(R.string.premium_feature_chats, it.freeOpenChats) }
-                    ?: stringResource(R.string.paywall_feature_chat),
+            // Feste Vorteil-Liste, ohne Zahlen aus dem Serverstatus.
+            val vorteile = listOf(
+                stringResource(R.string.premium_feature_likes),
+                stringResource(R.string.premium_feature_chats),
                 stringResource(R.string.premium_feature_incoming),
                 stringResource(R.string.premium_feature_rewind),
-                m?.let {
-                    stringResource(R.string.premium_feature_radius, it.maxRadiusKm.coerceAtLeast(250), it.freeMaxRadiusKm)
-                },
+                stringResource(R.string.premium_feature_radius),
                 stringResource(R.string.premium_feature_badge),
                 stringResource(R.string.paywall_feature_cancel),
             )

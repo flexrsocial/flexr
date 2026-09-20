@@ -2872,11 +2872,11 @@
         <div class="price-eyebrow" data-i18n="premium.eyebrow">Monatlich kündbar</div>
         <div class="price"><span id="premiumPrice">10&nbsp;€</span> <small data-i18n="premium.perMonth">/ Monat</small></div>
         <ul class="price-feats">
-          <li><svg class="ico" viewBox="0 0 24 24"><path d="M5 12.5 10 17 19 7"/></svg><span id="premiumFeatLikes" data-i18n="premium.featLikes">Unbegrenzt liken statt 20 pro Tag</span></li>
-          <li><svg class="ico" viewBox="0 0 24 24"><path d="M5 12.5 10 17 19 7"/></svg><span id="premiumFeatChats" data-i18n="premium.featChats">So viele Unterhaltungen gleichzeitig, wie du willst</span></li>
+          <li><svg class="ico" viewBox="0 0 24 24"><path d="M5 12.5 10 17 19 7"/></svg><span data-i18n="premium.featLikes">Unbegrenzt liken</span></li>
+          <li><svg class="ico" viewBox="0 0 24 24"><path d="M5 12.5 10 17 19 7"/></svg><span data-i18n="premium.featChats">So viele Unterhaltungen gleichzeitig, wie du willst</span></li>
           <li><svg class="ico" viewBox="0 0 24 24"><path d="M5 12.5 10 17 19 7"/></svg><span data-i18n="premium.featIncoming">Sehen, wer dich schon geliked hat</span></li>
           <li><svg class="ico" viewBox="0 0 24 24"><path d="M5 12.5 10 17 19 7"/></svg><span data-i18n="premium.featRewind">Den letzten Swipe zurücknehmen</span></li>
-          <li><svg class="ico" viewBox="0 0 24 24"><path d="M5 12.5 10 17 19 7"/></svg><span id="premiumFeatRadius" data-i18n="premium.featRadius">Voller Suchumkreis bis 250 km statt 50 km</span></li>
+          <li><svg class="ico" viewBox="0 0 24 24"><path d="M5 12.5 10 17 19 7"/></svg><span data-i18n="premium.featRadius">Voller Suchumkreis bis 250 km</span></li>
           <li><svg class="ico" viewBox="0 0 24 24"><path d="M5 12.5 10 17 19 7"/></svg><span data-i18n="premium.featBadge">Premium-Abzeichen in deinem Profil</span></li>
         </ul>
         <button class="btn" id="btnSubscribe2" data-i18n="premium.subscribe">Premium holen</button>
@@ -4645,17 +4645,11 @@
     renderAccount();
   });
 
-  /* Preis und Vorteile mit den Zahlen des Servers fuellen. Die Liste steht
-     fest im Markup (uebersetzbar), nur die Zahlen darin wechseln - so bleibt
-     sie fuer Screenreader und Uebersetzung ein normaler Text. */
+  /* Preis mit den Zahlen des Servers fuellen. Die Vorteil-Liste selbst steht
+     fest im Markup und uebersetzbar, ohne Zahlen des Servers. */
   function renderPremiumScreen(){
     if(!membership) return;
     $('premiumPrice').textContent = premiumPrice();
-    setI18nText($('premiumFeatLikes'), 'premium.featLikes', {n: membership.free_daily_likes});
-    setI18nText($('premiumFeatChats'), 'premium.featChats', {n: membership.free_open_chats});
-    setI18nText($('premiumFeatRadius'), 'premium.featRadius', {
-      frei: membership.free_max_radius_km, voll: 250,
-    });
     // Waehrend der Beta gibt es nichts abzuschliessen.
     const kaufbar = premiumOffered() && !isPremium();
     $('btnSubscribe2').style.display = kaufbar ? '' : 'none';
@@ -5992,9 +5986,9 @@
     else toast(text);
   }
 
-  /* Die Zeile unter den Aktionsknoepfen. Waehrend der Beta und mit Premium
-     gibt es nichts zu zaehlen - dann bleibt sie ganz weg, statt "unbegrenzt"
-     zu behaupten, wo niemand gefragt hat. */
+  /* Die Zeile unter den Aktionsknoepfen zeigt bewusst keinen Like-Zaehler
+     mehr (weder Restzahl noch "Unbegrenzt liken"-Hinweis) - das Element
+     bleibt daher immer verborgen. */
   function renderLikeCounter(){
     // Zuruecknehmen nur mit Premium. Steht bewusst vor dem Ausstieg unten:
     // Premium-Konten haben kein Kontingent und wuerden den Knopf sonst nie zu
@@ -6002,21 +5996,8 @@
     $('btnRewind').style.display = isPremium() ? '' : 'none';
 
     const el = $('likeCounter');
-    const rest = likesLeft();
-    if(rest === null){ el.style.display = 'none'; el.textContent = ''; return; }
-    el.style.display = '';
-    el.classList.toggle('empty-quota', rest === 0);
-    el.textContent = rest === 0
-      ? t('premium.likesGone')
-      : t(rest === 1 ? 'premium.likesLeft1' : 'premium.likesLeft',
-          {n: rest, gesamt: membership.free_daily_likes});
-    if(premiumOffered()){
-      const knopf = document.createElement('button');
-      knopf.type = 'button';
-      knopf.textContent = t('premium.moreLikes');
-      knopf.addEventListener('click', showPremiumScreen);
-      el.appendChild(knopf);
-    }
+    el.style.display = 'none';
+    el.textContent = '';
   }
 
   /* Letzten Swipe zuruecknehmen (Premium). Danach das Deck neu laden: Das
