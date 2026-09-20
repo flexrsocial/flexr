@@ -266,8 +266,11 @@ android {
         // Gym-Feld. Ausserdem derselbe Oswald-Offset wie beim Haken oben
         // jetzt auch am Premium-Stern daneben (sass sichtbar hoeher) und an
         // den Kopf-Badges "Premium"/"Beta"-Pille neben der FLEXR-Wortmarke.
-        versionCode = 126
-        versionName = "2.7.14"
+        // 127/2.7.15 am 20.09.2026: Premium-Vorteilsliste auf der Paywall
+        // vereinheitlicht (feste Texte ohne Vergleich zu den Server-Zahlen,
+        // z. B. "Unbegrenzt liken" statt "Unbegrenzt liken statt X pro Tag").
+        versionCode = 127
+        versionName = "2.7.15"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         // Nur die Sprachen ausliefern, die es wirklich gibt: Deutsch als
