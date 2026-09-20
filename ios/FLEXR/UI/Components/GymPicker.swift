@@ -23,6 +23,11 @@ struct GymPicker: View {
     let onQueryChange: (String) -> Void
     let onSelect: (Gym) -> Void
     let onSuggestRequested: () -> Void
+    var isEnabled = true
+    /// Datum der naechsten moeglichen Aenderung, solange die Karenz laeuft.
+    var lockedUntilLabel: String?
+
+    @State private var showLockInfo = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -34,9 +39,28 @@ struct GymPicker: View {
                 label: s(.gymLabel),
                 placeholder: s(.gymSearchPlaceholder),
                 autocapitalization: .words,
+                isEnabled: isEnabled,
                 trailingIcon: FlexrIcon.search,
-                submitLabel: .search
+                submitLabel: .search,
+                labelTrailing: {
+                    AnyView(
+                        Button { showLockInfo = true } label: {
+                            Image(systemName: "info.circle")
+                                .font(.system(size: 14))
+                                .foregroundStyle(FlexrColor.chalkDim)
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel(s(.gymLockInfoAccessibility))
+                    )
+                }
             )
+
+            if let lockedUntilLabel {
+                Text(s(.gymLockedHint, lockedUntilLabel))
+                    .flexrText(.bodySmall)
+                    .foregroundStyle(FlexrColor.plate)
+                    .padding(.top, 6)
+            }
 
             if state.isExpanded {
                 VStack(spacing: 0) {
@@ -94,6 +118,11 @@ struct GymPicker: View {
                     )
                     .padding(.top, 8)
             }
+        }
+        .alert(s(.gymLockInfoTitle), isPresented: $showLockInfo) {
+            Button(s(.commonClose)) {}
+        } message: {
+            Text(s(.gymLockInfoBody))
         }
     }
 }

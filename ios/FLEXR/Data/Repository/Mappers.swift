@@ -68,6 +68,7 @@ extension MyProfileDTO {
             birthdate: ServerTime.parseDate(birthdate),
             searchRadiusKm: searchRadiusKm ?? 20,
             messagingMutedUntil: ServerTime.parse(messagingMutedUntil),
+            gymChangeLockedUntil: ServerTime.parse(gymChangeLockedUntil),
             email: email ?? "",
             emailVerified: emailVerified ?? true,
             verificationRequired: verificationRequired ?? false,

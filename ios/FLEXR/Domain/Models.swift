@@ -71,6 +71,11 @@ struct MyProfile: Hashable, Sendable {
     let birthdate: Date?
     let searchRadiusKm: Int
     let messagingMutedUntil: Date?
+    /// Karenz zwischen zwei Gym-Wechseln (siehe Backend GYM_CHANGE_COOLDOWN_DAYS):
+    /// der Suchumkreis wird ab der Gym-Adresse berechnet, ohne Sperre liesse sich
+    /// der mit FLEXR Premium bezahlte groessere Radius durch haeufiges Wechseln
+    /// umgehen. Nil, solange gerade kein Wechsel gesperrt ist.
+    var gymChangeLockedUntil: Date? = nil
     /// Adresse, an die die Bestätigungsmail ging — der Verifizierungsablauf
     /// zeigt sie an, damit der Nutzer weiß, wo er nachsehen muss.
     var email: String = ""
@@ -99,6 +104,12 @@ struct MyProfile: Hashable, Sendable {
     func activeMuteUntil(now: Date = Date()) -> Date? {
         guard let messagingMutedUntil, messagingMutedUntil > now else { return nil }
         return messagingMutedUntil
+    }
+
+    /// Naechster erlaubter Gym-Wechsel, solange die Karenz noch laeuft - sonst nil.
+    func activeGymLockUntil(now: Date = Date()) -> Date? {
+        guard let gymChangeLockedUntil, gymChangeLockedUntil > now else { return nil }
+        return gymChangeLockedUntil
     }
 }
 

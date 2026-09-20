@@ -54,6 +54,7 @@ enum L: Hashable, Sendable {
     case gymSuggestIntro, gymNameLabel, gymNamePlaceholder, gymStreetLabel
     case gymStreetPlaceholder, gymHouseNumberLabel, gymPostalCodeLabel
     case gymSuggestThanks, gymSuggestSubmit, gymSearching, gymNone, bioNone
+    case gymLockInfoAccessibility, gymLockInfoTitle, gymLockInfoBody, gymLockedHint
 
     // Swipe
     case swipeEyebrow, swipeTitle, swipeRadius, swipeEmptyTitle, swipeEmptySub

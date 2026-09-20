@@ -143,6 +143,10 @@ extension FlexrStrings {
         .gymSuggestThanks: "Thanks! Suggestion submitted — you can use the gym right away.",
         .gymNone: "No gym given",
         .bioNone: "No bio given.",
+        .gymLockInfoAccessibility: "Why the gym can only be changed rarely",
+        .gymLockInfoTitle: "Why only every 3 months?",
+        .gymLockInfoBody: "Your search radius is calculated from your gym’s address. To stop the larger radius that comes with FLEXR Premium from being bypassed by switching gyms often, you can only change your gym every 3 months.",
+        .gymLockedHint: "Next change possible from %@.",
 
         // MARK: Swipe
         .swipeEyebrow: "Discover",

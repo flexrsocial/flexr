@@ -68,7 +68,9 @@ struct AccountView: View {
                     state: $model.gymPicker,
                     onQueryChange: model.onGymQueryChange,
                     onSelect: model.onGymSelected,
-                    onSuggestRequested: model.openGymSuggestion
+                    onSuggestRequested: model.openGymSuggestion,
+                    isEnabled: model.gymChangeLockedUntil == nil,
+                    lockedUntilLabel: model.gymChangeLockedUntil.map(ServerTime.formatDay)
                 )
                 FlexrTextField(
                     text: $model.bio,

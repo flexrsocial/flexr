@@ -3,15 +3,22 @@ import SwiftUI
 /// Feldbeschriftung im FLEXR-Stil: klein, gesperrt, Versalien, gedämpft.
 struct FieldLabel: View {
     let text: String
+    /// Optionales Erklär-"i" neben der Beschriftung (Parität zum Web-Frontend).
+    var trailing: (() -> AnyView)? = nil
 
     var body: some View {
-        Text(text.uppercased())
-            .font(.flexrWorkSans(12))
-            .tracking(0.48)
-            .foregroundStyle(FlexrColor.chalkDim)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.top, 16)
-            .padding(.bottom, 6)
+        HStack(alignment: .center, spacing: 4) {
+            Text(text.uppercased())
+                .font(.flexrWorkSans(12))
+                .tracking(0.48)
+                .foregroundStyle(FlexrColor.chalkDim)
+            if let trailing {
+                trailing()
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.top, 16)
+        .padding(.bottom, 6)
     }
 }
 
@@ -41,6 +48,8 @@ struct FlexrTextField: View {
     var onSubmit: (() -> Void)?
     /// Blendet einen Emoji-Umschalter ins Feld ein (Parität zum Web-Frontend).
     var showsEmojiPicker = false
+    /// Optionales Erklär-"i" neben der Beschriftung (Parität zum Web-Frontend).
+    var labelTrailing: (() -> AnyView)? = nil
 
     @State private var isEmojiOpen = false
     @State private var selection = NSRange(location: 0, length: 0)
@@ -51,7 +60,7 @@ struct FlexrTextField: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            FieldLabel(text: label)
+            FieldLabel(text: label, trailing: labelTrailing)
 
             HStack(alignment: .top, spacing: 8) {
                 if usesEditor {

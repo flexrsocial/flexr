@@ -145,6 +145,10 @@ extension FlexrStrings {
         .gymSuggestThanks: "Danke! Vorschlag eingereicht — du kannst das Gym sofort verwenden.",
         .gymNone: "Kein Gym angegeben",
         .bioNone: "Keine Bio angegeben.",
+        .gymLockInfoAccessibility: "Warum sich das Gym nur selten ändern lässt",
+        .gymLockInfoTitle: "Warum nur alle 3 Monate?",
+        .gymLockInfoBody: "Der Suchumkreis wird ab der Adresse deines Gyms berechnet. Damit sich der mit FLEXR Premium bezahlte größere Umkreis nicht durch häufiges Wechseln umgehen lässt, kannst du dein Gym nur alle 3 Monate ändern.",
+        .gymLockedHint: "Nächste Änderung erst wieder ab %@ möglich.",
 
         // MARK: Swipe
         .swipeEyebrow: "Entdecken",

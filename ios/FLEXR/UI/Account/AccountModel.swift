@@ -36,6 +36,12 @@ final class AccountModel {
     /// braucht also keinen eigenen Ladeschritt.
     var notifications: NotificationSettings { profile?.notifications ?? NotificationSettings() }
 
+    /// Solange gesetzt, ist ein Gym-Wechsel gesperrt (Karenz alle 3 Monate,
+    /// siehe MyProfile.activeGymLockUntil). Kommt mit dem Profil mit, wie
+    /// `notifications` oben - kein eigener Ladeschritt und automatisch aktuell
+    /// nach dem Speichern.
+    var gymChangeLockedUntil: Date? { profile?.activeGymLockUntil() }
+
     /// Der größte Umkreis, den dieses Konto einstellen darf.
     ///
     /// Kommt vom Server (`GET /api/billing/status`, Feld `max_radius_km`) und
