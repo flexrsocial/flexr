@@ -9,8 +9,38 @@ Stand: **20.09.2026**
 > Rückmeldung eines erneuten Absturzes bereits die Fassungen 2.7.6 bis 2.7.13
 > gebaut und mehrfach committet/gepusht worden; das Problem gilt als erledigt.
 
-**Sitzung 20.09.2026 (3) — Gym-Wechsel-Karenz: committet und gepusht, Web
-deployed, Backend-Neustart auf dem VPS steht noch aus.** Neues Feature auf
+**Sitzung 20.09.2026 (4) — Hinweistext gekürzt, VPS-Deploy komplett
+nachgeholt, Premium-Stern/Kopf-Badges an Android+iOS ausgerichtet.** Der in
+Sitzung (3) verweigerte Backend-Neustart wurde auf explizite Anweisung des
+Nutzers nachgeholt: `alembic upgrade head` (`5f8ae574bc95` → `346cc0194f76`)
+und `systemctl restart flexr-api` liefen beide durch, `/api/health` grün,
+Migrationsstand jetzt `346cc0194f76 (head)`. **Alles aus Sitzung (3) ist
+damit tatsächlich live.** Der Erklärtext beim Gym-"i" wurde außerdem auf
+Wunsch gekürzt: statt der Umgehungsschutz-Begründung steht jetzt nur noch
+"Du kannst dein Gym alle 3 Monate ändern." (Web-Bubble, Android-/iOS-Dialog;
+Dialogtitel dafür auf "Gym ändern" vereinfacht) - Commit **`e8c4e37`**,
+ebenfalls gepusht und auf dem VPS deployed.
+
+Danach zwei Screenshot-Rückmeldungen zur Badge-Ausrichtung (derselbe
+Android-Screenshot vom Sitzungsanfang, diesmal per PIL pixelvermessen statt
+nur theoretisiert): Premium-Stern neben Name/Alter saß rund 2,3px höher als
+der Verifiziert-Haken (bei ~1,5px/dp, also ~1,5dp) - bekommt jetzt denselben
+`Modifier.offset(y = 1.5.dp)` wie der Haken (Sitzung (2)). Die Kopf-Badges
+("Premium"/"Beta"-Pille, Angebots-Knopf) saßen ebenfalls sichtbar zu hoch
+relativ zur FLEXR-Wortmarke, gleiche Ursache (Oswald-Ascent/Descent) - jetzt
+mit demselben Versatz direkt in `StatusPill`/`PremiumActivatePill` statt an
+jeder Aufrufstelle. **Auf iOS analog übernommen** (`.titleLarge`/`.brand`
+verwenden dieselbe Oswald-Schrift, siehe `FlexrTypography.swift`) -
+ungeprüft, keine Swift-Toolchain auf diesem Gerät. **Im Web dagegen live per
+`getBoundingClientRect()` UND Screenshot geprüft: beide Ausrichtungen sind
+dort bereits korrekt** (Verifiziert-Haken/Premium-Stern exakt
+deckungsgleiche Zentren, `.brand`/`.status-pill` ebenfalls) - keine
+Web-Änderung nötig, frühere Sitzungen hatten das dort schon über einen
+SVG-viewBox-Trick gelöst. Zwei Commits: **`64ffa8b`** (Android, kompiliert
+und getestet) und **`3519143`** (iOS, ungeprüft) - beide gepusht, kein
+VPS-Deploy nötig (reine native Aenderungen).
+
+Zuvor **Sitzung 20.09.2026 (3) — Gym-Wechsel-Karenz.** Neues Feature auf
 Wunsch des Nutzers: das Gym lässt sich nur noch alle 3 Monate ändern
 (`GYM_CHANGE_COOLDOWN_DAYS = 90` in `backend/app/models.py`), damit sich der
 per Gym-Adresse berechnete, mit FLEXR Premium bezahlte größere Suchumkreis
@@ -362,6 +392,90 @@ Ausgangssitzung), dann die **drei Abschnitte vom 10.09.**
 **08.09.**, dann die beiden Sitzungen vom **07.09.**, dann **06.09.**, dann
 **05.09.**, dann **31.08.**, **30.08.**, **23.08.**, **21.08.**; die Build-,
 Test- und Deploy-Abschnitte am Ende gelten sitzungsübergreifend.
+
+## Sitzung 20.09.2026 (4) — Hinweistext gekürzt, VPS-Deploy nachgeholt, Badge-Ausrichtung Android/iOS
+
+Drei getrennte Nutzer-Rückmeldungen im Anschluss an Sitzung (3).
+
+### 1. VPS-Deploy komplett nachgeholt
+
+Sitzung (3) hatte `alembic upgrade head`/`systemctl restart flexr-api` nicht
+ausführen können (Auto-Mode-Classifier, *"Production Deploy"*). Auf
+ausdrückliche Anweisung diesmal gelaufen:
+
+```
+ssh flexr-vps 'cd /flexr/backend && source venv/bin/activate && alembic upgrade head'
+ssh flexr-vps 'systemctl restart flexr-api'
+```
+
+`alembic current` vorher `5f8ae574bc95`, danach `346cc0194f76 (head)`.
+`systemctl is-active flexr-api` → `active`, `curl https://flexr.social/api/health`
+→ `{"status":"ok"}`. Die Gym-Wechsel-Karenz aus Sitzung (3) ist damit die
+gesamte Sitzung über durchgehend live.
+
+### 2. Hinweistext gekürzt, keine Erwähnung von FLEXR Premium mehr
+
+Nutzerwunsch: der Text beim "i" neben dem Gym-Feld soll nur noch die reine
+Regel nennen, nicht die Begründung über den Suchumkreis. Geändert auf allen
+drei Oberflächen:
+
+- Alt: "Der Suchumkreis wird ab der Adresse deines Gyms berechnet. Damit
+  sich der mit FLEXR Premium bezahlte größere Umkreis nicht durch häufiges
+  Wechseln umgehen lässt, kannst du dein Gym nur alle 3 Monate ändern."
+- Neu: "Du kannst dein Gym alle 3 Monate ändern." (EN: "You can change your
+  gym every 3 months.")
+
+Android/iOS-Dialogtitel dafür von "Warum nur alle 3 Monate?" auf "Gym
+ändern" vereinfacht - der gekürzte Text beantwortet kein "Warum" mehr.
+Web: i18n-Quelle (`i18n-app.js`) und statischer Fallback in `index.html`
+gleichlautend gehalten, Service-Worker-Version hochgezählt
+(`i18n-app.js?v=11`, Shell `v21`). Android-Ressourcen gegengeprüft
+(`processLocalDebugResources`, grün). Commit **`e8c4e37`**, gepusht und
+Teil desselben Deploys wie oben.
+
+### 3. Premium-Stern und Kopf-Badges an Android/iOS ausgerichtet
+
+Zwei weitere Screenshot-Stellen am selben Android-Screenshot vom
+Sitzungsanfang (591×1280), diesmal mit PIL pixelvermessen statt nur
+theoretisiert (Farbmasken: `VerifiedBlue #2D9CDB`, `Plate #FF5A1F`,
+Helligkeitsschwelle für Text/Wortmarke):
+
+- **Name-Zeile:** Verifiziert-Haken-Zentrum (Maskenschwerpunkt) bei y≈222.1,
+  Premium-Stern-Zentrum bei y≈219.8 - der Stern sitzt rund 2,3px höher als
+  der Haken. Bei einem gemessenen Kreisdurchmesser von 24px für die
+  eingestellten 16dp (≈1,5px/dp) entspricht das ziemlich genau **1,5dp** -
+  demselben Wert, den der Haken in Sitzung (2) schon bekommen hat.
+  `PremiumBadge()` in `AccountScreen.kt` bekommt jetzt denselben
+  `Modifier.offset(y = 1.5.dp)`.
+- **Kopfzeile:** "FLEXR"-Wortmarke-Zentrum (Cap-Height-Bbox) bei y≈104,5-105,
+  "Premium"-Pillenrand-Zentrum bei y≈103 - die Pille sitzt sichtbar höher.
+  `StatusPill`/`PremiumActivatePill` (`Common.kt`) bekommen denselben
+  1,5dp-Versatz direkt in der Komponente, weil beide ausschließlich in
+  `FlexrTopBar` neben der Wortmarke vorkommen (vier Aufrufstellen geprüft).
+
+**Auf iOS analog übernommen, ohne eigenen Screenshot:** `.titleLarge`
+(Name-Zeile) und `.brand` (Wortmarke) verwenden auf iOS ebenfalls Oswald
+(`FlexrTypography.swift`), also derselbe Font-Metrik-Effekt wie auf Android.
+`VerifiedBadge()`/`PremiumBadge()` in `AccountView.swift` und `StatusPill`
+in `Common.swift` bekommen denselben `.offset(y: 1.5)`. **Nicht kompiliert**
+- keine Swift-Toolchain auf diesem Gerät.
+
+**Im Web dagegen live geprüft statt blind übernommen** (Browser-Pane,
+Testnutzer `hoverdemo@example.com` aus Sitzung (3) mit `is_verified` und
+`is_subscribed` direkt in der lokalen Dev-DB gesetzt, `PREMIUM_ENABLED=true`
+nur temporär in `backend/.env` für den lokalen Server, danach wieder
+entfernt): `getBoundingClientRect()` auf `.verified-badge`/`.premium-badge`
+liefert **exakt identische** `top`/`bottom`/`center` (108.36/108.36), auf
+`.brand`/`.status-pill` ebenfalls (Zentrum beider bei 31). Screenshot
+bestätigt den optischen Eindruck. **Keine Web-Änderung nötig** - frühere
+Sitzungen hatten das dort schon gelöst (siehe Kommentare bei
+`.verified-badge`/`.premium-badge` in `index.html`: eigener SVG-viewBox-Trick
+statt fixem Pixel-Versatz).
+
+Zwei Commits: **`64ffa8b`** (Android - kompiliert,
+`testLocalDebugUnitTest` grün) und **`3519143`** (iOS - ungeprüft), beide
+gepusht. Kein VPS-Deploy nötig, reine native App-Änderungen ohne
+Backend-/Web-Bezug.
 
 ## Sitzung 20.09.2026 (3) — Gym-Wechsel nur alle 3 Monate (Umgehungsschutz Suchumkreis)
 
