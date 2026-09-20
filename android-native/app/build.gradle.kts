@@ -269,8 +269,14 @@ android {
         // 127/2.7.15 am 20.09.2026: Premium-Vorteilsliste auf der Paywall
         // vereinheitlicht (feste Texte ohne Vergleich zu den Server-Zahlen,
         // z. B. "Unbegrenzt liken" statt "Unbegrenzt liken statt X pro Tag").
-        versionCode = 127
-        versionName = "2.7.15"
+        // 128/2.7.16 am 20.09.2026: "Hilfe & Rechtliches" im Konto-Bereich
+        // hatte keinen Eintrag fuer das Ruecktrittsrecht - neue Zeile
+        // "Ruecktrittsrecht" oeffnet flexr.social/widerruf.html im Custom
+        // Tab (die Online-Ruecktrittsfunktion dort ist ein Formular mit
+        // Server-Anbindung, keine reine Textseite wie die uebrigen nativ
+        // nachgebauten Rechtstexte).
+        versionCode = 128
+        versionName = "2.7.16"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         // Nur die Sprachen ausliefern, die es wirklich gibt: Deutsch als

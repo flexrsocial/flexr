@@ -705,6 +705,10 @@ fun AccountScreen(
                 legalDialogVisible = false
                 onOpenLegal(document)
             },
+            onOpenUrl = { url ->
+                legalDialogVisible = false
+                onOpenUrl(url)
+            },
             onDismiss = { legalDialogVisible = false },
         )
     }
@@ -1354,6 +1358,7 @@ private fun NotificationSwitchRow(
 @Composable
 private fun LegalAndHelpDialog(
     onOpenLegal: (LegalDocument) -> Unit,
+    onOpenUrl: (String) -> Unit,
     onDismiss: () -> Unit,
 ) {
     val colors = FlexrTheme.colors
@@ -1369,28 +1374,21 @@ private fun LegalAndHelpDialog(
                     .verticalScroll(rememberScrollState()),
             ) {
                 LegalDocument.entries.forEach { document ->
-                    Row(
-                        Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(10.dp))
-                            .clickable { onOpenLegal(document) }
-                            .padding(vertical = 13.dp, horizontal = 4.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Text(
-                            text = stringResource(document.titleRes),
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = colors.chalk,
-                            modifier = Modifier.weight(1f),
-                        )
-                        Icon(
-                            Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                            contentDescription = null,
-                            tint = colors.chalkDim,
-                            modifier = Modifier.size(18.dp),
-                        )
-                    }
+                    LegalHelpRow(
+                        label = stringResource(document.titleRes),
+                        onClick = { onOpenLegal(document) },
+                    )
                 }
+                // Eigene Zeile statt eines LegalDocument-Eintrags: Die
+                // Online-Ruecktrittsfunktion auf flexr.social/widerruf.html
+                // ist ein Formular mit Server-Anbindung (POST
+                // /api/withdrawal), keine reine Textseite wie die uebrigen
+                // nativ nachgebauten Rechtstexte - sie oeffnet deshalb im
+                // Custom Tab statt in der nativen LegalScreen.
+                LegalHelpRow(
+                    label = stringResource(R.string.legal_widerruf),
+                    onClick = { onOpenUrl("https://flexr.social/widerruf.html") },
+                )
             }
         },
         confirmButton = {
@@ -1399,6 +1397,32 @@ private fun LegalAndHelpDialog(
             }
         },
     )
+}
+
+@Composable
+private fun LegalHelpRow(label: String, onClick: () -> Unit) {
+    val colors = FlexrTheme.colors
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(10.dp))
+            .clickable(onClick = onClick)
+            .padding(vertical = 13.dp, horizontal = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodyLarge,
+            color = colors.chalk,
+            modifier = Modifier.weight(1f),
+        )
+        Icon(
+            Icons.AutoMirrored.Filled.KeyboardArrowRight,
+            contentDescription = null,
+            tint = colors.chalkDim,
+            modifier = Modifier.size(18.dp),
+        )
+    }
 }
 
 /**

@@ -58,6 +58,7 @@
     <string name="legal_nutzungsrichtlinien">Community guidelines</string>
     <string name="legal_strafverfolgung">Law enforcement</string>
     <string name="legal_only_german">These legal texts are available in German only and are binding in that version.</string>
+    <string name="legal_widerruf">Right of withdrawal</string>
 
     <string name="field_email">Email</string>
     <string name="field_password">Password</string>

@@ -80,6 +80,10 @@
     <string name="legal_nutzungsrichtlinien">Nutzungsrichtlinien</string>
     <string name="legal_strafverfolgung">Strafverfolgungsbehörden</string>
     <string name="legal_only_german">Diese Rechtstexte liegen nur auf Deutsch vor und sind in dieser Fassung verbindlich.</string>
+    <!-- Oeffnet flexr.social/widerruf.html im Custom Tab statt einer nativen
+         Ansicht: Die Online-Ruecktrittsfunktion dort ist ein Formular mit
+         Server-Anbindung (POST /api/withdrawal), keine reine Textseite. -->
+    <string name="legal_widerruf">Rücktrittsrecht</string>
 
     <!-- ==== Eingabefelder / Bausteine ==== -->
     <string name="field_email">E-Mail</string>
