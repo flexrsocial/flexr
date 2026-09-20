@@ -212,6 +212,13 @@ GYM_CHOICES = [
     "Anderes Studio",
 ]
 
+# Karenz zwischen zwei Gym-Wechseln (siehe User.gym_changed_at). Der
+# Suchumkreis wird ab der Adresse des eingetragenen Gyms berechnet
+# (gym_geo.py) - ohne Karenz liesse sich der groessere, kostenpflichtige
+# FLEXR-Premium-Radius umgehen, indem der Mittelpunkt per Gym-Wechsel
+# einfach mitwandert statt fuer Premium zu zahlen.
+GYM_CHANGE_COOLDOWN_DAYS = 90
+
 
 def gym_label(name: str, street: str, house_number: str, plz: str, city: str) -> str:
     """Anzeigename inkl. Adresse, z. B. "FITINN — Johnstraße 65, 1150 Wien".
@@ -268,6 +275,11 @@ class User(Base):
     gender = Column(Enum(Gender), nullable=False)
     interest = Column(Enum(Gender), nullable=False)  # sucht Mann oder Frau
     gym = Column(String, nullable=False)  # muss einer der GYM_CHOICES sein
+    # Zeitpunkt des letzten tatsaechlichen Gym-Wechsels ueber /api/profiles/me
+    # (siehe GYM_CHANGE_COOLDOWN_DAYS). NULL fuer Bestandskonten und fuer
+    # Konten, die ihr Gym seit der Registrierung nie geaendert haben - die
+    # Erstwahl bei der Registrierung zaehlt nicht als Wechsel.
+    gym_changed_at = Column(DateTime, nullable=True)
     bio = Column(String(280), nullable=True)
 
     created_at = Column(DateTime, default=datetime.utcnow)
@@ -476,6 +488,21 @@ class User(Base):
             self.store_premium_until is not None
             and self.store_premium_until > datetime.utcnow()
         )
+
+    @property
+    def gym_change_locked_until(self) -> datetime | None:
+        """Naechster erlaubter Gym-Wechsel - None, wenn gerade keine Sperre
+        aktiv ist (noch nie gewechselt oder die Karenz ist abgelaufen).
+
+        Wird auch in die Profilausgabe uebernommen, damit Web/Android/iOS das
+        Gym-Feld waehrend der Karenz sperren und das Datum anzeigen koennen,
+        statt den Nutzer erst beim Speichern mit einer Fehlermeldung zu
+        ueberraschen.
+        """
+        if self.gym_changed_at is None:
+            return None
+        locked_until = self.gym_changed_at + timedelta(days=GYM_CHANGE_COOLDOWN_DAYS)
+        return locked_until if locked_until > datetime.utcnow() else None
 
     @property
     def is_premium(self) -> bool:

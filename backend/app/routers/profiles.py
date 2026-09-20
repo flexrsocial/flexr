@@ -81,6 +81,22 @@ def update_my_profile(
         if not gym_exists_for_profile(db, fields["gym"]):
             raise HTTPException(400, "Unbekanntes Gym. Bitte aus der Liste wählen oder vorschlagen.")
 
+        # Karenz gegen haeufigen Gym-Wechsel (siehe models.GYM_CHANGE_COOLDOWN_DAYS):
+        # der Suchumkreis wird ab der Gym-Adresse berechnet, ohne Sperre liesse
+        # sich der kostenpflichtige groessere FLEXR-Premium-Radius umgehen,
+        # indem der Mittelpunkt per Gym-Wechsel einfach mitwandert. Ein Patch
+        # mit demselben Gym ist kein Wechsel und loest die Karenz nicht aus.
+        if fields["gym"] != current_user.gym:
+            locked_until = current_user.gym_change_locked_until
+            if locked_until is not None:
+                raise HTTPException(
+                    400,
+                    "Das Gym kann nur alle drei Monate geändert werden (Schutz "
+                    "vor Umgehung des FLEXR-Premium-Suchumkreises) - nächste "
+                    f"Änderung ab {locked_until.strftime('%d.%m.%Y')} möglich.",
+                )
+            fields["gym_changed_at"] = datetime.utcnow()
+
     if "bio" in fields:
         from ..safety_checks import check_public_text
 

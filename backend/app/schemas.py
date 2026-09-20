@@ -173,6 +173,9 @@ class MyProfileOut(ProfileOut):
 
     plz: str
     birthdate: date
+    # Solange gesetzt: das Gym laesst sich noch nicht wieder aendern (siehe
+    # User.gym_change_locked_until). None = Wechsel gerade erlaubt.
+    gym_change_locked_until: Optional[datetime] = None
     # Nur in der eigenen Ansicht: Der Nutzer muss sehen, an welche Adresse die
     # Bestätigungsmail ging - sonst bemerkt er einen Tippfehler nie. In
     # ProfileOut (Fremdansicht) hat sie nichts verloren.
