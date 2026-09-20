@@ -166,8 +166,8 @@
     <string name="gym_postal_code_label">Postleitzahl</string>
     <string name="gym_suggest_submit">Vorschlag einreichen</string>
     <string name="gym_lock_info_content_description">Warum sich das Gym nur selten ändern lässt</string>
-    <string name="gym_lock_info_title">Warum nur alle 3 Monate?</string>
-    <string name="gym_lock_info_body">Der Suchumkreis wird ab der Adresse deines Gyms berechnet. Damit sich der mit FLEXR Premium bezahlte größere Umkreis nicht durch häufiges Wechseln umgehen lässt, kannst du dein Gym nur alle 3 Monate ändern.</string>
+    <string name="gym_lock_info_title">Gym ändern</string>
+    <string name="gym_lock_info_body">Du kannst dein Gym alle 3 Monate ändern.</string>
     <string name="gym_locked_hint">Nächste Änderung erst wieder ab %1$s möglich.</string>
     <string name="gym_none">Kein Gym angegeben</string>
     <string name="bio_none">Keine Bio angegeben.</string>

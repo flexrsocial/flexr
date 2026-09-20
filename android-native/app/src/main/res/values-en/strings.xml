@@ -136,8 +136,8 @@
     <string name="gym_postal_code_label">Postal code</string>
     <string name="gym_suggest_submit">Submit suggestion</string>
     <string name="gym_lock_info_content_description">Why the gym can only be changed rarely</string>
-    <string name="gym_lock_info_title">Why only every 3 months?</string>
-    <string name="gym_lock_info_body">Your search radius is calculated from your gym’s address. To stop the larger radius that comes with FLEXR Premium from being bypassed by switching gyms often, you can only change your gym every 3 months.</string>
+    <string name="gym_lock_info_title">Change gym</string>
+    <string name="gym_lock_info_body">You can change your gym every 3 months.</string>
     <string name="gym_locked_hint">Next change possible from %1$s.</string>
     <string name="gym_none">No gym given</string>
     <string name="bio_none">No bio given.</string>
