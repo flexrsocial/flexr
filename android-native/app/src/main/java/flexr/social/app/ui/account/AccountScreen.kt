@@ -60,6 +60,7 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.LineHeightStyle
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
@@ -1269,6 +1270,7 @@ private fun NotificationSettingsDialog(
                     stringResource(R.string.notify_legal_hint),
                     style = MaterialTheme.typography.bodySmall,
                     color = colors.chalkDim,
+                    textAlign = TextAlign.Justify,
                 )
             }
         },
@@ -1285,9 +1287,10 @@ private fun NotificationGroupTitle(text: String) {
     Spacer(Modifier.height(14.dp))
     Text(
         text = text,
-        style = MaterialTheme.typography.labelMedium,
-        color = FlexrTheme.colors.chalkDim,
+        style = MaterialTheme.typography.titleMedium,
+        color = FlexrTheme.colors.chalk,
     )
+    Spacer(Modifier.height(8.dp))
 }
 
 @Composable
@@ -1304,9 +1307,14 @@ private fun NotificationSwitchRow(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Column(Modifier.weight(1f)) {
-            Text(label, style = MaterialTheme.typography.bodyLarge, color = colors.chalk)
+            Text(label, style = MaterialTheme.typography.bodyMedium, color = colors.chalk)
             if (hint != null) {
-                Text(hint, style = MaterialTheme.typography.bodySmall, color = colors.chalkDim)
+                Text(
+                    hint,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = colors.chalkDim,
+                    modifier = Modifier.padding(top = 3.dp),
+                )
             }
         }
         Switch(

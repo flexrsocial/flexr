@@ -229,8 +229,31 @@ android {
         // selbst passt, ganz ohne Sonderbehandlung der Abzeichen. Dazu ein
         // neuer "Premium aktivieren"-Knopf im Kopf, links von der
         // Beta/Status-Pille, analog zum Web - fuehrt auf den Premium-Screen.
-        versionCode = 122
-        versionName = "2.7.10"
+        // 123/2.7.11 am 20.09.2026: Feinschliff auf Screenshots hin. Im
+        // Benachrichtigungen-Dialog waren die Anlass-Ueberschriften ("Bei
+        // geschlossener App", "Neues Match" usw.) klein und grau (labelMedium)
+        // gesetzt, waehrend "E-Mail"/"App-Benachrichtigung" darunter gross und
+        // weiss standen - optisch genau verkehrt herum. Ueberschriften stehen
+        // jetzt gross und weiss (titleMedium/chalk), die Schalter-Beschriftung
+        // kleiner (bodyMedium); nach jeder Ueberschrift ist jetzt ein
+        // Abstand, bevor der erklaerende Text folgt. Im Impressum unter
+        // "Unternehmensrechtliche Angaben" fehlte der Wert-Spalte in der
+        // Schluessel-Wert-Tabelle ein weight(1f) - ohne das wurde sie mit der
+        // vollen Zeilenbreite statt der Restbreite gemessen, wodurch der Wert
+        // bei einer mehrzeilig umbrechenden Beschriftung (z. B.
+        // "Firmenbuchnummer:") an deren letzter Zeile statt an deren erster
+        // ausgerichtet erschien.
+        // 124/2.7.12 am 20.09.2026: Im Benachrichtigungen-Dialog steht der
+        // Rechtstext ("Rechtlich noetige Nachrichten...") jetzt als Blocksatz
+        // (TextAlign.Justify) statt linksbuendig mit unterschiedlich langen
+        // Zeilenenden; "Moderationsentscheidungen" traegt dafuer einen
+        // weichen Trennstrich (U+00AD) nach "Moderations", damit das Wort bei
+        // Bedarf dort umbricht statt als Ganzes in die naechste Zeile zu
+        // rutschen und eine Luecke zu hinterlassen. Zwischen der "E-Mail"/
+        // "App-Benachrichtigung"-Beschriftung und dem erklaerenden Text
+        // darunter ist jetzt ebenfalls ein kleiner Abstand (3dp).
+        versionCode = 124
+        versionName = "2.7.12"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         // Nur die Sprachen ausliefern, die es wirklich gibt: Deutsch als

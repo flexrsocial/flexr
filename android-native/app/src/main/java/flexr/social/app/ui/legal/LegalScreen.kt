@@ -156,9 +156,14 @@ private fun LegalBlockView(block: LegalBlock) {
                         text = "$key:",
                         style = MaterialTheme.typography.bodyMedium,
                         color = colors.chalk,
-                        modifier = Modifier.width(140.dp),
+                        modifier = Modifier.width(150.dp),
                     )
-                    Text(value, style = MaterialTheme.typography.bodyMedium, color = colors.chalkDim)
+                    Text(
+                        value,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = colors.chalkDim,
+                        modifier = Modifier.weight(1f),
+                    )
                 }
             }
         }

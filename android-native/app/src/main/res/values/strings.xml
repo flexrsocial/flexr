@@ -400,7 +400,7 @@
     <string name="notify_likes_title">Offene Likes ohne Match</string>
     <string name="notify_likes_hint">Wenn dich jemand geliked hat, höchstens einmal pro Woche.</string>
     <string name="notify_email">E-Mail</string>
-    <string name="notify_legal_hint">Rechtlich nötige Nachrichten — etwa zu Abo, Rücktritt oder Moderationsentscheidungen — lassen sich hier nicht abschalten.</string>
+    <string name="notify_legal_hint">Rechtlich nötige Nachrichten — etwa zu Abo, Rücktritt oder Moderations­entscheidungen — lassen sich hier nicht abschalten.</string>
 
     <!-- ==== Konto löschen ==== -->
     <string name="delete_body">Dein Konto wird sofort deaktiviert. Deine Daten und Fotos werden nach 30 Tagen endgültig gelöscht. Du bekommst dazu eine Bestätigungsmail. Innerhalb der 30 Tage kannst du dich mit deinem bisherigen Passwort erneut einloggen, um die Löschung rückgängig zu machen.</string>
