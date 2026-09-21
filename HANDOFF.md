@@ -28,46 +28,18 @@ z.B. in deiner `~/.ssh/config` den `User`-Eintrag für den Host ändern).
 Falls du das liest, weil dein `root@`-Login gerade fehlschlägt: das ist
 erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 
-## ⚠️ Dringend zu prüfen: `git pull` als `deploy` bricht bei jedem Commit, der android-native/ oder ios/ beruehrt (seit 21.09.2026)
-
-**Entdeckt in Sitzung 21.09.2026 (3).** Direkte Folge der Rechte-Härtung
-von Sitzung (1): `/flexr/android-native` und `/flexr/ios` gehören
-`root:root`, Modus `755` (keine Gruppen-/Other-Schreibrechte) — und zwar
-auf **Verzeichnisebene**, nicht nur die Dateien selbst. `deploy` kann
-darin also nichts löschen oder ersetzen, auch keine unveränderten
-Verzeichnisse durchqueren, um dort etwas zu schreiben.
-
-**Konkret:** Ein `ssh flexr-vps 'cd /flexr && git pull --ff-only origin
-main'` als `deploy` bricht mit `unable to unlink old '<datei unter
-android-native/ oder ios/>': Permission denied` ab, sobald der zu
-holende Commit-Bereich eine Datei dort ändert — **egal ob der Commit
-sonst nur Backend/Frontend betrifft**, solange er in derselben Pull-Reihe
-liegt wie ein Android-/iOS-Commit. Der Pull bricht dabei **nicht atomar
-sauber ab**: Dateien unter `backend/`/`frontend/`, die git schon vor dem
-blockierten Pfad schreiben konnte, liegen danach korrekt auf der neuen
-Fassung, `HEAD` bleibt aber auf dem alten Commit stehen (`git status`
-zeigt sie als "modifiziert", nicht als aktuell). Das ist im Ergebnis meist
-harmlos - die tatsächlich ausgelieferten Dateien sind korrekt -, aber der
-Git-Zustand auf dem VPS bleibt bis zur nächsten Reparatur inkonsistent
-(sichtbar an `git diff origin/main`).
-
-**Workaround für diese Sitzung:** Inhalt der betroffenen Backend-/
-Frontend-Dateien per `diff` gegen den lokalen Stand geprüft (identisch),
-dann direkt `alembic upgrade head` und `systemctl restart flexr-api`
-ausgeführt, ohne dass `HEAD` auf dem VPS fortgeschritten ist. Funktioniert,
-ist aber kein Dauerzustand.
-
-**Echte Lösung braucht root (State: noch nicht umgesetzt):** entweder
-`chown -R deploy:deploy /flexr/android-native /flexr/ios` (dann darf
-`deploy` dort schreiben - passt aber nicht zur Absicht der Härtung, die
-genau das verhindern wollte), oder besser: den VPS-Checkout per
-`git sparse-checkout` dauerhaft auf `backend/` und `frontend/`
-beschränken, sodass `android-native/` und `ios/` dort gar nicht erst im
-Arbeitsverzeichnis liegen (sie werden auf dem Server ohnehin nie gebraucht
-- Android/iOS-Builds laufen lokal bzw. über Codemagic). Beides braucht
-einen root-Login mit 2FA, also den Nutzer selbst.
-
 ## Wo das Projekt gerade steht
+
+> ~~**`git pull` als `deploy` bricht bei jedem Commit, der
+> android-native/ oder ios/ beruehrt**~~ — **erledigt** (Sitzung
+> 21.09.2026 (4)): Der Nutzer hat auf dem VPS als root
+> `git sparse-checkout init --cone` + `git sparse-checkout set backend
+> frontend` eingerichtet, danach `git reset --hard origin/main` und
+> `chown -R deploy:deploy` auf `.git`/`backend`/`frontend`. `deploy` sieht
+> `android-native/`/`ios/` seither gar nicht mehr im Arbeitsverzeichnis
+> (bleiben vollständig in der Git-Historie) und kann jeden `git pull`
+> unabhängig vom Inhalt sauber durchziehen — verifiziert mit einem reinen
+> iOS-Commit (`0426c65`), lief fehlerfrei durch.
 
 > **Die alte "Dringend zu prüfen"-Notiz zu Android 2.7.5/versionCode 117
 > (Absturz beim Start) ist überholt und entfernt** — seither sind ohne
@@ -92,6 +64,34 @@ in `sites-enabled`, reine Ablage-Leichen). Der Key `flexr-vps-deploy`
 Logins/Tag) liegt jetzt zusätzlich bei `deploy`, ist aber noch **nicht**
 aus root entfernt — das passiert erst, wenn dieses Gerät bestätigt auf
 `deploy@` umgestellt zu haben.
+
+**Sitzung 21.09.2026 (4) — VPS-Sparse-Checkout vom Nutzer eingerichtet,
+iOS-Rücktrittsrecht nativ nachgezogen.**
+Direkte Fortsetzung von (3).
+
+1. **Der `git pull`-Bruch aus (3) ist behoben** — der Nutzer hat auf dem
+   VPS als root `git sparse-checkout init --cone` +
+   `git sparse-checkout set backend frontend` ausgeführt, dann
+   `git reset --hard origin/main` und `chown -R deploy:deploy` auf
+   `.git`/`backend`/`frontend`. `android-native/` und `ios/` sind seither
+   nicht mehr im Arbeitsverzeichnis auf dem VPS (bleiben vollständig in
+   der Git-Historie), `deploy` kann jetzt jeden `git pull` unabhängig vom
+   Inhalt sauber durchziehen. **Verifiziert** mit Commit `0426c65`
+   (reiner iOS-Commit) — Pull lief ohne jeden Fehler durch, `HEAD` sofort
+   auf dem neuen Stand.
+2. **iOS: natives Rücktrittsrecht nachgezogen**, Parität zu Android
+   2.7.17 (Commit `5c0a056`) — siehe [ios/HANDOFF.md](ios/HANDOFF.md) für
+   Details. Wichtig: **iOS hatte davor überhaupt keinen Zugang** zur
+   Rücktrittsfunktion, nicht mal einen Link wie Android vor 2.7.17 - das
+   war eine echte Lücke, kein reines Parität-Nice-to-have. **Nicht
+   compilerverifiziert** (keine Swift-Toolchain hier) - vor dem ersten
+   TestFlight-Versand einen Codemagic-Lauf abwarten. Commit `0426c65`,
+   bereits gepusht und auf dem VPS gepullt (berührt kein Backend/Frontend,
+   kein Neustart nötig).
+3. **Kein Android-Rebuild nötig für den FakeFlexrApi-Fix aus (3)** — die
+   Änderung lag ausschließlich in `app/src/test/...` (Testquellen), die
+   nie in einem Release-APK/AAB landen. Das bereits gebaute 2.7.17
+   (versionCode 129) bleibt davon unberührt und gültig.
 
 **Sitzung 21.09.2026 (3) — Datenschutz-Empfängerlücke geschlossen, zwei
 Low-Prio-Befunde aus (2) umgesetzt, Android/iOS geprüft.**
