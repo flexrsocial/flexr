@@ -54,6 +54,34 @@ Logins/Tag) liegt jetzt zusätzlich bei `deploy`, ist aber noch **nicht**
 aus root entfernt — das passiert erst, wenn dieses Gerät bestätigt auf
 `deploy@` umgestellt zu haben.
 
+**Sitzung 21.09.2026 (2) — Codebase-Audit: Backend-Tests, Admin-Dashboard, Rechtstexte geprüft; drei Fixes deployed.**
+Auf Wunsch des Nutzers vollständiger Durchgang: Backend-`venv` hatte
+`pyotp`/`qrcode` aus Sitzung (1) nicht installiert (`requirements-dev.txt`
+neu eingespielt), danach komplette Testsuite gelaufen (**500 von 501
+grün**, 13:48 min). Zwei Read-only-Audits per Subagent (Admin-Dashboard,
+Rechtstexte) ergaben u. a.: Admin-Zugriffstoken liefen 30 Tage (gleiche
+Einstellung wie Nutzer-Token, trotz Zugriffs auf PII/Verifizierungsfotos);
+alle 7 Admin-Warteschlangen (Nutzer, Fotos, Gyms, Meldungen, förmliche
+Meldungen, auffällige Nachrichten, Verifizierungen) zeigten nur die
+ersten 50-100 Einträge ohne jeden Hinweis auf weitere; `list_users()`
+aggregierte bei **jedem** Aufruf (auch pro Tastendruck in der
+Live-Suche) über die komplette `verification_requests`-Tabelle;
+`sicherheit.html` (DE+EN) hatte die Notfallbox mit Polizei-/
+Opfernotruf-Nummern auf eine nicht existierende CSS-Klasse gesetzt
+(`box emergency` statt `box alarm`, keine Warnfarbe). Alle vier behoben,
+getestet (16 Admin-Tests + volle Suite erneut grün), committet
+(`fbeb0dc`), gepusht, auf dem VPS deployed und per `/api/health` sowie
+Prüfsummen-Abgleich (`admin.html`, `sicherheit.html`) verifiziert.
+**Ein Fund bewusst nicht selbst behoben:**
+`test_frontend_laedt_ueberhaupt_keine_fremden_hosts` schlägt weiterhin
+fehl, weil `widerruf.html` seit 20.09. auf `getsupport.apple.com` und
+`support.google.com` verlinkt (App-Store-/Play-Store-Abo-Kündigung),
+die Datenschutzerklärung Apple/Google aber nirgends als Empfänger
+nennt — genau das Muster, vor dem der Testkommentar warnt (Unsplash-
+Vorfall 15.08.). Das ist ein Textentscheid, keine Codeänderung: der
+Nutzer sollte entscheiden, wie Apple/Google in `datenschutz.html`
+offengelegt werden, bevor die Testliste erweitert wird.
+
 **Sitzung 20.09.2026 (6) — iOS-Nachzügler: fünf Lücken zu Web/Android der letzten 2-3 Tage geschlossen.**
 Auf Bitte des Nutzers per Git-Log geprüft, was seit dem 18.09.2026 auf
 Web/Android geändert wurde und auf iOS fehlte. Gefunden und nachgezogen
