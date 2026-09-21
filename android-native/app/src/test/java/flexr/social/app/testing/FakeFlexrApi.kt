@@ -51,6 +51,8 @@ import flexr.social.app.data.remote.dto.VerificationDocumentPresignRequestDto
 import flexr.social.app.data.remote.dto.VerificationDocumentSubmitRequestDto
 import flexr.social.app.data.remote.dto.VerificationStatusDto
 import flexr.social.app.data.remote.dto.VerificationSubmitRequestDto
+import flexr.social.app.data.remote.dto.WithdrawalAckDto
+import flexr.social.app.data.remote.dto.WithdrawalRequestDto
 import okhttp3.RequestBody
 
 /**
@@ -190,6 +192,11 @@ open class FakeFlexrApi : FlexrApi {
         nichtVorgesehen("listBlockedUsers")
 
     override suspend fun unblock(userId: String) = nichtVorgesehen("unblock")
+
+    // ---------- withdrawal.py ----------
+
+    override suspend fun declareWithdrawal(body: WithdrawalRequestDto): WithdrawalAckDto =
+        nichtVorgesehen("declareWithdrawal")
 
     // ---------- gyms.py ----------
 
