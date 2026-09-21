@@ -710,10 +710,24 @@
   .match-item .info .nm{ font-family:'Oswald'; font-size:16px; letter-spacing:0.01em; }
   .match-item .info .last-msg{ font-size:12.5px; color:var(--chalk-dim); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:3px; }
   .match-item.unread .info .last-msg{ color:var(--chalk); font-weight:500; }
-  /* Ungelesene Nachrichten: Rahmen leuchtet orange wie der Online-Ring */
+  /* Ungelesene Nachrichten: Rahmen leuchtet orange wie der Online-Ring.
+     War vorher ein aussen liegender box-shadow-Ring (0 0 0 1px) + Glow
+     (0 0 14px) - derselbe Fehler wie bei .deck .card weiter oben (siehe
+     dortiger Kommentar): Das Match-Item liegt in der Chat-/Match-Liste
+     buendig an der rechten Kante von .screen.active (overflow-x:hidden),
+     per getBoundingClientRect nachgemessen (item.right === screen.right).
+     Ein aussen liegender Schatten wird dort abgeschnitten - oben, links und
+     unten blieb der Rahmen sichtbar, rechts fehlte er. Die 1px-Ringfarbe
+     kommt jetzt ausschliesslich vom echten border-color (liegt in der
+     eigenen Border-Box, ragt nie ueber die Kante hinaus - kein Abschneiden
+     moeglich, per DOM-Injektion bestaetigt). Der Glow liegt jetzt inset
+     statt aussen: bleibt damit innerhalb der eigenen Box und ist nie vom
+     Scroll-Container betroffen - anders als bei .deck .card deckt hier kein
+     Kind-Element (.av/.info haben keinen blickdichten Hintergrund) den
+     Schatten ab. */
   .match-item.unread{
     border-color:var(--plate-dim);
-    box-shadow:0 0 0 1px var(--plate-dim), 0 0 14px var(--plate-glow);
+    box-shadow:inset 0 0 14px var(--plate-glow);
   }
   .match-item.unread:hover{ border-color:var(--plate); }
   .match-item .unread-badge{
