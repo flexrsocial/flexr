@@ -23,6 +23,7 @@ final class AppContainer {
     let gyms: GymRepository
     let plz: PlzRepository
     let safety: SafetyRepository
+    let withdrawal: WithdrawalRepository
     let verification: VerificationRepository
     let notifications: MessageRefreshService
     /// Abholfach der Aktivitäts-Benachrichtigungen (Match, Deck, Inaktivität).
@@ -58,6 +59,7 @@ final class AppContainer {
         plz = plzRepository
         gyms = GymRepository(api: api, plzRepository: plzRepository)
         safety = SafetyRepository(api: api)
+        withdrawal = WithdrawalRepository(api: api)
         verification = VerificationRepository(api: api)
         notifications = MessageRefreshService(session: session, matches: matchRepository)
         let inbox = NotificationRepository(api: api)

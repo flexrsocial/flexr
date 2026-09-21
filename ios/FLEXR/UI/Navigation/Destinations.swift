@@ -47,7 +47,7 @@ enum Route: Hashable {
 }
 
 enum LegalDocument: String, CaseIterable, Identifiable, Hashable {
-    case faq, impressum, datenschutz, agb, sicherheit, nutzungsrichtlinien, strafverfolgung
+    case faq, impressum, datenschutz, agb, sicherheit, nutzungsrichtlinien, strafverfolgung, widerruf
 
     var id: String { rawValue }
 
@@ -63,6 +63,7 @@ enum LegalDocument: String, CaseIterable, Identifiable, Hashable {
         case .sicherheit: .legalSicherheit
         case .nutzungsrichtlinien: .legalNutzungsrichtlinien
         case .strafverfolgung: .legalStrafverfolgung
+        case .widerruf: .legalWiderruf
         }
     }
 }

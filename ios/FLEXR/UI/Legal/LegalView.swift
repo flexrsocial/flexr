@@ -117,6 +117,9 @@ private struct LegalBlockView: View {
 
         case .faq(let question, let answer):
             FaqRow(question: question, answer: answer)
+
+        case .withdrawalForm:
+            WithdrawalFormView()
         }
     }
 

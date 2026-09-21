@@ -21,7 +21,16 @@ enum L: Hashable, Sendable {
 
     // Rechtsdokumente
     case legalFaq, legalImpressum, legalDatenschutz, legalAgb, legalSicherheit
-    case legalNutzungsrichtlinien, legalStrafverfolgung
+    case legalNutzungsrichtlinien, legalStrafverfolgung, legalWiderruf
+
+    // Online-Rücktrittsfunktion (§ 13a FAGG)
+    case withdrawalNameLabel, withdrawalNamePlaceholder
+    case withdrawalEmailLabel, withdrawalEmailHint
+    case withdrawalContractLabel, withdrawalContractPlaceholder, withdrawalContractHint
+    case withdrawalMessageLabel, withdrawalMessagePlaceholder
+    case withdrawalConfirmLabel, withdrawalSubmit, withdrawalErrorGeneric
+    case withdrawalResultTitle, withdrawalResultTitleNoMail
+    case withdrawalResultWordingLabel, withdrawalResultHint
 
     // Felder
     case fieldEmail, fieldPassword, fieldPasswordShow, fieldPasswordHide

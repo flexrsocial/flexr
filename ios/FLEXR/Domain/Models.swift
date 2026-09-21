@@ -353,6 +353,17 @@ struct ReportAck: Sendable {
     let message: String
 }
 
+/// Bestätigung einer erklärten Rücktrittserklärung (§ 13a FAGG).
+/// `declarationText` ist der aufgezeichnete Wortlaut - er muss auch dann
+/// sichtbar bleiben, wenn `confirmationSent` false ist, weil dann keine
+/// Bestätigungsmail als Nachweis nachkommt.
+struct WithdrawalAck: Sendable {
+    let reference: String
+    let declarationText: String
+    let confirmationSent: Bool
+    let message: String
+}
+
 /// Begründete Mitteilung zu einer Beschränkung des eigenen Kontos (Art. 17 DSA)
 /// — Grund, Dauer und der Weg zum Widerspruch.
 struct ModerationNotice: Sendable {

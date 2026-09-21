@@ -43,6 +43,25 @@ extension FlexrStrings {
         .legalSicherheit: "Safety tips",
         .legalNutzungsrichtlinien: "Community guidelines",
         .legalStrafverfolgung: "Law enforcement",
+        .legalWiderruf: "Right of withdrawal",
+
+        // MARK: Online-Rücktrittsfunktion (§ 13a FAGG)
+        .withdrawalNameLabel: "Your name",
+        .withdrawalNamePlaceholder: "First and last name",
+        .withdrawalEmailLabel: "Email address for the confirmation",
+        .withdrawalEmailHint: "The confirmation on a durable medium is sent to this address.",
+        .withdrawalContractLabel: "Contract or account",
+        .withdrawalContractPlaceholder: "e.g. the email address of your FLEXR account",
+        .withdrawalContractHint: "Helps us assign your statement. If you don't have it to hand, leave the field blank — the withdrawal is valid all the same.",
+        .withdrawalMessageLabel: "Note (optional)",
+        .withdrawalMessagePlaceholder: "You don't have to fill this in. A withdrawal needs no reason.",
+        .withdrawalConfirmLabel: "I hereby declare my withdrawal from my chargeable FLEXR contract.",
+        .withdrawalSubmit: "Confirm withdrawal",
+        .withdrawalErrorGeneric: "Your withdrawal could not be accepted. Please send us an informal email to flexr.social@proton.me instead — that is legally just as valid.",
+        .withdrawalResultTitle: "Withdrawal declared",
+        .withdrawalResultTitleNoMail: "Withdrawal declared — please save the wording",
+        .withdrawalResultWordingLabel: "Wording of your statement:",
+        .withdrawalResultHint: "A running subscription linked to an order on flexr.social is automatically stopped from renewing further as a result of the withdrawal. A subscription bought through the App Store or Play Store cannot be stopped by us — there, Apple or Google is your contract partner for payment; end it additionally in that store's subscription management. We accept and process your statement regardless. Withdrawal and cancellation are two different things: withdrawal unwinds the contract retroactively, cancellation only ends it for the future.",
 
         // MARK: Felder
         .fieldEmail: "Email",

@@ -391,6 +391,26 @@ struct ModerationNoticeDTO: Decodable {
     let appealHint: String
 }
 
+// MARK: - Rücktrittsrecht (§ 13a FAGG, withdrawal.py)
+
+struct WithdrawalRequestDTO: Encodable {
+    let name: String
+    let email: String
+    let contractReference: String?
+    let message: String?
+    let confirmed: Bool
+    let requestId: String?
+    let language: String?
+}
+
+struct WithdrawalAckDTO: Decodable {
+    let reference: String
+    let declarationText: String
+    let confirmationSent: Bool
+    let message: String
+    let status: String
+}
+
 struct BlockRequestDTO: Encodable {
     let userId: String
 }

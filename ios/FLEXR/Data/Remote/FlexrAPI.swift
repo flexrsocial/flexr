@@ -229,6 +229,15 @@ struct FlexrAPI {
         try await client.send(.delete, "api/blocks/\(userID)")
     }
 
+    // MARK: - withdrawal.py
+
+    /// Online-Rücktrittsfunktion (§ 13a FAGG) — direkt aus der App statt aus
+    /// dem Formular auf flexr.social/widerruf.html. Braucht keine Anmeldung;
+    /// ein mitgeschickter Token ordnet die Erklärung nur zusätzlich dem Konto zu.
+    func declareWithdrawal(_ body: WithdrawalRequestDTO) async throws -> WithdrawalAckDTO {
+        try await client.send(.post, "api/withdrawal", body: body)
+    }
+
     // MARK: - gyms.py
 
     func searchGyms(query: String) async throws -> [GymDTO] {

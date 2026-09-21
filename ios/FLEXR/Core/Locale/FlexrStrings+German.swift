@@ -44,6 +44,25 @@ extension FlexrStrings {
         .legalSicherheit: "Sicherheitstipps",
         .legalNutzungsrichtlinien: "Nutzungsrichtlinien",
         .legalStrafverfolgung: "Strafverfolgungsbehörden",
+        .legalWiderruf: "Rücktrittsrecht",
+
+        // MARK: Online-Rücktrittsfunktion (§ 13a FAGG)
+        .withdrawalNameLabel: "Dein Name",
+        .withdrawalNamePlaceholder: "Vor- und Nachname",
+        .withdrawalEmailLabel: "E-Mail-Adresse für die Bestätigung",
+        .withdrawalEmailHint: "An diese Adresse geht die Bestätigung auf dauerhaftem Datenträger.",
+        .withdrawalContractLabel: "Vertrag oder Konto",
+        .withdrawalContractPlaceholder: "z. B. die E-Mail-Adresse deines FLEXR-Kontos",
+        .withdrawalContractHint: "Hilft uns beim Zuordnen. Wenn du sie nicht zur Hand hast, lass das Feld frei — der Rücktritt gilt trotzdem.",
+        .withdrawalMessageLabel: "Anmerkung (freiwillig)",
+        .withdrawalMessagePlaceholder: "Musst du nicht ausfüllen. Ein Rücktritt braucht keine Begründung.",
+        .withdrawalConfirmLabel: "Ich erkläre hiermit den Rücktritt von meinem entgeltlichen FLEXR-Vertrag.",
+        .withdrawalSubmit: "Widerruf bestätigen",
+        .withdrawalErrorGeneric: "Der Rücktritt konnte nicht entgegengenommen werden. Schick uns stattdessen eine formlose E-Mail an flexr.social@proton.me — das genügt rechtlich genauso.",
+        .withdrawalResultTitle: "Rücktritt erklärt",
+        .withdrawalResultTitleNoMail: "Rücktritt erklärt — bitte Wortlaut sichern",
+        .withdrawalResultWordingLabel: "Wortlaut deiner Erklärung:",
+        .withdrawalResultHint: "Ein zugeordnetes laufendes Abo aus einer Bestellung auf flexr.social wird durch den Rücktritt automatisch an der weiteren Verlängerung gehindert. Ein im App Store oder Play Store gekauftes Abo können wir nicht stoppen — dort ist Apple bzw. Google dein Vertragspartner für die Zahlung; beende es zusätzlich in der Abo-Verwaltung des Stores. Deine Erklärung nehmen wir trotzdem entgegen und bearbeiten sie. Rücktritt und Kündigung sind zwei verschiedene Dinge: Der Rücktritt löst den Vertrag rückwirkend auf, die Kündigung beendet ihn nur für die Zukunft.",
 
         // MARK: Felder
         .fieldEmail: "E-Mail",

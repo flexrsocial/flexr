@@ -1,7 +1,56 @@
 # HANDOFF — native iOS-App
 
-Stand: **16.09.2026**. Für Aufbau, Build-Befehle und die Migrationstabelle siehe
+Stand: **21.09.2026**. Für Aufbau, Build-Befehle und die Migrationstabelle siehe
 [README.md](README.md) — hier steht nur, was daraus *nicht* hervorgeht.
+
+---
+
+## Natives Rücktrittsrecht (§ 13a FAGG), 21.09.2026 — **nicht compilerverifiziert**
+
+Android bekam am selben Tag (Commit `5c0a056`, Version 2.7.17) das
+Rücktrittsrecht nativ eingebettet statt als externem Link. Ein
+Codebase-Audit hat dabei festgestellt, dass iOS bis dahin **überhaupt
+keinen** Zugang zur Rücktrittsfunktion hatte — nicht einmal einen Link auf
+flexr.social/widerruf.html wie Android vor 2.7.17. Das ist jetzt
+nachgezogen, direkt als natives Formular (kein Zwischenschritt über einen
+externen Link):
+
+- `LegalDocument.widerruf` neu im Enum (`Destinations.swift`) — erscheint
+  automatisch in der Rechtliches-Liste im Konto-Bereich, da diese über
+  `LegalDocument.allCases` iteriert.
+- Kompletter Widerruf-Text aus `frontend/widerruf.html` als
+  `LegalBlock`-Bausteine in `LegalContent.swift` (die vier Dinge zum
+  Nicht-Verwechseln, Tabelle nach Bestellweg, Rücktrittsbelehrung,
+  Muster-Formular, FAQ) — inhaltsgleich mit Android/Web.
+- Neuer Baustein `LegalBlock.withdrawalForm`, gerendert von
+  `WithdrawalFormView` (`UI/Legal/`): Name, E-Mail, Vertrag/Konto,
+  Anmerkung, Bestätigungscheckbox, ruft `POST /api/withdrawal` direkt auf
+  und zeigt danach den aufgezeichneten Wortlaut der Erklärung — kein
+  Browser, kein Safari-Tab.
+- Neu: `WithdrawalRepository` (`Data/Repository/`), `WithdrawalModel`
+  (`UI/Legal/`), `WithdrawalAck`-Domainmodell (`Domain/Models.swift`),
+  `WithdrawalRequestDTO`/`WithdrawalAckDTO` (`Data/Remote/DTOs.swift`),
+  `FlexrAPI.declareWithdrawal` — eins zu eins entsprechend der
+  Android-Fassung (`WithdrawalRepository.kt`/`WithdrawalViewModel.kt`/
+  `WithdrawalFormBlock.kt`). In `AppContainer` als `withdrawal` verdrahtet.
+- 16 neue Oberflächentexte (`withdrawal*`) plus `legalWiderruf` in
+  `FlexrStrings.swift`/`+German`/`+English` — die Formularbeschriftungen
+  sind zweisprachig, der große Rechtstext bleibt wie bei allen anderen
+  Dokumenten bewusst nur Deutsch (siehe Kommentar in `FlexrStrings.swift`).
+- AGB Punkt 5 verweist entsprechend nicht mehr auf die URL, sondern auf
+  den Bereich Rechtliches → Rücktrittsrecht in der App.
+
+**Wichtig: nicht compilerverifiziert.** Auf diesem Entwicklungsrechner
+steht keine Swift-Toolchain zur Verfügung (wie in diesem Dokument seit
+16.09. vermerkt). Geprüft wurde ausschließlich von Hand: Klammernbilanz,
+jede neue Typ-/Methodensignatur gegen ihre Aufrufstellen abgeglichen,
+jeder neue `L`-Fall gegen beide Sprachdateien abgeglichen, jeder
+existierende `switch` über `LegalDocument` auf Vollständigkeit geprüft.
+**Vor dem ersten TestFlight-Versand unbedingt einen Codemagic-Lauf
+abwarten und bei Rot die Fehlermeldung genau lesen** — bei einer Änderung
+dieser Größe (13 Dateien, 3 davon neu) ist ein Tippfehler, der nur der
+Compiler findet, wahrscheinlicher als bei den kleineren Layout-Fixes der
+letzten Sitzungen.
 
 ---
 
