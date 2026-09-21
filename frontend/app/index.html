@@ -688,9 +688,19 @@
     background:linear-gradient(180deg, #1f1f1f, #1a1a1a);
     border-radius:14px; margin-bottom:10px; border:1px solid var(--hairline);
     cursor:pointer; position:relative;
-    transition:background .15s ease, border-color .15s ease, transform .15s ease;
+    transition:background .15s ease, border-color .15s ease;
   }
-  .match-item:hover{ border-color:rgba(255,90,31,.35); transform:translateX(2px); }
+  /* Kein transform:translateX mehr - das Match-Item liegt buendig an der
+     rechten Kante von .screen.active (overflow-x:hidden, derselbe Fehler wie
+     beim Rahmen von .match-item.unread und .deck .card weiter oben). Ein
+     Verschieben nach rechts schob den rechten Rand der Kachel mitsamt Border
+     ueber diese Kante hinaus - oben, links und unten blieb er orange, rechts
+     fehlte er komplett. Per getBoundingClientRect am gehoverten Element
+     nachgemessen: itemRect.right lag exakt um die 2px des translateX ueber
+     screenRect.right. Die Randfarbe allein reicht als Hover-Feedback. (Dieser
+     Fix wurde schon einmal versucht und am selben Tag wieder reverted, ohne
+     dass die Ursache damit behoben war - das Problem bestand weiter.) */
+  .match-item:hover{ border-color:rgba(255,90,31,.35); }
   .match-item .av{
     position:relative; width:54px; height:54px; flex-shrink:0; display:block;
   }
