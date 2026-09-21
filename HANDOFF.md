@@ -1,6 +1,32 @@
 # FLEXR — Handoff für ein anderes Gerät / Claude Code
 
-Stand: **20.09.2026**
+Stand: **21.09.2026**
+
+## ⚠️ Dringend zu prüfen: SSH-Zugang zum VPS hat sich geändert (21.09.2026)
+
+**Falls du (Claude Code auf einem anderen Gerät) bisher mit
+`ssh ... root@31.220.73.67` auf den Server gehst — das bricht demnächst.**
+Root-SSH-Login verlangt seit heute zusätzlich zum Key einen TOTP-Code
+(2FA), den nur der Nutzer per Handy eingeben kann; automatisierte Logins
+als root sind damit nicht mehr möglich.
+
+Für Automatisierung gibt es jetzt einen eigenen User **`deploy`**
+(derselbe private Key wie bisher, nur `root@` durch `deploy@` ersetzen —
+z.B. in deiner `~/.ssh/config` den `User`-Eintrag für den Host ändern).
+`deploy`:
+- besitzt bereits `/flexr/backend/app`, `/flexr/backend/alembic`,
+  `/flexr/backend/requirements.txt`, `/flexr/frontend` und kann dort
+  direkt per `scp` deployen und mit `git` committen (`/flexr/.git` gehört
+  ebenfalls `deploy`).
+- darf per `sudo` **nur** `systemctl restart|status|reload flexr-api`
+  (NOPASSWD, exakt diese Kommandos, keine Extra-Flags).
+- hat **keinen** Zugriff auf `backend/.env`, `scripts/`, `android/`,
+  `ios/`, `deploy/` (nginx/systemd-Unit-Dateien) — die bleiben root-only.
+  Brauchst du dort Schreibzugriff, geht das nur noch über den Nutzer
+  selbst (root-Login mit dessen 2FA-Code).
+
+Falls du das liest, weil dein `root@`-Login gerade fehlschlägt: das ist
+erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 
 ## Wo das Projekt gerade steht
 
@@ -8,6 +34,25 @@ Stand: **20.09.2026**
 > (Absturz beim Start) ist überholt und entfernt** — seither sind ohne
 > Rückmeldung eines erneuten Absturzes bereits die Fassungen 2.7.6 bis 2.7.13
 > gebaut und mehrfach committet/gepusht worden; das Problem gilt als erledigt.
+
+**Sitzung 21.09.2026 (1) — Server-Security-Härtung: 2FA für root-SSH und
+Admin-Dashboard, eigener `deploy`-User, Fail2ban-Jail fürs Admin-Login,
+Aufräumarbeiten.** Auf Wunsch des Nutzers. Details siehe Callout oben
+("⚠️ Dringend zu prüfen") für den SSH-Teil — das betrifft jede
+Automatisierung auf jedem Gerät. Zusätzlich: Admin-Dashboard
+(`admin.html`, `/api/admin/*`) hat jetzt TOTP-2FA (Setup/Confirm/Disable
+unter "🔒 Sicherheit" im Dashboard, `admin_users.totp_secret`/
+`totp_enabled` per Migration `a1c9f3e0d7b2`), eingerichtet und vom Nutzer
+bestätigt aktiv. Neue Fail2ban-Jail `flexr-admin-login`
+(`/etc/fail2ban/jail.d/flexr-admin-login.conf`) banned IPs mit >5
+401-Antworten auf `/api/admin/auth/login` in 10 Minuten für 1 Stunde.
+Alte, nicht mehr verlinkte nginx-Config-Stände aus `sites-available/`
+nach `/root/nginx-backups-archive/` archiviert und entfernt (waren nie
+in `sites-enabled`, reine Ablage-Leichen). Der Key `flexr-vps-deploy`
+(genutzt von einer Claude-Session auf einem anderen Gerät, ~80
+Logins/Tag) liegt jetzt zusätzlich bei `deploy`, ist aber noch **nicht**
+aus root entfernt — das passiert erst, wenn dieses Gerät bestätigt auf
+`deploy@` umgestellt zu haben.
 
 **Sitzung 20.09.2026 (6) — iOS-Nachzügler: fünf Lücken zu Web/Android der letzten 2-3 Tage geschlossen.**
 Auf Bitte des Nutzers per Git-Log geprüft, was seit dem 18.09.2026 auf

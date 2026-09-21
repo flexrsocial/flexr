@@ -351,6 +351,10 @@
     <input type="email" id="l-email" placeholder="admin@flexr.social" autocomplete="username" inputmode="email">
     <label for="l-password">Passwort</label>
     <input type="password" id="l-password" placeholder="••••••••" autocomplete="current-password">
+    <div id="l-totp-wrap" style="display:none;">
+      <label for="l-totp">Code aus der Authenticator-App</label>
+      <input type="text" id="l-totp" placeholder="123456" inputmode="numeric" autocomplete="one-time-code" maxlength="6">
+    </div>
     <div class="field-err" id="loginErr" role="alert" aria-live="polite"></div>
     <button class="btn full" id="btnLogin" type="button">Einloggen</button>
   </div>
@@ -367,6 +371,7 @@
       <button data-view="verifications">✓ Verifizierung <span class="badge" id="verifyBadge" style="display:none;"></span></button>
       <button data-view="reports">⚠ Meldungen <span class="badge" id="reportsBadge" style="display:none;"></span></button>
       <button data-view="gyms">🏋 Gyms <span class="badge" id="gymsBadge" style="display:none;"></span></button>
+      <button data-view="security">🔒 Sicherheit</button>
     </nav>
     <button class="btn secondary logout" id="btnLogout">Ausloggen</button>
   </aside>
@@ -474,6 +479,14 @@
         <strong>zensiert</strong> (durch „[Link entfernt]" / „[Kontakt entfernt]" ersetzt).
         Die Spalte „Empfänger sah" zeigt die tatsächlich zugestellte Fassung.</p>
       <div id="flaggedTableWrap"><div class="loading">Lädt …</div></div>
+    </section>
+
+    <!-- SECURITY -->
+    <section class="view" id="view-security">
+      <h2>Sicherheit</h2>
+      <div id="totpStatusBox" class="login-card" style="margin:0;">
+        <div class="loading">Lädt …</div>
+      </div>
     </section>
 
   </main>
@@ -606,18 +619,43 @@
   }
 
   // ---------- Login ----------
+  // Nutzt bewusst fetch() direkt statt api(): Die 401-Antworten hier tragen
+  // ein Detail (totp_required/totp_invalid), das die generische 401-Behandlung
+  // in api() (setToken(null)+showLogin()) verschlucken wuerde.
   $('btnLogin').addEventListener('click', async () => {
     const errEl = $('loginErr');
     errEl.textContent = '';
     const email = $('l-email').value.trim();
     const password = $('l-password').value;
+    const totpWrap = $('l-totp-wrap');
+    const totpCode = $('l-totp').value.trim();
     if(!email || !password){ errEl.textContent = 'Bitte E-Mail und Passwort eingeben.'; return; }
     try{
-      const res = await api('/api/admin/auth/login', {method: 'POST', body: JSON.stringify({email, password})});
-      setToken(res.access_token);
+      const res = await fetch(API_BASE + '/api/admin/auth/login', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({email, password, totp_code: totpCode || null}),
+      });
+      const data = await res.json().catch(() => null);
+      if(!res.ok){
+        const detail = data && data.detail;
+        if(detail === 'totp_required'){
+          totpWrap.style.display = 'block';
+          errEl.textContent = 'Bitte den Code aus deiner Authenticator-App eingeben.';
+          return;
+        }
+        if(detail === 'totp_invalid'){
+          totpWrap.style.display = 'block';
+          errEl.textContent = 'Code falsch oder abgelaufen. Erneut versuchen.';
+          return;
+        }
+        errEl.textContent = detail || 'Login fehlgeschlagen.';
+        return;
+      }
+      setToken(data.access_token);
       showApp();
     }catch(err){
-      errEl.textContent = err.message || 'Login fehlgeschlagen.';
+      errEl.textContent = 'Login fehlgeschlagen.';
     }
   });
 
@@ -640,6 +678,7 @@
       if(view === 'verifications') loadVerifications();
       if(view === 'reports') loadReports();
       if(view === 'gyms') loadGyms();
+      if(view === 'security') loadSecurity();
     });
   });
 
@@ -1653,6 +1692,76 @@
       });
     }catch(err){
       wrap.innerHTML = `<div class="empty-state">${escapeHtml(err.message)}</div>`;
+    }
+  }
+
+  // ---------- Security / 2FA ----------
+  async function loadSecurity(){
+    const box = $('totpStatusBox');
+    try{
+      const status = await api('/api/admin/auth/totp/status');
+      if(status.totp_enabled){
+        box.innerHTML = `
+          <div class="dash-card-title">Zwei-Faktor-Authentifizierung</div>
+          <p class="hint">✅ Aktiv — der Login verlangt zusätzlich zum Passwort einen Code aus deiner Authenticator-App.</p>
+          <label for="sec-disable-code">Code zum Deaktivieren</label>
+          <input type="text" id="sec-disable-code" placeholder="123456" inputmode="numeric" maxlength="6">
+          <div class="field-err" id="secErr" role="alert" aria-live="polite"></div>
+          <button class="btn secondary full" id="btnTotpDisable" type="button" style="margin-top:14px;">2FA deaktivieren</button>
+        `;
+        $('btnTotpDisable').addEventListener('click', async () => {
+          const errEl = $('secErr');
+          errEl.textContent = '';
+          const code = $('sec-disable-code').value.trim();
+          if(!code){ errEl.textContent = 'Bitte Code eingeben.'; return; }
+          try{
+            await api('/api/admin/auth/totp/disable', {method: 'POST', body: JSON.stringify({totp_code: code})});
+            toast('2FA deaktiviert.');
+            loadSecurity();
+          }catch(err){ errEl.textContent = err.message; }
+        });
+      } else {
+        box.innerHTML = `
+          <div class="dash-card-title">Zwei-Faktor-Authentifizierung</div>
+          <p class="hint">⚠️ Noch nicht aktiv — der Login funktioniert bisher nur mit Passwort.</p>
+          <button class="btn full" id="btnTotpSetup" type="button">2FA einrichten</button>
+        `;
+        $('btnTotpSetup').addEventListener('click', startTotpSetup);
+      }
+    }catch(err){
+      box.innerHTML = `<div class="empty-state">${escapeHtml(err.message)}</div>`;
+    }
+  }
+
+  async function startTotpSetup(){
+    const box = $('totpStatusBox');
+    try{
+      const setup = await api('/api/admin/auth/totp/setup', {method: 'POST'});
+      box.innerHTML = `
+        <div class="dash-card-title">2FA einrichten</div>
+        <p class="hint">QR-Code mit Google Authenticator, Authy o.ä. scannen, dann den angezeigten
+          6-stelligen Code unten eingeben.</p>
+        <img src="data:image/png;base64,${setup.qr_code_png_base64}" alt="QR-Code"
+          style="display:block; margin:16px auto; border-radius:8px; width:220px; height:220px;">
+        <p class="hint" style="text-align:center; word-break:break-all;">Manuell: ${escapeHtml(setup.secret)}</p>
+        <label for="sec-confirm-code">Code aus der App</label>
+        <input type="text" id="sec-confirm-code" placeholder="123456" inputmode="numeric" maxlength="6">
+        <div class="field-err" id="secErr" role="alert" aria-live="polite"></div>
+        <button class="btn full" id="btnTotpConfirm" type="button" style="margin-top:14px;">Bestätigen &amp; aktivieren</button>
+      `;
+      $('btnTotpConfirm').addEventListener('click', async () => {
+        const errEl = $('secErr');
+        errEl.textContent = '';
+        const code = $('sec-confirm-code').value.trim();
+        if(!code){ errEl.textContent = 'Bitte Code eingeben.'; return; }
+        try{
+          await api('/api/admin/auth/totp/confirm', {method: 'POST', body: JSON.stringify({totp_code: code})});
+          toast('2FA aktiviert.');
+          loadSecurity();
+        }catch(err){ errEl.textContent = err.message; }
+      });
+    }catch(err){
+      box.innerHTML = `<div class="empty-state">${escapeHtml(err.message)}</div>`;
     }
   }
 

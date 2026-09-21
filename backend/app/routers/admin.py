@@ -47,6 +47,10 @@ from ..schemas import (
     AdminReportOut,
     AdminStats,
     AdminTokenResponse,
+    AdminTotpConfirmRequest,
+    AdminTotpDisableRequest,
+    AdminTotpSetupResponse,
+    AdminTotpStatusResponse,
     AdminUserDetailOut,
     AdminUserListItem,
     AdminVerificationApproveRequest,
@@ -56,7 +60,14 @@ from ..schemas import (
     AdminVerificationReuploadRequest,
     PhotoModerationOut,
 )
-from ..security import create_admin_access_token, get_current_admin, verify_password
+from ..security import (
+    build_totp_qr_setup,
+    create_admin_access_token,
+    generate_totp_secret,
+    get_current_admin,
+    verify_password,
+    verify_totp_code,
+)
 from ..verification_service import activate_account, purge_uploads, reason_text
 from .. import storage
 
@@ -126,8 +137,67 @@ def admin_login(request: Request, payload: AdminLoginRequest, db: Session = Depe
     admin = db.query(AdminUser).filter(AdminUser.email == payload.email).first()
     if not admin or not verify_password(payload.password, admin.password_hash):
         raise HTTPException(401, "E-Mail oder Passwort falsch.")
+    if admin.totp_enabled:
+        if not payload.totp_code:
+            raise HTTPException(401, "totp_required")
+        if not verify_totp_code(admin.totp_secret, payload.totp_code):
+            raise HTTPException(401, "totp_invalid")
     token = create_admin_access_token(admin.id)
     return AdminTokenResponse(access_token=token)
+
+
+@router.get("/auth/totp/status", response_model=AdminTotpStatusResponse)
+def totp_status(admin: AdminUser = Depends(get_current_admin)):
+    return AdminTotpStatusResponse(totp_enabled=admin.totp_enabled)
+
+
+@router.post("/auth/totp/setup", response_model=AdminTotpSetupResponse)
+@limiter.limit("10/minute")
+def totp_setup(
+    request: Request,
+    admin: AdminUser = Depends(get_current_admin),
+    db: Session = Depends(get_db),
+):
+    if admin.totp_enabled:
+        raise HTTPException(400, "2FA ist bereits aktiviert.")
+    secret = generate_totp_secret()
+    otpauth_url, qr_base64 = build_totp_qr_setup(secret, admin.email)
+    admin.totp_secret = secret
+    db.commit()
+    return AdminTotpSetupResponse(secret=secret, otpauth_url=otpauth_url, qr_code_png_base64=qr_base64)
+
+
+@router.post("/auth/totp/confirm")
+@limiter.limit("10/minute")
+def totp_confirm(
+    request: Request,
+    payload: AdminTotpConfirmRequest,
+    admin: AdminUser = Depends(get_current_admin),
+    db: Session = Depends(get_db),
+):
+    if admin.totp_enabled:
+        raise HTTPException(400, "2FA ist bereits aktiviert.")
+    if not admin.totp_secret or not verify_totp_code(admin.totp_secret, payload.totp_code):
+        raise HTTPException(401, "Code stimmt nicht überein.")
+    admin.totp_enabled = True
+    db.commit()
+    return {"ok": True}
+
+
+@router.post("/auth/totp/disable")
+@limiter.limit("10/minute")
+def totp_disable(
+    request: Request,
+    payload: AdminTotpDisableRequest,
+    admin: AdminUser = Depends(get_current_admin),
+    db: Session = Depends(get_db),
+):
+    if not admin.totp_enabled or not verify_totp_code(admin.totp_secret, payload.totp_code):
+        raise HTTPException(401, "Code stimmt nicht überein.")
+    admin.totp_enabled = False
+    admin.totp_secret = None
+    db.commit()
+    return {"ok": True}
 
 
 @router.get("/stats", response_model=AdminStats)

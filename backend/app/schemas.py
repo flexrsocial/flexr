@@ -713,11 +713,30 @@ class BlockedUserOut(BaseModel):
 class AdminLoginRequest(BaseModel):
     email: EmailStr
     password: str
+    totp_code: Optional[str] = None
 
 
 class AdminTokenResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
+
+
+class AdminTotpSetupResponse(BaseModel):
+    secret: str
+    otpauth_url: str
+    qr_code_png_base64: str
+
+
+class AdminTotpConfirmRequest(BaseModel):
+    totp_code: str
+
+
+class AdminTotpDisableRequest(BaseModel):
+    totp_code: str
+
+
+class AdminTotpStatusResponse(BaseModel):
+    totp_enabled: bool
 
 
 class AdminUserListItem(BaseModel):

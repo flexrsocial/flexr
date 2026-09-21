@@ -1,6 +1,10 @@
+import base64
 from datetime import datetime, timedelta
+from io import BytesIO
 from typing import Optional
 
+import pyotp
+import qrcode
 from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
@@ -23,6 +27,23 @@ def hash_password(password: str) -> str:
 
 def verify_password(plain: str, hashed: str) -> bool:
     return pwd_context.verify(plain, hashed)
+
+
+def generate_totp_secret() -> str:
+    return pyotp.random_base32()
+
+
+def build_totp_qr_setup(secret: str, account_name: str) -> tuple[str, str]:
+    """Gibt (otpauth_url, base64-PNG) für die Einrichtung in einer Authenticator-App zurück."""
+    otpauth_url = pyotp.TOTP(secret).provisioning_uri(name=account_name, issuer_name="FLEXR Admin")
+    img = qrcode.make(otpauth_url)
+    buf = BytesIO()
+    img.save(buf, format="PNG")
+    return otpauth_url, base64.b64encode(buf.getvalue()).decode("ascii")
+
+
+def verify_totp_code(secret: str, code: str) -> bool:
+    return pyotp.TOTP(secret).verify(code, valid_window=1)
 
 
 def create_access_token(user_id: str) -> str:
