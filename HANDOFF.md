@@ -28,6 +28,45 @@ z.B. in deiner `~/.ssh/config` den `User`-Eintrag für den Host ändern).
 Falls du das liest, weil dein `root@`-Login gerade fehlschlägt: das ist
 erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 
+## ⚠️ Dringend zu prüfen: `git pull` als `deploy` bricht bei jedem Commit, der android-native/ oder ios/ beruehrt (seit 21.09.2026)
+
+**Entdeckt in Sitzung 21.09.2026 (3).** Direkte Folge der Rechte-Härtung
+von Sitzung (1): `/flexr/android-native` und `/flexr/ios` gehören
+`root:root`, Modus `755` (keine Gruppen-/Other-Schreibrechte) — und zwar
+auf **Verzeichnisebene**, nicht nur die Dateien selbst. `deploy` kann
+darin also nichts löschen oder ersetzen, auch keine unveränderten
+Verzeichnisse durchqueren, um dort etwas zu schreiben.
+
+**Konkret:** Ein `ssh flexr-vps 'cd /flexr && git pull --ff-only origin
+main'` als `deploy` bricht mit `unable to unlink old '<datei unter
+android-native/ oder ios/>': Permission denied` ab, sobald der zu
+holende Commit-Bereich eine Datei dort ändert — **egal ob der Commit
+sonst nur Backend/Frontend betrifft**, solange er in derselben Pull-Reihe
+liegt wie ein Android-/iOS-Commit. Der Pull bricht dabei **nicht atomar
+sauber ab**: Dateien unter `backend/`/`frontend/`, die git schon vor dem
+blockierten Pfad schreiben konnte, liegen danach korrekt auf der neuen
+Fassung, `HEAD` bleibt aber auf dem alten Commit stehen (`git status`
+zeigt sie als "modifiziert", nicht als aktuell). Das ist im Ergebnis meist
+harmlos - die tatsächlich ausgelieferten Dateien sind korrekt -, aber der
+Git-Zustand auf dem VPS bleibt bis zur nächsten Reparatur inkonsistent
+(sichtbar an `git diff origin/main`).
+
+**Workaround für diese Sitzung:** Inhalt der betroffenen Backend-/
+Frontend-Dateien per `diff` gegen den lokalen Stand geprüft (identisch),
+dann direkt `alembic upgrade head` und `systemctl restart flexr-api`
+ausgeführt, ohne dass `HEAD` auf dem VPS fortgeschritten ist. Funktioniert,
+ist aber kein Dauerzustand.
+
+**Echte Lösung braucht root (State: noch nicht umgesetzt):** entweder
+`chown -R deploy:deploy /flexr/android-native /flexr/ios` (dann darf
+`deploy` dort schreiben - passt aber nicht zur Absicht der Härtung, die
+genau das verhindern wollte), oder besser: den VPS-Checkout per
+`git sparse-checkout` dauerhaft auf `backend/` und `frontend/`
+beschränken, sodass `android-native/` und `ios/` dort gar nicht erst im
+Arbeitsverzeichnis liegen (sie werden auf dem Server ohnehin nie gebraucht
+- Android/iOS-Builds laufen lokal bzw. über Codemagic). Beides braucht
+einen root-Login mit 2FA, also den Nutzer selbst.
+
 ## Wo das Projekt gerade steht
 
 > **Die alte "Dringend zu prüfen"-Notiz zu Android 2.7.5/versionCode 117
@@ -53,6 +92,64 @@ in `sites-enabled`, reine Ablage-Leichen). Der Key `flexr-vps-deploy`
 Logins/Tag) liegt jetzt zusätzlich bei `deploy`, ist aber noch **nicht**
 aus root entfernt — das passiert erst, wenn dieses Gerät bestätigt auf
 `deploy@` umgestellt zu haben.
+
+**Sitzung 21.09.2026 (3) — Datenschutz-Empfängerlücke geschlossen, zwei
+Low-Prio-Befunde aus (2) umgesetzt, Android/iOS geprüft.**
+Direkte Fortsetzung von (2), auf Wunsch des Nutzers.
+
+1. **Datenschutzerklärung (DE+EN):** Apple und Google als Empfänger für
+   In-App-Käufe ergänzt (Zusammenfassung, Datentabelle, Empfängertabelle,
+   Aufbewahrungstabelle), Fassung auf 21.09. gehoben, Testliste in
+   `test_frontend_laedt_ueberhaupt_keine_fremden_hosts` um
+   `getsupport.apple.com`/`support.google.com` erweitert. Test wieder grün.
+   Commit `c534f61`.
+2. **Admin-Login:** kontobezogene Sperre nach 5 Fehlversuchen (Passwort
+   oder TOTP-Code) für 15 Minuten, zusätzlich zur bisherigen IP-basierten
+   Bremse (slowapi, Fail2ban) — schützt jetzt auch gegen einen Angreifer
+   mit vielen IPs. Migration `c3d8e1a5f647`
+   (`admin_users.failed_login_attempts`/`locked_until`). Zusätzlich:
+   `/auth/totp/setup` überschreibt kein unbestätigtes Secret mehr bei
+   einem zweiten Aufruf. Commit `75bd314`, Migration auf VPS gefahren.
+3. **Datetime-Deprecation-Warnungen (46 Stellen, 19 Dateien) bewusst
+   nicht angefasst** — ein automatisiertes Umstellen von naiven auf
+   zeitzonenbewusste `datetime`-Objekte kann Vergleiche zwischen alt/neu
+   geschriebenen Werten stillschweigend brechen, und daran hängen
+   rechtlich relevante Fristen (7-Jahre-Aufbewahrung, DSA-Meldefristen,
+   Trial-Zeiträume). Eigenes, sorgfältig zu planendes Vorhaben.
+4. **Android:** `:app:compileProdReleaseKotlin` grün,
+   `:app:testProdReleaseUnitTest` **schlug fehl** — `FakeFlexrApi` (und
+   jede davon abgeleitete Testklasse) implementierte `declareWithdrawal`
+   nicht, das seit 2.7.17 (natives Rücktrittsrecht, Commit `5c0a056`) zum
+   Interface gehört. Genau die in diesem Dokument dokumentierte Falle,
+   diesmal tatsächlich eingetreten — die Unit-Tests liefen nach 2.7.16/
+   2.7.17 offenbar nicht separat. Nachgezogen, **53 Tests grün**. Commit
+   `333f64a`. Nebenbei `local.properties` korrigiert (zeigte auf einen
+   Nutzernamen eines anderen Rechners, `sdk.dir` lief nur über die
+   `ANDROID_HOME`-Umgebungsvariable) — Datei ist gitignored, keine
+   Auswirkung aufs Repo.
+5. **iOS:** keine Swift-Toolchain auf diesem Rechner (wie dokumentiert).
+   Ersatzweise Klammernbilanz über alle 77 Swift-Dateien geprüft (unauffällig),
+   nach TODO/FIXME durchsucht (keine), `codemagic.yaml` als YAML geparst
+   (gültig). **Festgestellt, nicht behoben:** Das native Rücktrittsrecht,
+   das Android in 2.7.17 bekam, gibt es auf iOS noch nicht — dort steht
+   weiterhin nur der Link auf `flexr.social/widerruf.html` in den
+   Rechtstexten. Wäre eine eigene Feature-Arbeit mit Backend-Vertrag,
+   keine Prüfsache; nachfragen, ob das gewünscht ist, bevor jemand das
+   anfängt. Ebenfalls aufgefallen: `ios/FLEXRTests` deckt mit 5 Dateien/
+   590 Zeilen deutlich weniger ab als Androids Unit-Test-Suite (53 Tests) -
+   nicht neu, nur zur Einordnung.
+6. **Legacy-Fund, nicht angefasst:** `android/` (TWA-Wrapper,
+   `twa-manifest.json`) liegt seit `e3857b0` (26.07.2026, Version 1.0.4)
+   unverändert im Repo, abgelöst durch `android-native/` (jetzt 2.7.17).
+   Vermutlich totes Gewicht, aber nicht gelöscht ohne Rückfrage - könnte
+   als Referenz oder wegen einer Play-Console-Paket-Historie noch
+   gebraucht werden.
+7. **VPS-Deploy stieß auf den oben neu dokumentierten `git pull`-Bruch**
+   (siehe Callout): Commit `333f64a` enthält die Android-Fix-Datei, der
+   Pull brach dort ab. Backend-/Frontend-Dateien waren zu dem Zeitpunkt
+   aber bereits korrekt geschrieben (per `diff` gegen lokalen Stand
+   bestätigt) - Migration und Neustart trotzdem durchgeführt,
+   `HEAD` auf dem VPS bleibt vorerst hinter `origin/main` zurück.
 
 **Sitzung 21.09.2026 (2) — Codebase-Audit: Backend-Tests, Admin-Dashboard, Rechtstexte geprüft; drei Fixes deployed.**
 Auf Wunsch des Nutzers vollständiger Durchgang: Backend-`venv` hatte
