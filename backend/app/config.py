@@ -6,6 +6,10 @@ class Settings(BaseSettings):
     jwt_secret: str
     jwt_algorithm: str = "HS256"
     access_token_expire_minutes: int = 43200
+    # Admin-Dashboard-Zugriff auf Nutzer-PII, Verifizierungsfotos und
+    # Moderationsrechte - deutlich kuerzer als das normale Nutzer-Token, damit
+    # ein abgegriffenes Admin-Token nicht einen Monat lang gueltig bleibt.
+    admin_access_token_expire_minutes: int = 720
 
     stripe_secret_key: str = ""
     stripe_webhook_secret: str = ""

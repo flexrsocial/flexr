@@ -218,7 +218,7 @@ def require_active_membership(user: User = Depends(require_activated_account)) -
 
 
 def create_admin_access_token(admin_id: str) -> str:
-    expire = datetime.utcnow() + timedelta(minutes=settings.access_token_expire_minutes)
+    expire = datetime.utcnow() + timedelta(minutes=settings.admin_access_token_expire_minutes)
     payload = {"sub": admin_id, "exp": expire, "scope": "admin"}
     return jwt.encode(payload, settings.jwt_secret, algorithm=settings.jwt_algorithm)
 

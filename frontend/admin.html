@@ -602,6 +602,37 @@
     return data;
   }
 
+  // ---------- Pagination fuer Listen/Warteschlangen ----------
+  // Die Backend-Endpunkte liefern nur bis zu `limit` Eintraege pro Aufruf
+  // (Default 50, Gyms 100). Ohne diesen Mechanismus blieben Eintraege ab
+  // Position 51 im Admin-Dashboard unsichtbar, ohne jeden Hinweis, dass es
+  // ueberhaupt mehr gibt - bei Warteschlangen mit DSA-Fristen (Meldungen,
+  // foermliche Meldungen) waere das mehr als ein UX-Problem.
+  const PAGE_SIZE = 50;
+  // Muss mit den `le=`-Obergrenzen der jeweiligen Backend-Routen
+  // uebereinstimmen (admin.py) - sonst wuerde "Weitere laden" irgendwann
+  // einen 422-Validierungsfehler statt neuer Eintraege liefern.
+  const listLimit = { users: 50, photos: 50, gyms: 100, notices: 50, reports: 50, flagged: 50, verifications: 50 };
+  const listLimitMax = { users: 200, photos: 200, gyms: 500, notices: 200, reports: 200, flagged: 200, verifications: 200 };
+  function appendLoadMore(wrap, key, count, reload){
+    if(count < listLimit[key]) return; // weniger als angefragt -> keine weitere Seite
+    if(listLimit[key] >= listLimitMax[key]) return; // Obergrenze erreicht
+    const holder = document.createElement('div');
+    holder.style.textAlign = 'center';
+    holder.style.margin = '14px 0';
+    const btn = document.createElement('button');
+    btn.className = 'btn secondary small';
+    btn.textContent = 'Weitere laden';
+    btn.addEventListener('click', () => {
+      listLimit[key] = Math.min(listLimit[key] + PAGE_SIZE, listLimitMax[key]);
+      btn.disabled = true;
+      btn.textContent = 'Lädt …';
+      reload();
+    });
+    holder.appendChild(btn);
+    wrap.appendChild(holder);
+  }
+
   function setToken(t){
     token = t;
     if(t) localStorage.setItem('flexr_admin_token', t);
@@ -689,6 +720,7 @@
       document.querySelectorAll('.gym-tab').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       currentGymStatus = btn.dataset.gymStatus;
+      listLimit.gyms = 100;
       loadGyms();
     });
   });
@@ -696,7 +728,7 @@
   async function loadGyms(){
     const wrap = $('gymsTableWrap');
     try{
-      const gyms = await api('/api/admin/gyms?status=' + currentGymStatus);
+      const gyms = await api('/api/admin/gyms?status=' + currentGymStatus + '&limit=' + listLimit.gyms);
       if(gyms.length === 0){
         wrap.innerHTML = '<div class="empty-state">Keine Gyms in diesem Status.</div>';
         return;
@@ -745,6 +777,7 @@
       wrap.querySelectorAll('button[data-edit-gym]').forEach(btn => {
         btn.addEventListener('click', () => editGymRow(gymById[btn.dataset.editGym]));
       });
+      appendLoadMore(wrap, 'gyms', gyms.length, loadGyms);
     }catch(err){
       wrap.innerHTML = `<div class="empty-state">${escapeHtml(err.message)}</div>`;
     }
@@ -893,14 +926,19 @@
 
   // ---------- Users ----------
   let userSearchTimeout = null;
+  function resetUsersAndReload(){
+    listLimit.users = PAGE_SIZE;
+    loadUsers();
+  }
   function scheduleUserReload(){
     clearTimeout(userSearchTimeout);
+    listLimit.users = PAGE_SIZE;
     userSearchTimeout = setTimeout(loadUsers, 300);
   }
   $('userSearch').addEventListener('input', scheduleUserReload);
-  $('userFilterBanned').addEventListener('change', loadUsers);
-  $('userFilterSubscribed').addEventListener('change', loadUsers);
-  $('userFilterVerificationRejected').addEventListener('change', loadUsers);
+  $('userFilterBanned').addEventListener('change', resetUsersAndReload);
+  $('userFilterSubscribed').addEventListener('change', resetUsersAndReload);
+  $('userFilterVerificationRejected').addEventListener('change', resetUsersAndReload);
 
   async function loadUsers(){
     const wrap = $('usersTableWrap');
@@ -910,6 +948,7 @@
     if($('userFilterBanned').value) params.set('banned', $('userFilterBanned').value);
     if($('userFilterSubscribed').value) params.set('subscribed', $('userFilterSubscribed').value);
     if($('userFilterVerificationRejected').value) params.set('verification_rejected', $('userFilterVerificationRejected').value);
+    params.set('limit', listLimit.users);
     try{
       const users = await api('/api/admin/users?' + params.toString());
       if(users.length === 0){
@@ -946,6 +985,7 @@
       wrap.querySelectorAll('tbody tr').forEach(tr => {
         tr.addEventListener('click', () => openUserModal(tr.dataset.userId));
       });
+      appendLoadMore(wrap, 'users', users.length, loadUsers);
     }catch(err){
       wrap.innerHTML = `<div class="empty-state">${escapeHtml(err.message)}</div>`;
     }
@@ -1136,6 +1176,7 @@
       photoTabs.forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       currentPhotoStatus = btn.dataset.status;
+      listLimit.photos = PAGE_SIZE;
       loadPhotos();
     });
   });
@@ -1244,7 +1285,7 @@
     const wrap = $('photoGridWrap');
     wrap.innerHTML = '<div class="loading">Lädt …</div>';
     try{
-      const photos = await api('/api/admin/photos?status=' + currentPhotoStatus);
+      const photos = await api('/api/admin/photos?status=' + currentPhotoStatus + '&limit=' + listLimit.photos);
       if(photos.length === 0){
         wrap.innerHTML = '<div class="empty-state">Keine Fotos in diesem Status.</div>';
         return;
@@ -1292,6 +1333,7 @@
           });
         });
       });
+      appendLoadMore(wrap, 'photos', photos.length, loadPhotos);
     }catch(err){
       wrap.innerHTML = `<div class="empty-state">${escapeHtml(err.message)}</div>`;
     }
@@ -1343,13 +1385,14 @@
     wrap.innerHTML = '<div class="loading">Lädt …</div>';
     renderCleanupWarning();
     try{
-      const reqs = await api('/api/admin/verifications');
+      const reqs = await api('/api/admin/verifications?limit=' + listLimit.verifications);
       if(reqs.length === 0){
         wrap.innerHTML = '<div class="empty-state">Keine offenen Verifizierungen.</div>';
         return;
       }
       wrap.innerHTML = reqs.map(renderVerificationCard).join('');
       wrap.querySelectorAll('.verify-review-card').forEach(wireVerificationCard);
+      appendLoadMore(wrap, 'verifications', reqs.length, loadVerifications);
     }catch(err){
       wrap.innerHTML = `<div class="empty-state">${escapeHtml(err.message)}</div>`;
     }
@@ -1510,7 +1553,7 @@
     loadFlaggedMessages();
     const wrap = $('reportsTableWrap');
     try{
-      const reports = await api('/api/admin/reports');
+      const reports = await api('/api/admin/reports?limit=' + listLimit.reports);
       if(reports.length === 0){
         wrap.innerHTML = '<div class="empty-state">Keine Meldungen.</div>';
         return;
@@ -1565,6 +1608,7 @@
           }catch(err){ toast(err.message); }
         });
       });
+      appendLoadMore(wrap, 'reports', reports.length, loadReports);
     }catch(err){
       wrap.innerHTML = `<div class="empty-state">${escapeHtml(err.message)}</div>`;
     }
@@ -1582,7 +1626,7 @@
   async function loadNotices(){
     const wrap = $('noticesTableWrap');
     try{
-      const notices = await api('/api/admin/notices');
+      const notices = await api('/api/admin/notices?limit=' + listLimit.notices);
       if(notices.length === 0){
         wrap.innerHTML = '<div class="empty-state">Keine förmlichen Meldungen.</div>';
         return;
@@ -1635,6 +1679,7 @@
           }catch(err){ toast(err.message); }
         });
       });
+      appendLoadMore(wrap, 'notices', notices.length, loadNotices);
     }catch(err){
       wrap.innerHTML = `<div class="empty-state">${escapeHtml(err.message)}</div>`;
     }
@@ -1643,7 +1688,7 @@
   async function loadFlaggedMessages(){
     const wrap = $('flaggedTableWrap');
     try{
-      const msgs = await api('/api/admin/flagged-messages');
+      const msgs = await api('/api/admin/flagged-messages?limit=' + listLimit.flagged);
       if(msgs.length === 0){
         wrap.innerHTML = '<div class="empty-state">Keine auffälligen Nachrichten.</div>';
         return;
@@ -1690,6 +1735,7 @@
           }catch(err){ toast(err.message); }
         });
       });
+      appendLoadMore(wrap, 'flagged', msgs.length, loadFlaggedMessages);
     }catch(err){
       wrap.innerHTML = `<div class="empty-state">${escapeHtml(err.message)}</div>`;
     }

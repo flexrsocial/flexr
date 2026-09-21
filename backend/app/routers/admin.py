@@ -325,25 +325,39 @@ def list_users(
     # Jüngster Verifizierungsversuch pro Nutzer: nur dieser entscheidet, ob das
     # Konto aktuell als "abgelehnt" markiert wird - ein späterer Neuanlauf
     # (request-reupload, erneute Einreichung) überschreibt die Markierung.
-    latest_per_user = (
-        db.query(
+    #
+    # Auf `scope_user_ids` eingrenzbar: ohne den Filter `verification_rejected`
+    # wird das Ergebnis nur zur Anzeige pro Zeile gebraucht, dann reicht es,
+    # die (max. `limit`) tatsächlich zurückgegebenen Nutzer nachzuschlagen statt
+    # bei jedem Aufruf - auch bei jedem Tastendruck in der Live-Suche - über
+    # die komplette `verification_requests`-Tabelle zu aggregieren.
+    def rejected_user_ids_for(scope_user_ids: Optional[list[str]] = None) -> set[str]:
+        if scope_user_ids is not None and not scope_user_ids:
+            return set()
+        latest_per_user_q = db.query(
             VerificationRequest.user_id,
             func.max(VerificationRequest.created_at).label("max_created"),
         )
-        .group_by(VerificationRequest.user_id)
-        .subquery()
-    )
-    rejected_user_ids = {
-        user_id
-        for (user_id,) in db.query(VerificationRequest.user_id)
-        .join(
-            latest_per_user,
-            (VerificationRequest.user_id == latest_per_user.c.user_id)
-            & (VerificationRequest.created_at == latest_per_user.c.max_created),
-        )
-        .filter(VerificationRequest.status == VerificationStatus.rejected)
-        .all()
-    }
+        if scope_user_ids is not None:
+            latest_per_user_q = latest_per_user_q.filter(
+                VerificationRequest.user_id.in_(scope_user_ids)
+            )
+        latest_per_user = latest_per_user_q.group_by(VerificationRequest.user_id).subquery()
+        return {
+            user_id
+            for (user_id,) in db.query(VerificationRequest.user_id)
+            .join(
+                latest_per_user,
+                (VerificationRequest.user_id == latest_per_user.c.user_id)
+                & (VerificationRequest.created_at == latest_per_user.c.max_created),
+            )
+            .filter(VerificationRequest.status == VerificationStatus.rejected)
+            .all()
+        }
+
+    rejected_user_ids: set[str] = set()
+    if verification_rejected is not None:
+        rejected_user_ids = rejected_user_ids_for()
 
     query = db.query(User)
     if q:
@@ -359,6 +373,10 @@ def list_users(
 
     users = query.order_by(User.created_at.desc()).offset(offset).limit(limit).all()
     user_ids = [u.id for u in users]
+    if verification_rejected is None:
+        # Fuer die Anzeige reicht die eingegrenzte Abfrage ueber die aktuelle
+        # Seite - der volle Abgleich oben wurde nur fuers Filtern gebraucht.
+        rejected_user_ids = rejected_user_ids_for(user_ids)
     photo_counts = dict(
         db.query(Photo.user_id, func.count(Photo.id))
         .filter(Photo.user_id.in_(user_ids))

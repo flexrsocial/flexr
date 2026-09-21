@@ -55,6 +55,6 @@ def test_foermliche_meldungen_sind_im_admin_bedienbar():
 
     assert 'id="noticesTableWrap"' in html
     assert "async function loadNotices()" in html
-    assert "'/api/admin/notices'" in html
+    assert "'/api/admin/notices?limit=" in html
     assert "`/api/admin/notices/${id}/decide`" in html
     assert "stats.open_notices" in html
