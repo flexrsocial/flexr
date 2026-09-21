@@ -705,10 +705,6 @@ fun AccountScreen(
                 legalDialogVisible = false
                 onOpenLegal(document)
             },
-            onOpenUrl = { url ->
-                legalDialogVisible = false
-                onOpenUrl(url)
-            },
             onDismiss = { legalDialogVisible = false },
         )
     }
@@ -1358,7 +1354,6 @@ private fun NotificationSwitchRow(
 @Composable
 private fun LegalAndHelpDialog(
     onOpenLegal: (LegalDocument) -> Unit,
-    onOpenUrl: (String) -> Unit,
     onDismiss: () -> Unit,
 ) {
     val colors = FlexrTheme.colors
@@ -1373,22 +1368,17 @@ private fun LegalAndHelpDialog(
                     .heightIn(max = 480.dp)
                     .verticalScroll(rememberScrollState()),
             ) {
+                // Das Ruecktrittsrecht (WIDERRUF) ist Teil dieses Enums und
+                // oeffnet damit wie alle anderen Rechtstexte nativ in der
+                // LegalScreen, inklusive der eingebetteten
+                // Online-Ruecktrittsfunktion (LegalBlock.WithdrawalForm) -
+                // kein Custom Tab auf flexr.social/widerruf.html mehr.
                 LegalDocument.entries.forEach { document ->
                     LegalHelpRow(
                         label = stringResource(document.titleRes),
                         onClick = { onOpenLegal(document) },
                     )
                 }
-                // Eigene Zeile statt eines LegalDocument-Eintrags: Die
-                // Online-Ruecktrittsfunktion auf flexr.social/widerruf.html
-                // ist ein Formular mit Server-Anbindung (POST
-                // /api/withdrawal), keine reine Textseite wie die uebrigen
-                // nativ nachgebauten Rechtstexte - sie oeffnet deshalb im
-                // Custom Tab statt in der nativen LegalScreen.
-                LegalHelpRow(
-                    label = stringResource(R.string.legal_widerruf),
-                    onClick = { onOpenUrl("https://flexr.social/widerruf.html") },
-                )
             }
         },
         confirmButton = {

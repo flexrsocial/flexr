@@ -275,8 +275,13 @@ android {
         // Tab (die Online-Ruecktrittsfunktion dort ist ein Formular mit
         // Server-Anbindung, keine reine Textseite wie die uebrigen nativ
         // nachgebauten Rechtstexte).
-        versionCode = 128
-        versionName = "2.7.16"
+        // 129/2.7.17 am 21.09.2026: Der Custom Tab aus 128 faellt wieder weg -
+        // das Ruecktrittsrecht ist jetzt LegalDocument.WIDERRUF und oeffnet
+        // wie alle anderen Rechtstexte nativ in der LegalScreen, inklusive der
+        // eingebetteten Online-Ruecktrittsfunktion (LegalBlock.WithdrawalForm,
+        // POST /api/withdrawal direkt aus der App statt ueber den Browser).
+        versionCode = 129
+        versionName = "2.7.17"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         // Nur die Sprachen ausliefern, die es wirklich gibt: Deutsch als

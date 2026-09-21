@@ -199,6 +199,8 @@ private fun LegalBlockView(block: LegalBlock) {
             }
         }
 
+        LegalBlock.WithdrawalForm -> WithdrawalFormBlock()
+
         is LegalBlock.Faq -> {
             var expanded by remember { mutableStateOf(false) }
             Column(

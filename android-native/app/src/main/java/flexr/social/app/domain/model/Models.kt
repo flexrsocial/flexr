@@ -317,6 +317,19 @@ data class ReportAck(
 )
 
 /**
+ * Bestätigung einer erklärten Rücktrittserklärung (§ 13a FAGG). [declarationText]
+ * ist der aufgezeichnete Wortlaut - er muss auch dann sichtbar bleiben, wenn
+ * [confirmationSent] false ist, weil dann keine Bestätigungsmail als Nachweis
+ * nachkommt.
+ */
+data class WithdrawalAck(
+    val reference: String,
+    val declarationText: String,
+    val confirmationSent: Boolean,
+    val message: String,
+)
+
+/**
  * Begründete Mitteilung zu einer Beschränkung des eigenen Kontos (Art. 17 DSA)
  * — Grund, Dauer und der Weg zum Widerspruch.
  */

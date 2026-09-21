@@ -60,6 +60,23 @@
     <string name="legal_only_german">These legal texts are available in German only and are binding in that version.</string>
     <string name="legal_widerruf">Right of withdrawal</string>
 
+    <string name="withdrawal_name_label">Your name</string>
+    <string name="withdrawal_name_placeholder">First and last name</string>
+    <string name="withdrawal_email_label">Email address for the confirmation</string>
+    <string name="withdrawal_email_hint">The confirmation on a durable medium is sent to this address.</string>
+    <string name="withdrawal_contract_label">Contract or account</string>
+    <string name="withdrawal_contract_placeholder">e.g. the email address of your FLEXR account</string>
+    <string name="withdrawal_contract_hint">Helps us assign your statement. If you don\'t have it to hand, leave the field blank — the withdrawal is valid all the same.</string>
+    <string name="withdrawal_message_label">Note (optional)</string>
+    <string name="withdrawal_message_placeholder">You don\'t have to fill this in. A withdrawal needs no reason.</string>
+    <string name="withdrawal_confirm_label">I hereby declare my withdrawal from my chargeable FLEXR contract.</string>
+    <string name="withdrawal_submit">Confirm withdrawal</string>
+    <string name="withdrawal_error_generic">Your withdrawal could not be accepted. Please send us an informal email to flexr.social@proton.me instead — that is legally just as valid.</string>
+    <string name="withdrawal_result_title">Withdrawal declared</string>
+    <string name="withdrawal_result_title_no_mail">Withdrawal declared — please save the wording</string>
+    <string name="withdrawal_result_wording_label">Wording of your statement:</string>
+    <string name="withdrawal_result_hint">A running subscription linked to an order on flexr.social is automatically stopped from renewing further as a result of the withdrawal. A subscription bought through the App Store or Play Store cannot be stopped by us — there, Apple or Google is your contract partner for payment; end it additionally in that store\'s subscription management. We accept and process your statement regardless. Withdrawal and cancellation are two different things: withdrawal unwinds the contract retroactively, cancellation only ends it for the future.</string>
+
     <string name="field_email">Email</string>
     <string name="field_password">Password</string>
     <string name="field_password_show">Show password</string>

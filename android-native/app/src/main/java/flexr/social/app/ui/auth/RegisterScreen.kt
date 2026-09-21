@@ -238,7 +238,8 @@ fun RegisterScreen(
         // Vertrag - es wird kein Zahlungsmittel erhoben, und der Probemonat
         // wandelt sich nicht von selbst in ein Abo um. Ohne entgeltlichen
         // Vertrag gibt es kein Rücktrittsrecht, auf das man verzichten könnte.
-        // Die Rücktrittsbelehrung steht jetzt auf flexr.social/widerruf.html.
+        // Die Rücktrittsbelehrung steht jetzt unter „Rechtliches" →
+        // „Rücktrittsrecht" im Konto-Bereich (LegalDocument.WIDERRUF).
 
         FieldError(state.error)
 

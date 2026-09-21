@@ -80,10 +80,29 @@
     <string name="legal_nutzungsrichtlinien">Nutzungsrichtlinien</string>
     <string name="legal_strafverfolgung">Strafverfolgungsbehörden</string>
     <string name="legal_only_german">Diese Rechtstexte liegen nur auf Deutsch vor und sind in dieser Fassung verbindlich.</string>
-    <!-- Oeffnet flexr.social/widerruf.html im Custom Tab statt einer nativen
-         Ansicht: Die Online-Ruecktrittsfunktion dort ist ein Formular mit
-         Server-Anbindung (POST /api/withdrawal), keine reine Textseite. -->
+    <!-- Oeffnet nativ in der LegalScreen wie alle anderen Rechtstexte,
+         inklusive der eingebetteten Online-Ruecktrittsfunktion
+         (LegalBlock.WithdrawalForm, POST /api/withdrawal) - kein Custom Tab
+         mehr auf flexr.social/widerruf.html. -->
     <string name="legal_widerruf">Rücktrittsrecht</string>
+
+    <!-- ==== Online-Ruecktrittsfunktion (§ 13a FAGG) ==== -->
+    <string name="withdrawal_name_label">Dein Name</string>
+    <string name="withdrawal_name_placeholder">Vor- und Nachname</string>
+    <string name="withdrawal_email_label">E-Mail-Adresse für die Bestätigung</string>
+    <string name="withdrawal_email_hint">An diese Adresse geht die Bestätigung auf dauerhaftem Datenträger.</string>
+    <string name="withdrawal_contract_label">Vertrag oder Konto</string>
+    <string name="withdrawal_contract_placeholder">z. B. die E-Mail-Adresse deines FLEXR-Kontos</string>
+    <string name="withdrawal_contract_hint">Hilft uns beim Zuordnen. Wenn du sie nicht zur Hand hast, lass das Feld frei — der Rücktritt gilt trotzdem.</string>
+    <string name="withdrawal_message_label">Anmerkung (freiwillig)</string>
+    <string name="withdrawal_message_placeholder">Musst du nicht ausfüllen. Ein Rücktritt braucht keine Begründung.</string>
+    <string name="withdrawal_confirm_label">Ich erkläre hiermit den Rücktritt von meinem entgeltlichen FLEXR-Vertrag.</string>
+    <string name="withdrawal_submit">Widerruf bestätigen</string>
+    <string name="withdrawal_error_generic">Der Rücktritt konnte nicht entgegengenommen werden. Schick uns stattdessen eine formlose E-Mail an flexr.social@proton.me — das genügt rechtlich genauso.</string>
+    <string name="withdrawal_result_title">Rücktritt erklärt</string>
+    <string name="withdrawal_result_title_no_mail">Rücktritt erklärt — bitte Wortlaut sichern</string>
+    <string name="withdrawal_result_wording_label">Wortlaut deiner Erklärung:</string>
+    <string name="withdrawal_result_hint">Ein zugeordnetes laufendes Abo aus einer Bestellung auf flexr.social wird durch den Rücktritt automatisch an der weiteren Verlängerung gehindert. Ein im App Store oder Play Store gekauftes Abo können wir nicht stoppen — dort ist Apple bzw. Google dein Vertragspartner für die Zahlung; beende es zusätzlich in der Abo-Verwaltung des Stores. Deine Erklärung nehmen wir trotzdem entgegen und bearbeiten sie. Rücktritt und Kündigung sind zwei verschiedene Dinge: Der Rücktritt löst den Vertrag rückwirkend auf, die Kündigung beendet ihn nur für die Zukunft.</string>
 
     <!-- ==== Eingabefelder / Bausteine ==== -->
     <string name="field_email">E-Mail</string>

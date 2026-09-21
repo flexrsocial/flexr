@@ -19,6 +19,14 @@ sealed interface LegalBlock {
     data class Table(val headers: List<String>, val rows: List<List<String>>) : LegalBlock
     data class Faq(val question: String, val answer: String) : LegalBlock
     data class Note(val text: String) : LegalBlock
+
+    /**
+     * Die eingebettete Online-Rücktrittsfunktion (§ 13a FAGG) - kein reiner
+     * Text wie die übrigen Bausteine, sondern ein Formular mit
+     * Server-Anbindung (POST /api/withdrawal). Gerendert von
+     * [flexr.social.app.ui.legal.WithdrawalFormBlock].
+     */
+    data object WithdrawalForm : LegalBlock
 }
 
 data class LegalPage(
@@ -37,6 +45,7 @@ object LegalContent {
         LegalDocument.SICHERHEIT -> sicherheit
         LegalDocument.NUTZUNGSRICHTLINIEN -> nutzungsrichtlinien
         LegalDocument.STRAFVERFOLGUNG -> strafverfolgung
+        LegalDocument.WIDERRUF -> widerruf
     }
 
     private val faq = LegalPage(
@@ -234,9 +243,9 @@ object LegalContent {
                 "Verbrauchern steht bei einem entgeltlichen Vertrag ein 14-tägiges " +
                     "Rücktrittsrecht ohne Angabe von Gründen zu (§ 11 FAGG). Eine formlose " +
                     "eindeutige Erklärung genügt; am einfachsten geht es über die " +
-                    "Online-Rücktrittsfunktion unter flexr.social/widerruf.html, wo auch die " +
-                    "vollständige Belehrung und das Muster-Formular stehen. Für das " +
-                    "kostenlose Konto besteht kein " +
+                    "Online-Rücktrittsfunktion im Bereich „Rechtliches\" unter " +
+                    "„Rücktrittsrecht\", wo auch die vollständige Belehrung und das " +
+                    "Muster-Formular stehen. Für das kostenlose Konto besteht kein " +
                     "Rücktrittsrecht, weil dabei keine Zahlungspflicht entsteht. Bis zum " +
                     "15.08.2026 musste bei der Registrierung erklärt werden, das " +
                     "Rücktrittsrecht gehe mit dem sofortigen Leistungsbeginn verloren. Diese " +
@@ -290,6 +299,222 @@ object LegalContent {
                         "der Europäischen Kommission wurde am 20. Juli 2025 eingestellt " +
                         "(siehe Impressum).",
                 ),
+            ),
+        ),
+    )
+
+    // Rücktrittsrecht (§ 13a FAGG). Inhaltsgleich mit
+    // flexr.social/widerruf.html, nur dass die Online-Rücktrittsfunktion hier
+    // nicht als externes Formular verlinkt, sondern als eigener Baustein
+    // (LegalBlock.WithdrawalForm, gerendert von WithdrawalFormBlock) direkt
+    // eingebettet ist - kein Custom Tab, kein Verlassen der App.
+    private val widerruf = LegalPage(
+        document = LegalDocument.WIDERRUF,
+        intro = "Informationen zum gesetzlichen Rücktrittsrecht bei kostenpflichtigen " +
+            "FLEXR-Abonnements.",
+        blocks = listOf(
+            LegalBlock.Heading("Vier verschiedene Dinge — bitte nicht verwechseln"),
+            LegalBlock.Bullets(
+                listOf(
+                    "Das kostenlose FLEXR-Konto. Kostet nichts — dauerhaft. Es entsteht " +
+                        "kein zahlungspflichtiger Vertrag, und aus dem Konto wird nie " +
+                        "automatisch ein Abo. Es läuft auch nichts ab, nach dem die App " +
+                        "gesperrt wäre.",
+                    "FLEXR Premium abschließen. Erst hier entsteht ein " +
+                        "zahlungspflichtiger Vertrag: durch deine ausdrückliche Bestellung " +
+                        "und den anschließenden Bezahlvorgang.",
+                    "Premium kündigen. Beendet ein laufendes Premium-Abo zum Ende der " +
+                        "bezahlten Periode. Gekündigt wird dort, wo bestellt wurde: auf " +
+                        "flexr.social im Konto-Bereich über „Abo verwalten / kündigen\", bei " +
+                        "einem In-App-Kauf über Google Play in der Abo-Verwaltung des " +
+                        "Play Store. Dein Konto bleibt danach als kostenloses Konto " +
+                        "bestehen. Bereits Bezahltes bekommst du dabei nicht zurück.",
+                    "Rücktritt (Widerruf). Löst den Vertrag binnen 14 Tagen ab Abschluss " +
+                        "auf, ohne dass du einen Grund brauchst. Bereits Gezahltes bekommst " +
+                        "du zurück. Das ist etwas anderes als eine Kündigung — dafür ist " +
+                        "diese Seite da.",
+                ),
+            ),
+
+            LegalBlock.Heading("1. Wann du überhaupt zurücktreten kannst"),
+            LegalBlock.Paragraph(
+                "Das gesetzliche Rücktrittsrecht für das kostenpflichtige FLEXR Premium " +
+                    "besteht grundsätzlich 14 Tage ab Vertragsabschluss. Für das " +
+                    "kostenlose FLEXR-Konto entsteht keine Zahlungspflicht; es kann " +
+                    "jederzeit durch Löschung des Kontos beendet werden. Zwingende " +
+                    "gesetzliche Verbraucherrechte bleiben unberührt.",
+            ),
+
+            LegalBlock.Heading("2. Je nachdem, wo du bestellt hast"),
+            LegalBlock.Paragraph(
+                "FLEXR Premium lässt sich an drei Stellen bestellen — direkt auf " +
+                    "flexr.social, als In-App-Kauf in der iOS-App oder als In-App-Kauf in " +
+                    "dieser Android-App. Dein Vertragspartner für die Zahlung ist dabei " +
+                    "nicht immer FLEXR (siehe AGB, Punkt 6 c). Wie der Rücktritt läuft, " +
+                    "hängt deshalb davon ab, wo du bestellt hast:",
+            ),
+            LegalBlock.Table(
+                headers = listOf("Bestellt auf", "Vertragspartner (Zahlung)", "Rücktritt / Rückerstattung"),
+                rows = listOf(
+                    listOf(
+                        "flexr.social (Stripe)",
+                        "FLEXR",
+                        "Nutze die Online-Rücktrittsfunktion weiter unten — dein Abo wird " +
+                            "sofort gestoppt und bereits Gezahltes nach Punkt 3 erstattet. " +
+                            "Eine formlose E-Mail an flexr.social@proton.me genügt ebenso.",
+                    ),
+                    listOf(
+                        "iOS-App (App Store)",
+                        "Apple",
+                        "Ausschließlich über Apple: Apple Support oder auf dem iPhone unter " +
+                            "Einstellungen → [dein Name] → Abonnements. FLEXR kann diesen " +
+                            "Kauf technisch weder stoppen noch erstatten.",
+                    ),
+                    listOf(
+                        "Diese Android-App (Google Play)",
+                        "Google",
+                        "Ausschließlich über Google Play: Support-Seite von Google oder in " +
+                            "der Play Store-App unter Zahlungen & Abos. FLEXR kann diesen " +
+                            "Kauf technisch weder stoppen noch erstatten.",
+                    ),
+                ),
+            ),
+
+            LegalBlock.Heading("3. Rücktrittsbelehrung"),
+            LegalBlock.Paragraph(
+                "Du hast das Recht, binnen vierzehn Tagen ohne Angabe von Gründen von " +
+                    "diesem Vertrag zurückzutreten. Die Rücktrittsfrist beträgt vierzehn " +
+                    "Tage ab dem Tag des Vertragsabschlusses.",
+            ),
+            LegalBlock.Paragraph(
+                "Um dein Rücktrittsrecht auszuüben, musst du uns — Julian Pachernegg, " +
+                    "Einzelunternehmer, Betreiber von FLEXR, Johann-Schrey-Weg 260, 8232 " +
+                    "Grafendorf, Österreich, Telefon +43 676 874030574, E-Mail " +
+                    "flexr.social@proton.me — mittels einer eindeutigen Erklärung (z. B. " +
+                    "ein mit der Post versandter Brief oder eine E-Mail) über deinen " +
+                    "Entschluss, von diesem Vertrag zurückzutreten, informieren. Du kannst " +
+                    "dafür das Muster-Formular weiter unten verwenden, das aber nicht " +
+                    "vorgeschrieben ist. Am einfachsten geht es über die " +
+                    "Online-Rücktrittsfunktion weiter unten auf dieser Seite.",
+            ),
+            LegalBlock.Paragraph(
+                "Zur Wahrung der Rücktrittsfrist reicht es aus, dass du die Mitteilung " +
+                    "über die Ausübung des Rücktrittsrechts vor Ablauf der Rücktrittsfrist " +
+                    "absendest.",
+            ),
+            LegalBlock.Note(
+                "Wenn du die Online-Rücktrittsfunktion nutzt, senden wir dir unverzüglich " +
+                    "per E-Mail eine Eingangsbestätigung mit dem Inhalt deiner " +
+                    "Rücktrittserklärung sowie Datum und Uhrzeit ihres Eingangs.",
+            ),
+            LegalBlock.Paragraph(
+                "Folgen des Rücktritts: Wenn du von diesem Vertrag zurücktrittst, haben " +
+                    "wir dir alle Zahlungen, die wir von dir erhalten haben, unverzüglich " +
+                    "und spätestens binnen vierzehn Tagen ab dem Tag zurückzuzahlen, an dem " +
+                    "die Mitteilung über deinen Rücktritt bei uns eingegangen ist. Für " +
+                    "diese Rückzahlung verwenden wir dasselbe Zahlungsmittel, das du bei " +
+                    "der ursprünglichen Transaktion eingesetzt hast, es sei denn, mit dir " +
+                    "wurde ausdrücklich etwas anderes vereinbart; in keinem Fall werden dir " +
+                    "wegen dieser Rückzahlung Entgelte berechnet.",
+            ),
+            LegalBlock.Paragraph(
+                "Hast du verlangt, dass die Dienstleistung schon während der " +
+                    "Rücktrittsfrist beginnen soll, so hast du uns einen angemessenen " +
+                    "Betrag zu zahlen, der dem Anteil der bis zum Zeitpunkt deiner " +
+                    "Mitteilung bereits erbrachten Leistung im Vergleich zum Gesamtumfang " +
+                    "der vertraglich vereinbarten Leistung entspricht.",
+            ),
+
+            LegalBlock.Heading("4. Beginn der Dienstleistung und Erlöschen des Rücktrittsrechts"),
+            LegalBlock.Paragraph(
+                "Auf ausdrücklichen Wunsch kann die kostenpflichtige FLEXR-Dienstleistung " +
+                    "bereits vor Ablauf der 14-tägigen Rücktrittsfrist beginnen.",
+            ),
+            LegalBlock.Paragraph(
+                "Bei einem Rücktritt während dieser Frist kann unter den gesetzlichen " +
+                    "Voraussetzungen ein angemessener anteiliger Betrag für den bis zum " +
+                    "Rücktritt bereits erbrachten Teil der Dienstleistung anfallen.",
+            ),
+            LegalBlock.Paragraph(
+                "Bei einer Dienstleistung erlischt das Rücktrittsrecht nach § 18 Abs. 1 " +
+                    "Z 1 FAGG erst nach vollständiger Vertragserfüllung und — bei einem " +
+                    "zahlungspflichtigen Vertrag — nur unter den dafür gesetzlich " +
+                    "vorgesehenen Voraussetzungen.",
+            ),
+            LegalBlock.Paragraph(
+                "Die bloße Freischaltung oder Nutzung eines noch laufenden " +
+                    "FLEXR-Abonnements führt nicht für sich allein zum Erlöschen des " +
+                    "Rücktrittsrechts.",
+            ),
+
+            LegalBlock.Heading("5. Online-Rücktrittsfunktion"),
+            LegalBlock.Paragraph(
+                "Hier kannst du deinen Rücktritt direkt erklären. Du bekommst " +
+                    "unmittelbar danach eine Bestätigung per E-Mail, die den Wortlaut " +
+                    "deiner Erklärung samt Datum und Uhrzeit enthält — bewahre sie als " +
+                    "Nachweis auf.",
+            ),
+            LegalBlock.Note(
+                "Diese Funktion setzt § 13a FAGG um. Du musst dafür nicht angemeldet " +
+                    "sein. Bist du es, ordnen wir die Erklärung automatisch deinem Konto " +
+                    "zu.",
+            ),
+            LegalBlock.WithdrawalForm,
+
+            LegalBlock.Heading("6. Muster-Widerrufsformular"),
+            LegalBlock.Paragraph(
+                "Du kannst auch dieses Formular ausfüllen und uns per E-Mail oder Post " +
+                    "schicken. Vorgeschrieben ist es nicht — eine formlose eindeutige " +
+                    "Erklärung genügt.",
+            ),
+            LegalBlock.Paragraph(
+                "An: Julian Pachernegg, Einzelunternehmer, Betreiber von FLEXR, " +
+                    "Johann-Schrey-Weg 260, 8232 Grafendorf, Österreich, " +
+                    "flexr.social@proton.me\n\n" +
+                    "Hiermit widerrufe(n) ich/wir (*) den von mir/uns (*) abgeschlossenen " +
+                    "Vertrag über die Erbringung der folgenden Dienstleistung: FLEXR " +
+                    "Premium (flexr.social)\n\n" +
+                    "Bestellt am (*): ______________________\n" +
+                    "Name des/der Verbraucher(s): ______________________\n" +
+                    "Anschrift des/der Verbraucher(s): ______________________\n" +
+                    "E-Mail-Adresse des FLEXR-Kontos: ______________________\n" +
+                    "Unterschrift des/der Verbraucher(s) (nur bei Mitteilung auf Papier): " +
+                    "______________________\n" +
+                    "Datum: ______________________",
+            ),
+            LegalBlock.Note("(*) Unzutreffendes streichen."),
+
+            LegalBlock.Heading("7. Häufige Fragen"),
+            LegalBlock.Faq(
+                "Ich habe nur ein kostenloses Konto — muss ich widerrufen?",
+                "Nein. Die Nutzung von FLEXR ist dauerhaft kostenlos und wird nicht " +
+                    "automatisch kostenpflichtig. Es gibt keinen Vertrag, von dem du " +
+                    "zurücktreten müsstest. Wenn du dein Konto loswerden willst, lösche " +
+                    "es im Konto-Bereich.",
+            ),
+            LegalBlock.Faq(
+                "Ich habe ein Abo und will einfach aufhören zu zahlen.",
+                "Dann ist die Kündigung der richtige Weg: auf flexr.social im " +
+                    "Konto-Bereich über „Abo verwalten / kündigen\", bei einem In-App-Kauf " +
+                    "in der Abo-Verwaltung des App Store bzw. des Play Store. Der Zugang " +
+                    "bleibt bis zum Ende der bezahlten Periode aktiv. Willst du dagegen " +
+                    "Geld zurück und ist der Abschluss keine 14 Tage her, ist der " +
+                    "Rücktritt hier richtig.",
+            ),
+            LegalBlock.Faq(
+                "Bekomme ich mein Geld vollständig zurück?",
+                "Bei einem Rücktritt binnen 14 Tagen erstatten wir das Entgelt. Hast du " +
+                    "verlangt, dass die Leistung sofort beginnt, dürfen wir den Anteil " +
+                    "einbehalten, der auf die bis zu deiner Erklärung tatsächlich " +
+                    "genutzte Zeit entfällt. Bei 10 € im Monat sind das rund 33 Cent pro " +
+                    "Tag.",
+            ),
+            LegalBlock.Faq(
+                "Wie schnell bekomme ich eine Bestätigung?",
+                "Unmittelbar — die Bestätigungsmail wird ausgelöst, sobald du oben " +
+                    "bestätigst. Kommt sie nicht an, sieh im Spam-Ordner nach und schreib " +
+                    "uns zur Sicherheit an flexr.social@proton.me. Deine Erklärung ist " +
+                    "mit dem Absenden wirksam, unabhängig von der Zustellung der Mail.",
             ),
         ),
     )

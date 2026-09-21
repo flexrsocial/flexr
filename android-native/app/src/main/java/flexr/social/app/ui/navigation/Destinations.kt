@@ -47,6 +47,7 @@ enum class LegalDocument(@StringRes val titleRes: Int) {
     SICHERHEIT(R.string.legal_sicherheit),
     NUTZUNGSRICHTLINIEN(R.string.legal_nutzungsrichtlinien),
     STRAFVERFOLGUNG(R.string.legal_strafverfolgung),
+    WIDERRUF(R.string.legal_widerruf),
 }
 
 /** Die vier Hauptbereiche der unteren Navigation. */

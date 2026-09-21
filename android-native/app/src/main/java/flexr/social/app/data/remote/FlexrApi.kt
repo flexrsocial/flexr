@@ -49,6 +49,8 @@ import flexr.social.app.data.remote.dto.VerificationDocumentPresignRequestDto
 import flexr.social.app.data.remote.dto.VerificationDocumentSubmitRequestDto
 import flexr.social.app.data.remote.dto.VerificationStatusDto
 import flexr.social.app.data.remote.dto.VerificationSubmitRequestDto
+import flexr.social.app.data.remote.dto.WithdrawalAckDto
+import flexr.social.app.data.remote.dto.WithdrawalRequestDto
 import okhttp3.RequestBody
 import retrofit2.http.Body
 import retrofit2.http.DELETE
@@ -267,6 +269,16 @@ interface FlexrApi {
 
     @DELETE("api/blocks/{userId}")
     suspend fun unblock(@Path("userId") userId: String)
+
+    // ---------- withdrawal.py ----------
+
+    /**
+     * Online-Rücktrittsfunktion (§ 13a FAGG) — direkt aus der App statt aus
+     * einem Custom Tab auf flexr.social/widerruf.html. Braucht keine Anmeldung;
+     * ein mitgeschickter Token ordnet die Erklärung nur zusätzlich dem Konto zu.
+     */
+    @POST("api/withdrawal")
+    suspend fun declareWithdrawal(@Body body: WithdrawalRequestDto): WithdrawalAckDto
 
     // ---------- gyms.py ----------
 

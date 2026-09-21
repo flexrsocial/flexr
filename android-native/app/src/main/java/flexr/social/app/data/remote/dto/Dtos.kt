@@ -417,6 +417,28 @@ data class ModerationNoticeDto(
     @SerialName("appeal_hint") val appealHint: String,
 )
 
+// ---------- Rücktrittsrecht (§ 13a FAGG, withdrawal.py) ----------
+
+@Serializable
+data class WithdrawalRequestDto(
+    val name: String,
+    val email: String,
+    @SerialName("contract_reference") val contractReference: String? = null,
+    val message: String? = null,
+    val confirmed: Boolean,
+    @SerialName("request_id") val requestId: String? = null,
+    val language: String? = null,
+)
+
+@Serializable
+data class WithdrawalAckDto(
+    val reference: String,
+    @SerialName("declaration_text") val declarationText: String,
+    @SerialName("confirmation_sent") val confirmationSent: Boolean,
+    val message: String,
+    val status: String,
+)
+
 @Serializable
 data class BlockRequestDto(@SerialName("user_id") val userId: String)
 
