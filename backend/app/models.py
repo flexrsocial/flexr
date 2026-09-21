@@ -1095,6 +1095,11 @@ class AdminUser(Base):
     name = Column(String, nullable=False)
     totp_secret = Column(String, nullable=True)
     totp_enabled = Column(Boolean, nullable=False, default=False)
+    # Konto-Sperre nach wiederholten Fehlversuchen (Passwort oder TOTP-Code) -
+    # zusaetzlich zur IP-basierten Rate-Limitierung/Fail2ban, die einen
+    # verteilten Angreifer (viele IPs) nicht bremst.
+    failed_login_attempts = Column(Integer, nullable=False, default=0)
+    locked_until = Column(DateTime, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
 
 

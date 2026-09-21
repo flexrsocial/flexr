@@ -10,6 +10,61 @@ def test_admin_login_wrong_password(client):
     assert resp.status_code == 401
 
 
+def test_admin_login_locks_after_repeated_failures(client):
+    # Kontobezogene Sperre zusaetzlich zur IP-Rate-Limitierung - schuetzt
+    # auch gegen einen Angreifer, der von vielen verschiedenen IPs aus
+    # probiert.
+    email = "lockout@example.com"
+    create_admin(client, email=email, password="richtigesPasswort123")
+
+    for _ in range(5):
+        resp = client.post(
+            "/api/admin/auth/login",
+            json={"email": email, "password": "falsch"},
+        )
+        assert resp.status_code == 401
+
+    # Sechster Versuch, diesmal mit dem richtigen Passwort - das Konto ist
+    # trotzdem gesperrt, weil der Schwellenwert schon erreicht wurde.
+    resp = client.post(
+        "/api/admin/auth/login",
+        json={"email": email, "password": "richtigesPasswort123"},
+    )
+    assert resp.status_code == 401
+    assert "gesperrt" in resp.json()["detail"]
+
+
+def test_admin_login_resets_failed_attempts_on_success(client):
+    email = "resetlock@example.com"
+    create_admin(client, email=email, password="richtigesPasswort123")
+
+    for _ in range(3):
+        resp = client.post(
+            "/api/admin/auth/login",
+            json={"email": email, "password": "falsch"},
+        )
+        assert resp.status_code == 401
+
+    # Unter dem Schwellenwert, richtiges Passwort schaltet frei und setzt
+    # den Zaehler zurueck.
+    resp = client.post(
+        "/api/admin/auth/login",
+        json={"email": email, "password": "richtigesPasswort123"},
+    )
+    assert resp.status_code == 200
+
+    from app.models import AdminUser
+    from tests.conftest import TestingSessionLocal
+
+    db = TestingSessionLocal()
+    try:
+        admin = db.query(AdminUser).filter(AdminUser.email == email).first()
+        assert admin.failed_login_attempts == 0
+        assert admin.locked_until is None
+    finally:
+        db.close()
+
+
 def test_regular_user_token_cannot_access_admin_endpoints(client):
     user_headers = register_user(client, "notadmin@example.com")
     resp = client.get("/api/admin/users", headers=user_headers)

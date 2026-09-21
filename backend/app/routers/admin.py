@@ -131,17 +131,45 @@ def _outcome_label(outcome: str | None, lang: str | None) -> str:
 router = APIRouter(prefix="/api/admin", tags=["admin"])
 
 
+# Kontobezogene Sperre - zusaetzlich zur IP-basierten Rate-Limitierung/
+# Fail2ban, die einen verteilten Angreifer (viele IPs) nicht bremst.
+ADMIN_LOCKOUT_THRESHOLD = 5
+ADMIN_LOCKOUT_DURATION = timedelta(minutes=15)
+
+
+def _register_failed_admin_login(admin: AdminUser, db: Session) -> None:
+    admin.failed_login_attempts += 1
+    if admin.failed_login_attempts >= ADMIN_LOCKOUT_THRESHOLD:
+        admin.locked_until = datetime.utcnow() + ADMIN_LOCKOUT_DURATION
+        admin.failed_login_attempts = 0
+    db.commit()
+
+
 @router.post("/auth/login", response_model=AdminTokenResponse)
 @limiter.limit("10/minute")
 def admin_login(request: Request, payload: AdminLoginRequest, db: Session = Depends(get_db)):
     admin = db.query(AdminUser).filter(AdminUser.email == payload.email).first()
-    if not admin or not verify_password(payload.password, admin.password_hash):
+    if not admin:
+        raise HTTPException(401, "E-Mail oder Passwort falsch.")
+    if admin.locked_until and admin.locked_until > datetime.utcnow():
+        raise HTTPException(
+            401,
+            "Konto wegen zu vieler Fehlversuche vorübergehend gesperrt. "
+            "Bitte in ein paar Minuten erneut versuchen.",
+        )
+    if not verify_password(payload.password, admin.password_hash):
+        _register_failed_admin_login(admin, db)
         raise HTTPException(401, "E-Mail oder Passwort falsch.")
     if admin.totp_enabled:
         if not payload.totp_code:
             raise HTTPException(401, "totp_required")
         if not verify_totp_code(admin.totp_secret, payload.totp_code):
+            _register_failed_admin_login(admin, db)
             raise HTTPException(401, "totp_invalid")
+    if admin.failed_login_attempts or admin.locked_until:
+        admin.failed_login_attempts = 0
+        admin.locked_until = None
+        db.commit()
     token = create_admin_access_token(admin.id)
     return AdminTokenResponse(access_token=token)
 
@@ -160,7 +188,11 @@ def totp_setup(
 ):
     if admin.totp_enabled:
         raise HTTPException(400, "2FA ist bereits aktiviert.")
-    secret = generate_totp_secret()
+    # Ein zweiter Aufruf vor der Bestaetigung (z.B. Seite neu geladen, zweiter
+    # Tab) soll nicht stillschweigend das zuvor angezeigte Secret entwerten -
+    # solange nichts bestaetigt wurde, bleibt das bestehende, noch offene
+    # Secret gueltig und wird nur erneut als QR-Code ausgegeben.
+    secret = admin.totp_secret or generate_totp_secret()
     otpauth_url, qr_base64 = build_totp_qr_setup(secret, admin.email)
     admin.totp_secret = secret
     db.commit()
