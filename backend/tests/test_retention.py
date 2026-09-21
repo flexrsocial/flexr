@@ -160,7 +160,12 @@ def test_frontend_laedt_ueberhaupt_keine_fremden_hosts():
     import re
 
     ERLAUBT = {"flexr.social", "photos.flexr.social", "www.flexr.social",
-               "schema.org", "stripe.com", "www.dsb.gv.at", "www.ris.bka.gv.at"}
+               "schema.org", "stripe.com", "www.dsb.gv.at", "www.ris.bka.gv.at",
+               # In-App-Kaeufe: widerruf.html verweist fuer die Kuendigung von
+               # App-Store-/Play-Store-Abos auf Apple bzw. Google, die dafuer
+               # in datenschutz.html (Abschnitt 6, "Empfaenger") als eigene
+               # Vertragspartner genannt sind.
+               "getsupport.apple.com", "support.google.com"}
 
     for name in ("index.html", "app/index.html", "admin.html", "legal.css",
                  "agb.html", "datenschutz.html", "impressum.html", "faq.html",

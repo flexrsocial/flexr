@@ -38,7 +38,7 @@
   <main id="main-content">
   <h1>Datenschutzerklärung</h1>
   <p class="lead">Was FLEXR mit deinen Daten macht — und was nicht</p>
-  <p class="stand">Fassung 2026-09-17 · Stand: 17. September 2026</p>
+  <p class="stand">Fassung 2026-09-21 · Stand: 21. September 2026</p>
 
   <div class="box hint">
     <p style="margin:0;">
@@ -46,8 +46,9 @@
       eingibst, plus das, was beim Nutzen zwangsläufig entsteht (Swipes,
       Nachrichten, Abostatus). Es gibt <b>kein Tracking, keine Werbenetzwerke,
       keine Analysewerkzeuge und keine Weitergabe zu Werbezwecken</b>. Deine
-      Fotos liegen bei einem Speicherdienst, die Zahlung läuft über Stripe, der
-      Server steht in Deutschland und Transaktions-E-Mails versendet Brevo.
+      Fotos liegen bei einem Speicherdienst, die Zahlung läuft je nach Kaufweg
+      über Stripe, Apple oder Google, der Server steht in Deutschland und
+      Transaktions-E-Mails versendet Brevo.
     </p>
   </div>
 
@@ -182,10 +183,21 @@
         <td>Art. 6 Abs. 1 lit. c und lit. f</td>
       </tr>
       <tr>
-        <td>Zahlungsdaten</td>
+        <td>Zahlungsdaten (Web)</td>
         <td>Abostatus, Stripe-Kunden-ID, Stripe-Abo-ID. <b>Keine Karten- oder Kontodaten bei uns</b></td>
         <td>Stripe-Checkout</td>
         <td>Abwicklung von FLEXR Premium</td>
+        <td>Art. 6 Abs. 1 lit. b, für die Aufbewahrung lit. c</td>
+      </tr>
+      <tr>
+        <td>Kaufbeleg (App Store / Google Play)</td>
+        <td>Abostatus, die von Apple bzw. Google vergebene Transaktions- oder
+          Kauf-Token-Kennung, Ablaufzeitpunkt der Berechtigung. <b>Keine
+          Karten- oder Kontodaten bei uns</b> — die Zahlung selbst wickeln
+          Apple und Google als eigene Vertragspartner ab (siehe
+          <a href="/widerruf.html">Rücktrittsrecht</a>)</td>
+        <td>Kauf in der iOS- oder Android-App</td>
+        <td>Freischaltung von FLEXR Premium bei In-App-Käufen</td>
         <td>Art. 6 Abs. 1 lit. b, für die Aufbewahrung lit. c</td>
       </tr>
       <tr>
@@ -358,8 +370,27 @@
       </tr>
       <tr>
         <td>Stripe</td>
-        <td>Zahlungsabwicklung, Verwaltung des Abos, Rechnungen</td>
+        <td>Zahlungsabwicklung, Verwaltung des Abos, Rechnungen — bei einem
+          Kauf im Browser</td>
         <td>Stripe-Gesellschaften in Irland und den USA. Siehe den Hinweis unten.</td>
+      </tr>
+      <tr>
+        <td>Apple Distribution International Ltd., Hollyhill Industrial
+          Estate, Cork, Irland (Apple Inc., USA)</td>
+        <td>Zahlungsabwicklung und Abo-Verwaltung bei einem Kauf in der
+          iOS-App — dein Vertragspartner ist dabei Apple, nicht FLEXR. FLEXR
+          erhält nur den signierten Kaufbeleg zur Freischaltung, keine
+          Zahlungsdaten</td>
+        <td>Irland / EU, mit Übermittlung in die USA nicht ausgeschlossen. Siehe den Hinweis unten.</td>
+      </tr>
+      <tr>
+        <td>Google Ireland Limited, Gordon House, Barrow Street, Dublin 4,
+          Irland (Google LLC, USA)</td>
+        <td>Zahlungsabwicklung und Abo-Verwaltung bei einem Kauf in der
+          Android-App (Google Play) — dein Vertragspartner ist dabei Google,
+          nicht FLEXR. FLEXR erhält nur den Kauf-Token zur Freischaltung,
+          keine Zahlungsdaten</td>
+        <td>Irland / EU, mit Übermittlung in die USA nicht ausgeschlossen. Siehe den Hinweis unten.</td>
       </tr>
       <tr>
         <td>Brevo (Sendinblue SAS, 7 rue de Madrid, 75008 Paris, Frankreich)</td>
@@ -380,7 +411,11 @@
       Cloudflare und Brevo verarbeiten Daten für die hier genannten Zwecke als
       Dienstleister. Stripe verarbeitet Zahlungsdaten teilweise in eigener
       datenschutzrechtlicher Verantwortung, insbesondere zur Zahlungsabwicklung,
-      Betrugsprävention und Erfüllung gesetzlicher Pflichten.
+      Betrugsprävention und Erfüllung gesetzlicher Pflichten. Bei einem Kauf
+      in der iOS- oder Android-App sind Apple bzw. Google für die
+      Zahlungsabwicklung eigenständig verantwortlich, nicht FLEXR — FLEXR
+      bekommt von ihnen nur den Kaufbeleg zur Freischaltung von Premium
+      übermittelt, keine Zahlungs- oder Kontodaten.
     </p>
   </div>
 
@@ -420,6 +455,7 @@
       <tr><td>Geräte-ID und User-Agent</td><td>mit dem Konto</td><td>Kontolöschung</td></tr>
       <tr><td>Registrierungsversuche unter 18</td><td>ausgewertet werden nur die letzten 24 Stunden</td><td>Zeitablauf</td></tr>
       <tr><td>Stripe-Kennungen und Abostatus</td><td>zahlungsbezogene Aufzeichnungen 7 Jahre (§ 132 BAO); die Kennungen selbst mit dem Konto</td><td>gesetzliche Aufbewahrungsfrist</td></tr>
+      <tr><td>Apple-/Google-Kaufbeleg und Abostatus</td><td>zahlungsbezogene Aufzeichnungen 7 Jahre (§ 132 BAO); die Kennungen selbst mit dem Konto</td><td>gesetzliche Aufbewahrungsfrist</td></tr>
       <tr><td>Rücktrittserklärungen (§ 13a FAGG)</td><td>7 Jahre als Nachweis der Vertragsabwicklung</td><td>gesetzliche Aufbewahrungsfrist</td></tr>
       <tr><td>Einwilligungsnachweise</td><td>solange die Einwilligung wirkt, danach als Widerrufsnachweis bis zur Kontolöschung</td><td>Kontolöschung</td></tr>
       <tr><td>Meldungen über das öffentliche Formular</td><td>7 Jahre — sie hängen an keinem Konto und belegen die Erfüllung von Art. 16 DSA</td><td>Nachweispflicht</td></tr>

@@ -38,7 +38,7 @@
   <main id="main-content">
   <h1>Privacy policy</h1>
   <p class="lead">What FLEXR does with your data — and what it does not do</p>
-  <p class="stand">Version 2026-09-17 · last updated: 17 September 2026</p>
+  <p class="stand">Version 2026-09-21 · last updated: 21 September 2026</p>
 
   <p class="en">
     This is a translation provided for convenience. The
@@ -54,8 +54,9 @@
       plus what necessarily arises from using it (swipes, messages, subscription
       status). There is <b>no tracking, no ad networks, no analytics tools and no
       disclosure for advertising purposes</b>. Your photos are held by a storage
-      service, payment runs through Stripe, the server is located in Germany and
-      transactional emails are sent by Brevo.
+      service, payment runs through Stripe, Apple, or Google depending on how
+      you pay, the server is located in Germany and transactional emails are
+      sent by Brevo.
     </p>
   </div>
 
@@ -189,10 +190,21 @@
         <td>Art. 6(1)(c) and (f)</td>
       </tr>
       <tr>
-        <td>Payment data</td>
+        <td>Payment data (web)</td>
         <td>Subscription status, Stripe customer ID, Stripe subscription ID. <b>No card or bank details held by us</b></td>
         <td>Stripe checkout</td>
         <td>Handling FLEXR Premium</td>
+        <td>Art. 6(1)(b), for retention (c)</td>
+      </tr>
+      <tr>
+        <td>Purchase receipt (App Store / Google Play)</td>
+        <td>Subscription status, the transaction or purchase-token identifier
+          assigned by Apple or Google, the expiry of the entitlement.
+          <b>No card or bank details held by us</b> — Apple and Google handle
+          the payment itself as independent contracting parties (see
+          <a href="/en/widerruf.html">Right of withdrawal</a>)</td>
+        <td>Purchase in the iOS or Android app</td>
+        <td>Unlocking FLEXR Premium for in-app purchases</td>
         <td>Art. 6(1)(b), for retention (c)</td>
       </tr>
       <tr>
@@ -354,8 +366,27 @@
       </tr>
       <tr>
         <td>Stripe</td>
-        <td>Payment processing, subscription management, invoices</td>
+        <td>Payment processing, subscription management, invoices — for a
+          purchase made in the browser</td>
         <td>Stripe entities in Ireland and the USA. See the note below.</td>
+      </tr>
+      <tr>
+        <td>Apple Distribution International Ltd., Hollyhill Industrial
+          Estate, Cork, Ireland (Apple Inc., USA)</td>
+        <td>Payment processing and subscription management for a purchase
+          made in the iOS app — Apple, not FLEXR, is your contracting party.
+          FLEXR only receives the signed purchase receipt to unlock the
+          entitlement, no payment data</td>
+        <td>Ireland / EU, a transfer to the USA cannot be ruled out. See the note below.</td>
+      </tr>
+      <tr>
+        <td>Google Ireland Limited, Gordon House, Barrow Street, Dublin 4,
+          Ireland (Google LLC, USA)</td>
+        <td>Payment processing and subscription management for a purchase
+          made in the Android app (Google Play) — Google, not FLEXR, is your
+          contracting party. FLEXR only receives the purchase token to
+          unlock the entitlement, no payment data</td>
+        <td>Ireland / EU, a transfer to the USA cannot be ruled out. See the note below.</td>
       </tr>
       <tr>
         <td>Brevo (Sendinblue SAS, 7 rue de Madrid, 75008 Paris, France)</td>
@@ -375,7 +406,10 @@
       Contabo, Cloudflare and Brevo process data for the purposes named here as
       service providers. Stripe processes payment data in part under its own data
       protection responsibility, in particular for payment processing, fraud
-      prevention and compliance with legal obligations.
+      prevention and compliance with legal obligations. For a purchase made in
+      the iOS or Android app, Apple or Google are independently responsible
+      for payment processing, not FLEXR — FLEXR only receives the purchase
+      receipt from them to unlock Premium, no payment or account data.
     </p>
   </div>
 
@@ -414,6 +448,7 @@
       <tr><td>Device ID and user agent</td><td>with the account</td><td>Account deletion</td></tr>
       <tr><td>Registration attempts under 18</td><td>only the last 24 hours are evaluated</td><td>Lapse of time</td></tr>
       <tr><td>Stripe identifiers and subscription status</td><td>payment-related records 7 years (Section 132 BAO); the identifiers themselves with the account</td><td>Statutory retention period</td></tr>
+      <tr><td>Apple/Google purchase receipt and subscription status</td><td>payment-related records 7 years (Section 132 BAO); the identifiers themselves with the account</td><td>Statutory retention period</td></tr>
       <tr><td>Withdrawal statements (Section 13a FAGG)</td><td>7 years as evidence of how the contract was handled</td><td>Statutory retention period</td></tr>
       <tr><td>Consent records</td><td>for as long as the consent is effective, after that as evidence of withdrawal until the account is deleted</td><td>Account deletion</td></tr>
       <tr><td>Reports via the public form</td><td>7 years — they are not attached to any account and evidence compliance with Art. 16 DSA</td><td>Obligation to provide evidence</td></tr>
