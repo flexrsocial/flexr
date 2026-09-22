@@ -32,6 +32,46 @@ def get_s3_client():
     )
 
 
+# ---------- Welcher Bucket? ----------
+#
+# Profilfotos muessen oeffentlich abrufbar sein, Verifizierungs-Selfies und
+# Ausweisaufnahmen auf keinen Fall. Bis zum 22.09.2026 lagen beide im selben
+# Bucket - und der ist ueber seine r2.dev-Adresse als Ganzes oeffentlich, egal
+# welcher Prefix. Mit S3_PRIVATE_BUCKET_NAME wandern neue Pruefaufnahmen in
+# einen eigenen Bucket ohne oeffentlichen Zugang.
+#
+# Uebergang: Aufnahmen, die vor der Umstellung hochgeladen wurden, liegen noch
+# im Foto-Bucket. Lesen faellt deshalb dorthin zurueck, Loeschen raeumt beide
+# Buckets. Nach spaetestens ORPHAN_RETENTION_DAYS sind die Altbestaende weg.
+
+
+def verification_bucket() -> str:
+    return settings.s3_private_bucket_name or settings.s3_bucket_name
+
+
+def is_verification_key(object_key: str) -> bool:
+    return object_key.startswith(VERIFICATION_DOCUMENT_PREFIX) or "/verify/" in object_key
+
+
+def _legacy_verification_bucket() -> str | None:
+    """Der Foto-Bucket, falls Pruefaufnahmen dort noch aus der Zeit vor dem
+    privaten Bucket liegen koennen - sonst None."""
+    if settings.s3_private_bucket_name and settings.s3_private_bucket_name != settings.s3_bucket_name:
+        return settings.s3_bucket_name
+    return None
+
+
+def _buckets_for(object_key: str) -> list[str]:
+    """Alle Buckets, in denen dieser Schluessel liegen kann - der massgebliche zuerst."""
+    if not is_verification_key(object_key):
+        return [settings.s3_bucket_name]
+    buckets = [verification_bucket()]
+    legacy = _legacy_verification_bucket()
+    if legacy:
+        buckets.append(legacy)
+    return buckets
+
+
 def create_presigned_upload(user_id: str, content_type: str) -> dict:
     """Erzeugt eine Presigned-PUT-URL, gegen die der Client direkt hochladen kann.
     object_key ist mit der user_id ge-prefixed, damit register_photo() den Key
@@ -62,7 +102,7 @@ def create_presigned_verification_upload(user_id: str, content_type: str) -> dic
     upload_url = client.generate_presigned_url(
         "put_object",
         Params={
-            "Bucket": settings.s3_bucket_name,
+            "Bucket": verification_bucket(),
             "Key": object_key,
             "ContentType": content_type,
         },
@@ -114,7 +154,7 @@ def create_presigned_document_upload(request_id: str, content_type: str) -> dict
     upload_url = client.generate_presigned_url(
         "put_object",
         Params={
-            "Bucket": settings.s3_bucket_name,
+            "Bucket": verification_bucket(),
             "Key": object_key,
             "ContentType": content_type,
         },
@@ -126,9 +166,17 @@ def create_presigned_document_upload(request_id: str, content_type: str) -> dict
 def create_presigned_view_url(object_key: str, expires_in: int = DOCUMENT_VIEW_URL_TTL_SECONDS) -> str:
     """Kurzlebige Signed-GET-URL. Wird nur an authentifizierte Admins ausgegeben."""
     client = get_s3_client()
+    buckets = _buckets_for(object_key)
+    bucket = buckets[0]
+    if len(buckets) > 1:
+        # Altbestand? Nur dann nachsehen, wenn es ueberhaupt zwei Orte gibt.
+        try:
+            client.head_object(Bucket=bucket, Key=object_key)
+        except Exception:
+            bucket = buckets[1]
     return client.generate_presigned_url(
         "get_object",
-        Params={"Bucket": settings.s3_bucket_name, "Key": object_key},
+        Params={"Bucket": bucket, "Key": object_key},
         ExpiresIn=expires_in,
     )
 
@@ -144,13 +192,14 @@ def inspect_uploaded_image(object_key: str) -> dict:
     Liefert ``{"ok": bool, "size": int, "detected": str|None}``.
     """
     client = get_s3_client()
-    head = client.head_object(Bucket=settings.s3_bucket_name, Key=object_key)
+    bucket = _buckets_for(object_key)[0]
+    head = client.head_object(Bucket=bucket, Key=object_key)
     size = int(head.get("ContentLength", 0))
     if size <= 0 or size > MAX_DOCUMENT_BYTES:
         return {"ok": False, "size": size, "detected": None}
 
     body = client.get_object(
-        Bucket=settings.s3_bucket_name, Key=object_key, Range="bytes=0-15"
+        Bucket=bucket, Key=object_key, Range="bytes=0-15"
     )["Body"].read()
     detected = _sniff_image_type(body)
     return {"ok": detected is not None, "size": size, "detected": detected}
@@ -183,12 +232,14 @@ def list_object_keys(prefix: str) -> list[str]:
     try:
         client = get_s3_client()
         paginator = client.get_paginator("list_objects_v2")
-        for page in paginator.paginate(Bucket=settings.s3_bucket_name, Prefix=prefix):
-            keys.extend(item["Key"] for item in page.get("Contents", []))
+        for bucket in _buckets_for(prefix):
+            for page in paginator.paginate(Bucket=bucket, Prefix=prefix):
+                keys.extend(item["Key"] for item in page.get("Contents", []))
     except Exception:
         logger.warning("Objekte unter %s konnten nicht aufgelistet werden", prefix)
         return []
-    return keys
+    # Ein Schluessel kann waehrend des Uebergangs in beiden Buckets stehen.
+    return list(dict.fromkeys(keys))
 
 
 def delete_objects_verified(object_keys: list[str]) -> list[str]:
@@ -210,18 +261,22 @@ def delete_objects_verified(object_keys: list[str]) -> list[str]:
 
     client = get_s3_client()
     for key in object_keys:
-        try:
-            client.delete_object(Bucket=settings.s3_bucket_name, Key=key)
-        except Exception:
-            logger.warning("Löschen fehlgeschlagen: %s", key)
+        # Pruefaufnahmen in jedem Bucket loeschen, in dem sie liegen koennen -
+        # "weg" heisst: nirgends mehr auffindbar.
+        for bucket in _buckets_for(key):
+            try:
+                client.delete_object(Bucket=bucket, Key=key)
+            except Exception:
+                logger.warning("Löschen fehlgeschlagen: %s", key)
+                remaining.append(key)
+                break
+            try:
+                client.head_object(Bucket=bucket, Key=key)
+            except Exception:
+                continue  # nicht mehr auffindbar = gelöscht
+            logger.warning("Objekt nach dem Löschen weiterhin vorhanden: %s", key)
             remaining.append(key)
-            continue
-        try:
-            client.head_object(Bucket=settings.s3_bucket_name, Key=key)
-        except Exception:
-            continue  # nicht mehr auffindbar = gelöscht
-        logger.warning("Objekt nach dem Löschen weiterhin vorhanden: %s", key)
-        remaining.append(key)
+            break
     return remaining
 
 

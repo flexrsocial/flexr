@@ -22,7 +22,7 @@ from sqlalchemy.orm import Session
 from .config import settings
 from .models import Photo, User, VerificationRequest, VerificationStatus
 from .retention import ACCOUNT_GRACE_PERIOD_DAYS as GRACE_PERIOD_DAYS
-from .storage import get_s3_client
+from .storage import _buckets_for, get_s3_client
 from .verification_service import (
     ORPHAN_RETENTION_DAYS,
     object_keys_for,
@@ -46,7 +46,10 @@ def delete_storage_objects(keys: list[str]) -> None:
     try:
         client = get_s3_client()
         for key in keys:
-            client.delete_object(Bucket=settings.s3_bucket_name, Key=key)
+            # Pruefaufnahmen liegen ggf. im privaten Bucket (und als
+            # Altbestand noch im Foto-Bucket) - siehe storage._buckets_for.
+            for bucket in _buckets_for(key):
+                client.delete_object(Bucket=bucket, Key=key)
     except Exception:
         # Best effort: DB-Löschung darf nicht an Storage-Fehlern scheitern
         logger.exception("Objekt-Storage-Aufräumen fehlgeschlagen")

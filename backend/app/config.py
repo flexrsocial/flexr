@@ -160,6 +160,11 @@ class Settings(BaseSettings):
     s3_access_key_id: str = ""
     s3_secret_access_key: str = ""
     s3_bucket_name: str = ""
+    # Eigener, NICHT oeffentlicher Bucket fuer Verifizierungs-Selfies und
+    # Ausweisaufnahmen. Leer: alles im Foto-Bucket wie bis 22.09.2026 - der ist
+    # ueber die r2.dev-Adresse aber als Ganzes oeffentlich. Siehe
+    # storage.verification_bucket().
+    s3_private_bucket_name: str = ""
     s3_public_base_url: str = ""
     s3_region: str = "auto"
 
