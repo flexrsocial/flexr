@@ -386,6 +386,95 @@ def send_verification_email(
 
 
 # ---------------------------------------------------------------------------
+# Passwort zuruecksetzen / Sicherheitshinweise
+#
+# Der Hinweis nach einer Aenderung geht immer an die Adresse, die das Konto
+# VOR der Aenderung hatte: Wer ein fremdes Konto uebernimmt, soll den
+# rechtmaessigen Inhaber nicht gleich mit aussperren koennen, ohne dass der
+# davon erfaehrt.
+# ---------------------------------------------------------------------------
+
+
+def _button_html(link: str, label: str) -> str:
+    return (
+        f'<p style="margin:0 0 24px;"><a href="{html.escape(link)}" '
+        'style="display:inline-block;background:#ff5a1f;color:#1a0a04;'
+        'text-decoration:none;font-weight:700;letter-spacing:.06em;'
+        'text-transform:uppercase;padding:14px 22px;border-radius:12px;">'
+        f"{html.escape(label)}</a></p>"
+    )
+
+
+def send_password_reset(
+    email: str, name: str, link: str, ttl_minutes: int, lang: str = STANDARD
+) -> bool:
+    intro = t("reset.intro", lang, minutes=ttl_minutes)
+    text_body = f"""{_greeting(name, lang)}
+
+{textwrap.fill(intro, width=76)}
+
+{link}
+
+{textwrap.fill(t("reset.notYou", lang), width=76)}
+
+{t("signoff", lang)}
+"""
+    body = "\n".join([
+        _p(intro),
+        _button_html(link, t("reset.cta", lang)),
+        _p_raw(
+            f'{html.escape(t("verify.fallback", lang))}<br>'
+            f'<span style="word-break:break-all;">{html.escape(link)}</span>'
+        ),
+        _p(t("reset.notYou", lang)),
+    ])
+    return send_email_with_retry(
+        email, t("reset.subject", lang), text_body,
+        _email_shell(t("reset.eyebrow", lang), _greeting_html(name, lang), body, lang=lang),
+        attempts=2, delay_seconds=1,
+    )
+
+
+def send_password_changed(email: str, name: str, lang: str = STANDARD) -> bool:
+    not_you = t("pwchanged.notYou", lang, support=settings.support_email)
+    text_body = f"""{_greeting(name, lang)}
+
+{textwrap.fill(t("pwchanged.intro", lang), width=76)}
+
+{textwrap.fill(not_you, width=76)}
+
+{t("signoff", lang)}
+"""
+    body = "\n".join([_p(t("pwchanged.intro", lang)), _p(not_you)])
+    return send_email_with_retry(
+        email, t("pwchanged.subject", lang), text_body,
+        _email_shell(t("pwchanged.eyebrow", lang), _greeting_html(name, lang), body, lang=lang),
+        attempts=2, delay_seconds=1,
+    )
+
+
+def send_email_changed(
+    old_email: str, name: str, new_email: str, lang: str = STANDARD
+) -> bool:
+    intro = t("emailchanged.intro", lang, new=new_email)
+    not_you = t("pwchanged.notYou", lang, support=settings.support_email)
+    text_body = f"""{_greeting(name, lang)}
+
+{textwrap.fill(intro, width=76)}
+
+{textwrap.fill(not_you, width=76)}
+
+{t("signoff", lang)}
+"""
+    body = "\n".join([_p(intro), _p(not_you)])
+    return send_email_with_retry(
+        old_email, t("emailchanged.subject", lang), text_body,
+        _email_shell(t("pwchanged.eyebrow", lang), _greeting_html(name, lang), body, lang=lang),
+        attempts=2, delay_seconds=1,
+    )
+
+
+# ---------------------------------------------------------------------------
 # Vertragsbestätigung nach Abschluss des kostenpflichtigen Abos
 #
 # Wird nach "checkout.session.completed" verschickt (siehe routers/billing.py).

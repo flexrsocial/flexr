@@ -131,6 +131,73 @@ final class AccountModel {
         self.onMessage = onMessage
     }
 
+    // MARK: - Zugangsdaten
+
+    enum CredentialsMode: Identifiable {
+        case email, password
+        var id: Self { self }
+    }
+
+    /// Offenes Sheet „E-Mail-Adresse ändern" / „Passwort ändern", sonst nil.
+    var credentialsMode: CredentialsMode?
+    var credNewEmail = ""
+    var credCurrentPassword = ""
+    var credNewPassword = ""
+    var credNewPassword2 = ""
+    var credSaving = false
+    var credError: String?
+
+    func openCredentials(_ mode: CredentialsMode) {
+        credNewEmail = ""
+        credCurrentPassword = ""
+        credNewPassword = ""
+        credNewPassword2 = ""
+        credError = nil
+        credSaving = false
+        credentialsMode = mode
+    }
+
+    func saveCredentials() async {
+        guard let mode = credentialsMode, !credSaving else { return }
+        if credCurrentPassword.isEmpty {
+            credError = s(.credErrPw)
+            return
+        }
+        switch mode {
+        case .email:
+            let adresse = credNewEmail.trimmingCharacters(in: .whitespaces)
+            guard adresse.range(of: #"^\S+@\S+\.\S+$"#, options: .regularExpression) != nil else {
+                credError = s(.forgotErrEmail)
+                return
+            }
+        case .password:
+            guard credNewPassword.count >= 8 else {
+                credError = s(.resetErrShort)
+                return
+            }
+            guard credNewPassword == credNewPassword2 else {
+                credError = s(.registerErrPasswordMismatch)
+                return
+            }
+        }
+        credSaving = true
+        credError = nil
+        do {
+            switch mode {
+            case .email:
+                let profil = try await profiles.changeEmail(to: credNewEmail, password: credCurrentPassword)
+                onMessage(s(.credEmailDone, profil.email))
+            case .password:
+                try await profiles.changePassword(current: credCurrentPassword, new: credNewPassword)
+                onMessage(s(.credPwDone))
+            }
+            credentialsMode = nil
+        } catch {
+            credError = (error as? FlexrAPIError)?.message ?? s(.resetErrSave)
+        }
+        credSaving = false
+    }
+
     func load() async {
         if let profile = profiles.myProfile { prefill(from: profile) }
         notificationsEnabled = session.notificationsEnabled

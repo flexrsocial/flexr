@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import flexr.social.app.R
 import flexr.social.app.core.locale.AppStrings
+import flexr.social.app.core.locale.LanguageStore
 import flexr.social.app.core.network.FlexrApiException
 import flexr.social.app.data.repository.AuthRepository
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -25,12 +26,19 @@ data class LoginUiState(
     val reactivateMessage: String? = null,
     val isReactivating: Boolean = false,
     val reactivateError: String? = null,
+    /** "Passwort vergessen?": Dialog offen, Eingabe, Versandstand. */
+    val forgotOpen: Boolean = false,
+    val forgotEmail: String = "",
+    val forgotSending: Boolean = false,
+    val forgotSent: Boolean = false,
+    val forgotError: String? = null,
 )
 
 @HiltViewModel
 class LoginViewModel @Inject constructor(
     private val authRepository: AuthRepository,
     private val strings: AppStrings,
+    private val languageStore: LanguageStore,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(LoginUiState())
@@ -67,6 +75,43 @@ class LoginViewModel @Inject constructor(
         }
     }
 
+    fun openForgot() = _uiState.update {
+        it.copy(
+            forgotOpen = true,
+            forgotEmail = it.email.trim(),
+            forgotSent = false,
+            forgotError = null,
+        )
+    }
+
+    fun onForgotEmailChange(value: String) = _uiState.update { it.copy(forgotEmail = value, forgotError = null) }
+
+    fun dismissForgot() = _uiState.update { it.copy(forgotOpen = false) }
+
+    fun sendForgot() {
+        val state = _uiState.value
+        if (state.forgotSending) return
+        val email = state.forgotEmail.trim()
+        if (!EMAIL_PATTERN.matches(email)) {
+            _uiState.update { it.copy(forgotError = strings.get(R.string.forgot_err_email)) }
+            return
+        }
+        _uiState.update { it.copy(forgotSending = true, forgotError = null) }
+        viewModelScope.launch {
+            runCatching { authRepository.forgotPassword(email, languageStore.current.code) }
+                .onSuccess { _uiState.update { it.copy(forgotSending = false, forgotSent = true) } }
+                .onFailure { throwable ->
+                    _uiState.update {
+                        it.copy(
+                            forgotSending = false,
+                            forgotError = (throwable as? FlexrApiException)?.message
+                                ?: strings.get(R.string.forgot_err_send),
+                        )
+                    }
+                }
+        }
+    }
+
     fun dismissReactivateDialog() = _uiState.update { it.copy(reactivateMessage = null, reactivateError = null) }
 
     fun reactivate() {
@@ -93,3 +138,5 @@ class LoginViewModel @Inject constructor(
         }
     }
 }
+
+private val EMAIL_PATTERN = Regex("^\\S+@\\S+\\.\\S+$")

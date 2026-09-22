@@ -93,6 +93,7 @@ struct AccountView: View {
                 notificationSection(model)
                 subscriptionSection(model)
                 privacySection(model)
+                credentialsSection(model)
                 accountSection()
                 legalSection()
             }
@@ -119,6 +120,9 @@ struct AccountView: View {
         }
         .sheet(isPresented: $notificationDetailsVisible) {
             NotificationSettingsSheet(model: model)
+        }
+        .sheet(item: $model.credentialsMode) { mode in
+            CredentialsSheet(model: model, mode: mode)
         }
         .sheet(isPresented: $showDeleteDialog) {
             DeleteAccountSheet(
@@ -467,6 +471,27 @@ struct AccountView: View {
         }
     }
 
+    private func credentialsSection(_ model: AccountModel) -> some View {
+        VStack(alignment: .leading, spacing: 0) {
+            SectionTitle(text: s(.credSection)).padding(.top, 28)
+            if let profil = model.profile {
+                Text(s(.credEmailLabel, profil.email)
+                     + (profil.emailVerified ? "" : " · " + s(.credUnconfirmed)))
+                    .flexrText(.bodySmall)
+                    .foregroundStyle(FlexrColor.chalkDim)
+                    .padding(.top, 8)
+            }
+            FlexrSecondaryButton(title: s(.credChangeEmail)) {
+                model.openCredentials(.email)
+            }
+            .padding(.top, 12)
+            FlexrSecondaryButton(title: s(.credChangePw)) {
+                model.openCredentials(.password)
+            }
+            .padding(.top, 10)
+        }
+    }
+
     private func accountSection() -> some View {
         VStack(alignment: .leading, spacing: 0) {
             SectionTitle(text: s(.commonAccount)).padding(.top, 28)
@@ -669,6 +694,73 @@ struct DeleteAccountSheet: View {
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button(s(.commonCancel), action: onDismiss)
+                        .foregroundStyle(FlexrColor.chalkDim)
+                }
+            }
+        }
+        .presentationDetents([.medium, .large])
+    }
+}
+
+/// „E-Mail-Adresse ändern" bzw. „Passwort ändern" - beides verlangt das
+/// aktuelle Passwort.
+private struct CredentialsSheet: View {
+    @Environment(LanguageStore.self) private var languageStore
+    private var s: FlexrStrings { languageStore.strings }
+
+    @Bindable var model: AccountModel
+    let mode: AccountModel.CredentialsMode
+
+    var body: some View {
+        NavigationStack {
+            ZStack {
+                FlexrBackground()
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 0) {
+                        if mode == .email {
+                            FlexrTextField(
+                                text: $model.credNewEmail,
+                                label: s(.credNewEmail),
+                                keyboardType: .emailAddress,
+                                textContentType: .emailAddress,
+                                autocapitalization: .never
+                            )
+                        }
+                        FlexrPasswordField(
+                            text: $model.credCurrentPassword,
+                            label: s(.credCurrentPw),
+                            textContentType: .password
+                        )
+                        if mode == .password {
+                            FlexrPasswordField(
+                                text: $model.credNewPassword,
+                                label: s(.resetNewPw),
+                                textContentType: .newPassword
+                            )
+                            FlexrPasswordField(
+                                text: $model.credNewPassword2,
+                                label: s(.registerPasswordRepeat),
+                                textContentType: .newPassword
+                            )
+                        }
+                        FieldError(message: model.credError)
+                        FlexrButton(
+                            title: s(.credSave),
+                            isEnabled: !model.credSaving,
+                            isLoading: model.credSaving
+                        ) {
+                            Task { await model.saveCredentials() }
+                        }
+                        .padding(.top, 22)
+                    }
+                    .padding(20)
+                }
+            }
+            .navigationTitle(s(mode == .email ? L.credChangeEmail : L.credChangePw))
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button(s(.commonCancel)) { model.credentialsMode = nil }
                         .foregroundStyle(FlexrColor.chalkDim)
                 }
             }

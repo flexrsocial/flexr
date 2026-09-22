@@ -97,6 +97,13 @@ final class AuthRepository {
 
     /// Macht eine Selbstlöschung innerhalb der 30-Tage-Karenzzeit rückgängig
     /// und meldet gleich an. Nimmt dieselben Zugangsdaten wie [login] entgegen.
+    /// „Passwort vergessen": Der Server verrät nicht, ob es das Konto gibt.
+    func forgotPassword(email: String, language: String) async throws {
+        _ = try await api.forgotPassword(
+            PasswordForgotRequestDTO(email: email.trimmingCharacters(in: .whitespaces), language: language)
+        )
+    }
+
     func reactivate(email: String, password: String) async throws {
         let response = try await api.reactivate(
             LoginRequestDTO(email: email.trimmingCharacters(in: .whitespaces), password: password)

@@ -7,8 +7,8 @@ offenen Vorgang.
 
 Warum die Bestätigung vor der Alters- und Identitätsprüfung steht: Ein Mensch
 soll keine Ausweisaufnahme begutachten, solange nicht feststeht, dass die
-Adresse dem Nutzer gehört. Und weil es kein "Passwort vergessen" gibt, ist eine
-vertippte Adresse sonst ein unrettbares Konto - der Tippfehler soll auffallen,
+Adresse dem Nutzer gehört. Und weil "Passwort vergessen" an diese Adresse
+schickt (app/password_reset.py), ist eine vertippte Adresse sonst ein unrettbares Konto - der Tippfehler soll auffallen,
 solange der Nutzer noch weiß, was er eingegeben hat.
 """
 

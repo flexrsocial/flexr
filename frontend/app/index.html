@@ -921,6 +921,10 @@
   }
   .card .flag-btn:hover{ background:rgba(0,0,0,.75); color:#fff; }
   .card .flag-btn svg.ico{ width:14px; height:14px; stroke-width:2.2; }
+  .cred-line{ font-size:13px; color:var(--chalk-dim); margin:0 0 12px; overflow-wrap:anywhere; }
+  .cred-line b{ color:var(--chalk); font-weight:600; }
+  .cred-form{ margin:4px 0 16px; }
+  .cred-form[hidden]{ display:none; }
   .link-btn{
     background:none; border:none; color:var(--chalk-dim); font-size:13px; text-decoration:underline;
     cursor:pointer; margin-top:14px; display:block; text-align:center; width:100%;
@@ -2044,7 +2048,7 @@
      laufen synchron und damit vor dem DOMContentLoaded, bei dem FlexrI18n die
      data-i18n-Knoten uebersetzt. -->
 <script src="/i18n.js?v=5"></script>
-<script src="/app/i18n-app.js?v=12"></script>
+<script src="/app/i18n-app.js?v=13"></script>
 <a class="skip-link" href="#main-content" data-i18n="common.skipToContent">Zum Inhalt springen</a>
 <div class="app" id="app">
 
@@ -2061,7 +2065,7 @@
            updateStatusPill(), das dieselbe Bedingung fuer die Pille daneben
            auswertet. -->
       <button type="button" class="premium-cta-pill" id="premiumCtaPill" style="display:none;" data-i18n="premium.activateCta">Premium aktivieren</button>
-      <div class="status-pill" id="statusPill">—</div>
+      <div class="status-pill" id="statusPill" style="display:none;"></div>
     </div>
   </header>
 
@@ -2255,6 +2259,7 @@
            nicht, die Mitteilung in der App erreicht ihn also nie. -->
       <div class="chat-mute-banner" id="loginModerationNotice" style="display:none;"></div>
       <button class="btn" id="btnLogin" data-i18n="login.submit">Einloggen</button>
+      <button type="button" class="link-btn" id="btnForgot" data-i18n="login.forgot">Passwort vergessen?</button>
     </section>
 
     <!-- ONBOARDING / CREATE PROFILE -->
@@ -2591,6 +2596,31 @@
            verlinkt aus Fussleiste, AGB und Checkout. Die normale
            Abo-Kuendigung bleibt oben, wo sie hingehoert. -->
 
+      <div class="account-section">
+        <div class="account-section-title lg" data-i18n="cred.section">Zugangsdaten</div>
+        <p class="cred-line" id="credEmailLine"></p>
+        <button class="btn secondary" type="button" id="btnCredEmail" aria-expanded="false" aria-controls="credEmailForm" data-i18n="cred.changeEmail">E-Mail-Adresse ändern</button>
+        <div class="cred-form" id="credEmailForm" hidden>
+          <label for="ce-email" data-i18n="cred.newEmail">Neue E-Mail-Adresse</label>
+          <input type="email" id="ce-email" autocomplete="email" inputmode="email">
+          <label for="ce-password" data-i18n="cred.currentPw">Aktuelles Passwort</label>
+          <input type="password" id="ce-password" autocomplete="current-password">
+          <div class="field-err" id="credEmailErr"></div>
+          <button class="btn" type="button" id="btnCredEmailSave" data-i18n="cred.save">Speichern</button>
+        </div>
+        <button class="btn secondary" type="button" id="btnCredPw" aria-expanded="false" aria-controls="credPwForm" data-i18n="cred.changePw">Passwort ändern</button>
+        <div class="cred-form" id="credPwForm" hidden>
+          <label for="cp-current" data-i18n="cred.currentPw">Aktuelles Passwort</label>
+          <input type="password" id="cp-current" autocomplete="current-password">
+          <label for="cp-new" data-i18n="reset.newPw">Neues Passwort</label>
+          <input type="password" id="cp-new" data-i18n-ph="reg.passwordPh" placeholder="Mind. 8 Zeichen" autocomplete="new-password">
+          <label for="cp-new2" data-i18n="reg.password2">Passwort wiederholen</label>
+          <input type="password" id="cp-new2" autocomplete="new-password">
+          <div class="field-err" id="credPwErr"></div>
+          <button class="btn" type="button" id="btnCredPwSave" data-i18n="cred.save">Speichern</button>
+        </div>
+      </div>
+
       <div class="account-section" style="margin-bottom:10px;">
         <div class="account-section-title lg" data-i18n="common.account">Konto</div>
         <button class="btn secondary" id="btnLogout" data-i18n="common.logout">Ausloggen</button>
@@ -2815,6 +2845,32 @@
         <p id="mailConfirmText" data-i18n="mail.text">Dein Bestätigungslink wird geprüft.</p>
       </div>
       <button class="btn" id="btnMailConfirmContinue" style="display:none;" data-i18n="mail.continue">Weiter zu FLEXR</button>
+    </section>
+
+    <!-- PASSWORT VERGESSEN: Link anfordern -->
+    <section class="screen" id="screen-forgot">
+      <div class="eyebrow" data-i18n="forgot.eyebrow">Passwort vergessen</div>
+      <h1 class="headline" style="font-size:22px; margin-bottom:14px;" data-i18n="forgot.title">Neues Passwort anfordern</h1>
+      <p class="sub" data-i18n="forgot.sub">Gib die E-Mail-Adresse deines Kontos ein. Wir schicken dir einen Link, mit dem du ein neues Passwort festlegst.</p>
+      <label for="fg-email" data-i18n="login.email">E-Mail</label>
+      <input type="email" id="fg-email" placeholder="max@example.com" autocomplete="username" inputmode="email">
+      <div class="field-err" id="forgotErr"></div>
+      <div class="vcard" id="forgotDone" style="display:none;"><p data-i18n="forgot.done">Falls es zu dieser Adresse ein Konto gibt, ist der Link unterwegs. Er gilt 60 Minuten. Schau auch im Spam-Ordner nach.</p></div>
+      <button class="btn" id="btnForgotSend" data-i18n="forgot.send">Link schicken</button>
+      <button type="button" class="link-btn" id="btnForgotBack" data-i18n="forgot.back">Zurück zum Login</button>
+    </section>
+
+    <!-- PASSWORT VERGESSEN: neues Passwort über den Link aus der Mail -->
+    <section class="screen" id="screen-reset">
+      <div class="eyebrow" data-i18n="forgot.eyebrow">Passwort vergessen</div>
+      <h1 class="headline" style="font-size:22px; margin-bottom:14px;" data-i18n="reset.title">Neues Passwort festlegen</h1>
+      <label for="rs-password" data-i18n="reset.newPw">Neues Passwort</label>
+      <input type="password" id="rs-password" data-i18n-ph="reg.passwordPh" placeholder="Mind. 8 Zeichen" autocomplete="new-password">
+      <label for="rs-password2" data-i18n="reg.password2">Passwort wiederholen</label>
+      <input type="password" id="rs-password2" data-i18n-ph="reg.password2Ph" placeholder="Passwort erneut eingeben" autocomplete="new-password">
+      <div class="field-err" id="resetErr"></div>
+      <button class="btn" id="btnResetSave" data-i18n="reset.save">Passwort speichern</button>
+      <button type="button" class="link-btn" id="btnResetBack" data-i18n="forgot.back">Zurück zum Login</button>
     </section>
 
     <!-- ALTERS- UND IDENTITÄTSPRÜFUNG: Ausweisaufnahme -->
@@ -4370,6 +4426,125 @@
     });
   });
 
+  // ---------- Passwort vergessen ----------
+  $('btnForgot').addEventListener('click', () => {
+    $('fg-email').value = $('l-email').value.trim();
+    $('forgotErr').textContent = '';
+    $('forgotDone').style.display = 'none';
+    $('btnForgotSend').style.display = '';
+    showScreen('screen-forgot');
+  });
+  $('btnForgotBack').addEventListener('click', () => showScreen('screen-login'));
+  $('btnResetBack').addEventListener('click', () => showScreen('screen-login'));
+
+  $('btnForgotSend').addEventListener('click', async () => {
+    const email = $('fg-email').value.trim();
+    const errEl = $('forgotErr');
+    errEl.textContent = '';
+    if(!/^\S+@\S+\.\S+$/.test(email)){ errEl.textContent = t('forgot.errEmail'); return; }
+    const btn = $('btnForgotSend');
+    btn.disabled = true;
+    try{
+      await api('/api/auth/password/forgot', {method: 'POST', body: JSON.stringify({email, language: FlexrI18n.current()})});
+      $('forgotDone').style.display = 'block';
+      btn.style.display = 'none';
+    }catch(err){
+      errEl.textContent = err.message || t('forgot.errSend');
+    }finally{ btn.disabled = false; }
+  });
+
+  // Der Link aus der Mail: /app/?reset=<token>. Der Token wandert sofort aus
+  // der Adresszeile in eine Variable - sonst stuende er im Verlauf und in
+  // jedem Bildschirmfoto.
+  let resetToken = null;
+  function takeResetTokenFromUrl(){
+    const params = new URLSearchParams(location.search);
+    const tok = params.get('reset');
+    if(!tok) return false;
+    resetToken = tok;
+    history.replaceState(null, '', '/app/');
+    return true;
+  }
+
+  $('btnResetSave').addEventListener('click', async () => {
+    const pw = $('rs-password').value;
+    const errEl = $('resetErr');
+    errEl.textContent = '';
+    if(pw.length < 8){ errEl.textContent = t('reset.errShort'); return; }
+    if(pw !== $('rs-password2').value){ errEl.textContent = t('reg.errPwMismatch'); return; }
+    const btn = $('btnResetSave');
+    btn.disabled = true;
+    try{
+      const res = await api('/api/auth/password/reset', {method: 'POST', body: JSON.stringify({token: resetToken, new_password: pw})});
+      resetToken = null;
+      $('rs-password').value = $('rs-password2').value = '';
+      setToken(res.access_token);
+      await loadCurrentUser();
+      $('bottomNav').style.display = 'flex';
+      toast(t('reset.done'));
+      goToApp();
+    }catch(err){
+      errEl.textContent = err.message || t('reset.errSave');
+    }finally{ btn.disabled = false; }
+  });
+
+  // ---------- Zugangsdaten im Konto ----------
+  function renderCredentials(){
+    if(!myProfile) return;
+    const line = $('credEmailLine');
+    line.innerHTML = escapeHtml(t('cred.emailLabel')) + ' <b>' + escapeHtml(myProfile.email || '') + '</b>'
+      + (myProfile.email_verified === false ? ' · ' + escapeHtml(t('cred.unconfirmed')) : '');
+  }
+  function toggleCredForm(btnId, formId){
+    const form = $(formId);
+    const open = form.hidden;
+    form.hidden = !open;
+    $(btnId).setAttribute('aria-expanded', open ? 'true' : 'false');
+    if(open){ const first = form.querySelector('input'); if(first) first.focus(); }
+  }
+  $('btnCredEmail').addEventListener('click', () => toggleCredForm('btnCredEmail', 'credEmailForm'));
+  $('btnCredPw').addEventListener('click', () => toggleCredForm('btnCredPw', 'credPwForm'));
+
+  $('btnCredEmailSave').addEventListener('click', async () => {
+    const errEl = $('credEmailErr');
+    errEl.textContent = '';
+    const new_email = $('ce-email').value.trim();
+    const password = $('ce-password').value;
+    if(!/^\S+@\S+\.\S+$/.test(new_email)){ errEl.textContent = t('forgot.errEmail'); return; }
+    if(!password){ errEl.textContent = t('cred.errPw'); return; }
+    const btn = $('btnCredEmailSave');
+    btn.disabled = true;
+    try{
+      myProfile = await api('/api/profiles/me/email', {method: 'POST', body: JSON.stringify({new_email, password})});
+      $('ce-email').value = $('ce-password').value = '';
+      toggleCredForm('btnCredEmail', 'credEmailForm');
+      renderCredentials();
+      toast(t('cred.emailDone', {email: myProfile.email}));
+    }catch(err){ errEl.textContent = err.message || t('reset.errSave'); }
+    finally{ btn.disabled = false; }
+  });
+
+  $('btnCredPwSave').addEventListener('click', async () => {
+    const errEl = $('credPwErr');
+    errEl.textContent = '';
+    const current_password = $('cp-current').value;
+    const new_password = $('cp-new').value;
+    if(!current_password){ errEl.textContent = t('cred.errPw'); return; }
+    if(new_password.length < 8){ errEl.textContent = t('reset.errShort'); return; }
+    if(new_password !== $('cp-new2').value){ errEl.textContent = t('reg.errPwMismatch'); return; }
+    const btn = $('btnCredPwSave');
+    btn.disabled = true;
+    try{
+      const res = await api('/api/profiles/me/password', {method: 'POST', body: JSON.stringify({current_password, new_password})});
+      // Alle anderen Sitzungen sind jetzt beendet - diese bekommt einen neuen Token.
+      setToken(res.access_token);
+      $('cp-current').value = $('cp-new').value = $('cp-new2').value = '';
+      toggleCredForm('btnCredPw', 'credPwForm');
+      toast(t('cred.pwDone'));
+    }catch(err){ errEl.textContent = err.message || t('reset.errSave'); }
+    finally{ btn.disabled = false; }
+  });
+
   function doLogout(){
     stopChatPolling();
     stopUnreadPolling();
@@ -4380,6 +4555,7 @@
     myProfile = null;
     membership = null;
     verificationStatus = null;
+    updateStatusPill();
     // Lokale Ausweis-Vorschauen verwerfen - sie sollen nicht über die Sitzung
     // hinaus im Speicher der Seite liegen.
     if(idState){
@@ -4556,7 +4732,10 @@
     // Der Aktivieren-Knopf daneben gilt nur, solange es ueberhaupt etwas zu
     // aktivieren gibt - erst unten in den Nicht-Premium-Zweigen wieder an.
     cta.style.display = 'none';
-    if(!membership){ pill.textContent = '—'; return; }
+    // Ausgeloggt (Passwort vergessen, Mail-Bestaetigung) gibt es nichts
+    // anzuzeigen - ein leerer Strich wirkte wie ein kaputter Knopf.
+    if(!membership){ pill.textContent = ''; pill.style.display = 'none'; return; }
+    pill.style.display = '';
     // Vor der Freischaltung sagt die Pille, dass geprüft wird - alles andere
     // (Likes, Premium) ist bis dahin ohne Belang.
     if(!accountActivated()){
@@ -4756,6 +4935,7 @@
     $('acctName').innerHTML = escapeHtml(myProfile.name + ', ' + myProfile.age)
       + verifiedBadge(myProfile) + (isPremium() ? PREMIUM_BADGE_SVG() : '');
     renderVerificationSection();
+    renderCredentials();
     $('acctSubline').textContent = [myProfile.city, gymName(myProfile.gym)].filter(Boolean).join(' · ');
 
     const avatarEl = $('acctAvatar');
@@ -7584,6 +7764,10 @@
   async function boot(){
     if(EMAIL_CONFIRM_PATHS.indexOf(location.pathname) !== -1){
       await handleEmailConfirmLink();
+      return;
+    }
+    if(takeResetTokenFromUrl()){
+      showScreen('screen-reset');
       return;
     }
     if(token){

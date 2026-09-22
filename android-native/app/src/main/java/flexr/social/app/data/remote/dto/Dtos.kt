@@ -37,6 +37,25 @@ data class RegisterRequestDto(
 @Serializable
 data class LoginRequestDto(val email: String, val password: String)
 
+/** "Passwort vergessen": Link anfordern. Antwortet immer gleich (routers/auth.forgot_password). */
+@Serializable
+data class PasswordForgotRequestDto(val email: String, val language: String? = null)
+
+@Serializable
+data class PasswordChangeRequestDto(
+    @SerialName("current_password") val currentPassword: String,
+    @SerialName("new_password") val newPassword: String,
+)
+
+@Serializable
+data class EmailChangeRequestDto(
+    @SerialName("new_email") val newEmail: String,
+    val password: String,
+)
+
+@Serializable
+data class OkResponseDto(val ok: Boolean = true)
+
 /** Vorabprüfung des Geburtsdatums im Registrierungsformular. */
 @Serializable
 data class AgeCheckRequestDto(val birthdate: String)

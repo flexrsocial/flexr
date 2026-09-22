@@ -595,4 +595,27 @@
     <string name="error_postal_code_unknown">Postleitzahl nicht gefunden. Bitte prüfen.</string>
     <string name="error_postal_code_invalid">Ungültige Postleitzahl.</string>
     <string name="error_city_lookup">Ort konnte nicht ermittelt werden.</string>
+
+    <!-- Passwort vergessen / Zugangsdaten -->
+    <string name="login_forgot">Passwort vergessen?</string>
+    <string name="forgot_title">Neues Passwort anfordern</string>
+    <string name="forgot_sub">Gib die E-Mail-Adresse deines Kontos ein. Wir schicken dir einen Link, mit dem du im Browser ein neues Passwort festlegst.</string>
+    <string name="forgot_done">Falls es zu dieser Adresse ein Konto gibt, ist der Link unterwegs. Er gilt 60 Minuten. Schau auch im Spam-Ordner nach und melde dich danach hier mit dem neuen Passwort an.</string>
+    <string name="forgot_send">Link schicken</string>
+    <string name="forgot_err_email">Bitte eine gültige E-Mail-Adresse eingeben.</string>
+    <string name="forgot_err_send">Der Link konnte nicht angefordert werden. Bitte versuche es später erneut.</string>
+    <string name="reset_new_pw">Neues Passwort</string>
+    <string name="reset_err_short">Das Passwort muss mindestens 8 Zeichen haben.</string>
+    <string name="reset_err_save">Das hat nicht geklappt. Bitte versuche es erneut.</string>
+    <string name="cred_section">Zugangsdaten</string>
+    <string name="cred_email_label">E-Mail: %1$s</string>
+    <string name="cred_unconfirmed">noch nicht bestätigt</string>
+    <string name="cred_change_email">E-Mail-Adresse ändern</string>
+    <string name="cred_change_pw">Passwort ändern</string>
+    <string name="cred_new_email">Neue E-Mail-Adresse</string>
+    <string name="cred_current_pw">Aktuelles Passwort</string>
+    <string name="cred_save">Speichern</string>
+    <string name="cred_err_pw">Bitte dein aktuelles Passwort eingeben.</string>
+    <string name="cred_email_done">Gespeichert. Bitte bestätige %1$s über den Link in der Mail.</string>
+    <string name="cred_pw_done">Passwort geändert. Alle anderen Anmeldungen wurden beendet.</string>
 </resources>

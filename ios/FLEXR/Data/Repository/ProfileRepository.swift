@@ -76,6 +76,23 @@ final class ProfileRepository {
         return updated
     }
 
+    /// Passwort ändern. Alle anderen Sitzungen enden, diese bekommt einen neuen Token.
+    func changePassword(current: String, new newPassword: String) async throws {
+        let response = try await api.changePassword(
+            PasswordChangeRequestDTO(currentPassword: current, newPassword: newPassword)
+        )
+        session.save(token: response.accessToken)
+    }
+
+    /// E-Mail-Adresse ändern. Die neue ist erst nach dem Link in der Mail bestätigt.
+    func changeEmail(to newEmail: String, password: String) async throws -> MyProfile {
+        let updated = try await api.changeEmail(
+            EmailChangeRequestDTO(newEmail: newEmail.trimmingCharacters(in: .whitespaces), password: password)
+        ).toDomain()
+        myProfile = updated
+        return updated
+    }
+
     func deleteAccount(password: String) async throws {
         try await api.deleteMyAccount(DeleteAccountRequestDTO(password: password))
         myProfile = nil

@@ -60,6 +60,7 @@ import androidx.compose.ui.text.PlatformTextStyle
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -676,6 +677,29 @@ fun AccountScreen(
             }
         }
 
+        // ---------- Zugangsdaten ----------
+        Spacer(Modifier.height(28.dp))
+        SectionTitle(stringResource(R.string.cred_section))
+        Spacer(Modifier.height(8.dp))
+        currentProfile?.let { profil ->
+            Text(
+                text = stringResource(R.string.cred_email_label, profil.email) +
+                    if (!profil.emailVerified) " · " + stringResource(R.string.cred_unconfirmed) else "",
+                style = MaterialTheme.typography.bodySmall,
+                color = colors.chalkDim,
+            )
+        }
+        Spacer(Modifier.height(12.dp))
+        FlexrSecondaryButton(
+            text = stringResource(R.string.cred_change_email),
+            onClick = { viewModel.openCredentials(CredentialsMode.EMAIL) },
+        )
+        Spacer(Modifier.height(10.dp))
+        FlexrSecondaryButton(
+            text = stringResource(R.string.cred_change_pw),
+            onClick = { viewModel.openCredentials(CredentialsMode.PASSWORD) },
+        )
+
         // ---------- Konto ----------
         Spacer(Modifier.height(28.dp))
         SectionTitle(stringResource(R.string.common_account))
@@ -718,6 +742,15 @@ fun AccountScreen(
             onPostalCodeChange = { value -> viewModel.onGymSuggestionChange { it.copy(postalCode = value) } },
             onSubmit = viewModel::submitGymSuggestion,
             onDismiss = viewModel::closeGymSuggestion,
+        )
+    }
+
+    state.credentials?.let { dialog ->
+        CredentialsDialog(
+            state = dialog,
+            onChange = viewModel::onCredentialsChange,
+            onSave = viewModel::saveCredentials,
+            onDismiss = viewModel::closeCredentials,
         )
     }
 
@@ -1455,6 +1488,67 @@ internal fun DeleteAccountDialog(
             TextButton(onClick = onConfirm, enabled = !isDeleting) {
                 Text(stringResource(R.string.delete_confirm), color = FlexrTheme.colors.danger)
             }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.common_cancel), color = FlexrTheme.colors.chalkDim)
+            }
+        },
+    )
+}
+
+/** "E-Mail-Adresse ändern" bzw. "Passwort ändern" - beides verlangt das aktuelle Passwort. */
+@Composable
+private fun CredentialsDialog(
+    state: CredentialsDialogState,
+    onChange: ((CredentialsDialogState) -> CredentialsDialogState) -> Unit,
+    onSave: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    val email = state.mode == CredentialsMode.EMAIL
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = MaterialTheme.colorScheme.surface,
+        title = {
+            Text(
+                stringResource(if (email) R.string.cred_change_email else R.string.cred_change_pw),
+                style = MaterialTheme.typography.headlineSmall,
+            )
+        },
+        text = {
+            Column {
+                if (email) {
+                    FlexrTextField(
+                        value = state.newEmail,
+                        onValueChange = { v -> onChange { it.copy(newEmail = v) } },
+                        label = stringResource(R.string.cred_new_email),
+                        keyboardType = KeyboardType.Email,
+                    )
+                }
+                FlexrPasswordField(
+                    value = state.currentPassword,
+                    onValueChange = { v -> onChange { it.copy(currentPassword = v) } },
+                    label = stringResource(R.string.cred_current_pw),
+                    imeAction = if (email) ImeAction.Done else ImeAction.Next,
+                )
+                if (!email) {
+                    FlexrPasswordField(
+                        value = state.newPassword,
+                        onValueChange = { v -> onChange { it.copy(newPassword = v) } },
+                        label = stringResource(R.string.reset_new_pw),
+                        imeAction = ImeAction.Next,
+                    )
+                    FlexrPasswordField(
+                        value = state.newPassword2,
+                        onValueChange = { v -> onChange { it.copy(newPassword2 = v) } },
+                        label = stringResource(R.string.register_password_repeat),
+                    )
+                }
+                FieldError(state.error)
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onSave, enabled = !state.saving) { Text(stringResource(R.string.cred_save)) }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {

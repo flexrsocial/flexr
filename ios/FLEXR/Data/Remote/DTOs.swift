@@ -37,6 +37,26 @@ struct LoginRequestDTO: Encodable {
     let password: String
 }
 
+/// „Passwort vergessen": Link anfordern. Antwortet immer gleich (routers/auth.forgot_password).
+struct PasswordForgotRequestDTO: Encodable {
+    let email: String
+    let language: String?
+}
+
+struct PasswordChangeRequestDTO: Encodable {
+    let currentPassword: String
+    let newPassword: String
+}
+
+struct EmailChangeRequestDTO: Encodable {
+    let newEmail: String
+    let password: String
+}
+
+struct OkResponseDTO: Decodable {
+    let ok: Bool
+}
+
 struct TokenResponseDTO: Decodable {
     let accessToken: String
     let tokenType: String?

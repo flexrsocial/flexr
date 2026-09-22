@@ -1,7 +1,7 @@
 import logging
 from datetime import datetime, timedelta
 
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
@@ -17,6 +17,7 @@ from ..models import (
     PhotoStatus,
     User,
 )
+from ..rate_limit import limiter
 from ..retention import ACCOUNT_GRACE_PERIOD_DAYS
 from ..schemas import (
     AddPhotoRequest,
@@ -24,6 +25,10 @@ from ..schemas import (
     ConsentOut,
     ConsentRevokeRequest,
     DeleteAccountRequest,
+    EmailChangeRequest,
+    OkResponse,
+    PasswordChangeRequest,
+    TokenResponse,
     MyProfileOut,
     NotificationSettingsUpdate,
     PresignPhotoRequest,
@@ -472,5 +477,79 @@ def delete_photo(
         remaining_photo.position = index
 
     db.commit()
+    db.refresh(current_user)
+    return current_user
+
+
+# ---------- Zugangsdaten ----------
+
+
+@router.post("/me/password", response_model=TokenResponse)
+@limiter.limit("10/hour")
+def change_password(
+    request: Request,
+    payload: PasswordChangeRequest,
+    background_tasks: BackgroundTasks,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Passwort aendern. Beendet alle anderen Sitzungen - der Aufrufer bekommt
+    einen frischen Token zurueck und bleibt angemeldet."""
+    from .. import password_reset
+    from ..security import create_access_token, verify_password
+
+    if not verify_password(payload.current_password, current_user.password_hash):
+        raise HTTPException(400, "Das aktuelle Passwort stimmt nicht.")
+    if verify_password(payload.new_password, current_user.password_hash):
+        raise HTTPException(400, "Das neue Passwort ist dasselbe wie das bisherige.")
+    password_reset.set_new_password(db, current_user, payload.new_password)
+    db.commit()
+    background_tasks.add_task(
+        mailer.send_password_changed, current_user.email, current_user.name, current_user.language
+    )
+    return TokenResponse(access_token=create_access_token(current_user.id))
+
+
+@router.post("/me/email", response_model=MyProfileOut)
+@limiter.limit("5/hour")
+def change_email(
+    request: Request,
+    payload: EmailChangeRequest,
+    background_tasks: BackgroundTasks,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """E-Mail-Adresse aendern.
+
+    Die neue Adresse ist erst bestaetigt, wenn der Link darin angeklickt ist;
+    die alte bekommt einen Hinweis. Beides zusammen verhindert, dass ein
+    Tippfehler oder eine Uebernahme unbemerkt bleibt.
+    """
+    from ..email_verification import TOKEN_TTL_HOURS, build_link, issue
+    from ..safety_checks import is_disposable_email
+    from ..security import verify_password
+
+    if not verify_password(payload.password, current_user.password_hash):
+        raise HTTPException(400, "Falsches Passwort.")
+    neu = payload.new_email
+    if neu == current_user.email.lower():
+        raise HTTPException(400, "Das ist bereits deine E-Mail-Adresse.")
+    if is_disposable_email(neu):
+        raise HTTPException(400, "Wegwerf-E-Mail-Adressen sind nicht erlaubt.")
+    if db.query(User.id).filter(func.lower(User.email) == neu).first():
+        raise HTTPException(409, "Diese E-Mail-Adresse ist bereits registriert.")
+
+    alt = current_user.email
+    current_user.email = neu
+    current_user.email_verified_at = None
+    db.commit()
+    token = issue(db, current_user)
+    background_tasks.add_task(
+        mailer.send_verification_email,
+        neu, current_user.name, build_link(token), TOKEN_TTL_HOURS, current_user.language,
+    )
+    background_tasks.add_task(
+        mailer.send_email_changed, alt, current_user.name, neu, current_user.language
+    )
     db.refresh(current_user)
     return current_user

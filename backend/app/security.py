@@ -47,9 +47,38 @@ def verify_totp_code(secret: str, code: str) -> bool:
 
 
 def create_access_token(user_id: str) -> str:
-    expire = datetime.utcnow() + timedelta(minutes=settings.access_token_expire_minutes)
-    payload = {"sub": user_id, "exp": expire, "scope": "user"}
+    now = datetime.utcnow()
+    expire = now + timedelta(minutes=settings.access_token_expire_minutes)
+    # iat: Nach einem Passwortwechsel gelten nur noch Token, die danach
+    # ausgestellt wurden (siehe token_predates_password_change).
+    # "iat" selbst zaehlt nur ganze Sekunden - ein Token aus derselben Sekunde
+    # wie der Passwortwechsel ueberlebte ihn sonst. Daneben deshalb genau.
+    payload = {
+        "sub": user_id, "exp": expire, "iat": now, "scope": "user",
+        "iat_us": _epoch_us(now),
+    }
     return jwt.encode(payload, settings.jwt_secret, algorithm=settings.jwt_algorithm)
+
+
+def token_predates_password_change(payload: dict, user: User) -> bool:
+    """Wurde dieser Token vor dem letzten Passwortwechsel ausgestellt?
+
+    Token ohne iat stammen aus der Zeit vor dieser Pruefung. Hat das Konto
+    seitdem das Passwort gewechselt, sind sie per Definition aelter.
+    """
+    if user.password_changed_at is None:
+        return False
+    iat_us = payload.get("iat_us")
+    if not isinstance(iat_us, int):
+        return True
+    return iat_us < _epoch_us(user.password_changed_at)
+
+
+def _epoch_us(naive_utc: datetime) -> int:
+    """Mikrosekunden seit 1970 fuer ein naives UTC-datetime (nicht .timestamp():
+    das naehme ein naives Datum als Ortszeit)."""
+    delta = naive_utc - datetime(1970, 1, 1)
+    return (delta.days * 86400 + delta.seconds) * 1_000_000 + delta.microseconds
 
 
 def get_current_user(
@@ -72,6 +101,8 @@ def get_current_user(
 
     user = db.query(User).filter(User.id == user_id).first()
     if user is None:
+        raise credentials_error
+    if token_predates_password_change(payload, user):
         raise credentials_error
     if user.deleted_at is not None:
         raise HTTPException(status.HTTP_403_FORBIDDEN, "Dieses Konto wurde gelöscht.")

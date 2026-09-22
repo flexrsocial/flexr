@@ -1,6 +1,10 @@
 package flexr.social.app.data.remote
 
 import flexr.social.app.data.remote.dto.AddPhotoRequestDto
+import flexr.social.app.data.remote.dto.EmailChangeRequestDto
+import flexr.social.app.data.remote.dto.OkResponseDto
+import flexr.social.app.data.remote.dto.PasswordChangeRequestDto
+import flexr.social.app.data.remote.dto.PasswordForgotRequestDto
 import flexr.social.app.data.remote.dto.AgeCheckRequestDto
 import flexr.social.app.data.remote.dto.AgeCheckResponseDto
 import flexr.social.app.data.remote.dto.EmailConfirmRequestDto
@@ -86,6 +90,10 @@ interface FlexrApi {
     @POST("api/auth/reactivate")
     suspend fun reactivate(@Body body: LoginRequestDto): TokenResponseDto
 
+    /** Zuruecksetz-Link per Mail anfordern. Das Zuruecksetzen selbst passiert im Browser. */
+    @POST("api/auth/password/forgot")
+    suspend fun forgotPassword(@Body body: PasswordForgotRequestDto): OkResponseDto
+
     /**
      * Altersprüfung fürs Registrierungsformular. Verbindlich bleibt dieselbe
      * Prüfung in /register — dieser Aufruf verhindert nur, dass jemand unter 18
@@ -113,6 +121,13 @@ interface FlexrApi {
     /** DELETE mit Body — Retrofits @DELETE erlaubt das nicht, @HTTP schon. */
     @HTTP(method = "DELETE", path = "api/profiles/me", hasBody = true)
     suspend fun deleteMyAccount(@Body body: DeleteAccountRequestDto)
+
+    /** Beendet alle anderen Sitzungen - die Antwort traegt einen frischen Token. */
+    @POST("api/profiles/me/password")
+    suspend fun changePassword(@Body body: PasswordChangeRequestDto): TokenResponseDto
+
+    @POST("api/profiles/me/email")
+    suspend fun changeEmail(@Body body: EmailChangeRequestDto): MyProfileDto
 
     @GET("api/profiles/me/consents")
     suspend fun getMyConsents(): List<ConsentDto>

@@ -2,6 +2,10 @@ package flexr.social.app.testing
 
 import flexr.social.app.data.remote.FlexrApi
 import flexr.social.app.data.remote.dto.AddPhotoRequestDto
+import flexr.social.app.data.remote.dto.EmailChangeRequestDto
+import flexr.social.app.data.remote.dto.OkResponseDto
+import flexr.social.app.data.remote.dto.PasswordChangeRequestDto
+import flexr.social.app.data.remote.dto.PasswordForgotRequestDto
 import flexr.social.app.data.remote.dto.AgeCheckRequestDto
 import flexr.social.app.data.remote.dto.AgeCheckResponseDto
 import flexr.social.app.data.remote.dto.BlockRequestDto
@@ -81,6 +85,9 @@ open class FakeFlexrApi : FlexrApi {
     override suspend fun reactivate(body: LoginRequestDto): TokenResponseDto =
         nichtVorgesehen("reactivate")
 
+    override suspend fun forgotPassword(body: PasswordForgotRequestDto): OkResponseDto =
+        nichtVorgesehen("forgotPassword")
+
     override suspend fun checkAge(body: AgeCheckRequestDto): AgeCheckResponseDto =
         nichtVorgesehen("checkAge")
 
@@ -93,6 +100,12 @@ open class FakeFlexrApi : FlexrApi {
 
     override suspend fun deleteMyAccount(body: DeleteAccountRequestDto) =
         nichtVorgesehen("deleteMyAccount")
+
+    override suspend fun changePassword(body: PasswordChangeRequestDto): TokenResponseDto =
+        nichtVorgesehen("changePassword")
+
+    override suspend fun changeEmail(body: EmailChangeRequestDto): MyProfileDto =
+        nichtVorgesehen("changeEmail")
 
     override suspend fun getMyConsents(): List<ConsentDto> =
         nichtVorgesehen("getMyConsents")

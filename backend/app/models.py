@@ -378,9 +378,15 @@ class User(Base):
     # Identitätsprüfung: Ein Mensch soll keine Ausweisaufnahme begutachten,
     # solange nicht feststeht, dass die Adresse überhaupt dem Nutzer gehört -
     # und ein Tippfehler soll auffallen, solange der Nutzer noch weiß, was er
-    # eingegeben hat (es gibt kein "Passwort vergessen"). Bestandskonten setzt
+    # eingegeben hat ("Passwort vergessen" schickt an diese Adresse). Bestandskonten setzt
     # die Migration auf den Zeitpunkt der Umstellung.
     email_verified_at = Column(DateTime, nullable=True)
+
+    # Zeitpunkt des letzten Passwortwechsels (Zuruecksetzen per Mail oder
+    # Aendern im Konto). Zugriffstoken, die davor ausgestellt wurden, gelten
+    # nicht mehr - wer ein Passwort zuruecksetzt, weil jemand anderes es
+    # kennt, soll dessen offene Sitzungen damit gleich mit beenden.
+    password_changed_at = Column(DateTime, nullable=True)
 
     # ---- Alters- und Identitätsprüfung (manuell, siehe VerificationRequest) ----
     # Muss dieses Konto die Prüfung durchlaufen, bevor es nutzbar wird? Neue
@@ -691,6 +697,24 @@ class EmailVerification(Base):
     # Die Adresse wird mitgeführt: Ändert sie sich später, ist ein noch offener
     # Link für die alte Adresse wertlos und darf nicht mehr greifen.
     email = Column(String, nullable=False)
+    token_hash = Column(String, nullable=False, index=True)
+    expires_at = Column(DateTime, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+
+class PasswordReset(Base):
+    """Offenes Zuruecksetzen des Passworts: Zufallstoken, nur als Hash.
+
+    Gleiches Muster wie EmailVerification - der Link ist ein Passwort auf
+    Zeit. Kuerzere Laufzeit (siehe password_reset.TOKEN_TTL_MINUTES), weil er
+    mehr kann als eine Adresse bestaetigen, und hoechstens ein offener Vorgang
+    pro Konto.
+    """
+
+    __tablename__ = "password_resets"
+
+    id = Column(String, primary_key=True, default=gen_uuid)
+    user_id = Column(String, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
     token_hash = Column(String, nullable=False, index=True)
     expires_at = Column(DateTime, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)

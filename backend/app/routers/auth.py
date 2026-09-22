@@ -10,13 +10,17 @@ from ..age import UNDERAGE_MESSAGE, age_on, is_adult
 from ..database import get_db
 from ..email_verification import TOKEN_TTL_HOURS, build_link, issue
 from ..geo import city_for_plz
-from ..mailer import send_verification_email
+from .. import password_reset
+from ..mailer import send_password_reset, send_verification_email
 from ..models import ConsentType, ModerationAction, UnderageSignupAttempt, User, UserDevice
 from ..moderation import restriction_detail
 from ..rate_limit import limiter
 from ..retention import ACCOUNT_GRACE_PERIOD_DAYS
 from ..safety_checks import check_public_text, is_disposable_email
 from ..schemas import (
+    OkResponse,
+    PasswordForgotRequest,
+    PasswordResetRequest,
     AgeCheckRequest,
     AgeCheckResponse,
     LoginRequest,
@@ -360,3 +364,50 @@ def reactivate(request: Request, payload: LoginRequest, db: Session = Depends(ge
 
     token = create_access_token(user.id)
     return TokenResponse(access_token=token)
+
+
+# ---------- Passwort vergessen ----------
+
+
+@router.post("/password/forgot", response_model=OkResponse)
+@limiter.limit("5/hour")
+def forgot_password(
+    request: Request,
+    payload: PasswordForgotRequest,
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db),
+):
+    """Zuruecksetz-Link anfordern.
+
+    Antwortet immer gleich - ob es zu der Adresse ein Konto gibt, verraet
+    dieser Endpunkt nicht, sonst liesse sich damit pruefen, wer bei einer
+    Dating-App angemeldet ist.
+    """
+    user = db.query(User).filter(func.lower(User.email) == payload.email).first()
+    if user is not None and user.deleted_at is None and not user.is_banned:
+        token = password_reset.issue(db, user)
+        background_tasks.add_task(
+            send_password_reset,
+            user.email,
+            user.name,
+            password_reset.build_link(token),
+            password_reset.TOKEN_TTL_MINUTES,
+            payload.language or user.language,
+        )
+    return OkResponse()
+
+
+@router.post("/password/reset", response_model=TokenResponse)
+@limiter.limit("10/hour")
+def reset_password(
+    request: Request,
+    payload: PasswordResetRequest,
+    db: Session = Depends(get_db),
+):
+    """Token aus dem Link einloesen und direkt anmelden."""
+    try:
+        user = password_reset.redeem(db, payload.token, payload.new_password)
+    except password_reset.ResetError as err:
+        raise HTTPException(400, str(err))
+    record_device(db, user.id, request)
+    return TokenResponse(access_token=create_access_token(user.id))

@@ -6,6 +6,7 @@ import flexr.social.app.data.local.MatchDao
 import flexr.social.app.data.local.MessageDao
 import flexr.social.app.data.remote.FlexrApi
 import flexr.social.app.data.remote.dto.LoginRequestDto
+import flexr.social.app.data.remote.dto.PasswordForgotRequestDto
 import flexr.social.app.data.remote.dto.RegisterRequestDto
 import flexr.social.app.data.session.SessionStore
 import flexr.social.app.domain.model.Gender
@@ -123,6 +124,11 @@ class AuthRepository @Inject constructor(
     }
 
     /** Abmelden: Token verwerfen und den lokalen Cache leeren. */
+    /** "Passwort vergessen": Der Server verraet nicht, ob es das Konto gibt. */
+    suspend fun forgotPassword(email: String, language: String) {
+        apiCall { api.forgotPassword(PasswordForgotRequestDto(email.trim(), language)) }
+    }
+
     suspend fun logout() {
         sessionStore.clear()
         matchDao.deleteAll()

@@ -28,7 +28,21 @@ struct FlexrAPI {
         try await client.send(.post, "api/auth/reactivate", body: body)
     }
 
+    /// Zurücksetz-Link per Mail anfordern. Das Zurücksetzen selbst passiert im Browser.
+    func forgotPassword(_ body: PasswordForgotRequestDTO) async throws -> OkResponseDTO {
+        try await client.send(.post, "api/auth/password/forgot", body: body)
+    }
+
     // MARK: - profiles.py
+
+    /// Beendet alle anderen Sitzungen - die Antwort trägt einen frischen Token.
+    func changePassword(_ body: PasswordChangeRequestDTO) async throws -> TokenResponseDTO {
+        try await client.send(.post, "api/profiles/me/password", body: body)
+    }
+
+    func changeEmail(_ body: EmailChangeRequestDTO) async throws -> MyProfileDTO {
+        try await client.send(.post, "api/profiles/me/email", body: body)
+    }
 
     func myProfile() async throws -> MyProfileDTO {
         try await client.send(.get, "api/profiles/me")

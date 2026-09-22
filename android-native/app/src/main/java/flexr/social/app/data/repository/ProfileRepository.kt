@@ -10,6 +10,8 @@ import flexr.social.app.data.remote.dto.ConsentGrantResponseDto
 import flexr.social.app.data.remote.dto.ConsentRevokeRequestDto
 import flexr.social.app.data.remote.dto.ConsentRevokeResponseDto
 import flexr.social.app.data.remote.dto.DeleteAccountRequestDto
+import flexr.social.app.data.remote.dto.EmailChangeRequestDto
+import flexr.social.app.data.remote.dto.PasswordChangeRequestDto
 import flexr.social.app.data.remote.dto.NotificationSettingsRequestDto
 import flexr.social.app.data.remote.dto.PresignPhotoRequestDto
 import flexr.social.app.data.remote.dto.ReorderPhotosRequestDto
@@ -97,6 +99,19 @@ class ProfileRepository @Inject constructor(
     suspend fun deleteAccount(password: String) {
         apiCall { api.deleteMyAccount(DeleteAccountRequestDto(password)) }
         _myProfile.value = null
+    }
+
+    /** Passwort aendern. Alle anderen Sitzungen enden, diese bekommt einen neuen Token. */
+    suspend fun changePassword(currentPassword: String, newPassword: String) {
+        val response = apiCall { api.changePassword(PasswordChangeRequestDto(currentPassword, newPassword)) }
+        sessionStore.saveToken(response.accessToken)
+    }
+
+    /** E-Mail-Adresse aendern. Die neue ist erst nach dem Link in der Mail bestaetigt. */
+    suspend fun changeEmail(newEmail: String, password: String): MyProfile {
+        val updated = apiCall { api.changeEmail(EmailChangeRequestDto(newEmail.trim(), password)) }.toDomain()
+        _myProfile.value = updated
+        return updated
     }
 
     suspend fun consents(): List<ConsentDto> = apiCall { api.getMyConsents() }

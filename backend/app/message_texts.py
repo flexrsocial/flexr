@@ -944,6 +944,73 @@ TEXTE: dict[str, dict[str, str]] = {
             "flexr.social@proton.me to be on the safe side."
         ),
     },
+    # ---- Passwort zuruecksetzen / aendern, E-Mail-Adresse aendern
+    "reset.subject": {
+        "de": "Dein FLEXR-Passwort zurücksetzen",
+        "en": "Reset your FLEXR password",
+    },
+    "reset.eyebrow": {"de": "Passwort vergessen", "en": "Forgot password"},
+    "reset.intro": {
+        "de": (
+            "Jemand – hoffentlich du – möchte das Passwort für dein FLEXR-Konto "
+            "zurücksetzen. Über den Link unten legst du ein neues fest. Er gilt "
+            "{minutes} Minuten und nur ein einziges Mal."
+        ),
+        "en": (
+            "Someone – hopefully you – asked to reset the password for your FLEXR "
+            "account. Use the link below to choose a new one. It is valid for "
+            "{minutes} minutes and works only once."
+        ),
+    },
+    "reset.cta": {"de": "Neues Passwort festlegen", "en": "Choose a new password"},
+    "reset.notYou": {
+        "de": (
+            "Warst du das nicht? Dann ignoriere diese Mail einfach – dein Passwort "
+            "bleibt unverändert."
+        ),
+        "en": (
+            "Wasn't you? Just ignore this email – your password stays the same."
+        ),
+    },
+    "pwchanged.subject": {
+        "de": "Dein FLEXR-Passwort wurde geändert",
+        "en": "Your FLEXR password was changed",
+    },
+    "pwchanged.eyebrow": {"de": "Sicherheit", "en": "Security"},
+    "pwchanged.intro": {
+        "de": (
+            "Das Passwort deines FLEXR-Kontos wurde gerade geändert. Alle anderen "
+            "Anmeldungen wurden dabei beendet."
+        ),
+        "en": (
+            "The password of your FLEXR account was just changed. All other "
+            "sessions have been signed out."
+        ),
+    },
+    "pwchanged.notYou": {
+        "de": (
+            "Warst du das nicht? Dann setze dein Passwort sofort über „Passwort "
+            "vergessen?\" in der App zurück und schreib uns an {support}."
+        ),
+        "en": (
+            "Wasn't you? Reset your password right away via “Forgot password?” "
+            "in the app and write to us at {support}."
+        ),
+    },
+    "emailchanged.subject": {
+        "de": "Deine FLEXR-E-Mail-Adresse wurde geändert",
+        "en": "Your FLEXR email address was changed",
+    },
+    "emailchanged.intro": {
+        "de": (
+            "Die E-Mail-Adresse deines FLEXR-Kontos wurde gerade auf {new} geändert. "
+            "An diese Adresse schicken wir ab jetzt alle Nachrichten."
+        ),
+        "en": (
+            "The email address of your FLEXR account was just changed to {new}. "
+            "From now on we will send all messages there."
+        ),
+    },
 }
 
 

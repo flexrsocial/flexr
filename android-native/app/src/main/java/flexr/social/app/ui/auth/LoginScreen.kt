@@ -22,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -101,7 +102,19 @@ fun LoginScreen(
             loading = state.isSubmitting,
         )
 
-        Spacer(Modifier.height(28.dp))
+        TextButton(
+            onClick = viewModel::openForgot,
+            modifier = Modifier.fillMaxWidth().padding(top = 6.dp),
+        ) {
+            Text(
+                stringResource(R.string.login_forgot),
+                color = FlexrTheme.colors.chalkDim,
+                style = MaterialTheme.typography.bodySmall,
+                textDecoration = TextDecoration.Underline,
+            )
+        }
+
+        Spacer(Modifier.height(16.dp))
         Text(
             text = stringResource(R.string.login_register_hint),
             style = MaterialTheme.typography.bodySmall,
@@ -109,6 +122,18 @@ fun LoginScreen(
             modifier = Modifier.fillMaxWidth(),
         )
         Spacer(Modifier.height(40.dp))
+    }
+
+    if (state.forgotOpen) {
+        ForgotPasswordDialog(
+            email = state.forgotEmail,
+            sending = state.forgotSending,
+            sent = state.forgotSent,
+            error = state.forgotError,
+            onEmailChange = viewModel::onForgotEmailChange,
+            onSend = viewModel::sendForgot,
+            onDismiss = viewModel::dismissForgot,
+        )
     }
 
     val reactivateMessage = state.reactivateMessage
@@ -156,6 +181,64 @@ private fun ReactivateAccountDialog(
         dismissButton = {
             TextButton(onClick = onDismiss) {
                 Text(stringResource(R.string.common_cancel), color = FlexrTheme.colors.chalkDim)
+            }
+        },
+    )
+}
+
+/**
+ * "Passwort vergessen?": Link per Mail anfordern. Das neue Passwort legt man
+ * im Browser fest (der Link zeigt auf flexr.social/app/?reset=...) und meldet
+ * sich danach hier wieder an.
+ */
+@Composable
+private fun ForgotPasswordDialog(
+    email: String,
+    sending: Boolean,
+    sent: Boolean,
+    error: String?,
+    onEmailChange: (String) -> Unit,
+    onSend: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = MaterialTheme.colorScheme.surface,
+        title = { Text(stringResource(R.string.forgot_title), style = MaterialTheme.typography.headlineSmall) },
+        text = {
+            Column {
+                Text(
+                    text = stringResource(if (sent) R.string.forgot_done else R.string.forgot_sub),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = FlexrTheme.colors.chalkDim,
+                )
+                if (!sent) {
+                    Spacer(Modifier.height(12.dp))
+                    FlexrTextField(
+                        value = email,
+                        onValueChange = onEmailChange,
+                        label = stringResource(R.string.field_email),
+                        placeholder = "max@example.com",
+                        keyboardType = KeyboardType.Email,
+                        imeAction = ImeAction.Send,
+                        onImeAction = onSend,
+                    )
+                    FieldError(error)
+                }
+            }
+        },
+        confirmButton = {
+            if (sent) {
+                TextButton(onClick = onDismiss) { Text(stringResource(R.string.common_close)) }
+            } else {
+                TextButton(onClick = onSend, enabled = !sending) { Text(stringResource(R.string.forgot_send)) }
+            }
+        },
+        dismissButton = {
+            if (!sent) {
+                TextButton(onClick = onDismiss) {
+                    Text(stringResource(R.string.common_cancel), color = FlexrTheme.colors.chalkDim)
+                }
             }
         },
     )

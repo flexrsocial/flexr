@@ -105,6 +105,8 @@ data class AccountUiState(
     val deletePassword: String = "",
     val deleteError: String? = null,
     val isDeleting: Boolean = false,
+    /** Offener Dialog "E-Mail-Adresse ändern" / "Passwort ändern", sonst null. */
+    val credentials: CredentialsDialogState? = null,
 ) {
     val resolvedCity: String? get() = (plzLookup as? PlzLookupState.Resolved)?.city
 
@@ -785,6 +787,66 @@ class AccountViewModel @Inject constructor(
         }
     }
 
+    // ---------- Zugangsdaten ----------
+
+    fun openCredentials(mode: CredentialsMode) =
+        _uiState.update { it.copy(credentials = CredentialsDialogState(mode = mode)) }
+
+    fun closeCredentials() = _uiState.update { it.copy(credentials = null) }
+
+    fun onCredentialsChange(transform: (CredentialsDialogState) -> CredentialsDialogState) =
+        _uiState.update { state ->
+            state.copy(credentials = state.credentials?.let { transform(it).copy(error = null) })
+        }
+
+    fun saveCredentials() {
+        val dialog = _uiState.value.credentials ?: return
+        if (dialog.saving) return
+        val fehler = when {
+            dialog.currentPassword.isBlank() -> strings.get(R.string.cred_err_pw)
+            dialog.mode == CredentialsMode.EMAIL &&
+                !Regex("^\\S+@\\S+\\.\\S+$").matches(dialog.newEmail.trim()) ->
+                strings.get(R.string.forgot_err_email)
+            dialog.mode == CredentialsMode.PASSWORD && dialog.newPassword.length < 8 ->
+                strings.get(R.string.reset_err_short)
+            dialog.mode == CredentialsMode.PASSWORD && dialog.newPassword != dialog.newPassword2 ->
+                strings.get(R.string.register_err_password_mismatch)
+            else -> null
+        }
+        if (fehler != null) {
+            _uiState.update { it.copy(credentials = dialog.copy(error = fehler)) }
+            return
+        }
+        _uiState.update { it.copy(credentials = dialog.copy(saving = true, error = null)) }
+        viewModelScope.launch {
+            runCatching {
+                when (dialog.mode) {
+                    CredentialsMode.EMAIL -> {
+                        val profil = profileRepository.changeEmail(dialog.newEmail, dialog.currentPassword)
+                        strings.get(R.string.cred_email_done, profil.email)
+                    }
+                    CredentialsMode.PASSWORD -> {
+                        profileRepository.changePassword(dialog.currentPassword, dialog.newPassword)
+                        strings.get(R.string.cred_pw_done)
+                    }
+                }
+            }.onSuccess { meldung ->
+                _uiState.update { it.copy(credentials = null) }
+                _events.send(AccountEvent.Message(meldung))
+            }.onFailure { throwable ->
+                _uiState.update { state ->
+                    state.copy(
+                        credentials = state.credentials?.copy(
+                            saving = false,
+                            error = (throwable as? FlexrApiException)?.message
+                                ?: strings.get(R.string.reset_err_save),
+                        ),
+                    )
+                }
+            }
+        }
+    }
+
     // ---------- Konto löschen ----------
 
     fun showDeleteDialog() =
@@ -833,3 +895,15 @@ class AccountViewModel @Inject constructor(
         private const val LOOKUP_DEBOUNCE_MS = 300L
     }
 }
+
+enum class CredentialsMode { EMAIL, PASSWORD }
+
+data class CredentialsDialogState(
+    val mode: CredentialsMode,
+    val newEmail: String = "",
+    val currentPassword: String = "",
+    val newPassword: String = "",
+    val newPassword2: String = "",
+    val saving: Boolean = false,
+    val error: String? = null,
+)

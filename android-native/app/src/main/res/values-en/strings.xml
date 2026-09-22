@@ -531,4 +531,27 @@
     <string name="error_postal_code_unknown">Postal code not found. Please check it.</string>
     <string name="error_postal_code_invalid">Invalid postal code.</string>
     <string name="error_city_lookup">Could not determine the town.</string>
+
+    <!-- Forgot password / sign-in details -->
+    <string name="login_forgot">Forgot password?</string>
+    <string name="forgot_title">Request a new password</string>
+    <string name="forgot_sub">Enter the email address of your account. We will send you a link to choose a new password in your browser.</string>
+    <string name="forgot_done">If there is an account for this address, the link is on its way. It is valid for 60 minutes. Check your spam folder too, then sign in here with your new password.</string>
+    <string name="forgot_send">Send link</string>
+    <string name="forgot_err_email">Please enter a valid email address.</string>
+    <string name="forgot_err_send">The link could not be requested. Please try again later.</string>
+    <string name="reset_new_pw">New password</string>
+    <string name="reset_err_short">The password must have at least 8 characters.</string>
+    <string name="reset_err_save">That did not work. Please try again.</string>
+    <string name="cred_section">Sign-in details</string>
+    <string name="cred_email_label">Email: %1$s</string>
+    <string name="cred_unconfirmed">not confirmed yet</string>
+    <string name="cred_change_email">Change email address</string>
+    <string name="cred_change_pw">Change password</string>
+    <string name="cred_new_email">New email address</string>
+    <string name="cred_current_pw">Current password</string>
+    <string name="cred_save">Save</string>
+    <string name="cred_err_pw">Please enter your current password.</string>
+    <string name="cred_email_done">Saved. Please confirm %1$s via the link in the email.</string>
+    <string name="cred_pw_done">Password changed. All other sessions have been signed out.</string>
 </resources>

@@ -15,6 +15,13 @@ final class LoginModel {
 
     var canSubmit: Bool { !email.isEmpty && !password.isEmpty && !isSubmitting }
 
+    /// „Passwort vergessen?": Sheet offen, Eingabe, Versandstand.
+    var forgotOpen = false
+    var forgotEmail = ""
+    var forgotSending = false
+    var forgotSent = false
+    var forgotError: String?
+
     @ObservationIgnored private let auth: AuthRepository
     /// Texte in der gewählten Sprache — siehe [AccountModel] für die Begründung,
     /// warum hier der Speicher und keine Kopie steht.
@@ -49,6 +56,31 @@ final class LoginModel {
             }
         }
         isSubmitting = false
+    }
+
+    func openForgot() {
+        forgotEmail = email.trimmingCharacters(in: .whitespaces)
+        forgotSent = false
+        forgotError = nil
+        forgotOpen = true
+    }
+
+    func sendForgot() async {
+        guard !forgotSending else { return }
+        let adresse = forgotEmail.trimmingCharacters(in: .whitespaces)
+        guard adresse.range(of: #"^\S+@\S+\.\S+$"#, options: .regularExpression) != nil else {
+            forgotError = s(.forgotErrEmail)
+            return
+        }
+        forgotSending = true
+        forgotError = nil
+        do {
+            try await auth.forgotPassword(email: adresse, language: languageStore.language.rawValue)
+            forgotSent = true
+        } catch {
+            forgotError = (error as? FlexrAPIError)?.message ?? s(.forgotErrSend)
+        }
+        forgotSending = false
     }
 
     func dismissReactivate() {
@@ -148,10 +180,17 @@ struct LoginView: View {
                 }
                 .padding(.top, 22)
 
+                Button(s(.loginForgot)) { model.openForgot() }
+                    .flexrText(.bodySmall)
+                    .underline()
+                    .foregroundStyle(FlexrColor.chalkDim)
+                    .frame(maxWidth: .infinity)
+                    .padding(.top, 14)
+
                 Text(s(.loginRegisterHint))
                     .flexrText(.bodySmall)
                     .foregroundStyle(FlexrColor.chalkDim)
-                    .padding(.top, 28)
+                    .padding(.top, 20)
             }
             .padding(.horizontal, 20)
             .padding(.bottom, 40)
@@ -159,6 +198,10 @@ struct LoginView: View {
         .scrollDismissesKeyboard(.interactively)
         .onChange(of: model.email) { _, _ in model.error = nil }
         .onChange(of: model.password) { _, _ in model.error = nil }
+        .sheet(isPresented: $model.forgotOpen) {
+            ForgotPasswordSheet(model: model)
+                .presentationDetents([.medium, .large])
+        }
         .alert(
             s(.loginReactivateTitle),
             isPresented: Binding(
@@ -171,5 +214,57 @@ struct LoginView: View {
         } message: {
             Text(model.reactivateMessage ?? "")
         }
+    }
+}
+
+/// „Passwort vergessen?": Link per Mail anfordern. Das neue Passwort legt man
+/// im Browser fest (flexr.social/app/?reset=…) und meldet sich danach hier an.
+private struct ForgotPasswordSheet: View {
+    @Environment(LanguageStore.self) private var languageStore
+    private var s: FlexrStrings { languageStore.strings }
+    @Bindable var model: LoginModel
+
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 0) {
+                ScreenHeader(
+                    eyebrow: s(.loginForgot),
+                    title: s(.forgotTitle),
+                    subtitle: s(model.forgotSent ? L.forgotDone : L.forgotSub)
+                )
+                .padding(.top, 24)
+
+                if model.forgotSent {
+                    FlexrButton(title: s(.commonClose)) { model.forgotOpen = false }
+                        .padding(.top, 22)
+                } else {
+                    FlexrTextField(
+                        text: $model.forgotEmail,
+                        label: s(.fieldEmail),
+                        placeholder: s(.loginEmailPlaceholder),
+                        keyboardType: .emailAddress,
+                        textContentType: .username,
+                        autocapitalization: .never
+                    )
+                    FieldError(message: model.forgotError)
+                    FlexrButton(
+                        title: s(.forgotSend),
+                        isEnabled: !model.forgotSending,
+                        isLoading: model.forgotSending
+                    ) {
+                        Task { await model.sendForgot() }
+                    }
+                    .padding(.top, 22)
+                    Button(s(.commonCancel)) { model.forgotOpen = false }
+                        .flexrText(.bodySmall)
+                        .foregroundStyle(FlexrColor.chalkDim)
+                        .frame(maxWidth: .infinity)
+                        .padding(.top, 14)
+                }
+            }
+            .padding(.horizontal, 20)
+            .padding(.bottom, 30)
+        }
+        .background(FlexrColor.ink.ignoresSafeArea())
     }
 }

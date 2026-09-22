@@ -42,6 +42,12 @@ enum L: Hashable, Sendable {
     case loginMissingFields, loginReactivateTitle, loginReactivateConfirm
     case loginFailed, loginReactivateFailed, loginEmailPlaceholder
 
+    // Passwort vergessen / Zugangsdaten
+    case loginForgot, forgotTitle, forgotSub, forgotDone, forgotSend
+    case forgotErrEmail, forgotErrSend, resetNewPw, resetErrShort, resetErrSave
+    case credSection, credEmailLabel, credUnconfirmed, credChangeEmail, credChangePw
+    case credNewEmail, credCurrentPw, credSave, credErrPw, credEmailDone, credPwDone
+
     // Registrierung
     case registerTitle, registerSubtitle, registerPasswordPlaceholder
     case registerNamePlaceholder, registerPhotosLabel, registerPhotoPreparing

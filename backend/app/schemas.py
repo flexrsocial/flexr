@@ -30,6 +30,14 @@ def _strip(v):
     return v.strip() if isinstance(v, str) else v
 
 
+def _check_new_password(v):
+    """Neue Passwoerter: bcrypt wertet nur die ersten 72 Bytes aus. Laengere
+    Passwoerter wuerden stillschweigend gekuerzt - dann sagen wir es lieber."""
+    if isinstance(v, str) and len(v.encode("utf-8")) > 72:
+        raise ValueError("Das Passwort darf höchstens 72 Bytes lang sein.")
+    return v
+
+
 def _normalize_email(v):
     """E-Mail-Adressen in einer Schreibweise speichern und nachschlagen.
 
@@ -45,6 +53,7 @@ class RegisterRequest(BaseModel):
     email: EmailStr
     _email_norm = field_validator("email", mode="before")(_normalize_email)
     password: str = Field(min_length=8)
+    _password_len = field_validator("password")(_check_new_password)
     name: str = Field(min_length=1, max_length=100)
     # Geburtsdatum statt Alter - das Alter wird serverseitig laufend berechnet.
     birthdate: date
@@ -283,6 +292,34 @@ class UpdateProfileRequest(BaseModel):
     # Eine Bio aus lauter Leerzeichen ist eine leere Bio - und die bedeutet
     # serverseitig "Bio entfernen" (siehe routers/profiles.py).
     _trim = field_validator("bio", mode="before")(_strip)
+
+
+class PasswordForgotRequest(BaseModel):
+    email: EmailStr
+    _email_norm = field_validator("email", mode="before")(_normalize_email)
+    language: Optional[Language] = None
+
+
+class PasswordResetRequest(BaseModel):
+    token: str = Field(min_length=10, max_length=200)
+    new_password: str = Field(min_length=8)
+    _password_len = field_validator("new_password")(_check_new_password)
+
+
+class PasswordChangeRequest(BaseModel):
+    current_password: str
+    new_password: str = Field(min_length=8)
+    _password_len = field_validator("new_password")(_check_new_password)
+
+
+class EmailChangeRequest(BaseModel):
+    new_email: EmailStr
+    password: str
+    _email_norm = field_validator("new_email", mode="before")(_normalize_email)
+
+
+class OkResponse(BaseModel):
+    ok: bool = True
 
 
 class DeleteAccountRequest(BaseModel):
