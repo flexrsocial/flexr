@@ -1,6 +1,6 @@
 # FLEXR — Handoff für ein anderes Gerät / Claude Code
 
-Stand: **21.09.2026**
+Stand: **22.09.2026**
 
 ## ⚠️ Dringend zu prüfen: SSH-Zugang zum VPS hat sich geändert (21.09.2026)
 
@@ -29,6 +29,40 @@ Falls du das liest, weil dein `root@`-Login gerade fehlschlägt: das ist
 erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 
 ## Wo das Projekt gerade steht
+
+> **⚠️ Sitzung 22.09.2026 — gepusht, aber NICHT deployed. Vor dem Deploy lesen:**
+>
+> 1. **Backend und Frontend nur zusammen ausrollen.** Das Admin-Tool meldet
+>    sich jetzt per HttpOnly-Cookie an (`f954e00`) - neues `admin.js` ohne
+>    neues Backend = kein Admin-Login.
+> 2. **Drei Migrationen:** `alembic upgrade head` (d5e2f8a1b9c3 Passwort-Reset,
+>    e8f3a2c7d4b1 Login-Sperre, f1a6b3d9e2c4 Gym-Orte aus PLZ inkl. Umschreiben
+>    der Profile-Labels). Danach `sudo systemctl restart flexr-api`.
+> 3. **nginx (root):** `deploy/nginx-flexr.conf` neu einspielen - `/photos/`
+>    liefert nur noch Profilfotos (keine Selfies/Ausweise mehr), und
+>    `/admin.html` bekommt eine CSP ohne `'unsafe-inline'`. `nginx -t` vorher.
+> 4. **Privater Bucket (root, Cloudflare):** Bucket z. B. `flexr-verification`
+>    OHNE Public Access anlegen, CORS wie beim Foto-Bucket (PUT von
+>    https://flexr.social), `S3_PRIVATE_BUCKET_NAME=flexr-verification` in
+>    `backend/.env`, Neustart. Ohne die Variable bleibt alles wie bisher.
+> 5. **Apps:** "Passwort vergessen/aendern", "E-Mail aendern", Accept-Language
+>    und die Foto-Fixes brauchen neue Builds (Android: versionCode hochzaehlen;
+>    iOS nicht compilerverifiziert - erst den neuen Codemagic-Workflow
+>    `ios-tests` abwarten).
+>
+> **Was die Sitzung gebracht hat** (13 Commits, `a3e3c3a`..`c824f08`): Login
+> case-insensitiv; Passwort vergessen/aendern + E-Mail aendern auf allen
+> Plattformen; Pruefaufnahmen im privaten Bucket; API-Fehler zweisprachig
+> (`app/api_i18n.py`, Test erzwingt Vollstaendigkeit); Admin per HttpOnly-
+> Cookie; Melden-Dialog statt `prompt()`; kontobezogene Login-Sperre (10
+> Fehlversuche/15 min); Foto-Regeln (`avatar_url`, `deletable`) vom Server;
+> GitHub-Actions-CI (Backend + Android) und iOS-Tests in Codemagic;
+> `utcnow()`-Helfer ohne Semantikaenderung (Warnungen 18.600 -> ~2.800);
+> Gym-Orte + Bug beim Admin-Umbenennen (Profile fielen aus der Umkreissuche);
+> diverse UI-Fixes. Testsuite: 534 gruen, laeuft mit `-n auto` in ~1 min.
+> **Wichtig:** `android/android.keystore` ist der Upload-Key fuer
+> `android-native` - der Ordner ist nicht totes Gewicht.
+
 
 > ~~**`git pull` als `deploy` bricht bei jedem Commit, der
 > android-native/ oder ios/ beruehrt**~~ — **erledigt** (Sitzung
