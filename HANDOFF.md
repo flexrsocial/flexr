@@ -46,8 +46,20 @@ erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 > 1. **nginx (root):** `deploy/nginx-flexr.conf` einspielen - erst dann liefert
 >    `/photos/` keine Selfies/Ausweise mehr, und `/admin.html` bekommt die
 >    strenge CSP. Bis dahin gilt der alte Stand.
-> 2. **Privater Bucket:** in Cloudflare anlegen (ohne Public Access, CORS wie
->    Foto-Bucket), `S3_PRIVATE_BUCKET_NAME` in `backend/.env`, Neustart.
+> 2. **Privater Bucket:** `flexr-verification` ist angelegt, mit eigenem
+>    R2-Token (nur dieser Bucket). Der Foto-Token des Backends kommt dort NICHT
+>    hin (am 22.09. geprueft: AccessDenied). Deshalb seit `afb9171` eigene
+>    Variablen: `S3_PRIVATE_BUCKET_NAME`, `S3_PRIVATE_ACCESS_KEY_ID`,
+>    `S3_PRIVATE_SECRET_ACCESS_KEY` in `backend/.env` - erst alle drei setzen,
+>    dann Neustart. Nur den Bucket-Namen ohne Schluessel zu setzen, legt die
+>    Verifizierung lahm. CORS-Regel am Bucket (PUT von https://flexr.social)
+>    im Dashboard setzen, der Token darf sie nicht lesen.
+>
+> **Reset-Mails ohne Anforderung (22.09., 21:26-21:47):** kam von Googles
+> Play-Pre-Launch-Testgeraeten (IPs 74.125.x/66.249.x, okhttp), die in 2.7.18
+> "Passwort vergessen?" antippten - mit der in der Play Console unter
+> "App-Zugriff" hinterlegten Adresse. Kein Link eingeloest. Seit `afb9171`
+> hoechstens eine Reset-Mail je Konto alle 10 Minuten.
 > 3. **Play Console:** `release-2.7.18/flexr-2.7.18-vc130.aab` hochladen.
 > 4. **iOS:** neuer Build durch den Nutzer (Codemagic `ios-tests` beachten).
 >
