@@ -51,10 +51,13 @@ workflows:
       # die einzige Stelle, an der die iOS-Tests ueberhaupt laufen.
       - name: Unit tests
         script: |
+          # Kein festes --device: Welche Simulatoren es gibt, haengt von der
+          # Xcode-Version ab ("xcode: latest"). Ein fest eingetragenes
+          # "iPhone 16" existierte am 22.09.2026 nicht mehr und liess den Build
+          # scheitern - ohne Angabe waehlt xcode-project ein passendes Ziel.
           xcode-project run-tests \
             --project "$XCODE_PROJECT" \
-            --scheme "$XCODE_SCHEME" \
-            --device "iPhone 16"
+            --scheme "$XCODE_SCHEME"
         test_report: build/ios/test/*.xml
       - name: Build ipa
         script: |
@@ -102,10 +105,13 @@ workflows:
     scripts:
       - name: Unit tests
         script: |
+          # Kein festes --device: Welche Simulatoren es gibt, haengt von der
+          # Xcode-Version ab ("xcode: latest"). Ein fest eingetragenes
+          # "iPhone 16" existierte am 22.09.2026 nicht mehr und liess den Build
+          # scheitern - ohne Angabe waehlt xcode-project ein passendes Ziel.
           xcode-project run-tests \
             --project "$XCODE_PROJECT" \
-            --scheme "$XCODE_SCHEME" \
-            --device "iPhone 16"
+            --scheme "$XCODE_SCHEME"
         test_report: build/ios/test/*.xml
     publishing:
       email:
