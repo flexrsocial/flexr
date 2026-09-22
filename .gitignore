@@ -52,3 +52,9 @@ android/manifest-checksum.txt
 
 # Lokale Testumgebung
 backend/.env.test
+
+# Lokale Release-Ablage (gebaute APK/AAB samt Pruefsummen) und Social-Media-
+# Material - bewusst nicht im Repository, aber auch nicht bei jedem
+# `git status` als "unversioniert" im Weg.
+release-*/
+instagram/

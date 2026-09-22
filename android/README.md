@@ -1,4 +1,16 @@
-# FLEXR Android-App (Trusted Web Activity)
+# FLEXR Android-App (Trusted Web Activity) — abgelöst, Ordner NICHT löschen
+
+> **Stand 22.09.2026:** Die TWA ist seit Version 1.0.4 durch die native App in
+> `android-native/` ersetzt. Der Ordner bleibt trotzdem: **`android.keystore`
+> ist weiterhin der Upload-Schlüssel, mit dem `android-native` signiert**
+> (`android-native/app/build.gradle.kts`, `legacyKeystore`). Ohne ihn lassen
+> sich keine Updates mehr in die bestehende Play-Store-App laden.
+>
+> Empfehlung: Keystore und `KEYSTORE-CREDENTIALS.txt` zusätzlich im
+> Passwortspeicher sichern. Das Passwort liegt hier im Klartext in einem
+> MEGA-synchronisierten Ordner — dort gehört es auf Dauer nicht hin.
+> Die übrigen TWA-Dateien (`twa-manifest.json`, `build.sh`) sind nur noch
+> Referenz.
 
 Die Android-App lädt die bestehende Web-App (https://flexr.social) als
 **Trusted Web Activity (TWA)** — vollbildig, ohne Browser-Leiste, mit eigenem
