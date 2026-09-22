@@ -32,6 +32,26 @@ workflows:
             "s/CURRENT_PROJECT_VERSION = [0-9.]*;/CURRENT_PROJECT_VERSION = $BUILD_NUMBER;/g" \
             "$XCODE_PROJECT/project.pbxproj"
           grep -m1 "CURRENT_PROJECT_VERSION" "$XCODE_PROJECT/project.pbxproj"
+      # Unit-Tests vor dem Bauen: Scheitert einer, geht nichts an TestFlight.
+      # Bewusst VOR allen Signing-Schritten: use-profiles stellt das Projekt
+      # auf manuelles Signieren mit dem App-Store-Profil um, und damit
+      # scheiterte am 22.09.2026 schon der Simulator-Build fuer die Tests
+      # ("Did not find any test results").
+      # Auf dem Entwicklungsrechner gibt es keine Swift-Toolchain - dies ist
+      # die einzige Stelle, an der die iOS-Tests ueberhaupt laufen.
+      - name: Unit tests
+        script: |
+          # Kein festes --device: Welche Simulatoren es gibt, haengt von der
+          # Xcode-Version ab ("xcode: latest"). Ein fest eingetragenes
+          # "iPhone 16" existierte am 22.09.2026 nicht mehr und liess den Build
+          # scheitern - ohne Angabe waehlt xcode-project ein passendes Ziel.
+          # Bei einem Fehlschlag die Compiler-/Testfehler direkt ins Log holen -
+          # sonst stehen sie nur im Artefakt /tmp/xcodebuild_logs/*.log.
+          xcode-project run-tests \
+            --project "$XCODE_PROJECT" \
+            --scheme "$XCODE_SCHEME" \
+          || { grep -h -E "error:|: error|failed \(" /tmp/xcodebuild_logs/*.log | sort -u | head -60; exit 1; }
+        test_report: build/ios/test/*.xml
       - name: Set up keychain
         script: |
           keychain initialize
@@ -46,19 +66,6 @@ workflows:
       - name: Set up code signing settings on Xcode project
         script: |
           xcode-project use-profiles
-      # Unit-Tests vor dem Bauen: Scheitert einer, geht nichts an TestFlight.
-      # Auf dem Entwicklungsrechner gibt es keine Swift-Toolchain - dies ist
-      # die einzige Stelle, an der die iOS-Tests ueberhaupt laufen.
-      - name: Unit tests
-        script: |
-          # Kein festes --device: Welche Simulatoren es gibt, haengt von der
-          # Xcode-Version ab ("xcode: latest"). Ein fest eingetragenes
-          # "iPhone 16" existierte am 22.09.2026 nicht mehr und liess den Build
-          # scheitern - ohne Angabe waehlt xcode-project ein passendes Ziel.
-          xcode-project run-tests \
-            --project "$XCODE_PROJECT" \
-            --scheme "$XCODE_SCHEME"
-        test_report: build/ios/test/*.xml
       - name: Build ipa
         script: |
           xcode-project build-ipa \
@@ -109,10 +116,15 @@ workflows:
           # Xcode-Version ab ("xcode: latest"). Ein fest eingetragenes
           # "iPhone 16" existierte am 22.09.2026 nicht mehr und liess den Build
           # scheitern - ohne Angabe waehlt xcode-project ein passendes Ziel.
+          # Bei einem Fehlschlag die Compiler-/Testfehler direkt ins Log holen -
+          # sonst stehen sie nur im Artefakt /tmp/xcodebuild_logs/*.log.
           xcode-project run-tests \
             --project "$XCODE_PROJECT" \
-            --scheme "$XCODE_SCHEME"
+            --scheme "$XCODE_SCHEME" \
+          || { grep -h -E "error:|: error|failed \(" /tmp/xcodebuild_logs/*.log | sort -u | head -60; exit 1; }
         test_report: build/ios/test/*.xml
+    artifacts:
+      - /tmp/xcodebuild_logs/*.log
     publishing:
       email:
         recipients:
