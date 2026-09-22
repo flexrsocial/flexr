@@ -1,5 +1,6 @@
 package flexr.social.app.core.network
 
+import flexr.social.app.core.locale.LanguageStore
 import flexr.social.app.data.session.SessionStore
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -19,6 +20,7 @@ import javax.inject.Singleton
 @Singleton
 class AuthHeaderInterceptor @Inject constructor(
     private val sessionStore: SessionStore,
+    private val languageStore: LanguageStore,
 ) : Interceptor {
 
     override fun intercept(chain: Interceptor.Chain): Response {
@@ -36,6 +38,9 @@ class AuthHeaderInterceptor @Inject constructor(
             // erkennt er die App am OkHttp-User-Agent; das ist der Weg fuer
             // Fassungen vor 2.7.0 und bleibt als Rueckfall bestehen.
             builder.header("X-Flexr-Client", "android")
+            // Sprache der App, nicht die des Geraets: Der Server uebersetzt
+            // danach seine Fehlermeldungen (backend/app/api_i18n.py).
+            builder.header("Accept-Language", languageStore.current.code)
         }
         return chain.proceed(builder.build())
     }

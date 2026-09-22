@@ -256,7 +256,7 @@
     try {
       var resp = await fetch('/api/notices', {
         method: 'POST',
-        headers: {'Content-Type': 'application/json'},
+        headers: {'Content-Type': 'application/json', 'Accept-Language': 'de'},
         body: JSON.stringify({
           category: kategorie.value,
           content_reference: ref,

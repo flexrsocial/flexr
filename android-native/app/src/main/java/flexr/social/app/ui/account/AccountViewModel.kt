@@ -780,7 +780,7 @@ class AccountViewModel @Inject constructor(
                         it.copy(
                             unblockingUserId = null,
                             blockedUsersError = (throwable as? FlexrApiException)?.message
-                                ?: "Aufheben fehlgeschlagen.",
+                                ?: strings.get(R.string.reset_err_save),
                         )
                     }
                 }

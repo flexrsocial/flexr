@@ -68,7 +68,7 @@ class LoginViewModel @Inject constructor(
                         }
                     } else {
                         _uiState.update {
-                            it.copy(isSubmitting = false, error = apiError?.message ?: "Login fehlgeschlagen.")
+                            it.copy(isSubmitting = false, error = apiError?.message ?: strings.get(R.string.reset_err_save))
                         }
                     }
                 }
@@ -131,7 +131,7 @@ class LoginViewModel @Inject constructor(
                         it.copy(
                             isReactivating = false,
                             reactivateError = (throwable as? FlexrApiException)?.message
-                                ?: "Reaktivierung fehlgeschlagen.",
+                                ?: strings.get(R.string.reset_err_save),
                         )
                     }
                 }

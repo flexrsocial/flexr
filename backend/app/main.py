@@ -1,10 +1,16 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.encoders import jsonable_encoder
+from fastapi.exception_handlers import http_exception_handler
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
+from starlette.exceptions import HTTPException as StarletteHTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 
+from . import api_i18n
 from .config import settings
 from .rate_limit import limiter
 from .routers import (
@@ -36,7 +42,43 @@ async def _raise_threadpool_limit() -> None:
 
 
 app.state.limiter = limiter
-app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+
+def _rate_limit_handler(request: Request, exc: RateLimitExceeded):
+    """Wie slowapis eigener Handler (Status, Retry-Header), aber mit einem Satz,
+    den ein Mensch lesen kann - statt "Rate limit exceeded: 5 per 1 hour"."""
+    response = _rate_limit_exceeded_handler(request, exc)
+    text = (
+        "Too many attempts. Please wait a moment and try again."
+        if api_i18n.request_language(request) == "en"
+        else "Zu viele Versuche. Bitte warte einen Moment und versuche es erneut."
+    )
+    neu = JSONResponse({"detail": text}, status_code=response.status_code)
+    for name, wert in response.headers.items():
+        if name.lower().startswith(("retry-after", "x-ratelimit")):
+            neu.headers[name] = wert
+    return neu
+
+
+async def _http_exception_handler(request: Request, exc: StarletteHTTPException):
+    """Fehlermeldungen in der Sprache des Clients (siehe app/api_i18n.py)."""
+    exc.detail = api_i18n.translate_detail(exc.detail, api_i18n.request_language(request))
+    return await http_exception_handler(request, exc)
+
+
+async def _validation_exception_handler(request: Request, exc: RequestValidationError):
+    lang = api_i18n.request_language(request)
+    return JSONResponse(
+        status_code=422,
+        content=jsonable_encoder(
+            {"detail": api_i18n.translate_validation_errors(exc.errors(), lang)}
+        ),
+    )
+
+
+app.add_exception_handler(RateLimitExceeded, _rate_limit_handler)
+app.add_exception_handler(StarletteHTTPException, _http_exception_handler)
+app.add_exception_handler(RequestValidationError, _validation_exception_handler)
 app.add_middleware(SlowAPIMiddleware)
 
 # GZip: JSON-Antworten (Decks, Match- und Nachrichtenlisten) sind hochgradig

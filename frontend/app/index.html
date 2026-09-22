@@ -2048,7 +2048,7 @@
      laufen synchron und damit vor dem DOMContentLoaded, bei dem FlexrI18n die
      data-i18n-Knoten uebersetzt. -->
 <script src="/i18n.js?v=5"></script>
-<script src="/app/i18n-app.js?v=13"></script>
+<script src="/app/i18n-app.js?v=14"></script>
 <a class="skip-link" href="#main-content" data-i18n="common.skipToContent">Zum Inhalt springen</a>
 <div class="app" id="app">
 
@@ -3709,6 +3709,9 @@
     const headers = Object.assign({'Content-Type': 'application/json'}, opts.headers || {});
     if(token) headers['Authorization'] = 'Bearer ' + token;
     headers['X-Device-Id'] = getDeviceId();
+    // Sprache der Oberflaeche, nicht die des Browsers: Der Server uebersetzt
+    // danach seine Fehlermeldungen (backend/app/api_i18n.py).
+    headers['Accept-Language'] = FlexrI18n.current();
     const res = await fetch(API_BASE + path, Object.assign({}, opts, {headers}));
     // Ein 401 auf /api/auth/* ist kein Sitzungsende, sondern die Antwort auf
     // falsche Zugangsdaten - beim Anmelden gibt es keine Sitzung, die ablaufen
@@ -4354,7 +4357,7 @@
         errEl.textContent = err.detail.message;
         return;
       }
-      errEl.textContent = err.message || 'Registrierung fehlgeschlagen.';
+      errEl.textContent = err.message || t('err.failed');
     }finally{
       btn.disabled = false;
       btn.textContent = btnText;
@@ -4399,7 +4402,7 @@
             toast(t('login.reactivated'));
             goToApp();
           }catch(err2){
-            errEl.textContent = err2.message || 'Reaktivierung fehlgeschlagen.';
+            errEl.textContent = err2.message || t('err.failed');
           }
           return;
         }
@@ -4412,7 +4415,7 @@
         showLoginModerationNotice(err.detail);
         return;
       }
-      errEl.textContent = err.message || 'Login fehlgeschlagen.';
+      errEl.textContent = err.message || t('err.failed');
     }finally{
       btn.disabled = false;
     }
@@ -6008,7 +6011,7 @@
       toast(ack && ack.reference
         ? t('report.ack', {ref: ack.reference})
         : t('report.ackPlain'), {sticky: !!(ack && ack.reference)});
-    }catch(err){ toast(err.message || 'Meldung fehlgeschlagen.'); }
+    }catch(err){ toast(err.message || t('err.failed')); }
   }
 
   async function blockUser(userId, name, onBlocked){
@@ -6017,7 +6020,7 @@
       await api('/api/blocks', {method: 'POST', body: JSON.stringify({user_id: userId})});
       toast(t('block.done', {name}));
       if(onBlocked) onBlocked();
-    }catch(err){ toast(err.message || 'Blockieren fehlgeschlagen.'); }
+    }catch(err){ toast(err.message || t('err.failed')); }
   }
 
   async function unmatchMatch(matchId, name, onDone){
@@ -7531,7 +7534,7 @@
       await loadMessages();
       matchesCache = await api('/api/matches');
       renderUnreadBadge(matchesCache);
-    }catch(err){ toast(err.message || 'Leeren fehlgeschlagen.'); }
+    }catch(err){ toast(err.message || t('err.failed')); }
   });
 
   $('btnDeleteChat').addEventListener('click', async () => {

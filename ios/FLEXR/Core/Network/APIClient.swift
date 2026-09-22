@@ -154,6 +154,10 @@ final class APIClient: @unchecked Sendable {
             // URLSession; das ist der Weg für ältere Fassungen und bleibt
             // als Rückfall bestehen. Ausdrücklich ist verlässlicher.
             request.setValue("ios", forHTTPHeaderField: "X-Flexr-Client")
+            // Sprache der App, nicht die des Geräts (URLSession schickte sonst
+            // die Systemsprache): Der Server übersetzt danach seine
+            // Fehlermeldungen (backend/app/api_i18n.py).
+            request.setValue(FlexrStrings.current.language.rawValue, forHTTPHeaderField: "Accept-Language")
         }
 
         // Zusatz-Header je Aufruf - aktuell nur X-Flexr-Background, mit dem der

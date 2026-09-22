@@ -426,7 +426,7 @@
 
     // Angemeldet? Dann den Token mitschicken, damit sich die Erklärung dem
     // Konto zuordnen lässt. Pflicht ist das ausdrücklich nicht.
-    var headers = {'Content-Type': 'application/json'};
+    var headers = {'Content-Type': 'application/json', 'Accept-Language': 'de'};
     try {
       var token = localStorage.getItem('flexr_token');
       if(token){ headers['Authorization'] = 'Bearer ' + token; }
