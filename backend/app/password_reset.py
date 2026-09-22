@@ -22,6 +22,23 @@ logger = logging.getLogger("flexr.mail")
 
 TOKEN_TTL_MINUTES = 60
 
+# Hoechstens eine Mail je Konto in diesem Abstand. Die IP-Grenze der Route
+# (5/Stunde) hilft nicht, wenn die Anfragen von wechselnden Adressen kommen:
+# Am 22.09.2026 schickten Googles Pre-Launch-Testgeraete binnen 21 Minuten
+# drei Reset-Mails an dieselbe Adresse. Genauso koennte jemand ein fremdes
+# Postfach zumuellen.
+RESEND_COOLDOWN_MINUTES = 10
+
+
+def recently_issued(db: Session, user: User) -> bool:
+    grenze = utcnow() - timedelta(minutes=RESEND_COOLDOWN_MINUTES)
+    return (
+        db.query(PasswordReset.id)
+        .filter(PasswordReset.user_id == user.id, PasswordReset.created_at > grenze)
+        .first()
+        is not None
+    )
+
 
 def build_link(token: str) -> str:
     """Link auf die Web-App. Die Seite fragt das neue Passwort ab und loest

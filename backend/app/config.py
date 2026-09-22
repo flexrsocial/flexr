@@ -165,6 +165,10 @@ class Settings(BaseSettings):
     # ueber die r2.dev-Adresse aber als Ganzes oeffentlich. Siehe
     # storage.verification_bucket().
     s3_private_bucket_name: str = ""
+    # Optional eigener R2-Token nur fuer den privaten Bucket (siehe
+    # storage.get_s3_client). Leer: derselbe Token wie fuer die Fotos.
+    s3_private_access_key_id: str = ""
+    s3_private_secret_access_key: str = ""
     s3_public_base_url: str = ""
     s3_region: str = "auto"
 

@@ -160,3 +160,25 @@ def test_erfolgreicher_login_setzt_zaehler_zurueck(client):
     for _ in range(9):
         _login(client, "zaehler@example.com", "falsch123")
     assert _login(client, "zaehler@example.com", PW).status_code == 200
+
+
+def test_hoechstens_eine_reset_mail_alle_zehn_minuten(client, monkeypatch):
+    """Am 22.09.2026 kamen binnen 21 Minuten drei Reset-Mails an dieselbe
+    Adresse (Googles Pre-Launch-Testgeraete, wechselnde IPs)."""
+    from datetime import timedelta
+    from app.timeutil import utcnow
+
+    mails = _mails(monkeypatch)
+    register_user(client, "bremse@example.com")
+    mails.clear()
+    for _ in range(3):
+        r = client.post("/api/auth/password/forgot", json={"email": "bremse@example.com"})
+        assert r.status_code == 200 and r.json() == {"ok": True}
+    assert len(mails) == 1
+
+    # Nach Ablauf der Sperre geht wieder eine raus.
+    with TestingSessionLocal() as db:
+        db.query(PasswordReset).update({"created_at": utcnow() - timedelta(minutes=11)})
+        db.commit()
+    client.post("/api/auth/password/forgot", json={"email": "bremse@example.com"})
+    assert len(mails) == 2

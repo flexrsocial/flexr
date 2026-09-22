@@ -84,3 +84,19 @@ def test_ohne_privaten_bucket_bleibt_alles_wie_bisher(monkeypatch):
     with patch.object(storage, "get_s3_client", return_value=fake):
         storage.create_presigned_verification_upload(UID, "image/jpeg")
     assert fake.presigned[0][1] == "fotos"
+
+
+def test_eigener_token_fuer_privaten_bucket(privat, monkeypatch):
+    """Hat der private Bucket einen eigenen R2-Token, bekommt nur er ihn."""
+    monkeypatch.setattr(storage.settings, "s3_private_access_key_id", "privat-id")
+    monkeypatch.setattr(storage.settings, "s3_private_secret_access_key", "privat-secret")
+    monkeypatch.setattr(storage.settings, "s3_access_key_id", "foto-id")
+    monkeypatch.setattr(storage.settings, "s3_secret_access_key", "foto-secret")
+    monkeypatch.setattr(storage.settings, "s3_endpoint_url", "https://s3.test")
+
+    def schluessel(client):
+        return client._request_signer._credentials.access_key
+
+    assert schluessel(storage.get_s3_client("privat")) == "privat-id"
+    assert schluessel(storage.get_s3_client("fotos")) == "foto-id"
+    assert schluessel(storage.get_s3_client()) == "foto-id"

@@ -21,12 +21,27 @@ CONTENT_TYPE_EXTENSIONS = {
 EXTENSION_CONTENT_TYPES = {ext: ct for ct, ext in CONTENT_TYPE_EXTENSIONS.items()}
 
 
-def get_s3_client():
+def get_s3_client(bucket: str | None = None):
+    """S3-Client, fuer den privaten Bucket ggf. mit eigenem Schluesselpaar.
+
+    Der Pruefaufnahmen-Bucket kann einen eigenen R2-Token haben, der nur ihn
+    erreicht (S3_PRIVATE_ACCESS_KEY_ID/_SECRET_ACCESS_KEY) - dann kann ein
+    abgeflossener Foto-Token keine Ausweisaufnahmen lesen und umgekehrt.
+    Ohne eigene Schluessel gilt fuer beide Buckets derselbe Token.
+    """
+    key_id, secret = settings.s3_access_key_id, settings.s3_secret_access_key
+    if (
+        bucket
+        and bucket == settings.s3_private_bucket_name
+        and settings.s3_private_access_key_id
+        and settings.s3_private_secret_access_key
+    ):
+        key_id, secret = settings.s3_private_access_key_id, settings.s3_private_secret_access_key
     return boto3.client(
         "s3",
         endpoint_url=settings.s3_endpoint_url,
-        aws_access_key_id=settings.s3_access_key_id,
-        aws_secret_access_key=settings.s3_secret_access_key,
+        aws_access_key_id=key_id,
+        aws_secret_access_key=secret,
         region_name=settings.s3_region,
         config=BotoConfig(signature_version="s3v4"),
     )
@@ -98,7 +113,7 @@ def create_presigned_verification_upload(user_id: str, content_type: str) -> dic
     ext = CONTENT_TYPE_EXTENSIONS[content_type]
     object_key = f"users/{user_id}/verify/{uuid.uuid4()}.{ext}"
 
-    client = get_s3_client()
+    client = get_s3_client(verification_bucket())
     upload_url = client.generate_presigned_url(
         "put_object",
         Params={
@@ -150,7 +165,7 @@ def create_presigned_document_upload(request_id: str, content_type: str) -> dict
     """Presigned-PUT-URL für eine Ausweisaufnahme im privaten Prefix."""
     object_key = document_object_key(request_id, content_type)
 
-    client = get_s3_client()
+    client = get_s3_client(verification_bucket())
     upload_url = client.generate_presigned_url(
         "put_object",
         Params={
@@ -165,16 +180,15 @@ def create_presigned_document_upload(request_id: str, content_type: str) -> dict
 
 def create_presigned_view_url(object_key: str, expires_in: int = DOCUMENT_VIEW_URL_TTL_SECONDS) -> str:
     """Kurzlebige Signed-GET-URL. Wird nur an authentifizierte Admins ausgegeben."""
-    client = get_s3_client()
     buckets = _buckets_for(object_key)
     bucket = buckets[0]
     if len(buckets) > 1:
         # Altbestand? Nur dann nachsehen, wenn es ueberhaupt zwei Orte gibt.
         try:
-            client.head_object(Bucket=bucket, Key=object_key)
+            get_s3_client(bucket).head_object(Bucket=bucket, Key=object_key)
         except Exception:
             bucket = buckets[1]
-    return client.generate_presigned_url(
+    return get_s3_client(bucket).generate_presigned_url(
         "get_object",
         Params={"Bucket": bucket, "Key": object_key},
         ExpiresIn=expires_in,
@@ -191,14 +205,13 @@ def inspect_uploaded_image(object_key: str) -> dict:
 
     Liefert ``{"ok": bool, "size": int, "detected": str|None}``.
     """
-    client = get_s3_client()
     bucket = _buckets_for(object_key)[0]
-    head = client.head_object(Bucket=bucket, Key=object_key)
+    head = get_s3_client(bucket).head_object(Bucket=bucket, Key=object_key)
     size = int(head.get("ContentLength", 0))
     if size <= 0 or size > MAX_DOCUMENT_BYTES:
         return {"ok": False, "size": size, "detected": None}
 
-    body = client.get_object(
+    body = get_s3_client(bucket).get_object(
         Bucket=bucket, Key=object_key, Range="bytes=0-15"
     )["Body"].read()
     detected = _sniff_image_type(body)
@@ -230,9 +243,8 @@ def list_object_keys(prefix: str) -> list[str]:
         return []
     keys: list[str] = []
     try:
-        client = get_s3_client()
-        paginator = client.get_paginator("list_objects_v2")
         for bucket in _buckets_for(prefix):
+            paginator = get_s3_client(bucket).get_paginator("list_objects_v2")
             for page in paginator.paginate(Bucket=bucket, Prefix=prefix):
                 keys.extend(item["Key"] for item in page.get("Contents", []))
     except Exception:
@@ -259,19 +271,18 @@ def delete_objects_verified(object_keys: list[str]) -> list[str]:
         # Ohne konfigurierten Bucket gibt es nichts zu löschen (Entwicklung/Test)
         return remaining
 
-    client = get_s3_client()
     for key in object_keys:
         # Pruefaufnahmen in jedem Bucket loeschen, in dem sie liegen koennen -
         # "weg" heisst: nirgends mehr auffindbar.
         for bucket in _buckets_for(key):
             try:
-                client.delete_object(Bucket=bucket, Key=key)
+                get_s3_client(bucket).delete_object(Bucket=bucket, Key=key)
             except Exception:
                 logger.warning("Löschen fehlgeschlagen: %s", key)
                 remaining.append(key)
                 break
             try:
-                client.head_object(Bucket=bucket, Key=key)
+                get_s3_client(bucket).head_object(Bucket=bucket, Key=key)
             except Exception:
                 continue  # nicht mehr auffindbar = gelöscht
             logger.warning("Objekt nach dem Löschen weiterhin vorhanden: %s", key)

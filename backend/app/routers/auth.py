@@ -431,7 +431,14 @@ def forgot_password(
     Dating-App angemeldet ist.
     """
     user = db.query(User).filter(func.lower(User.email) == payload.email).first()
-    if user is not None and user.deleted_at is None and not user.is_banned:
+    if (
+        user is not None
+        and user.deleted_at is None
+        and not user.is_banned
+        # Kurz nach der letzten Mail keine weitere - die Antwort bleibt gleich,
+        # der offene Link aus der ersten Mail gilt ja noch.
+        and not password_reset.recently_issued(db, user)
+    ):
         token = password_reset.issue(db, user)
         background_tasks.add_task(
             send_password_reset,

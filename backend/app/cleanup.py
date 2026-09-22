@@ -45,12 +45,11 @@ def delete_storage_objects(keys: list[str]) -> None:
     if not keys or not settings.s3_bucket_name:
         return
     try:
-        client = get_s3_client()
         for key in keys:
             # Pruefaufnahmen liegen ggf. im privaten Bucket (und als
             # Altbestand noch im Foto-Bucket) - siehe storage._buckets_for.
             for bucket in _buckets_for(key):
-                client.delete_object(Bucket=bucket, Key=key)
+                get_s3_client(bucket).delete_object(Bucket=bucket, Key=key)
     except Exception:
         # Best effort: DB-Löschung darf nicht an Storage-Fehlern scheitern
         logger.exception("Objekt-Storage-Aufräumen fehlgeschlagen")
