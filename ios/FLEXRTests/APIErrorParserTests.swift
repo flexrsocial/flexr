@@ -79,11 +79,15 @@ final class APIErrorParserTests: XCTestCase {
         XCTAssertFalse(parse(400, #"{"detail":{"code":"verification_required"}}"#).isVerificationRequired)
     }
 
-    func testAbgelaufeneMitgliedschaftWirdErkannt() {
+    /// 402 hiess frueher "Probemonat abgelaufen". Den Probemonat gibt es seit
+    /// dem 10.09.2026 nicht mehr (FLEXR ist dauerhaft kostenlos); der Server
+    /// sendet 402 nirgends mehr. Bleibt ein aelterer Server doch einmal dabei,
+    /// soll die App eine neutrale Meldung zeigen - nicht die alte Bezahlwand.
+    func testZahlungErforderlichZeigtNeutraleMeldung() {
         let error = parse(402, "{}")
         XCTAssertTrue(error.isPaymentRequired)
         XCTAssertNil(error.mutedUntil)
-        XCTAssertEqual(error.message, "Probemonat abgelaufen. Bitte Abo abschließen.")
+        XCTAssertEqual(error.message, "Diese Funktion steht gerade nicht zur Verfügung.")
     }
 
     func testNetzfehlerWerdenInVerstaendlicheMeldungenUebersetzt() {
