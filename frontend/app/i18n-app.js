@@ -245,6 +245,12 @@
 
     // ---- Melden / Blockieren / Match auflösen
     'report.prompt': '{name} melden. Kurzer Grund:',
+    'report.title': '{name} melden',
+    'report.body': 'Was ist vorgefallen? Deine Meldung wird von uns geprüft.',
+    'report.reasonLabel': 'Grund',
+    'report.placeholder': 'Kurze Beschreibung',
+    'report.send': 'Meldung senden',
+    'report.errShort': 'Bitte beschreibe kurz, was vorgefallen ist (mindestens 3 Zeichen).',
     'report.ack': 'Meldung eingegangen — Aktenzeichen {ref}. Wir prüfen sie innerhalb von 72 Stunden.',
     'report.ackPlain': 'Meldung gesendet. Danke für dein Feedback.',
     'block.confirm': '{name} wirklich blockieren? Ihr seht euch danach nicht mehr.',
@@ -785,6 +791,12 @@
     'profile.verified': 'Verified profile',
 
     'report.prompt': 'Report {name}. Brief reason:',
+    'report.title': 'Report {name}',
+    'report.body': 'What happened? We will review your report.',
+    'report.reasonLabel': 'Reason',
+    'report.placeholder': 'Short description',
+    'report.send': 'Send report',
+    'report.errShort': 'Please describe briefly what happened (at least 3 characters).',
     'report.ack': 'Report received — reference {ref}. We will review it within 72 hours.',
     'report.ackPlain': 'Report sent. Thanks for your feedback.',
     'block.confirm': 'Really block {name}? You will no longer see each other.',

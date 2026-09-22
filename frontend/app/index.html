@@ -1924,7 +1924,11 @@
   .toast{
     position:fixed; top:16px; left:50%; transform:translateX(-50%);
     background:#1e1e1e; border:1px solid var(--hairline); border-left:3px solid var(--plate);
-    padding:11px 16px; border-radius:11px; font-size:13.5px; z-index:90; max-width:380px; text-align:left;
+    padding:11px 16px; border-radius:11px; font-size:13.5px; z-index:90; text-align:left;
+    /* Mit left:50% ohne eigene Breite schrumpfte der Toast auf die halbe
+       Bildschirmbreite - auf dem Handy wurde das Aktenzeichen zur schmalen
+       Spalte ueber der Ueberschrift. */
+    width:max-content; max-width:min(380px, calc(100vw - 32px)); box-sizing:border-box;
     box-shadow:0 14px 34px rgba(0,0,0,.5);
     animation:toastIn .25s ease;
     display:flex; align-items:flex-start; gap:10px;
@@ -2048,7 +2052,7 @@
      laufen synchron und damit vor dem DOMContentLoaded, bei dem FlexrI18n die
      data-i18n-Knoten uebersetzt. -->
 <script src="/i18n.js?v=5"></script>
-<script src="/app/i18n-app.js?v=14"></script>
+<script src="/app/i18n-app.js?v=15"></script>
 <a class="skip-link" href="#main-content" data-i18n="common.skipToContent">Zum Inhalt springen</a>
 <div class="app" id="app">
 
@@ -3062,6 +3066,26 @@
         <div class="btn-row" style="margin-top:18px;">
           <button class="btn" id="btnGymSuggestSubmit" data-i18n="gym.submit">Vorschlag einreichen</button>
           <button class="btn secondary" id="btnGymSuggestCancel" data-i18n="common.cancel">Abbrechen</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MELDEN (statt prompt(): der ist in manchen Umgebungen gesperrt und
+       zeigt keinen Zeichenzaehler - Paritaet zum ReportDialog der Apps) -->
+  <div class="legal-modal-backdrop" id="reportModalBackdrop">
+    <div class="legal-modal delete-modal" role="dialog" aria-modal="true" aria-labelledby="reportModalTitle">
+      <button class="legal-modal-close" id="reportModalClose" data-i18n-aria="common.close" aria-label="Schließen">✕</button>
+      <div class="legal-modal-body">
+        <h1 style="font-size:20px;" id="reportModalTitle"></h1>
+        <p style="margin-top:10px;" data-i18n="report.body">Was ist vorgefallen? Deine Meldung wird von uns geprüft.</p>
+        <label for="reportReason" style="margin-top:14px;" data-i18n="report.reasonLabel">Grund</label>
+        <textarea id="reportReason" maxlength="500" data-i18n-ph="report.placeholder" placeholder="Kurze Beschreibung"></textarea>
+        <div class="bio-counter" id="reportCounter" style="text-align:right;">0/500</div>
+        <div class="field-err" id="reportErr"></div>
+        <div class="btn-row" style="margin-top:14px;">
+          <button class="btn" id="btnReportSend" data-i18n="report.send">Meldung senden</button>
+          <button class="btn secondary" id="btnReportCancel" data-i18n="common.cancel">Abbrechen</button>
         </div>
       </div>
     </div>
@@ -5998,20 +6022,56 @@
   }
 
   // ---------- Generische Melde-/Block-Helfer (Swipe-Karten, Match-Profil, Chat) ----------
-  async function reportUser(userId, name){
-    const reason = prompt(t('report.prompt', {name}));
-    if(!reason || !reason.trim()) return;
+  // Meldedialog: reportUser() oeffnet ihn, "Senden" schickt ab.
+  let reportTarget = null;
+  const reportBackdrop = $('reportModalBackdrop');
+  function closeReportModal(){
+    reportBackdrop.classList.remove('open');
+    reportTarget = null;
+  }
+  function reportUser(userId, name){
+    reportTarget = {userId, name};
+    $('reportModalTitle').textContent = t('report.title', {name});
+    $('reportReason').value = '';
+    $('reportCounter').textContent = '0/500';
+    $('reportErr').textContent = '';
+    reportBackdrop.classList.add('open');
+    $('reportReason').focus();
+  }
+  $('reportReason').addEventListener('input', () => {
+    $('reportCounter').textContent = $('reportReason').value.length + '/500';
+    $('reportErr').textContent = '';
+  });
+  $('reportModalClose').addEventListener('click', closeReportModal);
+  $('btnReportCancel').addEventListener('click', closeReportModal);
+  reportBackdrop.addEventListener('click', (e) => { if(e.target === reportBackdrop) closeReportModal(); });
+  $('btnReportSend').addEventListener('click', async () => {
+    if(!reportTarget) return;
+    const reason = $('reportReason').value.trim();
+    if(reason.length < 3){ $('reportErr').textContent = t('report.errShort'); return; }
+    const btn = $('btnReportSend');
+    btn.disabled = true;
+    const ok = await sendReport(reportTarget.userId, reason);
+    btn.disabled = false;
+    if(ok) closeReportModal();
+  });
+
+  async function sendReport(userId, reason){
     try{
       // Art. 16 Abs. 4 DSA: Das Aktenzeichen aus der Empfangsbestätigung gehört
       // dem Melder gezeigt - er soll sich darauf berufen können. Kein Verweis
       // auf eine Übersicht: die gibt es in der Web-Version bewusst nicht.
       // Bleibt deshalb als einziger Toast stehen, bis er ihn selbst schliesst
       // (siehe toast()) - fuer das Aktenzeichen soll niemand mitschreiben muessen.
-      const ack = await api('/api/reports', {method: 'POST', body: JSON.stringify({reported_user_id: userId, reason: reason.trim()})});
+      const ack = await api('/api/reports', {method: 'POST', body: JSON.stringify({reported_user_id: userId, reason})});
       toast(ack && ack.reference
         ? t('report.ack', {ref: ack.reference})
         : t('report.ackPlain'), {sticky: !!(ack && ack.reference)});
-    }catch(err){ toast(err.message || t('err.failed')); }
+      return true;
+    }catch(err){
+      $('reportErr').textContent = err.message || t('err.failed');
+      return false;
+    }
   }
 
   async function blockUser(userId, name, onBlocked){

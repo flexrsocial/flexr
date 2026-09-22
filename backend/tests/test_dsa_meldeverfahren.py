@@ -27,7 +27,9 @@ def test_report_returns_acknowledgement_with_reference(client):
     body = resp.json()
     assert body["reported"] is True
     assert len(body["reference"]) == 8
-    assert body["reference"].isupper()
+    # Nicht isupper(): Ein Aktenzeichen aus lauter Ziffern ("66265409") ist
+    # gueltig, isupper() lieferte dafuer False - der Test scheiterte zufaellig.
+    assert body["reference"] == body["reference"].upper()
     assert "72 Stunden" in body["message"]
 
 
