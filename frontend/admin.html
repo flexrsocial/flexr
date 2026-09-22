@@ -328,6 +328,13 @@
   .reject-err{ color:var(--danger); font-size:12.5px; margin-top:10px; min-height:1px; }
 
   .modal-actions{ display:flex; gap:10px; margin-top:20px; }
+  /* Ablehnungsdialog: zehn Gruende plus Vorschau sind auf einem Laptop-
+     Bildschirm hoeher als der Dialog - die Knoepfe bleiben unten stehen,
+     statt erst nach dem Scrollen aufzutauchen. */
+  #rejectModalBackdrop .modal-actions{
+    position:sticky; bottom:-28px; margin:20px -26px -28px; padding:14px 26px 20px;
+    background:var(--surface); border-top:1px solid var(--steel);
+  }
   /* Aktionsreihe im Nutzer-Modal: Sperr-Steuerung + Buttons kompakt in eine Zeile */
   .modal-actions.tight{ flex-wrap:wrap; gap:8px; align-items:center; }
   .modal-actions.tight .btn{ padding:8px 12px; font-size:12px; }

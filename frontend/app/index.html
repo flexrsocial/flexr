@@ -153,6 +153,13 @@
      urspruengliche Jittern, das "stable" verhindern sollte. Seltener und
      harmloser als der bisherige, permanent sichtbare Versatz. */
   main{ flex:1; padding:22px 20px 100px; overflow-y:auto; overflow-x:hidden; display:flex; flex-direction:column; }
+  /* Die 100px unten sind der Platz der Navigationsleiste. Ist sie aus
+     (Freischaltung, Passwort vergessen, Mail-Bestaetigung), blieb der Raum
+     leer - auf einem 812px-Handy rutschte "Verifizierung starten" dadurch
+     unter den sichtbaren Bereich. Die Leiste wird per style.display
+     geschaltet (12 Stellen), deshalb :has() statt einer eigenen Klasse;
+     aeltere Browser behalten schlicht die 100px. */
+  body:not(.landing):has(nav.bottom[style*="none"]) main{ padding-bottom:calc(28px + env(safe-area-inset-bottom, 0px)); }
   .screen{ display:none; animation:fade .25s ease; }
   .screen.active{ display:flex; flex-direction:column; flex:1; min-height:0; overflow-y:auto; overflow-x:hidden; }
   /* Der Chat füllt den Screen exakt (Nachrichten scrollen intern) - kein
