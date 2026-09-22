@@ -20,7 +20,9 @@ z.B. in deiner `~/.ssh/config` den `User`-Eintrag für den Host ändern).
   ebenfalls `deploy`).
 - darf per `sudo` **nur** `systemctl restart|status|reload flexr-api`
   (NOPASSWD, exakt diese Kommandos, keine Extra-Flags).
-- hat **keinen** Zugriff auf `backend/.env`, `scripts/`, `android/`,
+- hat **keinen** Zugriff auf `scripts/`, `android/`, (Korrektur 22.09.2026:
+  `backend/.env` gehört inzwischen `deploy` und ist lesbar - Migrationen
+  laufen damit direkt als `deploy`, siehe Sitzungsnotiz 22.09.)
   `ios/`, `deploy/` (nginx/systemd-Unit-Dateien) — die bleiben root-only.
   Brauchst du dort Schreibzugriff, geht das nur noch über den Nutzer
   selbst (root-Login mit dessen 2FA-Code).
@@ -30,25 +32,24 @@ erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 
 ## Wo das Projekt gerade steht
 
-> **⚠️ Sitzung 22.09.2026 — gepusht, aber NICHT deployed. Vor dem Deploy lesen:**
+> **Sitzung 22.09.2026 — deployed (21:04 Uhr), Android 2.7.18 gebaut.**
 >
-> 1. **Backend und Frontend nur zusammen ausrollen.** Das Admin-Tool meldet
->    sich jetzt per HttpOnly-Cookie an (`f954e00`) - neues `admin.js` ohne
->    neues Backend = kein Admin-Login.
-> 2. **Drei Migrationen:** `alembic upgrade head` (d5e2f8a1b9c3 Passwort-Reset,
->    e8f3a2c7d4b1 Login-Sperre, f1a6b3d9e2c4 Gym-Orte aus PLZ inkl. Umschreiben
->    der Profile-Labels). Danach `sudo systemctl restart flexr-api`.
-> 3. **nginx (root):** `deploy/nginx-flexr.conf` neu einspielen - `/photos/`
->    liefert nur noch Profilfotos (keine Selfies/Ausweise mehr), und
->    `/admin.html` bekommt eine CSP ohne `'unsafe-inline'`. `nginx -t` vorher.
-> 4. **Privater Bucket (root, Cloudflare):** Bucket z. B. `flexr-verification`
->    OHNE Public Access anlegen, CORS wie beim Foto-Bucket (PUT von
->    https://flexr.social), `S3_PRIVATE_BUCKET_NAME=flexr-verification` in
->    `backend/.env`, Neustart. Ohne die Variable bleibt alles wie bisher.
-> 5. **Apps:** "Passwort vergessen/aendern", "E-Mail aendern", Accept-Language
->    und die Foto-Fixes brauchen neue Builds (Android: versionCode hochzaehlen;
->    iOS nicht compilerverifiziert - erst den neuen Codemagic-Workflow
->    `ios-tests` abwarten).
+> Erledigt: `git pull` als `deploy` (HEAD `6bb1ea8`), DB-Backup vorher nach
+> `/home/deploy/db-backups/flexr-vor-deploy-20260922-2103.sql.gz` (600),
+> `alembic upgrade head` (d5e2f8a1b9c3, e8f3a2c7d4b1, f1a6b3d9e2c4),
+> `systemctl restart flexr-api`, Smoke-Tests gegen https://flexr.social grün
+> (zweisprachige Fehler, /password/forgot, Admin-Cookie, neue admin.js,
+> Gym-Orte). Android **2.7.18 / versionCode 130** gebaut, signiert mit dem
+> bekannten Upload-Key (SHA-256 `BC:64:…:79:80`), liegt in `release-2.7.18/`.
+>
+> **Noch offen (braucht den Nutzer):**
+> 1. **nginx (root):** `deploy/nginx-flexr.conf` einspielen - erst dann liefert
+>    `/photos/` keine Selfies/Ausweise mehr, und `/admin.html` bekommt die
+>    strenge CSP. Bis dahin gilt der alte Stand.
+> 2. **Privater Bucket:** in Cloudflare anlegen (ohne Public Access, CORS wie
+>    Foto-Bucket), `S3_PRIVATE_BUCKET_NAME` in `backend/.env`, Neustart.
+> 3. **Play Console:** `release-2.7.18/flexr-2.7.18-vc130.aab` hochladen.
+> 4. **iOS:** neuer Build durch den Nutzer (Codemagic `ios-tests` beachten).
 >
 > **Was die Sitzung gebracht hat** (13 Commits, `a3e3c3a`..`c824f08`): Login
 > case-insensitiv; Passwort vergessen/aendern + E-Mail aendern auf allen

@@ -280,8 +280,13 @@ android {
         // wie alle anderen Rechtstexte nativ in der LegalScreen, inklusive der
         // eingebetteten Online-Ruecktrittsfunktion (LegalBlock.WithdrawalForm,
         // POST /api/withdrawal direkt aus der App statt ueber den Browser).
-        versionCode = 129
-        versionName = "2.7.17"
+        // 130/2.7.18 am 22.09.2026: "Passwort vergessen?" im Login, Passwort
+        // und E-Mail-Adresse im Konto aenderbar, Accept-Language mit der
+        // App-Sprache (Server-Fehlermeldungen zweisprachig), eigenes Bild und
+        // Loeschbarkeit der Fotos vom Server (abgelehnte Fotos blockierten
+        // das Loeschen), Lint-Fehler behoben.
+        versionCode = 130
+        versionName = "2.7.18"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         // Nur die Sprachen ausliefern, die es wirklich gibt: Deutsch als

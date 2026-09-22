@@ -70,7 +70,7 @@ unverändert — die App spricht denselben REST-Vertrag wie das Web-Frontend.
 | | |
 |---|---|
 | applicationId | `flexr.social.app` (unverändert, Play-Store-Kontinuität) |
-| Version | **`2.6.9`, versionCode 109** (Stand 16.09.2026; die Tabelle nannte lange `2.2.8`/25, der TWA-Stand war 5) |
+| Version | **`2.7.18`, versionCode 130** (Stand 22.09.2026, gebaut und in `release-2.7.18/`; Upload in die Play Console durch den Nutzer) |
 | compileSdk / targetSdk / minSdk | 36 / 36 / 26 |
 | Signatur | bestehender Upload-Key `android/android.keystore`, SHA-256 `BC:64:AD:3F:…:14:0E:79:80` |
 
