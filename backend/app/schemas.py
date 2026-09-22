@@ -148,6 +148,11 @@ class PhotoOut(BaseModel):
     thumb_url: Optional[str] = None
     position: int
     status: str
+    # Nur in der Selbstansicht gesetzt (MyProfileOut): Darf dieses Foto jetzt
+    # geloescht werden? Die Clients fragen hier statt die Mindestanzahl selbst
+    # nachzurechnen - dreimal nachgebaut war die Regel dreimal falsch
+    # (abgelehnte Fotos zaehlten mit, siehe Commit a3e3c3a).
+    deletable: Optional[bool] = None
 
     class Config:
         from_attributes = True
@@ -230,6 +235,29 @@ class MyProfileOut(ProfileOut):
     # Damit ein frisch gestarteter Client sieht, was am Profil hinterlegt ist,
     # und den Regler danach stellen kann.
     language: str = "de"
+
+    # Vom Server abgeleitet, damit Web, Android und iOS nicht jeder fuer sich
+    # nachbauen, welches Foto das eigene Bild ist und wie viele es braucht.
+    avatar_url: Optional[str] = None
+    min_photos: int = 3
+    max_photos: int = 6
+
+    @model_validator(mode="after")
+    def _foto_regeln(self):
+        from .models import MAX_PHOTOS, MIN_PHOTOS
+
+        self.min_photos = MIN_PHOTOS
+        self.max_photos = MAX_PHOTOS
+        gueltige = [p for p in self.photos if p.status != "rejected"]
+        for foto in self.photos:
+            # Abgelehnt: Datei ist schon weg, darf immer raus. Sonst nur,
+            # solange danach noch genug gueltige Fotos bleiben.
+            foto.deletable = foto.status == "rejected" or len(gueltige) > MIN_PHOTOS
+        eigenes = next((p for p in self.photos if p.status == "approved"), None) or (
+            gueltige[0] if gueltige else None
+        )
+        self.avatar_url = (eigenes.thumb_url or eigenes.url) if eigenes else None
+        return self
 
 
 class NotificationSettingsUpdate(BaseModel):

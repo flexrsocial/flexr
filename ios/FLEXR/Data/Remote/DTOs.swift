@@ -70,6 +70,8 @@ struct PhotoDTO: Decodable {
     let thumbUrl: String?
     let position: Int?
     let status: String?
+    /// Nur in der Selbstansicht: darf dieses Foto jetzt gelöscht werden? (Server entscheidet.)
+    let deletable: Bool?
 }
 
 struct ProfileDTO: Decodable {
@@ -133,6 +135,10 @@ struct MyProfileDTO: Decodable {
     /// Am Profil hinterlegte Sprache. Optional: ein älteres Backend liefert
     /// sie nicht, dann gilt die Ausgangssprache.
     let language: String?
+    /// Vom Server abgeleitete Foto-Regeln (seit 22.09.2026) - nil bei einem älteren Backend.
+    let avatarUrl: String?
+    let minPhotos: Int?
+    let maxPhotos: Int?
 }
 
 /// Einzelner Schalter - nur das geaenderte Feld wird geschickt, die uebrigen

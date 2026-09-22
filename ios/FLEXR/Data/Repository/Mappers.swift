@@ -10,7 +10,8 @@ extension PhotoDTO {
             url: url,
             thumbURL: thumbUrl,
             position: position ?? 0,
-            status: PhotoStatus(raw: status)
+            status: PhotoStatus(raw: status),
+            deletable: deletable
         )
     }
 }
@@ -84,7 +85,8 @@ extension MyProfileDTO {
                 pendingLikesEmail: notifyPendingLikesEmail ?? true,
                 pendingLikesPush: notifyPendingLikesPush ?? true
             ),
-            language: language ?? "de"
+            language: language ?? "de",
+            serverAvatarURL: avatarUrl
         )
     }
 }

@@ -40,6 +40,7 @@ fun PhotoDto.toDomain() = Photo(
     thumbUrl = thumbUrl,
     position = position,
     status = PhotoStatus.from(status),
+    deletable = deletable,
 )
 
 fun ProfileDto.toDomain() = Profile(
@@ -100,6 +101,7 @@ fun MyProfileDto.toDomain() = MyProfile(
         pendingLikesPush = notifyPendingLikesPush,
     ),
     language = language,
+    serverAvatarUrl = avatarUrl,
 )
 
 fun PushNotificationDto.toDomain() = PushNotification(

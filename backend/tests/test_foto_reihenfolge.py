@@ -79,3 +79,27 @@ def test_hauptfoto_wechselt_mit_der_reihenfolge(client):
     )
     profil = client.get("/api/profiles/me", headers=headers).json()
     assert profil["photos"][0]["id"] == b
+
+
+def test_selbstansicht_liefert_foto_regeln(client):
+    """avatar_url, min/max und deletable kommen vom Server (siehe MyProfileOut)."""
+    from app.models import Photo, PhotoStatus
+    from tests.conftest import TestingSessionLocal, add_required_photos, register_user
+
+    h = register_user(client, "regeln@example.com")
+    add_required_photos(client, h)
+    me = client.get("/api/profiles/me", headers=h).json()
+    assert me["min_photos"] == 3 and me["max_photos"] == 6
+    assert all(p["deletable"] is False for p in me["photos"])  # genau 3
+    assert me["avatar_url"]
+
+    # Das erste Foto abgelehnt: Avatar wandert weiter, das abgelehnte ist loeschbar.
+    with TestingSessionLocal() as db:
+        erstes = db.query(Photo).filter(Photo.id == me["photos"][0]["id"]).one()
+        erstes.status = PhotoStatus.rejected
+        db.commit()
+    me = client.get("/api/profiles/me", headers=h).json()
+    abgelehnt = next(p for p in me["photos"] if p["status"] == "rejected")
+    assert abgelehnt["deletable"] is True
+    assert me["avatar_url"] not in (abgelehnt["url"], abgelehnt["thumb_url"])
+    assert client.delete(f"/api/profiles/me/photos/{abgelehnt['id']}", headers=h).status_code == 200

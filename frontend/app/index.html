@@ -3677,6 +3677,9 @@
   // enthaelt auch abgelehnte Fotos - deren Datei ist geloescht, photos[0]
   // zeigte dann ein kaputtes Bild. Freigegebene zuerst, sonst ein wartendes.
   function myAvatarPhoto(){
+    // Der Server rechnet das seit 22.09.2026 selbst aus (MyProfileOut.avatar_url);
+    // die Rechnung hier bleibt als Rueckfall fuer einen aelteren Server.
+    if(myProfile && 'avatar_url' in myProfile) return myProfile.avatar_url || '';
     const photos = (myProfile && myProfile.photos) || [];
     return photoThumb(photos.find(p => p.status === 'approved')
       || photos.find(p => p.status !== 'rejected'));
@@ -5693,7 +5696,10 @@
           e.stopPropagation();
           // Dieselbe Grenze wie beim Anlegen des Kontos - der Server lehnt
           // sonst ohnehin ab, hier steht die Meldung nur frueher.
-          if(photos[i].status !== 'rejected' && gueltigeFotoAnzahl() <= MIN_PHOTOS){
+          const darfWeg = typeof photos[i].deletable === 'boolean'
+            ? photos[i].deletable
+            : (photos[i].status === 'rejected' || gueltigeFotoAnzahl() > MIN_PHOTOS);
+          if(!darfWeg){
             $('acctPhotoErr').textContent = t('photo.minCount');
             return;
           }

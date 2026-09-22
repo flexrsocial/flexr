@@ -388,9 +388,12 @@ final class AccountModel {
         // steht die Meldung nur früher und in der gewählten Sprache.
         // Abgelehnte Fotos zählen nicht mit und lassen sich immer entfernen -
         // ihre Datei ist ohnehin schon gelöscht.
+        // Der Server sagt es seit 22.09.2026 pro Foto (deletable); die Rechnung
+        // bleibt als Rückfall für ein älteres Backend.
         let foto = profile?.photos.first { $0.id == id }
-        guard foto?.status == .rejected
-            || (profile?.validPhotoCount ?? 0) > ImageProcessor.minPhotos else {
+        let darfWeg = foto?.deletable
+            ?? (foto?.status == .rejected || (profile?.validPhotoCount ?? 0) > ImageProcessor.minPhotos)
+        guard darfWeg else {
             photoError = s(.photoMinCount, ImageProcessor.minPhotos)
             return
         }

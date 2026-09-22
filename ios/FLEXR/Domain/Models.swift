@@ -37,6 +37,8 @@ struct Photo: Identifiable, Hashable, Sendable {
     let thumbURL: String?
     let position: Int
     let status: PhotoStatus
+    /// Vom Server: darf jetzt gelöscht werden? nil = unbekannt (älteres Backend).
+    var deletable: Bool? = nil
 
     /// Für kleine Avatare: Thumbnail bevorzugen, sonst Vollbild (Bestandsfotos).
     var avatarURL: String { thumbURL ?? url }
@@ -95,6 +97,8 @@ struct MyProfile: Hashable, Sendable {
     /// seine E-Mails schreibt; beide werden beim Anmelden abgeglichen
     /// (`AppModel.syncLanguage`).
     var language: String = "de"
+    /// Vom Server bestimmtes eigenes Bild (MyProfileOut.avatar_url).
+    var serverAvatarURL: String? = nil
 
     var id: String { profile.id }
     var name: String { profile.name }
@@ -104,7 +108,7 @@ struct MyProfile: Hashable, Sendable {
     /// Fotos - deren Datei ist gelöscht, photos.first zeigte dann ein leeres
     /// Bild. Freigegebene zuerst, sonst ein noch wartendes.
     var ownAvatarURL: String? {
-        (photos.first { $0.status == .approved }
+        serverAvatarURL ?? (photos.first { $0.status == .approved }
             ?? photos.first { $0.status != .rejected })?.avatarURL
     }
 

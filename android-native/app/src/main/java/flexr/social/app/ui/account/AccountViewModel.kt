@@ -431,10 +431,14 @@ class AccountViewModel @Inject constructor(
         // steht die Meldung nur frueher und in der gewaehlten Sprache.
         // Abgelehnte Fotos zaehlen nicht mit und lassen sich immer entfernen -
         // ihre Datei ist ohnehin schon geloescht.
+        // Der Server sagt es seit 22.09.2026 pro Foto (deletable); die Rechnung
+        // bleibt als Rueckfall fuer ein aelteres Backend.
         val foto = profile.value?.photos?.firstOrNull { it.id == photoId }
-        if (foto?.status != PhotoStatus.REJECTED &&
-            (profile.value?.validPhotoCount ?: 0) <= ImageProcessor.MIN_PHOTOS
-        ) {
+        val darfWeg = foto?.deletable ?: (
+            foto?.status == PhotoStatus.REJECTED ||
+                (profile.value?.validPhotoCount ?: 0) > ImageProcessor.MIN_PHOTOS
+            )
+        if (!darfWeg) {
             _uiState.update {
                 it.copy(
                     photoError = strings.get(

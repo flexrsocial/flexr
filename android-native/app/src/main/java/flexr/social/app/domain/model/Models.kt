@@ -31,6 +31,8 @@ data class Photo(
     val thumbUrl: String?,
     val position: Int,
     val status: PhotoStatus,
+    /** Vom Server: darf jetzt geloescht werden? Null = unbekannt (aelteres Backend). */
+    val deletable: Boolean? = null,
 ) {
     /** Für kleine Avatare: Thumbnail bevorzugen, sonst Vollbild (Bestandsfotos). */
     val avatarUrl: String get() = thumbUrl ?: url
@@ -91,6 +93,8 @@ data class MyProfile(
      * Anmelden abgeglichen (`ui.MainViewModel.syncLanguage`).
      */
     val language: String = "de",
+    /** Vom Server bestimmtes eigenes Bild (MyProfileOut.avatar_url). */
+    val serverAvatarUrl: String? = null,
 ) {
     val id: String get() = profile.id
     val name: String get() = profile.name
@@ -102,7 +106,7 @@ data class MyProfile(
      * Bild. Freigegebene zuerst, sonst ein noch wartendes.
      */
     val ownAvatarUrl: String?
-        get() = (photos.firstOrNull { it.status == PhotoStatus.APPROVED }
+        get() = serverAvatarUrl ?: (photos.firstOrNull { it.status == PhotoStatus.APPROVED }
             ?: photos.firstOrNull { it.status != PhotoStatus.REJECTED })?.avatarUrl
 
     /** Fotos, die fuer die Mindestanzahl zaehlen - abgelehnte nicht. */

@@ -83,6 +83,8 @@ data class PhotoDto(
     @SerialName("thumb_url") val thumbUrl: String? = null,
     val position: Int = 0,
     val status: String = "pending",
+    /** Nur in der Selbstansicht: darf dieses Foto jetzt geloescht werden? (Server entscheidet.) */
+    val deletable: Boolean? = null,
 )
 
 @Serializable
@@ -149,6 +151,11 @@ data class MyProfileDto(
     // Am Profil hinterlegte Sprache. Default "de": ein aelteres Backend ohne
     // dieses Feld liefert die Ausgangssprache, nicht einen leeren Wert.
     val language: String = "de",
+    // Vom Server abgeleitete Foto-Regeln (seit 22.09.2026). Null bzw. die
+    // Defaults bei einem aelteren Backend - dann rechnet die App selbst.
+    @SerialName("avatar_url") val avatarUrl: String? = null,
+    @SerialName("min_photos") val minPhotos: Int = 3,
+    @SerialName("max_photos") val maxPhotos: Int = 6,
 )
 
 /** Einzelner Schalter - nur das gesetzte Feld wird geschickt. */
