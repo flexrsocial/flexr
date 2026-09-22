@@ -42,18 +42,17 @@ erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 > Gym-Orte). Android **2.7.18 / versionCode 130** gebaut, signiert mit dem
 > bekannten Upload-Key (SHA-256 `BC:64:…:79:80`), liegt in `release-2.7.18/`.
 >
-> **Noch offen (braucht den Nutzer):**
-> 1. **nginx (root):** `deploy/nginx-flexr.conf` einspielen - erst dann liefert
->    `/photos/` keine Selfies/Ausweise mehr, und `/admin.html` bekommt die
->    strenge CSP. Bis dahin gilt der alte Stand.
-> 2. **Privater Bucket:** `flexr-verification` ist angelegt, mit eigenem
->    R2-Token (nur dieser Bucket). Der Foto-Token des Backends kommt dort NICHT
->    hin (am 22.09. geprueft: AccessDenied). Deshalb seit `afb9171` eigene
->    Variablen: `S3_PRIVATE_BUCKET_NAME`, `S3_PRIVATE_ACCESS_KEY_ID`,
->    `S3_PRIVATE_SECRET_ACCESS_KEY` in `backend/.env` - erst alle drei setzen,
->    dann Neustart. Nur den Bucket-Namen ohne Schluessel zu setzen, legt die
->    Verifizierung lahm. CORS-Regel am Bucket (PUT von https://flexr.social)
->    im Dashboard setzen, der Token darf sie nicht lesen.
+> **Server-Schritte erledigt (22.09., ~22:30):** nginx eingespielt (CSP auf
+> /admin.html aktiv, /photos/verification-documents/... -> 404, Profilfotos
+> 200). Privater Bucket `flexr-verification` mit eigenem R2-Token aktiv
+> (`S3_PRIVATE_*` in backend/.env); Ende-zu-Ende geprueft: Presigned PUT mit
+> CORS von https://flexr.social, Serverpruefung, Admin-Ansicht aus dem
+> privaten Bucket, Loeschen. Altbestaende im Foto-Bucket werden weiter
+> gefunden und geloescht (storage._buckets_for).
+>
+> **Noch offen:** Play-Upload 2.7.18 (erledigt der Nutzer), iOS-Build
+> (Scheme-Fix `dd3bfbf`), in der Play Console unter "App-Zugriff" ein
+> eigenes Testkonto statt der privaten Adresse hinterlegen.
 >
 > **Reset-Mails ohne Anforderung (22.09., 21:26-21:47):** kam von Googles
 > Play-Pre-Launch-Testgeraeten (IPs 74.125.x/66.249.x, okhttp), die in 2.7.18
