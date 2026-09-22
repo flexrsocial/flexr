@@ -235,6 +235,23 @@ def gym_label(name: str, street: str, house_number: str, plz: str, city: str) ->
     return f"{name} — {', '.join(parts)}" if parts else name
 
 
+def relabel_profiles(db, old_label: str, new_label: str) -> int:
+    """Profile auf ein geaendertes Gym-Label umschreiben.
+
+    User.gym haelt das volle Label, und Umkreissuche (gym_geo) wie
+    Profilpruefung (routers/gyms.gym_exists_for_profile) vergleichen es
+    zeichengenau mit Gym.label. Aendert sich Adresse, PLZ oder Ort eines
+    Studios, fielen seine Mitglieder sonst stillschweigend aus der Suche.
+    """
+    if not old_label or old_label == new_label:
+        return 0
+    return (
+        db.query(User)
+        .filter(User.gym == old_label)
+        .update({User.gym: new_label}, synchronize_session=False)
+    )
+
+
 class Gym(Base):
     """Fitnessstudios in Österreich: Basisdaten aus OpenStreetMap (Name,
     Straße, Hausnummer, PLZ), ergänzt um Nutzer-Vorschläge, die nach

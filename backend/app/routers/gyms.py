@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 
 from .. import telegram
 from ..database import get_db
+from ..geo import city_for_plz
 from ..models import Gym, GymStatus
 from ..rate_limit import limiter
 from ..schemas import GymOut, GymSuggestRequest
@@ -93,7 +94,9 @@ def suggest_gym(
         street=payload.street.strip(),
         house_number=payload.house_number.strip(),
         plz=payload.plz,
-        city=(payload.city or "").strip(),
+        # Das Vorschlagsformular fragt keinen Ort ab - ohne diese Ableitung
+        # stand im Label "Name — Straße 1, 1010" statt "..., 1010 Wien".
+        city=(payload.city or "").strip() or city_for_plz(payload.plz) or "",
         status=GymStatus.pending,
     )
     db.add(gym)

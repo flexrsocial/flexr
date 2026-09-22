@@ -7,7 +7,9 @@ from sqlalchemy.orm import Session
 
 from .. import mailer
 from ..database import get_db
+from ..geo import city_for_plz
 from ..models import (
+    relabel_profiles,
     AdminUser,
     Block,
     DailyAccess,
@@ -1188,6 +1190,7 @@ def update_gym(
 
     data = payload.model_dump(exclude_unset=True)
     old_name = gym.name
+    old_label = gym.label
 
     if "name" in data:
         new_name = data["name"].strip()
@@ -1215,6 +1218,13 @@ def update_gym(
             setattr(gym, field, (data[field] or "").strip())
     if "plz" in data:
         gym.plz = data["plz"]
+    # Ohne Ort sah das Label "Name — Straße 1, 1010" aus - aus der PLZ ergaenzen.
+    if not gym.city and gym.plz:
+        gym.city = city_for_plz(gym.plz) or ""
+
+    # Profile mit dem vollen Label ziehen mit - bisher nur die mit dem blanken
+    # Namen, und Adress-/Ortskorrekturen gar nicht (siehe relabel_profiles).
+    relabel_profiles(db, old_label, gym.label)
 
     db.commit()
     db.refresh(gym)

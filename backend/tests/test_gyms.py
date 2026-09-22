@@ -204,3 +204,41 @@ def test_profile_update_validates_against_gym_table(client):
     assert client.patch(
         "/api/profiles/me", headers=headers, json={"gym": "Gibtsnicht"}
     ).status_code == 400
+
+
+def test_vorschlag_ohne_ort_bekommt_ort_aus_plz(client):
+    """Das Vorschlagsformular fragt keinen Ort ab. Frueher stand im Label dann
+    "Name — Straße 1, 1070" ohne Ort."""
+    resp = client.post(
+        "/api/gyms/suggest",
+        json={"name": "Ohne Ort Gym", "street": "Neubaugasse", "house_number": "4", "plz": "1070"},
+    )
+    assert resp.status_code == 201
+    assert resp.json()["city"] == "Wien"
+    assert resp.json()["label"] == "Ohne Ort Gym — Neubaugasse 4, 1070 Wien"
+
+
+def test_admin_korrektur_zieht_profile_mit_vollem_label_mit(client):
+    """User.gym haelt das volle Label; Umkreissuche und Profilpruefung
+    vergleichen es zeichengenau. Eine Adresskorrektur durch den Admin liess
+    die Mitglieder bisher stillschweigend aus der Suche fallen."""
+    from app.gym_geo import coords_for_gym
+    from app.models import User
+    from tests.conftest import TestingSessionLocal, register_user
+
+    vorschlag = client.post(
+        "/api/gyms/suggest",
+        json={"name": "Umzugsgym", "street": "Tippfehlergase", "house_number": "1",
+              "plz": "1070", "city": "Wien"},
+    ).json()
+    register_user(client, "mitglied@example.com", gym=vorschlag["label"])
+    admin_headers, _ = create_admin(client, email="korrektur@example.com")
+
+    r = client.patch(f"/api/admin/gyms/{vorschlag['id']}", headers=admin_headers,
+                     json={"street": "Tippfehlergasse", "name": "Umzugsgym Neu"})
+    assert r.status_code == 200
+
+    with TestingSessionLocal() as db:
+        u = db.query(User).filter(User.email == "mitglied@example.com").one()
+        assert u.gym == "Umzugsgym Neu — Tippfehlergasse 1, 1070 Wien"
+        assert coords_for_gym(db, u.gym) is not None

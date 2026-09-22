@@ -32,7 +32,7 @@
 "street": "Dominikanerbastei",
 "house_number": "15",
 "plz": "1010",
-"city": ""
+"city": "Wien"
 },
 {
 "name": "June",
@@ -354,7 +354,7 @@
 "street": "Liechtensteinstraße",
 "house_number": "41",
 "plz": "1090",
-"city": ""
+"city": "Wien"
 },
 {
 "name": "The Wyld Thing",
@@ -403,7 +403,7 @@
 "street": "Maria-Kuhn-Gasse",
 "house_number": "11",
 "plz": "1100",
-"city": ""
+"city": "Wien"
 },
 {
 "name": "John Harris",
@@ -431,7 +431,7 @@
 "street": "Triester Straße",
 "house_number": "64",
 "plz": "1100",
-"city": ""
+"city": "Wien"
 },
 {
 "name": "Yoga-Institut;Psychotherapie",
@@ -494,7 +494,7 @@
 "street": "Deutschordenstraße",
 "house_number": "3",
 "plz": "1140",
-"city": ""
+"city": "Wien"
 },
 {
 "name": "Mrs. Sporty",
@@ -837,7 +837,7 @@
 "street": "Brünner Straße",
 "house_number": "243",
 "plz": "2201",
-"city": ""
+"city": "Gerasdorf"
 },
 {
 "name": "LACKNER Evi, WS-Training",
@@ -879,7 +879,7 @@
 "street": "Triesterstraße",
 "house_number": "12",
 "plz": "2351",
-"city": ""
+"city": "Wiener Neudorf"
 },
 {
 "name": "Formé Studio",
@@ -893,7 +893,7 @@
 "street": "Hauptstraße",
 "house_number": "31",
 "plz": "2351",
-"city": ""
+"city": "Wiener Neudorf"
 },
 {
 "name": "Patmotion",
@@ -1369,7 +1369,7 @@
 "street": "Rathausstraße",
 "house_number": "2",
 "plz": "3730",
-"city": ""
+"city": "Eggenburg"
 },
 {
 "name": "Fitnesscenter Topbody",
@@ -1439,7 +1439,7 @@
 "street": "Hamerlingstraße",
 "house_number": "44-46",
 "plz": "4020",
-"city": ""
+"city": "Linz"
 },
 {
 "name": "Prinz Fitness",
@@ -1663,7 +1663,7 @@
 "street": "Freizeitpark",
 "house_number": "3",
 "plz": "4690",
-"city": ""
+"city": "Schwanenstadt"
 },
 {
 "name": "Happy Fit",
@@ -1684,7 +1684,7 @@
 "street": "Alfred-Kubin-Straße",
 "house_number": "3",
 "plz": "4780",
-"city": ""
+"city": "Schärding"
 },
 {
 "name": "Heimos Fitness & Prevention",
@@ -1733,7 +1733,7 @@
 "street": "Vogelweiderstraße",
 "house_number": "44B",
 "plz": "5020",
-"city": ""
+"city": "Salzburg"
 },
 {
 "name": "Bodyclub",
@@ -1873,7 +1873,7 @@
 "street": "Wiener Straße",
 "house_number": "4",
 "plz": "5202",
-"city": ""
+"city": "Neumarkt am Wallersee"
 },
 {
 "name": "Purfit",
@@ -2517,7 +2517,7 @@
 "street": "Millennium Park",
 "house_number": "2",
 "plz": "6890",
-"city": ""
+"city": "Lustenau"
 },
 {
 "name": "Clever fit",
@@ -2874,7 +2874,7 @@
 "street": "Kalsdorfer Straße",
 "house_number": "",
 "plz": "8072",
-"city": ""
+"city": "Fernitz"
 },
 {
 "name": "myFitness",
@@ -3014,7 +3014,7 @@
 "street": "Fassoldweg",
 "house_number": "9",
 "plz": "8431",
-"city": ""
+"city": "Gralla"
 },
 {
 "name": "MyFit",
