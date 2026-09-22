@@ -388,6 +388,12 @@ class User(Base):
     # kennt, soll dessen offene Sitzungen damit gleich mit beenden.
     password_changed_at = Column(DateTime, nullable=True)
 
+    # Kontobezogene Bremse gegen Passwort-Raten, zusaetzlich zur IP-Grenze
+    # (10/Minute) - die haelt einen Angreifer mit vielen IPs nicht auf. Siehe
+    # routers/auth.LOGIN_LOCKOUT_*.
+    failed_login_attempts = Column(Integer, nullable=False, default=0, server_default="0")
+    login_locked_until = Column(DateTime, nullable=True)
+
     # ---- Alters- und Identitätsprüfung (manuell, siehe VerificationRequest) ----
     # Muss dieses Konto die Prüfung durchlaufen, bevor es nutzbar wird? Neue
     # Registrierungen: ja. Bestandskonten werden von der Migration auf False

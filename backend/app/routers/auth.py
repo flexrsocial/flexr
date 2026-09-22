@@ -1,3 +1,4 @@
+import logging
 import re
 from datetime import date, datetime, timedelta
 
@@ -30,6 +31,8 @@ from ..schemas import (
 from ..security import create_access_token, hash_password, verify_password
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
+
+logger = logging.getLogger(__name__)
 
 _DEVICE_ID_RE = re.compile(r"^[A-Za-z0-9-]{8,64}$")
 
@@ -289,6 +292,53 @@ def register(
     return TokenResponse(access_token=token)
 
 
+# ---------- Bremse gegen Passwort-Raten ----------
+#
+# Die IP-Grenze (10/Minute) haelt einen Angreifer mit vielen Adressen nicht
+# auf. Deshalb zaehlt jedes Konto seine Fehlversuche selbst. Bewusst maessig
+# streng: Eine harte Sperre waere ihrerseits ein Werkzeug, um fremde Konten
+# auszusperren. 15 Minuten nach dem zehnten Fehlversuch, und "Passwort
+# vergessen" hebt die Sperre sofort auf (password_reset.set_new_password).
+LOGIN_LOCKOUT_THRESHOLD = 10
+LOGIN_LOCKOUT_DURATION = timedelta(minutes=15)
+
+# Vergleichshash fuer unbekannte Adressen: Ohne ihn antwortete der Login bei
+# einer unbekannten Adresse messbar schneller (kein bcrypt) - daran liesse
+# sich ablesen, wer ein Konto hat.
+_DUMMY_HASH = hash_password("flexr-kein-konto-vorhanden")
+
+
+def _check_credentials(db: Session, payload: LoginRequest) -> User:
+    """Gemeinsame Pruefung fuer Login und Reaktivierung."""
+    user = db.query(User).filter(func.lower(User.email) == payload.email).first()
+    if user is None:
+        verify_password(payload.password, _DUMMY_HASH)
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "E-Mail oder Passwort falsch.")
+
+    jetzt = datetime.utcnow()
+    if user.login_locked_until and user.login_locked_until > jetzt:
+        minuten = max(1, int((user.login_locked_until - jetzt).total_seconds() // 60) + 1)
+        raise HTTPException(
+            status.HTTP_429_TOO_MANY_REQUESTS,
+            f"Zu viele Fehlversuche. Bitte versuche es in {minuten} Minuten erneut.",
+        )
+
+    if not verify_password(payload.password, user.password_hash):
+        user.failed_login_attempts = (user.failed_login_attempts or 0) + 1
+        if user.failed_login_attempts >= LOGIN_LOCKOUT_THRESHOLD:
+            user.login_locked_until = jetzt + LOGIN_LOCKOUT_DURATION
+            user.failed_login_attempts = 0
+            logger.warning("Login fuer Konto %s nach Fehlversuchen gesperrt", user.id)
+        db.commit()
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "E-Mail oder Passwort falsch.")
+
+    if user.failed_login_attempts or user.login_locked_until:
+        user.failed_login_attempts = 0
+        user.login_locked_until = None
+        db.commit()
+    return user
+
+
 @router.post("/login", response_model=TokenResponse)
 @limiter.limit("10/minute")
 def login(request: Request, payload: LoginRequest, db: Session = Depends(get_db)):
@@ -301,9 +351,7 @@ def login(request: Request, payload: LoginRequest, db: Session = Depends(get_db)
     # Ebenso billig: verwaiste Ausweisaufnahmen und fehlgeschlagene Löschungen
     purge_stale_verification_uploads(db)
 
-    user = db.query(User).filter(func.lower(User.email) == payload.email).first()
-    if not user or not verify_password(payload.password, user.password_hash):
-        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "E-Mail oder Passwort falsch.")
+    user = _check_credentials(db, payload)
     if user.deleted_at is not None:
         # purge_deleted_users() ist oben bereits gelaufen - wenn deleted_at
         # noch gesetzt ist, läuft die 30-Tage-Karenzzeit also noch. Strukturiertes
@@ -351,9 +399,7 @@ def reactivate(request: Request, payload: LoginRequest, db: Session = Depends(ge
     purge_deleted_users(db)
     purge_stale_verification_uploads(db)
 
-    user = db.query(User).filter(func.lower(User.email) == payload.email).first()
-    if not user or not verify_password(payload.password, user.password_hash):
-        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "E-Mail oder Passwort falsch.")
+    user = _check_credentials(db, payload)
     if user.deleted_at is None:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Dieses Konto ist nicht gelöscht.")
 

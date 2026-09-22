@@ -130,3 +130,32 @@ def test_email_aendern(client, monkeypatch):
         u = db.query(User).filter(User.email == "nachher@example.com").one()
         assert u.email_verified_at is None
     assert _login(client, "nachher@example.com", PW).status_code == 200
+
+
+
+def test_login_sperre_nach_zehn_fehlversuchen(client, monkeypatch):
+    mails = _mails(monkeypatch)
+    register_user(client, "rate@example.com")
+    for _ in range(10):
+        assert _login(client, "rate@example.com", "falsch123").status_code == 401
+    # Jetzt gesperrt - auch das richtige Passwort kommt nicht durch.
+    gesperrt = _login(client, "rate@example.com", PW)
+    assert gesperrt.status_code == 429
+    assert "Minuten" in gesperrt.json()["detail"]
+
+    # "Passwort vergessen" hebt die Sperre auf.
+    client.post("/api/auth/password/forgot", json={"email": "rate@example.com"})
+    r = client.post("/api/auth/password/reset",
+                    json={"token": _token(mails[-1]), "new_password": "neuesPasswort99"})
+    assert r.status_code == 200
+    assert _login(client, "rate@example.com", "neuesPasswort99").status_code == 200
+
+
+def test_erfolgreicher_login_setzt_zaehler_zurueck(client):
+    register_user(client, "zaehler@example.com")
+    for _ in range(9):
+        _login(client, "zaehler@example.com", "falsch123")
+    assert _login(client, "zaehler@example.com", PW).status_code == 200
+    for _ in range(9):
+        _login(client, "zaehler@example.com", "falsch123")
+    assert _login(client, "zaehler@example.com", PW).status_code == 200

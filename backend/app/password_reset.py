@@ -53,6 +53,9 @@ def set_new_password(db: Session, user: User, new_password: str) -> None:
     # Mikrosekundengenau, siehe security.token_predates_password_change: Der
     # gleich danach ausgestellte neue Token liegt sicher dahinter.
     user.password_changed_at = datetime.utcnow()
+    # Wer das Passwort neu gesetzt hat, darf sofort wieder hinein.
+    user.failed_login_attempts = 0
+    user.login_locked_until = None
     db.query(PasswordReset).filter(PasswordReset.user_id == user.id).delete()
 
 
