@@ -1,4 +1,5 @@
 import os
+from app.timeutil import utcnow
 
 os.environ.setdefault("DATABASE_URL", "sqlite:///:memory:")
 os.environ.setdefault("JWT_SECRET", "test-secret-for-pytest")
@@ -181,7 +182,7 @@ def mark_email_confirmed(client, headers):
     db = TestingSessionLocal()
     try:
         user = db.query(User).filter(User.id == user_id).first()
-        user.email_verified_at = datetime.utcnow()
+        user.email_verified_at = utcnow()
         db.commit()
     finally:
         db.close()
@@ -206,7 +207,7 @@ def activate_user(client, headers):
     db = TestingSessionLocal()
     try:
         user = db.query(User).filter(User.id == user_id).first()
-        user.activated_at = datetime.utcnow()
+        user.activated_at = utcnow()
         db.commit()
     finally:
         db.close()

@@ -16,6 +16,7 @@ from .config import settings
 from .email_verification import hash_token
 from .models import PasswordReset, User
 from .security import hash_password
+from .timeutil import utcnow
 
 logger = logging.getLogger("flexr.mail")
 
@@ -36,7 +37,7 @@ def issue(db: Session, user: User) -> str:
         PasswordReset(
             user_id=user.id,
             token_hash=hash_token(token),
-            expires_at=datetime.utcnow() + timedelta(minutes=TOKEN_TTL_MINUTES),
+            expires_at=utcnow() + timedelta(minutes=TOKEN_TTL_MINUTES),
         )
     )
     db.commit()
@@ -52,7 +53,7 @@ def set_new_password(db: Session, user: User, new_password: str) -> None:
     user.password_hash = hash_password(new_password)
     # Mikrosekundengenau, siehe security.token_predates_password_change: Der
     # gleich danach ausgestellte neue Token liegt sicher dahinter.
-    user.password_changed_at = datetime.utcnow()
+    user.password_changed_at = utcnow()
     # Wer das Passwort neu gesetzt hat, darf sofort wieder hinein.
     user.failed_login_attempts = 0
     user.login_locked_until = None
@@ -70,7 +71,7 @@ def redeem(db: Session, token: str, new_password: str) -> User:
             "Dieser Link ist ungültig oder wurde bereits benutzt. "
             "Fordere über „Passwort vergessen?“ einen neuen an."
         )
-    if datetime.utcnow() > entry.expires_at:
+    if utcnow() > entry.expires_at:
         db.delete(entry)
         db.commit()
         raise ResetError(
@@ -87,7 +88,7 @@ def redeem(db: Session, token: str, new_password: str) -> User:
     # Wer den Link aus seinem Postfach einloest, hat die Adresse damit
     # bestaetigt - dasselbe, was der Bestaetigungslink nachweist.
     if user.email_verified_at is None:
-        user.email_verified_at = datetime.utcnow()
+        user.email_verified_at = utcnow()
     db.commit()
     db.refresh(user)
     logger.info("Passwort per Link zurueckgesetzt (Konto %s)", user.id)

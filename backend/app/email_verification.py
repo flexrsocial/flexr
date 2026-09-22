@@ -22,6 +22,7 @@ from sqlalchemy.orm import Session
 from .config import settings
 from .mailer import send_verification_email
 from .models import EmailVerification, User
+from .timeutil import utcnow
 
 logger = logging.getLogger("flexr.mail")
 
@@ -58,7 +59,7 @@ def issue(db: Session, user: User) -> str:
             user_id=user.id,
             email=user.email,
             token_hash=hash_token(token),
-            expires_at=datetime.utcnow() + timedelta(hours=TOKEN_TTL_HOURS),
+            expires_at=utcnow() + timedelta(hours=TOKEN_TTL_HOURS),
         )
     )
     db.commit()
@@ -82,7 +83,7 @@ def confirm(db: Session, token: str) -> User:
             "Fordere in der App einen neuen an."
         )
 
-    if datetime.utcnow() > entry.expires_at:
+    if utcnow() > entry.expires_at:
         db.delete(entry)
         db.commit()
         raise ConfirmationError(
@@ -106,7 +107,7 @@ def confirm(db: Session, token: str) -> User:
         )
 
     if user.email_verified_at is None:
-        user.email_verified_at = datetime.utcnow()
+        user.email_verified_at = utcnow()
     db.query(EmailVerification).filter(EmailVerification.user_id == user.id).delete()
     db.commit()
     db.refresh(user)

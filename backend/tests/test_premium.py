@@ -27,6 +27,7 @@ from tests.conftest import (
     register_user,
     register_user_with_photo,
 )
+from app.timeutil import utcnow
 
 
 def _set_premium(user_id: str, aktiv: bool = True) -> None:
@@ -62,7 +63,7 @@ def _fremde_likes(client, empfaenger_id: str, anzahl: int) -> None:
                 gender="mann",
                 interest="frau",
                 gym="McFit",
-                sensitive_data_consent_at=datetime.utcnow(),
+                sensitive_data_consent_at=utcnow(),
                 verification_required=False,
             )
             db.add(liker)
@@ -232,7 +233,7 @@ def test_alte_likes_fallen_aus_dem_fenster(client, monkeypatch):
     db = TestingSessionLocal()
     try:
         swipe = db.query(Swipe).filter(Swipe.from_user_id == user_id).one()
-        swipe.created_at = datetime.utcnow() - timedelta(hours=25)
+        swipe.created_at = utcnow() - timedelta(hours=25)
         db.commit()
     finally:
         db.close()
@@ -565,7 +566,7 @@ def test_aus_pass_wird_like_und_zaehlt_ab_jetzt(client, monkeypatch):
     db = TestingSessionLocal()
     try:
         swipe = db.query(Swipe).filter(Swipe.from_user_id == user_id).one()
-        swipe.created_at = datetime.utcnow() - timedelta(days=2)
+        swipe.created_at = utcnow() - timedelta(days=2)
         db.commit()
     finally:
         db.close()

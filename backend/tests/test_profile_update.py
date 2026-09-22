@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 
 from tests.conftest import GYM_GRAZ, GYM_WIEN, GYM_WIEN_2, TestingSessionLocal, register_user
+from app.timeutil import utcnow
 
 
 def test_update_gym_and_bio(client):
@@ -130,7 +131,7 @@ def test_gym_change_cooldown_allows_change_after_three_months(client):
     ).status_code == 200
 
     user_id = client.get("/api/profiles/me", headers=headers).json()["id"]
-    _set_gym_changed_at(user_id, datetime.utcnow() - timedelta(days=91))
+    _set_gym_changed_at(user_id, utcnow() - timedelta(days=91))
 
     resp = client.patch("/api/profiles/me", headers=headers, json={"gym": GYM_GRAZ})
     assert resp.status_code == 200, resp.text

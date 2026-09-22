@@ -29,6 +29,7 @@ from ..models import Notice, NoticeCategory
 from ..rate_limit import limiter
 from ..message_texts import normalise, t
 from ..schemas import NoticeAck, NoticeRequest
+from ..timeutil import utcnow
 
 logger = logging.getLogger("flexr.notices")
 
@@ -117,7 +118,7 @@ def submit_notice(
     ein Konto zu verlangen wäre eine Hürde, die die Vorschrift nicht kennt.
     Missbrauch wird über das Rate Limit begrenzt, nicht über eine Anmeldung.
     """
-    now = datetime.utcnow()
+    now = utcnow()
     category = NoticeCategory(payload.category)
     # Die Sprache kommt von der Formularseite (/meldung.html oder
     # /en/meldung.html). Aeltere Clients schicken sie nicht - dann Deutsch.

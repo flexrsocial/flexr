@@ -42,6 +42,7 @@ from sqlalchemy.orm import Session
 from . import clients
 from .config import settings
 from .models import Match, Message, Swipe, User
+from .timeutil import utcnow
 
 # Das Like-Fenster laeuft rollierend ab dem ersten Like, nicht ab Mitternacht.
 # Ein Kalendertag waere fuer eine App, die abends nach dem Training benutzt
@@ -69,7 +70,7 @@ def feature_locked(user: User) -> bool:
 
 def likes_used(db: Session, user: User, now: datetime | None = None) -> int:
     """Wie viele Likes dieser Nutzer im laufenden 24-Stunden-Fenster gesetzt hat."""
-    current = now or datetime.utcnow()
+    current = now or utcnow()
     return (
         db.query(func.count(Swipe.id))
         .filter(
@@ -99,7 +100,7 @@ def next_like_at(db: Session, user: User, now: datetime | None = None) -> dateti
     Nur gefuellt, wenn das Kontingent gerade aufgebraucht ist - sonst gibt es
     nichts abzuwarten.
     """
-    current = now or datetime.utcnow()
+    current = now or utcnow()
     if likes_remaining(db, user, current) != 0:
         return None
     oldest = (

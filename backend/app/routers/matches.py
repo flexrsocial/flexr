@@ -9,6 +9,7 @@ from ..models import Block, Match, Message, Swipe, User
 from ..schemas import MatchOut
 from ..security import require_active_membership
 from .profiles import to_public_profile
+from ..timeutil import utcnow
 
 router = APIRouter(prefix="/api/matches", tags=["matches"])
 
@@ -184,7 +185,7 @@ def delete_chat(
     if not match or current_user.id not in (match.user_a_id, match.user_b_id):
         raise HTTPException(404, "Match nicht gefunden.")
 
-    jetzt = datetime.utcnow()
+    jetzt = utcnow()
     match.set_chat_deleted_at(current_user.id, jetzt)
     # Wie bei "Chatverlauf leeren": die alten Nachrichten sollen nicht wieder
     # auftauchen, sobald der Chat durch eine neue Nachricht zurückkehrt.

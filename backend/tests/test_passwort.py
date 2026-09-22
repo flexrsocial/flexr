@@ -9,6 +9,7 @@ from datetime import datetime, timedelta
 from app import mailer
 from app.models import PasswordReset, User
 from tests.conftest import TestingSessionLocal, register_user
+from app.timeutil import utcnow
 
 PW = "supersecret123"
 
@@ -78,7 +79,7 @@ def test_abgelaufener_link_greift_nicht(client, monkeypatch):
     client.post("/api/auth/password/forgot", json={"email": "alt@example.com"})
     token = _token(mails[-1])
     with TestingSessionLocal() as db:
-        db.query(PasswordReset).update({"expires_at": datetime.utcnow() - timedelta(minutes=1)})
+        db.query(PasswordReset).update({"expires_at": utcnow() - timedelta(minutes=1)})
         db.commit()
     r = client.post("/api/auth/password/reset", json={"token": token, "new_password": "neuesPasswort99"})
     assert r.status_code == 400

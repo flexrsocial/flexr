@@ -9,6 +9,7 @@ Chat-Fehler und die Mitteilung in der App dieselbe Formulierung verwenden.
 from typing import Optional
 
 from .models import ModerationAction, ModerationBasis, ModerationSource, User
+from .timeutil import utcnow
 
 # Alle Bausteine hier gibt es zweisprachig: Sie gehen per E-Mail an den
 # Betroffenen (mailer.send_moderation_decision) und stehen im 403-Detail, das
@@ -263,7 +264,7 @@ def apply_restriction(
     user.moderation_reason = reason
     from datetime import datetime
 
-    user.moderation_action_at = datetime.utcnow()
+    user.moderation_action_at = utcnow()
     user.moderation_scope = scope or (
         "Senden von Nachrichten" if action is ModerationAction.mute else "gesamtes Konto"
     )

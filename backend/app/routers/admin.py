@@ -72,6 +72,7 @@ from ..security import (
 )
 from ..verification_service import activate_account, purge_uploads, reason_text
 from .. import storage
+from ..timeutil import utcnow
 
 # Feste Mitteilungen, die dieser Bereich selbst formuliert - sie gehen per
 # E-Mail an den Betroffenen und folgen deshalb seiner Profilsprache. Die
@@ -142,7 +143,7 @@ ADMIN_LOCKOUT_DURATION = timedelta(minutes=15)
 def _register_failed_admin_login(admin: AdminUser, db: Session) -> None:
     admin.failed_login_attempts += 1
     if admin.failed_login_attempts >= ADMIN_LOCKOUT_THRESHOLD:
-        admin.locked_until = datetime.utcnow() + ADMIN_LOCKOUT_DURATION
+        admin.locked_until = utcnow() + ADMIN_LOCKOUT_DURATION
         admin.failed_login_attempts = 0
     db.commit()
 
@@ -158,7 +159,7 @@ def admin_login(
     admin = db.query(AdminUser).filter(func.lower(AdminUser.email) == payload.email).first()
     if not admin:
         raise HTTPException(401, "E-Mail oder Passwort falsch.")
-    if admin.locked_until and admin.locked_until > datetime.utcnow():
+    if admin.locked_until and admin.locked_until > utcnow():
         raise HTTPException(
             401,
             "Konto wegen zu vieler Fehlversuche vorübergehend gesperrt. "
@@ -617,7 +618,7 @@ def mute_user(
         user,
         ModerationAction.mute,
         payload.reason,
-        muted_until=datetime.utcnow() + timedelta(days=payload.days, hours=payload.hours),
+        muted_until=utcnow() + timedelta(days=payload.days, hours=payload.hours),
     )
     db.commit()
     statement = statement_of_reasons(user, ModerationAction.mute, user.language)
@@ -762,7 +763,7 @@ def reject_photo(
         payload.reason if payload else PhotoRejectionReason.unusable.value
     )
     photo.rejection_note = payload.note if payload else None
-    photo.rejected_at = datetime.utcnow()
+    photo.rejected_at = utcnow()
     # Die Bilddatei mitnehmen - wie beim Hard-Delete: Was die Moderation
     # entfernt, darf nicht unter seiner öffentlichen URL abrufbar bleiben.
     # Der Bucket liefert jede einmal vergebene URL sonst dauerhaft weiter aus,
@@ -852,7 +853,7 @@ def decide_notice(
     if notice.decided_at is not None:
         raise HTTPException(409, "Diese Meldung wurde bereits entschieden.")
 
-    notice.decided_at = datetime.utcnow()
+    notice.decided_at = utcnow()
     notice.outcome = payload.outcome
     notice.decision_reason = payload.decision_reason
     notice.decision_automated = payload.decision_automated
@@ -981,7 +982,7 @@ def approve_verification(
     req, user = _load_verification(db, request_id)
 
     req.status = VerificationStatus.approved
-    req.decided_at = _dt.utcnow()
+    req.decided_at = utcnow()
     req.reviewed_by = admin.id
     req.review_reason = None
 
@@ -1021,7 +1022,7 @@ def reject_verification(
     req, user = _load_verification(db, request_id)
 
     req.status = VerificationStatus.rejected
-    req.decided_at = _dt.utcnow()
+    req.decided_at = utcnow()
     req.reviewed_by = admin.id
     req.review_reason = payload.reason_code
 
@@ -1078,7 +1079,7 @@ def request_verification_reupload(
     req, user = _load_verification(db, request_id)
 
     req.status = VerificationStatus.reupload_required
-    req.decided_at = _dt.utcnow()
+    req.decided_at = utcnow()
     req.reviewed_by = admin.id
     req.review_reason = payload.reason_code
     req.document_type = None
@@ -1122,7 +1123,7 @@ def require_verification(
     # Merkt den Zeitpunkt der Anforderung: Frühere Entscheidungen (auch eine
     # frühere Ablehnung) blockieren den neuen Durchlauf damit nicht mehr,
     # spätere sehr wohl.
-    user.verification_required_at = datetime.utcnow()
+    user.verification_required_at = utcnow()
     # Der blaue Haken hängt an der bestandenen Prüfung - bis zur neuen
     # Entscheidung ist er weg.
     user.is_verified = False
@@ -1354,7 +1355,7 @@ def decide_report(
         raise HTTPException(404, "Meldung nicht gefunden.")
     if report.dismissed_at is not None:
         raise HTTPException(409, "Diese Meldung wurde bereits entschieden.")
-    report.dismissed_at = datetime.utcnow()
+    report.dismissed_at = utcnow()
     report.outcome = payload.outcome
     report.decision_note = payload.decision_note
     db.commit()

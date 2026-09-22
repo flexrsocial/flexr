@@ -1,7 +1,7 @@
 from datetime import date, datetime
 from typing import Literal, Optional
 
-from pydantic import BaseModel, EmailStr, Field, field_validator, model_validator
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator, model_validator
 
 from .age import is_plausible_birthdate
 
@@ -154,8 +154,7 @@ class PhotoOut(BaseModel):
     # (abgelehnte Fotos zaehlten mit, siehe Commit a3e3c3a).
     deletable: Optional[bool] = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class PresignPhotoRequest(BaseModel):
@@ -190,8 +189,7 @@ class ProfileOut(BaseModel):
     distance_km: Optional[int] = None
     photos: list[PhotoOut] = []
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class MyProfileOut(ProfileOut):
@@ -292,8 +290,7 @@ class PushNotificationOut(BaseModel):
     target: Optional[str] = None
     created_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class MarkDeliveredRequest(BaseModel):
@@ -536,8 +533,7 @@ class MessageOut(BaseModel):
     # Original und dazu diesen Hinweis.
     was_censored: bool = False
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class SendMessageRequest(BaseModel):
@@ -887,8 +883,7 @@ class AdminUserDetailOut(BaseModel):
     devices: list[dict] = []
     verification_rejected: bool = False
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class AdminMuteRequest(BaseModel):

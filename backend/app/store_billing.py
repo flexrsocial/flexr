@@ -49,6 +49,7 @@ from sqlalchemy.orm import Session
 
 from .config import settings
 from .models import StoreProvider, StoreSubscription, User
+from .timeutil import utcfromtimestamp
 
 logger = logging.getLogger(__name__)
 
@@ -185,7 +186,7 @@ def _ms_to_datetime(wert: Any) -> datetime | None:
     if wert in (None, ""):
         return None
     try:
-        return datetime.utcfromtimestamp(int(wert) / 1000)
+        return utcfromtimestamp(int(wert) / 1000)
     except (TypeError, ValueError):
         return None
 

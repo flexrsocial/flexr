@@ -44,6 +44,7 @@ from ..storage import (
     public_url_for,
     set_photo_headers,
 )
+from ..timeutil import utcnow
 
 logger = logging.getLogger(__name__)
 
@@ -100,7 +101,7 @@ def update_my_profile(
                     "vor Umgehung des FLEXR-Premium-Suchumkreises) - nächste "
                     f"Änderung ab {locked_until.strftime('%d.%m.%Y')} möglich.",
                 )
-            fields["gym_changed_at"] = datetime.utcnow()
+            fields["gym_changed_at"] = utcnow()
 
     if "bio" in fields:
         from ..safety_checks import check_public_text
@@ -254,7 +255,7 @@ def delete_my_account(
     # die 30-tägige Karenzzeit nicht überdauern.
     purge_verification_uploads_for_user(db, current_user)
 
-    current_user.deleted_at = datetime.utcnow()
+    current_user.deleted_at = utcnow()
     db.commit()
 
     # Bestätigung samt Reaktivierungshinweis - nach der Antwort, nicht davor

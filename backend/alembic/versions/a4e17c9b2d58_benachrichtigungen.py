@@ -10,6 +10,7 @@ from typing import Sequence, Union
 
 from alembic import op
 import sqlalchemy as sa
+from app.timeutil import utcnow
 
 
 revision: str = "a4e17c9b2d58"
@@ -60,12 +61,12 @@ def upgrade() -> None:
     # Funktion still statt mit einem Rundumschlag anlaeuft.
     #
     # Zeitstempel bewusst aus Python statt per NOW(): die Anwendung schreibt
-    # naive UTC-Werte (datetime.utcnow()), NOW() lieferte dagegen die Ortszeit
+    # naive UTC-Werte (utcnow()), NOW() lieferte dagegen die Ortszeit
     # des Servers - auf einem Wiener Host also zwei Stunden Versatz gegen alle
     # uebrigen Zeitstempel derselben Spalte.
     op.execute(
         sa.text("UPDATE users SET last_active_at = :now WHERE last_active_at IS NULL")
-        .bindparams(now=datetime.utcnow())
+        .bindparams(now=utcnow())
     )
 
     op.create_table(

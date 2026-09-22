@@ -10,6 +10,7 @@ from app.config import settings
 from app.models import User, VerificationRequest
 from tests.conftest import TestingSessionLocal, create_admin, register_raw
 from tests.test_verification import FULL_CHECKLIST, _add_photo, _complete_submission
+from app.timeutil import utcnow
 
 
 @pytest.fixture
@@ -57,7 +58,7 @@ def test_pending_review_does_not_consume_trial(client, storage_stub, monkeypatch
     db = TestingSessionLocal()
     try:
         user = db.query(User).filter(User.id == user_id).first()
-        user.created_at = datetime.utcnow() - timedelta(days=10)
+        user.created_at = utcnow() - timedelta(days=10)
         db.commit()
     finally:
         db.close()
@@ -114,7 +115,7 @@ def test_abandoned_verification_is_cleaned_up(client, storage_stub):
         req_id = req.id
         # Vorgang steckt im offenen Ausweisschritt und ist überaltert
         req.status = "id_required"
-        req.created_at = datetime.utcnow() - timedelta(days=ORPHAN_RETENTION_DAYS + 1)
+        req.created_at = utcnow() - timedelta(days=ORPHAN_RETENTION_DAYS + 1)
         db.commit()
     finally:
         db.close()
@@ -137,7 +138,7 @@ def test_submitted_verification_is_not_cleaned_up(client, storage_stub):
     db = TestingSessionLocal()
     try:
         req = db.query(VerificationRequest).first()
-        req.created_at = datetime.utcnow() - timedelta(days=365)
+        req.created_at = utcnow() - timedelta(days=365)
         db.commit()
         assert purge_stale_verification_uploads(db) == 0
         assert db.query(VerificationRequest).count() == 1
@@ -197,7 +198,7 @@ def test_purge_after_grace_period_removes_verification_files(client, storage_stu
     db = TestingSessionLocal()
     try:
         user = db.query(User).filter(User.id == user_id).first()
-        user.deleted_at = datetime.utcnow() - timedelta(days=31)
+        user.deleted_at = utcnow() - timedelta(days=31)
         db.commit()
         assert purge_deleted_users(db) == 1
     finally:

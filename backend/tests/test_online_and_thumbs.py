@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 
 from tests.conftest import TestingSessionLocal, register_user
 from tests.test_messages import make_match
+from app.timeutil import utcnow
 
 
 def test_matches_show_online_flag_for_active_user(client):
@@ -18,7 +19,7 @@ def test_matches_show_offline_after_inactivity(client):
     db = TestingSessionLocal()
     try:
         other = db.query(User).filter(User.id == user_b["id"]).first()
-        other.last_seen_at = datetime.utcnow() - timedelta(minutes=10)
+        other.last_seen_at = utcnow() - timedelta(minutes=10)
         db.commit()
     finally:
         db.close()

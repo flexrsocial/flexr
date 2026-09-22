@@ -17,6 +17,7 @@ from sqlalchemy.orm import Session
 
 from . import legal
 from .models import Consent, ConsentType, User
+from .timeutil import utcnow
 
 # Welche Fassung für welche Einwilligungsart gilt. Ändert sich ein Text
 # inhaltlich, wird in app/legal.py die Fassung erhöht - alte Einwilligungen
@@ -42,7 +43,7 @@ def grant(
     Eine bereits aktive Einwilligung derselben Art und Fassung wird nicht
     verdoppelt - sonst entstünde bei jedem Speichern ein neuer Nachweis.
     """
-    timestamp = at or datetime.utcnow()
+    timestamp = at or utcnow()
     version = VERSION_FOR[consent_type]
 
     existing = active(db, user.id, consent_type)
@@ -72,7 +73,7 @@ def revoke(db: Session, user_id: str, consent_type: ConsentType) -> bool:
     entry = active(db, user_id, consent_type)
     if entry is None:
         return False
-    entry.revoked_at = datetime.utcnow()
+    entry.revoked_at = utcnow()
     db.commit()
     return True
 

@@ -12,6 +12,7 @@ from zoneinfo import ZoneInfo
 import pytest
 
 from tests.conftest import TestingSessionLocal, register_raw
+from app.timeutil import utcnow
 
 _VIENNA = ZoneInfo("Europe/Vienna")
 
@@ -67,7 +68,7 @@ def test_bestaetigungstext_enthaelt_inhalt_datum_uhrzeit(client):
     assert "widerrufe" in text.lower()
     assert "Max Mustermann" in text
     assert "max@example.com" in text  # Vertrags-/Kontobezug
-    heute = datetime.utcnow().strftime("%d.%m.%Y")
+    heute = utcnow().strftime("%d.%m.%Y")
     assert heute in text
     assert "Uhr" in text
 

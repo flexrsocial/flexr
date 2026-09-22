@@ -23,6 +23,7 @@ from . import mailer
 from .message_texts import t
 from .email_notifications import send_once
 from .models import NotificationTopic, PushNotification, User
+from .timeutil import utcnow
 
 # Welcher Schalter gilt für welchen Anlass. Ein Anlass ohne Eintrag würde
 # ungefragt zugestellt - deshalb steht die Zuordnung an einer Stelle und wird
@@ -216,7 +217,7 @@ def pending_for(db: Session, user_id: str, limit: int = 20) -> list[PushNotifica
 def mark_delivered(db: Session, user_id: str, ids: list[str]) -> int:
     if not ids:
         return 0
-    now = datetime.utcnow()
+    now = utcnow()
     changed = (
         db.query(PushNotification)
         .filter(

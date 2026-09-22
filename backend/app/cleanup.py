@@ -29,6 +29,7 @@ from .verification_service import (
     orphan_keys_for,
     purge_uploads,
 )
+from .timeutil import utcnow
 
 logger = logging.getLogger("flexr.cleanup")
 
@@ -128,7 +129,7 @@ def purge_stale_verification_uploads(db: Session) -> int:
 
     Gibt die Zahl der aufgeräumten Vorgänge zurück.
     """
-    cutoff = datetime.utcnow() - timedelta(days=ORPHAN_RETENTION_DAYS)
+    cutoff = utcnow() - timedelta(days=ORPHAN_RETENTION_DAYS)
     stale_states = (
         VerificationStatus.in_progress,
         VerificationStatus.id_required,
@@ -165,7 +166,7 @@ def purge_stale_verification_uploads(db: Session) -> int:
 def purge_deleted_users(db: Session) -> int:
     """Löscht Konten, deren Karenzzeit abgelaufen ist, endgültig. Gibt die
     Anzahl gelöschter Konten zurück."""
-    cutoff = datetime.utcnow() - timedelta(days=GRACE_PERIOD_DAYS)
+    cutoff = utcnow() - timedelta(days=GRACE_PERIOD_DAYS)
     expired = db.query(User).filter(User.deleted_at.isnot(None), User.deleted_at < cutoff).all()
     if not expired:
         return 0

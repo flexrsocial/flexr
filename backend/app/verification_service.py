@@ -27,6 +27,7 @@ from .models import (
     VerificationReviewReason,
     VerificationStatus,
 )
+from .timeutil import utcnow
 
 logger = logging.getLogger("flexr.verification")
 
@@ -181,7 +182,7 @@ def activate_account(user: User) -> None:
     """
     if user.activated_at is not None:
         return
-    user.activated_at = datetime.utcnow()
+    user.activated_at = utcnow()
 
 
 def object_keys_for(req: VerificationRequest) -> list[str]:

@@ -45,6 +45,7 @@ from ..verification_service import (
     purge_uploads,
     reason_text,
 )
+from ..timeutil import utcnow
 
 logger = logging.getLogger("flexr.verification")
 
@@ -333,7 +334,7 @@ def submit_document(
         [{"side": side, "object_key": key} for side, key in keys], ensure_ascii=False
     )
     active.status = VerificationStatus.submitted
-    active.submitted_at = datetime.utcnow()
+    active.submitted_at = utcnow()
     active.review_reason = None
     db.commit()
     telegram.notify_admin_task(

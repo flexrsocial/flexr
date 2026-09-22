@@ -33,6 +33,7 @@ from ..message_texts import normalise, t
 from ..schemas import WithdrawalAck, WithdrawalRequest, WithdrawalStatus
 from ..security import optional_current_user
 from ..stripe_client import cancel_subscription_immediately
+from ..timeutil import utcnow
 
 logger = logging.getLogger("flexr.withdrawal")
 
@@ -184,7 +185,7 @@ def declare_withdrawal(
     # Konto offen (§ 13a FAGG), es gibt dort also kein Profil zum Nachschlagen.
     lang = normalise(current_user.language if current_user else payload.language)
 
-    received_at = datetime.utcnow()
+    received_at = utcnow()
     received_at_vienna = received_at.replace(tzinfo=ZoneInfo("UTC")).astimezone(_VIENNA)
     text = build_declaration_text(
         payload.name, payload.contract_reference, payload.message, received_at, lang
@@ -199,7 +200,7 @@ def declare_withdrawal(
     if current_user and current_user.stripe_subscription_id:
         try:
             cancel_subscription_immediately(current_user.stripe_subscription_id)
-            subscription_stopped_at = datetime.utcnow()
+            subscription_stopped_at = utcnow()
             current_user.is_subscribed = False
         except Exception:  # noqa: BLE001 - darf die Erklärung nie zum Scheitern bringen
             logger.exception(
@@ -252,7 +253,7 @@ def declare_withdrawal(
     # sofort erfahren und sich den angezeigten Wortlaut selbst sichern können.
     kann_mailen = email_configured()
     if kann_mailen:
-        declaration.confirmation_sent_at = datetime.utcnow()
+        declaration.confirmation_sent_at = utcnow()
         declaration.confirmation_channel = "email"
         declaration.status = "bestaetigt"
         db.commit()

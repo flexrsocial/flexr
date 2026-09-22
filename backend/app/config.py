@@ -1,4 +1,4 @@
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
@@ -192,24 +192,21 @@ class Settings(BaseSettings):
     telegram_bot_token: str = ""
     telegram_chat_id: str = ""
 
-    class Config:
-        env_file = ".env"
-
-        # Unbekannte Schluessel in der .env werden ueberlesen statt abgelehnt.
-        #
-        # Der Grund ist ein konkreter Beinahe-Ausfall: Mit dem Wegfall des
-        # Probemonats verschwand ``stripe_trial_days`` aus dieser Klasse, in
-        # der .env auf dem Server stand STRIPE_TRIAL_DAYS aber weiter. Pydantic
-        # lehnt Extras standardmaessig ab - der Dienst waere beim naechsten
-        # Neustart nicht mehr hochgekommen, und zwar erst Minuten nach dem
-        # Deploy, wenn niemand mehr hinsieht.
-        #
-        # Eine Einstellung zu entfernen darf keinen Ausfall ausloesen koennen.
-        # Der Preis dafuer ist, dass ein Tippfehler in einem Schluesselnamen
-        # stillschweigend zum Standardwert fuehrt - vertretbar, weil jede
-        # sicherheitsrelevante Einstellung hier ohne Standard deklariert ist
-        # (database_url, jwt_secret) und ihr Fehlen weiterhin sofort auffaellt.
-        extra = "ignore"
+    # Unbekannte Schluessel in der .env werden ueberlesen statt abgelehnt.
+    #
+    # Der Grund ist ein konkreter Beinahe-Ausfall: Mit dem Wegfall des
+    # Probemonats verschwand ``stripe_trial_days`` aus dieser Klasse, in
+    # der .env auf dem Server stand STRIPE_TRIAL_DAYS aber weiter. Pydantic
+    # lehnt Extras standardmaessig ab - der Dienst waere beim naechsten
+    # Neustart nicht mehr hochgekommen, und zwar erst Minuten nach dem
+    # Deploy, wenn niemand mehr hinsieht.
+    #
+    # Eine Einstellung zu entfernen darf keinen Ausfall ausloesen koennen.
+    # Der Preis dafuer ist, dass ein Tippfehler in einem Schluesselnamen
+    # stillschweigend zum Standardwert fuehrt - vertretbar, weil jede
+    # sicherheitsrelevante Einstellung hier ohne Standard deklariert ist
+    # (database_url, jwt_secret) und ihr Fehlen weiterhin sofort auffaellt.
+    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
 
 settings = Settings()

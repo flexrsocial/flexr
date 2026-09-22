@@ -27,6 +27,7 @@ from app import store_billing
 from app.config import settings
 from app.models import StoreProvider, StoreSubscription, User
 from tests.conftest import TestingSessionLocal, register_user
+from app.timeutil import utcnow
 
 # ---------------------------------------------------------------------------
 # Eine Zertifikatskette, wie Apple sie mitschickt - nur eben unsere
@@ -186,7 +187,7 @@ def test_gueltiger_beleg_wird_gelesen(apple, kette):
     assert beleg["provider"] is StoreProvider.apple
     assert beleg["external_id"] == "2000000900000001"
     assert beleg["product_id"] == "premium.monthly"
-    assert beleg["expires_at"] > datetime.utcnow()
+    assert beleg["expires_at"] > utcnow()
     assert beleg["status"] == "active"
 
 
@@ -210,7 +211,7 @@ def _beleg(external_id="2000000900000001", tage=30, environment="Production", st
         "provider": StoreProvider.apple,
         "external_id": external_id,
         "product_id": "premium.monthly",
-        "expires_at": datetime.utcnow() + timedelta(days=tage) if tage is not None else None,
+        "expires_at": utcnow() + timedelta(days=tage) if tage is not None else None,
         "status": status,
         "auto_renewing": True,
         "environment": environment,

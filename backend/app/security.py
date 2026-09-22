@@ -15,6 +15,7 @@ from .config import settings
 from .database import get_db
 from .models import AdminUser, ModerationAction, User
 from .moderation import restriction_detail
+from .timeutil import utcnow
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
@@ -52,7 +53,7 @@ def verify_totp_code(secret: str, code: str) -> bool:
 
 
 def create_access_token(user_id: str) -> str:
-    now = datetime.utcnow()
+    now = utcnow()
     expire = now + timedelta(minutes=settings.access_token_expire_minutes)
     # iat: Nach einem Passwortwechsel gelten nur noch Token, die danach
     # ausgestellt wurden (siehe token_predates_password_change).
@@ -119,7 +120,7 @@ def get_current_user(
 
     # Online-Anzeige: last_seen_at gedrosselt aktualisieren (max. 1 Schreibzugriff
     # pro Minute), damit nicht jeder Request eine DB-Schreiboperation auslöst.
-    now = datetime.utcnow()
+    now = utcnow()
     dirty = False
     if user.last_seen_at is None or now - user.last_seen_at > timedelta(seconds=60):
         user.last_seen_at = now
@@ -254,7 +255,7 @@ def require_active_membership(user: User = Depends(require_activated_account)) -
 
 
 def create_admin_access_token(admin_id: str) -> str:
-    expire = datetime.utcnow() + timedelta(minutes=settings.admin_access_token_expire_minutes)
+    expire = utcnow() + timedelta(minutes=settings.admin_access_token_expire_minutes)
     payload = {"sub": admin_id, "exp": expire, "scope": "admin"}
     return jwt.encode(payload, settings.jwt_secret, algorithm=settings.jwt_algorithm)
 

@@ -12,6 +12,7 @@ from ..moderation import restriction_detail
 from ..rate_limit import limiter
 from ..schemas import MessageOut, SendMessageRequest
 from ..security import require_active_membership
+from ..timeutil import utcnow
 
 logger = logging.getLogger(__name__)
 
@@ -94,7 +95,7 @@ def list_messages(
         query = query.filter(Message.created_at > cleared_at)
     messages = query.order_by(Message.created_at.asc()).all()
 
-    now = datetime.utcnow()
+    now = utcnow()
     unread_ids = {m.id for m in messages if m.sender_id == other_id and m.read_at is None}
 
     # Die Antwort wird vor dem Commit gebaut (und read_at für die eben als
@@ -133,7 +134,7 @@ def clear_messages(
     erhalten. Nachrichten werden nicht gelöscht, nur ein 'geleert-ab'-Zeitpunkt
     gesetzt."""
     match, _ = _get_match_and_other_id(match_id, current_user, db)
-    match.set_cleared_at(current_user.id, datetime.utcnow())
+    match.set_cleared_at(current_user.id, utcnow())
     db.commit()
     return None
 

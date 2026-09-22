@@ -7,6 +7,7 @@ import pytest
 
 from app.age import age_on, is_adult, is_plausible_birthdate
 from tests.conftest import DEFAULT_USER
+from app.timeutil import utcnow
 
 
 # ---------- Berechnung ----------
@@ -169,7 +170,7 @@ def test_repeated_underage_submissions_block_the_device(client):
     db = TestingSessionLocal()
     try:
         entry = db.query(UnderageSignupAttempt).first()
-        entry.created_at = datetime.utcnow() - timedelta(minutes=5)
+        entry.created_at = utcnow() - timedelta(minutes=5)
         db.commit()
     finally:
         db.close()

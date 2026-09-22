@@ -12,6 +12,7 @@ import pytest
 from app.models import ModerationAction, ModerationBasis, ModerationSource, User
 from app.moderation import apply_restriction, clear_restriction, statement_of_reasons
 from tests.conftest import TestingSessionLocal, create_admin, register_raw
+from app.timeutil import utcnow
 
 
 @pytest.fixture
@@ -41,7 +42,7 @@ def test_vollstaendige_begruendung_nennt_alle_bestandteile():
         user,
         ModerationAction.mute,
         "Wiederholte Zahlungsaufforderungen im Chat.",
-        muted_until=datetime.utcnow() + timedelta(days=7),
+        muted_until=utcnow() + timedelta(days=7),
         facts="Am 14.08.2026 in drei Chats nach Paysafecard-Codes gefragt.",
         source=ModerationSource.user_notice,
         automated=True,

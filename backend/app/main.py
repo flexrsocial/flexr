@@ -1,3 +1,5 @@
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI, Request
 from fastapi.encoders import jsonable_encoder
 from fastapi.exception_handlers import http_exception_handler
@@ -22,10 +24,6 @@ from .routers import (
 # Tabellen werden per Alembic-Migration angelegt (siehe backend/alembic/),
 # nicht mehr über Base.metadata.create_all().
 
-app = FastAPI(title="FLEXR API")
-
-
-@app.on_event("startup")
 async def _raise_threadpool_limit() -> None:
     """Hebt Starlettes Standard-Thread-Limit (40) auf die Größe des DB-Pools.
 
@@ -39,6 +37,16 @@ async def _raise_threadpool_limit() -> None:
     import anyio
 
     anyio.to_thread.current_default_thread_limiter().total_tokens = 40
+
+
+@asynccontextmanager
+async def _lifespan(_app: FastAPI):
+    # Frueher @app.on_event("startup") - in FastAPI veraltet.
+    await _raise_threadpool_limit()
+    yield
+
+
+app = FastAPI(title="FLEXR API", lifespan=_lifespan)
 
 
 app.state.limiter = limiter

@@ -11,6 +11,7 @@ from datetime import datetime, timedelta
 from app import mailer
 from app.email_verification import TOKEN_TTL_HOURS, hash_token
 from tests.conftest import GYM_WIEN, TestingSessionLocal, register_raw
+from app.timeutil import utcnow
 
 
 def _register(client, email="neu@example.com", name="Neu Nutzer"):
@@ -126,7 +127,7 @@ def test_abgelaufener_link_wird_abgelehnt(client, monkeypatch):
     db = TestingSessionLocal()
     try:
         eintrag = db.query(EmailVerification).one()
-        eintrag.expires_at = datetime.utcnow() - timedelta(minutes=1)
+        eintrag.expires_at = utcnow() - timedelta(minutes=1)
         db.commit()
     finally:
         db.close()

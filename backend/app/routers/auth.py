@@ -29,6 +29,7 @@ from ..schemas import (
     TokenResponse,
 )
 from ..security import create_access_token, hash_password, verify_password
+from ..timeutil import utcnow
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 
@@ -64,7 +65,7 @@ UNDERAGE_BLOCKED_MESSAGE = (
 
 
 def _underage_attempts(db: Session, device_id: str) -> int:
-    since = datetime.utcnow() - UNDERAGE_ATTEMPT_WINDOW
+    since = utcnow() - UNDERAGE_ATTEMPT_WINDOW
     return (
         db.query(func.count(UnderageSignupAttempt.id))
         .filter(
@@ -91,7 +92,7 @@ def _record_underage_attempt(db: Session, device_id: str | None) -> None:
         db.query(UnderageSignupAttempt.id)
         .filter(
             UnderageSignupAttempt.device_id == device_id,
-            UnderageSignupAttempt.created_at >= datetime.utcnow() - UNDERAGE_ATTEMPT_DEDUP,
+            UnderageSignupAttempt.created_at >= utcnow() - UNDERAGE_ATTEMPT_DEDUP,
         )
         .first()
     )
@@ -125,7 +126,7 @@ def record_device(db: Session, user_id: str, request: Request) -> None:
         .first()
     )
     if entry:
-        entry.last_seen = datetime.utcnow()
+        entry.last_seen = utcnow()
         entry.user_agent = request.headers.get("User-Agent", "")[:300]
     else:
         db.add(
@@ -227,7 +228,7 @@ def register(
     # ausschließlich gegengeschlechtlich (Produktentscheidung).
     interest = "frau" if payload.gender == "mann" else "mann"
 
-    consent_timestamp = datetime.utcnow()
+    consent_timestamp = utcnow()
     user = User(
         email=payload.email,
         password_hash=hash_password(payload.password),
@@ -315,7 +316,7 @@ def _check_credentials(db: Session, payload: LoginRequest) -> User:
         verify_password(payload.password, _DUMMY_HASH)
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "E-Mail oder Passwort falsch.")
 
-    jetzt = datetime.utcnow()
+    jetzt = utcnow()
     if user.login_locked_until and user.login_locked_until > jetzt:
         minuten = max(1, int((user.login_locked_until - jetzt).total_seconds() // 60) + 1)
         raise HTTPException(

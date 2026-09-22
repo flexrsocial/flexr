@@ -19,6 +19,7 @@ from sqlalchemy.orm import relationship
 from .age import age_on
 from .config import settings
 from .database import Base
+from .timeutil import utcnow
 
 
 def gen_uuid() -> str:
@@ -251,7 +252,7 @@ class Gym(Base):
     suggested_by = Column(
         String, ForeignKey("users.id", ondelete="SET NULL"), nullable=True
     )
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=utcnow)
 
     @property
     def label(self) -> str:
@@ -282,7 +283,7 @@ class User(Base):
     gym_changed_at = Column(DateTime, nullable=True)
     bio = Column(String(280), nullable=True)
 
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=utcnow)
 
     # Rest des alten Probemonats. Seit der Umstellung auf FLEXR Premium
     # (10.09.2026) ist die Plattform dauerhaft kostenlos - es gibt keinen
@@ -290,7 +291,7 @@ class User(Base):
     # Die Spalte bleibt nur stehen, damit die Tabelle nicht angefasst werden
     # muss; **ausgewertet wird sie nirgends**. Wer hier wieder etwas hineinliest,
     # baut die abgeschaffte Bezahlwand versehentlich neu auf.
-    trial_ends_at = Column(DateTime, default=datetime.utcnow)
+    trial_ends_at = Column(DateTime, default=utcnow)
 
     # Stripe-Abo (Kauf im Browser). Fuer Kaeufe in den Apps gibt es einen
     # zweiten Weg, siehe StoreSubscription und store_premium_until darunter.
@@ -498,7 +499,7 @@ class User(Base):
         """
         return (
             self.store_premium_until is not None
-            and self.store_premium_until > datetime.utcnow()
+            and self.store_premium_until > utcnow()
         )
 
     @property
@@ -514,7 +515,7 @@ class User(Base):
         if self.gym_changed_at is None:
             return None
         locked_until = self.gym_changed_at + timedelta(days=GYM_CHANGE_COOLDOWN_DAYS)
-        return locked_until if locked_until > datetime.utcnow() else None
+        return locked_until if locked_until > utcnow() else None
 
     @property
     def is_premium(self) -> bool:
@@ -540,7 +541,7 @@ class User(Base):
     def is_messaging_muted(self) -> bool:
         return (
             self.messaging_muted_until is not None
-            and self.messaging_muted_until > datetime.utcnow()
+            and self.messaging_muted_until > utcnow()
         )
 
     @property
@@ -557,7 +558,7 @@ class User(Base):
         Methode, damit Pydantic das Feld direkt in ProfileOut übernehmen kann."""
         return (
             self.last_seen_at is not None
-            and datetime.utcnow() - self.last_seen_at < timedelta(minutes=5)
+            and utcnow() - self.last_seen_at < timedelta(minutes=5)
         )
 
 
@@ -613,7 +614,7 @@ class Swipe(Base):
     # nach to_user_id allein - ohne eigenen Index dort ein Sequential Scan.
     to_user_id = Column(String, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
     action = Column(String, nullable=False)  # "like" | "pass"
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=utcnow)
 
 
 class Match(Base):
@@ -627,7 +628,7 @@ class Match(Base):
     # user_b_id (der Unique-Constraint deckt nur user_a_id als führende
     # Spalte ab) erzwingt die OR-Hälfte einen Sequential Scan.
     user_b_id = Column(String, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=utcnow)
 
     # "Chatverlauf leeren" wirkt nur für die leerende Seite: Nachrichten vor
     # diesem Zeitpunkt werden für den jeweiligen Nutzer ausgeblendet, für die
@@ -671,7 +672,7 @@ class Message(Base):
     match_id = Column(String, ForeignKey("matches.id", ondelete="CASCADE"), nullable=False, index=True)
     sender_id = Column(String, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     content = Column(String(2000), nullable=False)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=utcnow)
     read_at = Column(DateTime, nullable=True)
 
     # Automatische Sicherheitsprüfung: auffällige Nachrichten werden zugestellt,
@@ -705,7 +706,7 @@ class EmailVerification(Base):
     email = Column(String, nullable=False)
     token_hash = Column(String, nullable=False, index=True)
     expires_at = Column(DateTime, nullable=False)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=utcnow)
 
 
 class PasswordReset(Base):
@@ -723,7 +724,7 @@ class PasswordReset(Base):
     user_id = Column(String, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
     token_hash = Column(String, nullable=False, index=True)
     expires_at = Column(DateTime, nullable=False)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=utcnow)
 
 
 class UserDevice(Base):
@@ -739,8 +740,8 @@ class UserDevice(Base):
     user_id = Column(String, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
     device_id = Column(String, nullable=False, index=True)
     user_agent = Column(String, nullable=True)
-    first_seen = Column(DateTime, default=datetime.utcnow)
-    last_seen = Column(DateTime, default=datetime.utcnow)
+    first_seen = Column(DateTime, default=utcnow)
+    last_seen = Column(DateTime, default=utcnow)
 
 
 class Block(Base):
@@ -750,7 +751,7 @@ class Block(Base):
     id = Column(String, primary_key=True, default=gen_uuid)
     blocker_id = Column(String, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     blocked_id = Column(String, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=utcnow)
 
 
 class Report(Base):
@@ -760,7 +761,7 @@ class Report(Base):
     reporter_id = Column(String, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     reported_id = Column(String, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     reason = Column(String(500), nullable=False)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=utcnow)
     # Vom Admin abgeschlossen - bleibt als Nachweis erhalten, verschwindet aber
     # aus der offenen Meldungsliste.
     dismissed_at = Column(DateTime, nullable=True)
@@ -798,7 +799,7 @@ class VerificationRequest(Base):
     status = Column(Enum(VerificationStatus), nullable=False, default=VerificationStatus.in_progress)
     prompts = Column(Text, nullable=False)   # JSON: ["Schau direkt in die Kamera"]
     selfies = Column(Text, nullable=True)    # JSON: [{"prompt": ..., "object_key": ...}]
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=utcnow)
     decided_at = Column(DateTime, nullable=True)
 
     # ---- Ausweisschritt ----
@@ -838,7 +839,7 @@ class UnderageSignupAttempt(Base):
 
     id = Column(String, primary_key=True, default=gen_uuid)
     device_id = Column(String, nullable=False, index=True)
-    created_at = Column(DateTime, default=datetime.utcnow, index=True)
+    created_at = Column(DateTime, default=utcnow, index=True)
 
 
 class DailyAccess(Base):
@@ -880,7 +881,7 @@ class Consent(Base):
     consent_type = Column(String(30), nullable=False)  # ConsentType
     # Fassung des Textes, zu dem eingewilligt wurde (siehe app/legal.py).
     version = Column(String(20), nullable=False)
-    granted_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+    granted_at = Column(DateTime, nullable=False, default=utcnow)
     # Gesetzt, sobald widerrufen wurde. Der Datensatz bleibt als Nachweis
     # bestehen - gelöscht wird er erst mit dem Konto.
     revoked_at = Column(DateTime, nullable=True)
@@ -913,20 +914,20 @@ class CheckoutConsent(Base):
     # der 14-tägigen Rücktrittsfrist mit der Erbringung der kostenpflichtigen
     # Dienstleistung beginnt."
     immediate_start_version = Column(String(20), nullable=False)
-    immediate_start_granted_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+    immediate_start_granted_at = Column(DateTime, nullable=False, default=utcnow)
 
     # Checkbox 2: "Ich bestätige, dass ich zur Kenntnis genommen habe, dass
     # mein Rücktrittsrecht nach vollständiger Vertragserfüllung durch FLEXR
     # erlischt, wenn die gesetzlichen Voraussetzungen dafür erfüllt sind."
     withdrawal_ack_version = Column(String(20), nullable=False)
-    withdrawal_ack_granted_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+    withdrawal_ack_granted_at = Column(DateTime, nullable=False, default=utcnow)
 
     # Erst nach dem Bezahlvorgang bekannt - vom Stripe-Webhook nachgetragen,
     # sobald checkout.session.completed die Abo-ID liefert (nullable bis dahin).
     stripe_subscription_id = Column(String, nullable=True, index=True)
     stripe_customer_id = Column(String, nullable=True)
 
-    created_at = Column(DateTime, nullable=False, default=datetime.utcnow, index=True)
+    created_at = Column(DateTime, nullable=False, default=utcnow, index=True)
 
 
 class EmailNotification(Base):
@@ -944,7 +945,7 @@ class EmailNotification(Base):
     id = Column(String, primary_key=True, default=gen_uuid)
     notification_key = Column(String(64), unique=True, nullable=False, index=True)
     kind = Column(String(50), nullable=False, index=True)
-    created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+    created_at = Column(DateTime, nullable=False, default=utcnow)
     sent_at = Column(DateTime, nullable=True)
 
 
@@ -982,7 +983,7 @@ class PushNotification(Base):
     # wohin der Tap führt, ohne den Text interpretieren zu müssen.
     target = Column(String(20), nullable=True)
     dedupe_key = Column(String(64), unique=True, nullable=False, index=True)
-    created_at = Column(DateTime, nullable=False, default=datetime.utcnow, index=True)
+    created_at = Column(DateTime, nullable=False, default=utcnow, index=True)
     # Vom Client bestätigt, sobald die Systembenachrichtigung angezeigt wurde.
     delivered_at = Column(DateTime, nullable=True)
 
@@ -1025,7 +1026,7 @@ class WithdrawalDeclaration(Base):
     # wurde - nicht nachträglich rekonstruiert, sondern festgehalten.
     declaration_text = Column(Text, nullable=False)
 
-    received_at = Column(DateTime, nullable=False, default=datetime.utcnow, index=True)
+    received_at = Column(DateTime, nullable=False, default=utcnow, index=True)
     # Dieselbe Sekunde noch einmal, nur in Europe/Vienna und als fertig
     # formatierte Zeichenkette - so, wie sie dem Erklärenden angezeigt und
     # per Mail bestätigt wird. Der maßgebliche Zeitpunkt bleibt received_at
@@ -1091,7 +1092,7 @@ class Notice(Base):
     # derselben Sprache erreichen wie die Empfangsbestaetigung.
     language = Column(String(2), nullable=False, server_default="de", default="de")
 
-    created_at = Column(DateTime, nullable=False, default=datetime.utcnow, index=True)
+    created_at = Column(DateTime, nullable=False, default=utcnow, index=True)
     # Art. 16 Abs. 4: unverzügliche Empfangsbestätigung.
     acknowledged_at = Column(DateTime, nullable=True)
 
@@ -1130,7 +1131,7 @@ class AdminUser(Base):
     # verteilten Angreifer (viele IPs) nicht bremst.
     failed_login_attempts = Column(Integer, nullable=False, default=0)
     locked_until = Column(DateTime, nullable=True)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=utcnow)
 
 
 class StoreProvider(str, enum.Enum):
@@ -1201,16 +1202,16 @@ class StoreSubscription(Base):
     # in der Produktion kein Premium erzeugen - geprueft in apply_subscription().
     environment = Column(String(20), nullable=False, default="Production")
 
-    created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+    created_at = Column(DateTime, nullable=False, default=utcnow)
     updated_at = Column(
-        DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow
+        DateTime, nullable=False, default=utcnow, onupdate=utcnow
     )
 
     user = relationship("User")
 
     @property
     def is_active(self) -> bool:
-        return self.expires_at is not None and self.expires_at > datetime.utcnow()
+        return self.expires_at is not None and self.expires_at > utcnow()
 
 
 class PushToken(Base):
@@ -1251,5 +1252,5 @@ class PushToken(Base):
     # ueber den Token.
     platform = Column(String(10), nullable=False)
     token = Column(String(512), nullable=False)
-    created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
-    last_seen = Column(DateTime, nullable=False, default=datetime.utcnow)
+    created_at = Column(DateTime, nullable=False, default=utcnow)
+    last_seen = Column(DateTime, nullable=False, default=utcnow)

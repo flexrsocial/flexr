@@ -30,6 +30,7 @@ import argparse
 import sys
 from datetime import datetime
 from pathlib import Path
+from app.timeutil import utcnow
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
@@ -69,7 +70,7 @@ def main() -> int:
             # niemandem ausgespielt - der Prüfer sähe wieder nichts.
             print("\nWarnung: Das Konto hat kein Foto. Bitte erst Fotos hochladen.")
 
-        now = datetime.utcnow()
+        now = utcnow()
         if args.dry_run:
             print("\n--dry-run: nichts geschrieben.")
             return 0

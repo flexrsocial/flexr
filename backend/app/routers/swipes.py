@@ -16,6 +16,7 @@ from ..schemas import IncomingLikesOut, ProfileOut, RewindResult, SwipeRequest, 
 from ..security import require_active_membership
 from ..verification_service import account_visible_condition
 from .profiles import to_public_profile
+from ..timeutil import utcnow
 
 logger = logging.getLogger(__name__)
 
@@ -281,7 +282,7 @@ def swipe(
         # ins laufende 24-Stunden-Fenster. Ohne diese Zeile behielte die Zeile
         # ihr altes Datum und fiele womoeglich sofort aus der Zaehlung heraus.
         if neues_like:
-            existing_swipe.created_at = datetime.utcnow()
+            existing_swipe.created_at = utcnow()
     else:
         db.add(Swipe(from_user_id=current_user.id, to_user_id=payload.to_user_id, action=payload.action))
     try:

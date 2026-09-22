@@ -39,6 +39,7 @@ from sqlalchemy.orm import Session
 
 from .config import settings
 from .models import PushToken, User
+from .timeutil import utcnow
 
 logger = logging.getLogger(__name__)
 
@@ -232,7 +233,7 @@ def register(db: Session, user: User, platform: str, token: str) -> PushToken:
             logger.info("Push-Token wechselt das Konto: %s -> %s", eintrag.user_id, user.id)
         eintrag.user_id = user.id
         eintrag.platform = platform
-        eintrag.last_seen = datetime.utcnow()
+        eintrag.last_seen = utcnow()
     db.commit()
     return eintrag
 
