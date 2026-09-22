@@ -1,7 +1,7 @@
 from datetime import date, datetime, timedelta
 from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Request
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response
 from sqlalchemy import func, or_
 from sqlalchemy.orm import Session
 
@@ -60,7 +60,9 @@ from ..schemas import (
     AdminVerificationReuploadRequest,
     PhotoModerationOut,
 )
+from ..config import settings
 from ..security import (
+    ADMIN_COOKIE,
     build_totp_qr_setup,
     create_admin_access_token,
     generate_totp_secret,
@@ -147,7 +149,12 @@ def _register_failed_admin_login(admin: AdminUser, db: Session) -> None:
 
 @router.post("/auth/login", response_model=AdminTokenResponse)
 @limiter.limit("10/minute")
-def admin_login(request: Request, payload: AdminLoginRequest, db: Session = Depends(get_db)):
+def admin_login(
+    request: Request,
+    payload: AdminLoginRequest,
+    response: Response,
+    db: Session = Depends(get_db),
+):
     admin = db.query(AdminUser).filter(func.lower(AdminUser.email) == payload.email).first()
     if not admin:
         raise HTTPException(401, "E-Mail oder Passwort falsch.")
@@ -171,7 +178,32 @@ def admin_login(request: Request, payload: AdminLoginRequest, db: Session = Depe
         admin.locked_until = None
         db.commit()
     token = create_admin_access_token(admin.id)
+    _set_admin_cookie(response, token)
     return AdminTokenResponse(access_token=token)
+
+
+def _set_admin_cookie(response: Response, token: str) -> None:
+    """HttpOnly-Cookie fuer das Admin-Tool (siehe security.get_current_admin).
+
+    Pfad /api/admin: Das Cookie geht nur an die Admin-Schnittstelle, nie an die
+    restliche API oder die Seiten. Secure ausser bei reinem http (lokal)."""
+    response.set_cookie(
+        ADMIN_COOKIE,
+        token,
+        max_age=settings.admin_access_token_expire_minutes * 60,
+        httponly=True,
+        secure=not settings.frontend_url.startswith("http://"),
+        samesite="strict",
+        path="/api/admin",
+    )
+
+
+@router.post("/auth/logout")
+def admin_logout(response: Response):
+    """Cookie loeschen. Braucht keine gueltige Anmeldung - abmelden geht immer."""
+    response.delete_cookie(ADMIN_COOKIE, path="/api/admin", samesite="strict",
+                           secure=not settings.frontend_url.startswith("http://"), httponly=True)
+    return {"ok": True}
 
 
 @router.get("/auth/totp/status", response_model=AdminTotpStatusResponse)

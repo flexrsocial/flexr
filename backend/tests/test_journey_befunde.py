@@ -24,7 +24,8 @@ from app.routers import billing as billing_router
 
 REPO = Path(__file__).resolve().parents[2]
 APP_HTML = (REPO / "frontend" / "app" / "index.html").read_text(encoding="utf-8")
-ADMIN_HTML = (REPO / "frontend" / "admin.html").read_text(encoding="utf-8")
+ADMIN_HTML = (REPO / "frontend" / "admin.html").read_text(encoding="utf-8") + (
+    REPO / "frontend" / "admin.js").read_text(encoding="utf-8")
 
 
 # ---------- 1. Kontosperre: Begruendung erreicht den Betroffenen ----------

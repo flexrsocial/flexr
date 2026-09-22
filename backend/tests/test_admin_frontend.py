@@ -2,11 +2,20 @@ from pathlib import Path
 
 
 ADMIN_HTML = Path(__file__).resolve().parents[2] / "frontend" / "admin.html"
+ADMIN_JS = ADMIN_HTML.with_name("admin.js")
+
+
+class _Beides:
+    """admin.html und das seit 22.09.2026 ausgelagerte admin.js als ein Text."""
+
+    @staticmethod
+    def read_text(encoding="utf-8"):
+        return ADMIN_HTML.read_text(encoding=encoding) + "\n" + ADMIN_JS.read_text(encoding=encoding)
 
 
 def test_fotoablehnung_sendet_strukturierten_grund():
     """Das Admin-UI darf nicht auf den generischen Backend-Fallback fallen."""
-    html = ADMIN_HTML.read_text(encoding="utf-8")
+    html = _Beides.read_text(encoding="utf-8")
 
     assert "PHOTO_REJECTION_REASONS" in html
     # Seit 06.09.2026 ein eigener Dialog statt prompt() - der Aufruf ist
@@ -34,7 +43,7 @@ def test_fotoablehnung_laeuft_ueber_einen_dialog():
     Nummer eines Grundes aus einer Liste 1-10 abtippen, ohne das Bild zu
     sehen (prompt blendet die Seite aus), und ein Vertipper brach den ganzen
     Vorgang ab. Bei einem Schritt, der mehrmals taeglich vorkommt."""
-    html = ADMIN_HTML.read_text(encoding="utf-8")
+    html = _Beides.read_text(encoding="utf-8")
 
     assert "rejectModalBackdrop" in html
     # Das zu beurteilende Bild steht im Dialog.
@@ -51,7 +60,7 @@ def test_fotoablehnung_laeuft_ueber_einen_dialog():
 
 
 def test_foermliche_meldungen_sind_im_admin_bedienbar():
-    html = ADMIN_HTML.read_text(encoding="utf-8")
+    html = _Beides.read_text(encoding="utf-8")
 
     assert 'id="noticesTableWrap"' in html
     assert "async function loadNotices()" in html

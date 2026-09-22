@@ -130,7 +130,7 @@ def test_datenschutz_nennt_google_fonts_nicht_mehr_als_gegenwart(datenschutz_tex
 
 def test_frontend_laedt_keine_fremden_schriften():
     """Die eigentliche Prüfung: Was der Text sagt, muss im HTML stimmen."""
-    for name in ("index.html", "app/index.html", "admin.html", "legal.css"):
+    for name in ("index.html", "app/index.html", "admin.html", "admin.js", "legal.css"):
         pfad = REPO / "frontend" / name
         assert pfad.exists(), f"{name} fehlt"
         text = pfad.read_text(encoding="utf-8")
@@ -167,7 +167,7 @@ def test_frontend_laedt_ueberhaupt_keine_fremden_hosts():
                # Vertragspartner genannt sind.
                "getsupport.apple.com", "support.google.com"}
 
-    for name in ("index.html", "app/index.html", "admin.html", "legal.css",
+    for name in ("index.html", "app/index.html", "admin.html", "admin.js", "legal.css",
                  "agb.html", "datenschutz.html", "impressum.html", "faq.html",
                  "widerruf.html", "meldung.html", "sicherheit.html",
                  "nutzungsrichtlinien.html", "strafverfolgung.html"):

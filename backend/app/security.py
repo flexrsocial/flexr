@@ -18,7 +18,12 @@ from .moderation import restriction_detail
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
-admin_oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/admin/auth/login")
+admin_oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/admin/auth/login", auto_error=False)
+
+#: HttpOnly-Cookie des Admin-Tools - siehe get_current_admin.
+ADMIN_COOKIE = "flexr_admin"
+#: Pflicht-Header fuer schreibende Admin-Anfragen per Cookie (CSRF-Schutz).
+ADMIN_CSRF_HEADER = "X-Flexr-Admin"
 
 
 def hash_password(password: str) -> str:
@@ -255,13 +260,32 @@ def create_admin_access_token(admin_id: str) -> str:
 
 
 def get_current_admin(
-    token: str = Depends(admin_oauth2_scheme), db: Session = Depends(get_db)
+    request: Request,
+    token: Optional[str] = Depends(admin_oauth2_scheme),
+    db: Session = Depends(get_db),
 ) -> AdminUser:
+    """Angemeldeter Admin - per Bearer-Token (Skripte, Tests) oder per
+    HttpOnly-Cookie (Admin-Tool im Browser).
+
+    Das Cookie ist der Weg des Browsers: Ein Token im localStorage liesse sich
+    von jedem eingeschleusten Skript auslesen, und dieses Token oeffnet
+    Ausweisaufnahmen und personenbezogene Daten. Gegen untergeschobene
+    Anfragen (CSRF) schuetzen SameSite=Strict und zusaetzlich ein Pflicht-
+    Header bei allem, was schreibt - den kann eine fremde Seite ohne
+    CORS-Freigabe nicht setzen.
+    """
     credentials_error = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Ungültige oder abgelaufene Anmeldung.",
         headers={"WWW-Authenticate": "Bearer"},
     )
+    if not token:
+        token = request.cookies.get(ADMIN_COOKIE)
+        if not token:
+            raise credentials_error
+        if request.method not in ("GET", "HEAD", "OPTIONS") and \
+                request.headers.get(ADMIN_CSRF_HEADER) != "1":
+            raise HTTPException(status.HTTP_403_FORBIDDEN, "Anfrage ohne Admin-Kennung abgelehnt.")
     try:
         payload = jwt.decode(token, settings.jwt_secret, algorithms=[settings.jwt_algorithm])
         admin_id = payload.get("sub")

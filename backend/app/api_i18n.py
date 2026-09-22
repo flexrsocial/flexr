@@ -162,6 +162,7 @@ _TEXTE: dict[str, str] = {
         "For this category we need your name and email address so we can confirm receipt and tell you our decision.",
     # ---- Admin (nur deutsch bedient, der Vollstaendigkeit halber)
     "2FA ist bereits aktiviert.": "2FA is already enabled.",
+    "Anfrage ohne Admin-Kennung abgelehnt.": "Request without admin marker rejected.",
     "Code stimmt nicht überein.": "Code does not match.",
     "Nur abgelehnte Einträge können gelöscht werden.": "Only rejected entries can be deleted.",
     "Name darf nicht leer sein.": "Name must not be empty.",
