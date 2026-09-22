@@ -148,7 +148,7 @@ def _register_failed_admin_login(admin: AdminUser, db: Session) -> None:
 @router.post("/auth/login", response_model=AdminTokenResponse)
 @limiter.limit("10/minute")
 def admin_login(request: Request, payload: AdminLoginRequest, db: Session = Depends(get_db)):
-    admin = db.query(AdminUser).filter(AdminUser.email == payload.email).first()
+    admin = db.query(AdminUser).filter(func.lower(AdminUser.email) == payload.email).first()
     if not admin:
         raise HTTPException(401, "E-Mail oder Passwort falsch.")
     if admin.locked_until and admin.locked_until > datetime.utcnow():

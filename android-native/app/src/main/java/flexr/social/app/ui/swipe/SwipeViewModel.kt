@@ -116,7 +116,7 @@ class SwipeViewModel @Inject constructor(
                 _uiState.update { state ->
                     state.copy(
                         searchRadiusKm = profile.searchRadiusKm,
-                        ownAvatarUrl = profile.photos.firstOrNull()?.avatarUrl,
+                        ownAvatarUrl = profile.ownAvatarUrl,
                     )
                 }
                 val suchkriterien = profile.searchRadiusKm to profile.profile.gym

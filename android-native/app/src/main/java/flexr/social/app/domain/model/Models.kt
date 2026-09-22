@@ -96,6 +96,18 @@ data class MyProfile(
     val name: String get() = profile.name
     val photos: List<Photo> get() = profile.photos
 
+    /**
+     * Das eigene Bild fuer Avatare. Die Selbstansicht enthaelt auch abgelehnte
+     * Fotos - deren Datei ist geloescht, photos.first() zeigte dann ein leeres
+     * Bild. Freigegebene zuerst, sonst ein noch wartendes.
+     */
+    val ownAvatarUrl: String?
+        get() = (photos.firstOrNull { it.status == PhotoStatus.APPROVED }
+            ?: photos.firstOrNull { it.status != PhotoStatus.REJECTED })?.avatarUrl
+
+    /** Fotos, die fuer die Mindestanzahl zaehlen - abgelehnte nicht. */
+    val validPhotoCount: Int get() = photos.count { it.status != PhotoStatus.REJECTED }
+
     /** Aktive Chat-Sperre ("Abmahnung"), sonst null. */
     fun activeMuteUntil(now: Instant = Instant.now()): Instant? =
         messagingMutedUntil?.takeIf { it.isAfter(now) }

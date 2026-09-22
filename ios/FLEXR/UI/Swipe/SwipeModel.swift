@@ -72,7 +72,7 @@ final class SwipeModel {
         error = nil
         if let profile = profiles.myProfile {
             searchRadiusKm = profile.searchRadiusKm
-            ownAvatarURL = profile.photos.first?.avatarURL
+            ownAvatarURL = profile.ownAvatarURL
         }
         await loadDeck()
     }

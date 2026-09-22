@@ -159,7 +159,7 @@ struct AccountView: View {
     private func profileHeader(_ model: AccountModel) -> some View {
         HStack(spacing: 14) {
             AvatarImage(
-                source: PhotoImageSource(model.profile?.photos.first?.avatarURL),
+                source: PhotoImageSource(model.profile?.ownAvatarURL),
                 name: model.profile?.name ?? "?",
                 size: 64,
                 ringColor: FlexrColor.plateDim,

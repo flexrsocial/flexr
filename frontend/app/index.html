@@ -157,7 +157,11 @@
   .screen.active{ display:flex; flex-direction:column; flex:1; min-height:0; overflow-y:auto; overflow-x:hidden; }
   /* Der Chat füllt den Screen exakt (Nachrichten scrollen intern) - kein
      zweiter Scrollbalken auf Screen-Ebene. */
-  #screen-chat.active{ overflow:hidden; }
+  /* clip statt nur hidden: .chat-messages ragt fuer den Scrollbalken 13px
+     ueber den rechten Rand hinaus (margin-right:-13px). Ein hidden-Container
+     laesst sich trotzdem programmatisch scrollen - Fokus oder ein Dialog
+     schoben den ganzen Chat 13px nach links, der Zurueck-Knopf verschwand. */
+  #screen-chat.active{ overflow:hidden; overflow:clip; }
   /* Ebenso der Swipe-Screen: Deck und Aktionsknoepfe teilen sich die Hoehe
      exakt auf, es darf nichts unter die Falz rutschen. */
   #screen-swipe.active{ overflow:hidden; }
@@ -2040,7 +2044,7 @@
      laufen synchron und damit vor dem DOMContentLoaded, bei dem FlexrI18n die
      data-i18n-Knoten uebersetzt. -->
 <script src="/i18n.js?v=5"></script>
-<script src="/app/i18n-app.js?v=11"></script>
+<script src="/app/i18n-app.js?v=12"></script>
 <a class="skip-link" href="#main-content" data-i18n="common.skipToContent">Zum Inhalt springen</a>
 <div class="app" id="app">
 
@@ -3589,6 +3593,20 @@
     return photo.thumb_url || photo.url || '';
   }
 
+  // Das eigene Bild fuer Avatare. myProfile.photos ist die Selbstansicht und
+  // enthaelt auch abgelehnte Fotos - deren Datei ist geloescht, photos[0]
+  // zeigte dann ein kaputtes Bild. Freigegebene zuerst, sonst ein wartendes.
+  function myAvatarPhoto(){
+    const photos = (myProfile && myProfile.photos) || [];
+    return photoThumb(photos.find(p => p.status === 'approved')
+      || photos.find(p => p.status !== 'rejected'));
+  }
+
+  /** Fotos, die fuer die Mindestanzahl zaehlen (abgelehnte nicht). */
+  function gueltigeFotoAnzahl(){
+    return ((myProfile && myProfile.photos) || []).filter(p => p.status !== 'rejected').length;
+  }
+
   function calcAge(isoDate){
     const b = new Date(isoDate + 'T00:00:00');
     if(isNaN(b)) return NaN;
@@ -4741,7 +4759,7 @@
     $('acctSubline').textContent = [myProfile.city, gymName(myProfile.gym)].filter(Boolean).join(' · ');
 
     const avatarEl = $('acctAvatar');
-    const avatarPhoto = photoThumb(myProfile.photos && myProfile.photos[0]);
+    const avatarPhoto = myAvatarPhoto();
     if(avatarPhoto){
       avatarEl.style.backgroundImage = `url('${avatarPhoto}')`;
       avatarEl.textContent = '';
@@ -5437,7 +5455,7 @@
         } else {
           slot.classList.add('failed');
           slot.innerHTML = `<img src="${acctUpload.vorschau}" alt="">`
-            + `<div class="retry">Fehlgeschlagen<b>Erneut versuchen</b></div>`;
+            + `<div class="retry">${t('photo.retryFailed')}<b>${t('photo.retryAgain')}</b></div>`;
           slot.title = acctUpload.text;
           slot.onclick = () => starteAccountUpload(acctUpload);
         }
@@ -5449,7 +5467,9 @@
         const statusCls = st === 'approved' ? '' : (st === 'rejected' ? 'rejected' : 'pending');
         const statusLabel = st === 'approved' ? '' : (st === 'rejected' ? t('photo.rejected') : t('photo.pending'));
         if(statusCls) slot.classList.add(statusCls);
-        slot.innerHTML = `<img src="${photos[i].url}" alt=""><div class="remove" data-id="${photos[i].id}">✕</div>${statusLabel ? `<div class="pstatus">${statusLabel}</div>` : ''}`;
+        // Abgelehnt heisst: Datei schon geloescht - statt eines kaputten Bildes
+        // bleibt der Platz leer, das Etikett sagt, was los ist.
+        slot.innerHTML = `${st === 'rejected' ? '' : `<img src="${photos[i].url}" alt="">`}<div class="remove" data-id="${photos[i].id}">✕</div>${statusLabel ? `<div class="pstatus">${statusLabel}</div>` : ''}`;
         // Sortierbar nur, solange kein Upload laeuft: waehrenddessen belegt der
         // Upload einen Platz, und eine jetzt gespeicherte Reihenfolge wuerde
         // das gleich eintreffende Foto an eine zufaellige Stelle setzen.
@@ -5466,7 +5486,7 @@
           e.stopPropagation();
           // Dieselbe Grenze wie beim Anlegen des Kontos - der Server lehnt
           // sonst ohnehin ab, hier steht die Meldung nur frueher.
-          if((myProfile.photos || []).length <= MIN_PHOTOS){
+          if(photos[i].status !== 'rejected' && gueltigeFotoAnzahl() <= MIN_PHOTOS){
             $('acctPhotoErr').textContent = t('photo.minCount');
             return;
           }
@@ -5628,7 +5648,7 @@
           <div class="stat-chip"><svg class="ico" viewBox="0 0 24 24"><path d="M7 8.5v7M10.5 6.5v11M17 8.5v7M13.5 6.5v11M10.5 12h3M3.5 10v4M20.5 10v4"/></svg>${escapeHtml(p.gym || t('gym.none'))}</div>
           ${p.is_online ? '<div class="stat-chip online-chip"><span class="online-dot"></span>Online</div>' : ''}
         </div>
-        <p class="bio-text" style="margin-top:12px;">${escapeHtml(p.bio || 'Keine Bio angegeben.')}</p>
+        <p class="bio-text" style="margin-top:12px;">${escapeHtml(p.bio || t('card.noBio'))}</p>
       </div>`;
 
     if(interactive){
@@ -6062,7 +6082,7 @@
 
   function showMatchOverlay(profile){
     matchOverlayProfile = profile;
-    fillAvatar($('matchAvatarMe'), photoThumb(myProfile.photos && myProfile.photos[0]), myProfile.name);
+    fillAvatar($('matchAvatarMe'), myAvatarPhoto(), myProfile.name);
     fillAvatar($('matchAvatarThem'), photoThumb(profile.photos && profile.photos[0]), profile.name);
     $('matchSubText').textContent = t('match.subNamed', {name: profile.name});
     $('matchOverlay').classList.add('open');

@@ -44,7 +44,7 @@ struct SwipeView: View {
         .onChange(of: suchkriterien) {
             guard let model, let profil = container.profiles.myProfile else { return }
             model.searchRadiusKm = profil.searchRadiusKm
-            model.ownAvatarURL = profil.photos.first?.avatarURL
+            model.ownAvatarURL = profil.ownAvatarURL
             Task { await model.loadDeck() }
         }
     }

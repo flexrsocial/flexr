@@ -42,6 +42,50 @@ def test_register_duplicate_email(client):
     assert resp.status_code == 409
 
 
+def test_email_is_case_insensitive(client):
+    """Handytastaturen schreiben den ersten Buchstaben gern gross. Wer sich
+    als "Dora@Example.com" registriert, muss mit "dora@example.com" hinein -
+    und umgekehrt darf keine zweite Schreibweise ein zweites Konto anlegen."""
+    register_user(client, "Dora.Muster@Example.com")
+    with TestingSessionLocal() as db:
+        assert db.query(User).filter(User.email == "dora.muster@example.com").count() == 1
+
+    for variant in ("dora.muster@example.com", "DORA.MUSTER@EXAMPLE.COM", " Dora.Muster@example.com "):
+        login = client.post(
+            "/api/auth/login", json={"email": variant, "password": "supersecret123"}
+        )
+        assert login.status_code == 200, variant
+
+    resp = client.post(
+        "/api/auth/register",
+        json={
+            "email": "DORA.muster@example.com",
+            "password": "supersecret123",
+            "name": "Dora Zwei",
+            "birthdate": "1995-03-10",
+            "plz": "1010",
+            "city": "Wien",
+            "gender": "frau",
+            "gym": "McFit",
+            "consent_sensitive_data": True,
+        },
+    )
+    assert resp.status_code == 409
+
+
+def test_login_finds_legacy_mixed_case_account(client):
+    """Konten von vor der Normalisierung stehen womoeglich noch mit
+    Grossbuchstaben in der Datenbank."""
+    register_user(client, "erik@example.com")
+    with TestingSessionLocal() as db:
+        db.query(User).filter(User.email == "erik@example.com").update({"email": "Erik@Example.com"})
+        db.commit()
+    login = client.post(
+        "/api/auth/login", json={"email": "erik@example.com", "password": "supersecret123"}
+    )
+    assert login.status_code == 200
+
+
 def test_register_rejects_invalid_plz(client):
     resp = client.post(
         "/api/auth/register",

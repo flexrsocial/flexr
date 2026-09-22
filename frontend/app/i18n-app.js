@@ -312,6 +312,9 @@
     // ---- Fotoraster
     'photo.uploading': 'Foto wird hochgeladen',
     'photo.rejected': 'Abgelehnt',
+    'photo.retryFailed': 'Fehlgeschlagen',
+    'photo.retryAgain': 'Erneut versuchen',
+    'card.noBio': 'Keine Bio angegeben.',
     'photo.pending': 'In Prüfung',
     'photo.max': 'Maximal 6 Fotos.',
     'photo.confirmRemove': 'Dieses Foto wirklich entfernen?',
@@ -808,6 +811,9 @@
 
     'photo.uploading': 'Uploading photo',
     'photo.rejected': 'Rejected',
+    'photo.retryFailed': 'Failed',
+    'photo.retryAgain': 'Try again',
+    'card.noBio': 'No bio given.',
     'photo.pending': 'Under review',
     'photo.max': 'Maximum 6 photos.',
     'photo.confirmRemove': 'Really remove this photo?',

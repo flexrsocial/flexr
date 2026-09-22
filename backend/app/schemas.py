@@ -30,8 +30,20 @@ def _strip(v):
     return v.strip() if isinstance(v, str) else v
 
 
+def _normalize_email(v):
+    """E-Mail-Adressen in einer Schreibweise speichern und nachschlagen.
+
+    EmailStr senkt nur die Domain ab, der lokale Teil behielte seine
+    Grossbuchstaben: "Max@x.at" und "max@x.at" waeren zwei Konten, und wer sich
+    mit anderer Schreibweise anmeldet als bei der Registrierung (Handytastaturen
+    schreiben den ersten Buchstaben gern gross), kaeme nicht mehr hinein.
+    """
+    return v.strip().lower() if isinstance(v, str) else v
+
+
 class RegisterRequest(BaseModel):
     email: EmailStr
+    _email_norm = field_validator("email", mode="before")(_normalize_email)
     password: str = Field(min_length=8)
     name: str = Field(min_length=1, max_length=100)
     # Geburtsdatum statt Alter - das Alter wird serverseitig laufend berechnet.
@@ -113,6 +125,7 @@ class AgeCheckResponse(BaseModel):
 class LoginRequest(BaseModel):
     email: EmailStr
     password: str
+    _email_norm = field_validator("email", mode="before")(_normalize_email)
 
 
 class TokenResponse(BaseModel):
@@ -712,6 +725,7 @@ class BlockedUserOut(BaseModel):
 
 class AdminLoginRequest(BaseModel):
     email: EmailStr
+    _email_norm = field_validator("email", mode="before")(_normalize_email)
     password: str
     totp_code: Optional[str] = None
 

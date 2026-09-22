@@ -1540,6 +1540,7 @@
             ? 'Entschieden — ACHTUNG: Aufnahmen konnten nicht gelöscht werden, Aufräumlauf läuft nach.'
             : 'Erledigt — Selfies und Ausweisaufnahmen wurden gelöscht.');
           loadVerifications();
+          loadDashboard();
         }catch(err){ toast(err.message); }
       });
     });
@@ -1732,6 +1733,7 @@
             await api(`/api/admin/flagged-messages/${btn.dataset.clearFlag}/clear`, {method: 'POST'});
             toast('Als unbedenklich markiert.');
             loadFlaggedMessages();
+            loadDashboard();
           }catch(err){ toast(err.message); }
         });
       });

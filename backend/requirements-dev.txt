@@ -4,3 +4,4 @@ pytest==8.3.3
 # Bedarf auf 0.28.1) - eine zweite, abweichende Version hier fuehrt pip in
 # einen unloesbaren Konflikt (ResolutionImpossible), sobald beide Dateien
 # zusammen installiert werden.
+pytest-xdist==3.8.0

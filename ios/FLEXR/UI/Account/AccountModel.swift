@@ -319,7 +319,11 @@ final class AccountModel {
         // Dieselbe Grenze wie beim Anlegen des Kontos: Der Server lehnt das
         // Löschen sonst ohnehin ab (backend/app/routers/profiles.py), hier
         // steht die Meldung nur früher und in der gewählten Sprache.
-        guard (profile?.photos.count ?? 0) > ImageProcessor.minPhotos else {
+        // Abgelehnte Fotos zählen nicht mit und lassen sich immer entfernen -
+        // ihre Datei ist ohnehin schon gelöscht.
+        let foto = profile?.photos.first { $0.id == id }
+        guard foto?.status == .rejected
+            || (profile?.validPhotoCount ?? 0) > ImageProcessor.minPhotos else {
             photoError = s(.photoMinCount, ImageProcessor.minPhotos)
             return
         }

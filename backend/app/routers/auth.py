@@ -212,7 +212,7 @@ def register(
                 "Registrierung von diesem Gerät nicht möglich.",
             )
 
-    existing = db.query(User).filter(User.email == payload.email).first()
+    existing = db.query(User).filter(func.lower(User.email) == payload.email).first()
     if existing:
         raise HTTPException(status.HTTP_409_CONFLICT, "E-Mail bereits registriert.")
 
@@ -297,7 +297,7 @@ def login(request: Request, payload: LoginRequest, db: Session = Depends(get_db)
     # Ebenso billig: verwaiste Ausweisaufnahmen und fehlgeschlagene Löschungen
     purge_stale_verification_uploads(db)
 
-    user = db.query(User).filter(User.email == payload.email).first()
+    user = db.query(User).filter(func.lower(User.email) == payload.email).first()
     if not user or not verify_password(payload.password, user.password_hash):
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "E-Mail oder Passwort falsch.")
     if user.deleted_at is not None:
@@ -347,7 +347,7 @@ def reactivate(request: Request, payload: LoginRequest, db: Session = Depends(ge
     purge_deleted_users(db)
     purge_stale_verification_uploads(db)
 
-    user = db.query(User).filter(User.email == payload.email).first()
+    user = db.query(User).filter(func.lower(User.email) == payload.email).first()
     if not user or not verify_password(payload.password, user.password_hash):
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "E-Mail oder Passwort falsch.")
     if user.deleted_at is None:

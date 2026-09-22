@@ -6,6 +6,7 @@ import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
 import android.util.Log
+import androidx.annotation.RequiresApi
 import flexr.social.app.BuildConfig
 import java.io.File
 import java.text.SimpleDateFormat
@@ -107,6 +108,7 @@ object CrashLog {
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.Q)
     private fun kopiereNachDownloads(context: Context, dateiname: String, inhalt: String) {
         val werte = ContentValues().apply {
             put(MediaStore.MediaColumns.DISPLAY_NAME, dateiname)
@@ -128,6 +130,7 @@ object CrashLog {
     }
 
     /** Dasselbe fuer die Downloads-Kopien - per MediaStore-Abfrage statt File-Listing. */
+    @RequiresApi(Build.VERSION_CODES.Q)
     private fun aufraeumenDownloads(context: Context) {
         val projektion = arrayOf(MediaStore.MediaColumns._ID, MediaStore.MediaColumns.DATE_ADDED)
         val auswahl = "${MediaStore.MediaColumns.DISPLAY_NAME} LIKE ?"

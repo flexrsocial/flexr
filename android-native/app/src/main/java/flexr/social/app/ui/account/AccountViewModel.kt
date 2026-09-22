@@ -25,6 +25,7 @@ import flexr.social.app.domain.model.BlockedUser
 import flexr.social.app.domain.model.Gym
 import flexr.social.app.domain.model.Membership
 import flexr.social.app.domain.model.MyProfile
+import flexr.social.app.domain.model.PhotoStatus
 import flexr.social.app.domain.model.VerificationStatus
 import flexr.social.app.ui.components.GymPickerState
 import flexr.social.app.ui.components.GymSuggestionState
@@ -426,7 +427,12 @@ class AccountViewModel @Inject constructor(
         // Dieselbe Grenze wie beim Anlegen des Kontos: Der Server lehnt das
         // Loeschen sonst ohnehin ab (backend/app/routers/profiles.py), hier
         // steht die Meldung nur frueher und in der gewaehlten Sprache.
-        if ((profile.value?.photos?.size ?: 0) <= ImageProcessor.MIN_PHOTOS) {
+        // Abgelehnte Fotos zaehlen nicht mit und lassen sich immer entfernen -
+        // ihre Datei ist ohnehin schon geloescht.
+        val foto = profile.value?.photos?.firstOrNull { it.id == photoId }
+        if (foto?.status != PhotoStatus.REJECTED &&
+            (profile.value?.validPhotoCount ?: 0) <= ImageProcessor.MIN_PHOTOS
+        ) {
             _uiState.update {
                 it.copy(
                     photoError = strings.get(

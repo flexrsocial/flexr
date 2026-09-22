@@ -245,3 +245,26 @@ def test_direktive_wird_nicht_mit_einer_anderen_verwechselt(pruefer, policy):
     ``connect-src`` nicht die Quellen von ``default-src`` erben."""
     assert pruefer.hosts_der_direktive(policy, "src") == []
     assert pruefer.hosts_der_direktive(policy, "frame-ancestors") == ["'none'"]
+
+
+def test_photos_proxy_liefert_keine_verifizierungsaufnahmen():
+    """Selfies (users/<id>/verify/) und Ausweise (verification-documents/)
+    liegen im selben Bucket wie die Profilfotos. /photos/ darf nur die
+    Profilfotos durchreichen - die Datenschutzerklaerung verspricht, dass die
+    Pruefaufnahmen nicht oeffentlich abrufbar sind."""
+    import re
+
+    text = NGINX_SITE.read_text(encoding="utf-8")
+    block = re.search(r"location\s+/photos/\s*\{(.*?)\n    \}", text, re.S).group(1)
+    muster = re.search(r'if \(\$uri !~ "([^"]+)"\)\s*\{\s*return 404;', block)
+    assert muster, "Die Beschraenkung auf Profilfotos fehlt in location /photos/"
+    erlaubt = re.compile(muster.group(1))
+
+    uid = "dc2a0cef-1bc5-4b3e-bff2-b42718088396"
+    oid = "635cfa9c-cffb-47ae-860d-76542d6e76de"
+    assert erlaubt.match(f"/photos/users/{uid}/{oid}.jpg")
+    assert erlaubt.match(f"/photos/users/{uid}/{oid}.webp")
+    assert not erlaubt.match(f"/photos/users/{uid}/verify/{oid}.jpg")
+    assert not erlaubt.match(f"/photos/verification-documents/{oid}/{oid}.jpg")
+    assert not erlaubt.match(f"/photos/users/{uid}/../verification-documents/{oid}.jpg")
+    assert not erlaubt.match("/photos/")

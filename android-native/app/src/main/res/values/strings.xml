@@ -13,7 +13,7 @@
   auf dem Schirm beisammensteht.
 -->
 <resources>
-    <string name="app_name">FLEXR</string>
+    <string name="app_name" translatable="false">FLEXR</string>
 
     <string name="notification_channel_messages">Neue Nachrichten</string>
     <string name="notification_channel_messages_desc">Benachrichtigung, wenn dir ein Match schreibt.</string>

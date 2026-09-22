@@ -185,7 +185,7 @@ fun AccountScreen(
                     .border(2.dp, colors.plateDim, CircleShape),
                 contentAlignment = Alignment.Center,
             ) {
-                val avatar = currentProfile?.photos?.firstOrNull()?.avatarUrl
+                val avatar = currentProfile?.ownAvatarUrl
                 if (avatar != null) {
                     AsyncImage(
                         model = avatar,

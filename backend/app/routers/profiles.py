@@ -437,8 +437,16 @@ def delete_photo(
     # Pruefung liesse sie sich unterlaufen, indem direkt nach der Registrierung
     # zwei der drei Fotos wieder verschwinden. Wer ein Foto austauschen will,
     # laedt zuerst das neue hoch (bis MAX_PHOTOS) und loescht dann das alte.
-    verbleibend = db.query(Photo).filter(Photo.user_id == current_user.id).count() - 1
-    if verbleibend < MIN_PHOTOS:
+    # Ein abgelehntes Foto zaehlt nicht mit: Seine Datei ist bereits geloescht,
+    # im Profil zeigt es niemand an. Es muss sich deshalb jederzeit entfernen
+    # lassen - sonst saesse ein Nutzer mit drei Fotos, von denen eines
+    # abgelehnt wurde, auf einem kaputten Bild fest.
+    gueltige = (
+        db.query(Photo)
+        .filter(Photo.user_id == current_user.id, Photo.status != PhotoStatus.rejected)
+        .count()
+    )
+    if photo.status != PhotoStatus.rejected and gueltige - 1 < MIN_PHOTOS:
         raise HTTPException(
             400,
             f"Mindestens {MIN_PHOTOS} Fotos sind erforderlich. "

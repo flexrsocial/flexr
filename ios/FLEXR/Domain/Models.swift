@@ -100,6 +100,17 @@ struct MyProfile: Hashable, Sendable {
     var name: String { profile.name }
     var photos: [Photo] { profile.photos }
 
+    /// Das eigene Bild für Avatare. Die Selbstansicht enthält auch abgelehnte
+    /// Fotos - deren Datei ist gelöscht, photos.first zeigte dann ein leeres
+    /// Bild. Freigegebene zuerst, sonst ein noch wartendes.
+    var ownAvatarURL: String? {
+        (photos.first { $0.status == .approved }
+            ?? photos.first { $0.status != .rejected })?.avatarURL
+    }
+
+    /// Fotos, die für die Mindestanzahl zählen - abgelehnte nicht.
+    var validPhotoCount: Int { photos.filter { $0.status != .rejected }.count }
+
     /// Aktive Chat-Sperre („Abmahnung"), sonst nil.
     func activeMuteUntil(now: Date = Date()) -> Date? {
         guard let messagingMutedUntil, messagingMutedUntil > now else { return nil }

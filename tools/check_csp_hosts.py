@@ -85,8 +85,10 @@ def proxy_ziel_fuer(text: str, pfad: str) -> str | None:
     bloss "$r2_host" gemeldet und damit gar nichts mehr geprueft.
     """
     pfad = "/" + pfad.strip("/") + "/"
+    # Eine Ebene verschachtelter Bloecke zulassen (das if, das den Proxy auf
+    # Profilfotos beschraenkt) - sonst endete der Block an dessen "}".
     block = re.search(
-        r"location\s+" + re.escape(pfad) + r"\s*\{([^}]*)\}", text)
+        r"location\s+" + re.escape(pfad) + r"\s*\{((?:[^{}]|\{[^{}]*\})*)\}", text)
     if not block:
         return None
     treffer = re.search(r"proxy_pass\s+https?://([^/;\s]+)", block.group(1))
