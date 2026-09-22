@@ -1,0 +1,61 @@
+# Automatische Pruefung bei jedem Push und Pull Request.
+#
+# Bis zum 22.09.2026 liefen Backend-Tests, Android-Tests und Lint nur von Hand -
+# daher die Panne vom 21.09. (HANDOFF): FakeFlexrApi kannte eine neue
+# Interface-Methode nicht, die Android-Unit-Tests waren ueber zwei Releases
+# rot, ohne dass es jemand bemerkte. iOS laeuft in Codemagic (codemagic.yaml,
+# Workflow ios-tests), weil dafuer ein Mac noetig ist.
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: Backend (pytest)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: backend/requirements*.txt
+      - run: pip install -r requirements-dev.txt
+      # Die Tests laufen gegen SQLite im Speicher und brauchen weder Datenbank
+      # noch .env (siehe tests/conftest.py).
+      - run: python -m pytest -q -n auto -p no:cacheprovider
+
+  android:
+    name: Android (Unit-Tests + Lint)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: android-native
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: gradle/actions/setup-gradle@v4
+      # Ohne Keystore baut Gradle unsigniert - fuer Tests und Lint genuegt das.
+      - run: ./gradlew --no-daemon :app:testProdReleaseUnitTest :app:lintProdRelease
+      - name: Berichte bei Fehlschlag
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-reports
+          path: |
+            android-native/app/build/reports/
+            android-native/app/build/test-results/

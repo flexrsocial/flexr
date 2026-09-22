@@ -23,6 +23,20 @@ os.environ.setdefault("STRIPE_PRICE_ID", "")
 # geschaltet. Der ausgeschaltete Zustand hat eigene Tests (test_premium.py);
 # sie legen den Schalter gezielt per monkeypatch um.
 os.environ.setdefault("PREMIUM_ENABLED", "true")
+# Objekt-Storage: Presigned URLs entstehen rein lokal, brauchen aber einen
+# Endpunkt. Bis zum 22.09.2026 kam der unbemerkt aus der lokalen backend/.env -
+# in einem frischen Klon (CI) scheiterten 44 Tests mit "Invalid endpoint".
+# Feste Testwerte statt der .env; kein Test spricht den Storage wirklich an.
+# 127.0.0.1:9 (discard) lehnt sofort ab - Aufraeum-Aufrufe, die doch zum
+# Storage wollen, scheitern damit in Millisekunden statt nach DNS-Timeouts.
+os.environ.setdefault("S3_ENDPOINT_URL", "http://127.0.0.1:9")
+os.environ.setdefault("AWS_MAX_ATTEMPTS", "1")
+os.environ.setdefault("S3_ACCESS_KEY_ID", "test")
+os.environ.setdefault("S3_SECRET_ACCESS_KEY", "test")
+os.environ.setdefault("S3_BUCKET_NAME", "test-bucket")
+os.environ.setdefault("S3_PRIVATE_BUCKET_NAME", "")
+os.environ.setdefault("S3_PUBLIC_BASE_URL", "https://flexr.social/photos")
+os.environ.setdefault("S3_REGION", "auto")
 
 import pytest
 from fastapi.testclient import TestClient

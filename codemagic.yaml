@@ -46,6 +46,16 @@ workflows:
       - name: Set up code signing settings on Xcode project
         script: |
           xcode-project use-profiles
+      # Unit-Tests vor dem Bauen: Scheitert einer, geht nichts an TestFlight.
+      # Auf dem Entwicklungsrechner gibt es keine Swift-Toolchain - dies ist
+      # die einzige Stelle, an der die iOS-Tests ueberhaupt laufen.
+      - name: Unit tests
+        script: |
+          xcode-project run-tests \
+            --project "$XCODE_PROJECT" \
+            --scheme "$XCODE_SCHEME" \
+            --device "iPhone 16"
+        test_report: build/ios/test/*.xml
       - name: Build ipa
         script: |
           xcode-project build-ipa \
@@ -64,3 +74,43 @@ workflows:
       app_store_connect:
         auth: integration
         submit_to_testflight: true
+
+  # Nur kompilieren und testen - ohne Signieren, ohne TestFlight. Laeuft bei
+  # jedem Push auf main, der ios/ beruehrt, und meldet einen kaputten Stand,
+  # bevor jemand einen TestFlight-Build anstoesst (HANDOFF: iOS-Aenderungen
+  # wurden bisher "nicht compilerverifiziert" gepusht).
+  ios-tests:
+    name: FLEXR iOS Tests
+    max_build_duration: 30
+    instance_type: mac_mini_m2
+    environment:
+      vars:
+        XCODE_PROJECT: "ios/FLEXR.xcodeproj"
+        XCODE_SCHEME: "FLEXR"
+      xcode: latest
+    triggering:
+      events:
+        - push
+      branch_patterns:
+        - pattern: main
+          include: true
+      cancel_previous_builds: true
+    when:
+      changeset:
+        includes:
+          - "ios/"
+    scripts:
+      - name: Unit tests
+        script: |
+          xcode-project run-tests \
+            --project "$XCODE_PROJECT" \
+            --scheme "$XCODE_SCHEME" \
+            --device "iPhone 16"
+        test_report: build/ios/test/*.xml
+    publishing:
+      email:
+        recipients:
+          - pachernegg@gmail.com
+        notify:
+          success: false
+          failure: true
