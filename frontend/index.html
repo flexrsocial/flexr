@@ -220,8 +220,14 @@ p{ margin:0 0 14px; }
 /* ---- Hero ---- */
 .hero{
   position:relative; padding:46px 0 40px;
-  isolation:isolate; overflow:clip;
+  /* Nur oben/unten beschneiden: seitlich darf der Glow ueber das
+     .wrap-Padding hinaus bis an den Bildschirmrand laufen. Mit overflow:clip
+     in beide Richtungen endete er 20px vor dem Rand - auf dem Handy sah das
+     wie ein schwarzer Streifen rechts aus. Den horizontalen Rest schneidet
+     main ab (siehe unten). */
+  isolation:isolate; overflow-x:visible; overflow-y:clip;
 }
+main{ overflow-x:clip; }
 .hero::before{
   content:''; position:absolute; z-index:-1; width:500px; height:500px;
   right:-150px; top:-120px; border-radius:50%; pointer-events:none;
@@ -303,6 +309,11 @@ p{ margin:0 0 14px; }
 
 @media (max-width:760px){
   .hero{ padding-top:34px; }
+  /* Beide Hero-Buttons bleiben nebeneinander - auch im Deutschen, wo
+     "Gratis loslegen" + "Einloggen" sonst auf ~360px breiten Handys umbrechen
+     und anders aussehen als die englische Fassung. */
+  .hero .cta-row{ flex-wrap:nowrap; gap:10px; }
+  .hero .cta-row .btn{ flex:1 1 auto; padding:16px 14px; text-align:center; white-space:nowrap; }
   .hero-grid{ grid-template-columns:1fr; gap:26px; }
   .hero-visual{ min-height:330px; max-width:340px; margin:0 auto; }
   .hero-profile{ width:190px; height:290px; }
@@ -311,6 +322,9 @@ p{ margin:0 0 14px; }
   .hero-profile-mid{ left:55px; top:42px; }
   .hero-match-badge{ right:10px; top:4px; }
   .hero-actions{ right:34px; bottom:0; }
+}
+@media (max-width:340px){
+  .hero .cta-row .btn{ padding:14px 10px; font-size:14.5px; letter-spacing:.04em; }
 }
 @media (max-width:420px){
   .hero-visual{ min-height:300px; }
