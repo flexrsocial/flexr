@@ -532,38 +532,29 @@ footer{ border-top:1px solid var(--steel); padding:32px 0 60px; margin-top:20px;
   padding:28px 26px 24px;
 }
 .beta-modal .eyebrow{ margin-bottom:8px; }
-.beta-modal h2{ font-size:clamp(21px, 5vw, 26px); margin:0 0 12px; }
+.beta-modal h2{ font-size:clamp(21px, 5vw, 26px); margin:0 0 8px; }
 .beta-modal p{ font-size:15px; color:var(--chalk-dim); }
 .beta-modal p:last-of-type{ margin-bottom:0; }
-/* Dass die Nutzung dauerhaft nichts kostet, ist der Grund, warum viele
-   ueberhaupt bleiben -
-   sie steht deshalb in einem eigenen Kasten und nicht im Fliesstext. */
-.beta-free{
-  margin:16px 0 0; padding:13px 15px; border-radius:12px;
-  background:var(--surface-2); border:1px solid rgba(199,255,74,0.3);
-  color:var(--chalk-dim); font-size:14.5px; line-height:1.55;
-}
-.beta-free b.inline{ display:inline; margin:0; color:var(--plate); }
-.beta-free b{ color:var(--lime); display:block; margin-bottom:3px; }
-/* Die beiden Termine als Liste statt im Fliesstext: Wer den Dialog nur
-   ueberfliegt, soll "Android - Ende September 2026" trotzdem mitnehmen. */
-.beta-dates{ list-style:none; padding:0; margin:16px 0 16px; }
-.beta-dates li{
+/* Beta-Hinweis als Faktenliste: Er soll auf einen Blick erfasst werden,
+   deshalb vier knappe Zeilen statt Fliesstext. "Kostenlos" steht oben und in
+   Lime - dass die Nutzung dauerhaft nichts kostet, ist die wichtigste Aussage. */
+.beta-facts{ list-style:none; padding:0; margin:14px 0 0; }
+.beta-facts li{
   display:flex; gap:12px; align-items:baseline;
-  padding:10px 0; border-top:1px solid var(--hairline); font-size:14.5px;
+  padding:8px 0; border-top:1px solid var(--hairline); font-size:14.5px; line-height:1.4;
 }
-.beta-dates li:last-child{ border-bottom:1px solid var(--hairline); }
-.beta-dates b{
-  flex:0 0 88px; color:var(--chalk); font-size:13px; font-weight:600;
+.beta-facts li:last-child{ border-bottom:1px solid var(--hairline); }
+.beta-facts b{
+  flex:0 0 96px; color:var(--chalk); font-size:13px; font-weight:600;
   font-family:'Oswald', sans-serif; letter-spacing:.1em; text-transform:uppercase;
 }
 /* Markennamen schreiben sich, wie der Hersteller sie schreibt: "iOS" beginnt
-   klein. Ohne diese Ausnahme macht das text-transform der Zeile darueber ein
-   "IOS" daraus. */
-.beta-dates b.as-written{ text-transform:none; }
-.beta-dates span{ color:var(--chalk-dim); }
+   klein. Ohne diese Ausnahme macht das text-transform daraus ein "IOS". */
+.beta-facts b.as-written{ text-transform:none; }
+.beta-facts span{ color:var(--chalk-dim); }
+.beta-facts li.is-free b, .beta-facts li.is-free span{ color:var(--lime); }
 .beta-modal .btn{
-  display:block; width:100%; margin-top:18px; padding:14px 24px;
+  display:block; width:100%; margin-top:16px; padding:14px 24px;
   text-align:center; cursor:pointer;
 }
 .beta-close{
@@ -574,7 +565,7 @@ footer{ border-top:1px solid var(--steel); padding:32px 0 60px; margin-top:20px;
 .beta-close:hover{ background:var(--ink); }
 @media (max-width:420px){
   .beta-modal{ padding:24px 20px 20px; }
-  .beta-dates b{ flex-basis:78px; }
+  .beta-facts b{ flex-basis:86px; }
 }
 </style>
 </head>
@@ -1222,13 +1213,13 @@ footer{ border-top:1px solid var(--steel); padding:32px 0 60px; margin-top:20px;
     <button type="button" class="beta-close" id="betaClose" data-i18n-aria="beta.closeAria" aria-label="Close notice">✕</button>
     <p class="eyebrow" data-i18n="beta.eyebrow">Beta phase</p>
     <h2 id="betaTitle" data-i18n="beta.title">FLEXR is still being built</h2>
-    <p id="betaText" data-i18n="beta.text">You can already use FLEXR in your browser. Because we are still in beta, some regions are thinly populated and individual features are still changing.</p>
-    <div class="beta-free" data-i18n-html="beta.free"><b>Using FLEXR costs nothing — permanently.</b> No trial month, no membership fee, no payment method at sign-up. Standard accounts get 20 likes a day and 3 simultaneous conversations; if you want more, you can add <b class="inline">FLEXR&nbsp;Premium</b> at €10 a month — optional and cancellable any month.</div>
-    <ul class="beta-dates">
-      <li><b>Android</b><span data-i18n="beta.android">Release planned for end of September 2026</span></li>
+    <p id="betaText" data-i18n="beta.text">Some regions are still thinly populated, and individual features are still changing.</p>
+    <ul class="beta-facts">
+      <li class="is-free"><b data-i18n="beta.freeLabel">Free</b><span data-i18n="beta.free">permanently · 20 likes/day, 3 chats</span></li>
+      <li><b>Premium</b><span data-i18n="beta.premium">optional · €10/month</span></li>
+      <li><b>Android</b><span data-i18n="beta.android">End of September 2026</span></li>
       <li><b class="as-written">iOS</b><span data-i18n="beta.ios">to follow</span></li>
     </ul>
-    <p data-i18n="beta.outro">With the launch of the Android app, FLEXR really gets going.</p>
     <button type="button" class="btn" id="betaOk" data-i18n="beta.ok">Got it</button>
   </div>
 </div>

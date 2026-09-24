@@ -3202,63 +3202,43 @@
     <div class="legal-modal-body">
       <p class="beta-eyebrow" data-i18n="beta.eyebrow">Beta-Phase</p>
       <h1 id="betaTitle" style="font-size:22px;" data-i18n="beta.title">FLEXR ist noch im Aufbau</h1>
-      <p id="betaText" data-i18n="beta.text" style="color:var(--chalk-dim); margin-top:10px;">
-        Du kannst FLEXR schon jetzt im Browser nutzen. Weil wir noch in der Beta
-        sind, sind manche Regionen dünn besetzt und einzelne Funktionen ändern
-        sich noch.
-      </p>
-      <div class="beta-free" data-i18n-html="beta.free">
-        <b>FLEXR zu nutzen kostet nichts — dauerhaft.</b>
-        Kein Probemonat, keine Mitgliedsgebühr, bei der Registrierung kein
-        Zahlungsmittel. Für Standardkonten gelten 20&nbsp;Likes pro Tag und
-        3&nbsp;gleichzeitige Unterhaltungen; wer mehr will, kann
-        <b class="inline">FLEXR&nbsp;Premium</b> für 10&nbsp;€ im Monat
-        dazunehmen — freiwillig und monatlich kündbar.
-      </div>
-      <ul class="beta-dates">
-        <li><b>Android</b><span data-i18n="beta.android">Veröffentlichung geplant für Ende September 2026</span></li>
+      <p id="betaText" data-i18n="beta.text" style="color:var(--chalk-dim); margin-top:10px;">Manche Regionen sind noch dünn besetzt, einzelne Funktionen ändern sich noch.</p>
+      <ul class="beta-facts">
+        <li class="is-free"><b data-i18n="beta.freeLabel">Kostenlos</b><span data-i18n="beta.free">dauerhaft · 20 Likes/Tag, 3 Chats</span></li>
+        <li><b>Premium</b><span data-i18n="beta.premium">optional · 10 €/Monat</span></li>
+        <li><b>Android</b><span data-i18n="beta.android">Ende September 2026</span></li>
         <li><b class="as-written">iOS</b><span data-i18n="beta.ios">folgt im Anschluss</span></li>
       </ul>
-      <p style="color:var(--chalk-dim); margin-bottom:0;" data-i18n="beta.outro">
-        Mit dem Start der Android-App geht FLEXR dann richtig an den Start.
-      </p>
       <button type="button" class="btn" id="betaOk" data-i18n="beta.ok">Verstanden</button>
     </div>
   </div>
 </div>
 <style>
   .beta-modal{ max-width:440px; }
-  /* Die ausgesetzte Gebuehr ist der Grund, warum viele ueberhaupt bleiben -
-     sie steht deshalb in einem eigenen Kasten und nicht im Fliesstext. */
-  .beta-free{
-    margin:16px 0 0; padding:13px 15px; border-radius:12px;
-    background:var(--surface-2); border:1px solid rgba(199,255,74,0.3);
-    color:var(--chalk-dim); font-size:14px; line-height:1.55;
-  }
-  .beta-free b{ color:var(--lime); display:block; margin-bottom:3px; }
-  /* Zweite Hervorhebung mitten im Satz - die darf keine eigene Zeile bekommen. */
-  .beta-free b.inline{ display:inline; margin:0; color:var(--plate); }
   .beta-eyebrow{
     font-family:'Oswald', sans-serif; font-size:12px; letter-spacing:.22em;
     text-transform:uppercase; color:var(--plate); margin:0;
   }
-  /* Die beiden Termine als Liste statt im Fliesstext: Wer den Dialog nur
-     ueberfliegt, soll "Android - Ende September 2026" trotzdem mitnehmen. */
-  .beta-dates{ list-style:none; padding:0; margin:16px 0; }
-  .beta-dates li{
+  /* Beta-Hinweis als Faktenliste: Er soll auf einen Blick erfasst werden,
+     deshalb vier knappe Zeilen statt Fliesstext. "Kostenlos" steht oben und in
+     Lime - dass die Nutzung dauerhaft nichts kostet, ist die wichtigste Aussage. */
+  /* .beta-modal davor: .legal-modal-body ul (Einzug, Abstaende) wiegt sonst schwerer. */
+  .beta-modal .beta-facts{ list-style:none; padding:0; margin:14px 0 0; }
+  .beta-modal .beta-facts li{
+    margin:0;
     display:flex; gap:12px; align-items:baseline;
-    padding:10px 0; border-top:1px solid var(--hairline); font-size:14px;
+    padding:8px 0; border-top:1px solid var(--hairline); font-size:14px; line-height:1.4;
   }
-  .beta-dates li:last-child{ border-bottom:1px solid var(--hairline); }
-  .beta-dates b{
-    flex:0 0 82px; color:var(--chalk); font-size:12.5px; font-weight:600;
+  .beta-facts li:last-child{ border-bottom:1px solid var(--hairline); }
+  .beta-facts b{
+    flex:0 0 90px; color:var(--chalk); font-size:12.5px; font-weight:600;
     font-family:'Oswald', sans-serif; letter-spacing:.1em; text-transform:uppercase;
   }
   /* Markennamen schreiben sich, wie der Hersteller sie schreibt: "iOS" beginnt
-     klein. Ohne diese Ausnahme macht das text-transform der Zeile darueber ein
-     "IOS" daraus. */
-  .beta-dates b.as-written{ text-transform:none; }
-  .beta-dates span{ color:var(--chalk-dim); }
+     klein. Ohne diese Ausnahme macht das text-transform daraus ein "IOS". */
+  .beta-facts b.as-written{ text-transform:none; }
+  .beta-facts span{ color:var(--chalk-dim); }
+  .beta-facts li.is-free b, .beta-facts li.is-free span{ color:var(--lime); }
 </style>
 
 <script>

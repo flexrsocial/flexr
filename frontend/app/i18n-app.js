@@ -570,11 +570,12 @@
     // ---- Beta-Hinweis
     'beta.eyebrow': 'Beta-Phase',
     'beta.title': 'FLEXR ist noch im Aufbau',
-    'beta.text': 'Du kannst FLEXR schon jetzt im Browser nutzen. Weil wir noch in der Beta sind, sind manche Regionen dünn besetzt und einzelne Funktionen ändern sich noch.',
-    'beta.free': '<b>FLEXR zu nutzen kostet nichts — dauerhaft.</b> Kein Probemonat, keine Mitgliedsgebühr, kein Zahlungsmittel. Nach der Beta kommt <b class="inline">FLEXR&nbsp;Premium</b> für 10&nbsp;€ im Monat dazu: freiwillig, monatlich kündbar und nur für alle, die mehr wollen als die 20 Likes pro Tag und 3 gleichzeitigen Unterhaltungen, die dann für Standardkonten gelten. Während der Beta ist auch das unbegrenzt.',
-    'beta.android': 'Veröffentlichung geplant für Ende September 2026',
+    'beta.text': 'Manche Regionen sind noch dünn besetzt, einzelne Funktionen ändern sich noch.',
+    'beta.freeLabel': 'Kostenlos',
+    'beta.free': 'dauerhaft · 20 Likes/Tag, 3 Chats',
+    'beta.premium': 'optional · 10 €/Monat',
+    'beta.android': 'Ende September 2026',
     'beta.ios': 'folgt im Anschluss',
-    'beta.outro': 'Mit dem Start der Android-App geht FLEXR dann richtig an den Start.',
     'beta.ok': 'Verstanden',
     'beta.closeAria': 'Hinweis schließen',
 
@@ -1090,11 +1091,12 @@
 
     'beta.eyebrow': 'Beta phase',
     'beta.title': 'FLEXR is still being built',
-    'beta.text': 'You can already use FLEXR in your browser. Because we are still in beta, some regions are thinly populated and individual features are still changing.',
-    'beta.free': '<b>Using FLEXR costs nothing — permanently.</b> No trial month, no membership fee, no payment method. After the beta, <b class="inline">FLEXR&nbsp;Premium</b> arrives at €10 a month: optional, cancellable any month, and only for those who want more than the 20 likes a day and 3 simultaneous conversations that will then apply to standard accounts. During the beta even that is unlimited.',
-    'beta.android': 'Release planned for end of September 2026',
+    'beta.text': 'Some regions are still thinly populated, and individual features are still changing.',
+    'beta.freeLabel': 'Free',
+    'beta.free': 'permanently · 20 likes/day, 3 chats',
+    'beta.premium': 'optional · €10/month',
+    'beta.android': 'End of September 2026',
     'beta.ios': 'to follow',
-    'beta.outro': 'With the launch of the Android app, FLEXR really gets going.',
     'beta.ok': 'Got it',
     'beta.closeAria': 'Close notice',
 
