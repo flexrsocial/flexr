@@ -113,7 +113,29 @@
 <link rel="manifest" href="/manifest.json">
 <link rel="icon" href="/favicon.ico" sizes="any">
 <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png?v=4">
-<link rel="apple-touch-icon" href="/icons/icon-192.png?v=4">
+<!-- iPhone: FLEXR als Web-App auf dem Home-Bildschirm (solange es keine
+     App-Store-App gibt). iOS liest dafuer nicht das Manifest, sondern diese
+     Zeilen: Vollbild ohne Safari-Leisten, schwarze Statusleiste (der Inhalt
+     beginnt darunter - kein Versteckspiel mit der Dynamic Island), deckendes
+     Icon und je Bildschirmgroesse ein dunkles Startbild statt eines weissen
+     Blitzes. Erzeugt von brand/build_ios_webapp.py. -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="FLEXR">
+<link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon-180.png?v=1">
+<link rel="apple-touch-startup-image" href="/icons/splash/splash-1320x2868.png?v=1" media="(device-width: 440px) and (device-height: 956px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">
+<link rel="apple-touch-startup-image" href="/icons/splash/splash-1260x2736.png?v=1" media="(device-width: 420px) and (device-height: 912px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">
+<link rel="apple-touch-startup-image" href="/icons/splash/splash-1206x2622.png?v=1" media="(device-width: 402px) and (device-height: 874px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">
+<link rel="apple-touch-startup-image" href="/icons/splash/splash-1290x2796.png?v=1" media="(device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">
+<link rel="apple-touch-startup-image" href="/icons/splash/splash-1179x2556.png?v=1" media="(device-width: 393px) and (device-height: 852px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">
+<link rel="apple-touch-startup-image" href="/icons/splash/splash-1284x2778.png?v=1" media="(device-width: 428px) and (device-height: 926px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">
+<link rel="apple-touch-startup-image" href="/icons/splash/splash-1170x2532.png?v=1" media="(device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">
+<link rel="apple-touch-startup-image" href="/icons/splash/splash-1125x2436.png?v=1" media="(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">
+<link rel="apple-touch-startup-image" href="/icons/splash/splash-1242x2688.png?v=1" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">
+<link rel="apple-touch-startup-image" href="/icons/splash/splash-828x1792.png?v=1" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)">
+<link rel="apple-touch-startup-image" href="/icons/splash/splash-1242x2208.png?v=1" media="(device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">
+<link rel="apple-touch-startup-image" href="/icons/splash/splash-750x1334.png?v=1" media="(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)">
 
 <!-- Schriften vom eigenen Server, nicht von Google. Siehe legal.css. -->
 <link rel="preload" href="/fonts/oswald.woff2?v=1" as="font" type="font/woff2" crossorigin>
@@ -1022,13 +1044,7 @@ footer{ border-top:1px solid var(--steel); padding:32px 0 60px; margin-top:20px;
         sonst nichts kündigen und kannst keine Frist versäumen.
       </p>
       <p data-i18n-html="price.p2">
-        FLEXR&nbsp;Premium bekommst du auf <b>drei Wegen</b>: hier auf
-        flexr.social in deinem Konto, oder als In-App-Kauf in der iOS- und der
-        Android-App. Gekündigt wird jeweils dort, wo du bestellt hast — mit
-        einem Klick, zum Ende des laufenden Monats. Die 10&nbsp;€ pro Monat sind
-        der Endpreis auf flexr.social; Umsatzsteuer wird nicht zusätzlich
-        verrechnet. Im App&nbsp;Store und im Play&nbsp;Store gelten deren
-        Preisstufen — der Store zeigt dir den Preis vor dem Kauf.
+        FLEXR&nbsp;Premium bekommst du hier auf flexr.social in deinem Konto – auch in der Web-App auf dem iPhone – oder als In-App-Kauf in der Android-App. Gekündigt wird jeweils dort, wo du bestellt hast — mit einem Klick, zum Ende des laufenden Monats. Die 10&nbsp;€ pro Monat sind der Endpreis auf flexr.social; Umsatzsteuer wird nicht zusätzlich verrechnet. Im Play&nbsp;Store gelten dessen Preisstufen — der Store zeigt dir den Preis vor dem Kauf.
       </p>
     </section>
 
@@ -1074,6 +1090,10 @@ footer{ border-top:1px solid var(--steel); padding:32px 0 60px; margin-top:20px;
         <details>
           <summary data-i18n="faq.q10">Ist FLEXR in ganz Österreich verfügbar?</summary>
           <div class="faq-a" data-i18n-html="faq.a10">Ja, jede österreichische Postleitzahl funktioniert. Wie viele Profile du siehst, hängt davon ab, wie viele Leute in deinem Umkreis dabei sind — in Ballungsräumen mehr als am Land.</div>
+        </details>
+        <details>
+          <summary data-i18n="faq.qIphone">Gibt es FLEXR fürs iPhone?</summary>
+          <div class="faq-a" data-i18n-html="faq.aIphone">Ja, als Web-App: Öffne <b>flexr.social/app</b> in Safari, tippe auf „Teilen“ und dann auf „Zum Home-Bildschirm“. FLEXR startet dann wie eine App, ohne Browserleisten. Unter Konto → Benachrichtigungen kannst du Mitteilungen bei neuen Nachrichten und Matches einschalten (ab iOS 16.4).</div>
         </details>
         <details>
           <summary data-i18n="faq.q11">Wie kündige ich?</summary>
@@ -1339,7 +1359,7 @@ footer{ border-top:1px solid var(--steel); padding:32px 0 60px; margin-top:20px;
       <li class="is-free"><b data-i18n="beta.freeLabel">Kostenlos</b><span data-i18n="beta.free">dauerhaft, ohne Zahlungsmittel</span></li>
       <li><b>Premium</b><span data-i18n="beta.premium">optional · 10 €/Monat</span></li>
       <li><b>Android</b><span data-i18n="beta.android">Ende September 2026</span></li>
-      <li><b class="as-written">iOS</b><span data-i18n="beta.ios">folgt im Anschluss</span></li>
+      <li><b class="as-written">iOS</b><span data-i18n="beta.ios">als Web-App über „Zum Home-Bildschirm“</span></li>
       <li><b>Feedback</b><span><a href="mailto:flexr.social@proton.me">flexr.social@proton.me</a></span></li>
     </ul>
     <button type="button" class="btn" id="betaOk" data-i18n="beta.ok">Verstanden</button>
@@ -1359,7 +1379,9 @@ footer{ border-top:1px solid var(--steel); padding:32px 0 60px; margin-top:20px;
   // Grenzen des kostenlosen Kontos. Der Dialog hat bis dahin das Gegenteil
   // zugesagt ("Waehrend der Beta ist auch das unbegrenzt") - wer ihn in der
   // alten Fassung weggeklickt hat, bekommt ihn deshalb erneut zu sehen.
-  var KEY = 'flexr_beta_notice_v4';
+  // v5 seit 25.09.2026: iOS "folgt im Anschluss" ist jetzt die Web-App ueber
+  // den Home-Bildschirm - neu fuer alle, die v4 schon weggeklickt hatten.
+  var KEY = 'flexr_beta_notice_v5';
   var backdrop = document.getElementById('betaBackdrop');
   if (!backdrop) return;
 

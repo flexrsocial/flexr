@@ -139,7 +139,7 @@
     'price.premiumCta': 'Premium holen',
     'price.cta': 'Kostenlos starten',
     'price.p1': '<b>Aus einem kostenlosen Konto wird nie von selbst ein Abo.</b> Bei der Registrierung wird kein Zahlungsmittel abgefragt und keines hinterlegt. Premium entsteht nur, wenn du es ausdrücklich abschließt — du musst sonst nichts kündigen und kannst keine Frist versäumen.',
-    'price.p2': 'FLEXR&nbsp;Premium bekommst du auf <b>drei Wegen</b>: hier auf flexr.social in deinem Konto, oder als In-App-Kauf in der iOS- und der Android-App. Gekündigt wird jeweils dort, wo du bestellt hast — mit einem Klick, zum Ende des laufenden Monats. Die 10&nbsp;€ pro Monat sind der Endpreis auf flexr.social; Umsatzsteuer wird nicht zusätzlich verrechnet. Im App&nbsp;Store und im Play&nbsp;Store gelten deren Preisstufen — der Store zeigt dir den Preis vor dem Kauf.',
+    'price.p2': 'FLEXR&nbsp;Premium bekommst du hier auf flexr.social in deinem Konto – auch in der Web-App auf dem iPhone – oder als In-App-Kauf in der Android-App. Gekündigt wird jeweils dort, wo du bestellt hast — mit einem Klick, zum Ende des laufenden Monats. Die 10&nbsp;€ pro Monat sind der Endpreis auf flexr.social; Umsatzsteuer wird nicht zusätzlich verrechnet. Im Play&nbsp;Store gelten dessen Preisstufen — der Store zeigt dir den Preis vor dem Kauf.',
 
     'faq.h2': 'Häufige Fragen',
     'faq.q1': 'Was ist FLEXR?',
@@ -162,6 +162,8 @@
     'faq.a9': 'Nein. Weder Browser noch App fragen eine Geräteposition ab. Die Umkreissuche rechnet ausschließlich mit der öffentlichen Adresse des Studios, das du selbst auswählst.',
     'faq.q10': 'Ist FLEXR in ganz Österreich verfügbar?',
     'faq.a10': 'Ja, jede österreichische Postleitzahl funktioniert. Wie viele Profile du siehst, hängt davon ab, wie viele Leute in deinem Umkreis dabei sind — in Ballungsräumen mehr als am Land.',
+    'faq.qIphone': 'Gibt es FLEXR fürs iPhone?',
+    'faq.aIphone': 'Ja, als Web-App: Öffne <b>flexr.social/app</b> in Safari, tippe auf „Teilen“ und dann auf „Zum Home-Bildschirm“. FLEXR startet dann wie eine App, ohne Browserleisten. Unter Konto → Benachrichtigungen kannst du Mitteilungen bei neuen Nachrichten und Matches einschalten (ab iOS 16.4).',
     'faq.q11': 'Wie kündige ich?',
     'faq.a11': 'Im Konto-Bereich unter „Abo verwalten / kündigen“, jederzeit und ohne Frist. Der Zugang bleibt bis zum Ende der bezahlten Periode aktiv.',
     'faq.q12': 'Wie melde oder blockiere ich jemanden?',
@@ -184,7 +186,7 @@
     'beta.free': 'dauerhaft, ohne Zahlungsmittel',
     'beta.premium': 'optional · 10 €/Monat',
     'beta.android': 'Ende September 2026',
-    'beta.ios': 'folgt im Anschluss',
+    'beta.ios': 'als Web-App über „Zum Home-Bildschirm“',
     'beta.ok': 'Verstanden',
     'beta.closeAria': 'Hinweis schließen'
   },
@@ -305,7 +307,7 @@
     'price.premiumCta': 'Get Premium',
     'price.cta': 'Start for free',
     'price.p1': '<b>A free account never turns into a subscription by itself.</b> No payment method is requested or stored at sign-up. Premium only exists if you explicitly take it out — otherwise there is nothing to cancel and no deadline to miss.',
-    'price.p2': 'You can get FLEXR&nbsp;Premium in <b>three ways</b>: here on flexr.social from your account, or as an in-app purchase in the iOS and Android apps. You cancel wherever you ordered — one click, effective at the end of the current month. The €10 per month is the final price on flexr.social; VAT is not charged on top. In the App&nbsp;Store and Play&nbsp;Store their own price points apply — the store shows you the price before the purchase.',
+    'price.p2': 'You can get FLEXR&nbsp;Premium here on flexr.social from your account – including the web app on your iPhone – or as an in-app purchase in the Android app. You cancel wherever you ordered — one click, effective at the end of the current month. The €10 per month is the final price on flexr.social; VAT is not charged on top. In the Play&nbsp;Store its own price points apply — the store shows you the price before the purchase.',
 
     'faq.h2': 'Frequently asked questions',
     'faq.q1': 'What is FLEXR?',
@@ -328,6 +330,8 @@
     'faq.a9': 'No. Neither the browser nor the app asks for a device location. The radius search works solely with the public address of the gym you select yourself.',
     'faq.q10': 'Is FLEXR available all across Austria?',
     'faq.a10': 'Yes, every Austrian postal code works. How many profiles you see depends on how many people are on board within your radius — more in urban areas than in the countryside.',
+    'faq.qIphone': 'Is FLEXR available for iPhone?',
+    'faq.aIphone': 'Yes, as a web app: open <b>flexr.social/app</b> in Safari, tap “Share” and then “Add to Home Screen”. FLEXR then starts like an app, without browser bars. Under Account → Notifications you can switch on notifications for new messages and matches (iOS 16.4 or later).',
     'faq.q11': 'How do I cancel?',
     'faq.a11': 'In the account area under “Manage / cancel subscription”, at any time and without notice periods. Access stays active until the end of the paid period.',
     'faq.q12': 'How do I report or block someone?',
@@ -350,7 +354,7 @@
     'beta.free': 'permanently, no payment method',
     'beta.premium': 'optional · €10/month',
     'beta.android': 'End of September 2026',
-    'beta.ios': 'to follow',
+    'beta.ios': 'as a web app via “Add to Home Screen”',
     'beta.ok': 'Got it',
     'beta.closeAria': 'Close notice'
   }

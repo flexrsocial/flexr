@@ -30,7 +30,29 @@
      ausliefert - der Browser revalidiert die .ico also bei jedem Aufruf. -->
 <link rel="icon" href="/favicon.ico" sizes="any">
 <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png?v=4">
-<link rel="apple-touch-icon" href="/icons/icon-192.png?v=4">
+<!-- iPhone: FLEXR als Web-App auf dem Home-Bildschirm (solange es keine
+     App-Store-App gibt). iOS liest dafuer nicht das Manifest, sondern diese
+     Zeilen: Vollbild ohne Safari-Leisten, schwarze Statusleiste (der Inhalt
+     beginnt darunter - kein Versteckspiel mit der Dynamic Island), deckendes
+     Icon und je Bildschirmgroesse ein dunkles Startbild statt eines weissen
+     Blitzes. Erzeugt von brand/build_ios_webapp.py. -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="FLEXR">
+<link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon-180.png?v=1">
+<link rel="apple-touch-startup-image" href="/icons/splash/splash-1320x2868.png?v=1" media="(device-width: 440px) and (device-height: 956px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">
+<link rel="apple-touch-startup-image" href="/icons/splash/splash-1260x2736.png?v=1" media="(device-width: 420px) and (device-height: 912px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">
+<link rel="apple-touch-startup-image" href="/icons/splash/splash-1206x2622.png?v=1" media="(device-width: 402px) and (device-height: 874px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">
+<link rel="apple-touch-startup-image" href="/icons/splash/splash-1290x2796.png?v=1" media="(device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">
+<link rel="apple-touch-startup-image" href="/icons/splash/splash-1179x2556.png?v=1" media="(device-width: 393px) and (device-height: 852px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">
+<link rel="apple-touch-startup-image" href="/icons/splash/splash-1284x2778.png?v=1" media="(device-width: 428px) and (device-height: 926px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">
+<link rel="apple-touch-startup-image" href="/icons/splash/splash-1170x2532.png?v=1" media="(device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">
+<link rel="apple-touch-startup-image" href="/icons/splash/splash-1125x2436.png?v=1" media="(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">
+<link rel="apple-touch-startup-image" href="/icons/splash/splash-1242x2688.png?v=1" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">
+<link rel="apple-touch-startup-image" href="/icons/splash/splash-828x1792.png?v=1" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)">
+<link rel="apple-touch-startup-image" href="/icons/splash/splash-1242x2208.png?v=1" media="(device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">
+<link rel="apple-touch-startup-image" href="/icons/splash/splash-750x1334.png?v=1" media="(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)">
 <!-- Schriften vom eigenen Server. Vorher kamen sie von
      fonts.googleapis.com - damit ging bei jedem Aufruf die IP-Adresse des
      Besuchers an Google in die USA, ohne Rechtsgrundlage und ohne dass Google
@@ -2059,7 +2081,7 @@
      laufen synchron und damit vor dem DOMContentLoaded, bei dem FlexrI18n die
      data-i18n-Knoten uebersetzt. -->
 <script src="/i18n.js?v=5"></script>
-<script src="/app/i18n-app.js?v=16"></script>
+<script src="/app/i18n-app.js?v=17"></script>
 <a class="skip-link" href="#main-content" data-i18n="common.skipToContent">Zum Inhalt springen</a>
 <div class="app" id="app">
 
@@ -2677,6 +2699,24 @@
         <div class="nm" data-i18n="notif.title">Benachrichtigungen</div>
       </div>
 
+      <!-- Web Push fuer dieses Geraet (vor allem die Web-App auf dem iPhone,
+           solange es keine App-Store-App gibt). Nur sichtbar, wenn der Server
+           einen VAPID-Schluessel hat - sonst gibt es nichts einzuschalten.
+           Die App-Schalter darunter gelten fuer diesen Weg genauso. -->
+      <div class="account-section" id="devicePushSection" hidden>
+        <div class="account-section-title white" data-i18n="devpush.title">Auf diesem Gerät</div>
+        <div class="switch-row">
+          <div class="switch-text">
+            <div class="switch-label" data-i18n="devpush.label">Benachrichtigungen</div>
+            <div class="switch-hint" id="devicePushHint"></div>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="devicePushSwitch" data-i18n-aria="devpush.label" aria-label="Benachrichtigungen">
+            <span class="track"></span>
+          </label>
+        </div>
+      </div>
+
       <div class="account-section">
         <div class="account-section-title white" data-i18n="notif.matchTitle">Neues Match</div>
         <div class="switch-row">
@@ -2692,7 +2732,7 @@
         <div class="switch-row">
           <div class="switch-text">
             <div class="switch-label" data-i18n="notif.push">App-Benachrichtigung</div>
-            <div class="switch-hint" data-i18n="notif.pushHint">Nur in der Android- und iOS-App.</div>
+            <div class="switch-hint" data-i18n="notif.pushHint">In der Android-App – und hier, sobald Mitteilungen auf diesem Gerät eingeschaltet sind.</div>
           </div>
           <label class="switch">
             <input type="checkbox" data-notify="notify_match_push" data-i18n-aria="notif.matchPushAria" aria-label="App-Benachrichtigung bei neuem Match">
@@ -2716,7 +2756,7 @@
         <div class="switch-row">
           <div class="switch-text">
             <div class="switch-label" data-i18n="notif.push">App-Benachrichtigung</div>
-            <div class="switch-hint" data-i18n="notif.pushHint">Nur in der Android- und iOS-App.</div>
+            <div class="switch-hint" data-i18n="notif.pushHint">In der Android-App – und hier, sobald Mitteilungen auf diesem Gerät eingeschaltet sind.</div>
           </div>
           <label class="switch">
             <input type="checkbox" data-notify="notify_queue_push" data-i18n-aria="notif.queuePushAria" aria-label="App-Benachrichtigung bei neuen Profilen im Umkreis">
@@ -2740,7 +2780,7 @@
         <div class="switch-row">
           <div class="switch-text">
             <div class="switch-label" data-i18n="notif.push">App-Benachrichtigung</div>
-            <div class="switch-hint" data-i18n="notif.pushHint">Nur in der Android- und iOS-App.</div>
+            <div class="switch-hint" data-i18n="notif.pushHint">In der Android-App – und hier, sobald Mitteilungen auf diesem Gerät eingeschaltet sind.</div>
           </div>
           <label class="switch">
             <input type="checkbox" data-notify="notify_inactive_push" data-i18n-aria="notif.inactivePushAria" aria-label="App-Erinnerung bei Inaktivität">
@@ -2764,7 +2804,7 @@
         <div class="switch-row">
           <div class="switch-text">
             <div class="switch-label" data-i18n="notif.push">App-Benachrichtigung</div>
-            <div class="switch-hint" data-i18n="notif.pushHint">Nur in der Android- und iOS-App.</div>
+            <div class="switch-hint" data-i18n="notif.pushHint">In der Android-App – und hier, sobald Mitteilungen auf diesem Gerät eingeschaltet sind.</div>
           </div>
           <label class="switch">
             <input type="checkbox" data-notify="notify_pending_likes_push" data-i18n-aria="notif.pendingLikesPushAria" aria-label="App-Benachrichtigung bei offenen Likes ohne Match">
@@ -3125,6 +3165,19 @@
     </div>
   </div>
 
+  <!-- Installationshinweis fuer das iPhone (nur Safari, nur solange FLEXR
+       nicht auf dem Home-Bildschirm liegt). Safari kennt keinen
+       Installieren-Dialog wie Chrome - ohne diesen Hinweis findet kaum jemand
+       "Zum Home-Bildschirm", und ohne Installation stellt iOS keine
+       Mitteilungen zu. Einmal weggetippt, kommt er nicht wieder. -->
+  <div class="ios-install" id="iosInstallHint" role="region" data-i18n-aria="iosinst.aria" aria-label="FLEXR aufs iPhone holen" hidden>
+    <div class="ios-install-text">
+      <b data-i18n="iosinst.title">FLEXR aufs iPhone holen</b>
+      <span data-i18n-html="iosinst.text">Tippe unten auf <svg class="ios-share" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V3.5M8 7.5l4-4 4 4M7 11H5.5v9.5h13V11H17"/></svg> „Teilen“ und dann auf „Zum Home-Bildschirm“. FLEXR startet dann wie eine App – mit Mitteilungen bei neuen Nachrichten.</span>
+    </div>
+    <button type="button" class="ios-install-close" id="iosInstallClose" data-i18n-aria="common.close" aria-label="Schließen">✕</button>
+  </div>
+
   <nav class="bottom" id="bottomNav" style="display:none;">
     <button data-screen="swipe" class="active">
       <svg class="ico" viewBox="0 0 24 24"><path d="M7 8.5v7M10.5 6.5v11M17 8.5v7M13.5 6.5v11M10.5 12h3M3.5 10v4M20.5 10v4"/></svg>
@@ -3190,6 +3243,33 @@
 <style>
   .checkout-modal{ max-width:440px; }
 </style>
+<style>
+  .ios-install{
+    /* Oben unter der Kopfzeile, nicht unten: dort laegen sonst die Like- und
+       Pass-Knoepfe darunter, und man muesste den Hinweis erst wegtippen. */
+    position:fixed; left:50%; transform:translateX(-50%);
+    top:62px;
+    width:calc(100% - 24px); max-width:406px; z-index:60;
+    display:flex; gap:10px; align-items:flex-start;
+    padding:12px 12px 12px 14px; border-radius:14px;
+    background:var(--surface-2); border:1px solid rgba(255,90,31,.35);
+    box-shadow:0 10px 30px rgba(0,0,0,.45);
+    font-size:13px; line-height:1.45; color:var(--chalk-dim);
+  }
+  .ios-install[hidden]{ display:none; }
+  /* Ausgeloggt steht oben das Hero-Bild - dort unten an den Rand. */
+  body.landing .ios-install{ top:auto; bottom:calc(14px + env(safe-area-inset-bottom, 0px)); }
+  .ios-install b{ display:block; color:var(--chalk); font-size:14px; margin-bottom:2px; }
+  .ios-install-text{ flex:1; }
+  .ios-share{
+    width:16px; height:16px; display:inline-block; vertical-align:-3px;
+    fill:none; stroke:var(--plate); stroke-width:2; stroke-linecap:round; stroke-linejoin:round;
+  }
+  .ios-install-close{
+    background:none; border:none; color:var(--chalk-dim); font-size:15px;
+    width:28px; height:28px; cursor:pointer; flex:0 0 auto;
+  }
+</style>
 
 <!-- Beta-Hinweis: erscheint einmal je Browser (Merker in localStorage, derselbe
      Schluessel wie auf der Landingpage) und nennt die geplanten Store-Termine.
@@ -3207,7 +3287,7 @@
         <li class="is-free"><b data-i18n="beta.freeLabel">Kostenlos</b><span data-i18n="beta.free">dauerhaft, ohne Zahlungsmittel</span></li>
         <li><b>Premium</b><span data-i18n="beta.premium">optional · 10 €/Monat</span></li>
         <li><b>Android</b><span data-i18n="beta.android">Ende September 2026</span></li>
-        <li><b class="as-written">iOS</b><span data-i18n="beta.ios">folgt im Anschluss</span></li>
+        <li><b class="as-written">iOS</b><span data-i18n="beta.ios">als Web-App über „Zum Home-Bildschirm“</span></li>
         <li><b>Feedback</b><span><a href="mailto:flexr.social@proton.me">flexr.social@proton.me</a></span></li>
       </ul>
       <button type="button" class="btn" id="betaOk" data-i18n="beta.ok">Verstanden</button>
@@ -3253,7 +3333,9 @@
   // sonst nie.
   // v4 seit 17.09.2026: Premium ist bestellbar, die Grenzen des kostenlosen
   // Kontos gelten. Der Dialog hat bis dahin das Gegenteil zugesagt.
-  var KEY = 'flexr_beta_notice_v4';
+  // v5 seit 25.09.2026: iOS "folgt im Anschluss" ist jetzt die Web-App ueber
+  // den Home-Bildschirm - neu fuer alle, die v4 schon weggeklickt hatten.
+  var KEY = 'flexr_beta_notice_v5';
   var backdrop = document.getElementById('betaBackdrop');
   if (!backdrop) return;
 
@@ -4590,7 +4672,9 @@
     $('bottomNav').style.display = 'none';
   }
 
-  function doLogout(){
+  async function doLogout(){
+    // Vor endSession(): Das Abmelden des Web-Push-Abos braucht die Sitzung.
+    await webPushBeimAusloggenBeenden();
     endSession();
     clearLoginModerationNotice();
     showScreen('screen-login');
@@ -4637,6 +4721,10 @@
     try{
       await api('/api/profiles/me', {method: 'DELETE', body: JSON.stringify({password})});
       closeDeleteModal();
+      // Das Konto ist weg - dieser Browser soll dafuer nichts mehr empfangen.
+      // Beim Server ist die Sitzung schon ungueltig; dessen Eintrag verwirft
+      // der Push-Dienst beim naechsten Versuch mit 410 von selbst.
+      aktuellesAbo().then(abo => abo && abo.unsubscribe()).catch(() => {});
       endSession();
       showScreen('screen-login');
       toast(t('del.done'));
@@ -4823,6 +4911,12 @@
     setNavActive('swipe');
     loadDeck();
     startUnreadPolling();
+    webPushAbgleichen();
+    if(offenesZiel){
+      const ziel = offenesZiel;
+      offenesZiel = null;
+      if(ziel !== 'swipe') oeffneZiel(ziel);
+    }
   }
 
   // Die Umkreissuche geht von der Adresse des eingetragenen Gyms aus. Eine
@@ -5008,6 +5102,7 @@
   function openNotificationsScreen(){
     renderNotificationSettings();
     showScreen('screen-notifications');
+    renderDevicePush();
   }
 
   $('btnOpenNotifications').addEventListener('click', openNotificationsScreen);
@@ -5037,6 +5132,196 @@
       renderNotificationSettings();
     });
   });
+
+  // ---------- Mitteilungen auf diesem Geraet (Web Push) ----------
+  // Vor allem fuer das iPhone: Solange FLEXR nicht im App Store steht, kommt
+  // es dort als Web-App auf den Home-Bildschirm, und nur so installiert
+  // stellt iOS (ab 16.4) Mitteilungen zu. Im Safari-Tab fehlt PushManager
+  // ganz - dann erklaert der Hinweis, wie man installiert.
+  const IST_IOS = /iPad|iPhone|iPod/.test(navigator.userAgent)
+    || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  const IST_INSTALLIERT = window.matchMedia('(display-mode: standalone)').matches
+    || navigator.standalone === true;
+
+  // undefined = noch nicht gefragt, null = der Server hat keinen Schluessel
+  let webPushKey;
+  async function ladeWebPushKey(){
+    if(webPushKey !== undefined) return webPushKey;
+    try{
+      webPushKey = (await api('/api/notifications/webpush-key')).public_key || null;
+    }catch(e){
+      return null;   // Netzfehler: beim naechsten Mal erneut fragen
+    }
+    return webPushKey;
+  }
+
+  function webPushMoeglich(){
+    return 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
+  }
+
+  async function aktuellesAbo(){
+    if(!webPushMoeglich()) return null;
+    const reg = await navigator.serviceWorker.getRegistration('/');
+    return reg ? reg.pushManager.getSubscription() : null;
+  }
+
+  function base64UrlZuBytes(text){
+    const b64 = (text + '='.repeat((4 - text.length % 4) % 4)).replace(/-/g, '+').replace(/_/g, '/');
+    return Uint8Array.from(atob(b64), c => c.charCodeAt(0));
+  }
+
+  // Dieselbe Form fuer Anmelden und Abmelden - der Server prueft bei "web"
+  // auch beim Abmelden, dass Endpunkt und Schluessel zusammenpassen.
+  function aboAlsToken(abo){
+    const j = abo.toJSON();
+    return {platform: 'web', token: j.endpoint, p256dh: j.keys.p256dh, auth: j.keys.auth};
+  }
+
+  async function renderDevicePush(){
+    const section = $('devicePushSection');
+    const schalter = $('devicePushSwitch');
+    const hinweis = $('devicePushHint');
+    if(!(await ladeWebPushKey())){ section.hidden = true; return; }
+    section.hidden = false;
+    schalter.disabled = false;
+    if(!webPushMoeglich()){
+      schalter.checked = false;
+      schalter.disabled = true;
+      setI18nText(hinweis, IST_IOS && !IST_INSTALLIERT ? 'devpush.hintIosInstall' : 'devpush.hintUnsupported');
+      return;
+    }
+    if(Notification.permission === 'denied'){
+      schalter.checked = false;
+      schalter.disabled = true;
+      setI18nText(hinweis, 'devpush.hintDenied');
+      return;
+    }
+    const abo = await aktuellesAbo();
+    schalter.checked = !!abo && Notification.permission === 'granted';
+    setI18nText(hinweis, schalter.checked ? 'devpush.hintOn' : 'devpush.hintOff');
+  }
+
+  async function devicePushEinschalten(){
+    // requestPermission() muss als ERSTES laufen, noch vor jedem await:
+    // Safari erlaubt die Abfrage nur unmittelbar aus einer Nutzeraktion.
+    const erlaubnis = await Notification.requestPermission();
+    if(erlaubnis !== 'granted') return false;
+    const key = await ladeWebPushKey();
+    // Der Service Worker wird beim Laden registriert (nur ueber HTTPS, siehe
+    // unten) - ohne ihn gibt es kein Abo.
+    const reg = await navigator.serviceWorker.getRegistration('/');
+    if(!key || !reg) throw new Error('kein Service Worker oder Schluessel');
+    await navigator.serviceWorker.ready;
+    let abo = await reg.pushManager.getSubscription();
+    if(!abo){
+      abo = await reg.pushManager.subscribe({userVisibleOnly: true, applicationServerKey: base64UrlZuBytes(key)});
+    }
+    await api('/api/notifications/token', {method: 'POST', body: JSON.stringify(aboAlsToken(abo))});
+    return true;
+  }
+
+  async function devicePushAusschalten(){
+    const abo = await aktuellesAbo();
+    if(!abo) return;
+    try{
+      await api('/api/notifications/token', {method: 'DELETE', body: JSON.stringify(aboAlsToken(abo))});
+    }catch(e){ /* Abo im Browser wird trotzdem beendet - dann liefert der Dienst 410 und der Server raeumt auf */ }
+    await abo.unsubscribe();
+  }
+
+  $('devicePushSwitch').addEventListener('change', async () => {
+    const schalter = $('devicePushSwitch');
+    const an = schalter.checked;
+    schalter.disabled = true;
+    try{
+      if(an){
+        if(await devicePushEinschalten()) toast(t('devpush.on'));
+      } else {
+        await devicePushAusschalten();
+      }
+    }catch(err){
+      console.error('[web-push]', err && err.name);
+      toast(t('devpush.failed'));
+    }
+    await renderDevicePush();
+  });
+
+  // Nach dem Anmelden: Ein bestehendes Abo dieses Browsers erneut melden.
+  // Der Server haengt es damit an das jetzt angemeldete Konto (push.register
+  // laesst Endpunkte wandern) und frischt die Schluessel auf.
+  async function webPushAbgleichen(){
+    try{
+      if(!webPushMoeglich() || Notification.permission !== 'granted') return;
+      if(!(await ladeWebPushKey())) return;
+      const abo = await aktuellesAbo();
+      if(abo) await api('/api/notifications/token', {method: 'POST', body: JSON.stringify(aboAlsToken(abo))});
+    }catch(e){ /* Beiwerk */ }
+  }
+
+  // Beim Ausloggen: Das Geraet soll danach keine Mitteilungen fuer dieses
+  // Konto mehr bekommen - gerade auf einem geteilten Tablet oder Laptop.
+  // Hoechstens drei Sekunden, das Ausloggen selbst darf daran nicht haengen.
+  async function webPushBeimAusloggenBeenden(){
+    try{
+      await Promise.race([
+        devicePushAusschalten(),
+        new Promise(r => setTimeout(r, 3000)),
+      ]);
+    }catch(e){ /* Beiwerk */ }
+  }
+
+  // Installationshinweis (siehe Markup bei #iosInstallHint). Nur in Safari:
+  // Instagram, Facebook & Co. zeigen Links in einem eigenen Browser, der gar
+  // kein "Zum Home-Bildschirm" hat - dort wuerde der Hinweis ins Leere fuehren.
+  (function iosInstallHinweis(){
+    const KEY = 'flexr_ios_install_hint_v1';
+    const ua = navigator.userAgent;
+    const inAppBrowser = /FBAN|FBAV|Instagram|Line\/|GSA\/|TikTok|Snapchat/i.test(ua);
+    if(!IST_IOS || IST_INSTALLIERT || inAppBrowser) return;
+    try{ if(localStorage.getItem(KEY)) return; }catch(e){ /* dann eben zeigen */ }
+    const box = $('iosInstallHint');
+    // Kurz warten: nicht gleichzeitig mit dem Beta-Hinweis und nicht, bevor
+    // man ueberhaupt gesehen hat, worum es geht.
+    setTimeout(() => {
+      if($('betaBackdrop') && $('betaBackdrop').classList.contains('open')){
+        // Nach dem Wegklicken des Beta-Hinweises erneut versuchen.
+        $('betaOk').addEventListener('click', () => setTimeout(() => { box.hidden = false; }, 800), {once: true});
+        $('betaClose').addEventListener('click', () => setTimeout(() => { box.hidden = false; }, 800), {once: true});
+        return;
+      }
+      box.hidden = false;
+    }, 2500);
+    $('iosInstallClose').addEventListener('click', () => {
+      box.hidden = true;
+      try{ localStorage.setItem(KEY, '1'); }catch(e){}
+    });
+  })();
+
+  // Tipp auf eine Mitteilung: auf den passenden Reiter. Der Service Worker
+  // schickt das Ziel als Nachricht (App war offen) oder als ?open= (App wurde
+  // dafuer gestartet).
+  const OEFFNEN_ZIELE = ['swipe', 'matches', 'chats'];
+  let offenesZiel = null;
+  function oeffneZiel(ziel){
+    if(!OEFFNEN_ZIELE.includes(ziel)) return;
+    if(!token || !myProfile || !accountActivated()){ offenesZiel = ziel; return; }
+    const knopf = document.querySelector(`nav.bottom button[data-screen="${ziel}"]`);
+    if(knopf) knopf.click();
+  }
+  if('serviceWorker' in navigator){
+    navigator.serviceWorker.addEventListener('message', (e) => {
+      if(e.data && e.data.type === 'flexr-open') oeffneZiel(e.data.target);
+    });
+  }
+  (function zielAusAdresse(){
+    const params = new URLSearchParams(location.search);
+    const ziel = params.get('open');
+    if(!ziel) return;
+    offenesZiel = ziel;
+    params.delete('open');
+    const rest = params.toString();
+    history.replaceState(null, '', location.pathname + (rest ? '?' + rest : ''));
+  })();
 
   // ---------- Blockierte Personen ----------
   // Blockieren war bis hierher eine Einbahnstrasse: Das Backend kann eine

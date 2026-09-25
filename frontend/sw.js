@@ -63,13 +63,16 @@
 // Dateien, die niemand mehr abruft. Jetzt wieder deckungsgleich (i18n-app.js
 // auf ?v=16: Online-Hinweise, Selfie-Schritt und "Mail erneut senden" waren
 // fest auf Deutsch). Dazu Datumsangaben im Chat.
-const CACHE = 'flexr-shell-v22';
+// v23: Web Push (push/notificationclick unten) und die Web-App fuers iPhone:
+// Installationshinweis, Mitteilungs-Schalter, Startbilder. Neue Texte,
+// i18n-app.js auf ?v=17.
+const CACHE = 'flexr-shell-v23';
 // Seit dem 15.08.2026 liegt die App unter /app/, an der Wurzel steht die
 // oeffentliche Landingpage. Beide gehoeren in die Shell: die Landingpage,
 // weil sie der Einstieg ist, die App, weil sie offline funktionieren soll.
 const SHELL = ['/', '/index.html', '/en/', '/en/index.html',
                '/app/', '/app/index.html',
-               '/lang-switch.js?v=2', '/i18n.js?v=5', '/app/i18n-app.js?v=16',
+               '/lang-switch.js?v=2', '/i18n.js?v=5', '/app/i18n-app.js?v=17',
                '/manifest.json', '/favicon.ico', '/legal.css?v=2',
                '/fonts/work-sans.woff2?v=1', '/fonts/oswald.woff2?v=1',
                '/icons/icon-192.png?v=4', '/icons/icon-512.png?v=4'];
@@ -165,4 +168,43 @@ self.addEventListener('fetch', (event) => {
         return (await caches.match(fallback)) || Response.error();
       }))
   );
+});
+
+// ---------- Web Push ----------
+// Benachrichtigungen fuer die Web-App - vor allem auf dem iPhone, wo FLEXR
+// (noch) ueber den Home-Bildschirm statt ueber den App Store kommt. iOS stellt
+// Web Push ab 16.4 zu, allerdings nur an eine installierte Web-App.
+// Der Server schickt {title, body, target}; target ist einer der Reiter
+// ("chats", "matches", "swipe") und entscheidet, wo ein Tipp landet.
+self.addEventListener('push', (event) => {
+  let daten = {};
+  try { daten = event.data ? event.data.json() : {}; } catch (e) { daten = {}; }
+  const title = daten.title || 'FLEXR';
+  event.waitUntil(self.registration.showNotification(title, {
+    body: daten.body || '',
+    icon: '/icons/icon-192.png?v=4',
+    badge: '/icons/icon-192.png?v=4',
+    // Pro Reiter nur eine sichtbare Meldung: Fuenf Chatnachrichten in Folge
+    // ersetzen einander, statt die Mitteilungszentrale zu fuellen.
+    tag: 'flexr-' + (daten.target || 'allgemein'),
+    renotify: true,
+    data: {target: daten.target || ''},
+  }));
+});
+
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  const target = (event.notification.data && event.notification.data.target) || '';
+  const ziel = '/app/' + (target ? '?open=' + encodeURIComponent(target) : '');
+  event.waitUntil((async () => {
+    const fenster = await self.clients.matchAll({type: 'window', includeUncontrolled: true});
+    // Ist die App schon offen, dorthin wechseln statt ein zweites Fenster
+    // aufzumachen - die App springt selbst auf den richtigen Reiter.
+    const app = fenster.find((c) => new URL(c.url).pathname.startsWith('/app'));
+    if (app) {
+      app.postMessage({type: 'flexr-open', target});
+      return app.focus();
+    }
+    return self.clients.openWindow(ziel);
+  })());
 });
