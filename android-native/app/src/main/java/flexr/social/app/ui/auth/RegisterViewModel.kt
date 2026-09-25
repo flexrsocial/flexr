@@ -94,6 +94,24 @@ data class RegisterUiState(
     val missingPhotos: Int
         get() = (ImageProcessor.MIN_PHOTOS - photos.size).coerceAtLeast(0)
 
+    /**
+     * Erfuellte Pflichtangaben fuer die Schrittanzeige - dieselben Bedingungen
+     * wie [canSubmit], einzeln gezaehlt (und wie in der Web-App).
+     */
+    val completedRequired: Int
+        get() = listOf(
+            email.isNotBlank(),
+            password.length >= MIN_PASSWORD_LENGTH,
+            password.length >= MIN_PASSWORD_LENGTH && passwordsMatch,
+            name.isNotBlank(),
+            birthdate != null && (age ?: 0) >= MIN_AGE,
+            resolvedCity != null,
+            gender != null,
+            gymPicker.selectedLabel != null,
+            photos.size >= ImageProcessor.MIN_PHOTOS,
+            consentSensitiveData,
+        ).count { it }
+
     val canSubmit: Boolean
         get() = !isSubmitting &&
             email.isNotBlank() &&
@@ -108,6 +126,7 @@ data class RegisterUiState(
             consentSensitiveData
 
     companion object {
+        const val REQUIRED_FIELDS = 10
         const val MIN_PASSWORD_LENGTH = 8
         const val MIN_AGE = 18
         const val MAX_AGE = 99

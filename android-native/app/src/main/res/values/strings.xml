@@ -466,9 +466,9 @@
     <string name="vgate_rejected_chip">Nicht freigeschaltet</string>
     <string name="vgate_loading">Status wird geladen …</string>
     <string name="vgate_review_running">Die Prüfung läuft noch.</string>
-    <string name="vgate_step_1_of_2">Schritt 1 von 2</string>
-    <string name="vgate_step_2_of_2">Schritt 2 von 2</string>
-    <string name="vgate_step_1_of_3">Schritt 1 von 3</string>
+    <string name="vgate_step_selfie">Schritt 3 von 5</string>
+    <string name="vgate_step_id">Schritt 4 von 5</string>
+    <string name="vgate_step_mail">Schritt 2 von 5</string>
     <string name="vgate_rework_title">Wir konnten deine Verifizierung noch nicht abschließen.</string>
     <string name="vgate_unlock_title">Konto freischalten</string>
     <string name="vgate_rework_chip">Neue Aufnahme nötig</string>
@@ -620,4 +620,11 @@
     <string name="cred_err_pw">Bitte dein aktuelles Passwort eingeben.</string>
     <string name="cred_email_done">Gespeichert. Bitte bestätige %1$s über den Link in der Mail.</string>
     <string name="cred_pw_done">Passwort geändert. Alle anderen Anmeldungen wurden beendet.</string>
+    <string name="journey_profile">Profil</string>
+    <string name="journey_mail">E-Mail</string>
+    <string name="journey_selfie">Selfie</string>
+    <string name="journey_id">Ausweis</string>
+    <string name="journey_review">Prüfung</string>
+    <string name="journey_a11y">Schritt %1$d von %2$d bis zur Freischaltung</string>
+    <string name="journey_register_note">%1$d von %2$d Angaben. Danach bestätigst du deine E-Mail und machst ein Selfie und ein Foto deines Ausweises – zusammen etwa 5 Minuten.</string>
 </resources>

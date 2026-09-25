@@ -62,6 +62,8 @@ import flexr.social.app.core.designsystem.component.ScreenHeader
 import flexr.social.app.core.designsystem.theme.FlexrTheme
 import flexr.social.app.domain.model.Gender
 import flexr.social.app.ui.components.GymPicker
+import flexr.social.app.ui.components.JourneyBar
+import flexr.social.app.ui.components.JourneyStep
 import flexr.social.app.ui.components.GymSuggestionDialog
 import flexr.social.app.ui.components.PhotoGridEditor
 import flexr.social.app.core.media.ImageProcessor
@@ -108,6 +110,19 @@ fun RegisterScreen(
             // gehoert hier "1 Monat gratis testen, danach 5 €/Monat" zurueck.
             subtitle = stringResource(R.string.register_subtitle),
         )
+
+        // Der ganze Weg bis zum ersten Swipe; der erste Abschnitt fuellt sich
+        // mit den Pflichtangaben dieses Formulars.
+        JourneyBar(
+            current = JourneyStep.PROFILE,
+            progress = state.completedRequired / RegisterUiState.REQUIRED_FIELDS.toFloat(),
+            note = stringResource(
+                R.string.journey_register_note,
+                state.completedRequired,
+                RegisterUiState.REQUIRED_FIELDS,
+            ),
+        )
+        Spacer(Modifier.height(18.dp))
 
         FlexrTextField(
             value = state.email,

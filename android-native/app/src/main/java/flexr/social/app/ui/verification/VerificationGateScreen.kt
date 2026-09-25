@@ -35,6 +35,8 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import flexr.social.app.R
+import flexr.social.app.ui.components.JourneyBar
+import flexr.social.app.ui.components.JourneyStep
 import flexr.social.app.core.designsystem.component.Eyebrow
 import flexr.social.app.core.designsystem.component.FieldError
 import flexr.social.app.core.designsystem.component.FlexrButton
@@ -183,7 +185,7 @@ private fun SelfiePendingContent(
 ) {
     val colors = FlexrTheme.colors
 
-    Eyebrow(stringResource(if (needsNewUpload) R.string.vgate_rework_eyebrow else R.string.vgate_step_1_of_2))
+    Eyebrow(stringResource(if (needsNewUpload) R.string.vgate_rework_eyebrow else R.string.vgate_step_selfie))
     Text(
         text = stringResource(
             if (needsNewUpload) R.string.vgate_rework_title else R.string.vgate_unlock_title,
@@ -192,7 +194,7 @@ private fun SelfiePendingContent(
         color = colors.chalk,
     )
     Spacer(Modifier.height(14.dp))
-    StepBar(current = 1)
+    JourneyBar(current = JourneyStep.SELFIE)
     Spacer(Modifier.height(14.dp))
     if (needsNewUpload) StatusChip(stringResource(R.string.vgate_rework_chip), danger = true)
 
@@ -251,7 +253,7 @@ private fun DocumentPendingContent(
 ) {
     val colors = FlexrTheme.colors
 
-    Eyebrow(stringResource(if (needsNewUpload) R.string.vgate_rework_eyebrow else R.string.vgate_step_2_of_2))
+    Eyebrow(stringResource(if (needsNewUpload) R.string.vgate_rework_eyebrow else R.string.vgate_step_id))
     Text(
         text = stringResource(
             if (needsNewUpload) R.string.vgate_rework_title else R.string.vgate_document_title,
@@ -260,7 +262,7 @@ private fun DocumentPendingContent(
         color = colors.chalk,
     )
     Spacer(Modifier.height(14.dp))
-    StepBar(current = 2)
+    JourneyBar(current = JourneyStep.ID)
     Spacer(Modifier.height(14.dp))
     if (needsNewUpload) StatusChip(stringResource(R.string.vgate_rework_chip), danger = true)
 
@@ -300,7 +302,7 @@ private fun WaitingContent(onRefresh: () -> Unit, isRefreshing: Boolean) {
         color = colors.chalk,
     )
     Spacer(Modifier.height(14.dp))
-    StepBar(current = 3)
+    JourneyBar(current = JourneyStep.REVIEW)
     Spacer(Modifier.height(14.dp))
     StatusChip(stringResource(R.string.vgate_submitted_chip), danger = false)
 
@@ -345,14 +347,14 @@ private fun EmailPendingContent(
 ) {
     val colors = FlexrTheme.colors
 
-    Eyebrow(stringResource(R.string.vgate_step_1_of_3))
+    Eyebrow(stringResource(R.string.vgate_step_mail))
     Text(
         text = stringResource(R.string.vgate_mail_title),
         style = MaterialTheme.typography.headlineMedium,
         color = colors.chalk,
     )
     Spacer(Modifier.height(14.dp))
-    StepBar(current = 1)
+    JourneyBar(current = JourneyStep.MAIL)
     Spacer(Modifier.height(14.dp))
     StatusChip(stringResource(R.string.vgate_mail_chip), danger = false)
 
@@ -415,7 +417,7 @@ private fun MissingPhotoContent(
         color = colors.chalk,
     )
     Spacer(Modifier.height(14.dp))
-    StepBar(current = 1)
+    JourneyBar(current = JourneyStep.PROFILE)
     Spacer(Modifier.height(14.dp))
     StatusChip(stringResource(R.string.vgate_photo_chip), danger = true)
 
@@ -492,7 +494,7 @@ private fun ActivatedContent(onRetry: () -> Unit) {
         color = colors.chalk,
     )
     Spacer(Modifier.height(14.dp))
-    StepBar(current = 3)
+    JourneyBar(current = JourneyStep.REVIEW)
     Spacer(Modifier.height(14.dp))
     StatusChip(stringResource(R.string.vgate_unlocked_chip), danger = false)
 
@@ -521,7 +523,7 @@ private fun RejectedContent(reason: String?) {
         color = colors.chalk,
     )
     Spacer(Modifier.height(14.dp))
-    StepBar(current = 3)
+    JourneyBar(current = JourneyStep.REVIEW)
     Spacer(Modifier.height(14.dp))
     StatusChip(stringResource(R.string.vgate_rejected_chip), danger = true)
 

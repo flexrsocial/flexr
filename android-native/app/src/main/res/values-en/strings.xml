@@ -406,9 +406,9 @@
     <string name="vgate_rejected_chip">Not unlocked</string>
     <string name="vgate_loading">Loading status …</string>
     <string name="vgate_review_running">The review is still running.</string>
-    <string name="vgate_step_1_of_2">Step 1 of 2</string>
-    <string name="vgate_step_2_of_2">Step 2 of 2</string>
-    <string name="vgate_step_1_of_3">Step 1 of 3</string>
+    <string name="vgate_step_selfie">Step 3 of 5</string>
+    <string name="vgate_step_id">Step 4 of 5</string>
+    <string name="vgate_step_mail">Step 2 of 5</string>
     <string name="vgate_rework_title">We could not complete your verification yet.</string>
     <string name="vgate_unlock_title">Unlock your account</string>
     <string name="vgate_rework_chip">New image required</string>
@@ -556,4 +556,11 @@
     <string name="cred_err_pw">Please enter your current password.</string>
     <string name="cred_email_done">Saved. Please confirm %1$s via the link in the email.</string>
     <string name="cred_pw_done">Password changed. All other sessions have been signed out.</string>
+    <string name="journey_profile">Profile</string>
+    <string name="journey_mail">Email</string>
+    <string name="journey_selfie">Selfie</string>
+    <string name="journey_id">ID</string>
+    <string name="journey_review">Review</string>
+    <string name="journey_a11y">Step %1$d of %2$d until your account is unlocked</string>
+    <string name="journey_register_note">%1$d of %2$d details. After that you confirm your email and take a selfie and a photo of your ID – about 5 minutes in total.</string>
 </resources>

@@ -60,6 +60,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import flexr.social.app.R
+import flexr.social.app.ui.components.JourneyBar
+import flexr.social.app.ui.components.JourneyStep
 import flexr.social.app.core.designsystem.component.Eyebrow
 import flexr.social.app.core.designsystem.component.FieldError
 import flexr.social.app.core.designsystem.component.FlexrButton
@@ -182,7 +184,7 @@ private fun DocumentForm(
 
         Column(Modifier.weight(1f).verticalScroll(rememberScrollState())) {
             Spacer(Modifier.height(16.dp))
-            StepBar(current = 2)
+            JourneyBar(current = JourneyStep.ID)
 
             Spacer(Modifier.height(16.dp))
             FlexrCard {
@@ -270,29 +272,6 @@ private fun DocumentForm(
             color = colors.chalkDim,
         )
         Spacer(Modifier.height(20.dp))
-    }
-}
-
-/** Schrittanzeige: 1 Selfies, 2 Ausweis, 3 Prüfung. */
-@Composable
-internal fun StepBar(current: Int, modifier: Modifier = Modifier) {
-    val colors = FlexrTheme.colors
-    Row(modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-        (1..3).forEach { step ->
-            Box(
-                Modifier
-                    .weight(1f)
-                    .height(3.dp)
-                    .clip(RoundedCornerShape(2.dp))
-                    .background(
-                        when {
-                            step < current -> colors.plate
-                            step == current -> colors.chalk
-                            else -> colors.steel
-                        },
-                    ),
-            )
-        }
     }
 }
 
