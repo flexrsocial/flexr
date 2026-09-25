@@ -5,6 +5,7 @@ import org.junit.Assert.assertNull
 import org.junit.Test
 import java.time.Instant
 import java.time.LocalDate
+import java.time.ZoneId
 
 class ServerTimeTest {
 
@@ -51,5 +52,14 @@ class ServerTimeTest {
         assertEquals(1, ServerTime.daysUntil(Instant.parse("2026-07-27T00:00:00Z"), now))
         assertEquals(2, ServerTime.daysUntil(Instant.parse("2026-07-28T06:00:00Z"), now))
         assertEquals(0, ServerTime.daysUntil(Instant.parse("2026-07-25T12:00:00Z"), now))
+    }
+
+    @Test
+    fun `chatnachricht von heute zeigt nur die uhrzeit, aeltere das datum`() {
+        val wien = ZoneId.of("Europe/Vienna")
+        val heute = LocalDate.of(2026, 9, 25)
+        assertEquals("18:11", ServerTime.formatMessageTime(Instant.parse("2026-09-25T16:11:00Z"), wien, heute))
+        assertEquals("22.09. 18:11", ServerTime.formatMessageTime(Instant.parse("2026-09-22T16:11:00Z"), wien, heute))
+        assertEquals("31.12.2025, 10:00", ServerTime.formatMessageTime(Instant.parse("2025-12-31T09:00:00Z"), wien, heute))
     }
 }

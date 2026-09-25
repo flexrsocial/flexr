@@ -405,7 +405,7 @@ private fun MessageBubble(message: Message, isMine: Boolean) {
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
-                    text = ServerTime.formatTime(message.createdAt),
+                    text = ServerTime.formatMessageTime(message.createdAt),
                     style = MonoStyle,
                     color = (if (isMine) Color(0xFF1C1006) else colors.chalkDim).copy(alpha = 0.6f),
                 )

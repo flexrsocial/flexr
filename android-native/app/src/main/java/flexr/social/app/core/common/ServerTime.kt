@@ -55,6 +55,27 @@ object ServerTime {
     fun formatTime(instant: Instant): String =
         timeFormatter.format(instant.atZone(ZoneId.systemDefault()))
 
+    private val shortDayTimeFormatter = DateTimeFormatter.ofPattern("dd.MM. HH:mm", Locale.GERMAN)
+
+    /**
+     * Zeitangabe an einer Chatnachricht: heute nur die Uhrzeit, sonst mit
+     * Datum. Vorher stand ueberall nur "14:32" - ob das heute war oder vor
+     * einer Woche, war dem Verlauf nicht anzusehen. Gleiche Regel wie in der
+     * Web-App (chatTimeLabel).
+     */
+    fun formatMessageTime(
+        instant: Instant,
+        zone: ZoneId = ZoneId.systemDefault(),
+        today: LocalDate = LocalDate.now(zone),
+    ): String {
+        val zeit = instant.atZone(zone)
+        return when {
+            zeit.toLocalDate() == today -> timeFormatter.format(zeit)
+            zeit.year == today.year -> shortDayTimeFormatter.format(zeit)
+            else -> dateTimeFormatter.format(zeit)
+        }
+    }
+
     fun formatDay(instant: Instant): String =
         dayFormatter.format(instant.atZone(ZoneId.systemDefault()))
 
