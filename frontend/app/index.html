@@ -2059,7 +2059,7 @@
      laufen synchron und damit vor dem DOMContentLoaded, bei dem FlexrI18n die
      data-i18n-Knoten uebersetzt. -->
 <script src="/i18n.js?v=5"></script>
-<script src="/app/i18n-app.js?v=15"></script>
+<script src="/app/i18n-app.js?v=16"></script>
 <a class="skip-link" href="#main-content" data-i18n="common.skipToContent">Zum Inhalt springen</a>
 <div class="app" id="app">
 
@@ -3741,9 +3741,12 @@
     // ist ein 401 wieder ein echtes Sitzungsende.
     const istAnmeldeweg = ANMELDEWEGE_OHNE_SITZUNG.includes(path);
     if(res.status === 401 && !istAnmeldeweg){
-      setToken(null);
+      // Dasselbe Aufraeumen wie beim Ausloggen: Vorher blieb hier das Polling
+      // von Chat und Ungelesen-Zaehler stehen - es feuerte ohne Token weiter
+      // 401er ab - und die Statuspille oben zeigte auf dem Login-Screen noch
+      // den Stand der abgelaufenen Sitzung.
+      endSession();
       showScreen('screen-login');
-      $('bottomNav').style.display = 'none';
       throw new Error(t('err.session'));
     }
     // 402 hiess frueher "Probemonat abgelaufen" und schickte den Nutzer auf
@@ -3764,14 +3767,7 @@
     // ebenfalls hier durch, hat aber nichts abzuräumen und wird in doLogin()
     // eigens behandelt.
     if(token && res.status === 403 && data && data.detail && data.detail.reason === 'account_banned'){
-      stopChatPolling();
-      stopUnreadPolling();
-      stopVerifyCamera();
-      setToken(null);
-      myProfile = null;
-      membership = null;
-      verificationStatus = null;
-      $('bottomNav').style.display = 'none';
+      endSession();
       showScreen('screen-login');
       $('loginErr').textContent = '';
       showLoginModerationNotice(data.detail);
@@ -4564,16 +4560,24 @@
     finally{ btn.disabled = false; }
   });
 
-  function doLogout(){
+  /* Alles, was zu einer Sitzung gehoert, an einer Stelle abraeumen. Vorher
+     hatten Ausloggen, Konto loeschen, Sperre und abgelaufene Sitzung je eine
+     eigene, unterschiedlich vollstaendige Liste - nach dem Loeschen des Kontos
+     stand etwa die Statuspille ("Beta") weiter ueber dem Login-Screen, und
+     ein offener Overlay (Match, Premium-Erklaerung) blieb liegen. */
+  function endSession(){
     stopChatPolling();
     stopUnreadPolling();
     stopVerifyCamera();
     currentChatMatchId = null;
     matchesCache = [];
+    deck = [];
+    deckIdx = 0;
     setToken(null);
     myProfile = null;
     membership = null;
     verificationStatus = null;
+    gemeldeteSprache = null;
     updateStatusPill();
     // Lokale Ausweis-Vorschauen verwerfen - sie sollen nicht über die Sitzung
     // hinaus im Speicher der Seite liegen.
@@ -4581,7 +4585,13 @@
       Object.values(idState.shots).forEach(s => URL.revokeObjectURL(s.previewUrl));
       idState = null;
     }
+    closeMatchOverlay();
+    closeImmediateStartOverlay();
     $('bottomNav').style.display = 'none';
+  }
+
+  function doLogout(){
+    endSession();
     clearLoginModerationNotice();
     showScreen('screen-login');
   }
@@ -4627,15 +4637,7 @@
     try{
       await api('/api/profiles/me', {method: 'DELETE', body: JSON.stringify({password})});
       closeDeleteModal();
-      stopChatPolling();
-      stopUnreadPolling();
-      stopVerifyCamera();
-      currentChatMatchId = null;
-      matchesCache = [];
-      setToken(null);
-      myProfile = null;
-      membership = null;
-      $('bottomNav').style.display = 'none';
+      endSession();
       showScreen('screen-login');
       toast(t('del.done'));
     }catch(err){
@@ -5244,7 +5246,7 @@
       const res = await api('/api/profiles/me/consents/revoke', {
         method: 'POST', body: JSON.stringify({consent_type: consentType}),
       });
-      toast(res.consequence || 'Widerruf erfasst.');
+      toast(res.consequence || t('privacy.revokedFallback'));
       loadMyConsents();
       if(consentType === 'sensitive_data'){
         // Das geladene Deck stammt aus der Zeit vor dem Widerruf. Es weiter
@@ -5266,7 +5268,7 @@
       const res = await api('/api/profiles/me/consents/grant', {
         method: 'POST', body: JSON.stringify({consent_type: consentType}),
       });
-      toast(res.consequence || 'Einwilligung erneut erteilt.');
+      toast(res.consequence || t('privacy.grantedFallback'));
       loadMyConsents();
       if(consentType === 'sensitive_data'){
         matchingWiderrufen = false;
@@ -5848,7 +5850,7 @@
       <div class="body">
         <div class="stat-row">
           <div class="stat-chip"><svg class="ico" viewBox="0 0 24 24"><path d="M7 8.5v7M10.5 6.5v11M17 8.5v7M13.5 6.5v11M10.5 12h3M3.5 10v4M20.5 10v4"/></svg>${escapeHtml(p.gym || t('gym.none'))}</div>
-          ${p.is_online ? '<div class="stat-chip online-chip"><span class="online-dot"></span>Online</div>' : ''}
+          ${p.is_online ? `<div class="stat-chip online-chip"><span class="online-dot"></span>${escapeHtml(t('card.online'))}</div>` : ''}
         </div>
         <p class="bio-text" style="margin-top:12px;">${escapeHtml(p.bio || t('card.noBio'))}</p>
       </div>`;
@@ -6163,9 +6165,12 @@
     card.classList.remove('dragging');
     // Auslösen wenn weit genug gezogen ODER mit genug Schwung geworfen
     const flung = Math.abs(vx) > 8 && Math.abs(dx) > 40;
-    if(Math.abs(dx) > SWIPE_THRESHOLD || flung){
-      commitSwipe(dx > 0 ? 'like' : 'pass', vx);
-    } else {
+    // commitSwipe kann ablehnen (Like-Kontingent aufgebraucht). Dann muss die
+    // Karte zurueckfedern - vorher blieb sie halb aus dem Bild gezogen samt
+    // MATCH-Stempel liegen, bis man das Deck neu lud.
+    const committed = (Math.abs(dx) > SWIPE_THRESHOLD || flung)
+      && commitSwipe(dx > 0 ? 'like' : 'pass', vx);
+    if(!committed){
       // federnd zurückschnappen
       card.style.transition = 'transform .45s cubic-bezier(.18,.9,.3,1.2)';
       card.style.transform = '';
@@ -6184,19 +6189,20 @@
   document.addEventListener('mouseup', onCardDragEnd);
   document.addEventListener('touchend', onCardDragEnd);
 
+  /** Liefert true, wenn der Swipe ausgeloest wurde. */
   function commitSwipe(action, velocity){
-    if(swipeLocked || deckIdx >= deck.length) return;
+    if(swipeLocked || deckIdx >= deck.length) return false;
     // Die Grenze VOR der Animation pruefen. Die Karte erst wegfliegen zu
     // lassen und sie nach der Absage des Servers wieder hereinzuholen waere
     // ein Ruckeln, das wie ein Fehler aussieht - und der Nutzer haette den
     // Daumen schon abgesetzt. Der Server prueft trotzdem noch einmal.
     if(action === 'like' && likesLeft() === 0){
       showLikeLimit();
-      return;
+      return false;
     }
     const container = $('deck');
     const card = container.querySelector('.card:last-child');
-    if(!card) return;
+    if(!card) return false;
     swipeLocked = true;
 
     const behind = container.querySelector('.card-behind');
@@ -6224,6 +6230,7 @@
       renderCard();
       swipeLocked = false;
     }, Math.round(dur * 1000) - 20);
+    return true;
   }
 
   async function swipeApiCall(action){
@@ -6399,6 +6406,17 @@
     $('chatsNavBadge').style.display = 'none';
   }
 
+  // Zurueck in die App (Tab wieder vorne, Home-Bildschirm-App aus dem
+  // Hintergrund geholt): sofort abgleichen statt bis zu 20 s auf den naechsten
+  // Takt zu warten. Gerade als installierte Web-App auf dem iPhone friert iOS
+  // die Timer im Hintergrund ein - ohne das stand nach dem Oeffnen aus einer
+  // Benachrichtigung heraus erst einmal der alte Stand da.
+  document.addEventListener('visibilitychange', () => {
+    if(document.visibilityState !== 'visible' || !token) return;
+    if(currentChatMatchId) loadMessages();
+    else if(unreadPollInterval) refreshUnreadBadge();
+  });
+
   async function loadMatches(){
     $('matchList').classList.remove('is-empty');
     $('matchList').innerHTML = `<div class="loading">${escapeHtml(t('matches.loading'))}</div>`;
@@ -6506,10 +6524,10 @@
         const cls = ['match-item', m.is_online ? 'online' : ''].filter(Boolean).join(' ');
         return `
         <div class="${cls}" data-match-id="${m.match_id}">
-          <span class="av"><img src="${escapeHtml(photo)}" alt="" title="${m.is_online ? 'Gerade online' : ''}"></span>
+          <span class="av"><img src="${escapeHtml(photo)}" alt="" title="${m.is_online ? escapeHtml(t('matches.online')) : ''}"></span>
           <div class="info">
             <div class="nm">${nameWithBadges(p, `${p.name}, ${p.age}`)}</div>
-            <div class="last-msg">${escapeHtml(p.city)}${p.distance_km != null ? ` · ${p.distance_km} km` : ''}${m.is_online ? ' · gerade online' : ''}</div>
+            <div class="last-msg">${escapeHtml(p.city)}${p.distance_km != null ? ` · ${p.distance_km} km` : ''}${m.is_online ? ' · ' + escapeHtml(t('matches.online')) : ''}</div>
           </div>
           <div class="chev"></div>
         </div>`;
@@ -6527,7 +6545,7 @@
   // ---------- Chats (nur Matches mit laufender Unterhaltung) ----------
   async function loadChats(){
     $('chatList').classList.remove('is-empty');
-    $('chatList').innerHTML = '<div class="loading">Lade Chats …</div>';
+    $('chatList').innerHTML = `<div class="loading">${escapeHtml(t('chats.loading'))}</div>`;
     lastChatListHtml = null;
     try{
       matchesCache = await api('/api/matches');
@@ -6572,7 +6590,7 @@
           : escapeHtml(t('chats.cleared'));
         return `
         <div class="${cls}" data-match-id="${m.match_id}">
-          <span class="av"><img src="${escapeHtml(photo)}" alt="" title="${m.is_online ? 'Gerade online' : ''}"></span>
+          <span class="av"><img src="${escapeHtml(photo)}" alt="" title="${m.is_online ? escapeHtml(t('matches.online')) : ''}"></span>
           <div class="info">
             <div class="nm">${nameWithBadges(p, `${p.name}, ${p.age}`)}</div>
             <div class="last-msg">${preview}</div>
@@ -6639,7 +6657,7 @@
   // Geburtsdatum. Erst nach Freigabe wird das Konto freigeschaltet.
   let verifyState = null; // {prompts, idx, blobs[]}
   let verifyStream = null;
-  const CAPTURE_LABEL = '📸 Aufnehmen';
+  const CAPTURE_LABEL = () => t('verify.capture');
   let verificationStatus = null; // letzte Antwort von /api/verification/status
 
   async function loadVerificationStatus(){
@@ -6848,15 +6866,15 @@
       const btn = $('btnVgatePrimary');
       const err = $('vgateMailErr');
       btn.disabled = true;
-      btn.textContent = 'Wird gesendet …';
+      btn.textContent = t('vgate.mailSending');
       try{
         const res = await api('/api/auth/email/resend', {method: 'POST'});
-        toast(`Neue Mail an ${res.email} unterwegs. Der Link gilt ${res.valid_hours} Stunden.`);
+        toast(t('vgate.mailSent', {email: res.email, hours: res.valid_hours}));
       }catch(sendErr){
         if(err) err.textContent = sendErr.message || t('vgate.mailSendFailed');
       }finally{
         btn.disabled = false;
-        btn.textContent = 'Mail erneut senden';
+        btn.textContent = t('vgate.mailResend');
       }
       return;
     }
@@ -6915,7 +6933,7 @@
 
     badge.className = 'verify-badge pending';
     badge.textContent = '…';
-    tip.textContent = 'Lade Status …';
+    tip.textContent = t('vbadge.loading');
     try{
       const st = await loadVerificationStatus();
       if(st.status === 'submitted'){
@@ -6924,11 +6942,11 @@
         tip.innerHTML = t('vbadge.checkingTip', {badge: VERIFIED_BADGE_SVG()});
       } else if(st.status === 'rejected'){
         badge.className = 'verify-badge pending';
-        badge.textContent = 'Nicht verifiziert';
+        badge.textContent = t('vbadge.notVerified');
         tip.innerHTML = escapeHtml(t('vbadge.failedTip'));
       } else {
         badge.className = 'verify-badge attention';
-        badge.innerHTML = 'Verifizierung <svg class="warn-tri" viewBox="0 0 24 24"><path d="M12 3.5 21.7 20.2H2.3L12 3.5z"/><path d="M12 10v4.3M12 17.2h.01"/></svg>';
+        badge.innerHTML = escapeHtml(t('vbadge.verify')) + ' <svg class="warn-tri" viewBox="0 0 24 24"><path d="M12 3.5 21.7 20.2H2.3L12 3.5z"/><path d="M12 10v4.3M12 17.2h.01"/></svg>';
         verifyBadgeClickable = true;
         tip.innerHTML = st.next_step === 'document'
           ? escapeHtml(t('vbadge.docMissing'))
@@ -6936,7 +6954,7 @@
       }
     }catch(err){
       badge.className = 'verify-badge pending';
-      badge.textContent = 'Verifizierung';
+      badge.textContent = t('vbadge.verify');
       tip.textContent = t('common.statusLoadFailed');
     }
   }
@@ -6962,9 +6980,9 @@
     // mehrere, zeigen beide den Fortschritt. Gleiches Verhalten wie in der App.
     const mehrere = total > 1;
     $('verifyStep').textContent = mehrere
-      ? `AUFNAHME ${Math.min(verifyState.idx + 1, total)} / ${total}`
-      : 'VERIFIZIERUNGS-SELFIE';
-    $('verifyPrompt').textContent = verifyState.prompts[verifyState.idx] || 'Fertig!';
+      ? t('verify.stepN', {n: Math.min(verifyState.idx + 1, total), total})
+      : t('verify.step');
+    $('verifyPrompt').textContent = verifyState.prompts[verifyState.idx] || t('verify.done');
     const thumbs = $('verifyThumbs');
     thumbs.style.display = mehrere ? '' : 'none';
     thumbs.innerHTML = !mehrere ? '' : verifyState.prompts.map((_, i) => {
@@ -6992,7 +7010,7 @@
     showScreen('screen-verify');
     $('verifyErr').textContent = '';
     $('btnVerifyCapture').disabled = false;
-    $('btnVerifyCapture').textContent = CAPTURE_LABEL;
+    $('btnVerifyCapture').textContent = CAPTURE_LABEL();
     renderVerifyStep();
     try{
       verifyStream = await navigator.mediaDevices.getUserMedia({
@@ -7032,7 +7050,7 @@
   async function submitSelfies(){
     const btn = $('btnVerifyCapture');
     btn.disabled = true;
-    btn.textContent = 'Wird hochgeladen …';
+    btn.textContent = t('verify.uploading');
     $('verifyErr').textContent = '';
     try{
       const selfies = [];
@@ -7046,7 +7064,7 @@
           headers: {'Content-Type': 'image/jpeg'},
           body: verifyState.blobs[i],
         });
-        if(!putRes.ok) throw new Error('Selfie-Upload fehlgeschlagen.');
+        if(!putRes.ok) throw new Error(t('verify.uploadFailed'));
         selfies.push({prompt: verifyState.prompts[i], object_key: presign.object_key});
       }
       verificationStatus = await api('/api/verification/submit', {
@@ -7054,13 +7072,13 @@
         body: JSON.stringify({selfies}),
       });
       verifyState = null;
-      btn.textContent = CAPTURE_LABEL;
+      btn.textContent = CAPTURE_LABEL();
       // Selfies sind durch - weiter zum Ausweisschritt (Schritt 2 von 2)
       toast(t('verify.saved'));
       openIdStep();
     }catch(err){
       $('verifyErr').textContent = err.message || t('verify.submitFailed');
-      btn.textContent = 'Einreichen wiederholen';
+      btn.textContent = t('verify.retrySubmit');
     }finally{
       btn.disabled = false;
     }
@@ -7348,8 +7366,13 @@
     // Chat-Sperre-Status auffrischen (kann während der Sitzung gesetzt worden sein)
     try{ const me = await api('/api/profiles/me'); if(me) myProfile = me; }catch(e){}
     await refreshModerationNotice();
+    // Wer waehrend der beiden Abfragen schon weitergetippt hat (anderer Reiter,
+    // anderer Chat), bekaeme sonst im Hintergrund ein Polling fuer einen Chat
+    // gestartet, der gar nicht mehr offen ist.
+    if(currentChatMatchId !== matchId) return;
     renderChatMuteState();
     await loadMessages();
+    if(currentChatMatchId !== matchId) return;
     startChatPolling();
   }
 
@@ -7405,7 +7428,7 @@
     const row = document.querySelector('#screen-chat .chat-input-row');
     const until = chatMutedUntil();
     if(until){
-      const when = until.toLocaleString('de-AT',
+      const when = until.toLocaleString(dateLocale(),
         {day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit'});
       // Ohne konkrete Begründung und Widerspruchsweg wäre die Mitteilung nach
       // Art. 17 DSA unvollständig - beides kommt aus /api/moderation/notice.
@@ -7448,6 +7471,19 @@
     }
   }
 
+  /* Uhrzeit am Nachrichtenende. Aeltere Nachrichten bekommen das Datum dazu:
+     Vorher stand ueberall nur "14:32" - ob das heute war oder vor einer
+     Woche, war dem Verlauf nicht anzusehen. */
+  function chatTimeLabel(d){
+    const zeit = d.toLocaleTimeString(dateLocale(), {hour:'2-digit', minute:'2-digit'});
+    const heute = new Date();
+    if(d.toDateString() === heute.toDateString()) return zeit;
+    const datum = d.toLocaleDateString(dateLocale(), d.getFullYear() === heute.getFullYear()
+      ? {day:'2-digit', month:'2-digit'}
+      : {day:'2-digit', month:'2-digit', year:'numeric'});
+    return datum + ' ' + zeit;
+  }
+
   function renderMessages(messages){
     const box = $('chatMessages');
     const wasAtBottom = (box.scrollTop + box.clientHeight) >= (box.scrollHeight - 40);
@@ -7462,7 +7498,7 @@
     }
     box.innerHTML = messages.map(m => {
       const mine = m.sender_id === myProfile.id;
-      const time = parseServerDate(m.created_at).toLocaleTimeString('de-AT', {hour:'2-digit', minute:'2-digit'});
+      const time = chatTimeLabel(parseServerDate(m.created_at));
       const receipt = mine ? `<span class="receipt ${m.read_at ? 'read' : ''}">${m.read_at ? '✓✓' : '✓'}</span>` : '';
       // Zensur-Hinweis: Absender erfährt, dass die Nachricht geschützt wurde;
       // Empfänger sieht den Grund für den [Link entfernt]-Platzhalter.
@@ -7519,7 +7555,10 @@
   }
   $('btnChatSend').addEventListener('click', sendChatMessage);
   $('chatInput').addEventListener('keydown', e => {
-    if(e.key === 'Enter'){ e.preventDefault(); sendChatMessage(); }
+    // isComposing: Mit einer Eingabehilfe (Emoji-Vorschlaege am Handy,
+    // Wortvervollstaendigung) bestaetigt Enter erst die Auswahl - ohne die
+    // Abfrage ging die Nachricht halb getippt raus.
+    if(e.key === 'Enter' && !e.isComposing){ e.preventDefault(); sendChatMessage(); }
   });
 
   $('btnChatBack').addEventListener('click', () => {
@@ -7585,7 +7624,7 @@
     if(!confirm(t('chat.confirmClear'))) return;
     try{
       await api(`/api/matches/${currentChatMatchId}/messages`, {method: 'DELETE'});
-      toast('Chatverlauf geleert.');
+      toast(t('chat.clearedToast'));
       await loadMessages();
       matchesCache = await api('/api/matches');
       renderUnreadBadge(matchesCache);

@@ -203,6 +203,24 @@ def test_service_worker_cachet_weder_nutzerfotos_noch_downloads():
     assert "STATIC_PREFIXES" in worker
 
 
+def test_service_worker_laedt_dieselben_versionen_vor_wie_die_app():
+    """Die Shell muss genau die Adressen vorladen, die die App anfordert.
+
+    Am 25.09.2026 stand die Shell auf /app/i18n-app.js?v=11 und /i18n.js?v=4,
+    die App lud laengst ?v=15 bzw. ?v=5: Vorgeladen wurde, was niemand mehr
+    abruft, und offline fehlten die aktuellen Texte.
+    """
+    worker = (FRONTEND / "sw.js").read_text(encoding="utf-8")
+    shell = set(re.findall(r"'(/[^']+\?v=\d+)'", worker))
+    app = (FRONTEND / "app" / "index.html").read_text(encoding="utf-8")
+    angefordert = set(re.findall(r'(?:src|href)="(/[^"]+\?v=\d+)"', app))
+    for adresse in sorted(shell):
+        pfad = adresse.split("?")[0]
+        gleicher_pfad = {a for a in angefordert if a.split("?")[0] == pfad}
+        if gleicher_pfad:
+            assert adresse in gleicher_pfad, f"{adresse} in sw.js, App laedt {gleicher_pfad}"
+
+
 def test_noindex_seiten_sind_nicht_zusaetzlich_per_robots_gesperrt():
     """robots.txt-Sperre und noindex heben sich gegenseitig auf.
 

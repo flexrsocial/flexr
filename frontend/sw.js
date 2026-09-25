@@ -58,13 +58,18 @@
 // zieht mit.
 // v21: Erklaertext zum Gym-Wechsel gekuerzt (kein Bezug mehr auf FLEXR
 // Premium) - wieder nur der Woerterbuch-Text, /app/i18n-app.js zieht mit.
-const CACHE = 'flexr-shell-v21';
+// v22: Die Shell lud /app/i18n-app.js?v=11 und /i18n.js?v=4 vor, die App
+// fordert seit einigen Fassungen ?v=15 bzw. ?v=5 an - vorgeladen wurden also
+// Dateien, die niemand mehr abruft. Jetzt wieder deckungsgleich (i18n-app.js
+// auf ?v=16: Online-Hinweise, Selfie-Schritt und "Mail erneut senden" waren
+// fest auf Deutsch). Dazu Datumsangaben im Chat.
+const CACHE = 'flexr-shell-v22';
 // Seit dem 15.08.2026 liegt die App unter /app/, an der Wurzel steht die
 // oeffentliche Landingpage. Beide gehoeren in die Shell: die Landingpage,
 // weil sie der Einstieg ist, die App, weil sie offline funktionieren soll.
 const SHELL = ['/', '/index.html', '/en/', '/en/index.html',
                '/app/', '/app/index.html',
-               '/lang-switch.js?v=2', '/i18n.js?v=4', '/app/i18n-app.js?v=11',
+               '/lang-switch.js?v=2', '/i18n.js?v=5', '/app/i18n-app.js?v=16',
                '/manifest.json', '/favicon.ico', '/legal.css?v=2',
                '/fonts/work-sans.woff2?v=1', '/fonts/oswald.woff2?v=1',
                '/icons/icon-192.png?v=4', '/icons/icon-512.png?v=4'];
