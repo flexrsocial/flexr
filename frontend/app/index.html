@@ -89,6 +89,11 @@
   /* Kein horizontales Scrollen - die Swipe-Fly-off-Animationen schieben
      Karten kurzzeitig weit über den rechten/linken Rand hinaus */
   html, body{ overflow-x:hidden; }
+  /* clip schneidet genauso ab, macht body aber nicht zu einem eigenen
+     Scroll-Container. Mit hidden galt body als Scroll-Container, der selbst
+     nie scrollt - position:sticky (Schrittanzeige im Registrierungsformular)
+     klebte dadurch nie. Aeltere Browser bleiben bei hidden. */
+  @supports (overflow-x:clip){ html, body{ overflow-x:clip; } }
   .skip-link{
     position:fixed; z-index:10000; left:16px; top:12px;
     padding:10px 14px; border-radius:8px;
@@ -1626,6 +1631,29 @@
   /* ---- Alters- und Identitätsprüfung (Gate + Ausweisschritt) ---- */
   /* Schrittanzeige über dem Inhalt: zeigt, wo im Ablauf der Nutzer steht. */
   .vstep-bar{ display:flex; gap:6px; margin:2px 0 18px; }
+
+  /* Schrittanzeige Registrierung -> Freischaltung (renderJourney). */
+  .journey{ margin:2px 0 18px; }
+  .journey-bar{ display:flex; gap:6px; }
+  .journey-seg{ flex:1; min-width:0; }
+  .journey-seg .track{ height:4px; border-radius:2px; background:var(--steel); overflow:hidden; }
+  .journey-seg .fill{ height:100%; width:0; background:var(--plate); transition:width .3s ease; }
+  .journey-seg.done .fill{ width:100%; }
+  .journey-seg.active .fill{ background:var(--chalk); }
+  .journey-seg .lbl{
+    margin-top:6px; font-family:'Oswald', sans-serif; font-size:10.5px;
+    letter-spacing:.08em; text-transform:uppercase; color:var(--chalk-dim);
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+  .journey-seg.active .lbl{ color:var(--chalk); }
+  .journey-seg.done .lbl{ color:var(--plate); }
+  .journey-note{ margin-top:8px; font-size:12.5px; line-height:1.45; color:var(--chalk-dim); }
+  .journey-note b{ color:var(--chalk); font-weight:600; }
+  .journey-sticky{
+    position:sticky; top:0; z-index:5;
+    margin:0 -4px 16px; padding:10px 4px 10px;
+    background:var(--ink);
+  }
   .vstep-bar span{
     flex:1; height:3px; border-radius:2px; background:var(--steel);
   }
@@ -2081,7 +2109,7 @@
      laufen synchron und damit vor dem DOMContentLoaded, bei dem FlexrI18n die
      data-i18n-Knoten uebersetzt. -->
 <script src="/i18n.js?v=5"></script>
-<script src="/app/i18n-app.js?v=17"></script>
+<script src="/app/i18n-app.js?v=18"></script>
 <a class="skip-link" href="#main-content" data-i18n="common.skipToContent">Zum Inhalt springen</a>
 <div class="app" id="app">
 
@@ -2303,6 +2331,11 @@
       </div>
       <div class="eyebrow" data-i18n="reg.eyebrow">Erste Wiederholung</div>
       <h1 class="headline" data-i18n-html="reg.h1">Dating für Leute,<br>die auch Montags<br>Beintag machen.</h1>
+      <!-- Der ganze Weg bis zum ersten Swipe auf einen Blick: Profil, E-Mail,
+           Selfie, Ausweis, Pruefung. Der erste Abschnitt fuellt sich mit den
+           Pflichtangaben dieses Formulars. Klebt beim Scrollen oben, damit man
+           im langen Formular sieht, wie weit man ist. -->
+      <div class="journey journey-sticky" id="regJourney"></div>
       <!-- Beta-Gratisphase, siehe Kommentar bei den Hero-USPs. -->
       <p class="sub" data-i18n-html="reg.sub">Erstell dein Profil — kostenlos, und das dauerhaft. FLEXR zu nutzen kostet nichts; es wird kein Zahlungsmittel abgefragt. FLEXR&nbsp;Premium (10&nbsp;€/Monat, jederzeit kündbar) kommt nach der Beta und ist freiwillig. Aktuell nur in Österreich verfügbar.</p>
 
@@ -2870,9 +2903,7 @@
     <section class="screen" id="screen-verify-gate">
       <div class="eyebrow" id="vgateEyebrow" data-i18n="vgate.eyebrow">Letzter Satz</div>
       <h1 class="headline" style="font-size:22px; margin-bottom:14px;" id="vgateTitle" data-i18n="vgate.title">Konto freischalten</h1>
-      <div class="vstep-bar" id="vgateSteps">
-        <span></span><span></span><span></span>
-      </div>
+      <div class="journey" id="vgateSteps"></div>
       <div id="vgateStatusWrap"></div>
       <div id="vgateBody"></div>
       <!-- Nachträglicher Upload fehlender Profilfotos: Unter der Mindestanzahl
@@ -2932,9 +2963,7 @@
         </button>
         <div class="nm" data-i18n="id.title">Alter bestätigen</div>
       </div>
-      <div class="vstep-bar">
-        <span class="done"></span><span class="done"></span><span class="active"></span>
-      </div>
+      <div class="journey" id="vidJourney"></div>
 
       <div class="vcard">
         <h3 data-i18n="id.whyH3">Warum wir das brauchen</h3>
@@ -2982,6 +3011,7 @@
         </button>
         <div class="nm" data-i18n="verify.title">Verifizierungs-Selfie</div>
       </div>
+      <div class="journey" id="verifyJourney"></div>
       <div class="verify-step" id="verifyStep" data-i18n="verify.step">VERIFIZIERUNGS-SELFIE</div>
       <div class="verify-prompt" id="verifyPrompt">—</div>
       <div class="verify-cam-wrap">
@@ -3176,6 +3206,24 @@
       <span data-i18n-html="iosinst.text">Tippe unten auf <svg class="ios-share" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V3.5M8 7.5l4-4 4 4M7 11H5.5v9.5h13V11H17"/></svg> „Teilen“ und dann auf „Zum Home-Bildschirm“. FLEXR startet dann wie eine App – mit Mitteilungen bei neuen Nachrichten.</span>
     </div>
     <button type="button" class="ios-install-close" id="iosInstallClose" data-i18n-aria="common.close" aria-label="Schließen">✕</button>
+  </div>
+
+  <!-- BESTAETIGUNG (statt confirm()): gleiche Optik wie "Konto loeschen".
+       Der Browser-Dialog sah in jedem Browser anders aus, trug die Adresse
+       der Seite als Ueberschrift ("flexr.social meldet ...") und liess sich
+       nicht uebersetzen - die Knoepfe hiessen je nach Geraet "OK"/"Abbrechen"
+       oder "Bestaetigen". Siehe frage(). -->
+  <div class="legal-modal-backdrop" id="confirmModalBackdrop">
+    <div class="legal-modal delete-modal" role="alertdialog" aria-modal="true" aria-labelledby="confirmModalTitle" aria-describedby="confirmModalText">
+      <div class="legal-modal-body">
+        <h1 style="font-size:20px;" id="confirmModalTitle"></h1>
+        <p style="margin-top:10px; white-space:pre-line;" id="confirmModalText"></p>
+        <div class="btn-row" style="margin-top:18px;">
+          <button class="btn danger-solid" id="btnConfirmModalYes"></button>
+          <button class="btn secondary" id="btnConfirmModalNo" data-i18n="common.cancel">Abbrechen</button>
+        </div>
+      </div>
+    </div>
   </div>
 
   <nav class="bottom" id="bottomNav" style="display:none;">
@@ -3961,7 +4009,7 @@
       slot.className = 'photo-slot';
       if(pendingPhotos[i]){
         slot.innerHTML = `<img src="${pendingPhotos[i].previewUrl}" alt=""><div class="remove" data-i="${i}">✕</div>`;
-        slot.querySelector('.remove').onclick = (e)=>{ e.stopPropagation(); pendingPhotos.splice(i,1); renderPhotoGrid(); };
+        slot.querySelector('.remove').onclick = (e)=>{ e.stopPropagation(); pendingPhotos.splice(i,1); renderPhotoGrid(); renderRegJourney(); };
       } else {
         slot.textContent = '+';
         slot.onclick = () => { $('photoInput').click(); };
@@ -3988,6 +4036,7 @@
       const photo = await preparePhoto(file);
       pendingPhotos.push({blob: photo.blob, thumbBlob: photo.thumbBlob, previewUrl: URL.createObjectURL(photo.blob)});
       renderPhotoGrid();
+      renderRegJourney();
     }catch(err){
       $('photoErr').textContent = uploadFehlerText(err);
       logUploadFehler('onboarding-auswahl', err);
@@ -4114,6 +4163,63 @@
     return m;
   }
 
+  // ---------- Schrittanzeige bis zum ersten Swipe ----------
+  // Ein Weg, eine Anzeige: dieselben fuenf Abschnitte im Registrierungsformular
+  // und auf allen Pruefschirmen. Vorher sah man im Formular gar keinen
+  // Fortschritt und danach eine Leiste mit drei Strichen ohne Beschriftung -
+  // wie viel noch kommt, erfuhr man erst unterwegs.
+  const JOURNEY = ['profile', 'mail', 'selfie', 'id', 'review'];
+
+  /* aktiv: einer der Schluessel oben. anteil (0..1): nur fuer den aktiven
+     Abschnitt, fuellt ihn teilweise (Registrierungsformular). note: fertiges
+     HTML fuer die Zeile darunter, schon uebersetzt. */
+  function renderJourney(el, aktiv, anteil, note){
+    if(!el) return;
+    el.dataset.aktiv = aktiv;
+    const idx = JOURNEY.indexOf(aktiv);
+    el.innerHTML = `<div class="journey-bar" role="list" aria-label="${escapeHtml(t('journey.aria', {n: idx + 1, total: JOURNEY.length}))}">`
+      + JOURNEY.map((key, i) => {
+        const cls = i < idx ? 'done' : (i === idx ? 'active' : '');
+        const breite = i === idx && anteil != null ? ` style="width:${Math.round(anteil * 100)}%"` : '';
+        return `<div class="journey-seg ${cls}" role="listitem"${i === idx ? ' aria-current="step"' : ''}>`
+          + `<div class="track"><div class="fill"${breite}></div></div>`
+          + `<div class="lbl">${escapeHtml(t('journey.' + key))}</div></div>`;
+      }).join('') + '</div>'
+      + (note ? `<div class="journey-note">${note}</div>` : '');
+  }
+
+  // Pflichtangaben des Formulars - dieselben Bedingungen wie beim Absenden.
+  function registrierungsFortschritt(){
+    const pw = $('f-password').value;
+    const geburt = $('f-birthdate').value;
+    const erfuellt = [
+      /^\S+@\S+\.\S+$/.test($('f-email').value.trim()),
+      pw.length >= 8,
+      pw.length >= 8 && pw === $('f-password2').value,
+      !!$('f-name').value.trim(),
+      !!geburt && !ageGateBlocked && calcAge(geburt) >= 18,
+      /^\d{4}$/.test($('f-plz').value.trim()) && !!resolvedCity,
+      !!$('f-gender').value,
+      !!($('f-gym').dataset.label || $('f-gym').value.trim()),
+      pendingPhotos.length >= MIN_PHOTOS,
+      $('f-consent-sensitive').checked,
+    ];
+    return {fertig: erfuellt.filter(Boolean).length, gesamt: erfuellt.length};
+  }
+
+  function renderRegJourney(){
+    const {fertig, gesamt} = registrierungsFortschritt();
+    renderJourney($('regJourney'), 'profile', fertig / gesamt,
+      t('journey.regNote', {fertig: `<b>${fertig}</b>`, gesamt}));
+  }
+
+  // Jede Eingabe im Formular zaehlt neu. Ein Zuhoerer am Schirm statt an
+  // jedem Feld - Fotos, Gym-Auswahl und Ortsauflosung kommen ohnehin ueber
+  // eigene Wege und rufen renderRegJourney() selbst.
+  // 'click' fuer die Gym-Auswahl aus der Trefferliste - die setzt das Feld
+  // ohne input-Ereignis.
+  ['input', 'change', 'click'].forEach(ev => $('screen-onboard').addEventListener(ev, renderRegJourney));
+
   // ---------- Registrierung ----------
   // ---------- PLZ/Ort-Lookup ----------
   // Der Ort kommt aus dem eigenen Backend (/api/geo/plz/<plz>), das dafür das
@@ -4138,6 +4244,7 @@
       resolvedCity = await lookupCityForPlz(plz);
       setPlainText(ortDisplay, resolvedCity);   // Eigenname, nicht uebersetzbar
       ortDisplay.classList.add('resolved');
+      renderRegJourney();
     }catch(err){
       if(err.status === 404){
         setI18nText(ortDisplay, 'plz.unknownShort');
@@ -4275,6 +4382,7 @@
         gymSuggestTargetInput.picked.classList.add('show');
       }
       closeGymSuggest();
+      renderRegJourney();
       toast(t('gym.thanks'));
     }catch(err){
       errEl.textContent = err.message || t('gym.errSubmit');
@@ -4316,6 +4424,7 @@
         body: JSON.stringify({birthdate: value}),
       });
       setAgeGate(res.eligible ? 'ok' : 'blocked', res.message);
+      renderRegJourney();
     }catch(err){
       // Gerätesperre nach mehrfachen Versuchen unter 18
       if(err.detail && err.detail.code === 'signup_blocked'){
@@ -4348,6 +4457,9 @@
   }
   $('f-password').addEventListener('input', refreshPasswordHint);
   $('f-password2').addEventListener('input', refreshPasswordHint);
+  // Erst hier: renderRegJourney liest resolvedCity und ageGateBlocked, die
+  // weiter oben noch nicht angelegt sind.
+  renderRegJourney();
 
   $('btnCreateProfile').addEventListener('click', async ()=>{
     const errEl = $('formErr');
@@ -4463,7 +4575,7 @@
   });
 
   $('btnGoLogin').addEventListener('click', () => showScreen('screen-login'));
-  $('btnGoRegister').addEventListener('click', () => showScreen('screen-onboard'));
+  $('btnGoRegister').addEventListener('click', () => { showScreen('screen-onboard'); renderRegJourney(); });
 
   // ---------- Login ----------
   async function doLogin(){
@@ -4487,10 +4599,12 @@
       // Konto innerhalb der 30-Tage-Karenz nach Selbstlöschung: Login bietet
       // die Reaktivierung an, statt in eine Sackgasse zu führen.
       if(err.detail && err.detail.code === 'account_deleted'){
-        const reaktivieren = confirm(
-          (err.detail.message || t('login.deletedAccount'))
-          + t('login.reactivate')
-        );
+        const reaktivieren = await frage({
+          titel: t('login.deletedAccount'),
+          text: ((err.detail.message || t('login.deletedAccount')) + t('login.reactivate')).trim(),
+          ja: t('login.reactivateBtn'),
+          gefaehrlich: false,
+        });
         if(reaktivieren){
           try{
             const tokenRes = await api('/api/auth/reactivate', {method: 'POST', body: JSON.stringify({email, password})});
@@ -4688,6 +4802,41 @@
   // Probemonats der einzige erreichbare und brauchte eigene Notausgaenge.
   // Ohne Bezahlwand ist der Konto-Screen immer erreichbar, einer genuegt.
   $('btnLogout').addEventListener('click', doLogout);
+
+  // ---------- Bestaetigungsdialog ----------
+  /* Ersatz fuer confirm(): liefert ein Promise<boolean>. gefaehrlich=false
+     zeichnet den Ja-Knopf in der normalen Markenfarbe statt in Rot (etwa
+     "Konto wiederherstellen" - nichts daran ist gefaehrlich). Der Fokus liegt
+     auf "Abbrechen": Wer versehentlich Enter drueckt, blockiert niemanden. */
+  let frageOffen = null;
+  function frage({titel, text, ja, gefaehrlich = true}){
+    if(frageOffen) frageOffen(false);
+    const backdrop = $('confirmModalBackdrop');
+    $('confirmModalTitle').textContent = titel;
+    $('confirmModalText').textContent = text;
+    const jaKnopf = $('btnConfirmModalYes');
+    jaKnopf.textContent = ja;
+    jaKnopf.className = gefaehrlich ? 'btn danger-solid' : 'btn';
+    const vorherFokus = document.activeElement;
+    backdrop.classList.add('open');
+    $('btnConfirmModalNo').focus();
+    return new Promise(resolve => {
+      frageOffen = (antwort) => {
+        frageOffen = null;
+        backdrop.classList.remove('open');
+        if(vorherFokus && vorherFokus.focus) vorherFokus.focus();
+        resolve(antwort);
+      };
+    });
+  }
+  $('btnConfirmModalYes').addEventListener('click', () => frageOffen && frageOffen(true));
+  $('btnConfirmModalNo').addEventListener('click', () => frageOffen && frageOffen(false));
+  $('confirmModalBackdrop').addEventListener('click', (e) => {
+    if(e.target === $('confirmModalBackdrop') && frageOffen) frageOffen(false);
+  });
+  document.addEventListener('keydown', (e) => {
+    if(e.key === 'Escape' && frageOffen) frageOffen(false);
+  });
 
   // ---------- Konto löschen (Passwort-Bestätigung, 30-Tage-Karenz) ----------
   const deleteBackdrop = $('deleteModalBackdrop');
@@ -5370,7 +5519,7 @@
   }
 
   async function unblockUser(userId, name){
-    if(!confirm(t('privacy.unblockConfirm', {name}))) return;
+    if(!(await frage({titel: t('privacy.unblockTitle'), text: t('privacy.unblockConfirm', {name}), ja: t('privacy.unblockBtn'), gefaehrlich: false}))) return;
     try{
       await api(`/api/blocks/${userId}`, {method: 'DELETE'});
       toast(t('privacy.unblocked', {name}));
@@ -5528,7 +5677,7 @@
     // Der Nutzer soll wissen, was er ausloest, bevor er es auslöst - beim
     // Art.-9-Consent bleibt das Konto sonst mit leerem Deck zurueck.
     if(consentType === 'sensitive_data'){
-      const weiter = confirm(t('privacy.revokeConfirm'));
+      const weiter = await frage({titel: t('privacy.consentRevoke'), text: t('privacy.revokeConfirm'), ja: t('privacy.consentRevoke')});
       if(!weiter){ return; }
     }
     try{
@@ -5983,7 +6132,7 @@
             $('acctPhotoErr').textContent = t('photo.minCount');
             return;
           }
-          if(!confirm(t('photo.confirmRemove'))) return;
+          if(!(await frage({titel: t('photo.removeTitle'), text: t('photo.confirmRemove'), ja: t('photo.removeTitle')}))) return;
           $('acctPhotoErr').textContent = '';
           try{
             myProfile = await api('/api/profiles/me/photos/' + photos[i].id, {method: 'DELETE'});
@@ -6361,7 +6510,7 @@
   }
 
   async function blockUser(userId, name, onBlocked){
-    if(!confirm(t('block.confirm', {name}))) return;
+    if(!(await frage({titel: t('block.title', {name}), text: t('block.confirm', {name}), ja: t('common.block')}))) return;
     try{
       await api('/api/blocks', {method: 'POST', body: JSON.stringify({user_id: userId})});
       toast(t('block.done', {name}));
@@ -6370,7 +6519,7 @@
   }
 
   async function unmatchMatch(matchId, name, onDone){
-    if(!confirm(t('unmatch.confirm', {name}))) return;
+    if(!(await frage({titel: t('swipe.unmatch'), text: t('unmatch.confirm', {name}), ja: t('swipe.unmatch')}))) return;
     try{
       await api(`/api/matches/${matchId}`, {method: 'DELETE'});
       toast(t('unmatch.done', {name}));
@@ -6955,12 +7104,8 @@
   }
 
   // Schrittanzeige: 1 Selfie, 2 Ausweis, 3 Prüfung
-  function renderGateSteps(step){
-    $('vgateSteps').innerHTML = [1, 2, 3].map(i => {
-      if(i < step) return '<span class="done"></span>';
-      if(i === step) return '<span class="active"></span>';
-      return '<span></span>';
-    }).join('');
+  function renderGateSteps(schritt){
+    renderJourney($('vgateSteps'), schritt);
   }
 
   function gateStatusChip(kind, text){
@@ -6996,7 +7141,7 @@
 
     if(st.status === 'submitted'){
       // "Verification pending"
-      renderGateSteps(3);
+      renderGateSteps('review');
       $('vgateEyebrow').textContent = t('vgate.submittedEyebrow');
       $('vgateTitle').textContent = t('vgate.submittedTitle');
       statusWrap.innerHTML = gateStatusChip('wait', t('vgate.submittedChip'));
@@ -7010,7 +7155,7 @@
     }
 
     if(st.status === 'rejected'){
-      renderGateSteps(3);
+      renderGateSteps('review');
       $('vgateEyebrow').textContent = t('vgate.rejectedEyebrow');
       $('vgateTitle').textContent = t('vgate.rejectedTitle');
       statusWrap.innerHTML = gateStatusChip('bad', t('vgate.rejectedChip'));
@@ -7028,7 +7173,7 @@
     // Backend /verification/start ab, und ein Mensch soll keine Ausweisaufnahme
     // begutachten, solange die Adresse nicht dem Nutzer gehört.
     if(st.email_verified === false){
-      renderGateSteps(1);
+      renderGateSteps('mail');
       $('vgateEyebrow').textContent = t('vgate.mailEyebrow');
       $('vgateTitle').textContent = t('vgate.mailTitle');
       statusWrap.innerHTML = gateStatusChip('wait', t('vgate.mailChip'));
@@ -7056,7 +7201,7 @@
     // ohne hier noch etwas nachreichen zu können.
     if(fehlendeGatePhotos() > 0){
       const fehlend = fehlendeGatePhotos();
-      renderGateSteps(1);
+      renderGateSteps('profile');
       $('vgateEyebrow').textContent = t('vgate.photoEyebrow');
       $('vgateTitle').textContent = t('vgate.photoTitle');
       statusWrap.innerHTML = gateStatusChip('bad', t('vgate.photoChip'));
@@ -7072,7 +7217,7 @@
     }
 
     if(st.next_step === 'document'){
-      renderGateSteps(2);
+      renderGateSteps('id');
       const isReupload = st.status === 'reupload_required';
       $('vgateEyebrow').textContent = isReupload ? t('vgate.reworkEyebrow') : t('vgate.docEyebrow');
       $('vgateTitle').textContent = isReupload ? t('vgate.reworkTitle') : t('vgate.docTitle');
@@ -7089,7 +7234,7 @@
     }
 
     // next_step === 'selfie' (oder noch gar nichts passiert)
-    renderGateSteps(1);
+    renderGateSteps('selfie');
     const isReupload = st.status === 'reupload_required';
     $('vgateEyebrow').textContent = isReupload ? t('vgate.reworkEyebrow') : t('vgate.selfieEyebrow');
     $('vgateTitle').textContent = isReupload ? t('vgate.reworkTitle') : t('vgate.selfieTitle');
@@ -7297,6 +7442,7 @@
       return;
     }
     showScreen('screen-verify');
+    renderJourney($('verifyJourney'), 'selfie');
     $('verifyErr').textContent = '';
     $('btnVerifyCapture').disabled = false;
     $('btnVerifyCapture').textContent = CAPTURE_LABEL();
@@ -7574,6 +7720,7 @@
       return;
     }
     showScreen('screen-verify-id');
+    renderJourney($('vidJourney'), 'id');
     $('vidErr').textContent = '';
     $('btnVidSubmit').textContent = t('id.submit');
     renderIdTypes();
@@ -7910,7 +8057,7 @@
   $('btnClearChat').addEventListener('click', async () => {
     setChatMenu(false);
     if(!currentChatMatchId) return;
-    if(!confirm(t('chat.confirmClear'))) return;
+    if(!(await frage({titel: t('chat.clear'), text: t('chat.confirmClear'), ja: t('chat.clear')}))) return;
     try{
       await api(`/api/matches/${currentChatMatchId}/messages`, {method: 'DELETE'});
       toast(t('chat.clearedToast'));
@@ -7924,7 +8071,7 @@
     setChatMenu(false);
     const match = findMatchById(currentChatMatchId);
     if(!match) return;
-    if(!confirm(t('chat.confirmDelete', {name: match.profile.name}))) return;
+    if(!(await frage({titel: t('chat.delete'), text: t('chat.confirmDelete', {name: match.profile.name}), ja: t('chat.delete')}))) return;
     try{
       await api(`/api/matches/${currentChatMatchId}/chat`, {method: 'DELETE'});
       toast(t('chat.deleted'));
@@ -8185,6 +8332,9 @@
       renderIncomingCard();
       if(myProfile) renderAccount({keepForm: true});
       if(screen === 'screen-verify-gate' && verificationStatus) renderVerificationGate();
+      if(screen === 'screen-onboard') renderRegJourney();
+      if(screen === 'screen-verify-id') renderJourney($('vidJourney'), 'id');
+      if(screen === 'screen-verify') renderJourney($('verifyJourney'), 'selfie');
       if(screen === 'screen-verify-id' && idState){ renderIdTypes(); renderIdSlots(); }
       if(screen === 'screen-matches' && matchesCache) renderMatches(matchesCache);
       if(screen === 'screen-chats' && matchesCache) renderChats(matchesCache);
