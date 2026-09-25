@@ -38,7 +38,7 @@
   <main id="main-content">
   <h1>Privacy policy</h1>
   <p class="lead">What FLEXR does with your data — and what it does not do</p>
-  <p class="stand">Version 2026-09-21 · last updated: 21 September 2026</p>
+  <p class="stand">Version 2026-09-25 · last updated: 25 September 2026</p>
 
   <p class="en">
     This is a translation provided for convenience. The
@@ -55,8 +55,9 @@
       status). There is <b>no tracking, no ad networks, no analytics tools and no
       disclosure for advertising purposes</b>. Your photos are held by a storage
       service, payment runs through Stripe, Apple, or Google depending on how
-      you pay, the server is located in Germany and transactional emails are
-      sent by Brevo.
+      you pay, the server is located in Germany, transactional emails are
+      sent by Brevo, and notifications to your phone go through your device's
+      push service.
     </p>
   </div>
 
@@ -220,6 +221,23 @@
         <td>Online withdrawal function</td>
         <td>Handling and evidence under Section 13a FAGG</td>
         <td>Art. 6(1)(b) and (c)</td>
+      </tr>
+      <tr>
+        <td>Push notifications</td>
+        <td>The address at which your device receives notifications: in the
+          Android app a Firebase token, in the iOS app an Apple push token, in
+          the web app (for example on the iPhone home screen) the receiving
+          address of your browser's push service together with the two keys
+          used for encryption; plus platform and time of the last
+          registration. Content of a notification: title and short text, for
+          chat messages the sender's name and the message text (in the version
+          cleaned up for you)</td>
+        <td>Android and iOS app: after login, as long as notifications are
+          switched on in the app (default). Web app: only once you switch them
+          on for this device under “Notifications”</td>
+        <td>Delivering notifications about new messages, matches and the
+          events you have switched on under “Notifications”</td>
+        <td>Art. 6(1)(b)</td>
       </tr>
       <tr>
         <td>Access statistics</td>
@@ -389,6 +407,19 @@
         <td>Ireland / EU, a transfer to the USA cannot be ruled out. See the note below.</td>
       </tr>
       <tr>
+        <td>The push service of your device or browser: Google (Firebase Cloud
+          Messaging, Google Ireland Limited), Apple (Apple Push Notification
+          service, Apple Distribution International Ltd.) or — in the web app —
+          the service of the respective browser (Apple for Safari, Google for
+          Chrome and Edge, Mozilla Corporation for Firefox)</td>
+        <td>Delivering push notifications. In the web app the content is
+          end-to-end encrypted (RFC 8291): the push service only sees the
+          receiving address, time and size, not the text. For the Android and
+          iOS apps, title and text pass through Google or Apple</td>
+        <td>Ireland / EU or USA (Mozilla), with a transfer to the USA not
+          excluded. See the note below.</td>
+      </tr>
+      <tr>
         <td>Brevo (Sendinblue SAS, 7 rue de Madrid, 75008 Paris, France)</td>
         <td>Sending confirmation, withdrawal and report emails</td>
         <td>France / EU</td>
@@ -409,7 +440,10 @@
       prevention and compliance with legal obligations. For a purchase made in
       the iOS or Android app, Apple or Google are independently responsible
       for payment processing, not FLEXR — FLEXR only receives the purchase
-      receipt from them to unlock Premium, no payment or account data.
+      receipt from them to unlock Premium, no payment or account data. The
+      push services of Google, Apple and Mozilla deliver notifications as part
+      of the operating system or browser you use; they receive no account
+      data from us, only the notification addressed to your device.
     </p>
   </div>
 
@@ -446,6 +480,7 @@
       <tr><td>Chat messages, matches, swipes, blocks</td><td>with the account</td><td>Account deletion</td></tr>
       <tr><td>Reports and moderation decisions</td><td>with the account of the person involved</td><td>Account deletion</td></tr>
       <tr><td>Device ID and user agent</td><td>with the account</td><td>Account deletion</td></tr>
+      <tr><td>Push address of a device</td><td>until you switch notifications off, log out on the device or the push service reports the address as invalid (e.g. after uninstalling), at the latest with the account</td><td>Switching off, logging out, feedback from the push service, account deletion</td></tr>
       <tr><td>Registration attempts under 18</td><td>only the last 24 hours are evaluated</td><td>Lapse of time</td></tr>
       <tr><td>Stripe identifiers and subscription status</td><td>payment-related records 7 years (Section 132 BAO); the identifiers themselves with the account</td><td>Statutory retention period</td></tr>
       <tr><td>Apple/Google purchase receipt and subscription status</td><td>payment-related records 7 years (Section 132 BAO); the identifiers themselves with the account</td><td>Statutory retention period</td></tr>
@@ -525,7 +560,8 @@
   <p>
     The details in point 2 (login, profile and preference data) and the age and
     identity check are necessary in order to use FLEXR. Without them no account
-    can be created. The bio and any photos beyond the first one are optional.
+    can be created. The bio, photos beyond the three required ones and push
+    notifications are optional.
   </p>
 
   <h2>12. Changes to this policy</h2>

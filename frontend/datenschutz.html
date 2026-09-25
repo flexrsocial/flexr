@@ -38,7 +38,7 @@
   <main id="main-content">
   <h1>Datenschutzerklärung</h1>
   <p class="lead">Was FLEXR mit deinen Daten macht — und was nicht</p>
-  <p class="stand">Fassung 2026-09-21 · Stand: 21. September 2026</p>
+  <p class="stand">Fassung 2026-09-25 · Stand: 25. September 2026</p>
 
   <div class="box hint">
     <p style="margin:0;">
@@ -47,8 +47,9 @@
       Nachrichten, Abostatus). Es gibt <b>kein Tracking, keine Werbenetzwerke,
       keine Analysewerkzeuge und keine Weitergabe zu Werbezwecken</b>. Deine
       Fotos liegen bei einem Speicherdienst, die Zahlung läuft je nach Kaufweg
-      über Stripe, Apple oder Google, der Server steht in Deutschland und
-      Transaktions-E-Mails versendet Brevo.
+      über Stripe, Apple oder Google, der Server steht in Deutschland,
+      Transaktions-E-Mails versendet Brevo, und Mitteilungen aufs Handy laufen
+      über den Push-Dienst deines Geräts.
     </p>
   </div>
 
@@ -213,6 +214,23 @@
         <td>Online-Rücktrittsfunktion</td>
         <td>Abwicklung und Nachweis nach § 13a FAGG</td>
         <td>Art. 6 Abs. 1 lit. b und lit. c</td>
+      </tr>
+      <tr>
+        <td>Push-Mitteilungen</td>
+        <td>Adresse, unter der dein Gerät Mitteilungen empfängt: in der
+          Android-App ein Firebase-Token, in der iOS-App ein Apple-Push-Token,
+          in der Web-App (etwa auf dem iPhone-Home-Bildschirm) die
+          Empfangsadresse des Push-Dienstes deines Browsers samt den beiden
+          Schlüsseln zum Verschlüsseln; dazu Plattform und Zeitpunkt der
+          letzten Anmeldung. Inhalt einer Mitteilung: Titel und kurzer Text,
+          bei Chatnachrichten Name des Absenders und der Nachrichtentext
+          (in der für dich bereinigten Fassung)</td>
+        <td>Android- und iOS-App: nach dem Anmelden, solange Mitteilungen in
+          der App eingeschaltet sind (Voreinstellung). Web-App: erst, wenn du
+          sie unter „Benachrichtigungen" für dieses Gerät einschaltest</td>
+        <td>Zustellung von Mitteilungen zu neuen Nachrichten, Matches und
+          den Anlässen, die du unter „Benachrichtigungen" eingeschaltet hast</td>
+        <td>Art. 6 Abs. 1 lit. b</td>
       </tr>
       <tr>
         <td>Zugriffsstatistik</td>
@@ -393,6 +411,19 @@
         <td>Irland / EU, mit Übermittlung in die USA nicht ausgeschlossen. Siehe den Hinweis unten.</td>
       </tr>
       <tr>
+        <td>Push-Dienst deines Geräts bzw. Browsers: Google (Firebase Cloud
+          Messaging, Google Ireland Limited), Apple (Apple Push Notification
+          service, Apple Distribution International Ltd.) oder — in der
+          Web-App — der Dienst des jeweiligen Browsers (Apple für Safari,
+          Google für Chrome und Edge, Mozilla Corporation für Firefox)</td>
+        <td>Zustellung von Push-Mitteilungen. In der Web-App ist der Inhalt Ende-zu-Ende verschlüsselt
+          (RFC 8291): Der Push-Dienst sieht nur die Empfangsadresse,
+          Zeitpunkt und Größe, nicht den Text. Bei Android- und iOS-App
+          laufen Titel und Text über Google bzw. Apple</td>
+        <td>Irland / EU bzw. USA (Mozilla), mit Übermittlung in die USA nicht
+          ausgeschlossen. Siehe den Hinweis unten.</td>
+      </tr>
+      <tr>
         <td>Brevo (Sendinblue SAS, 7 rue de Madrid, 75008 Paris, Frankreich)</td>
         <td>Versand von Bestätigungs-, Rücktritts- und Melde-E-Mails</td>
         <td>Frankreich / EU</td>
@@ -415,7 +446,11 @@
       in der iOS- oder Android-App sind Apple bzw. Google für die
       Zahlungsabwicklung eigenständig verantwortlich, nicht FLEXR — FLEXR
       bekommt von ihnen nur den Kaufbeleg zur Freischaltung von Premium
-      übermittelt, keine Zahlungs- oder Kontodaten.
+      übermittelt, keine Zahlungs- oder Kontodaten. Die Push-Dienste von
+      Google, Apple und Mozilla stellen Mitteilungen im Rahmen des jeweiligen
+      Betriebssystems bzw. Browsers zu, den du verwendest; sie erhalten dabei
+      keine Kontodaten von uns, nur die Mitteilung an die Adresse deines
+      Geräts.
     </p>
   </div>
 
@@ -453,6 +488,7 @@
       <tr><td>Chatnachrichten, Matches, Swipes, Blockierungen</td><td>mit dem Konto</td><td>Kontolöschung</td></tr>
       <tr><td>Meldungen und Moderationsentscheidungen</td><td>mit dem Konto der beteiligten Person</td><td>Kontolöschung</td></tr>
       <tr><td>Geräte-ID und User-Agent</td><td>mit dem Konto</td><td>Kontolöschung</td></tr>
+      <tr><td>Push-Adresse eines Geräts</td><td>bis du Mitteilungen ausschaltest, dich auf dem Gerät abmeldest oder der Push-Dienst die Adresse als ungültig meldet (etwa nach Deinstallation), spätestens mit dem Konto</td><td>Ausschalten, Abmelden, Rückmeldung des Push-Dienstes, Kontolöschung</td></tr>
       <tr><td>Registrierungsversuche unter 18</td><td>ausgewertet werden nur die letzten 24 Stunden</td><td>Zeitablauf</td></tr>
       <tr><td>Stripe-Kennungen und Abostatus</td><td>zahlungsbezogene Aufzeichnungen 7 Jahre (§ 132 BAO); die Kennungen selbst mit dem Konto</td><td>gesetzliche Aufbewahrungsfrist</td></tr>
       <tr><td>Apple-/Google-Kaufbeleg und Abostatus</td><td>zahlungsbezogene Aufzeichnungen 7 Jahre (§ 132 BAO); die Kennungen selbst mit dem Konto</td><td>gesetzliche Aufbewahrungsfrist</td></tr>
@@ -533,8 +569,8 @@
   <p>
     Die Angaben in Punkt 2 (Zugangs-, Profil- und Präferenzdaten) und die
     Alters- und Identitätsprüfung sind für die Nutzung von FLEXR erforderlich.
-    Ohne sie kommt kein Konto zustande. Freiwillig sind die Bio und weitere
-    Fotos über das erste hinaus.
+    Ohne sie kommt kein Konto zustande. Freiwillig sind die Bio, weitere
+    Fotos über die drei Pflichtfotos hinaus und Push-Mitteilungen.
   </p>
 
   <h2>12. Änderungen dieser Erklärung</h2>

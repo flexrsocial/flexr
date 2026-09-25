@@ -1168,6 +1168,15 @@ object LegalContent {
                     ),
                     listOf("Nutzungsdaten", "Swipes, Matches, Reports/Blocks", "App-Nutzung"),
                     listOf(
+                        "Push-Mitteilungen",
+                        "Firebase-Token dieses Geräts; Inhalt einer Mitteilung: Titel " +
+                            "und kurzer Text, bei Chatnachrichten Absendername und " +
+                            "Nachrichtentext",
+                        "Nach dem Anmelden, solange Mitteilungen in der App " +
+                            "eingeschaltet sind; gelöscht beim Ausschalten, Abmelden oder " +
+                            "wenn Google den Token als ungültig meldet",
+                    ),
+                    listOf(
                         "Zahlungsdaten",
                         "Abo-Status, Stripe-Kunden-/Abo-ID (keine Kartendaten bei uns)",
                         "Stripe Checkout",
@@ -1281,6 +1290,12 @@ object LegalContent {
                         "Contabo GmbH, Welfenstraße 22, 81541 München, Deutschland",
                         "Serverbetrieb (VPS)",
                         "Deutschland/EU",
+                    ),
+                    listOf(
+                        "Google (Firebase Cloud Messaging, Google Ireland Limited)",
+                        "Zustellung von Push-Mitteilungen; Titel und Text laufen über Google",
+                        "Irland/EU, Übermittlung in die USA nicht ausgeschlossen; " +
+                            "Standardvertragsklauseln bzw. EU-US Data Privacy Framework",
                     ),
                     listOf(
                         "Brevo (Sendinblue SAS, 7 rue de Madrid, 75008 Paris, Frankreich)",
