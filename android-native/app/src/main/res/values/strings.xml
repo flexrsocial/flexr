@@ -584,6 +584,8 @@
     <string name="error_connection">Verbindung fehlgeschlagen. Bitte erneut versuchen.</string>
     <string name="error_unknown">Unbekannter Fehler.</string>
     <string name="error_no_internet">Keine Internetverbindung.</string>
+    <string name="startup_offline_title">Keine Verbindung</string>
+    <string name="startup_offline_text">FLEXR ist gerade nicht erreichbar. Du bleibst angemeldet - sobald wieder Netz da ist, geht es hier weiter.</string>
     <string name="error_not_found">Nicht gefunden.</string>
     <string name="error_conflict">Bereits vorhanden.</string>
     <string name="error_unauthorized">Ungültige oder abgelaufene Anmeldung.</string>

@@ -49,6 +49,16 @@ sealed interface AppState {
     data class NeedsVerification(val profile: MyProfile) : AppState
 
     data class Ready(val profile: MyProfile, val membership: Membership) : AppState
+
+    /**
+     * Beim Start war der Server nicht erreichbar (kein Netz, Zeitueberschreitung,
+     * 5xx) - die Sitzung selbst ist aber noch gueltig. Vorher fuehrte dieser
+     * Fall auf den Login: Wer die App im Keller-Gym ohne Empfang oeffnete, sah
+     * die Anmeldemaske, obwohl sein Token gueltig war - und weil sich
+     * `isLoggedIn` dabei nicht aenderte, lud auch spaeteres Netz nichts nach.
+     * Blieb nur, sich erneut anzumelden.
+     */
+    data class Unreachable(val message: String) : AppState
 }
 
 /**
@@ -172,10 +182,24 @@ class MainViewModel @Inject constructor(
                 // Adresse, die es nicht mehr gibt. Laeuft still; ohne
                 // Firebase-Konfiguration passiert nichts.
                 launch { runCatching { pushTokenRegistrar.anmelden() } }
-            }.onFailure {
-                // Token ungültig oder Server nicht erreichbar — der
-                // Interceptor hat bei 401 bereits abgemeldet.
-                if (_appState.value is AppState.Loading) markLoggedOut()
+            }.onFailure { throwable ->
+                val fehler = throwable as? FlexrApiException
+                when {
+                    // Token ungueltig: Der Interceptor hat bereits abgemeldet,
+                    // isLoggedIn wechselt und fuehrt von selbst auf den Login.
+                    fehler?.isUnauthorized == true -> {
+                        if (_appState.value !is AppState.Ready) markLoggedOut()
+                    }
+                    // Beim Start oder aus dem Offline-Schirm heraus: angemeldet
+                    // bleiben und einen Neuversuch anbieten. Eine laufende
+                    // Sitzung (Ready, Pruefung) bleibt bei einem kurzen
+                    // Aussetzer dagegen einfach stehen.
+                    _appState.value is AppState.Loading || _appState.value is AppState.Unreachable -> {
+                        _appState.value = AppState.Unreachable(
+                            fehler?.message ?: strings.get(R.string.error_connection),
+                        )
+                    }
+                }
                 SessionGate.isReady = true
             }
         }

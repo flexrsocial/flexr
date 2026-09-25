@@ -520,6 +520,8 @@
     <string name="error_connection">Connection failed. Please try again.</string>
     <string name="error_unknown">Unknown error.</string>
     <string name="error_no_internet">No internet connection.</string>
+    <string name="startup_offline_title">No connection</string>
+    <string name="startup_offline_text">FLEXR cannot be reached right now. You stay logged in - as soon as you are back online, you can continue here.</string>
     <string name="error_not_found">Not found.</string>
     <string name="error_conflict">Already exists.</string>
     <string name="error_unauthorized">Invalid or expired sign-in.</string>

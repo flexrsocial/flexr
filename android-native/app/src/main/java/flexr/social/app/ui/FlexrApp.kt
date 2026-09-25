@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
@@ -47,11 +48,16 @@ import androidx.navigation.navArgument
 import flexr.social.app.R
 import flexr.social.app.core.browser.openExternalPage
 import flexr.social.app.core.common.ServerTime
+import flexr.social.app.core.designsystem.component.EmptyState
+import flexr.social.app.core.designsystem.component.FlexrLinkButton
+import flexr.social.app.core.designsystem.component.FlexrSecondaryButton
 import flexr.social.app.core.designsystem.component.LanguageSwitch
 import flexr.social.app.core.designsystem.component.LoadingState
 import flexr.social.app.core.designsystem.component.PremiumActivatePill
 import flexr.social.app.core.designsystem.component.StatusPill
+import flexr.social.app.core.designsystem.icon.FlexrIcons
 import flexr.social.app.core.designsystem.theme.FlexrBackground
+import flexr.social.app.core.designsystem.theme.FlexrTheme
 import flexr.social.app.core.locale.AppLanguageViewModel
 import flexr.social.app.core.locale.LocalAppLanguage
 import flexr.social.app.domain.model.Membership
@@ -141,6 +147,9 @@ fun FlexrApp(
     // zugleich das Like-Kontingent aktuell.
     LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
         if (appState is AppState.Ready) viewModel.refreshMembership()
+        // Ohne Netz gestartet: beim Zurueckholen in den Vordergrund (meist,
+        // weil inzwischen wieder Empfang da ist) von selbst neu versuchen.
+        if (appState is AppState.Unreachable) viewModel.loadSession()
     }
     LaunchedEffect(intentData) {
         if (intentData?.scheme == "flexr") viewModel.refreshMembership()
@@ -175,6 +184,26 @@ fun FlexrApp(
                     onLogout = viewModel::logout,
                     onReloadSession = viewModel::loadSession,
                     onShowMessage = showMessage,
+                )
+
+                is AppState.Unreachable -> EmptyState(
+                    modifier = Modifier.fillMaxSize().wrapContentHeight(),
+                    icon = FlexrIcons.Offline,
+                    title = stringResource(R.string.startup_offline_title),
+                    description = stringResource(R.string.startup_offline_text) + "\n\n" + state.message,
+                    action = {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            FlexrSecondaryButton(
+                                text = stringResource(R.string.swipe_retry),
+                                onClick = viewModel::loadSession,
+                            )
+                            FlexrLinkButton(
+                                text = stringResource(R.string.common_logout),
+                                onClick = viewModel::logout,
+                                color = FlexrTheme.colors.chalkDim,
+                            )
+                        }
+                    },
                 )
 
                 is AppState.Ready -> MainGraph(

@@ -8,6 +8,7 @@ import androidx.compose.material.icons.filled.Block
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.Chat
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.CloudOff
 import androidx.compose.material.icons.filled.EmojiEmotions
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.HeartBroken
@@ -114,6 +115,9 @@ object FlexrIcons {
      * liest sich in beiden Schreibrichtungen gleich.
      */
     val Rewind = Icons.Filled.Replay
+
+    /** Server beim Start nicht erreichbar (siehe AppState.Unreachable). */
+    val Offline = Icons.Filled.CloudOff
 }
 
 /** Merkt sich das Hantel-Icon über Rekompositionen hinweg. */
