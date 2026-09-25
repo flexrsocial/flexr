@@ -285,8 +285,12 @@ android {
         // App-Sprache (Server-Fehlermeldungen zweisprachig), eigenes Bild und
         // Loeschbarkeit der Fotos vom Server (abgelehnte Fotos blockierten
         // das Loeschen), Lint-Fehler behoben.
-        versionCode = 130
-        versionName = "2.7.18"
+        // 131/2.7.19 am 25.09.2026: Start ohne Netz fuehrt nicht mehr auf den
+        // Login (AppState.Unreachable mit Neuversuch), Chatnachrichten mit
+        // Datum, Schrittanzeige bis zum ersten Swipe (JourneyBar),
+        // Datenschutz-Kurzfassung um Push-Mitteilungen ergaenzt.
+        versionCode = 131
+        versionName = "2.7.19"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         // Nur die Sprachen ausliefern, die es wirklich gibt: Deutsch als

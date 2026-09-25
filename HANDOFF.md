@@ -32,7 +32,7 @@ erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 
 ## Wo das Projekt gerade steht
 
-> **Nachtrag 25.09.2026 (abends) — NICHT deployed.** Commits `2051796`..`44d40e7`:
+> **Nachtrag 25.09.2026 (abends) — deployed, Android 2.7.19 gebaut.** Commits `2051796`..`44d40e7`:
 > - Datenschutz (DE/EN, Fassung 2026-09-25) + Kurzfassung in der Android-App:
 >   Push-Mitteilungen aufgenommen (FCM, APNs, Web Push - fehlten bisher ganz),
 >   Punkt 11 auf drei Pflichtfotos korrigiert. AGB, Ruecktrittsseite und die
@@ -43,9 +43,27 @@ erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 >   (klebt im Formular oben; dafuer html/body `overflow-x:clip`) und Android.
 > - Web-App: gestalteter Bestaetigungsdialog `frage()` statt `confirm()`.
 > - Tests: Backend 557, Android Unit-Tests + Lint (0 Fehler) gruen.
-> **Deploy:** nur `git pull` als `deploy` (kein Backend-Code, keine Migration,
-> kein Neustart noetig). Android: Build 2.7.19 fasst Offline-Fix,
-> Chat-Datum, Schrittanzeige und Datenschutz-Kurzfassung zusammen.
+> **Deployed 25.09.2026 ~19:08:** `git pull` als `deploy` (HEAD `786807f`),
+> kein Neustart noetig. Geprueft: `/app/`, `datenschutz.html`,
+> `en/datenschutz.html`, `sw.js` (v24), `i18n-app.js` live byte-gleich mit
+> dem Repo (md5), Fassung 2026-09-25 sichtbar, `/api/health` ok, keine
+> Konsolenfehler, Schrittanzeige auf der Live-Registrierung vorhanden.
+>
+> **Android 2.7.19 / versionCode 131 gebaut** (`testProdDebugUnitTest` gruen,
+> `bundleProdRelease` + `assembleProdRelease`, 5m11s) - Offline-Fix,
+> Chat-Datum, Schrittanzeige, Datenschutz-Kurzfassung. Liegt in
+> `release-2.7.19/` (gitignored):
+>
+> | | SHA-256 | Groesse |
+> |---|---|---|
+> | AAB (Play Console) | `74deb3afd4843161b1c4d0017b0f3c467ebee15fdf1d06eb68c249aa2ad16f06` | 8.521.771 Bytes |
+> | APK | `0cfa4c13f16132a2d776a1df4cc61e2e867a599db538d033725879e88bc63aa0` | 4.418.750 Bytes |
+>
+> versionName/-Code im APK-Manifest gegengeprueft (`aapt2 dump badging`:
+> 131 / 2.7.19). Signatur: `apksigner` Signer-Zertifikat SHA-256
+> `bc64ad3f…140e7980` = bekannter Upload-Key `BC:64:…:79:80`, AAB per
+> `jarsigner -verify` (CN=FLEXR). **Offen:** Upload in der Play Console
+> (erledigt der Nutzer).
 
 > **Sitzung 25.09.2026 — Apple-Ablehnung (4.3(b) Spam), Bugrunde, iPhone als Web-App. Deployed 18:52-18:55.**
 >
