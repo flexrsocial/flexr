@@ -3458,7 +3458,11 @@
     close.addEventListener('click', () => box.remove());
     box.append(text, close);
     document.body.appendChild(box);
-    if(!(opts && opts.sticky)) setTimeout(()=> box.remove(), 2000);
+    // Mindestens 2 s, laengere Texte entsprechend laenger (rund 15 Zeichen
+    // pro Sekunde Lesezeit, hoechstens 7 s) - "Deine 20 Likes fuer heute sind
+    // aufgebraucht ... Premium ..." war in 2 s nicht zu schaffen.
+    const dauer = Math.min(7000, Math.max(2000, String(msg).length * 65));
+    if(!(opts && opts.sticky)) setTimeout(()=> box.remove(), dauer);
   }
 
   // ---------- Interaktives Musterdeck im ausgeloggten Hero ----------
