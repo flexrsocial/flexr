@@ -1,6 +1,6 @@
 # FLEXR — Handoff für ein anderes Gerät / Claude Code
 
-Stand: **22.09.2026**
+Stand: **25.09.2026**
 
 ## ⚠️ Dringend zu prüfen: SSH-Zugang zum VPS hat sich geändert (21.09.2026)
 
@@ -31,6 +31,46 @@ Falls du das liest, weil dein `root@`-Login gerade fehlschlägt: das ist
 erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 
 ## Wo das Projekt gerade steht
+
+> **Sitzung 25.09.2026 — Apple-Ablehnung (4.3(b) Spam), Bugrunde, iPhone als Web-App. NICHT deployed.**
+>
+> Apple hat iOS 1.0 (32) nach Guideline 4.3(b) abgelehnt (gesaettigte
+> Dating-Kategorie). Einspruch im Resolution Center liegt beim Nutzer. Bis
+> dahin kommt FLEXR aufs iPhone als Web-App ueber "Zum Home-Bildschirm".
+>
+> Commits `bc4538b`..`87b11bf`: Web-App-Fixes (einheitliches Sitzungsende,
+> Swipe-Karte bei Like-Grenze, Chat-Datum, fehlende Uebersetzungen,
+> sw.js-Versionen deckungsgleich + Test), Android-Start ohne Netz
+> (`AppState.Unreachable` statt Login) und Chat-Datum, **Web Push**
+> (`app/webpush.py`, RFC 8291/8292 ohne neues Paket), iOS-Kopfangaben,
+> Startbilder, Installationshinweis, Beta-/Preis-/FAQ-Texte. Tests: Backend
+> 557 gruen, Android 54 Unit-Tests gruen, Lint 0 Fehler.
+>
+> **Deploy-Schritte (vom Nutzer freizugeben):**
+> 1. DB-Backup, dann als `deploy`: `git pull`, `alembic upgrade head`
+>    (neu: `b7c2e4f9a1d3` web push - token 512->1024, zwei Spalten).
+> 2. VAPID-Schluessel erzeugen: `cd /flexr/backend && venv/bin/python -m app.webpush`
+>    und die Zeile `WEBPUSH_VAPID_PRIVATE_KEY=...` in `backend/.env`.
+>    **Einmal erzeugen und behalten** - ein neuer Schluessel macht alle
+>    Web-Abos ungueltig. Ohne Eintrag bleibt Web Push unsichtbar aus.
+> 3. `sudo systemctl restart flexr-api`, pruefen:
+>    `curl https://flexr.social/api/notifications/webpush-key` liefert einen Schluessel.
+> 4. Android: neuer Build fuer den Offline-Fix (2.7.19 / versionCode 131) -
+>    noch nicht gebaut.
+>
+> **Offen - rechtlich, bewusst nicht angefasst:**
+> - `datenschutz.html` (+ `/en/`): Web Push nennen - Empfaenger sind die
+>   Push-Dienste des Browsers (Apple, Google, Mozilla), die den Endpunkt und
+>   verschluesselte Inhalte sehen; Speicherung des Abos bis Abmelden/410.
+> - `agb.html` ("drei Wege" inkl. iOS-In-App-Kauf), `widerruf.html`
+>   (Abschnitt iOS-App), `datenschutz.html` (Apple als Vertragspartner) -
+>   stimmen erst wieder, wenn die iOS-App im Store ist.
+>
+> Lokal: `e2e.max@example.com` hat jetzt `TestPass456!`, `e2e.lena@example.com`
+> `TestPass123!` (nur lokale DB). Die S3-Attrappe liegt im Scratchpad dieser
+> Sitzung; die aeussere `.claude/launch.json` zeigt darauf und traegt einen
+> lokalen Test-VAPID-Schluessel.
+
 
 > **Sitzung 22.09.2026 — deployed (21:04 Uhr), Android 2.7.18 gebaut.**
 >
