@@ -27,6 +27,7 @@ from __future__ import annotations
 import base64
 import json
 import logging
+import threading
 import time
 from pathlib import Path
 
@@ -37,6 +38,7 @@ from cryptography.hazmat.primitives.asymmetric import ec, padding
 from cryptography.hazmat.primitives.asymmetric.utils import decode_dss_signature
 from sqlalchemy.orm import Session
 
+from . import webpush
 from .config import settings
 from .models import PushToken, User
 from .timeutil import utcnow
@@ -214,7 +216,14 @@ def _send_apns(db: Session, eintraege: list[PushToken], title: str, body: str, t
     return zugestellt
 
 
-def register(db: Session, user: User, platform: str, token: str) -> PushToken:
+def register(
+    db: Session,
+    user: User,
+    platform: str,
+    token: str,
+    p256dh: str | None = None,
+    auth: str | None = None,
+) -> PushToken:
     """Einen Geraetetoken hinterlegen.
 
     Derselbe Token kann nach einem Kontowechsel auf demselben Geraet erneut
@@ -234,6 +243,10 @@ def register(db: Session, user: User, platform: str, token: str) -> PushToken:
         eintrag.user_id = user.id
         eintrag.platform = platform
         eintrag.last_seen = utcnow()
+    # Web-Abos: Die Schluessel koennen sich bei gleichem Endpunkt erneuern.
+    if platform == "web":
+        eintrag.web_p256dh = p256dh
+        eintrag.web_auth = auth
     db.commit()
     return eintrag
 
@@ -325,15 +338,71 @@ def send(
 
     android = [e for e in eintraege if e.platform == "android"]
     ios = [e for e in eintraege if e.platform == "ios"]
+    web = [e for e in eintraege if e.platform == "web"]
 
     zugestellt = 0
     if android:
         zugestellt += _send_fcm(db, android, title, body, target)
     if ios:
         zugestellt += _send_apns(db, ios, title, body, target)
+    if web:
+        zugestellt += webpush.send(db, web, title, body, target)
 
     db.commit()
     return zugestellt
+
+
+def send_web(db: Session, user: User, title: str, body: str, target: str | None = None) -> bool:
+    """Nur an die Web-Abos dieses Nutzers zustellen - im Hintergrund.
+
+    Fuer die Anlaesse aus dem Abholfach (Match, wartende Profile, Erinnerungen,
+    siehe ``notifications.queue_push``): Die Apps holen die dort selbst ab und
+    zeigen sie an. Eine Web-App kann nichts im Hintergrund abholen - fuer sie
+    ist Web Push der einzige Weg, und ohne diese Zustellung bekaeme ein
+    iPhone-Nutzer der Web-App von einem neuen Match nichts mit.
+
+    ``queue_push`` laeuft auch mitten in einem Request (das Match entsteht beim
+    Swipe). Der Netzaufruf an den Push-Dienst gehoert nicht in dessen
+    Antwortzeit, deshalb ein eigener Thread mit eigener Session - aber nur,
+    wenn es ueberhaupt ein Web-Abo gibt. Das ist die billige Abfrage hier.
+
+    Gibt zurueck, ob eine Zustellung angestossen wurde. Wirft nie.
+    """
+    try:
+        if not webpush.configured():
+            return False
+        vorhanden = (
+            db.query(PushToken.id)
+            .filter(PushToken.user_id == user.id, PushToken.platform == "web")
+            .first()
+        )
+        if vorhanden is None:
+            return False
+        threading.Thread(
+            target=_send_web_async, args=(user.id, title, body, target), daemon=True
+        ).start()
+        return True
+    except Exception:  # noqa: BLE001 - siehe send()
+        logger.exception("Web-Push fuer das Abholfach fehlgeschlagen (user=%s)", user.id)
+        return False
+
+
+def _send_web_async(user_id: str, title: str, body: str, target: str | None) -> None:
+    from . import database
+
+    db = database.SessionLocal()
+    try:
+        eintraege = (
+            db.query(PushToken)
+            .filter(PushToken.user_id == user_id, PushToken.platform == "web")
+            .all()
+        )
+        webpush.send(db, eintraege, title, body, target)
+        db.commit()
+    except Exception:  # noqa: BLE001
+        logger.exception("Web-Push im Hintergrund fehlgeschlagen (user=%s)", user_id)
+    finally:
+        db.close()
 
 
 def send_async(user_id: str, title: str, body: str, target: str | None = None) -> None:

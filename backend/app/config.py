@@ -124,6 +124,18 @@ class Settings(BaseSettings):
     # Schalter bestimmt nur, womit er anfaengt.
     apns_sandbox: bool = False
 
+    # ---- Web Push (Web-App, vor allem iPhone ohne App-Store-App) -----------
+    #
+    # Privater VAPID-Schluessel, base64url (32 Byte). Erzeugen mit
+    # ``python -m app.webpush``. Leer = kein Web Push; die Web-App bietet den
+    # Schalter dann gar nicht an. Den oeffentlichen Teil leitet app/webpush.py
+    # selbst ab. Ein Wechsel des Schluessels macht alle bestehenden Web-Abos
+    # ungueltig - sie melden sich dann mit 403 und werden aufgeraeumt.
+    webpush_vapid_private_key: str = ""
+    # Kontaktadresse fuer die Betreiber der Push-Dienste (Pflichtangabe im
+    # VAPID-Token, RFC 8292).
+    webpush_subject: str = "mailto:flexr.social@proton.me"
+
     # ---- Beta-Kennzeichnung ------------------------------------------------
     #
     # Getrennt von ``premium_enabled``, seit die beiden auseinanderfallen: Die

@@ -1265,9 +1265,15 @@ class PushToken(Base):
     user_id = Column(
         String, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
     )
-    # "android" oder "ios". Nur zur Nachvollziehbarkeit - FCM adressiert allein
-    # ueber den Token.
+    # "android", "ios" oder "web". Waehlt den Zustellweg (FCM, APNs, Web Push).
     platform = Column(String(10), nullable=False)
-    token = Column(String(512), nullable=False)
+    # Bei "web" der Endpunkt des Push-Dienstes (eine URL). Die koennen laenger
+    # werden als Geraetetokens, deshalb 1024.
+    token = Column(String(1024), nullable=False)
+    # Nur bei "web": die beiden Schluessel aus dem Browser-Abo (RFC 8291),
+    # ohne die sich keine Nachricht fuer genau diesen Browser verschluesseln
+    # laesst.
+    web_p256dh = Column(String(128), nullable=True)
+    web_auth = Column(String(64), nullable=True)
     created_at = Column(DateTime, nullable=False, default=utcnow)
     last_seen = Column(DateTime, nullable=False, default=utcnow)

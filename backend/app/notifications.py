@@ -102,6 +102,12 @@ def queue_push(
         # Paralleler Lauf war schneller - derselbe Anlass, nichts zu tun.
         db.rollback()
         return False
+    # Web-App (installiert auf dem Home-Bildschirm, vor allem iPhone): Sie kann
+    # das Abholfach nicht im Hintergrund leeren, also bekommt sie den Anlass
+    # direkt per Web Push. Die Apps holen ihn weiter selbst ab.
+    from . import push
+
+    push.send_web(db, user, title, body, target)
     return True
 
 

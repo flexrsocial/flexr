@@ -25,7 +25,7 @@ diese Erinnerung dauerhaft verhindern.
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
-from .. import notifications, push
+from .. import notifications, push, webpush
 from ..database import get_db
 from ..models import User
 from ..schemas import MarkDeliveredRequest, PushTokenRequest, PushNotificationOut
@@ -72,8 +72,18 @@ def register_push_token(
     Mehrfaches Anmelden desselben Tokens ist deshalb der Normalfall und
     schreibt nur dieselbe Zeile fort.
     """
-    push.register(db, current_user, payload.platform, payload.token)
+    push.register(db, current_user, payload.platform, payload.token, payload.p256dh, payload.auth)
     return {"registered": True}
+
+
+@router.get("/webpush-key")
+def webpush_key():
+    """Oeffentlicher VAPID-Schluessel fuer ``PushManager.subscribe()``.
+
+    Ohne eingerichteten Schluessel ``{"public_key": null}`` - die Web-App
+    blendet den Schalter fuer Geraete-Benachrichtigungen dann aus.
+    """
+    return {"public_key": webpush.public_key()}
 
 
 @router.delete("/token")

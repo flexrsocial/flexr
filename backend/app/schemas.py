@@ -450,8 +450,23 @@ class PushTokenRequest(BaseModel):
     Frage laufen frueher oder spaeter auseinander.
     """
 
-    platform: Literal["android", "ios"]
-    token: str = Field(min_length=10, max_length=512)
+    platform: Literal["android", "ios", "web"]
+    # Bei "web" der Endpunkt aus PushSubscription.toJSON().
+    token: str = Field(min_length=10, max_length=1024)
+    # Nur bei "web" - die Schluessel aus PushSubscription.toJSON().keys.
+    p256dh: str | None = Field(default=None, max_length=128)
+    auth: str | None = Field(default=None, max_length=64)
+
+    @model_validator(mode="after")
+    def _web_braucht_schluessel(self):
+        if self.platform == "web":
+            if not (self.p256dh and self.auth):
+                raise ValueError("Web-Push-Abo ohne Schluessel.")
+            from .webpush import endpoint_allowed
+
+            if not endpoint_allowed(self.token):
+                raise ValueError("Unbekannter Push-Dienst.")
+        return self
 
 
 class AppleTransactionRequest(BaseModel):
