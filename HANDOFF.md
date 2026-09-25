@@ -32,7 +32,19 @@ erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 
 ## Wo das Projekt gerade steht
 
-> **Sitzung 25.09.2026 — Apple-Ablehnung (4.3(b) Spam), Bugrunde, iPhone als Web-App. NICHT deployed.**
+> **Sitzung 25.09.2026 — Apple-Ablehnung (4.3(b) Spam), Bugrunde, iPhone als Web-App. Deployed 18:52-18:55.**
+>
+> **Deploy erledigt (25.09., ~18:55):** DB-Backup nach
+> `/home/deploy/db-backups/flexr-vor-deploy-20260925-1852.sql.gz` (600),
+> `git pull` als `deploy` (HEAD `f1193b8`), `alembic upgrade head`
+> (`b7c2e4f9a1d3` web push), VAPID-Schluessel erzeugt und in `backend/.env`
+> eingetragen (Sicherung davor: `backend/.env.vor-webpush-20260925`),
+> `systemctl restart flexr-api`. Smoke-Tests gruen: `/api/health`,
+> `/api/notifications/webpush-key` liefert den Schluessel, `/app/` byte-gleich
+> mit dem Repo (md5), sw.js `flexr-shell-v23`, Icon und Startbilder 200,
+> `/en/` mit iPhone-FAQ, keine Konsolenfehler auf der Live-App.
+> Nicht geprueft: Mitteilung auf einem echten iPhone (Home-Bildschirm-App,
+> iOS >= 16.4) - das kann nur der Nutzer. Schritte 1-3 unten sind damit erledigt.
 >
 > Apple hat iOS 1.0 (32) nach Guideline 4.3(b) abgelehnt (gesaettigte
 > Dating-Kategorie). Einspruch im Resolution Center liegt beim Nutzer. Bis
