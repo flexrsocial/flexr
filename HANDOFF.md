@@ -32,6 +32,21 @@ erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 
 ## Wo das Projekt gerade steht
 
+> **Nachtrag 25.09.2026 (abends) — NICHT deployed.** Commits `2051796`..`44d40e7`:
+> - Datenschutz (DE/EN, Fassung 2026-09-25) + Kurzfassung in der Android-App:
+>   Push-Mitteilungen aufgenommen (FCM, APNs, Web Push - fehlten bisher ganz),
+>   Punkt 11 auf drei Pflichtfotos korrigiert. AGB, Ruecktrittsseite und die
+>   iOS-App-Angaben bleiben auf Wunsch des Nutzers unveraendert.
+>   `legal.PRIVACY_VERSION` (Consent-Fassung, 2026-09-17) bewusst nicht
+>   angehoben - die Aenderung betrifft keine Einwilligung.
+> - Schrittanzeige Profil -> E-Mail -> Selfie -> Ausweis -> Pruefung in Web-App
+>   (klebt im Formular oben; dafuer html/body `overflow-x:clip`) und Android.
+> - Web-App: gestalteter Bestaetigungsdialog `frage()` statt `confirm()`.
+> - Tests: Backend 557, Android Unit-Tests + Lint (0 Fehler) gruen.
+> **Deploy:** nur `git pull` als `deploy` (kein Backend-Code, keine Migration,
+> kein Neustart noetig). Android: Build 2.7.19 fasst Offline-Fix,
+> Chat-Datum, Schrittanzeige und Datenschutz-Kurzfassung zusammen.
+
 > **Sitzung 25.09.2026 — Apple-Ablehnung (4.3(b) Spam), Bugrunde, iPhone als Web-App. Deployed 18:52-18:55.**
 >
 > **Deploy erledigt (25.09., ~18:55):** DB-Backup nach
