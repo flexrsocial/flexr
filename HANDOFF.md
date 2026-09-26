@@ -32,7 +32,7 @@ erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 
 ## Wo das Projekt gerade steht
 
-> **Nachtrag 26.09.2026 — Knopf "Für iPhone · App installieren". NICHT deployed.** Commit `01217af`:
+> **Nachtrag 26.09.2026 — Knopf "Für iPhone · App installieren". Deployed per `git pull` (HEAD `353fa57`), live md5-gleich, Klicktest auf flexr.social ok.** Commit `01217af`:
 > Knopf auf Landingpage (Hero + "Bereit?", DE/EN) und im Hero von `/app/`
 > (ausgeloggt), fuehrt zur Anleitung; kuerzerer QR-Text. sw.js v26,
 > i18n-app.js ?v=20. Deploy: nur `git pull` als `deploy`.
