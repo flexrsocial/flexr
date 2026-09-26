@@ -32,7 +32,12 @@ erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 
 ## Wo das Projekt gerade steht
 
-> **Sitzung 26.09.2026 — iPhone-Installationsanleitung. NICHT deployed.** Commit `bceb695`:
+> **Nachtrag 26.09.2026 — Knopf "Für iPhone · App installieren". NICHT deployed.** Commit `01217af`:
+> Knopf auf Landingpage (Hero + "Bereit?", DE/EN) und im Hero von `/app/`
+> (ausgeloggt), fuehrt zur Anleitung; kuerzerer QR-Text. sw.js v26,
+> i18n-app.js ?v=20. Deploy: nur `git pull` als `deploy`.
+
+> **Sitzung 26.09.2026 — iPhone-Installationsanleitung. Deployed ~(nach Freigabe) per `git pull`, HEAD `c8cdfb4`, live md5-gleich.** Commit `bceb695`:
 > - `/app/?ios=installieren` oeffnet die Anleitung "FLEXR auf den
 >   Home-Bildschirm" (Safari/Chrome auf dem iPhone: 3 Schritte; In-App-Browser:
 >   erst in Safari oeffnen + Link kopieren; Computer/Android: QR-Code;
