@@ -32,25 +32,36 @@ erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 
 ## Wo das Projekt gerade steht
 
-> **Nachtrag 26.09.2026 — QR-Text gekuerzt** (`4739504`, sw.js v27, i18n-app.js ?v=21). Deployed per `git pull`, live md5-gleich.
-
-> **Nachtrag 26.09.2026 — Knopf "Für iPhone · App installieren". Deployed per `git pull` (HEAD `353fa57`), live md5-gleich, Klicktest auf flexr.social ok.** Commit `01217af`:
-> Knopf auf Landingpage (Hero + "Bereit?", DE/EN) und im Hero von `/app/`
-> (ausgeloggt), fuehrt zur Anleitung; kuerzerer QR-Text. sw.js v26,
-> i18n-app.js ?v=20. Deploy: nur `git pull` als `deploy`.
-
-> **Sitzung 26.09.2026 — iPhone-Installationsanleitung. Deployed ~(nach Freigabe) per `git pull`, HEAD `c8cdfb4`, live md5-gleich.** Commit `bceb695`:
-> - `/app/?ios=installieren` oeffnet die Anleitung "FLEXR auf den
->   Home-Bildschirm" (Safari/Chrome auf dem iPhone: 3 Schritte; In-App-Browser:
->   erst in Safari oeffnen + Link kopieren; Computer/Android: QR-Code;
->   installiert: Hinweis). Adresse wird vor dem Hinzufuegen auf `/app/` bereinigt.
-> - Beta-Hinweis (Landing DE/EN + App): iOS-Zeile mit Link "jetzt installieren"
->   auf die Anleitung, Merker `flexr_beta_notice_v6`. FAQ verlinkt ebenfalls.
-> - `icons/qr-ios-install.svg` (aus `brand/build_ios_qr.py`, mit zxing dekodiert).
-> - sw.js v25, i18n-app.js ?v=19. Tests: Backend 557 gruen; im Browser
->   geprueft (Landing-Link -> Anleitung, App-Link ohne Neuladen, DE/EN).
-> **Deploy (vom Nutzer freizugeben):** nur Frontend - `git pull` als `deploy`,
-> kein Neustart, keine Migration. Nicht geprueft: echtes iPhone (Safari, iOS 26).
+> **Sitzung 26.09.2026 — iPhone als Web-App: Installationsanleitung + Download-Knopf. Alles deployed** (letzter Stand HEAD `f2a4467`, jeweils `git pull` als `deploy`, kein Neustart, live md5-gleich mit dem Repo, `/api/health` ok).
+>
+> Commits `bceb695`, `01217af`, `4739504`:
+> - **Anleitung** `/app/?ios=installieren` (Modal `#iosGuideBackdrop` in
+>   `app/index.html`, JS `iosAnleitungOeffnen()`): Variante je Geraet -
+>   iPhone Safari/Chrome (3 Schritte, inkl. iOS 26 "•••" und "Als Web-App
+>   oeffnen"), In-App-Browser (erst in Safari oeffnen, "Link kopieren"),
+>   Computer/Android (QR-Code + "Scanne den Code mit der iPhone-Kamera."),
+>   bereits installiert (Hinweis). Der Parameter wird per `replaceState`
+>   entfernt, damit "Zum Home-Bildschirm" `/app/` ablegt - deshalb liegt die
+>   Anleitung IN der App und nicht auf einer eigenen Seite.
+> - **Links darauf:** iOS-Zeile im Beta-Popup ("Web-App fuer den
+>   Home-Bildschirm · jetzt installieren", Landing DE/EN + App, Merker
+>   `flexr_beta_notice_v6`); Knopf "Fuer iPhone · App installieren" auf der
+>   Landingpage (Hero + Abschnitt "Bereit?") und im ausgeloggten Hero von
+>   `/app/` (Grid-Zeile `dl`); FAQ "Gibt es FLEXR fuers iPhone?"; "So geht's"
+>   im kleinen Installationshinweis. In der App faengt ein Listener am
+>   Dokument alle `a[href*="ios=installieren"]` ab (kein Neuladen) - am Link
+>   selbst ginge er verloren, weil `data-i18n-html` ihn ersetzt.
+> - Bewusst **kein App-Store-Badge/Apple-Logo** (FLEXR steht nicht im Store).
+>   Knopf ist per `@media (display-mode: standalone)` ausgeblendet.
+> - QR: `icons/qr-ios-install.svg?v=1` aus `brand/build_ios_qr.py`
+>   (Ziel `https://flexr.social/app/?ios=installieren`, mit zxing dekodiert).
+> - Stand: sw.js `flexr-shell-v27`, `i18n-app.js?v=21`, `en/index.html` per
+>   `build-en.py` erzeugt. Tests: Backend 557 gruen; Browser lokal + live
+>   (Links, Modal ohne Neuladen, DE/EN, keine Konsolenfehler).
+>
+> **Offen:** Test auf einem echten iPhone (Safari, iOS 26: Knopf -> Anleitung
+> -> Zum Home-Bildschirm -> Start von dort, Mitteilungen) - kann nur der Nutzer.
+> Apple-Einspruch (4.3(b)) weiterhin beim Nutzer.
 
 > **Nachtrag 25.09.2026 (abends) — deployed, Android 2.7.19 gebaut.** Commits `2051796`..`44d40e7`:
 > - Datenschutz (DE/EN, Fassung 2026-09-25) + Kurzfassung in der Android-App:
