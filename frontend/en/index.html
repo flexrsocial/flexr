@@ -589,6 +589,8 @@ footer{ border-top:1px solid var(--steel); padding:32px 0 60px; margin-top:20px;
 .beta-facts b.as-written{ text-transform:none; }
 .beta-facts span{ color:var(--chalk-dim); }
 .beta-facts a{ color:var(--chalk); text-decoration:underline; text-underline-offset:2px; }
+/* "jetzt installieren" (iOS) ist die einzige Handlung in der Liste. */
+.beta-facts a[href*="ios=installieren"]{ color:var(--plate); font-weight:600; }
 .beta-facts li.is-free b, .beta-facts li.is-free span{ color:var(--lime); }
 .beta-modal .btn{
   display:block; width:100%; margin-top:16px; padding:14px 24px;
@@ -1002,7 +1004,7 @@ footer{ border-top:1px solid var(--steel); padding:32px 0 60px; margin-top:20px;
         </details>
         <details>
           <summary data-i18n="faq.qIphone">Is FLEXR available for iPhone?</summary>
-          <div class="faq-a" data-i18n-html="faq.aIphone">Yes, as a web app: open <b>flexr.social/app</b> in Safari, tap “Share” and then “Add to Home Screen”. FLEXR then starts like an app, without browser bars. Under Account → Notifications you can switch on notifications for new messages and matches (iOS 16.4 or later).</div>
+          <div class="faq-a" data-i18n-html="faq.aIphone">Yes, as a web app: open <b>flexr.social/app</b> in Safari, tap “Share” and then “Add to Home Screen” (<a href="/app/?ios=installieren">step-by-step guide</a>). FLEXR then starts like an app, without browser bars. Under Account → Notifications you can switch on notifications for new messages and matches (iOS 16.4 or later).</div>
         </details>
         <details>
           <summary data-i18n="faq.q11">How do I cancel?</summary>
@@ -1259,7 +1261,7 @@ footer{ border-top:1px solid var(--steel); padding:32px 0 60px; margin-top:20px;
       <li class="is-free"><b data-i18n="beta.freeLabel">Free</b><span data-i18n="beta.free">permanently, no payment method</span></li>
       <li><b>Premium</b><span data-i18n="beta.premium">optional · €10/month</span></li>
       <li><b>Android</b><span data-i18n="beta.android">End of September 2026</span></li>
-      <li><b class="as-written">iOS</b><span data-i18n="beta.ios">as a web app via “Add to Home Screen”</span></li>
+      <li><b class="as-written">iOS</b><span data-i18n-html="beta.ios">web app for your Home Screen · <a href="/app/?ios=installieren">install&nbsp;now</a></span></li>
       <li><b>Feedback</b><span><a href="mailto:flexr.social@proton.me">flexr.social@proton.me</a></span></li>
     </ul>
     <button type="button" class="btn" id="betaOk" data-i18n="beta.ok">Got it</button>
@@ -1281,7 +1283,9 @@ footer{ border-top:1px solid var(--steel); padding:32px 0 60px; margin-top:20px;
   // alten Fassung weggeklickt hat, bekommt ihn deshalb erneut zu sehen.
   // v5 seit 25.09.2026: iOS "folgt im Anschluss" ist jetzt die Web-App ueber
   // den Home-Bildschirm - neu fuer alle, die v4 schon weggeklickt hatten.
-  var KEY = 'flexr_beta_notice_v5';
+  // v6 seit 26.09.2026: Die iOS-Zeile verlinkt "jetzt installieren" auf die
+  // Installationsanleitung in der App (/app/?ios=installieren).
+  var KEY = 'flexr_beta_notice_v6';
   var backdrop = document.getElementById('betaBackdrop');
   if (!backdrop) return;
 
@@ -1311,6 +1315,15 @@ footer{ border-top:1px solid var(--steel); padding:32px 0 60px; margin-top:20px;
   document.getElementById('betaClose').addEventListener('click', close);
   document.getElementById('betaOk').addEventListener('click', close);
   backdrop.addEventListener('click', function(e){ if (e.target === backdrop) close(); });
+  // "iOS: jetzt installieren" fuehrt nach /app/ - dort steht derselbe Hinweis
+  // (gleicher Merker). Wer den Link nimmt, hat ihn gelesen; sonst schoebe sich
+  // der Hinweis in der App ein zweites Mal vor die Anleitung.
+  // Am Dialog statt am Link: die Uebersetzung ersetzt den Link samt Listener.
+  backdrop.addEventListener('click', function(e){
+    if (e.target.closest && e.target.closest('a[href*="ios=installieren"]')) {
+      try { localStorage.setItem(KEY, '1'); } catch (err) {}
+    }
+  });
   document.getElementById('betaOk').focus();
 })();
 </script>

@@ -163,7 +163,7 @@
     'faq.q10': 'Ist FLEXR in ganz Österreich verfügbar?',
     'faq.a10': 'Ja, jede österreichische Postleitzahl funktioniert. Wie viele Profile du siehst, hängt davon ab, wie viele Leute in deinem Umkreis dabei sind — in Ballungsräumen mehr als am Land.',
     'faq.qIphone': 'Gibt es FLEXR fürs iPhone?',
-    'faq.aIphone': 'Ja, als Web-App: Öffne <b>flexr.social/app</b> in Safari, tippe auf „Teilen“ und dann auf „Zum Home-Bildschirm“. FLEXR startet dann wie eine App, ohne Browserleisten. Unter Konto → Benachrichtigungen kannst du Mitteilungen bei neuen Nachrichten und Matches einschalten (ab iOS 16.4).',
+    'faq.aIphone': 'Ja, als Web-App: Öffne <b>flexr.social/app</b> in Safari, tippe auf „Teilen“ und dann auf „Zum Home-Bildschirm“ (<a href="/app/?ios=installieren">Schritt-für-Schritt-Anleitung</a>). FLEXR startet dann wie eine App, ohne Browserleisten. Unter Konto → Benachrichtigungen kannst du Mitteilungen bei neuen Nachrichten und Matches einschalten (ab iOS 16.4).',
     'faq.q11': 'Wie kündige ich?',
     'faq.a11': 'Im Konto-Bereich unter „Abo verwalten / kündigen“, jederzeit und ohne Frist. Der Zugang bleibt bis zum Ende der bezahlten Periode aktiv.',
     'faq.q12': 'Wie melde oder blockiere ich jemanden?',
@@ -186,7 +186,7 @@
     'beta.free': 'dauerhaft, ohne Zahlungsmittel',
     'beta.premium': 'optional · 10 €/Monat',
     'beta.android': 'Ende September 2026',
-    'beta.ios': 'als Web-App über „Zum Home-Bildschirm“',
+    'beta.ios': 'Web-App für den Home-Bildschirm · <a href="/app/?ios=installieren">jetzt&nbsp;installieren</a>',
     'beta.ok': 'Verstanden',
     'beta.closeAria': 'Hinweis schließen'
   },
@@ -331,7 +331,7 @@
     'faq.q10': 'Is FLEXR available all across Austria?',
     'faq.a10': 'Yes, every Austrian postal code works. How many profiles you see depends on how many people are on board within your radius — more in urban areas than in the countryside.',
     'faq.qIphone': 'Is FLEXR available for iPhone?',
-    'faq.aIphone': 'Yes, as a web app: open <b>flexr.social/app</b> in Safari, tap “Share” and then “Add to Home Screen”. FLEXR then starts like an app, without browser bars. Under Account → Notifications you can switch on notifications for new messages and matches (iOS 16.4 or later).',
+    'faq.aIphone': 'Yes, as a web app: open <b>flexr.social/app</b> in Safari, tap “Share” and then “Add to Home Screen” (<a href="/app/?ios=installieren">step-by-step guide</a>). FLEXR then starts like an app, without browser bars. Under Account → Notifications you can switch on notifications for new messages and matches (iOS 16.4 or later).',
     'faq.q11': 'How do I cancel?',
     'faq.a11': 'In the account area under “Manage / cancel subscription”, at any time and without notice periods. Access stays active until the end of the paid period.',
     'faq.q12': 'How do I report or block someone?',
@@ -354,7 +354,7 @@
     'beta.free': 'permanently, no payment method',
     'beta.premium': 'optional · €10/month',
     'beta.android': 'End of September 2026',
-    'beta.ios': 'as a web app via “Add to Home Screen”',
+    'beta.ios': 'web app for your Home Screen · <a href="/app/?ios=installieren">install&nbsp;now</a>',
     'beta.ok': 'Got it',
     'beta.closeAria': 'Close notice'
   }

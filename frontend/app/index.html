@@ -2109,7 +2109,7 @@
      laufen synchron und damit vor dem DOMContentLoaded, bei dem FlexrI18n die
      data-i18n-Knoten uebersetzt. -->
 <script src="/i18n.js?v=5"></script>
-<script src="/app/i18n-app.js?v=18"></script>
+<script src="/app/i18n-app.js?v=19"></script>
 <a class="skip-link" href="#main-content" data-i18n="common.skipToContent">Zum Inhalt springen</a>
 <div class="app" id="app">
 
@@ -3204,8 +3204,57 @@
     <div class="ios-install-text">
       <b data-i18n="iosinst.title">FLEXR aufs iPhone holen</b>
       <span data-i18n-html="iosinst.text">Tippe unten auf <svg class="ios-share" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V3.5M8 7.5l4-4 4 4M7 11H5.5v9.5h13V11H17"/></svg> „Teilen“ und dann auf „Zum Home-Bildschirm“. FLEXR startet dann wie eine App – mit Mitteilungen bei neuen Nachrichten.</span>
+      <button type="button" class="ios-install-more" id="iosInstallMore" data-i18n="iosinst.more">So geht's Schritt für Schritt</button>
     </div>
     <button type="button" class="ios-install-close" id="iosInstallClose" data-i18n-aria="common.close" aria-label="Schließen">✕</button>
+  </div>
+
+  <!-- Installationsanleitung fuers iPhone. Ziel des Links "iOS: jetzt
+       installieren" im Beta-Hinweis (Landingpage und App) - aufgerufen ueber
+       /app/?ios=installieren. Einen Installieren-Knopf gibt es auf dem iPhone
+       nicht; "Zum Home-Bildschirm" muss man selbst antippen, und zwar HIER in
+       /app/: iOS legt die Adresse der gerade offenen Seite auf den
+       Home-Bildschirm. Eine eigene Anleitungsseite wuerde dort landen statt
+       der App. Welche Variante sichtbar ist, entscheidet iosAnleitung():
+         ios       - Safari (oder Chrome/Firefox) auf dem iPhone/iPad
+         inapp     - Instagram, Facebook & Co.: erst in Safari oeffnen
+         other     - Computer, Android: QR-Code fuer die iPhone-Kamera
+         installed - laeuft schon vom Home-Bildschirm -->
+  <div id="iosGuideBackdrop" class="legal-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="iosGuideTitle">
+    <div class="legal-modal ios-guide">
+      <button type="button" class="legal-modal-close" id="iosGuideClose" data-i18n-aria="common.close" aria-label="Schließen">✕</button>
+      <div class="legal-modal-body">
+        <img class="ios-guide-icon" src="/icons/apple-touch-icon-180.png?v=1" alt="" width="64" height="64">
+        <p class="beta-eyebrow" data-i18n="iosguide.eyebrow">Web-App fürs iPhone</p>
+        <h1 id="iosGuideTitle" data-i18n="iosguide.title">FLEXR auf den Home-Bildschirm</h1>
+
+        <div class="ios-guide-variant" data-variant="ios" hidden>
+          <ol class="ios-guide-steps">
+            <li data-i18n-html="iosguide.step1">Tippe in Safari auf <svg class="ios-share" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V3.5M8 7.5l4-4 4 4M7 11H5.5v9.5h13V11H17"/></svg> <b>Teilen</b>. Ab iOS&nbsp;26 steckt es hinter <b>•••</b> unten rechts, in Chrome oben in der Adresszeile.</li>
+            <li data-i18n-html="iosguide.step2">Tippe auf <svg class="ios-share" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="M12 8.5v7M8.5 12h7"/></svg> <b>Zum Home-Bildschirm</b> – falls du es nicht siehst, weiter unten in der Liste oder unter <b>Mehr</b>.</li>
+            <li data-i18n-html="iosguide.step3">„Als Web-App öffnen“ eingeschaltet lassen und oben rechts auf <b>Hinzufügen</b> tippen.</li>
+          </ol>
+          <p class="ios-guide-note" data-i18n-html="iosguide.after">Danach startest du FLEXR über das neue Symbol – ohne Browserleisten. Mitteilungen bei neuen Nachrichten und Matches schaltest du unter <b>Konto → Benachrichtigungen</b> ein (ab iOS&nbsp;16.4).</p>
+        </div>
+
+        <div class="ios-guide-variant" data-variant="inapp" hidden>
+          <p data-i18n-html="iosguide.inapp">Du bist gerade im Browser einer anderen App (etwa Instagram). Von dort kann nichts auf den Home-Bildschirm. Öffne die Seite zuerst in <b>Safari</b>: über das Menü <b>•••</b> → „In Safari öffnen“ bzw. „Im Browser öffnen“ – oder kopiere den Link und füge ihn in Safari ein.</p>
+          <button type="button" class="btn secondary ios-guide-copy" id="iosGuideCopy" data-i18n="iosguide.copy">Link kopieren</button>
+        </div>
+
+        <div class="ios-guide-variant" data-variant="other" hidden>
+          <p data-i18n="iosguide.other">Aufs iPhone kommt FLEXR direkt aus Safari auf dem iPhone. Scanne den Code mit der iPhone-Kamera – dort geht es mit der Anleitung weiter.</p>
+          <img class="ios-guide-qr" src="/icons/qr-ios-install.svg?v=1" width="180" height="180" data-i18n-alt="iosguide.qrAlt" alt="QR-Code zur Installationsanleitung für das iPhone">
+          <p class="ios-guide-url">flexr.social/app</p>
+        </div>
+
+        <div class="ios-guide-variant" data-variant="installed" hidden>
+          <p data-i18n-html="iosguide.installed">FLEXR läuft auf diesem Gerät schon vom Home-Bildschirm. Mitteilungen schaltest du unter <b>Konto → Benachrichtigungen</b> ein.</p>
+        </div>
+
+        <button type="button" class="btn" id="iosGuideOk" data-i18n="iosguide.ok">Alles klar</button>
+      </div>
+    </div>
   </div>
 
   <!-- BESTAETIGUNG (statt confirm()): gleiche Optik wie "Konto loeschen".
@@ -3317,6 +3366,42 @@
     background:none; border:none; color:var(--chalk-dim); font-size:15px;
     width:28px; height:28px; cursor:pointer; flex:0 0 auto;
   }
+  .ios-install-more{
+    display:block; margin-top:6px; padding:0; background:none; border:none;
+    color:var(--plate); font:inherit; font-weight:600; cursor:pointer;
+    text-decoration:underline; text-underline-offset:2px;
+  }
+
+  /* Anleitung: ueber allem, auch ueber dem Beta-Hinweis (Link von dort). */
+  #iosGuideBackdrop{ z-index:120; }
+  .ios-guide{ max-width:420px; }
+  .ios-guide .legal-modal-body{ padding:28px 24px 24px; text-align:left; }
+  .ios-guide-icon{ display:block; width:64px; height:64px; border-radius:15px; margin:0 0 14px; }
+  .ios-guide h1{ margin-top:4px !important; }
+  /* "iPhone" schreibt sich klein - das Versal-Styling der Eyebrow machte "IPHONE" daraus. */
+  .ios-guide .beta-eyebrow{ text-transform:none; letter-spacing:.12em; }
+  .legal-modal-body ol.ios-guide-steps{ list-style:none; padding:0; margin:16px 0 0; counter-reset:ios-step; }
+  .legal-modal-body ol.ios-guide-steps > li{
+    position:relative; margin:0; padding:12px 0 12px 42px;
+    border-top:1px solid var(--hairline); font-size:14.5px; line-height:1.5; color:var(--chalk-dim);
+  }
+  .legal-modal-body ol.ios-guide-steps > li:last-child{ border-bottom:1px solid var(--hairline); }
+  .legal-modal-body ol.ios-guide-steps > li::before{
+    content:counter(ios-step); counter-increment:ios-step;
+    position:absolute; left:0; top:11px; width:28px; height:28px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    background:var(--plate); color:#fff; font-weight:700; font-size:14px;
+  }
+  .ios-guide b{ color:var(--chalk); }
+  .ios-guide .ios-share{ width:18px; height:18px; vertical-align:-4px; }
+  .ios-guide-note, .ios-guide-variant p{ font-size:14px !important; color:var(--chalk-dim); margin:14px 0 0; }
+  .ios-guide-qr{
+    display:block; width:180px; height:180px; margin:18px auto 0;
+    background:#fff; border-radius:12px; padding:8px; box-sizing:content-box;
+  }
+  .ios-guide-variant p.ios-guide-url{ text-align:center; margin-top:8px; color:var(--chalk); font-weight:600; letter-spacing:.02em; }
+  .ios-guide-copy{ width:100%; margin-top:14px; }
+  .ios-guide #iosGuideOk{ width:100%; margin-top:18px; }
 </style>
 
 <!-- Beta-Hinweis: erscheint einmal je Browser (Merker in localStorage, derselbe
@@ -3335,7 +3420,7 @@
         <li class="is-free"><b data-i18n="beta.freeLabel">Kostenlos</b><span data-i18n="beta.free">dauerhaft, ohne Zahlungsmittel</span></li>
         <li><b>Premium</b><span data-i18n="beta.premium">optional · 10 €/Monat</span></li>
         <li><b>Android</b><span data-i18n="beta.android">Ende September 2026</span></li>
-        <li><b class="as-written">iOS</b><span data-i18n="beta.ios">als Web-App über „Zum Home-Bildschirm“</span></li>
+        <li><b class="as-written">iOS</b><span data-i18n-html="beta.ios">Web-App für den Home-Bildschirm · <a href="/app/?ios=installieren">jetzt&nbsp;installieren</a></span></li>
         <li><b>Feedback</b><span><a href="mailto:flexr.social@proton.me">flexr.social@proton.me</a></span></li>
       </ul>
       <button type="button" class="btn" id="betaOk" data-i18n="beta.ok">Verstanden</button>
@@ -3368,6 +3453,8 @@
   .beta-facts b.as-written{ text-transform:none; }
   .beta-facts span{ color:var(--chalk-dim); }
   .beta-facts a{ color:var(--chalk); text-decoration:underline; text-underline-offset:2px; }
+  /* "jetzt installieren" (iOS) ist die einzige Handlung in der Liste. */
+  .beta-facts a[href*="ios=installieren"]{ color:var(--plate); font-weight:600; }
   .beta-facts li.is-free b, .beta-facts li.is-free span{ color:var(--lime); }
 </style>
 
@@ -3383,7 +3470,9 @@
   // Kontos gelten. Der Dialog hat bis dahin das Gegenteil zugesagt.
   // v5 seit 25.09.2026: iOS "folgt im Anschluss" ist jetzt die Web-App ueber
   // den Home-Bildschirm - neu fuer alle, die v4 schon weggeklickt hatten.
-  var KEY = 'flexr_beta_notice_v5';
+  // v6 seit 26.09.2026: Die iOS-Zeile fuehrt mit "jetzt installieren" direkt
+  // zur Installationsanleitung (#iosGuideBackdrop).
+  var KEY = 'flexr_beta_notice_v6';
   var backdrop = document.getElementById('betaBackdrop');
   if (!backdrop) return;
 
@@ -5435,19 +5524,102 @@
     const box = $('iosInstallHint');
     // Kurz warten: nicht gleichzeitig mit dem Beta-Hinweis und nicht, bevor
     // man ueberhaupt gesehen hat, worum es geht.
+    // Nicht mehr zeigen, sobald die ausfuehrliche Anleitung offen war.
+    const zeigen = () => {
+      try{ if(localStorage.getItem(KEY)) return; }catch(e){}
+      if($('iosGuideBackdrop').classList.contains('open')) return;
+      box.hidden = false;
+    };
     setTimeout(() => {
       if($('betaBackdrop') && $('betaBackdrop').classList.contains('open')){
         // Nach dem Wegklicken des Beta-Hinweises erneut versuchen.
-        $('betaOk').addEventListener('click', () => setTimeout(() => { box.hidden = false; }, 800), {once: true});
-        $('betaClose').addEventListener('click', () => setTimeout(() => { box.hidden = false; }, 800), {once: true});
+        $('betaOk').addEventListener('click', () => setTimeout(zeigen, 800), {once: true});
+        $('betaClose').addEventListener('click', () => setTimeout(zeigen, 800), {once: true});
         return;
       }
-      box.hidden = false;
+      zeigen();
     }, 2500);
     $('iosInstallClose').addEventListener('click', () => {
       box.hidden = true;
       try{ localStorage.setItem(KEY, '1'); }catch(e){}
     });
+  })();
+
+  // Installationsanleitung (siehe Markup bei #iosGuideBackdrop). Oeffnet sich
+  // ueber /app/?ios=installieren (Link im Beta-Hinweis der Landingpage), ueber
+  // den Link im Beta-Hinweis dieser Seite und ueber "So geht's" im kleinen
+  // Hinweis oben.
+  const IOS_ANLEITUNG_ADRESSE = 'https://flexr.social/app/?ios=installieren';
+  function iosAnleitungVariante(){
+    if(IST_INSTALLIERT) return 'installed';
+    if(!IST_IOS) return 'other';
+    if(/FBAN|FBAV|Instagram|Line\/|GSA\/|TikTok|Snapchat/i.test(navigator.userAgent)) return 'inapp';
+    return 'ios';
+  }
+  let iosAnleitungFokus = null;
+  function iosAnleitungTaste(e){ if(e.key === 'Escape') iosAnleitungSchliessen(); }
+  function iosAnleitungSchliessen(){
+    $('iosGuideBackdrop').classList.remove('open');
+    document.removeEventListener('keydown', iosAnleitungTaste);
+    if(iosAnleitungFokus && iosAnleitungFokus.focus) iosAnleitungFokus.focus();
+  }
+  function iosAnleitungOeffnen(){
+    const variante = iosAnleitungVariante();
+    document.querySelectorAll('#iosGuideBackdrop .ios-guide-variant').forEach(el => {
+      el.hidden = el.dataset.variant !== variante;
+    });
+    // Wer die Anleitung gesehen hat, braucht den kleinen Hinweis nicht mehr.
+    $('iosInstallHint').hidden = true;
+    try{ localStorage.setItem('flexr_ios_install_hint_v1', '1'); }catch(e){}
+    iosAnleitungFokus = document.activeElement;
+    $('iosGuideBackdrop').classList.add('open');
+    document.addEventListener('keydown', iosAnleitungTaste);
+    $('iosGuideOk').focus();
+  }
+  $('iosGuideClose').addEventListener('click', iosAnleitungSchliessen);
+  $('iosGuideOk').addEventListener('click', iosAnleitungSchliessen);
+  $('iosGuideBackdrop').addEventListener('click', (e) => {
+    if(e.target === $('iosGuideBackdrop')) iosAnleitungSchliessen();
+  });
+  $('iosInstallMore').addEventListener('click', iosAnleitungOeffnen);
+  $('iosGuideCopy').addEventListener('click', async () => {
+    const knopf = $('iosGuideCopy');
+    try{
+      await navigator.clipboard.writeText(IOS_ANLEITUNG_ADRESSE);
+      setI18nText(knopf, 'iosguide.copied');
+    }catch(e){
+      // In manchen In-App-Browsern fehlt die Zwischenablage - dann die Adresse
+      // zum Abtippen/Markieren zeigen.
+      knopf.textContent = IOS_ANLEITUNG_ADRESSE;
+    }
+  });
+  // Link "jetzt installieren" im Beta-Hinweis dieser Seite: kein Neuladen,
+  // Beta-Hinweis zu (damit als gelesen gemerkt) und Anleitung auf. Am Dialog
+  // statt am Link: die Uebersetzung (data-i18n-html) ersetzt den Link samt
+  // Listener, sobald die Sprache angewendet wird.
+  $('betaBackdrop').addEventListener('click', (e) => {
+    if(!e.target.closest('a[href*="ios=installieren"]')) return;
+    e.preventDefault();
+    $('betaOk').click();
+    iosAnleitungOeffnen();
+  });
+  (function anleitungAusAdresse(){
+    const params = new URLSearchParams(location.search);
+    if(params.get('ios') !== 'installieren') return;
+    // Adresse bereinigen, BEVOR jemand "Zum Home-Bildschirm" tippt: iOS legt
+    // die aktuelle Adresse ab, und die Home-Bildschirm-App soll auf /app/
+    // starten und nicht bei jedem Start die Anleitung zeigen.
+    params.delete('ios');
+    const rest = params.toString();
+    history.replaceState(null, '', location.pathname + (rest ? '?' + rest : ''));
+    const beta = $('betaBackdrop');
+    if(beta && beta.classList.contains('open')){
+      // Direkt aufgerufen, ohne den Beta-Hinweis zu kennen: erst den lesen.
+      $('betaOk').addEventListener('click', iosAnleitungOeffnen, {once: true});
+      $('betaClose').addEventListener('click', iosAnleitungOeffnen, {once: true});
+      return;
+    }
+    iosAnleitungOeffnen();
   })();
 
   // Tipp auf eine Mitteilung: auf den passenden Reiter. Der Service Worker
