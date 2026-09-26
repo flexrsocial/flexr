@@ -55,7 +55,7 @@ erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 >   Knopf ist per `@media (display-mode: standalone)` ausgeblendet.
 > - QR: `icons/qr-ios-install.svg?v=1` aus `brand/build_ios_qr.py`
 >   (Ziel `https://flexr.social/app/?ios=installieren`, mit zxing dekodiert).
-> - Stand: sw.js `flexr-shell-v28` (v28: QR-Satz zentriert, `3fb76d7`, noch nicht deployed), `i18n-app.js?v=21`, `en/index.html` per
+> - Stand: sw.js `flexr-shell-v28` (v28: QR-Satz zentriert, `3fb76d7`, deployed), `i18n-app.js?v=21`, `en/index.html` per
 >   `build-en.py` erzeugt. Tests: Backend 557 gruen; Browser lokal + live
 >   (Links, Modal ohne Neuladen, DE/EN, keine Konsolenfehler).
 >
