@@ -1,6 +1,6 @@
 # FLEXR — Handoff für ein anderes Gerät / Claude Code
 
-Stand: **25.09.2026**
+Stand: **26.09.2026**
 
 ## ⚠️ Dringend zu prüfen: SSH-Zugang zum VPS hat sich geändert (21.09.2026)
 
@@ -31,6 +31,19 @@ Falls du das liest, weil dein `root@`-Login gerade fehlschlägt: das ist
 erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 
 ## Wo das Projekt gerade steht
+
+> **Sitzung 26.09.2026 — iPhone-Installationsanleitung. NICHT deployed.** Commit `bceb695`:
+> - `/app/?ios=installieren` oeffnet die Anleitung "FLEXR auf den
+>   Home-Bildschirm" (Safari/Chrome auf dem iPhone: 3 Schritte; In-App-Browser:
+>   erst in Safari oeffnen + Link kopieren; Computer/Android: QR-Code;
+>   installiert: Hinweis). Adresse wird vor dem Hinzufuegen auf `/app/` bereinigt.
+> - Beta-Hinweis (Landing DE/EN + App): iOS-Zeile mit Link "jetzt installieren"
+>   auf die Anleitung, Merker `flexr_beta_notice_v6`. FAQ verlinkt ebenfalls.
+> - `icons/qr-ios-install.svg` (aus `brand/build_ios_qr.py`, mit zxing dekodiert).
+> - sw.js v25, i18n-app.js ?v=19. Tests: Backend 557 gruen; im Browser
+>   geprueft (Landing-Link -> Anleitung, App-Link ohne Neuladen, DE/EN).
+> **Deploy (vom Nutzer freizugeben):** nur Frontend - `git pull` als `deploy`,
+> kein Neustart, keine Migration. Nicht geprueft: echtes iPhone (Safari, iOS 26).
 
 > **Nachtrag 25.09.2026 (abends) — deployed, Android 2.7.19 gebaut.** Commits `2051796`..`44d40e7`:
 > - Datenschutz (DE/EN, Fassung 2026-09-25) + Kurzfassung in der Android-App:
