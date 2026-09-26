@@ -322,6 +322,29 @@ main{ overflow-x:clip; }
 .btn.ghost:hover{ background:var(--surface-2); color:var(--chalk); }
 .cta-note{ font-size:13.5px; color:var(--chalk-dim); margin-top:14px; }
 
+/* "Fuer iPhone - App installieren": fuehrt zur Installationsanleitung der
+   Web-App (/app/?ios=installieren). Bewusst kein App-Store-Badge und kein
+   Apple-Logo - FLEXR steht nicht im App Store, das Badge wuerde etwas
+   versprechen, das es nicht gibt (und darf nur fuer Store-Apps stehen). */
+.ios-dl{
+  display:inline-flex; align-items:center; gap:10px;
+  padding:9px 16px 9px 12px; border-radius:12px;
+  background:var(--surface-2); border:1px solid var(--steel);
+  color:var(--chalk); text-decoration:none; line-height:1.15;
+  transition:border-color .15s, background .15s;
+}
+.ios-dl:hover{ border-color:var(--plate); color:var(--chalk); }
+.ios-dl-icon{
+  width:26px; height:26px; flex:0 0 auto;
+  fill:none; stroke:var(--plate); stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round;
+}
+.ios-dl-text{ display:flex; flex-direction:column; text-align:left; }
+.ios-dl-text small{ font-size:11px; color:var(--chalk-dim); letter-spacing:.02em; }
+.ios-dl-text b{ font-size:15px; font-weight:600; }
+/* Vom Home-Bildschirm gestartet: schon installiert. */
+@media (display-mode: standalone){ .ios-dl{ display:none !important; } }
+.ios-dl-hero{ margin-top:16px; }
+
 .usps{ list-style:none; padding:0; margin:30px 0 0; display:grid; gap:10px; }
 .usps li{ position:relative; padding-left:28px; color:var(--chalk); font-size:15.5px; }
 .usps li::before{
@@ -648,6 +671,7 @@ footer{ border-top:1px solid var(--steel); padding:32px 0 60px; margin-top:20px;
           <p class="cta-note" data-i18n="hero.ctaNote">
             Kostenlos registrieren, kein Zahlungsmittel nötig. Ab 18.
           </p>
+          <a class="ios-dl ios-dl-hero" href="/app/?ios=installieren" data-i18n-aria="dl.aria" aria-label="FLEXR-App fürs iPhone installieren"><svg class="ios-dl-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="2.5" width="12" height="19" rx="2.6"/><path d="M12 7.5v7M9 11.5l3 3 3-3M10.5 18.5h3"/></svg><span class="ios-dl-text"><small data-i18n="dl.small">Für iPhone</small><b data-i18n="dl.big">App installieren</b></span></a>
         </div>
 
         <div class="hero-visual" aria-hidden="true">
@@ -1120,6 +1144,7 @@ footer{ border-top:1px solid var(--steel); padding:32px 0 60px; margin-top:20px;
       <div class="cta-row" style="justify-content:center;">
         <a class="btn" href="/app/" data-i18n="hero.ctaStart">Gratis loslegen</a>
       </div>
+      <p style="margin:18px auto 0;"><a class="ios-dl" href="/app/?ios=installieren" data-i18n-aria="dl.aria" aria-label="FLEXR-App fürs iPhone installieren"><svg class="ios-dl-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="2.5" width="12" height="19" rx="2.6"/><path d="M12 7.5v7M9 11.5l3 3 3-3M10.5 18.5h3"/></svg><span class="ios-dl-text"><small data-i18n="dl.small">Für iPhone</small><b data-i18n="dl.big">App installieren</b></span></a></p>
     </section>
 
   </div>

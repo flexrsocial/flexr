@@ -70,13 +70,15 @@
 // Bestaetigungsdialog statt confirm(); neue Texte, i18n-app.js auf ?v=18.
 // v25: Installationsanleitung fuers iPhone (/app/?ios=installieren), Link
 // darauf im Beta-Hinweis; neue Texte, i18n-app.js auf ?v=19.
-const CACHE = 'flexr-shell-v25';
+// v26: Knopf "Fuer iPhone - App installieren" im Hero, kuerzerer QR-Text;
+// i18n-app.js auf ?v=20.
+const CACHE = 'flexr-shell-v26';
 // Seit dem 15.08.2026 liegt die App unter /app/, an der Wurzel steht die
 // oeffentliche Landingpage. Beide gehoeren in die Shell: die Landingpage,
 // weil sie der Einstieg ist, die App, weil sie offline funktionieren soll.
 const SHELL = ['/', '/index.html', '/en/', '/en/index.html',
                '/app/', '/app/index.html',
-               '/lang-switch.js?v=2', '/i18n.js?v=5', '/app/i18n-app.js?v=19',
+               '/lang-switch.js?v=2', '/i18n.js?v=5', '/app/i18n-app.js?v=20',
                '/manifest.json', '/favicon.ico', '/legal.css?v=2',
                '/fonts/work-sans.woff2?v=1', '/fonts/oswald.woff2?v=1',
                '/icons/icon-192.png?v=4', '/icons/icon-512.png?v=4'];

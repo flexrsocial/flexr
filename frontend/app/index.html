@@ -1274,7 +1274,8 @@
       "eyebrow eyebrow"
       "title demo"
       "sub demo"
-      "usps usps";
+      "usps usps"
+      "dl dl";
     column-gap:clamp(18px,3vw,34px); align-items:center;
   }
   /* Zwischen 861 und 1080px reicht die Breite nicht fuer Text UND Musterdeck.
@@ -1293,7 +1294,8 @@
         "eyebrow"
         "title"
         "sub"
-        "usps";
+        "usps"
+        "dl";
     }
     body.landing .hero-demo{ display:none; }
   }
@@ -1302,6 +1304,7 @@
   .landing-hero h1{ grid-area:title; }
   .landing-hero .hero-sub{ grid-area:sub; }
   .hero-usps{ grid-area:usps; }
+  .hero-dl{ grid-area:dl; margin-top:18px; }
   .hero-demo{ grid-area:demo; align-self:start; width:100%; padding-top:8px; }
   .hero-demo-stack{
     position:relative; width:190px; height:248px; margin:0 auto 12px;
@@ -1420,7 +1423,8 @@
         "eyebrow eyebrow"
         "title demo"
         "sub sub"
-        "usps usps";
+        "usps usps"
+        "dl dl";
       column-gap:16px;
     }
     .landing-hero .hero-eyebrow{ font-size:10.5px; margin-bottom:10px; }
@@ -2109,7 +2113,7 @@
      laufen synchron und damit vor dem DOMContentLoaded, bei dem FlexrI18n die
      data-i18n-Knoten uebersetzt. -->
 <script src="/i18n.js?v=5"></script>
-<script src="/app/i18n-app.js?v=19"></script>
+<script src="/app/i18n-app.js?v=20"></script>
 <a class="skip-link" href="#main-content" data-i18n="common.skipToContent">Zum Inhalt springen</a>
 <div class="app" id="app">
 
@@ -2151,6 +2155,7 @@
         <li data-i18n-html="hero.usp2">Dauerhaft gratis — FLEXR Premium (10&nbsp;€/Monat) ist freiwillig</li>
         <li data-i18n-html="hero.usp3">Echte Profile: Melde- &amp; Blockfunktion inklusive</li>
       </ul>
+      <div class="hero-dl"><a class="ios-dl" href="/app/?ios=installieren" data-i18n-aria="dl.aria" aria-label="FLEXR-App fürs iPhone installieren"><svg class="ios-dl-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="2.5" width="12" height="19" rx="2.6"/><path d="M12 7.5v7M9 11.5l3 3 3-3M10.5 18.5h3"/></svg><span class="ios-dl-text"><small data-i18n="dl.small">Für iPhone</small><b data-i18n="dl.big">App installieren</b></span></a></div>
       <!-- Hier stand bis zum 15.08.2026 ein Demo-Deck mit acht Fotos echter
            Menschen von images.unsplash.com, als FLEXR-Profile beschriftet
            ("Lena, 26, McFit"). Entfernt aus zwei Gruenden: Es schickte die IP
@@ -3243,7 +3248,7 @@
         </div>
 
         <div class="ios-guide-variant" data-variant="other" hidden>
-          <p data-i18n="iosguide.other">Aufs iPhone kommt FLEXR direkt aus Safari auf dem iPhone. Scanne den Code mit der iPhone-Kamera – dort geht es mit der Anleitung weiter.</p>
+          <p data-i18n="iosguide.other">Auf das iPhone: Scanne den Code mit der iPhone-Kamera.</p>
           <img class="ios-guide-qr" src="/icons/qr-ios-install.svg?v=1" width="180" height="180" data-i18n-alt="iosguide.qrAlt" alt="QR-Code zur Installationsanleitung für das iPhone">
           <p class="ios-guide-url">flexr.social/app</p>
         </div>
@@ -3354,6 +3359,27 @@
     font-size:13px; line-height:1.45; color:var(--chalk-dim);
   }
   .ios-install[hidden]{ display:none; }
+  /* "Fuer iPhone - App installieren": fuehrt zur Installationsanleitung der
+     Web-App (/app/?ios=installieren). Bewusst kein App-Store-Badge und kein
+     Apple-Logo - FLEXR steht nicht im App Store, das Badge wuerde etwas
+     versprechen, das es nicht gibt (und darf nur fuer Store-Apps stehen). */
+  .ios-dl{
+    display:inline-flex; align-items:center; gap:10px;
+    padding:9px 16px 9px 12px; border-radius:12px;
+    background:var(--surface-2); border:1px solid var(--steel);
+    color:var(--chalk); text-decoration:none; line-height:1.15;
+    transition:border-color .15s, background .15s;
+  }
+  .ios-dl:hover{ border-color:var(--plate); color:var(--chalk); }
+  .ios-dl-icon{
+    width:26px; height:26px; flex:0 0 auto;
+    fill:none; stroke:var(--plate); stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round;
+  }
+  .ios-dl-text{ display:flex; flex-direction:column; text-align:left; }
+  .ios-dl-text small{ font-size:11px; color:var(--chalk-dim); letter-spacing:.02em; }
+  .ios-dl-text b{ font-size:15px; font-weight:600; }
+  /* Vom Home-Bildschirm gestartet: schon installiert. */
+  @media (display-mode: standalone){ .ios-dl{ display:none !important; } }
   /* Ausgeloggt steht oben das Hero-Bild - dort unten an den Rand. */
   body.landing .ios-install{ top:auto; bottom:calc(14px + env(safe-area-inset-bottom, 0px)); }
   .ios-install b{ display:block; color:var(--chalk); font-size:14px; margin-bottom:2px; }
@@ -5597,10 +5623,11 @@
   // Beta-Hinweis zu (damit als gelesen gemerkt) und Anleitung auf. Am Dialog
   // statt am Link: die Uebersetzung (data-i18n-html) ersetzt den Link samt
   // Listener, sobald die Sprache angewendet wird.
-  $('betaBackdrop').addEventListener('click', (e) => {
-    if(!e.target.closest('a[href*="ios=installieren"]')) return;
+  // Gilt ebenso fuer den Knopf "Fuer iPhone - App installieren" im Hero.
+  document.addEventListener('click', (e) => {
+    if(!e.target.closest || !e.target.closest('a[href*="ios=installieren"]')) return;
     e.preventDefault();
-    $('betaOk').click();
+    if($('betaBackdrop').classList.contains('open')) $('betaOk').click();
     iosAnleitungOeffnen();
   });
   (function anleitungAusAdresse(){
