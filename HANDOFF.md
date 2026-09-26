@@ -32,6 +32,8 @@ erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 
 ## Wo das Projekt gerade steht
 
+> **Nachtrag 26.09.2026 — QR-Text gekuerzt** (`4739504`, sw.js v27, i18n-app.js ?v=21). Deployed per `git pull`, live md5-gleich.
+
 > **Nachtrag 26.09.2026 — Knopf "Für iPhone · App installieren". Deployed per `git pull` (HEAD `353fa57`), live md5-gleich, Klicktest auf flexr.social ok.** Commit `01217af`:
 > Knopf auf Landingpage (Hero + "Bereit?", DE/EN) und im Hero von `/app/`
 > (ausgeloggt), fuehrt zur Anleitung; kuerzerer QR-Text. sw.js v26,
