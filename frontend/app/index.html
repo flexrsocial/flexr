@@ -313,6 +313,11 @@
      Handys breiter als der Viewport. */
   .row2{ display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:10px; }
   .row2 > div{ min-width:0; }
+  /* Geburtsdatum + PLZ: nebeneinander blieben fuer den erkannten Ort nur rund
+     50px - "Wiener Neustadt" wurde am Handy zu "Wie...". */
+  @media (max-width: 480px){
+    .row2.row2-stack-sm{ grid-template-columns:minmax(0,1fr); gap:0; }
+  }
 
   .btn{
     display:inline-flex; align-items:center; justify-content:center; gap:9px;
@@ -1349,6 +1354,7 @@
   .hero-demo-actions .round-btn.like{ width:56px; height:56px; }
   .hero-demo-actions .round-btn svg.ico{ width:22px; height:22px; }
   .hero-demo-actions .round-btn.like svg.ico{ width:25px; height:25px; }
+  .hero-demo-hint.short{ display:none; }
   .hero-demo-hint{
     margin-top:7px; text-align:center; color:var(--chalk-dim);
     font-family:'JetBrains Mono', monospace; font-size:8.5px;
@@ -1465,7 +1471,10 @@
     .hero-demo-actions .round-btn{ width:38px; height:38px; }
     .hero-demo-actions .round-btn.like{ width:44px; height:44px; }
     .hero-demo-actions .round-btn svg.ico{ width:18px; height:18px; }
+    /* Die lange Zeile passt hier nicht mehr, die Kennzeichnung als Beispiel
+       muss aber bleiben (brand/demo/README.md). */
     .hero-demo-hint{ display:none; }
+    .hero-demo-hint.short{ display:block; margin-top:4px; }
   }
 
   .divider{ height:1px; background:var(--steel); margin:24px 0; position:relative; }
@@ -2113,7 +2122,7 @@
      laufen synchron und damit vor dem DOMContentLoaded, bei dem FlexrI18n die
      data-i18n-Knoten uebersetzt. -->
 <script src="/i18n.js?v=5"></script>
-<script src="/app/i18n-app.js?v=21"></script>
+<script src="/app/i18n-app.js?v=22"></script>
 <a class="skip-link" href="#main-content" data-i18n="common.skipToContent">Zum Inhalt springen</a>
 <div class="app" id="app">
 
@@ -2172,124 +2181,124 @@
           <div class="hero-demo-card" tabindex="-1">
             <div class="hero-demo-stamp pass">Nope</div>
             <div class="hero-demo-stamp like">Match</div>
-            <img src="/brand/demo/demo-julia.jpg?v=1" alt="" loading="lazy" width="720" height="960">
+            <img data-src="/brand/demo/demo-julia.webp?v=1" alt="" loading="lazy" width="720" height="960">
             <div class="hero-demo-name"><b>Julia, 25</b><span>Holmes Place Linz</span></div>
           </div>
           <div class="hero-demo-card" tabindex="-1">
             <div class="hero-demo-stamp pass">Nope</div>
             <div class="hero-demo-stamp like">Match</div>
-            <img src="/brand/demo/demo-tobias.jpg?v=1" alt="" loading="lazy" width="720" height="960">
+            <img data-src="/brand/demo/demo-tobias.webp?v=1" alt="" loading="lazy" width="720" height="960">
             <div class="hero-demo-name"><b>Tobias, 28</b><span>John Harris Salzburg</span></div>
           </div>
           <div class="hero-demo-card" tabindex="-1">
             <div class="hero-demo-stamp pass">Nope</div>
             <div class="hero-demo-stamp like">Match</div>
-            <img src="/brand/demo/demo-lena.jpg?v=1" alt="" loading="lazy" width="720" height="960">
+            <img data-src="/brand/demo/demo-lena.webp?v=1" alt="" loading="lazy" width="720" height="960">
             <div class="hero-demo-name"><b>Lena, 26</b><span>FitOne Innsbruck</span></div>
           </div>
           <div class="hero-demo-card" tabindex="-1" data-face-group="melina-selin">
             <div class="hero-demo-stamp pass">Nope</div><div class="hero-demo-stamp like">Match</div>
-            <img src="/brand/demo/demo-melina-v3.jpg?v=1" alt="" loading="lazy" width="720" height="960">
+            <img data-src="/brand/demo/demo-melina-v3.webp?v=1" alt="" loading="lazy" width="720" height="960">
             <div class="hero-demo-name"><b>Melina, 27</b><span>Injoy Klagenfurt</span></div>
           </div>
           <div class="hero-demo-card" tabindex="-1">
             <div class="hero-demo-stamp pass">Nope</div><div class="hero-demo-stamp like">Match</div>
-            <img src="/brand/demo/demo-anna-v2.jpg?v=1" alt="" loading="lazy" width="720" height="960">
+            <img data-src="/brand/demo/demo-anna-v2.webp?v=1" alt="" loading="lazy" width="720" height="960">
             <div class="hero-demo-name"><b>Anna, 26</b><span>Das Gym Wien</span></div>
           </div>
           <div class="hero-demo-card" tabindex="-1">
             <div class="hero-demo-stamp pass">Nope</div><div class="hero-demo-stamp like">Match</div>
-            <img src="/brand/demo/demo-miriam-v2.jpg?v=1" alt="" loading="lazy" width="720" height="960">
+            <img data-src="/brand/demo/demo-miriam-v2.webp?v=1" alt="" loading="lazy" width="720" height="960">
             <div class="hero-demo-name"><b>Miriam, 28</b><span>McFit Graz</span></div>
           </div>
           <div class="hero-demo-card" tabindex="-1">
             <div class="hero-demo-stamp pass">Nope</div><div class="hero-demo-stamp like">Match</div>
-            <img src="/brand/demo/demo-emi-v2.jpg?v=1" alt="" loading="lazy" width="720" height="960">
+            <img data-src="/brand/demo/demo-emi-v2.webp?v=1" alt="" loading="lazy" width="720" height="960">
             <div class="hero-demo-name"><b>Emi, 29</b><span>Holmes Place Linz</span></div>
           </div>
           <div class="hero-demo-card" tabindex="-1">
             <div class="hero-demo-stamp pass">Nope</div><div class="hero-demo-stamp like">Match</div>
-            <img src="/brand/demo/demo-hannah-v2.jpg?v=1" alt="" loading="lazy" width="720" height="960">
+            <img data-src="/brand/demo/demo-hannah-v2.webp?v=1" alt="" loading="lazy" width="720" height="960">
             <div class="hero-demo-name"><b>Hannah, 27</b><span>Fitinn Wien</span></div>
           </div>
           <div class="hero-demo-card" tabindex="-1">
             <div class="hero-demo-stamp pass">Nope</div><div class="hero-demo-stamp like">Match</div>
-            <img src="/brand/demo/demo-laura-v2.jpg?v=1" alt="" loading="lazy" width="720" height="960">
+            <img data-src="/brand/demo/demo-laura-v2.webp?v=1" alt="" loading="lazy" width="720" height="960">
             <div class="hero-demo-name"><b>Laura, 30</b><span>John Harris Salzburg</span></div>
           </div>
           <div class="hero-demo-card" tabindex="-1">
             <div class="hero-demo-stamp pass">Nope</div><div class="hero-demo-stamp like">Match</div>
-            <img src="/brand/demo/demo-theresa-v2.jpg?v=1" alt="" loading="lazy" width="720" height="960">
+            <img data-src="/brand/demo/demo-theresa-v2.webp?v=1" alt="" loading="lazy" width="720" height="960">
             <div class="hero-demo-name"><b>Theresa, 26</b><span>FitOne Innsbruck</span></div>
           </div>
           <div class="hero-demo-card" tabindex="-1">
             <div class="hero-demo-stamp pass">Nope</div><div class="hero-demo-stamp like">Match</div>
-            <img src="/brand/demo/demo-maya-v2.jpg?v=1" alt="" loading="lazy" width="720" height="960">
+            <img data-src="/brand/demo/demo-maya-v2.webp?v=1" alt="" loading="lazy" width="720" height="960">
             <div class="hero-demo-name"><b>Maya, 26</b><span>Outdoor Workout Wien</span></div>
           </div>
           <div class="hero-demo-card" tabindex="-1">
             <div class="hero-demo-stamp pass">Nope</div><div class="hero-demo-stamp like">Match</div>
-            <img src="/brand/demo/demo-viktoria-v2.jpg?v=1" alt="" loading="lazy" width="720" height="960">
+            <img data-src="/brand/demo/demo-viktoria-v2.webp?v=1" alt="" loading="lazy" width="720" height="960">
             <div class="hero-demo-name"><b>Viktoria, 29</b><span>MyGym Salzburg</span></div>
           </div>
           <div class="hero-demo-card" tabindex="-1">
             <div class="hero-demo-stamp pass">Nope</div><div class="hero-demo-stamp like">Match</div>
-            <img src="/brand/demo/demo-katharina-v2.jpg?v=1" alt="" loading="lazy" width="720" height="960">
+            <img data-src="/brand/demo/demo-katharina-v2.webp?v=1" alt="" loading="lazy" width="720" height="960">
             <div class="hero-demo-name"><b>Katharina, 32</b><span>FitOne Innsbruck</span></div>
           </div>
           <div class="hero-demo-card" tabindex="-1">
             <div class="hero-demo-stamp pass">Nope</div><div class="hero-demo-stamp like">Match</div>
-            <img src="/brand/demo/demo-sofia-v2.jpg?v=1" alt="" loading="lazy" width="720" height="960">
+            <img data-src="/brand/demo/demo-sofia-v2.webp?v=1" alt="" loading="lazy" width="720" height="960">
             <div class="hero-demo-name"><b>Sofia, 28</b><span>Injoy Klagenfurt</span></div>
           </div>
           <div class="hero-demo-card" tabindex="-1">
             <div class="hero-demo-stamp pass">Nope</div><div class="hero-demo-stamp like">Match</div>
-            <img src="/brand/demo/demo-lukas-v2.jpg?v=1" alt="" loading="lazy" width="720" height="960">
+            <img data-src="/brand/demo/demo-lukas-v2.webp?v=1" alt="" loading="lazy" width="720" height="960">
             <div class="hero-demo-name"><b>Lukas, 28</b><span>Das Gym Wien</span></div>
           </div>
           <div class="hero-demo-card" tabindex="-1">
             <div class="hero-demo-stamp pass">Nope</div><div class="hero-demo-stamp like">Match</div>
-            <img src="/brand/demo/demo-marco-v2.jpg?v=1" alt="" loading="lazy" width="720" height="960">
+            <img data-src="/brand/demo/demo-marco-v2.webp?v=1" alt="" loading="lazy" width="720" height="960">
             <div class="hero-demo-name"><b>Marco, 27</b><span>McFit Graz</span></div>
           </div>
           <div class="hero-demo-card" tabindex="-1">
             <div class="hero-demo-stamp pass">Nope</div><div class="hero-demo-stamp like">Match</div>
-            <img src="/brand/demo/demo-elias-v2.jpg?v=1" alt="" loading="lazy" width="720" height="960">
+            <img data-src="/brand/demo/demo-elias-v2.webp?v=1" alt="" loading="lazy" width="720" height="960">
             <div class="hero-demo-name"><b>Elias, 30</b><span>John Harris Salzburg</span></div>
           </div>
           <div class="hero-demo-card" tabindex="-1">
             <div class="hero-demo-stamp pass">Nope</div><div class="hero-demo-stamp like">Match</div>
-            <img src="/brand/demo/demo-kenji-v2.jpg?v=1" alt="" loading="lazy" width="720" height="960">
+            <img data-src="/brand/demo/demo-kenji-v2.webp?v=1" alt="" loading="lazy" width="720" height="960">
             <div class="hero-demo-name"><b>Kenji, 25</b><span>Holmes Place Linz</span></div>
           </div>
           <div class="hero-demo-card" tabindex="-1" data-face-group="melina-selin">
             <div class="hero-demo-stamp pass">Nope</div><div class="hero-demo-stamp like">Match</div>
-            <img src="/brand/demo/demo-selin-v3.jpg?v=1" alt="" loading="lazy" width="720" height="960">
+            <img data-src="/brand/demo/demo-selin-v3.webp?v=1" alt="" loading="lazy" width="720" height="960">
             <div class="hero-demo-name"><b>Selin, 26</b><span>Holmes Place Linz</span></div>
           </div>
           <div class="hero-demo-card" tabindex="-1">
             <div class="hero-demo-stamp pass">Nope</div><div class="hero-demo-stamp like">Match</div>
-            <img src="/brand/demo/demo-cem-v2.jpg?v=1" alt="" loading="lazy" width="720" height="960">
+            <img data-src="/brand/demo/demo-cem-v2.webp?v=1" alt="" loading="lazy" width="720" height="960">
             <div class="hero-demo-name"><b>Cem, 29</b><span>Fitinn Wien</span></div>
           </div>
           <div class="hero-demo-card" tabindex="-1">
             <div class="hero-demo-stamp pass">Nope</div><div class="hero-demo-stamp like">Match</div>
-            <img src="/brand/demo/demo-felix-v2.jpg?v=1" alt="" loading="lazy" width="720" height="960">
+            <img data-src="/brand/demo/demo-felix-v2.webp?v=1" alt="" loading="lazy" width="720" height="960">
             <div class="hero-demo-name"><b>Felix, 32</b><span>FitOne Innsbruck</span></div>
           </div>
           <div class="hero-demo-card" tabindex="-1">
             <div class="hero-demo-stamp pass">Nope</div><div class="hero-demo-stamp like">Match</div>
-            <img src="/brand/demo/demo-maximilian-v2.jpg?v=1" alt="" loading="lazy" width="720" height="960">
+            <img data-src="/brand/demo/demo-maximilian-v2.webp?v=1" alt="" loading="lazy" width="720" height="960">
             <div class="hero-demo-name"><b>Maximilian, 30</b><span>McFit Graz</span></div>
           </div>
           <div class="hero-demo-card" tabindex="-1">
             <div class="hero-demo-stamp pass">Nope</div><div class="hero-demo-stamp like">Match</div>
-            <img src="/brand/demo/demo-fabian-v2.jpg?v=1" alt="" loading="lazy" width="720" height="960">
+            <img data-src="/brand/demo/demo-fabian-v2.webp?v=1" alt="" loading="lazy" width="720" height="960">
             <div class="hero-demo-name"><b>Fabian, 28</b><span>Das Gym Wien</span></div>
           </div>
           <div class="hero-demo-card" tabindex="-1">
             <div class="hero-demo-stamp pass">Nope</div><div class="hero-demo-stamp like">Match</div>
-            <img src="/brand/demo/demo-noah-v2.jpg?v=1" alt="" loading="lazy" width="720" height="960">
+            <img data-src="/brand/demo/demo-noah-v2.webp?v=1" alt="" loading="lazy" width="720" height="960">
             <div class="hero-demo-name"><b>Noah, 27</b><span>Outdoor Workout Wien</span></div>
           </div>
         </div>
@@ -2302,6 +2311,7 @@
           </button>
         </div>
         <div class="hero-demo-hint" data-i18n="hero.demoHint">Ziehen oder tippen · Beispielprofile</div>
+        <div class="hero-demo-hint short" data-i18n="hero.demoHintShort">Beispielprofile</div>
       </div>
     </div>
 
@@ -2342,7 +2352,7 @@
            im langen Formular sieht, wie weit man ist. -->
       <div class="journey journey-sticky" id="regJourney"></div>
       <!-- Beta-Gratisphase, siehe Kommentar bei den Hero-USPs. -->
-      <p class="sub" data-i18n-html="reg.sub">Erstell dein Profil — kostenlos, und das dauerhaft. FLEXR zu nutzen kostet nichts; es wird kein Zahlungsmittel abgefragt. FLEXR&nbsp;Premium (10&nbsp;€/Monat, jederzeit kündbar) kommt nach der Beta und ist freiwillig. Aktuell nur in Österreich verfügbar.</p>
+      <p class="sub" data-i18n-html="reg.sub">Erstell dein Profil — kostenlos, und das dauerhaft. FLEXR zu nutzen kostet nichts; es wird kein Zahlungsmittel abgefragt. FLEXR&nbsp;Premium (10&nbsp;€/Monat, jederzeit kündbar) ist freiwillig. Aktuell nur in Österreich verfügbar.</p>
 
       <label for="f-email" data-i18n="login.email">E-Mail</label>
       <input type="email" id="f-email" placeholder="max@example.com" autocomplete="email" inputmode="email">
@@ -2355,7 +2365,7 @@
       <label for="f-name" data-i18n="reg.name">Name</label>
       <input type="text" id="f-name" placeholder="Max" autocomplete="name">
 
-      <div class="row2">
+      <div class="row2 row2-stack-sm">
         <div>
           <label for="f-birthdate" data-i18n="reg.birthdate">Geburtsdatum</label>
           <input type="date" id="f-birthdate" class="date-empty" autocomplete="bday">
@@ -3447,7 +3457,7 @@
       <ul class="beta-facts">
         <li class="is-free"><b data-i18n="beta.freeLabel">Kostenlos</b><span data-i18n="beta.free">dauerhaft, ohne Zahlungsmittel</span></li>
         <li><b>Premium</b><span data-i18n="beta.premium">optional · 10 €/Monat</span></li>
-        <li><b>Android</b><span data-i18n="beta.android">Ende September 2026</span></li>
+        <li><b>Android</b><span data-i18n="beta.android">bald im Play Store</span></li>
         <li><b class="as-written">iOS</b><span data-i18n-html="beta.ios">Web-App für den Home-Bildschirm · <a href="/app/?ios=installieren">jetzt&nbsp;installieren</a></span></li>
         <li><b>Feedback</b><span><a href="mailto:flexr.social@proton.me">flexr.social@proton.me</a></span></li>
       </ul>
@@ -3696,6 +3706,13 @@
           : fromTop === 1
             ? 'rotate(5deg) translate(9px,5px) scale(.965)'
             : 'rotate(-7deg) translate(-11px,8px) scale(.93)';
+        /* Bild erst laden, wenn die Karte in die obersten vier rueckt. Alle
+           24 Karten liegen uebereinander im Viewport, loading="lazy" griff
+           deshalb nicht - jeder ausgeloggte Aufruf lud 2,3 MB JPEG. loading="lazy"
+           bleibt trotzdem stehen: Eingeloggt ist der Hero ausgeblendet, dann
+           laedt der Browser auch die vier nicht. */
+        const img = card.querySelector('img[data-src]');
+        if(img && fromTop <= 3){ img.src = img.dataset.src; img.removeAttribute('data-src'); }
         card.tabIndex = fromTop === 0 ? 0 : -1;
         card.setAttribute('aria-hidden', fromTop === 0 ? 'false' : 'true');
         clearStamps(card);
@@ -4398,6 +4415,7 @@
     const results = $(resultsId);
     const picked = $(pickedId);
     let timer = null;
+    let searchSeq = 0;
 
     function close(){ results.classList.remove('open'); }
 
@@ -4445,9 +4463,12 @@
       clearTimeout(timer);
       const term = input.value.trim();
       timer = setTimeout(async () => {
+        // Nur die Antwort auf die letzte Anfrage zaehlt - eine langsamere
+        // aeltere darf die Liste nicht nachtraeglich ueberschreiben.
+        const seq = ++searchSeq;
         try{
           const gyms = await api('/api/gyms?q=' + encodeURIComponent(term));
-          render(gyms, term);
+          if(seq === searchSeq) render(gyms, term);
         }catch(err){ console.error(err); }
       }, 250);
     });
@@ -5654,11 +5675,12 @@
   // Tipp auf eine Mitteilung: auf den passenden Reiter. Der Service Worker
   // schickt das Ziel als Nachricht (App war offen) oder als ?open= (App wurde
   // dafuer gestartet).
-  const OEFFNEN_ZIELE = ['swipe', 'matches', 'chats'];
+  const OEFFNEN_ZIELE = ['swipe', 'matches', 'chats', 'premium'];
   let offenesZiel = null;
   function oeffneZiel(ziel){
     if(!OEFFNEN_ZIELE.includes(ziel)) return;
     if(!token || !myProfile || !accountActivated()){ offenesZiel = ziel; return; }
+    if(ziel === 'premium'){ showPremiumScreen(); return; }
     const knopf = document.querySelector(`nav.bottom button[data-screen="${ziel}"]`);
     if(knopf) knopf.click();
   }
@@ -5667,6 +5689,20 @@
       if(e.data && e.data.type === 'flexr-open') oeffneZiel(e.data.target);
     });
   }
+  /* Einstieg von der Landingpage: "Gratis loslegen" -> #registrieren,
+     "Einloggen" -> #login, "Premium holen" -> #premium. Vorher zeigten alle
+     drei auf /app/ ohne Ziel - man landete immer auf "Einloggen", am Handy
+     rund anderthalb Bildschirme ueber dem Formular, und #premium wurde gar
+     nicht ausgewertet. boot() wertet einstiegAusHash aus. */
+  let einstiegAusHash = null;
+  (function hashAusAdresse(){
+    const h = location.hash.replace('#', '').toLowerCase();
+    const bekannt = {registrieren:'register', register:'register', login:'login', premium:'premium'};
+    if(!bekannt[h]) return;
+    einstiegAusHash = bekannt[h];
+    if(einstiegAusHash === 'premium') offenesZiel = 'premium';
+    history.replaceState(null, '', location.pathname + location.search);
+  })();
   (function zielAusAdresse(){
     const params = new URLSearchParams(location.search);
     const ziel = params.get('open');
@@ -8512,7 +8548,27 @@
         return;
       }catch(e){ /* Token ungültig/abgelaufen — weiter zum Login */ }
     }
-    showScreen('screen-login');
+    if(einstiegAusHash === 'register'){
+      showScreen('screen-onboard');
+      renderRegJourney();
+    }else{
+      showScreen('screen-login');
+    }
+    // Wer gezielt zum Formular wollte, bekommt es direkt zu sehen - am Handy
+    // steht darueber sonst der ganze Hero.
+    // Erst nach "load": Der Browser setzt beim Laden einer Adresse mit #...
+    // die Scrollposition selbst und haette ein frueheres Scrollen wieder
+    // zurueckgenommen.
+    if(einstiegAusHash){
+      const zumFormular = () => setTimeout(() => {
+        const karte = document.querySelector('.screen.active');
+        if(karte && karte.getBoundingClientRect().top > window.innerHeight * 0.6){
+          karte.scrollIntoView({block:'start'});
+        }
+      }, 0);
+      if(document.readyState === 'complete') zumFormular();
+      else window.addEventListener('load', zumFormular, {once:true});
+    }
   }
 
   /* Nach einem Sprachwechsel: alles neu zeichnen, was nicht ueber data-i18n

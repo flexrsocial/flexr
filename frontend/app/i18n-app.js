@@ -61,6 +61,7 @@
     'hero.demoPass': 'Beispielprofil ablehnen',
     'hero.demoLike': 'Beispielprofil gefällt mir',
     'hero.demoHint': 'Ziehen oder tippen · Beispielprofile',
+    'hero.demoHintShort': 'Beispielprofile',
 
     // ---- Login
     'login.tabLogin': 'Einloggen',
@@ -106,7 +107,7 @@
     // ---- Registrierung
     'reg.eyebrow': 'Erste Wiederholung',
     'reg.h1': 'Dating für Leute,<br>die auch Montags<br>Beintag machen.',
-    'reg.sub': 'Erstell dein Profil — kostenlos, und das dauerhaft. FLEXR zu nutzen kostet nichts; es wird kein Zahlungsmittel abgefragt. FLEXR&nbsp;Premium (10&nbsp;€/Monat, jederzeit kündbar) kommt nach der Beta und ist freiwillig. Aktuell nur in Österreich verfügbar.',
+    'reg.sub': 'Erstell dein Profil — kostenlos, und das dauerhaft. FLEXR zu nutzen kostet nichts; es wird kein Zahlungsmittel abgefragt. FLEXR&nbsp;Premium (10&nbsp;€/Monat, jederzeit kündbar) ist freiwillig. Aktuell nur in Österreich verfügbar.',
     'reg.password': 'Passwort',
     'reg.passwordPh': 'Mind. 8 Zeichen',
     'reg.password2': 'Passwort wiederholen',
@@ -629,7 +630,7 @@
     'beta.freeLabel': 'Kostenlos',
     'beta.free': 'dauerhaft, ohne Zahlungsmittel',
     'beta.premium': 'optional · 10 €/Monat',
-    'beta.android': 'Ende September 2026',
+    'beta.android': 'bald im Play Store',
     'beta.ios': 'Web-App für den Home-Bildschirm · <a href="/app/?ios=installieren">jetzt&nbsp;installieren</a>',
     'beta.ok': 'Verstanden',
     'beta.closeAria': 'Hinweis schließen',
@@ -680,6 +681,7 @@
     'hero.demoPass': 'Pass on example profile',
     'hero.demoLike': 'Like example profile',
     'hero.demoHint': 'Drag or tap · example profiles',
+    'hero.demoHintShort': 'Example profiles',
 
     'login.tabLogin': 'Log in',
     'login.tabRegister': 'Sign up',
@@ -723,7 +725,7 @@
 
     'reg.eyebrow': 'First rep',
     'reg.h1': 'Dating for people<br>who do leg day<br>on Mondays.',
-    'reg.sub': 'Create your profile — free of charge, permanently. Using FLEXR costs nothing; no payment method is requested. FLEXR&nbsp;Premium (€10/month, cancel any time) arrives after the beta and is optional. Currently available in Austria only.',
+    'reg.sub': 'Create your profile — free of charge, permanently. Using FLEXR costs nothing; no payment method is requested. FLEXR&nbsp;Premium (€10/month, cancel any time) is optional. Currently available in Austria only.',
     'reg.password': 'Password',
     'reg.passwordPh': 'At least 8 characters',
     'reg.password2': 'Repeat password',
@@ -1205,7 +1207,7 @@
     'beta.freeLabel': 'Free',
     'beta.free': 'permanently, no payment method',
     'beta.premium': 'optional · €10/month',
-    'beta.android': 'End of September 2026',
+    'beta.android': 'coming soon to Google Play',
     'beta.ios': 'web app for your Home Screen · <a href="/app/?ios=installieren">install&nbsp;now</a>',
     'beta.ok': 'Got it',
     'beta.closeAria': 'Close notice',

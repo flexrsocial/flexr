@@ -74,13 +74,15 @@
 // i18n-app.js auf ?v=20.
 // v27: QR-Text nur noch "Scanne den Code mit der iPhone-Kamera."; i18n-app.js auf ?v=21.
 // v28: QR-Satz in der Installationsanleitung zentriert (nur Stil in index.html).
-const CACHE = 'flexr-shell-v28';
+// v29: Einstieg per #registrieren/#login/#premium, Demo-Deck als WebP und erst
+// bei Bedarf geladen, Texte (Android-Zeile, Premium-Satz); i18n-app.js auf ?v=22.
+const CACHE = 'flexr-shell-v29';
 // Seit dem 15.08.2026 liegt die App unter /app/, an der Wurzel steht die
 // oeffentliche Landingpage. Beide gehoeren in die Shell: die Landingpage,
 // weil sie der Einstieg ist, die App, weil sie offline funktionieren soll.
 const SHELL = ['/', '/index.html', '/en/', '/en/index.html',
                '/app/', '/app/index.html',
-               '/lang-switch.js?v=2', '/i18n.js?v=5', '/app/i18n-app.js?v=21',
+               '/lang-switch.js?v=2', '/i18n.js?v=5', '/app/i18n-app.js?v=22',
                '/manifest.json', '/favicon.ico', '/legal.css?v=2',
                '/fonts/work-sans.woff2?v=1', '/fonts/oswald.woff2?v=1',
                '/icons/icon-192.png?v=4', '/icons/icon-512.png?v=4'];
