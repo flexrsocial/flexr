@@ -32,6 +32,17 @@ erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 
 ## Wo das Projekt gerade steht
 
+> **Sitzung 30.09.2026 (7) — Web-App-Einstieg (Desktop) aufgeraeumt.**
+> Deployed (`893df81`, `git pull`, 664, md5-gleich). Kacheln auf den
+> SEO-Seiten gleich gross (`69b907f`, `grid-auto-rows:1fr`). In
+> `frontend/app/index.html`: iPhone-Knopf (`.hero-dl`) steht ab 861px im
+> Grid direkt unter dem Einleitungstext neben dem Musterdeck statt als
+> letzte Zeile auf der Rechtsleiste. Auf allen Screens ausser
+> `screen-login` ist `.landing-hero` ab 861px `align-self:start;
+> position:sticky; top:24px` - bei der langen Registrierungskarte rutschte
+> er mittig ausgerichtet weit nach unten. Login bleibt mittig (frueherer
+> Nutzerwunsch). Mobil unveraendert.
+
 > **Sitzung 30.09.2026 (6) — SEO-Lauf: Such-Einstiegsseiten.** Deployed
 > (`8c3f6b4`, nur `git pull`, Rechte 664, md5-gleich, alle neuen URLs 200).
 > Technische SEO war schon komplett (Meta, hreflang, Sitemap, JSON-LD,
