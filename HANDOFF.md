@@ -32,6 +32,40 @@ erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 
 ## Wo das Projekt gerade steht
 
+> **Sitzung 30.09.2026 (5) — Store-Kaeufe ans Konto gebunden, Android 2.7.21.**
+> Backend deployed (`9211aaa`, `git pull`, API-Neustart, md5-gleich,
+> `/api/health` ok, keine Migration). Tests: Backend 586, Android Unit-Tests
+> und Lint (0 Fehler) gruen.
+>
+> - Android setzt `setObfuscatedAccountId(SHA-256 der Nutzer-ID)`
+>   (`kontoKennung()` in `PlayBillingService.kt`, Test `KontoKennungTest`
+>   gegen denselben Hash wie `store_billing.google_account_id`), iOS
+>   `purchase(options: [.appAccountToken(UUID(Nutzer-ID))])`.
+> - Backend liest `externalAccountIdentifiers.obfuscatedExternalAccountId`
+>   bzw. `appAccountToken` und nimmt einen gekennzeichneten Kauf nur vom
+>   passenden Konto an (`KAUF_GEHOERT_ANDEREM_KONTO`, 400). Kaeufe ohne
+>   Kennung (aeltere App-Fassungen) wandern wie bisher; Store-
+>   Benachrichtigungen sind nicht betroffen. **Folge:** Wer sein Konto neu
+>   anlegt, bekommt ein gebundenes Abo nicht mehr automatisch mit - das
+>   geht dann nur ueber den Support.
+> - **Android 2.7.21 / versionCode 133** in `release-2.7.21/` (gitignored):
+>
+> | | SHA-256 | Groesse |
+> |---|---|---|
+> | AAB (Play Console) | `fab464dee8e80acc3135e2b3d7843b732be8d6a31588ca1d1a4d5d10959d1c78` | 8.532.126 Bytes |
+> | APK | `63b586474f03aca97ffb6dbe0a1d8f045569ef379dc8447d800d4008903b5ca6` | 4.419.422 Bytes |
+>
+> aapt2: 133 / 2.7.21; Signer SHA-256 `bc64ad3f…140e7980` (Upload-Key), AAB
+> CN=FLEXR. **Offen:** Upload in die Play Console (Nutzer), iOS-Build ueber
+> Codemagic (Swift-Aenderung in `StoreKitService.swift`/`PaywallView.swift`
+> ist hier nicht compilierbar).
+>
+> **Erledigt:** gzip fuer JS/CSS/SVG ist live aktiv (in
+> `/etc/nginx/sites-available/flexr.social`, Zeilen 26-31; gemessen:
+> `i18n-app.js` 25 KB statt 80 KB, `Content-Encoding: gzip`). **Nicht
+> gewuenscht:** Telegram-Bot-Token rotieren (Entscheidung des Nutzers
+> 30.09.2026) - der Punkt entfaellt.
+
 > **Sitzung 30.09.2026 (4) — Sicherheits-Audit, Teil 2. Alles deployed**
 > (~14:48, DB-Backup `/home/deploy/db-backups/flexr-vor-deploy-20260930-1448.sql.gz`
 > in eigenem Aufruf, dann `git pull` bis `4810ee5`, `alembic upgrade head` ->
