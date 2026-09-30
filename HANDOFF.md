@@ -32,6 +32,24 @@ erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 
 ## Wo das Projekt gerade steht
 
+> **Nachtrag 30.09.2026 (2) — Android 2.7.20 / iOS nachgezogen** (`626dc17`):
+> Gespraechseinstiege im leeren Chat (`chat_ice_*` / `.chatIce*`) und
+> Feldfehler bei der Registrierung (`RegisterField`, `errorField`,
+> `errorSeq`; Android `FieldAnchor` mit BringIntoViewRequester, iOS
+> ScrollViewReader + `.id(RegisterField.x)`). Die Web-App vom
+> iPhone-Home-Bildschirm ist `/app/` und hatte alles schon.
+> Android: compile, Unit-Tests, Lint gruen; **2.7.20 / versionCode 132**
+> gebaut, in `release-2.7.20/` (gitignored):
+>
+> | | SHA-256 | Groesse |
+> |---|---|---|
+> | AAB (Play Console) | `2018ae1c1e554b1d27d0873ad906add7a59e9c80d50dbbeb21b4ce57c16ead2d` | 8.532.028 Bytes |
+> | APK | `847d77fa0e54bc9ae94b0e303264b74cba23a82170dc6436abbf19357bc4e66d` | 4.419.426 Bytes |
+>
+> aapt2: 132 / 2.7.20; Signer SHA-256 `bc64ad3f…140e7980` (Upload-Key),
+> AAB CN=FLEXR. **Offen:** Upload in die Play Console (Nutzer). iOS lokal
+> nicht baubar - Codemagic-Lauf (`ios-flexr`) muss zeigen, dass es kompiliert.
+>
 > **Nachtrag 30.09.2026 — UX-Vorschlaege 1-5 umgesetzt, deployed** (`d13b692`,
 > live md5-gleich, DE/EN geprueft, keine Konsolenfehler):
 > 1. Landing-Reihenfolge: Hero -> So funktioniert's -> Muster-Deck -> Gym ->

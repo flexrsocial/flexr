@@ -289,8 +289,10 @@ android {
         // Login (AppState.Unreachable mit Neuversuch), Chatnachrichten mit
         // Datum, Schrittanzeige bis zum ersten Swipe (JourneyBar),
         // Datenschutz-Kurzfassung um Push-Mitteilungen ergaenzt.
-        versionCode = 131
-        versionName = "2.7.19"
+        // 132/2.7.20 am 30.09.2026: Gespraechseinstiege im leeren Chat,
+        // Registrierung markiert das erste fehlende Feld und scrollt hin.
+        versionCode = 132
+        versionName = "2.7.20"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         // Nur die Sprachen ausliefern, die es wirklich gibt: Deutsch als
