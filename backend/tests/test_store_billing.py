@@ -442,3 +442,13 @@ def test_blatt_ohne_app_store_markierung_wird_abgewiesen(apple, kette):
     )
     with pytest.raises(store_billing.StoreVerificationError):
         store_billing.verify_apple_jws(gefaelscht)
+
+
+@pytest.mark.parametrize("token", ["../../../edits/xyz-abcdef", "abc/def/ghijkl", "abcdefghij?x=1"])
+def test_play_token_mit_pfadzeichen_wird_nicht_nachgefragt(monkeypatch, token):
+    aufrufe = []
+    monkeypatch.setattr(store_billing, "google_configured", lambda: True)
+    monkeypatch.setattr(store_billing.requests, "get", lambda *a, **k: aufrufe.append(a))
+    with pytest.raises(store_billing.StoreVerificationError):
+        store_billing.google_subscription_from_token(token)
+    assert aufrufe == []

@@ -34,6 +34,7 @@ from __future__ import annotations
 import base64
 import json
 import logging
+import re
 import time
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -337,6 +338,11 @@ def google_subscription_from_token(purchase_token: str) -> dict[str, Any]:
     """Einen Play-Kauf bei Google nachschlagen."""
     if not google_configured():
         raise StoreVerificationError("Play-Kaeufe sind auf diesem Server nicht eingerichtet.")
+    # Der Token landet im URL-Pfad einer Anfrage, die mit unserem
+    # Dienstkonto signiert ist. Ohne Pruefung liesse sich mit "../" jeder
+    # andere Endpunkt der Play-API unter unseren Rechten aufrufen.
+    if not re.fullmatch(r"[A-Za-z0-9._-]{10,4000}", purchase_token) or ".." in purchase_token:
+        raise StoreVerificationError("Ungueltiger Kauf-Token.")
 
     antwort = requests.get(
         f"{_GOOGLE_API}/applications/{settings.google_package_name}"
