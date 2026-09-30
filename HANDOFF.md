@@ -32,6 +32,47 @@ erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 
 ## Wo das Projekt gerade steht
 
+> **Sitzung 30.09.2026 (4) — Sicherheits-Audit, Teil 2. Alles deployed**
+> (~14:48, DB-Backup `/home/deploy/db-backups/flexr-vor-deploy-20260930-1448.sql.gz`
+> in eigenem Aufruf, dann `git pull` bis `4810ee5`, `alembic upgrade head` ->
+> `d2a9f4c6b8e1`, API-Neustart; live md5-gleich, keine 600er-Dateien,
+> `/api/health` ok). Tests: Backend 582 gruen.
+>
+> - `ee41b31` **Stripe-Webhooks**: `users.stripe_event_at`; aeltere
+>   Abo-Ereignisse werden verworfen (ein verspaetetes "updated" nach
+>   "deleted" oeffnete Premium wieder). Das spaete Ende eines *frueheren*
+>   Abos desselben Kunden beendete ueber den Kunden-ID-Rueckfall das neue -
+>   ein fremdes Abo darf den Status jetzt nur noch uebernehmen, nie beenden.
+> - `7cfc27b` **Apple-Belege**: genau 3 Zertifikate, Blatt mit OID
+>   `1.2.840.113635.100.6.11.1`, Zwischenstelle mit
+>   `1.2.840.113635.100.6.2.1` (am echten WWDR-G6-Zertifikat gegengeprueft).
+>   Vorher genuegte jede Kette unter Apple Root G3 - darunter liegen auch
+>   Entwicklerzertifikate mit privatem Schluessel beim Entwickler.
+> - `4494e0d` **Play-Kauf-Token** nur `[A-Za-z0-9._-]`, kein `..` (steht im
+>   Pfad einer mit unserem Dienstkonto signierten Google-Anfrage).
+> - `dc7c8ca` Admin-Login rechnet bei unbekannter Adresse gleich lange.
+> - `4810ee5` Barrierefreiheit: `aria-label` fuer Chat-Eingabe und
+>   Admin-Filter.
+>
+> Geprueft ohne Befund: Chat/Match-Zugriff (immer auf Beteiligte, Sperren
+> beidseitig), XSS (alle Nutzerdaten per `escapeHtml`), Security-Header
+> (HSTS, CSP, Frame-Schutz), SEO (Titel/Beschreibung/Canonical/OG/Sitemap,
+> noindex fuer App/Admin/404), 375 px ohne horizontalen Ueberlauf,
+> Admin-2FA aktiv (einziges Konto), Android-Token app-privat und vom Backup
+> ausgenommen.
+>
+> **Apps:** Keine Aenderung noetig - alle Backend-Aenderungen sind
+> abwaertskompatibel. `?limit` bewusst nicht in Android uebernommen
+> (`MessageRepository.refresh` ersetzt den lokalen Verlauf komplett, ein
+> Ausschnitt wuerde aeltere Nachrichten loeschen). Kein neuer Android-/iOS-Build.
+>
+> **Bewusst offen / Produktentscheidung:** Store-Kaeufe sind nicht an das
+> FLEXR-Konto gebunden (kein `obfuscatedAccountId`/`appAccountToken`) - ein
+> Kauf "wandert" zum Konto, das ihn einreicht (gewollt fuer Neuanlage mit
+> demselben Apple/Google-Zugang). CSP erlaubt `'unsafe-inline'` fuer Skripte
+> (Einzeldatei-App). TOTP-Codes sind innerhalb ihres Fensters mehrfach
+> verwendbar.
+
 > **Sitzung 30.09.2026 (3) — Sicherheits-Audit, Teil 1. Alles deployed**
 > (~14:31, DB-Backup `/home/deploy/db-backups/flexr-vor-deploy-20260930-1431.sql.gz`,
 > `git pull` als `deploy` bis `cb1a03d`, `alembic upgrade head` ->
