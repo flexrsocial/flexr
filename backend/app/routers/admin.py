@@ -160,6 +160,11 @@ def admin_login(
 ):
     admin = db.query(AdminUser).filter(func.lower(AdminUser.email) == payload.email).first()
     if not admin:
+        # Gleich lange rechnen wie bei einem echten Konto - sonst verraet die
+        # Antwortzeit, welche Adressen Admin-Zugaenge sind.
+        from .auth import _DUMMY_HASH
+
+        verify_password(payload.password, _DUMMY_HASH)
         raise HTTPException(401, "E-Mail oder Passwort falsch.")
     if admin.locked_until and admin.locked_until > utcnow():
         raise HTTPException(
