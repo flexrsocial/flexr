@@ -408,3 +408,16 @@ def test_message_is_stored_trimmed(client):
 
     messages = client.get(f"/api/matches/{match_id}/messages", headers=headers_b).json()
     assert [m["content"] for m in messages] == ["Hallo!"]
+
+
+def test_limit_liefert_die_juengsten_nachrichten_aufsteigend(client):
+    match_id, (headers_a, _), (headers_b, _) = make_match(client)
+    for i in range(5):
+        client.post(f"/api/matches/{match_id}/messages", headers=headers_b,
+                    json={"content": f"Nachricht {i}"})
+    msgs = client.get(f"/api/matches/{match_id}/messages?limit=2", headers=headers_a).json()
+    assert [m["content"] for m in msgs] == ["Nachricht 3", "Nachricht 4"]
+    # Alle fuenf gelten als gelesen, nicht nur die zwei gezeigten
+    alle = client.get(f"/api/matches/{match_id}/messages", headers=headers_b).json()
+    assert all(m["read_at"] for m in alle)
+    assert client.get(f"/api/matches/{match_id}/messages?limit=0", headers=headers_a).status_code == 422

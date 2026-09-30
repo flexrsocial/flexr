@@ -887,6 +887,7 @@
   }
   .chat-messages:hover{ scrollbar-color:rgba(255,90,31,.45) transparent; }
   .msg-wrap{ display:flex; flex-direction:column; max-width:82%; }
+  .chat-older{ align-self:center; width:auto; margin:4px 0 8px; min-height:44px; }
   .msg-wrap.mine{ align-self:flex-end; align-items:flex-end; }
   .msg-wrap.theirs{ align-self:flex-start; align-items:flex-start; }
   .msg-bubble{ max-width:100%; padding:9px 13px; font-size:14px; line-height:1.45; word-wrap:break-word; }
@@ -2137,7 +2138,7 @@
      laufen synchron und damit vor dem DOMContentLoaded, bei dem FlexrI18n die
      data-i18n-Knoten uebersetzt. -->
 <script src="/i18n.js?v=5"></script>
-<script src="/app/i18n-app.js?v=23"></script>
+<script src="/app/i18n-app.js?v=24"></script>
 <a class="skip-link" href="#main-content" data-i18n="common.skipToContent">Zum Inhalt springen</a>
 <div class="app" id="app">
 
@@ -8140,6 +8141,13 @@
   // ---------- Chat ----------
   let currentChatMatchId = null;
   let chatPollInterval = null;
+  // Nur die juengsten Nachrichten abfragen (alle 4 s) - "Aeltere anzeigen"
+  // erhoeht den Ausschnitt. chatRenderKey verhindert, dass ein unveraenderter
+  // Verlauf alle 4 s neu gezeichnet wird (Markierung und Scrollposition
+  // gingen dabei verloren).
+  const CHAT_PAGE = 100;
+  let chatLimit = CHAT_PAGE;
+  let chatRenderKey = '';
 
   // Merkt sich, von wo der Chat geöffnet wurde ('chats' oder 'matches'),
   // damit der Zurück-Pfeil dorthin zurückführt.
@@ -8148,6 +8156,8 @@
   async function openChat(matchId, origin){
     chatOrigin = origin || 'chats';
     currentChatMatchId = matchId;
+    chatLimit = CHAT_PAGE;
+    chatRenderKey = '';
     const match = findMatchById(matchId);
     if(match){
       $('chatAvatar').src = photoThumb(match.profile.photos && match.profile.photos[0]);
@@ -8264,7 +8274,7 @@
     if(document.visibilityState === 'hidden') return;
     const matchId = currentChatMatchId;
     try{
-      const messages = await api(`/api/matches/${matchId}/messages`);
+      const messages = await api(`/api/matches/${matchId}/messages?limit=${chatLimit}`);
       // Inzwischen in einen anderen Chat gewechselt (oder zurueck zur Liste):
       // die verspaetete Antwort gehoert nicht in den offenen Verlauf.
       if(matchId !== currentChatMatchId) return;
@@ -8303,7 +8313,16 @@
       + saetze.map(x => `<button type="button" class="eisbrecher-chip">${escapeHtml(x)}</button>`).join('')
       + '</div>';
   }
-  $('chatMessages').addEventListener('click', (e) => {
+  $('chatMessages').addEventListener('click', async (e) => {
+    if(e.target.closest && e.target.closest('#chatOlder')){
+      const box = $('chatMessages');
+      const vonUnten = box.scrollHeight - box.scrollTop;
+      chatLimit += CHAT_PAGE;
+      await loadMessages();
+      // Position halten: die bisher oberste Nachricht bleibt, wo sie war.
+      box.scrollTop = box.scrollHeight - vonUnten;
+      return;
+    }
     const chip = e.target.closest && e.target.closest('.eisbrecher-chip');
     if(!chip) return;
     const input = $('chatInput');
@@ -8314,6 +8333,10 @@
 
   function renderMessages(messages){
     const box = $('chatMessages');
+    const key = chatLimit + '|' + ($('chatInput').disabled ? 1 : 0) + '|'
+      + messages.map(m => m.id + (m.read_at ? 'r' : '')).join(',');
+    if(key === chatRenderKey) return;
+    chatRenderKey = key;
     const wasAtBottom = (box.scrollTop + box.clientHeight) >= (box.scrollHeight - 40);
     if(messages.length === 0){
       box.innerHTML = `
@@ -8325,7 +8348,10 @@
         </div>`;
       return;
     }
-    box.innerHTML = messages.map(m => {
+    const mehr = messages.length >= chatLimit
+      ? `<button type="button" class="btn secondary chat-older" id="chatOlder">${escapeHtml(t('chat.older'))}</button>`
+      : '';
+    box.innerHTML = mehr + messages.map(m => {
       const mine = m.sender_id === myProfile.id;
       const time = chatTimeLabel(parseServerDate(m.created_at));
       const receipt = mine ? `<span class="receipt ${m.read_at ? 'read' : ''}">${m.read_at ? '✓✓' : '✓'}</span>` : '';

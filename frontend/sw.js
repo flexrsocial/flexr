@@ -81,13 +81,14 @@
 // v31: Beta-Leiste statt Dialog, Landingpage-Reihenfolge, schlankere
 // Schrittanzeige, Feld-Markierung bei der Registrierung, Gespraechseinstiege
 // im leeren Chat; i18n-app.js auf ?v=23.
-const CACHE = 'flexr-shell-v31';
+// v32: Chat laedt nur die juengsten Nachrichten ("Aeltere anzeigen"), i18n-app.js?v=24.
+const CACHE = 'flexr-shell-v32';
 // Seit dem 15.08.2026 liegt die App unter /app/, an der Wurzel steht die
 // oeffentliche Landingpage. Beide gehoeren in die Shell: die Landingpage,
 // weil sie der Einstieg ist, die App, weil sie offline funktionieren soll.
 const SHELL = ['/', '/index.html', '/en/', '/en/index.html',
                '/app/', '/app/index.html',
-               '/lang-switch.js?v=2', '/i18n.js?v=5', '/app/i18n-app.js?v=23',
+               '/lang-switch.js?v=2', '/i18n.js?v=5', '/app/i18n-app.js?v=24',
                '/manifest.json', '/favicon.ico', '/legal.css?v=2',
                '/fonts/work-sans.woff2?v=1', '/fonts/oswald.woff2?v=1',
                '/icons/icon-192.png?v=4', '/icons/icon-512.png?v=4'];

@@ -1,7 +1,7 @@
 import logging
 from datetime import datetime
 
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, Request
 from sqlalchemy import and_, or_
 from sqlalchemy.orm import Session
 
@@ -83,6 +83,13 @@ def _benachrichtigungstext(m: Message, empfaenger_id: str) -> str:
 @router.get("/{match_id}/messages", response_model=list[MessageOut])
 def list_messages(
     match_id: str,
+    limit: int | None = Query(
+        None, ge=1, le=1000,
+        description=(
+            "Nur die juengsten N Nachrichten (weiterhin aufsteigend sortiert). "
+            "Ohne Angabe der ganze Verlauf - so erwarten es die ausgelieferten Apps."
+        ),
+    ),
     current_user: User = Depends(require_active_membership),
     db: Session = Depends(get_db),
 ):
@@ -93,10 +100,27 @@ def list_messages(
     cleared_at = match.cleared_at_for(current_user.id)
     if cleared_at is not None:
         query = query.filter(Message.created_at > cleared_at)
-    messages = query.order_by(Message.created_at.asc()).all()
+    if limit is None:
+        messages = query.order_by(Message.created_at.asc()).all()
+    else:
+        # Die Web-App fragt alle paar Sekunden ab - ohne Grenze waechst jede
+        # Abfrage mit dem Verlauf mit.
+        messages = query.order_by(Message.created_at.desc(), Message.id.desc()).limit(limit).all()
+        messages.reverse()
 
     now = utcnow()
     unread_ids = {m.id for m in messages if m.sender_id == other_id and m.read_at is None}
+    # Auch ungelesene ausserhalb des Ausschnitts gelten als gelesen - wer den
+    # Chat offen hat, hat ihn gesehen, und sonst bliebe der Zaehler haengen.
+    if limit is not None:
+        unread_ids |= {
+            row.id
+            for row in db.query(Message.id).filter(
+                Message.match_id == match_id,
+                Message.sender_id == other_id,
+                Message.read_at.is_(None),
+            )
+        }
 
     # Die Antwort wird vor dem Commit gebaut (und read_at für die eben als
     # gelesen markierten hier direkt am Ausgabeobjekt gesetzt, nicht am
