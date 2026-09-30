@@ -106,7 +106,7 @@
     'how.step3P': 'Du siehst passende Profile aus deinem Umkreis. Liken sich zwei Leute gegenseitig, entsteht ein Match – und erst dann könnt ihr schreiben. Vorher landet bei dir keine ungefragte Nachricht.',
 
     'at.h2': 'Für Gym-People in ganz Österreich',
-    'at.p1': 'FLEXR funktioniert mit jeder österreichischen Postleitzahl – in <b>Wien</b> genauso wie in <b>Graz</b>, <b>Linz</b>, <b>Salzburg</b>, <b>Innsbruck</b>, <b>Klagenfurt</b>, <b>Villach</b>, <b>Wels</b>, <b>St. Pölten</b>, <b>Dornbirn</b> oder <b>Wiener Neustadt</b>.',
+    'at.p1': 'FLEXR funktioniert mit jeder österreichischen Postleitzahl – in <a href="/fitness-dating-wien.html"><b>Wien</b></a> genauso wie in <a href="/fitness-dating-graz.html"><b>Graz</b></a>, <a href="/fitness-dating-linz.html"><b>Linz</b></a>, <a href="/fitness-dating-salzburg.html"><b>Salzburg</b></a>, <a href="/fitness-dating-innsbruck.html"><b>Innsbruck</b></a>, <a href="/fitness-dating-klagenfurt.html"><b>Klagenfurt</b></a>, <b>Villach</b>, <b>Wels</b>, <b>St. Pölten</b>, <b>Dornbirn</b> oder <b>Wiener Neustadt</b>.',
     'at.p2': 'Ehrlich dazu: Wie viele Profile du siehst, hängt davon ab, wie viele Leute in deinem Umkreis dabei sind. In Ballungsräumen sind es mehr als am Land. Wir nennen bewusst keine Nutzerzahlen und versprechen keine bestimmte Anzahl an Matches – wer das tut, hat sie meist erfunden. Wenn du am Land wohnst, stell den Radius größer ein; die nächste größere Stadt ist oft näher, als es sich anfühlt.',
     'at.p3': 'FLEXR ist derzeit auf Österreich beschränkt. Das ist keine Übergangslösung, sondern der Punkt: Eine Dating-App, die in einem überschaubaren Markt gut funktioniert, ist mehr wert als eine, die überall ein bisschen läuft.',
 
@@ -174,6 +174,11 @@
     'start.p': 'Profil erstellen, Gym auswählen, loslegen. FLEXR zu nutzen kostet nichts — ohne Zahlungsmittel, ohne Frist.',
 
     'foot.toApp': 'Zur App',
+    'foot.discoverTitle': 'Entdecken',
+    'foot.gymDating': 'Gym-Dating in Österreich',
+    'foot.wien': 'Fitness-Dating Wien',
+    'foot.graz': 'Fitness-Dating Graz',
+    'foot.dateIdeas': 'Date-Ideen für Sportler',
     'foot.safetyTitle': 'Sicherheit',
     'foot.safetyTips': 'Sicherheitstipps',
     'foot.authorities': 'Für Behörden',
@@ -348,6 +353,11 @@
     'start.p': 'Create a profile, pick your gym, get going. Using FLEXR costs nothing — no payment method, no deadline.',
 
     'foot.toApp': 'To the app',
+    'foot.discoverTitle': 'Discover (German)',
+    'foot.gymDating': 'Gym dating in Austria',
+    'foot.wien': 'Fitness dating Vienna',
+    'foot.graz': 'Fitness dating Graz',
+    'foot.dateIdeas': 'Date ideas for athletes',
     'foot.safetyTitle': 'Safety',
     'foot.safetyTips': 'Safety tips',
     'foot.authorities': 'For authorities',
