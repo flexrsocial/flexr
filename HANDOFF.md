@@ -32,6 +32,50 @@ erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 
 ## Wo das Projekt gerade steht
 
+> **Sitzung 30.09.2026 (3) — Sicherheits-Audit, Teil 1. Alles deployed**
+> (~14:31, DB-Backup `/home/deploy/db-backups/flexr-vor-deploy-20260930-1431.sql.gz`,
+> `git pull` als `deploy` bis `cb1a03d`, `alembic upgrade head` ->
+> `c5e1d8a3f7b2`, `systemctl restart flexr-api`; live md5-gleich,
+> `/api/health` ok, `/app/` ohne Konsolenfehler). Tests: Backend 575 gruen.
+>
+> Commits:
+> - `9d7ffb8` **Foto-Schluessel strikt** (`storage.is_own_photo_key`,
+>   `is_own_selfie_key`, `is_document_key_for`): `users/<ich>/../<andere>/x.jpg`
+>   kam an der Praefixpruefung vorbei - der Browser loest `..` auf und zeigt
+>   ein fremdes Foto im eigenen Profil. Dazu: 404 im Storage -> abgewiesen,
+>   dasselbe Objekt nicht zweimal.
+> - `f2490e3` **Swipe-Ziel** muss die Deck-Bedingungen erfuellen (Art.-9-
+>   Einwilligung aktiv, Geschlecht passt) - vorher per Request jedes Konto
+>   likebar, Match mit widerrufenem Konto moeglich. Test-Fixtures auf
+>   gegengeschlechtliche Paare umgestellt.
+> - `d9fc7ca` **Meldungen**: offene Meldung gegen dieselbe Person -> keine
+>   zweite Akte/Telegram-Nachricht, Grund wird angehaengt. Chat-Auszug
+>   (juengste 100 Nachrichten, Original) wird gesichert (`reports.evidence`,
+>   Migration `c5e1d8a3f7b2`) und im Admin unter der Meldung angezeigt
+>   (`admin.js?v=2`) - "Match aufloesen" loeschte die Beweise vorher vor der
+>   Pruefung. Geleert 183 Tage nach der Entscheidung
+>   (`cleanup.purge_old_report_evidence`, laeuft beim Login mit).
+> - `641b5c4` DELETE `/api/profiles/me` 10/h; Push-Abmeldung nur eigene
+>   Tokens; Gym-Vorschlag ohne `ilike`-Platzhalter; `city` max. 100,
+>   Passwortfelder max. 500 Zeichen.
+> - `cb1a03d` **Chat**: `GET .../messages?limit=N` (optional, Apps
+>   unveraendert); Web-App fragt nur die juengsten 100 ab, "Aeltere
+>   Nachrichten anzeigen", kein Neuzeichnen bei unveraendertem Verlauf.
+>   sw.js v32, `i18n-app.js?v=24`. Lokal im Browser mit 120 Nachrichten
+>   geprueft.
+>
+> **Stolperstein beim Deploy:** `umask 077` (fuer das Backup) im selben
+> SSH-Aufruf wie `git pull` -> alle neu geschriebenen Dateien kamen mit 600,
+> nginx lieferte ~2 Minuten 403 fuer `/app/`, `sw.js`, `admin.js`. Behoben
+> per `chmod 664`. **Backup und `git pull` in getrennten Aufrufen machen**
+> (oder umask nur in einer Subshell).
+>
+> **Noch offen aus dem Audit** (naechste Runde): Chat-Zugriff/Admin/
+> Zahlungen-Webhooks/Store-Billing im Detail, Mobil-Apps (Android/iOS
+> muessen `?limit` nicht nutzen, profitieren aber nicht), Barrierefreiheit,
+> SEO, Browser-Durchgang der Flows. Weiterhin: gzip fuer JS/CSS in nginx
+> (root), Telegram-Token rotieren.
+
 > **Nachtrag 30.09.2026 (2) — Android 2.7.20 / iOS nachgezogen** (`626dc17`):
 > Gespraechseinstiege im leeren Chat (`chat_ice_*` / `.chatIce*`) und
 > Feldfehler bei der Registrierung (`RegisterField`, `errorField`,
