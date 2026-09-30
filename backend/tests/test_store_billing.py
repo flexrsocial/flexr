@@ -34,7 +34,7 @@ from app.timeutil import utcnow
 # ---------------------------------------------------------------------------
 
 
-def _cert(subject: str, key, issuer_name, issuer_key, ca: bool, tage: int = 30):
+def _cert(subject: str, key, issuer_name, issuer_key, ca: bool, tage: int = 30, oid=None):
     jetzt = datetime.now(timezone.utc)
     name = x509.Name([x509.NameAttribute(NameOID.COMMON_NAME, subject)])
     bauer = (
@@ -47,6 +47,11 @@ def _cert(subject: str, key, issuer_name, issuer_key, ca: bool, tage: int = 30):
         .not_valid_after(jetzt + timedelta(days=tage))
         .add_extension(x509.BasicConstraints(ca=ca, path_length=None), critical=True)
     )
+    if oid is not None:
+        # Apples Markierung: leerer ASN.1-NULL-Wert, wie im Original.
+        bauer = bauer.add_extension(
+            x509.UnrecognizedExtension(x509.ObjectIdentifier(oid), b"\x05\x00"), critical=False
+        )
     return bauer.sign(issuer_key, hashes.SHA256()), name
 
 
@@ -65,13 +70,24 @@ def kette():
 
     zwischen_key = ec.generate_private_key(ec.SECP256R1())
     zwischen, zwischen_name = _cert(
-        "Test Intermediate", zwischen_key, wurzel_name, wurzel_key, ca=True
+        "Test Intermediate", zwischen_key, wurzel_name, wurzel_key, ca=True,
+        oid="1.2.840.113635.100.6.2.1",
     )
 
     blatt_key = ec.generate_private_key(ec.SECP256R1())
-    blatt, _ = _cert("Test Leaf", blatt_key, zwischen_name, zwischen_key, ca=False)
+    blatt, _ = _cert(
+        "Test Leaf", blatt_key, zwischen_name, zwischen_key, ca=False,
+        oid="1.2.840.113635.100.6.11.1",
+    )
 
-    return {"wurzel": wurzel, "zwischen": zwischen, "blatt": blatt, "blatt_key": blatt_key}
+    # Zum Gegentest: ein Blatt aus demselben Baum, aber ohne App-Store-
+    # Markierung (so wie ein Apple-Pay-Zertifikat, dessen Schluessel ein
+    # Entwickler besitzt).
+    fremd_key = ec.generate_private_key(ec.SECP256R1())
+    fremd, _ = _cert("Other Leaf", fremd_key, zwischen_name, zwischen_key, ca=False)
+
+    return {"wurzel": wurzel, "zwischen": zwischen, "blatt": blatt, "blatt_key": blatt_key,
+            "fremd": fremd, "fremd_key": fremd_key}
 
 
 def _jws(nutzlast: dict, kette: dict) -> str:
@@ -415,3 +431,14 @@ def test_ohne_eingetragenes_produkt_kein_kauf_knopf(client, monkeypatch):
     ).json()
     assert daten["store_purchase_available"] is False
     assert daten["store_product_id"] is None
+
+
+def test_blatt_ohne_app_store_markierung_wird_abgewiesen(apple, kette):
+    """Ein Zertifikat unter Apples Wurzel, dessen Schluessel ein Entwickler
+    haelt (z. B. Apple Pay), darf keinen Kaufbeleg signieren koennen."""
+    gefaelscht = _jws(
+        {"bundleId": settings.apple_bundle_id, "productId": "x"},
+        {**kette, "blatt": kette["fremd"], "blatt_key": kette["fremd_key"]},
+    )
+    with pytest.raises(store_billing.StoreVerificationError):
+        store_billing.verify_apple_jws(gefaelscht)

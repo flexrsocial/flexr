@@ -113,6 +113,30 @@ def _verify_cert_signed_by(child: x509.Certificate, parent: x509.Certificate) ->
         raise StoreVerificationError("Unbekannter Schluesseltyp in der Zertifikatskette.")
 
 
+# Markierungen, die Apple in die Zertifikate der App-Store-Signatur schreibt
+# (Apple: "Validating the App Store receipt" / WWDC21 StoreKit 2). Ohne diese
+# Pruefung genuegte *irgendein* Zertifikat unter Apple Root CA G3 - darunter
+# liegen auch solche, deren privaten Schluessel Entwickler selbst halten
+# (etwa Apple-Pay-Zertifikate). Damit liesse sich ein Kaufbeleg faelschen.
+APPLE_LEAF_OID = x509.ObjectIdentifier("1.2.840.113635.100.6.11.1")
+APPLE_INTERMEDIATE_OID = x509.ObjectIdentifier("1.2.840.113635.100.6.2.1")
+
+
+def _has_extension(cert: x509.Certificate, oid: x509.ObjectIdentifier) -> bool:
+    try:
+        cert.extensions.get_extension_for_oid(oid)
+        return True
+    except x509.ExtensionNotFound:
+        return False
+
+
+def _is_ca(cert: x509.Certificate) -> bool:
+    try:
+        return bool(cert.extensions.get_extension_for_class(x509.BasicConstraints).value.ca)
+    except x509.ExtensionNotFound:
+        return False
+
+
 def verify_apple_jws(token: str) -> dict[str, Any]:
     """Prueft ein Apple-JWS und gibt seine Nutzlast zurueck.
 
@@ -130,8 +154,9 @@ def verify_apple_jws(token: str) -> dict[str, Any]:
         raise StoreVerificationError(f"Unerwartetes Signaturverfahren: {header.get('alg')}")
 
     chain_b64 = header.get("x5c") or []
-    if len(chain_b64) < 2:
-        raise StoreVerificationError("Beleg ohne Zertifikatskette.")
+    # Apple schickt genau Blatt, Zwischenstelle, Wurzel.
+    if len(chain_b64) != 3:
+        raise StoreVerificationError("Beleg ohne vollstaendige Zertifikatskette.")
 
     try:
         chain = [x509.load_der_x509_certificate(base64.b64decode(c)) for c in chain_b64]
@@ -156,6 +181,13 @@ def verify_apple_jws(token: str) -> dict[str, Any]:
             _verify_cert_signed_by(kind, eltern)
     except InvalidSignature as fehler:
         raise StoreVerificationError("Zertifikatskette ist gebrochen.") from fehler
+
+    # 2b. Blatt und Zwischenstelle sind die der App-Store-Signatur - nicht
+    #     irgendein anderes Zertifikat aus Apples Baum.
+    if not _has_extension(chain[0], APPLE_LEAF_OID) or _is_ca(chain[0]):
+        raise StoreVerificationError("Blattzertifikat ist keines der App-Store-Signatur.")
+    if not _has_extension(chain[1], APPLE_INTERMEDIATE_OID) or not _is_ca(chain[1]):
+        raise StoreVerificationError("Zwischenzertifikat ist keines von Apple WWDR.")
 
     # 3. Die Signatur des Belegs stammt vom Blattzertifikat.
     leaf_key = chain[0].public_key()
