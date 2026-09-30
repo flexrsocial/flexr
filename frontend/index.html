@@ -562,6 +562,38 @@ footer{ border-top:1px solid var(--steel); padding:32px 0 60px; margin-top:20px;
   *{ animation-duration:.01ms !important; transition-duration:.01ms !important; }
 }
 
+/* Beta-Leiste: Seit 30.09.2026 oeffnet sich der Beta-Hinweis nicht mehr als
+   Dialog ueber dem Hero, sondern steht als schmale Leiste unten, bis sie
+   weggetippt wird ("Details" oeffnet den bisherigen Dialog). Sie bleibt beim
+   Scrollen stehen, wird also nicht ueberscrollt. */
+.beta-bar{
+  position:fixed; left:50%; transform:translateX(-50%); z-index:1100;
+  bottom:calc(12px + env(safe-area-inset-bottom, 0px));
+  width:calc(100% - 24px); max-width:560px;
+  display:flex; align-items:center; gap:10px;
+  padding:8px 8px 8px 12px; border-radius:14px;
+  background:var(--surface-2); border:1px solid var(--steel);
+  box-shadow:0 10px 30px rgba(0,0,0,.5);
+  font-size:13.5px; line-height:1.4; color:var(--chalk-dim);
+}
+.beta-bar[hidden]{ display:none; }
+.beta-bar-tag{
+  flex:0 0 auto; padding:2px 8px; border-radius:999px;
+  border:1px solid rgba(199,255,74,.45); color:var(--lime);
+  font-family:'Oswald', sans-serif; font-size:11px; letter-spacing:.14em; text-transform:uppercase;
+}
+.beta-bar-text{ flex:1; min-width:0; }
+.beta-bar-more{
+  flex:0 0 auto; background:none; border:none; padding:8px 4px; cursor:pointer;
+  font:inherit; font-weight:600; color:var(--chalk);
+  text-decoration:underline; text-underline-offset:2px;
+}
+.beta-bar-close{
+  flex:0 0 auto; width:32px; height:32px; border-radius:50%; cursor:pointer;
+  border:1px solid var(--steel); background:var(--surface); color:var(--chalk); font-size:14px; line-height:1;
+}
+body.has-beta-bar footer{ padding-bottom:110px; }
+@media (max-width:420px){ .beta-bar{ font-size:12.5px; gap:8px; } }
 /* ---- Beta-Hinweis ---- */
 /* Der Dialog laeuft ueber allem anderen (z-index ueber der Kopfzeile), weil er
    die Erwartung an Reichweite und Funktionsumfang setzen soll, bevor jemand
@@ -703,55 +735,40 @@ footer{ border-top:1px solid var(--steel); padding:32px 0 60px; margin-top:20px;
       </ul>
     </div>
 
-    <section id="lifestyle">
-      <h2 data-i18n="life.h2">Dating, das zu deinem Lifestyle passt</h2>
-      <p data-i18n-html="life.p1">
-        Wer regelmäßig trainiert, kennt das Gespräch: „Du gehst schon
-        <i>wieder</i> ins Gym?" Fünf Einheiten die Woche, das Abendessen nach
-        dem Training statt davor, der Wecker am Sonntag um sieben – das ist
-        kein Hobby, das man nebenbei erklärt. Es ist ein Teil des Tages, um den
-        herum der Rest geplant wird.
-      </p>
-      <p data-i18n-html="life.p2">
-        FLEXR ist für Menschen, die sich das nicht erklären wollen. Nicht, weil
-        Training das Einzige wäre, was zählt, sondern weil ein gemeinsames
-        Verständnis für Zeitaufwand und Disziplin eine Menge Reibung wegnimmt.
-        Wer selbst trainiert, fragt nicht, warum du am Freitagabend noch eine
-        Einheit einschiebst – und schlägt vielleicht vor, mitzukommen.
-      </p>
-      <p data-i18n-html="life.p3">
-        Und damit das klar ist: Es geht <b>nicht</b> um einen bestimmten Körper.
-        Kraftsport, Functional Fitness, Ausdauer, Kampfsport, Klettern, der
-        dritte Monat nach dem Wiedereinstieg – alles zählt. FLEXR ist kein
-        Wettbewerb um Körperfettanteile, sondern eine Plattform für Leute, die
-        einen ähnlichen Alltag führen.
-      </p>
-    </section>
-
-    <section id="gym">
-      <h2 data-i18n="gym.h2">Matches rund um dein Gym</h2>
-      <p data-i18n="gym.p1">
-        Die meisten Dating-Apps fragen dein Handy nach dem Standort und zeigen
-        dir dann, wer gerade in der Nähe ist. FLEXR macht das anders – und zwar
-        bewusst:
-      </p>
-      <ul class="plain">
-        <li data-i18n-html="gym.li1"><b>Du wählst dein Studio.</b> Aus einer Liste österreichischer
-          Fitnessstudios mit Adresse. Fehlt deins, reichst du es mit Adresse
-          ein und kannst es sofort verwenden.</li>
-        <li data-i18n-html="gym.li2"><b>Du stellst deinen Suchradius ein.</b> Von 2 bis 250 Kilometer.
-          Größerer Radius heißt mehr Profile, dafür weitere Wege.</li>
-        <li data-i18n-html="gym.li3"><b>Keine GPS-Ortung.</b> Weder Browser noch App fragen deine
-          Geräteposition ab. Gerechnet wird ausschließlich mit der öffentlichen
-          Adresse des Studios, das du selbst angegeben hast. Dein Wohnort wird
-          niemandem angezeigt – andere sehen nur deine Stadt.</li>
-        <li data-i18n-html="gym.li4"><b>Du siehst Leute aus Studios im Umkreis</b>, nicht nur aus deinem
-          eigenen. Das Gym ist der Mittelpunkt, nicht der Zaun.</li>
-      </ul>
-      <p data-i18n="gym.p2">
-        Der praktische Vorteil: Ihr habt von Anfang an einen Ort, den ihr beide
-        kennt, und einen naheliegenden Vorschlag fürs erste Treffen.
-      </p>
+    <!-- Reihenfolge seit 30.09.2026: erst "So funktioniert's" und das
+         Muster-Deck, dann die Fliesstext-Abschnitte. Vorher standen drei
+         Absaetze Lifestyle-Text direkt unter dem Hero. -->
+    <section id="so-gehts">
+      <h2 data-i18n="how.h2">So funktioniert FLEXR</h2>
+      <div class="cards">
+        <div class="card">
+          <div class="num" data-i18n="how.step1">Schritt 1</div>
+          <h3 data-i18n="how.step1H3">Profil erstellen</h3>
+          <p data-i18n="how.step1P">
+            E-Mail, Geburtsdatum, Postleitzahl, mindestens drei Fotos. Kostenlos
+            und ohne Zahlungsmittel. Danach prüfen wir einmalig, ob du
+            mindestens 18 bist – erst dann geht es weiter. Kosten entstehen
+            dabei keine, auch später nicht.
+          </p>
+        </div>
+        <div class="card">
+          <div class="num" data-i18n="how.step2">Schritt 2</div>
+          <h3 data-i18n="how.step2H3">Gym und Radius wählen</h3>
+          <p data-i18n="how.step2P">
+            Such dein Studio nach Name, Ort oder Postleitzahl und stell ein, wie
+            weit du fahren würdest. Beides kannst du jederzeit im Konto ändern.
+          </p>
+        </div>
+        <div class="card">
+          <div class="num" data-i18n="how.step3">Schritt 3</div>
+          <h3 data-i18n="how.step3H3">Liken, matchen, schreiben</h3>
+          <p data-i18n="how.step3P">
+            Du siehst passende Profile aus deinem Umkreis. Liken sich zwei
+            Leute gegenseitig, entsteht ein Match – und erst dann könnt ihr
+            schreiben. Vorher landet bei dir keine ungefragte Nachricht.
+          </p>
+        </div>
+      </div>
     </section>
 
     <!-- Musterprofile: KI-generierte Beispielfotos, keine echten Mitglieder.
@@ -936,37 +953,55 @@ footer{ border-top:1px solid var(--steel); padding:32px 0 60px; margin-top:20px;
       </div>
     </section>
 
-    <section id="so-gehts">
-      <h2 data-i18n="how.h2">So funktioniert FLEXR</h2>
-      <div class="cards">
-        <div class="card">
-          <div class="num" data-i18n="how.step1">Schritt 1</div>
-          <h3 data-i18n="how.step1H3">Profil erstellen</h3>
-          <p data-i18n="how.step1P">
-            E-Mail, Geburtsdatum, Postleitzahl, mindestens drei Fotos. Kostenlos
-            und ohne Zahlungsmittel. Danach prüfen wir einmalig, ob du
-            mindestens 18 bist – erst dann geht es weiter. Kosten entstehen
-            dabei keine, auch später nicht.
-          </p>
-        </div>
-        <div class="card">
-          <div class="num" data-i18n="how.step2">Schritt 2</div>
-          <h3 data-i18n="how.step2H3">Gym und Radius wählen</h3>
-          <p data-i18n="how.step2P">
-            Such dein Studio nach Name, Ort oder Postleitzahl und stell ein, wie
-            weit du fahren würdest. Beides kannst du jederzeit im Konto ändern.
-          </p>
-        </div>
-        <div class="card">
-          <div class="num" data-i18n="how.step3">Schritt 3</div>
-          <h3 data-i18n="how.step3H3">Liken, matchen, schreiben</h3>
-          <p data-i18n="how.step3P">
-            Du siehst passende Profile aus deinem Umkreis. Liken sich zwei
-            Leute gegenseitig, entsteht ein Match – und erst dann könnt ihr
-            schreiben. Vorher landet bei dir keine ungefragte Nachricht.
-          </p>
-        </div>
-      </div>
+    <section id="gym">
+      <h2 data-i18n="gym.h2">Matches rund um dein Gym</h2>
+      <p data-i18n="gym.p1">
+        Die meisten Dating-Apps fragen dein Handy nach dem Standort und zeigen
+        dir dann, wer gerade in der Nähe ist. FLEXR macht das anders – und zwar
+        bewusst:
+      </p>
+      <ul class="plain">
+        <li data-i18n-html="gym.li1"><b>Du wählst dein Studio.</b> Aus einer Liste österreichischer
+          Fitnessstudios mit Adresse. Fehlt deins, reichst du es mit Adresse
+          ein und kannst es sofort verwenden.</li>
+        <li data-i18n-html="gym.li2"><b>Du stellst deinen Suchradius ein.</b> Von 2 bis 250 Kilometer.
+          Größerer Radius heißt mehr Profile, dafür weitere Wege.</li>
+        <li data-i18n-html="gym.li3"><b>Keine GPS-Ortung.</b> Weder Browser noch App fragen deine
+          Geräteposition ab. Gerechnet wird ausschließlich mit der öffentlichen
+          Adresse des Studios, das du selbst angegeben hast. Dein Wohnort wird
+          niemandem angezeigt – andere sehen nur deine Stadt.</li>
+        <li data-i18n-html="gym.li4"><b>Du siehst Leute aus Studios im Umkreis</b>, nicht nur aus deinem
+          eigenen. Das Gym ist der Mittelpunkt, nicht der Zaun.</li>
+      </ul>
+      <p data-i18n="gym.p2">
+        Der praktische Vorteil: Ihr habt von Anfang an einen Ort, den ihr beide
+        kennt, und einen naheliegenden Vorschlag fürs erste Treffen.
+      </p>
+    </section>
+
+    <section id="lifestyle">
+      <h2 data-i18n="life.h2">Dating, das zu deinem Lifestyle passt</h2>
+      <p data-i18n-html="life.p1">
+        Wer regelmäßig trainiert, kennt das Gespräch: „Du gehst schon
+        <i>wieder</i> ins Gym?" Fünf Einheiten die Woche, das Abendessen nach
+        dem Training statt davor, der Wecker am Sonntag um sieben – das ist
+        kein Hobby, das man nebenbei erklärt. Es ist ein Teil des Tages, um den
+        herum der Rest geplant wird.
+      </p>
+      <p data-i18n-html="life.p2">
+        FLEXR ist für Menschen, die sich das nicht erklären wollen. Nicht, weil
+        Training das Einzige wäre, was zählt, sondern weil ein gemeinsames
+        Verständnis für Zeitaufwand und Disziplin eine Menge Reibung wegnimmt.
+        Wer selbst trainiert, fragt nicht, warum du am Freitagabend noch eine
+        Einheit einschiebst – und schlägt vielleicht vor, mitzukommen.
+      </p>
+      <p data-i18n-html="life.p3">
+        Und damit das klar ist: Es geht <b>nicht</b> um einen bestimmten Körper.
+        Kraftsport, Functional Fitness, Ausdauer, Kampfsport, Klettern, der
+        dritte Monat nach dem Wiedereinstieg – alles zählt. FLEXR ist kein
+        Wettbewerb um Körperfettanteile, sondern eine Plattform für Leute, die
+        einen ähnlichen Alltag führen.
+      </p>
     </section>
 
     <section id="oesterreich">
@@ -1380,10 +1415,17 @@ footer{ border-top:1px solid var(--steel); padding:32px 0 60px; margin-top:20px;
   arrangeCards();
 })();
 </script>
-<!-- Beta-Hinweis: erscheint einmal je Browser (Merker in localStorage) und
-     nennt die geplanten Store-Termine. Bewusst ein Dialog und kein Banner -
-     ein Banner wird auf der Landingpage ueberscrollt, und wer sich gleich
-     registriert, soll den Beta-Status vorher gelesen haben. -->
+<!-- Beta-Hinweis: Leiste unten, bis sie weggetippt wird (Merker in
+     localStorage); "Details" oeffnet den Dialog mit den Fakten. Bis zum
+     30.09.2026 oeffnete sich der Dialog beim ersten Besuch sofort und
+     verdeckte den Hero. Die Leiste ist fest positioniert und wird deshalb
+     nicht ueberscrollt. -->
+<div class="beta-bar" id="betaBar" role="region" data-i18n-aria="beta.barAria" aria-label="Hinweis zur Beta-Phase" hidden>
+  <span class="beta-bar-tag">Beta</span>
+  <span class="beta-bar-text" data-i18n="beta.barText">FLEXR ist noch im Aufbau – dauerhaft kostenlos, Premium optional.</span>
+  <button type="button" class="beta-bar-more" id="betaMore" data-i18n="beta.barMore">Details</button>
+  <button type="button" class="beta-bar-close" id="betaBarClose" data-i18n-aria="beta.closeAria" aria-label="Hinweis schließen">✕</button>
+</div>
 <div class="beta-backdrop" id="betaBackdrop" role="dialog" aria-modal="true"
      aria-labelledby="betaTitle" aria-describedby="betaText">
   <div class="beta-modal">
@@ -1421,7 +1463,8 @@ footer{ border-top:1px solid var(--steel); padding:32px 0 60px; margin-top:20px;
   // Installationsanleitung in der App (/app/?ios=installieren).
   var KEY = 'flexr_beta_notice_v6';
   var backdrop = document.getElementById('betaBackdrop');
-  if (!backdrop) return;
+  var bar = document.getElementById('betaBar');
+  if (!backdrop || !bar) return;
 
   try {
     // Eingeloggte Besucher leitet das Skript weiter oben nach /app/ um. Dort
@@ -1430,35 +1473,45 @@ footer{ border-top:1px solid var(--steel); padding:32px 0 60px; margin-top:20px;
     if (localStorage.getItem(KEY)) return;
   } catch (e) {
     // localStorage gesperrt (privater Modus): Dann lieber einmal pro Aufruf
-    // zeigen als gar nicht - der Hinweis ist schnell weggeklickt.
+    // zeigen als gar nicht - die Leiste ist schnell weggetippt.
   }
 
-  var lastFocus = document.activeElement;
+  var lastFocus = null;
 
-  function onKey(e){ if (e.key === 'Escape') close(); }
-
-  function close(){
+  function merken(){ try { localStorage.setItem(KEY, '1'); } catch (e) {} }
+  function leisteWeg(){
+    bar.hidden = true;
+    document.body.classList.remove('has-beta-bar');
+    merken();
+  }
+  function onKey(e){ if (e.key === 'Escape') closeDialog(); }
+  function openDialog(){
+    lastFocus = document.activeElement;
+    backdrop.classList.add('open');
+    document.addEventListener('keydown', onKey);
+    document.getElementById('betaOk').focus();
+  }
+  function closeDialog(){
     backdrop.classList.remove('open');
-    try { localStorage.setItem(KEY, '1'); } catch (e) {}
     document.removeEventListener('keydown', onKey);
     if (lastFocus && lastFocus.focus) lastFocus.focus();
   }
 
-  backdrop.classList.add('open');
-  document.addEventListener('keydown', onKey);
-  document.getElementById('betaClose').addEventListener('click', close);
-  document.getElementById('betaOk').addEventListener('click', close);
-  backdrop.addEventListener('click', function(e){ if (e.target === backdrop) close(); });
+  bar.hidden = false;
+  document.body.classList.add('has-beta-bar');
+  document.getElementById('betaMore').addEventListener('click', openDialog);
+  document.getElementById('betaBarClose').addEventListener('click', leisteWeg);
+  // Wer den Dialog mit "Verstanden" schliesst, hat ihn gelesen - dann ist
+  // auch die Leiste erledigt. Das X am Dialog schliesst nur den Dialog.
+  document.getElementById('betaOk').addEventListener('click', function(){ closeDialog(); leisteWeg(); });
+  document.getElementById('betaClose').addEventListener('click', closeDialog);
+  backdrop.addEventListener('click', function(e){ if (e.target === backdrop) closeDialog(); });
   // "iOS: jetzt installieren" fuehrt nach /app/ - dort steht derselbe Hinweis
-  // (gleicher Merker). Wer den Link nimmt, hat ihn gelesen; sonst schoebe sich
-  // der Hinweis in der App ein zweites Mal vor die Anleitung.
+  // (gleicher Merker). Wer den Link nimmt, hat ihn gelesen.
   // Am Dialog statt am Link: die Uebersetzung ersetzt den Link samt Listener.
   backdrop.addEventListener('click', function(e){
-    if (e.target.closest && e.target.closest('a[href*="ios=installieren"]')) {
-      try { localStorage.setItem(KEY, '1'); } catch (err) {}
-    }
+    if (e.target.closest && e.target.closest('a[href*="ios=installieren"]')) merken();
   });
-  document.getElementById('betaOk').focus();
 })();
 </script>
 

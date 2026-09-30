@@ -705,6 +705,14 @@
   .empty .empty-icon svg.ico{ width:28px; height:28px; opacity:.8; }
   .empty .empty-title{ font-family:'Oswald'; text-transform:uppercase; letter-spacing:0.04em; font-size:17px; color:var(--chalk); }
   .empty .empty-sub{ font-size:13px; line-height:1.55; max-width:250px; }
+  .eisbrecher{ display:flex; flex-direction:column; align-items:center; gap:8px; margin-top:18px; width:100%; max-width:320px; }
+  .eisbrecher-chip{
+    width:100%; padding:10px 14px; border-radius:999px; cursor:pointer;
+    background:var(--surface-2); border:1px solid var(--steel); color:var(--chalk);
+    font:inherit; font-size:13.5px; line-height:1.35; text-align:center;
+    transition:border-color .15s, background .15s;
+  }
+  .eisbrecher-chip:hover, .eisbrecher-chip:focus-visible{ border-color:var(--plate); background:var(--surface-3); }
 
   /* Der Premium-Screen benutzt .empty als **Kopfzeile**, nicht als
      Leerzustand: Die 48px Innenabstand oben stammen aus dem Deck, wo der Block
@@ -1664,9 +1672,11 @@
   .journey-note b{ color:var(--chalk); font-weight:600; }
   .journey-sticky{
     position:sticky; top:0; z-index:5;
-    margin:0 -4px 16px; padding:10px 4px 10px;
+    margin:0 -4px 6px; padding:10px 4px 8px;
     background:var(--ink);
   }
+  .journey-sticky .journey-note{ margin-top:6px; }
+  .journey-info{ margin:0 0 16px; }
   .vstep-bar span{
     flex:1; height:3px; border-radius:2px; background:var(--steel);
   }
@@ -2048,6 +2058,11 @@
   .match-overlay .btn{ margin-top:16px; }
   .match-overlay .btn.secondary{ margin-top:10px; }
   .field-err{ color:var(--danger); font-size:12px; margin-top:4px; }
+  /* Beim Absenden fehlendes Feld (feldFehler()): roter Rahmen, Meldung direkt
+     darunter statt nur unten am Knopf. */
+  .feld-fehlt, input.feld-fehlt, select.feld-fehlt{ border-color:var(--danger) !important; box-shadow:0 0 0 1px var(--danger); }
+  .photo-grid.feld-fehlt{ box-shadow:none; outline:1px dashed var(--danger); outline-offset:4px; border-radius:12px; }
+  .consent-row.feld-fehlt{ box-shadow:none; outline:1px solid var(--danger); outline-offset:4px; border-radius:10px; }
   .consent-row{ margin-top:18px; display:flex; flex-direction:column; gap:10px; }
   .consent-label{ display:flex; gap:10px; align-items:flex-start; font-size:12px; color:var(--chalk-dim); cursor:pointer; text-transform:none; letter-spacing:normal; }
   .consent-label input[type=checkbox]{ margin-top:2px; width:16px; height:16px; flex-shrink:0; accent-color:var(--plate); }
@@ -2122,7 +2137,7 @@
      laufen synchron und damit vor dem DOMContentLoaded, bei dem FlexrI18n die
      data-i18n-Knoten uebersetzt. -->
 <script src="/i18n.js?v=5"></script>
-<script src="/app/i18n-app.js?v=22"></script>
+<script src="/app/i18n-app.js?v=23"></script>
 <a class="skip-link" href="#main-content" data-i18n="common.skipToContent">Zum Inhalt springen</a>
 <div class="app" id="app">
 
@@ -2351,6 +2366,10 @@
            Pflichtangaben dieses Formulars. Klebt beim Scrollen oben, damit man
            im langen Formular sieht, wie weit man ist. -->
       <div class="journey journey-sticky" id="regJourney"></div>
+      <!-- Nur Balken und Zaehler kleben oben; die Erklaerung scrollt mit weg.
+           Vorher klebten drei Zeilen Text mit und kosteten am Handy rund
+           80px vom Formular. -->
+      <p class="journey-note journey-info" id="regJourneyInfo" data-i18n="journey.regInfo">Nach dem Profil bestätigst du deine E-Mail und machst ein Selfie und ein Foto deines Ausweises – zusammen etwa 5 Minuten.</p>
       <!-- Beta-Gratisphase, siehe Kommentar bei den Hero-USPs. -->
       <p class="sub" data-i18n-html="reg.sub">Erstell dein Profil — kostenlos, und das dauerhaft. FLEXR zu nutzen kostet nichts; es wird kein Zahlungsmittel abgefragt. FLEXR&nbsp;Premium (10&nbsp;€/Monat, jederzeit kündbar) ist freiwillig. Aktuell nur in Österreich verfügbar.</p>
 
@@ -3442,8 +3461,19 @@
   .ios-guide #iosGuideOk{ width:100%; margin-top:18px; }
 </style>
 
-<!-- Beta-Hinweis: erscheint einmal je Browser (Merker in localStorage, derselbe
-     Schluessel wie auf der Landingpage) und nennt die geplanten Store-Termine.
+<!-- Beta-Leiste (seit 30.09.2026 statt des automatisch aufgehenden Dialogs,
+     wie auf der Landingpage): steht bis zum Wegtippen, "Details" oeffnet den
+     Dialog darunter. Ausgeloggt unten am Rand, eingeloggt oben unter der
+     Kopfzeile (unten liegen Navigation und Swipe-Knoepfe) - dieselbe
+     Platzierung wie beim iPhone-Installationshinweis. -->
+<div class="beta-bar" id="betaBar" role="region" data-i18n-aria="beta.barAria" aria-label="Hinweis zur Beta-Phase" hidden>
+  <span class="beta-bar-tag">Beta</span>
+  <span class="beta-bar-text" data-i18n="beta.barText">FLEXR ist noch im Aufbau – dauerhaft kostenlos, Premium optional.</span>
+  <button type="button" class="beta-bar-more" id="betaMore" data-i18n="beta.barMore">Details</button>
+  <button type="button" class="beta-bar-close" id="betaBarClose" data-i18n-aria="beta.closeAria" aria-label="Hinweis schließen">✕</button>
+</div>
+<!-- Beta-Hinweis: Merker in localStorage, derselbe Schluessel wie auf der
+     Landingpage; nennt die geplanten Store-Termine.
      Nutzt bewusst die vorhandenen .legal-modal-Klassen statt einer eigenen
      Optik - siehe Konto-loeschen-Bestaetigung und "Vor der Zahlung". -->
 <div id="betaBackdrop" class="legal-modal-backdrop" role="dialog" aria-modal="true"
@@ -3494,6 +3524,33 @@
   /* "jetzt installieren" (iOS) ist die einzige Handlung in der Liste. */
   .beta-facts a[href*="ios=installieren"]{ color:var(--plate); font-weight:600; }
   .beta-facts li.is-free b, .beta-facts li.is-free span{ color:var(--lime); }
+  .beta-bar{
+    position:fixed; left:50%; transform:translateX(-50%); z-index:60;
+    top:62px; width:calc(100% - 24px); max-width:560px;
+    display:flex; align-items:center; gap:10px;
+    padding:8px 8px 8px 12px; border-radius:14px;
+    background:var(--surface-2); border:1px solid var(--steel);
+    box-shadow:0 10px 30px rgba(0,0,0,.5);
+    font-size:13px; line-height:1.4; color:var(--chalk-dim);
+  }
+  body.landing .beta-bar{ top:auto; bottom:calc(12px + env(safe-area-inset-bottom, 0px)); }
+  .beta-bar[hidden]{ display:none; }
+  .beta-bar-tag{
+    flex:0 0 auto; padding:2px 8px; border-radius:999px;
+    border:1px solid rgba(199,255,74,.45); color:var(--lime);
+    font-family:'Oswald', sans-serif; font-size:11px; letter-spacing:.14em; text-transform:uppercase;
+  }
+  .beta-bar-text{ flex:1; min-width:0; }
+  .beta-bar-more{
+    flex:0 0 auto; background:none; border:none; padding:8px 4px; cursor:pointer;
+    font:inherit; font-weight:600; color:var(--chalk);
+    text-decoration:underline; text-underline-offset:2px;
+  }
+  .beta-bar-close{
+    flex:0 0 auto; width:32px; height:32px; border-radius:50%; cursor:pointer;
+    border:1px solid var(--steel); background:var(--surface); color:var(--chalk); font-size:14px; line-height:1;
+  }
+  body.landing.has-beta-bar .app{ padding-bottom:90px; }
 </style>
 
 <script>
@@ -3512,32 +3569,49 @@
   // zur Installationsanleitung (#iosGuideBackdrop).
   var KEY = 'flexr_beta_notice_v6';
   var backdrop = document.getElementById('betaBackdrop');
-  if (!backdrop) return;
+  var bar = document.getElementById('betaBar');
+  if (!backdrop || !bar) return;
+
+  var lastFocus = null;
+  function merken(){ try { localStorage.setItem(KEY, '1'); } catch (e) {} }
+  function onKey(e){ if (e.key === 'Escape') closeDialog(); }
+  function openDialog(){
+    lastFocus = document.activeElement;
+    backdrop.classList.add('open');
+    document.addEventListener('keydown', onKey);
+    document.getElementById('betaOk').focus();
+  }
+  function closeDialog(){
+    backdrop.classList.remove('open');
+    document.removeEventListener('keydown', onKey);
+    if (lastFocus && lastFocus.focus) lastFocus.focus();
+  }
+  // Leiste weg: Merker setzen und Bescheid geben - der iPhone-
+  // Installationshinweis wartet darauf, damit nicht beide gleichzeitig stehen.
+  function leisteWeg(){
+    if (!bar.hidden) {
+      bar.hidden = true;
+      document.body.classList.remove('has-beta-bar');
+      document.dispatchEvent(new Event('flexr-beta-weg'));
+    }
+    merken();
+  }
+
+  document.getElementById('betaMore').addEventListener('click', openDialog);
+  document.getElementById('betaBarClose').addEventListener('click', leisteWeg);
+  // "Verstanden" im Dialog erledigt auch die Leiste; das X schliesst nur den Dialog.
+  document.getElementById('betaOk').addEventListener('click', function(){ closeDialog(); leisteWeg(); });
+  document.getElementById('betaClose').addEventListener('click', closeDialog);
+  backdrop.addEventListener('click', function(e){ if (e.target === backdrop) closeDialog(); });
 
   try {
     if (localStorage.getItem(KEY)) return;
   } catch (e) {
     // localStorage gesperrt (privater Modus): Dann lieber einmal pro Aufruf
-    // zeigen als gar nicht - der Hinweis ist schnell weggeklickt.
+    // zeigen als gar nicht - die Leiste ist schnell weggetippt.
   }
-
-  var lastFocus = document.activeElement;
-
-  function onKey(e){ if (e.key === 'Escape') close(); }
-
-  function close(){
-    backdrop.classList.remove('open');
-    try { localStorage.setItem(KEY, '1'); } catch (e) {}
-    document.removeEventListener('keydown', onKey);
-    if (lastFocus && lastFocus.focus) lastFocus.focus();
-  }
-
-  backdrop.classList.add('open');
-  document.addEventListener('keydown', onKey);
-  document.getElementById('betaClose').addEventListener('click', close);
-  document.getElementById('betaOk').addEventListener('click', close);
-  backdrop.addEventListener('click', function(e){ if (e.target === backdrop) close(); });
-  document.getElementById('betaOk').focus();
+  bar.hidden = false;
+  document.body.classList.add('has-beta-bar');
 })();
 </script>
 
@@ -4358,7 +4432,7 @@
   function renderRegJourney(){
     const {fertig, gesamt} = registrierungsFortschritt();
     renderJourney($('regJourney'), 'profile', fertig / gesamt,
-      t('journey.regNote', {fertig: `<b>${fertig}</b>`, gesamt}));
+      t('journey.regCount', {fertig: `<b>${fertig}</b>`, gesamt}));
   }
 
   // Jede Eingabe im Formular zaehlt neu. Ein Zuhoerer am Schirm statt an
@@ -4613,9 +4687,43 @@
   // weiter oben noch nicht angelegt sind.
   renderRegJourney();
 
+  /* Fehlendes Feld beim Absenden: markieren, Meldung darunter, hinscrollen,
+     fokussieren. Vorher stand nur ein Sammelsatz unten am Knopf - welches
+     der zehn Felder gemeint war, musste man selbst suchen. */
+  function regFehlerWeg(){
+    document.querySelectorAll('#screen-onboard .feld-fehlt').forEach(el => el.classList.remove('feld-fehlt'));
+    document.querySelectorAll('#screen-onboard [aria-invalid="true"]').forEach(el => el.removeAttribute('aria-invalid'));
+    const hint = $('regFieldHint');
+    if(hint) hint.remove();
+  }
+  function feldFehler(feldId, text){
+    regFehlerWeg();
+    $('formErr').textContent = text;
+    const feld = $(feldId);
+    const rahmen = feldId === 'f-plz' ? $('plzCombo')
+      : feldId === 'f-consent-sensitive' ? feld.closest('.consent-row')
+      : feld;
+    rahmen.classList.add('feld-fehlt');
+    if(feld.tagName !== 'DIV') feld.setAttribute('aria-invalid', 'true');
+    const hint = document.createElement('div');
+    hint.id = 'regFieldHint';
+    hint.className = 'field-err';
+    hint.setAttribute('role', 'alert');
+    hint.textContent = text;
+    (feld.closest('.gym-picker') || rahmen).after(hint);
+    const ruhig = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    rahmen.scrollIntoView({block: 'center', behavior: ruhig ? 'auto' : 'smooth'});
+    if(feld.tagName !== 'DIV' && feld.type !== 'checkbox') feld.focus({preventScroll: true});
+  }
+  ['input', 'change'].forEach(ev => $('screen-onboard').addEventListener(ev, (e) => {
+    // photoInput liegt ausserhalb des markierten Rasters (verstecktes Feld).
+    if(e.target.id === 'photoInput' || (e.target.closest && e.target.closest('[aria-invalid="true"], .feld-fehlt'))) regFehlerWeg();
+  }));
+
   $('btnCreateProfile').addEventListener('click', async ()=>{
     const errEl = $('formErr');
     errEl.textContent = '';
+    regFehlerWeg();
 
     const payload = {
       email: $('f-email').value.trim(),
@@ -4639,43 +4747,46 @@
       language: FlexrI18n.current(),
     };
 
-    if(!payload.email || !payload.password || payload.password.length < 8 || !payload.name || !payload.birthdate){
-      errEl.textContent = t('reg.errRequired');
+    const fehltPflicht = !payload.email ? 'f-email'
+      : (!payload.password || payload.password.length < 8) ? 'f-password'
+      : !payload.name ? 'f-name'
+      : !payload.birthdate ? 'f-birthdate' : null;
+    if(fehltPflicht){
+      feldFehler(fehltPflicht, t('reg.errRequired'));
       return;
     }
     if(payload.password !== $('f-password2').value){
       refreshPasswordHint();
-      errEl.textContent = t('reg.errPwMismatch');
+      feldFehler('f-password2', t('reg.errPwMismatch'));
       return;
     }
     const ageFromBirthdate = calcAge(payload.birthdate);
     if(ageGateBlocked || ageFromBirthdate < 18){
-      errEl.textContent = t('reg.errUnder18');
+      feldFehler('f-birthdate', t('reg.errUnder18'));
       return;
     }
     if(ageFromBirthdate > 99){
-      errEl.textContent = t('reg.errBirthdate');
+      feldFehler('f-birthdate', t('reg.errBirthdate'));
       return;
     }
     if(!/^\d{4}$/.test(payload.plz) || !payload.city){
-      errEl.textContent = t('reg.errPlz');
+      feldFehler('f-plz', t('reg.errPlz'));
       return;
     }
     if(!payload.gender){
-      errEl.textContent = t('reg.errGender');
+      feldFehler('f-gender', t('reg.errGender'));
       return;
     }
     if(!payload.gym){
-      errEl.textContent = t('reg.errGym');
+      feldFehler('f-gym', t('reg.errGym'));
       return;
     }
     if(pendingPhotos.length < MIN_PHOTOS){
-      $('photoErr').textContent = t('reg.errPhoto');
-      errEl.textContent = t('reg.errPhoto');
+      feldFehler('photoGrid', t('reg.errPhoto'));
       return;
     }
     if(!payload.consent_sensitive_data){
-      errEl.textContent = t('reg.errConsent');
+      feldFehler('f-consent-sensitive', t('reg.errConsent'));
       return;
     }
 
@@ -5598,10 +5709,9 @@
       box.hidden = false;
     };
     setTimeout(() => {
-      if($('betaBackdrop') && $('betaBackdrop').classList.contains('open')){
-        // Nach dem Wegklicken des Beta-Hinweises erneut versuchen.
-        $('betaOk').addEventListener('click', () => setTimeout(zeigen, 800), {once: true});
-        $('betaClose').addEventListener('click', () => setTimeout(zeigen, 800), {once: true});
+      if(!$('betaBar').hidden){
+        // Erst nach der Beta-Leiste - beide stehen am selben Platz.
+        document.addEventListener('flexr-beta-weg', () => setTimeout(zeigen, 800), {once: true});
         return;
       }
       zeigen();
@@ -5680,13 +5790,8 @@
     params.delete('ios');
     const rest = params.toString();
     history.replaceState(null, '', location.pathname + (rest ? '?' + rest : ''));
-    const beta = $('betaBackdrop');
-    if(beta && beta.classList.contains('open')){
-      // Direkt aufgerufen, ohne den Beta-Hinweis zu kennen: erst den lesen.
-      $('betaOk').addEventListener('click', iosAnleitungOeffnen, {once: true});
-      $('betaClose').addEventListener('click', iosAnleitungOeffnen, {once: true});
-      return;
-    }
+    // Der Beta-Hinweis geht seit dem 30.09.2026 nicht mehr von selbst auf
+    // (nur noch die Leiste) - die Anleitung kann also sofort kommen.
     iosAnleitungOeffnen();
   })();
 
@@ -8182,6 +8287,31 @@
     return datum + ' ' + zeit;
   }
 
+  /* Gespraechseinstiege im leeren Chat. Ein Tipp setzt den Satz nur ins
+     Eingabefeld - abgeschickt wird erst, wenn man selbst auf Senden tippt,
+     damit er sich noch anpassen laesst. Bei gesperrtem Chat keine Vorschlaege. */
+  function eisbrecherHtml(){
+    if($('chatInput').disabled) return '';
+    const match = findMatchById(currentChatMatchId);
+    const gym = match && match.profile ? gymName(match.profile.gym) : '';
+    const saetze = [
+      t('chat.ice1'),
+      gym ? t('chat.iceGym', {gym}) : t('chat.ice2'),
+      t('chat.ice3'),
+    ];
+    return `<div class="eisbrecher" role="group" aria-label="${escapeHtml(t('chat.iceAria'))}">`
+      + saetze.map(x => `<button type="button" class="eisbrecher-chip">${escapeHtml(x)}</button>`).join('')
+      + '</div>';
+  }
+  $('chatMessages').addEventListener('click', (e) => {
+    const chip = e.target.closest && e.target.closest('.eisbrecher-chip');
+    if(!chip) return;
+    const input = $('chatInput');
+    input.value = chip.textContent;
+    input.dispatchEvent(new Event('input', {bubbles: true}));
+    input.focus();
+  });
+
   function renderMessages(messages){
     const box = $('chatMessages');
     const wasAtBottom = (box.scrollTop + box.clientHeight) >= (box.scrollHeight - 40);
@@ -8191,6 +8321,7 @@
           <div class="empty-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M21.5 2.5 11 13M21.5 2.5l-7 19-3.5-8.5-8.5-3.5 19-7z"/></svg></div>
           <div class="empty-title">${escapeHtml(t('chat.emptyTitle'))}</div>
           <div class="empty-sub">${escapeHtml(t('chat.emptySub'))}</div>
+          ${eisbrecherHtml()}
         </div>`;
       return;
     }
