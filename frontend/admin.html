@@ -426,18 +426,18 @@
     <section class="view" id="view-users">
       <h2>Nutzer</h2>
       <div class="toolbar">
-        <input type="text" id="userSearch" placeholder="Suche nach E-Mail oder Name …">
-        <select id="userFilterBanned">
+        <input type="text" id="userSearch" placeholder="Suche nach E-Mail oder Name …" aria-label="Nutzer suchen">
+        <select id="userFilterBanned" aria-label="Filter Sperrstatus">
           <option value="">Alle Status</option>
           <option value="false">Nicht gesperrt</option>
           <option value="true">Gesperrt</option>
         </select>
-        <select id="userFilterSubscribed">
+        <select id="userFilterSubscribed" aria-label="Filter Premium">
           <option value="">Premium: alle</option>
           <option value="true">Nur Premium</option>
           <option value="false">Nur Gratis</option>
         </select>
-        <select id="userFilterVerificationRejected">
+        <select id="userFilterVerificationRejected" aria-label="Filter Verifizierung">
           <option value="">Verifizierung: alle</option>
           <option value="true">Nur abgelehnte</option>
           <option value="false">Ohne abgelehnte</option>
