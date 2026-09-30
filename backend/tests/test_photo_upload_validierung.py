@@ -152,3 +152,56 @@ def test_dateianfang_entscheidet_nicht_die_endung(anfang, erwartet):
     from app.storage import _sniff_image_type
 
     assert _sniff_image_type(anfang) == erwartet
+
+
+@pytest.mark.parametrize(
+    "suffix",
+    [
+        "../{other}/{leaf}",          # Browser loest .. auf -> fremdes Foto
+        "verify/{leaf}",              # Selfie ist kein Profilfoto
+        "sub/{leaf}",
+        "{leaf}.exe",
+        "x%2F..%2F{leaf}",
+    ],
+)
+def test_manipulierte_objektschluessel_werden_abgewiesen(client, suffix):
+    """Eine reine Praefixpruefung liess ``users/<ich>/../<andere>/x.jpg`` durch."""
+    headers = register_user(client, "schluessel@example.com")
+    other = register_user(client, "opfer-schluessel@example.com")
+    me = client.get("/api/profiles/me", headers=headers).json()["id"]
+    other_id = client.get("/api/profiles/me", headers=other).json()["id"]
+    leaf = "0b7c1f7e-2c7e-4a58-9b43-7d7f8e2b1a11.jpg"
+    key = f"users/{me}/" + suffix.format(other=other_id, leaf=leaf)
+
+    resp = _register(client, headers, key)
+    assert resp.status_code == 400
+    resp = client.post(
+        "/api/profiles/me/photos",
+        headers=headers,
+        json={"object_key": _presign(client, headers)["object_key"], "thumb_object_key": key},
+    )
+    assert resp.status_code == 400
+
+
+def test_nicht_hochgeladenes_objekt_wird_abgewiesen(client, monkeypatch):
+    """Meldet der Storage 'gibt es nicht', entsteht kein kaputtes Foto."""
+    from botocore.exceptions import ClientError
+
+    def fehlt(key):
+        raise ClientError({"Error": {"Code": "404", "Message": "Not Found"}}, "HeadObject")
+
+    monkeypatch.setattr("app.routers.profiles.inspect_uploaded_photo", fehlt)
+    headers = register_user(client, "fehlt@example.com")
+    resp = _register(client, headers, _presign(client, headers)["object_key"])
+    assert resp.status_code == 400
+
+
+def test_dasselbe_objekt_nicht_zweimal(client, monkeypatch):
+    monkeypatch.setattr(
+        "app.routers.profiles.inspect_uploaded_photo",
+        lambda key: {"ok": True, "size": 240_000, "detected": "image/jpeg"},
+    )
+    headers = register_user(client, "doppelt-foto@example.com")
+    key = _presign(client, headers)["object_key"]
+    assert _register(client, headers, key).status_code == 200
+    assert _register(client, headers, key).status_code == 400

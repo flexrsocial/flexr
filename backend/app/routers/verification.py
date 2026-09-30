@@ -218,9 +218,8 @@ def submit_verification(
     if submitted_prompts != expected_prompts:
         raise HTTPException(400, "Die Aufnahmen passen nicht zu den angeforderten Selfies.")
 
-    prefix = f"users/{current_user.id}/verify/"
     for s in payload.selfies:
-        if not s.object_key.startswith(prefix):
+        if not storage.is_own_selfie_key(s.object_key, current_user.id):
             raise HTTPException(400, "Ungültiger object_key.")
 
     active.selfies = json.dumps(
@@ -299,9 +298,8 @@ def submit_document(
     # Zuordnung: Der Schlüssel muss aus einer Presign-Anfrage genau dieses
     # Vorgangs stammen. Fremde Schlüssel sind damit ausgeschlossen, auch wenn
     # jemand eine gültige Objekt-ID erraten würde.
-    expected_prefix = f"{storage.VERIFICATION_DOCUMENT_PREFIX}{active.id}/"
     for _side, key in keys:
-        if not key.startswith(expected_prefix):
+        if not storage.is_document_key_for(key, active.id):
             raise HTTPException(400, "Ungültiger object_key.")
 
     # Serverseitige Datei-Prüfung am tatsächlich hochgeladenen Objekt: Größe und

@@ -1,6 +1,7 @@
 import logging
 from datetime import datetime, timedelta
 
+from botocore.exceptions import ClientError
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
 from sqlalchemy import func
 from sqlalchemy.orm import Session
@@ -41,6 +42,7 @@ from ..security import get_current_user
 from ..storage import (
     create_presigned_upload,
     inspect_uploaded_photo,
+    is_own_photo_key,
     public_url_for,
     set_photo_headers,
 )
@@ -308,6 +310,16 @@ def _foto_befund(object_key: str) -> dict:
     """
     try:
         befund = inspect_uploaded_photo(object_key)
+    except ClientError as err:
+        # Ausnahme von der Durchlaessigkeit: Meldet der Storage ausdruecklich,
+        # dass es das Objekt nicht gibt, ist das keine Stoerung, sondern ein
+        # Upload, der nie stattgefunden hat - das Foto bliebe ein kaputtes Bild.
+        code = str(err.response.get("Error", {}).get("Code", ""))
+        if code in ("404", "NoSuchKey", "NotFound"):
+            logger.info("Foto ohne Objekt im Storage abgewiesen: %s", object_key)
+            return {"ok": False, "size": 0, "detected": None}
+        logger.warning("Foto konnte nicht geprueft werden: %s", object_key, exc_info=True)
+        return {"ok": True, "size": 0, "detected": None}
     except Exception:  # noqa: BLE001 - siehe Docstring
         logger.warning("Foto konnte nicht geprueft werden: %s", object_key, exc_info=True)
         return {"ok": True, "size": 0, "detected": None}
@@ -324,10 +336,16 @@ def add_photo(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    if not payload.object_key.startswith(f"users/{current_user.id}/"):
+    if not is_own_photo_key(payload.object_key, current_user.id):
         raise HTTPException(400, "Ungültiger object_key.")
-    if payload.thumb_object_key and not payload.thumb_object_key.startswith(f"users/{current_user.id}/"):
+    if payload.thumb_object_key and not is_own_photo_key(payload.thumb_object_key, current_user.id):
         raise HTTPException(400, "Ungültiger thumb_object_key.")
+
+    # Dasselbe Objekt zweimal registrieren ergaebe zwei Fotos mit einer Datei -
+    # das Loeschen des einen naehme dem anderen das Bild weg.
+    url = public_url_for(payload.object_key)
+    if db.query(Photo.id).filter(Photo.user_id == current_user.id, Photo.url == url).first():
+        raise HTTPException(400, "Dieses Foto ist bereits gespeichert.")
 
     existing_count = db.query(Photo).filter(Photo.user_id == current_user.id).count()
     if existing_count >= MAX_PHOTOS:
@@ -362,7 +380,7 @@ def add_photo(
     )
     photo = Photo(
         user_id=current_user.id,
-        url=public_url_for(payload.object_key),
+        url=url,
         thumb_url=public_url_for(payload.thumb_object_key) if payload.thumb_object_key else None,
         position=0 if max_position is None else max_position + 1,
     )

@@ -1,4 +1,5 @@
 import logging
+import re
 import uuid
 
 import boto3
@@ -85,6 +86,44 @@ def _buckets_for(object_key: str) -> list[str]:
     if legacy:
         buckets.append(legacy)
     return buckets
+
+
+# Letzter Pfadteil eines Objektschluessels, wie ihn die Presign-Endpunkte
+# vergeben: eine UUID (Tests und aeltere Selfies: ein schlichter Name) und eine
+# der zugelassenen Endungen. Bewusst ohne Punkte, Schraegstriche und
+# Prozentzeichen im Namen.
+_KEY_LEAF = r"[A-Za-z0-9_-]{1,64}\.(?:jpg|jpeg|png|webp)"
+
+
+def is_own_photo_key(object_key: str, user_id: str) -> bool:
+    """Stammt der Schluessel aus einem Profilfoto-Presign genau dieses Nutzers?
+
+    Eine reine Praefixpruefung reicht nicht: ``users/<ich>/../<andere>/x.jpg``
+    beginnt mit dem eigenen Praefix, als oeffentliche URL loest der Browser das
+    ``..`` aber auf und zeigt das Foto einer fremden Person - man koennte sich
+    so fremde Fotos ins eigene Profil holen. Ebenso wenig darf ein
+    Verifizierungs-Selfie (``users/<ich>/verify/...``) als Profilfoto gelten.
+    """
+    return re.fullmatch(rf"users/{re.escape(user_id)}/{_KEY_LEAF}", object_key or "") is not None
+
+
+def is_own_selfie_key(object_key: str, user_id: str) -> bool:
+    """Wie is_own_photo_key, fuer Verifizierungs-Selfies."""
+    return (
+        re.fullmatch(rf"users/{re.escape(user_id)}/verify/{_KEY_LEAF}", object_key or "")
+        is not None
+    )
+
+
+def is_document_key_for(object_key: str, request_id: str) -> bool:
+    """Wie is_own_photo_key, fuer Ausweisaufnahmen eines Vorgangs."""
+    return (
+        re.fullmatch(
+            rf"{re.escape(VERIFICATION_DOCUMENT_PREFIX)}{re.escape(request_id)}/{_KEY_LEAF}",
+            object_key or "",
+        )
+        is not None
+    )
 
 
 def create_presigned_upload(user_id: str, content_type: str) -> dict:
