@@ -76,7 +76,9 @@
 // v28: QR-Satz in der Installationsanleitung zentriert (nur Stil in index.html).
 // v29: Einstieg per #registrieren/#login/#premium, Demo-Deck als WebP und erst
 // bei Bedarf geladen, Texte (Android-Zeile, Premium-Satz); i18n-app.js auf ?v=22.
-const CACHE = 'flexr-shell-v29';
+// v30: Muster-Deck der Landingpage laedt nur die obersten Karten, Platzhalter
+// fuer nicht ladbare Profilfotos, Chat-Abfrage pausiert im Hintergrund.
+const CACHE = 'flexr-shell-v30';
 // Seit dem 15.08.2026 liegt die App unter /app/, an der Wurzel steht die
 // oeffentliche Landingpage. Beide gehoeren in die Shell: die Landingpage,
 // weil sie der Einstieg ist, die App, weil sie offline funktionieren soll.
