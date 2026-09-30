@@ -153,7 +153,7 @@ def test_like_kontingent_ist_aufgebraucht(client, monkeypatch):
 
     headers = register_user_with_photo(client, "sparsam@example.com")
     ziele = [
-        _user_id(client, register_user_with_photo(client, f"ziel{i}@example.com"))
+        _user_id(client, register_user_with_photo(client, f"ziel{i}@example.com", gender="frau"))
         for i in range(3)
     ]
 
@@ -181,7 +181,7 @@ def test_pass_kostet_kein_kontingent(client, monkeypatch):
 
     headers = register_user_with_photo(client, "blaetterer@example.com")
     ziele = [
-        _user_id(client, register_user_with_photo(client, f"pziel{i}@example.com"))
+        _user_id(client, register_user_with_photo(client, f"pziel{i}@example.com", gender="frau"))
         for i in range(3)
     ]
 
@@ -203,7 +203,7 @@ def test_premium_likt_ohne_grenze(client, monkeypatch):
     headers = register_user_with_photo(client, "grosszuegig@example.com")
     _set_premium(_user_id(client, headers))
     ziele = [
-        _user_id(client, register_user_with_photo(client, f"gziel{i}@example.com"))
+        _user_id(client, register_user_with_photo(client, f"gziel{i}@example.com", gender="frau"))
         for i in range(3)
     ]
 
@@ -222,8 +222,8 @@ def test_alte_likes_fallen_aus_dem_fenster(client, monkeypatch):
 
     headers = register_user_with_photo(client, "geduldig@example.com")
     user_id = _user_id(client, headers)
-    ziel_a = _user_id(client, register_user_with_photo(client, "fziel-a@example.com"))
-    ziel_b = _user_id(client, register_user_with_photo(client, "fziel-b@example.com"))
+    ziel_a = _user_id(client, register_user_with_photo(client, "fziel-a@example.com", gender="frau"))
+    ziel_b = _user_id(client, register_user_with_photo(client, "fziel-b@example.com", gender="frau"))
 
     assert client.post(
         "/api/swipes", json={"to_user_id": ziel_a, "action": "like"}, headers=headers
@@ -263,7 +263,7 @@ def test_chat_kontingent_greift_beim_vierten_gespraech(client, monkeypatch):
 
     headers = register_user_with_photo(client, "vielredner@example.com")
     partner = [
-        register_user_with_photo(client, f"partner{i}@example.com") for i in range(3)
+        register_user_with_photo(client, f"partner{i}@example.com", gender="frau") for i in range(3)
     ]
     matches = [_match_mit(client, headers, p) for p in partner]
 
@@ -289,7 +289,7 @@ def test_in_laufenden_gespraechen_ist_die_nachrichtenzahl_frei(client, monkeypat
     monkeypatch.setattr(settings, "free_open_chats", 1)
 
     headers = register_user_with_photo(client, "ausdauernd@example.com")
-    partner = register_user_with_photo(client, "zuhoerer@example.com")
+    partner = register_user_with_photo(client, "zuhoerer@example.com", gender="frau")
     match_id = _match_mit(client, headers, partner)
 
     for i in range(5):
@@ -305,8 +305,8 @@ def test_match_aufloesen_gibt_den_chatplatz_frei(client, monkeypatch):
     monkeypatch.setattr(settings, "free_open_chats", 1)
 
     headers = register_user_with_photo(client, "aufraeumer@example.com")
-    erster = register_user_with_photo(client, "erster@example.com")
-    zweiter = register_user_with_photo(client, "zweiter@example.com")
+    erster = register_user_with_photo(client, "erster@example.com", gender="frau")
+    zweiter = register_user_with_photo(client, "zweiter@example.com", gender="frau")
 
     match_a = _match_mit(client, headers, erster)
     match_b = _match_mit(client, headers, zweiter)
@@ -413,7 +413,7 @@ def test_rewind_nur_mit_premium(client, monkeypatch):
     monkeypatch.setattr(settings, "premium_enabled", True)
 
     headers = register_user_with_photo(client, "reumuetig@example.com")
-    ziel = _user_id(client, register_user_with_photo(client, "verpasst@example.com"))
+    ziel = _user_id(client, register_user_with_photo(client, "verpasst@example.com", gender="frau"))
     client.post(
         "/api/swipes", json={"to_user_id": ziel, "action": "pass"}, headers=headers
     )
@@ -440,7 +440,7 @@ def test_rewind_faellt_bei_bestehendem_match_aus(client, monkeypatch):
     monkeypatch.setattr(settings, "premium_enabled", True)
 
     headers = register_user_with_photo(client, "zuspaet@example.com")
-    partner = register_user_with_photo(client, "gematcht@example.com")
+    partner = register_user_with_photo(client, "gematcht@example.com", gender="frau")
     _set_premium(_user_id(client, headers))
     _match_mit(client, headers, partner)
 
@@ -463,8 +463,8 @@ def test_rewind_ueberspringt_gematchten_swipe_und_nimmt_aelteren_zurueck(client,
     headers = register_user_with_photo(client, "reihenfolge@example.com")
     _set_premium(_user_id(client, headers))
 
-    aelterer = register_user_with_photo(client, "aelterer-swipe@example.com")
-    partner = register_user_with_photo(client, "matchpartner@example.com")
+    aelterer = register_user_with_photo(client, "aelterer-swipe@example.com", gender="frau")
+    partner = register_user_with_photo(client, "matchpartner@example.com", gender="frau")
     aelterer_id = _user_id(client, aelterer)
 
     client.post(
@@ -526,7 +526,7 @@ def test_dasselbe_like_erneut_kostet_nichts(client, monkeypatch):
     monkeypatch.setattr(settings, "free_daily_likes", 1)
 
     headers = register_user_with_photo(client, "wiederholer@example.com")
-    ziel = _user_id(client, register_user_with_photo(client, "einmal@example.com"))
+    ziel = _user_id(client, register_user_with_photo(client, "einmal@example.com", gender="frau"))
 
     erst = client.post(
         "/api/swipes", json={"to_user_id": ziel, "action": "like"}, headers=headers
@@ -558,7 +558,7 @@ def test_aus_pass_wird_like_und_zaehlt_ab_jetzt(client, monkeypatch):
 
     headers = register_user_with_photo(client, "umentschieden@example.com")
     user_id = _user_id(client, headers)
-    ziel = _user_id(client, register_user_with_photo(client, "zweitechance@example.com"))
+    ziel = _user_id(client, register_user_with_photo(client, "zweitechance@example.com", gender="frau"))
 
     client.post("/api/swipes", json={"to_user_id": ziel, "action": "pass"}, headers=headers)
 

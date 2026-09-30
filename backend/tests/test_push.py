@@ -135,7 +135,7 @@ def test_nachricht_kommt_auch_ohne_push_an(client, monkeypatch):
     monkeypatch.setattr(push, "send", _kracht)
 
     a = register_user_with_photo(client, "senderin@example.com")
-    b_headers = register_user_with_photo(client, "empfaenger@example.com")
+    b_headers = register_user_with_photo(client, "empfaenger@example.com", gender="frau")
     b_id = client.get("/api/profiles/me", headers=b_headers).json()["id"]
     a_id = client.get("/api/profiles/me", headers=a).json()["id"]
 
@@ -171,7 +171,7 @@ def test_zugestellt_wird_der_zensierte_text(client, monkeypatch):
     monkeypatch.setattr(push, "send", _merken)
 
     a = register_user_with_photo(client, "linksender@example.com")
-    b_headers = register_user_with_photo(client, "linkempf@example.com")
+    b_headers = register_user_with_photo(client, "linkempf@example.com", gender="frau")
     b_id = client.get("/api/profiles/me", headers=b_headers).json()["id"]
     a_id = client.get("/api/profiles/me", headers=a).json()["id"]
     client.post("/api/swipes", json={"to_user_id": b_id, "action": "like"}, headers=a)
@@ -197,7 +197,7 @@ def test_langer_text_wird_gekuerzt(client, monkeypatch):
     )
 
     a = register_user_with_photo(client, "vielschreiber@example.com")
-    b_headers = register_user_with_photo(client, "vielleser@example.com")
+    b_headers = register_user_with_photo(client, "vielleser@example.com", gender="frau")
     b_id = client.get("/api/profiles/me", headers=b_headers).json()["id"]
     a_id = client.get("/api/profiles/me", headers=a).json()["id"]
     client.post("/api/swipes", json={"to_user_id": b_id, "action": "like"}, headers=a)

@@ -224,6 +224,14 @@ def swipe(
             User.deleted_at.is_(None),
             User.is_banned.is_(False),
             account_visible_condition(),
+            # Dieselben Bedingungen wie im Deck: Wer dort nie auftauchen kann
+            # (widerrufene Art.-9-Einwilligung, nicht passendes Geschlecht),
+            # darf auch per handgebautem Request kein Like und kein Match
+            # bekommen - sonst entstuende ein Match mit einem Konto, dessen
+            # Angaben gar nicht mehr zum Matching verwendet werden duerfen.
+            consents.sensitive_data_consent_condition(),
+            User.gender == current_user.interest,
+            User.interest == current_user.gender,
         )
         .first()
     )

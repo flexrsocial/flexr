@@ -56,7 +56,7 @@ def test_premium_funktionen_sind_in_der_beta_fuer_alle_offen(client, monkeypatch
     assert eingehend.status_code == 200
     assert eingehend.json()["premium_required"] is False
 
-    ziel = _user_id(client, register_user_with_photo(client, "beta-ziel@example.com"))
+    ziel = _user_id(client, register_user_with_photo(client, "beta-ziel@example.com", gender="frau"))
     client.post(
         "/api/swipes", json={"to_user_id": ziel, "action": "pass"}, headers=headers
     )
