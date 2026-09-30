@@ -315,6 +315,10 @@ class User(Base):
     is_subscribed = Column(Boolean, default=False)
     stripe_customer_id = Column(String, nullable=True)
     stripe_subscription_id = Column(String, nullable=True)
+    # Zeitpunkt (Stripe "created") des juengsten angewandten Abo-Ereignisses.
+    # Stripe stellt nicht in Reihenfolge zu - aeltere Ereignisse werden
+    # verworfen (siehe routers/billing._subscription_event_applies).
+    stripe_event_at = Column(DateTime, nullable=True)
 
     # Laufzeitende eines im App Store oder Play Store gekauften Abos.
     #

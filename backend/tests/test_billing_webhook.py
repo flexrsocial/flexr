@@ -461,3 +461,40 @@ def test_vorgemerkte_kuendigung_und_aboende_werden_bestaetigt(client, monkeypatc
     ))
 
     assert [kind for kind, _args in sent] == ["scheduled", "ended"]
+
+
+def _mit_zeit(event, created):
+    event["created"] = created
+    return event
+
+
+def test_verspaetetes_updated_oeffnet_beendetes_abo_nicht_wieder(client):
+    user_id = _setup_subscriber(client, "reihenfolge@example.com")
+    sub = {"id": "sub_test123", "customer": "cus_test123"}
+    _mit_db(lambda db: handle_stripe_event(_mit_zeit(_event(
+        "customer.subscription.deleted", {**sub, "status": "canceled"}, "evt_del"), 2_000), db))
+    # Das aeltere "updated" (noch aktiv) kommt erst danach an
+    _mit_db(lambda db: handle_stripe_event(_mit_zeit(_event(
+        "customer.subscription.updated", {**sub, "status": "active"}, "evt_upd"), 1_000), db))
+    assert _user_row(user_id).is_subscribed is False
+
+
+def test_ende_eines_alten_abos_beendet_das_neue_nicht(client):
+    user_id = _setup_subscriber(client, "neuabo@example.com", stripe_subscription_id="sub_neu2")
+    # Spaetes "deleted" des frueheren Abos desselben Stripe-Kunden
+    _mit_db(lambda db: handle_stripe_event(_mit_zeit(_event(
+        "customer.subscription.deleted",
+        {"id": "sub_alt", "customer": "cus_test123", "status": "canceled"}, "evt_alt"), 5_000), db))
+    user = _user_row(user_id)
+    assert user.is_subscribed is True
+    assert user.stripe_subscription_id == "sub_neu2"
+
+
+def test_neues_berechtigtes_abo_wird_uebernommen(client):
+    user_id = _setup_subscriber(client, "wechsel@example.com", is_subscribed=False)
+    _mit_db(lambda db: handle_stripe_event(_mit_zeit(_event(
+        "customer.subscription.created",
+        {"id": "sub_ganz_neu", "customer": "cus_test123", "status": "active"}, "evt_neu"), 9_000), db))
+    user = _user_row(user_id)
+    assert user.is_subscribed is True
+    assert user.stripe_subscription_id == "sub_ganz_neu"

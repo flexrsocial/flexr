@@ -1,4 +1,5 @@
 import logging
+from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.orm import Session
@@ -202,6 +203,46 @@ def _user_for_subscription_event(db: Session, obj: dict):
     return user
 
 
+def _event_time(event: dict) -> datetime | None:
+    created = event.get("created")
+    if not isinstance(created, (int, float)):
+        return None
+    return datetime.fromtimestamp(created, tz=timezone.utc).replace(tzinfo=None)
+
+
+def _subscription_event_applies(user: User, event: dict, obj: dict) -> bool:
+    """Darf dieses Abo-Ereignis den Abostatus des Nutzers noch aendern?
+
+    Zwei Faelle werden verworfen:
+
+    * **Veraltet:** Stripe stellt nicht in Reihenfolge zu. Ein "updated"
+      (active), das nach dem "deleted" desselben Abos eintrifft, oeffnete
+      Premium sonst wieder - dauerhaft und kostenlos.
+    * **Fremdes, altes Abo:** Die Zuordnung faellt auf die Kunden-ID zurueck.
+      Das Ende eines frueheren Abos (Kuendigung, dann neu abgeschlossen) traf
+      damit das laufende neue und entzog den bezahlten Zugang. Ein anderes
+      Abo darf den Status nur noch *uebernehmen*, wenn es berechtigt (etwa
+      ein neu abgeschlossenes), nie beenden.
+    """
+    sub_id = obj.get("id")
+    berechtigt = obj.get("status") in ENTITLING_SUBSCRIPTION_STATUS
+    if (
+        user.stripe_subscription_id
+        and sub_id
+        and sub_id != user.stripe_subscription_id
+        and not berechtigt
+    ):
+        logger.info("Stripe: Ereignis eines frueheren Abos ignoriert (%s)", sub_id)
+        return False
+    when = _event_time(event)
+    if when is not None and user.stripe_event_at is not None and when < user.stripe_event_at:
+        logger.info("Stripe: veraltetes Ereignis %s ignoriert", event.get("id"))
+        return False
+    if when is not None:
+        user.stripe_event_at = when
+    return True
+
+
 def _user_for_invoice_event(db: Session, obj: dict):
     """Ordnet eine Rechnung ueber Abo- oder Kunden-ID einem Nutzer zu."""
     subscription_id = obj.get("subscription")
@@ -241,12 +282,9 @@ def handle_stripe_event(event: dict, db: Session) -> None:
     Ausgelagert aus dem Endpunkt, damit der Ablauf ohne Signaturpruefung
     testbar ist - dieselbe Trennung wie bei ``trial_end_timestamp``.
 
-    Bekannte Grenze: Stripe stellt Ereignisse nicht garantiert in der
-    Reihenfolge ihres Entstehens zu. Trifft ein veraltetes "updated" nach einem
-    "deleted" ein, wird der Zugang faelschlich wieder geoeffnet. Sauber
-    aufloesen liesse sich das nur, indem der Abostatus bei jedem Ereignis frisch
-    von Stripe geholt wird - das kostet einen API-Aufruf pro Ereignis und ist
-    hier bewusst nicht getan.
+    Stripe stellt Ereignisse nicht garantiert in der Reihenfolge ihres
+    Entstehens zu - Abo-Ereignisse laufen deshalb durch
+    ``_subscription_event_applies`` (Zeitstempel und Abo-ID).
     """
     event_type = event["type"]
     obj = event["data"]["object"]
@@ -289,7 +327,7 @@ def handle_stripe_event(event: dict, db: Session) -> None:
 
     if event_type in ("customer.subscription.created", "customer.subscription.updated"):
         user = _user_for_subscription_event(db, obj)
-        if user:
+        if user and _subscription_event_applies(user, event, obj):
             # Die Abo-ID nachtragen, falls die Checkout-Session sie nicht
             # geliefert hat - sonst greift die Zuordnung beim naechsten
             # Ereignis nur noch ueber die Kunden-ID.
@@ -330,7 +368,7 @@ def handle_stripe_event(event: dict, db: Session) -> None:
 
     if event_type == "customer.subscription.deleted":
         user = _user_for_subscription_event(db, obj)
-        if user:
+        if user and _subscription_event_applies(user, event, obj):
             user.is_subscribed = False
             db.commit()
             _deliver_or_retry(
