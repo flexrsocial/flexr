@@ -237,7 +237,9 @@ def grant_my_consent(
 
 
 @router.delete("/me")
+@limiter.limit("10/hour")
 def delete_my_account(
+    request: Request,
     payload: DeleteAccountRequest,
     background_tasks: BackgroundTasks,
     current_user: User = Depends(get_current_user),

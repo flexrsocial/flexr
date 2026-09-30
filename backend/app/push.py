@@ -251,13 +251,17 @@ def register(
     return eintrag
 
 
-def unregister(db: Session, token: str) -> None:
+def unregister(db: Session, token: str, user_id: str) -> None:
     """Token entfernen - beim Abmelden und beim Abschalten der Benachrichtigungen.
 
     Der Token **ist** der Schalter: Ohne ihn hat der Server niemanden, dem er
     zustellen koennte.
     """
-    db.query(PushToken).filter(PushToken.token == token).delete()
+    # Nur eigene Tokens: sonst koennte, wer einen fremden Token kennt, dieser
+    # Person die Benachrichtigungen abschalten.
+    db.query(PushToken).filter(
+        PushToken.token == token, PushToken.user_id == user_id
+    ).delete()
     db.commit()
 
 

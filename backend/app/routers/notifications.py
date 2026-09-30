@@ -99,5 +99,5 @@ def unregister_push_token(
     zustellen könnte. Bewusst kein zusätzliches Flag am Konto - zwei Quellen
     für dieselbe Frage laufen früher oder später auseinander.
     """
-    push.unregister(db, payload.token)
+    push.unregister(db, payload.token, current_user.id)
     return {"registered": False}

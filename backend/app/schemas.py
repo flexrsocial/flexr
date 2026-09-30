@@ -61,7 +61,7 @@ class RegisterRequest(BaseModel):
     # GET /api/geo/plz/{plz}; maßgeblich ist ohnehin, was der Server daraus
     # macht (siehe routers/auth.py) - keine feste Städteliste, ganz Österreich.
     plz: str = Field(pattern=r"^\d{4}$", description="4-stellige österreichische Postleitzahl")
-    city: str = Field(min_length=1)
+    city: str = Field(min_length=1, max_length=100)
     gender: Literal["mann", "frau"]
     gym: str
     bio: Optional[str] = Field(default=None, max_length=280)
@@ -133,7 +133,7 @@ class AgeCheckResponse(BaseModel):
 
 class LoginRequest(BaseModel):
     email: EmailStr
-    password: str
+    password: str = Field(max_length=500)
     _email_norm = field_validator("email", mode="before")(_normalize_email)
 
 
@@ -303,7 +303,7 @@ class UpdateProfileRequest(BaseModel):
     Das Geburtsdatum ist bewusst nicht änderbar."""
 
     plz: Optional[str] = Field(default=None, pattern=r"^\d{4}$")
-    city: Optional[str] = Field(default=None, min_length=1)
+    city: Optional[str] = Field(default=None, min_length=1, max_length=100)
     gym: Optional[str] = None
     bio: Optional[str] = Field(default=None, max_length=280)
     search_radius_km: Optional[int] = Field(
@@ -332,14 +332,14 @@ class PasswordResetRequest(BaseModel):
 
 
 class PasswordChangeRequest(BaseModel):
-    current_password: str
+    current_password: str = Field(max_length=500)
     new_password: str = Field(min_length=8)
     _password_len = field_validator("new_password")(_check_new_password)
 
 
 class EmailChangeRequest(BaseModel):
     new_email: EmailStr
-    password: str
+    password: str = Field(max_length=500)
     _email_norm = field_validator("new_email", mode="before")(_normalize_email)
 
 
@@ -350,7 +350,7 @@ class OkResponse(BaseModel):
 class DeleteAccountRequest(BaseModel):
     """Selbstlöschung: erneute Passworteingabe als Bestätigung."""
 
-    password: str
+    password: str = Field(max_length=500)
 
 
 class MembershipStatus(BaseModel):
@@ -802,7 +802,7 @@ class BlockedUserOut(BaseModel):
 class AdminLoginRequest(BaseModel):
     email: EmailStr
     _email_norm = field_validator("email", mode="before")(_normalize_email)
-    password: str
+    password: str = Field(max_length=500)
     totp_code: Optional[str] = None
 
 

@@ -98,7 +98,9 @@ def suggest_gym(
     name = payload.name.strip()
     existing = (
         db.query(Gym)
-        .filter(Gym.name.ilike(name), Gym.plz == payload.plz)
+        # Gleichheit ohne Gross-/Kleinschreibung, nicht ilike(name): Dort waeren
+        # % und _ im Vorschlag Platzhalter - "%" traefe irgendein Gym der PLZ.
+        .filter(func.lower(Gym.name) == name.lower(), Gym.plz == payload.plz)
         .first()
     )
     if existing:
