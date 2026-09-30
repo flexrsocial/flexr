@@ -132,11 +132,45 @@ struct ChatView: View {
             }
             .frame(maxHeight: .infinity)
         } else if model.messages.isEmpty, !model.isLoading {
-            EmptyStateView(
-                icon: .symbol(FlexrIcon.send),
-                title: s(.chatEmptyTitle),
-                message: s(.chatEmptySub)
-            )
+            // Gespraechseinstiege wie in Web-App und Android: Ein Tipp setzt
+            // den Satz nur in das Eingabefeld, abgeschickt wird erst mit
+            // Senden. Scrollbar, weil die Vorschlaege bei offener Tastatur
+            // sonst abgeschnitten wuerden. Bei gesperrtem Chat keine Vorschlaege.
+            GeometryReader { geo in
+            ScrollView {
+                EmptyStateView(
+                    icon: .symbol(FlexrIcon.send),
+                    title: s(.chatEmptyTitle),
+                    message: s(.chatEmptySub)
+                ) {
+                    if model.mutedUntil == nil {
+                        VStack(spacing: 8) {
+                            ForEach(icebreakers(model), id: \.self) { line in
+                                Button {
+                                    model.draft = line
+                                } label: {
+                                    Text(line)
+                                        .flexrText(.bodySmall)
+                                        .foregroundStyle(FlexrColor.chalk)
+                                        .multilineTextAlignment(.center)
+                                        .frame(maxWidth: .infinity)
+                                        .padding(.horizontal, 14)
+                                        .padding(.vertical, 10)
+                                        .background(Capsule().fill(FlexrColor.surface2))
+                                        .overlay(Capsule().strokeBorder(FlexrColor.steel, lineWidth: 1))
+                                }
+                                .buttonStyle(.plain)
+                            }
+                        }
+                        .frame(maxWidth: 320)
+                    }
+                }
+                // Mindestens so hoch wie der Platz: bleibt ohne Tastatur
+                // mittig wie bisher, scrollt nur, wenn es eng wird.
+                .frame(minHeight: geo.size.height)
+            }
+            .scrollDismissesKeyboard(.interactively)
+            }
             .frame(maxHeight: .infinity)
         } else {
             ScrollViewReader { proxy in
@@ -162,6 +196,15 @@ struct ChatView: View {
                 .onAppear { scrollToEnd(proxy, messages: model.messages, animated: false) }
             }
         }
+    }
+
+    private func icebreakers(_ model: ChatModel) -> [String] {
+        let gym = model.match?.profile.gymName ?? ""
+        return [
+            s(.chatIce1),
+            gym.isEmpty ? s(.chatIce2) : s(.chatIceGym, gym),
+            s(.chatIce3),
+        ]
     }
 
     private func scrollToEnd(

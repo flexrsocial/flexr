@@ -42,6 +42,9 @@ data class PendingPhoto(
     val prepared: PreparedPhoto,
 )
 
+/** Pflichtfelder der Registrierung, in der Reihenfolge des Formulars. */
+enum class RegisterField { EMAIL, PASSWORD, PASSWORD_CONFIRM, NAME, BIRTHDATE, POSTAL_CODE, GENDER, GYM, PHOTOS, CONSENT }
+
 data class RegisterUiState(
     val email: String = "",
     val password: String = "",
@@ -60,6 +63,16 @@ data class RegisterUiState(
     val consentSensitiveData: Boolean = false,
     val isSubmitting: Boolean = false,
     val error: String? = null,
+    /**
+     * Zu welchem Feld [error] gehoert (Pruefung beim Absenden). Der Bildschirm
+     * zeigt die Meldung dann direkt unter dem Feld und scrollt hin; null heisst
+     * Meldung unten am Knopf (Serverfehler). Gilt nur, solange [error] steht -
+     * jede Eingabe setzt [error] zurueck und damit auch die Markierung.
+     */
+    val errorField: RegisterField? = null,
+    /** Zaehlt jeden Absendeversuch mit Feldfehler, damit auch ein zweiter
+     *  Versuch am selben Feld erneut dorthin scrollt. */
+    val errorSeq: Int = 0,
     val success: Boolean = false,
     val successNotice: String? = null,
 ) {
@@ -231,6 +244,7 @@ class RegisterViewModel @Inject constructor(
                     selectedLabel = gym.label,
                     expanded = false,
                 ),
+                error = null,
             )
         }
     }
@@ -316,6 +330,7 @@ class RegisterViewModel @Inject constructor(
                         it.copy(
                             isPreparingPhoto = false,
                             photos = it.photos + PendingPhoto(uri.toString(), uri, prepared),
+                            error = null,
                         )
                     }
                 }
@@ -347,12 +362,12 @@ class RegisterViewModel @Inject constructor(
 
     fun register() {
         val state = _uiState.value
-        validate(state)?.let { message ->
-            _uiState.update { it.copy(error = message) }
+        validate(state)?.let { (field, message) ->
+            _uiState.update { it.copy(error = message, errorField = field, errorSeq = it.errorSeq + 1) }
             return
         }
 
-        _uiState.update { it.copy(isSubmitting = true, error = null) }
+        _uiState.update { it.copy(isSubmitting = true, error = null, errorField = null) }
         viewModelScope.launch {
             // Bis die Fotos oben sind, gilt das Konto app-intern noch nicht als
             // angemeldet: sonst schaltet MainViewModel schon auf den
@@ -421,31 +436,32 @@ class RegisterViewModel @Inject constructor(
         return failures
     }
 
-    private fun validate(state: RegisterUiState): String? {
-        if (state.email.isBlank() ||
-            state.password.length < RegisterUiState.MIN_PASSWORD_LENGTH ||
-            state.name.isBlank() ||
-            state.birthdate == null
-        ) {
-            return strings.get(R.string.register_err_required, RegisterUiState.MIN_PASSWORD_LENGTH)
+    /** Erstes fehlendes Feld samt Meldung - oder null, wenn alles passt. */
+    private fun validate(state: RegisterUiState): Pair<RegisterField, String>? {
+        val required = strings.get(R.string.register_err_required, RegisterUiState.MIN_PASSWORD_LENGTH)
+        when {
+            state.email.isBlank() -> return RegisterField.EMAIL to required
+            state.password.length < RegisterUiState.MIN_PASSWORD_LENGTH -> return RegisterField.PASSWORD to required
+            state.name.isBlank() -> return RegisterField.NAME to required
+            state.birthdate == null -> return RegisterField.BIRTHDATE to required
         }
         if (!state.passwordsMatch) {
-            return strings.get(R.string.register_err_password_mismatch)
+            return RegisterField.PASSWORD_CONFIRM to strings.get(R.string.register_err_password_mismatch)
         }
-        val age = ServerTime.ageFrom(state.birthdate)
+        val age = ServerTime.ageFrom(state.birthdate!!)
         // Wortgleich mit der serverseitigen Antwort (backend/app/age.py) - die
         // Grenze prüft verbindlich der Server, hier geht es nur um die Führung.
         if (age < RegisterUiState.MIN_AGE) {
-            return strings.get(R.string.register_err_under_18)
+            return RegisterField.BIRTHDATE to strings.get(R.string.register_err_under_18)
         }
-        if (age > RegisterUiState.MAX_AGE) return strings.get(R.string.register_err_birthdate)
-        if (state.resolvedCity == null) return strings.get(R.string.register_err_postal_code)
-        if (state.gender == null) return strings.get(R.string.register_err_gender)
-        if (state.gymPicker.selectedLabel == null) return strings.get(R.string.register_err_gym)
+        if (age > RegisterUiState.MAX_AGE) return RegisterField.BIRTHDATE to strings.get(R.string.register_err_birthdate)
+        if (state.resolvedCity == null) return RegisterField.POSTAL_CODE to strings.get(R.string.register_err_postal_code)
+        if (state.gender == null) return RegisterField.GENDER to strings.get(R.string.register_err_gender)
+        if (state.gymPicker.selectedLabel == null) return RegisterField.GYM to strings.get(R.string.register_err_gym)
         if (state.photos.size < ImageProcessor.MIN_PHOTOS) {
-            return strings.get(R.string.register_err_photo, ImageProcessor.MIN_PHOTOS)
+            return RegisterField.PHOTOS to strings.get(R.string.register_err_photo, ImageProcessor.MIN_PHOTOS)
         }
-        if (!state.consentSensitiveData) return strings.get(R.string.register_err_consent)
+        if (!state.consentSensitiveData) return RegisterField.CONSENT to strings.get(R.string.register_err_consent)
         return null
     }
 

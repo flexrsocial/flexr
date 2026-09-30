@@ -247,6 +247,10 @@
     <!-- ==== Chat ==== -->
     <string name="chat_empty_title">Noch keine Nachrichten</string>
     <string name="chat_empty_sub">Schreib die erste — ihr habt schließlich gematcht.</string>
+    <string name="chat_ice_1">Hey! Trainierst du eher morgens oder abends?</string>
+    <string name="chat_ice_2">Was trainierst du im Moment am liebsten?</string>
+    <string name="chat_ice_gym">Hey! Wie gefällt dir das Training bei %1$s?</string>
+    <string name="chat_ice_3">Was steht bei dir diese Woche auf dem Trainingsplan?</string>
     <string name="chat_clear_title">Chatverlauf leeren?</string>
     <string name="chat_clear_confirm">Leeren</string>
     <string name="chat_muted_banner">Deine Chat-Funktion ist vorübergehend gesperrt. Du kannst bis %1$s Uhr keine Nachrichten senden.</string>

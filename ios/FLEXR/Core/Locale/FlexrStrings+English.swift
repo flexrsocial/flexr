@@ -243,6 +243,10 @@ extension FlexrStrings {
         // MARK: Chat
         .chatEmptyTitle: "No messages yet",
         .chatEmptySub: "Write the first one — you did match, after all.",
+        .chatIce1: "Hey! Are you more of a morning or an evening trainer?",
+        .chatIce2: "What are you enjoying training most right now?",
+        .chatIceGym: "Hey! How do you like training at %@?",
+        .chatIce3: "What's on your training plan this week?",
         .chatBlockBody: "You will no longer see each other. The match and the chat disappear.",
         .chatClearTitle: "Clear chat history?",
         .chatClearBody: "The history is only hidden for you — the other person still sees it.",

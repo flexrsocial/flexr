@@ -7,6 +7,11 @@ struct PendingPhoto: Identifiable, Equatable {
     let prepared: PreparedPhoto
 }
 
+/// Pflichtfelder der Registrierung, in der Reihenfolge des Formulars.
+enum RegisterField: Hashable {
+    case email, password, passwordConfirm, name, birthdate, postalCode, gender, gym, photos, consent
+}
+
 /// Registrierung inklusive Profilanlage.
 ///
 /// Ablauf wie im Web: erst das Konto anlegen (dabei entsteht der Token), dann
@@ -44,6 +49,14 @@ final class RegisterModel {
     var consentSensitiveData = false
     var isSubmitting = false
     var error: String?
+    /// Zu welchem Feld `error` gehoert (Pruefung beim Absenden). Die Ansicht
+    /// zeigt die Meldung dann direkt unter dem Feld und scrollt hin - vorher
+    /// stand sie nur unten am Knopf (wie in Web-App und Android). `nil` heisst
+    /// Meldung unten am Knopf (Antwort des Servers).
+    var errorField: RegisterField?
+    /// Zaehlt jeden Absendeversuch mit Feldfehler, damit auch ein zweiter
+    /// Versuch am selben Feld erneut dorthin scrollt.
+    var errorSeq = 0
     /// Meldung, die nach dem Wechsel in die App eingeblendet wird.
     var successNotice: String?
 
@@ -229,11 +242,26 @@ final class RegisterModel {
 
     // MARK: - Absenden
 
+    /// Meldung fuer genau dieses Feld, falls die Pruefung es beanstandet hat.
+    func fieldError(_ field: RegisterField) -> String? {
+        errorField == field ? error : nil
+    }
+
+    /// Das beanstandete Feld wurde bearbeitet: Markierung und Meldung weg.
+    func fieldEdited(_ field: RegisterField) {
+        guard errorField == field else { return }
+        errorField = nil
+        error = nil
+    }
+
     func register() async {
-        if let message = validate() {
+        if case let (field, message)? = validate() {
             error = message
+            errorField = field
+            errorSeq += 1
             return
         }
+        errorField = nil
         guard let birthdate, let city = resolvedCity, let gender,
               let gymLabel = gymPicker.selectedLabel
         else { return }
@@ -291,23 +319,24 @@ final class RegisterModel {
         return failures
     }
 
-    private func validate() -> String? {
-        guard !email.isEmpty, password.count >= Self.minPasswordLength, !name.isEmpty,
-              let birthdate
-        else {
-            return s(.registerErrRequired, Self.minPasswordLength)
-        }
-        if !passwordsMatch { return s(.registerErrPasswordMismatch) }
+    /// Erstes fehlendes Feld samt Meldung - oder nil, wenn alles passt.
+    private func validate() -> (RegisterField, String)? {
+        let required = s(.registerErrRequired, Self.minPasswordLength)
+        if email.isEmpty { return (.email, required) }
+        if password.count < Self.minPasswordLength { return (.password, required) }
+        if name.isEmpty { return (.name, required) }
+        guard let birthdate else { return (.birthdate, required) }
+        if !passwordsMatch { return (.passwordConfirm, s(.registerErrPasswordMismatch)) }
         let age = ServerTime.age(from: birthdate)
-        if age < Self.minAge { return s(.registerErrUnder18) }
-        if age > Self.maxAge { return s(.registerErrBirthdate) }
-        if resolvedCity == nil { return s(.registerErrPostalCode) }
-        if gender == nil { return s(.registerErrGender) }
-        if gymPicker.selectedLabel == nil { return s(.registerErrGym) }
+        if age < Self.minAge { return (.birthdate, s(.registerErrUnder18)) }
+        if age > Self.maxAge { return (.birthdate, s(.registerErrBirthdate)) }
+        if resolvedCity == nil { return (.postalCode, s(.registerErrPostalCode)) }
+        if gender == nil { return (.gender, s(.registerErrGender)) }
+        if gymPicker.selectedLabel == nil { return (.gym, s(.registerErrGym)) }
         if photos.count < ImageProcessor.minPhotos {
-            return s(.registerErrPhoto, ImageProcessor.minPhotos)
+            return (.photos, s(.registerErrPhoto, ImageProcessor.minPhotos))
         }
-        if !consentSensitiveData { return s(.registerErrConsents) }
+        if !consentSensitiveData { return (.consent, s(.registerErrConsents)) }
         return nil
     }
 }

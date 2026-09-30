@@ -2,6 +2,9 @@ package flexr.social.app.ui.chat
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -52,6 +55,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -167,14 +172,30 @@ fun ChatScreen(
 
         Box(Modifier.fillMaxWidth().weight(1f)) {
             if (messages.isEmpty() && !state.isLoading) {
+                val gym = match?.profile?.gymName.orEmpty()
+                val icebreakers = listOf(
+                    stringResource(R.string.chat_ice_1),
+                    if (gym.isNotBlank()) stringResource(R.string.chat_ice_gym, gym) else stringResource(R.string.chat_ice_2),
+                    stringResource(R.string.chat_ice_3),
+                )
                 EmptyState(
                     // Wie im Swipe-Deck per Modifier am EmptyState zentriert,
                     // nicht per contentAlignment an der Box - sonst zoege die
                     // Ausrichtung auch die LazyColumn des Verlaufs mit.
-                    modifier = Modifier.align(Alignment.Center),
+                    // Scrollbar, weil die Vorschlaege bei offener Tastatur
+                    // sonst unten abgeschnitten wuerden.
+                    modifier = Modifier.align(Alignment.Center).verticalScroll(rememberScrollState()),
                     icon = FlexrIcons.Send,
                     title = stringResource(R.string.chat_empty_title),
                     description = stringResource(R.string.chat_empty_sub),
+                    // Gespraechseinstiege wie in der Web-App: Ein Tipp setzt den
+                    // Satz nur in das Eingabefeld, abgeschickt wird erst mit
+                    // Senden. Bei gesperrtem Chat keine Vorschlaege.
+                    action = if (state.mutedUntil == null) {
+                        { IcebreakerList(icebreakers, onPick = viewModel::onDraftChange) }
+                    } else {
+                        null
+                    },
                 )
             } else {
                 LazyColumn(
@@ -253,6 +274,32 @@ fun ChatScreen(
             },
             onDismiss = { showDeleteDialog = false },
         )
+    }
+}
+
+@Composable
+private fun IcebreakerList(lines: List<String>, onPick: (String) -> Unit) {
+    val colors = FlexrTheme.colors
+    Column(
+        Modifier.widthIn(max = 320.dp).fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        lines.forEach { line ->
+            Text(
+                text = line,
+                style = MaterialTheme.typography.bodySmall,
+                color = colors.chalk,
+                textAlign = TextAlign.Center,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(50))
+                    .background(colors.surface2)
+                    .border(1.dp, colors.steel, RoundedCornerShape(50))
+                    .clickable(role = Role.Button) { onPick(line) }
+                    .padding(horizontal = 14.dp, vertical = 10.dp),
+            )
+        }
     }
 }
 

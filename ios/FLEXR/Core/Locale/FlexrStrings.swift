@@ -92,6 +92,7 @@ enum L: Hashable, Sendable {
 
     // Chat
     case chatEmptyTitle, chatEmptySub, chatLoadFailed
+    case chatIce1, chatIce2, chatIceGym, chatIce3
     case chatBlockBody, chatClearTitle, chatClearBody, chatClearConfirm
     case chatDeleteTitle, chatDeleteBody, chatDeleteAction, chatClearAction, chatCleared
     case chatCensoredOut, chatCensoredIn, chatMutedBanner, chatInputPlaceholder

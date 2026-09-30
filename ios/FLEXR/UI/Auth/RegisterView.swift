@@ -47,6 +47,7 @@ struct RegisterView: View {
     private func form(_ model: RegisterModel) -> some View {
         @Bindable var model = model
 
+        ScrollViewReader { proxy in
         ScrollView {
             VStack(alignment: .leading, spacing: 0) {
                 AuthTabs(selected: .register) { tab in
@@ -71,15 +72,21 @@ struct RegisterView: View {
                     placeholder: s(.loginEmailPlaceholder),
                     keyboardType: .emailAddress,
                     textContentType: .username,
-                    autocapitalization: .never
+                    autocapitalization: .never,
+                    isError: model.fieldError(.email) != nil
                 )
+                .id(RegisterField.email)
+                FieldError(message: model.fieldError(.email))
                 FlexrPasswordField(
                     text: $model.password,
                     label: s(.fieldPassword),
                     placeholder: s(.registerPasswordPlaceholder),
                     textContentType: .newPassword,
+                    isError: model.fieldError(.password) != nil,
                     submitLabel: .next
                 )
+                .id(RegisterField.password)
+                FieldError(message: model.fieldError(.password))
                 // Zweite Eingabe gegen Tippfehler: Ein vertipptes Passwort
                 // fällt sonst erst beim nächsten Login auf, wenn niemand mehr
                 // weiß, was drinstand — und „Passwort vergessen" gibt es nicht.
@@ -88,24 +95,35 @@ struct RegisterView: View {
                     label: s(.registerPasswordRepeat),
                     placeholder: s(.registerPasswordRepeatPlaceholder),
                     textContentType: .newPassword,
-                    isError: model.passwordConfirmError != nil,
+                    isError: model.passwordConfirmError != nil || model.fieldError(.passwordConfirm) != nil,
                     supportingText: model.passwordConfirmError,
                     submitLabel: .next
                 )
+                .id(RegisterField.passwordConfirm)
+                FieldError(message: model.fieldError(.passwordConfirm))
                 FlexrTextField(
                     text: $model.name,
                     label: s(.fieldName),
                     placeholder: s(.registerNamePlaceholder),
                     textContentType: .givenName,
                     autocapitalization: .words,
+                    isError: model.fieldError(.name) != nil,
                     maxLength: 100
                 )
+                .id(RegisterField.name)
+                FieldError(message: model.fieldError(.name))
 
                 BirthdateField(birthdate: $model.birthdate, age: model.age)
+                    .id(RegisterField.birthdate)
+                FieldError(message: model.fieldError(.birthdate))
 
                 PostalCodeField(postalCode: $model.postalCode, lookupState: model.plzLookup)
+                    .id(RegisterField.postalCode)
+                FieldError(message: model.fieldError(.postalCode))
 
                 GenderSelector(selected: $model.gender)
+                    .id(RegisterField.gender)
+                FieldError(message: model.fieldError(.gender))
 
                 GymPicker(
                     state: $model.gymPicker,
@@ -113,6 +131,8 @@ struct RegisterView: View {
                     onSelect: model.onGymSelected,
                     onSuggestRequested: model.openGymSuggestion
                 )
+                .id(RegisterField.gym)
+                FieldError(message: model.fieldError(.gym))
 
                 FlexrTextField(
                     text: $model.bio,
@@ -134,6 +154,8 @@ struct RegisterView: View {
                     onPhotoPicked: { data in Task { await model.onPhotoPicked(data) } },
                     onRemove: model.removePhoto
                 )
+                .id(RegisterField.photos)
+                FieldError(message: model.fieldError(.photos))
                 if model.isPreparingPhoto {
                     HStack(spacing: 8) {
                         ProgressView().controlSize(.mini).tint(FlexrColor.plate)
@@ -153,8 +175,14 @@ struct RegisterView: View {
                     onLinkTap: { legalDocument = .datenschutz }
                 )
                 .padding(.top, 20)
+                .id(RegisterField.consent)
+                FieldError(message: model.fieldError(.consent))
 
-                FieldError(message: model.error)
+                // Feldfehler stehen am Feld selbst; hier nur, was keinem Feld
+                // zugeordnet ist (Antwort des Servers).
+                if model.errorField == nil {
+                    FieldError(message: model.error)
+                }
 
                 // Bewusst nicht gesperrt, solange etwas fehlt: Ein grauer Knopf
                 // sagt nicht, *was* fehlt. Der Druck darauf löst die Prüfung
@@ -178,7 +206,26 @@ struct RegisterView: View {
             .padding(.bottom, 40)
         }
         .scrollDismissesKeyboard(.interactively)
-        .onChange(of: model.postalCode) { _, _ in model.postalCodeChanged() }
+        // Beim Absenden zum beanstandeten Feld scrollen.
+        .onChange(of: model.errorSeq) { _, _ in
+            guard let field = model.errorField else { return }
+            withAnimation(.easeOut(duration: 0.25)) { proxy.scrollTo(field, anchor: .center) }
+        }
+        }
+        // Wer das beanstandete Feld bearbeitet, sieht die Markierung nicht mehr.
+        .onChange(of: model.email) { _, _ in model.fieldEdited(.email) }
+        .onChange(of: model.password) { _, _ in model.fieldEdited(.password) }
+        .onChange(of: model.passwordConfirm) { _, _ in model.fieldEdited(.passwordConfirm) }
+        .onChange(of: model.name) { _, _ in model.fieldEdited(.name) }
+        .onChange(of: model.birthdate) { _, _ in model.fieldEdited(.birthdate) }
+        .onChange(of: model.gender) { _, _ in model.fieldEdited(.gender) }
+        .onChange(of: model.gymPicker.selectedLabel) { _, _ in model.fieldEdited(.gym) }
+        .onChange(of: model.photos.count) { _, _ in model.fieldEdited(.photos) }
+        .onChange(of: model.consentSensitiveData) { _, _ in model.fieldEdited(.consent) }
+        .onChange(of: model.postalCode) { _, _ in
+            model.fieldEdited(.postalCode)
+            model.postalCodeChanged()
+        }
         .sheet(isPresented: Binding(
             get: { model.gymSuggestion != nil },
             set: { if !$0 { model.closeGymSuggestion() } }

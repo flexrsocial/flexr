@@ -1,6 +1,9 @@
 package flexr.social.app.ui.auth
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -124,62 +127,81 @@ fun RegisterScreen(
         )
         Spacer(Modifier.height(18.dp))
 
-        FlexrTextField(
-            value = state.email,
-            onValueChange = viewModel::onEmailChange,
-            label = stringResource(R.string.field_email),
-            placeholder = "max@example.com",
-            keyboardType = KeyboardType.Email,
-        )
-        FlexrPasswordField(
-            value = state.password,
-            onValueChange = viewModel::onPasswordChange,
-            label = stringResource(R.string.field_password),
-            placeholder = stringResource(R.string.register_password_placeholder),
-            imeAction = ImeAction.Next,
-        )
+        FieldAnchor(RegisterField.EMAIL, state) {
+            FlexrTextField(
+                value = state.email,
+                onValueChange = viewModel::onEmailChange,
+                label = stringResource(R.string.field_email),
+                placeholder = "max@example.com",
+                keyboardType = KeyboardType.Email,
+                isError = state.isFieldError(RegisterField.EMAIL),
+            )
+        }
+        FieldAnchor(RegisterField.PASSWORD, state) {
+            FlexrPasswordField(
+                value = state.password,
+                onValueChange = viewModel::onPasswordChange,
+                label = stringResource(R.string.field_password),
+                placeholder = stringResource(R.string.register_password_placeholder),
+                imeAction = ImeAction.Next,
+                isError = state.isFieldError(RegisterField.PASSWORD),
+            )
+        }
         // Zweite Eingabe gegen Tippfehler: Ein vertipptes Passwort fällt sonst
         // erst beim nächsten Login auf, wenn niemand mehr weiß, was drinstand.
-        FlexrPasswordField(
-            value = state.passwordConfirm,
-            onValueChange = viewModel::onPasswordConfirmChange,
-            label = stringResource(R.string.register_password_repeat),
-            placeholder = stringResource(R.string.register_password_repeat_placeholder),
-            imeAction = ImeAction.Next,
-            isError = state.passwordConfirmErrorRes != null,
-            supportingText = state.passwordConfirmErrorRes?.let { stringResource(it) },
-        )
-        FlexrTextField(
-            value = state.name,
-            onValueChange = viewModel::onNameChange,
-            label = stringResource(R.string.field_name),
-            placeholder = stringResource(R.string.register_name_placeholder),
-            maxLength = 100,
-        )
+        FieldAnchor(RegisterField.PASSWORD_CONFIRM, state) {
+            FlexrPasswordField(
+                value = state.passwordConfirm,
+                onValueChange = viewModel::onPasswordConfirmChange,
+                label = stringResource(R.string.register_password_repeat),
+                placeholder = stringResource(R.string.register_password_repeat_placeholder),
+                imeAction = ImeAction.Next,
+                isError = state.passwordConfirmErrorRes != null || state.isFieldError(RegisterField.PASSWORD_CONFIRM),
+                supportingText = state.passwordConfirmErrorRes?.let { stringResource(it) },
+            )
+        }
+        FieldAnchor(RegisterField.NAME, state) {
+            FlexrTextField(
+                value = state.name,
+                onValueChange = viewModel::onNameChange,
+                label = stringResource(R.string.field_name),
+                placeholder = stringResource(R.string.register_name_placeholder),
+                maxLength = 100,
+                isError = state.isFieldError(RegisterField.NAME),
+            )
+        }
 
-        BirthdateField(
-            birthdate = state.birthdate,
-            age = state.age,
-            onClick = {
-                keyboard?.hide()
-                showDatePicker = true
-            },
-        )
+        FieldAnchor(RegisterField.BIRTHDATE, state) {
+            BirthdateField(
+                birthdate = state.birthdate,
+                age = state.age,
+                onClick = {
+                    keyboard?.hide()
+                    showDatePicker = true
+                },
+            )
+        }
 
-        PostalCodeField(
-            postalCode = state.postalCode,
-            lookupState = state.plzLookup,
-            onPostalCodeChange = viewModel::onPostalCodeChange,
-        )
+        FieldAnchor(RegisterField.POSTAL_CODE, state) {
+            PostalCodeField(
+                postalCode = state.postalCode,
+                lookupState = state.plzLookup,
+                onPostalCodeChange = viewModel::onPostalCodeChange,
+            )
+        }
 
-        GenderSelector(selected = state.gender, onSelect = viewModel::onGenderChange)
+        FieldAnchor(RegisterField.GENDER, state) {
+            GenderSelector(selected = state.gender, onSelect = viewModel::onGenderChange)
+        }
 
-        GymPicker(
-            state = state.gymPicker,
-            onQueryChange = viewModel::onGymQueryChange,
-            onSelect = viewModel::onGymSelected,
-            onSuggestRequested = viewModel::openGymSuggestion,
-        )
+        FieldAnchor(RegisterField.GYM, state) {
+            GymPicker(
+                state = state.gymPicker,
+                onQueryChange = viewModel::onGymQueryChange,
+                onSelect = viewModel::onGymSelected,
+                onSuggestRequested = viewModel::openGymSuggestion,
+            )
+        }
 
         FlexrTextField(
             value = state.bio,
@@ -201,11 +223,13 @@ fun RegisterScreen(
                 ImageProcessor.MAX_PHOTOS,
             ),
         )
-        PhotoGridEditor(
-            slots = state.photos.map { PhotoSlot(key = it.id, model = it.previewUri) },
-            onPhotoPicked = viewModel::onPhotoPicked,
-            onRemove = viewModel::onPhotoRemoved,
-        )
+        FieldAnchor(RegisterField.PHOTOS, state) {
+            PhotoGridEditor(
+                slots = state.photos.map { PhotoSlot(key = it.id, model = it.previewUri) },
+                onPhotoPicked = viewModel::onPhotoPicked,
+                onRemove = viewModel::onPhotoRemoved,
+            )
+        }
         // Solange die Pflichtzahl nicht erreicht ist, bleibt der Knopf unten
         // grau. Ohne diesen Zaehler waere nicht zu sehen, warum.
         if (state.missingPhotos > 0) {
@@ -237,14 +261,16 @@ fun RegisterScreen(
         FieldError(state.photoError)
 
         Spacer(Modifier.height(20.dp))
-        ConsentCheckbox(
-            checked = state.consentSensitiveData,
-            onCheckedChange = viewModel::onConsentSensitiveDataChange,
-            prefix = stringResource(R.string.register_consent_prefix),
-            linkText = stringResource(R.string.register_consent_link),
-            suffix = stringResource(R.string.register_consent_suffix),
-            onLinkClick = { onOpenLegal(LegalDocument.DATENSCHUTZ) },
-        )
+        FieldAnchor(RegisterField.CONSENT, state) {
+            ConsentCheckbox(
+                checked = state.consentSensitiveData,
+                onCheckedChange = viewModel::onConsentSensitiveDataChange,
+                prefix = stringResource(R.string.register_consent_prefix),
+                linkText = stringResource(R.string.register_consent_link),
+                suffix = stringResource(R.string.register_consent_suffix),
+                onLinkClick = { onOpenLegal(LegalDocument.DATENSCHUTZ) },
+            )
+        }
         // Hier stand bis zum 15.08.2026 ein zweiter Pflicht-Haken: "Ich stimme
         // zu, dass der Zugang sofort mit Registrierung beginnt, und nehme zur
         // Kenntnis, dass ich dadurch mein 14-tägiges Rücktrittsrecht verliere."
@@ -256,7 +282,9 @@ fun RegisterScreen(
         // Die Rücktrittsbelehrung steht jetzt unter „Rechtliches" →
         // „Rücktrittsrecht" im Konto-Bereich (LegalDocument.WIDERRUF).
 
-        FieldError(state.error)
+        // Feldfehler stehen am Feld selbst (FieldAnchor); hier nur, was keinem
+        // Feld zugeordnet ist (Antwort des Servers).
+        if (state.errorField == null) FieldError(state.error)
 
         Spacer(Modifier.height(22.dp))
         // Bewusst immer tippbar: Ein ausgegrauter Knopf sieht aus, als wäre er
@@ -306,6 +334,28 @@ fun RegisterScreen(
 }
 
 /** Geburtsdatum: nicht tippen, sondern auswählen — der native Kalenderdialog. */
+private fun RegisterUiState.isFieldError(field: RegisterField) = error != null && errorField == field
+
+/**
+ * Traeger fuer ein Pflichtfeld: Meldet validate() beim Absenden genau dieses
+ * Feld, steht die Meldung direkt darunter und der Bildschirm scrollt hin -
+ * vorher stand sie nur unten am Knopf, und welches der zehn Felder gemeint
+ * war, musste man selbst suchen (wie in der Web-App).
+ */
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+private fun FieldAnchor(field: RegisterField, state: RegisterUiState, content: @Composable () -> Unit) {
+    val requester = remember { BringIntoViewRequester() }
+    val active = state.isFieldError(field)
+    LaunchedEffect(state.errorSeq) {
+        if (state.errorField == field && state.error != null) requester.bringIntoView()
+    }
+    Column(Modifier.fillMaxWidth().bringIntoViewRequester(requester)) {
+        content()
+        if (active) FieldError(state.error)
+    }
+}
+
 @Composable
 private fun BirthdateField(birthdate: LocalDate?, age: Int?, onClick: () -> Unit) {
     val colors = FlexrTheme.colors
