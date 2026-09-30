@@ -32,6 +32,23 @@ erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 
 ## Wo das Projekt gerade steht
 
+> **Nachtrag 30.09.2026 — UX-Vorschlaege 1-5 umgesetzt, deployed** (`d13b692`,
+> live md5-gleich, DE/EN geprueft, keine Konsolenfehler):
+> 1. Landing-Reihenfolge: Hero -> So funktioniert's -> Muster-Deck -> Gym ->
+>    Lifestyle -> Rest.
+> 2. Beta-Hinweis als Leiste `#betaBar` (Landing unten; App ausgeloggt unten,
+>    eingeloggt unter der Kopfzeile) statt automatischem Dialog. "Details"
+>    oeffnet `#betaBackdrop`; "Verstanden" oder X an der Leiste setzt
+>    `flexr_beta_notice_v6`. App feuert `flexr-beta-weg`, darauf wartet der
+>    iPhone-Installationshinweis.
+> 3. Schrittanzeige: sticky nur Balken + `journey.regCount`, Erklaerung
+>    `journey.regInfo` darunter (scrollt mit). `journey.regNote` entfallen.
+> 4. `feldFehler()`: erstes fehlendes Feld rot (`.feld-fehlt`), Meldung
+>    `#regFieldHint` darunter, Scroll + Fokus; verschwindet beim Bearbeiten.
+> 5. Leerer Chat: drei Einstiege (`chat.ice1/ice2/iceGym/ice3`), Tipp setzt
+>    den Text ins Eingabefeld, nicht bei gesperrtem Chat.
+> sw.js v31, `i18n-app.js?v=23`.
+>
 > **Sitzung 30.09.2026 — Bug-/UX-Durchgang Website + Web-App. Alles deployed**
 > (`git pull` als `deploy`, API-Neustart wegen `gyms.py`, live md5-gleich,
 > `/api/health` ok, keine Konsolenfehler auf `/` und `/app/`).
