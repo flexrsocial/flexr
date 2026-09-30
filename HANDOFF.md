@@ -32,6 +32,34 @@ erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 
 ## Wo das Projekt gerade steht
 
+> **Sitzung 30.09.2026 (6) — SEO-Lauf: Such-Einstiegsseiten.** Deployed
+> (`8c3f6b4`, nur `git pull`, Rechte 664, md5-gleich, alle neuen URLs 200).
+> Technische SEO war schon komplett (Meta, hreflang, Sitemap, JSON-LD,
+> noindex); der fehlende Hebel waren Seiten fuer konkrete Suchbegriffe.
+>
+> - Neu: `/gym-dating.html` (Hub), `/fitness-dating-{wien,graz,linz,
+>   salzburg,innsbruck,klagenfurt}.html`, `/gym-crush-ansprechen.html`,
+>   `/date-ideen-sportler.html` - nur Deutsch, mit FAQPage/Breadcrumb/
+>   Article-Schema. **ERZEUGTE DATEIEN**: Quelle ist
+>   `tools/seo/build_seo_pages.py` (Texte, Date-Ideen je Stadt) plus
+>   `tools/seo/gyms.json` (Schnappschuss von `GET /api/gyms`, 485 Studios).
+>   Neu bauen: `python3 tools/seo/build_seo_pages.py [--refresh]`; das
+>   Skript schreibt auch den Block `SEO-SEITEN-ANFANG/-ENDE` in
+>   `sitemap.xml`. Stadtseiten tragen die real auswaehlbaren Studios, damit
+>   sie keine duennen Doorway-Seiten sind; keine Nutzerzahlen, keine
+>   Versprechen.
+> - Landingpage: Staedte im Oesterreich-Abschnitt verlinkt (`at.p1` in
+>   `index.html` und `i18n-landing.js`), neue Fussleisten-Spalte
+>   "Entdecken" (`foot.discoverTitle` usw., EN "Discover (German)");
+>   `en/index.html` neu gebaut. FAQ verlinkt Hub und Date-Ideen.
+> - **Fuer den Nutzer offen:** Sitemap in der Google Search Console neu
+>   einreichen und die neuen URLs per "URL-Pruefung" zur Indexierung
+>   anmelden; Backlinks (Gyms, lokale Medien, Reddit r/Austria, Instagram-Bio
+>   auf `/gym-dating.html`) sind der naechste grosse Hebel. Die Gym-Liste
+>   gelegentlich mit `--refresh` aktualisieren.
+> - Bewusst nicht gemacht: `/index.html` liefert 200 statt 301 auf `/`
+>   (Canonical deckt das ab, nginx-Aenderung braeuchte root).
+
 > **Sitzung 30.09.2026 (5) — Store-Kaeufe ans Konto gebunden, Android 2.7.21.**
 > Backend deployed (`9211aaa`, `git pull`, API-Neustart, md5-gleich,
 > `/api/health` ok, keine Migration). Tests: Backend 586, Android Unit-Tests
