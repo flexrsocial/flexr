@@ -1,6 +1,6 @@
 # FLEXR — Handoff für ein anderes Gerät / Claude Code
 
-Stand: **26.09.2026**
+Stand: **30.09.2026**
 
 ## ⚠️ Dringend zu prüfen: SSH-Zugang zum VPS hat sich geändert (21.09.2026)
 
@@ -31,6 +31,49 @@ Falls du das liest, weil dein `root@`-Login gerade fehlschlägt: das ist
 erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 
 ## Wo das Projekt gerade steht
+
+> **Sitzung 30.09.2026 — Bug-/UX-Durchgang Website + Web-App. Alles deployed**
+> (`git pull` als `deploy`, API-Neustart wegen `gyms.py`, live md5-gleich,
+> `/api/health` ok, keine Konsolenfehler auf `/` und `/app/`).
+>
+> Commits `b85cc10`, `0bbb372`, `9904bfc`:
+> - **Gym-Suche wortweise** (`routers/gyms.py`): "fitinn wien", "clever fit
+>   linz", "john harris 1010" lieferten 0 Treffer. Jetzt muss jedes Wort in
+>   Name/Ort/Strasse/PLZ-Anfang vorkommen, Namen mit dem ersten Wort vorne,
+>   `%`/`_` woertlich. Test `test_gym_suche_wortweise`. Frontend verwirft
+>   verspaetete Suchantworten.
+> - **Einstieg ins Formular:** Landing-Knoepfe zeigen auf `/app/#registrieren`
+>   bzw. `/app/#login`; die App oeffnet den Reiter und scrollt am Handy zum
+>   Formular (nach `load`, sonst setzt der Browser zurueck). `/app/#premium`
+>   (Preis-Karte) wurde nie ausgewertet - oeffnet jetzt den Premium-Screen,
+>   ausgeloggt nach dem Login (`offenesZiel`).
+> - **Bilder:** Demo-Deck im App-Hero (24 Fotos, 2,3 MB JPEG) und Muster-Deck
+>   der Landingpage (25 Fotos) luden alle auf einmal, weil die Karten
+>   uebereinander im Viewport liegen - `loading="lazy"` griff nicht. Jetzt
+>   `data-src`, gesetzt fuer die obersten vier Karten in `arrangeCards()`;
+>   App-Hero auf WebP (`demo-julia.webp` neu erzeugt).
+> - "Beispielprofile" im App-Hero war unter 420 px ausgeblendet (README
+>   verlangt die Kennzeichnung) - kurze Zeile `hero.demoHintShort`.
+> - Registrierung: Geburtsdatum/PLZ am Handy untereinander (Ort wurde zu
+>   "Wie..."); `reg.sub` sagte noch, Premium komme "nach der Beta".
+> - Beta-Hinweis "Android: Ende September 2026" -> "bald im Play Store" /
+>   "coming soon to Google Play" (Landing DE/EN + App).
+> - Platzhalter-Umriss fuer nicht ladbare Profilfotos (`FOTO_PLATZHALTER`,
+>   ein `error`-Listener fuer `#app`); Chat-Polling pausiert bei verstecktem
+>   Tab und verwirft Antworten fuer einen inzwischen verlassenen Chat;
+>   `/me` und `/billing/status` parallel.
+> - sw.js `flexr-shell-v30`, `i18n-app.js?v=22`, `en/index.html` per build-en.py.
+> - Tests: Backend 558 gruen.
+>
+> **Offen - braucht root (Nutzer):** gzip ist auf dem VPS nur fuer HTML aktiv;
+> `i18n-app.js` (80 KB), `admin.js`, `legal.css`, SVGs gehen unkomprimiert
+> raus. Vorlage ist in `deploy/nginx-flexr.conf` ergaenzt (Block
+> "Komprimierung") - in die aktive Site uebernehmen, `nginx -t`, reload.
+>
+> Lokal: S3-Attrappe neu im Scratchpad dieser Sitzung
+> (`motoenv`), `/home/blktomcat/MEGA/flexr/.claude/launch.json` zeigt darauf;
+> Buckets `flexr-photos`/`flexr-verification` nach jedem Start per
+> `curl -X PUT localhost:5055/<bucket>` anlegen. Alte Testfotos fehlen dort.
 
 > **Sitzung 26.09.2026 — iPhone als Web-App: Installationsanleitung + Download-Knopf. Alles deployed** (letzter Stand HEAD `f2a4467`, jeweils `git pull` als `deploy`, kein Neustart, live md5-gleich mit dem Repo, `/api/health` ok).
 >
