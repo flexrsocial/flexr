@@ -1027,6 +1027,19 @@
   }
 
   // ---------- Reports ----------
+  // Chat-Auszug, der beim Melden gesichert wurde - bleibt auch dann lesbar,
+  // wenn eine Seite das Match inzwischen aufgeloest hat.
+  function reportEvidenceHtml(r){
+    const msgs = r.evidence || [];
+    if(!msgs.length) return '';
+    const rows = msgs.map(m => `
+      <div style="margin:4px 0;"><span class="mono" style="opacity:.7;">${fmtDate(m.created_at)}</span>
+        <b>${m.from === 'reported' ? escapeHtml(r.reported_name) : escapeHtml(r.reporter_name)}:</b>
+        ${escapeHtml(m.content)}</div>`).join('');
+    return `<details style="margin-top:6px;"><summary>Chat-Auszug (${msgs.length})</summary>
+      <div style="max-height:260px;overflow:auto;white-space:normal;">${rows}</div></details>`;
+  }
+
   async function loadReports(){
     // Auffällige Nachrichten immer laden - unabhängig davon, ob es offene
     // Meldungen gibt (sonst bliebe die Tabelle bei 0 Meldungen auf "Lädt …")
@@ -1048,7 +1061,7 @@
                 <td class="mono">${escapeHtml(r.reference)}</td>
                 <td>${escapeHtml(r.reporter_name)}</td>
                 <td>${escapeHtml(r.reported_name)}</td>
-                <td>${escapeHtml(r.reason)}</td>
+                <td>${escapeHtml(r.reason)}${reportEvidenceHtml(r)}</td>
                 <td>${fmtDate(r.created_at)}</td>
                 <td style="white-space:nowrap;">
                   <button class="btn small secondary" data-view-user="${r.reported_id}">Ansehen</button>

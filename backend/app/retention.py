@@ -29,6 +29,10 @@ VERIFICATION_ORPHAN_DAYS: Final = 14
 #: Verwendet in routers/auth.UNDERAGE_ATTEMPT_WINDOW (dort als timedelta).
 UNDERAGE_ATTEMPT_WINDOW_HOURS: Final = 24
 
+#: Chat-Auszug an einer Meldung: bis so viele Tage nach der Entscheidung
+#: (Beschwerdefrist nach Art. 20 DSA: sechs Monate).
+REPORT_EVIDENCE_RETENTION_DAYS: Final = 183
+
 #: Gültigkeit des E-Mail-Bestätigungslinks.
 EMAIL_TOKEN_TTL_HOURS: Final = 24
 
@@ -103,6 +107,12 @@ RETENTION_TABLE: Final[tuple[RetentionRow, ...]] = (
         "mit dem Konto der beteiligten Person",
         "Kontolöschung",
         "models.Report (ondelete CASCADE)",
+    ),
+    RetentionRow(
+        "Chat-Auszug an einer Meldung (Beweissicherung)",
+        f"{REPORT_EVIDENCE_RETENTION_DAYS} Tage nach der Entscheidung über die Meldung",
+        "Fristablauf oder Kontolöschung",
+        "models.Report.evidence (cleanup.purge_old_report_evidence)",
     ),
     RetentionRow(
         "Geräte-ID und User-Agent (Mehrfachkonten-/Sperrumgehungsschutz)",

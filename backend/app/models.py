@@ -789,6 +789,14 @@ class Report(Base):
     outcome = Column(String(20), nullable=True)  # None = offen, sonst ReportOutcome
     decision_note = Column(String(500), nullable=True)
 
+    # Beweissicherung: Auszug aus dem Chat zwischen Melder und Gemeldetem zum
+    # Zeitpunkt der Meldung (JSON-Liste, siehe routers/safety.py). Ohne ihn
+    # konnte der Gemeldete - oder der Melder selbst - per "Match aufloesen" den
+    # ganzen Verlauf loeschen, bevor die Moderation ihn je gesehen hat.
+    # Wird REPORT_EVIDENCE_RETENTION_DAYS nach der Entscheidung geleert
+    # (cleanup.purge_old_report_evidence).
+    evidence = Column(Text, nullable=True)
+
     @property
     def reference(self) -> str:
         """Kurzes Aktenzeichen für die Empfangsbestätigung (Art. 16 Abs. 4)."""

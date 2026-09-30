@@ -1003,6 +1003,9 @@ class AdminReportOut(BaseModel):
     reported_name: str
     reason: str
     created_at: datetime
+    # Chat-Auszug zum Zeitpunkt der Meldung: [{"from": "reporter"|"reported",
+    # "content": ..., "created_at": ...}]. Leer, wenn es keinen Chat gab.
+    evidence: list[dict] = []
 
 
 class AdminReportDecisionRequest(BaseModel):

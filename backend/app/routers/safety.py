@@ -1,3 +1,4 @@
+import json
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
@@ -6,7 +7,7 @@ from sqlalchemy.orm import Session
 from ..age import age_on
 from ..database import get_db
 from .. import telegram
-from ..models import Block, ModerationAction, Photo, PhotoStatus, Report, User
+from ..models import Block, Match, Message, ModerationAction, Photo, PhotoStatus, Report, User
 from ..moderation import APPEAL_HINT
 from ..rate_limit import limiter
 from ..schemas import (
@@ -20,6 +21,55 @@ from ..schemas import (
 from ..security import get_current_user
 
 router = APIRouter(prefix="/api", tags=["safety"])
+
+#: So viele der juengsten Nachrichten wandern als Beweis an die Meldung.
+REPORT_EVIDENCE_MESSAGES = 100
+
+
+def _chat_evidence(db: Session, reporter_id: str, reported_id: str) -> Optional[str]:
+    """Die juengsten Nachrichten zwischen beiden als JSON - oder None ohne Chat.
+
+    Gespeichert wird der Originaltext (nicht die fuer den Empfaenger zensierte
+    Fassung): Genau Links und Kontaktdaten sind oft der Meldegrund.
+    """
+    a, b = sorted([reporter_id, reported_id])
+    match = db.query(Match.id).filter(Match.user_a_id == a, Match.user_b_id == b).first()
+    if match is None:
+        return None
+    rows = (
+        db.query(Message)
+        .filter(Message.match_id == match.id)
+        .order_by(Message.created_at.desc())
+        .limit(REPORT_EVIDENCE_MESSAGES)
+        .all()
+    )
+    if not rows:
+        return None
+    return json.dumps(
+        [
+            {
+                "from": "reported" if m.sender_id == reported_id else "reporter",
+                "content": m.content,
+                "created_at": m.created_at.isoformat() if m.created_at else None,
+            }
+            for m in reversed(rows)
+        ],
+        ensure_ascii=False,
+    )
+
+
+def _report_ack(report: Report) -> ReportAck:
+    # Art. 16 Abs. 4 DSA: unverzügliche Empfangsbestätigung mit Aktenzeichen.
+    return ReportAck(
+        reference=report.reference,
+        created_at=report.created_at,
+        message=(
+            f"Deine Meldung ist eingegangen (Aktenzeichen {report.reference}). "
+            "Wir prüfen sie innerhalb von 72 Stunden — bei Gefahr für eine Person "
+            "sofort. Notiere dir das Aktenzeichen, falls du dich später darauf "
+            "berufen willst."
+        ),
+    )
 
 
 @router.post("/reports", status_code=201, response_model=ReportAck)
@@ -37,10 +87,36 @@ def create_report(
     if not reported_user:
         raise HTTPException(404, "Nutzer nicht gefunden.")
 
+    evidence = _chat_evidence(db, current_user.id, payload.reported_user_id)
+
+    # Dieselbe Person erneut melden, solange die erste Meldung offen ist:
+    # keine zweite Akte und keine zweite Admin-Nachricht (sonst liesse sich
+    # die Moderation per Wiederholung zuspammen). Der neue Grund wird an die
+    # offene Meldung angehaengt, der Chat-Auszug aufgefrischt - nichts, was der
+    # Melder nachtraegt, geht verloren.
+    offen = (
+        db.query(Report)
+        .filter(
+            Report.reporter_id == current_user.id,
+            Report.reported_id == payload.reported_user_id,
+            Report.dismissed_at.is_(None),
+        )
+        .order_by(Report.created_at.desc())
+        .first()
+    )
+    if offen is not None:
+        if payload.reason not in offen.reason:
+            offen.reason = (offen.reason + " | " + payload.reason)[:500]
+        if evidence:
+            offen.evidence = evidence
+        db.commit()
+        return _report_ack(offen)
+
     report = Report(
         reporter_id=current_user.id,
         reported_id=payload.reported_user_id,
         reason=payload.reason,
+        evidence=evidence,
     )
     db.add(report)
     db.commit()
@@ -49,18 +125,7 @@ def create_report(
     telegram.notify_admin_task(
         f"🆕 Neue Meldung ({report.reference}) im FLEXR-Admin-Dashboard: {payload.reason}"
     )
-
-    # Art. 16 Abs. 4 DSA: unverzügliche Empfangsbestätigung mit Aktenzeichen.
-    return ReportAck(
-        reference=report.reference,
-        created_at=report.created_at,
-        message=(
-            f"Deine Meldung ist eingegangen (Aktenzeichen {report.reference}). "
-            "Wir prüfen sie innerhalb von 72 Stunden — bei Gefahr für eine Person "
-            "sofort. Notiere dir das Aktenzeichen, falls du dich später darauf "
-            "berufen willst."
-        ),
-    )
+    return _report_ack(report)
 
 
 @router.get("/reports/mine", response_model=list[MyReportOut])

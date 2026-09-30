@@ -20,8 +20,9 @@ from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
 from .config import settings
-from .models import Photo, User, VerificationRequest, VerificationStatus
+from .models import Photo, Report, User, VerificationRequest, VerificationStatus
 from .retention import ACCOUNT_GRACE_PERIOD_DAYS as GRACE_PERIOD_DAYS
+from .retention import REPORT_EVIDENCE_RETENTION_DAYS
 from .storage import _buckets_for, get_s3_client
 from .verification_service import (
     ORPHAN_RETENTION_DAYS,
@@ -177,3 +178,25 @@ def purge_deleted_users(db: Session) -> int:
 
     db.commit()
     return len(expired)
+
+
+def purge_old_report_evidence(db: Session) -> int:
+    """Chat-Auszuege entschiedener Meldungen nach Ablauf der Frist leeren.
+
+    Die Meldung selbst bleibt (Nachweis der Entscheidung, Art. 16/17 DSA), nur
+    die Nachrichten daraus nicht laenger als fuer eine Beschwerde gegen die
+    Entscheidung noetig (Art. 20 DSA: sechs Monate).
+    """
+    cutoff = utcnow() - timedelta(days=REPORT_EVIDENCE_RETENTION_DAYS)
+    n = (
+        db.query(Report)
+        .filter(
+            Report.evidence.isnot(None),
+            Report.dismissed_at.isnot(None),
+            Report.dismissed_at < cutoff,
+        )
+        .update({Report.evidence: None}, synchronize_session=False)
+    )
+    if n:
+        db.commit()
+    return n

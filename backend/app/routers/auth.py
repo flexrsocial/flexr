@@ -346,11 +346,14 @@ def login(request: Request, payload: LoginRequest, db: Session = Depends(get_db)
     # Opportunistischer Aufräum-Lauf: endgültige Löschung abgelaufener Konten
     # (30-Tage-Karenz). Billige Abfrage, in der Regel null Treffer - erspart
     # einen eigenen Cron-Job.
-    from ..cleanup import purge_deleted_users, purge_stale_verification_uploads
+    from ..cleanup import (
+        purge_deleted_users, purge_old_report_evidence, purge_stale_verification_uploads,
+    )
 
     purge_deleted_users(db)
     # Ebenso billig: verwaiste Ausweisaufnahmen und fehlgeschlagene Löschungen
     purge_stale_verification_uploads(db)
+    purge_old_report_evidence(db)
 
     user = _check_credentials(db, payload)
     if user.deleted_at is not None:

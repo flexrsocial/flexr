@@ -1345,6 +1345,7 @@ def list_reports(
             reported_name=reported_name,
             reason=report.reason,
             created_at=report.created_at,
+            evidence=json.loads(report.evidence) if report.evidence else [],
         )
         for report, reporter_name, reported_name in rows
     ]
