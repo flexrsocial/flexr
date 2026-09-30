@@ -1284,13 +1284,28 @@
        fuer die deutsche Fassung zu schmal (siehe .hero-eyebrow). Das
        Musterdeck beginnt dadurch auf Hoehe der Schlagzeile statt der
        Augenbraue. */
+    /* Der iPhone-Knopf steht direkt unter dem Einleitungstext, neben dem
+       Musterdeck - nicht mehr als letzte Zeile unter den USPs, wo er
+       (30.09.2026) eng auf der Rechtsleiste sass. */
     grid-template-areas:
       "eyebrow eyebrow"
       "title demo"
       "sub demo"
-      "usps usps"
-      "dl dl";
+      "dl demo"
+      "usps usps";
     column-gap:clamp(18px,3vw,34px); align-items:center;
+  }
+  /* Registrierung und alle weiteren Schritte: Die Karte rechts ist viel
+     hoeher als der Hero. Mittig ausgerichtet rutschte der Hero deshalb weit
+     nach unten und liess oben eine leere Flaeche. Dort steht er jetzt oben
+     und bleibt beim Scrollen durch das Formular sichtbar (sticky). Der kurze
+     Login behaelt die mittige Ausrichtung (siehe Kommentar oben). */
+  @media (min-width: 861px){
+    body.landing .landing-hero .hero-dl{ margin:0 0 30px; }
+    body.landing .landing-hero .hero-usps{ margin-bottom:8px; }
+    body.landing:not([data-screen="screen-login"]) .landing-hero{
+      align-self:start; position:sticky; top:24px;
+    }
   }
   /* Zwischen 861 und 1080px reicht die Breite nicht fuer Text UND Musterdeck.
      Gemessen am 10.09.2026: Die rechte Spalte von `body.landing main` nimmt
@@ -1308,8 +1323,8 @@
         "eyebrow"
         "title"
         "sub"
-        "usps"
-        "dl";
+        "dl"
+        "usps";
     }
     body.landing .hero-demo{ display:none; }
   }
