@@ -32,6 +32,7 @@ erlischt Premium von selbst, statt auf ewig offen zu stehen.
 from __future__ import annotations
 
 import base64
+import hashlib
 import json
 import logging
 import re
@@ -214,6 +215,14 @@ def verify_apple_jws(token: str) -> dict[str, Any]:
         raise StoreVerificationError("Nutzlast des Belegs nicht lesbar.") from fehler
 
 
+def google_account_id(user_id: str) -> str:
+    """Die Konto-Kennung, die die Android-App beim Kauf mitgibt
+    (``setObfuscatedAccountId``). Gehasht, wie Google es verlangt - die
+    Nutzer-ID selbst soll nicht bei Google landen; 64 Hex-Zeichen passen genau
+    in Googles Grenze."""
+    return hashlib.sha256(user_id.encode()).hexdigest()
+
+
 def _ms_to_datetime(wert: Any) -> datetime | None:
     """Apple und Google zaehlen in Millisekunden seit 1970, als Zahl oder Text."""
     if wert in (None, ""):
@@ -251,6 +260,9 @@ def apple_transaction_from_jws(token: str) -> dict[str, Any]:
         "status": "revoked" if widerrufen else "active",
         "auto_renewing": True,
         "environment": umgebung,
+        # Von der iOS-App beim Kauf gesetzt (appAccountToken = FLEXR-Nutzer-ID).
+        # Fehlt bei Kaeufen aelterer App-Fassungen.
+        "account": str(payload.get("appAccountToken") or "").lower() or None,
     }
 
 
@@ -391,6 +403,11 @@ def google_subscription_from_token(purchase_token: str) -> dict[str, Any]:
         "_purchase_token": purchase_token,
         "_acknowledged": daten.get("acknowledgementState")
         == "ACKNOWLEDGEMENT_STATE_ACKNOWLEDGED",
+        # Von der Android-App beim Kauf gesetzt (google_account_id). Fehlt bei
+        # Kaeufen aelterer App-Fassungen.
+        "account": (daten.get("externalAccountIdentifiers") or {}).get(
+            "obfuscatedExternalAccountId"
+        ) or None,
     }
 
 
@@ -422,6 +439,12 @@ def google_acknowledge(product_id: str, purchase_token: str) -> None:
 # ---------------------------------------------------------------------------
 
 
+KAUF_GEHOERT_ANDEREM_KONTO = (
+    "Dieser Kauf gehört zu einem anderen FLEXR-Konto. Melde dich mit dem Konto "
+    "an, mit dem du FLEXR Premium abgeschlossen hast."
+)
+
+
 def apply_subscription(
     db: Session, user: User | None, beleg: dict[str, Any]
 ) -> StoreSubscription | None:
@@ -438,6 +461,17 @@ def apply_subscription(
         )
     if not beleg["external_id"]:
         raise StoreVerificationError("Beleg ohne Kennung.")
+
+    # Kontobindung: Traegt der Kauf die Kennung eines FLEXR-Kontos, gilt er nur
+    # fuer dieses. Sonst liesse sich ein fremder Beleg (weitergegebener
+    # Kauf-Token, kopierte Transaktion) auf das eigene Konto ziehen - der
+    # Kaeufer verloere sein Premium. Kaeufe ohne Kennung (aeltere App-
+    # Fassungen) wandern weiterhin wie bisher, siehe unten.
+    konto_kennung = beleg.get("account")
+    if user is not None and konto_kennung and konto_kennung not in (
+        user.id.lower(), google_account_id(user.id)
+    ):
+        raise StoreVerificationError(KAUF_GEHOERT_ANDEREM_KONTO)
 
     zeile = (
         db.query(StoreSubscription)

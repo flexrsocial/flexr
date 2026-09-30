@@ -571,7 +571,8 @@ class AccountViewModel @Inject constructor(
      */
     fun kaufePremium(activity: android.app.Activity) {
         val produktId = membership.value?.storeProductId ?: return
-        viewModelScope.launch { playBilling.kaufen(activity, produktId) }
+        val userId = profile.value?.profile?.id ?: return
+        viewModelScope.launch { playBilling.kaufen(activity, produktId, userId) }
     }
 
     /**

@@ -452,3 +452,64 @@ def test_play_token_mit_pfadzeichen_wird_nicht_nachgefragt(monkeypatch, token):
     with pytest.raises(store_billing.StoreVerificationError):
         store_billing.google_subscription_from_token(token)
     assert aufrufe == []
+
+
+# ---------------------------------------------------------------------------
+# Kontobindung
+# ---------------------------------------------------------------------------
+
+
+def test_gebundener_kauf_wandert_nicht_zu_fremdem_konto(client, monkeypatch):
+    monkeypatch.setattr(settings, "premium_enabled", True)
+    register_user(client, "kaeuferin@example.com")
+    register_user(client, "dieb@example.com")
+    db = TestingSessionLocal()
+    try:
+        kaeuferin = _user(db, "kaeuferin@example.com")
+        dieb = _user(db, "dieb@example.com")
+        beleg = {**_beleg(), "account": kaeuferin.id}
+        store_billing.apply_subscription(db, kaeuferin, beleg)
+        with pytest.raises(store_billing.StoreVerificationError, match="anderen FLEXR-Konto"):
+            store_billing.apply_subscription(db, dieb, beleg)
+        db.refresh(kaeuferin)
+        db.refresh(dieb)
+        assert kaeuferin.is_premium is True
+        assert dieb.is_premium is False
+    finally:
+        db.close()
+
+
+def test_play_kennung_ist_der_hash_der_nutzer_id(client, monkeypatch):
+    monkeypatch.setattr(settings, "premium_enabled", True)
+    register_user(client, "playkonto@example.com")
+    db = TestingSessionLocal()
+    try:
+        user = _user(db, "playkonto@example.com")
+        beleg = {**_beleg(), "provider": StoreProvider.google,
+                 "account": store_billing.google_account_id(user.id)}
+        store_billing.apply_subscription(db, user, beleg)
+        db.refresh(user)
+        assert user.is_premium is True
+        assert len(store_billing.google_account_id(user.id)) == 64
+    finally:
+        db.close()
+
+
+def test_apple_app_account_token_wird_gelesen(apple, kette):
+    token = _jws(_nutzlast(appAccountToken="0B7C1F7E-2C7E-4A58-9B43-7D7F8E2B1A11"), kette)
+    beleg = store_billing.apple_transaction_from_jws(token)
+    assert beleg["account"] == "0b7c1f7e-2c7e-4a58-9b43-7d7f8e2b1a11"
+
+
+def test_benachrichtigung_zu_gebundenem_kauf_wirkt_weiter(client, monkeypatch):
+    """Store-Benachrichtigungen kommen ohne Konto - die Bindung darf sie nicht blockieren."""
+    monkeypatch.setattr(settings, "premium_enabled", True)
+    register_user(client, "verlaengert@example.com")
+    db = TestingSessionLocal()
+    try:
+        user = _user(db, "verlaengert@example.com")
+        store_billing.apply_subscription(db, user, {**_beleg(), "account": user.id})
+        zeile = store_billing.apply_subscription(db, None, {**_beleg(tage=60), "account": user.id})
+        assert zeile is not None and zeile.user_id == user.id
+    finally:
+        db.close()

@@ -127,7 +127,9 @@ struct PaywallView: View {
     /// Kauf anstoßen und das Ergebnis melden. Ein Abbruch bleibt bewusst
     /// stumm: Wer selbst abbricht, braucht darüber keine Meldung.
     private func kaufen(_ produktID: String) async {
-        switch await container.storeKit.kaufen(produktID: produktID) {
+        switch await container.storeKit.kaufen(
+            produktID: produktID, userID: container.session.userID
+        ) {
         case .erfolgreich:
             // Der Server hat den Beleg angenommen — den Status frisch holen,
             // damit Abzeichen und Grenzen sofort stimmen.

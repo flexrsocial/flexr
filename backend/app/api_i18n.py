@@ -81,6 +81,7 @@ _TEXTE: dict[str, str] = {
         "At least {n} photos are required. Upload another one first.",
     "Lade zuerst mindestens {n} Profilfotos hoch.": "Upload at least {n} profile photos first.",
     "Ungültiger object_key.": "Invalid object key.",
+    "Dieser Kauf gehört zu einem anderen FLEXR-Konto. Melde dich mit dem Konto an, mit dem du FLEXR Premium abgeschlossen hast.": "This purchase belongs to a different FLEXR account. Sign in with the account you used to buy FLEXR Premium.",
     "Dieses Foto ist bereits gespeichert.": "This photo has already been saved.",
     "Ungültiger thumb_object_key.": "Invalid thumbnail key.",
     "Doppelte Foto-ID in der Reihenfolge.": "Duplicate photo ID in the order.",

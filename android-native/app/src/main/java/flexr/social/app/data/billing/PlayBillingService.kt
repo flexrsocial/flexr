@@ -184,7 +184,7 @@ class PlayBillingService @Inject constructor(
      * Rückgabewert — Google führt den Kauf in einer eigenen Oberfläche zu Ende,
      * unter Umständen erst nach Minuten.
      */
-    suspend fun kaufen(activity: Activity, produktId: String) {
+    suspend fun kaufen(activity: Activity, produktId: String, userId: String) {
         val details = produktLaden(produktId)
         if (details == null) {
             _ereignisse.tryEmit(Ereignis.Fehlgeschlagen("Das Angebot ist gerade nicht abrufbar."))
@@ -207,6 +207,10 @@ class PlayBillingService @Inject constructor(
                             .build()
                     )
                 )
+                // Bindet den Kauf an dieses FLEXR-Konto: Der Server nimmt ihn
+                // nur von dem Konto an, dessen Kennung Google zurueckmeldet
+                // (store_billing.google_account_id - gleicher Hash).
+                .setObfuscatedAccountId(kontoKennung(userId))
                 .build(),
         )
         if (ergebnis.responseCode != BillingClient.BillingResponseCode.OK) {
@@ -271,3 +275,13 @@ class PlayBillingService @Inject constructor(
         }
     }
 }
+
+/**
+ * SHA-256 der Nutzer-ID als Hex - dieselbe Kennung wie
+ * `store_billing.google_account_id` im Backend. Gehasht, damit die Nutzer-ID
+ * selbst nicht bei Google landet; 64 Zeichen passen genau in Googles Grenze.
+ */
+internal fun kontoKennung(userId: String): String =
+    java.security.MessageDigest.getInstance("SHA-256")
+        .digest(userId.toByteArray(Charsets.UTF_8))
+        .joinToString("") { "%02x".format(it) }

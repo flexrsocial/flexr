@@ -14,7 +14,7 @@ import UIKit
 ///
 /// Drei Wege führen zu einem Beleg, und alle drei münden in `einreichen(_:)`:
 ///
-///  1. Der Kauf selbst (`kaufen(produktID:)`).
+///  1. Der Kauf selbst (`kaufen(produktID:userID:)`).
 ///  2. `bestehendeKaeufeAbgleichen()` beim Start. Das ist kein Beiwerk,
 ///     sondern der Weg zurück aus jeder Störung: Wer beim Kauf gerade keine
 ///     Verbindung hatte, das Gerät gewechselt oder die App neu installiert
@@ -83,7 +83,11 @@ final class StoreKitService {
     }
 
     /// Kaufvorgang starten.
-    func kaufen(produktID: String) async -> Ausgang {
+    ///
+    /// `userID` bindet den Kauf an dieses FLEXR-Konto (`appAccountToken`):
+    /// Der Server nimmt einen Beleg mit Kennung nur von genau diesem Konto an
+    /// (store_billing.apply_subscription). FLEXR-Nutzer-IDs sind UUIDs.
+    func kaufen(produktID: String, userID: String?) async -> Ausgang {
         guard let produkt = await produktLaden(produktID) else {
             return .fehlgeschlagen(FlexrStrings.current(.purchaseUnavailable))
         }
@@ -92,7 +96,11 @@ final class StoreKitService {
         defer { laeuftKauf = false }
 
         do {
-            switch try await produkt.purchase() {
+            var optionen: Set<Product.PurchaseOption> = []
+            if let userID, let konto = UUID(uuidString: userID) {
+                optionen.insert(.appAccountToken(konto))
+            }
+            switch try await produkt.purchase(options: optionen) {
             case .success(let ergebnis):
                 return await einreichen(ergebnis, meldend: true)
             case .userCancelled:
