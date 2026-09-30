@@ -291,8 +291,11 @@ android {
         // Datenschutz-Kurzfassung um Push-Mitteilungen ergaenzt.
         // 132/2.7.20 am 30.09.2026: Gespraechseinstiege im leeren Chat,
         // Registrierung markiert das erste fehlende Feld und scrollt hin.
-        versionCode = 132
-        versionName = "2.7.20"
+        // 133/2.7.21 am 30.09.2026: Play-Kauf traegt die Konto-Kennung
+        // (setObfuscatedAccountId) - der Server nimmt ihn nur vom kaufenden
+        // FLEXR-Konto an.
+        versionCode = 133
+        versionName = "2.7.21"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         // Nur die Sprachen ausliefern, die es wirklich gibt: Deutsch als
