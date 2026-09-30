@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
-from sqlalchemy import or_
+from sqlalchemy import case, func, or_
 from sqlalchemy.orm import Session
 
 from .. import telegram
@@ -10,6 +10,11 @@ from ..rate_limit import limiter
 from ..schemas import GymOut, GymSuggestRequest
 
 router = APIRouter(prefix="/api/gyms", tags=["gyms"])
+
+
+def _like_escape(word: str) -> str:
+    """% und _ aus der Eingabe woertlich nehmen statt als LIKE-Platzhalter."""
+    return word.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
 
 
 def gym_exists_for_profile(db: Session, gym_value: str) -> bool:
@@ -47,13 +52,30 @@ def list_gyms(
         Gym.street != "",
         Gym.plz != "",
     )
-    term = q.strip()
-    if term:
-        like = f"%{term}%"
+    # Wortweise suchen: Jedes Wort muss in Name, Ort, Straße oder am Anfang
+    # der PLZ vorkommen. Vorher lief die ganze Eingabe als ein Muster gegen
+    # jeweils ein Feld - "fitinn wien", "mcfit graz" oder "john harris 1010"
+    # fanden nichts, obwohl das Feld "Name, Ort oder PLZ" verspricht.
+    # Leerzeichen im Namen zaehlen nicht ("fit inn" findet "FitInn").
+    words = [_like_escape(w) for w in q.split()][:6]
+    for word in words:
+        like = f"%{word}%"
         query = query.filter(
-            or_(Gym.name.ilike(like), Gym.city.ilike(like), Gym.plz.like(f"{term}%"))
+            or_(
+                Gym.name.ilike(like, escape="\\"),
+                func.replace(Gym.name, " ", "").ilike(like, escape="\\"),
+                Gym.city.ilike(like, escape="\\"),
+                Gym.street.ilike(like, escape="\\"),
+                Gym.plz.like(f"{word}%", escape="\\"),
+            )
         )
-    rows = query.order_by(Gym.name.asc(), Gym.plz.asc()).limit(30).all()
+    # Treffer, deren Name mit dem ersten Wort beginnt, zuerst ("fit inn"
+    # soll FitInn vor CrossFit Innsbruck zeigen), danach alphabetisch.
+    order = [Gym.name.asc(), Gym.plz.asc()]
+    if words:
+        starts = func.replace(Gym.name, " ", "").ilike(f"{words[0]}%", escape="\\")
+        order.insert(0, case((starts, 0), else_=1))
+    rows = query.order_by(*order).limit(30).all()
     return [
         GymOut(
             id=g.id, name=g.name, street=g.street, house_number=g.house_number,

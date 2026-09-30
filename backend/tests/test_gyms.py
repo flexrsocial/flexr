@@ -242,3 +242,18 @@ def test_admin_korrektur_zieht_profile_mit_vollem_label_mit(client):
         u = db.query(User).filter(User.email == "mitglied@example.com").one()
         assert u.gym == "Umzugsgym Neu — Tippfehlergasse 1, 1070 Wien"
         assert coords_for_gym(db, u.gym) is not None
+
+
+def test_gym_suche_wortweise(client):
+    """Name und Ort (oder PLZ, Straße) in einer Eingabe: jedes Wort muss
+    irgendwo passen. Frueher fand "testgym wien" nichts."""
+    for q in ("testgym wien", "Wien Testgym", "testgym 1010", "Teststraße testgym",
+              "mit adresse", "TESTGYM   WIEN"):
+        hits = client.get("/api/gyms", params={"q": q}).json()
+        assert any(g["name"] == "Testgym mit Adresse" for g in hits), q
+    # Ein Wort, das nirgends passt, schliesst den Eintrag aus.
+    hits = client.get("/api/gyms", params={"q": "testgym graz"}).json()
+    assert not any(g["name"] == "Testgym mit Adresse" for g in hits)
+    # LIKE-Platzhalter aus der Eingabe gelten woertlich.
+    assert client.get("/api/gyms", params={"q": "%"}).json() == []
+    assert client.get("/api/gyms", params={"q": "_"}).json() == []
