@@ -8235,3 +8235,11 @@ Neu aus der Sitzung 16.09. (2):
   16.09.-(2)-Abschnitt.
 - Der Like-Zähler unter dem Deck fehlt in beiden nativen Clients bewusst
   (Begründung im 16.09.-(2)-Abschnitt). Nicht ungefragt „ergänzen".
+
+## 01.10.2026 – Footer „Vertrag widerrufen" ohne Rahmen
+
+- Auf Wunsch des Nutzers wird der § 13a-FAGG-Link ab dem Stichtag nicht mehr
+  umrahmt (`.widerruf-hervorgehoben` aus Landing DE/EN, `legal.css`, App und
+  `legal-status.js` entfernt). Er heißt weiterhin „Vertrag widerrufen" /
+  „Withdraw from contract" und sieht aus wie die übrigen Footer-Links.
+  Deployt, md5 live = Repo, Dateirechte 664.
