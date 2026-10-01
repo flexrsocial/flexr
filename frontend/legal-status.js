@@ -2,9 +2,8 @@
  *
  * Bis dahin genügt der normale, gleichrangige Link "Rücktrittsrecht" im
  * Legal-Footer - das steht schon so im HTML, ganz ohne dieses Skript hier.
- * Ab dem Stichtag muss die Funktion als eigenständig erkennbar hervorgehoben
- * sein: Text wird zu "Vertrag widerrufen", dazu ein dezenter Rahmen
- * (.widerruf-hervorgehoben in legal.css).
+ * Ab dem Stichtag heißt der Link eindeutig "Vertrag widerrufen" - optisch
+ * bleibt er wie die übrigen Footer-Links (kein Rahmen, auf Wunsch 01.10.2026).
  *
  * Die Beschriftung richtet sich nach dem <html lang> der Seite: unter /en/
  * heißt der Link "Right of withdrawal" bzw. ab dem Stichtag "Withdraw from
@@ -45,7 +44,6 @@
   function anwenden(pflicht) {
     document.querySelectorAll('a[data-widerruf-link]').forEach(function (a) {
       a.textContent = pflicht ? TEXTE.pflicht : TEXTE.normal;
-      a.classList.toggle('widerruf-hervorgehoben', pflicht);
     });
     NUR_AB_STICHTAG.forEach(function (id) {
       var el = document.getElementById(id);
