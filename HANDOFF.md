@@ -8243,3 +8243,5 @@ Neu aus der Sitzung 16.09. (2):
   `legal-status.js` entfernt). Er heißt weiterhin „Vertrag widerrufen" /
   „Withdraw from contract" und sieht aus wie die übrigen Footer-Links.
   Deployt, md5 live = Repo, Dateirechte 664.
+- Preisbereich (Landing DE/EN): Premium-Karte hat jetzt einen neongrünen
+  Rahmen (`var(--lime)`) statt `--steel`. Deployt, md5 live = Repo.
