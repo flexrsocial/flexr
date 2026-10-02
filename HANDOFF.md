@@ -32,6 +32,38 @@ erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 
 ## Wo das Projekt gerade steht
 
+> **Sitzung 02.10.2026 (2) — VPS-Hardware-Check, Journal begrenzt, Swap
+> angelegt.**
+>
+> **Befund (Check als `deploy`, ~20:15):** 4 vCPU (AMD EPYC), 7,7 GiB RAM
+> (2,1 GiB belegt, 5,6 GiB verfügbar), Platte `/` 145 GB mit 22 GB belegt
+> (15 %), Inodes 3 %. Postgres-Datenbank 47 MB, `/flexr` 278 MB. Größter
+> RAM-Verbraucher ist `clamd` mit ~1 GB, die Node/Next/Uvicorn-Prozesse
+> liegen bei je 100-170 MB. In den letzten drei Boot-Zyklen gab es keinen
+> OOM-Kill und keine fehlgeschlagenen Units. Fazit: Die Hardware reicht
+> weiterhin locker aus.
+>
+> **Neustart 02.10. um 20:13:** Das war ein sauberer Neustart (laut
+> systemd-logind „System is rebooting“), kein Absturz. Der Auslöser ist
+> im Journal nicht erkennbar. Automatische Neustarts durch
+> unattended-upgrades sind nicht konfiguriert. Kernel jetzt
+> `7.0.0-38-generic`. Danach liefen `flexr-api`, nginx, Postgres 18 und
+> Redis wieder, `/api/health` lieferte 200, und die Backup-Timer waren
+> geplant.
+>
+> **Vom Nutzer als root umgesetzt, von mir als `deploy` geprüft:**
+> - Journal begrenzt: `/etc/systemd/journald.conf.d/size.conf` mit
+>   `SystemMaxUse=300M`. Das Journal belegt jetzt 284 MB statt 965 MB.
+> - Swap: `/swapfile` mit 2 GB, aktiv, Eintrag in `/etc/fstab`
+>   (`/swapfile none swap sw 0 0`) und `vm.swappiness=10` in
+>   `/etc/sysctl.d/99-swappiness.conf`. Der Swap ist als Puffer gedacht,
+>   z. B. für RAM-Spitzen von clamd beim Signatur-Update, und war beim
+>   Check ungenutzt.
+>
+> Diese Dateien liegen nur auf dem Server unter `/etc` und sind nicht im
+> Repo. `/etc` wird bisher auch nicht gesichert (offener Punkt aus der
+> Backup-Sitzung unten).
+
 > **Sitzung 02.10.2026 — Backups: 11 Tage Ausfall behoben, Fotos +
 > Konfiguration + Telegram-Warnung.**
 >
