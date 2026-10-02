@@ -82,7 +82,7 @@ def operator_inline() -> str:
 # ---------------------------------------------------------------------------
 
 TERMS_VERSION: Final = "2026-09-17"           # AGB (Punkt 7/9: Premium bestellbar, Grenzen gelten)
-PRIVACY_VERSION: Final = "2026-09-17"          # Datenschutzerklärung (Fotolöschung bei endgültiger Ablehnung)
+PRIVACY_VERSION: Final = "2026-10-02"          # Datenschutzerklärung (Sicherungskopien: Inhalt, höchstens 3 Monate)
 AUP_VERSION: Final = "2026-08-19"              # Nutzungsrichtlinien
 LE_GUIDELINES_VERSION: Final = "2026-08-19"    # Strafverfolgungsrichtlinien
 WITHDRAWAL_VERSION: Final = "2026-08-17"      # Widerrufsbelehrung

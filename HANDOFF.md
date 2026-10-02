@@ -70,11 +70,14 @@ erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 >   Externes Ziel wird jetzt **woechentlich** statt monatlich bereinigt.
 >   Datenschutzerklaerung DE/EN Punkt 7 + Auftragsverarbeiter-Tabelle
 >   angepasst (Fassung 2026-10-02), T-03 in LEGAL_REVIEW.md erledigt.
->   `legal.PRIVACY_VERSION` bewusst nicht erhoeht (steht seit 25.09. schon
->   hinter der Seite; Erhoehen haette Folgen fuer Einwilligungsnachweise).
+>   `legal.PRIVACY_VERSION` danach auf Wunsch des Nutzers auf `2026-10-02`
+>   erhoeht (stand seit 25.09. hinter der Seite). Keine Nachfrage-Logik
+>   haengt daran - nur neue Einwilligungen tragen die neue Fassung. Neuer
+>   Test haelt Seite (DE/EN) und Konstante gleich. **API-Neustart noetig.**
+> - Sitemap-Test war seit 30.09. rot: die SEO-Seiten fehlten in seiner
+>   Seitenliste (Seiten selbst korrekt). `SEO_PAGES` ergaenzt, die Seiten
+>   laufen jetzt auch durch alle Seitenpruefungen. Backend: **597 gruen**.
 >
-> Tests: Backend 591 gruen; `test_sitemap_enthaelt_nur_oeffentliche_kanonische_seiten`
-> war schon vorher rot (unabhaengig).
 
 > **Sitzung 30.09.2026 (7) — Web-App-Einstieg (Desktop) aufgeraeumt.**
 > Deployed (`893df81`, `git pull`, 664, md5-gleich). Kacheln auf den

@@ -345,3 +345,16 @@ def test_konto_ohne_consent_zeile_erscheint_nicht_im_deck(client):
 
     deck = client.get("/api/swipes/deck", headers=headers_b).json()
     assert all(p["id"] != user_a["id"] for p in deck)
+
+
+def test_fassung_der_datenschutzerklaerung_stimmt_mit_dem_code_ueberein():
+    """Einwilligungen werden mit legal.PRIVACY_VERSION gespeichert. Steht auf
+    der Seite eine andere Fassung, belegt der Nachweis den falschen Text -
+    so geschehen vom 25.09. bis 02.10.2026."""
+    from pathlib import Path
+
+    frontend = Path(__file__).resolve().parents[2] / "frontend"
+    de = (frontend / "datenschutz.html").read_text(encoding="utf-8")
+    en = (frontend / "en" / "datenschutz.html").read_text(encoding="utf-8")
+    assert f"Fassung {legal.PRIVACY_VERSION} ·" in de
+    assert f"Version {legal.PRIVACY_VERSION} ·" in en

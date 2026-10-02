@@ -31,6 +31,15 @@ PUBLIC_PAGES.update(
     {f"en/{name}": f"https://flexr.social/en/{name}" for name in LEGAL_PAGES}
 )
 
+#: Such-Einstiegsseiten seit dem 30.09.2026, nur deutsch. Erzeugt von
+#: tools/seo/build_seo_pages.py, das sie auch in die Sitemap schreibt.
+SEO_PAGES = [
+    "gym-dating.html", "gym-crush-ansprechen.html", "date-ideen-sportler.html",
+    *(f"fitness-dating-{stadt}.html"
+      for stadt in ("wien", "graz", "linz", "salzburg", "innsbruck", "klagenfurt")),
+]
+PUBLIC_PAGES.update({name: f"https://flexr.social/{name}" for name in SEO_PAGES})
+
 
 class PageParser(HTMLParser):
     def __init__(self):
