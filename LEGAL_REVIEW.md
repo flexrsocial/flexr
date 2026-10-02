@@ -279,7 +279,15 @@ Derzeit wird nicht festgehalten, welcher Admin wann welches Dokument geöffnet
 hat. Bei einem Admin verzichtbar, bei zweien nicht mehr.
 
 ### T-03 · Aufbewahrungsdauer der Sicherungskopien
-**Ungeklärt.** Wie lange bestehen Datenbank-Backups und interne Kopien im
+**Erledigt 02.10.2026.** Backups (Datenbank, Profilfotos, Server-Konfiguration;
+ohne Verifizierungsaufnahmen) höchstens 3 Monate: restic 14 täglich / 8
+wöchentlich / 3 monatlich, externes Ziel wöchentlich bereinigt. Konstanten in
+`backend/app/retention.py` (BACKUP_*), Abgleich mit Skripten und beiden
+Datenschutz-Fassungen in `test_retention.py`. Interne Kopien des
+Speicherdienstes (Cloudflare) bleiben unbeziffert - dazu gibt Cloudflare
+keine Frist an.
+
+Ursprünglicher Stand: **Ungeklärt.** Wie lange bestehen Datenbank-Backups und interne Kopien im
 Objektspeicher? Solange das offen ist, darf die Datenschutzerklärung nicht von
 „vollständiger und unwiderruflicher Löschung" sprechen — sie tut es seit dem
 15.08.2026 auch nicht mehr, sondern beschreibt die Einschränkung offen.

@@ -45,6 +45,17 @@ TAX_RECORD_RETENTION_YEARS: Final = 7
 #: Behördliches Sicherungsersuchen (siehe strafverfolgung.html, Abschnitt 7).
 LEGAL_HOLD_DAYS: Final = 90
 
+#: Verschlüsselte Backups (Datenbank, Profilfotos, Server-Konfiguration).
+#: restic behält so viele tägliche/wöchentliche/monatliche Stände; umgesetzt in
+#: scripts/backup.sh (lokal, täglich) und scripts/backup-prune-remote.sh
+#: (externes Ziel, wöchentlich). 3 Monatsstände reichen höchstens gut zwei
+#: Monate zurück, mit der Woche Verzug beim externen Ziel bleibt alles unter
+#: BACKUP_MAX_MONTHS. Festgelegt am 02.10.2026 (vorher 12 Monatsstände).
+BACKUP_KEEP_DAILY: Final = 14
+BACKUP_KEEP_WEEKLY: Final = 8
+BACKUP_KEEP_MONTHLY: Final = 3
+BACKUP_MAX_MONTHS: Final = 3
+
 
 class RetentionRow(NamedTuple):
     """Eine Zeile der öffentlichen Aufbewahrungstabelle."""
@@ -152,6 +163,13 @@ RETENTION_TABLE: Final[tuple[RetentionRow, ...]] = (
         "belegen die Erfüllung von Art. 16 DSA",
         "gesetzliche/regulatorische Nachweispflicht",
         "models.Notice",
+    ),
+    RetentionRow(
+        "Verschlüsselte Sicherungskopien (Datenbank und Profilfotos)",
+        f"höchstens {BACKUP_MAX_MONTHS} Monate; enthalten auch Daten bereits "
+        "gelöschter Konten, aus ihnen werden aber keine Konten wiederhergestellt",
+        "Zeitablauf",
+        "scripts/backup.sh, scripts/backup-prune-remote.sh (BACKUP_KEEP_*)",
     ),
     RetentionRow(
         "Server-Logs (IP-Adresse, Zeitstempel, angefragter Pfad)",

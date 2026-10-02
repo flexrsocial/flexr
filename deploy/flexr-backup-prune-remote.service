@@ -1,5 +1,5 @@
 [Unit]
-Description=FLEXR – Aufbewahrungsfristen auf dem externen Backup-Ziel
+Description=FLEXR – Aufbewahrungsfristen auf dem externen Backup-Ziel (woechentlich)
 After=network-online.target
 Wants=network-online.target
 

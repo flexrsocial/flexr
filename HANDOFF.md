@@ -58,13 +58,20 @@ erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 >   `/usr/local/sbin/flexr-notify-failure` (nicht im Checkout - sonst
 >   verschluckt genau dieser Fehler auch die Warnung).
 >
-> **Auffaellig:** Im oeffentlichen Foto-Bucket liegen noch **2 Pruefaufnahmen**
-> (Altbestand vor dem privaten Bucket). Pruefen, ob sie zu offenen Antraegen
-> gehoeren - sonst loeschen.
->
-> **Offen (Recht):** `datenschutz.html` Punkt 7 nennt nur "Sicherungskopien der
-> Datenbank"; jetzt kommen Profilfotos dazu, Aufbewahrung bis 12 Monate
-> (T-03 in LEGAL_REVIEW.md).
+> **Nachtrag (selbe Sitzung) - beide Auffaelligkeiten erledigt:**
+> - Die 2 Pruefaufnahmen im Foto-Bucket gehoeren zu offenen Antraegen
+>   (`7332eca1`, `7fd5a25a`, seit 18./19.09. `id_required`). Die 14-Tage-Frist
+>   (`purge_stale_verification_uploads`) lief nur beim Login - einer war schon
+>   ueberfaellig. Neu: `python -m app.cleanup` stuendlich per
+>   `deploy/flexr-cleanup.timer` (mit Telegram-Warnung). Raeumt beide ab,
+>   sobald die Frist erreicht ist; nichts von Hand geloescht.
+> - Backup-Frist: Entscheidung des Nutzers **hoechstens 3 Monate** (restic
+>   14/8/3, fest in den Skripten, nicht mehr per backup.env ueberschreibbar).
+>   Externes Ziel wird jetzt **woechentlich** statt monatlich bereinigt.
+>   Datenschutzerklaerung DE/EN Punkt 7 + Auftragsverarbeiter-Tabelle
+>   angepasst (Fassung 2026-10-02), T-03 in LEGAL_REVIEW.md erledigt.
+>   `legal.PRIVACY_VERSION` bewusst nicht erhoeht (steht seit 25.09. schon
+>   hinter der Seite; Erhoehen haette Folgen fuer Einwilligungsnachweise).
 >
 > Tests: Backend 591 gruen; `test_sitemap_enthaelt_nur_oeffentliche_kanonische_seiten`
 > war schon vorher rot (unabhaengig).

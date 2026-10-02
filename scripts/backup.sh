@@ -18,7 +18,7 @@
 #
 # Erwartet:
 #   /etc/flexr/backup.env    RESTIC_REPOSITORY(_REMOTE), RESTIC_PASSWORD_FILE(_REMOTE),
-#                             AWS_ACCESS_KEY_ID_REMOTE, AWS_SECRET_ACCESS_KEY_REMOTE, Fristen
+#                             AWS_ACCESS_KEY_ID_REMOTE, AWS_SECRET_ACCESS_KEY_REMOTE
 #   /flexr/backend/.env       DATABASE_URL (nur ausgelesen, nie ausgefuehrt)
 #
 set -euo pipefail
@@ -54,9 +54,12 @@ set +a
 DATABASE_URL="$(grep -m1 '^DATABASE_URL=' "$APP_ENV" | cut -d= -f2-)"
 [[ -n "$DATABASE_URL" ]] || die "DATABASE_URL nicht in $APP_ENV gefunden"
 
-readonly KEEP_DAILY="${BACKUP_RETENTION_DAILY:-14}"
-readonly KEEP_WEEKLY="${BACKUP_RETENTION_WEEKLY:-8}"
-readonly KEEP_MONTHLY="${BACKUP_RETENTION_MONTHLY:-12}"
+# Fest im Skript, NICHT ueber backup.env ueberschreibbar: die Frist steht so in
+# der Datenschutzerklaerung (hoechstens 3 Monate). Quelle der Wahrheit ist
+# backend/app/retention.py (BACKUP_KEEP_*), test_retention.py prueft den Abgleich.
+readonly KEEP_DAILY=14
+readonly KEEP_WEEKLY=8
+readonly KEEP_MONTHLY=3
 
 SNAPSHOT_ID=""
 

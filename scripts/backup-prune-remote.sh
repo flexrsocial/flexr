@@ -5,11 +5,12 @@
 # Getrennt von `backup.sh`, weil der taegliche Lauf nur anhaengen und lesen
 # soll: ein kompromittierter Server oder ein Bug im taeglichen Job kann so
 # hoechstens neue Snapshots schreiben, aber keine alten vernichten. Dieses
-# Skript laeuft deutlich seltener (monatlich) als der taegliche Backup-Lauf.
+# Skript laeuft seltener (woechentlich) als der taegliche Backup-Lauf -
+# monatlich waere zu selten: die Frist von hoechstens 3 Monaten liesse sich
+# auf dem externen Ziel dann nicht halten.
 #
 # Erwartet in /etc/flexr/backup.env:
-#   RESTIC_REPOSITORY_REMOTE, RESTIC_PASSWORD_FILE_REMOTE, Fristen (dieselben
-#   wie fuer das lokale Ziel)
+#   RESTIC_REPOSITORY_REMOTE, RESTIC_PASSWORD_FILE_REMOTE
 #   AWS_ACCESS_KEY_ID_REMOTE_PRUNE, AWS_SECRET_ACCESS_KEY_REMOTE_PRUNE bevorzugt;
 #   fehlen sie, faellt dieses Skript mit einer Warnung auf
 #   AWS_ACCESS_KEY_ID_REMOTE / AWS_SECRET_ACCESS_KEY_REMOTE zurueck, damit ein
@@ -41,9 +42,12 @@ else
   PRUNE_KEY_SECRET="${AWS_SECRET_ACCESS_KEY_REMOTE:?ist nicht gesetzt}"
 fi
 
-readonly KEEP_DAILY="${BACKUP_RETENTION_DAILY:-14}"
-readonly KEEP_WEEKLY="${BACKUP_RETENTION_WEEKLY:-8}"
-readonly KEEP_MONTHLY="${BACKUP_RETENTION_MONTHLY:-12}"
+# Fest im Skript, NICHT ueber backup.env ueberschreibbar: die Frist steht so in
+# der Datenschutzerklaerung (hoechstens 3 Monate). Quelle der Wahrheit ist
+# backend/app/retention.py (BACKUP_KEEP_*), test_retention.py prueft den Abgleich.
+readonly KEEP_DAILY=14
+readonly KEEP_WEEKLY=8
+readonly KEEP_MONTHLY=3
 
 export RESTIC_CACHE_DIR="${RESTIC_CACHE_DIR:-/var/cache/flexr-restic}"
 install -d -m 700 "$RESTIC_CACHE_DIR"

@@ -1,0 +1,13 @@
+[Unit]
+Description=FLEXR Loeschfristen stuendlich durchsetzen
+
+[Timer]
+# Stuendlich: die 14-Tage-Frist fuer Verifizierungsaufnahmen soll nicht um bis
+# zu einen Tag ueberschritten werden. Die Abfragen sind billig.
+OnCalendar=hourly
+RandomizedDelaySec=5m
+Persistent=true
+Unit=flexr-cleanup.service
+
+[Install]
+WantedBy=timers.target

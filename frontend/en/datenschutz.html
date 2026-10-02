@@ -38,7 +38,7 @@
   <main id="main-content">
   <h1>Privacy policy</h1>
   <p class="lead">What FLEXR does with your data — and what it does not do</p>
-  <p class="stand">Version 2026-09-25 · last updated: 25 September 2026</p>
+  <p class="stand">Version 2026-10-02 · last updated: 2 October 2026</p>
 
   <p class="en">
     This is a translation provided for convenience. The
@@ -374,12 +374,12 @@
     <tbody>
       <tr>
         <td>Contabo GmbH, Welfenstraße 22, 81541 Munich, Germany</td>
-        <td>Server operation (virtual server), database</td>
+        <td>Server operation (virtual server), database, encrypted backups</td>
         <td>Germany / EU</td>
       </tr>
       <tr>
         <td>Cloudflare (Cloudflare, Inc. or Cloudflare Germany GmbH)</td>
-        <td>R2 object storage: profile photos; temporarily the verification selfie and the ID capture</td>
+        <td>R2 object storage: profile photos; temporarily the verification selfie and the ID capture; encrypted backups</td>
         <td>Cloudflare is a provider seated in the USA. A transfer to the USA cannot be ruled out. See the note below.</td>
       </tr>
       <tr>
@@ -487,6 +487,7 @@
       <tr><td>Withdrawal statements (Section 13a FAGG)</td><td>7 years as evidence of how the contract was handled</td><td>Statutory retention period</td></tr>
       <tr><td>Consent records</td><td>for as long as the consent is effective, after that as evidence of withdrawal until the account is deleted</td><td>Account deletion</td></tr>
       <tr><td>Reports via the public form</td><td>7 years — they are not attached to any account and evidence compliance with Art. 16 DSA</td><td>Obligation to provide evidence</td></tr>
+      <tr><td>Encrypted backups (database and profile photos)</td><td>at most 3 months; they also contain data of accounts already deleted, but no accounts are restored from them</td><td>Lapse of time</td></tr>
       <tr><td>Server logs</td><td>short-lived at system level, without any link to an account</td><td>Rotation by the operating system</td></tr>
     </tbody>
   </table>
@@ -503,9 +504,13 @@
     <b>On “irrevocably deleted”.</b> After the grace period the records and the
     associated files in the object storage are deleted and cannot be restored
     through the app. We do not, however, claim that at that moment every copy
-    everywhere has disappeared: database backups and internal copies held by the
-    storage service may persist for a short time until they are overwritten in
-    the normal cycle. No accounts are restored from such backups.
+    everywhere has disappeared: the database and profile photos are backed up
+    daily in encrypted form, on our server and additionally at Cloudflare R2.
+    These backups are deleted after at most 3 months and serve only to restore
+    the service after a technical failure; individual accounts are not
+    restored from them. Verification selfies and ID captures are not included
+    in the backups. Internal copies held by the storage service may in addition
+    persist for a short time until they are overwritten in the normal cycle.
   </p>
   <h2>8. Security</h2>
   <ul>

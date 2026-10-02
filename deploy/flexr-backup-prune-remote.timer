@@ -1,9 +1,11 @@
 [Unit]
-Description=FLEXR – monatliches Aufraeumen des externen Backup-Ziels
+Description=FLEXR – woechentliches Aufraeumen des externen Backup-Ziels
 
 [Timer]
-# Am Monatsersten um 05:30, nach dem naechtlichen Backup.
-OnCalendar=*-*-01 05:30:00
+# Sonntags um 05:30, nach dem naechtlichen Backup und dem Restore-Test.
+# Woechentlich statt monatlich: sonst blieben alte Staende auf dem externen
+# Ziel bis zu einen Monat ueber die Frist von hoechstens 3 Monaten hinaus.
+OnCalendar=Sun *-*-* 05:30:00
 RandomizedDelaySec=30m
 Persistent=true
 Unit=flexr-backup-prune-remote.service

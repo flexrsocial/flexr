@@ -64,6 +64,30 @@ def test_gueltigkeit_des_bestaetigungslinks_stimmt():
     assert retention.EMAIL_TOKEN_TTL_HOURS == TOKEN_TTL_HOURS
 
 
+@pytest.mark.parametrize("skript", ["backup.sh", "backup-prune-remote.sh"])
+def test_backup_fristen_in_den_skripten_stimmen(skript):
+    text = (REPO / "scripts" / skript).read_text(encoding="utf-8")
+    assert f"readonly KEEP_DAILY={retention.BACKUP_KEEP_DAILY}\n" in text
+    assert f"readonly KEEP_WEEKLY={retention.BACKUP_KEEP_WEEKLY}\n" in text
+    assert f"readonly KEEP_MONTHLY={retention.BACKUP_KEEP_MONTHLY}\n" in text
+    # Nicht ueber backup.env ueberschreibbar - sonst haelt ein alter Wert auf
+    # dem Server still die alte 12-Monats-Frist am Leben.
+    assert "BACKUP_RETENTION_" not in text
+
+
+def test_backup_fristen_bleiben_unter_der_zusage():
+    # restic --keep-monthly N reicht hoechstens N-1 volle Monate zurueck,
+    # plus eine Woche Verzug beim externen Ziel.
+    assert retention.BACKUP_KEEP_MONTHLY - 1 < retention.BACKUP_MAX_MONTHS
+    assert retention.BACKUP_KEEP_WEEKLY * 7 + 7 < retention.BACKUP_MAX_MONTHS * 28
+    assert retention.BACKUP_KEEP_DAILY + 7 < retention.BACKUP_MAX_MONTHS * 28
+
+
+def test_externes_ziel_wird_woechentlich_aufgeraeumt():
+    timer = (REPO / "deploy" / "flexr-backup-prune-remote.timer").read_text(encoding="utf-8")
+    assert "OnCalendar=Sun " in timer
+
+
 # ---------------------------------------------------------------------------
 # Code gegen Rechtstext
 # ---------------------------------------------------------------------------
@@ -88,6 +112,15 @@ def test_datenschutz_nennt_die_kurze_gueltigkeit_der_ausweis_links(datenschutz_t
 
 def test_datenschutz_nennt_das_altersfenster(datenschutz_text):
     assert f"{retention.UNDERAGE_ATTEMPT_WINDOW_HOURS} Stunden" in datenschutz_text
+
+
+def test_datenschutz_nennt_die_backup_frist(datenschutz_text):
+    assert f"höchstens {retention.BACKUP_MAX_MONTHS} Monate" in datenschutz_text
+
+
+def test_datenschutz_en_nennt_die_backup_frist():
+    text = (REPO / "frontend" / "en" / "datenschutz.html").read_text(encoding="utf-8")
+    assert f"at most {retention.BACKUP_MAX_MONTHS} months" in text
 
 
 def test_datenschutz_nennt_die_legal_hold_frist(datenschutz_text):

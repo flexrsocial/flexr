@@ -9,7 +9,10 @@ Zwei Aufgaben:
   nach der Entscheidung fehlgeschlagen ist.
 
 Aufgerufen wird beides opportunistisch beim Login (billige Abfragen, in der
-Regel null Treffer) - so braucht es keinen eigenen Cron-Job. Es werden nur
+Regel null Treffer) UND täglich per Timer (``python -m app.cleanup``,
+deploy/flexr-cleanup.timer). Der Timer ist nötig, weil die Fristen sonst nur
+eingehalten werden, solange sich irgendwer einloggt - am 02.10.2026 lag ein
+Verifizierungs-Selfie schon über der 14-Tage-Frist. Es werden nur
 Objektschlüssel geloggt, nie Bildinhalte.
 """
 
@@ -200,3 +203,38 @@ def purge_old_report_evidence(db: Session) -> int:
     if n:
         db.commit()
     return n
+
+
+def run_all(db: Session) -> dict[str, int]:
+    """Alle Fristen auf einmal - für den täglichen Timer."""
+    return {
+        "deleted_users": purge_deleted_users(db),
+        "verification_requests": purge_stale_verification_uploads(db),
+        "report_evidence": purge_old_report_evidence(db),
+    }
+
+
+def main() -> None:
+    from .database import SessionLocal
+
+    logging.basicConfig(level=logging.INFO)
+    db = SessionLocal()
+    try:
+        result = run_all(db)
+    finally:
+        db.close()
+    print(result)
+    # Fehlgeschlagene Storage-Löschungen bleiben als cleanup_pending stehen und
+    # werden beim nächsten Lauf wiederholt; als Fehler melden, damit es auffällt.
+    db = SessionLocal()
+    try:
+        pending = db.query(VerificationRequest).filter(VerificationRequest.cleanup_pending.is_(True)).count()
+    finally:
+        db.close()
+    if pending:
+        print(f"{pending} Verifizierungsvorgänge mit fehlgeschlagener Storage-Löschung")
+        raise SystemExit(1)
+
+
+if __name__ == "__main__":
+    main()

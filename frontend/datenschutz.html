@@ -38,7 +38,7 @@
   <main id="main-content">
   <h1>Datenschutzerklärung</h1>
   <p class="lead">Was FLEXR mit deinen Daten macht — und was nicht</p>
-  <p class="stand">Fassung 2026-09-25 · Stand: 25. September 2026</p>
+  <p class="stand">Fassung 2026-10-02 · Stand: 2. Oktober 2026</p>
 
   <div class="box hint">
     <p style="margin:0;">
@@ -378,12 +378,12 @@
     <tbody>
       <tr>
         <td>Contabo GmbH, Welfenstraße 22, 81541 München, Deutschland</td>
-        <td>Serverbetrieb (virtueller Server), Datenbank</td>
+        <td>Serverbetrieb (virtueller Server), Datenbank, verschlüsselte Sicherungskopien</td>
         <td>Deutschland / EU</td>
       </tr>
       <tr>
         <td>Cloudflare (Cloudflare, Inc. bzw. Cloudflare Germany GmbH)</td>
-        <td>Objektspeicher R2: Profilfotos; vorübergehend Verifizierungs-Selfie und Ausweisaufnahme</td>
+        <td>Objektspeicher R2: Profilfotos; vorübergehend Verifizierungs-Selfie und Ausweisaufnahme; verschlüsselte Sicherungskopien</td>
         <td>Cloudflare ist ein Anbieter mit Sitz in den USA. Eine Übermittlung in die USA ist nicht ausgeschlossen. Siehe den Hinweis unten.</td>
       </tr>
       <tr>
@@ -495,6 +495,7 @@
       <tr><td>Rücktrittserklärungen (§ 13a FAGG)</td><td>7 Jahre als Nachweis der Vertragsabwicklung</td><td>gesetzliche Aufbewahrungsfrist</td></tr>
       <tr><td>Einwilligungsnachweise</td><td>solange die Einwilligung wirkt, danach als Widerrufsnachweis bis zur Kontolöschung</td><td>Kontolöschung</td></tr>
       <tr><td>Meldungen über das öffentliche Formular</td><td>7 Jahre — sie hängen an keinem Konto und belegen die Erfüllung von Art. 16 DSA</td><td>Nachweispflicht</td></tr>
+      <tr><td>Verschlüsselte Sicherungskopien (Datenbank und Profilfotos)</td><td>höchstens 3 Monate; sie enthalten auch Daten bereits gelöschter Konten, aus ihnen werden aber keine Konten wiederhergestellt</td><td>Zeitablauf</td></tr>
       <tr><td>Server-Logs</td><td>kurzlebig auf Systemebene, ohne Zuordnung zu einem Konto</td><td>Rotation durch das Betriebssystem</td></tr>
     </tbody>
   </table>
@@ -511,10 +512,15 @@
     <b>Zu „unwiderruflich gelöscht".</b> Nach der Karenzzeit werden die
     Datensätze und die zugehörigen Dateien im Objektspeicher gelöscht und sind
     über die App nicht wiederherstellbar. Wir behaupten aber nicht, dass in
-    diesem Moment jede Kopie überall verschwunden ist: Sicherungskopien der
-    Datenbank und interne Kopien des Speicherdienstes können für kurze Zeit
-    weiterbestehen, bis sie im normalen Umlauf überschrieben werden. Aus solchen
-    Sicherungen werden keine Konten wiederhergestellt.
+    diesem Moment jede Kopie überall verschwunden ist: Datenbank und
+    Profilfotos werden täglich verschlüsselt gesichert, auf unserem Server und
+    zusätzlich bei Cloudflare R2. Diese Sicherungen werden nach höchstens 3
+    Monaten gelöscht und dienen nur dazu, den Dienst nach einem technischen
+    Ausfall wiederherzustellen; einzelne Konten werden daraus nicht
+    wiederhergestellt. Verifizierungs-Selfies und Ausweisaufnahmen sind in den
+    Sicherungen nicht enthalten. Interne Kopien des Speicherdienstes können
+    zudem für kurze Zeit weiterbestehen, bis sie im normalen Umlauf
+    überschrieben werden.
   </p>
   <h2>8. Sicherheit</h2>
   <ul>

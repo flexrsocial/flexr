@@ -1,0 +1,13 @@
+[Unit]
+Description=FLEXR – Loeschfristen (Konten, Verifizierungsaufnahmen, Meldungs-Beweise)
+After=network-online.target postgresql.service
+Wants=network-online.target
+# Fehlschlag per Telegram melden (scripts/notify-failure.sh).
+OnFailure=flexr-notify-failure@%n.service
+
+[Service]
+Type=oneshot
+User=deploy
+WorkingDirectory=/flexr/backend
+EnvironmentFile=/flexr/backend/.env
+ExecStart=/flexr/backend/venv/bin/python -m app.cleanup
