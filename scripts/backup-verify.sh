@@ -68,6 +68,28 @@ log "Repository stichprobenartig lesen (${READ_DATA_SUBSET})"
 restic check --read-data-subset="$READ_DATA_SUBSET" \
   || die "restic check hat Datenfehler gefunden"
 
+# Ein Restore-Test auf einem wochenalten Snapshot waere gruen, obwohl das
+# taegliche Backup laengst nicht mehr laeuft (so geschehen 22.09.-02.10.2026).
+readonly MAX_AGE_HOURS="${BACKUP_VERIFY_MAX_AGE_HOURS:-36}"
+LATEST_JSON="$(restic snapshots --tag flexr --latest 1 --json)" \
+  || die "restic snapshots fehlgeschlagen"
+LATEST_TIME="$(jq -r 'max_by(.time) | .time' <<<"$LATEST_JSON")"
+LATEST_ID="$(jq -r 'max_by(.time) | .short_id' <<<"$LATEST_JSON")"
+[[ -n "$LATEST_TIME" && "$LATEST_TIME" != null ]] || die "Kein Snapshot gefunden"
+AGE_HOURS=$(( ($(date +%s) - $(date -d "$LATEST_TIME" +%s)) / 3600 ))
+(( AGE_HOURS <= MAX_AGE_HOURS )) \
+  || die "Letzter Snapshot ${LATEST_ID} ist ${AGE_HOURS} h alt (Grenze ${MAX_AGE_HOURS} h) - laeuft das taegliche Backup?"
+log "Letzter Snapshot ${LATEST_ID}, ${AGE_HOURS} h alt"
+
+# Sind Fotos in der Datenbank, muessen auch welche im Snapshot liegen.
+PHOTO_ROWS="$(psql "$LIVE_URL" -tAc "SELECT count(*) FROM photos;")"
+PHOTO_FILES="$(restic ls --recursive --json "$LATEST_ID" /var/lib/flexr/backup-work/photos \
+  | jq -r 'select(.struct_type == "node" and .type == "file") | .path' | wc -l)"
+if (( PHOTO_ROWS > 0 && PHOTO_FILES == 0 )); then
+  die "Snapshot ${LATEST_ID} enthaelt keine Fotos, die Datenbank kennt ${PHOTO_ROWS}"
+fi
+log "Fotos im Snapshot: ${PHOTO_FILES} Dateien (Datenbank: ${PHOTO_ROWS} Eintraege)"
+
 log "Letzten Snapshot in '$SCRATCH_DB' wiederherstellen"
 drop_scratch
 "$(dirname "$0")/restore.sh" --target "$SCRATCH_DB" >/dev/null \

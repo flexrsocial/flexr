@@ -1,0 +1,14 @@
+[Unit]
+Description=FLEXR – Telegram-Warnung: %i fehlgeschlagen
+
+[Service]
+Type=oneshot
+# Kopie ausserhalb des Checkouts, siehe Kopf von scripts/notify-failure.sh.
+ExecStart=/usr/local/sbin/flexr-notify-failure %i
+User=root
+
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+NoNewPrivileges=true
+ReadOnlyPaths=/flexr/backend/.env

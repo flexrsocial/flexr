@@ -3,6 +3,9 @@ Description=FLEXR – Aufbewahrungsfristen auf dem externen Backup-Ziel
 After=network-online.target
 Wants=network-online.target
 
+# Fehlschlag per Telegram melden (scripts/notify-failure.sh).
+OnFailure=flexr-notify-failure@%n.service
+
 [Service]
 Type=oneshot
 ExecStart=/flexr/scripts/backup-prune-remote.sh

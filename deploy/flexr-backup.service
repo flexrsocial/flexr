@@ -1,7 +1,10 @@
 [Unit]
-Description=FLEXR – verschluesseltes Backup von Datenbank und Konfiguration
+Description=FLEXR – verschluesseltes Backup von Datenbank, Fotos und Konfiguration
 After=postgresql.service network-online.target
 Wants=network-online.target
+
+# Fehlschlag per Telegram melden (scripts/notify-failure.sh).
+OnFailure=flexr-notify-failure@%n.service
 
 [Service]
 Type=oneshot

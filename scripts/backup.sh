@@ -1,6 +1,14 @@
 #!/usr/bin/env bash
 #
-# Verschluesseltes Backup der FLEXR-Datenbank und der Server-Konfiguration.
+# Verschluesseltes Backup der FLEXR-Datenbank, der Profilfotos und der
+# Server-Konfiguration.
+#
+# Gesichert werden:
+#   - Datenbank (pg_dump) und Schema
+#   - Profilfotos aus dem R2-Foto-Bucket (app.photo_export; OHNE
+#     Pruefaufnahmen, siehe dort)
+#   - /flexr/backend/.env, /etc/flexr (ohne restic-Passwoerter), /etc/nginx
+#     und die flexr-systemd-Units
 #
 # Wird vom systemd-Timer `flexr-backup.timer` aufgerufen, laeuft aber auch
 # von Hand. Legt einen restic-Snapshot lokal UND auf dem externen R2-Ziel an
@@ -16,7 +24,8 @@
 set -euo pipefail
 
 readonly CONFIG_DIR=/etc/flexr
-readonly APP_ENV=/flexr/backend/.env
+readonly BACKEND_DIR=/flexr/backend
+readonly APP_ENV=$BACKEND_DIR/.env
 readonly STATUS_FILE=/var/lib/flexr/backup-status.json
 
 log() { printf '%s  %s\n' "$(date --iso-8601=seconds)" "$*"; }
@@ -91,6 +100,27 @@ DUMP_SIZE="$(stat -c '%s' "$WORK_DIR/flexr.dump")"
 (( DUMP_SIZE > 0 )) || die "Der Dump ist leer"
 log "Dump erzeugt, ${DUMP_SIZE} Bytes"
 
+# Ein Fehler beim Foto-Export bricht das Backup NICHT ab: die Datenbank wird
+# trotzdem gesichert, der Lauf am Ende aber als fehlgeschlagen gemeldet.
+PHOTO_ERROR=""
+log "Profilfotos exportieren"
+if ! (cd "$BACKEND_DIR" && PYTHONDONTWRITEBYTECODE=1 \
+        venv/bin/python -m app.photo_export "$WORK_DIR/photos"); then
+  PHOTO_ERROR="Foto-Export fehlgeschlagen"
+  log "FEHLER: $PHOTO_ERROR - sichere ohne Fotos weiter"
+  rm -rf "$WORK_DIR/photos"
+fi
+
+# Server-Konfiguration. Die restic-Passwortdateien bleiben draussen: ein
+# Passwort im Repository, das es selbst verschluesselt, hilft im Ernstfall
+# nicht und gehoert in einen Passwortspeicher ausserhalb des Servers.
+BACKUP_PATHS=("$WORK_DIR" "$APP_ENV")
+for p in "$CONFIG_DIR" /etc/nginx /etc/systemd/system/flexr-*; do
+  [[ -e "$p" ]] && BACKUP_PATHS+=("$p")
+done
+EXCLUDES=(--exclude "$RESTIC_PASSWORD_FILE")
+[[ -n "${RESTIC_PASSWORD_FILE_REMOTE:-}" ]] && EXCLUDES+=(--exclude "$RESTIC_PASSWORD_FILE_REMOTE")
+
 log "Lokalen Snapshot schreiben"
 # Die App-.env wird mitgesichert - sie enthaelt Zugangsdaten (DB, S3, Stripe,
 # SMTP, Telegram), liegt im restic-Repository aber verschluesselt. Das
@@ -99,7 +129,7 @@ log "Lokalen Snapshot schreiben"
 restic backup \
   --tag flexr --tag automatisch \
   --host flexr \
-  "$WORK_DIR" "$APP_ENV" \
+  "${EXCLUDES[@]}" "${BACKUP_PATHS[@]}" \
   || die "restic backup (lokal) fehlgeschlagen"
 
 SNAPSHOT_ID="$(restic snapshots --tag flexr --latest 1 --json | sed -n 's/.*"short_id":"\([^"]*\)".*/\1/p' | tail -1)"
@@ -135,7 +165,7 @@ if [[ -n "${RESTIC_REPOSITORY_REMOTE:-}" ]]; then
     restic --repo "$RESTIC_REPOSITORY_REMOTE" backup \
       --tag flexr --tag automatisch \
       --host flexr \
-      "$WORK_DIR" "$APP_ENV" \
+      "${EXCLUDES[@]}" "${BACKUP_PATHS[@]}" \
     || die "restic backup (extern) fehlgeschlagen"
 
   log "Externes Ziel: Struktur pruefen"
@@ -147,6 +177,8 @@ if [[ -n "${RESTIC_REPOSITORY_REMOTE:-}" ]]; then
 else
   log "WARNUNG: kein externes Ziel konfiguriert (RESTIC_REPOSITORY_REMOTE)"
 fi
+
+[[ -z "$PHOTO_ERROR" ]] || die "$PHOTO_ERROR (Datenbank ist gesichert, Snapshot ${SNAPSHOT_ID:-unbekannt})"
 
 write_status "ok" "Snapshot ${SNAPSHOT_ID:-unbekannt}"
 log "Fertig"

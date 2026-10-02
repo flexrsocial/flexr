@@ -2,6 +2,9 @@
 Description=FLEXR – Restore-Test des letzten Backups
 After=postgresql.service
 
+# Fehlschlag per Telegram melden (scripts/notify-failure.sh).
+OnFailure=flexr-notify-failure@%n.service
+
 [Service]
 Type=oneshot
 ExecStart=/flexr/scripts/backup-verify.sh

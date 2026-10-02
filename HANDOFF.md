@@ -1,6 +1,6 @@
 # FLEXR — Handoff für ein anderes Gerät / Claude Code
 
-Stand: **30.09.2026**
+Stand: **02.10.2026**
 
 ## ⚠️ Dringend zu prüfen: SSH-Zugang zum VPS hat sich geändert (21.09.2026)
 
@@ -31,6 +31,43 @@ Falls du das liest, weil dein `root@`-Login gerade fehlschlägt: das ist
 erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 
 ## Wo das Projekt gerade steht
+
+> **Sitzung 02.10.2026 — Backups: 11 Tage Ausfall behoben, Fotos +
+> Konfiguration + Telegram-Warnung.**
+>
+> **Befund:** `flexr-backup`, `-verify` und `-prune-remote` scheiterten seit
+> 22.09. mit `Unable to locate executable '/flexr/scripts/backup.sh'` - der
+> Sparse-Checkout vom 21.09. enthielt `scripts/` nicht. Letztes Backup
+> 21.09. 03:32. **Behoben** vom Nutzer als root:
+> `sudo -u deploy git -C /flexr sparse-checkout add scripts`, danach Backup
+> (Snapshot `4aa8d663`, lokal + R2) und Restore-Test von Hand gruen.
+>
+> **Neu im Repo (Deploy siehe unten):**
+> - `backend/app/photo_export.py` + Test: Foto-Bucket wird bei jedem Backup
+>   exportiert und mitgesichert (heute 287 Objekte, 28 MB). Pruefaufnahmen
+>   (Selfies/Ausweise) bleiben bewusst draussen - laut Datenschutzerklaerung
+>   sofort nach der Entscheidung geloescht. Ein Fehler beim Foto-Export
+>   sichert die DB trotzdem, meldet den Lauf aber als fehlgeschlagen.
+> - `backup.sh` sichert zusaetzlich `/etc/flexr` (ohne restic-Passwoerter),
+>   `/etc/nginx`, `/etc/systemd/system/flexr-*`.
+> - `backup-verify.sh`: schlaegt fehl, wenn der letzte Snapshot > 36 h alt ist
+>   oder keine Fotos enthaelt, obwohl die DB welche kennt.
+> - `restore.sh` entpackt nur noch `flexr.dump`.
+> - Telegram-Warnung bei Fehlschlag: `OnFailure=flexr-notify-failure@%n` an
+>   allen drei Backup-Diensten; Skript liegt als Kopie in
+>   `/usr/local/sbin/flexr-notify-failure` (nicht im Checkout - sonst
+>   verschluckt genau dieser Fehler auch die Warnung).
+>
+> **Auffaellig:** Im oeffentlichen Foto-Bucket liegen noch **2 Pruefaufnahmen**
+> (Altbestand vor dem privaten Bucket). Pruefen, ob sie zu offenen Antraegen
+> gehoeren - sonst loeschen.
+>
+> **Offen (Recht):** `datenschutz.html` Punkt 7 nennt nur "Sicherungskopien der
+> Datenbank"; jetzt kommen Profilfotos dazu, Aufbewahrung bis 12 Monate
+> (T-03 in LEGAL_REVIEW.md).
+>
+> Tests: Backend 591 gruen; `test_sitemap_enthaelt_nur_oeffentliche_kanonische_seiten`
+> war schon vorher rot (unabhaengig).
 
 > **Sitzung 30.09.2026 (7) — Web-App-Einstieg (Desktop) aufgeraeumt.**
 > Deployed (`893df81`, `git pull`, 664, md5-gleich). Kacheln auf den

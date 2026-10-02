@@ -124,8 +124,11 @@ cleanup() {
 }
 trap cleanup EXIT
 
-log "Snapshot '$SNAPSHOT' entpacken"
-restic restore "$SNAPSHOT" --tag flexr --target "$WORK_DIR" \
+log "Snapshot '$SNAPSHOT' entpacken (nur den Datenbank-Dump)"
+# Nur der Dump: Seit 02.10.2026 liegen auch Fotos und Server-Konfiguration im
+# Snapshot, die hier nicht gebraucht werden. Fotos zurueckholen:
+#   restic restore latest --tag flexr --include /var/lib/flexr/backup-work/photos --target <ziel>
+restic restore "$SNAPSHOT" --tag flexr --include flexr.dump --target "$WORK_DIR" \
   || die "restic restore fehlgeschlagen"
 
 DUMP="$(find "$WORK_DIR" -name 'flexr.dump' -type f | head -1)"
