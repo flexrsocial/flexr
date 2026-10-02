@@ -82,7 +82,8 @@
 // Schrittanzeige, Feld-Markierung bei der Registrierung, Gespraechseinstiege
 // im leeren Chat; i18n-app.js auf ?v=23.
 // v32: Chat laedt nur die juengsten Nachrichten ("Aeltere anzeigen"), i18n-app.js?v=24.
-const CACHE = 'flexr-shell-v32';
+// v33: Beta-Leiste nur noch auf der Startseite, nicht nach dem Einloggen.
+const CACHE = 'flexr-shell-v33';
 // Seit dem 15.08.2026 liegt die App unter /app/, an der Wurzel steht die
 // oeffentliche Landingpage. Beide gehoeren in die Shell: die Landingpage,
 // weil sie der Einstieg ist, die App, weil sie offline funktionieren soll.

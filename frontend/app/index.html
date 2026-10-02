@@ -3563,6 +3563,10 @@
     border:1px solid var(--steel); background:var(--surface); color:var(--chalk); font-size:14px; line-height:1;
   }
   body.landing.has-beta-bar .app{ padding-bottom:90px; }
+  /* Nur auf der Startseite (Login/Registrierung), nicht nach dem Einloggen:
+     Wer drin ist, hat den Hinweis auf Landing und Startseite schon gesehen;
+     ueber die "Beta"-Pille im Kopf bleibt der Dialog erreichbar. */
+  body:not(.landing) .beta-bar{ display:none; }
 </style>
 
 <script>
@@ -5721,7 +5725,8 @@
       box.hidden = false;
     };
     setTimeout(() => {
-      if(!$('betaBar').hidden){
+      // Eingeloggt ist die Leiste per CSS weg (nur auf body.landing sichtbar).
+      if(!$('betaBar').hidden && document.body.classList.contains('landing')){
         // Erst nach der Beta-Leiste - beide stehen am selben Platz.
         document.addEventListener('flexr-beta-weg', () => setTimeout(zeigen, 800), {once: true});
         return;
