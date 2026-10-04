@@ -1,6 +1,6 @@
 # FLEXR — Handoff für ein anderes Gerät / Claude Code
 
-Stand: **02.10.2026**
+Stand: **04.10.2026**
 
 ## ⚠️ Dringend zu prüfen: SSH-Zugang zum VPS hat sich geändert (21.09.2026)
 
@@ -31,6 +31,49 @@ Falls du das liest, weil dein `root@`-Login gerade fehlschlägt: das ist
 erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 
 ## Wo das Projekt gerade steht
+
+> **Sitzung 04.10.2026 — Beta-Hinweis: Android voraussichtlich Mitte
+> Oktober, Merker auf v7, Push-Key mit Schreibrecht.**
+>
+> - Die Android-Zeile im Beta-Hinweis hieß „bald im Play Store" / „coming
+>   soon to Google Play" und heißt jetzt „voraussichtlich Mitte Oktober im
+>   Play Store" / „expected mid-October on Google Play" (Landingpage DE/EN
+>   und Web-App: Wörterbücher `app/i18n-app.js` und `i18n-landing.js`,
+>   Fallback-Text im Markup von `index.html`, `en/index.html`,
+>   `app/index.html`). Commit `ed7ddb6`, Service-Worker-Cache `v34`,
+>   `i18n-app.js?v=25`.
+> - Merker `flexr_beta_notice_v6` → `v7` in denselben drei HTML-Dateien,
+>   Service-Worker-Cache `v35` (Commit `513bd3e`). Damit sehen auch
+>   Besucher, die den Hinweis schon weggeklickt hatten, die neue Zeile.
+>   Beide Commits deployt und live geprüft (`curl` auf `/`, `/en/`,
+>   `/app/`, `sw.js`).
+> - **Der Premium-Satz der Landingpage bleibt auf Wunsch des Nutzers
+>   unverändert** („… oder als In-App-Kauf in der Android-App"), obwohl die
+>   App erst Mitte Oktober erscheint. Nicht ungefragt ändern.
+> - **Zugang auf diesem Gerät:** Der Key `~/.ssh/id_ed25519_flexr_vps`
+>   funktioniert nur als `deploy@31.220.73.67`. Der Alias `flexr-vps` in der
+>   `~/.ssh/config` steht hier noch auf `User root` und scheitert mit
+>   `Permission denied (publickey)`; deshalb `deploy@` und
+>   `-o IdentitiesOnly=yes` ausdrücklich angeben (sonst „Too many
+>   authentication failures" durch die Keys im Agenten).
+> - **GitHub-Push als `deploy`:** Der Deploy-Key des Benutzers `deploy`
+>   (`~/.ssh/id_ed25519_github` auf dem VPS, Kommentar
+>   `deploy@flexr-vps github pull-only`) war nur lesend; `git push` scheiterte
+>   mit „The key you are authenticating with has been marked as read only".
+>   Der Nutzer hat ihn am 04.10. auf GitHub neu eingetragen, diesmal mit
+>   „Allow write access". Seitdem geht `git push origin main` als `deploy`
+>   (geprüft: `HEAD` = `origin/main` = `513bd3e`). Kommt die Meldung
+>   wieder, wurde der Key ohne Schreibrecht eingetragen.
+> - **Ablauf auf diesem Gerät:** Der lokale Ordner `~/MEGA/flexr/flexr` ist
+>   hier kein Git-Repository. Änderung lokal, `scp` nach
+>   `/flexr/frontend/...`, auf dem VPS gezielt `git add <Dateien>` und
+>   `git -c user.name=flexr -c user.email=flexr.social@proton.me commit`,
+>   dann pushen. Vorher die VPS-Fassung der Dateien ziehen und gegen die
+>   lokale vergleichen, und auf dem VPS `git fetch` — `origin/main` kann
+>   vorausliegen (diesmal um einen reinen HANDOFF-Commit, per
+>   `git pull --ff-only` geholt). Die nicht verfolgten Dateien dort
+>   (`backend/fcm-service-account.json`, `backend/play-service-account.json`,
+>   `backend/list_users.py`, `frontend/dl-*/`) nie mit `git add` aufnehmen.
 
 > **Sitzung 02.10.2026 (2) — VPS-Hardware-Check, Journal begrenzt, Swap
 > angelegt.**
@@ -8251,10 +8294,17 @@ Neu aus der Sitzung 19.09.:
   **erledigt**: Am 18.09. (7) stand `HEAD` auf demselben Commit wie
   `origin/main`, der Arbeitsbaum war sauber, und beide Commits der Sitzung
   gingen ohne Umweg durch. Die Worktree-Umgehung ist nicht mehr nötig.
-- Der **Beta-Hinweis nennt „Ende September 2026"** als Android-Termin.
-  Verschiebt sich der Termin oder erscheint die App, den Text anpassen **und**
-  den localStorage-Schlüssel auf `flexr_beta_notice_v2` hochzählen — sonst
-  sehen bestehende Besucher die alte Aussage nie wieder bzw. gar nichts.
+- Der **Beta-Hinweis nennt „voraussichtlich Mitte Oktober"** als
+  Android-Termin (seit 04.10.2026, Merker `flexr_beta_notice_v7`).
+  Verschiebt sich der Termin oder erscheint die App, den Text anpassen
+  (`app/i18n-app.js` und `i18n-landing.js`, je DE und EN, dazu das Markup in
+  `index.html`, `en/index.html`, `app/index.html`) **und** den Merker in
+  diesen drei HTML-Dateien hochzählen — sonst sehen bestehende Besucher die
+  alte Aussage nie wieder. Danach `CACHE` in `sw.js` erhöhen, bei geänderter
+  `i18n-app.js` auch deren `?v=` in `sw.js` und `app/index.html`. Der
+  Premium-Satz der Landingpage („In-App-Kauf in der Android-App") bleibt bis
+  zur Veröffentlichung auf Wunsch des Nutzers wie er ist; nach dem Start im
+  Play Store ist er wieder korrekt.
 - **VPS-Deploy vom 30.08. steht noch aus** — `git pull` auf dem VPS
   nachholen (Backend unverändert, kein Neustart nötig, siehe „Noch offen"
   Punkt 13).
