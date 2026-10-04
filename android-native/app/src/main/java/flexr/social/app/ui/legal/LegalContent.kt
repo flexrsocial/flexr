@@ -1111,8 +1111,11 @@ object LegalContent {
         ),
     )
 
+    // Kurzfassung von flexr.social/datenschutz.html — bei jeder Änderung dort
+    // mitziehen (zuletzt Fassung 2026-10-02: Sicherungskopien).
     private val datenschutz = LegalPage(
         document = LegalDocument.DATENSCHUTZ,
+        intro = "Wie FLEXR mit deinen Daten umgeht. Stand: 2. Oktober 2026. Diese Fassung ist gekürzt; maßgeblich ist der vollständige Text unter flexr.social/datenschutz.html.",
         blocks = listOf(
             LegalBlock.Heading("1. Verantwortlicher"),
             LegalBlock.Paragraph(
@@ -1275,20 +1278,30 @@ object LegalContent {
                     listOf(
                         "Cloudflare R2",
                         "Speicherung von Profilfotos; temporäre Speicherung von " +
-                            "Verifizierungs-Selfie und Ausweisaufnahmen",
+                            "Verifizierungs-Selfie und Ausweisaufnahmen; verschlüsselte " +
+                            "Sicherungskopien",
                         "Cloudflare, Anbieter mit Sitz in den USA. Eine Übermittlung in " +
                             "die USA ist nicht ausgeschlossen; ein Standort-Hinweis ist keine " +
                             "Zusicherung der EU-Speicherung",
                     ),
                     listOf(
                         "Stripe",
-                        "Zahlungsabwicklung, Abo-Verwaltung",
+                        "Zahlungsabwicklung, Abo-Verwaltung — bei einem Kauf im Browser",
                         "Stripe-Gesellschaften in Irland und den USA; " +
                             "Standardvertragsklauseln bzw. EU-US Data Privacy Framework",
                     ),
                     listOf(
+                        "Google Play (Google Ireland Limited, Gordon House, Barrow Street, " +
+                            "Dublin 4, Irland)",
+                        "Zahlungsabwicklung und Abo-Verwaltung bei einem Kauf in dieser App " +
+                            "— dein Vertragspartner ist dabei Google, nicht FLEXR. FLEXR " +
+                            "erhält nur den Kauf-Token zur Freischaltung, keine Zahlungsdaten",
+                        "Irland/EU, Übermittlung in die USA nicht ausgeschlossen; " +
+                            "Standardvertragsklauseln bzw. EU-US Data Privacy Framework",
+                    ),
+                    listOf(
                         "Contabo GmbH, Welfenstraße 22, 81541 München, Deutschland",
-                        "Serverbetrieb (VPS)",
+                        "Serverbetrieb (VPS), Datenbank, verschlüsselte Sicherungskopien",
                         "Deutschland/EU",
                     ),
                     listOf(
@@ -1307,7 +1320,10 @@ object LegalContent {
             LegalBlock.Note(
                 "Contabo, Cloudflare und Brevo verarbeiten Daten für die genannten Zwecke " +
                     "als Dienstleister. Stripe verarbeitet Zahlungsdaten teilweise in " +
-                    "eigener datenschutzrechtlicher Verantwortung.",
+                    "eigener datenschutzrechtlicher Verantwortung. Bei einem Kauf über " +
+                    "Google Play ist Google für die Zahlungsabwicklung eigenständig " +
+                    "verantwortlich; FLEXR bekommt nur den Kaufbeleg zur Freischaltung von " +
+                    "Premium übermittelt, keine Zahlungs- oder Kontodaten.",
             ),
             LegalBlock.Heading("5. Speicherdauer"),
             LegalBlock.Bullets(
@@ -1315,14 +1331,19 @@ object LegalContent {
                     "Kontodaten: bis zur Löschung des Profils durch den Nutzer.",
                     "Nach Löschung: 30 Tage Karenzzeit, danach werden die Datensätze und " +
                         "die Dateien im Objektspeicher gelöscht und sind über die App nicht " +
-                        "wiederherstellbar. Sicherungskopien können für kurze Zeit " +
-                        "weiterbestehen, bis sie im normalen Umlauf überschrieben werden; " +
-                        "daraus werden keine Konten wiederhergestellt. Zahlungsbezogene " +
-                        "Aufzeichnungen bleiben nach § 132 BAO länger erhalten.",
+                        "wiederherstellbar. Zahlungsbezogene Aufzeichnungen bleiben nach " +
+                        "§ 132 BAO länger erhalten.",
+                    "Sicherungskopien: Datenbank und Profilfotos werden täglich " +
+                        "verschlüsselt gesichert, auf unserem Server und zusätzlich bei " +
+                        "Cloudflare R2. Diese Sicherungen werden nach höchstens 3 Monaten " +
+                        "gelöscht und dienen nur dazu, den Dienst nach einem technischen " +
+                        "Ausfall wiederherzustellen; einzelne Konten werden daraus nicht " +
+                        "wiederhergestellt. Verifizierungs-Selfies und Ausweisaufnahmen sind " +
+                        "darin nicht enthalten.",
                     "Verifizierungs-Selfie: wird unmittelbar nach Abschluss der Prüfung " +
                         "(Freigabe oder Ablehnung) gelöscht.",
-                    "Zahlungsbezogene Daten: gemäß gesetzlicher Aufbewahrungspflichten " +
-                        "(i. d. R. 7 Jahre, §132 BAO).",
+                    "Zahlungsbezogene Daten, auch Google-Play-Kaufbelege: gemäß " +
+                        "gesetzlicher Aufbewahrungspflichten (i. d. R. 7 Jahre, §132 BAO).",
                 ),
             ),
             LegalBlock.Heading("6. Betroffenenrechte"),

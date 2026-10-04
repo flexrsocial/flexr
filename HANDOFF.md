@@ -32,6 +32,55 @@ erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 
 ## Wo das Projekt gerade steht
 
+> **Sitzung 04.10.2026 (3) — Android vor der Veröffentlichung durchgeprüft,
+> 2.7.22 gebaut.** Play-Store-Start ist für Mitte Oktober geplant.
+>
+> **Geprüft, in Ordnung:** lokaler `android-native/`-Stand = Git-`HEAD`
+> (Blob-Hashes aller 156 Dateien); Ziel-SDK 36, Play Billing 8, alle 16 nativen
+> Bibliotheken mit 16-KB-Seitenausrichtung, Edge-to-Edge, vorausschauende
+> Zurück-Geste; `assetlinks.json` mit Play-Signing- und Upload-Key; keine
+> Werbe-ID im fertigen Manifest; Betreiberangaben einheitlich
+> (`tools/check_betreiber.py`). Gleichstand zum Web: Freischaltungs-Schirm lädt
+> bei Rückkehr neu (`ON_RESUME`), Mail-Link öffnet die App (App Link), Play-Kauf
+> wird bestätigt, ausstehende Zahlungen abgewartet, Käufe wiederhergestellt —
+> die Lücken der iPhone-Web-App gibt es hier nicht. Texte DE/EN vollständig.
+>
+> **Nachgezogen:**
+> - Datenschutz-Kurzfassung in der App (`LegalContent.datenschutz`): fehlten die
+>   verschlüsselten Sicherungskopien (Fassung 2026-10-02) und Google Play als
+>   Empfänger bei Käufen in der App (Web seit 21.09.). Dazu Vorspann mit Stand und
+>   Verweis auf den maßgeblichen Volltext (wie bei Nutzungs-/
+>   Strafverfolgungsrichtlinien).
+> - `android-native/PLAY-CONSOLE.md` neu gefasst (stand auf 2.4.1 und behauptete,
+>   es gebe keinen Push-Dienst). Abschnitt 0 = was jetzt in der Console stehen
+>   muss: FCM-Token und Geräte-ID (Geräte- oder andere IDs), Kaufverlauf
+>   (Google Play), sexuelle Orientierung, **Prüfzugang mit bereits
+>   freigeschaltetem Testkonto** (sonst kommen Googles Prüfer nicht an der
+>   Ausweisprüfung vorbei), Web-Adresse zur Kontolöschung (FAQ), Abo-Produkt.
+> - `android-native/HANDOFF.md`: Abschnitt 04.10. und neue Checkliste „Was vor der
+>   Veröffentlichung noch fehlt“.
+> - `local.properties` zeigte wieder auf `/home/blktomcat/…` (nicht im Git).
+>
+> **Android 2.7.22 / versionCode 134** in `release-2.7.22/` (gitignored), zum
+> Herunterladen unter `https://flexr.social/dl-4d1db9c4c735b680/` (untracked,
+> nicht `git add`en):
+>
+> | | SHA-256 | Größe |
+> |---|---|---|
+> | AAB (Play Console) | `9628de597cca9c74b41aafd19be7973bbe4e1dcac1e12a16aadc2f8f048615e4` | 8.532.373 Bytes |
+> | APK (Testgerät) | `116e151dd5b1e7b32126de80b48ddca6808d5aab76554bc592c9765573d8c762` | 4.419.422 Bytes |
+>
+> aapt2: 134 / 2.7.22, targetSdk 36; Signer SHA-256 `BC:64:AD…79:80`
+> (Upload-Key). Tests: 55 Unit-Tests grün, Lint 0 Fehler (108 Warnungen).
+> **Offen (Nutzer):** Upload in die Play Console, Angaben nach
+> `PLAY-CONSOLE.md` Abschnitt 0, interner Test-Track mit Testkauf.
+>
+> Commit-Weg für `android-native/` auf dem VPS (Sparse-Checkout, `deploy`):
+> temporärer Index (`GIT_INDEX_FILE`, `read-tree HEAD`, `hash-object -w`,
+> `update-index --cacheinfo`, `write-tree`, `commit-tree`), dann
+> `git merge --ff-only` und `git push` — Arbeitsbaum und Sparse-Einstellung
+> bleiben unberührt.
+
 > **Sitzung 04.10.2026 (2) — iPhone-Web-App durchgeprüft: Anleitung für
 > iOS 26/27, Rückkehr aus Mail und Stripe, iPad-Startbilder.** Anlass: Apple
 > hat die iOS-App am 04.10. erneut nach Guideline 4.3(b) abgelehnt (Dating
@@ -8342,6 +8391,12 @@ print(re.findall(rb"[0-9]+\.[0-9]+\.[0-9]+", d)[:5])' \
 > erfolgreicher Prüfung.
 
 ## Erinnerung für die nächste Sitzung
+
+Neu aus der Sitzung 04.10.2026 (3):
+
+- **Android 2.7.22 (versionCode 134) hochladen** und die Console-Angaben nach
+  `android-native/PLAY-CONSOLE.md` Abschnitt 0 setzen — vor allem ein bereits
+  freigeschaltetes Testkonto unter „App-Zugriff“.
 
 Neu aus der Sitzung 04.10.2026 (2):
 

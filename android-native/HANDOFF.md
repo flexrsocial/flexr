@@ -1,10 +1,40 @@
 # HANDOFF — native Android-App
 
-Stand: **16.09.2026**, Commit `6ad6452` (gepusht; Android braucht keinen
-VPS-Deploy — der Backend-Vertrag ist unverändert). Der jüngste Abschnitt steht
-oben, ältere folgen darunter.
+Stand: **04.10.2026**, Version 2.7.22 / versionCode 134. Der jüngste
+Abschnitt steht oben, ältere folgen darunter. Fassungen zwischen dem
+16.09. und dem 04.10. sind nur im Kommentar am `versionCode` in
+`app/build.gradle.kts` und in der Haupt-`HANDOFF.md` beschrieben.
 Für Aufbau, Build-Befehle und die Migrationstabelle siehe [README.md](README.md) —
 hier steht nur, was daraus *nicht* hervorgeht.
+
+---
+
+## Durchsicht vor der Veröffentlichung, 04.10.2026 (2.7.22)
+
+Die Play-Store-Veröffentlichung ist für Mitte Oktober 2026 geplant. Geprüft:
+
+* **Play-Anforderungen erfüllt:** Ziel-SDK 36, Play Billing 8, alle 16 nativen
+  Bibliotheken im Bundle mit 16-KB-Seitenausrichtung (ELF-`p_align` 16384,
+  gemessen an 2.7.21), Edge-to-Edge, vorausschauende Zurück-Geste.
+  `assetlinks.json` führt Play-Signing- und Upload-Key.
+* **Gleichstand mit dem Web:** Der Freischaltungs-Schirm lädt bei jeder Rückkehr
+  in die App neu (`LifecycleEventEffect(ON_RESUME)`), der Mail-Link öffnet die
+  App als App Link. Die Lücken, die die Web-App vom iPhone-Home-Bildschirm am
+  04.10. hatte, gibt es hier nicht. Play-Käufe werden bestätigt (Server, mit
+  Rückfall in der App), ausstehende Zahlungen abgewartet, frühere Käufe
+  automatisch wiederhergestellt.
+* **Nachgezogen:** Die Datenschutz-Kurzfassung (`LegalContent.datenschutz`)
+  hinkte der Web-Fassung hinterher — die verschlüsselten Sicherungskopien
+  (Fassung 2026-10-02) und Google Play als Empfänger bei Käufen in der App
+  (Web seit 21.09.) fehlten. Ergänzt, dazu ein Vorspann mit Stand und dem
+  Hinweis, dass der vollständige Text auf flexr.social maßgeblich ist (wie bei
+  Nutzungs- und Strafverfolgungsrichtlinien).
+* **`PLAY-CONSOLE.md` neu gefasst:** stand auf 2.4.1 und behauptete u. a., es
+  gebe keinen Push-Dienst. Abschnitt 0 sammelt, was seither in der Console
+  anzugeben ist (FCM-Token, Kaufverlauf, Geräte-ID, sexuelle Orientierung,
+  Prüfzugang mit freigeschaltetem Testkonto, Web-Adresse zur Kontolöschung).
+* `local.properties` zeigte wieder auf `/home/blktomcat/…` — korrigiert
+  (Datei ist nicht im Git).
 
 ---
 
@@ -142,22 +172,20 @@ die Angabe vom tatsächlichen Verhalten ab.
 
 ## Was vor der Veröffentlichung noch fehlt
 
-1. **Die App lief noch nie auf einem Gerät.** Sie ist gebaut, Unit-Tests sind grün —
-   aber es gab weder Emulator noch angeschlossenes Telefon. Vor dem Produktions-Rollout
-   gehört ein interner Test-Track oder eine lokale Installation dazu. Kernwege:
-   Registrierung inkl. Foto-Upload, Swipe, Chat, Verifizierung.
-   Auf dieser Maschine ist das nicht nachholbar: Das Bubblewrap-SDK enthält weder
-   `emulator` noch System-Images, und `adb devices` bleibt leer.
-2. **Datensicherheitserklärung in der Play Console ergänzen:** Kamera. In der TWA
-   lief diese Berechtigung über Chrome, die native App fordert sie selbst an.
-   Der Abschnitt Standort ist seit 2.0.7 ersatzlos entfallen.
-3. **Datensicherheit: die Ausweisaufnahme ist deklarationspflichtig.** Seit 2.2.0
-   überträgt die App Fotos eines amtlichen Lichtbildausweises an das eigene
-   Backend. Das ist eine Erhebung im Sinne der Play-Datensicherheit und gehört
-   angegeben — mit Zweck „Kontoverwaltung / Betrugsprävention", Angabe, dass die
-   Daten nicht geteilt werden, und dem Hinweis, dass sie nach Abschluss der
-   Prüfung gelöscht werden. Eine Einstufung als rein flüchtige Verarbeitung wäre
-   falsch: Die Aufnahmen liegen bis zur Entscheidung im Objekt-Storage.
+Stand 04.10.2026 — die vollständige Liste der Console-Angaben steht in
+[PLAY-CONSOLE.md](PLAY-CONSOLE.md), Abschnitt 0 und 1.
+
+1. **Interner Test-Track vor der Freigabe.** Die App lief seit September auf dem
+   Gerät des Betreibers, aber nur der Test-Track prüft genau das, was Nutzer
+   bekommen — mit Play Billing (Testkauf) und App-Link-Verifizierung. Auf dieser
+   Maschine gibt es weder Emulator noch Gerät (`adb devices` bleibt leer).
+2. **Datensicherheit in der Console** nach PLAY-CONSOLE.md: Fotos (inkl.
+   Ausweisaufnahme, nicht „flüchtig“), Geräte- oder andere IDs (Geräte-ID,
+   FCM-Token), Kaufverlauf, sexuelle Orientierung; Web-Adresse zur Kontolöschung.
+3. **App-Zugriff:** ein bereits freigeschaltetes Testkonto für Googles Prüfer
+   hinterlegen — ohne kommen sie nicht an der Ausweisprüfung vorbei.
+4. **Abo-Produkt** „FLEXR Premium“ in der Console angelegt und aktiv, mit
+   derselben Produkt-ID wie im Backend.
 
 ---
 

@@ -294,8 +294,13 @@ android {
         // 133/2.7.21 am 30.09.2026: Play-Kauf traegt die Konto-Kennung
         // (setObfuscatedAccountId) - der Server nimmt ihn nur vom kaufenden
         // FLEXR-Konto an.
-        versionCode = 133
-        versionName = "2.7.21"
+        // 134/2.7.22 am 04.10.2026: Datenschutz-Kurzfassung an die Fassung
+        // 2026-10-02 angeglichen (verschluesselte Sicherungskopien, hoechstens
+        // 3 Monate) und Google Play als Empfaenger bei Kaeufen in dieser App
+        // ergaenzt (fehlte seit der Web-Fassung vom 21.09.); Vorspann mit
+        // Stand und Verweis auf den vollstaendigen Text.
+        versionCode = 134
+        versionName = "2.7.22"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         // Nur die Sprachen ausliefern, die es wirklich gibt: Deutsch als
