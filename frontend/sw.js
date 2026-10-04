@@ -87,13 +87,17 @@
 // Oktober) statt "bald"; i18n-app.js auf ?v=25.
 // v35: Beta-Merker auf flexr_beta_notice_v7 (Landingpage DE/EN, App), damit die
 // neue Android-Zeile auch bei Besuchern ankommt, die den Hinweis weggeklickt hatten.
-const CACHE = 'flexr-shell-v35';
+// v36: iPhone-Web-App: Anleitung und Hinweise nennen ••• (ab iOS 26) und das
+// erneute Anmelden in der Web-App, TikTok & Co. als In-App-Browser erkannt,
+// Freischaltung und Premium aktualisieren sich beim Zurueckkommen;
+// i18n-app.js auf ?v=26.
+const CACHE = 'flexr-shell-v36';
 // Seit dem 15.08.2026 liegt die App unter /app/, an der Wurzel steht die
 // oeffentliche Landingpage. Beide gehoeren in die Shell: die Landingpage,
 // weil sie der Einstieg ist, die App, weil sie offline funktionieren soll.
 const SHELL = ['/', '/index.html', '/en/', '/en/index.html',
                '/app/', '/app/index.html',
-               '/lang-switch.js?v=2', '/i18n.js?v=5', '/app/i18n-app.js?v=25',
+               '/lang-switch.js?v=2', '/i18n.js?v=5', '/app/i18n-app.js?v=26',
                '/manifest.json', '/favicon.ico', '/legal.css?v=2',
                '/fonts/work-sans.woff2?v=1', '/fonts/oswald.woff2?v=1',
                '/icons/icon-192.png?v=4', '/icons/icon-512.png?v=4'];

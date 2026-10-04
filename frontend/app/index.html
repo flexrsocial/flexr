@@ -2149,7 +2149,7 @@
      laufen synchron und damit vor dem DOMContentLoaded, bei dem FlexrI18n die
      data-i18n-Knoten uebersetzt. -->
 <script src="/i18n.js?v=5"></script>
-<script src="/app/i18n-app.js?v=25"></script>
+<script src="/app/i18n-app.js?v=26"></script>
 <a class="skip-link" href="#main-content" data-i18n="common.skipToContent">Zum Inhalt springen</a>
 <div class="app" id="app">
 
@@ -3249,7 +3249,7 @@
   <div class="ios-install" id="iosInstallHint" role="region" data-i18n-aria="iosinst.aria" aria-label="FLEXR aufs iPhone holen" hidden>
     <div class="ios-install-text">
       <b data-i18n="iosinst.title">FLEXR aufs iPhone holen</b>
-      <span data-i18n-html="iosinst.text">Tippe unten auf <svg class="ios-share" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V3.5M8 7.5l4-4 4 4M7 11H5.5v9.5h13V11H17"/></svg> „Teilen“ und dann auf „Zum Home-Bildschirm“. FLEXR startet dann wie eine App – mit Mitteilungen bei neuen Nachrichten.</span>
+      <span data-i18n-html="iosinst.text">Tippe unten auf <svg class="ios-share" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V3.5M8 7.5l4-4 4 4M7 11H5.5v9.5h13V11H17"/></svg> „Teilen“ (ab iOS&nbsp;26 hinter •••) und dann auf „Zum Home-Bildschirm“. FLEXR startet dann wie eine App – mit Mitteilungen bei neuen Nachrichten.</span>
       <button type="button" class="ios-install-more" id="iosInstallMore" data-i18n="iosinst.more">So geht's Schritt für Schritt</button>
     </div>
     <button type="button" class="ios-install-close" id="iosInstallClose" data-i18n-aria="common.close" aria-label="Schließen">✕</button>
@@ -3278,9 +3278,9 @@
           <ol class="ios-guide-steps">
             <li data-i18n-html="iosguide.step1">Tippe in Safari auf <svg class="ios-share" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V3.5M8 7.5l4-4 4 4M7 11H5.5v9.5h13V11H17"/></svg> <b>Teilen</b>. Ab iOS&nbsp;26 steckt es hinter <b>•••</b> unten rechts, in Chrome oben in der Adresszeile.</li>
             <li data-i18n-html="iosguide.step2">Tippe auf <svg class="ios-share" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="M12 8.5v7M8.5 12h7"/></svg> <b>Zum Home-Bildschirm</b> – falls du es nicht siehst, weiter unten in der Liste oder unter <b>Mehr</b>.</li>
-            <li data-i18n-html="iosguide.step3">„Als Web-App öffnen“ eingeschaltet lassen und oben rechts auf <b>Hinzufügen</b> tippen.</li>
+            <li data-i18n-html="iosguide.step3">Siehst du den Schalter „Als Web-App öffnen“ (ab iOS&nbsp;26), lass ihn eingeschaltet. Dann oben rechts auf <b>Hinzufügen</b> tippen.</li>
           </ol>
-          <p class="ios-guide-note" data-i18n-html="iosguide.after">Danach startest du FLEXR über das neue Symbol – ohne Browserleisten. Mitteilungen bei neuen Nachrichten und Matches schaltest du unter <b>Konto → Benachrichtigungen</b> ein (ab iOS&nbsp;16.4).</p>
+          <p class="ios-guide-note" data-i18n-html="iosguide.after">Danach startest du FLEXR über das neue Symbol – ohne Browserleisten. Dort meldest du dich einmal neu an: iOS teilt die Anmeldung nicht zwischen Safari und der Web-App. Mitteilungen bei neuen Nachrichten und Matches schaltest du unter <b>Konto → Benachrichtigungen</b> ein (ab iOS&nbsp;16.4).</p>
         </div>
 
         <div class="ios-guide-variant" data-variant="inapp" hidden>
@@ -5389,6 +5389,7 @@
         method: 'POST',
         body: JSON.stringify({immediate_start: true, withdrawal_ack: true}),
       });
+      stripeOffen = true;
       window.location.href = res.checkout_url;
     }catch(err){
       // Der Fehler gehört in den Kasten, nicht nur in einen Toast: Das
@@ -5455,9 +5456,34 @@
     $('acctSubscriptionRow').style.display = ueberStripe ? '' : 'none';
   }
 
+  /* Zurueck von Stripe (Abschluss, Aboverwaltung). Stripe liegt nicht auf
+     flexr.social: Die Web-App vom Home-Bildschirm des iPhones oeffnet solche
+     Adressen in einem Browserfenster UEBER der App. Nach "Fertig" steht die
+     App unveraendert da, ohne neu zu laden - ein gerade gekauftes Premium
+     erschien erst nach einem Neustart, und der Bestaetigungsdialog stand noch
+     offen, sein Knopf gesperrt. Dasselbe gilt, wenn man in Safari mit
+     "Zurueck" aus Stripe kommt und die Seite aus dem bfcache wiederkehrt.
+     Darum beim Zurueckkommen: Dialog zu, Abostatus neu holen. */
+  let stripeOffen = false;
+  async function nachStripeZurueck(){
+    if(!stripeOffen || document.visibilityState !== 'visible') return;
+    stripeOffen = false;
+    closeImmediateStartOverlay();
+    $('istartConfirm').disabled = false;
+    if(!token) return;
+    await refreshMembership();
+    const screen = document.body.dataset.screen;
+    if(screen === 'screen-premium') renderPremiumScreen();
+    else if(screen === 'screen-account') renderAccount();
+  }
+  document.addEventListener('visibilitychange', nachStripeZurueck);
+  window.addEventListener('focus', nachStripeZurueck);
+  window.addEventListener('pageshow', (e) => { if(e.persisted) nachStripeZurueck(); });
+
   $('btnManageSubscription').addEventListener('click', async ()=>{
     try{
       const res = await api('/api/billing/portal', {method: 'POST'});
+      stripeOffen = true;
       window.location.href = res.portal_url;
     }catch(err){
       toast(err.message || t('acct.portalFailed'));
@@ -5580,6 +5606,10 @@
     || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
   const IST_INSTALLIERT = window.matchMedia('(display-mode: standalone)').matches
     || navigator.standalone === true;
+  // Browser in anderen Apps (Instagram, TikTok & Co.): Dort gibt es kein
+  // "Zum Home-Bildschirm". TikTok meldet sich auf dem iPhone nicht als
+  // "TikTok", sondern als musical_ly bzw. BytedanceWebview.
+  const IN_APP_BROWSER = /FBAN|FBAV|Instagram|Line\/|GSA\/|TikTok|musical_ly|BytedanceWebview|Snapchat|LinkedInApp|Pinterest/i;
 
   // undefined = noch nicht gefragt, null = der Server hat keinen Schluessel
   let webPushKey;
@@ -5714,7 +5744,7 @@
   (function iosInstallHinweis(){
     const KEY = 'flexr_ios_install_hint_v1';
     const ua = navigator.userAgent;
-    const inAppBrowser = /FBAN|FBAV|Instagram|Line\/|GSA\/|TikTok|Snapchat/i.test(ua);
+    const inAppBrowser = IN_APP_BROWSER.test(ua);
     if(!IST_IOS || IST_INSTALLIERT || inAppBrowser) return;
     try{ if(localStorage.getItem(KEY)) return; }catch(e){ /* dann eben zeigen */ }
     const box = $('iosInstallHint');
@@ -5749,7 +5779,7 @@
   function iosAnleitungVariante(){
     if(IST_INSTALLIERT) return 'installed';
     if(!IST_IOS) return 'other';
-    if(/FBAN|FBAV|Instagram|Line\/|GSA\/|TikTok|Snapchat/i.test(navigator.userAgent)) return 'inapp';
+    if(IN_APP_BROWSER.test(navigator.userAgent)) return 'inapp';
     return 'ios';
   }
   let iosAnleitungFokus = null;
@@ -7721,6 +7751,36 @@
   });
 
   $('btnLogoutGate').addEventListener('click', () => doLogout());
+
+  // Zurueck in die App, waehrend der Freischaltungs-Schirm auf die Mail oder
+  // auf die Pruefung wartet: Status neu holen. Der Link aus der
+  // Bestaetigungsmail oeffnet auf dem iPhone immer Safari, nie die Web-App vom
+  // Home-Bildschirm. Die stand danach weiter bei "Bestaetige deine
+  // E-Mail-Adresse", ihr einziger Knopf schickt die Mail erneut, und ein
+  // Herunterziehen zum Aktualisieren gibt es dort nicht - weiter ging es erst
+  // nach einem Neustart der App.
+  let gateAbgleichLaeuft = false;
+  document.addEventListener('visibilitychange', async () => {
+    if(document.visibilityState !== 'visible' || !token || gateAbgleichLaeuft) return;
+    if(document.body.dataset.screen !== 'screen-verify-gate') return;
+    const st = verificationStatus || {};
+    if(st.email_verified !== false && st.status !== 'submitted') return;
+    gateAbgleichLaeuft = true;
+    try{
+      await loadCurrentUser();
+      if(accountActivated()){
+        toast(t('vgate.success'));
+        goToApp();
+        return;
+      }
+      await loadVerificationStatus();
+      if(document.body.dataset.screen === 'screen-verify-gate') renderVerificationGate();
+    }catch(e){
+      /* naechstes Zurueckkommen oder der Knopf versuchen es erneut */
+    }finally{
+      gateAbgleichLaeuft = false;
+    }
+  });
   $('btnDeleteAccountGate').addEventListener('click', () => openDeleteModal());
 
   // Badge rechts im Konto-Header (unter dem Testmonat-Pill): Zustand + Tooltip,
@@ -8717,6 +8777,10 @@
       });
       titel.textContent = t('mail.okTitle');
       text.textContent = t('mail.okText', {name: res.name, email: res.email});
+      // Der Mail-Link landet auf dem iPhone in Safari, auch wenn FLEXR auf dem
+      // Home-Bildschirm liegt - dort ist man (eigener Speicher) nicht
+      // angemeldet. Die Web-App holt den neuen Stand beim Oeffnen selbst.
+      if(IST_IOS && !IST_INSTALLIERT) text.textContent += ' ' + t('mail.okIosApp');
     }catch(err){
       titel.textContent = t('mail.failTitle');
       text.textContent = err.message || t('mail.failText');
