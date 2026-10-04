@@ -83,13 +83,15 @@
 // im leeren Chat; i18n-app.js auf ?v=23.
 // v32: Chat laedt nur die juengsten Nachrichten ("Aeltere anzeigen"), i18n-app.js?v=24.
 // v33: Beta-Leiste nur noch auf der Startseite, nicht nach dem Einloggen.
-const CACHE = 'flexr-shell-v33';
+// v34: Android-Zeile im Beta-Hinweis nennt den voraussichtlichen Start (Mitte
+// Oktober) statt "bald"; i18n-app.js auf ?v=25.
+const CACHE = 'flexr-shell-v34';
 // Seit dem 15.08.2026 liegt die App unter /app/, an der Wurzel steht die
 // oeffentliche Landingpage. Beide gehoeren in die Shell: die Landingpage,
 // weil sie der Einstieg ist, die App, weil sie offline funktionieren soll.
 const SHELL = ['/', '/index.html', '/en/', '/en/index.html',
                '/app/', '/app/index.html',
-               '/lang-switch.js?v=2', '/i18n.js?v=5', '/app/i18n-app.js?v=24',
+               '/lang-switch.js?v=2', '/i18n.js?v=5', '/app/i18n-app.js?v=25',
                '/manifest.json', '/favicon.ico', '/legal.css?v=2',
                '/fonts/work-sans.woff2?v=1', '/fonts/oswald.woff2?v=1',
                '/icons/icon-192.png?v=4', '/icons/icon-512.png?v=4'];
