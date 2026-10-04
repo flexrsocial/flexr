@@ -85,7 +85,9 @@
 // v33: Beta-Leiste nur noch auf der Startseite, nicht nach dem Einloggen.
 // v34: Android-Zeile im Beta-Hinweis nennt den voraussichtlichen Start (Mitte
 // Oktober) statt "bald"; i18n-app.js auf ?v=25.
-const CACHE = 'flexr-shell-v34';
+// v35: Beta-Merker auf flexr_beta_notice_v7 (Landingpage DE/EN, App), damit die
+// neue Android-Zeile auch bei Besuchern ankommt, die den Hinweis weggeklickt hatten.
+const CACHE = 'flexr-shell-v35';
 // Seit dem 15.08.2026 liegt die App unter /app/, an der Wurzel steht die
 // oeffentliche Landingpage. Beide gehoeren in die Shell: die Landingpage,
 // weil sie der Einstieg ist, die App, weil sie offline funktionieren soll.
