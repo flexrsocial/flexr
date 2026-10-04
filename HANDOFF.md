@@ -32,6 +32,86 @@ erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 
 ## Wo das Projekt gerade steht
 
+> **Sitzung 04.10.2026 (2) — iPhone-Web-App durchgeprüft: Anleitung für
+> iOS 26/27, Rückkehr aus Mail und Stripe, iPad-Startbilder.** Anlass: Apple
+> hat die iOS-App am 04.10. erneut nach Guideline 4.3(b) abgelehnt (Dating
+> als „gesättigte Kategorie“, Hinweis auf „Extended Review“) und selbst auf
+> eine Web-App verwiesen. iOS läuft damit bis auf Weiteres über die
+> Home-Bildschirm-Web-App; **dieselbe App nicht erneut einreichen** (4.3(a)/(b),
+> Risiko für den Developer-Account). Commits `00acebc` und `b31f210`, beide
+> deployt, gepusht und live geprüft.
+>
+> **Geprüft, in Ordnung:** Manifest (`id`/`start_url` `/app/`, `scope` `/`,
+> `standalone`), Apple-Meta-Tags, `apple-touch-icon` 180×180 ohne
+> Transparenz, alle Startbilder liefern 200 in exakter Pixelgröße
+> (iPhone 18 Pro/Pro Max haben dieselben Maße wie 17 Pro/Pro Max), QR-Code
+> zeigt auf `/app/?ios=installieren`, Web Push (Erlaubnis direkt aus der
+> Nutzeraktion, jede Push-Nachricht zeigt eine Mitteilung), Abstand zum
+> Home-Balken, Rechtstexte als Modal in der App.
+>
+> **Geändert:**
+> - Anleitung, Kurzhinweis, Push-Hinweis und FAQ (DE/EN) nach Apples
+>   Anleitung für iOS 27
+>   (<https://support.apple.com/de-at/guide/iphone/iphea86e5236/ios>): Im
+>   kompakten Layout steckt „Teilen“ ab iOS 27 im **Seitenmenü** (≡) links in
+>   der Adresszeile, unter iOS 26 hinter **•••** rechts daneben. Der Eintrag
+>   heißt auf Deutsch **„Zu Home-Bildschirm hinzufügen“** (ältere Fassungen:
+>   „Zum Home-Bildschirm“); fehlt er, über „Aktionen bearbeiten“. Den
+>   Schalter „Als Web-App öffnen“ gibt es erst ab iOS 26. Neu ist der Satz,
+>   dass man sich in der Web-App einmal neu anmeldet: iOS trennt deren
+>   Speicher (localStorage, also auch `flexr_token`) von Safari.
+> - In-App-Browser (`IN_APP_BROWSER` in `app/index.html`): TikTok meldet sich
+>   auf dem iPhone als `musical_ly`/`BytedanceWebview`, nicht als „TikTok“;
+>   dazu LinkedIn und Pinterest. Dort zeigt die Anleitung „erst in Safari
+>   öffnen“.
+> - Freischaltungs-Schirm holt den Status bei `visibilitychange` neu. Der Link
+>   aus der Bestätigungsmail öffnet auf dem iPhone immer Safari, nie die
+>   Web-App; die blieb sonst bei „Bestätige deine E-Mail“ stehen (einziger
+>   Knopf: Mail erneut senden, kein Herunterziehen zum Aktualisieren). Die
+>   Bestätigungsseite in Safari sagt iPhone-Nutzern, dass sie in der Web-App
+>   weitermachen können (`mail.okIosApp`).
+> - Stripe: Seiten außerhalb des Scopes öffnet die Web-App im Safari View
+>   Controller **über** der App (WWDC23 „What’s new in web apps“); die App
+>   lädt danach nicht neu. `stripeOffen` (`'checkout'`/`'portal'`) plus
+>   `visibilitychange`/`focus`/`pageshow` (bfcache) schließen den
+>   Bestätigungsdialog, holen den Abostatus neu und warten nach einem
+>   Checkout bis ~15 s auf den Webhook (`premiumNachZahlungAbwarten`).
+> - `?checkout=success|cancelled` (success_url/cancel_url in
+>   `backend/app/stripe_client.py`) wertete die App bisher gar nicht aus.
+>   Jetzt: angemeldet eine Meldung („wird freigeschaltet“ → „Premium ist
+>   jetzt aktiv“, bzw. „Bezahlung abgebrochen“); **ohne Anmeldung** — so landet
+>   die Weiterleitung im Safari View Controller über der Web-App — eine
+>   Hinweisseite statt des Login-Formulars (nutzt `screen-email-confirm`,
+>   Texte `checkout.*`). Der Parameter wird aus der Adresse genommen.
+>   `toast()` gibt sein Element zurück (alle Toasts stehen an derselben
+>   Stelle; die Zwischenmeldung wird vor der endgültigen entfernt).
+> - 18 iPad-Startbilder (9 Größen, Hoch- und Querformat — iOS dreht die
+>   Web-App auf dem iPad trotz `portrait` im Manifest) über `IPADS` in
+>   `brand/build_ios_webapp.py`; die iPhone-Bilder blieben byte-gleich.
+> - Service-Worker-Cache `v37`, `i18n-app.js?v=27`; `en/index.html` mit
+>   `build-en.py` neu erzeugt (reproduziert den alten Stand vorher exakt).
+>
+> **Getestet** lokal mit nachgestellter API (kleiner Python-Stub auf
+> 127.0.0.1:8000, den die App auf localhost anspricht): Rückkehr aus Stripe
+> mit und ohne Anmeldung, verzögerter Webhook, Abbruch, Rückkehr ohne
+> Neuladen (Web-App-Fall), Aboverwaltung, Freischaltung Mail → Selfie und
+> Prüfung → App, Anleitung DE/EN, Landingpages DE/EN — keine
+> Konsolenfehler. Achtung beim Nachtesten im eingebauten Browser: Ist der
+> Browserbereich ausgeblendet, meldet die Seite `visibilityState = hidden`,
+> und die Rückkehr-Logik greift (richtigerweise) nicht. Live geprüft:
+> `/app/?checkout=cancelled` ohne Anmeldung zeigt den Hinweis.
+>
+> **Bezahlt wird in der Web-App wie im Browser über Stripe**: Der Server
+> erkennt sie als `web` (`backend/app/clients.py` — Store-Apps nur über
+> `X-Flexr-Client` bzw. CFNetwork/OkHttp-User-Agent), also mit
+> `checkout_available=true`.
+>
+> **Nicht auf einem echten iPhone getestet:** (1) die Anleitung unter iOS 27
+> einmal durchgehen; (2) ein Testkauf aus der installierten Web-App (kommt
+> nach dem Schließen des Stripe-Fensters „Premium ist jetzt aktiv“?);
+> (3) die Mail-Bestätigung aus der Web-App heraus. Ein faltbares iPhone hätte
+> neue Bildschirmmaße — Startbild nachziehen, sobald es erhältlich ist.
+
 > **Sitzung 04.10.2026 — Beta-Hinweis: Android voraussichtlich Mitte
 > Oktober, Merker auf v7, Push-Key mit Schreibrecht.**
 >
@@ -8262,6 +8342,14 @@ print(re.findall(rb"[0-9]+\.[0-9]+\.[0-9]+", d)[:5])' \
 > erfolgreicher Prüfung.
 
 ## Erinnerung für die nächste Sitzung
+
+Neu aus der Sitzung 04.10.2026 (2):
+
+- **iOS kommt bis auf Weiteres als Web-App** (Apple-Ablehnung nach 4.3(b),
+  siehe oben). Die iOS-App nicht unverändert erneut einreichen.
+- **iPhone-Web-App auf einem echten Gerät durchgehen:** Installation unter
+  iOS 27, Mail-Bestätigung aus der Web-App, ein Testkauf mit Rückkehr aus
+  dem Stripe-Fenster.
 
 Neu aus der Sitzung 19.09.:
 
