@@ -53,6 +53,24 @@
 <link rel="apple-touch-startup-image" href="/icons/splash/splash-828x1792.png?v=1" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)">
 <link rel="apple-touch-startup-image" href="/icons/splash/splash-1242x2208.png?v=1" media="(device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">
 <link rel="apple-touch-startup-image" href="/icons/splash/splash-750x1334.png?v=1" media="(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)">
+<link rel="apple-touch-startup-image" href="/icons/splash/splash-2064x2752.png?v=1" media="(device-width: 1032px) and (device-height: 1376px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)">
+<link rel="apple-touch-startup-image" href="/icons/splash/splash-2752x2064.png?v=1" media="(device-width: 1032px) and (device-height: 1376px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)">
+<link rel="apple-touch-startup-image" href="/icons/splash/splash-2048x2732.png?v=1" media="(device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)">
+<link rel="apple-touch-startup-image" href="/icons/splash/splash-2732x2048.png?v=1" media="(device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)">
+<link rel="apple-touch-startup-image" href="/icons/splash/splash-1668x2420.png?v=1" media="(device-width: 834px) and (device-height: 1210px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)">
+<link rel="apple-touch-startup-image" href="/icons/splash/splash-2420x1668.png?v=1" media="(device-width: 834px) and (device-height: 1210px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)">
+<link rel="apple-touch-startup-image" href="/icons/splash/splash-1668x2388.png?v=1" media="(device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)">
+<link rel="apple-touch-startup-image" href="/icons/splash/splash-2388x1668.png?v=1" media="(device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)">
+<link rel="apple-touch-startup-image" href="/icons/splash/splash-1640x2360.png?v=1" media="(device-width: 820px) and (device-height: 1180px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)">
+<link rel="apple-touch-startup-image" href="/icons/splash/splash-2360x1640.png?v=1" media="(device-width: 820px) and (device-height: 1180px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)">
+<link rel="apple-touch-startup-image" href="/icons/splash/splash-1668x2224.png?v=1" media="(device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)">
+<link rel="apple-touch-startup-image" href="/icons/splash/splash-2224x1668.png?v=1" media="(device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)">
+<link rel="apple-touch-startup-image" href="/icons/splash/splash-1620x2160.png?v=1" media="(device-width: 810px) and (device-height: 1080px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)">
+<link rel="apple-touch-startup-image" href="/icons/splash/splash-2160x1620.png?v=1" media="(device-width: 810px) and (device-height: 1080px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)">
+<link rel="apple-touch-startup-image" href="/icons/splash/splash-1536x2048.png?v=1" media="(device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)">
+<link rel="apple-touch-startup-image" href="/icons/splash/splash-2048x1536.png?v=1" media="(device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)">
+<link rel="apple-touch-startup-image" href="/icons/splash/splash-1488x2266.png?v=1" media="(device-width: 744px) and (device-height: 1133px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)">
+<link rel="apple-touch-startup-image" href="/icons/splash/splash-2266x1488.png?v=1" media="(device-width: 744px) and (device-height: 1133px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)">
 <!-- Schriften vom eigenen Server. Vorher kamen sie von
      fonts.googleapis.com - damit ging bei jedem Aufruf die IP-Adresse des
      Besuchers an Google in die USA, ohne Rechtsgrundlage und ohne dass Google
@@ -2149,7 +2167,7 @@
      laufen synchron und damit vor dem DOMContentLoaded, bei dem FlexrI18n die
      data-i18n-Knoten uebersetzt. -->
 <script src="/i18n.js?v=5"></script>
-<script src="/app/i18n-app.js?v=26"></script>
+<script src="/app/i18n-app.js?v=27"></script>
 <a class="skip-link" href="#main-content" data-i18n="common.skipToContent">Zum Inhalt springen</a>
 <div class="app" id="app">
 
@@ -2967,7 +2985,7 @@
 
     <!-- Landeseite des Aktivierungslinks aus der Bestätigungsmail -->
     <section class="screen" id="screen-email-confirm">
-      <div class="eyebrow" data-i18n="mail.eyebrow">E-Mail-Bestätigung</div>
+      <div class="eyebrow" id="mailConfirmEyebrow" data-i18n="mail.eyebrow">E-Mail-Bestätigung</div>
       <h1 class="headline" style="font-size:22px; margin-bottom:14px;" id="mailConfirmTitle" data-i18n="mail.title">Einen Moment …</h1>
       <div class="vcard">
         <p id="mailConfirmText" data-i18n="mail.text">Dein Bestätigungslink wird geprüft.</p>
@@ -3249,7 +3267,7 @@
   <div class="ios-install" id="iosInstallHint" role="region" data-i18n-aria="iosinst.aria" aria-label="FLEXR aufs iPhone holen" hidden>
     <div class="ios-install-text">
       <b data-i18n="iosinst.title">FLEXR aufs iPhone holen</b>
-      <span data-i18n-html="iosinst.text">Tippe unten auf <svg class="ios-share" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V3.5M8 7.5l4-4 4 4M7 11H5.5v9.5h13V11H17"/></svg> „Teilen“ (ab iOS&nbsp;26 hinter •••) und dann auf „Zum Home-Bildschirm“. FLEXR startet dann wie eine App – mit Mitteilungen bei neuen Nachrichten.</span>
+      <span data-i18n-html="iosinst.text">Tippe in Safari auf <svg class="ios-share" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V3.5M8 7.5l4-4 4 4M7 11H5.5v9.5h13V11H17"/></svg> „Teilen“ (ab iOS&nbsp;26 im Menü an der Adresszeile) und dann auf „Zu Home-Bildschirm hinzufügen“. FLEXR startet dann wie eine App – mit Mitteilungen bei neuen Nachrichten.</span>
       <button type="button" class="ios-install-more" id="iosInstallMore" data-i18n="iosinst.more">So geht's Schritt für Schritt</button>
     </div>
     <button type="button" class="ios-install-close" id="iosInstallClose" data-i18n-aria="common.close" aria-label="Schließen">✕</button>
@@ -3276,9 +3294,9 @@
 
         <div class="ios-guide-variant" data-variant="ios" hidden>
           <ol class="ios-guide-steps">
-            <li data-i18n-html="iosguide.step1">Tippe in Safari auf <svg class="ios-share" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V3.5M8 7.5l4-4 4 4M7 11H5.5v9.5h13V11H17"/></svg> <b>Teilen</b>. Ab iOS&nbsp;26 steckt es hinter <b>•••</b> unten rechts, in Chrome oben in der Adresszeile.</li>
-            <li data-i18n-html="iosguide.step2">Tippe auf <svg class="ios-share" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="M12 8.5v7M8.5 12h7"/></svg> <b>Zum Home-Bildschirm</b> – falls du es nicht siehst, weiter unten in der Liste oder unter <b>Mehr</b>.</li>
-            <li data-i18n-html="iosguide.step3">Siehst du den Schalter „Als Web-App öffnen“ (ab iOS&nbsp;26), lass ihn eingeschaltet. Dann oben rechts auf <b>Hinzufügen</b> tippen.</li>
+            <li data-i18n-html="iosguide.step1">Tippe in Safari auf <svg class="ios-share" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V3.5M8 7.5l4-4 4 4M7 11H5.5v9.5h13V11H17"/></svg> <b>Teilen</b>. Im kompakten Layout steckt es in einem Menü: ab iOS&nbsp;27 hinter <svg class="ios-share" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 7h14M5 12h14M5 17h9"/></svg> <b>Seitenmenü</b> links in der Adresszeile, unter iOS&nbsp;26 hinter <b>•••</b> rechts daneben. In Chrome sitzt es oben in der Adresszeile.</li>
+            <li data-i18n-html="iosguide.step2">Scrolle nach unten und tippe auf <svg class="ios-share" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="M12 8.5v7M8.5 12h7"/></svg> <b>Zu Home-Bildschirm hinzufügen</b> (ältere iOS-Versionen: „Zum Home-Bildschirm“). Fehlt der Eintrag, tippe ganz unten auf „Aktionen bearbeiten“ und füge ihn dort hinzu.</li>
+            <li data-i18n-html="iosguide.step3">Schalte „Als Web-App öffnen“ ein, falls der Schalter erscheint (ab iOS&nbsp;26), und tippe auf <b>Hinzufügen</b>.</li>
           </ol>
           <p class="ios-guide-note" data-i18n-html="iosguide.after">Danach startest du FLEXR über das neue Symbol – ohne Browserleisten. Dort meldest du dich einmal neu an: iOS teilt die Anmeldung nicht zwischen Safari und der Web-App. Mitteilungen bei neuen Nachrichten und Matches schaltest du unter <b>Konto → Benachrichtigungen</b> ein (ab iOS&nbsp;16.4).</p>
         </div>
@@ -3730,6 +3748,7 @@
     // aufgebraucht ... Premium ..." war in 2 s nicht zu schaffen.
     const dauer = Math.min(7000, Math.max(2000, String(msg).length * 65));
     if(!(opts && opts.sticky)) setTimeout(()=> box.remove(), dauer);
+    return box;
   }
 
   // ---------- Interaktives Musterdeck im ausgeloggten Hero ----------
@@ -5389,7 +5408,7 @@
         method: 'POST',
         body: JSON.stringify({immediate_start: true, withdrawal_ack: true}),
       });
-      stripeOffen = true;
+      stripeOffen = 'checkout';
       window.location.href = res.checkout_url;
     }catch(err){
       // Der Fehler gehört in den Kasten, nicht nur in einen Toast: Das
@@ -5464,17 +5483,85 @@
      offen, sein Knopf gesperrt. Dasselbe gilt, wenn man in Safari mit
      "Zurueck" aus Stripe kommt und die Seite aus dem bfcache wiederkehrt.
      Darum beim Zurueckkommen: Dialog zu, Abostatus neu holen. */
-  let stripeOffen = false;
+  let stripeOffen = null;   // 'checkout' oder 'portal', solange Stripe offen ist
   async function nachStripeZurueck(){
     if(!stripeOffen || document.visibilityState !== 'visible') return;
-    stripeOffen = false;
+    const vorgang = stripeOffen;
+    stripeOffen = null;
     closeImmediateStartOverlay();
     $('istartConfirm').disabled = false;
     if(!token) return;
-    await refreshMembership();
+    if(vorgang === 'checkout' && !isPremium()){
+      // Ob bezahlt wurde, weiss die App hier nicht - das Fenster laesst sich
+      // auch ohne Abschluss schliessen. Also leise nachfragen und nur dann
+      // etwas sagen, wenn Premium tatsaechlich aktiv geworden ist.
+      if(await premiumNachZahlungAbwarten()) toast(t('checkout.successActive'));
+    }else{
+      await refreshMembership();
+    }
+    abostatusNeuZeichnen();
+  }
+
+  // Premium schaltet der Stripe-Webhook frei, und der kann ein paar Sekunden
+  // nach der Rueckkehr aus dem Checkout eintreffen. Deshalb einige Male
+  // nachfragen, insgesamt rund 15 Sekunden.
+  async function premiumNachZahlungAbwarten(){
+    for(let versuch = 0; versuch < 6; versuch++){
+      if(!token) return false;
+      await refreshMembership();
+      if(isPremium()) return true;
+      await new Promise(r => setTimeout(r, 2500));
+    }
+    return false;
+  }
+  function abostatusNeuZeichnen(){
     const screen = document.body.dataset.screen;
     if(screen === 'screen-premium') renderPremiumScreen();
     else if(screen === 'screen-account') renderAccount();
+  }
+
+  /* Rueckkehr aus dem Stripe-Checkout: /app/?checkout=success bzw.
+     =cancelled (success_url/cancel_url in backend/app/stripe_client.py).
+     Bisher wertete die App den Parameter gar nicht aus - man landete ohne
+     ein Wort auf dem Swipe-Schirm, und bis der Webhook durch war, stand dort
+     noch "Kostenlos". Den Parameter aus der Adresse nehmen, bevor jemand sie
+     teilt oder auf den Home-Bildschirm legt. */
+  function stripeErgebnisAusAdresse(){
+    const params = new URLSearchParams(location.search);
+    const ergebnis = params.get('checkout');
+    if(ergebnis !== 'success' && ergebnis !== 'cancelled') return null;
+    params.delete('checkout');
+    const rest = params.toString();
+    history.replaceState(null, '', location.pathname + (rest ? '?' + rest : '') + location.hash);
+    return ergebnis;
+  }
+  async function stripeErgebnisMelden(ergebnis){
+    if(ergebnis === 'cancelled'){ toast(t('checkout.cancelled')); return; }
+    await refreshMembership();
+    if(!isPremium()){
+      // Alle Toasts stehen an derselben Stelle - die Zwischenmeldung muss
+      // weg, bevor die endgueltige kommt, sonst liegen beide uebereinander.
+      const zwischenstand = toast(t('checkout.successPending'));
+      const aktiv = await premiumNachZahlungAbwarten();
+      zwischenstand.remove();
+      if(!aktiv) return;
+    }
+    toast(t('checkout.successActive'));
+    abostatusNeuZeichnen();
+  }
+  /* Ohne Anmeldung zurueck aus Stripe: vor allem die Web-App vom
+     Home-Bildschirm des iPhones. Sie oeffnet Stripe in einem eigenen
+     Browserfenster (Safari View Controller) ueber der App, und dorthin geht
+     auch die Weiterleitung danach - ohne die Anmeldung der App. Statt eines
+     Login-Formulars, das wie ein Fehler aussaehe, steht da, was passiert ist
+     und wie es weitergeht. */
+  function stripeErgebnisOhneAnmeldung(ergebnis){
+    const ok = ergebnis === 'success';
+    showScreen('screen-email-confirm');
+    setI18nText($('mailConfirmEyebrow'), 'checkout.eyebrow');
+    setI18nText($('mailConfirmTitle'), ok ? 'checkout.doneTitle' : 'checkout.abortTitle');
+    setI18nText($('mailConfirmText'), ok ? 'checkout.doneText' : 'checkout.abortText');
+    $('btnMailConfirmContinue').style.display = 'block';
   }
   document.addEventListener('visibilitychange', nachStripeZurueck);
   window.addEventListener('focus', nachStripeZurueck);
@@ -5483,7 +5570,7 @@
   $('btnManageSubscription').addEventListener('click', async ()=>{
     try{
       const res = await api('/api/billing/portal', {method: 'POST'});
-      stripeOffen = true;
+      stripeOffen = 'portal';
       window.location.href = res.portal_url;
     }catch(err){
       toast(err.message || t('acct.portalFailed'));
@@ -8759,6 +8846,7 @@
   async function handleEmailConfirmLink(){
     const token = new URLSearchParams(location.search).get('token');
     showScreen('screen-email-confirm');
+    setI18nText($('mailConfirmEyebrow'), 'mail.eyebrow');
     const titel = $('mailConfirmTitle');
     const text = $('mailConfirmText');
     const weiter = $('btnMailConfirmContinue');
@@ -8804,13 +8892,19 @@
       showScreen('screen-reset');
       return;
     }
+    const stripeErgebnis = stripeErgebnisAusAdresse();
     if(token){
       try{
         await loadCurrentUser();
         $('bottomNav').style.display = 'flex';
         goToApp();
+        if(stripeErgebnis) stripeErgebnisMelden(stripeErgebnis);
         return;
       }catch(e){ /* Token ungültig/abgelaufen — weiter zum Login */ }
+    }
+    if(stripeErgebnis){
+      stripeErgebnisOhneAnmeldung(stripeErgebnis);
+      return;
     }
     if(einstiegAusHash === 'register'){
       showScreen('screen-onboard');
