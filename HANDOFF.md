@@ -1,6 +1,6 @@
 # FLEXR — Handoff für ein anderes Gerät / Claude Code
 
-Stand: **04.10.2026**
+Stand: **05.10.2026**
 
 ## ⚠️ Dringend zu prüfen: SSH-Zugang zum VPS hat sich geändert (21.09.2026)
 
@@ -31,6 +31,22 @@ Falls du das liest, weil dein `root@`-Login gerade fehlschlägt: das ist
 erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 
 ## Wo das Projekt gerade steht
+
+> **Sitzung 05.10.2026 — Web-App-Login: Fusszeile bei Beta-Leiste.**
+> Deployt (`6fd7ac6`, `scp` + Commit als `deploy`, gepusht, live md5-gleich
+> mit dem Repo, kein Neustart, kein SW-Bump noetig, HTML laeuft network-first).
+> Problem: Auf dem Desktop (ab 861x820) lag die Rechtelinks-Zeile in
+> `/app/` mitten in den Hero-USPs, solange die Beta-Leiste noch nicht
+> weggeklickt war. Ursache: Der Login-Screen ist dort auf `100dvh` fixiert
+> (`overflow-y:hidden`), und `body.landing.has-beta-bar .app{padding-bottom:90px}`
+> ging von dieser festen Hoehe ab. `main` wurde zu klein, der Inhalt lief
+> ueber. Fix in `frontend/app/index.html`: Die beiden Hoehen-Regeln (body und
+> `.app`) gelten nur noch mit `body.landing:not(.has-beta-bar)`. Mit Leiste
+> scrollt die Seite bei Bedarf normal, ohne Leiste bleibt alles in einem
+> Viewport. Die Abstaende von Header, main und Fusszeile sind in beiden
+> Faellen gleich, beim Wegklicken springt nichts. Geprueft bei 1663x908:
+> Inhalt endet bei 752, Fusszeile 784-818, Leiste ab 842. Weggeklickt:
+> Fusszeile 874-908.
 
 > **Sitzung 04.10.2026 (3) — Android vor der Veröffentlichung durchgeprüft,
 > 2.7.22 gebaut.** Play-Store-Start ist für Mitte Oktober geplant.
