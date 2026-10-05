@@ -1433,12 +1433,16 @@
      inklusive Rechtelinks in einem Viewport. Die Regel gilt bewusst nur fuer
      den Login-Screen: laengere Registrierungs- und Verifizierungsschritte
      behalten ihr sicheres Scrollverhalten. 820 px deckt auch 1080p-Fenster
-     mit sichtbarer Browserleiste ab. */
+     mit sichtbarer Browserleiste ab.
+     Nicht solange die Beta-Leiste steht: Ihr Platzhalter (padding-bottom
+     an .app) wuerde sonst innerhalb der festen 100dvh von main abgezogen,
+     der Inhalt liefe ueber und die Rechtelinks rutschten hinein. Mit Leiste
+     scrollt die Seite normal, die Fusszeile steht unter dem Inhalt. */
   @media (min-width: 861px) and (min-height: 820px){
-    body.landing[data-screen="screen-login"]{
+    body.landing:not(.has-beta-bar)[data-screen="screen-login"]{
       height:100vh; height:100dvh; overflow-y:hidden;
     }
-    body.landing[data-screen="screen-login"] .app{
+    body.landing:not(.has-beta-bar)[data-screen="screen-login"] .app{
       height:100vh; height:100dvh; min-height:0;
     }
     body.landing[data-screen="screen-login"] header.top{
