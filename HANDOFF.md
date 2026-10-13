@@ -1,6 +1,6 @@
 # FLEXR — Handoff für ein anderes Gerät / Claude Code
 
-Stand: **05.10.2026**
+Stand: **13.10.2026**
 
 ## ⚠️ Dringend zu prüfen: SSH-Zugang zum VPS hat sich geändert (21.09.2026)
 
@@ -31,6 +31,82 @@ Falls du das liest, weil dein `root@`-Login gerade fehlschlägt: das ist
 erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 
 ## Wo das Projekt gerade steht
+
+> **Sitzung 13.10.2026: Startboost, voller Suchumkreis ohne Premium bis
+> 31.12.2026.**
+> Wunsch des Nutzers: Als kleiner Startboost für die Plattform gilt die
+> 50-km-Grenze für Konten ohne Premium bis Jahresende nicht. Ab **01.01.2027,
+> 00:00 Uhr Wiener Zeit** greift sie wieder genau wie vorher, **von selbst**:
+> kein Deploy, kein Neustart, keine Datenkorrektur.
+>
+> Deployt (`eab3c5e`, lokal committet und gepusht, auf dem VPS
+> `git pull --ff-only` als `deploy`, `sudo systemctl restart flexr-api`, keine
+> Migration). Live geprüft: `/app/`, `i18n-app.js?v=28` und `sw.js` md5-gleich
+> mit dem Repo, `/api/health` ok, Journal ohne Fehler. Der deployte Code mit
+> Produktions-`.env` liefert ohne Premium 250 km und `2026-12-31`, mit
+> Premium 250 km und `null`, für Neujahr 00:00 Wien 50 km und für
+> Silvester 23:59 250 km. Direkt nach dem Neustart kam für ein paar Sekunden
+> 502, bis Uvicorn oben war, das ist normal.
+> Lokal ist `~/MEGA/flexr/flexr` wieder ein normales Git-Repo: Der
+> Arbeitsbaum entsprach `origin/main`, nur `HEAD` stand 9 Commits zurück
+> (`git reset --mixed origin/main`, Dateien unberührt).
+>
+> **Wie es gebaut ist:**
+> - `settings.radius_boost_last_day = date(2026, 12, 31)` in
+>   `backend/app/config.py` (per `.env` als `RADIUS_BOOST_LAST_DAY`
+>   überschreibbar; ein vergangenes Datum beendet den Boost vorzeitig).
+> - `premium.radius_boost_active(now)` vergleicht das **Wiener** Kalenderdatum
+>   (UTC+1 im Winter, die Grenze liegt also bei 23:00 UTC am 31.12.).
+>   `premium.max_radius_km()` gibt während des Boosts für jedes Konto 250
+>   zurück. Danach wieder `free_max_radius_km` (50). Likes (20/24 h) und
+>   Chats (3) bleiben unverändert begrenzt.
+> - Alles, was den Umkreis begrenzt, geht schon über `max_radius_km()`:
+>   Speichern (`profiles.py`, `clamp_radius`), Deck (`swipes.py`) und damit
+>   auch die Mail/Push „neue Profile in deinem Umkreis“ (`email_jobs.py` zählt
+>   über `deck_profiles`). Wer im Boost z. B. 200 km speichert, behält den
+>   Wert in der DB. Ab Neujahr sucht das Deck trotzdem nur bis 50 km, und beim
+>   nächsten Speichern wird auf 50 gekappt. So lief es schon beim
+>   Scharfschalten von Premium am 17.09.
+> - `GET /api/billing/status` liefert neu `radius_boost_last_day`
+>   (`"2026-12-31"`), aber **nur** für Konten, denen der Boost etwas bringt
+>   (Premium scharf, kein Premium-Abo, Boost läuft). Sonst `null`.
+>   `max_radius_km` ist im Boost 250, `free_max_radius_km` bleibt 50.
+> - Web-App (`frontend/app/index.html`): neuer Kasten `#radiusBoost` (limettengrün)
+>   unter dem Umkreis-Regler, gesetzt von `renderRadiusBoostHint()`, solange
+>   das Feld da ist. Text `premium.radiusBoost` (DE/EN in `app/i18n-app.js`):
+>   „Startboost: Bis 31.12.2026 kannst du auch ohne FLEXR Premium den vollen
+>   Suchumkreis bis 250 km nutzen. Ab 01.01.2027 sucht FLEXR ohne Premium
+>   wieder bis 50 km.“ Das Datum kommt vom Server, der Folgetag wird im Client
+>   berechnet, das Format folgt der Sprache (auch beim Umschalten). Ab Neujahr
+>   verschwindet der Kasten; bei mehr als 50 km gespeichert erscheint wieder der
+>   bekannte Hinweis `premium.radiusCapped`. `i18n-app.js?v=28`, SW-Cache `v38`.
+> - Android 2.7.22 bekommt die 250 km ohne neuen Build, weil die App
+>   `max_radius_km` vom Server liest. Den Hinweistext zeigt sie nicht; das
+>   bräuchte einen neuen Build, siehe `android-native/HANDOFF.md`, Punkt 5 der
+>   Checkliste. Auf dieser Maschine gibt es kein Java/Android-SDK
+>   (`local.properties` zeigt auf `/home/blacktomcat88/…`).
+> - **Bewusst nicht geändert:** AGB 7 b, Landingpage-Preiskarte und FAQ nennen
+>   weiter 50 km als reguläre Grenze des kostenlosen Kontos. Der Boost ist eine
+>   befristete Erweiterung zugunsten der Nutzer. Die Premium-Vorteilsliste nennt
+>   weiter „Voller Suchumkreis bis 250 km“ (siehe offene Frage unten).
+>
+> **Tests:** `conftest.py` setzt `RADIUS_BOOST_LAST_DAY=2026-10-12`
+> (abgelaufen), damit die Suite die regulären Grenzen prüft und nicht vom
+> Kalender abhängt. Neu: `test_premium.py` (Default 31.12.2026/50 km,
+> Mitternacht Wien, Status im Boost, kein Hinweis für Premium/Beta, Grenze
+> greift nach dem Stichtag von selbst) und `test_location.py` (Wien→Graz
+> ~145 km im Boost im Deck, danach nicht mehr). Volle Suite: 603 grün (vorher
+> 597).
+> Lokal zusätzlich im Browser geprüft (SQLite-Backend, Testkonto): Kasten
+> erscheint unter dem Regler, 205 km ohne Sperrhinweis und ohne Kappung
+> gespeichert. Mit abgelaufenem Datum ist der Kasten weg, die 50-km-Meldung
+> wieder da. DE/EN, keine Konsolenfehler.
+>
+> **Aufräumen nach dem Boost (ab 2027, optional):** Der Code darf liegen
+> bleiben. Mit vergangenem Datum ist er wirkungslos. Wer ihn entfernt:
+> `radius_boost_*` in `config.py`/`premium.py`/`schemas.py`/`billing.py`,
+> `#radiusBoost` samt `renderRadiusBoostHint()` und `premium.radiusBoost`,
+> die Boost-Tests und die Zeile in `conftest.py`.
 
 > **Sitzung 05.10.2026 — Web-App-Login: Fusszeile bei Beta-Leiste.**
 > Deployt (`6fd7ac6`, `scp` + Commit als `deploy`, gepusht, live md5-gleich
@@ -8407,6 +8483,19 @@ print(re.findall(rb"[0-9]+\.[0-9]+\.[0-9]+", d)[:5])' \
 > erfolgreicher Prüfung.
 
 ## Erinnerung für die nächste Sitzung
+
+Neu aus der Sitzung 13.10.2026:
+
+- **Startboost läuft bis 31.12.2026** (voller Umkreis ohne Premium), endet
+  am 01.01.2027 von selbst. Nichts zu tun, außer der Nutzer will ihn
+  verlängern (`RADIUS_BOOST_LAST_DAY` in `backend/.env` oder Default in
+  `config.py`, dann API neu starten) oder vorzeitig beenden.
+- **Offene Frage an den Nutzer:** Soll die Premium-Seite und die
+  Landingpage-Preiskarte während des Boosts erwähnen, dass die 250 km gerade
+  für alle frei sind? Im Moment wirbt Premium weiter mit „Voller Suchumkreis
+  bis 250 km“, obwohl das bis Jahresende jeder hat.
+- Android: Boost-Hinweis optional in den nächsten Build
+  (`android-native/HANDOFF.md`, Checkliste Punkt 5).
 
 Neu aus der Sitzung 04.10.2026 (3):
 
