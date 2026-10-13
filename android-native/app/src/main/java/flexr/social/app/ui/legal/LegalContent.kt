@@ -153,10 +153,10 @@ object LegalContent {
         blocks = listOf(
             LegalBlock.Heading("1. Geltungsbereich"),
             LegalBlock.Paragraph(
-                "Diese AGB gelten für die Nutzung der Plattform FLEXR („wir\", „FLEXR\"), " +
+                "Diese AGB gelten für die Nutzung der Plattform FLEXR („wir“, „FLEXR“), " +
                     "betrieben von Julian Pachernegg, Einzelunternehmer, Johann-Schrey-Weg " +
                     "260, 8232 Grafendorf (siehe Impressum), durch registrierte Nutzer " +
-                    "(„Nutzer\").",
+                    "(„Nutzer“).",
             ),
             LegalBlock.Heading("2. Registrierungsvoraussetzungen"),
             LegalBlock.Lettered(
@@ -198,8 +198,8 @@ object LegalContent {
             LegalBlock.Heading("3. Leistungsbeschreibung"),
             LegalBlock.Paragraph(
                 "FLEXR vermittelt Kontakte zwischen Nutzern anhand gegenseitiger " +
-                    "Interessensbekundung („Swipe\"). Bei beidseitigem Interesse entsteht ein " +
-                    "„Match\"; die weitere Kontaktaufnahme erfolgt eigenverantwortlich " +
+                    "Interessensbekundung („Swipe“). Bei beidseitigem Interesse entsteht ein " +
+                    "„Match“; die weitere Kontaktaufnahme erfolgt eigenverantwortlich " +
                     "zwischen den Nutzern. Wir garantieren keine Matches, keine bestimmte " +
                     "Anzahl an Matches und keinen Erfolg bei der Partnersuche.",
             ),
@@ -236,7 +236,7 @@ object LegalContent {
                     "Premium verlängert sich jeweils um einen Monat, bis es gekündigt " +
                         "wird. Keine Mindestlaufzeit. Kündigung jederzeit zum Ende der " +
                         "laufenden Abrechnungsperiode selbstständig über „Abo verwalten / " +
-                        "kündigen\" im Konto-Bereich der App (Stripe Billing Portal). " +
+                        "kündigen“ im Konto-Bereich der App (Stripe Billing Portal). " +
                         "Danach läuft das Konto als kostenloses Konto weiter.",
                     "Zahlungsabwicklung über Stripe. Es gelten zusätzlich die " +
                         "Stripe-Nutzungsbedingungen.",
@@ -247,8 +247,8 @@ object LegalContent {
                 "Verbrauchern steht bei einem entgeltlichen Vertrag ein 14-tägiges " +
                     "Rücktrittsrecht ohne Angabe von Gründen zu (§ 11 FAGG). Eine formlose " +
                     "eindeutige Erklärung genügt; am einfachsten geht es über die " +
-                    "Online-Rücktrittsfunktion im Bereich „Rechtliches\" unter " +
-                    "„Rücktrittsrecht\", wo auch die vollständige Belehrung und das " +
+                    "Online-Rücktrittsfunktion im Bereich „Rechtliches“ unter " +
+                    "„Rücktrittsrecht“, wo auch die vollständige Belehrung und das " +
                     "Muster-Formular stehen. Für das kostenlose Konto besteht kein " +
                     "Rücktrittsrecht, weil dabei keine Zahlungspflicht entsteht. Bis zum " +
                     "15.08.2026 musste bei der Registrierung erklärt werden, das " +
@@ -329,7 +329,7 @@ object LegalContent {
                         "und den anschließenden Bezahlvorgang.",
                     "Premium kündigen. Beendet ein laufendes Premium-Abo zum Ende der " +
                         "bezahlten Periode. Gekündigt wird dort, wo bestellt wurde: auf " +
-                        "flexr.social im Konto-Bereich über „Abo verwalten / kündigen\", bei " +
+                        "flexr.social im Konto-Bereich über „Abo verwalten / kündigen“, bei " +
                         "einem In-App-Kauf über Google Play in der Abo-Verwaltung des " +
                         "Play Store. Dein Konto bleibt danach als kostenloses Konto " +
                         "bestehen. Bereits Bezahltes bekommst du dabei nicht zurück.",
@@ -499,7 +499,7 @@ object LegalContent {
             LegalBlock.Faq(
                 "Ich habe ein Abo und will einfach aufhören zu zahlen.",
                 "Dann ist die Kündigung der richtige Weg: auf flexr.social im " +
-                    "Konto-Bereich über „Abo verwalten / kündigen\", bei einem In-App-Kauf " +
+                    "Konto-Bereich über „Abo verwalten / kündigen“, bei einem In-App-Kauf " +
                     "in der Abo-Verwaltung des App Store bzw. des Play Store. Der Zugang " +
                     "bleibt bis zum Ende der bezahlten Periode aktiv. Willst du dagegen " +
                     "Geld zurück und ist der Abschluss keine 14 Tage her, ist der " +
@@ -564,17 +564,17 @@ object LegalContent {
             ),
             LegalBlock.Bullets(
                 listOf(
-                    "Anlagetipps: „Ich zeig dir, wie ich mit Trading verdiene\" ist die " +
+                    "Anlagetipps: „Ich zeig dir, wie ich mit Trading verdiene“ ist die " +
                         "häufigste Masche auf Dating-Plattformen.",
                     "Zu schnell, zu viel: Liebeserklärungen nach drei Tagen, ständige " +
                         "Erreichbarkeitsforderungen, Eifersucht vor dem ersten Treffen.",
                     "Nie erreichbar: Videocalls scheitern immer, Treffen platzen " +
-                        "kurzfristig, die Person arbeitet „auf einer Bohrinsel\" oder „im " +
-                        "Auslandseinsatz\".",
+                        "kurzfristig, die Person arbeitet „auf einer Bohrinsel“ oder „im " +
+                        "Auslandseinsatz“.",
                     "Intime Aufnahmen: Wer schnell Nacktbilder will, will sie manchmal, " +
                         "um dich damit zu erpressen (Sextortion).",
                     "Links: Wir entfernen Links und E-Mail-Adressen automatisch aus " +
-                        "Nachrichten. Umgeht jemand das mit „Punkt\" statt „.\", ist das ein " +
+                        "Nachrichten. Umgeht jemand das mit „Punkt“ statt „.“, ist das ein " +
                         "deutliches Signal.",
                 ),
             ),
@@ -592,7 +592,7 @@ object LegalContent {
                         "Deck.",
                     "Melden geht in jedem Profil und in jedem Chat. Du bekommst ein " +
                         "Aktenzeichen, wir prüfen binnen 72 Stunden — bei Gefahr für eine " +
-                        "Person sofort — und du siehst das Ergebnis unter „Meine Meldungen\".",
+                        "Person sofort — und du siehst das Ergebnis unter „Meine Meldungen“.",
                     "Ohne Konto erreichst du uns unter flexr.social@proton.me, etwa wenn " +
                         "deine Fotos hier ohne dein Wissen verwendet werden.",
                 ),
@@ -910,7 +910,7 @@ object LegalContent {
                     "Prüfung binnen 72 Stunden — bei Gefahr im Verzug sowie in den Fällen " +
                         "der Abschnitte 4 und 7 unverzüglich, spätestens binnen 24 Stunden. " +
                         "Es prüft ein Mensch; kein Automatismus entscheidet über eine Sperre.",
-                    "Entscheidung mit Begründung: Unter „Meine Meldungen\" im " +
+                    "Entscheidung mit Begründung: Unter „Meine Meldungen“ im " +
                         "Konto-Bereich steht zu jeder Meldung, ob wir eingeschritten sind " +
                         "oder keinen Verstoß feststellen konnten — samt Begründung im " +
                         "Wortlaut.",

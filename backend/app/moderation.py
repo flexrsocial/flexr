@@ -6,7 +6,9 @@ dagegen vorgehen kann. Die Texte liegen hier zentral, damit Login-Fehler,
 Chat-Fehler und die Mitteilung in der App dieselbe Formulierung verwenden.
 """
 
+from datetime import timezone
 from typing import Optional
+from zoneinfo import ZoneInfo
 
 from .models import ModerationAction, ModerationBasis, ModerationSource, User
 from .timeutil import utcnow
@@ -102,8 +104,10 @@ _MEASURE_TEXT = {
     },
 }
 
+_VIENNA = ZoneInfo("Europe/Vienna")
+
 _DURATION_TEXT = {
-    "mute": {"de": "befristet bis {until} Uhr", "en": "limited until {until}"},
+    "mute": {"de": "befristet bis {until} Uhr", "en": "limited until {until} (Vienna time)"},
     "ban": {
         "de": "unbefristet, bis die Entscheidung aufgehoben wird",
         "en": "indefinite, until the decision is lifted",
@@ -162,8 +166,12 @@ def statement_of_reasons(
     if user.moderation_scope:
         aus["scope"] = user.moderation_scope
     if action is ModerationAction.mute and user.messaging_muted_until:
+        # In der Datenbank steht naives UTC. Gelesen wird die Uhrzeit aber als
+        # Wiener Ortszeit ("bis 21:53 Uhr") - ohne Umrechnung endete die
+        # Sperre laut Mitteilung eine bzw. zwei Stunden vor dem echten Ende.
+        bis = user.messaging_muted_until.replace(tzinfo=timezone.utc).astimezone(_VIENNA)
         aus["duration"] = _DURATION_TEXT["mute"][sprache].format(
-            until=user.messaging_muted_until.strftime("%d.%m.%Y, %H:%M")
+            until=bis.strftime("%d.%m.%Y, %H:%M")
         )
     elif action is ModerationAction.ban:
         aus["duration"] = _DURATION_TEXT["ban"][sprache]

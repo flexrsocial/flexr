@@ -990,7 +990,7 @@ TEXTE: dict[str, dict[str, str]] = {
     "pwchanged.notYou": {
         "de": (
             "Warst du das nicht? Dann setze dein Passwort sofort über „Passwort "
-            "vergessen?\" in der App zurück und schreib uns an {support}."
+            "vergessen?“ in der App zurück und schreib uns an {support}."
         ),
         "en": (
             "Wasn't you? Reset your password right away via “Forgot password?” "

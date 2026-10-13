@@ -129,7 +129,7 @@
     <string name="register_err_gym">Please select a gym from the list.</string>
     <string name="register_err_photo">Please upload at least %1$d photos.</string>
     <string name="register_photos_missing">%1$d of %2$d required photos still missing.</string>
-    <string name="register_err_consent">Without your consent to processing your gender and the gender you are looking for we cannot suggest any profiles - it is the basis of matching.</string>
+    <string name="register_err_consent">Without your consent to processing your gender and the gender you are looking for we cannot suggest any profiles – it is the basis of matching.</string>
     <string name="register_done_no_photo">Profile created — the photo upload failed. You can add the photos in a moment.</string>
     <string name="register_done_partial_photos">Profile created — not all photos could be uploaded. Add the missing ones in a moment.</string>
     <string name="register_done">Profile created. Now the age and identity check 💪</string>
@@ -315,7 +315,7 @@
     <string name="incoming_loading">Loading …</string>
     <string name="incoming_none">Nobody is waiting right now.</string>
     <string name="incoming_load_failed">Open likes could not be loaded.</string>
-    <string name="account_manage_subscription">Manage subscription</string>
+    <string name="account_manage_subscription">Manage / cancel subscription</string>
     <string name="account_radius_hint">Radius around your gym. Your device location is not used.</string>
     <string name="account_radius_capped">Without FLEXR Premium the search reaches %1$d km.</string>
     <string name="account_radius_boost">Launch boost: until %1$s you can use the full search radius of up to %2$d km even without FLEXR Premium. From %3$s, FLEXR searches up to %4$d km again without Premium.</string>
@@ -472,7 +472,7 @@
     <string name="verify_submitting">Submitting the shot …</string>
     <string name="verify_camera_needed">Camera access is required.</string>
     <string name="verify_frame_hint">Keep your face centred in the frame and tap “Capture” below.</string>
-    <string name="verify_privacy_note">The selfie is compared manually with your profile photos only and deleted after the review. No automated biometric analysis.</string>
+    <string name="verify_privacy_note">The selfie is compared only manually, with your profile photos and your ID, and deleted after the review. No automated biometric analysis.</string>
     <string name="verify_capture_failed">Capture failed, please try again.</string>
     <string name="verify_camera_not_ready">The camera is not ready yet, please try again in a moment.</string>
     <string name="verify_selfie_exists">We already have your selfie. Next up is your photo ID.</string>
@@ -527,7 +527,7 @@
     <string name="error_unknown">Unknown error.</string>
     <string name="error_no_internet">No internet connection.</string>
     <string name="startup_offline_title">No connection</string>
-    <string name="startup_offline_text">FLEXR cannot be reached right now. You stay logged in - as soon as you are back online, you can continue here.</string>
+    <string name="startup_offline_text">FLEXR cannot be reached right now. You stay logged in – as soon as you are back online, you can continue here.</string>
     <string name="error_not_found">Not found.</string>
     <string name="error_conflict">Already exists.</string>
     <string name="error_unauthorized">Invalid or expired sign-in.</string>

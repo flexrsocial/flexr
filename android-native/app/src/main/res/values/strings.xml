@@ -163,7 +163,7 @@
     <!-- Zaehler unter dem Raster, solange die Mindestanzahl fehlt: Ohne ihn
          bleibt der Knopf grundlos grau. -->
     <string name="register_photos_missing">Noch %1$d von %2$d Pflichtfotos.</string>
-    <string name="register_err_consent">Ohne die Einwilligung zur Verarbeitung von Geschlecht und gesuchtem Geschlecht können wir dir keine Profile vorschlagen - sie ist die Grundlage des Matchings.</string>
+    <string name="register_err_consent">Ohne die Einwilligung zur Verarbeitung von Geschlecht und gesuchtem Geschlecht können wir dir keine Profile vorschlagen – sie ist die Grundlage des Matchings.</string>
     <string name="register_done_no_photo">Profil erstellt — der Foto-Upload ist fehlgeschlagen. Du kannst die Fotos gleich nachreichen.</string>
     <string name="register_done_partial_photos">Profil erstellt — nicht alle Fotos konnten hochgeladen werden. Reiche die fehlenden gleich nach.</string>
     <string name="register_done">Profil erstellt. Jetzt noch die Alters- und Identitätsprüfung 💪</string>
@@ -364,7 +364,7 @@
     <string name="incoming_loading">Lade …</string>
     <string name="incoming_none">Gerade wartet niemand.</string>
     <string name="incoming_load_failed">Die offenen Likes konnten nicht geladen werden.</string>
-    <string name="account_manage_subscription">Abo verwalten</string>
+    <string name="account_manage_subscription">Abo verwalten / kündigen</string>
     <string name="account_radius_hint">Radius rund um dein Gym. Dein Gerätestandort wird nicht verwendet.</string>
     <string name="account_radius_capped">Ohne FLEXR Premium reicht die Suche bis %1$d km.</string>
     <string name="account_radius_boost">Startboost: Bis %1$s kannst du auch ohne FLEXR Premium den vollen Suchumkreis bis %2$d km nutzen. Ab %3$s sucht FLEXR ohne Premium wieder bis %4$d km.</string>
@@ -533,7 +533,7 @@
     <string name="verify_submitting">Aufnahme wird eingereicht …</string>
     <string name="verify_camera_needed">Kamerazugriff wird benötigt.</string>
     <string name="verify_frame_hint">Gesicht mittig im Rahmen halten und unten auf „Aufnehmen“ tippen.</string>
-    <string name="verify_privacy_note">Das Selfie wird ausschließlich manuell mit deinen Profilfotos verglichen und nach der Prüfung gelöscht. Keine automatisierte biometrische Auswertung.</string>
+    <string name="verify_privacy_note">Das Selfie wird ausschließlich manuell mit deinen Profilfotos und deinem Ausweis verglichen und nach der Prüfung gelöscht. Keine automatisierte biometrische Auswertung.</string>
     <string name="verify_capture_failed">Aufnahme fehlgeschlagen, bitte erneut.</string>
     <string name="verify_camera_not_ready">Die Kamera ist noch nicht bereit, bitte gleich erneut.</string>
     <string name="verify_selfie_exists">Dein Selfie liegt bereits vor. Weiter geht es mit dem Ausweis.</string>
@@ -591,7 +591,7 @@
     <string name="error_unknown">Unbekannter Fehler.</string>
     <string name="error_no_internet">Keine Internetverbindung.</string>
     <string name="startup_offline_title">Keine Verbindung</string>
-    <string name="startup_offline_text">FLEXR ist gerade nicht erreichbar. Du bleibst angemeldet - sobald wieder Netz da ist, geht es hier weiter.</string>
+    <string name="startup_offline_text">FLEXR ist gerade nicht erreichbar. Du bleibst angemeldet – sobald wieder Netz da ist, geht es hier weiter.</string>
     <string name="error_not_found">Nicht gefunden.</string>
     <string name="error_conflict">Bereits vorhanden.</string>
     <string name="error_unauthorized">Ungültige oder abgelaufene Anmeldung.</string>

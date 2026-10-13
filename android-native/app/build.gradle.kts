@@ -303,8 +303,11 @@ android {
         // Startboost-Hinweis unter dem Regler und am Premium-Vorteil (bis
         // 31.12.2026 voller Umkreis fuer alle), AGB-Kurzfassung (Fassung
         // 2026-10-13, Startaktion).
-        versionCode = 135
-        versionName = "2.7.23"
+        // 136/2.7.24 am 13.10.2026: Pruefrunde - Knopf "Abo verwalten /
+        // kuendigen" heisst wie in AGB 9 a und FAQ, Selfie-Hinweis nennt auch
+        // den Ausweis, Anfuehrungszeichen und Gedankenstriche in den Texten.
+        versionCode = 136
+        versionName = "2.7.24"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         // Nur die Sprachen ausliefern, die es wirklich gibt: Deutsch als

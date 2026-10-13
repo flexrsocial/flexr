@@ -165,9 +165,9 @@
     'faq.qIphone': 'Gibt es FLEXR fürs iPhone?',
     'faq.aIphone': 'Ja, als Web-App: Öffne <b>flexr.social/app</b> in Safari, tippe auf „Teilen“ (ab iOS 26 im Menü an der Adresszeile) und dann auf „Zu Home-Bildschirm hinzufügen“ (<a href="/app/?ios=installieren">Schritt-für-Schritt-Anleitung</a>). FLEXR startet dann wie eine App, ohne Browserleisten; dort meldest du dich einmal neu an. Unter Konto → Benachrichtigungen kannst du Mitteilungen bei neuen Nachrichten und Matches einschalten (ab iOS 16.4).',
     'faq.q11': 'Wie kündige ich?',
-    'faq.a11': 'Im Konto-Bereich unter „Abo verwalten / kündigen“, jederzeit und ohne Frist. Der Zugang bleibt bis zum Ende der bezahlten Periode aktiv.',
+    'faq.a11': 'Im Konto-Bereich unter „Abo verwalten / kündigen“, jederzeit und ohne Frist. Hast du in der Android-App gekauft, kündigst du über die Abo-Verwaltung von Google Play. Der Zugang bleibt bis zum Ende der bezahlten Periode aktiv.',
     'faq.q12': 'Wie melde oder blockiere ich jemanden?',
-    'faq.a12': 'Über das Flaggen-Symbol in jedem Profil und Chat. Blockieren wirkt sofort und beidseitig. Beim Melden bekommst du ein Aktenzeichen und siehst das Ergebnis unter „Meine Meldungen“. Ohne Konto geht es über das <a href="/meldung.html">öffentliche Meldeformular</a>.',
+    'faq.a12': 'Melden geht über das Flaggen-Symbol, Blockieren über das Verbots-Symbol – beides in jedem Profil und Chat. Blockieren wirkt sofort und beidseitig. Beim Melden bekommst du ein Aktenzeichen und siehst das Ergebnis unter „Meine Meldungen“. Ohne Konto geht es über das <a href="/meldung.html">öffentliche Meldeformular</a>.',
     'faq.more': 'Mehr Antworten stehen in den <a href="/faq.html">ausführlichen FAQ</a>.',
 
     'start.h2': 'Bereit?',
@@ -344,9 +344,9 @@
     'faq.qIphone': 'Is FLEXR available for iPhone?',
     'faq.aIphone': 'Yes, as a web app: open <b>flexr.social/app</b> in Safari, tap “Share” (from iOS 26 in the menu by the address bar) and then “Add to Home Screen” (<a href="/app/?ios=installieren">step-by-step guide</a>). FLEXR then starts like an app, without browser bars; log in there once more. Under Account → Notifications you can switch on notifications for new messages and matches (iOS 16.4 or later).',
     'faq.q11': 'How do I cancel?',
-    'faq.a11': 'In the account area under “Manage / cancel subscription”, at any time and without notice periods. Access stays active until the end of the paid period.',
+    'faq.a11': 'In the account area under “Manage / cancel subscription”, at any time and without notice periods. If you bought it in the Android app, cancel it via Google Play’s subscription management. Access stays active until the end of the paid period.',
     'faq.q12': 'How do I report or block someone?',
-    'faq.a12': 'Via the flag icon in every profile and chat. Blocking takes effect immediately and both ways. When you report someone you get a reference number and see the outcome under “My reports”. Without an account, use the <a href="/meldung.html">public reporting form</a>.',
+    'faq.a12': 'Report via the flag icon, block via the ban icon – both in every profile and chat. Blocking takes effect immediately and both ways. When you report someone you get a reference number and see the outcome under “My reports”. Without an account, use the <a href="/meldung.html">public reporting form</a>.',
     'faq.more': 'More answers are in the <a href="/faq.html">detailed FAQ</a>.',
 
     'start.h2': 'Ready?',

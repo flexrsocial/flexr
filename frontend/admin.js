@@ -51,14 +51,23 @@
   }
   // Art. 17 DSA: Jede Beschränkung braucht eine Begründung, die der Betroffene
   // zu sehen bekommt. Gibt null zurück, wenn abgebrochen wurde.
+  // Der vorbelegte Satzanfang allein ist keine Begruendung: Wer nur "OK"
+  // drueckt, schickte dem Nutzer sonst "Verstoß gegen die
+  // Nutzungsrichtlinien:" ohne den konkreten Verstoß.
+  const MODERATION_REASON_PREFILL = 'Verstoß gegen die Nutzungsrichtlinien: ';
   function askModerationReason(what){
     const note = prompt(
       `Begründung für die ${what} (bekommt der Nutzer wörtlich angezeigt):`,
-      'Verstoß gegen die Nutzungsrichtlinien: ',
+      MODERATION_REASON_PREFILL,
     );
     if(note === null) return null;
-    if(note.trim().length < 3){ toast('Bitte eine Begründung angeben.'); return null; }
-    return note.trim();
+    const text = note.trim();
+    if(text.length < 3){ toast('Bitte eine Begründung angeben.'); return null; }
+    if(text === MODERATION_REASON_PREFILL.trim()){
+      toast('Bitte den konkreten Verstoß ergänzen.');
+      return null;
+    }
+    return text;
   }
 
   async function api(path, opts = {}){
@@ -580,7 +589,8 @@
       if(reason === null) return;
       const body = val[0] === 'h' ? {hours: n, reason} : {days: n, reason};
       const label = val[0] === 'h'
-        ? `${n} Stunde(n)` : `${n} Tag(e)`;
+        ? `${n} ${n === 1 ? 'Stunde' : 'Stunden'}`
+        : `${n} ${n === 1 ? 'Tag' : 'Tage'}`;
       try{
         await api(`/api/admin/users/${u.id}/mute`, {method: 'POST', body: JSON.stringify(body)});
         toast(`Chat für ${label} gesperrt.`);

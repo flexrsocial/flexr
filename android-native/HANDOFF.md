@@ -1,11 +1,37 @@
 # HANDOFF — native Android-App
 
-Stand: **13.10.2026**, Version 2.7.23 / versionCode 135. Der jüngste
+Stand: **13.10.2026**, Version 2.7.24 / versionCode 136. Der jüngste
 Abschnitt steht oben, ältere folgen darunter. Fassungen zwischen dem
 16.09. und dem 04.10. sind nur im Kommentar am `versionCode` in
 `app/build.gradle.kts` und in der Haupt-`HANDOFF.md` beschrieben.
 Für Aufbau, Build-Befehle und die Migrationstabelle siehe [README.md](README.md) —
 hier steht nur, was daraus *nicht* hervorgeht.
+
+---
+
+## Prüfrunde, 13.10.2026 (2.7.24)
+
+Reine Textkorrekturen, kein Verhalten geändert. **2.7.24 statt 2.7.23 hochladen.**
+
+* Der Knopf im Konto heißt jetzt **„Abo verwalten / kündigen“** (EN „Manage /
+  cancel subscription“). AGB 9 a, FAQ und Rücktrittsseite nennen ihn seit
+  jeher so („Der Knopf ‚Abo verwalten / kündigen‘ in der App führt dich direkt
+  dorthin“), in der App hieß er nur „Abo verwalten“. Die Web-App zieht mit.
+* `verify_privacy_note`: Das Selfie wird mit Profilfotos **und Ausweis**
+  verglichen (stand „nur mit deinen Profilfotos“, EN „with your profile photos
+  only“).
+* Gedankenstriche statt Bindestrich in `register_err_consent` und
+  `startup_offline_text`; deutsche Anführungszeichen „…“ in der
+  AGB-/Richtlinien-Kurzfassung (`LegalContent.kt`, vorher „…\").
+* 59 Unit-Tests grün, Lint 0 Fehler (109 Warnungen). Gerätetest steht weiter aus.
+
+| 2.7.24 / 136 | SHA-256 | Größe |
+|---|---|---|
+| AAB (Play Console) | `061a5510bdbd16bd0f179aed841f45dfa47b7a77215e1a9c77b6ded10d47d2d2` | 8.535.946 Bytes |
+| APK (Testgerät) | `1a1099a1e60be5f95e09243d0a4edc53e9c0a33eecc4c310d44a3a40eaa0e9c8` | 4.420.114 Bytes |
+
+aapt2: 136 / 2.7.24, targetSdk 36; Signer SHA-256 `BC:64:AD…79:80`
+(Upload-Key) für AAB und APK geprüft. Liegt in `release-2.7.24/` (gitignored).
 
 ---
 

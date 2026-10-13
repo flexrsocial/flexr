@@ -62,6 +62,27 @@ def test_vollstaendige_begruendung_nennt_alle_bestandteile():
     assert "widersprechen" in aus["appeal_hint"]
 
 
+def test_sperrende_steht_in_wiener_ortszeit():
+    """Die Datenbank speichert naives UTC, die Mitteilung nennt "... Uhr" -
+    gemeint und gelesen als Wiener Zeit. Bis 13.10.2026 stand dort die
+    UTC-Uhrzeit, die Sperre endete laut Mitteilung also zu frueh."""
+    from datetime import datetime
+
+    sommer = _user(language="de")
+    apply_restriction(sommer, ModerationAction.mute, "Spam.",
+                      muted_until=datetime(2026, 10, 20, 19, 53))
+    assert statement_of_reasons(sommer, ModerationAction.mute)["duration"] == (
+        "befristet bis 20.10.2026, 21:53 Uhr"
+    )
+
+    winter = _user(language="en")
+    apply_restriction(winter, ModerationAction.mute, "Spam.",
+                      muted_until=datetime(2026, 12, 31, 23, 30))
+    assert statement_of_reasons(winter, ModerationAction.mute)["duration"] == (
+        "limited until 01.01.2027, 00:30 (Vienna time)"
+    )
+
+
 def test_ban_ist_unbefristet_und_sagt_das_auch():
     user = _user()
     apply_restriction(
