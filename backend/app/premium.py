@@ -286,7 +286,7 @@ def clamp_radius(user: User, radius_km: int) -> int:
     """Kappt einen Umkreiswunsch auf das Erlaubte.
 
     Bewusst kappen statt ablehnen: Wer Premium kuendigt, hat unter Umstaenden
-    250 km eingestellt. Ein Fehler bei jedem spaeteren Speichern des Profils
+    580 km eingestellt. Ein Fehler bei jedem spaeteren Speichern des Profils
     waere eine Sackgasse - stillschweigend auf 50 km zurueckzugehen ist das,
     was der Nutzer ohnehin tun muesste. Beim aktiven Verstellen faengt die
     Oberflaeche den Fall vorher ab und erklaert ihn.

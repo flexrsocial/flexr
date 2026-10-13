@@ -81,7 +81,7 @@ def operator_inline() -> str:
 # steht sichtbar unter "Stand:" auf jeder Seite.
 # ---------------------------------------------------------------------------
 
-TERMS_VERSION: Final = "2026-09-17"           # AGB (Punkt 7/9: Premium bestellbar, Grenzen gelten)
+TERMS_VERSION: Final = "2026-10-13"           # AGB (Premium-Umkreis 580 km, Startaktion 7 e bis 31.12.2026)
 PRIVACY_VERSION: Final = "2026-10-02"          # Datenschutzerklärung (Sicherungskopien: Inhalt, höchstens 3 Monate)
 AUP_VERSION: Final = "2026-08-19"              # Nutzungsrichtlinien
 LE_GUIDELINES_VERSION: Final = "2026-08-19"    # Strafverfolgungsrichtlinien

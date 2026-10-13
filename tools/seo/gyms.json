@@ -954,6 +954,15 @@
   "label": "Wing Tsjun — Zachgasse 1, 1220 Wien"
  },
  {
+  "id": "1b3c3835-2c81-448a-a05f-a61feca6b7de",
+  "name": "AIO",
+  "street": "Breitenfurter Str.",
+  "house_number": "308",
+  "plz": "1230",
+  "city": "Wien",
+  "label": "AIO — Breitenfurter Str. 308, 1230 Wien"
+ },
+ {
   "id": "6a840c94-e4a8-4bcc-a434-5658801d1c57",
   "name": "Buzz",
   "street": "Dirmhirngasse",
@@ -2221,6 +2230,15 @@
   "plz": "4873",
   "city": "Frankenburg am Hausruck",
   "label": "Gymtec Fitness — Platzl 1, 4873 Frankenburg am Hausruck"
+ },
+ {
+  "id": "d3f4a854-999d-4d29-8375-f40f0bf54782",
+  "name": "Geinberg",
+  "street": "Thermenplatz",
+  "house_number": "1",
+  "plz": "4943",
+  "city": "Geinberg",
+  "label": "Geinberg — Thermenplatz 1, 4943 Geinberg"
  },
  {
   "id": "564a9ebe-767c-49d0-8ebd-baab432cd8e9",

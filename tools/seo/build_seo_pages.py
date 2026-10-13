@@ -40,6 +40,14 @@ GYMS = HIER / "gyms.json"
 SITE = "https://flexr.social"
 HEUTE = dt.date.today().isoformat()
 
+# Startboost bis 31.12.2026: voller Suchumkreis bis 580 km auch ohne Premium.
+# Der Zusatz steht nur im sichtbaren Text, als <span class="startboost">, den
+# /startboost.js ab dem 01.01.2027 ausblendet. In die strukturierten Daten
+# (FAQPage) kommt er bewusst nicht: Die liest keine Suchmaschine mit Skript
+# neu, ein abgelaufenes Angebot bliebe dort bis zum naechsten Bauen stehen.
+STARTBOOST = ('<span class="startboost"> Bis 31.12.2026 ist der volle Suchumkreis '
+              'bis 580&nbsp;Kilometer für alle frei.</span>')
+
 WIEN_BEZIRKE = {
     "1010": "Innere Stadt", "1020": "Leopoldstadt", "1030": "Landstraße",
     "1040": "Wieden", "1050": "Margareten", "1060": "Mariahilf",
@@ -143,7 +151,8 @@ STAEDTE = [
             ("Muss ich im selben Studio trainieren wie mein Match?",
              "Nein. FLEXR zeigt Profile aus allen Studios innerhalb deines "
              "Suchumkreises – kostenlos bis 50 Kilometer. Du kannst also "
-             "Leute aus dem Nachbarbezirk genauso treffen wie aus deinem Gym."),
+             "Leute aus dem Nachbarbezirk genauso treffen wie aus deinem Gym.",
+             STARTBOOST),
         ],
     },
     {
@@ -311,7 +320,8 @@ STAEDTE = [
             ("Gibt es in Innsbruck eine Dating-App für Sportler?",
              "Ja, FLEXR. Du wählst dein Studio in Innsbruck oder Umgebung und "
              "siehst Profile von Leuten, die in deiner Nähe trainieren – "
-             "kostenlos bis 50 Kilometer Umkreis."),
+             "kostenlos bis 50 Kilometer Umkreis.",
+             STARTBOOST),
             ("Zählt Klettern oder Bergsport auch?",
              "Ja. FLEXR ist nicht nur für Kraftsport. Auf dem Profil gibst du "
              "an, was du trainierst – Klettern, Ausdauer, Functional Fitness "
@@ -371,6 +381,7 @@ def e(text: str) -> str:
     return html.escape(text, quote=True)
 
 
+
 def jsonld(obj: dict) -> str:
     return (
         '<script type="application/ld+json">\n'
@@ -389,7 +400,7 @@ def breadcrumb(pfad: list[tuple[str, str]]) -> dict:
     }
 
 
-def faq_schema(url: str, fragen: list[tuple[str, str]]) -> dict:
+def faq_schema(url: str, fragen: list[tuple]) -> dict:
     return {
         "@type": "FAQPage",
         "@id": SITE + url + "#faq",
@@ -397,18 +408,22 @@ def faq_schema(url: str, fragen: list[tuple[str, str]]) -> dict:
         "mainEntity": [
             {"@type": "Question", "name": f,
              "acceptedAnswer": {"@type": "Answer", "text": a}}
-            for f, a in fragen
+            for f, a, *_ in fragen
         ],
     }
 
 
-def faq_html(fragen: list[tuple[str, str]]) -> str:
+def faq_html(fragen: list[tuple]) -> str:
+    """Fragen als (Frage, Antwort) oder (Frage, Antwort, Zusatz-HTML).
+
+    Der Zusatz erscheint nur im sichtbaren Text, nicht in faq_schema().
+    """
     teile = []
-    for f, a in fragen:
+    for f, a, *zusatz in fragen:
         teile.append(
             '  <details class="faq-item">\n'
             f"    <summary>{e(f)}</summary>\n"
-            f'    <div class="faq-a">{e(a)}</div>\n'
+            f'    <div class="faq-a">{e(a)}{"".join(zusatz)}</div>\n'
             "  </details>"
         )
     return "\n".join(teile)
@@ -504,6 +519,7 @@ def seite(*, url: str, titel: str, beschreibung: str, og_titel: str,
 <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon-180.png?v=1">
 <link rel="preload" href="/fonts/oswald.woff2?v=1" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="/legal.css?v=2">
+<script src="/startboost.js?v=1"></script>
 {jsonld(graph)}
 {STIL}
 </head>
@@ -709,12 +725,12 @@ def hub(gyms: list[dict]) -> str:
     identitätsgeprüft.</li>
     <li><b>Gym und Umkreis wählen:</b> Du suchst dein Studio aus {gesamt}
     Fitnessstudios in ganz Österreich aus – oder schlägst es vor, falls es
-    fehlt. Der Suchumkreis ist kostenlos bis 50&nbsp;km.</li>
+    fehlt. Der Suchumkreis ist kostenlos bis 50&nbsp;km.{STARTBOOST}</li>
     <li><b>Liken, matchen, schreiben:</b> Liken sich zwei Personen
     gegenseitig, entsteht ein Match, und ihr könnt chatten.</li>
   </ol>
 
-{cta("Die Nutzung ist dauerhaft kostenlos – 20 Likes am Tag, 3 Unterhaltungen gleichzeitig, 50&nbsp;km Umkreis. FLEXR&nbsp;Premium (10&nbsp;€ im Monat) ist freiwillig.")}
+{cta("Die Nutzung ist dauerhaft kostenlos – 20 Likes am Tag, 3 Unterhaltungen gleichzeitig, 50&nbsp;km Umkreis. FLEXR&nbsp;Premium (10&nbsp;€ im Monat) ist freiwillig." + STARTBOOST)}
 
   <h2>Fitness-Dating in deiner Stadt</h2>
   <p>FLEXR funktioniert mit jeder österreichischen Postleitzahl. Für die

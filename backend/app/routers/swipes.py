@@ -137,7 +137,7 @@ def deck_profiles(db: Session, current_user: User, limit: int = DECK_SIZE) -> li
     seen_ids: set[str] = set()
 
     # Wer mich schon geliked hat, taucht zuerst auf - unabhaengig vom eigenen
-    # Suchradius. Sonst koennte ein Premium-Konto (bis 250 km) jemanden liken,
+    # Suchradius. Sonst koennte ein Premium-Konto (bis 580 km) jemanden liken,
     # der selbst nur die freien 50 km sieht: Ohne diese Ausnahme faende diese
     # Person ihn nie im eigenen Deck, der Like waere nie erwiderbar. Das
     # entspricht dem Versprechen in incoming.lockedSub - "Ohne Premium tauchen

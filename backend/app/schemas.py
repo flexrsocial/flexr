@@ -7,9 +7,10 @@ from .age import is_plausible_birthdate
 
 # Spannweite des Umkreis-Reglers. Benannt statt an jeder Stelle als Zahl:
 # ``premium.max_radius_km()`` kappt gegen dieselbe Obergrenze, und die
-# Oberflaeche stellt den Regler danach.
+# Oberflaeche stellt den Regler danach. Bis 13.10.2026 waren es 250 km; 580 km
+# reichen von jedem Gym aus durch ganz Oesterreich (Bregenz-Wien ~500 km).
 MIN_SEARCH_RADIUS_KM = 2
-MAX_SEARCH_RADIUS_KM = 250
+MAX_SEARCH_RADIUS_KM = 580
 
 #: Die Sprache, in der ein Client gerade laeuft. Sie steht am Nutzerprofil
 #: (``User.language``) und entscheidet, in welcher Sprache der Server E-Mails

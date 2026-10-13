@@ -186,16 +186,27 @@ Stand 04.10.2026 — die vollständige Liste der Console-Angaben steht in
    hinterlegen — ohne kommen sie nicht an der Ausweisprüfung vorbei.
 4. **Abo-Produkt** „FLEXR Premium“ in der Console angelegt und aktiv, mit
    derselben Produkt-ID wie im Backend.
-5. **Optional: Startboost-Hinweis unter dem Umkreis-Regler** (seit 13.10.2026,
-   siehe Haupt-`HANDOFF.md`). Bis 31.12.2026 liefert der Server
-   `max_radius_km = 250` auch ohne Premium; 2.7.22 übernimmt das ohne Änderung
-   (`AccountViewModel` liest das Feld, `isRadiusCapped` wird falsch, kein
-   Sperrhinweis). Den Hinweistext der Web-App zeigt die App aber nicht. Dafür
-   bräuchte es `radius_boost_last_day` (ISO-Datum oder `null`) in
-   `MembershipStatusDto`/`Membership` und einen Text unter dem Regler in
-   `AccountScreen.kt`, also einen neuen Build. Ab 01.01.2027 gilt ohnehin
-   wieder der alte Zustand, auch in 2.7.22: Der Server liefert 50, und
-   `account_radius_capped` erscheint, wenn mehr gespeichert ist.
+5. **Suchumkreis bis 580 km und Startboost** (seit 13.10.2026, siehe
+   Haupt-`HANDOFF.md`). Der Server erlaubt jetzt bis 580 km (vorher 250) und
+   liefert bis 31.12.2026 `max_radius_km = 580` auch ohne Premium. **2.7.22
+   kappt das auf 250** (`AccountViewModel.MAX_RADIUS_KM = 250`,
+   `status.maxRadiusKm.coerceAtMost(MAX_RADIUS_KM)`), funktioniert also, nur
+   eben bis 250 km, und nennt in den Texten noch 250 km. Für den nächsten Build:
+   - `MAX_RADIUS_KM = 580` in `AccountViewModel.kt`. Der Regler
+     (`valueRange` in `AccountScreen.kt`) ist linear. Die Web-App hat auf eine
+     quadratische Skala umgestellt, weil 50 km sonst bei 8 % der Schiene
+     lägen (km = 2 + 578·p², `frontend/app/index.html`, `radiusSetzen`).
+   - Texte: `premium_feature_radius` in `res/values*/strings.xml` („Voller
+     Suchumkreis bis 250 km“) und die AGB-Kurzfassung in
+     `ui/legal/LegalContent.kt` („Suchumkreis bis 250 km“), beide auf 580.
+     Die AGB haben jetzt die Fassung 2026-10-13 mit der Startaktion als Punkt 7 e.
+   - Optional der Startboost-Hinweis unter dem Regler und der Zusatz „bis
+     31.12.2026 für alle frei“ am Premium-Vorteil, gesteuert über
+     `radius_boost_last_day` (ISO-Datum oder `null`) in
+     `MembershipStatusDto`/`Membership`, wie in der Web-App.
+   - Ab 01.01.2027 gilt auch in 2.7.22 wieder der alte Zustand ohne Premium:
+     Der Server liefert 50, und `account_radius_capped` erscheint, wenn mehr
+     gespeichert ist.
 
 ---
 

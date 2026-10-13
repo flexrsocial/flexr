@@ -2039,6 +2039,9 @@
   .price-feats li{
     display:flex; align-items:flex-start; gap:9px; font-size:13px; color:var(--chalk-dim); line-height:1.45;
   }
+  /* Startboost-Zusatz an "Voller Suchumkreis" (renderPremiumScreen). */
+  .price-feats .feat-boost{ color:var(--lime); }
+  .price-feats .feat-boost[hidden]{ display:none; }
   .price-feats li svg.ico{ width:15px; height:15px; color:var(--lime); flex-shrink:0; margin-top:1.5px; stroke-width:2.4; }
   .toast{
     position:fixed; top:16px; left:50%; transform:translateX(-50%);
@@ -2176,7 +2179,7 @@
      laufen synchron und damit vor dem DOMContentLoaded, bei dem FlexrI18n die
      data-i18n-Knoten uebersetzt. -->
 <script src="/i18n.js?v=5"></script>
-<script src="/app/i18n-app.js?v=28"></script>
+<script src="/app/i18n-app.js?v=29"></script>
 <a class="skip-link" href="#main-content" data-i18n="common.skipToContent">Zum Inhalt springen</a>
 <div class="app" id="app">
 
@@ -2706,7 +2709,7 @@
           </span>
         </span></label>
         <div class="radius-row">
-          <input type="range" id="a-radius" min="2" max="250" step="1" value="20">
+          <input type="range" id="a-radius" min="0" max="1000" step="1" value="176" aria-valuetext="20 km">
           <span class="radius-value mono" id="radiusValue">20 km</span>
         </div>
         <div class="radius-hint" id="radiusHint" data-i18n="acct.radiusHint">Profile im Umkreis deines Gyms.</div>
@@ -3117,7 +3120,7 @@
           <li><svg class="ico" viewBox="0 0 24 24"><path d="M5 12.5 10 17 19 7"/></svg><span data-i18n="premium.featChats">So viele Unterhaltungen gleichzeitig, wie du willst</span></li>
           <li><svg class="ico" viewBox="0 0 24 24"><path d="M5 12.5 10 17 19 7"/></svg><span data-i18n="premium.featIncoming">Sehen, wer dich schon geliked hat</span></li>
           <li><svg class="ico" viewBox="0 0 24 24"><path d="M5 12.5 10 17 19 7"/></svg><span data-i18n="premium.featRewind">Den letzten Swipe zurücknehmen</span></li>
-          <li><svg class="ico" viewBox="0 0 24 24"><path d="M5 12.5 10 17 19 7"/></svg><span data-i18n="premium.featRadius">Voller Suchumkreis bis 250 km</span></li>
+          <li><svg class="ico" viewBox="0 0 24 24"><path d="M5 12.5 10 17 19 7"/></svg><span><span data-i18n="premium.featRadius">Voller Suchumkreis bis 580 km</span><span class="feat-boost" id="premiumRadiusBoost" hidden></span></span></li>
           <li><svg class="ico" viewBox="0 0 24 24"><path d="M5 12.5 10 17 19 7"/></svg><span data-i18n="premium.featBadge">Premium-Abzeichen in deinem Profil</span></li>
         </ul>
         <button class="btn" id="btnSubscribe2" data-i18n="premium.subscribe">Premium holen</button>
@@ -3704,6 +3707,10 @@
   let token = localStorage.getItem('flexr_token');
   let myProfile = null;
   let membership = null;
+  // Umkreis-Regler (Spannweite wie schemas.MAX_SEARCH_RADIUS_KM); Erklaerung
+  // der quadratischen Skala bei radiusSetzen().
+  const RADIUS_MIN_KM = 2, RADIUS_MAX_KM = 580, RADIUS_STELLUNGEN = 1000;
+  let radiusWertKm = 20;
   let pendingPhotos = []; // {blob, previewUrl} während Onboarding, vor Registrierung
   // Pflichtzahl an Profilfotos - beim Anlegen des Kontos und danach. Der Server
   // verlangt dieselbe Zahl beim Start der Alters- und Identitaetspruefung und
@@ -5461,6 +5468,12 @@
     const kaufbar = premiumOffered() && !isPremium();
     $('btnSubscribe2').style.display = kaufbar ? '' : 'none';
     $('premiumBetaHint').style.display = premiumOffered() ? 'none' : '';
+    // Startboost: Solange der volle Umkreis fuer alle frei ist, sagt die
+    // Vorteilsliste das dazu, statt ihn als reinen Premium-Vorteil zu bewerben.
+    const boost = $('premiumRadiusBoost');
+    const bis = membership.radius_boost_last_day;
+    boost.hidden = !bis;
+    if(bis) setI18nText(boost, 'premium.featRadiusBoost', {bis: boostDatum(bis, 0)});
   }
   $('istartCancel').addEventListener('click', closeImmediateStartOverlay);
   $('istartConfirm').addEventListener('click', confirmImmediateStartAndSubscribe);
@@ -6253,9 +6266,7 @@
     renderGymLockState();
     $('a-bio').value = myProfile.bio || '';
     updateABioCounter();
-    $('a-radius').value = myProfile.search_radius_km || 20;
-    $('radiusValue').textContent = ($('a-radius').value) + ' km';
-    radiusFill();
+    radiusSetzen(myProfile.search_radius_km || 20);
     renderRadiusPremiumHint();
     setPlainText($('acctProfileErr'), '');
   }
@@ -6269,9 +6280,33 @@
     el.style.setProperty('--p', max > min ? (Number(el.value) - min) / (max - min) : 0);
   }
 
-  $('a-radius').addEventListener('input', () => {
-    $('radiusValue').textContent = $('a-radius').value + ' km';
+  /* Der Regler laeuft quadratisch, nicht linear. Seit 13.10.2026 reicht er bis
+     580 km; linear laegen 50 km dann bei 8 % der Schiene, und die kleinen
+     Umkreise, um die es meistens geht, waeren kaum zu treffen. Quadratisch
+     liegen 20 km bei 18 %, 50 km bei 29 % und 250 km bei 65 %.
+
+     Das <input> haelt deshalb die Reglerstellung (0..1000), nie Kilometer.
+     Der Wert in km steht in radiusWertKm: gesetzt beim Fuellen des Formulars
+     und beim Ziehen, gelesen beim Speichern. So bleibt ein gespeicherter Wert
+     exakt erhalten, auch wenn ihn die Stellung oben nur auf ~1 km genau trifft
+     (z. B. 576 km aus einem anderen Client). */
+  function radiusAnzeigen(){
+    $('radiusValue').textContent = radiusWertKm + ' km';
+    $('a-radius').setAttribute('aria-valuetext', radiusWertKm + ' km');
     radiusFill();
+  }
+
+  function radiusSetzen(km){
+    radiusWertKm = Math.min(RADIUS_MAX_KM, Math.max(RADIUS_MIN_KM, Math.round(km)));
+    const anteil = (radiusWertKm - RADIUS_MIN_KM) / (RADIUS_MAX_KM - RADIUS_MIN_KM);
+    $('a-radius').value = Math.round(RADIUS_STELLUNGEN * Math.sqrt(anteil));
+    radiusAnzeigen();
+  }
+
+  $('a-radius').addEventListener('input', () => {
+    const p = Number($('a-radius').value) / RADIUS_STELLUNGEN;
+    radiusWertKm = Math.round(RADIUS_MIN_KM + (RADIUS_MAX_KM - RADIUS_MIN_KM) * p * p);
+    radiusAnzeigen();
     renderRadiusPremiumHint();
   });
 
@@ -6281,7 +6316,7 @@
      ohnehin nur das Erlaubte (der Server kappt, siehe premium.clamp_radius),
      und der Hinweis darunter sagt genau das. */
   function radiusCap(){
-    return membership && membership.max_radius_km ? membership.max_radius_km : 250;
+    return membership && membership.max_radius_km ? membership.max_radius_km : RADIUS_MAX_KM;
   }
 
   /* Startboost: Bis 31.12.2026 hat jedes Konto den vollen Umkreis, auch ohne
@@ -6292,19 +6327,24 @@
     const box = $('radiusBoost');
     const bis = membership && membership.radius_boost_last_day;
     if(!bis){ box.hidden = true; return; }
-    const [j, m, d] = bis.split('-').map(Number);
-    const datum = (tagDazu) => new Date(Date.UTC(j, m - 1, d + tagDazu)).toLocaleDateString(
-      dateLocale(), {day:'2-digit', month:'2-digit', year:'numeric', timeZone:'UTC'});
     setI18nText(box, 'premium.radiusBoost', {
-      bis: datum(0), ab: datum(1),
-      voll: $('a-radius').max, grenze: membership.free_max_radius_km,
+      bis: boostDatum(bis, 0), ab: boostDatum(bis, 1),
+      voll: RADIUS_MAX_KM, grenze: membership.free_max_radius_km,
     });
     box.hidden = false;
   }
 
+  /* "2026-12-31" (+ tagDazu Tage) im Datumsformat der aktuellen Sprache. In
+     UTC gerechnet, damit die Zeitzone des Geraets den Tag nicht verschiebt. */
+  function boostDatum(iso, tagDazu){
+    const [j, m, d] = iso.split('-').map(Number);
+    return new Date(Date.UTC(j, m - 1, d + tagDazu)).toLocaleDateString(
+      dateLocale(), {day:'2-digit', month:'2-digit', year:'numeric', timeZone:'UTC'});
+  }
+
   function renderRadiusPremiumHint(){
     renderRadiusBoostHint();
-    const gewaehlt = Number($('a-radius').value);
+    const gewaehlt = radiusWertKm;
     const grenze = radiusCap();
     const hinweis = $('radiusHint');
     if(gewaehlt > grenze){
@@ -6460,7 +6500,7 @@
       city: acctResolvedCity,
       gym: $('a-gym').dataset.label || $('a-gym').value,
       bio: $('a-bio').value.trim(),
-      search_radius_km: parseInt($('a-radius').value, 10),
+      search_radius_km: radiusWertKm,
     };
     const btn = $('btnSaveProfile');
     btn.disabled = true;

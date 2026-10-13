@@ -112,7 +112,7 @@ def update_my_profile(
         if bio_problem:
             raise HTTPException(400, bio_problem)
 
-    # Der volle Umkreis (bis 250 km) gehoert zu FLEXR Premium. Gekappt statt
+    # Der volle Umkreis (bis 580 km) gehoert zu FLEXR Premium. Gekappt statt
     # abgelehnt - siehe premium.clamp_radius(): Wer Premium kuendigt, haette
     # sonst ein Profil, das sich nie wieder speichern laesst.
     if fields.get("search_radius_km") is not None:

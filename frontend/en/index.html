@@ -673,6 +673,8 @@ body.has-beta-bar footer{ padding-bottom:110px; }
   .beta-facts b{ flex-basis:86px; }
 }
 </style>
+<!-- Blendet die Startboost-Zusaetze (class="startboost") ab 01.01.2027 aus. -->
+<script src="/startboost.js?v=1"></script>
 </head>
 <body>
 <!-- Zweisprachigkeit der Landingpage laeuft ueber zwei getrennte Adressen:
@@ -959,7 +961,7 @@ body.has-beta-bar footer{ padding-bottom:110px; }
       <p data-i18n="gym.p1">Most dating apps ask your phone for your location and then show you who happens to be nearby. FLEXR does it differently – deliberately:</p>
       <ul class="plain">
         <li data-i18n-html="gym.li1"><b>You choose your gym.</b> From a list of Austrian gyms with addresses. If yours is missing, submit it with its address and use it right away.</li>
-        <li data-i18n-html="gym.li2"><b>You set your search radius.</b> From 2 to 250 kilometres. A larger radius means more profiles, but longer trips.</li>
+        <li data-i18n-html="gym.li2"><b>You set your search radius.</b> From 2 to 580 kilometres. A larger radius means more profiles, but longer trips.</li>
         <li data-i18n-html="gym.li3"><b>No GPS tracking.</b> Neither the browser nor the app asks for your device location. Distances are calculated solely from the public address of the gym you entered yourself. Your home address is never shown to anyone – others only see your city.</li>
         <li data-i18n-html="gym.li4"><b>You see people from gyms in the area</b>, not only from your own. The gym is the centre, not the fence.</li>
       </ul>
@@ -1006,7 +1008,7 @@ body.has-beta-bar footer{ padding-bottom:110px; }
             <li data-i18n="price.free1">Browse profiles and match</li>
             <li data-i18n="price.free2">20 likes per day</li>
             <li data-i18n="price.free3">3 conversations at once</li>
-            <li data-i18n="price.free4">Search radius up to 50 km</li>
+            <li data-i18n-html="price.free4">Search radius up to 50 km<span class="startboost"> – until 31 December 2026 even up to 580 km</span></li>
             <li data-i18n="price.free5">No payment method, nothing to cancel</li>
           </ul>
           <a class="btn" href="/app/#registrieren" style="display:block; text-align:center; margin-top:22px;" data-i18n="price.cta">Start for free</a>
@@ -1019,7 +1021,7 @@ body.has-beta-bar footer{ padding-bottom:110px; }
             <li data-i18n="price.prem2">Unlimited conversations</li>
             <li data-i18n="price.prem3">See who liked you</li>
             <li data-i18n="price.prem4">Undo your last swipe</li>
-            <li data-i18n="price.prem5">Full search radius up to 250 km</li>
+            <li data-i18n-html="price.prem5">Full search radius up to 580 km<span class="startboost"> – free for everyone until 31 December 2026</span></li>
             <li data-i18n="price.prem6">Premium badge on your profile</li>
           </ul>
           <a class="btn" href="/app/#premium" style="display:block; text-align:center; margin-top:22px;" data-i18n="price.premiumCta">Get Premium</a>
@@ -1046,7 +1048,7 @@ body.has-beta-bar footer{ padding-bottom:110px; }
         </details>
         <details>
           <summary data-i18n="faq.q4">What does FLEXR cost?</summary>
-          <div class="faq-a" data-i18n-html="faq.a4"><b>Nothing.</b> Using FLEXR is permanently free — browsing profiles, liking, matching and chatting cost no money. Optionally, <b>FLEXR&nbsp;Premium</b> is available at €10 per month: unlimited likes, unlimited conversations, see who liked you, undo your last swipe and the full search radius. Without Premium, 20 likes per day, 3 conversations at once and a 50&nbsp;km radius apply. Nothing becomes chargeable without you actively opting in.</div>
+          <div class="faq-a" data-i18n-html="faq.a4"><b>Nothing.</b> Using FLEXR is permanently free — browsing profiles, liking, matching and chatting cost no money. Optionally, <b>FLEXR&nbsp;Premium</b> is available at €10 per month: unlimited likes, unlimited conversations, see who liked you, undo your last swipe and the full search radius of up to 580&nbsp;km. Without Premium, 20 likes per day, 3 conversations at once and a 50&nbsp;km radius apply.<span class="startboost"> Until 31 December 2026, the full search radius of up to 580&nbsp;km is free for everyone.</span> Nothing becomes chargeable without you actively opting in.</div>
         </details>
         <details>
           <summary data-i18n="faq.q5">Will my account automatically become chargeable?</summary>

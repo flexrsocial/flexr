@@ -21,7 +21,7 @@
     <xhtml:link rel="alternate" hreflang="de" href="https://flexr.social/"/>
     <xhtml:link rel="alternate" hreflang="en" href="https://flexr.social/en/"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://flexr.social/"/>
-    <lastmod>2026-09-10</lastmod>
+    <lastmod>2026-10-13</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
@@ -31,7 +31,7 @@
     <xhtml:link rel="alternate" hreflang="de" href="https://flexr.social/"/>
     <xhtml:link rel="alternate" hreflang="en" href="https://flexr.social/en/"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://flexr.social/"/>
-    <lastmod>2026-09-10</lastmod>
+    <lastmod>2026-10-13</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
@@ -41,7 +41,7 @@
     <xhtml:link rel="alternate" hreflang="de" href="https://flexr.social/faq.html"/>
     <xhtml:link rel="alternate" hreflang="en" href="https://flexr.social/en/faq.html"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://flexr.social/faq.html"/>
-    <lastmod>2026-09-10</lastmod>
+    <lastmod>2026-10-13</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -91,7 +91,7 @@
     <xhtml:link rel="alternate" hreflang="de" href="https://flexr.social/agb.html"/>
     <xhtml:link rel="alternate" hreflang="en" href="https://flexr.social/en/agb.html"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://flexr.social/agb.html"/>
-    <lastmod>2026-09-10</lastmod>
+    <lastmod>2026-10-13</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.4</priority>
   </url>
@@ -131,7 +131,7 @@
     <xhtml:link rel="alternate" hreflang="de" href="https://flexr.social/faq.html"/>
     <xhtml:link rel="alternate" hreflang="en" href="https://flexr.social/en/faq.html"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://flexr.social/faq.html"/>
-    <lastmod>2026-09-10</lastmod>
+    <lastmod>2026-10-13</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
@@ -181,7 +181,7 @@
     <xhtml:link rel="alternate" hreflang="de" href="https://flexr.social/agb.html"/>
     <xhtml:link rel="alternate" hreflang="en" href="https://flexr.social/en/agb.html"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://flexr.social/agb.html"/>
-    <lastmod>2026-09-10</lastmod>
+    <lastmod>2026-10-13</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
@@ -218,55 +218,55 @@
   <!-- SEO-SEITEN-ANFANG (erzeugt von tools/seo/build_seo_pages.py) -->
   <url>
     <loc>https://flexr.social/gym-dating.html</loc>
-    <lastmod>2026-09-30</lastmod>
+    <lastmod>2026-10-13</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://flexr.social/fitness-dating-wien.html</loc>
-    <lastmod>2026-09-30</lastmod>
+    <lastmod>2026-10-13</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://flexr.social/fitness-dating-graz.html</loc>
-    <lastmod>2026-09-30</lastmod>
+    <lastmod>2026-10-13</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://flexr.social/fitness-dating-linz.html</loc>
-    <lastmod>2026-09-30</lastmod>
+    <lastmod>2026-10-13</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://flexr.social/fitness-dating-salzburg.html</loc>
-    <lastmod>2026-09-30</lastmod>
+    <lastmod>2026-10-13</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://flexr.social/fitness-dating-innsbruck.html</loc>
-    <lastmod>2026-09-30</lastmod>
+    <lastmod>2026-10-13</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://flexr.social/fitness-dating-klagenfurt.html</loc>
-    <lastmod>2026-09-30</lastmod>
+    <lastmod>2026-10-13</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://flexr.social/gym-crush-ansprechen.html</loc>
-    <lastmod>2026-09-30</lastmod>
+    <lastmod>2026-10-13</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://flexr.social/date-ideen-sportler.html</loc>
-    <lastmod>2026-09-30</lastmod>
+    <lastmod>2026-10-13</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>

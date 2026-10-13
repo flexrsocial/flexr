@@ -151,6 +151,12 @@ def test_radius_validation(client):
     headers = register_user(client, "val.m@example.com")
     assert client.patch("/api/profiles/me", headers=headers, json={"search_radius_km": 1}).status_code == 422
     assert client.patch("/api/profiles/me", headers=headers, json={"search_radius_km": 9999}).status_code == 422
+    # Obergrenze seit 13.10.2026: 580 km (vorher 250).
+    assert client.patch("/api/profiles/me", headers=headers, json={"search_radius_km": 581}).status_code == 422
+    _mit_premium(client, headers)
+    resp = client.patch("/api/profiles/me", headers=headers, json={"search_radius_km": 580})
+    assert resp.status_code == 200
+    assert resp.json()["search_radius_km"] == 580
 
 
 
