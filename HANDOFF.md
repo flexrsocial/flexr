@@ -32,6 +32,89 @@ erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 
 ## Wo das Projekt gerade steht
 
+> **Sitzung 13.10.2026 (2): Suchumkreis bis 580 km, Website-Texte, Zusatz
+> „bis 31.12.2026 für alle frei“.** Wunsch des Nutzers: maximaler
+> Suchumkreis 580 statt 250 km, alle Texte der Website anpassen (vor allem die
+> Premium-Werbung) und den Startboost-Zusatz einbauen (offene Frage aus
+> Sitzung (1), mit „ja“ beantwortet).
+>
+> Deployt (`8013849`, lokal committet und gepusht, VPS `git pull --ff-only`
+> als `deploy`, `sudo systemctl restart flexr-api`, keine Migration). Live
+> geprüft: 21 geänderte Adressen md5-gleich mit dem Repo (Landingpage DE/EN,
+> FAQ DE/EN, AGB DE/EN, alle neun Such-Einstiegsseiten, `/app/`,
+> `i18n-app.js?v=29`, `sw.js`, `startboost.js?v=1`, `i18n-landing.js`,
+> `sitemap.xml`), `startboost.js` mit `application/javascript`. Der deployte
+> Code liefert `MAX_SEARCH_RADIUS_KM = 580`, `TERMS_VERSION = 2026-10-13` und
+> ohne Premium im Boost 580 km. Health ok, Journal ohne Fehler.
+>
+> **Backend:** `MAX_SEARCH_RADIUS_KM = 580` (`schemas.py`; 580 km decken ganz
+> Österreich ab, äußerster West-Ost-Abstand ~576 km). Damit gilt auch der
+> Startboost bis 580 km, weil er „voller Regler“ heißt. Validierung: 581 → 422.
+> Die Gym-Umkreissuche (`gym_values_within`) geht ohnehin über die kleine
+> Gym-Tabelle, bei 580 km also über alle Studios. Unkritisch.
+>
+> **Web-App:** Der Regler läuft jetzt **quadratisch**: Stellung 0..1000,
+> km = 2 + 578·p². Linear lägen 50 km bei 8 % der Schiene; so liegen 20 km bei
+> 18 %, 50 km bei 29 % und 250 km bei 65 %. Der km-Wert steht getrennt in
+> `radiusWertKm` (`radiusSetzen()` beim Füllen, `input` beim Ziehen,
+> gespeichert wird `radiusWertKm`). So bleibt ein gespeicherter Wert exakt,
+> auch wo die Stellung oben nur ~1 km genau ist. `aria-valuetext` nennt km.
+> Konstanten `RADIUS_*` stehen oben bei `membership` (keine
+> Temporal-Dead-Zone). Premium-Seite: „Voller Suchumkreis bis 580 km“ plus
+> `#premiumRadiusBoost` („ – bis 31.12.2026 für alle frei“, Datum vom
+> Server), sichtbar solange `radius_boost_last_day` gesetzt ist.
+> `i18n-app.js?v=29`, SW-Cache `v39` (mit `/startboost.js?v=1` in der Shell).
+>
+> **Website:**
+> - Landingpage (`index.html` + `i18n-landing.js`, EN per
+>   `python3 frontend/build-en.py` erzeugt): „Von 2 bis 580 Kilometer“,
+>   Preiskarte frei „Suchumkreis bis 50 km – bis 31.12.2026 sogar bis 580 km“,
+>   Premium „Voller Suchumkreis bis 580 km – bis 31.12.2026 für alle frei“
+>   (`price.free4`/`price.prem5` jetzt `data-i18n-html`), FAQ-Antwort „Was
+>   kostet FLEXR?“ mit 580 km und Zusatzsatz.
+> - `faq.html`/`en/faq.html`: 580 km und Zusatzsatz. Das JSON-LD nennt keine
+>   Zahl und blieb unverändert.
+> - Such-Einstiegsseiten: Quelle ist `tools/seo/build_seo_pages.py`
+>   (Konstante `STARTBOOST`; FAQ-Einträge dürfen jetzt ein drittes Element
+>   haben, das nur im sichtbaren Text erscheint, nicht im FAQPage-JSON-LD).
+>   Neu gebaut mit `--refresh`: Gyms frisch aus der Live-API (+2: AIO Wien
+>   1230, Geinberg), daher „Stand: 13.10.2026“. Zusatz auf `gym-dating.html`
+>   (2×), Wien- und Innsbruck-Seite (je in der FAQ mit „50 Kilometer“).
+> - **`/startboost.js`** (neu, ohne `defer` im `<head>` von Landingpage DE/EN,
+>   FAQ DE/EN und allen Such-Einstiegsseiten): ab 01.01.2027 (Wiener Datum,
+>   Browseruhr) blendet es alle `.startboost` aus. Danach stehen dort wieder
+>   genau die regulären Texte („Suchumkreis bis 50 km“, „Voller Suchumkreis
+>   bis 580 km“). Wird der Boost verlängert, müssen Datum dort und Texte
+>   mitziehen.
+> - **AGB DE/EN, neue Fassung 2026-10-13** (`legal.TERMS_VERSION`): 8 a
+>   Premium „den vollen Suchumkreis bis 580 km“; **neu 7 e Startaktion**: bis
+>   einschließlich 31.12.2026 voller Umkreis bis 580 km für alle, von
+>   vornherein befristet, endet ohne Ankündigung; ab 01.01.2027 wieder 50 km
+>   nach 7 b, ausdrücklich „das vereinbarte Ende der Aktion und keine Senkung
+>   einer Grenze im Sinne von 7 d“ (sonst griffe Punkt 18 mit Zustimmung);
+>   8 d ergänzt („während der Startaktion erst mit deren Ende“). Grundlage für
+>   die sofortige Wirkung: 7 d („Erhöhen wir eine Grenze, gilt das sofort“).
+>   Bestandskonten behalten ihre angenommene Fassung im Consent-Log, eine
+>   erneute Zustimmung wird nicht abgefragt (gibt es im Code nicht). Juristisch
+>   nicht gegengeprüft.
+> - Sitemap: `lastmod` 2026-10-13 für `/`, `/en/`, FAQ und AGB (DE/EN) sowie
+>   die Such-Einstiegsseiten.
+>
+> **Tests:** 603 grün (Tests auf 580 umgestellt, `test_radius_validation` prüft
+> 581 → 422 und 580 mit Premium). `tools/check_betreiber.py` und
+> `tools/check_csp_hosts.py` ok. Lokal im Browser (SQLite-Backend,
+> Testkonto mit Platzhalter-Fotos): gespeicherte 205 km stehen exakt auf
+> dem Regler, Ziehen ganz nach rechts → 580 km, über die Oberfläche
+> gespeichert (Server: 580). Pfeiltasten gehen in ~1-km-Schritten, die
+> Premium-Seite zeigt den Zusatz in DE/EN. Mit abgelaufenem Boost ist der
+> Zusatz weg. Landingpage und alle Seiten mit Zusatz geprüft, `startboost.js`
+> mit vorverlegtem Datum blendet alles aus.
+>
+> **Android (nicht geändert, hier kein Java/SDK):** 2.7.22 kappt auf 250 km
+> und nennt in Premium-Text und AGB-Kurzfassung noch 250 km. Was der nächste
+> Build braucht, steht in `android-native/HANDOFF.md`, Checkliste Punkt 5.
+> Die iOS-App (abgelehnt, nicht im Einsatz) nennt ebenfalls noch 250 km.
+
 > **Sitzung 13.10.2026: Startboost, voller Suchumkreis ohne Premium bis
 > 31.12.2026.**
 > Wunsch des Nutzers: Als kleiner Startboost für die Plattform gilt die
@@ -8490,10 +8573,13 @@ Neu aus der Sitzung 13.10.2026:
   am 01.01.2027 von selbst. Nichts zu tun, außer der Nutzer will ihn
   verlängern (`RADIUS_BOOST_LAST_DAY` in `backend/.env` oder Default in
   `config.py`, dann API neu starten) oder vorzeitig beenden.
-- **Offene Frage an den Nutzer:** Soll die Premium-Seite und die
-  Landingpage-Preiskarte während des Boosts erwähnen, dass die 250 km gerade
-  für alle frei sind? Im Moment wirbt Premium weiter mit „Voller Suchumkreis
-  bis 250 km“, obwohl das bis Jahresende jeder hat.
+- ~~Offene Frage: Zusatz „für alle frei“ an der Premium-Werbung~~ —
+  erledigt in Sitzung 13.10.2026 (2), zusammen mit 580 km.
+- **Android-Build mit 580 km** (Texte, `MAX_RADIUS_KM`, möglichst quadratischer
+  Regler): siehe `android-native/HANDOFF.md`, Punkt 5. Vor dem Play-Store-Start
+  entscheiden, ob 2.7.22 so hochgeht (funktioniert, aber bis 250 km).
+- **Ab 2027 aufräumen (optional):** `.startboost`-Spans, `startboost.js`,
+  `STARTBOOST` im SEO-Generator, AGB 7 e in einer neuen Fassung.
 - Android: Boost-Hinweis optional in den nächsten Build
   (`android-native/HANDOFF.md`, Checkliste Punkt 5).
 
