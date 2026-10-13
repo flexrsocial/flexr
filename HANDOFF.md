@@ -1,6 +1,6 @@
 # FLEXR — Handoff für ein anderes Gerät / Claude Code
 
-Stand: **13.10.2026**
+Stand: **14.10.2026**
 
 ## ⚠️ Dringend zu prüfen: SSH-Zugang zum VPS hat sich geändert (21.09.2026)
 
@@ -31,6 +31,94 @@ Falls du das liest, weil dein `root@`-Login gerade fehlschlägt: das ist
 erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 
 ## Wo das Projekt gerade steht
+
+> **Sitzung 13./14.10.2026 (4): Prüfrunde Website, Web-App, Adminportal,
+> Android. Android 2.7.24 gebaut.** Wunsch des Nutzers: alles noch einmal
+> testen, prüfen und Fehler in Funktionen und Texten beheben.
+>
+> Deployt (`6247e83`, lokal committet und gepusht, VPS `git pull --ff-only`
+> als `deploy`, `sudo systemctl restart flexr-api`, keine Migration). Live
+> geprüft: 18 geänderte Adressen md5-gleich mit dem Repo (Landingpage DE/EN,
+> FAQ DE/EN, AGB, Datenschutz, Rücktritt, Nutzungsrichtlinien, Sicherheit,
+> Meldung, Impressum, Strafverfolgung, `admin.html`, `admin.js`, `/app/`,
+> `i18n-app.js`, `sw.js`, `i18n-landing.js`), `/api/health` ok, Journal ohne
+> Fehler. Der deployte Code nennt eine Sperre bis 19:53 UTC jetzt „bis
+> 20.10.2026, 21:53 Uhr“.
+>
+> **Wie geprüft:** Backend-Suite (603 → 604 grün), Android-Unit-Tests und
+> Lint, `tools/check_betreiber.py`, `tools/check_csp_hosts.py`. Live-Site und
+> lokale Site gecrawlt (32 Seiten, 157 Adressen, keine toten Links, alle
+> JSON-LD-Blöcke gültig). Alle API-Pfade aus Android (54), Web-App und
+> Adminportal gegen die Backend-Routen abgeglichen, keine Lücke. Wörterbuch
+> der Web-App: DE/EN je 561 Schlüssel, Platzhalter gleich; Android DE/EN je
+> 530. Lokal im Browser (SQLite-Backend, S3-Attrappe `moto` im Scratchpad,
+> Testkonten mit Demo-Fotos): Login, Deck, Like → Match, Chat hin und zurück
+> (Polling), Konto, Registrierung am Handy mit PLZ, Gym-Suche und drei Fotos,
+> Verifizierungs-Gate (ohne Kamera korrekte Meldung; Selfie und Ausweis per
+> API nachgereicht). Adminportal komplett: Login, 2FA einrichten und mit Code
+> anmelden, Dashboard und Zähler, Foto freigeben/ablehnen mit Grund,
+> Ausweisprüfung (Freigeben erst mit voller Checkliste, danach Aufnahmen
+> gelöscht), Meldung entscheiden, Gym bearbeiten und freigeben,
+> Chat-Sperre und Wirkung auf das Konto.
+>
+> **Behoben:**
+> - **Sperrzeit in der DSA-Begründung** (`moderation.statement_of_reasons`,
+>   geht per Mail und im 403-Detail an den Betroffenen): stand als UTC mit
+>   „Uhr“, die Sperre endete laut Mitteilung also 1–2 Stunden zu früh. Jetzt
+>   Europe/Vienna, EN mit „(Vienna time)“. Neuer Test für Sommer- und
+>   Winterzeit (`test_sperrende_steht_in_wiener_ortszeit`).
+> - **Adminportal:** Wer bei Chat-Sperre oder Kontosperre nur „OK“ drückte,
+>   schickte dem Nutzer „Verstoß gegen die Nutzungsrichtlinien:“ ohne Inhalt.
+>   Der vorbelegte Satzanfang allein wird jetzt abgewiesen. „7 Tage“ statt
+>   „7 Tag(e)“. `admin.js?v=3`.
+> - **Knopfname „Abo verwalten / kündigen“:** AGB 9 a, FAQ und Rücktrittsseite
+>   nennen ihn so, die Web-App sagte „Aboverwaltung“, Android „Abo verwalten“.
+>   Beide heißen jetzt wie in den AGB (EN „Manage / cancel subscription“).
+> - **FAQ** (Landingpage, `/faq.html`, je DE/EN samt JSON-LD): „Wie kündige
+>   ich?“ verschwieg, dass Käufe in der Android-App über Google Play gekündigt
+>   werden. „Wie melde oder blockiere ich?“ nannte für beides das
+>   Flaggen-Symbol, Blockieren geht über das Verbots-Symbol.
+> - **Web-App-Texte:** „Montags“ → „montags“ (Registrierung), „Wer trainiert,
+>   wo du bist“, Menüpfad nach Einwilligungs-Widerruf „Konto → Datenschutz &
+>   Sicherheit“ (stand „Einstellungen → Datenschutz“, gibt es nicht),
+>   Radius-Hinweis ohne „<=“, „Suchumkreis“ statt „Suchradius“, Ausweis-Hinweis
+>   umformuliert, Gedankenstriche, „Home Screen“ einheitlich.
+>   `i18n-app.js?v=30`, SW-Cache `v40`.
+> - **Anführungszeichen:** 66 Stellen „…" → „…“ auf allen deutschen Seiten
+>   (inkl. AGB, Datenschutz, rein typografisch, keine neue Fassung), in der
+>   App-Kurzfassung der Rechtstexte und in der Passwort-Mail.
+>
+> **Android 2.7.24 / versionCode 136** (nur Texte, siehe
+> `android-native/HANDOFF.md`, oberster Abschnitt): 59 Unit-Tests grün, Lint
+> 0 Fehler (109 Warnungen), AAB und APK mit dem Upload-Key signiert
+> (`BC:64:AD…79:80`, beide geprüft), aapt2 136/2.7.24, targetSdk 36.
+> **2.7.24 statt 2.7.23 in die Play Console hochladen.** In `release-2.7.24/`
+> (gitignored), dem Nutzer im Chat übergeben:
+>
+> | | SHA-256 | Größe |
+> |---|---|---|
+> | AAB | `061a5510bdbd16bd0f179aed841f45dfa47b7a77215e1a9c77b6ded10d47d2d2` | 8.535.946 Bytes |
+> | APK | `1a1099a1e60be5f95e09243d0a4edc53e9c0a33eecc4c310d44a3a40eaa0e9c8` | 4.420.114 Bytes |
+>
+> **Bewusst nicht geändert / offen:**
+> - Beta-Hinweis „Android: voraussichtlich Mitte Oktober im Play Store“
+>   (Landing, App) ist ab jetzt fällig. Nach dem Play-Start oder bei
+>   Verschiebung anpassen (Merker der Beta-Leiste mitziehen).
+> - Telefonnummern im Chat bleiben erlaubt (bewusst, `safety_checks.py`).
+> - Im Foto-Hinweis im Konto zählt die Web-App für „bis dahin unsichtbar“ alle
+>   Fotos, das Deck verlangt aber nur ein freigegebenes. Fällt nur auf, wer
+>   abgelehnte Fotos löscht und unter drei fällt. Nicht angefasst.
+> - Mails verwenden durchgehend „ - “ als Gedankenstrich; einheitlich, nicht
+>   geändert.
+> - **Auf dem VPS liegen zwei unversionierte Dateien**,
+>   `backend/app/admin.py` und `backend/app/requirements.txt` (21.09.2026,
+>   `deploy`, 600). Nicht importiert, der echte Router ist
+>   `app/routers/admin.py`. Vermutlich ein verirrter `scp`. Gelöscht wird nur
+>   nach Rückfrage beim Nutzer.
+> - Lokal: Der `venv` des Backends war leer (MEGA synchronisiert `venv`
+>   nicht) und wurde neu angelegt. `.claude/launch.json` eine Ebene höher hat
+>   die Einträge `s3-mock` und `flexr-local-e2e` (zeigen in den Scratchpad
+>   dieser Sitzung).
 
 > **Sitzung 13.10.2026 (3): Android 2.7.23 gebaut, iOS 2.4.11 vorbereitet.**
 > Commit `c948342`, gepusht. Beide Apps ziehen nach, was Web und Backend in
