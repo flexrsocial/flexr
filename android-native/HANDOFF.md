@@ -1,11 +1,56 @@
 # HANDOFF — native Android-App
 
-Stand: **04.10.2026**, Version 2.7.22 / versionCode 134. Der jüngste
+Stand: **13.10.2026**, Version 2.7.23 / versionCode 135. Der jüngste
 Abschnitt steht oben, ältere folgen darunter. Fassungen zwischen dem
 16.09. und dem 04.10. sind nur im Kommentar am `versionCode` in
 `app/build.gradle.kts` und in der Haupt-`HANDOFF.md` beschrieben.
 Für Aufbau, Build-Befehle und die Migrationstabelle siehe [README.md](README.md) —
 hier steht nur, was daraus *nicht* hervorgeht.
+
+---
+
+## Suchumkreis bis 580 km und Startboost, 13.10.2026 (2.7.23)
+
+Zieht nach, was Web und Backend am selben Tag bekamen (Haupt-`HANDOFF.md`,
+Sitzungen 13.10.2026): Der Server erlaubt bis 580 km statt 250, und bis
+31.12.2026 hat jedes Konto den vollen Umkreis, auch ohne Premium.
+
+* `AccountViewModel.MAX_RADIUS_KM = 580`. Der Regler läuft **quadratisch**
+  (`radiusAusStellung`/`stellungAusRadius` im `companion`, km = 2 + (max−2)·p²,
+  dieselbe Skala wie Web und iOS). Linear lägen 50 km bei 8 % der Schiene. Der
+  Zustand bleibt in km, nur der `Slider` läuft in 0..1. Die Ansage für
+  Screenreader kommt per `stateDescription` in km. Der Regler endet wie bisher
+  bei `maxSelectableRadiusKm` (nach dem Boost ohne Premium: 50).
+* Startboost: `radius_boost_last_day` → `MembershipStatusDto.radiusBoostLastDay`
+  → `Membership.radiusBoostLastDay` (`LocalDate?`, Standard `null`) →
+  `AccountUiState.radiusBoostLastDay`. Steht ein Datum, zeigt `AccountScreen`
+  unter dem Regler den limettengrünen Hinweis (`account_radius_boost`), und die
+  Paywall zeigt „Voller Suchumkreis bis 580 km – bis 31.12.2026 für alle frei“
+  (`premium_feature_radius_boost`). Ab Neujahr liefert der Server `null`, beides
+  entfällt von selbst.
+* Texte: `premium_feature_radius` jetzt 580 km. AGB-Kurzfassung
+  (`LegalContent.agb`): Premium bis 580 km und die Startaktion (AGB-Fassung
+  2026-10-13, Punkt 7 e).
+* Tests: neu `ui/account/RadiusSkalaTest` (Enden, Anteil bei 20/50 km, jeder
+  Wert 2..580 und 2..50 übersteht den Weg über die Stellung, Kappen). 59 Tests
+  grün, Lint 0 Fehler (109 Warnungen).
+* **Build auf diesem Rechner geht doch:** JDK 17 und Android-SDK liegen unter
+  `~/.bubblewrap/` (`jdk/jdk-17.0.11+9`, `android_sdk` mit `android-36`).
+  `local.properties` → `sdk.dir=/home/blktomcat/.bubblewrap/android_sdk`
+  (zeigte auf `/home/blacktomcat88/…`). Aufruf:
+  `JAVA_HOME=~/.bubblewrap/jdk/jdk-17.0.11+9 ./gradlew --no-daemon
+  :app:bundleProdRelease :app:assembleProdRelease`. Der Keystore wird aus
+  `../android/` gelesen.
+
+| 2.7.23 / 135 | SHA-256 | Größe |
+|---|---|---|
+| AAB (Play Console) | `3676e235ac8d93046ea6f3d2d12c46fb1ae5ab8f00352ac6cf9c43b1b5e6669e` | 8.535.850 Bytes |
+| APK (Testgerät) | `089fcf505f9a5030668e403e09f03d75837562640afeab5a78e76e82d87de1df` | 4.420.054 Bytes |
+
+aapt2: 135 / 2.7.23, targetSdk 36; Signer SHA-256 `BC:64:AD…79:80`
+(Upload-Key), für AAB und APK geprüft. Liegt in `release-2.7.23/`
+(gitignored). **2.7.23 statt 2.7.22 hochladen.** Am Gerät noch nicht
+geprüft, hier gibt es keinen Emulator.
 
 ---
 
@@ -186,8 +231,9 @@ Stand 04.10.2026 — die vollständige Liste der Console-Angaben steht in
    hinterlegen — ohne kommen sie nicht an der Ausweisprüfung vorbei.
 4. **Abo-Produkt** „FLEXR Premium“ in der Console angelegt und aktiv, mit
    derselben Produkt-ID wie im Backend.
-5. **Suchumkreis bis 580 km und Startboost** (seit 13.10.2026, siehe
-   Haupt-`HANDOFF.md`). Der Server erlaubt jetzt bis 580 km (vorher 250) und
+5. ~~**Suchumkreis bis 580 km und Startboost**~~ — **erledigt in 2.7.23**
+   (Abschnitt oben). Ursprüngliche Notiz (seit 13.10.2026, siehe
+   Haupt-`HANDOFF.md`): Der Server erlaubt jetzt bis 580 km (vorher 250) und
    liefert bis 31.12.2026 `max_radius_km = 580` auch ohne Premium. **2.7.22
    kappt das auf 250** (`AccountViewModel.MAX_RADIUS_KM = 250`,
    `status.maxRadiusKm.coerceAtMost(MAX_RADIUS_KM)`), funktioniert also, nur

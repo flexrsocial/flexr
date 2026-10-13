@@ -56,6 +56,8 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.PlatformTextStyle
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -327,11 +329,20 @@ fun AccountScreen(
             // dieses Konto ist das der volle Ausschlag, mit Grenze die
             // erlaubten Kilometer - ein Regler, der ueber etwas hinausgeht, das
             // gar nicht gespeichert wird, ist keine Auswahl, sondern eine Falle.
+            // Quadratische Skala (AccountViewModel.radiusAusStellung): Der Regler
+            // laeuft in Stellungen 0..1, Screenreader hoeren trotzdem km.
+            val radiusText = stringResource(R.string.account_radius_value, state.searchRadiusKm)
             Slider(
-                value = state.searchRadiusKm.toFloat(),
-                onValueChange = { viewModel.onSearchRadiusChange(it.toInt()) },
-                valueRange = AccountViewModel.MIN_RADIUS_KM.toFloat()..state.maxSelectableRadiusKm.toFloat(),
-                modifier = Modifier.weight(1f),
+                value = AccountViewModel.stellungAusRadius(state.searchRadiusKm, state.maxSelectableRadiusKm),
+                onValueChange = {
+                    viewModel.onSearchRadiusChange(
+                        AccountViewModel.radiusAusStellung(it, state.maxSelectableRadiusKm),
+                    )
+                },
+                valueRange = 0f..1f,
+                modifier = Modifier
+                    .weight(1f)
+                    .semantics { stateDescription = radiusText },
                 colors = SliderDefaults.colors(
                     thumbColor = colors.plate,
                     activeTrackColor = colors.plate,
@@ -340,7 +351,7 @@ fun AccountScreen(
             )
             Spacer(Modifier.width(12.dp))
             Text(
-                stringResource(R.string.account_radius_value, state.searchRadiusKm),
+                radiusText,
                 style = MonoStyle,
                 color = colors.chalk,
             )
@@ -358,6 +369,26 @@ fun AccountScreen(
             style = MaterialTheme.typography.bodySmall,
             color = colors.chalkDim,
         )
+        // Startboost bis 31.12.2026 - wie in der Web-App unter dem Regler.
+        // Ab Neujahr liefert der Server kein Datum mehr, der Hinweis entfaellt.
+        state.radiusBoostLastDay?.let { bis ->
+            Text(
+                text = stringResource(
+                    R.string.account_radius_boost,
+                    ServerTime.formatDay(bis),
+                    AccountViewModel.MAX_RADIUS_KM,
+                    ServerTime.formatDay(bis.plusDays(1)),
+                    state.freeMaxRadiusKm,
+                ),
+                style = MaterialTheme.typography.bodySmall,
+                color = colors.lime,
+                modifier = Modifier
+                    .padding(top = 8.dp)
+                    .fillMaxWidth()
+                    .border(1.dp, colors.lime.copy(alpha = 0.3f), MaterialTheme.shapes.small)
+                    .padding(horizontal = 10.dp, vertical = 8.dp),
+            )
+        }
 
         FieldError(state.saveError)
         Spacer(Modifier.height(16.dp))

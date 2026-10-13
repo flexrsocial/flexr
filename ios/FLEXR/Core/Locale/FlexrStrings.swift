@@ -111,6 +111,7 @@ enum L: Hashable, Sendable {
     case accountSectionProfile, accountSectionPhotos
     case accountSectionSubscription
     case accountManageSubscription, accountRadiusHint, accountRadiusCapped
+    case accountRadiusBoost
 
     // FLEXR Premium. Die Nutzung von FLEXR selbst ist dauerhaft kostenlos;
     // Preis und Grenzen kommen als Platzhalter vom Server.
@@ -121,6 +122,7 @@ enum L: Hashable, Sendable {
     case premiumActivateCta
     case premiumFeatureLikes, premiumFeatureChats, premiumFeatureIncoming
     case premiumFeatureRewind, premiumFeatureRadius, premiumFeatureBadge
+    case premiumFeatureRadiusBoost
     case premiumBetaHint, premiumLikesLeft, premiumLikesGone
     // Kauf über den App Store, siehe StoreKitService.
     case purchaseSuccess, purchasePending, purchaseFailed, purchaseUnavailable

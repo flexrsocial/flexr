@@ -44,6 +44,9 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.time.Instant
+import java.time.LocalDate
+import kotlin.math.roundToInt
+import kotlin.math.sqrt
 import javax.inject.Inject
 
 data class AccountUiState(
@@ -59,15 +62,26 @@ data class AccountUiState(
      * Kommt vom Server (`GET /api/billing/status`, Feld `max_radius_km`) und
      * ist damit dieselbe Zahl, die der Server auch durchsetzt - er kappt jeden
      * Wunsch darueber stillschweigend (`premium.clamp_radius`). Der Regler
-     * endet deshalb genau hier: Ein Standardkonto konnte ihn bisher bis 250 km
-     * ziehen, gespeichert wurden aber 50 km, und die Oberflaeche zeigte
-     * anschliessend eine Zahl, nach der gar nicht gesucht wurde.
+     * endet deshalb genau hier: Ein Standardkonto konnte ihn frueher bis zum
+     * vollen Ausschlag ziehen, gespeichert wurden aber 50 km, und die
+     * Oberflaeche zeigte anschliessend eine Zahl, nach der gar nicht gesucht
+     * wurde.
      *
      * Bis der Mitgliedsstand geladen ist, steht der volle Regler: lieber kurz
      * zu viel anbieten als einem Premium-Konto ohne Grund den halben Regler
      * wegzunehmen - durchgesetzt wird ohnehin serverseitig.
      */
     val maxSelectableRadiusKm: Int = AccountViewModel.MAX_RADIUS_KM,
+    /**
+     * Startboost (bis 31.12.2026): letzter Tag, an dem dieses Konto ohne
+     * Premium den vollen Umkreis hat - der Hinweis unter dem Regler steht
+     * genau dann. Kommt vom Server (`radius_boost_last_day`), der das Feld ab
+     * Neujahr weglaesst; die Grenze faellt dann ueber [maxSelectableRadiusKm]
+     * von selbst auf `free_max_radius_km` zurueck.
+     */
+    val radiusBoostLastDay: LocalDate? = null,
+    /** Regulaere Grenze ohne Premium, fuer den Startboost-Hinweis. */
+    val freeMaxRadiusKm: Int = 50,
     /** Solange gesetzt, ist ein Gym-Wechsel gesperrt (siehe MyProfile.activeGymLockUntil). */
     val gymChangeLockedUntil: Instant? = null,
     val isSaving: Boolean = false,
@@ -225,6 +239,8 @@ class AccountViewModel @Inject constructor(
             it.copy(
                 maxSelectableRadiusKm = grenze,
                 searchRadiusKm = it.searchRadiusKm.coerceAtMost(grenze),
+                radiusBoostLastDay = status?.radiusBoostLastDay,
+                freeMaxRadiusKm = status?.freeMaxRadiusKm ?: it.freeMaxRadiusKm,
             )
         }
     }
@@ -896,7 +912,31 @@ class AccountViewModel @Inject constructor(
     companion object {
         const val BIO_MAX_LENGTH = 280
         const val MIN_RADIUS_KM = 2
-        const val MAX_RADIUS_KM = 250
+        // Seit 13.10.2026 580 statt 250 km (ganz Oesterreich), wie
+        // backend/app/schemas.py MAX_SEARCH_RADIUS_KM.
+        const val MAX_RADIUS_KM = 580
+
+        /*
+         * Der Regler laeuft quadratisch, nicht linear: km = min + (max-min)·p².
+         * Bei 2..580 km laegen 50 km linear bei 8 % der Schiene, und die
+         * kleinen Umkreise, um die es meistens geht, waeren mit dem Finger
+         * kaum zu treffen. Quadratisch liegen 20 km bei 18 %, 50 km bei 29 %.
+         * Dieselbe Skala wie in der Web-App (frontend/app/index.html,
+         * radiusSetzen). Der Wert im Zustand bleibt in km - nur der Regler
+         * rechnet in Stellungen 0..1.
+         */
+        fun radiusAusStellung(stellung: Float, maxKm: Int): Int {
+            val p = stellung.coerceIn(0f, 1f)
+            return (MIN_RADIUS_KM + (maxKm - MIN_RADIUS_KM) * p * p).roundToInt()
+                .coerceIn(MIN_RADIUS_KM, maxOf(MIN_RADIUS_KM, maxKm))
+        }
+
+        fun stellungAusRadius(km: Int, maxKm: Int): Float {
+            val spanne = maxKm - MIN_RADIUS_KM
+            if (spanne <= 0) return 1f
+            val anteil = (km - MIN_RADIUS_KM).toFloat() / spanne
+            return sqrt(anteil.coerceIn(0f, 1f))
+        }
         private const val LOOKUP_DEBOUNCE_MS = 300L
     }
 }

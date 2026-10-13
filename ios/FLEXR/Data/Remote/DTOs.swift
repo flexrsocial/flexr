@@ -266,6 +266,9 @@ struct MembershipStatusDTO: Decodable {
     let freeOpenChats: Int?
     let freeMaxRadiusKm: Int?
     let maxRadiusKm: Int?
+    /// Startboost: letzter Tag (ISO) mit vollem Umkreis ohne Premium. Nur
+    /// gesetzt, solange der Boost läuft und dem Konto etwas bringt.
+    let radiusBoostLastDay: String?
     /// nil = unbegrenzt (Beta oder Premium).
     let likesRemaining: Int?
     let openChatsRemaining: Int?

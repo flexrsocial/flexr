@@ -336,7 +336,8 @@
     <string name="premium_feature_chats">So viele Unterhaltungen gleichzeitig, wie du willst</string>
     <string name="premium_feature_incoming">Sehen, wer dich schon geliked hat</string>
     <string name="premium_feature_rewind">Den letzten Swipe zurücknehmen</string>
-    <string name="premium_feature_radius">Voller Suchumkreis bis 250 km</string>
+    <string name="premium_feature_radius">Voller Suchumkreis bis 580 km</string>
+    <string name="premium_feature_radius_boost">Voller Suchumkreis bis 580 km – bis %1$s für alle frei</string>
     <string name="premium_feature_badge">Premium-Abzeichen in deinem Profil</string>
     <string name="premium_beta_hint">FLEXR Premium lässt sich in dieser App nicht abschließen. Die Nutzung von FLEXR kostet unverändert nichts.</string>
     <string name="premium_likes_left">Noch %1$d von %2$d Likes heute</string>
@@ -366,6 +367,7 @@
     <string name="account_manage_subscription">Abo verwalten</string>
     <string name="account_radius_hint">Radius rund um dein Gym. Dein Gerätestandort wird nicht verwendet.</string>
     <string name="account_radius_capped">Ohne FLEXR Premium reicht die Suche bis %1$d km.</string>
+    <string name="account_radius_boost">Startboost: Bis %1$s kannst du auch ohne FLEXR Premium den vollen Suchumkreis bis %2$d km nutzen. Ab %3$s sucht FLEXR ohne Premium wieder bis %4$d km.</string>
     <string name="account_section_subscription">Aboverwaltung</string>
     <string name="account_save">Profil speichern</string>
     <string name="account_saved">Profil gespeichert ✓</string>

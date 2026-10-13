@@ -129,6 +129,7 @@ fun MembershipStatusDto.toDomain() = Membership(
     freeOpenChats = freeOpenChats,
     freeMaxRadiusKm = freeMaxRadiusKm,
     maxRadiusKm = maxRadiusKm,
+    radiusBoostLastDay = ServerTime.parseDate(radiusBoostLastDay),
     likesRemaining = likesRemaining,
     openChatsRemaining = openChatsRemaining,
     nextLikeAt = nextLikeAt?.let { ServerTime.parse(it) },

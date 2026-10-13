@@ -310,7 +310,8 @@ extension FlexrStrings {
         .premiumFeatureChats: "So viele Unterhaltungen gleichzeitig, wie du willst",
         .premiumFeatureIncoming: "Sehen, wer dich schon geliked hat",
         .premiumFeatureRewind: "Den letzten Swipe zurücknehmen",
-        .premiumFeatureRadius: "Voller Suchumkreis bis 250 km",
+        .premiumFeatureRadius: "Voller Suchumkreis bis 580 km",
+        .premiumFeatureRadiusBoost: "Voller Suchumkreis bis 580 km – bis %@ für alle frei",
         .premiumFeatureBadge: "Premium-Abzeichen in deinem Profil",
         .premiumBetaHint: """
             FLEXR Premium lässt sich in dieser App nicht abschließen. Die \
@@ -357,6 +358,11 @@ extension FlexrStrings {
         .accountSectionSubscription: "Aboverwaltung",
         .accountManageSubscription: "Abo verwalten / kündigen",
         .accountRadiusCapped: "Ohne FLEXR Premium reicht die Suche bis %d km.",
+        .accountRadiusBoost: """
+            Startboost: Bis %@ kannst du auch ohne FLEXR Premium den vollen \
+            Suchumkreis bis %d km nutzen. Ab %@ sucht FLEXR ohne Premium wieder \
+            bis %d km.
+            """,
         .accountRadiusHint: """
             Ausgangspunkt ist die Adresse deines Gyms — nicht dein Wohnort und \
             nicht dein aktueller Standort. Im eingestellten Umkreis siehst du \

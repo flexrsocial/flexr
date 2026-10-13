@@ -1,7 +1,38 @@
 # HANDOFF — native iOS-App
 
-Stand: **21.09.2026**. Für Aufbau, Build-Befehle und die Migrationstabelle siehe
-[README.md](README.md) — hier steht nur, was daraus *nicht* hervorgeht.
+Stand: **13.10.2026**, Version 2.4.11. Für Aufbau, Build-Befehle und die
+Migrationstabelle siehe [README.md](README.md) — hier steht nur, was daraus
+*nicht* hervorgeht.
+
+---
+
+## Suchumkreis bis 580 km und Startboost, 13.10.2026 (2.4.11) — **in Codemagic zu prüfen**
+
+Gleicher Stand wie Android 2.7.23 und Web (Haupt-`HANDOFF.md`, Sitzungen
+13.10.2026). Auf dem Entwicklungsrechner gibt es keine Swift-Toolchain.
+Kompiliert und getestet wird nur in Codemagic: `ios-tests` läuft beim Push von
+selbst, der IPA-Build `ios-flexr` (lädt zu TestFlight hoch) wird von Hand
+gestartet. **Die App nicht erneut zur Prüfung einreichen** (Ablehnung nach
+4.3(b) am 04.10.2026, siehe Haupt-`HANDOFF.md`).
+
+- `RadiusSkala` (neu, oben in `UI/Account/AccountModel.swift`, bewusst ohne
+  `@MainActor`, damit Tests es direkt aufrufen): `maxKm = 580`, quadratische
+  Skala `radius(fromPosition:maxKm:)`/`position(fromRadius:maxKm:)`.
+  `AccountModel.min/maxRadiusKm` verweisen darauf. Der `Slider` in
+  `AccountView.radiusSlider` läuft über ein `Binding` in 0…1,
+  `accessibilityValue` nennt km.
+- `MembershipStatusDTO.radiusBoostLastDay` → `Membership.radiusBoostLastDay`
+  (`Date?`, UTC-Mitternacht über `ServerTime.parseDate`). Angezeigt wird mit
+  dem neuen `ServerTime.formatCalendarDay(_:plusDays:)` in UTC, sonst
+  verschöbe die Gerätezeitzone den Tag. Hinweis unter dem Regler
+  (`.accountRadiusBoost`), Paywall-Vorteil `.premiumFeatureRadiusBoost`
+  statt `.premiumFeatureRadius`, solange ein Datum da ist.
+- Texte DE/EN: `.premiumFeatureRadius` 580 km. AGB-Kurzfassung mit 580 km und
+  Startaktion (AGB 2026-10-13, Punkt 7 e). `MARKETING_VERSION` 2.4.11.
+- Test: neu `FLEXRTests/RadiusSkalaTests.swift` (Skala, Weg über die Stellung,
+  Dekodieren von `radius_boost_last_day`, Anzeige „31.12.2026“/„01.01.2027“).
+  Die Datei landet über die synchronisierten Ordner von Xcode 16 von selbst
+  im Test-Target.
 
 ---
 

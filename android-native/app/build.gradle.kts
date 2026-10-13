@@ -299,8 +299,12 @@ android {
         // 3 Monate) und Google Play als Empfaenger bei Kaeufen in dieser App
         // ergaenzt (fehlte seit der Web-Fassung vom 21.09.); Vorspann mit
         // Stand und Verweis auf den vollstaendigen Text.
-        versionCode = 134
-        versionName = "2.7.22"
+        // 135/2.7.23 am 13.10.2026: Suchumkreis bis 580 km (Regler quadratisch),
+        // Startboost-Hinweis unter dem Regler und am Premium-Vorteil (bis
+        // 31.12.2026 voller Umkreis fuer alle), AGB-Kurzfassung (Fassung
+        // 2026-10-13, Startaktion).
+        versionCode = 135
+        versionName = "2.7.23"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         // Nur die Sprachen ausliefern, die es wirklich gibt: Deutsch als

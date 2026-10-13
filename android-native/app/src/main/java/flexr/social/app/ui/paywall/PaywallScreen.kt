@@ -31,6 +31,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import flexr.social.app.core.common.ServerTime
 import flexr.social.app.R
 import flexr.social.app.core.designsystem.component.Eyebrow
 import flexr.social.app.core.designsystem.component.FlexrButton
@@ -157,13 +158,21 @@ fun PaywallScreen(
                 )
             }
             Spacer(Modifier.height(16.dp))
-            // Feste Vorteil-Liste, ohne Zahlen aus dem Serverstatus.
+            // Feste Vorteil-Liste, ohne Zahlen aus dem Serverstatus. Einzige
+            // Ausnahme ist der Startboost: Solange der volle Umkreis fuer alle
+            // frei ist (radius_boost_last_day), sagt der Vorteil das dazu,
+            // statt ihn als reinen Premium-Vorteil zu bewerben.
+            val boostBis = membership?.radiusBoostLastDay
             val vorteile = listOf(
                 stringResource(R.string.premium_feature_likes),
                 stringResource(R.string.premium_feature_chats),
                 stringResource(R.string.premium_feature_incoming),
                 stringResource(R.string.premium_feature_rewind),
-                stringResource(R.string.premium_feature_radius),
+                if (boostBis != null) {
+                    stringResource(R.string.premium_feature_radius_boost, ServerTime.formatDay(boostBis))
+                } else {
+                    stringResource(R.string.premium_feature_radius)
+                },
                 stringResource(R.string.premium_feature_badge),
                 stringResource(R.string.paywall_feature_cancel),
             )

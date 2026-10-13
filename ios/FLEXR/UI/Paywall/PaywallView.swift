@@ -26,17 +26,27 @@ struct PaywallView: View {
     @Environment(AppContainer.self) private var container
     @Environment(AppModel.self) private var appModel
 
-    /// Die feste Vorteil-Liste, ohne Zahlen aus dem Serverstatus.
+    /// Die feste Vorteil-Liste, ohne Zahlen aus dem Serverstatus. Einzige
+    /// Ausnahme ist der Startboost: Solange der volle Umkreis für alle frei
+    /// ist, sagt der Vorteil das dazu, statt ihn als reinen Premium-Vorteil
+    /// zu bewerben.
     private var features: [String] {
         [
             s(.premiumFeatureLikes),
             s(.premiumFeatureChats),
             s(.premiumFeatureIncoming),
             s(.premiumFeatureRewind),
-            s(.premiumFeatureRadius),
+            radiusFeature,
             s(.premiumFeatureBadge),
             s(.paywallFeatureCancel),
         ]
+    }
+
+    private var radiusFeature: String {
+        guard let bis = appModel.membership?.radiusBoostLastDay else {
+            return s(.premiumFeatureRadius)
+        }
+        return s(.premiumFeatureRadiusBoost, ServerTime.formatCalendarDay(bis))
     }
 
     var body: some View {

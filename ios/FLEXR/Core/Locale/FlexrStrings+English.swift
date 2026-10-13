@@ -307,7 +307,8 @@ extension FlexrStrings {
         .premiumFeatureChats: "As many conversations at once as you like",
         .premiumFeatureIncoming: "See who already liked you",
         .premiumFeatureRewind: "Undo your last swipe",
-        .premiumFeatureRadius: "Full search radius up to 250 km",
+        .premiumFeatureRadius: "Full search radius up to 580 km",
+        .premiumFeatureRadiusBoost: "Full search radius up to 580 km – free for everyone until %@",
         .premiumFeatureBadge: "Premium badge on your profile",
         .premiumBetaHint: """
             FLEXR Premium cannot be purchased in this app. Using FLEXR still \
@@ -354,6 +355,11 @@ extension FlexrStrings {
         .accountSectionSubscription: "Subscription",
         .accountManageSubscription: "Manage / cancel subscription",
         .accountRadiusCapped: "Without FLEXR Premium the search reaches %d km.",
+        .accountRadiusBoost: """
+            Launch boost: until %@ you can use the full search radius of up to \
+            %d km even without FLEXR Premium. From %@, FLEXR searches up to %d km \
+            again without Premium.
+            """,
         .accountRadiusHint: """
             The starting point is your gym's address — not your home and not \
             your current location. Within the radius you set you also see people \

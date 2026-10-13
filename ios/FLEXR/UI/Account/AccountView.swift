@@ -259,12 +259,26 @@ struct AccountView: View {
                 // erlaubten Kilometer — ein Regler, der über etwas hinausgeht,
                 // das gar nicht gespeichert wird, ist keine Auswahl, sondern
                 // eine Falle.
+                // Quadratische Skala (RadiusSkala): Der Regler läuft in 0…1,
+                // VoiceOver hört trotzdem km.
                 Slider(
-                    value: $model.searchRadiusKm,
-                    in: Double(AccountModel.minRadiusKm)...Double(model.maxSelectableRadiusKm),
-                    step: 1
+                    value: Binding(
+                        get: {
+                            RadiusSkala.position(
+                                fromRadius: Int(model.searchRadiusKm),
+                                maxKm: model.maxSelectableRadiusKm
+                            )
+                        },
+                        set: {
+                            model.searchRadiusKm = Double(
+                                RadiusSkala.radius(fromPosition: $0, maxKm: model.maxSelectableRadiusKm)
+                            )
+                        }
+                    ),
+                    in: 0...1
                 )
                 .tint(FlexrColor.plate)
+                .accessibilityValue(Text("\(Int(model.searchRadiusKm)) km"))
 
                 Text("\(Int(model.searchRadiusKm)) km")
                     .flexrText(.mono)
@@ -281,6 +295,29 @@ struct AccountView: View {
             )
             .flexrText(.bodySmall)
             .foregroundStyle(FlexrColor.chalkDim)
+            // Startboost bis 31.12.2026 - wie in Web und Android unter dem
+            // Regler. Ab Neujahr liefert der Server kein Datum mehr.
+            if let bis = model.radiusBoostLastDay {
+                Text(
+                    s(
+                        .accountRadiusBoost,
+                        ServerTime.formatCalendarDay(bis),
+                        AccountModel.maxRadiusKm,
+                        ServerTime.formatCalendarDay(bis, plusDays: 1),
+                        model.freeMaxRadiusKm
+                    )
+                )
+                .flexrText(.bodySmall)
+                .foregroundStyle(FlexrColor.lime)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 8)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 8)
+                        .stroke(FlexrColor.lime.opacity(0.3), lineWidth: 1)
+                )
+                .padding(.top, 8)
+            }
         }
     }
 

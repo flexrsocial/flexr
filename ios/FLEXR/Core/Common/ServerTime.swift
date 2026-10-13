@@ -106,6 +106,13 @@ enum ServerTime {
 
     static func formatBirthdate(_ date: Date) -> String { birthdateFormatter.string(from: date) }
 
+    /// Reiner Kalendertag aus `parseDate` (UTC-Mitternacht), z. B. der
+    /// Startboost-Stichtag. In UTC formatiert wie das Geburtsdatum, sonst
+    /// rutschte der Tag in Zeitzonen westlich von UTC um einen zurück.
+    static func formatCalendarDay(_ date: Date, plusDays days: Int = 0) -> String {
+        birthdateFormatter.string(from: date.addingTimeInterval(TimeInterval(days * 86_400)))
+    }
+
     /// Verbleibende volle Tage bis zum Zeitpunkt, nie negativ (wie `Math.ceil` im Web).
     static func daysUntil(_ date: Date, now: Date = Date()) -> Int {
         let seconds = date.timeIntervalSince(now)

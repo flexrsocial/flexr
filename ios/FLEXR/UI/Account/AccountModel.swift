@@ -1,5 +1,32 @@
 import Foundation
 
+/// Spannweite und Skala des Umkreis-Reglers. Eigener Typ ohne MainActor,
+/// damit die reine Rechnung auch aus Tests aufrufbar ist.
+///
+/// Seit 13.10.2026 reicht der Regler bis 580 statt 250 km (ganz Österreich,
+/// wie backend/app/schemas.py `MAX_SEARCH_RADIUS_KM`) und läuft quadratisch:
+/// km = min + (max−min)·p². Linear lägen 50 km bei 8 % der Schiene, die
+/// kleinen Umkreise wären mit dem Finger kaum zu treffen; quadratisch liegen
+/// 20 km bei 18 %, 50 km bei 29 %. Dieselbe Skala wie in Web und Android.
+/// `AccountModel.searchRadiusKm` bleibt in km - nur der Regler rechnet in 0…1.
+enum RadiusSkala {
+    static let minKm = 2
+    static let maxKm = 580
+
+    static func radius(fromPosition position: Double, maxKm: Int) -> Int {
+        let p = min(max(position, 0), 1)
+        let km = Int((Double(minKm) + Double(maxKm - minKm) * p * p).rounded())
+        return min(max(km, minKm), max(minKm, maxKm))
+    }
+
+    static func position(fromRadius km: Int, maxKm: Int) -> Double {
+        let spanne = maxKm - minKm
+        guard spanne > 0 else { return 1 }
+        let anteil = Double(km - minKm) / Double(spanne)
+        return min(max(anteil, 0), 1).squareRoot()
+    }
+}
+
 /// Konto-Bereich: Profil bearbeiten, Fotos verwalten, Mitgliedschaft,
 /// Verifizierung und Kontolöschung.
 @MainActor
@@ -7,8 +34,8 @@ import Foundation
 final class AccountModel {
 
     static let bioMaxLength = 280
-    static let minRadiusKm = 2
-    static let maxRadiusKm = 250
+    static let minRadiusKm = RadiusSkala.minKm
+    static let maxRadiusKm = RadiusSkala.maxKm
     private static let lookupDebounce: Duration = .milliseconds(300)
 
     // Kein `didSet`: Das @Observable-Makro schreibt Stored Properties in
@@ -47,9 +74,10 @@ final class AccountModel {
     /// Kommt vom Server (`GET /api/billing/status`, Feld `max_radius_km`) und
     /// ist damit dieselbe Zahl, die der Server auch durchsetzt — er kappt
     /// jeden Wunsch darüber stillschweigend (`premium.clamp_radius`). Der
-    /// Regler endet deshalb genau hier: Ein Standardkonto konnte ihn bisher
-    /// bis 250 km ziehen, gespeichert wurden aber 50 km, und die Oberfläche
-    /// zeigte anschließend eine Zahl, nach der gar nicht gesucht wurde.
+    /// Regler endet deshalb genau hier: Ein Standardkonto konnte ihn früher
+    /// bis zum vollen Ausschlag ziehen, gespeichert wurden aber 50 km, und die
+    /// Oberfläche zeigte anschließend eine Zahl, nach der gar nicht gesucht
+    /// wurde.
     ///
     /// Ohne geladenen Status (erster Start, kein Netz) bleibt der volle Regler
     /// stehen: lieber kurz zu viel anbieten als dem Premium-Konto ohne Grund
@@ -63,6 +91,14 @@ final class AccountModel {
 
     /// Gilt für dieses Konto überhaupt eine Grenze, oder steht der Regler offen?
     var isRadiusCapped: Bool { maxSelectableRadiusKm < Self.maxRadiusKm }
+
+    /// Startboost (bis 31.12.2026): Solange gesetzt, steht unter dem Regler
+    /// der Hinweis, ab wann ohne Premium wieder `freeMaxRadiusKm` gilt. Der
+    /// Server liefert das Datum nur, solange der Boost läuft und dem Konto
+    /// etwas bringt; ab Neujahr fällt die Grenze über `maxSelectableRadiusKm`
+    /// von selbst zurück.
+    var radiusBoostLastDay: Date? { membership?.radiusBoostLastDay }
+    var freeMaxRadiusKm: Int { membership?.freeMaxRadiusKm ?? 50 }
 
     // Einwilligungen (Art. 7 Abs. 3 DSGVO)
     var consents: [ConsentDTO] = []
@@ -231,7 +267,7 @@ final class AccountModel {
     /// Hält den Regler innerhalb dessen, was das Konto einstellen darf.
     ///
     /// Nötig, weil der gespeicherte Wert älter sein kann als die Grenze: Wer
-    /// Premium hatte und kündigt, kommt mit 250 km zurück. Der Server kappt
+    /// Premium hatte und kündigt, kommt mit bis zu 580 km zurück. Der Server kappt
     /// beim nächsten Speichern ohnehin, hier wird nur sichtbar, worauf.
     private func clampRadiusToLimit() {
         let grenze = Double(maxSelectableRadiusKm)

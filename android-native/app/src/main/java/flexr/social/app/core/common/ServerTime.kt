@@ -79,6 +79,9 @@ object ServerTime {
     fun formatDay(instant: Instant): String =
         dayFormatter.format(instant.atZone(ZoneId.systemDefault()))
 
+    /** Kalendertag ohne Zeitzone (z. B. Startboost-Stichtag), "31.12.2026". */
+    fun formatDay(date: LocalDate): String = dayFormatter.format(date)
+
     fun formatDateTime(instant: Instant): String =
         dateTimeFormatter.format(instant.atZone(ZoneId.systemDefault()))
 

@@ -194,6 +194,8 @@ data class Membership(
     val freeOpenChats: Int,
     val freeMaxRadiusKm: Int,
     val maxRadiusKm: Int,
+    /** Startboost: letzter Tag mit vollem Umkreis ohne Premium, sonst null. */
+    val radiusBoostLastDay: LocalDate? = null,
     /** null = unbegrenzt (Beta oder Premium). */
     val likesRemaining: Int?,
     val openChatsRemaining: Int?,

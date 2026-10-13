@@ -207,11 +207,15 @@ enum LegalContent {
                     + "Unterhaltungen (gezählt werden nur Matches, in denen selbst schon "
                     + "geschrieben wurde; die Zahl der Matches ist nicht begrenzt) und ein "
                     + "Suchumkreis bis 50 km. Diese Grenzen gelten seit 17. September "
-                    + "2026; davor war für alle Konten alles unbegrenzt.",
+                    + "2026; davor war für alle Konten alles unbegrenzt. Startaktion: Bis "
+                    + "einschließlich 31. Dezember 2026 gilt für alle Konten der volle "
+                    + "Suchumkreis bis 580 km; die Aktion ist befristet und endet ohne "
+                    + "weitere Ankündigung, ab 1. Jänner 2027 gilt wieder der Suchumkreis "
+                    + "bis 50 km.",
                 "FLEXR Premium ist ein freiwilliges Zusatzpaket um 10 € pro Monat. Es "
                     + "hebt die Grenzen aus lit. b auf und enthält zusätzlich: sehen, wer "
                     + "geliket hat, das Zurücknehmen des letzten Swipes, den vollen "
-                    + "Suchumkreis bis 250 km und ein Premium-Abzeichen im Profil. "
+                    + "Suchumkreis bis 580 km und ein Premium-Abzeichen im Profil. "
                     + "Bestellen kannst du Premium in dieser App über den App Store oder "
                     + "auf flexr.social. Bei einem Kauf über den App Store kommt der "
                     + "Zahlungsvertrag mit Apple zustande: Apple rechnet ab, zeigt den "
