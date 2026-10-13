@@ -32,6 +32,41 @@ erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 
 ## Wo das Projekt gerade steht
 
+> **Sitzung 13.10.2026 (3): Android 2.7.23 gebaut, iOS 2.4.11 vorbereitet.**
+> Commit `c948342`, gepusht. Beide Apps ziehen nach, was Web und Backend in
+> (1) und (2) bekamen: Obergrenze 580 km, quadratischer Regler (dieselbe
+> Skala wie die Web-App), Startboost-Hinweis unter dem Regler, Paywall-Vorteil
+> mit „bis 31.12.2026 für alle frei“ (gesteuert über `radius_boost_last_day`),
+> Texte DE/EN, AGB-Kurzfassung mit Startaktion. Einzelheiten in
+> `android-native/HANDOFF.md` und `ios/HANDOFF.md`, jeweils oberster Abschnitt.
+>
+> **Korrektur zu (1) und (2):** Auf diesem Rechner **gibt es** JDK 17 und
+> Android-SDK, unter `~/.bubblewrap/` (Bubblewrap-Installation). Gesucht hatte
+> ich nur im `PATH`. `local.properties` zeigte auf `/home/blacktomcat88/…`,
+> jetzt auf `/home/blktomcat/.bubblewrap/android_sdk`.
+>
+> **Android 2.7.23 / versionCode 135:** 59 Unit-Tests grün (neu
+> `RadiusSkalaTest`), Lint 0 Fehler (109 Warnungen). AAB und APK signiert mit
+> dem Upload-Key (`BC:64:AD…79:80`, für beide geprüft), aapt2 135/2.7.23,
+> targetSdk 36. In `release-2.7.23/` (gitignored) und dem Nutzer im Chat
+> übergeben. Prüfsummen:
+>
+> | | SHA-256 | Größe |
+> |---|---|---|
+> | AAB | `3676e235ac8d93046ea6f3d2d12c46fb1ae5ab8f00352ac6cf9c43b1b5e6669e` | 8.535.850 Bytes |
+> | APK | `089fcf505f9a5030668e403e09f03d75837562640afeab5a78e76e82d87de1df` | 4.420.054 Bytes |
+>
+> **2.7.23 ersetzt 2.7.22 für den Upload in die Play Console** (2.7.22 hätte
+> auf 250 km gekappt). Am Gerät noch nicht geprüft.
+>
+> **iOS 2.4.11** (`MARKETING_VERSION`): Code und Test
+> (`FLEXRTests/RadiusSkalaTests.swift`) sind fertig, aber **hier nicht
+> kompiliert**. Keine Swift-Toolchain, iOS baut nur in Codemagic. Der Push
+> stößt `ios-tests` von selbst an, das Ergebnis sieht nur der Nutzer
+> (Mail bei Fehlschlag). Der IPA-Build `ios-flexr` wird in Codemagic von Hand
+> gestartet und lädt zu TestFlight hoch. **Nicht erneut zur App-Prüfung
+> einreichen** (4.3(b)-Ablehnung vom 04.10.).
+
 > **Sitzung 13.10.2026 (2): Suchumkreis bis 580 km, Website-Texte, Zusatz
 > „bis 31.12.2026 für alle frei“.** Wunsch des Nutzers: maximaler
 > Suchumkreis 580 statt 250 km, alle Texte der Website anpassen (vor allem die
@@ -8567,6 +8602,13 @@ print(re.findall(rb"[0-9]+\.[0-9]+\.[0-9]+", d)[:5])' \
 
 ## Erinnerung für die nächste Sitzung
 
+Neu aus der Sitzung 13.10.2026 (3):
+
+- **Android 2.7.23 (versionCode 135) in die Play Console laden**, statt 2.7.22.
+- **Codemagic:** Ergebnis von `ios-tests` für `c948342` prüfen. Wenn grün und
+  gewünscht, den Workflow „FLEXR iOS“ von Hand starten (TestFlight, nicht zur
+  Prüfung einreichen).
+
 Neu aus der Sitzung 13.10.2026:
 
 - **Startboost läuft bis 31.12.2026** (voller Umkreis ohne Premium), endet
@@ -8575,9 +8617,7 @@ Neu aus der Sitzung 13.10.2026:
   `config.py`, dann API neu starten) oder vorzeitig beenden.
 - ~~Offene Frage: Zusatz „für alle frei“ an der Premium-Werbung~~ —
   erledigt in Sitzung 13.10.2026 (2), zusammen mit 580 km.
-- **Android-Build mit 580 km** (Texte, `MAX_RADIUS_KM`, möglichst quadratischer
-  Regler): siehe `android-native/HANDOFF.md`, Punkt 5. Vor dem Play-Store-Start
-  entscheiden, ob 2.7.22 so hochgeht (funktioniert, aber bis 250 km).
+- ~~Android-Build mit 580 km~~ — erledigt, 2.7.23 (Sitzung (3)).
 - **Ab 2027 aufräumen (optional):** `.startboost`-Spans, `startboost.js`,
   `STARTBOOST` im SEO-Generator, AGB 7 e in einer neuen Fassung.
 - Android: Boost-Hinweis optional in den nächsten Build
