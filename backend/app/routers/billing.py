@@ -67,6 +67,7 @@ def membership_status(
         free_open_chats=settings.free_open_chats,
         free_max_radius_km=settings.free_max_radius_km,
         max_radius_km=premium.max_radius_km(current_user),
+        radius_boost_last_day=premium.radius_boost_last_day(current_user),
         likes_remaining=premium.likes_remaining(db, current_user),
         open_chats_remaining=premium.open_chats_remaining(db, current_user),
         next_like_at=premium.next_like_at(db, current_user),

@@ -89,6 +89,33 @@ def test_larger_radius_includes_faraway_gyms(client, monkeypatch):
     assert 100 < graz["distance_km"] < 250
 
 
+def test_startboost_reicht_ohne_premium_bis_graz_und_endet_von_selbst(client, monkeypatch):
+    """Bis 31.12.2026 voller Umkreis auch ohne Premium - danach wieder 50 km.
+
+    Wien-Graz sind ~145 km: im Boost im Deck, nach dem Stichtag nicht mehr,
+    obwohl der gespeicherte Wunsch (250 km) unveraendert bleibt.
+    """
+    from datetime import timedelta
+
+    from app.config import settings
+    from app.timeutil import utcnow
+
+    heute = utcnow().date()
+    monkeypatch.setattr(settings, "radius_boost_last_day", heute + timedelta(days=30))
+    headers_a = register_user(client, "boost.m@example.com", gender="mann", gym=GYM_WIEN)
+    register_user_with_photo(client, "boost.f@example.com", name="Grazerin",
+                             gender="frau", gym=GYM_GRAZ)
+
+    resp = client.patch("/api/profiles/me", headers=headers_a, json={"search_radius_km": 250})
+    assert resp.json()["search_radius_km"] == 250
+    names = [p["name"] for p in client.get("/api/swipes/deck", headers=headers_a).json()]
+    assert "Grazerin" in names
+
+    monkeypatch.setattr(settings, "radius_boost_last_day", heute - timedelta(days=1))
+    names = [p["name"] for p in client.get("/api/swipes/deck", headers=headers_a).json()]
+    assert "Grazerin" not in names
+
+
 def test_gym_without_address_is_excluded_from_search(client):
     """Bestandsprofile mit blankem Gym-Namen haben keinen eindeutigen Punkt:
     sie sehen kein Deck und tauchen in fremden nicht auf."""

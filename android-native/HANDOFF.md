@@ -186,6 +186,16 @@ Stand 04.10.2026 — die vollständige Liste der Console-Angaben steht in
    hinterlegen — ohne kommen sie nicht an der Ausweisprüfung vorbei.
 4. **Abo-Produkt** „FLEXR Premium“ in der Console angelegt und aktiv, mit
    derselben Produkt-ID wie im Backend.
+5. **Optional: Startboost-Hinweis unter dem Umkreis-Regler** (seit 13.10.2026,
+   siehe Haupt-`HANDOFF.md`). Bis 31.12.2026 liefert der Server
+   `max_radius_km = 250` auch ohne Premium; 2.7.22 übernimmt das ohne Änderung
+   (`AccountViewModel` liest das Feld, `isRadiusCapped` wird falsch, kein
+   Sperrhinweis). Den Hinweistext der Web-App zeigt die App aber nicht. Dafür
+   bräuchte es `radius_boost_last_day` (ISO-Datum oder `null`) in
+   `MembershipStatusDto`/`Membership` und einen Text unter dem Regler in
+   `AccountScreen.kt`, also einen neuen Build. Ab 01.01.2027 gilt ohnehin
+   wieder der alte Zustand, auch in 2.7.22: Der Server liefert 50, und
+   `account_radius_capped` erscheint, wenn mehr gespeichert ist.
 
 ---
 

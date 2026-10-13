@@ -1944,6 +1944,11 @@
   .radius-value{ font-size:12.5px; color:var(--chalk); min-width:52px; text-align:right; }
   .radius-hint.over-cap{ color:var(--plate); }
   .radius-hint{ font-size:11.5px; color:var(--chalk-dim); margin-top:6px; }
+  .radius-boost{
+    color:var(--lime); line-height:1.45; margin-top:8px; padding:8px 10px;
+    border:1px solid rgba(199,255,74,0.3); border-radius:8px;
+  }
+  .radius-boost[hidden]{ display:none; }
   .account-section-title{
     font-family:'JetBrains Mono', monospace; font-size:11px; letter-spacing:0.1em; text-transform:uppercase;
     color:var(--chalk-dim); margin-bottom:12px; padding-bottom:9px; border-bottom:1px solid var(--hairline);
@@ -2171,7 +2176,7 @@
      laufen synchron und damit vor dem DOMContentLoaded, bei dem FlexrI18n die
      data-i18n-Knoten uebersetzt. -->
 <script src="/i18n.js?v=5"></script>
-<script src="/app/i18n-app.js?v=27"></script>
+<script src="/app/i18n-app.js?v=28"></script>
 <a class="skip-link" href="#main-content" data-i18n="common.skipToContent">Zum Inhalt springen</a>
 <div class="app" id="app">
 
@@ -2705,6 +2710,9 @@
           <span class="radius-value mono" id="radiusValue">20 km</span>
         </div>
         <div class="radius-hint" id="radiusHint" data-i18n="acct.radiusHint">Profile im Umkreis deines Gyms.</div>
+        <!-- Startboost bis 31.12.2026: Text und Sichtbarkeit setzt
+             renderRadiusBoostHint() aus membership.radius_boost_last_day. -->
+        <div class="radius-hint radius-boost" id="radiusBoost" hidden></div>
 
         <div class="field-err" id="acctProfileErr"></div>
         <button class="btn secondary" id="btnSaveProfile" style="margin-top:16px;" data-i18n="acct.save">Profil speichern</button>
@@ -5355,6 +5363,7 @@
     try{
       membership = await api('/api/billing/status');
       updateStatusPill();
+      renderRadiusBoostHint();
     }catch(e){ /* Zaehler ist Beiwerk - ein Fehler hier darf nichts blockieren */ }
   }
 
@@ -6275,7 +6284,26 @@
     return membership && membership.max_radius_km ? membership.max_radius_km : 250;
   }
 
+  /* Startboost: Bis 31.12.2026 hat jedes Konto den vollen Umkreis, auch ohne
+     Premium. Der Server liefert den letzten Boost-Tag nur, solange der Boost
+     laeuft und dem Konto etwas bringt - ab Neujahr fehlt das Feld, der Hinweis
+     verschwindet, und radiusCap() faellt von selbst auf die 50 km zurueck. */
+  function renderRadiusBoostHint(){
+    const box = $('radiusBoost');
+    const bis = membership && membership.radius_boost_last_day;
+    if(!bis){ box.hidden = true; return; }
+    const [j, m, d] = bis.split('-').map(Number);
+    const datum = (tagDazu) => new Date(Date.UTC(j, m - 1, d + tagDazu)).toLocaleDateString(
+      dateLocale(), {day:'2-digit', month:'2-digit', year:'numeric', timeZone:'UTC'});
+    setI18nText(box, 'premium.radiusBoost', {
+      bis: datum(0), ab: datum(1),
+      voll: $('a-radius').max, grenze: membership.free_max_radius_km,
+    });
+    box.hidden = false;
+  }
+
   function renderRadiusPremiumHint(){
+    renderRadiusBoostHint();
     const gewaehlt = Number($('a-radius').value);
     const grenze = radiusCap();
     const hinweis = $('radiusHint');
@@ -8949,6 +8977,7 @@
       updateStatusPill();
       renderLikeCounter();
       renderIncomingCard();
+      renderRadiusBoostHint();  // Datumsformat folgt der Sprache
       if(myProfile) renderAccount({keepForm: true});
       if(screen === 'screen-verify-gate' && verificationStatus) renderVerificationGate();
       if(screen === 'screen-onboard') renderRegJourney();

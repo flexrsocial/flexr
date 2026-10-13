@@ -387,6 +387,114 @@ def test_gespeicherter_umkreis_von_frueher_wirkt_nicht_weiter(client, monkeypatc
 
 
 # ---------------------------------------------------------------------------
+# Startboost: voller Umkreis ohne Premium bis 31.12.2026
+# ---------------------------------------------------------------------------
+
+def _boost_bis(monkeypatch, tage: int) -> None:
+    """Letzter Boost-Tag ``tage`` Tage ab heute (negativ = schon vorbei).
+
+    "Heute" in Wien, wie im Code - mit dem UTC-Datum schluege ``tage=0``
+    zwischen 22/23 Uhr UTC und Mitternacht fehl.
+    """
+    from zoneinfo import ZoneInfo
+
+    heute = datetime.now(ZoneInfo("Europe/Vienna")).date()
+    monkeypatch.setattr(settings, "radius_boost_last_day", heute + timedelta(days=tage))
+
+
+def test_startboost_endet_mit_dem_jahr_2026():
+    """Die Zusage an die Nutzer: bis Jahresende, ab 01.01.2027 wieder 50 km."""
+    from datetime import date
+
+    from app.config import Settings
+
+    assert Settings.model_fields["radius_boost_last_day"].default == date(2026, 12, 31)
+    assert Settings.model_fields["free_max_radius_km"].default == 50
+
+
+def test_startboost_endet_um_mitternacht_wiener_zeit(monkeypatch):
+    """Silvester 23:59:59 in Wien gilt noch, Neujahr 00:00 nicht mehr.
+
+    Wien ist im Winter UTC+1 - in UTC liegt die Grenze also bei 23:00.
+    """
+    from datetime import date
+
+    from app import premium as premium_modul
+
+    monkeypatch.setattr(settings, "radius_boost_last_day", date(2026, 12, 31))
+    assert premium_modul.radius_boost_active(datetime(2026, 12, 31, 22, 59, 59))
+    assert not premium_modul.radius_boost_active(datetime(2026, 12, 31, 23, 0, 0))
+    assert not premium_modul.radius_boost_active(datetime(2027, 1, 1, 12, 0, 0))
+
+
+def test_startboost_gibt_standardkonten_den_vollen_umkreis(client, monkeypatch):
+    monkeypatch.setattr(settings, "premium_enabled", True)
+    _boost_bis(monkeypatch, 30)
+    headers = register_user(client, "boost@example.com")
+
+    resp = client.patch(
+        "/api/profiles/me", json={"search_radius_km": 250}, headers=headers
+    )
+    assert resp.json()["search_radius_km"] == 250
+
+    status = client.get("/api/billing/status", headers=headers).json()
+    assert status["max_radius_km"] == 250
+    # Die reguläre Grenze bleibt sichtbar - der Hinweis nennt sie.
+    assert status["free_max_radius_km"] == 50
+    assert status["radius_boost_last_day"] == settings.radius_boost_last_day.isoformat()
+    # Nur der Umkreis: Likes bleiben begrenzt.
+    assert status["likes_remaining"] == settings.free_daily_likes
+
+
+def test_startboost_meldet_sich_nur_wo_er_etwas_bringt(client, monkeypatch):
+    """Kein Hinweis fuer Premium-Konten und bei ausgeschaltetem Schalter."""
+    monkeypatch.setattr(settings, "premium_enabled", True)
+    _boost_bis(monkeypatch, 30)
+    headers = register_user(client, "boost-premium@example.com")
+    _set_premium(_user_id(client, headers))
+    status = client.get("/api/billing/status", headers=headers).json()
+    assert status["radius_boost_last_day"] is None
+    assert status["max_radius_km"] == 250
+
+    monkeypatch.setattr(settings, "premium_enabled", False)
+    headers = register_user(client, "boost-beta@example.com")
+    status = client.get("/api/billing/status", headers=headers).json()
+    assert status["radius_boost_last_day"] is None
+
+
+def test_nach_dem_startboost_greift_die_grenze_von_selbst(client, monkeypatch):
+    """Ohne Deploy und ohne Datenkorrektur: Der Stichtag allein reicht."""
+    from app import premium as premium_modul
+
+    monkeypatch.setattr(settings, "premium_enabled", True)
+    monkeypatch.setattr(settings, "free_max_radius_km", 50)
+    _boost_bis(monkeypatch, 0)  # heute ist der letzte Boost-Tag
+    headers = register_user(client, "boost-ende@example.com")
+    assert client.patch(
+        "/api/profiles/me", json={"search_radius_km": 200}, headers=headers
+    ).json()["search_radius_km"] == 200
+
+    _boost_bis(monkeypatch, -1)  # Stichtag vorbei
+
+    status = client.get("/api/billing/status", headers=headers).json()
+    assert status["max_radius_km"] == 50
+    assert status["radius_boost_last_day"] is None
+
+    db = TestingSessionLocal()
+    try:
+        user = db.query(User).filter(User.email == "boost-ende@example.com").one()
+        assert user.search_radius_km == 200, "der Wunsch bleibt gespeichert"
+        assert premium_modul.clamp_radius(user, user.search_radius_km) == 50
+    finally:
+        db.close()
+
+    # Beim naechsten Speichern wird auf das Erlaubte gekappt.
+    assert client.patch(
+        "/api/profiles/me", json={"search_radius_km": 200}, headers=headers
+    ).json()["search_radius_km"] == 50
+
+
+# ---------------------------------------------------------------------------
 # Premium-Funktionen
 # ---------------------------------------------------------------------------
 

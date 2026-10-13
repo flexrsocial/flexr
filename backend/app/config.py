@@ -1,3 +1,5 @@
+from datetime import date
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -163,6 +165,14 @@ class Settings(BaseSettings):
     free_daily_likes: int = 20          # rollierend ueber 24 Stunden
     free_open_chats: int = 3            # gleichzeitig laufende Unterhaltungen
     free_max_radius_km: int = 50        # Premium bis zum vollen Regler (250)
+
+    # Startboost (seit 13.10.2026): Bis einschliesslich diesem Tag
+    # (Europe/Vienna) gilt der volle Umkreis bis 250 km auch ohne Premium.
+    # Ab dem Folgetag 00:00 greift ``free_max_radius_km`` wieder von selbst -
+    # ohne Deploy, ohne Neustart, ohne Datenkorrektur (premium.max_radius_km
+    # fragt bei jedem Aufruf neu). Nur der Umkreis, Likes und Chats bleiben
+    # begrenzt. Ein vergangenes Datum beendet den Boost vorzeitig.
+    radius_boost_last_day: date = date(2026, 12, 31)
 
     frontend_url: str = "https://flexr.social"
     env: str = "development"

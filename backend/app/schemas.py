@@ -415,6 +415,12 @@ class MembershipStatus(BaseModel):
     free_open_chats: int
     free_max_radius_km: int
     max_radius_km: int
+    # Startboost: letzter Tag, an dem dieses Konto ohne Premium den vollen
+    # Umkreis hat (premium.radius_boost_last_day). Gesetzt nur, solange der
+    # Boost laeuft und dem Konto etwas bringt - die Web-App zeigt dann unter
+    # dem Regler den Hinweis, ab wann wieder ``free_max_radius_km`` gilt.
+    # Ab dem Folgetag ``None``, und ``max_radius_km`` faellt von selbst zurueck.
+    radius_boost_last_day: Optional[date] = None
 
     # Verbrauch. ``None`` heisst unbegrenzt - waehrend der Beta immer, mit
     # Premium immer, sonst nie.

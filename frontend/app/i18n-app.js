@@ -330,6 +330,7 @@
     'premium.chatLimit': 'Du hast {n} Unterhaltungen offen — mehr gehen gleichzeitig nicht.',
     'premium.chatLimitCta': 'Löse ein Match auf oder hol dir FLEXR Premium.',
     'premium.radiusCapped': 'Über {grenze} km braucht es FLEXR Premium - gespeichert kann daher nur ein Suchumkreis <= {grenze} km werden.',
+    'premium.radiusBoost': 'Startboost: Bis {bis} kannst du auch ohne FLEXR Premium den vollen Suchumkreis bis {voll} km nutzen. Ab {ab} sucht FLEXR ohne Premium wieder bis {grenze} km.',
     'premium.rewindFailed': 'Zurücknehmen hat nicht geklappt.',
 
     // ---- Wer dich geliked hat
@@ -941,6 +942,7 @@
     'premium.chatLimit': 'You have {n} conversations open — that is the limit at any one time.',
     'premium.chatLimitCta': 'Unmatch someone or get FLEXR Premium.',
     'premium.radiusCapped': 'Beyond {grenze} km needs FLEXR Premium - so only a search radius <= {grenze} km can be saved.',
+    'premium.radiusBoost': 'Launch boost: until {bis} you can use the full search radius of up to {voll} km even without FLEXR Premium. From {ab}, FLEXR searches up to {grenze} km again without Premium.',
     'premium.rewindFailed': 'Could not undo that swipe.',
 
     // ---- Who liked you

@@ -24,6 +24,11 @@ os.environ.setdefault("STRIPE_PRICE_ID", "")
 # geschaltet. Der ausgeschaltete Zustand hat eigene Tests (test_premium.py);
 # sie legen den Schalter gezielt per monkeypatch um.
 os.environ.setdefault("PREMIUM_ENABLED", "true")
+# Startboost (voller Umkreis ohne Premium bis 31.12.2026) fuer die Suite
+# abgelaufen: Geprueft werden die Grenzen, die danach wieder von selbst
+# greifen - sonst haengt das Ergebnis vom Kalender ab. Der Boost selbst hat
+# eigene Tests (test_premium.py), die das Datum gezielt umstellen.
+os.environ.setdefault("RADIUS_BOOST_LAST_DAY", "2026-10-12")
 # Objekt-Storage: Presigned URLs entstehen rein lokal, brauchen aber einen
 # Endpunkt. Bis zum 22.09.2026 kam der unbemerkt aus der lokalen backend/.env -
 # in einem frischen Klon (CI) scheiterten 44 Tests mit "Invalid endpoint".

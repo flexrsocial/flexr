@@ -94,13 +94,15 @@
 // v37: Anleitung nach Apples Fassung fuer iOS 27 ("Seitenmenue", "Zu
 // Home-Bildschirm hinzufuegen"), Rueckmeldung nach dem Stripe-Checkout
 // (?checkout=success/cancelled), iPad-Startbilder; i18n-app.js auf ?v=27.
-const CACHE = 'flexr-shell-v37';
+// v38: Startboost - Hinweis unter dem Umkreis-Regler, solange der volle
+// Umkreis bis 31.12.2026 auch ohne Premium gilt; i18n-app.js auf ?v=28.
+const CACHE = 'flexr-shell-v38';
 // Seit dem 15.08.2026 liegt die App unter /app/, an der Wurzel steht die
 // oeffentliche Landingpage. Beide gehoeren in die Shell: die Landingpage,
 // weil sie der Einstieg ist, die App, weil sie offline funktionieren soll.
 const SHELL = ['/', '/index.html', '/en/', '/en/index.html',
                '/app/', '/app/index.html',
-               '/lang-switch.js?v=2', '/i18n.js?v=5', '/app/i18n-app.js?v=27',
+               '/lang-switch.js?v=2', '/i18n.js?v=5', '/app/i18n-app.js?v=28',
                '/manifest.json', '/favicon.ico', '/legal.css?v=2',
                '/fonts/work-sans.woff2?v=1', '/fonts/oswald.woff2?v=1',
                '/icons/icon-192.png?v=4', '/icons/icon-512.png?v=4'];

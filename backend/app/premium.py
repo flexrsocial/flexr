@@ -10,7 +10,8 @@ Standardnutzer stossen dafuer an drei Grenzen (Zahlen in ``config.py``):
 
 * ``free_daily_likes``  - Likes je rollierendem 24-Stunden-Fenster
 * ``free_open_chats``   - gleichzeitig laufende Unterhaltungen
-* ``free_max_radius_km``- Suchumkreis
+* ``free_max_radius_km``- Suchumkreis (bis 31.12.2026 ausgesetzt, siehe
+  ``radius_boost_active``: Startboost fuer die Plattform)
 
 Dazu drei Funktionen, die es nur mit Premium gibt: eingehende Likes sehen, den
 letzten Swipe zuruecknehmen und das Premium-Abzeichen im Profil.
@@ -33,7 +34,8 @@ Oberflaeche muss dieselben Zahlen anzeigen, die der Server durchsetzt
 laufen genau so lange synchron, bis jemand eine davon anfasst.
 """
 
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta, timezone
+from zoneinfo import ZoneInfo
 
 from fastapi import HTTPException, Request, status
 from sqlalchemy import func
@@ -49,6 +51,9 @@ from .timeutil import utcnow
 # wird, die schlechtere Wahl: Der Zaehler springt dann mitten in der Nutzung
 # auf null zurueck oder eben gerade nicht, je nach Zeitzone des Servers.
 LIKE_WINDOW = timedelta(hours=24)
+
+# Zeitzone des Startboost-Stichtags (siehe radius_boost_active).
+_VIENNA = ZoneInfo("Europe/Vienna")
 
 
 def feature_locked(user: User) -> bool:
@@ -238,11 +243,41 @@ def ensure_chat_allowed(
 # Suchumkreis
 # ---------------------------------------------------------------------------
 
-def max_radius_km(user: User) -> int:
-    """Groesster Umkreis, den dieses Konto einstellen darf."""
+def radius_boost_active(now: datetime | None = None) -> bool:
+    """Laeuft gerade der Startboost (voller Umkreis auch ohne Premium)?
+
+    Der Stichtag ist ein Kalendertag in Europe/Vienna, nicht in UTC: Sonst
+    endete der Boost in der Silvesternacht schon um 01:00 Ortszeit statt um
+    Mitternacht. ``now`` ist naives UTC wie ueberall (timeutil.utcnow).
+    """
+    current = (now or utcnow()).replace(tzinfo=timezone.utc)
+    return current.astimezone(_VIENNA).date() <= settings.radius_boost_last_day
+
+
+def radius_boost_last_day(user: User, now: datetime | None = None) -> date | None:
+    """Letzter Boost-Tag - nur fuer Konten, denen der Boost etwas bringt.
+
+    ``None`` fuer Premium-Konten, bei ausgeschaltetem Schalter und nach dem
+    Stichtag: Dann gibt es keinen Hinweis zu zeigen. Die Oberflaeche zeigt den
+    Hinweis genau dann, wenn hier ein Datum steht.
+    """
+    if settings.premium_enabled and not user.is_premium and radius_boost_active(now):
+        return settings.radius_boost_last_day
+    return None
+
+
+def max_radius_km(user: User, now: datetime | None = None) -> int:
+    """Groesster Umkreis, den dieses Konto einstellen darf.
+
+    Waehrend des Startboosts (``settings.radius_boost_last_day``) fuer jedes
+    Konto der volle Regler. Danach wieder ``free_max_radius_km`` - auch fuer
+    Konten, die im Boost mehr gespeichert haben: Die Suche kappt bei jedem
+    Aufruf (swipes.py), das Speichern ebenfalls (profiles.py). Genau so lief
+    schon das Scharfschalten von Premium am 17.09.2026.
+    """
     from .schemas import MAX_SEARCH_RADIUS_KM
 
-    if not settings.premium_enabled or user.is_premium:
+    if not settings.premium_enabled or user.is_premium or radius_boost_active(now):
         return MAX_SEARCH_RADIUS_KM
     return settings.free_max_radius_km
 
