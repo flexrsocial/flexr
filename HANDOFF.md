@@ -32,6 +32,42 @@ erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 
 ## Wo das Projekt gerade steht
 
+> **Sitzung 14.10.2026 (17): Startradius, Knopf in der Freischalt-Mail,
+> QR-Code „am Handy weitermachen“.**
+>
+> Deployt (`6ffdb04`, gepusht; DB-Sicherung
+> `/home/deploy/db-backups/flexr-vor-deploy-20261014-2143.sql.gz`, dann
+> `git pull --ff-only`, `alembic upgrade head` → `c4f8a2d6e1b9`, `sudo
+> systemctl restart flexr-api`). Live: Health ok, `/api/auth/handoff`
+> antwortet (EN), `/app/`, `i18n-app.js?v=35`, `sw.js` (v45) md5-gleich.
+>
+> - **Startradius:** `auth.register` setzt `search_radius_km =
+>   premium.max_radius_km(user)` - im Startboost 580 km, danach
+>   `free_max_radius_km`, ohne Premium-Schalter 580. Vorher 20 km
+>   (Spalten-Default). Gilt für alle Clients, nur neue Konten.
+> - **Freischalt-Mail:** Knopf „Jetzt loslegen“ → `{frontend_url}/app/`,
+>   Nachbesserungs-Mail „Neue Aufnahme machen“; Link auch im Textteil.
+>   Ablehnung bleibt ohne Knopf. `_decision_html(..., button=)`.
+> - **Am Handy weitermachen (Web-App):** `app/geraetewechsel.py`, Tabelle
+>   `device_handoffs` (nur Hash, 10 Minuten, beim Einlösen gelöscht, ein neuer
+>   Code entwertet den alten, nur für nicht freigeschaltete Konten).
+>   `POST /api/verification/handoff` (Link + QR als SVG-Data-URI),
+>   `POST /api/auth/handoff` (einlösen → Token, Gerät wird erfasst). Link
+>   `/app/#weiter=<token>` - hinter `#`, landet in keinem Zugriffslog. Der
+>   Prüfbildschirm zeigt im Selfie-Schritt am Rechner (Zeiger fein) oben
+>   einen Kasten, ohne Kamera gleich mit Code. Am Rechner läuft alle 5 s eine
+>   Statusabfrage, die erst weiterspringt, wenn am Handy ein Schritt fertig
+>   ist (`next_step` ändert sich), nicht schon beim Öffnen der Kamera. Ein
+>   gültiger Code wird beim Neuzeichnen wiederverwendet (sonst entwertete das
+>   Zurückholen des Tabs einen gerade gescannten Code - beim Testen
+>   aufgefallen). Lokal mit zwei Tabs durchgespielt (Rechner/Handyformat).
+> - **Stripe-Produktbeschreibung** (Live, `prod_VH6teDHT70SoKH`): nennt noch
+>   250 km, „eingehende Likes“, „monatlich kündbar“. Steht im Stripe-Konto,
+>   nicht im Code; Korrekturvorschlag dem Nutzer gegeben, Änderung wartet auf
+>   seine Freigabe.
+>
+> **Tests:** Backend 664 grün (+14).
+
 > **Sitzung 14.10.2026 (16): Web-App – Registrierung in drei Schritten.**
 > Frage des Nutzers: Registrieren-Seite starr wie der Login, mit innerem
 > Scrollbalken im Formular? Empfehlung stattdessen (innerer Scrollbereich:
