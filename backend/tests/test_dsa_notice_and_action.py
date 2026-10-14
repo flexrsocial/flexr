@@ -305,3 +305,72 @@ def test_mit_smtp_geht_die_bestaetigung_raus(client, monkeypatch):
     body = client.post("/api/notices", json=_notice()).json()
     assert body["acknowledgement_sent"] is True
     assert "melderin@example.com" in body["message"]
+
+
+# ---------------------------------------------------------------------------
+# Anrede in den Mails an Melder (bis 14.10.2026 immer nur "Hallo,")
+# ---------------------------------------------------------------------------
+
+
+def _mails_abfangen(monkeypatch):
+    from app import mailer
+
+    mails = []
+    monkeypatch.setattr(
+        mailer, "send_email_with_retry",
+        lambda to, subject, text, html=None, **_: mails.append((to, subject, text, html)) or True,
+    )
+    monkeypatch.setattr(
+        mailer, "send_email",
+        lambda **kw: mails.append(
+            (kw["to_address"], kw["subject"], kw["text_body"], kw.get("html_body"))
+        ) or True,
+    )
+    return mails
+
+
+def _entscheiden(client, admin_headers):
+    notice_id = client.get("/api/admin/notices", headers=admin_headers).json()[0]["id"]
+    return client.post(
+        f"/api/admin/notices/{notice_id}/decide",
+        json={"outcome": "no_action", "decision_reason": "Kein Verstoß gegen die Richtlinien erkennbar.",
+              "decision_automated": False},
+        headers=admin_headers,
+    )
+
+
+def test_entscheidungsmail_spricht_den_melder_mit_namen_an(client, admin_headers, monkeypatch):
+    mails = _mails_abfangen(monkeypatch)
+    client.post("/api/notices", json=_notice())
+    assert _entscheiden(client, admin_headers).status_code == 200
+    to, subject, text, html = mails[-1]
+    assert to == "melderin@example.com"
+    assert text.startswith("Hallo Melderin Musterfrau,")
+    assert "Hallo Melderin Musterfrau," in html
+
+
+def test_entscheidungsmail_ohne_namen_bleibt_bei_hallo(client, admin_headers, monkeypatch):
+    mails = _mails_abfangen(monkeypatch)
+    # Ohne Namen geht es nur dort, wo anonymes Melden erlaubt ist (CSAM) -
+    # eine Adresse fuer die Rueckmeldung darf trotzdem dabei sein.
+    resp = client.post("/api/notices", json=_notice(category="csam", reporter_name=None))
+    assert resp.status_code == 201, resp.text
+    assert _entscheiden(client, admin_headers).status_code == 200
+    assert mails[-1][2].startswith("Hallo,\n")
+
+
+def test_entscheidungsmail_zur_app_meldung_nutzt_den_profilnamen(client, admin_headers, monkeypatch):
+    from tests.conftest import register_user
+
+    mails = _mails_abfangen(monkeypatch)
+    melder = register_user(client, "app.melder@example.com", name="Jana")
+    ziel = register_user(client, "app.ziel@example.com", name="Ziel")
+    ziel_id = client.get("/api/profiles/me", headers=ziel).json()["id"]
+    client.post("/api/reports", headers=melder,
+                json={"reported_user_id": ziel_id, "reason": "Beleidigt im Chat."})
+    report_id = client.get("/api/admin/reports", headers=admin_headers).json()[0]["id"]
+    resp = client.post(f"/api/admin/reports/{report_id}/decide", headers=admin_headers,
+                       json={"outcome": "no_action", "decision_note": "Kein Verstoß erkennbar."})
+    assert resp.status_code == 200
+    assert mails[-1][0] == "app.melder@example.com"
+    assert mails[-1][2].startswith("Hallo Jana,")

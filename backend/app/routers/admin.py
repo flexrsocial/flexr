@@ -905,6 +905,7 @@ def decide_notice(
             _outcome_label(notice.outcome, notice.language),
             notice.decision_reason,
             notice.language,
+            name=notice.reporter_name,
         )
 
     return {
@@ -1415,6 +1416,7 @@ def decide_report(
             _outcome_label(report.outcome, reporter.language),
             report.decision_note,
             reporter.language,
+            name=reporter.name,
         )
     return {
         "decided": True,

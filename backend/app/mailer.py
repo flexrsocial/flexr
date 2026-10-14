@@ -274,6 +274,19 @@ def _greeting_html(name: str, lang: str) -> str:
     return t("greeting", lang, name=html.escape(name))
 
 
+def _anrede(name: str | None, lang: str) -> str:
+    """Anrede mit Namen, wenn einer vorliegt - sonst "Hallo,". Fuer Mails an
+    Melder: Im Meldeformular ist der Name je nach Kategorie freiwillig, in
+    der App steht er im Profil."""
+    name = (name or "").strip()
+    return _greeting(name, lang) if name else t("greeting.plain", lang)
+
+
+def _anrede_html(name: str | None, lang: str) -> str:
+    name = (name or "").strip()
+    return _greeting_html(name, lang) if name else t("greeting.plain", lang)
+
+
 # ---------------------------------------------------------------------------
 # Bestätigungsmail (erste Mail nach der Registrierung)
 # ---------------------------------------------------------------------------
@@ -1199,7 +1212,8 @@ def send_photo_rejected(email: str, name: str, reason: str, lang: str = STANDARD
 
 
 def _report_decision_html(
-    reference: str, outcome: str, reason: str, lang: str = STANDARD
+    reference: str, outcome: str, reason: str, lang: str = STANDARD,
+    name: str | None = None,
 ) -> str:
     body = "\n".join([
         _p(t("report.intro", lang, reference=reference)),
@@ -1210,14 +1224,15 @@ def _report_decision_html(
         _p(t("report.appeal", lang)),
     ])
     return _email_shell(
-        t("report.eyebrow", lang), t("greeting.plain", lang), body, lang=lang
+        t("report.eyebrow", lang), _anrede_html(name, lang), body, lang=lang
     )
 
 
 def send_report_decision(
-    email: str, reference: str, outcome: str, reason: str, lang: str = STANDARD
+    email: str, reference: str, outcome: str, reason: str, lang: str = STANDARD,
+    name: str | None = None,
 ) -> bool:
-    body = f"""{t("greeting.plain", lang)}
+    body = f"""{_anrede(name, lang)}
 
 {t("report.intro", lang, reference=reference)}
 
@@ -1230,7 +1245,7 @@ def send_report_decision(
 """
     return send_email_with_retry(
         email, t("report.subject", lang, reference=reference), body,
-        _report_decision_html(reference, outcome, reason, lang),
+        _report_decision_html(reference, outcome, reason, lang, name),
         attempts=2, delay_seconds=1,
     )
 
@@ -1377,11 +1392,12 @@ def _notice_rows(
 
 
 def _notice_text(
-    reference: str, received_at: str, category_label: str, lang: str = STANDARD
+    reference: str, received_at: str, category_label: str, lang: str = STANDARD,
+    name: str | None = None,
 ) -> str:
     from . import legal
 
-    return f"""{t("greeting.plain", lang)}
+    return f"""{_anrede(name, lang)}
 
 {t("notice.intro", lang)}
 
@@ -1398,7 +1414,8 @@ def _notice_text(
 
 
 def _notice_html(
-    reference: str, received_at: str, category_label: str, lang: str = STANDARD
+    reference: str, received_at: str, category_label: str, lang: str = STANDARD,
+    name: str | None = None,
 ) -> str:
     body = "\n".join([
         _p(t("notice.intro", lang)),
@@ -1407,19 +1424,19 @@ def _notice_html(
         _p(t("notice.legalBasis", lang)),
     ])
     return _email_shell(
-        t("notice.eyebrow", lang), t("greeting.plain", lang), body,
+        t("notice.eyebrow", lang), _anrede_html(name, lang), body,
         _operator_footer_html(full=False), lang,
     )
 
 
 def send_notice_acknowledgement(
     email: str, reference: str, received_at: str, category_label: str,
-    lang: str = STANDARD,
+    lang: str = STANDARD, name: str | None = None,
 ) -> bool:
     """Empfangsbestätigung an den Melder, sofern er eine Adresse angegeben hat."""
     return send_email(
         to_address=email,
         subject=t("notice.subject", lang, reference=reference),
-        text_body=_notice_text(reference, received_at, category_label, lang),
-        html_body=_notice_html(reference, received_at, category_label, lang),
+        text_body=_notice_text(reference, received_at, category_label, lang, name),
+        html_body=_notice_html(reference, received_at, category_label, lang, name),
     )

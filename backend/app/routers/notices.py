@@ -158,6 +158,7 @@ def submit_notice(
             now.strftime("%d.%m.%Y %H:%M:%S UTC"),
             category_label(payload.category, lang),
             lang,
+            payload.reporter_name,
         )
     elif payload.reporter_email:
         logger.error(
