@@ -32,6 +32,32 @@ erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 
 ## Wo das Projekt gerade steht
 
+> **Sitzung 14.10.2026 (15): Testprofile erneuert.** Wunsch des Nutzers:
+> alte Testprofile ohne Haken löschen, je 10 neue Frauen und Männer ohne
+> Haken, jedes mit mindestens 3 Fotos.
+>
+> - **Gelöscht:** die 60 Konten `@flexrtest.at` ohne Haken vom 18.09., samt
+>   124 Fotodateien in R2 (DB-Sicherung vorher
+>   `/home/deploy/db-backups/flexr-vor-testkonten-20261014-2029.sql.gz`).
+>   Betroffen dabei: 157 Swipes, 1 Meldung, 3 Blockierungen echter Konten,
+>   keine Matches. Unabhängig davon hat der Nutzer zwischen 20:25 und 20:35
+>   im Adminportal 16 weitere Konten gelöscht, darunter
+>   `testuserfiverr@flexrtest.at`; übrig sind 9 echte Konten, alle mit Haken.
+> - **Neu:** 20 Konten (`seed_testuser_neu.py`, `fotos_bauen_neu.py` in
+>   `~/MEGA/flexr/seed/`, außerhalb des Repos): 10 Frauen, 10 Männer,
+>   überwiegend Wien, je 3-4 freigegebene Fotos derselben Person aus einer
+>   Unsplash-Serie (nur freie Lizenz), kein Haken, keine bestätigte Mail
+>   (keine Erinnerungsmails), `age_verified` bewusst nicht gesetzt.
+>   Geprüft: alle freigeschaltet, Einwilligung aktiv, Fotos laden öffentlich,
+>   das Deck von `appreview` (Frau sucht Mann, 250 km) zeigt 9 der neuen
+>   Männer (Salzburg liegt außerhalb).
+> - **Entscheidung des Nutzers** (nach Hinweis): Die Testprofile sind für
+>   alle sichtbar, auch für echte Nutzer nach dem Play-Store-Start. Hinweis
+>   war: Echte Nutzer wischen dann zwischen erfundenen Profilen mit Fotos
+>   echter Menschen, und der Store-Text sagt, jedes Konto werde geprüft.
+>   Alternative wäre eine Markierung „nur für Testkonten sichtbar“ gewesen
+>   (kleine Migration) - bei Bedarf nachholen.
+
 > **Sitzung 14.10.2026 (14): Play-Einreichung vorbereitet.**
 >
 > - **Prüfkonto `appreview@flexr.social`** hat jetzt dauerhaft Premium
