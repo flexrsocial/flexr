@@ -381,6 +381,8 @@
     <string name="notify_legal_hint">Legally required messages — about your subscription, withdrawal or moderation decisions — cannot be switched off here.</string>
 
     <string name="delete_body">Your account is deactivated immediately. Your data and photos are permanently deleted after 30 days. You will receive a confirmation email. Within those 30 days you can log in again with your existing password to undo the deletion.</string>
+    <string name="delete_sub_stripe">Your FLEXR Premium then ends at the end of the period you have paid for; nothing further will be charged.</string>
+    <string name="delete_sub_store">Your FLEXR Premium is billed through Google Play or the App Store. Deleting your account does not end it – please cancel it there, otherwise you will keep being charged.</string>
     <string name="delete_password_label">Your password to confirm</string>
     <string name="delete_confirm">Delete permanently</string>
     <string name="delete_password_missing">Please enter your password to confirm.</string>

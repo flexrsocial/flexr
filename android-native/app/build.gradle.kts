@@ -306,8 +306,11 @@ android {
         // 136/2.7.24 am 13.10.2026: Pruefrunde - Knopf "Abo verwalten /
         // kuendigen" heisst wie in AGB 9 a und FAQ, Selfie-Hinweis nennt auch
         // den Ausweis, Anfuehrungszeichen und Gedankenstriche in den Texten.
-        versionCode = 136
-        versionName = "2.7.24"
+        // 137/2.7.25 am 14.10.2026: Loeschdialog sagt bei laufendem Premium,
+        // was mit dem Abo passiert (Stripe endet zum Periodenende, ein
+        // Play-/App-Store-Abo muss dort gekuendigt werden).
+        versionCode = 137
+        versionName = "2.7.25"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         // Nur die Sprachen ausliefern, die es wirklich gibt: Deutsch als

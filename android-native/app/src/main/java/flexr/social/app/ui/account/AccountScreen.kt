@@ -61,6 +61,7 @@ import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.PlatformTextStyle
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.LineHeightStyle
@@ -786,6 +787,13 @@ fun AccountScreen(
     }
 
     if (state.deleteDialogVisible) {
+        // Laufendes Premium: Ein Stripe-Abo beendet der Server mit der
+        // Loeschung, ein Store-Abo kann er nicht kuendigen.
+        val aboHinweis = membership?.takeIf { it.isPremium }?.let { status ->
+            stringResource(
+                if (status.hasStripeSubscription) R.string.delete_sub_stripe else R.string.delete_sub_store,
+            )
+        }
         DeleteAccountDialog(
             password = state.deletePassword,
             error = state.deleteError,
@@ -793,6 +801,7 @@ fun AccountScreen(
             onPasswordChange = viewModel::onDeletePasswordChange,
             onConfirm = viewModel::confirmDelete,
             onDismiss = viewModel::hideDeleteDialog,
+            aboHinweis = aboHinweis,
         )
     }
 
@@ -1493,6 +1502,7 @@ internal fun DeleteAccountDialog(
     onPasswordChange: (String) -> Unit,
     onConfirm: () -> Unit,
     onDismiss: () -> Unit,
+    aboHinweis: String? = null,
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -1505,6 +1515,15 @@ internal fun DeleteAccountDialog(
                     style = MaterialTheme.typography.bodyMedium,
                     color = FlexrTheme.colors.chalkDim,
                 )
+                if (aboHinweis != null) {
+                    Spacer(Modifier.height(10.dp))
+                    Text(
+                        text = aboHinweis,
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        color = FlexrTheme.colors.chalk,
+                    )
+                }
                 FlexrPasswordField(
                     value = password,
                     onValueChange = onPasswordChange,

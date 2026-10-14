@@ -1,11 +1,36 @@
 # HANDOFF — native Android-App
 
-Stand: **13.10.2026**, Version 2.7.24 / versionCode 136. Der jüngste
+Stand: **14.10.2026**, Version 2.7.25 / versionCode 137. Der jüngste
 Abschnitt steht oben, ältere folgen darunter. Fassungen zwischen dem
 16.09. und dem 04.10. sind nur im Kommentar am `versionCode` in
 `app/build.gradle.kts` und in der Haupt-`HANDOFF.md` beschrieben.
 Für Aufbau, Build-Befehle und die Migrationstabelle siehe [README.md](README.md) —
 hier steht nur, was daraus *nicht* hervorgeht.
+
+---
+
+## Löschdialog nennt das Abo, 14.10.2026 (2.7.25)
+
+**2.7.25 statt 2.7.24 hochladen.** Bugfix-Runde 3 (Haupt-`HANDOFF.md`,
+Sitzung 14.10.2026 (7)): Eine Kontolöschung beendete ein laufendes Abo nicht.
+Ein Stripe-Abo beendet der Server seither selbst zum Periodenende, ein
+Play-/App-Store-Abo kann er nicht kündigen.
+
+* `DeleteAccountDialog` bekommt `aboHinweis` (Standard `null`, der Aufruf aus
+  dem Verifizierungs-Gate bleibt unverändert). `AccountScreen` setzt ihn bei
+  laufendem Premium: `delete_sub_stripe` mit Stripe-Abo („endet damit zum Ende
+  des bezahlten Zeitraums“), sonst `delete_sub_store` („Die Löschung beendet es
+  nicht – kündige es bitte dort“). Halbfett unter dem Erklärtext, DE/EN.
+* 59 Unit-Tests grün, Lint 0 Fehler (109 Warnungen, wie bisher). Gerätetest
+  steht weiter aus.
+
+| 2.7.25 / 137 | SHA-256 | Größe |
+|---|---|---|
+| AAB (Play Console) | `4f5127a83010836ea23d2ee9a23180d2e42e7acbf891b762360c74fe05b16688` | 8.536.989 Bytes |
+| APK (Testgerät) | `b278a49dae617ade48a4df7a259854a23a7b58bc1587902465d1d6ede5fb0875` | 4.420.814 Bytes |
+
+aapt2: 137 / 2.7.25, targetSdk 36; Signer SHA-256 `BC:64:AD…79:80`
+(Upload-Key) für AAB und APK geprüft. Liegt in `release-2.7.25/` (gitignored).
 
 ---
 

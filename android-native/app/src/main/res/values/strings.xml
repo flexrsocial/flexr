@@ -437,6 +437,8 @@
 
     <!-- ==== Konto löschen ==== -->
     <string name="delete_body">Dein Konto wird sofort deaktiviert. Deine Daten und Fotos werden nach 30 Tagen endgültig gelöscht. Du bekommst dazu eine Bestätigungsmail. Innerhalb der 30 Tage kannst du dich mit deinem bisherigen Passwort erneut einloggen, um die Löschung rückgängig zu machen.</string>
+    <string name="delete_sub_stripe">Dein FLEXR Premium endet damit zum Ende des bezahlten Zeitraums, danach wird nichts mehr abgebucht.</string>
+    <string name="delete_sub_store">Dein FLEXR Premium läuft über Google Play bzw. den App Store. Die Löschung beendet es nicht – kündige es bitte dort, sonst wird weiter abgebucht.</string>
     <string name="delete_password_label">Zur Bestätigung dein Passwort</string>
     <string name="delete_confirm">Endgültig löschen</string>
     <string name="delete_password_missing">Bitte gib zur Bestätigung dein Passwort ein.</string>
