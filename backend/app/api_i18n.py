@@ -72,6 +72,12 @@ _TEXTE: dict[str, str] = {
     "Dieser Link ist abgelaufen (er gilt {minuten} Minuten). Fordere über „Passwort vergessen?“ einen neuen an.":
         "This link has expired (it is valid for {minuten} minutes). Request a new one via “Forgot password?”.",
     "Zu diesem Link gibt es kein nutzbares Konto mehr.": "There is no usable account for this link any more.",
+    # ---- Am Handy weitermachen (QR-Code)
+    "Dieser Code ist abgelaufen oder wurde schon benutzt. Erzeuge am Computer einen neuen.":
+        "This code has expired or has already been used. Create a new one on your computer.",
+    "Mit diesem Code ist keine Anmeldung mehr möglich. Bitte melde dich an.":
+        "This code can no longer be used to sign in. Please log in.",
+    "Dein Konto ist bereits freigeschaltet.": "Your account is already activated.",
     # ---- Profil / Fotos
     "PLZ und Ort müssen gemeinsam aktualisiert werden.": "Postal code and town must be updated together.",
     "Postleitzahl nicht gefunden. Bitte prüfen.": "Postal code not found. Please check it.",

@@ -759,6 +759,26 @@ class PasswordReset(Base):
     created_at = Column(DateTime, default=utcnow)
 
 
+class DeviceHandoff(Base):
+    """Einmal-Link "am Handy weitermachen" (QR-Code im Pruefbildschirm).
+
+    Wer sich am Rechner registriert, hat dort meist keine Kamera fuer das
+    Selfie. Der QR-Code traegt einen Zufallstoken, der das Handy ohne
+    Passworteingabe anmeldet - deshalb gleiche Sorgfalt wie beim
+    Passwort-Reset: nur der Hash wird gespeichert, kurze Laufzeit
+    (geraetewechsel.TOKEN_TTL_MINUTES), beim Einloesen geloescht, und nur
+    fuer Konten, die noch in der Pruefung stecken.
+    """
+
+    __tablename__ = "device_handoffs"
+
+    id = Column(String, primary_key=True, default=gen_uuid)
+    user_id = Column(String, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    token_hash = Column(String, nullable=False, unique=True)
+    expires_at = Column(DateTime, nullable=False)
+    created_at = Column(DateTime, default=utcnow)
+
+
 class UserDevice(Base):
     """Geräteprüfung: Client erzeugt eine zufällige Geräte-ID (localStorage) und
     sendet sie bei Registrierung/Login mit. Dient der Erkennung von

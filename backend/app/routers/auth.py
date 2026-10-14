@@ -7,7 +7,7 @@ from sqlalchemy import func
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from .. import api_i18n, consents
+from .. import api_i18n, consents, premium
 from ..age import UNDERAGE_MESSAGE, age_on, is_adult
 from ..database import get_db
 from ..email_verification import TOKEN_TTL_HOURS, build_link, issue
@@ -26,6 +26,7 @@ from ..schemas import (
     PasswordResetRequest,
     AgeCheckRequest,
     AgeCheckResponse,
+    HandoffRedeemRequest,
     LoginRequest,
     RegisterRequest,
     TokenResponse,
@@ -278,6 +279,13 @@ def register(
         # dann bleibt es bei der Ausgangssprache (models.User.language).
         language=payload.language or "de",
     )
+    # Startwert des Suchradius: das Groesste, was das Konto gerade einstellen
+    # darf (Wunsch des Betreibers, 14.10.2026) - bis 31.12.2026 also fuer alle
+    # der volle Regler, danach fuer Standardkonten free_max_radius_km. Vorher
+    # stand jedes neue Konto auf dem Spalten-Default von 20 km und sah in
+    # einer duenn besetzten Gegend ein fast leeres Deck. Faellt die Grenze
+    # spaeter, kappt die Suche ohnehin bei jedem Aufruf (premium.clamp_radius).
+    user.search_radius_km = premium.max_radius_km(user)
     db.add(user)
     db.commit()
     db.refresh(user)
@@ -469,6 +477,25 @@ def forgot_password(
             payload.language or user.language,
         )
     return OkResponse()
+
+
+@router.post("/handoff", response_model=TokenResponse)
+@limiter.limit("10/minute")
+def redeem_handoff(
+    request: Request,
+    payload: HandoffRedeemRequest,
+    db: Session = Depends(get_db),
+):
+    """Einmal-Link aus dem QR-Code einloesen: meldet das Handy an, damit die
+    Pruefung dort mit dem Selfie weitergeht (geraetewechsel.py)."""
+    from .. import geraetewechsel
+
+    try:
+        user = geraetewechsel.redeem(db, payload.token)
+    except geraetewechsel.HandoffError as err:
+        raise HTTPException(400, str(err))
+    record_device(db, user.id, request)
+    return TokenResponse(access_token=create_access_token(user.id))
 
 
 @router.post("/password/reset", response_model=TokenResponse)

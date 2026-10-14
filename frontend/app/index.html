@@ -1731,6 +1731,12 @@
     text-transform:uppercase; color:var(--chalk);
   }
   .reg-nav{ margin-top:22px; }
+  .handoff-card .btn{ margin-top:12px; }
+  .handoff-qr{
+    display:block; margin:14px auto 8px; width:200px; height:200px;
+    border-radius:12px; background:#fff; padding:6px; box-sizing:content-box;
+  }
+  .handoff-hint{ font-size:12.5px; color:var(--chalk-dim); text-align:center; margin:0; }
   .reg-kosten{ margin:18px 0 12px; }
   .reg-pruefung{ padding:12px 16px; margin-bottom:0; }
   .reg-pruefung summary{ cursor:pointer; list-style:none; display:flex; align-items:center; gap:8px; }
@@ -2214,7 +2220,7 @@
      laufen synchron und damit vor dem DOMContentLoaded, bei dem FlexrI18n die
      data-i18n-Knoten uebersetzt. -->
 <script src="/i18n.js?v=5"></script>
-<script src="/app/i18n-app.js?v=34"></script>
+<script src="/app/i18n-app.js?v=35"></script>
 <a class="skip-link" href="#main-content" data-i18n="common.skipToContent">Zum Inhalt springen</a>
 <div class="app" id="app">
 
@@ -6147,6 +6153,15 @@
      rund anderthalb Bildschirme ueber dem Formular, und #premium wurde gar
      nicht ausgewertet. boot() wertet einstiegAusHash aus. */
   let einstiegAusHash = null;
+  // Einmal-Link aus dem QR-Code: /app/#weiter=<token>. Wie beim Reset-Link
+  // sofort aus der Adresszeile nehmen (Verlauf, Bildschirmfotos).
+  let uebergabeToken = null;
+  (function uebergabeAusAdresse(){
+    const m = location.hash.match(/^#weiter=([A-Za-z0-9_-]{20,128})$/);
+    if(!m) return;
+    uebergabeToken = m[1];
+    history.replaceState(null, '', location.pathname + location.search);
+  })();
   (function hashAusAdresse(){
     const h = location.hash.replace('#', '').toLowerCase();
     const bekannt = {registrieren:'register', register:'register', login:'login', premium:'premium'};
@@ -7980,7 +7995,10 @@
     $('vgateEyebrow').textContent = isReupload ? t('vgate.reworkEyebrow') : t('vgate.selfieEyebrow');
     $('vgateTitle').textContent = isReupload ? t('vgate.reworkTitle') : t('vgate.selfieTitle');
     statusWrap.innerHTML = isReupload ? gateStatusChip('bad', t('vgate.reworkChip')) : '';
+    // Am Rechner zuerst der QR-Code-Kasten: Ohne Kamera ist er der einzige
+    // Weg weiter und soll nicht unter zwei Infokaesten verschwinden.
     body.innerHTML = `
+      ${amRechner() ? '<div class="vcard handoff-card" id="handoffCard"></div>' : ''}
       <div class="vcard">
         ${isReupload ? `<p>${escapeHtml(st.reason || '')}</p>` : ''}
         <p>${escapeHtml(t('vgate.selfieP1'))}</p>
@@ -8000,6 +8018,100 @@
         <p style="margin-top:8px;">${t('vgate.privacyDetails')}</p>
       </div>`;
     btn.textContent = isReupload ? t('vgate.retryBtn') : t('vgate.startBtn');
+    if(amRechner()) renderHandoffCard();
+  }
+
+  /* ---------- Am Handy weitermachen (QR-Code) ----------
+     Wer sich am Rechner registriert, hat dort meist keine Kamera - das
+     Live-Selfie geht aber nur mit Kamera. Der Code traegt einen Einmal-Link
+     (10 Minuten, siehe backend/app/geraetewechsel.py), der das Handy ohne
+     Passwort anmeldet. Solange er angezeigt wird, fragt der Rechner den Stand
+     ab und springt von selbst weiter, sobald es am Handy vorangeht. */
+  function amRechner(){
+    return window.matchMedia('(pointer: fine)').matches && !window.matchMedia('(pointer: coarse)').matches;
+  }
+
+  let handoffPoll = null;
+  let handoffAblauf = null;
+  // Der zuletzt ausgestellte Code. Der Pruefbildschirm wird oft neu gezeichnet
+  // (Tab wieder im Vordergrund, Sprachwechsel) - ein neuer Code bei jedem Mal
+  // haette einen gerade gescannten entwertet.
+  let handoffAktuell = null;
+  function handoffStopp(){
+    clearInterval(handoffPoll);
+    handoffPoll = null;
+  }
+
+  async function renderHandoffCard(){
+    const karte = $('handoffCard');
+    if(!karte) return;
+    karte.innerHTML = `
+      <h3>${escapeHtml(t('handoff.title'))}</h3>
+      <p>${escapeHtml(t('handoff.text'))}</p>
+      <div id="handoffQr"></div>
+      <button type="button" class="btn secondary" id="btnHandoffShow">${escapeHtml(t('handoff.show'))}</button>`;
+    $('btnHandoffShow').addEventListener('click', () => zeigeHandoffQr(!!handoffAktuell));
+    // Noch gueltiger Code: wieder anzeigen statt neu ausstellen.
+    if(handoffAktuell && Date.now() < handoffAktuell.ablauf - 30000){ zeigeHandoffQr(false); return; }
+    // Ohne erkennbare Kamera gleich den Code zeigen. enumerateDevices nennt
+    // die Geraetearten auch ohne Kamera-Erlaubnis (nur die Namen nicht).
+    try{
+      const geraete = navigator.mediaDevices && navigator.mediaDevices.enumerateDevices
+        ? await navigator.mediaDevices.enumerateDevices() : [];
+      if(!geraete.some(g => g.kind === 'videoinput')) zeigeHandoffQr();
+    }catch(_){ /* unbekannt - dann eben auf Knopfdruck */ }
+  }
+
+  async function zeigeHandoffQr(neu){
+    const ziel = $('handoffQr');
+    const knopf = $('btnHandoffShow');
+    if(!ziel) return;
+    if(knopf) knopf.disabled = true;
+    try{
+      let res = handoffAktuell && !neu && Date.now() < handoffAktuell.ablauf - 30000
+        ? handoffAktuell.res : null;
+      if(!res){
+        res = await api('/api/verification/handoff', {method: 'POST'});
+        handoffAktuell = {res, ablauf: Date.now() + res.ttl_minutes * 60000};
+      }
+      handoffAblauf = handoffAktuell.ablauf;
+      ziel.innerHTML = `
+        <img class="handoff-qr" src="${res.qr}" width="200" height="200" alt="${escapeHtml(t('handoff.alt'))}">
+        <p class="handoff-hint">${escapeHtml(t('handoff.valid', {min: res.ttl_minutes}))}</p>`;
+      if(knopf){ knopf.textContent = t('handoff.renew'); knopf.disabled = false; }
+      starteHandoffPoll();
+    }catch(err){
+      ziel.innerHTML = `<p class="field-err">${escapeHtml(err.message || t('handoff.failed'))}</p>`;
+      if(knopf) knopf.disabled = false;
+    }
+  }
+
+  // Weiter geht es hier erst, wenn am Handy ein Schritt fertig ist (Selfie
+  // eingereicht -> Ausweis, oder alles eingereicht) - das blosse Oeffnen der
+  // Kamera am Handy (Status "in_progress") aendert den Schritt noch nicht.
+  function handoffStand(st){
+    return st ? `${st.next_step}|${['submitted', 'approved', 'rejected'].includes(st.status) ? st.status : ''}` : '';
+  }
+  function starteHandoffPoll(){
+    handoffStopp();
+    const vorher = handoffStand(verificationStatus);
+    handoffPoll = setInterval(async () => {
+      if(document.body.dataset.screen !== 'screen-verify-gate' || !$('handoffQr')){ handoffStopp(); return; }
+      if(handoffAblauf && Date.now() > handoffAblauf){
+        handoffStopp();
+        $('handoffQr').innerHTML = `<p class="handoff-hint">${escapeHtml(t('handoff.expired'))}</p>`;
+        return;
+      }
+      try{
+        const st = await loadVerificationStatus();
+        if(handoffStand(st) !== vorher){
+          handoffStopp();
+          handoffAktuell = null;
+          toast(t('handoff.continued'));
+          renderVerificationGate();
+        }
+      }catch(_){ /* naechster Versuch in ein paar Sekunden */ }
+    }, 5000);
   }
 
   /** Wie viele Pflichtfotos dem Konto noch fehlen (0, wenn erfüllt). */
@@ -9162,6 +9274,23 @@
     if(takeResetTokenFromUrl()){
       showScreen('screen-reset');
       return;
+    }
+    if(uebergabeToken){
+      const tok = uebergabeToken;
+      uebergabeToken = null;
+      try{
+        const res = await api('/api/auth/handoff', {method: 'POST', body: JSON.stringify({token: tok})});
+        setToken(res.access_token);
+        await loadCurrentUser();
+        $('bottomNav').style.display = 'flex';
+        goToApp();
+        toast(t('handoff.signedIn'));
+        return;
+      }catch(err){
+        // Abgelaufen oder schon benutzt: normal weiter zum Login (oder in die
+        // bestehende Sitzung), mit Begruendung.
+        toast(err.message || t('handoff.failed'));
+      }
     }
     const stripeErgebnis = stripeErgebnisAusAdresse();
     if(token){

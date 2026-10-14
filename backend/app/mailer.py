@@ -1046,11 +1046,18 @@ def send_account_deletion_confirmation(
 # ---------------------------------------------------------------------------
 
 
-def _decision_html(name: str, eyebrow: str, detail: str, lang: str = STANDARD) -> str:
+def _decision_html(
+    name: str,
+    eyebrow: str,
+    detail: str,
+    lang: str = STANDARD,
+    button: tuple[str, str] | None = None,
+) -> str:
     """Gebrandete Fassung im selben Look wie _verify_html - fuer kurze
-    Status-Mails ohne eigenen Call-to-Action-Link."""
+    Status-Mails, wahlweise mit einem Knopf (Link, Beschriftung)."""
     name_safe = html.escape(name)
     detail_html = html.escape(detail).replace("\n", "<br>")
+    knopf = _button_html(*button) if button else ""
     return f"""<!doctype html>
 <html lang="{t("html.lang", lang)}">
 <body style="margin:0;padding:24px;background:#0f0f11;font-family:Helvetica,Arial,sans-serif;color:#e8e8ea;">
@@ -1060,6 +1067,7 @@ def _decision_html(name: str, eyebrow: str, detail: str, lang: str = STANDARD) -
     <p style="margin:0 0 22px;font-size:15px;line-height:1.6;">
       {detail_html}
     </p>
+    {knopf}
     <p style="margin:0;font-size:13px;line-height:1.6;color:#a0a0a8;">
       {html.escape(t("decision.openApp", lang))}
       <a href="mailto:{settings.support_email}" style="color:#e8e8ea;">{settings.support_email}</a>.
@@ -1078,10 +1086,16 @@ def send_verification_decision(
     redo_selfie: bool = False,
     lang: str = STANDARD,
 ) -> bool:
+    # Wo es weitergeht, ein Knopf direkt in die Web-App (Wunsch des
+    # Betreibers, 14.10.2026): Bis dahin stand in der Freischalt-Mail nur
+    # "Oeffne FLEXR" - ohne Link, wer am Rechner las, musste die Seite suchen.
+    app_link = f"{settings.frontend_url.rstrip('/')}/app/"
+    button = None
     if outcome == "approved":
         subject = t("verified.subject", lang)
         eyebrow = t("verified.eyebrow", lang)
         detail = t("verified.detail", lang)
+        button = (app_link, t("verified.cta", lang))
     elif outcome == "reupload_required":
         subject = t("reupload.subject", lang)
         eyebrow = t("reupload.eyebrow", lang)
@@ -1090,22 +1104,24 @@ def send_verification_decision(
             "reupload.detail", lang,
             what=umfang, reason=reason or t("reupload.fallbackReason", lang),
         )
+        button = (app_link, t("reupload.cta", lang))
     else:
         subject = t("rejected.subject", lang)
         eyebrow = t("rejected.eyebrow", lang)
         detail = t(
             "rejected.detail", lang, reason=reason or t("rejected.fallbackReason", lang)
         )
+    link_zeile = f"{button[1]}: {button[0]}\n\n" if button else ""
     body = f"""{_greeting(name, lang)}
 
 {detail}
 
-{t("decision.openApp.text", lang)}
+{link_zeile}{t("decision.openApp.text", lang)}
 
 {t("signoff", lang)}
 """
     return send_email_with_retry(
-        email, subject, body, _decision_html(name, eyebrow, detail, lang),
+        email, subject, body, _decision_html(name, eyebrow, detail, lang, button),
         attempts=2, delay_seconds=1,
     )
 

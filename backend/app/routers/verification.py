@@ -20,12 +20,13 @@ from datetime import datetime
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 
-from .. import storage, telegram
+from .. import geraetewechsel, storage, telegram
 from ..database import get_db
 from ..mailer import email_configured
 from ..models import MIN_PHOTOS, User, VerificationRequest, VerificationStatus
 from ..rate_limit import limiter
 from ..schemas import (
+    HandoffOut,
     PresignPhotoRequest,
     PresignPhotoResponse,
     VerificationDocumentPresignRequest,
@@ -187,6 +188,29 @@ def start_verification(
     db.commit()
     db.refresh(req)
     return _status_out(current_user, req)
+
+
+@router.post("/handoff", response_model=HandoffOut)
+@limiter.limit("10/minute")
+def create_handoff(
+    request: Request,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """QR-Code, um die Pruefung am Handy fortzusetzen (Selfie braucht Kamera).
+
+    Nur solange das Konto nicht freigeschaltet ist - siehe geraetewechsel.py.
+    """
+    if current_user.is_account_activated:
+        raise HTTPException(400, "Dein Konto ist bereits freigeschaltet.")
+    token, ablauf = geraetewechsel.issue(db, current_user)
+    link = geraetewechsel.build_link(token)
+    return HandoffOut(
+        link=link,
+        qr=geraetewechsel.qr_data_uri(link),
+        expires_at=ablauf,
+        ttl_minutes=geraetewechsel.TOKEN_TTL_MINUTES,
+    )
 
 
 @router.post("/selfies/presign", response_model=PresignPhotoResponse)

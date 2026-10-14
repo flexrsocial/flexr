@@ -614,6 +614,8 @@ TEXTE: dict[str, dict[str, str]] = {
         "en": "Your FLEXR account is activated",
     },
     "verified.eyebrow": {"de": "Freigeschaltet", "en": "Activated"},
+    "verified.cta": {"de": "Jetzt loslegen", "en": "Get started"},
+    "reupload.cta": {"de": "Neue Aufnahme machen", "en": "Take a new photo"},
     "verified.detail": {
         "de": (
             "Deine Alters- und Identitätsprüfung wurde bestätigt. Dein Konto ist "

@@ -162,6 +162,19 @@ class PresignPhotoRequest(BaseModel):
     content_type: Literal["image/jpeg", "image/png", "image/webp"]
 
 
+class HandoffOut(BaseModel):
+    """Einmal-Link "am Handy weitermachen" samt QR-Code (geraetewechsel.py)."""
+
+    link: str
+    qr: str  # SVG als Data-URI
+    expires_at: datetime
+    ttl_minutes: int
+
+
+class HandoffRedeemRequest(BaseModel):
+    token: str = Field(min_length=20, max_length=128)
+
+
 class PresignPhotoResponse(BaseModel):
     upload_url: str
     object_key: str
