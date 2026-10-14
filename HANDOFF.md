@@ -47,6 +47,11 @@ erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 >   Produktionszugriff in der Play Console ist beantragt. Die neuen
 >   Testprofile sind für Googles Prüfer (Konto `appreview`, das schon 1 Match
 >   mit Chatverlauf hat).
+> - **Likes für die Prüfer:** Jakob, Leon, Niklas und Felix (`@flexrtest.at`)
+>   haben `appreview` geliked. Ein Rechtswisch auf sie ergibt sofort ein Match
+>   (Ablauf Swipe → Match → Chat prüfbar); sie stehen dadurch vorne im Deck.
+>   Sind alle vier gematcht, gibt es keine offenen Likes mehr - bei einer
+>   erneuten Prüfung die Likes neu setzen (Swipe-Zeilen Testkonto → appreview).
 > - **Neu:** 20 Konten (`seed_testuser_neu.py`, `fotos_bauen_neu.py` in
 >   `~/MEGA/flexr/seed/`, außerhalb des Repos): 10 Frauen, 10 Männer,
 >   überwiegend Wien, je 3-4 freigegebene Fotos derselben Person aus einer
