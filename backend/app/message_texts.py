@@ -1011,6 +1011,36 @@ TEXTE: dict[str, dict[str, str]] = {
             "From now on we will send all messages there."
         ),
     },
+    # ---- Neue Adresse eines bereits freigeschalteten Kontos bestaetigen ----
+    # Bis 14.10.2026 ging dafuer die Registrierungsmail raus ("dein Profil ist
+    # angelegt ... danach steht die Alters- und Identitaetspruefung an") - an
+    # Leute, die laengst geprueft sind.
+    "newemail.subject": {
+        "de": "Bestätige deine neue E-Mail-Adresse für FLEXR",
+        "en": "Confirm your new email address for FLEXR",
+    },
+    "newemail.eyebrow": {"de": "Neue E-Mail-Adresse", "en": "New email address"},
+    "newemail.intro": {
+        "de": (
+            "du hast die E-Mail-Adresse deines FLEXR-Kontos auf diese Adresse "
+            "geändert. Bitte bestätige sie über den Link. Er gilt {hours} Stunden."
+        ),
+        "en": (
+            "you changed the email address of your FLEXR account to this address. "
+            "Please confirm it via the link. It is valid for {hours} hours."
+        ),
+    },
+    "newemail.notYou": {
+        "de": (
+            "Du hast nichts geändert? Dann ignoriere diese Mail - ohne Bestätigung "
+            "bleibt die Adresse unbestätigt. Schreib uns trotzdem kurz an {support}."
+        ),
+        "en": (
+            "You did not change anything? Then ignore this email - without "
+            "confirmation the address stays unconfirmed. Please still let us know "
+            "at {support}."
+        ),
+    },
 }
 
 

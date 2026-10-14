@@ -292,6 +292,7 @@
     'acct.subStoreHint': 'Dein Abo läuft über den App Store bzw. Google Play — verwalten und kündigen lässt es sich nur dort.',
     'acct.privacy': 'Datenschutz &amp; Sicherheit',
     'acct.statusChecking': 'In Prüfung',
+    'acct.statusLocked': 'Nicht freigeschaltet',
     'acct.statusFree': 'Gratis',
 
     // ---- FLEXR Premium
@@ -912,6 +913,7 @@
     'acct.subStoreHint': 'Your subscription runs through the App Store or Google Play — it can only be managed and cancelled there.',
     'acct.privacy': 'Privacy &amp; safety',
     'acct.statusChecking': 'Under review',
+    'acct.statusLocked': 'Not unlocked',
     'acct.statusFree': 'Free',
 
     // ---- FLEXR Premium

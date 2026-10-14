@@ -24,7 +24,7 @@ from fastapi import APIRouter, BackgroundTasks, Depends, Request
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
-from .. import legal
+from .. import legal, telegram
 from ..database import get_db
 from ..mailer import email_configured, send_withdrawal_confirmation
 from ..models import User, WithdrawalDeclaration
@@ -279,6 +279,21 @@ def declare_withdrawal(
         declaration.reference,
         bool(current_user),
         subscription_stopped_at is not None,
+    )
+    # Bis 14.10.2026 erfuhr der Betreiber davon nur aus dem Server-Log - nach
+    # § 14 FAGG ist aber binnen 14 Tagen zu erstatten, und ein Store-Abo oder
+    # eine Erklaerung ohne Konto muss ohnehin jemand von Hand bearbeiten.
+    # Gleicher Weg wie bei Meldungen, Fotos und Gym-Vorschlaegen.
+    if current_user and current_user.has_store_premium:
+        hinweis = "Store-Abo: Kuendigung/Erstattung laeuft ueber Apple bzw. Google"
+    elif subscription_stopped_at is not None:
+        hinweis = "Stripe-Abo automatisch gestoppt, Erstattung pruefen"
+    else:
+        hinweis = "kein Abo automatisch zugeordnet, bitte von Hand pruefen"
+    background_tasks.add_task(
+        telegram.notify_admin_task,
+        f"🆕 Rücktrittserklärung {declaration.reference} eingegangen - {hinweis}. "
+        f"Vertrag/Konto: {payload.contract_reference or payload.email}",
     )
 
     return _ack_from(declaration, payload.email, kann_mailen, lang)

@@ -463,7 +463,9 @@
                     ? `<span class="pill warn" title="Selbstlöschung am ${fmtDate(u.deleted_at)} — Karenzzeit läuft">Gelöscht</span>`
                     : (u.is_banned ? '<span class="pill warn">Gesperrt</span>'
                       : (u.verification_rejected ? '<span class="pill warn" title="Jüngster Verifizierungsversuch endgültig abgelehnt — Fotos bereits gelöscht, Deck/Match/Chat gesperrt">Verifizierung abgelehnt</span>'
-                        : (u.is_subscribed ? '<span class="pill ok">Premium</span>' : '<span class="pill muted">Gratis</span>')))}
+                        : (u.is_subscribed ? '<span class="pill ok">Premium</span>'
+                          : (u.has_store_premium ? '<span class="pill ok" title="Im App Store bzw. Play Store gekauft">Premium (Store)</span>'
+                            : '<span class="pill muted">Gratis</span>'))))}
                 </td>
                 <td>${fmtDate(u.created_at)}</td>
               </tr>
@@ -506,7 +508,9 @@
         // mehr "inaktiv" sein. Unterschieden wird nur noch Premium/Gratis.
           : (u.is_subscribed
             ? '<span class="pill ok">FLEXR Premium</span>'
-            : '<span class="pill muted">Gratis</span>')));
+            : (u.has_store_premium
+              ? '<span class="pill ok" title="Im App Store bzw. Play Store gekauft">FLEXR Premium (Store)</span>'
+              : '<span class="pill muted">Gratis</span>'))));
 
     $('userModalBody').innerHTML = `
       <h3>${escapeHtml(u.name)}, ${u.age}</h3>
@@ -521,6 +525,7 @@
       <!-- trial_ends_at ist ein Restfeld ohne Bedeutung (kein Probemonat mehr)
            und wird deshalb nicht mehr angezeigt. -->
       <div class="detail-row"><span class="k">Stripe-Kunde</span><span class="mono">${escapeHtml(u.stripe_customer_id || '—')}</span></div>
+      ${u.store_premium_until ? `<div class="detail-row"><span class="k">Store-Abo</span><span>${u.has_store_premium ? 'läuft bis' : 'abgelaufen am'} ${fmtDateTime(u.store_premium_until)}</span></div>` : ''}
       <div class="detail-row"><span class="k">Telefon</span><span>${u.phone ? `${escapeHtml(u.phone)} ${u.phone_verified ? '<span class="pill ok">bestätigt</span>' : '<span class="pill muted">unbestätigt</span>'}` : '—'}</span></div>
       <div class="detail-row"><span class="k">Profil-Verifizierung</span><span>${u.is_verified ? '<span class="pill ok">verifiziert ✓</span>' : '<span class="pill muted">nicht verifiziert</span>'}</span></div>
       <div class="detail-row"><span class="k">Altersprüfung</span><span>${
@@ -1026,9 +1031,15 @@
               method: 'POST', body: JSON.stringify({reason_code: reasonCode}),
             });
           }
+          // Bei "Neue Aufnahme anfordern" ohne Selfie-Wiederholung bleibt das
+          // Selfie fuer die naechste Pruefung liegen (purge_uploads mit
+          // selfies=False) - die Meldung sagte trotzdem "Selfies geloescht".
+          const geloescht = (action === 'reupload' && !redoSelfie)
+            ? 'Erledigt — Ausweisaufnahmen gelöscht, das Selfie bleibt für die neue Prüfung.'
+            : 'Erledigt — Selfies und Ausweisaufnahmen wurden gelöscht.';
           toast(result && result.documents_deleted === false
             ? 'Entschieden — ACHTUNG: Aufnahmen konnten nicht gelöscht werden, Aufräumlauf läuft nach.'
-            : 'Erledigt — Selfies und Ausweisaufnahmen wurden gelöscht.');
+            : geloescht);
           loadVerifications();
           loadDashboard();
         }catch(err){ toast(err.message); }

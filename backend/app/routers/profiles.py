@@ -6,8 +6,9 @@ from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
-from .. import consents, mailer, premium, telegram
+from .. import api_i18n, consents, mailer, premium, telegram
 from ..database import get_db
+from ..message_texts import format_date
 from ..geo import city_for_plz
 from ..models import (
     GYM_CHOICES,
@@ -101,7 +102,7 @@ def update_my_profile(
                     400,
                     "Das Gym kann nur alle drei Monate geändert werden (Schutz "
                     "vor Umgehung des FLEXR-Premium-Suchumkreises) - nächste "
-                    f"Änderung ab {locked_until.strftime('%d.%m.%Y')} möglich.",
+                    f"Änderung ab {format_date(locked_until)} möglich.",
                 )
             fields["gym_changed_at"] = utcnow()
 
@@ -158,6 +159,7 @@ def list_my_consents(
 
 @router.post("/me/consents/revoke")
 def revoke_my_consent(
+    request: Request,
     payload: ConsentRevokeRequest,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
@@ -196,12 +198,13 @@ def revoke_my_consent(
     return {
         "revoked": revoked,
         "consent_type": payload.consent_type,
-        "consequence": folge,
+        "consequence": api_i18n.translate(folge, api_i18n.request_language(request)),
     }
 
 
 @router.post("/me/consents/grant")
 def grant_my_consent(
+    request: Request,
     payload: ConsentGrantRequest,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
@@ -232,7 +235,7 @@ def grant_my_consent(
         "granted": True,
         "consent_type": payload.consent_type,
         "version": entry.version,
-        "consequence": folge,
+        "consequence": api_i18n.translate(folge, api_i18n.request_language(request)),
     }
 
 
@@ -565,8 +568,14 @@ def change_email(
     current_user.email_verified_at = None
     db.commit()
     token = issue(db, current_user)
+    # Ein freigeschaltetes Konto bekommt die kurze Mail fuer die neue Adresse,
+    # nicht die Registrierungsmail mit Willkommen und Pruefschritten.
+    bestaetigung = (
+        mailer.send_new_email_confirmation if current_user.is_account_activated
+        else mailer.send_verification_email
+    )
     background_tasks.add_task(
-        mailer.send_verification_email,
+        bestaetigung,
         neu, current_user.name, build_link(token), TOKEN_TTL_HOURS, current_user.language,
     )
     background_tasks.add_task(

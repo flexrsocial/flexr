@@ -409,3 +409,18 @@ def test_stripe_fehler_beim_stoppen_verhindert_den_ruecktritt_nicht(client, monk
         "/api/withdrawal", json=_payload(email="abomitfehler@example.com"), headers=headers
     )
     assert resp.status_code == 201
+
+
+def test_betreiber_erfaehrt_vom_ruecktritt(client, monkeypatch):
+    """Bis 14.10.2026 stand eine Ruecktrittserklaerung nur im Server-Log - das
+    Admin-Team bekam weder Hinweis noch Push, die 14-Tage-Frist zur
+    Erstattung (§ 14 FAGG) lief unbemerkt."""
+    from app import telegram
+
+    gemeldet = []
+    monkeypatch.setattr(telegram, "notify_admin_task", lambda text: gemeldet.append(text) or True)
+    resp = client.post("/api/withdrawal", json=_payload())
+    assert resp.status_code == 201
+    assert len(gemeldet) == 1
+    assert resp.json()["reference"] in gemeldet[0]
+    assert "Rücktrittserklärung" in gemeldet[0]

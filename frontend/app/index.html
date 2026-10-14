@@ -363,8 +363,11 @@
     cursor:not-allowed; filter:none; transform:none; box-shadow:none;
   }
   .btn:disabled:hover{ filter:none; transform:none; box-shadow:none; }
-  .btn-row{ display:flex; gap:10px; }
-  .btn-row .btn{ margin-top:0; }
+  /* Gleich breite Knoepfe nebeneinander; passt ein langer Text nicht
+     ("Konto wiederherstellen" am Handy), bricht die Zeile um, statt dass der
+     zweite Knopf aus dem Dialog ragt. */
+  .btn-row{ display:flex; flex-wrap:wrap; gap:10px; }
+  .btn-row .btn{ margin-top:0; flex:1 1 0; min-width:fit-content; }
 
   .photo-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-top:8px; }
   .photo-slot{
@@ -1195,6 +1198,8 @@
   .legal-modal-body .btn:hover{ background:var(--plate-bright); }
   .legal-modal-body .btn[disabled]{ opacity:.45; cursor:not-allowed; }
   .legal-modal-body .btn.secondary{ color:var(--chalk); background:transparent; border:1px solid var(--steel); }
+  /* In einer Knopfzeile regelt .btn-row den Abstand (auch beim Umbruch). */
+  .legal-modal-body .btn-row .btn{ margin-top:0; }
   .legal-modal-body .err{ color:var(--danger); font-size:13.5px; margin-top:10px; min-height:1px; }
   .legal-modal-body .result{ display:none; }
   .legal-modal-body .result pre{
@@ -2179,7 +2184,7 @@
      laufen synchron und damit vor dem DOMContentLoaded, bei dem FlexrI18n die
      data-i18n-Knoten uebersetzt. -->
 <script src="/i18n.js?v=5"></script>
-<script src="/app/i18n-app.js?v=30"></script>
+<script src="/app/i18n-app.js?v=31"></script>
 <a class="skip-link" href="#main-content" data-i18n="common.skipToContent">Zum Inhalt springen</a>
 <div class="app" id="app">
 
@@ -4918,9 +4923,14 @@
       // Konto innerhalb der 30-Tage-Karenz nach Selbstlöschung: Login bietet
       // die Reaktivierung an, statt in eine Sackgasse zu führen.
       if(err.detail && err.detail.code === 'account_deleted'){
+        // Der Servertext beginnt mit demselben Satz wie der Titel - nicht
+        // zweimal untereinander.
+        const titel = t('login.deletedAccount');
+        let hinweis = err.detail.message || '';
+        if(hinweis.startsWith(titel)) hinweis = hinweis.slice(titel.length).trim();
         const reaktivieren = await frage({
-          titel: t('login.deletedAccount'),
-          text: ((err.detail.message || t('login.deletedAccount')) + t('login.reactivate')).trim(),
+          titel,
+          text: (hinweis + t('login.reactivate')).trim(),
           ja: t('login.reactivateBtn'),
           gefaehrlich: false,
         });
@@ -5323,8 +5333,14 @@
     pill.style.display = '';
     // Vor der Freischaltung sagt die Pille, dass geprüft wird - alles andere
     // (Likes, Premium) ist bis dahin ohne Belang.
+    // "In Pruefung" nur, wenn wirklich etwas zur Pruefung liegt - vorher
+    // stand es auch waehrend Selfie/Ausweis noch fehlten oder eine neue
+    // Aufnahme verlangt war (Android sagt dort ebenfalls "Nicht
+    // freigeschaltet").
     if(!accountActivated()){
-      pill.textContent = t('acct.statusChecking'); pill.className = 'status-pill trial';
+      const eingereicht = verificationStatus && verificationStatus.status === 'submitted';
+      pill.textContent = t(eingereicht ? 'acct.statusChecking' : 'acct.statusLocked');
+      pill.className = 'status-pill trial';
       return;
     }
     if(isPremium()){
@@ -5622,6 +5638,9 @@
   });
 
   function renderAccount(opts){
+    // Ohne geladenes Profil (Sitzung gerade beendet, /me noch unterwegs) gibt
+    // es nichts zu zeichnen - vorher brach das mit einem TypeError ab.
+    if(!myProfile) return;
     // Das eigene Abzeichen kommt aus dem Abostatus, nicht aus dem Profil:
     // /api/profiles/me ist die Selbstansicht und traegt kein is_premium.
     $('acctName').innerHTML = escapeHtml(myProfile.name + ', ' + myProfile.age)
@@ -7668,6 +7687,7 @@
 
   async function loadVerificationStatus(){
     verificationStatus = await api('/api/verification/status');
+    updateStatusPill();
     return verificationStatus;
   }
 
@@ -8516,6 +8536,15 @@
       // die verspaetete Antwort gehoert nicht in den offenen Verlauf.
       if(matchId !== currentChatMatchId) return;
       renderMessages(messages);
+      // Der Abruf hat die Nachrichten serverseitig als gelesen markiert. Die
+      // Zahl am Chat-Reiter wartet sonst bis zum Verlassen des Chats (der
+      // Abgleich pausiert im offenen Chat) - man las den Chat und sah daneben
+      // weiter "1 ungelesen".
+      const offen = findMatchById(matchId);
+      if(offen && offen.unread_count){
+        offen.unread_count = 0;
+        renderUnreadBadge(matchesCache);
+      }
     }catch(err){
       console.error(err);
     }

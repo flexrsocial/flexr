@@ -231,23 +231,41 @@ def register(
     bekaeme der Vorbesitzer die Benachrichtigungen des neuen Nutzers auf sein
     Geraet.
     """
-    from datetime import datetime
+    from sqlalchemy.exc import IntegrityError
+
+    user_id = user.id
+
+    def fortschreiben(eintrag: PushToken) -> None:
+        if eintrag.user_id != user_id:
+            logger.info("Push-Token wechselt das Konto: %s -> %s", eintrag.user_id, user_id)
+        eintrag.user_id = user_id
+        eintrag.platform = platform
+        eintrag.last_seen = utcnow()
+        # Web-Abos: Die Schluessel koennen sich bei gleichem Endpunkt erneuern.
+        if platform == "web":
+            eintrag.web_p256dh = p256dh
+            eintrag.web_auth = auth
 
     eintrag = db.query(PushToken).filter(PushToken.token == token).first()
     if eintrag is None:
-        eintrag = PushToken(user_id=user.id, platform=platform, token=token)
+        eintrag = PushToken(user_id=user_id, platform=platform, token=token)
+        if platform == "web":
+            eintrag.web_p256dh = p256dh
+            eintrag.web_auth = auth
         db.add(eintrag)
     else:
-        if eintrag.user_id != user.id:
-            logger.info("Push-Token wechselt das Konto: %s -> %s", eintrag.user_id, user.id)
-        eintrag.user_id = user.id
-        eintrag.platform = platform
-        eintrag.last_seen = utcnow()
-    # Web-Abos: Die Schluessel koennen sich bei gleichem Endpunkt erneuern.
-    if platform == "web":
-        eintrag.web_p256dh = p256dh
-        eintrag.web_auth = auth
-    db.commit()
+        fortschreiben(eintrag)
+    try:
+        db.commit()
+    except IntegrityError:
+        # Dieselbe Anmeldung lief parallel (die Apps melden den Token beim
+        # Start und bei jeder Erneuerung durch Firebase) und hat die Zeile
+        # eben angelegt. Bis 14.10.2026 endete das an uq_push_token mit
+        # HTTP 500 - jetzt wird die vorhandene Zeile fortgeschrieben.
+        db.rollback()
+        eintrag = db.query(PushToken).filter(PushToken.token == token).one()
+        fortschreiben(eintrag)
+        db.commit()
     return eintrag
 
 

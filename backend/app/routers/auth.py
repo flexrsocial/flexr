@@ -4,15 +4,17 @@ from datetime import date, datetime, timedelta
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request, status
 from sqlalchemy import func
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from .. import consents
+from .. import api_i18n, consents
 from ..age import UNDERAGE_MESSAGE, age_on, is_adult
 from ..database import get_db
 from ..email_verification import TOKEN_TTL_HOURS, build_link, issue
 from ..geo import city_for_plz
 from .. import password_reset
 from ..mailer import send_password_reset, send_verification_email
+from ..message_texts import format_date
 from ..models import ConsentType, ModerationAction, UnderageSignupAttempt, User, UserDevice
 from ..moderation import restriction_detail
 from ..rate_limit import limiter
@@ -136,7 +138,12 @@ def record_device(db: Session, user_id: str, request: Request) -> None:
                 user_agent=request.headers.get("User-Agent", "")[:300],
             )
         )
-    db.commit()
+    try:
+        db.commit()
+    except IntegrityError:
+        # uq_user_device: eine parallele Anmeldung vom selben Geraet hat die
+        # Zeile eben angelegt - dasselbe Ergebnis, kein Fehler fuer den Login.
+        db.rollback()
 
 
 @router.post("/age-check", response_model=AgeCheckResponse)
@@ -165,10 +172,16 @@ def age_check(request: Request, payload: AgeCheckRequest, db: Session = Depends(
 
     age = age_on(payload.birthdate)
     if age < 18:
-        return AgeCheckResponse(eligible=False, age=age, message=UNDERAGE_MESSAGE)
+        return AgeCheckResponse(
+            eligible=False, age=age,
+            message=api_i18n.translate(UNDERAGE_MESSAGE, api_i18n.request_language(request)),
+        )
     if age > 99:
         return AgeCheckResponse(
-            eligible=False, age=age, message="Bitte ein gültiges Geburtsdatum angeben."
+            eligible=False, age=age,
+            message=api_i18n.translate(
+                "Bitte ein gültiges Geburtsdatum angeben.", api_i18n.request_language(request)
+            ),
         )
     return AgeCheckResponse(eligible=True, age=age)
 
@@ -368,7 +381,7 @@ def login(request: Request, payload: LoginRequest, db: Session = Depends(get_db)
                 "code": "account_deleted",
                 "message": (
                     "Dieses Konto wurde gelöscht. Bis zum "
-                    f"{deadline.strftime('%d.%m.%Y')} kannst du es noch reaktivieren."
+                    f"{format_date(deadline)} kannst du es noch reaktivieren."
                 ),
                 "reactivate_until": deadline.isoformat(),
             },

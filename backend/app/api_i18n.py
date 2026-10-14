@@ -93,6 +93,20 @@ _TEXTE: dict[str, str] = {
         "Your gym can only be changed every three months (so the FLEXR Premium search radius cannot be bypassed) - next change possible from {datum}.",
     "Dieses Gym wurde bereits geprüft und abgelehnt.": "This gym has already been reviewed and rejected.",
     "Gym nicht gefunden.": "Gym not found.",
+    # ---- Erfolgsmeldungen, die die Clients woertlich anzeigen (Einwilligung,
+    # Meldebestaetigung). Sie laufen nicht durch den Fehler-Handler, die Routen
+    # rufen translate() selbst auf - bis 14.10.2026 kamen sie auch in der
+    # englischen Oberflaeche deutsch an.
+    "Ohne diese Einwilligung dürfen wir Geschlecht und gesuchtes Geschlecht nicht mehr zum Matching verwenden. Dein Konto bleibt bestehen, es werden dir aber keine Profile mehr vorgeschlagen und du erscheinst in keinem Deck. Willst du ganz weg, lösche dein Konto — dann werden die Angaben mitgelöscht.":
+        "Without this consent we may no longer use your gender and the gender you are looking for for matching. Your account remains, but you will no longer be shown profiles and you will not appear in anyone's deck. If you want to leave entirely, delete your account — the details are then deleted with it.",
+    "Noch nicht geprüfte Aufnahmen werden gelöscht. Eine bereits abgeschlossene Prüfung bleibt als Ergebnis bestehen — die Bilder dazu sind ohnehin längst gelöscht.":
+        "Images that have not been reviewed yet are deleted. A review that has already been completed remains as a result — its images were deleted long ago anyway.",
+    "Deine Einwilligung ist wieder aktiv. Du erscheinst ab sofort wieder im Deck und dir werden wieder Profile vorgeschlagen.":
+        "Your consent is active again. You appear in the deck again from now on and profiles are suggested to you again.",
+    "Deine Einwilligung ist wieder aktiv. Bereits gelöschte Aufnahmen sind damit nicht wiederhergestellt - für eine neue Prüfung reichst du sie im Verifizierungsschritt erneut ein.":
+        "Your consent is active again. Images that were already deleted are not restored - for a new review, submit them again in the verification step.",
+    "Deine Meldung ist eingegangen (Aktenzeichen {reference}). Wir prüfen sie innerhalb von 72 Stunden — bei Gefahr für eine Person sofort. Notiere dir das Aktenzeichen, falls du dich später darauf berufen willst.":
+        "Your report has been received (reference {reference}). We review it within 72 hours — immediately if a person is in danger. Note down the reference in case you want to refer to it later.",
     # ---- Swipes / Matches / Chat
     "Du kannst nicht mit dir selbst swipen.": "You cannot swipe on yourself.",
     "Nutzer nicht gefunden.": "User not found.",

@@ -101,13 +101,15 @@
 // damit es offline nicht fehlt); i18n-app.js auf ?v=29.
 // v40: Prüfrunde 13.10.2026 - Textkorrekturen DE/EN, Knopf "Abo verwalten /
 // kündigen" wie in AGB und FAQ; i18n-app.js auf ?v=30.
-const CACHE = 'flexr-shell-v40';
+// v41: Prüfrunde 14.10.2026 - Statuspille "Nicht freigeschaltet" vor der
+// Einreichung, Dialogknöpfe brechen am Handy um; i18n-app.js auf ?v=31.
+const CACHE = 'flexr-shell-v41';
 // Seit dem 15.08.2026 liegt die App unter /app/, an der Wurzel steht die
 // oeffentliche Landingpage. Beide gehoeren in die Shell: die Landingpage,
 // weil sie der Einstieg ist, die App, weil sie offline funktionieren soll.
 const SHELL = ['/', '/index.html', '/en/', '/en/index.html',
                '/app/', '/app/index.html',
-               '/lang-switch.js?v=2', '/i18n.js?v=5', '/app/i18n-app.js?v=30',
+               '/lang-switch.js?v=2', '/i18n.js?v=5', '/app/i18n-app.js?v=31',
                '/startboost.js?v=1',
                '/manifest.json', '/favicon.ico', '/legal.css?v=2',
                '/fonts/work-sans.woff2?v=1', '/fonts/oswald.woff2?v=1',

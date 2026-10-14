@@ -193,23 +193,36 @@ def _country_for_user(user: User) -> str:
 
 
 def _record_daily_access(db: Session, user: User) -> None:
+    """Tageszugriff eintragen - hoechstens eine Zeile je Nutzer, Tag und Land.
+
+    Atomar per ``INSERT ... ON CONFLICT DO NOTHING``. Vorher stand hier
+    "erst nachsehen, dann einfuegen": Die Web-App holt beim Start /me und
+    /billing/status parallel, beide sahen keine Zeile, beide fuegten ein, und
+    die zweite Anfrage endete an uq_daily_access mit HTTP 500 (in Produktion
+    zehnmal in den zwei Wochen bis 14.10.2026, jeweils beim ersten Aufruf des
+    Tages).
+    """
     from datetime import date
+
+    from sqlalchemy.dialects import postgresql, sqlite
 
     from .models import DailyAccess
 
-    today = date.today()
-    country = _country_for_user(user)
-    exists = (
-        db.query(DailyAccess.id)
-        .filter(
-            DailyAccess.user_id == user.id,
-            DailyAccess.day == today,
-            DailyAccess.country == country,
-        )
-        .first()
+    werte = {"user_id": user.id, "day": date.today(), "country": _country_for_user(user)}
+    dialekt = db.get_bind().dialect.name
+    if dialekt == "postgresql":
+        insert = postgresql.insert
+    elif dialekt == "sqlite":
+        insert = sqlite.insert
+    else:  # pragma: no cover - es gibt nur diese beiden
+        if not db.query(DailyAccess.id).filter_by(**werte).first():
+            db.add(DailyAccess(**werte))
+        return
+    db.execute(
+        insert(DailyAccess)
+        .values(**werte)
+        .on_conflict_do_nothing(index_elements=["user_id", "day", "country"])
     )
-    if not exists:
-        db.add(DailyAccess(user_id=user.id, day=today, country=country))
 
 
 def require_activated_account(user: User = Depends(get_current_user)) -> User:

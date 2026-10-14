@@ -1,8 +1,9 @@
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, timedelta, timezone
+from zoneinfo import ZoneInfo
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response
-from sqlalchemy import func, or_
+from sqlalchemy import and_, func, not_, or_
 from sqlalchemy.orm import Session
 
 from .. import mailer
@@ -272,6 +273,27 @@ def totp_disable(
     return {"ok": True}
 
 
+_VIENNA = ZoneInfo("Europe/Vienna")
+
+
+def _mit_abo():
+    """Konten mit laufendem Premium-Abo, gleich aus welcher Quelle: Stripe
+    (``is_subscribed``) oder App Store/Play Store (``store_premium_until`` in
+    der Zukunft, wie ``User.has_store_premium``)."""
+    return or_(
+        User.is_subscribed.is_(True),
+        and_(User.store_premium_until.isnot(None), User.store_premium_until > utcnow()),
+    )
+
+
+def _wiener_tagesbeginn_utc(tag: date) -> datetime:
+    """00:00 Wiener Zeit an ``tag`` als naives UTC, passend zu den Spalten."""
+    return (
+        datetime.combine(tag, datetime.min.time(), tzinfo=_VIENNA)
+        .astimezone(timezone.utc).replace(tzinfo=None)
+    )
+
+
 @router.get("/stats", response_model=AdminStats)
 def get_stats(
     admin: AdminUser = Depends(get_current_admin),
@@ -285,18 +307,18 @@ def get_stats(
     lebend = User.deleted_at.is_(None)
     total_users = db.query(func.count(User.id)).filter(lebend).scalar()
     deleted_users = db.query(func.count(User.id)).filter(User.deleted_at.isnot(None)).scalar()
+    # Abos aus beiden Quellen: Stripe (is_subscribed) und App Store/Play
+    # Store (store_premium_until in der Zukunft). Bis 14.10.2026 zaehlte hier
+    # nur Stripe - ein in der Android-App gekauftes Abo stand als "ohne
+    # Premium" auf dem Dashboard.
     active_subscriptions = (
-        db.query(func.count(User.id)).filter(lebend, User.is_subscribed.is_(True)).scalar()
+        db.query(func.count(User.id)).filter(lebend, _mit_abo()).scalar()
     )
     # Frueher "Konten im laufenden Probemonat". Den gibt es seit dem 10.09.2026
     # nicht mehr; die Kennzahl waere sonst eine Zaehlung von nichts. An
     # derselben Stelle steht jetzt die Gegenzahl zu den Abos: alle uebrigen
     # lebenden Konten, also die Standardnutzer.
-    free_users = (
-        db.query(func.count(User.id))
-        .filter(lebend, User.is_subscribed.is_(False))
-        .scalar()
-    )
+    free_users = total_users - active_subscriptions
     banned_users = db.query(func.count(User.id)).filter(lebend, User.is_banned.is_(True)).scalar()
     pending_photos = db.query(func.count(Photo.id)).filter(Photo.status == PhotoStatus.pending).scalar()
     open_reports = db.query(func.count(Report.id)).filter(Report.dismissed_at.is_(None)).scalar()
@@ -322,9 +344,16 @@ def get_stats(
         .filter(DailyAccess.day == today)
         .scalar()
     )
+    # created_at ist naives UTC, ``today`` das Wiener Datum (Serverzeit). Ohne
+    # Umrechnung fielen Registrierungen zwischen 0 und 1 bzw. 2 Uhr Wiener
+    # Zeit auf den Vortag.
     new_today = (
         db.query(func.count(User.id))
-        .filter(func.date(User.created_at) == today, User.deleted_at.is_(None))
+        .filter(
+            User.created_at >= _wiener_tagesbeginn_utc(today),
+            User.created_at < _wiener_tagesbeginn_utc(today + timedelta(days=1)),
+            User.deleted_at.is_(None),
+        )
         .scalar()
     )
     return AdminStats(
@@ -438,7 +467,7 @@ def list_users(
     if banned is not None:
         query = query.filter(User.is_banned.is_(banned))
     if subscribed is not None:
-        query = query.filter(User.is_subscribed.is_(subscribed))
+        query = query.filter(_mit_abo() if subscribed else not_(_mit_abo()))
     if verification_rejected is not None:
         ids = rejected_user_ids or {""}  # leere IN-Klausel vermeiden
         query = query.filter(User.id.in_(ids) if verification_rejected else User.id.notin_(ids))
@@ -464,6 +493,7 @@ def list_users(
             age=u.age,
             city=u.city,
             is_subscribed=u.is_subscribed,
+            has_store_premium=u.has_store_premium,
             is_banned=u.is_banned,
             is_verified=u.is_verified,
             is_active=True,   # Bezahlwand abgeschafft - jedes Konto ist nutzbar
@@ -525,6 +555,8 @@ def get_user_detail(
         gym=user.gym,
         bio=user.bio,
         is_subscribed=user.is_subscribed,
+        has_store_premium=user.has_store_premium,
+        store_premium_until=user.store_premium_until,
         is_banned=user.is_banned,
         is_verified=user.is_verified,
         is_active=True,   # Bezahlwand abgeschafft - jedes Konto ist nutzbar

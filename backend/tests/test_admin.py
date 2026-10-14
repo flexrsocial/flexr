@@ -299,6 +299,75 @@ def test_admin_stats(client):
         assert key in stats
 
 
+def test_admin_zaehlt_und_filtert_store_abos(client):
+    """Ein im Play Store gekauftes Abo ist ein Abo - bis 14.10.2026 zaehlten
+    Dashboard und Nutzerfilter nur Stripe und fuehrten es als Gratis."""
+    from datetime import timedelta
+
+    from app.models import User
+    from app.timeutil import utcnow
+    from tests.conftest import TestingSessionLocal
+
+    admin_headers, _ = create_admin(client, email="admin.store@example.com")
+    register_user(client, "store.kunde@example.com")
+    register_user(client, "store.abgelaufen@example.com")
+    register_user(client, "gratis.kunde@example.com")
+    db = TestingSessionLocal()
+    try:
+        db.query(User).filter_by(email="store.kunde@example.com").one().store_premium_until = (
+            utcnow() + timedelta(days=20))
+        db.query(User).filter_by(email="store.abgelaufen@example.com").one().store_premium_until = (
+            utcnow() - timedelta(days=1))
+        db.commit()
+    finally:
+        db.close()
+
+    stats = client.get("/api/admin/stats", headers=admin_headers).json()
+    assert stats["active_subscriptions"] == 1
+    assert stats["free_users"] == stats["total_users"] - 1
+
+    premium = client.get("/api/admin/users?subscribed=true", headers=admin_headers).json()
+    assert [u["email"] for u in premium] == ["store.kunde@example.com"]
+    assert premium[0]["has_store_premium"] is True
+    gratis = {u["email"] for u in
+              client.get("/api/admin/users?subscribed=false", headers=admin_headers).json()}
+    assert {"store.abgelaufen@example.com", "gratis.kunde@example.com"} <= gratis
+    assert "store.kunde@example.com" not in gratis
+
+    detail = client.get(f"/api/admin/users/{premium[0]['id']}", headers=admin_headers).json()
+    assert detail["has_store_premium"] is True
+    assert detail["store_premium_until"]
+
+
+def test_neu_heute_zaehlt_nach_wiener_tag(client, monkeypatch):
+    """Registrierung um 23:30 UTC ist in Wien schon der naechste Tag."""
+    from datetime import date, datetime
+
+    from app.models import User
+    from app.routers import admin as admin_router
+    from tests.conftest import TestingSessionLocal
+
+    admin_headers, _ = create_admin(client, email="admin.tag@example.com")
+    register_user(client, "spaet@example.com")
+    register_user(client, "frueh@example.com")
+    db = TestingSessionLocal()
+    try:
+        # 14.10.2026 23:30 UTC = 15.10. 01:30 Wien; 13.10. 23:30 UTC = 14.10. Wien
+        db.query(User).filter_by(email="spaet@example.com").one().created_at = datetime(2026, 10, 14, 23, 30)
+        db.query(User).filter_by(email="frueh@example.com").one().created_at = datetime(2026, 10, 13, 21, 30)
+        db.commit()
+    finally:
+        db.close()
+
+    class _Heute(date):
+        @classmethod
+        def today(cls):
+            return date(2026, 10, 15)
+
+    monkeypatch.setattr(admin_router, "date", _Heute)
+    assert client.get("/api/admin/stats", headers=admin_headers).json()["new_today"] == 1
+
+
 def test_admin_access_stats(client):
     admin_headers, _ = create_admin(client, email="admin.access@example.com")
     # Ein Nutzer greift zu (Profilabruf triggert die Zugriffserfassung)
@@ -312,3 +381,24 @@ def test_admin_access_stats(client):
     # Der heutige Tag ist der letzte Eintrag und zählt den aktiven Nutzer
     assert data["daily"][-1]["count"] >= 1
     assert any(c["country"] == "AT" and c["count"] >= 1 for c in data["countries"])
+
+
+def test_tageszugriff_doppelt_eingetragen_bleibt_eine_zeile(client):
+    """Parallele erste Anfragen eines Tages (Web-App: /me und /billing/status
+    gleichzeitig) endeten bis 14.10.2026 an uq_daily_access mit HTTP 500.
+    Das Eintragen ist jetzt ein INSERT ... ON CONFLICT DO NOTHING."""
+    from app.models import DailyAccess, User
+    from app.security import _record_daily_access
+    from tests.conftest import TestingSessionLocal
+
+    headers = register_user(client, "doppelt@example.com")
+    client.get("/api/profiles/me", headers=headers)  # erster Eintrag
+    db = TestingSessionLocal()
+    try:
+        user = db.query(User).filter_by(email="doppelt@example.com").one()
+        _record_daily_access(db, user)
+        _record_daily_access(db, user)
+        db.commit()
+        assert db.query(DailyAccess).filter_by(user_id=user.id).count() == 1
+    finally:
+        db.close()

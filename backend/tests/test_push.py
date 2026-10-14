@@ -74,6 +74,38 @@ def test_derselbe_token_zweimal_anmelden_bleibt_eine_zeile(client):
         db.close()
 
 
+def test_parallele_anmeldung_desselben_tokens_kein_serverfehler(client, monkeypatch):
+    """Zwei gleichzeitige Anmeldungen desselben Tokens: Beide sahen keine
+    Zeile, beide fuegten ein, die zweite endete bis 14.10.2026 an
+    uq_push_token mit HTTP 500 (achtmal in 30 Tagen). Simuliert, indem die
+    Nachschau die bereits angelegte Zeile einmal "verpasst"."""
+    from sqlalchemy.orm import Query
+
+    register_user(client, "push.alt@example.com")
+    register_user(client, "push.neu@example.com")
+    db = TestingSessionLocal()
+    try:
+        push.register(db, _user(db, "push.alt@example.com"), "android", "parallel-token")
+        echt = Query.first
+        verpasst = {"schon": False}
+
+        def erste_nachschau_leer(self):
+            if not verpasst["schon"]:
+                verpasst["schon"] = True
+                return None
+            return echt(self)
+
+        monkeypatch.setattr(Query, "first", erste_nachschau_leer)
+        neu = _user(db, "push.neu@example.com")
+        eintrag = push.register(db, neu, "android", "parallel-token")
+        monkeypatch.setattr(Query, "first", echt)
+
+        assert db.query(PushToken).count() == 1
+        assert eintrag.user_id == neu.id
+    finally:
+        db.close()
+
+
 def test_token_wandert_zum_neuen_konto(client):
     """Ein Geraet, zwei Konten nacheinander.
 

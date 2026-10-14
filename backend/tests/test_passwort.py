@@ -131,6 +131,30 @@ def test_email_aendern(client, monkeypatch):
         u = db.query(User).filter(User.email == "nachher@example.com").one()
         assert u.email_verified_at is None
     assert _login(client, "nachher@example.com", PW).status_code == 200
+    # Freigeschaltetes Konto: kurze Mail fuer die neue Adresse, nicht die
+    # Registrierungsmail mit Willkommen und Pruefschritten (bis 14.10.2026).
+    neu = next(m for m in mails if m["to"] == "nachher@example.com")
+    assert neu["subject"] == "Bestätige deine neue E-Mail-Adresse für FLEXR"
+    assert "/mail-bestaetigen?token=" in neu["text"]
+    assert "Identitätsprüfung" not in neu["text"]
+
+    # "Mail erneut senden" nimmt dieselbe Fassung
+    mails.clear()
+    assert client.post("/api/auth/email/resend", headers=h).status_code == 200
+    assert mails[-1]["subject"] == "Bestätige deine neue E-Mail-Adresse für FLEXR"
+
+
+def test_email_aendern_vor_der_freischaltung_bleibt_registrierungsmail(client, monkeypatch):
+    from tests.conftest import register_raw
+
+    mails = _mails(monkeypatch)
+    h = register_raw(client, "frisch@example.com")
+    mails.clear()
+    r = client.post("/api/profiles/me/email", headers=h,
+                    json={"new_email": "frisch2@example.com", "password": PW})
+    assert r.status_code == 200
+    neu = next(m for m in mails if m["to"] == "frisch2@example.com")
+    assert neu["subject"] == mailer.VERIFY_SUBJECT
 
 
 

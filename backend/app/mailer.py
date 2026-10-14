@@ -385,6 +385,43 @@ def send_verification_email(
     )
 
 
+def send_new_email_confirmation(
+    email: str, name: str, link: str, ttl_hours: int = 24, lang: str = STANDARD
+) -> bool:
+    """Bestätigungslink für eine geänderte Adresse eines Kontos, das die
+    Prüfung schon hinter sich hat - ohne Willkommen und ohne die Schritte der
+    Alters- und Identitätsprüfung, die in der Registrierungsmail stehen."""
+    intro = t("newemail.intro", lang, hours=ttl_hours)
+    not_you = t("newemail.notYou", lang, support=settings.support_email)
+    text_body = f"""{_greeting(name, lang)}
+
+{textwrap.fill(intro, width=76)}
+
+{link}
+
+{textwrap.fill(not_you, width=76)}
+
+{t("signoff", lang)}
+"""
+    body = "\n".join([
+        _p(intro),
+        _button_html(link, t("verify.cta", lang)),
+        _p_raw(
+            f'{html.escape(t("verify.fallback", lang))}<br>'
+            f'<span style="word-break:break-all;">{html.escape(link)}</span>'
+        ),
+        _p(not_you),
+    ])
+    return send_email(
+        to_address=email,
+        subject=t("newemail.subject", lang),
+        text_body=text_body,
+        html_body=_email_shell(
+            t("newemail.eyebrow", lang), _greeting_html(name, lang), body, lang=lang
+        ),
+    )
+
+
 # ---------------------------------------------------------------------------
 # Passwort zuruecksetzen / Sicherheitshinweise
 #

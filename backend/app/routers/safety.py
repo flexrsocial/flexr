@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 
 from ..age import age_on
 from ..database import get_db
-from .. import telegram
+from .. import api_i18n, telegram
 from ..models import Block, Match, Message, ModerationAction, Photo, PhotoStatus, Report, User
 from ..moderation import APPEAL_HINT
 from ..rate_limit import limiter
@@ -58,16 +58,17 @@ def _chat_evidence(db: Session, reporter_id: str, reported_id: str) -> Optional[
     )
 
 
-def _report_ack(report: Report) -> ReportAck:
+def _report_ack(report: Report, lang: str = "de") -> ReportAck:
     # Art. 16 Abs. 4 DSA: unverzügliche Empfangsbestätigung mit Aktenzeichen.
     return ReportAck(
         reference=report.reference,
         created_at=report.created_at,
-        message=(
+        message=api_i18n.translate(
             f"Deine Meldung ist eingegangen (Aktenzeichen {report.reference}). "
             "Wir prüfen sie innerhalb von 72 Stunden — bei Gefahr für eine Person "
             "sofort. Notiere dir das Aktenzeichen, falls du dich später darauf "
-            "berufen willst."
+            "berufen willst.",
+            lang,
         ),
     )
 
@@ -110,7 +111,7 @@ def create_report(
         if evidence:
             offen.evidence = evidence
         db.commit()
-        return _report_ack(offen)
+        return _report_ack(offen, api_i18n.request_language(request))
 
     report = Report(
         reporter_id=current_user.id,
@@ -125,7 +126,7 @@ def create_report(
     telegram.notify_admin_task(
         f"🆕 Neue Meldung ({report.reference}) im FLEXR-Admin-Dashboard: {payload.reason}"
     )
-    return _report_ack(report)
+    return _report_ack(report, api_i18n.request_language(request))
 
 
 @router.get("/reports/mine", response_model=list[MyReportOut])

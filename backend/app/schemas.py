@@ -843,6 +843,8 @@ class AdminUserListItem(BaseModel):
     age: int
     city: str
     is_subscribed: bool
+    # Premium aus App Store/Play Store - is_subscribed kennt nur Stripe.
+    has_store_premium: bool = False
     is_banned: bool
     is_verified: bool = False
     is_active: bool
@@ -876,6 +878,8 @@ class AdminUserDetailOut(BaseModel):
     gym: str
     bio: Optional[str]
     is_subscribed: bool
+    has_store_premium: bool = False
+    store_premium_until: Optional[datetime] = None
     is_banned: bool
     is_verified: bool = False
     is_active: bool

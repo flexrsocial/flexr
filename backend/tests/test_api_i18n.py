@@ -82,3 +82,33 @@ def test_validierungsfehler_lesbar(client):
 def test_eigene_pruefung_ohne_value_error_praefix(client):
     r = client.post("/api/auth/password/reset", json={"token": "x" * 20, "new_password": "ä" * 40})
     assert r.json()["detail"][0]["msg"] == "Das Passwort darf höchstens 72 Bytes lang sein."
+
+
+def test_erfolgsmeldungen_folgen_der_sprache(client):
+    """Erfolgsantworten mit Text, den die Clients woertlich anzeigen
+    (Einwilligung widerrufen/erteilen, Meldebestaetigung), kamen bis
+    14.10.2026 auch in der englischen Oberflaeche deutsch an."""
+    headers = register_user(client, "i18n.erfolg@example.com")
+    ziel = register_user(client, "i18n.ziel@example.com", name="Ziel")
+    ziel_id = client.get("/api/profiles/me", headers=ziel).json()["id"]
+    en = {**headers, "Accept-Language": "en"}
+
+    weg = client.post("/api/profiles/me/consents/revoke", headers=en,
+                      json={"consent_type": "sensitive_data"}).json()
+    assert weg["consequence"].startswith("Without this consent")
+    zurueck = client.post("/api/profiles/me/consents/grant", headers=en,
+                          json={"consent_type": "sensitive_data"}).json()
+    assert zurueck["consequence"].startswith("Your consent is active again")
+
+    ack = client.post("/api/reports", headers=en,
+                      json={"reported_user_id": ziel_id, "reason": "Spam im Profil."}).json()
+    assert ack["message"].startswith(f"Your report has been received (reference {ack['reference']})")
+
+    # Ohne Accept-Language bleibt es Deutsch
+    de = client.post("/api/profiles/me/consents/revoke", headers=headers,
+                     json={"consent_type": "sensitive_data"}).json()
+    assert de["consequence"].startswith("Ohne diese Einwilligung")
+
+    alter = client.post("/api/auth/age-check", headers={"Accept-Language": "en"},
+                        json={"birthdate": "2015-01-01"}).json()
+    assert alter["eligible"] is False and alter["message"].startswith("You must be at least 18")

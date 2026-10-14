@@ -18,7 +18,7 @@ from ..email_verification import (
     confirm,
     issue,
 )
-from ..mailer import send_verification_email
+from ..mailer import send_new_email_confirmation, send_verification_email
 from ..models import User
 from ..rate_limit import limiter
 from ..schemas import EmailConfirmRequest, EmailConfirmResponse, EmailResendResponse
@@ -59,8 +59,11 @@ def resend_email(
     # muss), Versand danach - ein hängender Mailserver darf die Antwort nicht
     # aufhalten. Gleiches Muster wie bei der Registrierung.
     token = issue(db, current_user)
+    # Nach einer Adressaenderung eines freigeschalteten Kontos die kurze Mail
+    # fuer die neue Adresse, sonst die Registrierungsmail.
     background_tasks.add_task(
-        send_verification_email,
+        send_new_email_confirmation if current_user.is_account_activated
+        else send_verification_email,
         current_user.email,
         current_user.name,
         build_link(token),
