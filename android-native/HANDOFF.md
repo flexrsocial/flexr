@@ -1,11 +1,33 @@
 # HANDOFF — native Android-App
 
-Stand: **14.10.2026**, Version 2.7.27 / versionCode 139. Der jüngste
+Stand: **14.10.2026**, Version 2.7.28 / versionCode 140. Der jüngste
 Abschnitt steht oben, ältere folgen darunter. Fassungen zwischen dem
 16.09. und dem 04.10. sind nur im Kommentar am `versionCode` in
 `app/build.gradle.kts` und in der Haupt-`HANDOFF.md` beschrieben.
 Für Aufbau, Build-Befehle und die Migrationstabelle siehe [README.md](README.md) —
 hier steht nur, was daraus *nicht* hervorgeht.
+
+---
+
+## Datenschutz-Kurzfassung Fassung 2026-10-14, 14.10.2026 (2.7.28)
+
+**2.7.28 statt 2.7.27 hochladen** (enthält 2.7.27). Die Datenschutzerklärung
+hat eine neue Fassung 2026-10-14: Eine automatisch markierte Nachricht bleibt
+nach dem Auflösen des Matches bis zur Prüfung stehen, höchstens 30 Tage nach
+dem Senden (Haupt-`HANDOFF.md`, Sitzung 14.10.2026 (11)/(12)).
+
+* `LegalContent.kt`: „Stand: 14. Oktober 2026“, neuer Punkt unter
+  „5. Speicherdauer“. Sonst keine Änderung.
+* Play Console: keine neue Datenart, nur Speicherdauer (`PLAY-CONSOLE.md`).
+* 63 Unit-Tests grün, Lint 0 Fehler (109 Warnungen, wie bisher).
+
+| 2.7.28 / 140 | SHA-256 | Größe |
+|---|---|---|
+| AAB (Play Console) | `1ad509c8fd8223dad03928987b344bb0542648223fca9e337ef0b4bd25e50693` | 8.537.117 Bytes |
+| APK (Testgerät) | `b26847e6eaac4df1b2d57876a5ed18932e914475cd5350ec23badde2b9818a6a` | 4.421.198 Bytes |
+
+aapt2: 140 / 2.7.28, targetSdk 36; Signer SHA-256 `BC:64:AD…79:80`
+(Upload-Key) für AAB und APK geprüft. Liegt in `release-2.7.28/` (gitignored).
 
 ---
 

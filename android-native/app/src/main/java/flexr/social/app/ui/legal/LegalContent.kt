@@ -1116,10 +1116,11 @@ object LegalContent {
     )
 
     // Kurzfassung von flexr.social/datenschutz.html — bei jeder Änderung dort
-    // mitziehen (zuletzt Fassung 2026-10-02: Sicherungskopien).
+    // mitziehen (zuletzt Fassung 2026-10-14: markierte Nachricht nach Auflösen des
+    // Matches).
     private val datenschutz = LegalPage(
         document = LegalDocument.DATENSCHUTZ,
-        intro = "Wie FLEXR mit deinen Daten umgeht. Stand: 2. Oktober 2026. Diese Fassung ist gekürzt; maßgeblich ist der vollständige Text unter flexr.social/datenschutz.html.",
+        intro = "Wie FLEXR mit deinen Daten umgeht. Stand: 14. Oktober 2026. Diese Fassung ist gekürzt; maßgeblich ist der vollständige Text unter flexr.social/datenschutz.html.",
         blocks = listOf(
             LegalBlock.Heading("1. Verantwortlicher"),
             LegalBlock.Paragraph(
@@ -1346,6 +1347,9 @@ object LegalContent {
                         "darin nicht enthalten.",
                     "Verifizierungs-Selfie: wird unmittelbar nach Abschluss der Prüfung " +
                         "(Freigabe oder Ablehnung) gelöscht.",
+                    "Automatisch markierte Nachricht, wenn das Match vor der Prüfung " +
+                        "aufgelöst wird: bis zur Prüfung durch die Moderation, höchstens 30 " +
+                        "Tage nach dem Senden. Für beide Seiten ist der Chat sofort weg.",
                     "Zahlungsbezogene Daten, auch Google-Play-Kaufbelege: gemäß " +
                         "gesetzlicher Aufbewahrungspflichten (i. d. R. 7 Jahre, §132 BAO).",
                 ),

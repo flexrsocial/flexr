@@ -26,6 +26,7 @@ Richtlinienverstoß — unabhängig davon, wie datensparsam die App gebaut ist.
 | 2.7.x | Profilfotos über den **System-Bildauswahldialog** (Photo Picker), der Ausweis wahlweise als Datei (`GetContent`) | Keine Berechtigung nötig, keine neue Angabe. Die frühere Aussage „kein Galerie-Zugriff“ (Abschnitt 4) ist damit überholt. |
 | 2.7.17 | Online-Rücktrittsfunktion nativ (POST `/api/withdrawal`) | nein |
 | 2.7.22 | Datenschutz-Kurzfassung in der App an die Fassung 2026-10-02 angeglichen | nein |
+| 2.7.28 | Datenschutz-Kurzfassung an die Fassung 2026-10-14 angeglichen (automatisch markierte Nachricht bleibt nach Auflösen des Matches bis zur Prüfung, höchstens 30 Tage) | nein — keine neue Datenart, nur die Speicherdauer |
 
 ### App-Zugriff für die Prüfung (Pflicht)
 
@@ -137,7 +138,7 @@ Console „Werbe-ID: Nein“).
   einen Menschen, ohne automatische Gesichtserkennung. Die Aufnahmen werden nach
   der Prüfung gelöscht.“*
 * Datenschutzerklärung: https://flexr.social/datenschutz.html (Fassung
-  2026-10-02). Die App enthält eine Kurzfassung, die auf diese Seite verweist.
+  2026-10-14). Die App enthält eine Kurzfassung, die auf diese Seite verweist.
 
 ---
 

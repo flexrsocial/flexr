@@ -315,8 +315,10 @@ android {
         // 139/2.7.27 am 14.10.2026: Ging beim Einreichen des Ausweises nur
         // die Antwort verloren, fragt die App den Stand nach, statt einen
         // Fehler zu zeigen, obwohl der Ausweis schon in der Pruefung liegt.
-        versionCode = 139
-        versionName = "2.7.27"
+        // 140/2.7.28 am 14.10.2026: Datenschutz-Kurzfassung an die Fassung
+        // 2026-10-14 angeglichen (markierte Nachricht nach Aufloesen des Matches).
+        versionCode = 140
+        versionName = "2.7.28"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         // Nur die Sprachen ausliefern, die es wirklich gibt: Deutsch als
