@@ -1,6 +1,6 @@
 # FLEXR — Handoff für ein anderes Gerät / Claude Code
 
-Stand: **14.10.2026**
+Stand: **15.10.2026**
 
 ## ⚠️ Dringend zu prüfen: SSH-Zugang zum VPS hat sich geändert (21.09.2026)
 
@@ -31,6 +31,79 @@ Falls du das liest, weil dein `root@`-Login gerade fehlschlägt: das ist
 erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 
 ## Wo das Projekt gerade steht
+
+> **Sitzung 14./15.10.2026 (18): Fotoraster im Profil, Hinweis „in der
+> Suche nicht sichtbar“, FLEXR-Logo in allen Mails. Android 2.7.29 gebaut.**
+>
+> Deployt (`daf27ed`, gepusht, VPS `git pull --ff-only`, `sudo systemctl
+> restart flexr-api`, keine Migration). Live: Health ok, `/app/`,
+> `i18n-app.js?v=36`, `sw.js` (v46), `admin.html`, `admin.js?v=7`,
+> `icons/mail-logo-v1.png` und die geänderten Backend-Dateien md5-gleich.
+>
+> **Meldung des Nutzers:** ✕ im Fotoraster löscht sporadisch nicht, beim
+> Darüberfahren nur eine Hand, „Mindestens 3 Fotos sind erforderlich“ trotz
+> drei freigegebener Fotos (Konto pachernegg@gmail.com, nach einer früheren
+> Ablehnung). Produktion geprüft (nur lesend): das Konto hat genau 3
+> freigegebene Fotos, Dateien erreichbar - die Meldung war die Regel selbst
+> (3 gültige = Minimum), nur sah man dem ✕ die Sperre nicht an. Dazu echte
+> Fehler: 20-px-✕ ohne eigenen Zeiger (Klick daneben = Foto/Greif-Hand),
+> Profil wurde beim Öffnen des Kontos nicht neu geholt (Ablehnung im
+> Hintergrund blieb unsichtbar, ✕ rechnete mit alter Fotozahl), und im
+> Admin-Tool ließ sich ein abgelehntes Foto (Datei schon gelöscht) wieder
+> freigeben.
+>
+> - **Web-App:** ✕ als `<button>` (26 px, Trefferfläche 44 px über
+>   `::before`, Zeiger, roter Papierkorb beim Darüberfahren). Bei genau 3
+>   gültigen Fotos stattdessen Pfeile „Foto austauschen“ → Dialog → Datei
+>   wählen → hochladen → altes löschen → neues auf den alten Platz
+>   (`fotoAustauschen`, `acctErsetzen`, `auftrag.ersetzt`). Profil wird beim
+>   Öffnen des Kontos, beim Zurückkehren in den Tab und nach einem
+>   abgelehnten Löschen neu geholt (`frischeProfilAuf`/`profilAbgleichen`,
+>   überschreibt keinen neueren Stand). Abgelehnte: nicht sortierbar, keine
+>   Nummer; Sortieren hängt sie hinten an die Liste an. Registrierungsraster
+>   nutzt denselben Knopf. Hinweistext unter dem Raster behauptet bei
+>   2 gültigen + freigegebenem Foto nicht mehr „unsichtbar“.
+> - **Hinweis „Du bist in der Suche gerade nicht sichtbar“** (`.vis-banner`)
+>   über dem Deck und oben im Konto, solange kein Foto freigegeben ist
+>   (orange: in Prüfung, rot: abgelehnt/keins), nur für freigeschaltete
+>   Konten; Knopf springt zum Fotoraster bzw. öffnet den Upload.
+> - **Server:** `MyProfileOut.photo_visibility` (`visible`/`pending`/
+>   `rejected`/`none`, wie `swipes.deck_profiles`: ein freigegebenes Foto
+>   genügt). `reject_photo` schiebt Abgelehnte ans Ende; `approve_photo` auf
+>   ein abgelehntes → 409 (Admin zeigt dort keinen Knopf mehr, Platzhalter
+>   statt kaputtem Bild). Löschmeldung: „… Lade zuerst ein neues Foto hoch,
+>   danach kannst du dieses löschen.“ (EN in `api_i18n`).
+> - **Android 2.7.29 / 141** (`release-2.7.29/` mit `SHA256SUMS.txt`): AAB
+>   `9d50affe…eddf`, APK `66215bb9…6a42`, Upload-Key `BC:64:…:79:80`
+>   geprüft, 67 Unit-Tests (+4), Lint sauber. Gleiches Verhalten: 44-dp-
+>   Trefferfläche, Austauschen-Dialog, Banner über dem Deck (Sprung ins Konto
+>   per `savedStateHandle` „zu_den_fotos“), Neuladen bei ON_RESUME,
+>   `PhotoVisibilityHint` zählt Abgelehnte nicht mehr mit.
+> - **iOS:** Quelltext gleichgezogen (`PhotoVisibility`, `SearchVisibilityBanner`,
+>   `removable`, Austauschen per `photosPicker`, `scrollToOwnPhotos`), hier
+>   nicht kompilierbar - der Push auf `ios/` startet `ios-tests` in
+>   Codemagic. Nicht eingereicht.
+> - **Mails:** FLEXR-Wortmarke rechts oben im Kopf aller drei HTML-Gerüste
+>   (`_header_html`; Tabelle statt float, gestalteter alt-Text). Datei
+>   `frontend/icons/mail-logo-v1.png` (264×73 auf Kartenfarbe #17171A, aus
+>   `frontend/brand/build_logo.py --mail`; `/brand/` sperrt nginx, `/icons/`
+>   ist immutable - bei Änderung neue Nummer + `MAIL_LOGO_PATH`). Alle 26
+>   Mailarten DE/EN gerendert und gelesen; korrigiert: „FLEXR Premium“
+>   statt „Mitgliedschaft“, Kündigung wie AGB 8 c, Kündigungs-/Abo-Ende-Mail
+>   ohne „Zugang pausiert“ (Grundnutzung ist kostenlos), Rückgängig-machen
+>   über „Abo verwalten / kündigen“ statt „Stripe-Kundenportal“,
+>   Kleinschreibung nach der Anrede. Neu: Freischalt-Mail sagt, wenn noch
+>   kein Foto freigegeben ist (`photos_pending`), Foto-Ablehnung, wenn keins
+>   mehr frei ist (`hidden`). Die Gratismonat-Mail (`trial_will_end`) bleibt
+>   unverändert - sie löst ohne Probezeit nie aus.
+>
+> **Tests:** Backend 730 grün (+66: `test_foto_sichtbarkeit.py`,
+> `test_mail_kopf.py`, Freischalt-/Ablehnungsmail; ein alter Audit-Test, der
+> die Freigabe nach Ablehnung erwartete, auf die neue Regel umgestellt).
+> Web-App lokal durchgespielt (SQLite-Kopie + S3-Attrappe): Austausch auf
+> Platz 1 und 2, Ablehnung im Hintergrund → Löschversuch → Meldung + neuer
+> Stand, Banner orange/rot am Desktop und Handy, Sprung zum Raster, Freigabe
+> im Hintergrund → Banner weg, Sortieren mit abgelehntem Foto, Englisch.
 
 > **Sitzung 14.10.2026 (17): Startradius, Knopf in der Freischalt-Mail,
 > QR-Code „am Handy weitermachen“.**
