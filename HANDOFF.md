@@ -110,11 +110,13 @@ erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 >   abgelehnte Fotos löscht und unter drei fällt. Nicht angefasst.
 > - Mails verwenden durchgehend „ - “ als Gedankenstrich; einheitlich, nicht
 >   geändert.
-> - **Auf dem VPS liegen zwei unversionierte Dateien**,
->   `backend/app/admin.py` und `backend/app/requirements.txt` (21.09.2026,
->   `deploy`, 600). Nicht importiert, der echte Router ist
->   `app/routers/admin.py`. Vermutlich ein verirrter `scp`. Gelöscht wird nur
->   nach Rückfrage beim Nutzer.
+> - **Auf dem VPS lagen zwei unversionierte Dateien**,
+>   `backend/app/admin.py` (alter Stand des Admin-Routers, nirgends
+>   importiert) und `backend/app/requirements.txt` (identisch mit
+>   `backend/requirements.txt`), beide vom 21.09.2026. Auf Wunsch des Nutzers
+>   am 14.10. gelöscht; danach `import app.main` ok, Dienst aktiv, Health ok.
+>   Die übrigen unversionierten Dateien dort sind gewollt und bleiben
+>   (`fcm-`/`play-service-account.json`, `list_users.py`, `dl-…`-Ordner).
 > - Lokal: Der `venv` des Backends war leer (MEGA synchronisiert `venv`
 >   nicht) und wurde neu angelegt. `.claude/launch.json` eine Ebene höher hat
 >   die Einträge `s3-mock` und `flexr-local-e2e` (zeigen in den Scratchpad
