@@ -61,10 +61,12 @@ erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 >   gültiger Code wird beim Neuzeichnen wiederverwendet (sonst entwertete das
 >   Zurückholen des Tabs einen gerade gescannten Code - beim Testen
 >   aufgefallen). Lokal mit zwei Tabs durchgespielt (Rechner/Handyformat).
-> - **Stripe-Produktbeschreibung** (Live, `prod_VH6teDHT70SoKH`): nennt noch
->   250 km, „eingehende Likes“, „monatlich kündbar“. Steht im Stripe-Konto,
->   nicht im Code; Korrekturvorschlag dem Nutzer gegeben, Änderung wartet auf
->   seine Freigabe.
+> - **Stripe-Produktbeschreibung** (Live, `prod_VH6teDHT70SoKH`) nach
+>   Freigabe des Nutzers per API korrigiert: vorher 250 km, „eingehende
+>   Likes“, „monatlich kündbar“; jetzt 580 km (bis 31.12.2026 für alle frei),
+>   Wortlaut wie in der App, Kündigung wie AGB („ohne Mindestlaufzeit,
+>   jederzeit zum Ende des Abrechnungszeitraums“). Steht im Stripe-Konto,
+>   nicht im Code - bei Änderungen an Grenzen oder Startaktion dort mitziehen.
 >
 > **Tests:** Backend 664 grün (+14).
 
