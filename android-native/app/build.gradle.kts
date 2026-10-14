@@ -309,8 +309,11 @@ android {
         // 137/2.7.25 am 14.10.2026: Loeschdialog sagt bei laufendem Premium,
         // was mit dem Abo passiert (Stripe endet zum Periodenende, ein
         // Play-/App-Store-Abo muss dort gekuendigt werden).
-        versionCode = 137
-        versionName = "2.7.25"
+        // 138/2.7.26 am 14.10.2026: Pruefbildschirm zaehlt abgelehnte Fotos
+        // nicht mehr zur Pflichtzahl (der Server verlangt seither drei
+        // gueltige) und sagt, dass ein Foto abgelehnt wurde.
+        versionCode = 138
+        versionName = "2.7.26"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         // Nur die Sprachen ausliefern, die es wirklich gibt: Deutsch als

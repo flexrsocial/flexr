@@ -13,6 +13,7 @@ import flexr.social.app.core.media.PreparedPhoto
 import flexr.social.app.core.network.FlexrApiException
 import flexr.social.app.data.repository.ProfileRepository
 import flexr.social.app.data.repository.VerificationRepository
+import flexr.social.app.domain.model.PhotoStatus
 import flexr.social.app.domain.model.VerificationState
 import flexr.social.app.domain.model.VerificationStatus
 import flexr.social.app.domain.model.VerificationStep
@@ -43,6 +44,8 @@ data class VerificationGateUiState(
      * fehlenden Fotos fragt, bevor das Profil geladen ist.
      */
     val photoCount: Int = ImageProcessor.MIN_PHOTOS,
+    /** Hat die Moderation eines der Fotos abgelehnt? Dann sagt der Schirm das. */
+    val hasRejectedPhoto: Boolean = false,
     val isUploadingPhoto: Boolean = false,
     val photoError: String? = null,
     /** Eigene Adresse - der Nutzer muss sehen, wohin die Mail ging. */
@@ -109,7 +112,13 @@ class VerificationGateViewModel @Inject constructor(
             .onEach { profile ->
                 _uiState.update {
                     it.copy(
-                        photoCount = profile?.photos?.size ?: it.photoCount,
+                        // Abgelehnte zaehlen nicht - wie beim Server
+                        // (/verification/start). Bis 2.7.25 zaehlten sie mit,
+                        // und der Schirm bot keinen Ersatz an.
+                        photoCount = profile?.photos?.count { foto -> foto.status != PhotoStatus.REJECTED }
+                            ?: it.photoCount,
+                        hasRejectedPhoto = profile?.photos?.any { foto -> foto.status == PhotoStatus.REJECTED }
+                            ?: it.hasRejectedPhoto,
                         email = profile?.email ?: it.email,
                     )
                 }

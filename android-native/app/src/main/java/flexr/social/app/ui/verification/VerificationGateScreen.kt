@@ -144,6 +144,7 @@ fun VerificationGateScreen(
                 // Weg zum Upload.
                 !state.hasRequiredPhotos -> MissingPhotoContent(
                     missing = state.missingPhotos,
+                    rejected = state.hasRejectedPhoto,
                     isUploading = state.isUploadingPhoto,
                     error = state.photoError,
                     onPhotoPicked = viewModel::onPhotoPicked,
@@ -404,6 +405,7 @@ private fun EmailPendingContent(
 @Composable
 private fun MissingPhotoContent(
     missing: Int,
+    rejected: Boolean,
     isUploading: Boolean,
     error: String?,
     onPhotoPicked: (Uri) -> Unit,
@@ -430,7 +432,9 @@ private fun MissingPhotoContent(
             )
             Spacer(Modifier.height(10.dp))
             Text(
-                text = stringResource(R.string.vgate_photo_body2),
+                text = stringResource(
+                    if (rejected) R.string.vgate_photo_body2_rejected else R.string.vgate_photo_body2,
+                ),
                 style = MaterialTheme.typography.bodyMedium,
                 color = colors.chalkDim,
             )

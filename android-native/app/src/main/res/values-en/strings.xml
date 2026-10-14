@@ -447,6 +447,7 @@
     <string name="vgate_photo_chip">Photos missing</string>
     <string name="vgate_photo_body">For the review a person compares your profile photos with your selfie and your ID. Without at least %1$d photos it cannot start.</string>
     <string name="vgate_photo_body2">The upload failed while your profile was being created. Add them here — then everything continues as usual.</string>
+    <string name="vgate_photo_body2_rejected">A photo was rejected by moderation; you will find the reason in the email about it. Upload a different one – then everything continues as usual.</string>
     <string name="vgate_photo_missing">%1$d of %2$d required photos still missing.</string>
     <string name="vgate_photo_uploading">Uploading photo …</string>
     <string name="vgate_photo_upload_failed">The photo could not be uploaded.</string>

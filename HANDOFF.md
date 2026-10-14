@@ -32,6 +32,51 @@ erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 
 ## Wo das Projekt gerade steht
 
+> **Sitzung 14.10.2026 (9): Abgelehnte Fotos zählen nicht zur Pflichtzahl.
+> Android 2.7.26 gebaut.** Auf Wunsch des Nutzers gleich die harte Regel
+> („noch keine echten Nutzer“), in der Produktion gab es bisher kein
+> abgelehntes Foto.
+>
+> Deployt (`d0a2c4e`, gepusht, VPS `git pull --ff-only`, `sudo systemctl
+> restart flexr-api`, keine Migration). Live `/app/`, `i18n-app.js?v=33`,
+> `sw.js` (v43), `admin.html`, `admin.js?v=5` md5-gleich, Health ok.
+>
+> - **Server:** `/verification/start` verlangt drei gültige Fotos
+>   (`User.valid_photos`, alles außer `rejected`). Vorher ging die Prüfung mit
+>   drei Fotos los, von denen eines abgelehnt war.
+> - **Web-App:** Prüfbildschirm (`fehlendeGatePhotos`) und Konto-Hinweis zählen
+>   nur gültige; bei einer Ablehnung steht `vgate.photoP2Rejected` statt „der
+>   Upload hat nicht geklappt“, nur abgelehnte → `photo.hintRejected`.
+>   Lokal im Browser geprüft (Konto mit 2 gültigen + 1 abgelehnten Foto:
+>   „Noch 1 von 3 Pflichtfotos“, Upload angeboten; Server antwortet 400).
+> - **Adminportal:** Prüfansicht zeigt nur gültige Profilfotos (abgelehnte
+>   erschienen als kaputtes Bild) und warnt unter drei; die
+>   Nutzer-Detailansicht zeigt „abgelehnt“ statt eines kaputten Bildes.
+> - **Android 2.7.26 / 138** (`release-2.7.26/`, dem Nutzer geschickt): Gate
+>   zählt gleich, gleicher Hinweistext. AAB `ba674d70…467b`, APK
+>   `51c9358e…b8f3`, Upload-Key geprüft, 60 Unit-Tests grün.
+> - **iOS:** Quelltext gleichgezogen (`validPhotoCount`,
+>   `vgatePhotoBody2Rejected`), hier nicht kompilierbar; geht mit dem nächsten
+>   Codemagic-Build mit. Nicht eingereicht.
+> - **Bewusst unverändert:** Die Höchstzahl 6 zählt weiter alle Einträge. Die
+>   Fotoraster haben sechs feste Plätze, ein abgelehntes Foto belegt seinen
+>   mit „abgelehnt“ und ✕ und lässt sich immer löschen.
+> - Bis 2.7.25 bzw. die laufende iOS-Fassung bieten bei einem abgelehnten
+>   Foto keinen Ersatz-Upload an (Sackgasse bis zum Update) - vom Nutzer so
+>   entschieden, es gibt noch keine echten Nutzer.
+>
+> **Tests:** Backend 628 grün (+1), Android 60 (+1).
+>
+> **farmonaut.online:** Der Nutzer nutzt die Domain nicht mehr. Bestandsaufnahme:
+> nur nginx-vhost (308 auf vaultonaut.online), eine `.bak-pre-rebrand`-Kopie
+> und das Let's-Encrypt-Zertifikat; keine Dienste, Cronjobs, Webordner,
+> Schlüssel; die Live-Seite von vaultonaut verweist nirgends darauf. `deploy`
+> darf das nicht entfernen (root nur mit 2FA). Skript liegt unter
+> `/home/deploy/farmonaut-entfernen.sh` (sichert nach `/root`, vhost aus,
+> `nginx -t` mit Rückfall, `certbot delete`, Kontrolle) - **noch nicht
+> ausgeführt**, wartet auf den Nutzer. vaultonauts `.env.local` hat noch
+> `NEXT_PUBLIC_SITE_URL=https://farmonaut.online` (live ohne Wirkung).
+
 > **Sitzung 14.10.2026 (8): Bugfix-Runde 4 – verwaiste Profilbilder, alte
 > App-Benachrichtigungen.** Wunsch des Nutzers: noch eine Bugfixing-Runde.
 > Diesmal Betrieb (Timer, Zertifikate, Backups), Löschfristen gegen

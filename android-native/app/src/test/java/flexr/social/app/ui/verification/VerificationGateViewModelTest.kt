@@ -181,6 +181,34 @@ class VerificationGateViewModelTest {
     }
 
     /**
+     * Abgelehnte Fotos zählen nicht zur Pflichtzahl - wie beim Server. Bis
+     * 2.7.25 zählten sie mit: Mit drei Fotos, von denen eines abgelehnt war,
+     * bot der Schirm keinen Ersatz an, und der Start der Prüfung scheiterte.
+     */
+    @Test
+    fun `abgelehntes Foto zaehlt nicht und wird benannt`() = runTest {
+        val api = object : TestApi(listOf(inPruefung())) {
+            override suspend fun getMyProfile() = meinProfilDto(
+                photos = List(ImageProcessor.MIN_PHOTOS) {
+                    fotoDto(id = "f$it", status = if (it == 0) "rejected" else "approved")
+                },
+            )
+        }
+        val profileRepository = ProfileRepository(api, FakeSessionStore())
+        val viewModel = VerificationGateViewModel(
+            verificationRepository = VerificationRepository(api),
+            profileRepository = profileRepository,
+            photoPreparer = { PreparedPhoto(ByteArray(8), ByteArray(4)) },
+            strings = FakeAppStrings(),
+        )
+        profileRepository.refresh()
+        advanceUntilIdle()
+
+        assertEquals(1, viewModel.uiState.value.missingPhotos)
+        assertTrue(viewModel.uiState.value.hasRejectedPhoto)
+    }
+
+    /**
      * Die unbestätigte Adresse steht vor allem anderen - der Server lehnt
      * /verification/start sonst ab.
      */

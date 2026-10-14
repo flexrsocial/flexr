@@ -1,11 +1,35 @@
 # HANDOFF — native Android-App
 
-Stand: **14.10.2026**, Version 2.7.25 / versionCode 137. Der jüngste
+Stand: **14.10.2026**, Version 2.7.26 / versionCode 138. Der jüngste
 Abschnitt steht oben, ältere folgen darunter. Fassungen zwischen dem
 16.09. und dem 04.10. sind nur im Kommentar am `versionCode` in
 `app/build.gradle.kts` und in der Haupt-`HANDOFF.md` beschrieben.
 Für Aufbau, Build-Befehle und die Migrationstabelle siehe [README.md](README.md) —
 hier steht nur, was daraus *nicht* hervorgeht.
+
+---
+
+## Abgelehnte Fotos zählen nicht zur Pflichtzahl, 14.10.2026 (2.7.26)
+
+**2.7.26 statt 2.7.25 hochladen.** Der Server verlangt für
+`/verification/start` seit `d0a2c4e` drei **gültige** Fotos (abgelehnte zählen
+nicht mehr). Der Prüfbildschirm bis 2.7.25 zählte alle Fotos, bot dann keinen
+Ersatz-Upload an und lief beim Start in den 400 - mit 2.7.26 nicht mehr.
+
+* `VerificationGateUiState.photoCount` zählt nur Fotos mit Status ≠ REJECTED,
+  neu `hasRejectedPhoto`. `MissingPhotoContent` zeigt dann
+  `vgate_photo_body2_rejected` („Ein Foto wurde von der Moderation abgelehnt
+  …“) statt „Beim Anlegen deines Profils hat der Upload nicht geklappt“.
+* Neuer Test `abgelehntes Foto zaehlt nicht und wird benannt`; 60 Unit-Tests
+  grün, Lint 0 Fehler (109 Warnungen, wie bisher). Gerätetest steht aus.
+
+| 2.7.26 / 138 | SHA-256 | Größe |
+|---|---|---|
+| AAB (Play Console) | `ba674d70e08ab16d4e1af21a2f083290d987731f1f0a06b2d2240558ce1e467b` | 8.536.811 Bytes |
+| APK (Testgerät) | `51c9358eb28b5d7e18f8d9f08773cb9bd9f7b50ffdf5b374333cd2cca967b8f3` | 4.421.198 Bytes |
+
+aapt2: 138 / 2.7.26, targetSdk 36; Signer SHA-256 `BC:64:AD…79:80`
+(Upload-Key) für AAB und APK geprüft. Liegt in `release-2.7.26/` (gitignored).
 
 ---
 
