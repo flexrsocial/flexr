@@ -43,6 +43,10 @@ erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 >   keine Matches. Unabhängig davon hat der Nutzer zwischen 20:25 und 20:35
 >   im Adminportal 16 weitere Konten gelöscht, darunter
 >   `testuserfiverr@flexrtest.at`; übrig sind 9 echte Konten, alle mit Haken.
+>   Laut Nutzer beabsichtigt: Der Fiverr-Test ist abgeschlossen, der
+>   Produktionszugriff in der Play Console ist beantragt. Die neuen
+>   Testprofile sind für Googles Prüfer (Konto `appreview`, das schon 1 Match
+>   mit Chatverlauf hat).
 > - **Neu:** 20 Konten (`seed_testuser_neu.py`, `fotos_bauen_neu.py` in
 >   `~/MEGA/flexr/seed/`, außerhalb des Repos): 10 Frauen, 10 Männer,
 >   überwiegend Wien, je 3-4 freigegebene Fotos derselben Person aus einer
