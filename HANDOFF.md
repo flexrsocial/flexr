@@ -32,6 +32,46 @@ erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 
 ## Wo das Projekt gerade steht
 
+> **Sitzung 14.10.2026 (13): Drei Restpunkte – Apple-Meldungsreihenfolge,
+> alte Push-Adressen, Login ohne Aufräumen.** Auf die Frage „noch Bugs?“:
+> Produktion seit 17:43 ohne Fehler; der Nutzer wollte alle drei genannten
+> Kleinigkeiten behoben.
+>
+> Deployt (`bad2ac5`, gepusht; DB-Sicherung
+> `/home/deploy/db-backups/flexr-vor-deploy-20261014-1916.sql.gz`, dann
+> `git pull --ff-only`, `alembic upgrade head` → `b8e4f2a6d1c7`, `sudo
+> systemctl restart flexr-api`). Live: Spalte da, Health ok, Login mit
+> erfundener Adresse → 401, Journal ohne Fehler, beide `datenschutz.html`
+> md5-gleich.
+>
+> - **Apple-Meldungen in falscher Reihenfolge:** Eine verspätet zugestellte
+>   alte Verlängerung setzte das Ablaufdatum zurück (Premium endete
+>   vorzeitig), eine alte Meldung nach einer Rückerstattung hob diese wieder
+>   auf. Jetzt `store_subscriptions.store_signed_at` (Apple `signedDate`,
+>   Migration `b8e4f2a6d1c7`); ältere Meldungen ändern nichts, die
+>   Berechtigung kommt aus der Zeile. Google unverändert (dort fragt der
+>   Server ohnehin den aktuellen Stand ab). Betrifft heute niemanden – es gibt
+>   noch kein Store-Abo –, aber vor dem iOS-Verkaufsstart nötig.
+> - **Alte Push-Adressen:** `cleanup.purge_stale_push_tokens` im stündlichen
+>   Lauf (`push_tokens`), Frist `retention.PUSH_TOKEN_STALE_DAYS = 60` seit
+>   dem letzten Melden. Alle drei Apps melden bei jedem Start (`last_seen`),
+>   eine Rückkehr meldet die Adresse sofort neu an. In der Produktion traf
+>   es noch keine (älteste 26 Tage). Datenschutzerklärung DE/EN, Zeile
+>   „Push-Adresse eines Geräts“, ergänzt; Fassung bleibt 2026-10-14 (am
+>   selben Tag, keine Einwilligung betroffen). App-Kurzfassungen nennen die
+>   Push-Adresse nicht – kein neuer App-Build.
+> - **Login/Reaktivierung ohne Aufräumen:** Die Löschfristen (samt Storage-
+>   und Stripe-Aufrufen) liefen in jeder Anmeldung mit; das erledigt allein
+>   der stündliche Timer. Damit ein Konto mit abgelaufener Karenz in der
+>   Stunde bis zum Lauf nicht reaktivierbar ist, behandelt
+>   `_check_credentials` es sofort als nicht vorhanden (401).
+>
+> **Tests:** Backend 650 grün (+7).
+>
+> **Offen:** iOS-Quelltext aus Sitzung (9)–(12) ist ungebaut – vor dem
+> nächsten Einreichen einen Codemagic-Build laufen lassen. Android 2.7.28
+> noch nicht auf einem Gerät getestet.
+
 > **Sitzung 14.10.2026 (12): Datenschutzerklärung Fassung 2026-10-14.
 > Android 2.7.28 gebaut.** Wunsch des Nutzers: die neue Frist aus (11)
 > ausdrücklich in die Erklärung.
