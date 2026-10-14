@@ -32,6 +32,36 @@ erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 
 ## Wo das Projekt gerade steht
 
+> **Sitzung 14.10.2026 (12): Datenschutzerklärung Fassung 2026-10-14.
+> Android 2.7.28 gebaut.** Wunsch des Nutzers: die neue Frist aus (11)
+> ausdrücklich in die Erklärung.
+>
+> Deployt (`0eead68`, `a60b220`, gepusht, VPS `git pull --ff-only`, `sudo
+> systemctl restart flexr-api` wegen `legal.py`, keine Migration). Live
+> `datenschutz.html`, `en/datenschutz.html`, `sitemap.xml` md5-gleich,
+> Health ok.
+>
+> - **Abschnitt 7 (DE/EN):** neue Zeile „Automatisch markierte Nachricht, wenn
+>   das Match vor der Prüfung aufgelöst wird – bis zur Prüfung, höchstens 30
+>   Tage nach dem Senden; für beide Seiten ist der Chat sofort weg“.
+>   `test_retention` bindet die Zahl an `FLAGGED_MESSAGE_UNMATCHED_DAYS`.
+> - **`legal.PRIVACY_VERSION = "2026-10-14"`**, Stand-Zeilen DE/EN,
+>   Sitemap-`lastmod`. Bestehende Art.-9-Einwilligungen bleiben wirksam
+>   (`consents.active` und der Deck-Filter prüfen die Fassung nicht); neue
+>   Einwilligungen tragen die neue Fassung. Keine Mail an die Nutzer: keine
+>   neue Datenart, nur eine kürzere Frist als die bisherige Obergrenze.
+> - **Android 2.7.28 / 140** (`release-2.7.28/`, dem Nutzer geschickt,
+>   enthält 2.7.27): Kurzfassung mit „Stand: 14. Oktober 2026“ und neuem Punkt
+>   unter „Speicherdauer“. AAB `1ad509c8…0693`, APK `b26847e6…8a6a`,
+>   Upload-Key geprüft, 63 Unit-Tests, Lint 0 Fehler. `PLAY-CONSOLE.md`:
+>   keine neue Datenart.
+> - **iOS-Kurzfassung:** Stand-Zeile (hatte keine), neuer Punkt, und die
+>   Sicherungskopien aus der Fassung 2026-10-02 nachgeholt – dort stand noch
+>   „können für kurze Zeit weiterbestehen“ statt „höchstens 3 Monate“. Hier
+>   nicht kompilierbar, geht mit dem nächsten Codemagic-Build mit.
+>
+> **Tests:** Backend 643 grün (+2), Android 63.
+
 > **Sitzung 14.10.2026 (11): Markierte Nachrichten überstehen das Auflösen
 > des Matches; Root-Skript aus Runde 5 geprüft.**
 >
