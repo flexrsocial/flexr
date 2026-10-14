@@ -197,9 +197,14 @@ def test_abgelehntes_foto_verschwindet_aus_dem_speicher(client, monkeypatch):
         db.close()
 
 
-def test_freigabe_loescht_eine_frueher_erteilte_ablehnung(client):
-    """Sonst haengt an einem sichtbaren Foto weiter die Begruendung, aus der
-    es einmal entfernt wurde."""
+def test_abgelehntes_foto_laesst_sich_nicht_wieder_freigeben(client):
+    """Die Ablehnung loescht die Bilddatei (reject_photo). Eine spaetere
+    Freigabe machte daraus ein "freigegebenes" Foto ohne Datei - kaputtes Bild
+    auf der Swipe-Karte, und es zaehlte wieder zur Mindestanzahl.
+
+    Bis zum 14.10.2026 stand hier das Gegenteil (Freigabe nach Ablehnung
+    raeumt die Begruendung ab). Das stammte aus der Zeit, bevor die Ablehnung
+    die Datei mitnahm."""
     headers = register_user(client, "wiederfrei@example.com")
     add_approved_photo(client, headers, url="https://cdn.example.test/wieder.jpg")
 
@@ -217,14 +222,14 @@ def test_freigabe_loescht_eine_frueher_erteilte_ablehnung(client):
         headers=admin_headers,
         json={"reason": "not_account_holder"},
     )
-    client.post(f"/api/admin/photos/{foto_id}/approve", headers=admin_headers)
+    resp = client.post(f"/api/admin/photos/{foto_id}/approve", headers=admin_headers)
+    assert resp.status_code == 409
 
     db = TestingSessionLocal()
     try:
         foto = db.query(Photo).filter(Photo.id == foto_id).first()
-        assert foto.status == PhotoStatus.approved
-        assert foto.rejection_reason is None
-        assert foto.rejection_note is None
-        assert foto.rejected_at is None
+        assert foto.status == PhotoStatus.rejected
+        assert foto.rejection_reason == "not_account_holder"
+        assert foto.rejected_at is not None
     finally:
         db.close()

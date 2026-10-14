@@ -15,6 +15,7 @@ struct SwipeView: View {
     @State private var lightboxStartIndex: Int?
     @State private var showReportDialog = false
     @State private var showBlockDialog = false
+    @Environment(\.scenePhase) private var scenePhase
 
     var body: some View {
         Group {
@@ -47,6 +48,12 @@ struct SwipeView: View {
             model.ownAvatarURL = profil.ownAvatarURL
             Task { await model.loadDeck() }
         }
+        // Zurück in die App: ob inzwischen ein Foto freigegeben ist,
+        // entscheidet über den Hinweis über dem Deck.
+        .onChange(of: scenePhase) { _, phase in
+            guard phase == .active else { return }
+            Task { _ = try? await container.profiles.refresh() }
+        }
     }
 
     /// Die Merkmale, die bestimmen, wen das Deck zeigt.
@@ -65,6 +72,18 @@ struct SwipeView: View {
                 .flexrText(.mono)
                 .foregroundStyle(FlexrColor.chalkDim)
                 .padding(.top, 8)
+
+            // Solange kein eigenes Foto freigegeben ist, erscheint man in
+            // keinem fremden Deck - bis 14.10.2026 erfuhr man das nur klein
+            // unter dem Fotoraster im Konto.
+            if let profil = container.profiles.myProfile, profil.isAccountActivated,
+               profil.photoVisibility != .visible {
+                SearchVisibilityBanner(visibility: profil.photoVisibility) {
+                    appModel.scrollToOwnPhotos = true
+                    appModel.selectedTab = .account
+                }
+                .padding(.top, 14)
+            }
 
             deck(model)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)

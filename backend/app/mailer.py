@@ -243,6 +243,35 @@ def _kv_rows_text(rows: list[tuple[str, str]]) -> str:
     return "\n".join(f"  {(k + ':').ljust(breite + 1)} {v}" for k, v in rows)
 
 
+def _logo_url() -> str:
+    """Adresse des Mail-Logos. Liegt unter /icons/ (nur dort liefert nginx
+    aus, /brand/ ist gesperrt) und traegt die Version im Namen, weil /icons/
+    ein Jahr "immutable" gecacht wird - erzeugt von
+    frontend/brand/build_logo.py (MAIL_LOGO)."""
+    return f"{settings.frontend_url.rstrip('/')}/{MAIL_LOGO_PATH}"
+
+
+#: Pfad des Mail-Logos unter frontend/ - bei einer neuen Fassung neue Nummer.
+MAIL_LOGO_PATH = "icons/mail-logo-v1.png"
+
+
+def _header_html(eyebrow: str) -> str:
+    """Kopf jeder HTML-Mail: Stichzeile links, FLEXR-Wortmarke rechts oben.
+
+    Als Tabelle, nicht mit float/flex: Outlook und manche Webmailer kennen
+    davon nichts und stapelten Logo und Stichzeile untereinander. Der
+    alt-Text ist gestaltet - wer Bilder blockiert, sieht statt eines leeren
+    Rahmens das Wort FLEXR in den Markenfarben der Schrift."""
+    return f"""    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;margin:0 0 14px;">
+      <tr>
+        <td style="vertical-align:middle;padding:0;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:#ff5a1f;">{html.escape(eyebrow)}</td>
+        <td style="vertical-align:middle;padding:0 0 0 12px;text-align:right;width:120px;">
+          <a href="{html.escape(settings.frontend_url)}" style="text-decoration:none;color:#f2efea;"><img src="{html.escape(_logo_url())}" width="120" height="33" alt="FLEXR" style="display:block;margin:0 0 0 auto;border:0;outline:none;text-decoration:none;width:120px;height:33px;font-family:Helvetica,Arial,sans-serif;font-size:20px;font-weight:700;letter-spacing:.08em;line-height:33px;color:#f2efea;"></a>
+        </td>
+      </tr>
+    </table>"""
+
+
 def _email_shell(
     eyebrow: str,
     heading_html: str,
@@ -256,7 +285,7 @@ def _email_shell(
 <html lang="{t("html.lang", lang)}">
 <body style="margin:0;padding:24px;background:#0f0f11;font-family:Helvetica,Arial,sans-serif;color:#e8e8ea;">
   <div style="max-width:520px;margin:0 auto;background:#17171a;border:1px solid #2a2a30;border-radius:16px;padding:28px;">
-    <p style="margin:0 0 6px;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:#ff5a1f;">{html.escape(eyebrow)}</p>
+{_header_html(eyebrow)}
     <h1 style="margin:0 0 18px;font-size:22px;line-height:1.3;color:#ffffff;">{heading_html}</h1>
 {body_html}
 {footer_html if footer_html is not None else _default_footer_html(lang)}
@@ -347,7 +376,7 @@ def _verify_html(name: str, link: str, hours: int, lang: str = STANDARD) -> str:
 <html lang="{t("html.lang", lang)}">
 <body style="margin:0;padding:24px;background:#0f0f11;font-family:Helvetica,Arial,sans-serif;color:#e8e8ea;">
   <div style="max-width:520px;margin:0 auto;background:#17171a;border:1px solid #2a2a30;border-radius:16px;padding:28px;">
-    <p style="margin:0 0 6px;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:#ff5a1f;">{html.escape(t("verify.eyebrow", lang))}</p>
+{_header_html(t("verify.eyebrow", lang))}
     <h1 style="margin:0 0 18px;font-size:24px;line-height:1.25;color:#ffffff;">{t("verify.heading", lang, name=name)}</h1>
     <p style="margin:0 0 14px;font-size:15px;line-height:1.6;">
       {html.escape(t("verify.html.intro", lang, hours=hours))}
@@ -1062,7 +1091,7 @@ def _decision_html(
 <html lang="{t("html.lang", lang)}">
 <body style="margin:0;padding:24px;background:#0f0f11;font-family:Helvetica,Arial,sans-serif;color:#e8e8ea;">
   <div style="max-width:520px;margin:0 auto;background:#17171a;border:1px solid #2a2a30;border-radius:16px;padding:28px;">
-    <p style="margin:0 0 6px;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:#ff5a1f;">{html.escape(eyebrow)}</p>
+{_header_html(eyebrow)}
     <h1 style="margin:0 0 18px;font-size:22px;line-height:1.3;color:#ffffff;">{t("greeting", lang, name=name_safe)}</h1>
     <p style="margin:0 0 22px;font-size:15px;line-height:1.6;">
       {detail_html}
@@ -1085,7 +1114,11 @@ def send_verification_decision(
     reason: str | None = None,
     redo_selfie: bool = False,
     lang: str = STANDARD,
+    photos_pending: bool = False,
 ) -> bool:
+    """``photos_pending``: freigeschaltet, aber noch kein Foto freigegeben -
+    dann sagt die Mail, dass man in der Suche erst mit dem ersten
+    freigegebenen Foto erscheint (Fotos werden getrennt moderiert)."""
     # Wo es weitergeht, ein Knopf direkt in die Web-App (Wunsch des
     # Betreibers, 14.10.2026): Bis dahin stand in der Freischalt-Mail nur
     # "Oeffne FLEXR" - ohne Link, wer am Rechner las, musste die Seite suchen.
@@ -1095,6 +1128,8 @@ def send_verification_decision(
         subject = t("verified.subject", lang)
         eyebrow = t("verified.eyebrow", lang)
         detail = t("verified.detail", lang)
+        if photos_pending:
+            detail = f'{detail}\n\n{t("verified.photosPending", lang)}'
         button = (app_link, t("verified.cta", lang))
     elif outcome == "reupload_required":
         subject = t("reupload.subject", lang)
@@ -1201,28 +1236,39 @@ def send_moderation_decision(
     )
 
 
-def _photo_rejected_html(name: str, reason: str, lang: str = STANDARD) -> str:
-    body = "\n".join([
+def _photo_rejected_html(
+    name: str, reason: str, lang: str = STANDARD, hidden: bool = False
+) -> str:
+    teile = [
         _p(t("photo.intro", lang)),
         _p(f'{t("photo.reasonLabel", lang)}: {reason}'),
-        _p(t("photo.retry", lang)),
-    ])
-    return _email_shell(t("photo.eyebrow", lang), _greeting_html(name, lang), body, lang=lang)
+    ]
+    if hidden:
+        teile.append(_p(t("photo.hidden", lang)))
+    teile.append(_p(t("photo.retry", lang)))
+    return _email_shell(
+        t("photo.eyebrow", lang), _greeting_html(name, lang), "\n".join(teile), lang=lang
+    )
 
 
-def send_photo_rejected(email: str, name: str, reason: str, lang: str = STANDARD) -> bool:
+def send_photo_rejected(
+    email: str, name: str, reason: str, lang: str = STANDARD, hidden: bool = False
+) -> bool:
+    """``hidden``: Nach dieser Ablehnung bleibt kein freigegebenes Foto - das
+    Profil erscheint in keiner Suche mehr, und die Mail sagt das."""
+    unsichtbar = f'{textwrap.fill(t("photo.hidden", lang), width=76)}\n\n' if hidden else ""
     body = f"""{_greeting(name, lang)}
 
 {textwrap.fill(t("photo.intro", lang), width=76)}
 
 {t("photo.reasonLabel", lang)}: {reason}
 
-{textwrap.fill(t("photo.retry", lang), width=76)}
+{unsichtbar}{textwrap.fill(t("photo.retry", lang), width=76)}
 
 {t("signoff", lang)}
 """
     return send_email_with_retry(
-        email, t("photo.subject", lang), body, _photo_rejected_html(name, reason, lang),
+        email, t("photo.subject", lang), body, _photo_rejected_html(name, reason, lang, hidden),
         attempts=2, delay_seconds=1,
     )
 

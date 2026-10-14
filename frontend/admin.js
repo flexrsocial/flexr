@@ -795,13 +795,15 @@
       }
       wrap.innerHTML = `<div class="photo-mod-grid">${photos.map(p => `
         <div class="photo-mod-card" data-photo-id="${p.id}">
-          <img src="${escapeHtml(p.url)}" loading="lazy">
+          ${p.status === 'rejected'
+            ? `<div class="photo-gone" title="Die Bilddatei wurde bei der Ablehnung gelöscht.">abgelehnt · Datei gelöscht</div>`
+            : `<img src="${escapeHtml(p.url)}" loading="lazy">`}
           <div class="meta">
             <div class="nm">${escapeHtml(p.user_name)}</div>
             <div class="mono">${escapeHtml(p.user_email)}</div>
           </div>
           <div class="actions">
-            ${p.status !== 'approved' ? `<button class="btn small" data-action="approve">Freigeben</button>` : ''}
+            ${p.status === 'pending' ? `<button class="btn small" data-action="approve">Freigeben</button>` : ''}
             ${p.status !== 'rejected' ? `<button class="btn secondary small" data-action="reject">Ablehnen</button>` : ''}
             <button class="btn danger small" data-action="delete">Löschen</button>
           </div>

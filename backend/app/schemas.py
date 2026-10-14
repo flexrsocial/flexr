@@ -253,6 +253,15 @@ class MyProfileOut(ProfileOut):
     avatar_url: Optional[str] = None
     min_photos: int = 3
     max_photos: int = 6
+    # Erscheint das Profil seiner Fotos wegen in der Suche? Das Deck zeigt nur
+    # Profile mit mindestens einem freigegebenen Foto (swipes.deck_profiles).
+    # "visible", "pending" (keines freigegeben, mindestens eines in Prüfung),
+    # "rejected" (keines freigegeben, keines mehr in Prüfung) oder "none".
+    # Bis zum 14.10.2026 stand das nur klein unter dem Fotoraster - wer nach
+    # der Freischaltung noch auf die Fotofreigabe wartete oder eine Ablehnung
+    # bekam, swipte, ohne zu wissen, dass ihn selbst niemand sieht. Die
+    # Clients zeigen daraus einen deutlichen Hinweis über dem Deck.
+    photo_visibility: Literal["visible", "pending", "rejected", "none"] = "none"
 
     @model_validator(mode="after")
     def _foto_regeln(self):
@@ -269,6 +278,15 @@ class MyProfileOut(ProfileOut):
             gueltige[0] if gueltige else None
         )
         self.avatar_url = (eigenes.thumb_url or eigenes.url) if eigenes else None
+        stati = {p.status for p in self.photos}
+        if "approved" in stati:
+            self.photo_visibility = "visible"
+        elif "pending" in stati:
+            self.photo_visibility = "pending"
+        elif stati:
+            self.photo_visibility = "rejected"
+        else:
+            self.photo_visibility = "none"
         return self
 
 

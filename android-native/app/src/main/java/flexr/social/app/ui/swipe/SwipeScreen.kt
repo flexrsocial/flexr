@@ -34,6 +34,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import flexr.social.app.R
 import flexr.social.app.core.designsystem.component.EmptyState
@@ -45,6 +47,8 @@ import flexr.social.app.core.designsystem.theme.MonoStyle
 import flexr.social.app.ui.components.ConfirmDialog
 import flexr.social.app.ui.components.PhotoLightbox
 import flexr.social.app.ui.components.ReportDialog
+import flexr.social.app.domain.model.PhotoVisibility
+import flexr.social.app.ui.components.SearchVisibilityBanner
 import kotlin.math.abs
 
 @Composable
@@ -52,10 +56,16 @@ fun SwipeScreen(
     onOpenChat: (String) -> Unit,
     onShowMessage: (String) -> Unit,
     onShowStickyMessage: (String) -> Unit,
+    /** Hinweis "in der Suche nicht sichtbar": zum Fotoraster im Konto. */
+    onOpenOwnPhotos: () -> Unit = {},
     viewModel: SwipeViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()
+
+    // Zurueck in die App: ob inzwischen ein Foto freigegeben ist, entscheidet
+    // ueber den Hinweis ueber dem Deck.
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { viewModel.refreshOwnProfile() }
 
     var lightboxStartIndex by remember { mutableStateOf<Int?>(null) }
     var showReportDialog by remember { mutableStateOf(false) }
@@ -90,6 +100,16 @@ fun SwipeScreen(
             color = FlexrTheme.colors.chalkDim,
             modifier = Modifier.padding(top = 8.dp),
         )
+
+        // Solange kein eigenes Foto freigegeben ist, erscheint man in keinem
+        // fremden Deck - bis 2.7.28 erfuhr man das nur unter dem Fotoraster.
+        if (state.ownPhotoVisibility != PhotoVisibility.VISIBLE) {
+            Spacer(Modifier.height(14.dp))
+            SearchVisibilityBanner(
+                visibility = state.ownPhotoVisibility,
+                onAction = onOpenOwnPhotos,
+            )
+        }
 
         Spacer(Modifier.height(16.dp))
 

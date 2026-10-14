@@ -209,8 +209,8 @@ TEXTE: dict[str, dict[str, str]] = {
     },
     "subscription.kv.service": {"de": "Leistung", "en": "Service"},
     "subscription.kv.serviceValue": {
-        "de": "FLEXR-Mitgliedschaft (flexr.social)",
-        "en": "FLEXR membership (flexr.social)",
+        "de": "FLEXR Premium (flexr.social)",
+        "en": "FLEXR Premium (flexr.social)",
     },
     "subscription.kv.price": {"de": "Preis", "en": "Price"},
     "subscription.kv.priceValue": {
@@ -224,8 +224,8 @@ TEXTE: dict[str, dict[str, str]] = {
     },
     "subscription.kv.term": {"de": "Laufzeit", "en": "Term"},
     "subscription.kv.termValue": {
-        "de": "keine Mindestlaufzeit, monatlich kündbar",
-        "en": "no minimum term, cancellable monthly",
+        "de": "keine Mindestlaufzeit, jederzeit zum Ende des Abrechnungszeitraums kündbar",
+        "en": "no minimum term, can be cancelled at any time to the end of the billing period",
     },
     "subscription.kv.cancel": {"de": "Kündigen", "en": "Cancelling"},
     "subscription.kv.cancelValue": {
@@ -346,12 +346,12 @@ TEXTE: dict[str, dict[str, str]] = {
     "failed.check": {
         "de": (
             'Bitte prüfe deine Zahlungsdaten in FLEXR unter "Abo verwalten / '
-            'kündigen". Dein Zugang bleibt während der erneuten Zahlungsversuche '
+            'kündigen". FLEXR Premium bleibt während der erneuten Zahlungsversuche '
             "vorerst aktiv."
         ),
         "en": (
             "Please check your payment details in FLEXR under “Manage / cancel "
-            "subscription”. Your access stays active for now while the payment is "
+            "subscription”. FLEXR Premium stays active for now while the payment is "
             "retried."
         ),
     },
@@ -364,16 +364,18 @@ TEXTE: dict[str, dict[str, str]] = {
     "cancelled.intro": {
         "de": (
             "deine Kündigung ist vorgemerkt. Es erfolgen keine weiteren monatlichen "
-            "Verlängerungen. Dein FLEXR-Zugang bleibt bis {date} bestehen."
+            "Verlängerungen. FLEXR Premium bleibt bis {date} aktiv, danach nutzt du "
+            "FLEXR kostenlos weiter."
         ),
         "en": (
             "your cancellation is scheduled. There will be no further monthly "
-            "renewals. Your FLEXR access remains until {date}."
+            "renewals. FLEXR Premium stays active until {date}; after that you keep "
+            "using FLEXR for free."
         ),
     },
     "cancelled.undo": {
-        "de": "Du kannst die Kündigung bis dahin im Stripe-Kundenportal rückgängig machen.",
-        "en": "Until then you can undo the cancellation in the Stripe customer portal.",
+        "de": 'Du kannst die Kündigung bis dahin in FLEXR unter "Abo verwalten / kündigen" rückgängig machen.',
+        "en": "Until then you can undo the cancellation in FLEXR under “Manage / cancel subscription”.",
     },
     "ended.subject": {
         "de": "Dein FLEXR-Abo ist beendet",
@@ -382,16 +384,16 @@ TEXTE: dict[str, dict[str, str]] = {
     "ended.eyebrow": {"de": "Abo beendet", "en": "Subscription ended"},
     "ended.intro": {
         "de": (
-            "dein FLEXR-Abo ist beendet. Es erfolgen keine weiteren Abbuchungen. "
-            "Falls dein kostenloser Nutzungszeitraum ebenfalls abgelaufen ist, ist "
-            "der Mitgliederzugang ab jetzt pausiert. Dein Konto bleibt bestehen "
-            "und kann mit einem neuen Abo wieder aktiviert werden."
+            "dein FLEXR-Premium-Abo ist beendet. Es erfolgen keine weiteren "
+            "Abbuchungen. Dein Konto bleibt als kostenloses Konto bestehen - FLEXR "
+            "kannst du weiter nutzen, nur die Premium-Vorteile entfallen. Premium "
+            "kannst du jederzeit wieder abschließen."
         ),
         "en": (
-            "your FLEXR subscription has ended. No further payments will be taken. "
-            "If your free usage period has also expired, member access is paused from "
-            "now on. Your account remains and can be reactivated with a new "
-            "subscription."
+            "your FLEXR Premium subscription has ended. No further payments will be "
+            "taken. Your account stays as a free account - you can keep using FLEXR, "
+            "only the Premium benefits no longer apply. You can take out Premium "
+            "again at any time."
         ),
     },
 
@@ -615,10 +617,25 @@ TEXTE: dict[str, dict[str, str]] = {
     },
     "verified.eyebrow": {"de": "Freigeschaltet", "en": "Activated"},
     "verified.cta": {"de": "Jetzt loslegen", "en": "Get started"},
+    # Freigeschaltet, aber noch kein Foto freigegeben (Fotos werden getrennt
+    # von der Ausweispruefung moderiert): Das Konto ist nutzbar, in fremden
+    # Decks erscheint es aber erst mit dem ersten freigegebenen Foto.
+    "verified.photosPending": {
+        "de": (
+            "Deine Profilfotos werden noch geprüft. Sobald mindestens eines "
+            "freigegeben ist, erscheinst du in der Suche - bis dahin sehen dich "
+            "andere noch nicht."
+        ),
+        "en": (
+            "Your profile photos are still being reviewed. As soon as at least one "
+            "is approved, you appear in the search - until then others cannot see "
+            "you yet."
+        ),
+    },
     "reupload.cta": {"de": "Neue Aufnahme machen", "en": "Take a new photo"},
     "verified.detail": {
         "de": (
-            "Deine Alters- und Identitätsprüfung wurde bestätigt. Dein Konto ist "
+            "deine Alters- und Identitätsprüfung wurde bestätigt. Dein Konto ist "
             "jetzt freigeschaltet."
         ),
         "en": (
@@ -632,8 +649,8 @@ TEXTE: dict[str, dict[str, str]] = {
     },
     "reupload.eyebrow": {"de": "Nachbesserung nötig", "en": "Correction needed"},
     "reupload.detail": {
-        "de": "Bitte lade {what} erneut hoch. Grund: {reason}",
-        "en": "Please upload {what} again. Reason: {reason}",
+        "de": "bitte lade {what} erneut hoch. Grund: {reason}",
+        "en": "please upload {what} again. Reason: {reason}",
     },
     "reupload.both": {"de": "Selfie und Ausweisaufnahme", "en": "the selfie and the ID capture"},
     "reupload.idOnly": {"de": "Ausweisaufnahme", "en": "the ID capture"},
@@ -647,8 +664,8 @@ TEXTE: dict[str, dict[str, str]] = {
     },
     "rejected.eyebrow": {"de": "Verifizierung abgelehnt", "en": "Verification rejected"},
     "rejected.detail": {
-        "de": "Die Prüfung konnte nicht bestätigt werden. Grund: {reason}",
-        "en": "The check could not be confirmed. Reason: {reason}",
+        "de": "die Prüfung konnte nicht bestätigt werden. Grund: {reason}",
+        "en": "the check could not be confirmed. Reason: {reason}",
     },
     "rejected.fallbackReason": {
         "de": "Prüfung nicht erfolgreich.",
@@ -733,11 +750,25 @@ TEXTE: dict[str, dict[str, str]] = {
             "entfernt."
         ),
         "en": (
-            "A profile photo was not approved and has been removed from your visible "
+            "a profile photo was not approved and has been removed from your visible "
             "profile."
         ),
     },
     "photo.reasonLabel": {"de": "Begründung", "en": "Reason"},
+    # Nur wenn danach kein freigegebenes Foto mehr bleibt (admin.reject_photo):
+    # Dann taucht das Profil in keiner Suche mehr auf - das soll niemand erst
+    # an ausbleibenden Matches merken.
+    "photo.hidden": {
+        "de": (
+            "Damit hast du gerade kein freigegebenes Foto mehr und bist in der "
+            "Suche nicht sichtbar. Sobald ein neues Foto freigegeben ist, sehen "
+            "dich andere wieder."
+        ),
+        "en": (
+            "You now have no approved photo, so you are not visible in the search. "
+            "As soon as a new photo is approved, others will see you again."
+        ),
+    },
     "photo.retry": {
         "de": (
             "Du kannst ein neues Foto hochladen. Wenn du die Entscheidung für falsch "
@@ -954,12 +985,12 @@ TEXTE: dict[str, dict[str, str]] = {
     "reset.eyebrow": {"de": "Passwort vergessen", "en": "Forgot password"},
     "reset.intro": {
         "de": (
-            "Jemand – hoffentlich du – möchte das Passwort für dein FLEXR-Konto "
+            "jemand – hoffentlich du – möchte das Passwort für dein FLEXR-Konto "
             "zurücksetzen. Über den Link unten legst du ein neues fest. Er gilt "
             "{minutes} Minuten und nur ein einziges Mal."
         ),
         "en": (
-            "Someone – hopefully you – asked to reset the password for your FLEXR "
+            "someone – hopefully you – asked to reset the password for your FLEXR "
             "account. Use the link below to choose a new one. It is valid for "
             "{minutes} minutes and works only once."
         ),
@@ -981,11 +1012,11 @@ TEXTE: dict[str, dict[str, str]] = {
     "pwchanged.eyebrow": {"de": "Sicherheit", "en": "Security"},
     "pwchanged.intro": {
         "de": (
-            "Das Passwort deines FLEXR-Kontos wurde gerade geändert. Alle anderen "
+            "das Passwort deines FLEXR-Kontos wurde gerade geändert. Alle anderen "
             "Anmeldungen wurden dabei beendet."
         ),
         "en": (
-            "The password of your FLEXR account was just changed. All other "
+            "the password of your FLEXR account was just changed. All other "
             "sessions have been signed out."
         ),
     },
@@ -1005,11 +1036,11 @@ TEXTE: dict[str, dict[str, str]] = {
     },
     "emailchanged.intro": {
         "de": (
-            "Die E-Mail-Adresse deines FLEXR-Kontos wurde gerade auf {new} geändert. "
+            "die E-Mail-Adresse deines FLEXR-Kontos wurde gerade auf {new} geändert. "
             "An diese Adresse schicken wir ab jetzt alle Nachrichten."
         ),
         "en": (
-            "The email address of your FLEXR account was just changed to {new}. "
+            "the email address of your FLEXR account was just changed to {new}. "
             "From now on we will send all messages there."
         ),
     },

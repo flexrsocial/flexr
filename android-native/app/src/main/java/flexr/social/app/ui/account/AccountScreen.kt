@@ -6,6 +6,7 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -26,6 +27,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
@@ -48,6 +51,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -72,6 +76,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import flexr.social.app.R
@@ -85,6 +91,7 @@ import flexr.social.app.core.designsystem.component.FlexrSecondaryButton
 import flexr.social.app.core.designsystem.component.FlexrTextField
 import flexr.social.app.core.designsystem.component.LanguageSwitch
 import flexr.social.app.core.designsystem.component.SectionTitle
+import flexr.social.app.core.media.ImageProcessor
 import flexr.social.app.core.designsystem.component.PremiumBadge
 import flexr.social.app.core.designsystem.component.VerifiedBadge
 import flexr.social.app.core.designsystem.theme.FlexrTheme
@@ -95,15 +102,21 @@ import flexr.social.app.data.remote.dto.ConsentDto
 import flexr.social.app.data.remote.dto.NotificationSettingsRequestDto
 import flexr.social.app.domain.model.BlockedUser
 import flexr.social.app.domain.model.NotificationSettings
+import flexr.social.app.domain.model.PhotoStatus
+import flexr.social.app.domain.model.PhotoVisibility
 import flexr.social.app.domain.model.VerificationStatus
 import flexr.social.app.notifications.Akkuoptimierung
+import flexr.social.app.ui.components.ConfirmDialog
 import flexr.social.app.ui.components.GymPicker
 import flexr.social.app.ui.components.GymSuggestionDialog
 import flexr.social.app.ui.components.PhotoGridEditor
 import flexr.social.app.ui.components.PhotoSlot
 import flexr.social.app.ui.components.PhotoVisibilityHint
+import flexr.social.app.ui.components.SearchVisibilityBanner
 import flexr.social.app.ui.components.PostalCodeField
 import flexr.social.app.ui.navigation.LegalDocument
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @Composable
 fun AccountScreen(
@@ -114,11 +127,55 @@ fun AccountScreen(
     onOpenPremium: () -> Unit,
     onOpenUrl: (String) -> Unit,
     onShowMessage: (String) -> Unit,
+    /** Vom Hinweis ueber dem Deck: gleich zum Fotoraster scrollen. */
+    scrollToPhotos: Boolean = false,
+    onScrolledToPhotos: () -> Unit = {},
     viewModel: AccountViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val profile by viewModel.profile.collectAsStateWithLifecycle()
     val membership by viewModel.membership.collectAsStateWithLifecycle()
+
+    // Fotostatus aendert die Moderation im Hintergrund - bei jedem Zurueckkehren
+    // neu holen, sonst steht ein inzwischen abgelehntes Foto als "in Pruefung"
+    // da und das ✕ rechnet mit einer veralteten Fotozahl.
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { viewModel.refreshProfile() }
+
+    val fotoBereich = remember { BringIntoViewRequester() }
+    val scope = rememberCoroutineScope()
+    // Bildauswahl fuer "Foto austauschen" und den Knopf im Hinweis. Das
+    // Raster hat seine eigene fuer die leeren Plaetze.
+    val replacementPicker = rememberLauncherForActivityResult(
+        ActivityResultContracts.PickVisualMedia(),
+    ) { uri ->
+        if (uri != null) viewModel.onReplacementPicked(uri) else viewModel.cancelReplacement()
+    }
+    val pickImage = {
+        replacementPicker.launch(
+            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly),
+        )
+    }
+    LaunchedEffect(scrollToPhotos) {
+        if (scrollToPhotos) {
+            // Erst nach dem ersten Layout ist bekannt, wo das Raster liegt.
+            delay(150)
+            fotoBereich.bringIntoView()
+            onScrolledToPhotos()
+        }
+    }
+    state.swapCandidate?.let {
+        ConfirmDialog(
+            title = stringResource(R.string.photo_swap_title),
+            text = stringResource(R.string.photo_swap_text, ImageProcessor.MIN_PHOTOS),
+            confirmLabel = stringResource(R.string.photo_swap_choose),
+            onConfirm = {
+                viewModel.confirmSwap()
+                pickImage()
+            },
+            onDismiss = viewModel::dismissSwap,
+            destructive = false,
+        )
+    }
 
     LaunchedEffect(Unit) {
         viewModel.events.collect { event ->
@@ -287,6 +344,26 @@ fun AccountScreen(
             )
         }
 
+        // In der Suche unsichtbar, solange kein Foto freigegeben ist. Nur fuer
+        // freigeschaltete Konten - die anderen stehen ohnehin vor der Pruefung.
+        val sichtbarkeit = currentProfile?.photoVisibility ?: PhotoVisibility.VISIBLE
+        if (currentProfile?.isAccountActivated == true && sichtbarkeit != PhotoVisibility.VISIBLE) {
+            Spacer(Modifier.height(14.dp))
+            SearchVisibilityBanner(
+                visibility = sichtbarkeit,
+                onAction = {
+                    scope.launch { fotoBereich.bringIntoView() }
+                    if (sichtbarkeit != PhotoVisibility.PENDING &&
+                        (currentProfile.photos.size) < ImageProcessor.MAX_PHOTOS &&
+                        !state.isUploadingPhoto
+                    ) {
+                        viewModel.cancelReplacement()
+                        pickImage()
+                    }
+                },
+            )
+        }
+
         // ---------- Profil ----------
         // Die Karte mit dem Beta-/Frei-Grenzen-Text ("Dein Konto ist
         // kostenlos ...") stand bis 19.09.2026 hier, fuer Premium-Konten schon
@@ -401,11 +478,24 @@ fun AccountScreen(
 
         // ---------- Fotos ----------
         Spacer(Modifier.height(28.dp))
-        SectionTitle(stringResource(R.string.account_section_photos))
+        SectionTitle(
+            stringResource(R.string.account_section_photos),
+            modifier = Modifier.bringIntoViewRequester(fotoBereich),
+        )
         Spacer(Modifier.height(8.dp))
         PhotoGridEditor(
             slots = currentProfile?.photos?.map {
-                PhotoSlot(key = it.id, model = it.url, status = it.status)
+                PhotoSlot(
+                    key = it.id,
+                    model = it.url,
+                    status = it.status,
+                    // Der Server sagt es pro Foto; sonst dieselbe Rechnung wie
+                    // im ViewModel.
+                    removable = it.deletable ?: (
+                        it.status == PhotoStatus.REJECTED ||
+                            currentProfile.validPhotoCount > ImageProcessor.MIN_PHOTOS
+                        ),
+                )
             }.orEmpty(),
             onPhotoPicked = viewModel::onPhotoPicked,
             onRemove = viewModel::onPhotoRemoved,
@@ -428,7 +518,10 @@ fun AccountScreen(
                 )
             }
         }
-        PhotoVisibilityHint(photoStatuses = currentProfile?.photos?.map { it.status }.orEmpty())
+        PhotoVisibilityHint(
+            photoStatuses = currentProfile?.photos?.map { it.status }.orEmpty(),
+            visibility = currentProfile?.photoVisibility ?: PhotoVisibility.NONE,
+        )
         FieldError(state.photoError)
 
         // ---------- Einstellungen ----------

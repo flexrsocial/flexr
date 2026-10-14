@@ -33,6 +33,9 @@ final class AppModel {
 
     private(set) var state: AppState = .loading
     var selectedTab: TopLevelDestination = .swipe
+    /// Vom Hinweis „in der Suche nicht sichtbar" über dem Deck: Der Konto-Tab
+    /// scrollt beim Öffnen gleich zum Fotoraster und setzt das zurück.
+    var scrollToOwnPhotos = false
 
     /// Der aktuelle Premium-Status, sofern die Sitzung schon steht.
     ///

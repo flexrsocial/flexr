@@ -93,4 +93,26 @@ final class FotoRegelnTests: XCTestCase {
             PasswordForgotRequestDTO(email: "a@b.at", language: "en")), as: UTF8.self)
         XCTAssertEqual(forgot, #"{"email":"a@b.at","language":"en"}"#)
     }
+
+    // MARK: - Sichtbarkeit in der Suche (14.10.2026)
+
+    func testSichtbarkeitVomServerHatVorrang() throws {
+        let p = try profil(
+            photos: #"{"id": "p1", "url": "https://r2/1", "position": 0, "status": "approved"}"#,
+            extra: #", "photo_visibility": "pending""#
+        )
+        XCTAssertEqual(p.photoVisibility, .pending)
+    }
+
+    func testSichtbarkeitRueckfallAusDenFotos() throws {
+        XCTAssertEqual(try profil(photos: "").photoVisibility, .noPhotos)
+        XCTAssertEqual(try profil(photos: abgelehntZuerst).photoVisibility, .visible)
+        XCTAssertEqual(try profil(photos: """
+            {"id": "p1", "url": "https://r2/1", "position": 0, "status": "rejected"},
+            {"id": "p2", "url": "https://r2/2", "position": 1, "status": "pending"}
+            """).photoVisibility, .pending)
+        XCTAssertEqual(try profil(photos: """
+            {"id": "p1", "url": "https://r2/1", "position": 0, "status": "rejected"}
+            """).photoVisibility, .rejected)
+    }
 }

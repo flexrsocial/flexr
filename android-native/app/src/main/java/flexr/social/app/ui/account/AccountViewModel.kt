@@ -88,6 +88,10 @@ data class AccountUiState(
     val saveError: String? = null,
     val photoError: String? = null,
     val isUploadingPhoto: Boolean = false,
+    /** Foto, fuer das gerade der Dialog "Foto austauschen" offen ist. */
+    val swapCandidate: String? = null,
+    /** Foto, das nach dem naechsten Upload geloescht wird (Austauschen). */
+    val pendingReplacement: String? = null,
     val verificationStatus: VerificationStatus = VerificationStatus.NONE,
     /** Bestätigter „verifiziert"-Hinweis wird dauerhaft ausgeblendet. */
     val verifiedHintDismissed: Boolean = false,
@@ -443,25 +447,25 @@ class AccountViewModel @Inject constructor(
 
     fun onPhotoRemoved(photoId: String) {
         // Dieselbe Grenze wie beim Anlegen des Kontos: Der Server lehnt das
-        // Loeschen sonst ohnehin ab (backend/app/routers/profiles.py), hier
-        // steht die Meldung nur frueher und in der gewaehlten Sprache.
+        // Loeschen sonst ohnehin ab (backend/app/routers/profiles.py).
         // Abgelehnte Fotos zaehlen nicht mit und lassen sich immer entfernen -
         // ihre Datei ist ohnehin schon geloescht.
         // Der Server sagt es seit 22.09.2026 pro Foto (deletable); die Rechnung
         // bleibt als Rueckfall fuer ein aelteres Backend.
-        val foto = profile.value?.photos?.firstOrNull { it.id == photoId }
+        val profil = profile.value
+        val foto = profil?.photos?.firstOrNull { it.id == photoId }
         val darfWeg = foto?.deletable ?: (
             foto?.status == PhotoStatus.REJECTED ||
-                (profile.value?.validPhotoCount ?: 0) > ImageProcessor.MIN_PHOTOS
+                (profil?.validPhotoCount ?: 0) > ImageProcessor.MIN_PHOTOS
             )
         if (!darfWeg) {
-            _uiState.update {
-                it.copy(
-                    photoError = strings.get(
-                        R.string.photo_min_count,
-                        ImageProcessor.MIN_PHOTOS,
-                    ),
-                )
+            // Genau die Mindestzahl: statt einer Fehlermeldung (bis 2.7.28
+            // "Mindestens 3 Fotos sind erforderlich" - las sich bei drei
+            // freigegebenen Fotos wie ein Fehler) das Austauschen anbieten.
+            if ((profil?.photos?.size ?: 0) >= ImageProcessor.MAX_PHOTOS) {
+                _uiState.update { it.copy(photoError = strings.get(R.string.photo_swap_no_room)) }
+            } else {
+                _uiState.update { it.copy(photoError = null, swapCandidate = photoId) }
             }
             return
         }
@@ -470,8 +474,87 @@ class AccountViewModel @Inject constructor(
             runCatching { profileRepository.deletePhoto(photoId) }
                 .onFailure {
                     _events.send(AccountEvent.Message(it.message ?: strings.get(R.string.common_delete_failed)))
+                    // Meist ist der Stand veraltet (die Moderation hat
+                    // inzwischen ein Foto abgelehnt) - neu holen, damit Raster
+                    // und Knoepfe wieder stimmen.
+                    refreshProfile()
                 }
         }
+    }
+
+    fun dismissSwap() {
+        _uiState.update { it.copy(swapCandidate = null) }
+    }
+
+    /** Ja im Austauschdialog - die Oberflaeche oeffnet danach die Bildauswahl. */
+    fun confirmSwap() {
+        _uiState.update { it.copy(swapCandidate = null, pendingReplacement = it.swapCandidate) }
+    }
+
+    /** Bildauswahl ohne Bild geschlossen. */
+    fun cancelReplacement() {
+        _uiState.update { it.copy(pendingReplacement = null) }
+    }
+
+    /**
+     * Austauschen: erst das neue Foto hochladen, dann das alte loeschen -
+     * dieselbe Reihenfolge, die der Server verlangt. Das neue rueckt auf den
+     * Platz des alten.
+     */
+    fun onReplacementPicked(uri: Uri) {
+        val alt = _uiState.value.pendingReplacement ?: return onPhotoPicked(uri)
+        val vorher = profile.value?.photos?.map { it.id }.orEmpty()
+        _uiState.update { it.copy(isUploadingPhoto = true, photoError = null, pendingReplacement = null) }
+        viewModelScope.launch {
+            runCatching {
+                val prepared = imageProcessor.prepare(uri)
+                profileRepository.addPhoto(prepared)
+            }.onSuccess { mitNeuem ->
+                _uiState.update { it.copy(isUploadingPhoto = false) }
+                val neu = mitNeuem.photos.firstOrNull { it.id !in vorher }
+                runCatching { profileRepository.deletePhoto(alt) }
+                    .onSuccess { ohneAlt ->
+                        val platz = vorher.indexOf(alt)
+                        val ids = ohneAlt.photos.map { it.id }.filter { it != neu?.id }.toMutableList()
+                        if (neu != null && platz in 0..ids.size) {
+                            ids.add(platz, neu.id)
+                            // Reihenfolge ist Nebensache - scheitert sie, bleibt
+                            // das neue Foto eben hinten.
+                            runCatching { profileRepository.reorderPhotos(ids) }
+                        }
+                        _events.send(AccountEvent.Message(strings.get(R.string.photo_swapped)))
+                    }
+                    .onFailure {
+                        _events.send(AccountEvent.Message(it.message ?: strings.get(R.string.common_delete_failed)))
+                        refreshProfile()
+                    }
+            }.onFailure { throwable ->
+                _uiState.update {
+                    it.copy(
+                        isUploadingPhoto = false,
+                        photoError = when (throwable) {
+                            is PhotoTooSmallException -> strings.get(
+                                R.string.photo_too_small,
+                                throwable.width,
+                                throwable.height,
+                                ImageProcessor.MIN_EDGE_PX,
+                            )
+                            is FlexrApiException -> throwable.message
+                            else -> strings.get(R.string.photo_upload_failed)
+                        },
+                    )
+                }
+            }
+        }
+    }
+
+    /**
+     * Eigenes Profil neu holen. Fotostatus aendert die Moderation im
+     * Hintergrund; bis 2.7.28 lud das Konto ihn nur beim ersten Oeffnen -
+     * ein inzwischen abgelehntes Foto stand weiter als "in Pruefung" da.
+     */
+    fun refreshProfile() {
+        viewModelScope.launch { runCatching { profileRepository.refresh() } }
     }
 
     // ---------- Verifizierung ----------

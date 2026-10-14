@@ -67,6 +67,13 @@ struct Profile: Identifiable, Hashable, Sendable {
     var primaryPhoto: Photo? { photos.first }
 }
 
+/// Sichtbarkeit in der Suche wegen der Fotos (MyProfileOut.photo_visibility).
+enum PhotoVisibility: String, Sendable {
+    case visible, pending, rejected
+    /// Nicht `.none` - das verwechselt Swift zu leicht mit `Optional.none`.
+    case noPhotos = "none"
+}
+
 struct MyProfile: Hashable, Sendable {
     let profile: Profile
     let plz: String
@@ -99,6 +106,8 @@ struct MyProfile: Hashable, Sendable {
     var language: String = "de"
     /// Vom Server bestimmtes eigenes Bild (MyProfileOut.avatar_url).
     var serverAvatarURL: String? = nil
+    /// MyProfileOut.photo_visibility; nil bei einem älteren Backend.
+    var serverPhotoVisibility: String? = nil
 
     var id: String { profile.id }
     var name: String { profile.name }
@@ -114,6 +123,18 @@ struct MyProfile: Hashable, Sendable {
 
     /// Fotos, die für die Mindestanzahl zählen - abgelehnte nicht.
     var validPhotoCount: Int { photos.filter { $0.status != .rejected }.count }
+
+    /// Erscheint das Profil seiner Fotos wegen in der Suche? Das Deck zeigt nur
+    /// Profile mit mindestens einem freigegebenen Foto. Vom Server, sonst aus
+    /// den Fotos gerechnet - dieselbe Reihenfolge wie dort.
+    var photoVisibility: PhotoVisibility {
+        if let serverPhotoVisibility, let wert = PhotoVisibility(rawValue: serverPhotoVisibility) {
+            return wert
+        }
+        if photos.contains(where: { $0.status == .approved }) { return .visible }
+        if photos.contains(where: { $0.status == .pending }) { return .pending }
+        return photos.isEmpty ? .noPhotos : .rejected
+    }
 
     /// Aktive Chat-Sperre („Abmahnung"), sonst nil.
     func activeMuteUntil(now: Date = Date()) -> Date? {

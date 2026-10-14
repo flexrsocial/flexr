@@ -139,6 +139,10 @@ struct MyProfileDTO: Decodable {
     let avatarUrl: String?
     let minPhotos: Int?
     let maxPhotos: Int?
+    /// Erscheint das Profil seiner Fotos wegen in der Suche? "visible",
+    /// "pending", "rejected" oder "none" (seit 14.10.2026) - nil bei einem
+    /// älteren Backend, dann rechnet die App aus den Fotos selbst.
+    let photoVisibility: String?
 }
 
 /// Einzelner Schalter - nur das geaenderte Feld wird geschickt, die uebrigen

@@ -7,6 +7,9 @@ struct PhotoSlot: Identifiable, Equatable {
     let id: String
     let source: PhotoImageSource
     var status: PhotoStatus?
+    /// Darf das Foto jetzt weg? Nein heißt: genau die Mindestzahl gültiger
+    /// Fotos - der Knopf zeigt dann die Austauschpfeile statt des ✕.
+    var removable: Bool = true
 }
 
 /// Fotoraster mit sechs Feldern (`.photo-grid` im Web).
@@ -187,16 +190,22 @@ private struct FilledPhotoSlot: View {
             .clipShape(shape)
             .overlay(shape.strokeBorder(borderColor, lineWidth: 1.5))
             .overlay(alignment: .topTrailing) {
+                // Trefferfläche 44 pt, sichtbar ein 26-pt-Kreis in der Ecke.
+                // Vorher war beides 22 pt - ein Tipper knapp daneben landete
+                // auf dem Foto, und das Löschen ging „manchmal nicht".
                 Button(action: onRemove) {
-                    Image(systemName: FlexrIcon.close)
-                        .font(.system(size: 11, weight: .bold))
+                    Image(systemName: slot.removable ? FlexrIcon.close : "arrow.left.arrow.right")
+                        .font(.system(size: 12, weight: .bold))
                         .foregroundStyle(.white)
-                        .frame(width: 22, height: 22)
-                        .background(Circle().fill(.black.opacity(0.6)))
+                        .frame(width: 26, height: 26)
+                        .background(Circle().fill(.black.opacity(0.66)))
+                        .overlay(Circle().strokeBorder(.white.opacity(0.28), lineWidth: 1))
+                        .padding(5)
+                        .frame(width: 44, height: 44, alignment: .topTrailing)
+                        .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
-                .padding(4)
-                .accessibilityLabel(s(.photoRemove))
+                .accessibilityLabel(slot.removable ? s(.photoRemove) : s(.photoSwapTitle))
             }
             .overlay(alignment: .bottomLeading) {
                 if let position {
@@ -270,23 +279,33 @@ struct PhotoVisibilityHint: View {
     private var s: FlexrStrings { languageStore.strings }
 
     let statuses: [PhotoStatus]
+    var visibility: PhotoVisibility = .noPhotos
 
     /// Die Mindestanzahl steht vor dem Moderationsstand: Wer zu wenige Fotos
-    /// hat, muss das zuerst erfahren — ein „Profil ist sichtbar" wäre dann
-    /// schlicht falsch, denn der Server lässt die Prüfung gar nicht erst
-    /// starten.
+    /// hat, muss das zuerst erfahren. Abgelehnte zählen nicht mit (wie beim
+    /// Server) - bis 14.10.2026 galten zwei gültige plus ein abgelehntes als
+    /// „genug". Sichtbar ist das Profil trotzdem, sobald eines freigegeben ist.
     private var content: (text: String, warn: Bool) {
         if statuses.isEmpty {
             return (s(.photoHintNone, ImageProcessor.minPhotos), true)
         }
-        let missing = ImageProcessor.minPhotos - statuses.count
+        let valid = statuses.filter { $0 != .rejected }.count
+        if valid == 0 {
+            return (s(.photoHintRejected), true)
+        }
+        let missing = ImageProcessor.minPhotos - valid
         if missing > 0 {
-            return (s(.photoHintTooFew, missing, ImageProcessor.minPhotos), true)
+            return (s(visibility == .visible ? .photoHintTooFewVisible : .photoHintTooFew,
+                      missing, ImageProcessor.minPhotos), true)
         }
-        if statuses.contains(.approved) {
-            return (s(.photoHintOk), false)
+        if visibility == .visible {
+            // Genau die Mindestzahl: erklären, warum statt ✕ die Pfeile stehen.
+            let ok = s(.photoHintOk)
+            return (valid == ImageProcessor.minPhotos
+                    ? ok + " " + s(.photoHintAtMin, ImageProcessor.minPhotos)
+                    : ok, false)
         }
-        if statuses.contains(.pending) {
+        if visibility == .pending {
             return (s(.photoHintPending), true)
         }
         return (s(.photoHintRejected), true)
@@ -298,5 +317,65 @@ struct PhotoVisibilityHint: View {
             .foregroundStyle(content.warn ? FlexrColor.plate : FlexrColor.chalkDim)
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.top, 8)
+    }
+}
+
+/// Deutlicher Hinweis „in der Suche nicht sichtbar" (`.vis-banner` im Web) -
+/// über dem Deck und oben im Konto, solange kein Foto freigegeben ist. Bis
+/// 14.10.2026 stand das nur klein unter dem Fotoraster.
+struct SearchVisibilityBanner: View {
+    @Environment(LanguageStore.self) private var languageStore
+    private var s: FlexrStrings { languageStore.strings }
+
+    let visibility: PhotoVisibility
+    let onAction: () -> Void
+
+    private var accent: Color {
+        visibility == .pending ? FlexrColor.plate : FlexrColor.danger
+    }
+
+    private var text: String {
+        switch visibility {
+        case .pending: s(.visPending)
+        case .noPhotos: s(.visNone, ImageProcessor.minPhotos)
+        default: s(.visRejected)
+        }
+    }
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 11) {
+            Image(systemName: "eye.slash")
+                .font(.system(size: 18, weight: .medium))
+                .foregroundStyle(accent)
+                .frame(width: 22)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(s(.visTitle))
+                    .flexrText(.titleSmall)
+                    .foregroundStyle(FlexrColor.chalk)
+                Text(text)
+                    .flexrText(.bodySmall)
+                    .foregroundStyle(FlexrColor.chalkDim)
+                Button(action: onAction) {
+                    Text(s(visibility == .pending ? .visCtaPending : .visCtaUpload))
+                        .font(.flexrWorkSans(13, weight: 700))
+                        .foregroundStyle(visibility == .pending ? FlexrColor.plateInk : .white)
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 7)
+                        .background(Capsule().fill(accent))
+                }
+                .buttonStyle(.plain)
+                .padding(.top, 7)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 12)
+        .background(
+            RoundedRectangle(cornerRadius: 14, style: .continuous).fill(accent.opacity(0.11))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .strokeBorder(accent.opacity(0.5), lineWidth: 1)
+        )
     }
 }

@@ -94,6 +94,9 @@ import kotlinx.coroutines.launch
  */
 private const val MESSAGE_DURATION_MS = 2_000L
 
+/** Signal an den Konto-Bildschirm: gleich zum Fotoraster scrollen (Hinweis ueber dem Deck). */
+private const val ZU_DEN_FOTOS = "zu_den_fotos"
+
 /**
  * Einstiegspunkt der Oberfläche.
  *
@@ -490,6 +493,16 @@ private fun MainGraph(
                     },
                     onShowMessage = onShowMessage,
                     onShowStickyMessage = onShowStickyMessage,
+                    onOpenOwnPhotos = {
+                        // Wie ein Tipper auf "Konto" in der unteren Leiste,
+                        // dazu das Signal, gleich zum Fotoraster zu scrollen.
+                        navController.navigate(Routes.ACCOUNT) {
+                            popUpTo(navController.graph.startDestinationId) { saveState = true }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                        navController.currentBackStackEntry?.savedStateHandle?.set(ZU_DEN_FOTOS, true)
+                    },
                 )
             }
 
@@ -519,8 +532,13 @@ private fun MainGraph(
                 )
             }
 
-            composable(Routes.ACCOUNT) {
+            composable(Routes.ACCOUNT) { entry ->
+                val zuDenFotos by entry.savedStateHandle
+                    .getStateFlow(ZU_DEN_FOTOS, false)
+                    .collectAsStateWithLifecycle()
                 AccountScreen(
+                    scrollToPhotos = zuDenFotos,
+                    onScrolledToPhotos = { entry.savedStateHandle[ZU_DEN_FOTOS] = false },
                     onLogout = onLogout,
                     onOpenVerification = { navController.navigate(Routes.VERIFICATION) },
                     onOpenDocumentStep = { navController.navigate(Routes.VERIFICATION_DOCUMENT) },

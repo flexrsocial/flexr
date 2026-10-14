@@ -653,3 +653,39 @@ def test_unverified_profile_hidden_from_deck(client, storage_stub):
 
     deck = client.get("/api/swipes/deck", headers=headers_a).json()
     assert all(p["name"] != "Unfertig" for p in deck)
+
+
+def test_freischalt_mail_weiss_ob_schon_ein_foto_freigegeben_ist(client, storage_stub, monkeypatch):
+    """Die Ausweispruefung schaltet frei, die Fotos moderiert die Admin-Ansicht
+    getrennt. Ohne freigegebenes Foto erscheint das Konto in keinem fremden
+    Deck - die Freischalt-Mail sagt das dann dazu (photos_pending)."""
+    from app import mailer
+
+    aufrufe = []
+    monkeypatch.setattr(
+        mailer, "send_verification_decision", lambda *a, **kw: aufrufe.append(kw) or True
+    )
+    admin_headers, _ = create_admin(client, email="admin.fotofrei@example.com")
+
+    for email, freigeben in (("offen@example.com", False), ("frei@example.com", True)):
+        headers = register_raw(client, email)
+        _add_photo(client, headers)
+        if freigeben:
+            erstes = client.get("/api/profiles/me", headers=headers).json()["photos"][0]
+            assert client.post(
+                f"/api/admin/photos/{erstes['id']}/approve", headers=admin_headers
+            ).status_code == 200
+        _complete_submission(client, headers)
+        eintrag = next(
+            e for e in client.get("/api/admin/verifications", headers=admin_headers).json()
+            if e["user_email"] == email
+        )
+        resp = client.post(
+            f"/api/admin/verifications/{eintrag['id']}/approve",
+            headers=admin_headers,
+            json=FULL_CHECKLIST,
+        )
+        assert resp.status_code == 200, resp.text
+
+    assert aufrufe[0]["photos_pending"] is True
+    assert aufrufe[1]["photos_pending"] is False

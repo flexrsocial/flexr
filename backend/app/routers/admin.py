@@ -769,6 +769,17 @@ def approve_photo(
     photo = db.query(Photo).filter(Photo.id == photo_id).first()
     if not photo:
         raise HTTPException(404, "Foto nicht gefunden.")
+    # Die Ablehnung hat die Bilddatei schon gelöscht (reject_photo). Eine
+    # nachträgliche Freigabe machte daraus ein "freigegebenes" Foto ohne
+    # Datei: kaputtes Bild auf der Swipe-Karte, und es zählte wieder zur
+    # Mindestanzahl, obwohl der Nutzer es nie zurückbekommt. Das Admin-Tool
+    # bot den Knopf bis zum 14.10.2026 trotzdem an.
+    if photo.status == PhotoStatus.rejected:
+        raise HTTPException(
+            409,
+            "Ein abgelehntes Foto lässt sich nicht mehr freigeben - die Bilddatei "
+            "wurde bei der Ablehnung gelöscht.",
+        )
     photo.status = PhotoStatus.approved
     # Eine frühere Ablehnung mitnehmen: Sonst hinge an einem sichtbaren Foto
     # weiterhin die Begründung, aus der es einmal entfernt wurde ("zeigt nicht
@@ -811,6 +822,20 @@ def reject_photo(
     )
     photo.rejection_note = payload.note if payload else None
     photo.rejected_at = utcnow()
+    # Abgelehnte ans Ende des Rasters: Ein abgelehntes Hauptfoto stand sonst
+    # weiter auf Platz 1 - im Profil als leerer Platz mit der Nummer des
+    # Hauptfotos, während Karte und Avatar längst das nächste zeigten.
+    eigene = (
+        db.query(Photo)
+        .filter(Photo.user_id == photo.user_id)
+        .order_by(Photo.position, Photo.id)
+        .all()
+    )
+    reihenfolge = [p for p in eigene if p.status != PhotoStatus.rejected] + [
+        p for p in eigene if p.status == PhotoStatus.rejected
+    ]
+    for index, eintrag in enumerate(reihenfolge):
+        eintrag.position = index
     # Die Bilddatei mitnehmen - wie beim Hard-Delete: Was die Moderation
     # entfernt, darf nicht unter seiner öffentlichen URL abrufbar bleiben.
     # Der Bucket liefert jede einmal vergebene URL sonst dauerhaft weiter aus,
@@ -837,8 +862,14 @@ def reject_photo(
     )
     if photo.rejection_note:
         reason = f"{reason} {photo.rejection_note}"
+    # Bleibt kein freigegebenes Foto, ist das Profil ab jetzt in keiner Suche
+    # mehr - die Mail sagt das ausdruecklich (nur bei freigeschalteten
+    # Konten; die anderen sind ohnehin noch nicht sichtbar).
+    unsichtbar = photo.user.is_account_activated and not any(
+        p.status == PhotoStatus.approved for p in eigene
+    )
     mailer.send_photo_rejected(
-        photo.user.email, photo.user.name, reason, photo.user.language
+        photo.user.email, photo.user.name, reason, photo.user.language, hidden=unsichtbar
     )
     return {"status": photo.status.value, "reason": photo.rejection_reason}
 
@@ -1048,8 +1079,11 @@ def approve_verification(
     # vom Aufräumlauf erneut versucht - er gilt nicht als erledigt.
     deleted = purge_uploads(req)
     db.commit()
+    # Fotos werden getrennt moderiert. Ist noch keines freigegeben, sagt die
+    # Freischalt-Mail, dass man in der Suche erst danach erscheint.
     mailer.send_verification_decision(
-        user.email, user.name, "approved", lang=user.language
+        user.email, user.name, "approved", lang=user.language,
+        photos_pending=not any(p.status == PhotoStatus.approved for p in user.photos),
     )
     return AdminVerificationDecisionOut(
         status=req.status.value,

@@ -86,7 +86,8 @@ extension MyProfileDTO {
                 pendingLikesPush: notifyPendingLikesPush ?? true
             ),
             language: language ?? "de",
-            serverAvatarURL: avatarUrl
+            serverAvatarURL: avatarUrl,
+            serverPhotoVisibility: photoVisibility
         )
     }
 }

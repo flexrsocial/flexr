@@ -119,7 +119,7 @@ def hexrgb(h):
     return tuple(int(h[i:i + 2], 16) for i in (1, 3, 5))
 
 
-def write_png(name, width, fg, accent, badge=False, transparent=True):
+def write_png(name, width, fg, accent, badge=False, transparent=True, bg=INK):
     SS = 4                                    # Supersampling
     if badge:
         bw = WORD_W / BADGE_W_RATIO
@@ -130,7 +130,7 @@ def write_png(name, width, fg, accent, badge=False, transparent=True):
     px_per_unit = width / bw * SS
     W, H = round(bw * px_per_unit), round(bh * px_per_unit)
 
-    img = Image.new("RGBA", (W, H), (0, 0, 0, 0) if transparent else hexrgb(INK) + (255,))
+    img = Image.new("RGBA", (W, H), (0, 0, 0, 0) if transparent else hexrgb(bg) + (255,))
     d = ImageDraw.Draw(img)
     if badge:
         r = bh * BADGE_RADIUS * px_per_unit
@@ -160,7 +160,31 @@ def write_png(name, width, fg, accent, badge=False, transparent=True):
     return img.size
 
 
+# --- Logo im Kopf der E-Mails (backend/app/mailer.py, _logo_html) -----------
+# Auf der Kartenfarbe der Mails statt transparent: Eine transparente PNG mit
+# heller Schrift verschwaende in Mailprogrammen, die den dunklen Hintergrund
+# durch einen hellen ersetzen. So bleibt die Wortmarke immer lesbar und ist im
+# Normalfall nicht vom Kartengrund zu unterscheiden.
+# Liegt unter /icons/ - nur dort liefert nginx aus (/brand/ ist gesperrt) -
+# und traegt die Version im Namen, weil /icons/ ein Jahr "immutable" gecacht
+# wird. Bei einer Aenderung neue Nummer und MAIL_LOGO_PATH in mailer.py.
+MAIL_CARD = "#17171A"
+MAIL_LOGO = HERE.parent / "icons" / "mail-logo-v1.png"
+MAIL_LOGO_WIDTH = 264    # doppelte Anzeigebreite (132 px) fuer Retina-Displays
+
+
+def write_mail_logo():
+    return write_png(MAIL_LOGO, MAIL_LOGO_WIDTH, CHALK, ACCENT, transparent=False, bg=MAIL_CARD)
+
+
 if __name__ == "__main__":
+    import sys
+
+    # Nur das Mail-Logo neu erzeugen, ohne die uebrigen Dateien anzufassen.
+    if "--mail" in sys.argv:
+        print("  mail-logo-v1.png", write_mail_logo())
+        sys.exit(0)
+
     write_svg("logo-flexr.svg", CHALK, ACCENT)
     write_svg("logo-flexr-light.svg", CHALK_DARK, ACCENT)
     write_svg("logo-flexr-badge.svg", CHALK, ACCENT, badge=True)
@@ -169,6 +193,7 @@ if __name__ == "__main__":
         write_png(f"logo-flexr-{w}.png", w, CHALK, ACCENT)
     write_png("logo-flexr-light-1024.png", 1024, CHALK_DARK, ACCENT)
     write_png("logo-flexr-badge-1024.png", 1024, CHALK, ACCENT, badge=True)
+    write_mail_logo()
 
     for p in sorted(HERE.glob("logo-*")):
         extra = ""

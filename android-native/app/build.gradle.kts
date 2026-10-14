@@ -317,8 +317,12 @@ android {
         // Fehler zu zeigen, obwohl der Ausweis schon in der Pruefung liegt.
         // 140/2.7.28 am 14.10.2026: Datenschutz-Kurzfassung an die Fassung
         // 2026-10-14 angeglichen (markierte Nachricht nach Aufloesen des Matches).
-        versionCode = 140
-        versionName = "2.7.28"
+        // 141/2.7.29 am 14.10.2026: Fotoraster - groessere Loeschflaeche,
+        // Austauschen statt Fehlermeldung bei genau drei Fotos, Profil wird
+        // beim Zurueckkehren neu geholt; Hinweis "in der Suche nicht sichtbar"
+        // ueber dem Deck.
+        versionCode = 141
+        versionName = "2.7.29"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         // Nur die Sprachen ausliefern, die es wirklich gibt: Deutsch als

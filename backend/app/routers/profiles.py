@@ -499,7 +499,7 @@ def delete_photo(
         raise HTTPException(
             400,
             f"Mindestens {MIN_PHOTOS} Fotos sind erforderlich. "
-            "Lade zuerst ein weiteres hoch.",
+            "Lade zuerst ein neues Foto hoch, danach kannst du dieses löschen.",
         )
 
     # Die Bilddatei mitnehmen: Fotos liegen unter einer öffentlichen URL, die

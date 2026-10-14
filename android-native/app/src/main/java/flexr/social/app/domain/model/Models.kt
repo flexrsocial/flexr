@@ -58,6 +58,21 @@ data class Profile(
     val primaryPhoto: Photo? get() = photos.firstOrNull()
 }
 
+/** Sichtbarkeit in der Suche wegen der Fotos (MyProfileOut.photo_visibility). */
+enum class PhotoVisibility {
+    VISIBLE, PENDING, REJECTED, NONE;
+
+    companion object {
+        fun fromServer(value: String?): PhotoVisibility? = when (value) {
+            "visible" -> VISIBLE
+            "pending" -> PENDING
+            "rejected" -> REJECTED
+            "none" -> NONE
+            else -> null
+        }
+    }
+}
+
 data class MyProfile(
     val profile: Profile,
     val plz: String,
@@ -95,6 +110,8 @@ data class MyProfile(
     val language: String = "de",
     /** Vom Server bestimmtes eigenes Bild (MyProfileOut.avatar_url). */
     val serverAvatarUrl: String? = null,
+    /** MyProfileOut.photo_visibility; null bei einem aelteren Backend. */
+    val serverPhotoVisibility: String? = null,
 ) {
     val id: String get() = profile.id
     val name: String get() = profile.name
@@ -111,6 +128,19 @@ data class MyProfile(
 
     /** Fotos, die fuer die Mindestanzahl zaehlen - abgelehnte nicht. */
     val validPhotoCount: Int get() = photos.count { it.status != PhotoStatus.REJECTED }
+
+    /**
+     * Erscheint das Profil seiner Fotos wegen in der Suche? Das Deck zeigt nur
+     * Profile mit mindestens einem freigegebenen Foto. Vom Server, sonst aus
+     * den Fotos gerechnet - dieselbe Reihenfolge wie dort.
+     */
+    val photoVisibility: PhotoVisibility
+        get() = PhotoVisibility.fromServer(serverPhotoVisibility) ?: when {
+            photos.any { it.status == PhotoStatus.APPROVED } -> PhotoVisibility.VISIBLE
+            photos.any { it.status == PhotoStatus.PENDING } -> PhotoVisibility.PENDING
+            photos.isNotEmpty() -> PhotoVisibility.REJECTED
+            else -> PhotoVisibility.NONE
+        }
 
     /** Aktive Chat-Sperre ("Abmahnung"), sonst null. */
     fun activeMuteUntil(now: Instant = Instant.now()): Instant? =

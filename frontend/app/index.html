@@ -379,9 +379,35 @@
   }
   .photo-slot:hover{ border-color:var(--plate-dim); color:var(--plate); }
   .photo-slot img{ width:100%; height:100%; object-fit:cover; }
+  /* Loeschknopf. Bis zum 14.10.2026 ein 20-px-Kreis ohne eigenen Zeiger: Auf
+     einem sortierbaren Foto stand ueber dem ✕ dieselbe Greif-Hand wie ueber
+     dem Bild, und ein Klick knapp daneben landete auf dem Foto statt auf dem
+     Kreuz ("laesst sich manchmal nicht loeschen"). Jetzt ein echter Knopf mit
+     groesserer Trefferflaeche (::before), eigenem Zeiger und einem
+     Papierkorb beim Darueberfahren. */
   .photo-slot .remove{
-    position:absolute; top:4px; right:4px; background:rgba(0,0,0,0.6); color:#fff;
-    border-radius:50%; width:20px; height:20px; display:flex; align-items:center; justify-content:center; font-size:12px;
+    position:absolute; top:5px; right:5px; z-index:2; padding:0; margin:0;
+    background:rgba(0,0,0,0.66); color:#fff; border:1px solid rgba(255,255,255,.28);
+    border-radius:50%; width:26px; height:26px; display:flex; align-items:center; justify-content:center;
+    cursor:pointer; touch-action:manipulation;
+    transition:background .12s ease, border-color .12s ease, transform .12s ease;
+  }
+  .photo-slot .remove::before{ content:''; position:absolute; inset:-9px; border-radius:50%; }
+  .photo-slot .remove svg{ width:13px; height:13px; fill:none; stroke:currentColor; stroke-width:2.2; stroke-linecap:round; stroke-linejoin:round; pointer-events:none; }
+  .photo-slot .remove .ico-hover{ display:none; }
+  .photo-slot .remove:focus-visible{ outline:2px solid var(--plate); outline-offset:2px; }
+  @media (hover:hover){
+    .photo-slot .remove:hover{ background:var(--danger); border-color:var(--danger); transform:scale(1.1); }
+    .photo-slot .remove:hover .ico-rest{ display:none; }
+    .photo-slot .remove:hover .ico-hover{ display:block; }
+  }
+  /* Genau die Mindestzahl gueltiger Fotos: Loeschen geht nicht, Austauschen
+     schon - das Symbol sagt das, statt ein ✕ anzubieten, das nur eine
+     Fehlermeldung bringt. */
+  .photo-slot .remove.swap{ background:rgba(0,0,0,0.66); }
+  @media (hover:hover){
+    .photo-slot .remove.swap:hover{ background:var(--plate); border-color:var(--plate); color:#141414; }
+    .photo-slot .remove.swap:hover .ico-rest{ display:block; }
   }
   /* Moderations-Status eines hochgeladenen Fotos (nur für den Eigentümer sichtbar) */
   .photo-slot.pending{ border-style:solid; border-color:var(--plate-dim); }
@@ -424,6 +450,7 @@
      gebraucht. touch-action:none auf dem greifbaren Foto verhindert, dass die
      Seite mitscrollt, sobald der Finger sich bewegt. */
   .photo-slot.draggable{ cursor:grab; touch-action:none; }
+  .photo-slot.draggable:active{ cursor:grabbing; }
   .photo-slot.draggable .drag-handle{
     position:absolute; left:4px; top:4px; width:20px; height:20px;
     display:flex; align-items:center; justify-content:center;
@@ -439,6 +466,9 @@
     font-family:'JetBrains Mono'; font-size:9px; pointer-events:none;
   }
   .photo-slot.is-main .pos-badge{ background:var(--plate); color:#141414; }
+  /* "In Pruefung" liegt unten ueber die ganze Breite - die Nummer rueckt
+     darueber, statt verdeckt zu werden. */
+  .photo-slot.pending .pos-badge{ bottom:24px; }
   /* Der Platz, von dem gerade gezogen wird: bleibt als Luecke stehen, damit
      das Raster nicht in sich zusammenfaellt. */
   .photo-slot.dragging{ opacity:.25; }
@@ -454,6 +484,34 @@
 
   .photo-hint{ font-size:12px; line-height:1.5; color:var(--chalk-dim); margin-top:8px; }
   .photo-hint.warn{ color:var(--plate); }
+  /* Kurzzeitig hervorgehoben, wenn der Hinweis ueber dem Deck hierher
+     springt - sonst sucht man das Raster auf einer langen Seite. */
+  #acctPhotoGrid.ziel{ outline:2px solid var(--plate); outline-offset:6px; border-radius:12px; transition:outline-color .6s ease; }
+
+  /* "In der Suche nicht sichtbar": Fotos noch in Pruefung oder abgelehnt.
+     Steht ueber dem Deck und oben im Profil. Bis zum 14.10.2026 gab es dazu
+     nur die kleine Zeile unter dem Fotoraster - wer nach der Freischaltung
+     auf die Fotofreigabe wartete, swipte, ohne zu wissen, dass ihn niemand
+     sieht. */
+  .vis-banner{
+    display:flex; gap:11px; align-items:flex-start; flex-shrink:0; margin:0 0 14px;
+    background:rgba(255,90,31,.11); border:1px solid rgba(255,90,31,.5);
+    border-radius:14px; padding:12px 14px; font-size:13px; line-height:1.45; color:var(--chalk);
+  }
+  .vis-banner[hidden]{ display:none; }
+  .vis-banner.rejected{ background:rgba(227,72,72,.12); border-color:rgba(227,72,72,.5); }
+  .vis-banner .vis-ico{ flex-shrink:0; width:22px; height:22px; margin-top:1px; color:var(--plate);
+    fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+  .vis-banner.rejected .vis-ico{ color:var(--danger); }
+  .vis-banner .vis-title{ font-weight:700; margin-bottom:2px; }
+  .vis-banner .vis-text{ color:var(--chalk-dim); }
+  .vis-banner .vis-cta{
+    margin-top:9px; background:var(--plate); color:#141414; border:0; border-radius:999px;
+    padding:6px 13px; font:inherit; font-size:12.5px; font-weight:700; cursor:pointer;
+  }
+  .vis-banner.rejected .vis-cta{ background:var(--danger); color:#fff; }
+  .vis-banner .vis-cta:focus-visible{ outline:2px solid var(--chalk); outline-offset:2px; }
+  #screen-account .vis-banner{ margin:4px 0 18px; }
 
   /* Rechtstext-Links (.legal-link) hatten ausserhalb bereits gestylter
      Container (.vcard, .consent-note, .legal-footer, ...) keine eigene Farbe
@@ -2220,7 +2278,7 @@
      laufen synchron und damit vor dem DOMContentLoaded, bei dem FlexrI18n die
      data-i18n-Knoten uebersetzt. -->
 <script src="/i18n.js?v=5"></script>
-<script src="/app/i18n-app.js?v=35"></script>
+<script src="/app/i18n-app.js?v=36"></script>
 <a class="skip-link" href="#main-content" data-i18n="common.skipToContent">Zum Inhalt springen</a>
 <div class="app" id="app">
 
@@ -2615,6 +2673,9 @@
     <section class="screen" id="screen-swipe">
       <div class="eyebrow" data-i18n="swipe.eyebrow">Heutige Sätze</div>
       <h2 class="headline" style="font-size:22px; margin-bottom:16px;" data-i18n="swipe.h2">Wer trainiert, wo du bist</h2>
+      <!-- Fotos noch in Pruefung oder abgelehnt: in der Suche unsichtbar.
+           Inhalt setzt renderSichtbarkeitsHinweis(). -->
+      <div class="vis-banner" id="swipeVisBanner" role="status" hidden></div>
       <div class="deck" id="deck"><div class="loading" data-i18n="swipe.loading">Lade Profile …</div></div>
       <div class="swipe-actions" id="swipeActions" style="display:none;">
         <!-- Zuruecknehmen steht links vom Ablehnen: Es bezieht sich auf den
@@ -2726,6 +2787,7 @@
           <div class="verify-tooltip" id="verifyTooltip"></div>
         </div>
       </div>
+      <div class="vis-banner" id="acctVisBanner" role="status" hidden></div>
 
       <!-- Profilfelder bleiben bewusst dauerhaft sichtbar. Der Account-Screen
            scrollt als Ganzes; verschachtelte Aufklapper haben auf Mobilgeraeten
@@ -4362,6 +4424,12 @@
     });
   }
 
+  // Symbole des Loeschknopfs: ✕ in Ruhe, Papierkorb beim Darueberfahren,
+  // bei genau der Mindestzahl die Austauschpfeile.
+  const ICO_X = '<svg class="ico-rest" viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/></svg>';
+  const ICO_TRASH = '<svg class="ico-hover" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 7h15M10 11v6M14 11v6M6 7l1 12.5h10L18 7M9 7V4.5h6V7"/></svg>';
+  const ICO_SWAP = '<svg class="ico-rest" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5 3.5 8 7 11.5M3.5 8H17M17 12.5l3.5 3.5-3.5 3.5M20.5 16H7"/></svg>';
+
   function renderPhotoGrid(){
     const grid = $('photoGrid');
     grid.innerHTML = '';
@@ -4369,7 +4437,8 @@
       const slot = document.createElement('div');
       slot.className = 'photo-slot';
       if(pendingPhotos[i]){
-        slot.innerHTML = `<img src="${pendingPhotos[i].previewUrl}" alt=""><div class="remove" data-i="${i}">✕</div>`;
+        slot.innerHTML = `<img src="${pendingPhotos[i].previewUrl}" alt="">`
+          + `<button type="button" class="remove" data-i="${i}" title="${escapeHtml(t('photo.removeTitle'))}" aria-label="${escapeHtml(t('photo.removeTitle'))}">${ICO_X}${ICO_TRASH}</button>`;
         slot.querySelector('.remove').onclick = (e)=>{ e.stopPropagation(); pendingPhotos.splice(i,1); renderPhotoGrid(); renderRegJourney(); };
       } else {
         slot.textContent = '+';
@@ -5787,8 +5856,19 @@
       if(target === 'swipe'){ loadDeck(); refreshUnreadBadge(); }
       if(target === 'matches') loadMatches();
       if(target === 'chats') loadChats();
-      if(target === 'account'){ renderAccount(); refreshUnreadBadge(); }
+      // Konto: sofort mit dem bekannten Stand zeichnen, dann neu holen - der
+      // Fotostatus kann sich seit dem App-Start geaendert haben.
+      if(target === 'account'){ renderAccount(); refreshUnreadBadge(); profilAbgleichen(); }
     });
+  });
+
+  // Zurueck in die App (Tab wieder vorne): Fotostatus abgleichen, falls die
+  // Moderation inzwischen entschieden hat - sonst stuende der Hinweis ueber
+  // dem Deck noch auf "wird geprueft", obwohl das Foto laengst freigegeben ist.
+  document.addEventListener('visibilitychange', () => {
+    if(document.visibilityState !== 'visible' || !token || !myProfile) return;
+    const screen = document.body.dataset.screen;
+    if(screen === 'screen-account' || screen === 'screen-swipe') profilAbgleichen();
   });
 
   function renderAccount(opts){
@@ -6799,13 +6879,16 @@
     // Verschieben, nicht tauschen: beim Tauschen wuerde ein Foto von Platz 4
     // auf Platz 1 das bisherige Hauptfoto nach hinten werfen, statt die
     // dazwischenliegenden nachruecken zu lassen.
-    const ids = [...grid.querySelectorAll('.photo-slot.draggable')].map(el => el.dataset.photoId);
-    const from = ids.indexOf(slot.dataset.photoId);
-    const to = ids.indexOf(target.dataset.photoId);
+    const sortiert = [...grid.querySelectorAll('.photo-slot.draggable')].map(el => el.dataset.photoId);
+    const from = sortiert.indexOf(slot.dataset.photoId);
+    const to = sortiert.indexOf(target.dataset.photoId);
     if(from < 0 || to < 0 || from === to) return;
-    ids.splice(to, 0, ids.splice(from, 1)[0]);
+    sortiert.splice(to, 0, sortiert.splice(from, 1)[0]);
 
     const vorher = myProfile.photos;
+    // Der Server verlangt die vollstaendige Liste. Abgelehnte sind nicht
+    // greifbar und haengen hinten an.
+    const ids = [...sortiert, ...vorher.map(p => p.id).filter(id => !sortiert.includes(id))];
     // Sofort neu zeichnen und erst danach speichern: die Reihenfolge fuehlt
     // sich sonst zaeh an. Schlaegt der Aufruf fehl, wird der alte Stand
     // wiederhergestellt.
@@ -6826,10 +6909,20 @@
     renderAccount();
   }
 
+  // Foto, das nach dem naechsten Upload geloescht wird ("Austauschen"). Wird
+  // beim Oeffnen der Dateiauswahl gesetzt und im change-Handler sofort
+  // uebernommen - bricht jemand die Auswahl ab, setzt der naechste Klick auf
+  // "+" es zurueck.
+  let acctErsetzen = null;
+
   function renderAccountPhotoGrid(){
     const grid = $('acctPhotoGrid');
     grid.innerHTML = '';
     const photos = myProfile.photos || [];
+    // Abgelehnte stehen als leerer Platz mit "abgelehnt" im Raster. Sie
+    // werden nicht mitsortiert und bekommen keine Nummer: Ihre Datei ist
+    // geloescht, Hauptfoto kann nur ein gueltiges sein.
+    const sortierbar = photos.filter(p => p.status !== 'rejected');
     // Der laufende Upload belegt den ersten freien Platz.
     const uploadSlot = acctUpload ? Math.min(photos.length, 5) : -1;
     for(let i=0;i<6;i++){
@@ -6852,42 +6945,58 @@
         continue;
       }
       if(photos[i]){
-        const st = photos[i].status;
+        const foto = photos[i];
+        const st = foto.status;
         const statusCls = st === 'approved' ? '' : (st === 'rejected' ? 'rejected' : 'pending');
         const statusLabel = st === 'approved' ? '' : (st === 'rejected' ? t('photo.rejected') : t('photo.pending'));
         if(statusCls) slot.classList.add(statusCls);
+        // Dieselbe Grenze wie beim Anlegen des Kontos. Der Server sagt pro
+        // Foto, ob es weg darf (deletable); die Rechnung ist der Rueckfall
+        // fuer einen aelteren Server.
+        const darfWeg = typeof foto.deletable === 'boolean'
+          ? foto.deletable
+          : (st === 'rejected' || gueltigeFotoAnzahl() > MIN_PHOTOS);
+        // Austauschen braucht einen freien Platz fuer das neue Foto.
+        const tauschbar = !darfWeg && photos.length < 6;
+        const knopfText = darfWeg ? t('photo.removeTitle')
+          : (tauschbar ? t('photo.swapTitle') : t('photo.minCountShort', {min: MIN_PHOTOS}));
         // Abgelehnt heisst: Datei schon geloescht - statt eines kaputten Bildes
         // bleibt der Platz leer, das Etikett sagt, was los ist.
-        slot.innerHTML = `${st === 'rejected' ? '' : `<img src="${photos[i].url}" alt="">`}<div class="remove" data-id="${photos[i].id}">✕</div>${statusLabel ? `<div class="pstatus">${statusLabel}</div>` : ''}`;
+        slot.innerHTML = `${st === 'rejected' ? '' : `<img src="${foto.url}" alt="">`}`
+          + `<button type="button" class="remove${darfWeg ? '' : ' swap'}" title="${escapeHtml(knopfText)}" aria-label="${escapeHtml(knopfText)}">`
+          + (darfWeg ? ICO_X + ICO_TRASH : ICO_SWAP) + `</button>`
+          + (statusLabel ? `<div class="pstatus">${statusLabel}</div>` : '');
         // Sortierbar nur, solange kein Upload laeuft: waehrenddessen belegt der
         // Upload einen Platz, und eine jetzt gespeicherte Reihenfolge wuerde
         // das gleich eintreffende Foto an eine zufaellige Stelle setzen.
-        if(photos.length > 1 && !acctUpload){
+        const nummer = sortierbar.indexOf(foto);
+        if(sortierbar.length > 1 && nummer >= 0 && !acctUpload){
           slot.classList.add('draggable');
-          slot.dataset.photoId = photos[i].id;
+          slot.dataset.photoId = foto.id;
           slot.insertAdjacentHTML('beforeend',
             `<div class="drag-handle" aria-hidden="true">⠿</div>`
-            + `<div class="pos-badge">${i + 1}</div>`);
-          if(i === 0) slot.classList.add('is-main');
+            + `<div class="pos-badge">${nummer + 1}</div>`);
+          if(nummer === 0) slot.classList.add('is-main');
           slot.addEventListener('pointerdown', (e)=> startPhotoDrag(e, slot));
         }
         slot.querySelector('.remove').onclick = async (e)=>{
           e.stopPropagation();
-          // Dieselbe Grenze wie beim Anlegen des Kontos - der Server lehnt
-          // sonst ohnehin ab, hier steht die Meldung nur frueher.
-          const darfWeg = typeof photos[i].deletable === 'boolean'
-            ? photos[i].deletable
-            : (photos[i].status === 'rejected' || gueltigeFotoAnzahl() > MIN_PHOTOS);
+          $('acctPhotoErr').textContent = '';
           if(!darfWeg){
-            $('acctPhotoErr').textContent = t('photo.minCount');
+            await fotoAustauschen(foto);
             return;
           }
           if(!(await frage({titel: t('photo.removeTitle'), text: t('photo.confirmRemove'), ja: t('photo.removeTitle')}))) return;
-          $('acctPhotoErr').textContent = '';
           try{
-            myProfile = await api('/api/profiles/me/photos/' + photos[i].id, {method: 'DELETE'});
-            renderAccountPhotoGrid();
-          }catch(err){ toast(err.message || t('common.deleteFailed')); }
+            myProfile = await api('/api/profiles/me/photos/' + foto.id, {method: 'DELETE'});
+          }catch(err){
+            toast(err.message || t('common.deleteFailed'));
+            // Meist ist der Stand hier veraltet (die Moderation hat inzwischen
+            // ein Foto abgelehnt) - neu holen, damit Raster und Knoepfe wieder
+            // stimmen, statt beim naechsten Klick dieselbe Ablehnung zu holen.
+            await frischeProfilAuf();
+          }
+          renderAccount({keepForm: true});
         };
       } else {
         slot.textContent = '+';
@@ -6896,7 +7005,7 @@
           slot.style.opacity = '.4';
           slot.style.cursor = 'default';
         } else {
-          slot.onclick = () => { $('acctPhotoInput').click(); };
+          slot.onclick = () => { acctErsetzen = null; $('acctPhotoInput').click(); };
         }
       }
       grid.appendChild(slot);
@@ -6905,9 +7014,7 @@
     // Sichtbarkeits-Hinweis: ein Profil erscheint erst in der Suche, sobald
     // mindestens ein Foto von der Moderation freigegeben wurde.
     const hint = $('acctPhotoHint');
-    const hasApproved = photos.some(p => p.status === 'approved');
-    const hasPending = photos.some(p => p.status === 'pending');
-    const hasRejected = photos.some(p => p.status === 'rejected');
+    const sichtbarkeit = fotoSichtbarkeit();
     // Abgelehnte zaehlen nicht zur Pflichtzahl (wie beim Server).
     const gueltig = gueltigeFotoAnzahl();
     if(photos.length === 0){
@@ -6917,25 +7024,142 @@
       hint.className = 'photo-hint warn';
       hint.textContent = t('photo.hintRejected');
     } else if(gueltig < MIN_PHOTOS){
-      // Die Mindestanzahl steht vor dem Moderationsstand: "sichtbar" waere
-      // falsch, solange das Profil die Pflichtzahl nicht erreicht.
+      // Die Mindestanzahl steht vor dem Moderationsstand. Sichtbar ist das
+      // Profil trotzdem, sobald eines freigegeben ist (swipes.deck_profiles) -
+      // "unsichtbar" stand bis zum 14.10.2026 auch dann da.
       hint.className = 'photo-hint warn';
-      hint.textContent = t('photo.hintTooFew', {
+      hint.textContent = t(sichtbarkeit === 'visible' ? 'photo.hintTooFewVisible' : 'photo.hintTooFew', {
         fehlend: MIN_PHOTOS - gueltig, min: MIN_PHOTOS,
       });
-    } else if(hasApproved){
+    } else if(sichtbarkeit === 'visible'){
       hint.className = 'photo-hint';
-      hint.textContent = t('photo.hintOk');
-    } else if(hasPending){
+      // Genau die Mindestzahl: erklaeren, warum statt ✕ die Pfeile stehen.
+      hint.textContent = t('photo.hintOk')
+        + (gueltig === MIN_PHOTOS ? ' ' + t('photo.hintAtMin', {min: MIN_PHOTOS}) : '');
+    } else if(sichtbarkeit === 'pending'){
       hint.className = 'photo-hint warn';
       hint.textContent = t('photo.hintPending');
-    } else if(hasRejected){
+    } else {
       hint.className = 'photo-hint warn';
       hint.textContent = t('photo.hintRejected');
-    } else {
-      hint.className = 'photo-hint';
-      hint.textContent = '';
     }
+    renderSichtbarkeitsHinweis();
+  }
+
+  /* Genau die Mindestzahl: Ein Foto laesst sich nicht loeschen, aber gegen
+     ein neues tauschen. Erst hochladen, dann das alte entfernen - dieselbe
+     Reihenfolge, die der Server verlangt (profiles.delete_photo). Vorher stand
+     hier nur "Mindestens 3 Fotos sind erforderlich" - fuer jemanden mit drei
+     freigegebenen Fotos las sich das wie ein Fehler. */
+  async function fotoAustauschen(foto){
+    if((myProfile.photos || []).length >= 6){
+      // Kein Platz fuer das neue Foto: erst ein abgelehntes entfernen.
+      $('acctPhotoErr').textContent = t('photo.swapNoRoom');
+      return;
+    }
+    const ja = await frage({
+      titel: t('photo.swapTitle'),
+      text: t('photo.swapText', {min: MIN_PHOTOS}),
+      ja: t('photo.swapChoose'),
+      gefaehrlich: false,
+    });
+    if(!ja) return;
+    acctErsetzen = foto.id;
+    // Noch im selben Klick: Browser oeffnen die Dateiauswahl nur aus einer
+    // Nutzeraktion heraus - der Ja-Knopf ist eine, die Antwort kommt als
+    // Mikrotask direkt danach.
+    $('acctPhotoInput').click();
+  }
+
+  /* Sichtbarkeit in der Suche wegen der Fotos: "visible", "pending",
+     "rejected" oder "none". Kommt seit 14.10.2026 vom Server
+     (MyProfileOut.photo_visibility); die Rechnung hier ist der Rueckfall fuer
+     einen aelteren Server. */
+  function fotoSichtbarkeit(){
+    if(!myProfile) return 'visible';
+    if(myProfile.photo_visibility) return myProfile.photo_visibility;
+    const photos = myProfile.photos || [];
+    if(photos.some(p => p.status === 'approved')) return 'visible';
+    if(photos.some(p => p.status === 'pending')) return 'pending';
+    return photos.length ? 'rejected' : 'none';
+  }
+
+  const ICO_UNSICHTBAR = '<svg class="vis-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3l18 18M10.6 5.2A9.9 9.9 0 0 1 12 5c5 0 8.6 4.3 9.5 7-.4 1.1-1.2 2.5-2.4 3.7M6.6 6.7C4.6 8 3.1 10 2.5 12c.9 2.7 4.5 7 9.5 7 1.9 0 3.6-.6 5-1.5M9.9 9.9a3 3 0 0 0 4.2 4.2"/></svg>';
+
+  /* Deutlicher Hinweis ueber dem Deck und oben im Profil, solange das eigene
+     Profil wegen der Fotos in keiner Suche auftaucht. Nicht freigeschaltete
+     Konten sehen ohnehin den Pruefbildschirm, dort braucht es ihn nicht. */
+  function renderSichtbarkeitsHinweis(){
+    const stand = (!myProfile || !accountActivated()) ? 'visible' : fotoSichtbarkeit();
+    ['swipeVisBanner', 'acctVisBanner'].forEach(id => {
+      const box = $(id);
+      if(!box) return;
+      if(stand === 'visible'){
+        box.hidden = true;
+        box.innerHTML = '';
+        return;
+      }
+      box.className = 'vis-banner' + (stand === 'pending' ? '' : ' rejected');
+      const cta = stand === 'pending' ? 'vis.ctaPending' : 'vis.ctaUpload';
+      box.innerHTML = ICO_UNSICHTBAR
+        + `<div><div class="vis-title">${escapeHtml(t('vis.title'))}</div>`
+        + `<div class="vis-text">${escapeHtml(t('vis.' + stand, {min: MIN_PHOTOS}))}</div>`
+        + `<button type="button" class="vis-cta">${escapeHtml(t(cta))}</button></div>`;
+      box.hidden = false;
+      box.querySelector('.vis-cta').onclick = () => zeigeEigeneFotos(stand !== 'pending');
+    });
+  }
+
+  /* Vom Hinweis zum Fotoraster im Profil. Bei abgelehnten Fotos geht gleich
+     die Dateiauswahl auf - der Knopf heisst dort "Neues Foto hochladen". */
+  function zeigeEigeneFotos(hochladen){
+    if(document.body.dataset.screen !== 'screen-account'){
+      stopChatPolling();
+      stopVerifyCamera();
+      currentChatMatchId = null;
+      setNavActive('account');
+      showScreen('screen-account');
+      renderAccount();
+    }
+    const grid = $('acctPhotoGrid');
+    grid.scrollIntoView({behavior: 'smooth', block: 'center'});
+    grid.classList.add('ziel');
+    setTimeout(() => grid.classList.remove('ziel'), 1800);
+    if(hochladen && (myProfile.photos || []).length < 6 && !(acctUpload && acctUpload.status === 'laeuft')){
+      acctErsetzen = null;
+      $('acctPhotoInput').click();
+    }
+  }
+
+  /* Eigenes Profil neu holen. Fotostatus aendert die Moderation im
+     Hintergrund (Freigabe, Ablehnung); bis zum 14.10.2026 zeigte das Profil
+     bis zum Neuladen der Seite den Stand vom App-Start - ein inzwischen
+     abgelehntes Foto stand als "in Pruefung" da, und das ✕ rechnete mit einer
+     Fotozahl, die der Server laengst anders sah. Gibt true zurueck, wenn ein
+     neuer Stand uebernommen wurde. */
+  let profilAbgleich = null;
+  function frischeProfilAuf(){
+    if(!token) return Promise.resolve(false);
+    if(profilAbgleich) return profilAbgleich;
+    const vorher = myProfile;
+    profilAbgleich = api('/api/profiles/me').then(me => {
+      // Hat inzwischen etwas anderes myProfile ersetzt (Upload, Loeschen,
+      // Speichern), ist dessen Antwort neuer als diese - nicht ueberschreiben.
+      if(!me || myProfile !== vorher) return false;
+      myProfile = me;
+      return true;
+    }).catch(() => false).finally(() => { profilAbgleich = null; });
+    return profilAbgleich;
+  }
+
+  /* Neu holen und neu zeichnen, was davon abhaengt - aber nicht mitten in
+     einem Zug oder Upload und ohne die Formularfelder anzufassen, in denen
+     gerade jemand tippen koennte. */
+  async function profilAbgleichen(){
+    if(!(await frischeProfilAuf())) return;
+    const screen = document.body.dataset.screen;
+    if(screen === 'screen-account' && !photoDrag && !acctUpload) renderAccount({keepForm: true});
+    else renderSichtbarkeitsHinweis();
   }
 
   // Fuehrt den Upload aus und haelt das Raster dabei auf Stand. Wird auch vom
@@ -6947,11 +7171,38 @@
     acctUpload.status = 'laeuft';
     $('acctPhotoErr').textContent = '';
     renderAccountPhotoGrid();
+    const vorherIds = (myProfile.photos || []).map(p => p.id);
     try{
       myProfile = await uploadPhoto({blob: auftrag.blob, thumbBlob: auftrag.thumbBlob});
       URL.revokeObjectURL(auftrag.vorschau);
       acctUpload = null;
-      renderAccountPhotoGrid();
+      // Austauschen: Das neue Foto ist da, jetzt darf das alte weg.
+      if(auftrag.ersetzt){
+        try{
+          myProfile = await api('/api/profiles/me/photos/' + auftrag.ersetzt, {method: 'DELETE'});
+          // Das neue Foto auf den Platz des alten - Austauschen heisst nicht
+          // "hinten anhaengen". Scheitert das, bleibt es eben hinten.
+          const neu = myProfile.photos.find(p => !vorherIds.includes(p.id));
+          const platz = vorherIds.indexOf(auftrag.ersetzt);
+          const ids = myProfile.photos.map(p => p.id).filter(id => !neu || id !== neu.id);
+          if(neu && platz >= 0 && platz < ids.length){
+            ids.splice(platz, 0, neu.id);
+            try{
+              myProfile = await api('/api/profiles/me/photos/order', {
+                method: 'PUT', body: JSON.stringify({photo_ids: ids}),
+              });
+            }catch(_){ /* Reihenfolge ist Nebensache */ }
+          }
+          toast(t('photo.swapped'));
+        }catch(err){
+          // Das neue Foto bleibt in jedem Fall - nur das alte steht noch da.
+          toast(err.message || t('common.deleteFailed'));
+          await frischeProfilAuf();
+        }
+        renderAccount({keepForm: true});
+        return;
+      }
+      renderAccount({keepForm: true});
       // Das Foto ist da und im Raster zu sehen; der Hinweis darunter sagt,
       // dass es vor der Anzeige noch geprueft wird.
       toast(t('photo.uploaded'));
@@ -6967,6 +7218,10 @@
   $('acctPhotoInput').addEventListener('change', async (e)=>{
     const file = e.target.files[0];
     e.target.value = '';
+    // Gehoert zu genau dieser Auswahl - der naechste Klick auf "+" ist wieder
+    // ein normaler Upload.
+    const ersetzt = acctErsetzen;
+    acctErsetzen = null;
     if(!file) return;
     if(acctUpload && acctUpload.status === 'laeuft') return;
     if((myProfile.photos || []).length >= 6){
@@ -6997,6 +7252,7 @@
       blob: photo.blob,
       thumbBlob: photo.thumbBlob,
       vorschau: URL.createObjectURL(photo.blob),
+      ersetzt,
     });
   });
 
@@ -7005,6 +7261,8 @@
     $('deck').innerHTML = `<div class="loading">${escapeHtml(t('swipe.loading'))}</div>`;
     $('swipeActions').style.display = 'none';
     renderLikeCounter();
+    renderSichtbarkeitsHinweis();
+    profilAbgleichen();
     try{
       deck = await api('/api/swipes/deck');
       deckIdx = 0;

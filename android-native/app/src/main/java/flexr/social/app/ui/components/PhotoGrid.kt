@@ -7,6 +7,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -21,6 +22,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.SwapHoriz
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -42,6 +45,8 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
@@ -51,6 +56,7 @@ import flexr.social.app.core.designsystem.theme.FlexrTheme
 import flexr.social.app.core.designsystem.theme.MonoStyle
 import flexr.social.app.core.media.ImageProcessor
 import flexr.social.app.domain.model.PhotoStatus
+import flexr.social.app.domain.model.PhotoVisibility
 
 /** Ein Feld im Fotoraster — entweder belegt oder leer. */
 data class PhotoSlot(
@@ -58,6 +64,11 @@ data class PhotoSlot(
     /** Coil-Modell: Uri, URL-String oder ByteArray. */
     val model: Any,
     val status: PhotoStatus? = null,
+    /**
+     * Darf das Foto jetzt weg? Nein heisst: genau die Mindestzahl gueltiger
+     * Fotos - der Knopf zeigt dann die Austauschpfeile statt des ✕.
+     */
+    val removable: Boolean = true,
 )
 
 /**
@@ -227,22 +238,39 @@ private fun FilledPhotoSlot(
             contentScale = ContentScale.Crop,
             modifier = Modifier.fillMaxSize(),
         )
+        // Trefferflaeche 44 dp, sichtbar ein 26-dp-Kreis in der Ecke. Bis
+        // 2.7.28 war beides 22 dp - ein Tipper knapp daneben landete auf dem
+        // Foto, und das Loeschen ging "manchmal nicht".
         Box(
             Modifier
                 .align(Alignment.TopEnd)
-                .padding(4.dp)
-                .size(22.dp)
-                .clip(CircleShape)
-                .background(Color.Black.copy(alpha = 0.6f))
-                .clickable(onClick = onRemove),
-            contentAlignment = Alignment.Center,
+                .size(44.dp)
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = null,
+                    role = Role.Button,
+                    onClick = onRemove,
+                ),
+            contentAlignment = Alignment.TopEnd,
         ) {
-            Icon(
-                Icons.Filled.Close,
-                contentDescription = stringResource(R.string.photo_remove),
-                tint = Color.White,
-                modifier = Modifier.size(13.dp),
-            )
+            Box(
+                Modifier
+                    .padding(5.dp)
+                    .size(26.dp)
+                    .clip(CircleShape)
+                    .background(Color.Black.copy(alpha = 0.66f))
+                    .border(1.dp, Color.White.copy(alpha = 0.28f), CircleShape),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    if (slot.removable) Icons.Filled.Close else Icons.Filled.SwapHoriz,
+                    contentDescription = stringResource(
+                        if (slot.removable) R.string.photo_remove else R.string.photo_swap_title,
+                    ),
+                    tint = Color.White,
+                    modifier = Modifier.size(15.dp),
+                )
+            }
         }
         // Position 1 ist das Hauptfoto (Swipe-Karte, Avatar, Chat-Kopf) - die
         // Nummer macht sichtbar, was das Verschieben bewirkt.
@@ -309,26 +337,39 @@ private fun EmptyPhotoSlot(onClick: () -> Unit) {
 @Composable
 fun PhotoVisibilityHint(
     photoStatuses: List<PhotoStatus>,
+    visibility: PhotoVisibility,
     modifier: Modifier = Modifier,
 ) {
     val colors = FlexrTheme.colors
-    val fehlend = ImageProcessor.MIN_PHOTOS - photoStatuses.size
+    // Abgelehnte zaehlen nicht zur Pflichtzahl (wie beim Server). Bis 2.7.28
+    // zaehlten sie hier mit - zwei gueltige plus ein abgelehntes galten als
+    // "genug".
+    val gueltig = photoStatuses.count { it != PhotoStatus.REJECTED }
+    val fehlend = ImageProcessor.MIN_PHOTOS - gueltig
     // Die Mindestanzahl steht vor dem Moderationsstand: Wer zu wenige Fotos
-    // hat, muss das zuerst erfahren - ein "Profil ist sichtbar" waere dann
-    // schlicht falsch, denn der Server laesst die Pruefung gar nicht erst
-    // starten.
+    // hat, muss das zuerst erfahren. Sichtbar ist das Profil trotzdem, sobald
+    // eines freigegeben ist (swipes.deck_profiles).
     val (text, warn) = when {
         photoStatuses.isEmpty() ->
             stringResource(R.string.photo_hint_none, ImageProcessor.MIN_PHOTOS) to true
+        gueltig == 0 -> stringResource(R.string.photo_hint_rejected) to true
         fehlend > 0 ->
             stringResource(
-                R.string.photo_hint_too_few,
+                if (visibility == PhotoVisibility.VISIBLE) R.string.photo_hint_too_few_visible
+                else R.string.photo_hint_too_few,
                 fehlend,
                 ImageProcessor.MIN_PHOTOS,
             ) to true
-        photoStatuses.any { it == PhotoStatus.APPROVED } ->
-            stringResource(R.string.photo_hint_ok) to false
-        photoStatuses.any { it == PhotoStatus.PENDING } ->
+        visibility == PhotoVisibility.VISIBLE -> {
+            val ok = stringResource(R.string.photo_hint_ok)
+            // Genau die Mindestzahl: erklaeren, warum statt ✕ die Pfeile stehen.
+            (if (gueltig == ImageProcessor.MIN_PHOTOS) {
+                ok + " " + stringResource(R.string.photo_hint_at_min, ImageProcessor.MIN_PHOTOS)
+            } else {
+                ok
+            }) to false
+        }
+        visibility == PhotoVisibility.PENDING ->
             stringResource(R.string.photo_hint_pending) to true
         else -> stringResource(R.string.photo_hint_rejected) to true
     }
@@ -339,4 +380,68 @@ fun PhotoVisibilityHint(
         color = if (warn) colors.plate else colors.chalkDim,
         modifier = modifier.fillMaxWidth().padding(top = 8.dp),
     )
+}
+
+/**
+ * Deutlicher Hinweis "in der Suche nicht sichtbar" (`.vis-banner` im Web) -
+ * ueber dem Deck und oben im Konto, solange kein Foto freigegeben ist. Bis
+ * 2.7.28 stand das nur klein unter dem Fotoraster.
+ */
+@Composable
+fun SearchVisibilityBanner(
+    visibility: PhotoVisibility,
+    onAction: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    if (visibility == PhotoVisibility.VISIBLE) return
+    val colors = FlexrTheme.colors
+    val akzent = if (visibility == PhotoVisibility.PENDING) colors.plate else colors.danger
+    Row(
+        modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(14.dp))
+            .background(akzent.copy(alpha = 0.11f))
+            .border(1.dp, akzent.copy(alpha = 0.5f), RoundedCornerShape(14.dp))
+            .padding(horizontal = 14.dp, vertical = 12.dp),
+        horizontalArrangement = Arrangement.spacedBy(11.dp),
+    ) {
+        Icon(
+            Icons.Filled.VisibilityOff,
+            contentDescription = null,
+            tint = akzent,
+            modifier = Modifier.size(22.dp),
+        )
+        Column(Modifier.weight(1f)) {
+            Text(
+                stringResource(R.string.vis_title),
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.Bold,
+                color = colors.chalk,
+            )
+            Text(
+                when (visibility) {
+                    PhotoVisibility.PENDING -> stringResource(R.string.vis_pending)
+                    PhotoVisibility.NONE -> stringResource(R.string.vis_none, ImageProcessor.MIN_PHOTOS)
+                    else -> stringResource(R.string.vis_rejected)
+                },
+                style = MaterialTheme.typography.bodySmall,
+                color = colors.chalkDim,
+                modifier = Modifier.padding(top = 2.dp),
+            )
+            Text(
+                stringResource(
+                    if (visibility == PhotoVisibility.PENDING) R.string.vis_cta_pending else R.string.vis_cta_upload,
+                ),
+                style = MaterialTheme.typography.labelLarge,
+                fontWeight = FontWeight.Bold,
+                color = if (visibility == PhotoVisibility.PENDING) colors.plateInk else Color.White,
+                modifier = Modifier
+                    .padding(top = 9.dp)
+                    .clip(RoundedCornerShape(50))
+                    .background(akzent)
+                    .clickable(role = Role.Button, onClick = onAction)
+                    .padding(horizontal = 14.dp, vertical = 7.dp),
+            )
+        }
+    }
 }

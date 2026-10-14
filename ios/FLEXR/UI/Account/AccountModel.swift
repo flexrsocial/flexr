@@ -52,6 +52,10 @@ final class AccountModel {
     var saveError: String?
     var photoError: String?
     var isUploadingPhoto = false
+    /// Foto, für das gerade der Dialog „Foto austauschen" offen ist.
+    var swapCandidate: String?
+    /// Foto, das nach dem nächsten Upload gelöscht wird (Austauschen).
+    var pendingReplacement: String?
     var verificationStatus: VerificationStatus = .none
     /// Bestätigter „verifiziert"-Hinweis wird dauerhaft ausgeblendet.
     var verifiedHintDismissed = false
@@ -420,8 +424,7 @@ final class AccountModel {
 
     func removePhoto(id: String) {
         // Dieselbe Grenze wie beim Anlegen des Kontos: Der Server lehnt das
-        // Löschen sonst ohnehin ab (backend/app/routers/profiles.py), hier
-        // steht die Meldung nur früher und in der gewählten Sprache.
+        // Löschen sonst ohnehin ab (backend/app/routers/profiles.py).
         // Abgelehnte Fotos zählen nicht mit und lassen sich immer entfernen -
         // ihre Datei ist ohnehin schon gelöscht.
         // Der Server sagt es seit 22.09.2026 pro Foto (deletable); die Rechnung
@@ -430,7 +433,15 @@ final class AccountModel {
         let darfWeg = foto?.deletable
             ?? (foto?.status == .rejected || (profile?.validPhotoCount ?? 0) > ImageProcessor.minPhotos)
         guard darfWeg else {
-            photoError = s(.photoMinCount, ImageProcessor.minPhotos)
+            // Genau die Mindestzahl: statt einer Fehlermeldung (bis 14.10.2026
+            // „Mindestens 3 Fotos sind erforderlich" - las sich bei drei
+            // freigegebenen Fotos wie ein Fehler) das Austauschen anbieten.
+            if (profile?.photos.count ?? 0) >= ImageProcessor.maxPhotos {
+                photoError = s(.photoSwapNoRoom)
+            } else {
+                photoError = nil
+                swapCandidate = id
+            }
             return
         }
         photoError = nil
@@ -439,8 +450,75 @@ final class AccountModel {
                 _ = try await profiles.deletePhoto(id: id)
             } catch {
                 onMessage(error.localizedDescription)
+                // Meist ist der Stand veraltet (die Moderation hat inzwischen
+                // ein Foto abgelehnt) - neu holen, damit Raster und Knöpfe
+                // wieder stimmen.
+                await refreshProfile()
             }
         }
+    }
+
+    /// Ja im Austauschdialog - die Oberfläche öffnet danach die Bildauswahl.
+    func confirmSwap(_ photoID: String?) {
+        pendingReplacement = photoID ?? swapCandidate
+        swapCandidate = nil
+    }
+
+    /// Austauschen: erst das neue Foto hochladen, dann das alte löschen -
+    /// dieselbe Reihenfolge, die der Server verlangt. Das neue rückt auf den
+    /// Platz des alten.
+    func onReplacementPicked(_ data: Data) async {
+        guard let alt = pendingReplacement else {
+            await onPhotoPicked(data)
+            return
+        }
+        pendingReplacement = nil
+        let vorher = profile?.photos.map(\.id) ?? []
+        isUploadingPhoto = true
+        photoError = nil
+        let mitNeuem: MyProfile
+        do {
+            let prepared = try await ImageProcessor.prepare(data: data)
+            mitNeuem = try await profiles.addPhoto(prepared)
+        } catch let error as PhotoTooSmallError {
+            photoError = s(.photoTooSmall, error.width, error.height,
+                           ImageProcessor.minEdgePx, ImageProcessor.minEdgePx)
+            isUploadingPhoto = false
+            return
+        } catch let error as FlexrAPIError {
+            photoError = error.message
+            isUploadingPhoto = false
+            return
+        } catch {
+            photoError = s(.photoUploadFailed)
+            isUploadingPhoto = false
+            return
+        }
+        isUploadingPhoto = false
+        let neu = mitNeuem.photos.first { !vorher.contains($0.id) }
+        do {
+            let ohneAlt = try await profiles.deletePhoto(id: alt)
+            if let neu, let platz = vorher.firstIndex(of: alt) {
+                var ids = ohneAlt.photos.map(\.id).filter { $0 != neu.id }
+                if platz <= ids.count {
+                    ids.insert(neu.id, at: platz)
+                    // Reihenfolge ist Nebensache - scheitert sie, bleibt das
+                    // neue Foto eben hinten.
+                    _ = try? await profiles.reorderPhotos(ids)
+                }
+            }
+            onMessage(s(.photoSwapped))
+        } catch {
+            onMessage(error.localizedDescription)
+            await refreshProfile()
+        }
+    }
+
+    /// Eigenes Profil neu holen. Fotostatus ändert die Moderation im
+    /// Hintergrund; vorher lud das Konto ihn nur beim ersten Öffnen - ein
+    /// inzwischen abgelehntes Foto stand weiter als „in Prüfung" da.
+    func refreshProfile() async {
+        _ = try? await profiles.refresh()
     }
 
     /// Neue Fotoreihenfolge speichern.

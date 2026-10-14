@@ -1,3 +1,4 @@
+import PhotosUI
 import SwiftUI
 
 struct AccountView: View {
@@ -16,6 +17,10 @@ struct AccountView: View {
     @State private var blockedUsersExpanded = false
     @State private var pendingSensitiveRevoke = false
     @State private var notificationDetailsVisible = false
+    /// Bildauswahl für „Foto austauschen" und den Knopf im Sichtbarkeitshinweis.
+    @State private var replacementPickerVisible = false
+    @State private var replacementSelection: PhotosPickerItem?
+    @Environment(\.scenePhase) private var scenePhase
 
     var body: some View {
         Group {
@@ -39,68 +44,141 @@ struct AccountView: View {
     @ViewBuilder
     private func content(_ model: AccountModel) -> some View {
         @Bindable var model = model
+        // Beim Aufbau festhalten: Ob SwiftUI den Dialog vor oder nach der
+        // Knopfaktion schließt (und swapCandidate damit leert), ist nicht
+        // zugesichert.
+        let swapKandidat = model.swapCandidate
 
-        ScrollView {
-            VStack(alignment: .leading, spacing: 0) {
-                profileHeader(model)
+        ScrollViewReader { proxy in
+            ScrollView {
+                VStack(alignment: .leading, spacing: 0) {
+                    profileHeader(model)
 
-                let isVerified = model.profile?.profile.isVerified == true
-                    || model.verificationStatus == .approved
-                // Der Verifiziert-Hinweis verschwindet, sobald er bestätigt
-                // wurde; alle anderen Zustände sind Handlungsaufforderungen und
-                // bleiben stehen.
-                if !isVerified || !model.verifiedHintDismissed {
-                    VerificationHint(
-                        isVerified: isVerified,
-                        status: model.verificationStatus,
-                        onDismiss: model.dismissVerifiedHint,
-                        onStartVerification: { onOpen(.verification) },
-                        onStartDocument: { onOpen(.verificationDocument) }
+                    let isVerified = model.profile?.profile.isVerified == true
+                        || model.verificationStatus == .approved
+                    // Der Verifiziert-Hinweis verschwindet, sobald er bestätigt
+                    // wurde; alle anderen Zustände sind Handlungsaufforderungen und
+                    // bleiben stehen.
+                    if !isVerified || !model.verifiedHintDismissed {
+                        VerificationHint(
+                            isVerified: isVerified,
+                            status: model.verificationStatus,
+                            onDismiss: model.dismissVerifiedHint,
+                            onStartVerification: { onOpen(.verification) },
+                            onStartDocument: { onOpen(.verificationDocument) }
+                        )
+                        .padding(.top, 14)
+                    }
+
+                    // In der Suche unsichtbar, solange kein Foto freigegeben ist.
+                    // Nur für freigeschaltete Konten - die anderen stehen ohnehin
+                    // vor der Prüfung.
+                    if let profile = model.profile, profile.isAccountActivated,
+                       profile.photoVisibility != .visible {
+                        SearchVisibilityBanner(visibility: profile.photoVisibility) {
+                            withAnimation { proxy.scrollTo(Self.photoAnchor, anchor: .top) }
+                            if profile.photoVisibility != .pending,
+                               profile.photos.count < ImageProcessor.maxPhotos,
+                               !model.isUploadingPhoto {
+                                model.pendingReplacement = nil
+                                replacementPickerVisible = true
+                            }
+                        }
+                        .padding(.top, 14)
+                    }
+
+                    SectionTitle(text: s(.accountSectionProfile)).padding(.top, 26)
+                    PostalCodeField(postalCode: $model.postalCode, lookupState: model.plzLookup)
+                    GymPicker(
+                        state: $model.gymPicker,
+                        onQueryChange: model.onGymQueryChange,
+                        onSelect: model.onGymSelected,
+                        onSuggestRequested: model.openGymSuggestion,
+                        isEnabled: model.gymChangeLockedUntil == nil,
+                        lockedUntilLabel: model.gymChangeLockedUntil.map(ServerTime.formatDay)
                     )
-                    .padding(.top, 14)
+                    FlexrTextField(
+                        text: $model.bio,
+                        label: s(.fieldBio),
+                        placeholder: s(.fieldBioPlaceholder),
+                        isSingleLine: false,
+                        maxLines: 5,
+                        maxLength: AccountModel.bioMaxLength,
+                        showsEmojiPicker: true
+                    )
+
+                    radiusSlider(model)
+
+                    FieldError(message: model.saveError)
+                    FlexrSecondaryButton(title: s(.accountSave), isLoading: model.isSaving) {
+                        Task { await model.saveProfile() }
+                    }
+                    .padding(.top, 16)
+
+                    photoSection(model)
+                    languageSection
+                    notificationSection(model)
+                    subscriptionSection(model)
+                    privacySection(model)
+                    credentialsSection(model)
+                    accountSection()
+                    legalSection()
                 }
-
-                SectionTitle(text: s(.accountSectionProfile)).padding(.top, 26)
-                PostalCodeField(postalCode: $model.postalCode, lookupState: model.plzLookup)
-                GymPicker(
-                    state: $model.gymPicker,
-                    onQueryChange: model.onGymQueryChange,
-                    onSelect: model.onGymSelected,
-                    onSuggestRequested: model.openGymSuggestion,
-                    isEnabled: model.gymChangeLockedUntil == nil,
-                    lockedUntilLabel: model.gymChangeLockedUntil.map(ServerTime.formatDay)
-                )
-                FlexrTextField(
-                    text: $model.bio,
-                    label: s(.fieldBio),
-                    placeholder: s(.fieldBioPlaceholder),
-                    isSingleLine: false,
-                    maxLines: 5,
-                    maxLength: AccountModel.bioMaxLength,
-                    showsEmojiPicker: true
-                )
-
-                radiusSlider(model)
-
-                FieldError(message: model.saveError)
-                FlexrSecondaryButton(title: s(.accountSave), isLoading: model.isSaving) {
-                    Task { await model.saveProfile() }
-                }
-                .padding(.top, 16)
-
-                photoSection(model)
-                languageSection
-                notificationSection(model)
-                subscriptionSection(model)
-                privacySection(model)
-                credentialsSection(model)
-                accountSection()
-                legalSection()
+                .padding(.horizontal, 20)
+                .padding(.bottom, 40)
             }
-            .padding(.horizontal, 20)
-            .padding(.bottom, 40)
+            // Vom Hinweis über dem Deck: gleich zum Fotoraster.
+            .onAppear {
+                if appModel.scrollToOwnPhotos {
+                    appModel.scrollToOwnPhotos = false
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                        withAnimation { proxy.scrollTo(Self.photoAnchor, anchor: .top) }
+                    }
+                }
+            }
         }
         .scrollDismissesKeyboard(.interactively)
+        // Zurück in die App: Fotostatus neu holen - die Moderation kann
+        // inzwischen entschieden haben.
+        .onChange(of: scenePhase) { _, phase in
+            if phase == .active { Task { await model.refreshProfile() } }
+        }
+        .confirmDialog(
+            isPresented: Binding(
+                get: { model.swapCandidate != nil },
+                set: { if !$0 { model.swapCandidate = nil } }
+            ),
+            title: s(.photoSwapTitle),
+            message: s(.photoSwapText, ImageProcessor.minPhotos),
+            confirmLabel: s(.photoSwapChoose),
+            isDestructive: false
+        ) {
+            model.confirmSwap(swapKandidat)
+            // Erst nach dem Schließen des Dialogs - zwei Präsentationen
+            // gleichzeitig lässt SwiftUI nicht zu.
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
+                replacementPickerVisible = true
+            }
+        }
+        .photosPicker(
+            isPresented: $replacementPickerVisible,
+            selection: $replacementSelection,
+            matching: .images,
+            photoLibrary: .shared()
+        )
+        .onChange(of: replacementSelection) { _, item in
+            guard let item else { return }
+            replacementSelection = nil
+            Task {
+                if let data = try? await item.loadTransferable(type: Data.self) {
+                    await model.onReplacementPicked(data)
+                } else {
+                    model.pendingReplacement = nil
+                    model.photoError = s(.photoReadFailed)
+                }
+            }
+        }
+
         .onChange(of: model.postalCode) { _, _ in model.postalCodeChanged() }
         .externalPage($model.externalURL)
         .sheet(isPresented: Binding(
@@ -321,12 +399,25 @@ struct AccountView: View {
         }
     }
 
+    /// Sprungmarke für den Sichtbarkeitshinweis.
+    private static let photoAnchor = "fotos"
+
     private func photoSection(_ model: AccountModel) -> some View {
-        VStack(alignment: .leading, spacing: 0) {
+        let validCount = model.profile?.validPhotoCount ?? 0
+        return VStack(alignment: .leading, spacing: 0) {
             SectionTitle(text: s(.accountSectionPhotos)).padding(.top, 28)
+                .id(Self.photoAnchor)
             PhotoGridEditor(
                 slots: (model.profile?.photos ?? []).map {
-                    PhotoSlot(id: $0.id, source: .remote($0.url), status: $0.status)
+                    PhotoSlot(
+                        id: $0.id,
+                        source: .remote($0.url),
+                        status: $0.status,
+                        // Der Server sagt es pro Foto; sonst dieselbe Rechnung
+                        // wie im Modell.
+                        removable: $0.deletable
+                            ?? ($0.status == .rejected || validCount > ImageProcessor.minPhotos)
+                    )
                 },
                 onPhotoPicked: { data in Task { await model.onPhotoPicked(data) } },
                 onRemove: model.removePhoto,
@@ -347,7 +438,10 @@ struct AccountView: View {
                 .padding(.top, 8)
             }
 
-            PhotoVisibilityHint(statuses: (model.profile?.photos ?? []).map(\.status))
+            PhotoVisibilityHint(
+                statuses: (model.profile?.photos ?? []).map(\.status),
+                visibility: model.profile?.photoVisibility ?? .noPhotos
+            )
             FieldError(message: model.photoError)
         }
     }

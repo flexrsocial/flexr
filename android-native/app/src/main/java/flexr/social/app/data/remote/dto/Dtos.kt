@@ -156,6 +156,10 @@ data class MyProfileDto(
     @SerialName("avatar_url") val avatarUrl: String? = null,
     @SerialName("min_photos") val minPhotos: Int = 3,
     @SerialName("max_photos") val maxPhotos: Int = 6,
+    // Erscheint das Profil seiner Fotos wegen in der Suche? "visible",
+    // "pending", "rejected" oder "none" (seit 14.10.2026). Null bei einem
+    // aelteren Backend - dann rechnet die App aus den Fotos selbst.
+    @SerialName("photo_visibility") val photoVisibility: String? = null,
 )
 
 /** Einzelner Schalter - nur das gesetzte Feld wird geschickt. */

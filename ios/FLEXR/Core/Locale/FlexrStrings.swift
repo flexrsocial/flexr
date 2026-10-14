@@ -106,6 +106,9 @@ enum L: Hashable, Sendable {
     case photoRemove, photoAdd, photoPending, photoRejected, photoUploading, photoHintNone
     case photoHintOk, photoHintPending, photoHintRejected, photoHintTooFew, photoMinCount
     case photoUploadFailed, photoLightboxPosition, photoTooSmall, photoReadFailed
+    case photoSwapTitle, photoSwapText, photoSwapChoose, photoSwapped, photoSwapNoRoom
+    case photoHintTooFewVisible, photoHintAtMin
+    case visTitle, visPending, visRejected, visNone, visCtaPending, visCtaUpload
 
     // Konto
     case accountSectionProfile, accountSectionPhotos

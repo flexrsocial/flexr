@@ -102,6 +102,7 @@ fun MyProfileDto.toDomain() = MyProfile(
     ),
     language = language,
     serverAvatarUrl = avatarUrl,
+    serverPhotoVisibility = photoVisibility,
 )
 
 fun PushNotificationDto.toDomain() = PushNotification(

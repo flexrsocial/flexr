@@ -11,6 +11,7 @@ import flexr.social.app.data.repository.MatchRepository
 import flexr.social.app.data.repository.ProfileRepository
 import flexr.social.app.data.repository.SafetyRepository
 import flexr.social.app.data.repository.SwipeRepository
+import flexr.social.app.domain.model.PhotoVisibility
 import flexr.social.app.domain.model.Profile
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
@@ -31,6 +32,8 @@ data class SwipeUiState(
     /** Profil, mit dem gerade ein Match entstanden ist (Overlay). */
     val matchedWith: Profile? = null,
     val ownAvatarUrl: String? = null,
+    /** Eigene Sichtbarkeit in der Suche wegen der Fotos (Hinweis ueber dem Deck). */
+    val ownPhotoVisibility: PhotoVisibility = PhotoVisibility.VISIBLE,
     val searchRadiusKm: Int = 20,
     /** Laeuft ein Premium-Abo? Nur dann gibt es den Zuruecknehmen-Knopf. */
     val isPremium: Boolean = false,
@@ -117,6 +120,12 @@ class SwipeViewModel @Inject constructor(
                     state.copy(
                         searchRadiusKm = profile.searchRadiusKm,
                         ownAvatarUrl = profile.ownAvatarUrl,
+                        // Hinweis "in der Suche nicht sichtbar" ueber dem Deck.
+                        ownPhotoVisibility = if (profile.isAccountActivated) {
+                            profile.photoVisibility
+                        } else {
+                            PhotoVisibility.VISIBLE
+                        },
                     )
                 }
                 val suchkriterien = profile.searchRadiusKm to profile.profile.gym
@@ -127,6 +136,15 @@ class SwipeViewModel @Inject constructor(
                 letzteSuchkriterien = suchkriterien
             }
         }
+    }
+
+    /**
+     * Eigenes Profil neu holen (beim Zurueckkehren in die App): Ob die
+     * Moderation inzwischen ein Foto freigegeben hat, entscheidet ueber den
+     * Hinweis ueber dem Deck. Der Rest laeuft ueber observeMyProfile.
+     */
+    fun refreshOwnProfile() {
+        viewModelScope.launch { runCatching { profileRepository.refresh() } }
     }
 
     fun loadDeck() {

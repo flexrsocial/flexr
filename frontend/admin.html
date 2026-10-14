@@ -177,6 +177,10 @@
   .photo-mod-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(200px,1fr)); gap:16px; }
   .photo-mod-card{ background:var(--surface); border:1px solid var(--steel); border-radius:14px; overflow:hidden; }
   .photo-mod-card img{ width:100%; aspect-ratio:3/4; object-fit:cover; display:block; background:var(--surface-2); }
+  /* Abgelehnt: Datei ist geloescht - Platzhalter statt kaputtem Bild. */
+  .photo-mod-card .photo-gone{ aspect-ratio:3/4; display:flex; align-items:center; justify-content:center;
+    padding:12px; text-align:center; background:var(--surface-2); color:var(--danger);
+    font-family:'JetBrains Mono',monospace; font-size:11px; text-transform:uppercase; letter-spacing:.06em; }
   .photo-mod-card .meta{ padding:10px 12px; font-size:12px; color:var(--chalk-dim); }
   .photo-mod-card .meta .nm{ color:var(--chalk); font-weight:600; font-size:13px; }
   /* Drei Buttons in einer schmalen Karte: min-width:0 erlaubt das Schrumpfen
@@ -536,6 +540,6 @@
   </div>
 </div>
 
-<script src="/admin.js?v=6"></script>
+<script src="/admin.js?v=7"></script>
 </body>
 </html>

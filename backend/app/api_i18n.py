@@ -85,8 +85,8 @@ _TEXTE: dict[str, str] = {
     "Telefonnummern sind in der Bio nicht erlaubt.": "Phone numbers are not allowed in your bio.",
     "Dieser Inhalt ist in der Bio nicht erlaubt.": "This content is not allowed in your bio.",
     "Maximal {n} Fotos erlaubt.": "A maximum of {n} photos is allowed.",
-    "Mindestens {n} Fotos sind erforderlich. Lade zuerst ein weiteres hoch.":
-        "At least {n} photos are required. Upload another one first.",
+    "Mindestens {n} Fotos sind erforderlich. Lade zuerst ein neues Foto hoch, danach kannst du dieses löschen.":
+        "At least {n} photos are required. Upload a new photo first, then you can delete this one.",
     "Lade zuerst mindestens {n} Profilfotos hoch.": "Upload at least {n} profile photos first.",
     "Ungültiger object_key.": "Invalid object key.",
     "Dieser Kauf gehört zu einem anderen FLEXR-Konto. Melde dich mit dem Konto an, mit dem du FLEXR Premium abgeschlossen hast.": "This purchase belongs to a different FLEXR account. Sign in with the account you used to buy FLEXR Premium.",
@@ -97,6 +97,8 @@ _TEXTE: dict[str, str] = {
     "Die hochgeladene Datei ist kein unterstütztes Bild oder zu groß.":
         "The uploaded file is not a supported image or is too large.",
     "Foto nicht gefunden.": "Photo not found.",
+    "Ein abgelehntes Foto lässt sich nicht mehr freigeben - die Bilddatei wurde bei der Ablehnung gelöscht.":
+        "A rejected photo can no longer be approved - its image file was deleted when it was rejected.",
     "Das Gym kann nur alle drei Monate geändert werden (Schutz vor Umgehung des FLEXR-Premium-Suchumkreises) - nächste Änderung ab {datum} möglich.":
         "Your gym can only be changed every three months (so the FLEXR Premium search radius cannot be bypassed) - next change possible from {datum}.",
     "Dieses Gym wurde bereits geprüft und abgelehnt.": "This gym has already been reviewed and rejected.",
