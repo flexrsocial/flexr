@@ -32,6 +32,30 @@ erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 
 ## Wo das Projekt gerade steht
 
+> **Sitzung 14.10.2026 (14): Play-Einreichung vorbereitet.**
+>
+> - **Prüfkonto `appreview@flexr.social`** hat jetzt dauerhaft Premium
+>   (`store_premium_until` = 31.12.2099, wie `testuserfiverr@flexrtest.at`
+>   und `styriatrading@gmail.com`; keine Store-Abo-Zeile). Grund: Ein
+>   Testkauf eines Google-Prüfers würde vom Server abgelehnt (Testkäufe
+>   schalten kein Premium frei, Entscheidung vom 20.09.) - mit Premium muss
+>   niemand kaufen, um die Funktionen zu sehen. Live geprüft: Premium aktiv,
+>   Likes/Chats unbegrenzt, Umkreis 580 km. Ein echter Kauf auf diesem Konto
+>   würde das Datum durch das Abo-Ende ersetzen.
+> - **FAQ „Wie lösche ich mein Konto?“** (DE/EN, `f07496d`, live): Weg ohne
+>   App (Browser, flexr.social/app) und per Mail, Anker `#konto-loeschen` /
+>   `#delete-account` - die Play Console verlangt eine Webadresse für die
+>   Löschung ohne App. Damit zugesagt: Löschung auf Mail von der
+>   hinterlegten Adresse, von Hand im Adminportal.
+> - **Store-Texte** `android/store/store-texte.md` (von Git ausgenommen, nur
+>   lokal/MEGA) neu gefasst: Ausweisprüfung, drei Fotos, Melden/Blockieren,
+>   Premium-Umfang samt Gratis-Grenzen und Startaktion, Preis bewusst nicht
+>   im Text; Versionshinweise 2.7.28 DE/EN; englische Anleitung für den
+>   Prüfzugang (ohne Passwort).
+> - Antworten für „Zugriff auf die Produktionsversion beantragen“ mit dem
+>   Nutzer abgestimmt - nur Angaben, die Google nicht gegen eigene Daten
+>   (Vitals, Testerzahl, Track-Uploads) prüfen kann oder die stimmen.
+
 > **Sitzung 14.10.2026 (13): Drei Restpunkte – Apple-Meldungsreihenfolge,
 > alte Push-Adressen, Login ohne Aufräumen.** Auf die Frage „noch Bugs?“:
 > Produktion seit 17:43 ohne Fehler; der Nutzer wollte alle drei genannten
