@@ -17,16 +17,16 @@ Objektschlüssel geloggt, nie Bildinhalte.
 """
 
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
 from .config import settings
-from .models import Photo, Report, User, VerificationRequest, VerificationStatus
+from .models import Photo, PushNotification, Report, User, VerificationRequest, VerificationStatus
 from .retention import ACCOUNT_GRACE_PERIOD_DAYS as GRACE_PERIOD_DAYS
-from .retention import REPORT_EVIDENCE_RETENTION_DAYS
-from .storage import _buckets_for, get_s3_client
+from .retention import PUSH_NOTIFICATION_RETENTION_DAYS, REPORT_EVIDENCE_RETENTION_DAYS
+from .storage import _buckets_for, get_s3_client, list_object_keys
 from .verification_service import (
     ORPHAN_RETENTION_DAYS,
     object_keys_for,
@@ -90,6 +90,11 @@ def storage_keys_for_user(db: Session, user: User) -> list[str]:
         # verification_service.orphan_keys_for) - beim endgültigen Löschen darf
         # nichts übrig bleiben.
         keys.extend(orphan_keys_for(req))
+    # Und alles, was sonst unter dem Ordner des Kontos liegt: hochgeladen, aber
+    # nie als Foto gespeichert (abgebrochene Registrierung, abgewiesene Datei).
+    # Bis zum 14.10.2026 blieb das öffentlich abrufbar liegen - in der
+    # Produktion zehn Bilder von fünf längst gelöschten Konten.
+    keys.extend(list_object_keys(f"users/{user.id}/"))
     return _unique(keys)
 
 
@@ -227,12 +232,98 @@ def purge_old_report_evidence(db: Session) -> int:
     return n
 
 
+# Ab wann ein hochgeladenes, aber nie gespeichertes Profilfoto als verwaist
+# gilt. Ein Upload dauert Sekunden; die Woche ist reiner Sicherheitsabstand.
+ORPHAN_PHOTO_DAYS = 7
+
+# Notbremse: Mehr auf einmal löscht der Lauf nie. In der Produktion waren es am
+# 14.10.2026 zehn. Schlägt sie an, stimmt eher die Zuordnung nicht (etwa eine
+# geänderte öffentliche Basis-URL) als dass so viel verwaist wäre.
+ORPHAN_PHOTO_MAX_PER_RUN = 50
+
+
+def _key_aus_foto_url(url: str) -> str | None:
+    """Objektschlüssel aus einer gespeicherten Foto-URL, unabhängig davon,
+    unter welcher Basis-URL sie gespeichert wurde."""
+    stelle = url.find("users/")
+    return url[stelle:] if stelle >= 0 else None
+
+
+def purge_orphan_photo_objects(db: Session, now: datetime | None = None) -> int:
+    """Profilbilder im Storage, zu denen kein Foto (mehr) gehört.
+
+    Sofort, wenn das Konto nicht mehr existiert; nach ORPHAN_PHOTO_DAYS bei
+    bestehenden Konten (Upload ohne anschließendes Speichern). Prüfaufnahmen
+    unter ``/verify/`` räumt purge_stale_verification_uploads() ab.
+    """
+    if not settings.s3_bucket_name:
+        return 0
+    referenziert: set[str] = set()
+    for url, thumb in db.query(Photo.url, Photo.thumb_url):
+        for wert in filter(None, (url, thumb)):
+            key = _key_aus_foto_url(wert)
+            if key is None:
+                logger.error("Foto-URL ohne Objektschlüssel, Aufräumen übersprungen: %s", wert)
+                return 0
+            referenziert.add(key)
+    konten = {uid for (uid,) in db.query(User.id)}
+    grenze = (now or utcnow()).replace(tzinfo=timezone.utc) - timedelta(days=ORPHAN_PHOTO_DAYS)
+
+    verwaist: list[str] = []
+    try:
+        seiten = get_s3_client().get_paginator("list_objects_v2").paginate(
+            Bucket=settings.s3_bucket_name, Prefix="users/"
+        )
+        for seite in seiten:
+            for objekt in seite.get("Contents", []):
+                key = objekt["Key"]
+                if "/verify/" in key or key in referenziert:
+                    continue
+                besitzer = key.split("/")[1]
+                if besitzer not in konten or objekt["LastModified"] < grenze:
+                    verwaist.append(key)
+    except Exception:
+        logger.exception("Profilbilder konnten nicht aufgelistet werden")
+        return 0
+
+    if len(verwaist) > ORPHAN_PHOTO_MAX_PER_RUN:
+        logger.error(
+            "%d verwaiste Profilbilder - mehr als %d, nichts gelöscht. Bitte prüfen.",
+            len(verwaist), ORPHAN_PHOTO_MAX_PER_RUN,
+        )
+        return 0
+    if verwaist:
+        delete_storage_objects(verwaist)
+        logger.info("Verwaiste Profilbilder gelöscht: %d", len(verwaist))
+    return len(verwaist)
+
+
+def purge_old_push_notifications(db: Session) -> int:
+    """App-Benachrichtigungen nach Ablauf der Frist löschen.
+
+    Ausgeliefert wird nur eine Woche lang (notifications.PENDING_MAX_AGE).
+    Wer nur die Web-App nutzt, holt nie etwas ab - in der Produktion lagen am
+    14.10.2026 365 von 377 Einträgen unabgeholt, mit Namen aus Match-Meldungen.
+    """
+    cutoff = utcnow() - timedelta(days=PUSH_NOTIFICATION_RETENTION_DAYS)
+    n = (
+        db.query(PushNotification)
+        .filter(PushNotification.created_at < cutoff)
+        .delete(synchronize_session=False)
+    )
+    if n:
+        db.commit()
+    return n
+
+
 def run_all(db: Session) -> dict[str, int]:
     """Alle Fristen auf einmal - für den täglichen Timer."""
     return {
         "deleted_users": purge_deleted_users(db),
         "verification_requests": purge_stale_verification_uploads(db),
         "report_evidence": purge_old_report_evidence(db),
+        "push_notifications": purge_old_push_notifications(db),
+        "orphan_photos": purge_orphan_photo_objects(db),
     }
 
 

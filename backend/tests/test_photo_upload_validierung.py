@@ -72,6 +72,22 @@ def test_kein_bild_wird_abgewiesen(client, monkeypatch):
     assert client.get("/api/profiles/me", headers=headers).json()["photos"] == []
 
 
+def test_abgewiesene_datei_wird_geloescht(client, monkeypatch):
+    """Sonst laege sie ohne Foto unter einer oeffentlichen Adresse (bis 14.10.2026)."""
+    from app import cleanup
+
+    geloescht = []
+    monkeypatch.setattr(cleanup, "delete_storage_objects", geloescht.extend)
+    monkeypatch.setattr(
+        "app.routers.profiles.inspect_uploaded_photo",
+        lambda key: {"ok": False, "size": 1234, "detected": None},
+    )
+    headers = register_user(client, "weggeraeumt@example.com")
+    presign = _presign(client, headers)
+    assert _register(client, headers, presign["object_key"]).status_code == 400
+    assert geloescht == [presign["object_key"]]
+
+
 def test_echtes_bild_kommt_durch(client, monkeypatch):
     monkeypatch.setattr(
         "app.routers.profiles.inspect_uploaded_photo",

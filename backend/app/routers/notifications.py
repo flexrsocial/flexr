@@ -40,7 +40,7 @@ def pending_notifications(
     db: Session = Depends(get_db),
 ):
     """Noch nicht angezeigte Benachrichtigungen dieses Nutzers."""
-    return notifications.pending_for(db, current_user.id)
+    return notifications.pending_for(db, current_user)
 
 
 @router.post("/delivered")

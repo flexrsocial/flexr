@@ -376,6 +376,13 @@ def add_photo(
     for key in filter(None, (payload.object_key, payload.thumb_object_key)):
         befund = _foto_befund(key)
         if not befund["ok"]:
+            # Abgewiesenes gleich wegräumen - es läge sonst unter einer
+            # öffentlichen Adresse, ohne dass ein Foto dazu gehört.
+            from ..cleanup import delete_storage_objects
+
+            delete_storage_objects(
+                [k for k in (payload.object_key, payload.thumb_object_key) if k]
+            )
             raise HTTPException(
                 400, "Die hochgeladene Datei ist kein unterstütztes Bild oder zu groß.")
         erkannter_typ[key] = befund["detected"]

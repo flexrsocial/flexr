@@ -33,6 +33,13 @@ UNDERAGE_ATTEMPT_WINDOW_HOURS: Final = 24
 #: (Beschwerdefrist nach Art. 20 DSA: sechs Monate).
 REPORT_EVIDENCE_RETENTION_DAYS: Final = 183
 
+#: App-Benachrichtigungen im Abholfach (Titel und Text, abgeholt oder nicht).
+#: Ausgeliefert wird ohnehin nur eine Woche lang (notifications.PENDING_MAX_AGE);
+#: danach dienen sie nur noch als Sperre gegen Doppelte. Verwendet in
+#: cleanup.purge_old_push_notifications(). Eingeführt am 14.10.2026 - vorher
+#: blieben sie bis zur Kontolöschung liegen.
+PUSH_NOTIFICATION_RETENTION_DAYS: Final = 30
+
 #: Gültigkeit des E-Mail-Bestätigungslinks.
 EMAIL_TOKEN_TTL_HOURS: Final = 24
 

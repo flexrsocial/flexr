@@ -13,7 +13,7 @@ iOS die Schalterlogik doppelt nachbauen und ein abgeschalteter Kanal wäre erst
 nach dem nächsten App-Update wirksam.
 """
 
-from datetime import datetime
+from datetime import datetime, timedelta
 from hashlib import sha256
 
 from sqlalchemy.exc import IntegrityError
@@ -207,17 +207,38 @@ def notify_pending_likes(db: Session, user: User, count: int, period_key: str) -
     )
 
 
-def pending_for(db: Session, user_id: str, limit: int = 20) -> list[PushNotification]:
-    return (
+# Älter wird eine App-Benachrichtigung nicht ausgeliefert. Abgeholt wird
+# sie im Hintergrund alle 15 Minuten bis wenige Stunden; was eine Woche liegt,
+# ist kein Anlass mehr, sondern Altlast.
+PENDING_MAX_AGE = timedelta(days=7)
+
+
+def pending_for(db: Session, user: User, limit: int = 20) -> list[PushNotification]:
+    """Was die App jetzt noch anzeigen soll - die jüngsten, aufsteigend.
+
+    Nur, was seit dem letzten Besuch entstanden ist: Wer seither in FLEXR war
+    (``last_active_at``, Hintergrundabrufe zählen nicht), hat Match, Deck und
+    Likes gesehen. Bis zum 14.10.2026 kamen die ältesten 20 ohne jede
+    Altersgrenze - wer nur die Web-App nutzte und dann die Android-App
+    installierte oder die Mitteilungs-Berechtigung nachträglich erteilte,
+    bekam einen Schwall wochenalter Meldungen, darunter "Du warst 12 Tage
+    nicht in FLEXR" mitten in der Nutzung.
+    """
+    seit = utcnow() - PENDING_MAX_AGE
+    if user.last_active_at is not None and user.last_active_at > seit:
+        seit = user.last_active_at
+    juengste = (
         db.query(PushNotification)
         .filter(
-            PushNotification.user_id == user_id,
+            PushNotification.user_id == user.id,
             PushNotification.delivered_at.is_(None),
+            PushNotification.created_at > seit,
         )
-        .order_by(PushNotification.created_at)
+        .order_by(PushNotification.created_at.desc())
         .limit(limit)
         .all()
     )
+    return list(reversed(juengste))
 
 
 def mark_delivered(db: Session, user_id: str, ids: list[str]) -> int:

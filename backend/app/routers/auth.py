@@ -235,7 +235,14 @@ def register(
 
     existing = db.query(User).filter(func.lower(User.email) == payload.email).first()
     if existing:
-        raise HTTPException(status.HTTP_409_CONFLICT, "E-Mail bereits registriert.")
+        # Mit dem Weg hinaus: Am 02.10.2026 tippte jemand binnen einer Minute
+        # 15-mal auf "Registrieren", bis die Drosselung griff - "E-Mail
+        # bereits registriert." sagte nicht, was stattdessen zu tun ist.
+        raise HTTPException(
+            status.HTTP_409_CONFLICT,
+            "Mit dieser E-Mail-Adresse gibt es schon ein Konto. Melde dich an – "
+            "falls du das Passwort nicht mehr weißt, über „Passwort vergessen?“.",
+        )
 
     # Kein eigenes "Interessiert an"-Feld mehr - die Plattform matcht aktuell
     # ausschließlich gegengeschlechtlich (Produktentscheidung).

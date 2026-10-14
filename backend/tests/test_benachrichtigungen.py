@@ -340,6 +340,31 @@ def test_zustellfach_liefert_und_quittiert(client, monkeypatch):
     assert client.get("/api/notifications/pending", headers=headers_a).json() == []
 
 
+def test_zustellfach_ohne_altlasten(client):
+    """Bis 14.10.2026 kamen die ältesten 20 ohne Altersgrenze - wer die App
+    nachträglich installierte, bekam wochenalte Meldungen."""
+    from app.timeutil import utcnow
+
+    headers = register_user(client, "z.alt@example.com", name="Alt")
+    user_id = _user_id(client, headers)
+    jetzt = utcnow()
+    _set_last_active(user_id, jetzt - timedelta(hours=2))
+    db = TestingSessionLocal()
+    try:
+        for titel, alter in (("zu alt", timedelta(days=8)),
+                             ("vor dem letzten Besuch", timedelta(hours=3)),
+                             ("neu", timedelta(hours=1))):
+            db.add(PushNotification(user_id=user_id, topic="new_match", title=titel,
+                                    body="x", dedupe_key=titel, created_at=jetzt - alter))
+        db.commit()
+    finally:
+        db.close()
+
+    offen = client.get("/api/notifications/pending",
+                       headers={**headers, "X-Flexr-Background": "1"}).json()
+    assert [n["title"] for n in offen] == ["neu"]
+
+
 # --- Offene Likes ohne Match -----------------------------------------------
 
 def test_offener_like_wird_woechentlich_gemeldet(client, monkeypatch):

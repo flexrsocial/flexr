@@ -39,6 +39,8 @@ _TEXTE: dict[str, str] = {
         "This account has been deleted. You can still reactivate it until {datum}.",
     "Dieses Konto ist nicht gelöscht.": "This account is not deleted.",
     "E-Mail bereits registriert.": "This email address is already registered.",
+    "Mit dieser E-Mail-Adresse gibt es schon ein Konto. Melde dich an – falls du das Passwort nicht mehr weißt, über „Passwort vergessen?“.":
+        "There is already an account with this email address. Please log in – if you no longer know the password, use “Forgot password?”.",
     "Diese E-Mail-Adresse ist bereits registriert.": "This email address is already registered.",
     "Das ist bereits deine E-Mail-Adresse.": "That is already your email address.",
     "Wegwerf-E-Mail-Adressen sind nicht erlaubt.": "Disposable email addresses are not allowed.",

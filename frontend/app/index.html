@@ -4892,6 +4892,11 @@
         errEl.textContent = err.detail.message;
         return;
       }
+      // Adresse schon vergeben: am Feld zeigen und dorthin scrollen.
+      if(err.status === 409){
+        feldFehler('f-email', err.message);
+        return;
+      }
       errEl.textContent = err.message || t('err.failed');
     }finally{
       btn.disabled = false;
