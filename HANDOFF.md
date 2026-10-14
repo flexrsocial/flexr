@@ -32,6 +32,64 @@ erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 
 ## Wo das Projekt gerade steht
 
+> **Sitzung 14.10.2026 (8): Bugfix-Runde 4 – verwaiste Profilbilder, alte
+> App-Benachrichtigungen.** Wunsch des Nutzers: noch eine Bugfixing-Runde.
+> Diesmal Betrieb (Timer, Zertifikate, Backups), Löschfristen gegen
+> Datenschutzerklärung, Storage, alle Mails, Fehlerantworten der Produktion.
+>
+> Deployt (`965893c`, gepusht, VPS `git pull --ff-only`, `sudo systemctl
+> restart flexr-api`, keine Migration). `/app/` md5-gleich, Health ok.
+> Android unverändert (2.7.25 bleibt aktuell).
+>
+> **Behoben:**
+> - **Profilbilder gelöschter Konten blieben öffentlich abrufbar.** Die
+>   Löschung räumte nur Bilder ab, die als Foto gespeichert waren; was
+>   hochgeladen, aber nie gespeichert wurde, blieb liegen. Produktion: zehn
+>   Bilder (Foto + Vorschau) von fünf nicht mehr existierenden Konten, alle vom
+>   22.08.2026. Jetzt löscht die Kontolöschung den ganzen Ordner
+>   `users/<id>/` (`cleanup.storage_keys_for_user`), der stündliche Lauf räumt
+>   Verwaistes ab (`purge_orphan_photo_objects`: Konto weg sofort, sonst nach
+>   7 Tagen, `/verify/` ausgenommen, Notbremse bei mehr als 50 je Lauf), und
+>   abgewiesene Uploads werden sofort gelöscht. Trockenlauf auf dem VPS traf
+>   genau die zehn; der Timer-Lauf um 16:02 hat sie gelöscht (dazu 21
+>   App-Benachrichtigungen über 30 Tage). Danach: 295 Objekte, alle 295
+>   referenziert und vorhanden, nichts verwaist.
+> - **Abholfach der Apps lieferte wochenalte Meldungen.** `pending_for` gab die
+>   ältesten 20 unabgeholten ohne Altersgrenze zurück; 365 von 377 lagen
+>   unabgeholt (Web-Nutzer holen nie ab). Wer die Android-App nachträglich
+>   installierte oder die Berechtigung später erteilte, bekam „Neues Match“ von
+>   vor Wochen oder „Du warst 12 Tage nicht in FLEXR“ mitten in der Nutzung.
+>   Jetzt nur, was seit dem letzten Besuch (`last_active_at`) entstand,
+>   höchstens 7 Tage alt, die jüngsten 20; beide Apps schicken beim Abruf
+>   `X-Flexr-Background`, der Besuch verschiebt sich dadurch nicht. Einträge
+>   werden nach 30 Tagen gelöscht (`retention.PUSH_NOTIFICATION_RETENTION_DAYS`,
+>   `cleanup.purge_old_push_notifications`). Wirkt ohne App-Update.
+> - **Registrierung mit vergebener Adresse:** Am 02.10. tippte jemand binnen
+>   einer Minute 15-mal auf „Registrieren“, bis die Drosselung griff. Die
+>   Meldung sagt jetzt, wie es weitergeht (Anmelden oder „Passwort
+>   vergessen?“), DE/EN; die Web-App markiert das E-Mail-Feld und scrollt hin.
+>
+> **Geprüft ohne Befund:** alle 30 Mailarten in DE und EN gerendert (keine
+> offenen Platzhalter, kein „None“, HTML wohlgeformt), Upload-Prüfung
+> (Magic Bytes, Größe, Bucket-Trennung), Token und Passwortwechsel,
+> Verifizierungsstart, Backups und Backup-Prüfung, Mail- und Aufräum-Timer.
+>
+> **Tests:** 627 grün (+6).
+>
+> **Für den Nutzer (nicht FLEXR):** `certbot.service` steht auf „failed“, weil
+> `farmonaut.online` nicht mehr auf den Server zeigt und sich nicht verlängern
+> lässt. Das Zertifikat von flexr.social ist davon nicht betroffen (gültig bis
+> 12.12.2026, Verlängerung ab Mitte November). Bewusst nicht angefasst.
+>
+> **Bewusst offen:** Abgelehnte Fotos zählen beim Start der Verifizierung mit
+> (Server, Web-Gate und Android-Gate gleich). Nur den Server zu ändern, schickte
+> Nutzer der aktuellen Android-Version in eine Sackgasse; die Prüfung sieht die
+> abgelehnten Fotos ohnehin. Testkäufe (Lizenztester, Apple-Sandbox) schalten
+> in der Produktion weiterhin kein Premium frei (Entscheidung vom 20.09.).
+> Hinweis dazu: Apples App Review kauft in der Sandbox. Soll ein Abo-Kauf
+> einmal durch die Prüfung, braucht es dafür eine Ausnahme, etwa nur für das
+> Prüfkonto.
+
 > **Sitzung 14.10.2026 (7): Bugfix-Runde 3 – Erinnerungsmails, Abo bei
 > Kontolöschung, Play-Verlängerung. Android 2.7.25 gebaut.** Wunsch des
 > Nutzers: noch eine Bugfixing-Runde. Diesmal Hintergrundjobs, Zahlungswege
