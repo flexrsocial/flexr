@@ -32,6 +32,69 @@ erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 
 ## Wo das Projekt gerade steht
 
+> **Sitzung 14.10.2026 (7): Bugfix-Runde 3 – Erinnerungsmails, Abo bei
+> Kontolöschung, Play-Verlängerung. Android 2.7.25 gebaut.** Wunsch des
+> Nutzers: noch eine Bugfixing-Runde. Diesmal Hintergrundjobs, Zahlungswege
+> (Stripe, Play, App Store), Deck/Chat/Matches und der Löschablauf, dazu die
+> Produktionsdaten der Benachrichtigungen.
+>
+> Deployt (`26c0c14`, gepusht, VPS `git pull --ff-only`, `sudo systemctl
+> restart flexr-api`, keine Migration). Live `/app/`, `i18n-app.js?v=32`,
+> `sw.js` (v42), `faq.html`, `en/faq.html` md5-gleich, Health ok, Journal
+> ohne Fehler. Android `9db3fb0`.
+>
+> **Behoben:**
+> - **Inaktivitäts-Erinnerung jeden Tag statt einmal.** Der Sperrschlüssel war
+>   der Kalendertag – wer wegblieb, bekam ab Tag 7 jeden Morgen Mail und Push
+>   („Lange nicht gesehen“). Produktion: täglich 11–14 Konten, eines 30× in
+>   30 Tagen. Jetzt einmal je Abwesenheit (Schlüssel = `last_active_at`),
+>   nachgeholt bis Tag 14 (`email_jobs.INACTIVITY_LAST_DAY`).
+> - **„Neue Profile im Umkreis“ zählte liegengelassene Profile täglich als
+>   neu** (ein Konto 26 Tage am Stück „3 neue Profile“). Jetzt nur Profile, die
+>   seit dem letzten Besuch freigeschaltet wurden (`activated_at`, Altkonten
+>   `created_at`), ebenfalls einmal je Abwesenheit. Trockenlauf gegen die
+>   Produktion für den 15.10. 09:00: 2 Erinnerungen (beide Konten zwischen
+>   Tag 7 und 14, je eine letzte nach neuer Regel), 0 „Neue Profile“ – statt
+>   bisher rund 15 Nachrichten täglich.
+> - **Kontolöschung beendete ein Stripe-Abo nicht** – es wurde weiter
+>   abgebucht, nach der Karenz ohne Konto, über das man kündigen kann.
+>   Selbstlöschung setzt jetzt `cancel_at_period_end` (bei Stripe-Fehler wird
+>   trotzdem gelöscht, Telegram ans Admin-Team), die endgültige Löschung
+>   versucht es ein zweites Mal, die Admin-Löschung bricht bei Stripe-Fehler
+>   mit 502 ab (`cleanup.stripe_abo_auslaufen_lassen`). Store-Abos kann der
+>   Server nicht kündigen: Der Löschdialog (Web, Android 2.7.25) sagt bei
+>   laufendem Premium, was passiert; FAQ „Wie lösche ich mein Konto?“ DE/EN
+>   ergänzt. Produktion: 0 Abos, niemand betroffen.
+> - **Play-Abo nach dem ersten Monat verloren:** Als Kennung stand Googles
+>   `latestOrderId`, die je Verlängerung eine Laufnummer bekommt („..0“).
+>   Die Verlängerungsnachricht fand die Zeile nicht mehr; Premium lief aus,
+>   bis die App den Kauf beim nächsten Start neu einreichte. Jetzt die
+>   Bestellnummer ohne Laufnummer (`store_billing._google_kauf_kennung`).
+>   Produktion: 0 Store-Abos, keine Migration. Play-API ist eingerichtet
+>   (Zugriffstoken live geholt).
+> - **Telegram-Hinweise blockierten die Anfrage** bis zu 10 s (Foto-Upload,
+>   Meldung, DSA-Meldung, Ausweis einreichen, Gym-Vorschlag, markierte
+>   Nachricht). Jetzt BackgroundTask wie beim Rücktritt.
+> - Englische Fehlermeldungen schreiben das Datum englisch („5 January 2027“
+>   statt „05.01.2027“): Gym-Sperre und Reaktivierungsfrist
+>   (`api_i18n._englisches_datum`). Damit ist der offene Punkt aus (5) erledigt.
+>
+> **Geprüft ohne Befund:** Stripe-Webhooks (Reihenfolge, fremde Abos),
+> Apple-Belegprüfung, Premium-Kontingente, Deck/Liker-Vorrang, Swipe-Wettläufe,
+> Rewind, Matches/Chat (Leeren, Löschen, Auflösen), Aufräumjobs, Rücktritt.
+> Web-Löschdialog im Browser: Stripe (DE), Store (EN), ohne Premium kein
+> Hinweis.
+>
+> **Tests:** Backend 621 grün (+7). Android 59 Unit-Tests grün, Lint 0
+> Fehler. **Android 2.7.25 / 137** in `release-2.7.25/` (dem Nutzer
+> geschickt): AAB `4f5127a8…6688`, APK `b278a49d…0875`, Upload-Key geprüft.
+>
+> **Hinweise:** „Neue Profile“ und „Lange nicht gesehen“ kommen jetzt seltener
+> – gewollt. Wer ein Match auflöst, sieht die Person danach zuerst im Deck,
+> weil ihr Like stehen bleibt (bewusst so gebaut, kein Fehler). Ein Rücktritt
+> mit längst beendetem Stripe-Abo schreibt eine harmlose Stripe-Ausnahme ins
+> Log.
+
 > **Sitzung 14.10.2026 (5): Bugfix-Runde 2 – Serverfehler, Admin, Texte.**
 > Wunsch des Nutzers: noch eine Bugfixing-Runde. Diesmal die Abläufe, die
 > Runde (4) nicht abdeckte, dazu das Produktions-Journal der letzten 30 Tage.
