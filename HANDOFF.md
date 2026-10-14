@@ -32,6 +32,74 @@ erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 
 ## Wo das Projekt gerade steht
 
+> **Sitzung 14.10.2026 (5): Bugfix-Runde 2 – Serverfehler, Admin, Texte.**
+> Wunsch des Nutzers: noch eine Bugfixing-Runde. Diesmal die Abläufe, die
+> Runde (4) nicht abdeckte, dazu das Produktions-Journal der letzten 30 Tage.
+>
+> Deployt (`eb83c5d`, gepusht, VPS `git pull --ff-only`, `sudo systemctl
+> restart flexr-api`, keine Migration). Live: `admin.html`, `admin.js`,
+> `/app/`, `i18n-app.js?v=31`, `sw.js` md5-gleich, Health ok, Journal ohne
+> Fehler. Der neue `ON CONFLICT`-Pfad lief gegen die Produktions-DB
+> (PostgreSQL) in einer zurückgerollten Transaktion fehlerfrei.
+>
+> **Geprüft (lokal, Browser, Handy- und Desktopbreite, DE/EN):**
+> Sprachwechsel, Einwilligung widerrufen/erteilen, Benachrichtigungen,
+> Blockieren/Aufheben, Melden, Passwort und E-Mail ändern, Konto löschen
+> und per Login reaktivieren, Foto hochladen/löschen, Gym-Wechsel mit Sperre,
+> Premium-Seite, öffentliches Meldeformular und Rücktrittsformular (über einen
+> lokalen Proxy für `/api`, Skript im Scratchpad). Admin: förmliche Meldungen
+> entscheiden, auffällige Nachricht, Kontosperre samt Login-Ansicht des
+> Gesperrten, Entsperren, „Neue Aufnahme anfordern“ und die Nachbesserung
+> beim Nutzer.
+>
+> **Behoben:**
+> - **HTTP 500 beim ersten Aufruf des Tages** (Produktion: 10× in 14 Tagen).
+>   Die Web-App holt `/me` und `/billing/status` parallel, beide trugen den
+>   Tageszugriff ein, die zweite scheiterte an `uq_daily_access`. Jetzt
+>   `INSERT … ON CONFLICT DO NOTHING` (`security._record_daily_access`).
+>   Lokal mit 24 parallelen Erstaufrufen geprüft: alle 200, eine Zeile.
+> - **HTTP 500 beim Push-Token** (Produktion: 8× in 30 Tagen, `uq_push_token`,
+>   Android beim Start). Parallele Anmeldung desselben Tokens schreibt jetzt
+>   die vorhandene Zeile fort (`push.register`). `record_device` fängt den
+>   gleichen Wettlauf ab. Danach war das Journal frei von anderen Fehlern.
+> - **Adminportal kannte nur Stripe-Abos:** „Aktive Abos“, „Ohne Premium“, der
+>   Premium-Filter und der Status in Liste/Detail zählen jetzt auch App
+>   Store/Play Store (`store_premium_until`), Detail zeigt „Store-Abo läuft
+>   bis …“. Wichtig ab dem Android-Start. „Neu heute“ zählt nach Wiener Tag.
+>   Nach „Neue Aufnahme anfordern“ ohne Selfie-Wiederholung sagte der Hinweis
+>   fälschlich „Selfies gelöscht“.
+> - **Rücktrittserklärungen** landeten nur im Server-Log. Jetzt geht ein
+>   Telegram-Hinweis ans Admin-Team (wie bei Meldungen/Fotos), mit Einordnung
+>   Stripe/Store/ohne Zuordnung, wegen der 14-Tage-Erstattungsfrist (§ 14
+>   FAGG). Eine eigene Admin-Ansicht dafür gibt es weiterhin nicht.
+> - **E-Mail-Änderung** eines freigeschalteten Kontos schickte die
+>   Registrierungsmail („Profil angelegt … danach Alters- und
+>   Identitätsprüfung“). Jetzt eigene kurze Mail „Bestätige deine neue
+>   E-Mail-Adresse“, auch bei „Mail erneut senden“.
+> - **Erfolgsmeldungen nur deutsch:** Einwilligung widerrufen/erteilen,
+>   Meldebestätigung (Android zeigt den Servertext) und Altersprüfung folgen
+>   jetzt `Accept-Language`.
+> - Gym-Sperrdatum und Reaktivierungsfrist als Wiener Datum (vorher UTC, nachts
+>   einen Tag daneben).
+> - **Web-App:** Ungelesen-Zähler am Chat-Reiter sinkt sofort beim Lesen
+>   (blieb bis zum Verlassen des Chats stehen). Dialogknöpfe brechen am Handy
+>   um – „Abbrechen“ ragte im Reaktivierungsdialog aus dem Fenster; am Desktop
+>   weiter gleich breit nebeneinander. Reaktivierungsdialog ohne doppelten
+>   ersten Satz. Statuspille vor der Freischaltung „Nicht freigeschaltet“,
+>   „In Prüfung“ nur nach dem Einreichen (wie Android). `renderAccount` ohne
+>   Profil bricht nicht mehr ab. `i18n-app.js?v=31`, SW `v41`,
+>   `admin.js?v=4`.
+>
+> **Tests:** 611 grün (+7: Store-Abos und Wiener Tag im Admin, doppelter
+> Tageszugriff, paralleles Push-Token, Erfolgsmeldungen EN, Mail bei
+> E-Mail-Änderung vor/nach Freischaltung, Telegram bei Rücktritt).
+> Android unverändert (2.7.24 bleibt aktuell), profitiert aber von den
+> Backend-Korrekturen ohne neuen Build.
+>
+> **Bewusst offen:** Die englische Gym-Sperrmeldung nennt das Datum im
+> deutschen Format (selten sichtbar, die Web-App sperrt das Feld vorher
+> selbst). Die Entscheidungsmail an förmliche Melder grüßt ohne Namen.
+
 > **Sitzung 13./14.10.2026 (4): Prüfrunde Website, Web-App, Adminportal,
 > Android. Android 2.7.24 gebaut.** Wunsch des Nutzers: alles noch einmal
 > testen, prüfen und Fehler in Funktionen und Texten beheben.
