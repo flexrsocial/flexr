@@ -491,6 +491,8 @@
     // ---- Konto löschen
     'del.title': 'Konto löschen',
     'del.text': 'Dein Konto wird sofort deaktiviert und ist für andere nicht mehr sichtbar. Konto- und Profildaten werden nach Ablauf der 30-tägigen Karenzzeit gelöscht. Du bekommst dazu eine Bestätigungsmail. Innerhalb der 30 Tage kannst du dich mit deinem bisherigen Passwort erneut einloggen, um die Löschung rückgängig zu machen. Gesetzliche Aufbewahrungspflichten, erforderliche Nachweise, Legal Holds und vorübergehend fortbestehende Sicherungskopien bleiben davon unberührt. Einzelheiten findest du in der Datenschutzerklärung.',
+    'del.subStripe': 'Dein FLEXR Premium endet damit zum Ende des bezahlten Zeitraums, danach wird nichts mehr abgebucht.',
+    'del.subStore': 'Dein FLEXR Premium läuft über Google Play bzw. den App Store. Die Löschung beendet es nicht – kündige es bitte dort, sonst wird weiter abgebucht.',
     'del.passwordLabel': 'Zur Bestätigung dein Passwort',
     'del.confirm': 'Endgültig löschen',
     'del.errPassword': 'Bitte gib zur Bestätigung dein Passwort ein.',
@@ -1099,6 +1101,8 @@
 
     'del.title': 'Delete account',
     'del.text': 'Your account is deactivated immediately and is no longer visible to others. Account and profile data are deleted after the 30-day grace period. You will receive a confirmation email. Within those 30 days you can log in again with your existing password to undo the deletion. Statutory retention obligations, required records, legal holds and temporarily remaining backups are unaffected. Details are in the privacy policy.',
+    'del.subStripe': 'Your FLEXR Premium then ends at the end of the period you have paid for; nothing further will be charged.',
+    'del.subStore': 'Your FLEXR Premium is billed through Google Play or the App Store. Deleting your account does not end it – please cancel it there, otherwise you will keep being charged.',
     'del.passwordLabel': 'Your password to confirm',
     'del.confirm': 'Delete permanently',
     'del.errPassword': 'Please enter your password to confirm.',

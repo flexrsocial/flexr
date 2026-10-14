@@ -253,10 +253,21 @@ def delete_my_account(
     endgültig gelöscht (siehe Datenschutzerklärung)."""
     from ..security import verify_password
 
-    from ..cleanup import purge_verification_uploads_for_user
+    from ..cleanup import purge_verification_uploads_for_user, stripe_abo_auslaufen_lassen
 
     if not verify_password(payload.password, current_user.password_hash):
         raise HTTPException(400, "Falsches Passwort.")
+
+    # Ein Premium-Abo ueber Stripe laeuft zum Ende der bezahlten Periode aus.
+    # Schlaegt das fehl, wird trotzdem geloescht (die Loeschung ist das
+    # Recht des Nutzers) und das Admin-Team kuendigt von Hand.
+    if not stripe_abo_auslaufen_lassen(current_user):
+        background_tasks.add_task(
+            telegram.notify_admin_task,
+            f"⚠️ Konto {current_user.id} gelöscht, aber das Stripe-Abo "
+            f"{current_user.stripe_subscription_id} ließ sich nicht beenden - "
+            "bitte in Stripe zum Periodenende kündigen.",
+        )
 
     # Ausweisaufnahmen und Verifizierungs-Selfies sofort löschen - sie sollen
     # die 30-tägige Karenzzeit nicht überdauern.
@@ -338,6 +349,7 @@ def _foto_befund(object_key: str) -> dict:
 @router.post("/me/photos", response_model=MyProfileOut)
 def add_photo(
     payload: AddPhotoRequest,
+    background_tasks: BackgroundTasks,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
@@ -392,7 +404,8 @@ def add_photo(
     db.add(photo)
     db.commit()
     db.refresh(current_user)
-    telegram.notify_admin_task(
+    background_tasks.add_task(
+        telegram.notify_admin_task,
         f"🆕 Neues Foto zur Prüfung im FLEXR-Admin-Dashboard: {current_user.name}"
     )
     return current_user

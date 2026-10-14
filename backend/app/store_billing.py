@@ -346,6 +346,20 @@ _GOOGLE_AKTIV = {
 }
 
 
+def _google_kauf_kennung(daten: dict, posten: dict, purchase_token: str) -> str:
+    """Kennung eines Play-Abos, die ueber alle Verlaengerungen gleich bleibt.
+
+    Google haengt jeder Verlaengerung eine Laufnummer an die Bestellnummer
+    ("GPA.1234-5678-9012-34567..0", "..1", ...). Bis zum 14.10.2026 stand die
+    jeweils letzte Bestellnummer als Kennung in der Tabelle - die
+    Verlaengerungsnachricht fand die Zeile dann nicht mehr, und Premium lief
+    nach dem ersten Monat aus, bis die App den Kauf beim naechsten Start neu
+    einreichte. Ohne die Laufnummer ist es die Bestellnummer des Abschlusses.
+    """
+    bestellung = daten.get("latestOrderId") or posten.get("latestSuccessfulOrderId") or ""
+    return re.sub(r"\.\.\d+$", "", bestellung) or purchase_token
+
+
 def google_subscription_from_token(purchase_token: str) -> dict[str, Any]:
     """Einen Play-Kauf bei Google nachschlagen."""
     if not google_configured():
@@ -391,7 +405,7 @@ def google_subscription_from_token(purchase_token: str) -> dict[str, Any]:
 
     return {
         "provider": StoreProvider.google,
-        "external_id": daten.get("latestOrderId") or purchase_token,
+        "external_id": _google_kauf_kennung(daten, posten, purchase_token),
         "product_id": produkt,
         "expires_at": ablauf if zustand in _GOOGLE_AKTIV else None,
         "status": zustand.replace("SUBSCRIPTION_STATE_", "").lower() or "unknown",

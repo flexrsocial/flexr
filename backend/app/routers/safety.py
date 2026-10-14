@@ -1,7 +1,7 @@
 import json
 from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Request
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, Request
 from sqlalchemy.orm import Session
 
 from ..age import age_on
@@ -78,6 +78,7 @@ def _report_ack(report: Report, lang: str = "de") -> ReportAck:
 def create_report(
     request: Request,
     payload: ReportRequest,
+    background_tasks: BackgroundTasks,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
@@ -123,7 +124,8 @@ def create_report(
     db.commit()
     db.refresh(report)
 
-    telegram.notify_admin_task(
+    background_tasks.add_task(
+        telegram.notify_admin_task,
         f"🆕 Neue Meldung ({report.reference}) im FLEXR-Admin-Dashboard: {payload.reason}"
     )
     return _report_ack(report, api_i18n.request_language(request))

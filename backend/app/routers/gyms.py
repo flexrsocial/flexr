@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Query, Request
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, Request
 from sqlalchemy import case, func, or_
 from sqlalchemy.orm import Session
 
@@ -90,6 +90,7 @@ def list_gyms(
 def suggest_gym(
     request: Request,
     payload: GymSuggestRequest,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
 ):
     """Nutzer-Vorschlag für ein fehlendes Gym (öffentlich, da bereits bei der
@@ -126,7 +127,7 @@ def suggest_gym(
     db.add(gym)
     db.commit()
     db.refresh(gym)
-    telegram.notify_admin_task(f"🆕 Neuer Gym-Vorschlag im FLEXR-Admin-Dashboard: {gym.name}")
+    background_tasks.add_task(telegram.notify_admin_task, f"🆕 Neuer Gym-Vorschlag im FLEXR-Admin-Dashboard: {gym.name}")
     return GymOut(
         id=gym.id, name=gym.name, street=gym.street, house_number=gym.house_number,
         plz=gym.plz, city=gym.city, label=gym.label,

@@ -1,4 +1,4 @@
-from tests.conftest import create_admin, register_user
+from tests.conftest import TestingSessionLocal, create_admin, register_user
 
 
 def test_admin_login_wrong_password(client):
@@ -175,6 +175,35 @@ def test_admin_delete_user_cascades(client):
 
     detail_resp = client.get(f"/api/admin/users/{user_b['id']}", headers=admin_headers)
     assert detail_resp.status_code == 404
+
+
+def test_admin_loeschung_beendet_stripe_abo_oder_bricht_ab(client, monkeypatch):
+    from app import stripe_client
+    from app.models import User
+
+    admin_headers, _ = create_admin(client, email="admin-abo@example.com")
+    register_user(client, "abo.admin@example.com")
+    db = TestingSessionLocal()
+    try:
+        user = db.query(User).filter(User.email == "abo.admin@example.com").one()
+        user.is_subscribed, user.stripe_subscription_id = True, "sub_admin_1"
+        user_id = user.id
+        db.commit()
+    finally:
+        db.close()
+
+    def kaputt(_):
+        raise RuntimeError("Stripe nicht erreichbar")
+
+    monkeypatch.setattr(stripe_client, "cancel_subscription_at_period_end", kaputt)
+    resp = client.delete(f"/api/admin/users/{user_id}", headers=admin_headers)
+    assert resp.status_code == 502
+    assert client.get(f"/api/admin/users/{user_id}", headers=admin_headers).status_code == 200
+
+    gekuendigt = []
+    monkeypatch.setattr(stripe_client, "cancel_subscription_at_period_end", gekuendigt.append)
+    assert client.delete(f"/api/admin/users/{user_id}", headers=admin_headers).status_code == 200
+    assert gekuendigt == ["sub_admin_1"]
 
 
 def test_photo_starts_pending_and_hidden_from_deck(client):

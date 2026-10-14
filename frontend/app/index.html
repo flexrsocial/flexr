@@ -2184,7 +2184,7 @@
      laufen synchron und damit vor dem DOMContentLoaded, bei dem FlexrI18n die
      data-i18n-Knoten uebersetzt. -->
 <script src="/i18n.js?v=5"></script>
-<script src="/app/i18n-app.js?v=31"></script>
+<script src="/app/i18n-app.js?v=32"></script>
 <a class="skip-link" href="#main-content" data-i18n="common.skipToContent">Zum Inhalt springen</a>
 <div class="app" id="app">
 
@@ -3268,6 +3268,7 @@
           Sicherungskopien bleiben davon unberührt. Einzelheiten findest du
           in der Datenschutzerklärung.
         </p>
+        <p id="deleteSubHint" style="margin-top:10px;font-weight:600;display:none;"></p>
         <label for="deletePassword" style="margin-top:18px;" data-i18n="del.passwordLabel">Zur Bestätigung dein Passwort</label>
         <input type="password" id="deletePassword" placeholder="••••••••" autocomplete="current-password">
         <div class="field-err" id="deleteErr"></div>
@@ -5177,6 +5178,16 @@
   }
 
   function openDeleteModal(){
+    // Laufendes Premium: Ein Stripe-Abo beendet der Server mit der Loeschung,
+    // ein Store-Abo kann er nicht kuendigen - das muss vorher gesagt werden.
+    const aboHinweis = $('deleteSubHint');
+    if(isPremium()){
+      const ueberStripe = !!(membership && membership.has_stripe_subscription);
+      aboHinweis.textContent = t(ueberStripe ? 'del.subStripe' : 'del.subStore');
+      aboHinweis.style.display = '';
+    }else{
+      aboHinweis.style.display = 'none';
+    }
     deleteBackdrop.classList.add('open');
     $('deletePassword').value = '';
     $('deleteErr').textContent = '';

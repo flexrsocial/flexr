@@ -227,3 +227,58 @@ def test_reactivate_fails_after_grace_period(client):
         )
     finally:
         db.close()
+
+
+def _abonnent(client, email):
+    headers = register_user(client, email)
+    db = TestingSessionLocal()
+    try:
+        user = db.query(User).filter(User.email == email).one()
+        user.is_subscribed = True
+        user.stripe_subscription_id = "sub_loesch_123"
+        user.stripe_customer_id = "cus_loesch_123"
+        db.commit()
+    finally:
+        db.close()
+    return headers
+
+
+def test_loeschung_laesst_stripe_abo_auslaufen(client, monkeypatch):
+    """Bis 14.10.2026 lief das Abo nach der Kontoloeschung weiter und wurde
+    abgebucht - nach der Karenzzeit ohne Konto, ueber das man kuendigen kann."""
+    from app import stripe_client
+
+    gekuendigt = []
+    monkeypatch.setattr(stripe_client, "cancel_subscription_at_period_end", gekuendigt.append)
+    headers = _abonnent(client, "del.abo@example.com")
+    resp = client.request("DELETE", "/api/profiles/me", headers=headers, json={"password": "supersecret123"})
+    assert resp.status_code == 200
+    assert gekuendigt == ["sub_loesch_123"]
+
+
+def test_loeschung_klappt_auch_wenn_stripe_streikt(client, monkeypatch):
+    from app import stripe_client, telegram
+
+    def kaputt(_):
+        raise RuntimeError("Stripe nicht erreichbar")
+
+    hinweise = []
+    monkeypatch.setattr(stripe_client, "cancel_subscription_at_period_end", kaputt)
+    monkeypatch.setattr(telegram, "notify_admin_task", hinweise.append)
+    headers = _abonnent(client, "del.abo2@example.com")
+    resp = client.request("DELETE", "/api/profiles/me", headers=headers, json={"password": "supersecret123"})
+    assert resp.status_code == 200
+    assert len(hinweise) == 1 and "sub_loesch_123" in hinweise[0]
+
+    # Endgueltige Loeschung versucht es noch einmal
+    zweiter = []
+    monkeypatch.setattr(stripe_client, "cancel_subscription_at_period_end", zweiter.append)
+    db = TestingSessionLocal()
+    try:
+        user = db.query(User).filter(User.email == "del.abo2@example.com").one()
+        user.deleted_at = utcnow() - timedelta(days=31)
+        db.commit()
+        assert purge_deleted_users(db) == 1
+    finally:
+        db.close()
+    assert zweiter == ["sub_loesch_123"]

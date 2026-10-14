@@ -218,7 +218,8 @@ def send_message(
     db.commit()
     db.refresh(message)
     if message.is_flagged:
-        telegram.notify_admin_task(
+        background_tasks.add_task(
+            telegram.notify_admin_task,
             f"🆕 Nachricht markiert im FLEXR-Admin-Dashboard: Grund {flag_reason}"
         )
 

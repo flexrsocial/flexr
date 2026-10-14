@@ -176,6 +176,47 @@ def test_unter_der_schwelle_keine_nachricht(client, monkeypatch):
     assert _pending(user_id, "queue_waiting") == []
 
 
+def test_neue_profile_nur_wirklich_neue_und_einmal_je_abwesenheit(client, monkeypatch):
+    """Bis 14.10.2026 las ein Konto 26 Tage am Stück "3 neue Profile" - es
+    waren immer dieselben drei, die es liegen ließ."""
+    mails = []
+    monkeypatch.setattr(
+        "app.notifications.mailer.send_queue_waiting",
+        lambda email, name, count, lang="de": mails.append((email, count)) or True,
+    )
+    headers = register_user_with_photo(client, "n.me@example.com", name="Ich", gender="mann")
+    user_id = _user_id(client, headers)
+    andere = [
+        _user_id(client, register_user_with_photo(client, f"n.her{i}@example.com", name=f"P{i}", gender="frau"))
+        for i in range(3)
+    ]
+    db = TestingSessionLocal()
+    try:
+        for u in db.query(User).filter(User.id.in_(andere)):
+            u.created_at = u.activated_at = NOW - timedelta(days=1)
+        db.commit()
+    finally:
+        db.close()
+    _set_last_active(user_id, NOW - timedelta(days=2))
+
+    db = TestingSessionLocal()
+    try:
+        for tag in range(3):
+            run_activity_notifications(db, NOW + timedelta(days=tag))
+    finally:
+        db.close()
+    assert [m for m in mails if m[0] == "n.me@example.com"] == [("n.me@example.com", 3)]
+
+    # Nach dem nächsten Besuch sind dieselben drei nicht mehr neu.
+    _set_last_active(user_id, NOW + timedelta(days=3))
+    db = TestingSessionLocal()
+    try:
+        run_activity_notifications(db, NOW + timedelta(days=4))
+    finally:
+        db.close()
+    assert [m for m in mails if m[0] == "n.me@example.com"] == [("n.me@example.com", 3)]
+
+
 # --- Inaktivitaet ----------------------------------------------------------
 
 def test_erinnerung_nach_sieben_tagen_ohne_nutzung(client, monkeypatch):
@@ -205,6 +246,40 @@ def test_erinnerung_nach_sieben_tagen_ohne_nutzung(client, monkeypatch):
     assert mails == [("i.alt@example.com", 8)]
     assert len(_pending(alt_id, "inactivity")) == 1
     assert _pending(neu_id, "inactivity") == []
+
+
+def test_erinnerung_nur_einmal_je_abwesenheit(client, monkeypatch):
+    """Bis 14.10.2026 kam die Erinnerung ab dem siebten Tag jeden Tag neu."""
+    mails = []
+    monkeypatch.setattr(
+        "app.notifications.mailer.send_inactivity_reminder",
+        lambda email, name, days, lang="de": mails.append((email, days)) or True,
+    )
+    headers = register_user(client, "i.weg@example.com", name="Weg")
+    lange_headers = register_user(client, "i.lange@example.com", name="Lange")
+    weg_id = _user_id(client, headers)
+    lange_id = _user_id(client, lange_headers)
+    _set_last_active(weg_id, NOW - timedelta(days=8))
+    _set_last_active(lange_id, NOW - timedelta(days=40))
+
+    db = TestingSessionLocal()
+    try:
+        for tag in range(5):
+            run_activity_notifications(db, NOW + timedelta(days=tag))
+    finally:
+        db.close()
+    assert mails == [("i.weg@example.com", 8)]
+    assert len(_pending(weg_id, "inactivity")) == 1
+    assert _pending(lange_id, "inactivity") == []
+
+    # Kommt zurück und bleibt wieder weg: neue Abwesenheit, neue Erinnerung.
+    _set_last_active(weg_id, NOW + timedelta(days=5))
+    db = TestingSessionLocal()
+    try:
+        run_activity_notifications(db, NOW + timedelta(days=13))
+    finally:
+        db.close()
+    assert mails == [("i.weg@example.com", 8), ("i.weg@example.com", 8)]
 
 
 def test_hintergrundabruf_zaehlt_nicht_als_nutzung(client):

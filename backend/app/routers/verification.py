@@ -17,7 +17,7 @@ import json
 import logging
 from datetime import datetime
 
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 
 from .. import storage, telegram
@@ -281,6 +281,7 @@ def presign_document(
 def submit_document(
     request: Request,
     payload: VerificationDocumentSubmitRequest,
+    background_tasks: BackgroundTasks,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
@@ -335,7 +336,8 @@ def submit_document(
     active.submitted_at = utcnow()
     active.review_reason = None
     db.commit()
-    telegram.notify_admin_task(
+    background_tasks.add_task(
+        telegram.notify_admin_task,
         f"🆕 Neue Alters-/Identitätsprüfung im FLEXR-Admin-Dashboard: {current_user.name}"
     )
     return _status_out(current_user, active)

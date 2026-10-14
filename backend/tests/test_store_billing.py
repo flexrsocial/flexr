@@ -513,3 +513,33 @@ def test_benachrichtigung_zu_gebundenem_kauf_wirkt_weiter(client, monkeypatch):
         assert zeile is not None and zeile.user_id == user.id
     finally:
         db.close()
+
+
+def _google_abfrage(monkeypatch, bestellnummer):
+    class Antwort:
+        status_code = 200
+
+        def json(self):
+            return {
+                "subscriptionState": "SUBSCRIPTION_STATE_ACTIVE",
+                "latestOrderId": bestellnummer,
+                "lineItems": [{"productId": "flexr_premium_monthly",
+                               "expiryTime": "2026-11-14T10:00:00.123456789Z"}],
+            }
+
+    monkeypatch.setattr(store_billing, "google_configured", lambda: True)
+    monkeypatch.setattr(store_billing, "_google_access_token", lambda: "t")
+    monkeypatch.setattr(settings, "google_subscription_product_id", "flexr_premium_monthly")
+    monkeypatch.setattr(store_billing.requests, "get", lambda *a, **k: Antwort())
+    return store_billing.google_subscription_from_token("token-abcdefghij")
+
+
+def test_play_verlaengerung_behaelt_die_kennung(monkeypatch):
+    """Google zaehlt Verlaengerungen an der Bestellnummer hoch ("..0", "..1").
+    Die Kennung muss gleich bleiben, sonst findet die Verlaengerungsnachricht
+    das Abo nicht mehr (bis 14.10.2026)."""
+    erst = _google_abfrage(monkeypatch, "GPA.3381-2145-6309-72214")
+    zweit = _google_abfrage(monkeypatch, "GPA.3381-2145-6309-72214..0")
+    dritt = _google_abfrage(monkeypatch, "GPA.3381-2145-6309-72214..11")
+    assert erst["external_id"] == zweit["external_id"] == dritt["external_id"] == "GPA.3381-2145-6309-72214"
+    assert erst["expires_at"] == datetime(2026, 11, 14, 10, 0, 0, 123456)

@@ -10,6 +10,10 @@ Server-Log (Entwicklungs-/Testbetrieb), analog zu app/sms.py und app/mailer.py.
 Ein Fehlschlag beim Versand darf nie den auslösenden Vorgang kippen: Wer eine
 Meldung abschickt, hat sie abgeschickt - auch wenn Telegram gerade streikt.
 Deshalb fängt notify_admin_task() alles ab und meldet nur, ob es geklappt hat.
+
+Aufgerufen wird es als BackgroundTask, nicht direkt in der Route: Der Versand
+wartet bis zu 10 Sekunden auf Telegram, und bis zum 14.10.2026 wartete damit
+auch der Nutzer auf seinen Foto-Upload, seine Meldung oder seine Ausweisprüfung.
 """
 
 import json

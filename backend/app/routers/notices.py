@@ -141,7 +141,8 @@ def submit_notice(
     db.commit()
     db.refresh(notice)
 
-    telegram.notify_admin_task(
+    background_tasks.add_task(
+        telegram.notify_admin_task,
         f"🆕 Neue DSA-Meldung ({notice.reference}) im FLEXR-Admin-Dashboard: "
         f"{category_label(payload.category)}"  # Admin-Hinweis bleibt deutsch
     )

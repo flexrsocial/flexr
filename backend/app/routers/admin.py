@@ -710,11 +710,19 @@ def delete_user(
     admin: AdminUser = Depends(get_current_admin),
     db: Session = Depends(get_db),
 ):
-    from ..cleanup import delete_storage_objects, storage_keys_for_user
+    from ..cleanup import delete_storage_objects, storage_keys_for_user, stripe_abo_auslaufen_lassen
 
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(404, "Nutzer nicht gefunden.")
+    # Ein laufendes Stripe-Abo zuerst beenden - nach dem Loeschen gibt es
+    # niemanden mehr, der es kuendigen koennte, und Stripe buchte weiter ab.
+    if not stripe_abo_auslaufen_lassen(user):
+        raise HTTPException(
+            502,
+            "Das Stripe-Abo dieses Kontos ließ sich nicht beenden - das Konto "
+            "wurde nicht gelöscht. Bitte später erneut versuchen.",
+        )
     # Fotos, Verifizierungs-Selfies und Ausweisaufnahmen mitnehmen - sonst
     # bleiben sie als verwaiste Objekte im Storage liegen.
     delete_storage_objects(storage_keys_for_user(db, user))

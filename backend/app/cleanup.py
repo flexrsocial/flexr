@@ -166,6 +166,25 @@ def purge_stale_verification_uploads(db: Session) -> int:
     return len(candidates)
 
 
+def stripe_abo_auslaufen_lassen(user: User) -> bool:
+    """Ein laufendes Stripe-Abo eines geloeschten Kontos zum Periodenende
+    beenden. ``True``, wenn nichts (mehr) abgebucht wird.
+
+    Store-Abos (Google Play, App Store) kann der Server nicht kuendigen - das
+    sagt der Loeschdialog der Clients dazu.
+    """
+    if not (user.is_subscribed and user.stripe_subscription_id):
+        return True
+    from .stripe_client import cancel_subscription_at_period_end
+
+    try:
+        cancel_subscription_at_period_end(user.stripe_subscription_id)
+        return True
+    except Exception:  # noqa: BLE001 - jede Stoerung wird gemeldet, keine kippt die Loeschung
+        logger.exception("Stripe-Abo von Konto %s nicht beendet", user.id)
+        return False
+
+
 def purge_deleted_users(db: Session) -> int:
     """Löscht Konten, deren Karenzzeit abgelaufen ist, endgültig. Gibt die
     Anzahl gelöschter Konten zurück."""
@@ -175,6 +194,9 @@ def purge_deleted_users(db: Session) -> int:
         return 0
 
     for user in expired:
+        # Zweiter Versuch, falls es bei der Loeschung selbst nicht geklappt
+        # hat - danach gibt es kein Konto mehr, dem das Abo zuzuordnen waere.
+        stripe_abo_auslaufen_lassen(user)
         delete_storage_objects(storage_keys_for_user(db, user))
         db.delete(user)  # Kaskaden räumen Fotos, Matches, Nachrichten etc. ab
         logger.info("Konto %s nach Ablauf der Karenzzeit endgültig gelöscht", user.id)

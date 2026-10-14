@@ -185,6 +185,8 @@ _TEXTE: dict[str, str] = {
     "Ungültiger Status-Filter.": "Invalid status filter.",
     "Ein Gym mit diesem Namen und dieser PLZ existiert bereits.": "A gym with this name and postal code already exists.",
     "Sperrdauer muss größer als 0 sein.": "The suspension must be longer than 0.",
+    "Das Stripe-Abo dieses Kontos ließ sich nicht beenden - das Konto wurde nicht gelöscht. Bitte später erneut versuchen.":
+        "This account's Stripe subscription could not be ended - the account was not deleted. Please try again later.",
     # ---- Store-/Stripe-Schnittstellen (technisch, kein Nutzertext im engeren Sinn)
     "Ungültige Webhook-Signatur.": "Invalid webhook signature.",
     "Ungueltige Signatur.": "Invalid signature.",
@@ -217,8 +219,25 @@ def translate(text: str, lang: str) -> str:
     for muster, englisch in _MUSTER:
         treffer = muster.match(text)
         if treffer:
-            return englisch.format(**treffer.groupdict())
+            werte = {k: _englisches_datum(v) for k, v in treffer.groupdict().items()}
+            return englisch.format(**werte)
     return text
+
+
+_MONATE = ("January", "February", "March", "April", "May", "June", "July",
+           "August", "September", "October", "November", "December")
+
+
+def _englisches_datum(wert: str) -> str:
+    """Ein eingesetztes deutsches Datum ("20.10.2026") in der Schreibweise von
+    ``message_texts.format_date`` fuer Englisch ("20 October 2026"). Bis zum
+    14.10.2026 standen Gym-Sperre und Reaktivierungsfrist im englischen Satz
+    im deutschen Format."""
+    treffer = re.fullmatch(r"(\d{2})\.(\d{2})\.(\d{4})", wert)
+    if not treffer or not 1 <= int(treffer.group(2)) <= 12:
+        return wert
+    tag, monat, jahr = treffer.groups()
+    return f"{int(tag)} {_MONATE[int(monat) - 1]} {jahr}"
 
 
 def has_translation(text: str) -> bool:

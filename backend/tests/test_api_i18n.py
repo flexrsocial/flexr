@@ -50,6 +50,17 @@ def test_muster_uebernimmt_platzhalter():
     assert api_i18n.translate("Ganz neuer Text.", "en") == "Ganz neuer Text."
 
 
+def test_datum_im_englischen_satz_englisch_geschrieben():
+    gym = ("Das Gym kann nur alle drei Monate geändert werden (Schutz vor Umgehung "
+           "des FLEXR-Premium-Suchumkreises) - nächste Änderung ab 05.01.2027 möglich.")
+    assert api_i18n.translate(gym, "en").endswith("next change possible from 5 January 2027.")
+    assert "05.01.2027" in api_i18n.translate(gym, "de")
+    konto = "Dieses Konto wurde gelöscht. Bis zum 20.10.2026 kannst du es noch reaktivieren."
+    assert api_i18n.translate(konto, "en").endswith("reactivate it until 20 October 2026.")
+    # Zahlen, die kein Datum sind, bleiben stehen
+    assert api_i18n.translate("Maximal 6 Fotos erlaubt.", "en") == "A maximum of 6 photos is allowed."
+
+
 def test_login_fehler_englisch_mit_accept_language(client):
     register_user(client, "sprache@example.com")
     body = {"email": "sprache@example.com", "password": "falsch123"}

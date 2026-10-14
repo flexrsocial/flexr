@@ -47,6 +47,17 @@ def construct_webhook_event(payload: bytes, sig_header: str):
     return stripe.Webhook.construct_event(payload, sig_header, settings.stripe_webhook_secret)
 
 
+def cancel_subscription_at_period_end(subscription_id: str) -> None:
+    """Keine Verlaengerung mehr, der bezahlte Zeitraum laeuft aus.
+
+    Fuer die Selbstloeschung des Kontos (routers/profiles.py): Bis zum
+    14.10.2026 lief ein Abo danach einfach weiter und wurde monatlich
+    abgebucht - und nach der Karenzzeit gab es kein Konto mehr, ueber das
+    sich noch haette kuendigen lassen.
+    """
+    stripe.Subscription.modify(subscription_id, cancel_at_period_end=True)
+
+
 def cancel_subscription_immediately(subscription_id: str) -> None:
     """Beendet ein Abo sofort statt zum Periodenende.
 
