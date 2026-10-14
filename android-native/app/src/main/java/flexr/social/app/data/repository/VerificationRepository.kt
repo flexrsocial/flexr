@@ -9,6 +9,8 @@ import flexr.social.app.data.remote.dto.VerificationDocumentSubmitRequestDto
 import flexr.social.app.data.remote.dto.VerificationSelfieDto
 import flexr.social.app.data.remote.dto.VerificationSubmitRequestDto
 import flexr.social.app.domain.model.VerificationState
+import flexr.social.app.domain.model.VerificationStatus
+import kotlinx.coroutines.CancellationException
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
 import javax.inject.Inject
@@ -86,10 +88,10 @@ class VerificationRepository @Inject constructor(
         documentType: String,
         front: ByteArray,
         back: ByteArray? = null,
-    ): VerificationState {
+    ): VerificationState = try {
         val frontKey = upload(front)
         val backKey = back?.let { upload(it) }
-        return apiCall {
+        apiCall {
             api.submitDocument(
                 VerificationDocumentSubmitRequestDto(
                     documentType = documentType,
@@ -98,6 +100,23 @@ class VerificationRepository @Inject constructor(
                 ),
             )
         }.toDomain()
+    } catch (abbruch: CancellationException) {
+        throw abbruch
+    } catch (fehler: Exception) {
+        // Kam nur die Antwort nicht an (Funkloch, Zeitüberschreitung am
+        // Proxy), kann der Ausweis trotzdem eingereicht sein. Dann scheitert
+        // jeder weitere Versuch schon beim Presign, weil der Vorgang längst in
+        // der Prüfung liegt - so am 13.10.2026 in der Web-App. Erst nachsehen,
+        // dann den Fehler weitergeben.
+        val stand = try {
+            status()
+        } catch (abbruch: CancellationException) {
+            throw abbruch
+        } catch (_: Exception) {
+            null
+        }
+        if (stand == null || stand.status != VerificationStatus.SUBMITTED) throw fehler
+        stand
     }
 
     /** Eingereichte Aufnahmen zurückziehen, solange noch niemand geprüft hat. */

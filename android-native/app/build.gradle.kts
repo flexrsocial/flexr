@@ -312,8 +312,11 @@ android {
         // 138/2.7.26 am 14.10.2026: Pruefbildschirm zaehlt abgelehnte Fotos
         // nicht mehr zur Pflichtzahl (der Server verlangt seither drei
         // gueltige) und sagt, dass ein Foto abgelehnt wurde.
-        versionCode = 138
-        versionName = "2.7.26"
+        // 139/2.7.27 am 14.10.2026: Ging beim Einreichen des Ausweises nur
+        // die Antwort verloren, fragt die App den Stand nach, statt einen
+        // Fehler zu zeigen, obwohl der Ausweis schon in der Pruefung liegt.
+        versionCode = 139
+        versionName = "2.7.27"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         // Nur die Sprachen ausliefern, die es wirklich gibt: Deutsch als

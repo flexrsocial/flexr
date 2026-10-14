@@ -1,11 +1,38 @@
 # HANDOFF — native Android-App
 
-Stand: **14.10.2026**, Version 2.7.26 / versionCode 138. Der jüngste
+Stand: **14.10.2026**, Version 2.7.27 / versionCode 139. Der jüngste
 Abschnitt steht oben, ältere folgen darunter. Fassungen zwischen dem
 16.09. und dem 04.10. sind nur im Kommentar am `versionCode` in
 `app/build.gradle.kts` und in der Haupt-`HANDOFF.md` beschrieben.
 Für Aufbau, Build-Befehle und die Migrationstabelle siehe [README.md](README.md) —
 hier steht nur, was daraus *nicht* hervorgeht.
+
+---
+
+## Ausweis-Einreichung übersteht eine verlorene Antwort, 14.10.2026 (2.7.27)
+
+**2.7.27 statt 2.7.26 hochladen.** Bugfix-Runde 5 (Haupt-`HANDOFF.md`,
+Sitzung 14.10.2026 (10)): Am 13.10. kam beim Einreichen eines Ausweises (Web)
+ein 504, der Server hatte aber eingereicht. Jeder weitere Versuch scheiterte
+schon beim Presign („Für diesen Schritt läuft keine offene Verifizierung.“).
+Auf dem Handy reicht dafür ein Funkloch im falschen Moment.
+
+* `VerificationRepository.submitDocument` fragt bei jedem Fehler (Upload,
+  Presign, Einreichen) `GET /verification/status` nach; steht dort
+  `submitted`, gilt die Einreichung als gelungen, sonst kommt der
+  ursprüngliche Fehler. `CancellationException` geht unverändert durch.
+* Drei neue Tests in `VerificationRepositoryTest` (verlorene Antwort,
+  zweiter Versuch nach Einreichung, echter Fehler bleibt Fehler); 63
+  Unit-Tests grün, Lint 0 Fehler (109 Warnungen, wie bisher). Gerätetest
+  steht aus.
+
+| 2.7.27 / 139 | SHA-256 | Größe |
+|---|---|---|
+| AAB (Play Console) | `501b6bdb6adf08591dc3b5480ce96c16082626006b815c70da09a0af7fc081ea` | 8.537.013 Bytes |
+| APK (Testgerät) | `f6407d8da551833b8443be1bab32b70e7eb713c3a7448b2601c88bfc537e141a` | 4.421.202 Bytes |
+
+aapt2: 139 / 2.7.27, targetSdk 36; Signer SHA-256 `BC:64:AD…79:80`
+(Upload-Key) für AAB und APK geprüft. Liegt in `release-2.7.27/` (gitignored).
 
 ---
 
