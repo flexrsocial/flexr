@@ -32,6 +32,65 @@ erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 
 ## Wo das Projekt gerade steht
 
+> **Sitzung 14.10.2026 (10): Bugfix-Runde 5 – Storage-Zeitgrenzen,
+> Match-Mails, Ausweis-Einreichung. Android 2.7.27 gebaut.** Wunsch des
+> Nutzers: noch eine Bugfixing-Runde. Grundlage: Produktions-Journal und
+> nginx-Log der letzten Woche, Datenbank-Stichproben, Code der Bereiche, die
+> Runde 2–4 nicht abdeckten (Swipe/Deck, Matches, Chat, Login, Fotos, Push).
+>
+> Deployt (`da901e8`, gepusht, VPS `git pull --ff-only`, `sudo systemctl
+> restart flexr-api`, keine Migration). Live `/app/` md5-gleich, Health ok,
+> Journal ohne Fehler. Der neue S3-Client lief in Produktion gegen R2
+> (HEAD 176 ms, danach ~90 ms über dieselbe Verbindung).
+>
+> **Befund:** Alle 500er der Woche lagen vor Runde 2 (`uq_daily_access`,
+> behoben). Offen war ein **504 beim Einreichen eines Ausweises** (13.10.,
+> 20:19, Safari): 504, dann 400 auf Einreichen und Presign – der erste
+> Versuch hing länger als nginx wartet (30 s) und ging danach doch durch.
+>
+> - **S3/R2-Client** (`storage.get_s3_client`): Zeitgrenzen 5 s Aufbau, 10 s
+>   Lesen, 2 Versuche insgesamt (vorher botocore-Vorgaben 60 s und bis zu 5
+>   Versuche) und ein Client je Zugangsdaten statt je Aufruf (Aufbau ~60 ms
+>   plus neue TLS-Verbindung, ein Foto-Upload brauchte bis zu sechs; das
+>   Anlegen über die Standard-Session ist nicht threadsicher → unter Sperre).
+> - **Ausweis einreichen:** Web-App (lokal im Browser mit simuliertem 504
+>   geprüft: Erfolgsmeldung, „Verifizierung wird geprüft“; Gegenprobe mit
+>   echtem 400 zeigt den Fehler), Android 2.7.27 und iOS-Quelltext fragen
+>   bei einem Fehler den Stand nach und werten `submitted` als Erfolg.
+> - **Match-Mails** liefen mitten im Swipe (2 × ~0,5 s Brevo, bei hängendem
+>   SMTP bis 2 × 15 s). Jetzt `swipes._match_melden` als BackgroundTask mit
+>   eigener Session; scheitert eine Seite, bekommt die andere trotzdem
+>   Mail und App-Benachrichtigung (Test).
+> - **Mail-Job:** wartet vor dem Ende auf laufende Web-Pushes
+>   (`push.wait_for_web_pushes`) – die Daemon-Threads starben sonst beim
+>   Prozessende. Derzeit gibt es kein Web-Abo, betroffen wäre die
+>   iPhone-Web-App.
+> - **Betrieb (braucht root, Skript liegt bereit):** Die API-Ausgabe
+>   (Benutzer deploy) landet in einem eigenen `user-1000`-Journal, das nur
+>   bis 10:40 desselben Tages zurückreichte – das System-Journal bis 24.09.
+>   Der Fehler vom 13.10. war deshalb im Journal nicht mehr zu sehen.
+>   `deploy/journald-flexr.conf` (`SplitMode=none`, `SystemMaxUse=2G`, rund
+>   sechs Wochen bei ~50 MB/Tag) und `OnFailure=` für `flexr-email-jobs`
+>   (fehlte als einzige Job-Unit). Installiert beides
+>   `sudo bash /home/deploy/flexr-betrieb.sh`; danach das Skript löschen.
+>
+> **Geprüft, ohne Befund:** Datenbank (keine verwaisten Push-Tokens, keine
+> hängenden Prüfungen, 61 unbestätigte Adressen sind die Testprofile
+> `@flexrtest.at`), Übersetzungen der Web-App (alle 520 Schlüssel DE/EN),
+> Chat, Matches, Rewind, Login/Passwort-Reset, Foto-Endpunkte, Push-Tokens
+> (ungültige werden bei 404 entfernt, Abmelden meldet ab).
+>
+> **Bewusst offen:** „Match auflösen“ löscht den Chat samt automatisch
+> markierter Nachrichten, bevor jemand im Adminportal draufschaut (Meldungen
+> sichern den Chat als Beweis, automatische Markierungen nicht). Der Login
+> stößt weiter die Löschfristen an (doppelt zum stündlichen Timer, schadet
+> nicht).
+>
+> **Tests:** Backend 634 grün (+6), Android 63 (+3). **Android 2.7.27 / 139**
+> (`release-2.7.27/`, dem Nutzer geschickt): AAB `501b6bdb…81ea`, APK
+> `f6407d8d…141a`, Upload-Key geprüft. iOS hier nicht kompilierbar, geht mit
+> dem nächsten Codemagic-Build mit; nicht eingereicht.
+
 > **Sitzung 14.10.2026 (9): Abgelehnte Fotos zählen nicht zur Pflichtzahl.
 > Android 2.7.26 gebaut.** Auf Wunsch des Nutzers gleich die harte Regel
 > („noch keine echten Nutzer“), in der Produktion gab es bisher kein
