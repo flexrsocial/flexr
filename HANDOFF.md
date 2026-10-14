@@ -71,11 +71,15 @@ erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 > nur nginx-vhost (308 auf vaultonaut.online), eine `.bak-pre-rebrand`-Kopie
 > und das Let's-Encrypt-Zertifikat; keine Dienste, Cronjobs, Webordner,
 > Schlüssel; die Live-Seite von vaultonaut verweist nirgends darauf. `deploy`
-> darf das nicht entfernen (root nur mit 2FA). Skript liegt unter
-> `/home/deploy/farmonaut-entfernen.sh` (sichert nach `/root`, vhost aus,
-> `nginx -t` mit Rückfall, `certbot delete`, Kontrolle) - **noch nicht
-> ausgeführt**, wartet auf den Nutzer. vaultonauts `.env.local` hat noch
-> `NEXT_PUBLIC_SITE_URL=https://farmonaut.online` (live ohne Wirkung).
+> darf das nicht entfernen (root nur mit 2FA). Der Nutzer hat das Skript
+> (sichert nach `/root/farmonaut-sicherung-*.tar.gz`, vhost aus, `nginx -t`
+> mit Rückfall, `certbot delete`, Kontrolle) am 14.10. als root ausgeführt.
+> Geprüft: kein vhost, kein Zertifikat, keine Reste in `/etc` außer einem
+> Kommentar in vaultonauts vhost, `systemctl --failed` leer, nginx aktiv,
+> flexr.social 200, tarifbot.at 200, vaultonaut.online 308 → `/de` (wie
+> vorher). Skript aus `/home/deploy` gelöscht. vaultonauts `.env.local` hat
+> noch `NEXT_PUBLIC_SITE_URL=https://farmonaut.online` (live ohne Wirkung,
+> Sache des vaultonaut-Projekts).
 
 > **Sitzung 14.10.2026 (8): Bugfix-Runde 4 – verwaiste Profilbilder, alte
 > App-Benachrichtigungen.** Wunsch des Nutzers: noch eine Bugfixing-Runde.
