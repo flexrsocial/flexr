@@ -79,7 +79,10 @@ def test_purge_removes_expired_accounts_only(client):
         db.close()
 
 
-def test_login_triggers_purge(client):
+def test_abgelaufene_karenz_sperrt_login_schon_vor_dem_loeschlauf(client):
+    """Der Login loescht nichts mehr (das macht der stuendliche Timer), aber
+    ein Konto mit abgelaufener Karenz gilt sofort als nicht mehr vorhanden -
+    auch in der Stunde, bevor der Timer es entfernt."""
     headers = register_user(client, "del.trigger@example.com")
     client.request("DELETE", "/api/profiles/me", headers=headers, json={"password": "supersecret123"})
 
@@ -91,16 +94,18 @@ def test_login_triggers_purge(client):
     finally:
         db.close()
 
-    # Irgendein Login stößt den Purge an
-    register_user(client, "del.other@example.com")
-    client.post(
+    resp = client.post(
         "/api/auth/login",
-        json={"email": "del.other@example.com", "password": "supersecret123"},
+        json={"email": "del.trigger@example.com", "password": "supersecret123"},
     )
+    assert resp.status_code == 401
+    assert resp.json()["detail"] == "E-Mail oder Passwort falsch."
 
     db = TestingSessionLocal()
     try:
-        assert db.query(User).filter(User.email == "del.trigger@example.com").first() is None
+        # Noch da - entfernt wird es vom Loeschlauf, nicht vom Login.
+        assert db.query(User).filter(User.email == "del.trigger@example.com").first() is not None
+        assert purge_deleted_users(db) == 1
     finally:
         db.close()
 
@@ -211,8 +216,8 @@ def test_reactivate_fails_after_grace_period(client):
     finally:
         db.close()
 
-    # reactivate() raeumt die abgelaufene Karenz zuerst opportunistisch weg
-    # (wie login()) - das Konto existiert danach schlicht nicht mehr.
+    # Auch wenn der stuendliche Loeschlauf das Konto noch nicht entfernt hat:
+    # Nach der Karenz laesst es sich nicht mehr zurueckholen.
     resp = client.post(
         "/api/auth/reactivate",
         json={"email": "del.reactivate.expired@example.com", "password": "supersecret123"},
@@ -221,10 +226,8 @@ def test_reactivate_fails_after_grace_period(client):
 
     db = TestingSessionLocal()
     try:
-        assert (
-            db.query(User).filter(User.email == "del.reactivate.expired@example.com").first()
-            is None
-        )
+        user = db.query(User).filter(User.email == "del.reactivate.expired@example.com").first()
+        assert user is not None and user.deleted_at is not None
     finally:
         db.close()
 

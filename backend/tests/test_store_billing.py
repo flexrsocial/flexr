@@ -543,3 +543,79 @@ def test_play_verlaengerung_behaelt_die_kennung(monkeypatch):
     dritt = _google_abfrage(monkeypatch, "GPA.3381-2145-6309-72214..11")
     assert erst["external_id"] == zweit["external_id"] == dritt["external_id"] == "GPA.3381-2145-6309-72214"
     assert erst["expires_at"] == datetime(2026, 11, 14, 10, 0, 0, 123456)
+
+
+# ---------------------------------------------------------------------------
+# Reihenfolge der Meldungen (Apple wiederholt fehlgeschlagene Zustellungen)
+# ---------------------------------------------------------------------------
+
+
+def test_apple_signaturzeitpunkt_wird_gelesen(apple, kette):
+    jetzt = datetime.now(timezone.utc).replace(microsecond=0)
+    beleg = store_billing.apple_transaction_from_jws(
+        _jws(_nutzlast(signedDate=int(jetzt.timestamp() * 1000)), kette)
+    )
+    assert beleg["signed_at"] == jetzt.replace(tzinfo=None)
+
+
+def _signiert(beleg, vor_tagen):
+    beleg["signed_at"] = utcnow() - timedelta(days=vor_tagen)
+    return beleg
+
+
+def test_verspaetete_alte_verlaengerung_kuerzt_premium_nicht(client, monkeypatch):
+    monkeypatch.setattr(settings, "premium_enabled", True)
+    register_user(client, "reihenfolge@example.com")
+
+    db = TestingSessionLocal()
+    try:
+        user = _user(db, "reihenfolge@example.com")
+        store_billing.apply_subscription(db, user, _signiert(_beleg(tage=30), vor_tagen=0))
+        richtig = _user(db, "reihenfolge@example.com").store_premium_until
+
+        # Die Meldung der vorigen Periode kommt erst jetzt an (Wiederholung).
+        store_billing.apply_subscription(db, None, _signiert(_beleg(tage=1), vor_tagen=29))
+        db.refresh(user)
+
+        assert user.store_premium_until == richtig
+        zeile = db.query(StoreSubscription).one()
+        assert zeile.expires_at + store_billing.GRACE == richtig
+    finally:
+        db.close()
+
+
+def test_alte_meldung_hebt_rueckerstattung_nicht_auf(client, monkeypatch):
+    monkeypatch.setattr(settings, "premium_enabled", True)
+    register_user(client, "erstattet@example.com")
+
+    db = TestingSessionLocal()
+    try:
+        user = _user(db, "erstattet@example.com")
+        store_billing.apply_subscription(db, user, _signiert(_beleg(tage=30), vor_tagen=2))
+        store_billing.apply_subscription(
+            db, None, _signiert(_beleg(tage=None, status="revoked"), vor_tagen=0)
+        )
+        store_billing.apply_subscription(db, None, _signiert(_beleg(tage=30), vor_tagen=2))
+        db.refresh(user)
+
+        assert user.store_premium_until is None
+        assert db.query(StoreSubscription).one().status == "revoked"
+    finally:
+        db.close()
+
+
+def test_neuere_meldung_wird_angewandt(client, monkeypatch):
+    monkeypatch.setattr(settings, "premium_enabled", True)
+    register_user(client, "neuer@example.com")
+
+    db = TestingSessionLocal()
+    try:
+        user = _user(db, "neuer@example.com")
+        store_billing.apply_subscription(db, user, _signiert(_beleg(tage=1), vor_tagen=30))
+        vorher = _user(db, "neuer@example.com").store_premium_until
+        store_billing.apply_subscription(db, None, _signiert(_beleg(tage=31), vor_tagen=0))
+        db.refresh(user)
+
+        assert user.store_premium_until > vorher
+    finally:
+        db.close()

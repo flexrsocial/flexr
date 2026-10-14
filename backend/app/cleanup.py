@@ -24,11 +24,13 @@ from sqlalchemy.orm import Session
 
 from .config import settings
 from .models import (
-    Message, Photo, PushNotification, Report, User, VerificationRequest, VerificationStatus,
+    Message, Photo, PushNotification, PushToken, Report, User, VerificationRequest,
+    VerificationStatus,
 )
 from .retention import ACCOUNT_GRACE_PERIOD_DAYS as GRACE_PERIOD_DAYS
 from .retention import (
-    FLAGGED_MESSAGE_UNMATCHED_DAYS, PUSH_NOTIFICATION_RETENTION_DAYS, REPORT_EVIDENCE_RETENTION_DAYS,
+    FLAGGED_MESSAGE_UNMATCHED_DAYS, PUSH_NOTIFICATION_RETENTION_DAYS, PUSH_TOKEN_STALE_DAYS,
+    REPORT_EVIDENCE_RETENTION_DAYS,
 )
 from .storage import _buckets_for, get_s3_client, list_object_keys
 from .verification_service import (
@@ -339,6 +341,26 @@ def purge_unmatched_flagged_messages(db: Session) -> int:
     return n
 
 
+def purge_stale_push_tokens(db: Session) -> int:
+    """Push-Adressen von Geräten, die sich PUSH_TOKEN_STALE_DAYS nicht gemeldet haben.
+
+    Die Apps melden ihre Adresse bei jedem Start (``last_seen``). Ohne diesen
+    Schritt verschwand eine Adresse nur, wenn der Push-Dienst sie beim
+    Zustellen als ungültig meldete - und zugestellt wird nur bei Anlässen. Ein
+    Konto sammelte so über Neuinstallationen zwölf Adressen. Öffnet jemand
+    FLEXR nach langer Pause wieder, meldet die App ihre Adresse neu an.
+    """
+    cutoff = utcnow() - timedelta(days=PUSH_TOKEN_STALE_DAYS)
+    n = (
+        db.query(PushToken)
+        .filter(PushToken.last_seen < cutoff)
+        .delete(synchronize_session=False)
+    )
+    if n:
+        db.commit()
+    return n
+
+
 def run_all(db: Session) -> dict[str, int]:
     """Alle Fristen auf einmal - für den täglichen Timer."""
     return {
@@ -348,6 +370,7 @@ def run_all(db: Session) -> dict[str, int]:
         "push_notifications": purge_old_push_notifications(db),
         "orphan_photos": purge_orphan_photo_objects(db),
         "unmatched_flagged_messages": purge_unmatched_flagged_messages(db),
+        "push_tokens": purge_stale_push_tokens(db),
     }
 
 

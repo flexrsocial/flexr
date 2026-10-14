@@ -263,6 +263,8 @@ def apple_transaction_from_jws(token: str) -> dict[str, Any]:
         # Von der iOS-App beim Kauf gesetzt (appAccountToken = FLEXR-Nutzer-ID).
         # Fehlt bei Kaeufen aelterer App-Fassungen.
         "account": str(payload.get("appAccountToken") or "").lower() or None,
+        # Reihenfolge der Meldungen, siehe StoreSubscription.store_signed_at.
+        "signed_at": _ms_to_datetime(payload.get("signedDate")),
     }
 
 
@@ -528,16 +530,38 @@ def apply_subscription(
         )
         zeile.user_id = user.id
 
-    zeile.product_id = beleg["product_id"]
-    zeile.status = beleg["status"]
-    zeile.expires_at = beleg["expires_at"]
-    zeile.auto_renewing = beleg["auto_renewing"]
-    zeile.environment = beleg["environment"]
+    # Aeltere Signatur als der schon angewandte Stand: eine verspaetete Meldung.
+    # Bis zum 14.10.2026 setzte eine wiederholt zugestellte, alte
+    # Verlaengerungsmeldung das Ablaufdatum auf die vorige Periode zurueck -
+    # Premium endete dann vorzeitig, bis zur naechsten Verlaengerung. Auch eine
+    # Rueckerstattung wuerde so von einer alten Meldung wieder aufgehoben.
+    signiert = beleg.get("signed_at")
+    veraltet = (
+        signiert is not None
+        and zeile.store_signed_at is not None
+        and signiert < zeile.store_signed_at
+    )
+    if veraltet:
+        logger.info(
+            "Veraltete Store-Meldung (%s/%s) ignoriert.",
+            beleg["provider"].value,
+            beleg["external_id"][:12],
+        )
+    else:
+        zeile.product_id = beleg["product_id"]
+        zeile.status = beleg["status"]
+        zeile.expires_at = beleg["expires_at"]
+        zeile.auto_renewing = beleg["auto_renewing"]
+        zeile.environment = beleg["environment"]
+        if signiert is not None:
+            zeile.store_signed_at = signiert
 
+    # Aus der Zeile, nicht aus dem Beleg: Bei einer veralteten Meldung gilt der
+    # schon bekannte Stand - auch fuer ein Konto, zu dem der Kauf gerade wandert.
     konto = user or db.query(User).filter(User.id == zeile.user_id).first()
     if konto is not None:
         konto.store_premium_until = (
-            beleg["expires_at"] + GRACE if beleg["expires_at"] else None
+            zeile.expires_at + GRACE if zeile.expires_at else None
         )
     db.commit()
     return zeile

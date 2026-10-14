@@ -332,6 +332,15 @@ _DUMMY_HASH = hash_password("flexr-kein-konto-vorhanden")
 def _check_credentials(db: Session, payload: LoginRequest) -> User:
     """Gemeinsame Pruefung fuer Login und Reaktivierung."""
     user = db.query(User).filter(func.lower(User.email) == payload.email).first()
+    if (
+        user is not None
+        and user.deleted_at is not None
+        and user.deleted_at + timedelta(days=ACCOUNT_GRACE_PERIOD_DAYS) <= utcnow()
+    ):
+        # Karenz abgelaufen, der stuendliche Loeschlauf (cleanup.run_all) war
+        # nur noch nicht da: Das Konto gilt schon als nicht mehr vorhanden.
+        # Ohne diese Zeile liesse es sich in dieser Stunde noch reaktivieren.
+        user = None
     if user is None:
         verify_password(payload.password, _DUMMY_HASH)
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "E-Mail oder Passwort falsch.")
@@ -363,24 +372,16 @@ def _check_credentials(db: Session, payload: LoginRequest) -> User:
 @router.post("/login", response_model=TokenResponse)
 @limiter.limit("10/minute")
 def login(request: Request, payload: LoginRequest, db: Session = Depends(get_db)):
-    # Opportunistischer Aufräum-Lauf: endgültige Löschung abgelaufener Konten
-    # (30-Tage-Karenz). Billige Abfrage, in der Regel null Treffer - erspart
-    # einen eigenen Cron-Job.
-    from ..cleanup import (
-        purge_deleted_users, purge_old_report_evidence, purge_stale_verification_uploads,
-    )
-
-    purge_deleted_users(db)
-    # Ebenso billig: verwaiste Ausweisaufnahmen und fehlgeschlagene Löschungen
-    purge_stale_verification_uploads(db)
-    purge_old_report_evidence(db)
-
+    # Bis zum 14.10.2026 stiess jeder Login hier die Loeschfristen an (Konten,
+    # Ausweisaufnahmen, Meldungs-Beweise) - samt Storage- und Stripe-Aufrufen
+    # mitten in der Anmeldung. Das erledigt seither allein der stuendliche
+    # Timer (cleanup.run_all); die abgelaufene Karenz prueft _check_credentials.
     user = _check_credentials(db, payload)
     if user.deleted_at is not None:
-        # purge_deleted_users() ist oben bereits gelaufen - wenn deleted_at
-        # noch gesetzt ist, läuft die 30-Tage-Karenzzeit also noch. Strukturiertes
-        # Detail mit code, damit der Client statt eines Sackgassen-Logins die
-        # Reaktivierung anbieten kann (POST /api/auth/reactivate).
+        # _check_credentials laesst nur Konten mit laufender Karenz durch.
+        # Strukturiertes Detail mit code, damit der Client statt eines
+        # Sackgassen-Logins die Reaktivierung anbieten kann
+        # (POST /api/auth/reactivate).
         deadline = user.deleted_at + timedelta(days=ACCOUNT_GRACE_PERIOD_DAYS)
         raise HTTPException(
             status.HTTP_403_FORBIDDEN,
@@ -414,15 +415,11 @@ def reactivate(request: Request, payload: LoginRequest, db: Session = Depends(ge
 
     Nimmt bewusst dieselben Zugangsdaten wie /login entgegen: Wer E-Mail und
     aktuelles Passwort kennt, darf die eigene Löschung widerrufen - dieselbe
-    Vertrauensbasis wie ein normaler Login. Nach Ablauf der Karenzzeit gibt es
-    das Konto nicht mehr (purge_deleted_users hat es bereits entfernt), dann
-    verhält sich dieser Endpunkt wie ein Login mit falschen Daten.
+    Vertrauensbasis wie ein normaler Login. Nach Ablauf der Karenzzeit gilt das
+    Konto als nicht mehr vorhanden (_check_credentials, auch wenn der
+    stuendliche Loeschlauf es noch nicht entfernt hat), dann verhält sich
+    dieser Endpunkt wie ein Login mit falschen Daten.
     """
-    from ..cleanup import purge_deleted_users, purge_stale_verification_uploads
-
-    purge_deleted_users(db)
-    purge_stale_verification_uploads(db)
-
     user = _check_credentials(db, payload)
     if user.deleted_at is None:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Dieses Konto ist nicht gelöscht.")

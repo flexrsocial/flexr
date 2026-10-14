@@ -40,6 +40,15 @@ REPORT_EVIDENCE_RETENTION_DAYS: Final = 183
 #: blieben sie bis zur Kontolöschung liegen.
 PUSH_NOTIFICATION_RETENTION_DAYS: Final = 30
 
+#: Push-Adresse eines Geräts, das sich so lange nicht gemeldet hat. Alle drei
+#: Apps melden ihre Adresse bei jedem Start neu (push.register schreibt
+#: last_seen fort) - wer FLEXR auf dem Gerät 60 Tage nicht geöffnet hat, hat
+#: es meist gelöscht oder das Gerät gewechselt. Firebase empfiehlt dieselbe
+#: Größenordnung. Verwendet in cleanup.purge_stale_push_tokens(). Eingeführt
+#: am 14.10.2026 - vorher verschwand eine Adresse nur, wenn der Push-Dienst sie
+#: beim Zustellen als ungültig meldete; ein Konto sammelte so zwölf.
+PUSH_TOKEN_STALE_DAYS: Final = 60
+
 #: Automatisch markierte Nachricht, deren Match vor der Prüfung aufgelöst
 #: wurde: so viele Tage nach dem Senden, falls die Moderation sie bis dahin
 #: nicht geprüft hat (mit der Prüfung sofort). Verwendet in
@@ -132,6 +141,14 @@ RETENTION_TABLE: Final[tuple[RetentionRow, ...]] = (
         "mit dem Konto der beteiligten Person",
         "Kontolöschung",
         "models.Report (ondelete CASCADE)",
+    ),
+    RetentionRow(
+        "Push-Adresse eines Geräts",
+        "bis Mitteilungen ausgeschaltet, das Gerät abgemeldet oder die Adresse "
+        "vom Push-Dienst als ungültig gemeldet wird, oder FLEXR auf dem Gerät "
+        f"{PUSH_TOKEN_STALE_DAYS} Tage nicht geöffnet wurde; spätestens mit dem Konto",
+        "Ausschalten, Abmelden, Rückmeldung des Push-Dienstes, Zeitablauf, Kontolöschung",
+        "push.unregister / push._send_fcm / cleanup.purge_stale_push_tokens",
     ),
     RetentionRow(
         "Automatisch markierte Nachricht nach Auflösen des Matches (Moderation)",

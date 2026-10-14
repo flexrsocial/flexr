@@ -136,6 +136,19 @@ def test_datenschutz_nennt_die_frist_fuer_markierte_nachrichten(datenschutz_text
     assert f"at most {tage} days after it was sent" in en
 
 
+def test_frist_fuer_push_adressen_stimmt():
+    from app.cleanup import PUSH_TOKEN_STALE_DAYS
+
+    assert retention.PUSH_TOKEN_STALE_DAYS == PUSH_TOKEN_STALE_DAYS
+
+
+def test_datenschutz_nennt_die_frist_fuer_push_adressen(datenschutz_text):
+    tage = retention.PUSH_TOKEN_STALE_DAYS
+    assert f"FLEXR auf dem Gerät {tage} Tage nicht geöffnet" in datenschutz_text
+    en = (REPO / "frontend" / "en" / "datenschutz.html").read_text(encoding="utf-8")
+    assert f"not opened FLEXR on the device for {tage} days" in en
+
+
 def test_datenschutz_nennt_die_legal_hold_frist(datenschutz_text):
     assert f"{retention.LEGAL_HOLD_DAYS} Tage" in datenschutz_text
 

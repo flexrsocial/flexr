@@ -1233,6 +1233,13 @@ class StoreSubscription(Base):
 
     # Bis wann das Abo bezahlt ist. Massgeblich fuer die Berechtigung.
     expires_at = Column(DateTime, nullable=True)
+    # Wann der Store die zuletzt angewandte Transaktion signiert hat (Apple:
+    # ``signedDate``). Eine Meldung mit aelterer Signatur kommt verspaetet an
+    # (Apple wiederholt fehlgeschlagene Zustellungen tagelang) und darf den
+    # Stand nicht zuruecksetzen - siehe apply_subscription(). Google liefert
+    # keinen solchen Zeitpunkt; dort fragt der Server ohnehin den aktuellen
+    # Stand bei Google nach.
+    store_signed_at = Column(DateTime, nullable=True)
     # Verlaengert es sich automatisch? Nur zur Anzeige und fuer die Frage, ob
     # eine Kuendigung schon vorgemerkt ist - die Berechtigung haengt allein an
     # expires_at.
