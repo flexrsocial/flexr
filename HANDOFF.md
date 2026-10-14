@@ -98,7 +98,15 @@ erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 >
 > **Bewusst offen:** Die englische Gym-Sperrmeldung nennt das Datum im
 > deutschen Format (selten sichtbar, die Web-App sperrt das Feld vorher
-> selbst). Die Entscheidungsmail an förmliche Melder grüßt ohne Namen.
+> selbst).
+>
+> **Nachtrag (6), `918b7e6`, deployt mit Neustart:** Mails an Melder reden mit
+> Namen an. Entscheidung zur förmlichen Meldung (Name aus dem Formular),
+> Entscheidung zur Meldung aus der App (Profilname) und Eingangsbestätigung
+> des Meldeformulars begannen immer mit „Hallo,“. Jetzt „Hallo <Name>,“ bzw.
+> „Hi <Name>,“; ohne Namen (anonyme Kategorie) wie bisher; im HTML maskiert
+> (`mailer._anrede`/`_anrede_html`). 3 neue Tests, Suite 614 grün. Live mit
+> dem Produktionscode geprüft, Journal ohne Fehler.
 
 > **Sitzung 13./14.10.2026 (4): Prüfrunde Website, Web-App, Adminportal,
 > Android. Android 2.7.24 gebaut.** Wunsch des Nutzers: alles noch einmal
