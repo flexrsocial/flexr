@@ -32,6 +32,35 @@ erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 
 ## Wo das Projekt gerade steht
 
+> **Sitzung 14.10.2026 (16): Web-App – Registrierung in drei Schritten.**
+> Frage des Nutzers: Registrieren-Seite starr wie der Login, mit innerem
+> Scrollbalken im Formular? Empfehlung stattdessen (innerer Scrollbereich:
+> zwei Scrollbereiche, Absende-Knopf im Kasten, am Handy mit Tastatur kaum
+> nutzbar): Formular in Schritte teilen. Vom Nutzer so gewünscht.
+>
+> Deployt (`c277f4e`, gepusht, VPS `git pull --ff-only`, nur Frontend). Live
+> `/app/`, `i18n-app.js?v=34`, `sw.js` (v44) md5-gleich, im Browser mit
+> geleertem Service Worker geprüft.
+>
+> - **Schritte:** 1 Konto (E-Mail, Passwort ×2, Name, Geburtsdatum),
+>   2 Profil (PLZ, Geschlecht, Gym, Bio), 3 Fotos & Einwilligung (Fotos,
+>   Art.-9-Einwilligung, Kostentext, aufklappbarer Prüfhinweis, Absenden).
+>   `regPruefung(schritt)` enthält die bisherigen Regeln getrennt nach
+>   Schritten, „Weiter“ prüft den eigenen, das Absenden alle drei und
+>   springt bei einem Fehler zum Schritt. Serverfehler 409 (Adresse vergeben)
+>   und unter 18 springen zu Schritt 1. Neu: E-Mail-Format schon in
+>   Schritt 1 (`reg.errEmail`). Enter in Schritt 1 = Weiter.
+> - **Höhe bei 1024×768:** 597 / 670 / 763 px statt 1.981 px für die ganze
+>   Seite (Login 419). Am Desktop Felder paarweise nebeneinander, sechs
+>   Fotoplätze in einer Reihe; am Handy alles untereinander (Schritt 1 am
+>   iPhone-Format 764 px), kein seitlicher Überlauf, „Zurück“ und Absenden
+>   in einer Zeile.
+> - **Lokal durchgespielt** (Backend + S3-Attrappe): leere Felder halten an,
+>   ohne Fotos bleibt Schritt 3 stehen, vergebene Adresse → Schritt 1 mit
+>   Markierung und Fokus, vollständige Registrierung mit 3 Fotos → Prüfschirm,
+>   Konto mit 3 Fotos in der Datenbank. Englisch geprüft.
+> - Nur die Web-App; Android und iOS haben eigene Registrierungsschirme.
+
 > **Sitzung 14.10.2026 (15): Testprofile erneuert.** Wunsch des Nutzers:
 > alte Testprofile ohne Haken löschen, je 10 neue Frauen und Männer ohne
 > Haken, jedes mit mindestens 3 Fotos.
