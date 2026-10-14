@@ -178,12 +178,17 @@ def _pending_likes_count(db: Session, user: User) -> int:
 
 
 def main() -> None:
+    from . import push
+
     db = SessionLocal()
     try:
         result = run_due_email_jobs(db)
     finally:
         db.close()
-    print(result)
+    # Web-Pushes laufen in Daemon-Threads (push.send_web) - ohne dieses Warten
+    # endete der Prozess mitten in den letzten Zustellungen.
+    result["web_push_unfinished"] = push.wait_for_web_pushes()
+    print(result, flush=True)
     if result["failed"]:
         raise SystemExit(1)
 

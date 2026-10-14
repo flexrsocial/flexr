@@ -231,3 +231,41 @@ class _SofortThread:
 
     def start(self):
         self._target(*self._args)
+
+    def join(self, timeout=None):
+        pass
+
+    def is_alive(self):
+        return False
+
+
+def test_mail_job_wartet_auf_web_pushes(client, vapid, monkeypatch):
+    """Der taegliche Mail-Job ist ein kurzlebiger Prozess. Endet er, sterben
+    die Daemon-Threads von send_web mitten in der Zustellung - deshalb wartet
+    er ueber wait_for_web_pushes() auf sie."""
+    import threading
+    import time
+
+    register_user(client, "webpush7@example.com")
+    db, user = _web_abo("webpush7@example.com")
+    freigabe = threading.Event()
+    gesendet = []
+
+    def langsam(url, **kw):
+        freigabe.wait(5)
+        time.sleep(0.05)
+        gesendet.append(url)
+        return _Antwort(201)
+
+    monkeypatch.setattr(webpush.requests, "post", langsam)
+    try:
+        assert notifications.queue_push(
+            db, user, NotificationTopic.inactivity, "Komm zurueck", "7 Tage",
+            dedupe_key="test-warten-1", target="swipe",
+        )
+    finally:
+        db.close()
+    assert gesendet == []
+    freigabe.set()
+    assert push.wait_for_web_pushes(timeout=5) == 0
+    assert gesendet == [_APPLE]

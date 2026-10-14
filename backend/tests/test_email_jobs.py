@@ -72,3 +72,18 @@ def test_der_taegliche_job_laeuft_weiter(client):
 
     for schluessel in ("trial_ending_sent", "trial_ended_sent", "failed"):
         assert schluessel in result
+
+
+def test_main_wartet_auf_web_pushes_und_meldet_rest(monkeypatch, capsys):
+    """Der Job endet erst, wenn die Web-Pushes raus sind (sie laufen in
+    Daemon-Threads), und nennt, was nach der Frist noch offen war."""
+    from app import email_jobs, push
+
+    gewartet = []
+    monkeypatch.setattr(email_jobs, "run_due_email_jobs", lambda db: {"failed": 0, "inactivity_notified": 2})
+    monkeypatch.setattr(push, "wait_for_web_pushes", lambda: gewartet.append(True) or 0)
+
+    email_jobs.main()
+
+    assert gewartet == [True]
+    assert "'web_push_unfinished': 0" in capsys.readouterr().out

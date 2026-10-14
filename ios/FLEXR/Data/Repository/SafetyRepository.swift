@@ -113,16 +113,30 @@ final class VerificationRepository {
         front: Data,
         back: Data?
     ) async throws -> VerificationState {
-        let frontKey = try await uploadDocument(front)
-        var backKey: String?
-        if let back { backKey = try await uploadDocument(back) }
-        return try await api.submitDocument(
-            VerificationDocumentSubmitRequestDTO(
-                documentType: type,
-                frontObjectKey: frontKey,
-                backObjectKey: backKey
-            )
-        ).toDomain()
+        do {
+            let frontKey = try await uploadDocument(front)
+            var backKey: String?
+            if let back { backKey = try await uploadDocument(back) }
+            return try await api.submitDocument(
+                VerificationDocumentSubmitRequestDTO(
+                    documentType: type,
+                    frontObjectKey: frontKey,
+                    backObjectKey: backKey
+                )
+            ).toDomain()
+        } catch is CancellationError {
+            throw CancellationError()
+        } catch {
+            // Kam nur die Antwort nicht an (Funkloch, Zeitüberschreitung am
+            // Proxy), kann der Ausweis trotzdem eingereicht sein. Dann scheitert
+            // jeder weitere Versuch schon beim Presign, weil der Vorgang längst
+            // in der Prüfung liegt - so am 13.10.2026 in der Web-App. Erst
+            // nachsehen, dann den Fehler weitergeben.
+            if let stand = try? await status(), stand.status == .submitted {
+                return stand
+            }
+            throw error
+        }
     }
 
     /// Eingereichte Aufnahmen zurückziehen, solange niemand geprüft hat.

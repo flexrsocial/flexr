@@ -8381,6 +8381,16 @@
     return presign.object_key;
   }
 
+  async function idEingereicht(){
+    // Lokale Vorschauen sofort verwerfen - der Ausweis soll nicht im
+    // Speicher der Seite weiterleben.
+    if(idState) Object.values(idState.shots).forEach(s => URL.revokeObjectURL(s.previewUrl));
+    idState = null;
+    toast(t('id.submitted'));
+    await loadCurrentUser();
+    showVerificationGate();
+  }
+
   $('btnVidSubmit').addEventListener('click', async () => {
     if(!idState) return;
     const sides = idNeedsBack() ? ['front', 'back'] : ['front'];
@@ -8402,14 +8412,20 @@
         method: 'POST',
         body: JSON.stringify(body),
       });
-      // Lokale Vorschauen sofort verwerfen - der Ausweis soll nicht im
-      // Speicher der Seite weiterleben.
-      Object.values(idState.shots).forEach(s => URL.revokeObjectURL(s.previewUrl));
-      idState = null;
-      toast(t('id.submitted'));
-      await loadCurrentUser();
-      showVerificationGate();
+      await idEingereicht();
     }catch(err){
+      // Kam die Antwort nur nicht an (Zeitüberschreitung am Proxy), kann der
+      // Ausweis trotzdem eingereicht sein - so am 13.10.2026: erster Versuch
+      // 504, jeder weitere Versuch scheiterte, weil der Vorgang längst in der
+      // Prüfung lag. Erst nachsehen, dann einen Fehler zeigen.
+      try{
+        const st = await api('/api/verification/status');
+        if(st.status === 'submitted'){
+          verificationStatus = st;
+          await idEingereicht();
+          return;
+        }
+      }catch(_){ /* Status nicht abrufbar - dann gilt der ursprüngliche Fehler */ }
       $('vidErr').textContent = err.message || t('id.submitFailed');
     }finally{
       btn.disabled = false;

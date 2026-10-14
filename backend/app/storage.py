@@ -1,5 +1,6 @@
 import logging
 import re
+import threading
 import uuid
 
 import boto3
@@ -21,6 +22,27 @@ CONTENT_TYPE_EXTENSIONS = {
 # als gar nichts.
 EXTENSION_CONTENT_TYPES = {ext: ct for ct, ext in CONTENT_TYPE_EXTENSIONS.items()}
 
+# Zeitgrenzen fuer jeden Storage-Aufruf. Ohne sie galten die botocore-Vorgaben
+# (60 s Verbindungsaufbau, 60 s je Lesevorgang, bis zu fuenf Versuche): Ein
+# haengendes R2 hielt eine Anfrage minutenlang fest, nginx brach nach 30 s mit
+# 504 ab, und die Anfrage lief unbemerkt weiter. So am 13.10.2026 beim
+# Einreichen eines Ausweises - der Client meldete einen Fehler, der zweite
+# Versuch scheiterte, waehrend der erste im Hintergrund doch noch durchging.
+# Jetzt zwei Versuche zu je hoechstens 5 s Aufbau und 10 s Warten auf Daten.
+_S3_CONFIG = BotoConfig(
+    signature_version="s3v4",
+    connect_timeout=5,
+    read_timeout=10,
+    retries={"total_max_attempts": 2, "mode": "standard"},
+)
+
+# Ein Client je Zugangsdaten, nicht einer je Aufruf. Der Aufbau kostet auf dem
+# VPS rund 60 ms und jedes Mal eine neue TLS-Verbindung; ein Foto-Upload
+# brauchte davon bis zu sechs. boto3-Clients sind threadsicher, ihr Anlegen
+# ueber die Standard-Session dagegen nicht - deshalb unter der Sperre.
+_s3_clients: dict[tuple, object] = {}
+_s3_clients_lock = threading.Lock()
+
 
 def get_s3_client(bucket: str | None = None):
     """S3-Client, fuer den privaten Bucket ggf. mit eigenem Schluesselpaar.
@@ -38,14 +60,20 @@ def get_s3_client(bucket: str | None = None):
         and settings.s3_private_secret_access_key
     ):
         key_id, secret = settings.s3_private_access_key_id, settings.s3_private_secret_access_key
-    return boto3.client(
-        "s3",
-        endpoint_url=settings.s3_endpoint_url,
-        aws_access_key_id=key_id,
-        aws_secret_access_key=secret,
-        region_name=settings.s3_region,
-        config=BotoConfig(signature_version="s3v4"),
-    )
+    schluessel = (settings.s3_endpoint_url, settings.s3_region, key_id, secret)
+    with _s3_clients_lock:
+        client = _s3_clients.get(schluessel)
+        if client is None:
+            client = boto3.client(
+                "s3",
+                endpoint_url=settings.s3_endpoint_url,
+                aws_access_key_id=key_id,
+                aws_secret_access_key=secret,
+                region_name=settings.s3_region,
+                config=_S3_CONFIG,
+            )
+            _s3_clients[schluessel] = client
+    return client
 
 
 # ---------- Welcher Bucket? ----------

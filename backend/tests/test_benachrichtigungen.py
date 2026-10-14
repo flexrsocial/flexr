@@ -88,6 +88,33 @@ def test_erneuter_like_meldet_dasselbe_match_nicht_noch_einmal(client, monkeypat
     assert len(_pending(id_a, "new_match")) == 1
 
 
+def test_mailfehler_kippt_weder_match_noch_andere_seite(client, monkeypatch):
+    """Die Mails laufen nach der Antwort (swipes._match_melden). Scheitert die
+    eine, bekommt die andere Seite trotzdem Mail und App-Benachrichtigung."""
+    mails = []
+
+    def senden(email, name, match_name, lang="de"):
+        if email == "f.b@example.com":
+            raise OSError("SMTP weg")
+        mails.append(email)
+        return True
+
+    monkeypatch.setattr("app.notifications.mailer.send_new_match", senden)
+
+    headers_a = register_user_with_photo(client, "f.a@example.com", name="A", gender="mann")
+    headers_b = register_user_with_photo(client, "f.b@example.com", name="B", gender="frau")
+    id_a, id_b = _user_id(client, headers_a), _user_id(client, headers_b)
+
+    client.post("/api/swipes", headers=headers_b, json={"to_user_id": id_a, "action": "like"})
+    resp = client.post("/api/swipes", headers=headers_a, json={"to_user_id": id_b, "action": "like"})
+
+    assert resp.status_code == 200
+    assert resp.json()["matched"] is True
+    assert mails == ["f.a@example.com"]
+    assert len(_pending(id_a, "new_match")) == 1
+    assert len(_pending(id_b, "new_match")) == 1
+
+
 def test_abgeschalteter_kanal_bleibt_stumm(client, monkeypatch):
     mails = []
     monkeypatch.setattr(

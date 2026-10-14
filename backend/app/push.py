@@ -374,6 +374,28 @@ def send(
     return zugestellt
 
 
+# Laufende Web-Push-Zustellungen aus send_web. Daemon-Threads, damit ein
+# haengender Push-Dienst den API-Prozess nicht am Beenden hindert - der
+# taegliche Mail-Job (email_jobs.main) ist aber ein kurzlebiger Prozess: Endet
+# er, sterben Daemon-Threads mitten in der Zustellung. Er wartet deshalb ueber
+# wait_for_web_pushes() auf sie, bevor er sich beendet.
+_web_threads: set[threading.Thread] = set()
+_web_threads_lock = threading.Lock()
+
+
+def wait_for_web_pushes(timeout: float = 60.0) -> int:
+    """Wartet auf noch laufende Web-Push-Zustellungen. Gibt zurueck, wie viele
+    nach Ablauf von ``timeout`` (insgesamt, nicht je Thread) noch liefen."""
+    frist = time.monotonic() + timeout
+    with _web_threads_lock:
+        offen = list(_web_threads)
+    for thread in offen:
+        thread.join(max(0.0, frist - time.monotonic()))
+    with _web_threads_lock:
+        _web_threads.difference_update(t for t in offen if not t.is_alive())
+        return sum(1 for t in _web_threads if t.is_alive())
+
+
 def send_web(db: Session, user: User, title: str, body: str, target: str | None = None) -> bool:
     """Nur an die Web-Abos dieses Nutzers zustellen - im Hintergrund.
 
@@ -400,9 +422,12 @@ def send_web(db: Session, user: User, title: str, body: str, target: str | None 
         )
         if vorhanden is None:
             return False
-        threading.Thread(
+        thread = threading.Thread(
             target=_send_web_async, args=(user.id, title, body, target), daemon=True
-        ).start()
+        )
+        with _web_threads_lock:
+            _web_threads.add(thread)
+        thread.start()
         return True
     except Exception:  # noqa: BLE001 - siehe send()
         logger.exception("Web-Push fuer das Abholfach fehlgeschlagen (user=%s)", user.id)
@@ -425,6 +450,8 @@ def _send_web_async(user_id: str, title: str, body: str, target: str | None) -> 
         logger.exception("Web-Push im Hintergrund fehlgeschlagen (user=%s)", user_id)
     finally:
         db.close()
+        with _web_threads_lock:
+            _web_threads.discard(threading.current_thread())
 
 
 def send_async(user_id: str, title: str, body: str, target: str | None = None) -> None:

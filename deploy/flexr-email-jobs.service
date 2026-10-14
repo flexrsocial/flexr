@@ -2,6 +2,10 @@
 Description=FLEXR transaktionale E-Mail-Jobs
 After=network-online.target postgresql.service
 Wants=network-online.target
+# Wie bei Aufraeumen und Backup: Scheitert der Lauf (Datenbank weg, Mails
+# fehlgeschlagen - siehe email_jobs.main), kommt eine Telegram-Warnung. Bis
+# zum 14.10.2026 fehlte die Zeile, ein Ausfall waere still geblieben.
+OnFailure=flexr-notify-failure@%n.service
 
 [Service]
 Type=oneshot

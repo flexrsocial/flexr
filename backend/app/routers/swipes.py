@@ -1,7 +1,7 @@
 import logging
 from datetime import datetime
 
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
 from sqlalchemy import and_, or_
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, selectinload
@@ -205,6 +205,7 @@ def deck_profiles(db: Session, current_user: User, limit: int = DECK_SIZE) -> li
 def swipe(
     request: Request,
     payload: SwipeRequest,
+    background_tasks: BackgroundTasks,
     current_user: User = Depends(require_active_membership),
     db: Session = Depends(get_db),
 ):
@@ -341,30 +342,52 @@ def swipe(
                         matched=matched,
                         likes_remaining=premium.likes_remaining(db, current_user),
                     )
-                # Beide Seiten benachrichtigen, nicht nur die wartende: für den
-                # Swipenden ist das Match genauso neu, er sieht es nur zufällig
-                # gerade im Vordergrund. Der Versand darf den Swipe nicht
-                # scheitern lassen - ein toter SMTP-Server würde sonst das
-                # Match-Ergebnis verschlucken, obwohl es längst gespeichert ist.
-                for recipient, other in (
-                    (current_user, target_user),
-                    (target_user, current_user),
-                ):
-                    try:
-                        notifications.notify_new_match(
-                            db, recipient, other.name, new_match.id
-                        )
-                    except Exception:
-                        logger.exception(
-                            "Match-Benachrichtigung fehlgeschlagen (match=%s)",
-                            new_match.id,
-                        )
+                # Benachrichtigt wird nach der Antwort, siehe _match_melden.
+                background_tasks.add_task(_match_melden, new_match.id)
             matched = True
 
     return SwipeResult(
         matched=matched,
         likes_remaining=premium.likes_remaining(db, current_user),
     )
+
+
+def _match_melden(match_id: str) -> None:
+    """Beide Seiten eines frischen Matches benachrichtigen - nach der Antwort.
+
+    Beide, nicht nur die wartende: für den Swipenden ist das Match genauso
+    neu, er sieht es nur zufällig gerade im Vordergrund.
+
+    Als BackgroundTask mit eigener Session, weil dazu zwei Mails gehören. Bis
+    zum 14.10.2026 liefen sie mitten im Swipe: gut eine Sekunde Verzögerung
+    genau im Match-Moment (Brevo braucht je Mail rund 0,5 s für Verbindung und
+    Anmeldung), bei einem hängenden Mailserver bis zu 2 x 15 s - länger, als
+    nginx wartet. Die Request-Session ist hier schon geschlossen.
+
+    Wirft nie: Ein toter SMTP-Server darf weder das gespeicherte Match noch die
+    Benachrichtigung der anderen Seite verschlucken.
+    """
+    from .. import database
+
+    db = database.SessionLocal()
+    try:
+        match = db.query(Match).filter(Match.id == match_id).first()
+        if match is None:
+            return
+        user_a = db.query(User).filter(User.id == match.user_a_id).first()
+        user_b = db.query(User).filter(User.id == match.user_b_id).first()
+        if user_a is None or user_b is None:
+            return
+        for recipient, other in ((user_a, user_b), (user_b, user_a)):
+            try:
+                notifications.notify_new_match(db, recipient, other.name, match_id)
+            except Exception:
+                db.rollback()
+                logger.exception(
+                    "Match-Benachrichtigung fehlgeschlagen (match=%s)", match_id
+                )
+    finally:
+        db.close()
 
 
 @router.get("/incoming", response_model=IncomingLikesOut)
