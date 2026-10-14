@@ -680,6 +680,11 @@ extension FlexrStrings {
             Beim Anlegen deines Profils hat der Upload nicht geklappt. Hol ihn \
             hier nach — danach geht es normal weiter.
             """,
+        .vgatePhotoBody2Rejected: """
+            Ein Foto wurde von der Moderation abgelehnt, den Grund findest du \
+            in der Mail dazu. Lade ein anderes hoch – danach geht es normal \
+            weiter.
+            """,
         .vgatePhotoMissing: "Noch %d von %d Pflichtfotos.",
         .vgatePhotoUploading: "Foto wird hochgeladen …",
         .vgatePhotoUploadFailed: "Foto konnte nicht hochgeladen werden.",

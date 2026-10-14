@@ -1001,7 +1001,10 @@ def list_verifications(
                     {"prompt": s["prompt"], "url": storage.create_presigned_view_url(s["object_key"])}
                     for s in selfies
                 ],
-                profile_photo_urls=[p.url for p in user.photos],
+                # Abgelehnte nicht: Ihre Datei ist geloescht, sie erschienen
+                # als kaputtes Bild. Die Ansicht warnt, wenn weniger als
+                # MIN_PHOTOS uebrig bleiben (admin.js).
+                profile_photo_urls=[p.url for p in user.valid_photos],
                 document_type=req.document_type,
                 document_urls=[
                     {"side": d["side"], "url": storage.create_presigned_view_url(d["object_key"])}

@@ -504,6 +504,12 @@ class User(Base):
         return age_on(self.birthdate)
 
     @property
+    def valid_photos(self) -> list["Photo"]:
+        """Die Fotos, die zählen: alle außer abgelehnten. Deren Datei ist schon
+        gelöscht, der Eintrag steht nur als Begründungsnachweis (Art. 17 DSA)."""
+        return [p for p in self.photos if p.status != PhotoStatus.rejected]
+
+    @property
     def is_account_activated(self) -> bool:
         """Konto freigeschaltet? Bestandskonten (verification_required False)
         sind es unverändert; neue Konten erst nach bestandener Prüfung."""

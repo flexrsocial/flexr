@@ -215,7 +215,7 @@ enum L: Hashable, Sendable {
     case vgateMailBody, vgateMailResend, vgateMailSending, vgateMailResent
     case vgateMailSendFailed
     case vgatePhotoEyebrow, vgatePhotoTitle, vgatePhotoChip, vgatePhotoBody
-    case vgatePhotoBody2, vgatePhotoMissing, vgatePhotoUploading, vgatePhotoUploadFailed
+    case vgatePhotoBody2, vgatePhotoBody2Rejected, vgatePhotoMissing, vgatePhotoUploading, vgatePhotoUploadFailed
     case vgateDoneEyebrow, vgateUnlockedTitle, vgateUnlockedChip
     case vgateUnlockedBody, vgateUnlockedCta
     case vgateRejectedEyebrow, vgateRejectedTitle, vgateRejectedChip

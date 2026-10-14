@@ -296,6 +296,8 @@
   .detail-row .k{ color:var(--chalk-dim); }
   .modal .photo-strip{ display:flex; gap:8px; margin:16px 0; flex-wrap:wrap; }
   .modal .photo-strip img{ width:64px; height:80px; object-fit:cover; border-radius:8px; border:1px solid var(--steel); }
+  .modal .photo-strip .photo-rejected{ width:64px; height:80px; border-radius:8px; border:1px dashed rgba(227,72,72,.6);
+    display:flex; align-items:center; justify-content:center; font-size:11px; color:var(--warn); }
   /* Ablehnungsdialog fuer Profilfotos: das abgelehnte Bild bleibt beim
      Entscheiden sichtbar, die Gruende stehen als Liste statt als Nummern in
      einem prompt(). */
@@ -534,6 +536,6 @@
   </div>
 </div>
 
-<script src="/admin.js?v=4"></script>
+<script src="/admin.js?v=5"></script>
 </body>
 </html>

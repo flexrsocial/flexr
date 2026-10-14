@@ -105,13 +105,15 @@
 // Einreichung, Dialogknöpfe brechen am Handy um; i18n-app.js auf ?v=31.
 // v42: Löschdialog sagt bei laufendem Premium, was mit dem Abo passiert;
 // i18n-app.js auf ?v=32.
-const CACHE = 'flexr-shell-v42';
+// v43: Abgelehnte Fotos zaehlen nicht mehr zur Pflichtzahl (Pruefbildschirm,
+// Konto-Hinweis); i18n-app.js auf ?v=33.
+const CACHE = 'flexr-shell-v43';
 // Seit dem 15.08.2026 liegt die App unter /app/, an der Wurzel steht die
 // oeffentliche Landingpage. Beide gehoeren in die Shell: die Landingpage,
 // weil sie der Einstieg ist, die App, weil sie offline funktionieren soll.
 const SHELL = ['/', '/index.html', '/en/', '/en/index.html',
                '/app/', '/app/index.html',
-               '/lang-switch.js?v=2', '/i18n.js?v=5', '/app/i18n-app.js?v=32',
+               '/lang-switch.js?v=2', '/i18n.js?v=5', '/app/i18n-app.js?v=33',
                '/startboost.js?v=1',
                '/manifest.json', '/favicon.ico', '/legal.css?v=2',
                '/fonts/work-sans.woff2?v=1', '/fonts/oswald.woff2?v=1',

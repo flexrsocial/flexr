@@ -135,6 +135,29 @@ def test_verification_requires_photo(client, storage_stub):
     assert client.post("/api/verification/start", headers=headers).status_code == 200
 
 
+def test_abgelehnte_fotos_zaehlen_nicht_fuer_die_pruefung(client, storage_stub):
+    """Bis 14.10.2026 zaehlten abgelehnte mit - mit drei Fotos, von denen eines
+    abgelehnt war, ging die Pruefung mit zweien los."""
+    from app.models import MIN_PHOTOS, Photo, PhotoStatus
+
+    headers = register_raw(client, "abgelehnt@example.com")
+    for i in range(MIN_PHOTOS):
+        add_approved_photo(client, headers, url=f"https://cdn.example.test/a{i}.jpg")
+    db = TestingSessionLocal()
+    try:
+        foto = db.query(Photo).filter(Photo.url == "https://cdn.example.test/a0.jpg").one()
+        foto.status = PhotoStatus.rejected
+        db.commit()
+    finally:
+        db.close()
+    zu_wenig = client.post("/api/verification/start", headers=headers)
+    assert zu_wenig.status_code == 400
+    assert str(MIN_PHOTOS) in zu_wenig.json()["detail"]
+
+    add_approved_photo(client, headers, url="https://cdn.example.test/ersatz.jpg")
+    assert client.post("/api/verification/start", headers=headers).status_code == 200
+
+
 def test_new_account_is_not_activated_before_review(client, storage_stub):
     headers = register_raw(client, "gated@example.com")
     me = client.get("/api/profiles/me", headers=headers).json()

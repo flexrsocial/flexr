@@ -133,7 +133,11 @@ def start_verification(
     # dieselbe Mindestanzahl wie bei der Registrierung: Scheitert dort ein
     # Upload, wird er hier nachgeholt (VerificationGateScreen), statt das Konto
     # mit zu wenigen Fotos in die Pruefung zu schicken.
-    if len(current_user.photos) < MIN_PHOTOS:
+    #
+    # Gezaehlt werden nur gueltige Fotos. Bis zum 14.10.2026 zaehlten
+    # abgelehnte mit - mit drei Fotos, von denen eines abgelehnt war, ging die
+    # Pruefung mit zwei los, und der Pruefbildschirm bot keinen Ersatz an.
+    if len(current_user.valid_photos) < MIN_PHOTOS:
         raise HTTPException(
             400, f"Lade zuerst mindestens {MIN_PHOTOS} Profilfotos hoch.")
 

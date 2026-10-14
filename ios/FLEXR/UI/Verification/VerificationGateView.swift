@@ -48,7 +48,13 @@ final class VerificationGateModel {
     /// Solange kein Profil geladen ist, gilt die Mindestanzahl als erfüllt —
     /// sonst fragte der Schirm für einen Augenblick nach Fotos, die längst da
     /// sind.
-    var photoCount: Int { profiles.myProfile?.photos.count ?? ImageProcessor.minPhotos }
+    ///
+    /// Abgelehnte Fotos zählen nicht — wie beim Server (/verification/start).
+    /// Bis zum 14.10.2026 zählten sie mit, und der Schirm bot keinen Ersatz an.
+    var photoCount: Int { profiles.myProfile?.validPhotoCount ?? ImageProcessor.minPhotos }
+
+    /// Hat die Moderation eines der Fotos abgelehnt? Dann sagt der Schirm das.
+    var hasRejectedPhoto: Bool { profiles.myProfile?.photos.contains { $0.status == .rejected } ?? false }
 
     /// Eigene Adresse — der Nutzer muss sehen, wohin die Mail ging.
     var email: String { profiles.myProfile?.email ?? "" }
@@ -317,6 +323,7 @@ struct VerificationGateView: View {
             // Upload.
             MissingPhotoContent(
                 missing: model.missingPhotos,
+                rejected: model.hasRejectedPhoto,
                 isUploading: model.isUploadingPhoto,
                 error: model.photoError,
                 onPhotoPicked: { data in Task { await model.onPhotoPicked(data) } }
@@ -546,6 +553,7 @@ private struct MissingPhotoContent: View {
     private var s: FlexrStrings { languageStore.strings }
 
     let missing: Int
+    let rejected: Bool
     let isUploading: Bool
     let error: String?
     let onPhotoPicked: (Data) -> Void
@@ -564,7 +572,7 @@ private struct MissingPhotoContent: View {
                     Text(s(.vgatePhotoBody, ImageProcessor.minPhotos))
                         .flexrText(.bodyMedium)
                         .foregroundStyle(FlexrColor.chalkDim)
-                    Text(s(.vgatePhotoBody2))
+                    Text(s(rejected ? .vgatePhotoBody2Rejected : .vgatePhotoBody2))
                         .flexrText(.bodyMedium)
                         .foregroundStyle(FlexrColor.chalkDim)
                     Text(s(.vgatePhotoMissing, missing, ImageProcessor.minPhotos))

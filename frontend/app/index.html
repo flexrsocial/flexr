@@ -2184,7 +2184,7 @@
      laufen synchron und damit vor dem DOMContentLoaded, bei dem FlexrI18n die
      data-i18n-Knoten uebersetzt. -->
 <script src="/i18n.js?v=5"></script>
-<script src="/app/i18n-app.js?v=32"></script>
+<script src="/app/i18n-app.js?v=33"></script>
 <a class="skip-link" href="#main-content" data-i18n="common.skipToContent">Zum Inhalt springen</a>
 <div class="app" id="app">
 
@@ -6761,15 +6761,20 @@
     const hasApproved = photos.some(p => p.status === 'approved');
     const hasPending = photos.some(p => p.status === 'pending');
     const hasRejected = photos.some(p => p.status === 'rejected');
+    // Abgelehnte zaehlen nicht zur Pflichtzahl (wie beim Server).
+    const gueltig = gueltigeFotoAnzahl();
     if(photos.length === 0){
       hint.className = 'photo-hint warn';
       hint.textContent = t('photo.hintNone');
-    } else if(photos.length < MIN_PHOTOS){
+    } else if(gueltig === 0){
+      hint.className = 'photo-hint warn';
+      hint.textContent = t('photo.hintRejected');
+    } else if(gueltig < MIN_PHOTOS){
       // Die Mindestanzahl steht vor dem Moderationsstand: "sichtbar" waere
       // falsch, solange das Profil die Pflichtzahl nicht erreicht.
       hint.className = 'photo-hint warn';
       hint.textContent = t('photo.hintTooFew', {
-        fehlend: MIN_PHOTOS - photos.length, min: MIN_PHOTOS,
+        fehlend: MIN_PHOTOS - gueltig, min: MIN_PHOTOS,
       });
     } else if(hasApproved){
       hint.className = 'photo-hint';
@@ -7812,7 +7817,7 @@
       body.innerHTML = `
         <div class="vcard">
           <p>${escapeHtml(t('vgate.photoP1', {min: MIN_PHOTOS}))}</p>
-          <p>${escapeHtml(t('vgate.photoP2'))}</p>
+          <p>${escapeHtml(t(((myProfile && myProfile.photos) || []).some(p => p.status === 'rejected') ? 'vgate.photoP2Rejected' : 'vgate.photoP2'))}</p>
           <p class="photo-hint warn">${escapeHtml(t('vgate.photoMissing', {fehlend, min: MIN_PHOTOS}))}</p>
           <div class="field-err" id="vgatePhotoErr"></div>
         </div>`;
@@ -7866,9 +7871,10 @@
   }
 
   /** Wie viele Pflichtfotos dem Konto noch fehlen (0, wenn erfüllt). */
+  // Abgelehnte zaehlen nicht - wie beim Server (/verification/start). Bis zum
+  // 14.10.2026 zaehlten sie mit, und der Schirm bot keinen Ersatz an.
   function fehlendeGatePhotos(){
-    const vorhanden = (myProfile && myProfile.photos) ? myProfile.photos.length : 0;
-    return Math.max(0, MIN_PHOTOS - vorhanden);
+    return Math.max(0, MIN_PHOTOS - gueltigeFotoAnzahl());
   }
 
   // Nachträglicher Upload fehlender Profilfotos aus dem Verifizierungs-Screen.

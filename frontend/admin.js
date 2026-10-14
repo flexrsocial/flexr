@@ -99,6 +99,11 @@
   // ueberhaupt mehr gibt - bei Warteschlangen mit DSA-Fristen (Meldungen,
   // foermliche Meldungen) waere das mehr als ein UX-Problem.
   const PAGE_SIZE = 50;
+
+  // Mindestzahl gueltiger Profilfotos (models.MIN_PHOTOS) - die Pruefansicht
+  // warnt, wenn nach dem Einreichen eines abgelehnt oder geloescht wurde.
+  const MIN_PROFILE_PHOTOS = 3;
+
   // Muss mit den `le=`-Obergrenzen der jeweiligen Backend-Routen
   // uebereinstimmen (admin.py) - sonst wuerde "Weitere laden" irgendwann
   // einen 422-Validierungsfehler statt neuer Eintraege liefern.
@@ -515,7 +520,10 @@
     $('userModalBody').innerHTML = `
       <h3>${escapeHtml(u.name)}, ${u.age}</h3>
       <div class="modal-sub">${escapeHtml(u.email)} · ${escapeHtml(u.city)} ${statusBadge}</div>
-      ${u.photos.length ? `<div class="photo-strip">${u.photos.map(p => `<img src="${escapeHtml(p.url)}" title="${p.status}" style="${p.status !== 'approved' ? 'opacity:.5' : ''}">`).join('')}</div>` : '<p class="modal-sub">Keine Fotos hochgeladen.</p>'}
+      ${u.photos.length ? `<div class="photo-strip">${u.photos.map(p => p.status === 'rejected'
+        // Abgelehnt: Datei ist geloescht - ein Etikett statt eines kaputten Bildes.
+        ? `<span class="photo-rejected" title="abgelehnt">abgelehnt</span>`
+        : `<img src="${escapeHtml(p.url)}" title="${p.status}" style="${p.status !== 'approved' ? 'opacity:.5' : ''}">`).join('')}</div>` : '<p class="modal-sub">Keine Fotos hochgeladen.</p>'}
       <div class="detail-row"><span class="k">Geschlecht / Interesse</span><span>${escapeHtml(u.gender)} · sucht ${escapeHtml(u.interest)}</span></div>
       <div class="detail-row"><span class="k">Adresse</span><span>${escapeHtml(u.plz)} ${escapeHtml(u.city)}</span></div>
       <div class="detail-row"><span class="k">Gym</span><span>${escapeHtml(u.gym)}</span></div>
@@ -947,6 +955,9 @@
           </div>
           <div>
             <div class="verify-col-title">Profilfotos</div>
+            ${r.profile_photo_urls.length < MIN_PROFILE_PHOTOS
+              ? `<div class="verify-doc-missing" style="margin-bottom:8px;">Nur ${r.profile_photo_urls.length} gültige${r.profile_photo_urls.length === 1 ? 's' : ''} Profilfoto${r.profile_photo_urls.length === 1 ? '' : 's'} (mindestens ${MIN_PROFILE_PHOTOS}) — ein Foto wurde nach dem Einreichen abgelehnt oder gelöscht.</div>`
+              : ''}
             <div class="verify-imgs">
               ${r.profile_photo_urls.length
                 ? r.profile_photo_urls.map(u => `<figure><img src="${escapeHtml(u)}" loading="lazy"></figure>`).join('')

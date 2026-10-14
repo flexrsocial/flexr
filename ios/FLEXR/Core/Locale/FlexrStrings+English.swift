@@ -666,6 +666,11 @@ extension FlexrStrings {
             The upload failed while your profile was being created. Add them \
             here — then everything continues as usual.
             """,
+        .vgatePhotoBody2Rejected: """
+            A photo was rejected by moderation; you will find the reason in \
+            the email about it. Upload a different one – then everything \
+            continues as usual.
+            """,
         .vgatePhotoMissing: "%d of %d required photos still missing.",
         .vgatePhotoUploading: "Uploading photo …",
         .vgatePhotoUploadFailed: "The photo could not be uploaded.",
