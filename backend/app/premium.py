@@ -170,7 +170,7 @@ def _match_ids_with_own_messages(db: Session, user: User) -> set[str]:
     return {
         row.match_id
         for row in db.query(Message.match_id)
-        .filter(Message.sender_id == user.id)
+        .filter(Message.sender_id == user.id, Message.match_id.isnot(None))
         .distinct()
     }
 

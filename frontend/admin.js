@@ -1237,6 +1237,9 @@
                   ${m.read_at
                       ? `<span class="pill ok">gelesen</span>`
                       : `<span class="pill muted">ungelesen</span>`}
+                  ${m.chat_dissolved
+                      ? `<span class="pill warn" title="Das Match wurde vor der Prüfung aufgelöst. Die Nachricht steht nur noch hier und wird mit OK gelöscht, sonst nach 30 Tagen.">Match aufgelöst</span>`
+                      : ''}
                 </td>
                 <td>${fmtDate(m.created_at)}</td>
                 <td style="white-space:nowrap;">
@@ -1255,8 +1258,10 @@
       wrap.querySelectorAll('button[data-clear-flag]').forEach(btn => {
         btn.addEventListener('click', async () => {
           try{
-            await api(`/api/admin/flagged-messages/${btn.dataset.clearFlag}/clear`, {method: 'POST'});
-            toast('Als unbedenklich markiert.');
+            const res = await api(`/api/admin/flagged-messages/${btn.dataset.clearFlag}/clear`, {method: 'POST'});
+            toast(res && res.deleted
+              ? 'Geprüft – die Nachricht aus dem aufgelösten Match ist gelöscht.'
+              : 'Als unbedenklich markiert.');
             loadFlaggedMessages();
             loadDashboard();
           }catch(err){ toast(err.message); }

@@ -696,7 +696,12 @@ class Message(Base):
     __tablename__ = "messages"
 
     id = Column(String, primary_key=True, default=gen_uuid)
-    match_id = Column(String, ForeignKey("matches.id", ondelete="CASCADE"), nullable=False, index=True)
+    # Leer nur bei einer automatisch markierten Nachricht, deren Match aufgelöst
+    # wurde, bevor die Moderation sie gesehen hat (routers/matches.unmatch). Sie
+    # gehört zu keinem Chat mehr, niemand außer dem Adminportal sieht sie, und
+    # sie verschwindet mit der Prüfung bzw. nach FLAGGED_MESSAGE_UNMATCHED_DAYS
+    # (cleanup.purge_unmatched_flagged_messages).
+    match_id = Column(String, ForeignKey("matches.id", ondelete="CASCADE"), nullable=True, index=True)
     sender_id = Column(String, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     content = Column(String(2000), nullable=False)
     created_at = Column(DateTime, default=utcnow)

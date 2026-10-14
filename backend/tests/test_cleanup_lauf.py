@@ -15,15 +15,17 @@ def test_run_all_stoesst_alle_fristen_an():
          patch.object(cleanup, "purge_stale_verification_uploads", return_value=2) as aufnahmen, \
          patch.object(cleanup, "purge_old_report_evidence", return_value=3) as beweise, \
          patch.object(cleanup, "purge_old_push_notifications", return_value=4) as mitteilungen, \
-         patch.object(cleanup, "purge_orphan_photo_objects", return_value=5) as fotos:
+         patch.object(cleanup, "purge_orphan_photo_objects", return_value=5) as fotos, \
+         patch.object(cleanup, "purge_unmatched_flagged_messages", return_value=6) as markiert:
         assert cleanup.run_all("db") == {
             "deleted_users": 1,
             "verification_requests": 2,
             "report_evidence": 3,
             "push_notifications": 4,
             "orphan_photos": 5,
+            "unmatched_flagged_messages": 6,
         }
-    for mock in (konten, aufnahmen, beweise, mitteilungen, fotos):
+    for mock in (konten, aufnahmen, beweise, mitteilungen, fotos, markiert):
         mock.assert_called_once_with("db")
 
 

@@ -23,9 +23,13 @@ from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
 from .config import settings
-from .models import Photo, PushNotification, Report, User, VerificationRequest, VerificationStatus
+from .models import (
+    Message, Photo, PushNotification, Report, User, VerificationRequest, VerificationStatus,
+)
 from .retention import ACCOUNT_GRACE_PERIOD_DAYS as GRACE_PERIOD_DAYS
-from .retention import PUSH_NOTIFICATION_RETENTION_DAYS, REPORT_EVIDENCE_RETENTION_DAYS
+from .retention import (
+    FLAGGED_MESSAGE_UNMATCHED_DAYS, PUSH_NOTIFICATION_RETENTION_DAYS, REPORT_EVIDENCE_RETENTION_DAYS,
+)
 from .storage import _buckets_for, get_s3_client, list_object_keys
 from .verification_service import (
     ORPHAN_RETENTION_DAYS,
@@ -316,6 +320,25 @@ def purge_old_push_notifications(db: Session) -> int:
     return n
 
 
+def purge_unmatched_flagged_messages(db: Session) -> int:
+    """Markierte Nachrichten aus aufgelösten Matches nach Ablauf der Frist.
+
+    Sie bleiben beim Auflösen nur für die Moderation stehen
+    (routers/matches.unmatch). Mit der Prüfung verschwinden sie sofort
+    (admin.clear_flagged_message); was bis FLAGGED_MESSAGE_UNMATCHED_DAYS nach
+    dem Senden niemand geprüft hat, geht hier.
+    """
+    cutoff = utcnow() - timedelta(days=FLAGGED_MESSAGE_UNMATCHED_DAYS)
+    n = (
+        db.query(Message)
+        .filter(Message.match_id.is_(None), Message.created_at < cutoff)
+        .delete(synchronize_session=False)
+    )
+    if n:
+        db.commit()
+    return n
+
+
 def run_all(db: Session) -> dict[str, int]:
     """Alle Fristen auf einmal - für den täglichen Timer."""
     return {
@@ -324,6 +347,7 @@ def run_all(db: Session) -> dict[str, int]:
         "report_evidence": purge_old_report_evidence(db),
         "push_notifications": purge_old_push_notifications(db),
         "orphan_photos": purge_orphan_photo_objects(db),
+        "unmatched_flagged_messages": purge_unmatched_flagged_messages(db),
     }
 
 

@@ -151,9 +151,10 @@ def unmatch(
     current_user: User = Depends(require_active_membership),
     db: Session = Depends(get_db),
 ):
-    """Match auflösen: Match und Chatverlauf werden gelöscht. Der eigene Swipe
-    wird ebenfalls entfernt, damit die Person noch einmal ganz normal im Deck
-    erscheint und bewusst weggewischt werden kann. Eine Sperre wie beim
+    """Match auflösen: Match und Chatverlauf werden gelöscht (bis auf noch
+    ungeprüfte, automatisch markierte Nachrichten, siehe unten). Der eigene
+    Swipe wird ebenfalls entfernt, damit die Person noch einmal ganz normal im
+    Deck erscheint und bewusst weggewischt werden kann. Eine Sperre wie beim
     Blockieren ist das ausdrücklich nicht."""
     match = db.query(Match).filter(Match.id == match_id).first()
     if not match or current_user.id not in (match.user_a_id, match.user_b_id):
@@ -161,6 +162,16 @@ def unmatch(
 
     other_id = match.user_b_id if match.user_a_id == current_user.id else match.user_a_id
 
+    # Automatisch markierte Nachrichten, die noch auf die Moderation warten,
+    # bleiben - nur ohne Chat. Bis zum 14.10.2026 gingen sie mit: Wer einen
+    # Scam-Link schickte und gleich danach auflöste, nahm das Beweisstück mit,
+    # bevor jemand im Adminportal draufgesehen hatte. Ebenso, wenn die
+    # Empfängerin auflöste, um die Person los zu sein - der häufigere Fall.
+    # Für beide Seiten ist der Chat trotzdem weg; Meldungen sichern ihren
+    # Auszug ohnehin selbst (Report.evidence).
+    db.query(Message).filter(
+        Message.match_id == match_id, Message.is_flagged.is_(True)
+    ).update({Message.match_id: None}, synchronize_session=False)
     db.query(Message).filter(Message.match_id == match_id).delete()
     db.query(Swipe).filter(
         Swipe.from_user_id == current_user.id, Swipe.to_user_id == other_id

@@ -1345,6 +1345,7 @@ def list_flagged_messages(
             read_at=msg.read_at,
             flag_reason=msg.flag_reason,
             created_at=msg.created_at,
+            chat_dissolved=msg.match_id is None,
         )
         for msg, sender_name in rows
     ]
@@ -1359,10 +1360,16 @@ def clear_flagged_message(
     msg = db.query(Message).filter(Message.id == message_id, Message.is_flagged.is_(True)).first()
     if not msg:
         raise HTTPException(404, "Nachricht nicht gefunden.")
+    if msg.match_id is None:
+        # Aus einem aufgelösten Match: Sie stand nur noch für diese Prüfung da
+        # (routers/matches.unmatch) und gehört zu keinem Chat mehr.
+        db.delete(msg)
+        db.commit()
+        return {"cleared": True, "deleted": True}
     msg.is_flagged = False
     msg.flag_reason = None
     db.commit()
-    return {"cleared": True}
+    return {"cleared": True, "deleted": False}
 
 
 @router.get("/reports", response_model=list[AdminReportOut])

@@ -40,6 +40,13 @@ REPORT_EVIDENCE_RETENTION_DAYS: Final = 183
 #: blieben sie bis zur Kontolöschung liegen.
 PUSH_NOTIFICATION_RETENTION_DAYS: Final = 30
 
+#: Automatisch markierte Nachricht, deren Match vor der Prüfung aufgelöst
+#: wurde: so viele Tage nach dem Senden, falls die Moderation sie bis dahin
+#: nicht geprüft hat (mit der Prüfung sofort). Verwendet in
+#: cleanup.purge_unmatched_flagged_messages(). Eingeführt am 14.10.2026 -
+#: vorher verschwand sie mit dem Auflösen, auch ungeprüft.
+FLAGGED_MESSAGE_UNMATCHED_DAYS: Final = 30
+
 #: Gültigkeit des E-Mail-Bestätigungslinks.
 EMAIL_TOKEN_TTL_HOURS: Final = 24
 
@@ -125,6 +132,12 @@ RETENTION_TABLE: Final[tuple[RetentionRow, ...]] = (
         "mit dem Konto der beteiligten Person",
         "Kontolöschung",
         "models.Report (ondelete CASCADE)",
+    ),
+    RetentionRow(
+        "Automatisch markierte Nachricht nach Auflösen des Matches (Moderation)",
+        f"bis zur Prüfung, höchstens {FLAGGED_MESSAGE_UNMATCHED_DAYS} Tage nach dem Senden",
+        "Prüfung im Adminportal, Fristablauf oder Kontolöschung des Absenders",
+        "cleanup.purge_unmatched_flagged_messages",
     ),
     RetentionRow(
         "Chat-Auszug an einer Meldung (Beweissicherung)",

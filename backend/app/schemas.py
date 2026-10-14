@@ -961,6 +961,9 @@ class AdminFlaggedMessageOut(BaseModel):
     read_at: Optional[datetime] = None  # vom Empfänger gelesen (None = ungelesen)
     flag_reason: Optional[str]
     created_at: datetime
+    # Das Match wurde aufgelöst, bevor jemand geprüft hat - die Nachricht steht
+    # nur noch für die Moderation da und verschwindet mit "OK".
+    chat_dissolved: bool = False
 
 
 class AdminStats(BaseModel):
