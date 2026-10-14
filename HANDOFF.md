@@ -32,6 +32,47 @@ erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 
 ## Wo das Projekt gerade steht
 
+> **Sitzung 14.10.2026 (11): Markierte Nachrichten überstehen das Auflösen
+> des Matches; Root-Skript aus Runde 5 geprüft.**
+>
+> **Root-Skript** (`flexr-betrieb.sh`) hat der Nutzer ausgeführt. Geprüft:
+> `flexr-email-jobs` hat `OnFailure=flexr-notify-failure@…` (Unit = Repo),
+> `/etc/systemd/journald.conf.d/zz-flexr.conf` greift (`SplitMode=none`,
+> `SystemMaxUse=2G`, wirksam nach `size.conf`), API-Zeilen landen seit
+> 17:43 im System-Journal. Skript gelöscht.
+>
+> **Markierte Nachrichten** (Wunsch des Nutzers, offener Punkt aus Runde 5):
+> „Match auflösen“ löschte bisher auch automatisch markierte Nachrichten,
+> bevor die Moderation sie gesehen hatte – ob der Absender auflöste oder
+> (häufiger) die Empfängerin.
+>
+> Deployt (`ce419ce`, gepusht; DB-Sicherung
+> `/home/deploy/db-backups/flexr-vor-deploy-20261014-1754.sql.gz`, dann
+> `git pull --ff-only`, `alembic upgrade head` → `a3d7e1f5c9b2`, `sudo
+> systemctl restart flexr-api`). Live: Spalte nullable, 38 Nachrichten
+> unverändert, Health ok, `admin.js?v=6`/`admin.html` md5-gleich, neue
+> Aufräumabfrage gegen PostgreSQL gelaufen (0 Treffer).
+>
+> - **Migration `a3d7e1f5c9b2`:** `messages.match_id` darf leer sein (nur
+>   `DROP NOT NULL`, kein Umschreiben; lokal auf SQLite hin/zurück/hin).
+> - **`matches.unmatch`:** ungeprüfte markierte Nachrichten verlieren ihr
+>   Match statt gelöscht zu werden. Für beide Seiten ist der Chat weg; sie
+>   belegen keinen Chat-Platz (`premium._match_ids_with_own_messages`).
+> - **Adminportal:** roter Hinweis „Match aufgelöst“ in „Auffällige
+>   Nachrichten“; „OK“ löscht eine solche Nachricht (statt nur die Markierung
+>   aufzuheben), Toast sagt das. Lokal im Browser durchgespielt.
+> - **Frist:** `retention.FLAGGED_MESSAGE_UNMATCHED_DAYS = 30` nach dem
+>   Senden, `cleanup.purge_unmatched_flagged_messages` im stündlichen Lauf
+>   (`unmatched_flagged_messages`); mit der Kontolöschung des Absenders
+>   ohnehin (Kaskade über `sender_id`). Zeile in `RETENTION_TABLE`.
+> - **Rechtstexte unverändert:** Die Datenschutzerklärung nennt
+>   „Moderationsmarkierungen“ (Abschnitt 2, Art. 6 Abs. 1 lit. f, Art. 16 DSA)
+>   und für Chatnachrichten „mit dem Konto“ als Obergrenze – die neue Frist
+>   liegt darunter. Eine eigene Zeile in Abschnitt 7 wäre genauer, zöge aber
+>   `PRIVACY_VERSION` und die Kurzfassungen in Android/iOS nach.
+>
+> **Tests:** Backend 641 grün (+7).
+
 > **Sitzung 14.10.2026 (10): Bugfix-Runde 5 – Storage-Zeitgrenzen,
 > Match-Mails, Ausweis-Einreichung. Android 2.7.27 gebaut.** Wunsch des
 > Nutzers: noch eine Bugfixing-Runde. Grundlage: Produktions-Journal und
