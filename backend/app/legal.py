@@ -82,7 +82,7 @@ def operator_inline() -> str:
 # ---------------------------------------------------------------------------
 
 TERMS_VERSION: Final = "2026-10-13"           # AGB (Premium-Umkreis 580 km, Startaktion 7 e bis 31.12.2026)
-PRIVACY_VERSION: Final = "2026-10-02"          # Datenschutzerklärung (Sicherungskopien: Inhalt, höchstens 3 Monate)
+PRIVACY_VERSION: Final = "2026-10-14"          # Datenschutzerklärung (markierte Nachricht nach Auflösen des Matches: höchstens 30 Tage)
 AUP_VERSION: Final = "2026-08-19"              # Nutzungsrichtlinien
 LE_GUIDELINES_VERSION: Final = "2026-08-19"    # Strafverfolgungsrichtlinien
 WITHDRAWAL_VERSION: Final = "2026-08-17"      # Widerrufsbelehrung

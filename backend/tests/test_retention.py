@@ -123,6 +123,19 @@ def test_datenschutz_en_nennt_die_backup_frist():
     assert f"at most {retention.BACKUP_MAX_MONTHS} months" in text
 
 
+def test_frist_fuer_markierte_nachrichten_stimmt():
+    from app.cleanup import FLAGGED_MESSAGE_UNMATCHED_DAYS
+
+    assert retention.FLAGGED_MESSAGE_UNMATCHED_DAYS == FLAGGED_MESSAGE_UNMATCHED_DAYS
+
+
+def test_datenschutz_nennt_die_frist_fuer_markierte_nachrichten(datenschutz_text):
+    tage = retention.FLAGGED_MESSAGE_UNMATCHED_DAYS
+    assert f"höchstens {tage} Tage nach dem Senden" in datenschutz_text
+    en = (REPO / "frontend" / "en" / "datenschutz.html").read_text(encoding="utf-8")
+    assert f"at most {tage} days after it was sent" in en
+
+
 def test_datenschutz_nennt_die_legal_hold_frist(datenschutz_text):
     assert f"{retention.LEGAL_HOLD_DAYS} Tage" in datenschutz_text
 

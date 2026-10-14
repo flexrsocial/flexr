@@ -1040,8 +1040,13 @@ enum LegalContent {
 
     // MARK: - Datenschutz
 
+    // Kurzfassung von flexr.social/datenschutz.html — bei jeder Änderung dort
+    // mitziehen (zuletzt Fassung 2026-10-14: markierte Nachricht nach Auflösen des
+    // Matches; dabei auch die Sicherungskopien aus der Fassung 2026-10-02 nachgeholt).
     private static let datenschutz = LegalPage(
         document: .datenschutz,
+        intro: "Wie FLEXR mit deinen Daten umgeht. Stand: 14. Oktober 2026. Diese Fassung ist "
+            + "gekürzt; maßgeblich ist der vollständige Text unter flexr.social/datenschutz.html.",
         blocks: [
             .heading("1. Verantwortlicher"),
             .paragraph(
@@ -1226,10 +1231,14 @@ enum LegalContent {
                 "Kontodaten: bis zur Löschung des Profils durch den Nutzer.",
                 "Nach Löschung: 30 Tage Karenzzeit, danach werden die Datensätze und die "
                     + "Dateien im Objektspeicher gelöscht und sind über die App nicht "
-                    + "wiederherstellbar. Sicherungskopien können für kurze Zeit "
-                    + "weiterbestehen, bis sie im normalen Umlauf überschrieben werden; daraus "
-                    + "werden keine Konten wiederhergestellt. Zahlungsbezogene Aufzeichnungen "
-                    + "bleiben nach § 132 BAO länger erhalten.",
+                    + "wiederherstellbar. Zahlungsbezogene Aufzeichnungen bleiben nach "
+                    + "§ 132 BAO länger erhalten.",
+                "Sicherungskopien: Datenbank und Profilfotos werden täglich verschlüsselt "
+                    + "gesichert, auf unserem Server und zusätzlich bei Cloudflare R2. Diese "
+                    + "Sicherungen werden nach höchstens 3 Monaten gelöscht und dienen nur "
+                    + "dazu, den Dienst nach einem technischen Ausfall wiederherzustellen; "
+                    + "einzelne Konten werden daraus nicht wiederhergestellt. "
+                    + "Verifizierungs-Selfies und Ausweisaufnahmen sind darin nicht enthalten.",
                 "Verifizierungs-Selfies und Ausweisaufnahmen: werden unmittelbar nach "
                     + "Abschluss der Prüfung gelöscht — bei Freigabe ebenso wie bei Ablehnung. "
                     + "Fordern wir eine neue Aufnahme an, wird die ersetzte Aufnahme sofort "
@@ -1244,6 +1253,9 @@ enum LegalContent {
                     + "festen Liste, die Zeitpunkte und eine Prüfkennung bleiben als Nachweis "
                     + "erhalten, dass die Altersprüfung stattgefunden hat — ohne die geprüften "
                     + "Bilder und ohne Ausweisdaten. Sie werden mit dem Konto gelöscht.",
+                "Automatisch markierte Nachricht, wenn das Match vor der Prüfung aufgelöst "
+                    + "wird: bis zur Prüfung durch die Moderation, höchstens 30 Tage nach dem "
+                    + "Senden. Für beide Seiten ist der Chat sofort weg.",
                 "Registrierungsversuche unter 18: Geräte-ID und Zeitpunkt, nur für ein "
                     + "kurzes Zeitfenster relevant.",
                 "Zahlungsbezogene Daten: gemäß gesetzlicher Aufbewahrungspflichten (i. d. "
