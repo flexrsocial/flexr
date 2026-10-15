@@ -390,6 +390,8 @@ private fun CardContent(
                 StatChip(
                     text = profile.gym.ifBlank { stringResource(R.string.gym_none) },
                     icon = FlexrIcons.Gym,
+                    // Nur den freien Platz - der Online-Chip daneben bleibt sichtbar.
+                    modifier = Modifier.weight(1f, fill = false),
                 )
                 if (profile.isOnline) {
                     StatChip(text = "Online", accent = true, pulsingDot = true)

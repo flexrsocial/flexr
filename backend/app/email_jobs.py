@@ -152,6 +152,8 @@ def _pending_likes_count(db: Session, user: User) -> int:
     ebenfalls nicht - das ist eine bereits getroffene Entscheidung, keine
     offene.
     """
+    from .routers.swipes import genug_fotos_condition
+
     swiped_ids = db.query(Swipe.to_user_id).filter(Swipe.from_user_id == user.id)
     # Gesperrte in beide Richtungen: Die Mail darf nichts versprechen, was die
     # App danach nicht zeigt - GET /api/swipes/incoming filtert sie heraus.
@@ -172,6 +174,8 @@ def _pending_likes_count(db: Session, user: User) -> int:
             User.is_banned.is_(False),
             account_visible_condition(),
             consents.sensitive_data_consent_condition(),
+            # Wie GET /api/swipes/incoming: nur wer genug freigegebene Fotos hat.
+            genug_fotos_condition(),
         )
         .count()
     )

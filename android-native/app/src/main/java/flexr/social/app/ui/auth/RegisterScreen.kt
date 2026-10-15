@@ -95,8 +95,12 @@ fun RegisterScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .verticalScroll(rememberScrollState())
+            // Tastatur zuerst: Sie verkleinert so den sichtbaren Bereich, und
+            // ein fokussiertes Feld wird darueber gescrollt. Hinter
+            // verticalScroll vergroesserte imePadding nur den Inhalt - das
+            // Gym-Suchfeld blieb unter der Tastatur (Emulator, 15.10.2026).
             .imePadding()
+            .verticalScroll(rememberScrollState())
             .navigationBarsPadding()
             .padding(horizontal = 20.dp),
     ) {
@@ -115,7 +119,10 @@ fun RegisterScreen(
         )
 
         // Der ganze Weg bis zum ersten Swipe; der erste Abschnitt fuellt sich
-        // mit den Pflichtangaben dieses Formulars.
+        // mit den Pflichtangaben dieses Formulars. Abstand wie auf den
+        // Pruefschirmen - ohne ihn stiess die letzte Zeile des Einleitungstexts
+        // an die Balken (im Emulator aufgefallen, 15.10.2026).
+        Spacer(Modifier.height(14.dp))
         JourneyBar(
             current = JourneyStep.PROFILE,
             progress = state.completedRequired / RegisterUiState.REQUIRED_FIELDS.toFloat(),

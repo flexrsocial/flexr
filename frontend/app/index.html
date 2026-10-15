@@ -2293,7 +2293,7 @@
      laufen synchron und damit vor dem DOMContentLoaded, bei dem FlexrI18n die
      data-i18n-Knoten uebersetzt. -->
 <script src="/i18n.js?v=5"></script>
-<script src="/app/i18n-app.js?v=37"></script>
+<script src="/app/i18n-app.js?v=38"></script>
 <a class="skip-link" href="#main-content" data-i18n="common.skipToContent">Zum Inhalt springen</a>
 <div class="app" id="app">
 
@@ -7040,11 +7040,10 @@
       hint.className = 'photo-hint warn';
       hint.textContent = t('photo.hintRejected');
     } else if(gueltig < MIN_PHOTOS){
-      // Die Mindestanzahl steht vor dem Moderationsstand. Sichtbar ist das
-      // Profil trotzdem, sobald eines freigegeben ist (swipes.deck_profiles) -
-      // "unsichtbar" stand bis zum 14.10.2026 auch dann da.
+      // Die Mindestanzahl steht vor dem Moderationsstand: Ins Deck kommt
+      // ohnehin nur, wer MIN_PHOTOS freigegebene hat (seit 15.10.2026).
       hint.className = 'photo-hint warn';
-      hint.textContent = t(sichtbarkeit === 'visible' ? 'photo.hintTooFewVisible' : 'photo.hintTooFew', {
+      hint.textContent = t('photo.hintTooFew', {
         fehlend: MIN_PHOTOS - gueltig, min: MIN_PHOTOS,
       });
     } else if(sichtbarkeit === 'visible'){
@@ -7054,7 +7053,7 @@
         + (gueltig === MIN_PHOTOS ? ' ' + t('photo.hintAtMin', {min: MIN_PHOTOS}) : '');
     } else if(sichtbarkeit === 'pending'){
       hint.className = 'photo-hint warn';
-      hint.textContent = t('photo.hintPending');
+      hint.textContent = t('photo.hintPending', {min: MIN_PHOTOS});
     } else {
       hint.className = 'photo-hint warn';
       hint.textContent = t('photo.hintRejected');
@@ -7090,14 +7089,15 @@
   /* Sichtbarkeit in der Suche wegen der Fotos: "visible", "pending",
      "rejected" oder "none". Kommt seit 14.10.2026 vom Server
      (MyProfileOut.photo_visibility); die Rechnung hier ist der Rueckfall fuer
-     einen aelteren Server. */
+     einen aelteren Server - dieselbe Regel: ins Deck erst mit MIN_PHOTOS
+     freigegebenen Fotos (seit 15.10.2026). */
   function fotoSichtbarkeit(){
     if(!myProfile) return 'visible';
     if(myProfile.photo_visibility) return myProfile.photo_visibility;
     const photos = myProfile.photos || [];
-    if(photos.some(p => p.status === 'approved')) return 'visible';
-    if(photos.some(p => p.status === 'pending')) return 'pending';
-    return photos.length ? 'rejected' : 'none';
+    if(photos.filter(p => p.status === 'approved').length >= MIN_PHOTOS) return 'visible';
+    if(gueltigeFotoAnzahl() >= MIN_PHOTOS) return 'pending';
+    return photos.some(p => p.status === 'rejected') ? 'rejected' : 'none';
   }
 
   const ICO_UNSICHTBAR = '<svg class="vis-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3l18 18M10.6 5.2A9.9 9.9 0 0 1 12 5c5 0 8.6 4.3 9.5 7-.4 1.1-1.2 2.5-2.4 3.7M6.6 6.7C4.6 8 3.1 10 2.5 12c.9 2.7 4.5 7 9.5 7 1.9 0 3.6-.6 5-1.5M9.9 9.9a3 3 0 0 0 4.2 4.2"/></svg>';
@@ -7124,7 +7124,7 @@
         box.innerHTML = `<button type="button" class="vis-compact" aria-label="${escapeHtml(t('vis.titleShort') + ' – ' + t(cta))}">`
           + ICO_UNSICHTBAR
           + `<span class="vis-compact-text"><span class="vis-title">${escapeHtml(t('vis.titleShort'))}</span>`
-          + `<span class="vis-text">${escapeHtml(t(kurz))}</span></span>`
+          + `<span class="vis-text">${escapeHtml(t(kurz, {min: MIN_PHOTOS}))}</span></span>`
           + `<svg class="vis-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></button>`;
         box.hidden = false;
         box.querySelector('.vis-compact').onclick = () => zeigeEigeneFotos(stand !== 'pending');

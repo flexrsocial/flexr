@@ -289,7 +289,7 @@ struct PhotoVisibilityHint: View {
     /// Die Mindestanzahl steht vor dem Moderationsstand: Wer zu wenige Fotos
     /// hat, muss das zuerst erfahren. Abgelehnte zählen nicht mit (wie beim
     /// Server) - bis 14.10.2026 galten zwei gültige plus ein abgelehntes als
-    /// „genug". Sichtbar ist das Profil trotzdem, sobald eines freigegeben ist.
+    /// „genug". Ins Deck kommt ohnehin nur, wer drei freigegebene hat.
     private var content: (text: String, warn: Bool) {
         if statuses.isEmpty {
             return (s(.photoHintNone, ImageProcessor.minPhotos), true)
@@ -300,8 +300,7 @@ struct PhotoVisibilityHint: View {
         }
         let missing = ImageProcessor.minPhotos - valid
         if missing > 0 {
-            return (s(visibility == .visible ? .photoHintTooFewVisible : .photoHintTooFew,
-                      missing, ImageProcessor.minPhotos), true)
+            return (s(.photoHintTooFew, missing, ImageProcessor.minPhotos), true)
         }
         if visibility == .visible {
             // Genau die Mindestzahl: erklären, warum statt ✕ die Pfeile stehen.
@@ -311,7 +310,7 @@ struct PhotoVisibilityHint: View {
                     : ok, false)
         }
         if visibility == .pending {
-            return (s(.photoHintPending), true)
+            return (s(.photoHintPending, ImageProcessor.minPhotos), true)
         }
         return (s(.photoHintRejected), true)
     }
@@ -345,16 +344,16 @@ struct SearchVisibilityBanner: View {
 
     private var text: String {
         switch visibility {
-        case .pending: s(.visPending)
+        case .pending: s(.visPending, ImageProcessor.minPhotos)
         case .noPhotos: s(.visNone, ImageProcessor.minPhotos)
-        default: s(.visRejected)
+        default: s(.visRejected, ImageProcessor.minPhotos)
         }
     }
 
     private var shortText: String {
         switch visibility {
         case .pending: s(.visShortPending)
-        case .noPhotos: s(.visShortNone)
+        case .noPhotos: s(.visShortNone, ImageProcessor.minPhotos)
         default: s(.visShortRejected)
         }
     }

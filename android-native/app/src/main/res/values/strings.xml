@@ -147,9 +147,9 @@
     <string name="gender_male">Mann</string>
     <string name="gender_female">Frau</string>
     <string name="register_photo_preparing">Foto wird vorbereitet …</string>
-    <string name="register_consent_prefix">Ich willige ein, dass meine Angaben zu Geschlecht und gesuchtem Geschlecht (daraus ableitbar: sexuelle Orientierung) gemäß </string>
+    <string name="register_consent_prefix">"Ich willige ein, dass meine Angaben zu Geschlecht und gesuchtem Geschlecht (daraus ableitbar: sexuelle Orientierung) gemäß "</string>
     <string name="register_consent_link">Datenschutzerklärung</string>
-    <string name="register_consent_suffix"> verarbeitet werden.</string>
+    <string name="register_consent_suffix">" verarbeitet werden."</string>
     <string name="register_incomplete_hint">Noch nicht vollständig — tippe auf den Knopf, dann zeigen wir dir, was fehlt.</string>
     <string name="register_err_password_mismatch_short">Die Passwörter stimmen nicht überein.</string>
     <string name="register_err_required">Bitte E-Mail, Passwort (min. %1$d Zeichen), Name und Geburtsdatum angeben.</string>
@@ -234,7 +234,7 @@
     <string name="chats_title">Deine Chats</string>
     <string name="chats_empty_title">Noch keine Chats</string>
     <string name="chats_empty_sub">Schreib einem deiner Matches die erste Nachricht.</string>
-    <string name="chats_you_prefix">Du: </string>
+    <string name="chats_you_prefix">"Du: "</string>
 
     <!-- ==== Match-Profil ==== -->
     <string name="match_profile_block_body">Ihr seht euch danach nicht mehr — das Match und der Chat verschwinden.</string>
@@ -287,7 +287,7 @@
     <string name="photo_uploading">Foto wird hochgeladen …</string>
     <string name="photo_hint_none">Mindestens %1$d Fotos sind nötig, damit dein Profil sichtbar ist.</string>
     <string name="photo_hint_ok">Dein Profil ist sichtbar. Neue Fotos werden kurz geprüft.</string>
-    <string name="photo_hint_pending">Deine Fotos werden geprüft.</string>
+    <string name="photo_hint_pending">Deine Fotos werden geprüft. Sichtbar wirst du mit %1$d freigegebenen.</string>
     <string name="photo_hint_rejected">Deine Fotos wurden abgelehnt. Bitte lade andere hoch.</string>
     <!-- Unter der Mindestanzahl, aber nicht leer - etwa wenn beim Anlegen
          ein Upload scheiterte. -->
@@ -300,18 +300,17 @@
     <string name="photo_swap_choose">Neues Foto wählen</string>
     <string name="photo_swapped">Foto ausgetauscht. Das neue wird vor der Anzeige geprüft.</string>
     <string name="photo_swap_no_room">Alle 6 Plätze sind belegt. Entferne zuerst ein abgelehntes Foto, dann kannst du austauschen.</string>
-    <string name="photo_hint_too_few_visible">Noch %1$d von %2$d Pflichtfotos – bitte lade ein weiteres hoch.</string>
     <string name="photo_hint_at_min">%1$d Fotos sind das Minimum: Zum Ersetzen tippe auf die Pfeile an einem Foto.</string>
     <string name="vis_title">Du bist in der Suche gerade nicht sichtbar</string>
-    <string name="vis_pending">Deine Fotos werden noch geprüft. Sobald mindestens eines freigegeben ist, erscheinst du bei anderen.</string>
-    <string name="vis_rejected">Deine Fotos wurden abgelehnt. Lade ein neues Foto hoch – sobald es freigegeben ist, erscheinst du wieder bei anderen.</string>
-    <string name="vis_none">Du hast noch kein Profilfoto. Lade mindestens %1$d Fotos hoch, damit andere dich finden.</string>
+    <string name="vis_pending">Deine Fotos werden noch geprüft. Sobald %1$d freigegeben sind, erscheinst du bei anderen.</string>
+    <string name="vis_rejected">Fotos wurden abgelehnt, dir fehlen jetzt freigegebene. Lade neue hoch – mit %1$d freigegebenen Fotos erscheinst du bei anderen.</string>
+    <string name="vis_none">Du hast noch zu wenige Profilfotos. Lade mindestens %1$d hoch, damit andere dich finden.</string>
     <string name="vis_cta_pending">Zu meinen Fotos</string>
     <string name="vis_cta_upload">Neues Foto hochladen</string>
     <string name="vis_title_short">In der Suche nicht sichtbar</string>
     <string name="vis_short_pending">Deine Fotos werden noch geprüft.</string>
     <string name="vis_short_rejected">Fotos abgelehnt – lade ein neues hoch.</string>
-    <string name="vis_short_none">Lade Profilfotos hoch, damit man dich findet.</string>
+    <string name="vis_short_none">Zu wenige Fotos – lade mindestens %1$d hoch.</string>
     <string name="photo_lightbox_position">Foto %1$d von %2$d</string>
     <string name="photo_too_small">Foto zu klein (%1$d×%2$d). Mindestens %3$d×%3$d Pixel.</string>
     <string name="photo_read_failed">Bild konnte nicht gelesen werden.</string>
@@ -328,7 +327,7 @@
     <string name="account_privacy_title">Datenschutz &amp; Sicherheit</string>
     <string name="account_blocks_title">Blockierte Personen</string>
     <string name="consent_revoke_title">Einwilligung widerrufen?</string>
-    <string name="consent_revoked_suffix">  — widerrufen</string>
+    <string name="consent_revoked_suffix">"  — widerrufen"</string>
     <string name="consent_granted_version">Erteilt am %1$s, Fassung %2$s.</string>
     <string name="consent_revoked_on_day">Widerrufen am %1$s.</string>
     <string name="consent_revoke_link">Einwilligung widerrufen</string>
@@ -467,7 +466,7 @@
     <string name="paywall_title">FLEXR Premium</string>
     <string name="paywall_membership">Monatlich kündbar</string>
     <string name="paywall_price">10 €</string>
-    <string name="paywall_per_month"> / Monat</string>
+    <string name="paywall_per_month">" / Monat"</string>
     <string name="paywall_feature_unlimited">Unbegrenzt liken</string>
     <string name="paywall_subscribe">Premium holen</string>
     <string name="purchase_success">FLEXR Premium läuft. Viel Spaß!</string>

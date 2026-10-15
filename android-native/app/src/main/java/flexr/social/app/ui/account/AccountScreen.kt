@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -231,6 +232,10 @@ fun AccountScreen(
     Column(
         Modifier
             .fillMaxSize()
+            // Tastatur vor dem Scrollen: Sonst verschwanden Bio, PLZ und
+            // Gym-Suche beim Tippen hinter der Tastatur, die Seite scrollte das
+            // Feld nicht hoch (Emulator, 15.10.2026).
+            .imePadding()
             .verticalScroll(rememberScrollState())
             .padding(horizontal = 20.dp),
     ) {

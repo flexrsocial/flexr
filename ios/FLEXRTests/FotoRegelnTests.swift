@@ -104,15 +104,20 @@ final class FotoRegelnTests: XCTestCase {
         XCTAssertEqual(p.photoVisibility, .pending)
     }
 
+    /// Seit 15.10.2026: ins Deck erst mit drei freigegebenen Fotos.
     func testSichtbarkeitRueckfallAusDenFotos() throws {
         XCTAssertEqual(try profil(photos: "").photoVisibility, .noPhotos)
-        XCTAssertEqual(try profil(photos: abgelehntZuerst).photoVisibility, .visible)
+        // Zwei freigegebene plus ein abgelehntes: Ersatz nötig.
+        XCTAssertEqual(try profil(photos: abgelehntZuerst).photoVisibility, .rejected)
         XCTAssertEqual(try profil(photos: """
-            {"id": "p1", "url": "https://r2/1", "position": 0, "status": "rejected"},
-            {"id": "p2", "url": "https://r2/2", "position": 1, "status": "pending"}
+            {"id": "p1", "url": "https://r2/1", "position": 0, "status": "approved"},
+            {"id": "p2", "url": "https://r2/2", "position": 1, "status": "pending"},
+            {"id": "p3", "url": "https://r2/3", "position": 2, "status": "pending"}
             """).photoVisibility, .pending)
         XCTAssertEqual(try profil(photos: """
-            {"id": "p1", "url": "https://r2/1", "position": 0, "status": "rejected"}
-            """).photoVisibility, .rejected)
+            {"id": "p1", "url": "https://r2/1", "position": 0, "status": "approved"},
+            {"id": "p2", "url": "https://r2/2", "position": 1, "status": "approved"},
+            {"id": "p3", "url": "https://r2/3", "position": 2, "status": "approved"}
+            """).photoVisibility, .visible)
     }
 }

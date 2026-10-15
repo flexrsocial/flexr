@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
@@ -71,7 +72,10 @@ fun LegalScreen(
         Box(Modifier.fillMaxWidth().height(1.dp).background(colors.hairline))
 
         LazyColumn(
-            modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp),
+            // imePadding: Das Ruecktrittsformular (WithdrawalFormBlock) hat
+            // Eingabefelder - ohne die Tastatur-Einrueckung lagen sie beim
+            // Tippen unter der Tastatur.
+            modifier = Modifier.fillMaxSize().imePadding().padding(horizontal = 20.dp),
             contentPadding = androidx.compose.foundation.layout.PaddingValues(
                 top = 16.dp,
                 bottom = 48.dp,

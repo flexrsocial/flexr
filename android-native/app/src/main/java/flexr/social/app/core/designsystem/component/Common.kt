@@ -40,6 +40,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import flexr.social.app.R
 import flexr.social.app.core.designsystem.theme.EyebrowStyle
@@ -273,7 +274,10 @@ fun StatChip(
         } else if (icon != null) {
             Icon(icon, contentDescription = null, tint = tint, modifier = Modifier.size(13.dp))
         }
-        Text(text, style = MonoStyle, color = tint, maxLines = 1)
+        // Zwei Zeilen wie im Web: Gym-Namen mit Adresse ("Bikram Yoga —
+        // Maria-Theresien-Straße 32-34, 1010 Wien") wurden bis 2.7.30 nach
+        // einer Zeile hart abgeschnitten, ohne Auslassungszeichen.
+        Text(text, style = MonoStyle, color = tint, maxLines = 2, overflow = TextOverflow.Ellipsis)
     }
 }
 

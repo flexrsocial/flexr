@@ -230,8 +230,8 @@ def register_user(client, email, name="Test User", **overrides):
 def add_approved_photo(client, headers, url="https://cdn.example.test/photo.jpg"):
     """Gibt dem Nutzer hinter ``headers`` ein von der Moderation freigegebenes Foto.
 
-    Nötig für alle Deck-Tests: get_deck() überspringt Profile ohne freigegebenes
-    Foto. Der echte Weg (Presign -> S3-Upload -> Admin-Freigabe) funktioniert im
+    Fuer Deck-Tests braucht es MIN_PHOTOS davon (add_required_photos bzw.
+    register_user_with_photo) - get_deck() ueberspringt Profile mit weniger. Der echte Weg (Presign -> S3-Upload -> Admin-Freigabe) funktioniert im
     Test nicht, da kein Objekt-Storage vorhanden ist - deshalb wird die
     Photo-Zeile direkt in die Test-DB geschrieben.
     """
@@ -265,10 +265,12 @@ def add_required_photos(client, headers, prefix="https://cdn.example.test/pflich
 
 
 def register_user_with_photo(client, email, name="Test User", **overrides):
-    """Registrierung + freigegebenes Foto - so, wie ein Profil aussehen muss,
-    damit es im Swipe-Deck anderer Nutzer auftaucht."""
+    """Registrierung + freigegebene Fotos - so, wie ein Profil aussehen muss,
+    damit es im Swipe-Deck anderer Nutzer auftaucht. Seit 15.10.2026 sind das
+    MIN_PHOTOS freigegebene Fotos (swipes.genug_fotos_condition), vorher
+    genuegte eines."""
     headers = register_user(client, email, name=name, **overrides)
-    add_approved_photo(client, headers)
+    add_required_photos(client, headers)
     return headers
 
 

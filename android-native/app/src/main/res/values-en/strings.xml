@@ -115,7 +115,7 @@
     <string name="gender_male">Man</string>
     <string name="gender_female">Woman</string>
     <string name="register_photo_preparing">Preparing photo …</string>
-    <string name="register_consent_prefix">I consent to the processing of my gender and the gender I am looking for (from which sexual orientation can be inferred) in accordance with the </string>
+    <string name="register_consent_prefix">"I consent to the processing of my gender and the gender I am looking for (from which sexual orientation can be inferred) in accordance with the "</string>
     <string name="register_consent_link">privacy policy</string>
     <string name="register_consent_suffix">.</string>
     <string name="register_incomplete_hint">Not complete yet — tap the button and we will show you what is missing.</string>
@@ -196,7 +196,7 @@
     <string name="chats_title">Your chats</string>
     <string name="chats_empty_title">No chats yet</string>
     <string name="chats_empty_sub">Send one of your matches the first message.</string>
-    <string name="chats_you_prefix">You: </string>
+    <string name="chats_you_prefix">"You: "</string>
 
     <string name="match_profile_block_body">You will no longer see each other — the match and the chat disappear.</string>
     <string name="match_profile_unmatch_title">Remove match with %1$s?</string>
@@ -245,7 +245,7 @@
     <string name="photo_uploading">Uploading photo …</string>
     <string name="photo_hint_none">At least %1$d photos are needed for your profile to be visible.</string>
     <string name="photo_hint_ok">Your profile is visible. New photos are reviewed briefly.</string>
-    <string name="photo_hint_pending">Your photos are being reviewed.</string>
+    <string name="photo_hint_pending">Your photos are being reviewed. You become visible with %1$d approved.</string>
     <string name="photo_hint_rejected">Your photos were rejected. Please upload different ones.</string>
     <string name="photo_hint_too_few">%1$d of %2$d required photos still missing. Without them your profile stays hidden.</string>
     <string name="photo_min_count">At least %1$d photos are required. Upload another one first.</string>
@@ -256,18 +256,17 @@
     <string name="photo_swap_choose">Choose new photo</string>
     <string name="photo_swapped">Photo replaced. The new one is reviewed before it appears.</string>
     <string name="photo_swap_no_room">All 6 slots are taken. Remove a rejected photo first, then you can replace one.</string>
-    <string name="photo_hint_too_few_visible">%1$d of %2$d required photos still missing – please upload another one.</string>
     <string name="photo_hint_at_min">%1$d photos are the minimum: to replace one, tap the arrows on a photo.</string>
     <string name="vis_title">You are not visible in the search right now</string>
-    <string name="vis_pending">Your photos are still being reviewed. As soon as at least one is approved, others will see you.</string>
-    <string name="vis_rejected">Your photos were rejected. Upload a new photo – as soon as it is approved, others will see you again.</string>
-    <string name="vis_none">You have no profile photo yet. Upload at least %1$d photos so others can find you.</string>
+    <string name="vis_pending">Your photos are still being reviewed. As soon as %1$d are approved, others will see you.</string>
+    <string name="vis_rejected">Photos were rejected, so you are short of approved ones. Upload new ones – with %1$d approved photos others will see you.</string>
+    <string name="vis_none">You do not have enough profile photos yet. Upload at least %1$d so others can find you.</string>
     <string name="vis_cta_pending">View my photos</string>
     <string name="vis_cta_upload">Upload a new photo</string>
     <string name="vis_title_short">Not visible in the search</string>
     <string name="vis_short_pending">Your photos are still being reviewed.</string>
     <string name="vis_short_rejected">Photos rejected – upload a new one.</string>
-    <string name="vis_short_none">Upload profile photos so people can find you.</string>
+    <string name="vis_short_none">Too few photos – upload at least %1$d.</string>
     <string name="photo_lightbox_position">Photo %1$d of %2$d</string>
     <string name="photo_too_small">Photo too small (%1$d×%2$d). At least %3$d×%3$d pixels.</string>
     <string name="photo_read_failed">The image could not be read.</string>
@@ -283,7 +282,7 @@
     <string name="account_privacy_title">Privacy &amp; safety</string>
     <string name="account_blocks_title">Blocked people</string>
     <string name="consent_revoke_title">Revoke consent?</string>
-    <string name="consent_revoked_suffix">  — revoked</string>
+    <string name="consent_revoked_suffix">"  — revoked"</string>
     <string name="consent_granted_version">Granted on %1$s, version %2$s.</string>
     <string name="consent_revoked_on_day">Revoked on %1$s.</string>
     <string name="consent_revoke_link">Revoke consent</string>
@@ -408,7 +407,7 @@
     <string name="paywall_title">FLEXR Premium</string>
     <string name="paywall_membership">Cancel any month</string>
     <string name="paywall_price">€10</string>
-    <string name="paywall_per_month"> / month</string>
+    <string name="paywall_per_month">" / month"</string>
     <string name="paywall_feature_unlimited">Unlimited likes</string>
     <string name="paywall_subscribe">Get Premium</string>
     <string name="purchase_success">FLEXR Premium is running. Enjoy!</string>

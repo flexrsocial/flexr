@@ -254,9 +254,11 @@ class MyProfileOut(ProfileOut):
     min_photos: int = 3
     max_photos: int = 6
     # Erscheint das Profil seiner Fotos wegen in der Suche? Das Deck zeigt nur
-    # Profile mit mindestens einem freigegebenen Foto (swipes.deck_profiles).
-    # "visible", "pending" (keines freigegeben, mindestens eines in Prüfung),
-    # "rejected" (keines freigegeben, keines mehr in Prüfung) oder "none".
+    # Profile mit mindestens MIN_PHOTOS freigegebenen Fotos (seit 15.10.2026;
+    # swipes.genug_fotos_condition). "visible"; "pending" (genug gueltige,
+    # aber noch nicht alle freigegeben); "rejected" (zu wenige gueltige, weil
+    # welche abgelehnt wurden - Ersatz hochladen); "none" (zu wenige
+    # hochgeladen).
     # Bis zum 14.10.2026 stand das nur klein unter dem Fotoraster - wer nach
     # der Freischaltung noch auf die Fotofreigabe wartete oder eine Ablehnung
     # bekam, swipte, ohne zu wissen, dass ihn selbst niemand sieht. Die
@@ -278,12 +280,12 @@ class MyProfileOut(ProfileOut):
             gueltige[0] if gueltige else None
         )
         self.avatar_url = (eigenes.thumb_url or eigenes.url) if eigenes else None
-        stati = {p.status for p in self.photos}
-        if "approved" in stati:
+        freigegeben = sum(1 for p in self.photos if p.status == "approved")
+        if freigegeben >= MIN_PHOTOS:
             self.photo_visibility = "visible"
-        elif "pending" in stati:
+        elif len(gueltige) >= MIN_PHOTOS:
             self.photo_visibility = "pending"
-        elif stati:
+        elif any(p.status == "rejected" for p in self.photos):
             self.photo_visibility = "rejected"
         else:
             self.photo_visibility = "none"

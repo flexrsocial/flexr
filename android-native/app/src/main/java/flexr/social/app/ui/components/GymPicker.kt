@@ -14,6 +14,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -27,6 +29,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -75,7 +78,13 @@ fun GymPicker(
     val colors = FlexrTheme.colors
     var showLockInfo by remember { mutableStateOf(false) }
 
-    Column(modifier.fillMaxWidth()) {
+    // Erscheinen Vorschlaege, holt sich die Auswahl samt Liste ins Bild - bei
+    // offener Tastatur lag die Liste sonst darunter (Emulator, 15.10.2026).
+    val sichtbarMachen = remember { BringIntoViewRequester() }
+    LaunchedEffect(state.expanded, state.results.size) {
+        if (state.expanded && state.results.isNotEmpty()) sichtbarMachen.bringIntoView()
+    }
+    Column(modifier.fillMaxWidth().bringIntoViewRequester(sichtbarMachen)) {
         FlexrTextField(
             value = state.query,
             onValueChange = onQueryChange,

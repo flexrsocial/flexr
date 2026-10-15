@@ -131,16 +131,21 @@ data class MyProfile(
 
     /**
      * Erscheint das Profil seiner Fotos wegen in der Suche? Das Deck zeigt nur
-     * Profile mit mindestens einem freigegebenen Foto. Vom Server, sonst aus
-     * den Fotos gerechnet - dieselbe Reihenfolge wie dort.
+     * Profile mit mindestens [MIN_DECK_PHOTOS] freigegebenen Fotos (seit
+     * 15.10.2026). Vom Server, sonst aus den Fotos gerechnet - dieselbe Regel.
      */
     val photoVisibility: PhotoVisibility
         get() = PhotoVisibility.fromServer(serverPhotoVisibility) ?: when {
-            photos.any { it.status == PhotoStatus.APPROVED } -> PhotoVisibility.VISIBLE
-            photos.any { it.status == PhotoStatus.PENDING } -> PhotoVisibility.PENDING
-            photos.isNotEmpty() -> PhotoVisibility.REJECTED
+            photos.count { it.status == PhotoStatus.APPROVED } >= MIN_DECK_PHOTOS -> PhotoVisibility.VISIBLE
+            validPhotoCount >= MIN_DECK_PHOTOS -> PhotoVisibility.PENDING
+            photos.any { it.status == PhotoStatus.REJECTED } -> PhotoVisibility.REJECTED
             else -> PhotoVisibility.NONE
         }
+
+    companion object {
+        /** Wie backend models.MIN_PHOTOS / ImageProcessor.MIN_PHOTOS. */
+        const val MIN_DECK_PHOTOS = 3
+    }
 
     /** Aktive Chat-Sperre ("Abmahnung"), sonst null. */
     fun activeMuteUntil(now: Instant = Instant.now()): Instant? =

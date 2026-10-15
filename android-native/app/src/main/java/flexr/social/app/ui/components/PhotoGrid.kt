@@ -352,19 +352,14 @@ fun PhotoVisibilityHint(
     val gueltig = photoStatuses.count { it != PhotoStatus.REJECTED }
     val fehlend = ImageProcessor.MIN_PHOTOS - gueltig
     // Die Mindestanzahl steht vor dem Moderationsstand: Wer zu wenige Fotos
-    // hat, muss das zuerst erfahren. Sichtbar ist das Profil trotzdem, sobald
-    // eines freigegeben ist (swipes.deck_profiles).
+    // hat, muss das zuerst erfahren. Ins Deck kommt ohnehin nur, wer
+    // MIN_PHOTOS freigegebene hat (seit 15.10.2026).
     val (text, warn) = when {
         photoStatuses.isEmpty() ->
             stringResource(R.string.photo_hint_none, ImageProcessor.MIN_PHOTOS) to true
         gueltig == 0 -> stringResource(R.string.photo_hint_rejected) to true
         fehlend > 0 ->
-            stringResource(
-                if (visibility == PhotoVisibility.VISIBLE) R.string.photo_hint_too_few_visible
-                else R.string.photo_hint_too_few,
-                fehlend,
-                ImageProcessor.MIN_PHOTOS,
-            ) to true
+            stringResource(R.string.photo_hint_too_few, fehlend, ImageProcessor.MIN_PHOTOS) to true
         visibility == PhotoVisibility.VISIBLE -> {
             val ok = stringResource(R.string.photo_hint_ok)
             // Genau die Mindestzahl: erklaeren, warum statt ✕ die Pfeile stehen.
@@ -375,7 +370,7 @@ fun PhotoVisibilityHint(
             }) to false
         }
         visibility == PhotoVisibility.PENDING ->
-            stringResource(R.string.photo_hint_pending) to true
+            stringResource(R.string.photo_hint_pending, ImageProcessor.MIN_PHOTOS) to true
         else -> stringResource(R.string.photo_hint_rejected) to true
     }
 
@@ -439,6 +434,7 @@ fun SearchVisibilityBanner(
                             PhotoVisibility.NONE -> R.string.vis_short_none
                             else -> R.string.vis_short_rejected
                         },
+                        ImageProcessor.MIN_PHOTOS,
                     ),
                     style = MaterialTheme.typography.bodySmall,
                     color = colors.chalkDim,
@@ -479,9 +475,9 @@ fun SearchVisibilityBanner(
             )
             Text(
                 when (visibility) {
-                    PhotoVisibility.PENDING -> stringResource(R.string.vis_pending)
+                    PhotoVisibility.PENDING -> stringResource(R.string.vis_pending, ImageProcessor.MIN_PHOTOS)
                     PhotoVisibility.NONE -> stringResource(R.string.vis_none, ImageProcessor.MIN_PHOTOS)
-                    else -> stringResource(R.string.vis_rejected)
+                    else -> stringResource(R.string.vis_rejected, ImageProcessor.MIN_PHOTOS)
                 },
                 style = MaterialTheme.typography.bodySmall,
                 color = colors.chalkDim,

@@ -99,9 +99,11 @@ class SichtbarkeitsHinweisTest {
             photos = stati.mapIndexed { i, st -> fotoDto(id = "f$i", status = st) },
         ).toDomain().photoVisibility
 
+        // Seit 15.10.2026: ins Deck erst mit drei freigegebenen Fotos.
         assertEquals(PhotoVisibility.NONE, sicht())
-        assertEquals(PhotoVisibility.PENDING, sicht("pending", "rejected"))
-        assertEquals(PhotoVisibility.REJECTED, sicht("rejected", "rejected"))
-        assertEquals(PhotoVisibility.VISIBLE, sicht("rejected", "approved", "pending"))
+        assertEquals(PhotoVisibility.NONE, sicht("approved", "pending"))
+        assertEquals(PhotoVisibility.PENDING, sicht("approved", "pending", "pending", "rejected"))
+        assertEquals(PhotoVisibility.REJECTED, sicht("approved", "approved", "rejected"))
+        assertEquals(PhotoVisibility.VISIBLE, sicht("approved", "approved", "approved", "pending"))
     }
 }

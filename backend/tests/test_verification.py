@@ -655,7 +655,7 @@ def test_unverified_profile_hidden_from_deck(client, storage_stub):
     assert all(p["name"] != "Unfertig" for p in deck)
 
 
-def test_freischalt_mail_weiss_ob_schon_ein_foto_freigegeben_ist(client, storage_stub, monkeypatch):
+def test_freischalt_mail_weiss_ob_die_fotos_schon_freigegeben_sind(client, storage_stub, monkeypatch):
     """Die Ausweispruefung schaltet frei, die Fotos moderiert die Admin-Ansicht
     getrennt. Ohne freigegebenes Foto erscheint das Konto in keinem fremden
     Deck - die Freischalt-Mail sagt das dann dazu (photos_pending)."""
@@ -671,10 +671,11 @@ def test_freischalt_mail_weiss_ob_schon_ein_foto_freigegeben_ist(client, storage
         headers = register_raw(client, email)
         _add_photo(client, headers)
         if freigeben:
-            erstes = client.get("/api/profiles/me", headers=headers).json()["photos"][0]
-            assert client.post(
-                f"/api/admin/photos/{erstes['id']}/approve", headers=admin_headers
-            ).status_code == 200
+            # Alle MIN_PHOTOS - seit 15.10.2026 genuegt eines nicht mehr.
+            for foto in client.get("/api/profiles/me", headers=headers).json()["photos"]:
+                assert client.post(
+                    f"/api/admin/photos/{foto['id']}/approve", headers=admin_headers
+                ).status_code == 200
         _complete_submission(client, headers)
         eintrag = next(
             e for e in client.get("/api/admin/verifications", headers=admin_headers).json()

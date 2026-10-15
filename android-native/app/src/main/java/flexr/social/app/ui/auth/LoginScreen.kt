@@ -51,8 +51,12 @@ fun LoginScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .verticalScroll(rememberScrollState())
+            // Tastatur zuerst: Sie verkleinert so den sichtbaren Bereich, und
+            // ein fokussiertes Feld wird darueber gescrollt. Hinter
+            // verticalScroll vergroesserte imePadding nur den Inhalt - das
+            // Gym-Suchfeld blieb unter der Tastatur (Emulator, 15.10.2026).
             .imePadding()
+            .verticalScroll(rememberScrollState())
             .navigationBarsPadding()
             .padding(horizontal = 20.dp),
         verticalArrangement = Arrangement.Top,

@@ -107,7 +107,7 @@ enum L: Hashable, Sendable {
     case photoHintOk, photoHintPending, photoHintRejected, photoHintTooFew, photoMinCount
     case photoUploadFailed, photoLightboxPosition, photoTooSmall, photoReadFailed
     case photoSwapTitle, photoSwapText, photoSwapChoose, photoSwapped, photoSwapNoRoom
-    case photoHintTooFewVisible, photoHintAtMin
+    case photoHintAtMin
     case visTitle, visPending, visRejected, visNone, visCtaPending, visCtaUpload
     case visTitleShort, visShortPending, visShortRejected, visShortNone
 

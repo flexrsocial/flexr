@@ -325,8 +325,10 @@ android {
         // dem Deck kompakt (die Knoepfe verdeckten sonst den Kartentext),
         // Positionsnummer nicht mehr unter "In Pruefung"/"Abgelehnt", Sprung
         // zeigt das ganze Fotoraster; Variante "local" darf HTTP zum Host.
-        versionCode = 142
-        versionName = "2.7.30"
+        // 143/2.7.31 am 15.10.2026: Ins Deck erst mit 3 freigegebenen Fotos
+        // (Entscheidung des Betreibers) - Hinweistexte und Rueckfall-Regel.
+        versionCode = 143
+        versionName = "2.7.31"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         // Nur die Sprachen ausliefern, die es wirklich gibt: Deutsch als

@@ -619,16 +619,17 @@ TEXTE: dict[str, dict[str, str]] = {
     "verified.cta": {"de": "Jetzt loslegen", "en": "Get started"},
     # Freigeschaltet, aber noch kein Foto freigegeben (Fotos werden getrennt
     # von der Ausweispruefung moderiert): Das Konto ist nutzbar, in fremden
-    # Decks erscheint es aber erst mit dem ersten freigegebenen Foto.
+    # Decks erscheint es aber erst mit {min} freigegebenen Fotos (seit
+    # 15.10.2026, swipes.genug_fotos_condition).
     "verified.photosPending": {
         "de": (
-            "Deine Profilfotos werden noch geprüft. Sobald mindestens eines "
-            "freigegeben ist, erscheinst du in der Suche - bis dahin sehen dich "
-            "andere noch nicht."
+            "Deine Profilfotos werden noch geprüft. Sobald {min} freigegeben "
+            "sind, erscheinst du in der Suche - bis dahin sehen dich andere noch "
+            "nicht."
         ),
         "en": (
-            "Your profile photos are still being reviewed. As soon as at least one "
-            "is approved, you appear in the search - until then others cannot see "
+            "Your profile photos are still being reviewed. As soon as {min} are "
+            "approved, you appear in the search - until then others cannot see "
             "you yet."
         ),
     },
@@ -755,18 +756,20 @@ TEXTE: dict[str, dict[str, str]] = {
         ),
     },
     "photo.reasonLabel": {"de": "Begründung", "en": "Reason"},
-    # Nur wenn danach kein freigegebenes Foto mehr bleibt (admin.reject_photo):
+    # Nur wenn danach weniger als {min} freigegebene Fotos bleiben
+    # (admin.reject_photo):
     # Dann taucht das Profil in keiner Suche mehr auf - das soll niemand erst
     # an ausbleibenden Matches merken.
     "photo.hidden": {
         "de": (
-            "Damit hast du gerade kein freigegebenes Foto mehr und bist in der "
-            "Suche nicht sichtbar. Sobald ein neues Foto freigegeben ist, sehen "
-            "dich andere wieder."
+            "Damit hast du weniger als {min} freigegebene Fotos und bist in der "
+            "Suche nicht sichtbar. Lade ein neues hoch - sobald wieder {min} "
+            "freigegeben sind, sehen dich andere wieder."
         ),
         "en": (
-            "You now have no approved photo, so you are not visible in the search. "
-            "As soon as a new photo is approved, others will see you again."
+            "You now have fewer than {min} approved photos, so you are not visible "
+            "in the search. Upload a new one - as soon as {min} are approved again, "
+            "others will see you again."
         ),
     },
     "photo.retry": {

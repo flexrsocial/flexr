@@ -20,6 +20,7 @@ from ..models import (
     Message,
     ModerationAction,
     Notice,
+    MIN_PHOTOS,
     Photo,
     PhotoRejectionReason,
     PhotoStatus,
@@ -862,12 +863,12 @@ def reject_photo(
     )
     if photo.rejection_note:
         reason = f"{reason} {photo.rejection_note}"
-    # Bleibt kein freigegebenes Foto, ist das Profil ab jetzt in keiner Suche
-    # mehr - die Mail sagt das ausdruecklich (nur bei freigeschalteten
+    # Bleiben weniger als MIN_PHOTOS freigegebene Fotos, ist das Profil ab
+    # jetzt in keiner Suche - die Mail sagt das ausdruecklich (nur bei freigeschalteten
     # Konten; die anderen sind ohnehin noch nicht sichtbar).
-    unsichtbar = photo.user.is_account_activated and not any(
-        p.status == PhotoStatus.approved for p in eigene
-    )
+    unsichtbar = photo.user.is_account_activated and sum(
+        1 for p in eigene if p.status == PhotoStatus.approved
+    ) < MIN_PHOTOS
     mailer.send_photo_rejected(
         photo.user.email, photo.user.name, reason, photo.user.language, hidden=unsichtbar
     )
@@ -1091,7 +1092,9 @@ def approve_verification(
     # Freischalt-Mail, dass man in der Suche erst danach erscheint.
     mailer.send_verification_decision(
         user.email, user.name, "approved", lang=user.language,
-        photos_pending=not any(p.status == PhotoStatus.approved for p in user.photos),
+        photos_pending=sum(
+            1 for p in user.photos if p.status == PhotoStatus.approved
+        ) < MIN_PHOTOS,
     )
     return AdminVerificationDecisionOut(
         status=req.status.value,

@@ -207,10 +207,12 @@ def test_admin_loeschung_beendet_stripe_abo_oder_bricht_ab(client, monkeypatch):
 
 
 def test_photo_starts_pending_and_hidden_from_deck(client):
-    """Ein frisch hochgeladenes Foto ist pending und damit unsichtbar für andere.
-    Da nur Profile mit mindestens einem freigegebenen Foto ins Deck kommen,
-    fehlt B dort komplett - bis die Moderation freigibt (und wieder, sobald sie
-    ablehnt)."""
+    """Frisch hochgeladene Fotos sind pending und damit unsichtbar für andere.
+    Ins Deck kommt ein Profil erst mit MIN_PHOTOS freigegebenen Fotos (seit
+    15.10.2026, vorher genuegte eines) - und es verschwindet wieder, sobald
+    eine Ablehnung es unter diese Zahl drueckt."""
+    from app.models import MIN_PHOTOS
+
     admin_headers, _ = create_admin(client, email="admin6@example.com")
     headers_a = register_user(
         client, "photodeck.a@example.com", name="A", gender="mann"
@@ -220,38 +222,44 @@ def test_photo_starts_pending_and_hidden_from_deck(client):
     )
     user_b = client.get("/api/profiles/me", headers=headers_b).json()
 
-    presign = client.post(
-        "/api/profiles/me/photos/presign",
-        headers=headers_b,
-        json={"content_type": "image/jpeg"},
-    ).json()
-    add_resp = client.post(
-        "/api/profiles/me/photos", headers=headers_b, json={"object_key": presign["object_key"]}
-    )
-    assert add_resp.json()["photos"][0]["status"] == "pending"
+    for _ in range(MIN_PHOTOS):
+        presign = client.post(
+            "/api/profiles/me/photos/presign",
+            headers=headers_b,
+            json={"content_type": "image/jpeg"},
+        ).json()
+        add_resp = client.post(
+            "/api/profiles/me/photos", headers=headers_b, json={"object_key": presign["object_key"]}
+        )
+        assert add_resp.json()["photos"][-1]["status"] == "pending"
 
-    deck = client.get("/api/swipes/deck", headers=headers_a).json()
-    assert not any(p["id"] == user_b["id"] for p in deck)
+    def b_im_deck():
+        deck = client.get("/api/swipes/deck", headers=headers_a).json()
+        return next((p for p in deck if p["id"] == user_b["id"]), None)
+
+    assert b_im_deck() is None
 
     pending = client.get("/api/admin/photos", headers=admin_headers, params={"status": "pending"})
     assert pending.status_code == 200
-    photo_id = next(p["id"] for p in pending.json() if p["user_id"] == user_b["id"])
+    fotos_b = [p["id"] for p in pending.json() if p["user_id"] == user_b["id"]]
+    assert len(fotos_b) == MIN_PHOTOS
 
-    approve_resp = client.post(f"/api/admin/photos/{photo_id}/approve", headers=admin_headers)
-    assert approve_resp.status_code == 200
-    assert approve_resp.json()["status"] == "approved"
+    # Bis auf eines freigeben: noch nicht genug.
+    for photo_id in fotos_b[:-1]:
+        approve_resp = client.post(f"/api/admin/photos/{photo_id}/approve", headers=admin_headers)
+        assert approve_resp.status_code == 200
+        assert approve_resp.json()["status"] == "approved"
+    assert b_im_deck() is None
 
-    deck_after = client.get("/api/swipes/deck", headers=headers_a).json()
-    candidate_after = next(p for p in deck_after if p["id"] == user_b["id"])
-    assert len(candidate_after["photos"]) == 1
-    assert candidate_after["photos"][0]["id"] == photo_id
+    client.post(f"/api/admin/photos/{fotos_b[-1]}/approve", headers=admin_headers)
+    kandidat = b_im_deck()
+    assert kandidat is not None
+    assert len(kandidat["photos"]) == MIN_PHOTOS
 
-    reject_resp = client.post(f"/api/admin/photos/{photo_id}/reject", headers=admin_headers)
+    reject_resp = client.post(f"/api/admin/photos/{fotos_b[0]}/reject", headers=admin_headers)
     assert reject_resp.status_code == 200
     assert reject_resp.json()["status"] == "rejected"
-
-    deck_after_reject = client.get("/api/swipes/deck", headers=headers_a).json()
-    assert not any(p["id"] == user_b["id"] for p in deck_after_reject)
+    assert b_im_deck() is None
 
 
 def test_admin_reports_list(client):

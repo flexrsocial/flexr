@@ -125,15 +125,16 @@ struct MyProfile: Hashable, Sendable {
     var validPhotoCount: Int { photos.filter { $0.status != .rejected }.count }
 
     /// Erscheint das Profil seiner Fotos wegen in der Suche? Das Deck zeigt nur
-    /// Profile mit mindestens einem freigegebenen Foto. Vom Server, sonst aus
-    /// den Fotos gerechnet - dieselbe Reihenfolge wie dort.
+    /// Profile mit mindestens drei freigegebenen Fotos (seit 15.10.2026). Vom
+    /// Server, sonst aus den Fotos gerechnet - dieselbe Regel.
     var photoVisibility: PhotoVisibility {
         if let serverPhotoVisibility, let wert = PhotoVisibility(rawValue: serverPhotoVisibility) {
             return wert
         }
-        if photos.contains(where: { $0.status == .approved }) { return .visible }
-        if photos.contains(where: { $0.status == .pending }) { return .pending }
-        return photos.isEmpty ? .noPhotos : .rejected
+        let minimum = 3  // wie backend models.MIN_PHOTOS / ImageProcessor.minPhotos
+        if photos.filter({ $0.status == .approved }).count >= minimum { return .visible }
+        if validPhotoCount >= minimum { return .pending }
+        return photos.contains(where: { $0.status == .rejected }) ? .rejected : .noPhotos
     }
 
     /// Aktive Chat-Sperre („Abmahnung"), sonst nil.

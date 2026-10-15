@@ -21,7 +21,7 @@ import pytest
 
 from app import consents
 from app.config import settings
-from app.models import ConsentType, Match, Message, Swipe, User
+from app.models import MIN_PHOTOS, ConsentType, Match, Message, Photo, PhotoStatus, Swipe, User
 from tests.conftest import (
     TestingSessionLocal,
     register_user,
@@ -76,6 +76,13 @@ def _fremde_likes(client, empfaenger_id: str, anzahl: int) -> None:
             consents.grant(
                 db, liker, ConsentType.sensitive_data, commit=False
             )
+            # Wie ein echtes Konto, das andere sehen koennen: MIN_PHOTOS
+            # freigegebene Fotos (swipes.genug_fotos_condition).
+            for nr in range(MIN_PHOTOS):
+                db.add(Photo(
+                    user_id=liker.id, url=f"https://cdn.example.test/l{i}-{nr}.jpg",
+                    position=nr, status=PhotoStatus.approved,
+                ))
             db.add(
                 Swipe(from_user_id=liker.id, to_user_id=empfaenger_id, action="like")
             )

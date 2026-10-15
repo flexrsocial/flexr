@@ -36,25 +36,44 @@ def test_ohne_fotos_none(client):
     assert _me(client, h)["photo_visibility"] == "none"
 
 
-def test_nur_in_pruefung_pending(client):
+def test_genug_gueltige_aber_nicht_alle_frei_pending(client):
+    """Drei gueltige, davon erst zwei freigegeben: wartet auf die Pruefung."""
     h = register_user(client, "sicht.pending@example.com")
+    _foto(client, h, PhotoStatus.approved)
+    _foto(client, h, PhotoStatus.approved)
     _foto(client, h, PhotoStatus.pending)
     _foto(client, h, PhotoStatus.rejected)
     assert _me(client, h)["photo_visibility"] == "pending"
 
 
-def test_nur_abgelehnte_rejected(client):
+def test_zu_wenige_gueltige_nach_ablehnung_rejected(client):
+    """Zwei freigegebene plus ein abgelehntes: Ersatz noetig."""
     h = register_user(client, "sicht.rejected@example.com")
-    _foto(client, h, PhotoStatus.rejected)
+    _foto(client, h, PhotoStatus.approved)
+    _foto(client, h, PhotoStatus.approved)
     _foto(client, h, PhotoStatus.rejected)
     assert _me(client, h)["photo_visibility"] == "rejected"
 
 
-def test_ein_freigegebenes_reicht_visible(client):
-    """Wie das Deck: ein freigegebenes Foto genuegt (swipes.deck_profiles)."""
-    h = register_user(client, "sicht.visible@example.com")
-    _foto(client, h, PhotoStatus.pending)
+def test_zu_wenige_hochgeladen_none(client):
+    """Zwei Fotos, keines abgelehnt (Bestandskonto): zu wenige."""
+    h = register_user(client, "sicht.zuwenig@example.com")
     _foto(client, h, PhotoStatus.approved)
+    _foto(client, h, PhotoStatus.pending)
+    assert _me(client, h)["photo_visibility"] == "none"
+
+
+def test_erst_drei_freigegebene_sind_visible(client):
+    """Wie das Deck (swipes.genug_fotos_condition): MIN_PHOTOS freigegebene.
+    Bis zum 15.10.2026 genuegte eines."""
+    h = register_user(client, "sicht.visible@example.com")
+    _foto(client, h, PhotoStatus.approved)
+    _foto(client, h, PhotoStatus.approved)
+    offen = _foto(client, h, PhotoStatus.pending)
+    assert _me(client, h)["photo_visibility"] == "pending"
+    with TestingSessionLocal() as db:
+        db.query(Photo).filter(Photo.id == offen).one().status = PhotoStatus.approved
+        db.commit()
     assert _me(client, h)["photo_visibility"] == "visible"
 
 
@@ -155,7 +174,7 @@ def test_admin_tool_bietet_freigabe_nur_fuer_offene_fotos_an():
     assert "p.status !== 'approved' ? `<button class=\"btn small\" data-action=\"approve\">" not in admin_js
 
 
-def test_ablehnungsmail_sagt_wenn_kein_foto_mehr_freigegeben_ist(client, monkeypatch):
+def test_ablehnungsmail_sagt_wenn_weniger_als_drei_freigegeben_bleiben(client, monkeypatch):
     from app import mailer
 
     aufrufe = []
@@ -165,13 +184,38 @@ def test_ablehnungsmail_sagt_wenn_kein_foto_mehr_freigegeben_ist(client, monkeyp
     admin_headers, _ = create_admin(client, email="admin.mailhinweis@example.com")
 
     h = register_user(client, "sicht.mail@example.com")
-    frei = _foto(client, h, PhotoStatus.approved)
-    zweites = _foto(client, h, PhotoStatus.approved)
-    _foto(client, h, PhotoStatus.pending)
+    fotos = [_foto(client, h, PhotoStatus.approved) for _ in range(4)]
 
-    # Ein freigegebenes bleibt: kein Hinweis.
-    client.post(f"/api/admin/photos/{frei}/reject", headers=admin_headers)
+    # Drei freigegebene bleiben: kein Hinweis.
+    client.post(f"/api/admin/photos/{fotos[0]}/reject", headers=admin_headers)
     assert aufrufe[-1]["hidden"] is False
-    # Jetzt ist keines mehr freigegeben (das dritte wartet noch): Hinweis.
-    client.post(f"/api/admin/photos/{zweites}/reject", headers=admin_headers)
+    # Jetzt nur noch zwei: Hinweis.
+    client.post(f"/api/admin/photos/{fotos[1]}/reject", headers=admin_headers)
     assert aufrufe[-1]["hidden"] is True
+
+
+def test_eingehende_likes_und_erinnerung_nur_mit_genug_fotos(client):
+    """Deck, "Wer dich geliket hat" und die Like-Erinnerung nutzen dieselbe
+    Schwelle (swipes.genug_fotos_condition). Vorher kannte die Liste gar
+    keine Fotobedingung - ein Liker ohne freigegebenes Foto erschien mit
+    leerem Bild, und die Mail zaehlte ihn mit."""
+    from app.email_jobs import _pending_likes_count
+    from app.models import User
+    from tests.conftest import add_required_photos
+
+    ziel_h = register_user(client, "sicht.ziel@example.com", gender="frau")
+    ziel_id = _me(client, ziel_h)["id"]
+    genug = register_user(client, "sicht.genug@example.com", gender="mann")
+    add_required_photos(client, genug)
+    zu_wenig = register_user(client, "sicht.zuwenig.liker@example.com", gender="mann")
+    _foto(client, zu_wenig, PhotoStatus.approved)
+
+    for h in (genug, zu_wenig):
+        resp = client.post("/api/swipes", headers=h, json={"to_user_id": ziel_id, "action": "like"})
+        assert resp.status_code == 200, resp.text
+
+    eingang = client.get("/api/swipes/incoming", headers=ziel_h).json()
+    assert eingang["count"] == 1
+    with TestingSessionLocal() as db:
+        ziel = db.query(User).filter(User.id == ziel_id).one()
+        assert _pending_likes_count(db, ziel) == 1

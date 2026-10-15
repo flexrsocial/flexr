@@ -2,7 +2,7 @@ import logging
 from datetime import datetime
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
-from sqlalchemy import and_, or_
+from sqlalchemy import and_, func, or_, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, selectinload
 
@@ -10,7 +10,7 @@ from .. import consents, notifications, premium
 from ..database import get_db
 from ..geo import haversine_km
 from ..gym_geo import coords_for_gym, coords_for_gyms, gym_values_within
-from ..models import Block, ConsentType, Match, Swipe, User
+from ..models import MIN_PHOTOS, Block, ConsentType, Match, Photo, PhotoStatus, Swipe, User
 from ..rate_limit import limiter
 from ..schemas import IncomingLikesOut, ProfileOut, RewindResult, SwipeRequest, SwipeResult
 from ..security import require_active_membership
@@ -59,6 +59,22 @@ WIDERRUFEN_HINWEIS = (
     "vorschlagen und kein Match herstellen. Du kannst sie in den "
     "Einstellungen jederzeit wieder erteilen."
 )
+
+
+def genug_fotos_condition():
+    """SQLAlchemy-Bedingung: mindestens MIN_PHOTOS freigegebene Fotos.
+
+    Dieselbe Schwelle fuer alles, was ein Profil anderen zeigt - Deck,
+    "Wer dich geliket hat" und die Like-Erinnerung (email_jobs). Sonst
+    versprach die Mail Likes, die die App nicht zeigt, oder die Liste zeigte
+    Profile, die im Deck nie auftauchen."""
+    freigegeben = (
+        select(func.count(Photo.id))
+        .where(Photo.user_id == User.id, Photo.status == PhotoStatus.approved)
+        .correlate(User)
+        .scalar_subquery()
+    )
+    return freigegeben >= MIN_PHOTOS
 
 
 @router.get("/deck", response_model=list[ProfileOut])
@@ -129,6 +145,7 @@ def deck_profiles(db: Session, current_user: User, limit: int = DECK_SIZE) -> li
         consents.sensitive_data_consent_condition(),
         User.gender == current_user.interest,
         User.interest == current_user.gender,
+        genug_fotos_condition(),
     ]
     if excluded_ids:
         base_filters.append(~User.id.in_(excluded_ids))
@@ -154,7 +171,7 @@ def deck_profiles(db: Session, current_user: User, limit: int = DECK_SIZE) -> li
     liker_coords = coords_for_gyms(db, {u.gym for u in liker_users if u.gym})
     for u in liker_users:
         profile = to_public_profile(u)
-        if not profile.photos:
+        if len(profile.photos) < MIN_PHOTOS:
             continue
         coords = liker_coords.get(u.gym)
         profile.distance_km = round(haversine_km(*my_coords, *coords)) if coords else None
@@ -190,8 +207,12 @@ def deck_profiles(db: Session, current_user: User, limit: int = DECK_SIZE) -> li
         users.sort(key=lambda u: nearby_gyms[u.gym])
         for u in users:
             profile = to_public_profile(u)
-            # Nur Profile mit mindestens einem freigegebenen Foto erscheinen in der Suche.
-            if not profile.photos:
+            # Ins Deck erst mit MIN_PHOTOS freigegebenen Fotos (seit 15.10.2026,
+            # Entscheidung des Betreibers): Die Mindestzahl gilt damit auch
+            # fuer das, was andere zu sehen bekommen. Bis dahin genuegte eines -
+            # Profile tauchten mit einem Foto auf, waehrend die uebrigen noch
+            # in der Pruefung lagen.
+            if len(profile.photos) < MIN_PHOTOS:
                 continue
             profile.distance_km = round(nearby_gyms[u.gym])
             profiles.append(profile)
@@ -434,6 +455,9 @@ def incoming_likes(
             # Dieselbe Bedingung wie im Deck: Wer die Art.-9-Einwilligung
             # widerrufen hat, erscheint in keiner fremden Ansicht mehr.
             consents.sensitive_data_consent_condition(),
+            # Und dieselbe Fotoschwelle - vorher gab es hier gar keine, ein
+            # Liker ohne freigegebenes Foto erschien mit leerem Bild.
+            genug_fotos_condition(),
         )
         .order_by(Swipe.created_at.desc())
         .all()

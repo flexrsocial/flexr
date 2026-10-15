@@ -27,6 +27,7 @@ from email.utils import formataddr
 
 from . import message_texts
 from .config import settings
+from .models import MIN_PHOTOS
 from .message_texts import (
     STANDARD,
     TEXTE,
@@ -1123,9 +1124,9 @@ def send_verification_decision(
     lang: str = STANDARD,
     photos_pending: bool = False,
 ) -> bool:
-    """``photos_pending``: freigeschaltet, aber noch kein Foto freigegeben -
-    dann sagt die Mail, dass man in der Suche erst mit dem ersten
-    freigegebenen Foto erscheint (Fotos werden getrennt moderiert)."""
+    """``photos_pending``: freigeschaltet, aber noch keine MIN_PHOTOS Fotos
+    freigegeben - dann sagt die Mail, dass man in der Suche erst danach
+    erscheint (Fotos werden getrennt moderiert)."""
     # Wo es weitergeht, ein Knopf direkt in die Web-App (Wunsch des
     # Betreibers, 14.10.2026): Bis dahin stand in der Freischalt-Mail nur
     # "Oeffne FLEXR" - ohne Link, wer am Rechner las, musste die Seite suchen.
@@ -1136,7 +1137,7 @@ def send_verification_decision(
         eyebrow = t("verified.eyebrow", lang)
         detail = t("verified.detail", lang)
         if photos_pending:
-            detail = f'{detail}\n\n{t("verified.photosPending", lang)}'
+            detail = f'{detail}\n\n{t("verified.photosPending", lang, min=MIN_PHOTOS)}'
         button = (app_link, t("verified.cta", lang))
     elif outcome == "reupload_required":
         subject = t("reupload.subject", lang)
@@ -1251,7 +1252,7 @@ def _photo_rejected_html(
         _p(f'{t("photo.reasonLabel", lang)}: {reason}'),
     ]
     if hidden:
-        teile.append(_p(t("photo.hidden", lang)))
+        teile.append(_p(t("photo.hidden", lang, min=MIN_PHOTOS)))
     teile.append(_p(t("photo.retry", lang)))
     return _email_shell(
         t("photo.eyebrow", lang), _greeting_html(name, lang), "\n".join(teile), lang=lang
@@ -1261,9 +1262,12 @@ def _photo_rejected_html(
 def send_photo_rejected(
     email: str, name: str, reason: str, lang: str = STANDARD, hidden: bool = False
 ) -> bool:
-    """``hidden``: Nach dieser Ablehnung bleibt kein freigegebenes Foto - das
-    Profil erscheint in keiner Suche mehr, und die Mail sagt das."""
-    unsichtbar = f'{textwrap.fill(t("photo.hidden", lang), width=76)}\n\n' if hidden else ""
+    """``hidden``: Nach dieser Ablehnung bleiben weniger als MIN_PHOTOS
+    freigegebene Fotos - das Profil erscheint in keiner Suche mehr, und die
+    Mail sagt das."""
+    unsichtbar = (
+        f'{textwrap.fill(t("photo.hidden", lang, min=MIN_PHOTOS), width=76)}\n\n' if hidden else ""
+    )
     body = f"""{_greeting(name, lang)}
 
 {textwrap.fill(t("photo.intro", lang), width=76)}
