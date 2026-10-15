@@ -167,6 +167,9 @@ def _pending_likes_count(db: Session, user: User) -> int:
         .filter(
             Swipe.to_user_id == user.id,
             Swipe.action == "like",
+            # Wie GET /api/swipes/incoming: kein Like einer Person, mit der
+            # man das Match aufgeloest hat.
+            Swipe.hidden_in_incoming.is_(False),
             ~Swipe.from_user_id.in_(swiped_ids),
             ~Swipe.from_user_id.in_(blocked_ids),
             ~Swipe.from_user_id.in_(blocker_ids),

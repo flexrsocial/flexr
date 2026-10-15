@@ -118,13 +118,15 @@
 // Kopfleiste, Leerzustand am Handy scrollbar.
 // v50: Kartenfoto oben ausgerichtet (Kopf sichtbar) mit Verlauf fuer Name/Ort,
 // Umriss bei Profilen ohne Foto, Gym-Suche mit naechstgelegenen Studios zuerst.
-const CACHE = 'flexr-shell-v50';
+// v51: Konto-Einstellungen und "Rechtliches" als Liste statt unterstrichener
+// Links, Kompaktknoepfe in den Einwilligungskarten; i18n-app.js ?v=39.
+const CACHE = 'flexr-shell-v51';
 // Seit dem 15.08.2026 liegt die App unter /app/, an der Wurzel steht die
 // oeffentliche Landingpage. Beide gehoeren in die Shell: die Landingpage,
 // weil sie der Einstieg ist, die App, weil sie offline funktionieren soll.
 const SHELL = ['/', '/index.html', '/en/', '/en/index.html',
                '/app/', '/app/index.html',
-               '/lang-switch.js?v=2', '/i18n.js?v=5', '/app/i18n-app.js?v=38',
+               '/lang-switch.js?v=2', '/i18n.js?v=5', '/app/i18n-app.js?v=39',
                '/startboost.js?v=1',
                '/manifest.json', '/favicon.ico', '/legal.css?v=2',
                '/fonts/work-sans.woff2?v=1', '/fonts/oswald.woff2?v=1',

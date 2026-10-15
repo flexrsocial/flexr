@@ -119,15 +119,23 @@ def test_kontoprofil_bleibt_offen_und_scrollbar():
     assert '.screen.active{ display:flex; flex-direction:column; flex:1; min-height:0; overflow-y:auto;' in app
     # Die Statuskarte "Dein Konto ist kostenlos ..." (.account-membership-note)
     # ist seit Sitzung 19.09.2026 (7) komplett entfernt - fuer alle Kontostufen,
-    # nicht nur fuer Premium. .membership-link lebt weiter fuer Einwilligungen
-    # widerrufen/erteilen (assertion unten).
+    # nicht nur fuer Premium.
     assert 'account-membership-note' not in app
-    assert 'color:var(--plate); font-size:12.5px; font-weight:600;' in app
-    assert '<div class="consent-setting-action"><button class="membership-link"' in app
+    # Seit 15.10.2026: Einwilligung widerrufen/erteilen als Kompaktknopf
+    # (.pill-action) statt unterstrichenem Text (.membership-link).
+    assert '.pill-action{' in app
+    assert '<div class="consent-setting-action"><button type="button" class="pill-action danger" data-revoke=' in app
+    assert 'membership-link' not in app
+    # Benachrichtigungen, Abo und Datenschutz als Einstellungs-Liste in einer
+    # eigenen Sektion statt unterstrichener Links unter "Konto loeschen".
+    assert '<div class="account-section-title lg" data-i18n="acct.sectionSettings">' in account
+    for knopf in ("btnOpenNotifications", "btnManageSubscription", "btnOpenPrivacy"):
+        assert f'class="settings-row" id="{knopf}"' in account
+    assert 'account-footer-link' not in app
 
     privacy = app.split('<section class="screen" id="screen-privacy">', 1)[1]
     privacy = privacy.split('</section>', 1)[0]
-    assert '<nav class="legal-link-list"' in privacy
+    assert '<nav class="legal-link-list settings-list"' in privacy
     # aria-label steht seit dem 09.09.2026 als data-i18n-aria im Markup und
     # wird zur Laufzeit gesetzt - der Schluessel ist die pruefbare Zusicherung.
     assert 'data-i18n-aria="legal.docs.aria"' in privacy

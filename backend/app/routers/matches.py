@@ -176,6 +176,15 @@ def unmatch(
     db.query(Swipe).filter(
         Swipe.from_user_id == current_user.id, Swipe.to_user_id == other_id
     ).delete()
+    # Der Like der anderen Person bleibt (sie taucht wieder im Deck auf, ein
+    # erneuter Like ergibt sofort wieder ein Match), soll aber nicht als
+    # offener Like zaehlen: Direkt nach dem Aufloesen stand sonst "1 Person
+    # hat dich geliked" ueber den Matches - erkennbar die gerade aufgeloeste.
+    db.query(Swipe).filter(
+        Swipe.from_user_id == other_id,
+        Swipe.to_user_id == current_user.id,
+        Swipe.action == "like",
+    ).update({Swipe.hidden_in_incoming: True}, synchronize_session=False)
     db.delete(match)
     db.commit()
     return {"unmatched": True}

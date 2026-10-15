@@ -137,6 +137,35 @@ def test_pass_after_unmatch_removes_person_for_good(client):
     assert client.get("/api/matches", headers=headers_a).json() == []
 
 
+def test_unmatch_blendet_like_der_gegenseite_aus(client):
+    """Nach dem Aufloesen zaehlt der (bestehende) Like der anderen Person
+    nicht mehr als offener Like - vorher stand sofort "1 Person hat dich
+    geliked" ueber den Matches, erkennbar die gerade aufgeloeste. Der Like
+    selbst bleibt: ein erneuter Like ergibt sofort wieder ein Match."""
+    from app.email_jobs import _pending_likes_count
+    from app.models import User
+    from tests.conftest import TestingSessionLocal, register_user_with_photo
+
+    match_id, (headers_a, user_a), (headers_b, user_b) = make_match(client)
+    client.delete(f"/api/matches/{match_id}", headers=headers_a)
+    assert client.get("/api/swipes/incoming", headers=headers_a).json()["count"] == 0
+
+    # Gegenprobe: ein echter offener Like zaehlt in derselben Lage weiter.
+    headers_c = register_user_with_photo(client, "liker.c@example.com", name="C", gender="frau")
+    client.post("/api/swipes", headers=headers_c, json={"to_user_id": user_a["id"], "action": "like"})
+    assert client.get("/api/swipes/incoming", headers=headers_a).json()["count"] == 1
+    db = TestingSessionLocal()
+    try:
+        assert _pending_likes_count(db, db.get(User, user_a["id"])) == 1
+    finally:
+        db.close()
+
+    resp = client.post(
+        "/api/swipes", headers=headers_a, json={"to_user_id": user_b["id"], "action": "like"}
+    )
+    assert resp.json()["matched"] is True
+
+
 def test_unmatch_requires_participation(client):
     match_id, _, _ = make_match(client)
     headers_c = register_user(client, "unmatch.outsider@example.com", name="C", gender="mann")

@@ -13,6 +13,7 @@ from sqlalchemy import (
     String,
     Text,
     UniqueConstraint,
+    false,
 )
 from sqlalchemy.orm import relationship
 
@@ -642,6 +643,13 @@ class Swipe(Base):
     to_user_id = Column(String, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
     action = Column(String, nullable=False)  # "like" | "pass"
     created_at = Column(DateTime, default=utcnow)
+    # Gesetzt auf dem Like der anderen Person, wenn der Empfaenger das Match
+    # aufloest (routers/matches.py:unmatch). Der Like bleibt fuer das Deck
+    # und ein erneutes Match bestehen, zaehlt aber nicht mehr als offener
+    # Like ("Jemand hat dich geliked", Like-Erinnerung) - sonst stand direkt
+    # nach dem Aufloesen "1 Person hat dich geliked" da, und das war
+    # erkennbar die gerade aufgeloeste.
+    hidden_in_incoming = Column(Boolean, nullable=False, default=False, server_default=false())
 
 
 class Match(Base):

@@ -449,6 +449,9 @@ def incoming_likes(
         .filter(
             Swipe.to_user_id == current_user.id,
             Swipe.action == "like",
+            # Likes von Personen, mit denen man das Match aufgeloest hat, sind
+            # keine offenen Likes (routers/matches.py:unmatch).
+            Swipe.hidden_in_incoming.is_(False),
             User.deleted_at.is_(None),
             User.is_banned.is_(False),
             account_visible_condition(),
