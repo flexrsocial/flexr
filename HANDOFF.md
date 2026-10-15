@@ -104,6 +104,24 @@ erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 > Platz 1 und 2, Ablehnung im Hintergrund → Löschversuch → Meldung + neuer
 > Stand, Banner orange/rot am Desktop und Handy, Sprung zum Raster, Freigabe
 > im Hintergrund → Banner weg, Sortieren mit abgelehntem Foto, Englisch.
+>
+> **Nachtrag – Bugfix-Durchlauf (15.10.2026, `378c764`, deployt, Neustart,
+> live md5-gleich):** Server-Logs seit dem Deploy sauber (nur Bot-Scans).
+> iOS-Diff Zeile für Zeile gegengelesen (Xcode „latest“: View ist
+> MainActor, verwendete APIs/Hilfsfunktionen existieren) - Ergebnis von
+> Codemagic `ios-tests` steht noch aus (hier kein Zugang, gh nicht
+> angemeldet). Android-Diff gegengelesen, kein neuer Build nötig.
+> - **Eigentliche Ursache der Meldung gefunden:** Die Prüfansicht zeigte die
+>   Profilfotos ohne Status - Freischalten ließ sie in der
+>   Fotowarteschlange, das Konto blieb unsichtbar. Jetzt
+>   `AdminVerificationOut.profile_photos` mit Status („noch nicht
+>   freigegeben“) und ein vorausgewählter Haken „… mit freigeben“
+>   (`approve_pending_photos`, kein Checklistenpunkt, Server-Vorgabe aus).
+>   Lokal im Admin-Tool durchgespielt (Test-Prüfer ohne TOTP, Vorgang für
+>   mia@example.com): Konto freigeschaltet, alle 3 Fotos freigegeben.
+> - Web-App: Deck fragt `/me` nicht doppelt direkt nach dem App-Start
+>   (15-s-Drossel). Navigation lädt HTML netzseitig, daher kein SW-Bump.
+> - Tests: Backend 732 grün (+2).
 
 > **Sitzung 14.10.2026 (17): Startradius, Knopf in der Freischalt-Mail,
 > QR-Code „am Handy weitermachen“.**
