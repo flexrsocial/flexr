@@ -32,6 +32,80 @@ erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 
 ## Wo das Projekt gerade steht
 
+> **Sitzung 15.10.2026 (20): Optik-Runde Web + Android (nur optische
+> Kriterien). Android 2.7.33 gebaut.**
+>
+> Deployt (`9da6709`, gepusht, VPS `git pull --ff-only`, kein Neustart nötig -
+> nur Frontend und ein Test). Live: Health ok, `/app/`, `i18n-app.js?v=40` und
+> `sw.js` (v52) md5-gleich.
+>
+> **Durchgesehen** (lokal, SQLite-Kopie + S3-Attrappe): Web am Handy (375x812,
+> 375x667) und Desktop (Deck, Match-Profil, Matches, „Jemand hat dich
+> geliked“, Chats, Chat, Konto, Benachrichtigungen, Datenschutz, Premium,
+> Startseite, Registrierung, Passwort vergessen, Match-Overlay, Melden) und
+> Android im Emulator (Deck, leeres Deck, Match-Profil, Chats, Chat, Konto).
+>
+> **Web-App:**
+> - **Kartenfoto füllt die Karte:** Foto mindestens 58 %, den Rest bekommt es,
+>   soweit der Text ihn nicht braucht (`.card .photo{flex:1 1 0;
+>   min-height:58%}`, `.card .body{max-height:42%}`, lange Bios scrollen).
+>   Vorher stand unter einer kurzen Bio ein leeres Drittel der Karte, am
+>   Desktop war das Foto ein Querstreifen. Gilt auch fürs Match-Profil.
+> - **Weicher Übergang Foto → Textbereich:** Der Verlauf läuft in die
+>   Kartenfarbe (#1c1c1c) aus statt in Schwarz (harte dunkle Kante weg; bei
+>   Profilen ohne Foto kein schwarzer Streifen).
+> - **Abgeschnittene Schatten/Leuchten:** `.screen.active` schneidet seitlich
+>   ab und lag bündig am Inhalt - unter der Deck-Karte stand ein dunkles
+>   Rechteck, das Leuchten jedes orangen Hauptknopfs endete eckig. Jetzt
+>   reicht jeder App-Screen bis an den Rand von `main` (margin -20px, padding
+>   20px; Startseite ausgenommen), der Swipe-Screen zusätzlich 26px nach unten
+>   für den Schein unter dem Herz. Inhalt per Skript nachgemessen: überall
+>   weiter 20-355px, kein waagrechtes Scrollen.
+> - **Chat:** Tagestrenner („Heute“, „Gestern“, „Samstag, 10. Oktober“; Jahr
+>   nur bei anderem Jahr), die Blasen zeigen nur noch die Uhrzeit (vorher
+>   „14.10. 19:07“ an jeder älteren Nachricht). **Chatliste:** Zeitpunkt der
+>   letzten Nachricht rechts neben dem Namen (Uhrzeit, „Gestern“, Wochentag,
+>   Datum), bei Ungelesenem orange. Neue Texte `chat.today`/`chat.yesterday`
+>   → `i18n-app.js?v=40`, `sw.js` v52.
+> - **Konto-Kopf als Raster:** „Wien · Bikram Yoga“ brach neben dem
+>   Verifizierungs-Abzeichen nach „Bikram“ um; jetzt Name + Abzeichen oben,
+>   Ort/Gym darunter über die volle Breite.
+> - Fotoraster: belegte Plätze mit durchgehendem statt gestricheltem Rand
+>   (gestrichelt nur noch freie Plätze). Leerzustände („Alle Sätze
+>   absolviert“, keine Matches/Chats, leerer Chat) mit Symbol in Markenfarbe
+>   statt grauem gestricheltem Kreis; „Wer dich geliked hat“ (ohne Premium)
+>   mit Herz-Symbol; Premium-Seite mit ausgefülltem Stern. Knopfabstände unter
+>   „Zugangsdaten“ und „Konto“ einheitlich (10px statt 22/10px, keine Lücke
+>   unter „Konto“).
+> - Desktop: Die 430px-Spalte hat Haarlinien, Schatten und einen dunkleren
+>   Rand (vorher ging sie kantenlos in den Hintergrund über).
+>
+> **Android 2.7.33 / 145** (`release-2.7.33/` mit `SHA256SUMS.txt`, ersetzt
+> 2.7.32 - die nicht hochladen): AAB `8cd689f9…7f78`, APK `3f36f654…6828`, Upload-Key
+> `BC:64:…:79:80` geprüft, 73 Unit-Tests, Lint 0 Fehler.
+> - Kartenfoto wächst wie im Web, aber im Deck endet der Text 88 dp über dem
+>   Kartenrand: X und Herz liegen dort über der Karte, eine längere Bio
+>   verschwand bisher darunter. Im Match-Profil (Knopf außerhalb) bekommt das
+>   Foto den ganzen freien Platz. Verlauf wie im Web.
+> - Tagestrenner im Chat (`ChatVerlauf.kt`, `mitTagestrennern`), Uhrzeit in
+>   der Chatliste (`ServerTime.formatChatListTime`, `formatChatDay`,
+>   `daysAgo`), Leerzustände in Markenfarbe (`EmptyState`), Umriss im
+>   Chatkopf bei Profilen ohne Foto (vorher leere dunkle Scheibe), „gerade
+>   online“ in der Matchliste übersetzt (war fest deutsch).
+>   `ServerTime.formatMessageTime` entfernt (ungenutzt).
+>
+> **iOS:** Quelltext gleichgezogen für Verlauf, Tagestrenner (`ChatEntry`),
+> Uhrzeit in der Chatliste, Leerzustände, übersetzte „Chatverlauf geleert“ /
+> „gerade online“ (waren fest deutsch) - hier nicht kompilierbar, der Push auf
+> `ios/` startet `ios-tests`. **Nicht übernommen:** das wachsende Kartenfoto
+> (SwiftUI-`ScrollView` nimmt allen Platz; die Messung dafür lässt sich hier
+> nicht prüfen) - iOS bleibt bei 58/42. Version unverändert 2.4.11.
+>
+> **Tests:** Backend 738 grün (+1 `test_app_texte_gibt_es_in_beiden_sprachen`:
+> jeder feste `t('…')`-Schlüssel der Web-App steht DE und EN), Android 73
+> (+6 in `ChatVerlaufTest` und `ServerTimeTest`, -1 mit `formatMessageTime`),
+> iOS +4 (`ServerTimeTests`, Ergebnis von Codemagic `ios-tests` steht aus).
+
 > **Sitzung 15.10.2026 (19): Letzte große Bugfix-Runde Web + Android
 > (Emulator). Android 2.7.32 gebaut.**
 >
