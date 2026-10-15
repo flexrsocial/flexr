@@ -95,10 +95,10 @@ erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 >   löschen“ (der Text sprang aus der Flucht).
 > - `sw.js` v50.
 >
-> **Offen (Entscheidung des Nutzers):** Nach „Match auflösen“ bleibt der Like
-> der anderen Person bestehen (gewollt, damit sie wieder im Deck erscheint).
-> Dadurch steht sofort „1 · Jemand hat dich geliked“ über den Matches - und
-> das ist erkennbar die gerade aufgelöste Person.
+> **Entschieden (siehe Nachtrag unten):** Nach „Match auflösen“ blieb der Like
+> der anderen Person bestehen (gewollt, damit sie wieder im Deck erscheint) -
+> dadurch stand sofort „1 · Jemand hat dich geliked“ über den Matches, und das
+> war erkennbar die gerade aufgelöste Person.
 >
 > - **Android 2.7.32 / 144** (`release-2.7.32/` mit `SHA256SUMS.txt`,
 >   ersetzt 2.7.31 - die nicht hochladen): AAB `48009f68…47a4`,
@@ -111,6 +111,42 @@ erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 > - **Tests:** Backend 736 grün (+1 `test_gym_suche_nahe_studios_zuerst`).
 >   Jede Korrektur danach lokal nachgeprüft (Web im Browser, Android im
 >   Emulator mit `assembleLocalDebug`).
+>
+> **Nachtrag – „Jemand hat dich geliked“ nach Auflösen, Einstellungen als
+> Liste (15.10.2026, `41c93e1`, deployt mit Migration):** DB-Sicherung
+> `/home/deploy/db-backups/flexr-vor-deploy-20261015-1800.sql.gz`, dann `git
+> pull --ff-only`, `alembic upgrade head` → `d2e7a9c4b1f6`, `sudo systemctl
+> restart flexr-api`. Live: Health ok, `/app/`, `i18n-app.js?v=39`, `sw.js`
+> (v51) und die vier geänderten Backend-Dateien md5-gleich, Journal ohne
+> Fehler.
+> - **Entscheidung des Nutzers umgesetzt:** Neue Spalte
+>   `swipes.hidden_in_incoming`. `unmatch` setzt sie auf dem Like der anderen
+>   Person; `GET /api/swipes/incoming` (Anzahl und Liste) und die
+>   Like-Erinnerung (`email_jobs._pending_likes_count`) zählen solche Likes
+>   nicht mehr. Der Like selbst bleibt: Die Person erscheint wieder im Deck,
+>   ein erneuter Like ergibt sofort wieder ein Match. Gilt ab jetzt - vor dem
+>   Deploy aufgelöste Matches sind nicht markiert (es gab keine Aufzeichnung
+>   darüber). Für alle Clients, die Apps brauchen nichts Neues.
+> - **Web-App Konto:** Benachrichtigungen, Abo verwalten (nur bei
+>   Stripe-Abo) und Datenschutz & Sicherheit stehen jetzt als
+>   Einstellungs-Liste (Symbol, Titel, Untertitel, Pfeil; `.settings-list`/
+>   `.settings-row`) in einer eigenen Sektion „Einstellungen“ zwischen Fotos
+>   und Zugangsdaten - wie in der Android-App. Vorher unterstrichene Textlinks
+>   unter „Konto löschen“ (Wunsch des Nutzers: wirkte generisch).
+> - **Datenschutz & Sicherheit:** „Rechtliches“ als gleiche Liste statt
+>   Zwei-Spalten-Linkraster. Symbol und Pfeil über `::before`/`::after`, weil
+>   `legal-status.js` und die Übersetzung den Linktext per `textContent`
+>   setzen („Rücktrittsrecht“ → „Vertrag widerrufen“). „Einwilligung
+>   widerrufen“ (rot) bzw. „erteilen“ (orange) und „Ausblenden“ (grau) als
+>   Kompaktknöpfe `.pill-action` statt unterstrichenem Text; „Details“ mit
+>   eigenem Pfeil, Kartentitel weiß und fett. `.membership-link` und
+>   `.account-footer-link` entfernt.
+> - Lokal durchgespielt (Handy/Desktop, DE/EN): Liste, Trennlinien, Modal der
+>   Rechtstexte, Details, Ausblenden; Lukas liked Theresa erneut → Match →
+>   Auflösen in der Web-App → kein „Jemand hat dich geliked“ mehr.
+> - **Tests:** Backend 737 grün (+1 `test_unmatch_blendet_like_der_gegenseite_aus`
+>   mit Gegenprobe; `test_kontoprofil_bleibt_offen_und_scrollbar` auf das neue
+>   Markup umgestellt).
 
 > **Sitzung 14./15.10.2026 (18): Fotoraster im Profil, Hinweis „in der
 > Suche nicht sichtbar“, FLEXR-Logo in allen Mails. Android 2.7.29 gebaut.**
