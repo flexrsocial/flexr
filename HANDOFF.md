@@ -211,6 +211,35 @@ erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 >   Textfarbe jetzt selbst (falls ein Webmailer die `<body>`-Stile
 >   verwirft, stand Text ohne eigene Farbe dunkel auf dunkel).
 > - **Tests:** Backend 735 grün (`test_logo_ist_fuer_den_dunkelmodus_kein_icon`).
+>
+> **Nachtrag – Leeres Deck am Handy-Browser, Passwort-Mails (15.10.2026,
+> `0da5863`, deployt, nur Frontend, kein Neustart, live md5-gleich):**
+> - **Meldung des Nutzers:** Nach dem letzten Swipe im Handy-Browser (nicht
+>   in der Android-App) stand „Alle Sätze absolviert“ mit halb unter der
+>   Kopfleiste verschwundener Überschrift. **Ursache:** Unter 700 px
+>   Viewport-Höhe (Handy mit Adresszeile) scrollt `#screen-swipe`, weil das
+>   Deck 440 px Mindesthöhe hat und die Knöpfe unter der Falz liegen. Wer
+>   dorthin gescrollt hatte, blieb nach der letzten Karte auf der
+>   Restspanne stehen (360 x 640: Screen 586 statt 459 px hoch); dazu ließ
+>   `touch-action:none` auf dem Deck kein Zurückscrollen auf der Fläche zu.
+>   Lokal nachgestellt (Konto lukas, 2 Karten).
+> - **Fix:** `#deck.is-empty` (setzt `renderCard()`): im Media-Query ohne
+>   Mindesthöhe, Leerzustand im Fluss statt absolut, `touch-action:auto`,
+>   Screen springt auf `scrollTop = 0`. Auf hohen Viewports gemessen
+>   unveränderte Lage, im Querformat ragt der Leerzustand nur noch nach
+>   unten (erreichbar). `sw.js` v49.
+> - **Passwort-vergessen-Mails geprüft** (Prod nur lesend): pachernegg@ –
+>   Token 12:30:49, später erneut 12:51:05; styriatrading@ – Token 12:41:17.
+>   Beide ohne Versandfehler an Brevo übergeben (seit 01.09. kein einziger
+>   „Mailversand … fehlgeschlagen“ im Journal), SMTP-Handshake VPS→Brevo
+>   ~0,1 s. Verzögerung (40 s) bzw. fehlende Mail liegen also hinter der
+>   Übergabe (Brevo-Warteschlange/-Sperrliste, Gmail-Spam). Prüfen lässt
+>   sich das nur im Brevo-Dashboard (Transaktional → Logs); auf dem Server
+>   liegt kein API-Schlüssel. Beachte: Pro Konto höchstens eine Reset-Mail
+>   in 10 Minuten, weitere Anfragen werden still verworfen. Lücke: Die
+>   Erfolgszeile „Mail an … verschickt“ (`flexr.mail`, INFO) landet nicht im
+>   Journal, weil die API kein Logging konfiguriert - nur WARNING+ kommt an.
+> - **Tests:** Backend 735 grün.
 
 > **Sitzung 14.10.2026 (17): Startradius, Knopf in der Freischalt-Mail,
 > QR-Code „am Handy weitermachen“.**
