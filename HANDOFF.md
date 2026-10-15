@@ -192,6 +192,25 @@ erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 > - Der Release-Build dauert hier rund 8 Minuten (R8 im AAB-Schritt); läuft
 >   der Emulator nebenher, deutlich länger - vorher beenden (`adb emu kill`).
 > - **Tests:** Backend 734 grün.
+>
+> **Nachtrag – Mail-Logo in Gmail Android weiß (15.10.2026, `1d787f6`,
+> deployt, Neustart, live md5-gleich):**
+> - **Meldung des Nutzers:** Im Gmail-Web korrekt, in der Gmail-App unter
+>   Android mit weißem Hintergrund. **Ursache:** Die App dunkelt Mails mit
+>   dem Chromium-Dunkelmodus ab. Der hält jedes Bild, das in *beiden*
+>   Richtungen höchstens 64 CSS-px groß gezeichnet wird, für ein Icon und
+>   invertiert es bei wenigen Farben - die dunkle FX-Kachel (44 x 44) wurde
+>   weiß. Nachgestellt mit `google-chrome --headless
+>   --blink-settings=forceDarkModeEnabled=true`: 64 x 64 invertiert, 66 x 44
+>   nicht, gleich bei DPR 1/2/2,625/3. `color-scheme: only light` und
+>   Hintergrundbild helfen nicht.
+> - **Fix:** `icons/mail-icon-v2.png` ist 80 x 44 (Datei 240 x 132): Kachel
+>   rechts, links durchsichtig, der Abstand zur Stichzeile steckt im Bild.
+>   `mailer.MAIL_LOGO_BREITE/HOEHE`; erzeugt von `build_icons.py --mail`.
+>   v1 bleibt für verschickte Mails liegen. Die Mailkarte trägt Schrift und
+>   Textfarbe jetzt selbst (falls ein Webmailer die `<body>`-Stile
+>   verwirft, stand Text ohne eigene Farbe dunkel auf dunkel).
+> - **Tests:** Backend 735 grün (`test_logo_ist_fuer_den_dunkelmodus_kein_icon`).
 
 > **Sitzung 14.10.2026 (17): Startradius, Knopf in der Freischalt-Mail,
 > QR-Code „am Handy weitermachen“.**
