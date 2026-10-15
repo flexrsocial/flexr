@@ -158,6 +158,40 @@ erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 >   Kachel hat sonst fast genau die Kartenfarbe #17171A und verschwände.
 >   `mail-logo-v1.png` (Wortmarke) bleibt liegen, bereits verschickte Mails
 >   laden sie. Alle drei Mail-Gerüste mit `<meta charset="utf-8">`.
+>
+> **Nachtrag – Deck erst ab 3 freigegebenen Fotos, Android-Runde 2
+> (15.10.2026, `570e8e9`, deployt, Neustart, live md5-gleich):**
+> - **Regel geändert (Entscheidung des Nutzers):** Ins Deck kommt ein
+>   Profil erst mit `MIN_PHOTOS` (3) freigegebenen Fotos, vorher genügte
+>   eines. `swipes.genug_fotos_condition()` gilt für Deck, „Wer dich
+>   geliket hat“ (dort fehlte bisher jede Fotobedingung) und die
+>   Like-Erinnerung. `photo_visibility`: visible ab 3 freigegebenen, pending
+>   bei genug gültigen, rejected bei zu wenigen nach Ablehnung, sonst none.
+>   Mails und Hinweise (Web/Android/iOS) sagen „sobald 3 freigegeben sind“.
+>   Produktion vorher: 28 aktive Konten, 1 davon mit nur 1 freigegebenen
+>   Foto (verschwindet bis zur Freigabe weiterer), alle anderen 3–6.
+>   **Offen (Nutzer):** Die Nutzungsrichtlinien („Ohne mindestens ein
+>   freigegebenes Foto ist ein Profil für andere nicht sichtbar“, Stand
+>   19.08.2026, Teil der AGB) bewusst nicht angefasst - die Aussage bleibt
+>   wahr; eine Präzisierung auf „drei“ wäre eine Änderung des Rechtstexts
+>   (auch in den Apps, `LegalContent.kt`/`.swift`).
+> - **Android-Emulator-Runde 2** (Registrierung, Login, Swipe, Galerie,
+>   Melden, Match, Chat, Matches, Profil, Konto, Sprache, Datenschutz,
+>   Abmelden). Gefunden und behoben: Leerzeichen am Rand von
+>   String-Ressourcen gingen verloren („Du:Hey!“, Einwilligung
+>   „gemäßDatenschutzerklärungverarbeitet werden.“, „/ Monat“) - jetzt in
+>   Anführungszeichen, `StringRessourcenTest` prüft es; Tastatur verdeckte
+>   Eingabefelder (Registrierung/Login: `imePadding` hinter
+>   `verticalScroll`, Konto und Rechtstextseite: fehlte) - Gym-Vorschläge
+>   rücken ins Bild; Gym-Chip schnitt die Adresse ohne „…“ ab; Abstand über
+>   dem Fortschrittsbalken der Registrierung. `i18n-app.js?v=38`, SW v48.
+> - **Android 2.7.31 / 143** (`release-2.7.31/` mit `SHA256SUMS.txt`,
+>   ersetzt 2.7.29 und 2.7.30 - die nicht hochladen): AAB `5cb57d04…3c1c`,
+>   APK `1c73faae…ce94`, Upload-Key `BC:64:…:79:80` geprüft, 68 Unit-Tests,
+>   Lint sauber. Dem Nutzer geschickt.
+> - Der Release-Build dauert hier rund 8 Minuten (R8 im AAB-Schritt); läuft
+>   der Emulator nebenher, deutlich länger - vorher beenden (`adb emu kill`).
+> - **Tests:** Backend 734 grün.
 
 > **Sitzung 14.10.2026 (17): Startradius, Knopf in der Freischalt-Mail,
 > QR-Code „am Handy weitermachen“.**
