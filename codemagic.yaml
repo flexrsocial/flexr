@@ -197,13 +197,18 @@ workflows:
           export TEST_RUNNER_FLEXR_SHOT_PASSWORD="$FLEXR_SHOT_PASSWORD"
           export TEST_RUNNER_FLEXR_SHOT_API=http://127.0.0.1:8000/
           export TEST_RUNNER_FLEXR_SHOT_DIR="$CM_BUILD_DIR/$SHOT_DIR"
+          # Ad-hoc signieren ("-"), nicht CODE_SIGNING_ALLOWED=NO: Eine ganz
+          # unsignierte App darf im Simulator nichts in den Schluesselbund
+          # schreiben (-34018) - der Login-Token ging verloren, jede Anfrage
+          # danach kam mit 401 zurueck (erster Lauf, 15.10.2026).
           set +e
           xcodebuild test \
             -project "$XCODE_PROJECT" \
             -scheme FLEXRScreenshots \
             -destination "platform=iOS Simulator,id=$UDID" \
             -resultBundlePath /tmp/screens.xcresult \
-            CODE_SIGNING_ALLOWED=NO > /tmp/xcodebuild-shots.log 2>&1
+            CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY=- DEVELOPMENT_TEAM= \
+            > /tmp/xcodebuild-shots.log 2>&1
           STATUS=$?
           set -e
           grep -E "error:|Test Case .* (passed|failed)|Bildschirm|XCTSkip" /tmp/xcodebuild-shots.log | tail -40 || true
