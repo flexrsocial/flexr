@@ -90,6 +90,23 @@ erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 >
 > **Tests:** Backend 738 grün. Testdaten der lokalen Umgebung: Lukas hat
 > jetzt Matches mit Theresa (mit Nachricht) und Mia (ohne).
+>
+> **Nachtrag – iOS-Bildschirmfotos aus dem Simulator (`53f01d8`):** Neuer
+> Codemagic-Workflow `ios-screenshots` (nur von Hand oder per API, ~15
+> Build-Minuten). Startet im Mac ein lokales Backend mit Testdaten (SQLite +
+> moto, `tools/ios-screenshots/seed.py` über die echte Registrierungs-API:
+> Lukas, Matches mit Lena (Chat über drei Tage), Viktoria, Mia ohne Chat,
+> offener Like von Theresa, Julia/Anna im Deck), baut das neue UI-Testziel
+> `FLEXRUITests` (eigenes Schema `FLEXRScreenshots`, das Schema `FLEXR` für
+> `ios-tests`/TestFlight unverändert) und fährt Login, Deck, Matches,
+> Match-Profil, leeren Chat, Chats, Chat und Konto ab; Bilder als Artefakte
+> `ios-screenshots/*.png`. Die App läuft im Debug-Build mit
+> `-FlexrAPIBaseURL http://127.0.0.1:8000/` und `-flexr_language de`.
+> `tools/ios-screenshots/codemagic.py start|hol|status` startet den Lauf und
+> lädt die Bilder nach `/ios-screenshots/<build>/` (in `.gitignore`); braucht
+> einen Codemagic-API-Token in `~/.config/flexr/codemagic-token` (nie ins
+> Repository). Projektdatei von Hand ergänzt (IDs `FE…1D`–`FE…27`) - erster
+> Lauf steht aus, `ios-tests` prüft dabei mit, dass das Projekt weiter lädt.
 
 > **Sitzung 15.10.2026 (20): Optik-Runde Web + Android (nur optische
 > Kriterien). Android 2.7.33 gebaut.**
