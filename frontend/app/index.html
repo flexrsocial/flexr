@@ -123,7 +123,12 @@
     background:var(--ink);
     color:var(--chalk);
     font-family:'Work Sans', sans-serif;
-    min-height:100vh;
+    /* dvh statt nur vh: Im Handy-Browser ist 100vh die Hoehe OHNE
+       Adressleiste. Bei eingeblendeter Leiste war body damit hoeher als der
+       sichtbare Bereich, die ganze Seite liess sich um die Leistenhoehe
+       mitscrollen - die Kopfzeile rutschte weg und ueber der festen
+       Navigationsleiste blieb ein leerer Streifen (gemeldet 15.10.2026). */
+    min-height:100vh; min-height:100dvh;
     display:flex; flex-direction:column; align-items:center;
     -webkit-font-smoothing:antialiased;
   }
@@ -215,6 +220,17 @@
      urspruengliche Jittern, das "stable" verhindern sollte. Seltener und
      harmloser als der bisherige, permanent sichtbare Versatz. */
   main{ flex:1; padding:22px 20px 100px; overflow-y:auto; overflow-x:hidden; display:flex; flex-direction:column; }
+  /* Unten genau so viel Platz wie die Navigationsleiste hoch ist (--nav-h
+     misst navHoeheMerken() aus). Mit pauschal 100px endete der Scrollbereich
+     gut 30px ueber der Leiste: Was man hochschob, wurde dort mit harter Kante
+     abgeschnitten - die Oberkanten der Fotokacheln standen wie ein Rahmen
+     in der Luecke (gemeldet 15.10.2026). Jetzt laeuft der Inhalt bis an die
+     Leiste; den Abstand zum letzten Element haelt der Screen selbst
+     (padding-bottom weiter unten). Ohne Messung gilt die Rechnung aus den
+     Abstaenden der Leiste. Oben dasselbe: Die 22px unter der Kopfzeile sind
+     jetzt Innenabstand des Screens statt von main, sonst endete der
+     Scrollbereich dort mit derselben harten Kante. */
+  body:not(.landing) main{ padding-top:0; padding-bottom:var(--nav-h, calc(68px + env(safe-area-inset-bottom, 0px))); }
   /* Die 100px unten sind der Platz der Navigationsleiste. Ist sie aus
      (Freischaltung, Passwort vergessen, Mail-Bestaetigung), blieb der Raum
      leer - auf einem 812px-Handy rutschte "Verifizierung starten" dadurch
@@ -230,7 +246,7 @@
      Kante und stand als Rechteck um den Knopf, Kartenschatten ebenso. Jetzt
      reicht der Screen bis an den Rand von main (20px), der Inhalt bleibt per
      gleichem padding, wo er war. Die Startseite hat ihr eigenes Layout. */
-  body:not(.landing) .screen.active{ margin-left:-20px; margin-right:-20px; padding-left:20px; padding-right:20px; }
+  body:not(.landing) .screen.active{ margin-left:-20px; margin-right:-20px; padding:22px 20px 16px; }
   /* Der Chat füllt den Screen exakt (Nachrichten scrollen intern) - kein
      zweiter Scrollbalken auf Screen-Ebene. */
   /* clip statt nur hidden: .chat-messages ragt fuer den Scrollbalken 13px
@@ -275,8 +291,9 @@
      20px, sonst endet er an der Scrollbalken-Kante oben. Unten 26px in den
      Innenabstand von main fuer den Schein unter dem Herz - der Screen
      schneidet auch senkrecht ab (overflow:hidden), unter der Karte stand
-     sonst ein dunkles Rechteck mit harter Unterkante. */
-  #screen-swipe.active{ margin:0 -20px -26px; padding:0 20px 26px; }
+     sonst ein dunkles Rechteck mit harter Unterkante. Die Knoepfe enden
+     16px ueber der Navigationsleiste wie der Inhalt der anderen Screens. */
+  #screen-swipe.active{ margin:0 -20px -26px; padding:22px 20px 42px; }
   @keyframes fade{ from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);} }
 
   .eyebrow{ font-family:'JetBrains Mono', monospace; font-size:11px; letter-spacing:0.12em; text-transform:uppercase; color:var(--plate); margin-bottom:6px; }
@@ -884,6 +901,7 @@
   #screen-premium .empty-icon svg.ico{ fill:currentColor; }
   .empty .empty-title{ font-family:'Oswald'; text-transform:uppercase; letter-spacing:0.04em; font-size:17px; color:var(--chalk); }
   .empty .empty-sub{ font-size:13px; line-height:1.55; max-width:250px; }
+  .empty .btn.empty-action{ width:auto; min-width:180px; margin-top:20px; padding:12px 26px; }
   .eisbrecher{ display:flex; flex-direction:column; align-items:center; gap:8px; margin-top:18px; width:100%; max-width:320px; }
   .eisbrecher-chip{
     width:100%; padding:10px 14px; border-radius:999px; cursor:pointer;
@@ -999,6 +1017,7 @@
   .blocked-item .unblock-btn{
     width:auto; margin:0; flex-shrink:0; padding:8px 14px; font-size:13px;
   }
+  .match-item .say-hi{ flex-shrink:0; padding:7px 12px; }
   .match-item .chev{
     width:7px; height:7px; border-top:1.5px solid var(--chalk-dim); border-right:1.5px solid var(--chalk-dim);
     transform:rotate(45deg); flex-shrink:0; margin-left:2px; opacity:.6;
@@ -1025,6 +1044,14 @@
     display:flex; align-items:center;
   }
   .chat-header .back-btn svg.ico{ width:20px; height:20px; }
+  /* Foto + Name als ein Knopf zum Profil */
+  .chat-header .chat-peer{
+    display:flex; align-items:center; gap:11px; flex:1; min-width:0;
+    background:none; border:none; padding:2px 6px 2px 0; margin:0; border-radius:12px;
+    color:inherit; font:inherit; text-align:left; cursor:pointer;
+  }
+  .chat-header .chat-peer:focus-visible{ outline:2px solid var(--plate); outline-offset:2px; }
+  @media (hover:hover){ .chat-header .chat-peer:hover .nm{ color:var(--plate-bright); } }
   .chat-header .back-btn:hover{ color:var(--plate); }
   /* Ring als EIN gefüllter Kreis (background statt border), das Foto sitzt
      per Padding darin - keine zwei separat positionierten Kreisrandlinien
@@ -1050,7 +1077,7 @@
     width:100%; height:100%; border-radius:50%; object-fit:cover; background:var(--surface-2); display:block;
     border:2px solid var(--ink); box-sizing:border-box;
   }
-  .chat-header .nm{ font-family:'Oswald'; font-size:16px; flex:1; min-width:0; letter-spacing:0.01em; }
+  .chat-header .nm{ font-family:'Oswald'; font-size:16px; flex:1; min-width:0; letter-spacing:0.01em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .chat-header .chat-flag-btns{ display:flex; gap:6px; align-items:center; }
   .chat-menu-wrap{ position:relative; display:inline-flex; }
   .chat-menu{
@@ -1151,6 +1178,9 @@
     transition:transform .12s ease, filter .15s ease;
   }
   .chat-send-btn:hover{ filter:brightness(1.08); }
+  .chat-input-row:not(.has-text) .chat-send-btn{
+    background:var(--surface-3); color:var(--chalk-dim); box-shadow:none;
+  }
   .chat-send-btn:active{ transform:scale(.92); }
   .chat-send-btn svg.ico{ width:17px; height:17px; margin-left:-2px; }
 
@@ -1168,6 +1198,16 @@
   .cred-line{ font-size:13px; color:var(--chalk-dim); margin:0 0 12px; overflow-wrap:anywhere; }
   .cred-line b{ color:var(--chalk); font-weight:600; }
   .cred-form{ margin:4px 0 16px; }
+  .unsaved-hint{
+    display:flex; align-items:center; gap:8px; margin-top:16px;
+    font-size:12.5px; color:var(--plate-bright);
+  }
+  .unsaved-hint::before{
+    content:''; width:7px; height:7px; border-radius:50%; background:var(--plate);
+    box-shadow:0 0 8px var(--plate-glow); flex-shrink:0;
+  }
+  .unsaved-hint[hidden]{ display:none; }
+  .unsaved-hint:not([hidden]) + #btnSaveProfile{ margin-top:10px !important; }
   /* Knopfgruppen "Zugangsdaten" und "Konto": 10px zwischen den Knoepfen und
      12px unter Ueberschrift bzw. E-Mail-Zeile - wie bei der Einstellungsliste
      darueber. Mit dem allgemeinen .btn-Abstand (22px) standen "E-Mail-Adresse
@@ -2339,25 +2379,39 @@
   .price-feats .feat-boost{ color:var(--lime); }
   .price-feats .feat-boost[hidden]{ display:none; }
   .price-feats li svg.ico{ width:15px; height:15px; color:var(--lime); flex-shrink:0; margin-top:1.5px; stroke-width:2.4; }
+  /* Meldungen stapeln sich untereinander. Vorher lag jeder Toast fest an
+     derselben Stelle - zwei kurz nacheinander deckten sich gegenseitig zu. */
+  .toast-stack{
+    position:fixed; top:16px; left:16px; right:16px; z-index:90;
+    display:flex; flex-direction:column; align-items:center; gap:8px;
+    pointer-events:none;
+  }
   .toast{
-    position:fixed; top:16px; left:50%; transform:translateX(-50%);
+    pointer-events:auto;
     background:#1e1e1e; border:1px solid var(--hairline); border-left:3px solid var(--plate);
-    padding:11px 16px; border-radius:11px; font-size:13.5px; z-index:90; text-align:left;
-    /* Mit left:50% ohne eigene Breite schrumpfte der Toast auf die halbe
+    padding:11px 16px; border-radius:11px; font-size:13.5px; text-align:left;
+    /* Ohne eigene Breite schrumpfte der Toast frueher auf die halbe
        Bildschirmbreite - auf dem Handy wurde das Aktenzeichen zur schmalen
        Spalte ueber der Ueberschrift. */
-    width:max-content; max-width:min(380px, calc(100vw - 32px)); box-sizing:border-box;
+    width:max-content; max-width:min(380px, 100%); box-sizing:border-box;
     box-shadow:0 14px 34px rgba(0,0,0,.5);
     animation:toastIn .25s ease;
     display:flex; align-items:flex-start; gap:10px;
   }
+  /* Bestaetigungen ("Gespeichert", "Foto hochgeladen") in Gruen mit Haken -
+     so unterscheiden sie sich auf einen Blick von Hinweisen und Fehlern. */
+  .toast.ok{ border-left-color:var(--lime); }
+  .toast .toast-ico{ flex-shrink:0; width:16px; height:16px; margin-top:1px; color:var(--lime); }
+  .toast .toast-ico svg{ width:100%; height:100%; fill:none; stroke:currentColor; stroke-width:2.6; stroke-linecap:round; stroke-linejoin:round; display:block; }
+  .toast.weg{ animation:toastOut .2s ease forwards; }
   .toast-text{ flex:1; }
   .toast-close{
     background:none; border:none; padding:0; margin:-2px -4px 0 0; color:var(--chalk-dim);
     font-size:15px; line-height:1; cursor:pointer; flex-shrink:0;
   }
   .toast-close:hover{ color:var(--chalk); }
-  @keyframes toastIn{ from{opacity:0; transform:translate(-50%,-10px);} to{opacity:1; transform:translate(-50%,0);} }
+  @keyframes toastIn{ from{opacity:0; transform:translateY(-10px);} to{opacity:1; transform:none;} }
+  @keyframes toastOut{ to{opacity:0; transform:translateY(-6px);} }
 
   /* ---------- Match-Overlay (Vollbild-Moment bei beidseitigem Like) ---------- */
   .match-overlay{
@@ -2475,7 +2529,7 @@
      laufen synchron und damit vor dem DOMContentLoaded, bei dem FlexrI18n die
      data-i18n-Knoten uebersetzt. -->
 <script src="/i18n.js?v=5"></script>
-<script src="/app/i18n-app.js?v=40"></script>
+<script src="/app/i18n-app.js?v=41"></script>
 <a class="skip-link" href="#main-content" data-i18n="common.skipToContent">Zum Inhalt springen</a>
 <div class="app" id="app">
 
@@ -2881,10 +2935,10 @@
         <button class="round-btn rewind" id="btnRewind" style="display:none;" data-i18n-aria="swipe.rewind" aria-label="Letzten Swipe zurücknehmen">
           <svg class="ico" viewBox="0 0 24 24"><path d="M9 14 4.5 9.5 9 5"/><path d="M4.5 9.5H14a5.5 5.5 0 0 1 0 11h-3"/></svg>
         </button>
-        <button class="round-btn pass" id="btnPass" data-i18n-aria="swipe.pass" aria-label="Ablehnen">
+        <button class="round-btn pass" id="btnPass" data-i18n-aria="swipe.pass" aria-label="Ablehnen" data-i18n-title="swipe.passTitle" title="Ablehnen (←)" aria-keyshortcuts="ArrowLeft">
           <svg class="ico" viewBox="0 0 24 24"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/></svg>
         </button>
-        <button class="round-btn like" id="btnLike" data-i18n-aria="swipe.like" aria-label="Gefällt mir">
+        <button class="round-btn like" id="btnLike" data-i18n-aria="swipe.like" aria-label="Gefällt mir" data-i18n-title="swipe.likeTitle" title="Gefällt mir (→)" aria-keyshortcuts="ArrowRight">
           <svg class="ico" viewBox="0 0 24 24"><path d="M12 20.3S4.8 15.7 4.8 10.8C4.8 8 6.9 6 9.3 6c1.2 0 2.3.55 2.7 1.4C12.4 6.55 13.5 6 14.7 6c2.4 0 4.5 2 4.5 4.8 0 4.9-7.2 9.5-7.2 9.5z" fill="currentColor" stroke="none"/></svg>
         </button>
       </div>
@@ -2943,8 +2997,10 @@
     <section class="screen" id="screen-chat">
       <div class="chat-header">
         <button class="back-btn" id="btnChatBack" data-i18n-aria="chat.backToMatches" aria-label="Zurück zu Matches"><svg class="ico" viewBox="0 0 24 24"><path d="M14.5 5 8 12l6.5 7"/></svg></button>
-        <span class="av" id="chatAvatarWrap"><img id="chatAvatar" src="" alt=""></span>
-        <div class="nm" id="chatName">—</div>
+        <button type="button" class="chat-peer" id="btnChatPeer" data-i18n-title="chat.openProfile" title="Profil ansehen">
+          <span class="av" id="chatAvatarWrap"><img id="chatAvatar" src="" alt=""></span>
+          <span class="nm" id="chatName">—</span>
+        </button>
         <div class="chat-flag-btns">
           <button type="button" class="icon-btn" id="btnReportChat" data-i18n-title="common.report" data-i18n-aria="common.report" title="Melden" aria-label="Melden"><svg class="ico" viewBox="0 0 24 24"><path d="M6 21V4.5M6 5h11.5l-2.4 3.9 2.4 3.9H6"/></svg></button>
           <button type="button" class="icon-btn" id="btnBlockChat" data-i18n-title="common.block" data-i18n-aria="common.block" title="Blockieren" aria-label="Blockieren"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.2"/><path d="M6.4 6.4l11.2 11.2"/></svg></button>
@@ -3059,6 +3115,7 @@
         <div class="radius-hint radius-boost" id="radiusBoost" hidden></div>
 
         <div class="field-err" id="acctProfileErr"></div>
+        <p class="unsaved-hint" id="acctUnsaved" role="status" hidden data-i18n="acct.unsaved">Ungespeicherte Änderungen</p>
         <button class="btn secondary" id="btnSaveProfile" style="margin-top:16px;" data-i18n="acct.save">Profil speichern</button>
       </div>
 
@@ -4111,25 +4168,53 @@
   // und `t('common.close')` warf dann "t is not a function" - sichtbar wurde
   // das als Fehlermeldung beim Profilspeichern, obwohl das Speichern selbst
   // schon durch war.
+  /* opts.sticky: bleibt, bis man ihn schliesst. opts.art 'ok': Bestaetigung
+     (gruen, Haken). Steht dieselbe Meldung schon da, laeuft nur ihre Zeit
+     neu - fuenfmal "Likes aufgebraucht" untereinander hilft niemandem. */
   function toast(msg, opts){
-    const box = document.createElement('div');
-    box.className = 'toast';
-    const text = document.createElement('span');
-    text.className = 'toast-text';
-    text.textContent = msg;
-    const close = document.createElement('button');
-    close.className = 'toast-close';
-    close.type = 'button';
-    close.setAttribute('aria-label', t('common.close'));
-    close.textContent = '✕';
-    close.addEventListener('click', () => box.remove());
-    box.append(text, close);
-    document.body.appendChild(box);
+    let stapel = $('toastStack');
+    if(!stapel){
+      stapel = document.createElement('div');
+      stapel.id = 'toastStack';
+      stapel.className = 'toast-stack';
+      stapel.setAttribute('aria-live', 'polite');
+      document.body.appendChild(stapel);
+    }
+    const ok = !!(opts && opts.art === 'ok');
+    const vorhanden = [...stapel.children].find(el => !el.classList.contains('weg')
+      && el.querySelector('.toast-text').textContent === String(msg));
+    const box = vorhanden || document.createElement('div');
+    const weg = () => {
+      if(box.classList.contains('weg')) return;
+      box.classList.add('weg');
+      setTimeout(() => box.remove(), 200);
+    };
+    if(!vorhanden){
+      box.className = 'toast' + (ok ? ' ok' : '');
+      if(ok){
+        const ico = document.createElement('span');
+        ico.className = 'toast-ico';
+        ico.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5 10 17 19 7"/></svg>';
+        box.appendChild(ico);
+      }
+      const text = document.createElement('span');
+      text.className = 'toast-text';
+      text.textContent = msg;
+      const close = document.createElement('button');
+      close.className = 'toast-close';
+      close.type = 'button';
+      close.setAttribute('aria-label', t('common.close'));
+      close.textContent = '✕';
+      close.addEventListener('click', weg);
+      box.append(text, close);
+      stapel.appendChild(box);
+    }
     // Mindestens 2 s, laengere Texte entsprechend laenger (rund 15 Zeichen
     // pro Sekunde Lesezeit, hoechstens 7 s) - "Deine 20 Likes fuer heute sind
     // aufgebraucht ... Premium ..." war in 2 s nicht zu schaffen.
     const dauer = Math.min(7000, Math.max(2000, String(msg).length * 65));
-    if(!(opts && opts.sticky)) setTimeout(()=> box.remove(), dauer);
+    clearTimeout(box._zeit);
+    if(!(opts && opts.sticky)) box._zeit = setTimeout(weg, dauer);
     return box;
   }
 
@@ -4324,7 +4409,25 @@
     document.body.classList.toggle('landing', id === 'screen-login' || id === 'screen-onboard');
   }
 
+  /* Hoehe der Navigationsleiste als --nav-h fuer den unteren Abstand von main
+     (siehe CSS dort). Gemessen statt geschaetzt: Schrift, Zoomstufe und der
+     Sicherheitsabstand unten am iPhone aendern sie. Ausgeblendet (Hoehe 0)
+     bleibt der letzte Wert stehen - dann greift ohnehin die :has()-Regel.
+     Beim Start ist die Leiste meist noch aus, deshalb auch bei jedem
+     Tab-Wechsel (setNavActive) und bei Groessenaenderung neu. */
+  function navHoeheMerken(){
+    const nav = document.querySelector('nav.bottom');
+    const h = nav ? nav.getBoundingClientRect().height : 0;
+    if(h > 0) document.documentElement.style.setProperty('--nav-h', Math.ceil(h) + 'px');
+  }
+  navHoeheMerken();
+  window.addEventListener('resize', navHoeheMerken);
+  if(window.ResizeObserver && document.querySelector('nav.bottom')){
+    new ResizeObserver(navHoeheMerken).observe(document.querySelector('nav.bottom'));
+  }
+
   function setNavActive(name){
+    navHoeheMerken();
     document.querySelectorAll('nav.bottom button').forEach(b=>{
       b.classList.toggle('active', b.dataset.screen === name);
     });
@@ -5041,7 +5144,7 @@
       }
       closeGymSuggest();
       renderRegJourney();
-      toast(t('gym.thanks'));
+      toast(t('gym.thanks'), {art: 'ok'});
     }catch(err){
       errEl.textContent = err.message || t('gym.errSubmit');
     }finally{
@@ -5310,7 +5413,7 @@
       } else if(photoFailures > 0){
         toast(t('reg.donePartialPhotos'));
       } else {
-        toast(t('reg.done'));
+        toast(t('reg.done'), {art: 'ok'});
       }
       zeigeRegSchritt(1, {scroll: false});
       await loadCurrentUser();
@@ -5462,7 +5565,7 @@
       setToken(res.access_token);
       await loadCurrentUser();
       $('bottomNav').style.display = 'flex';
-      toast(t('reset.done'));
+      toast(t('reset.done'), {art: 'ok'});
       goToApp();
     }catch(err){
       errEl.textContent = err.message || t('reset.errSave');
@@ -5521,7 +5624,7 @@
       setToken(res.access_token);
       $('cp-current').value = $('cp-new').value = $('cp-new2').value = '';
       toggleCredForm('btnCredPw', 'credPwForm');
-      toast(t('cred.pwDone'));
+      toast(t('cred.pwDone'), {art: 'ok'});
     }catch(err){ errEl.textContent = err.message || t('reset.errSave'); }
     finally{ btn.disabled = false; }
   });
@@ -5537,6 +5640,7 @@
     stopVerifyCamera();
     currentChatMatchId = null;
     matchesCache = [];
+    entwuerfeVergessen();
     deck = [];
     deckIdx = 0;
     setToken(null);
@@ -5985,7 +6089,7 @@
       // Ob bezahlt wurde, weiss die App hier nicht - das Fenster laesst sich
       // auch ohne Abschluss schliessen. Also leise nachfragen und nur dann
       // etwas sagen, wenn Premium tatsaechlich aktiv geworden ist.
-      if(await premiumNachZahlungAbwarten()) toast(t('checkout.successActive'));
+      if(await premiumNachZahlungAbwarten()) toast(t('checkout.successActive'), {art: 'ok'});
     }else{
       await refreshMembership();
     }
@@ -6036,7 +6140,7 @@
       zwischenstand.remove();
       if(!aktiv) return;
     }
-    toast(t('checkout.successActive'));
+    toast(t('checkout.successActive'), {art: 'ok'});
     abostatusNeuZeichnen();
   }
   /* Ohne Anmeldung zurueck aus Stripe: vor allem die Web-App vom
@@ -6078,7 +6182,7 @@
       showScreen('screen-' + target);
       // Swipe/Konto laden keine Matches - Badge dort separat abgleichen,
       // damit ein gerade gelesener Chat sofort verschwindet
-      if(target === 'swipe'){ loadDeck(); refreshUnreadBadge(); }
+      if(target === 'swipe'){ loadDeck({behalten: true}); refreshUnreadBadge(); }
       if(target === 'matches') loadMatches();
       if(target === 'chats') loadChats();
       // Konto: sofort mit dem bekannten Stand zeichnen, dann neu holen - der
@@ -6119,7 +6223,14 @@
     }
 
     renderSubscriptionRow();
-    if(!opts || !opts.keepForm) fillProfileForm();
+    // Ungespeicherte Eingaben bleiben stehen (Tab-Wechsel, Rueckkehr von der
+    // Premium-Seite) - vorher fuellte jedes Neuzeichnen das Formular aus dem
+    // Serverstand und verwarf eine halb geschriebene Bio ohne Hinweis. Nach
+    // dem Speichern (refillForm) gilt der Serverstand, der kann gekuerzt sein.
+    const formBehalten = (opts && opts.keepForm)
+      || (!(opts && opts.refillForm) && formProfilId === myProfile.id && profilFormGeaendert());
+    if(!formBehalten) fillProfileForm();
+    renderProfilSpeichernZustand();
     renderAccountPhotoGrid();
     // Meldungen und Einwilligungen werden nicht mehr hier geladen, sondern
     // erst beim Oeffnen von "Datenschutz & Sicherheit" - zwei Anfragen
@@ -6294,7 +6405,7 @@
     schalter.disabled = true;
     try{
       if(an){
-        if(await devicePushEinschalten()) toast(t('devpush.on'));
+        if(await devicePushEinschalten()) toast(t('devpush.on'), {art: 'ok'});
       } else {
         await devicePushAusschalten();
       }
@@ -6733,7 +6844,30 @@
   let acctResolvedCity = '';
   let acctPlzLookupTimeout = null;
 
+  // Profil, aus dem das Formular zuletzt gefuellt wurde.
+  let formProfilId = null;
+
+  /* Weicht das Formular vom gespeicherten Profil ab? Verglichen wird, was
+     "Profil speichern" schickt: PLZ, Gym, Bio, Umkreis. */
+  function profilFormGeaendert(){
+    if(!myProfile) return false;
+    const gym = $('a-gym').dataset.label || $('a-gym').value.trim();
+    const umkreis = Math.min(RADIUS_MAX_KM, Math.max(RADIUS_MIN_KM, Math.round(myProfile.search_radius_km || 20)));
+    return $('a-plz').value.trim() !== (myProfile.plz || '')
+      || gym !== (myProfile.gym || '')
+      || $('a-bio').value.trim() !== (myProfile.bio || '').trim()
+      || radiusWertKm !== umkreis;
+  }
+
+  // Speichern-Knopf in Markenfarbe plus Hinweis, solange etwas offen ist.
+  function renderProfilSpeichernZustand(){
+    const offen = profilFormGeaendert();
+    $('btnSaveProfile').classList.toggle('secondary', !offen);
+    $('acctUnsaved').hidden = !offen;
+  }
+
   function fillProfileForm(){
+    formProfilId = myProfile.id;
     $('a-plz').value = myProfile.plz || '';
     acctResolvedCity = myProfile.city || '';
     if(acctResolvedCity) setPlainText($('acctOrtDisplay'), acctResolvedCity);
@@ -6967,6 +7101,12 @@
     }
     acctPlzLookupTimeout = setTimeout(() => lookupAcctLocality(plz), 300);
   });
+  // Jede Eingabe im Profilteil kann den Speichern-Zustand aendern. Die
+  // Gym-Auswahl per Klick setzt Werte ohne input-Ereignis - deshalb auch
+  // nach jedem Klick, einen Takt spaeter.
+  ['input', 'change'].forEach(art => $('screen-account').addEventListener(art, renderProfilSpeichernZustand));
+  $('screen-account').addEventListener('click', () => setTimeout(renderProfilSpeichernZustand, 0));
+
   $('a-plz').addEventListener('focus', () => $('acctPlzCombo').classList.add('focused'));
   $('a-plz').addEventListener('blur', () => $('acctPlzCombo').classList.remove('focused'));
 
@@ -6995,8 +7135,8 @@
     btn.disabled = true;
     try{
       myProfile = await api('/api/profiles/me', {method: 'PATCH', body: JSON.stringify(payload)});
-      renderAccount();
-      toast(t('acct.saved'));
+      renderAccount({refillForm: true});
+      toast(t('acct.saved'), {art: 'ok'});
     }catch(err){
       // Servertext: der kommt schon in der gewaehlten Sprache und ist
       // nicht noch einmal uebersetzbar.
@@ -7450,7 +7590,7 @@
               });
             }catch(_){ /* Reihenfolge ist Nebensache */ }
           }
-          toast(t('photo.swapped'));
+          toast(t('photo.swapped'), {art: 'ok'});
         }catch(err){
           // Das neue Foto bleibt in jedem Fall - nur das alte steht noch da.
           toast(err.message || t('common.deleteFailed'));
@@ -7462,7 +7602,7 @@
       renderAccount({keepForm: true});
       // Das Foto ist da und im Raster zu sehen; der Hinweis darunter sagt,
       // dass es vor der Anzeige noch geprueft wird.
-      toast(t('photo.uploaded'));
+      toast(t('photo.uploaded'), {art: 'ok'});
     }catch(err){
       logUploadFehler('account', err);
       acctUpload.status = 'fehler';
@@ -7514,18 +7654,39 @@
   });
 
   // ---------- Swipe deck ----------
-  async function loadDeck(){
-    $('deck').innerHTML = `<div class="loading">${escapeHtml(t('swipe.loading'))}</div>`;
-    $('swipeActions').style.display = 'none';
+  /* opts.behalten (Rueckkehr auf den Swipe-Tab): Liegt schon eine Karte, bleibt
+     sie stehen, waehrend im Hintergrund neu geholt wird. Vorher stand bei
+     jedem Tab-Wechsel kurz "Lade Profile ..." und die Karte sprang auf ihr
+     erstes Foto zurueck. Neu gezeichnet wird nur, wenn sich vorne etwas
+     geaendert hat; hat jemand inzwischen gewischt, gilt der eigene Stand. */
+  async function loadDeck(opts){
+    const vorherDeck = deck, vorherIdx = deckIdx;
+    const behalten = opts && opts.behalten && deckIdx < deck.length
+      && $('deck').querySelector('.card');
+    if(!behalten){
+      $('deck').innerHTML = `<div class="loading">${escapeHtml(t('swipe.loading'))}</div>`;
+      $('swipeActions').style.display = 'none';
+    }
     renderLikeCounter();
     renderSichtbarkeitsHinweis();
     profilAbgleichen({hoechstensAlle: 15000});
     try{
-      deck = await api('/api/swipes/deck');
-      deckIdx = 0;
+      const neu = await api('/api/swipes/deck');
+      if(behalten){
+        if(deck !== vorherDeck || deckIdx !== vorherIdx) return;
+        const id = (p) => p ? p.id : null;
+        const gleichVorne = id(neu[0]) === id(deck[deckIdx]) && id(neu[1]) === id(deck[deckIdx + 1]);
+        deck = neu;
+        deckIdx = 0;
+        if(gleichVorne) return;
+      } else {
+        deck = neu;
+        deckIdx = 0;
+      }
       if(!deck.length) await pruefeMatchingEinwilligung();
       renderCard();
     }catch(err){
+      if(behalten) return;   // die liegende Karte bleibt, beim naechsten Mal neu
       $('deck').innerHTML = `<div class="loading">${escapeHtml(t('swipe.loadFailed'))}</div>`;
       console.error(err);
     }
@@ -7711,8 +7872,17 @@
           <div class="empty-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M7 8.5v7M10.5 6.5v11M17 8.5v7M13.5 6.5v11M10.5 12h3M3.5 10v4M20.5 10v4"/></svg></div>
           <div class="empty-title">${escapeHtml(t(matchingWiderrufen ? 'swipe.revokedTitle' : 'swipe.emptyTitle'))}</div>
           <div class="empty-sub">${escapeHtml(t(matchingWiderrufen ? 'swipe.revokedSub' : 'swipe.emptySub'))}</div>
+          ${matchingWiderrufen ? '' : `<button type="button" class="btn secondary empty-action" id="btnDeckReload">${escapeHtml(t('swipe.reload'))}</button>`}
         </div>`;
       $('swipeActions').style.display = 'none';
+      // Neu laden wie in den Apps - neue Profile kommen laufend dazu. Bleibt
+      // es leer, sagt ein kurzer Hinweis, dass wirklich nachgesehen wurde.
+      const neuLaden = $('btnDeckReload');
+      if(neuLaden) neuLaden.addEventListener('click', async () => {
+        neuLaden.disabled = true;
+        await loadDeck();
+        if(deckIdx >= deck.length && !matchingWiderrufen) toast(t('swipe.reloadNone'));
+      });
       return;
     }
     $('swipeActions').style.display = 'flex';
@@ -7787,6 +7957,7 @@
     if(!(await frage({titel: t('block.title', {name}), text: t('block.confirm', {name}), ja: t('common.block')}))) return;
     try{
       await api('/api/blocks', {method: 'POST', body: JSON.stringify({user_id: userId})});
+      matchesCache = matchesCache.filter(m => !m.profile || m.profile.id !== userId);
       toast(t('block.done', {name}));
       if(onBlocked) onBlocked();
     }catch(err){ toast(err.message || t('err.failed')); }
@@ -7796,6 +7967,7 @@
     if(!(await frage({titel: t('swipe.unmatch'), text: t('unmatch.confirm', {name}), ja: t('swipe.unmatch')}))) return;
     try{
       await api(`/api/matches/${matchId}`, {method: 'DELETE'});
+      matchesCache = matchesCache.filter(m => m.match_id !== matchId);
       toast(t('unmatch.done', {name}));
       if(onDone) onDone();
     }catch(err){ toast(err.message || t('unmatch.failed')); }
@@ -8076,6 +8248,27 @@
   $('btnPass').addEventListener('click', ()=> commitSwipe('pass', 0));
   $('btnRewind').addEventListener('click', rewindLastSwipe);
 
+  /* Tastatur am Desktop: Pfeil links lehnt ab, Pfeil rechts liked - wie die
+     Demo auf der Startseite. Nur auf dem Swipe-Screen, nicht beim Tippen und
+     nicht, solange ein Dialog, die Galerie (blaettert selbst mit den
+     Pfeilen) oder das Match-Overlay offen ist. Geht ueber die Knoepfe, damit
+     dieselben Sperren gelten (ausgeblendet, gesperrt). */
+  document.addEventListener('keydown', (e) => {
+    if(e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+    if(e.altKey || e.ctrlKey || e.metaKey || e.shiftKey || e.repeat) return;
+    if(document.body.dataset.screen !== 'screen-swipe') return;
+    const ziel = e.target;
+    if(ziel && (ziel.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(ziel.tagName))) return;
+    if(lightboxEl.classList.contains('open') || $('matchOverlay').classList.contains('open')
+      || document.querySelector('.legal-modal-backdrop.open')
+      || $('immediateStartOverlay').style.display !== 'none') return;
+    if($('swipeActions').style.display === 'none') return;
+    const knopf = $(e.key === 'ArrowLeft' ? 'btnPass' : 'btnLike');
+    if(knopf.disabled) return;
+    e.preventDefault();
+    knopf.click();
+  });
+
   // ---------- Matches ----------
   let matchesCache = [];
 
@@ -8129,18 +8322,28 @@
     else if(unreadPollInterval) refreshUnreadBadge();
   });
 
+  /* Bekannte Liste sofort zeigen und im Hintergrund neu holen. Vorher stand
+     bei jedem Tab-Wechsel kurz "Lade Matches ...", und die Liste baute sich
+     neu auf. matchesCache wird bei Aufloesen, Blockieren und Chat-Loeschen
+     gleich mitgefuehrt, damit dort nichts Veraltetes aufblitzt. */
   async function loadMatches(){
-    $('matchList').classList.remove('is-empty');
-    $('matchList').innerHTML = `<div class="loading">${escapeHtml(t('matches.loading'))}</div>`;
-    lastMatchListHtml = null;
+    const ausDemSpeicher = matchesCache.length > 0;
+    if(ausDemSpeicher){
+      renderMatches(matchesCache);
+    } else {
+      $('matchList').classList.remove('is-empty');
+      $('matchList').innerHTML = `<div class="loading">${escapeHtml(t('matches.loading'))}</div>`;
+      lastMatchListHtml = null;
+    }
     loadIncomingLikes();
     try{
       matchesCache = await api('/api/matches');
       renderUnreadBadge(matchesCache);
       renderMatches(matchesCache);
     }catch(err){
-      $('matchList').innerHTML = `<div class="loading">${escapeHtml(t('matches.loadFailed'))}</div>`;
       console.error(err);
+      if(ausDemSpeicher) return;
+      $('matchList').innerHTML = `<div class="loading">${escapeHtml(t('matches.loadFailed'))}</div>`;
     }
   }
 
@@ -8235,6 +8438,11 @@
         const p = m.profile;
         const photo = photoThumb(p.photos && p.photos[0]);
         const cls = ['match-item', m.is_online ? 'online' : ''].filter(Boolean).join(' ');
+        // Noch keine Unterhaltung: direkter Weg in den Chat, statt erst ueber
+        // das Profil - der naheliegende naechste Schritt nach einem Match.
+        const rechts = m.in_chats
+          ? '<div class="chev"></div>'
+          : `<button type="button" class="pill-action accent say-hi" data-chat="${m.match_id}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 11.7a8.2 8.2 0 0 1-8.3 8.1c-1.5 0-2.9-.35-4.1-1L4 19.9l1.1-4.1a8.1 8.1 0 1 1 15.9-4.1z"/></svg>${escapeHtml(t('matches.sayHi'))}</button>`;
         return `
         <div class="${cls}" data-match-id="${m.match_id}">
           <span class="av"><img src="${escapeHtml(photo)}" alt="" title="${m.is_online ? escapeHtml(t('matches.online')) : ''}"></span>
@@ -8242,7 +8450,7 @@
             <div class="nm">${nameWithBadges(p, `${p.name}, ${p.age}`)}</div>
             <div class="last-msg">${escapeHtml(p.city)}${p.distance_km != null ? ` · ${p.distance_km} km` : ''}${m.is_online ? ' · ' + escapeHtml(t('matches.online')) : ''}</div>
           </div>
-          <div class="chev"></div>
+          ${rechts}
         </div>`;
       }).join('');
     }
@@ -8253,20 +8461,33 @@
     $('matchList').querySelectorAll('.match-item').forEach(el => {
       el.addEventListener('click', () => openMatchProfile(el.dataset.matchId));
     });
+    $('matchList').querySelectorAll('.say-hi').forEach(knopf => {
+      knopf.addEventListener('click', (e) => {
+        e.stopPropagation();
+        openChat(knopf.dataset.chat, 'matches');
+      });
+    });
   }
 
   // ---------- Chats (nur Matches mit laufender Unterhaltung) ----------
+  // Wie loadMatches: bekannte Liste sofort, dann neu holen.
   async function loadChats(){
-    $('chatList').classList.remove('is-empty');
-    $('chatList').innerHTML = `<div class="loading">${escapeHtml(t('chats.loading'))}</div>`;
-    lastChatListHtml = null;
+    const ausDemSpeicher = matchesCache.length > 0;
+    if(ausDemSpeicher){
+      renderChats(matchesCache);
+    } else {
+      $('chatList').classList.remove('is-empty');
+      $('chatList').innerHTML = `<div class="loading">${escapeHtml(t('chats.loading'))}</div>`;
+      lastChatListHtml = null;
+    }
     try{
       matchesCache = await api('/api/matches');
       renderUnreadBadge(matchesCache);
       renderChats(matchesCache);
     }catch(err){
-      $('chatList').innerHTML = `<div class="loading">${escapeHtml(t('chats.loadFailed'))}</div>`;
       console.error(err);
+      if(ausDemSpeicher) return;
+      $('chatList').innerHTML = `<div class="loading">${escapeHtml(t('chats.loadFailed'))}</div>`;
     }
   }
 
@@ -8330,10 +8551,16 @@
   // ---------- Match-Profil (Zwischenschritt vor dem Chat) ----------
   let currentMatchProfileId = null;
 
-  function openMatchProfile(matchId){
+  /* Aus dem Chat geoeffnet (Tipp auf Foto oder Namen im Chatkopf): Zurueck
+     und "Nachricht schreiben" fuehren wieder in diesen Chat, nicht in die
+     Match-Liste. Haelt die Herkunft des Chats ('chats' oder 'matches'). */
+  let matchProfileAusChat = null;
+
+  function openMatchProfile(matchId, opts){
     const match = findMatchById(matchId);
     if(!match) return;
     currentMatchProfileId = matchId;
+    matchProfileAusChat = opts && opts.ausChat ? chatOrigin : null;
     $('matchProfileTitle').textContent = match.profile.name + ', ' + match.profile.age;
     const wrap = $('matchProfileCardWrap');
     wrap.innerHTML = '';
@@ -8353,6 +8580,10 @@
   }
 
   $('btnMatchProfileBack').addEventListener('click', () => {
+    if(matchProfileAusChat && currentMatchProfileId){
+      openChat(currentMatchProfileId, matchProfileAusChat);
+      return;
+    }
     currentMatchProfileId = null;
     showScreen('screen-matches');
     setNavActive('matches');
@@ -8360,7 +8591,16 @@
 
   $('btnOpenChatFromProfile').addEventListener('click', () => {
     if(!currentMatchProfileId) return;
-    openChat(currentMatchProfileId, 'matches');
+    openChat(currentMatchProfileId, matchProfileAusChat || 'matches');
+  });
+
+  // Chatkopf: Foto und Name fuehren zum Profil - wie in gaengigen Messengern.
+  $('btnChatPeer').addEventListener('click', () => {
+    const matchId = currentChatMatchId;
+    if(!matchId || !findMatchById(matchId)) return;
+    stopChatPolling();
+    currentChatMatchId = null;
+    openMatchProfile(matchId, {ausChat: true});
   });
 
   // ---------- Alters- und Identitätsprüfung ----------
@@ -8629,7 +8869,7 @@
         if(handoffStand(st) !== vorher){
           handoffStopp();
           handoffAktuell = null;
-          toast(t('handoff.continued'));
+          toast(t('handoff.continued'), {art: 'ok'});
           renderVerificationGate();
         }
       }catch(_){ /* naechster Versuch in ein paar Sekunden */ }
@@ -8657,7 +8897,7 @@
       const photo = await preparePhoto(file);
       await uploadPhoto({blob: photo.blob, thumbBlob: photo.thumbBlob});
       await loadCurrentUser();
-      toast(t('vgate.photoSaved'));
+      toast(t('vgate.photoSaved'), {art: 'ok'});
       await showVerificationGate();
     }catch(uploadErr){
       logUploadFehler('verifizierungs-gate', uploadErr);
@@ -8700,7 +8940,7 @@
       try{
         await loadCurrentUser();
         if(accountActivated()){
-          toast(t('vgate.success'));
+          toast(t('vgate.success'), {art: 'ok'});
           goToApp();
           return;
         }
@@ -8736,7 +8976,7 @@
     try{
       await loadCurrentUser();
       if(accountActivated()){
-        toast(t('vgate.success'));
+        toast(t('vgate.success'), {art: 'ok'});
         goToApp();
         return;
       }
@@ -8915,7 +9155,7 @@
       verifyState = null;
       btn.textContent = CAPTURE_LABEL();
       // Selfies sind durch - weiter zum Ausweisschritt (Schritt 2 von 2)
-      toast(t('verify.saved'));
+      toast(t('verify.saved'), {art: 'ok'});
       openIdStep();
     }catch(err){
       $('verifyErr').textContent = err.message || t('verify.submitFailed');
@@ -9152,7 +9392,7 @@
     // Speicher der Seite weiterleben.
     if(idState) Object.values(idState.shots).forEach(s => URL.revokeObjectURL(s.previewUrl));
     idState = null;
-    toast(t('id.submitted'));
+    toast(t('id.submitted'), {art: 'ok'});
     await loadCurrentUser();
     showVerificationGate();
   }
@@ -9214,8 +9454,36 @@
   // damit der Zurück-Pfeil dorthin zurückführt.
   let chatOrigin = 'chats';
 
+  /* Entwuerfe je Chat: Ein angefangener Text bleibt in seinem Chat. Vorher
+     gab es nur das eine Eingabefeld - der halbe Satz an Lena stand beim
+     Oeffnen des Chats mit Viktoria dort im Feld. */
+  const chatEntwuerfe = new Map();
+  let entwurfFuer = null;   // Match, dem der Text im Eingabefeld gehoert
+  function entwurfMerken(){
+    if(!entwurfFuer) return;
+    const text = $('chatInput').value;
+    if(text.trim()) chatEntwuerfe.set(entwurfFuer, text);
+    else chatEntwuerfe.delete(entwurfFuer);
+  }
+  function entwuerfeVergessen(){
+    chatEntwuerfe.clear();
+    entwurfFuer = null;
+    $('chatInput').value = '';
+    renderSendenKnopf();
+  }
+
+  // Senden erst in Markenfarbe, wenn etwas zu senden ist (wie in der
+  // Android-App) - vorher sah der Knopf auch bei leerem Feld bereit aus.
+  function renderSendenKnopf(){
+    $('chatInput').closest('.chat-input-row').classList.toggle('has-text', $('chatInput').value.trim() !== '');
+  }
+
   async function openChat(matchId, origin){
     chatOrigin = origin || 'chats';
+    entwurfMerken();
+    $('chatInput').value = chatEntwuerfe.get(matchId) || '';
+    entwurfFuer = matchId;
+    renderSendenKnopf();
     currentChatMatchId = matchId;
     chatLimit = CHAT_PAGE;
     chatRenderKey = '';
@@ -9485,14 +9753,17 @@
     // Bei aktiver Chat-Sperre gar nicht erst senden
     if(chatMutedUntil()){ renderChatMuteState(); return; }
     input.value = '';
+    renderSendenKnopf();
     try{
       await api(`/api/matches/${currentChatMatchId}/messages`, {method: 'POST', body: JSON.stringify({content})});
+      chatEntwuerfe.delete(entwurfFuer);
       await loadMessages();
       // Cache auffrischen, damit die Chatliste beim Zurückgehen aktuell ist
       matchesCache = await api('/api/matches');
       renderUnreadBadge(matchesCache);
     }catch(err){
       input.value = content;  // getippten Text nicht verlieren
+      renderSendenKnopf();
       // Chat-Sperre (evtl. erst während der Sitzung gesetzt): statt Fehler-Toast
       // den Sperr-Hinweis im Chat zeigen. Bei jedem 403 den Profilstatus
       // gegenprüfen, damit der Banner sicher erscheint.
@@ -9517,6 +9788,7 @@
     }
   }
   $('btnChatSend').addEventListener('click', sendChatMessage);
+  $('chatInput').addEventListener('input', renderSendenKnopf);
   $('chatInput').addEventListener('keydown', e => {
     // isComposing: Mit einer Eingabehilfe (Emoji-Vorschlaege am Handy,
     // Wortvervollstaendigung) bestaetigt Enter erst die Auswahl - ohne die
@@ -9587,7 +9859,7 @@
     if(!(await frage({titel: t('chat.clear'), text: t('chat.confirmClear'), ja: t('chat.clear')}))) return;
     try{
       await api(`/api/matches/${currentChatMatchId}/messages`, {method: 'DELETE'});
-      toast(t('chat.clearedToast'));
+      toast(t('chat.clearedToast'), {art: 'ok'});
       await loadMessages();
       matchesCache = await api('/api/matches');
       renderUnreadBadge(matchesCache);
@@ -9601,7 +9873,9 @@
     if(!(await frage({titel: t('chat.delete'), text: t('chat.confirmDelete', {name: match.profile.name}), ja: t('chat.delete')}))) return;
     try{
       await api(`/api/matches/${currentChatMatchId}/chat`, {method: 'DELETE'});
-      toast(t('chat.deleted'));
+      matchesCache = matchesCache.map(m => m.match_id === currentChatMatchId
+        ? {...m, in_chats: false, last_message: null, unread_count: 0} : m);
+      toast(t('chat.deleted'), {art: 'ok'});
       stopChatPolling();
       currentChatMatchId = null;
       showScreen('screen-chats');
@@ -9844,7 +10118,7 @@
         await loadCurrentUser();
         $('bottomNav').style.display = 'flex';
         goToApp();
-        toast(t('handoff.signedIn'));
+        toast(t('handoff.signedIn'), {art: 'ok'});
         return;
       }catch(err){
         // Abgelaufen oder schon benutzt: normal weiter zum Login (oder in die
