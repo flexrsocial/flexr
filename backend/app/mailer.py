@@ -247,26 +247,30 @@ def _logo_url() -> str:
     """Adresse des Mail-Logos. Liegt unter /icons/ (nur dort liefert nginx
     aus, /brand/ ist gesperrt) und traegt die Version im Namen, weil /icons/
     ein Jahr "immutable" gecacht wird - erzeugt von
-    frontend/brand/build_logo.py (MAIL_LOGO)."""
+    frontend/brand/build_icons.py --mail (MAIL_ICON)."""
     return f"{settings.frontend_url.rstrip('/')}/{MAIL_LOGO_PATH}"
 
 
 #: Pfad des Mail-Logos unter frontend/ - bei einer neuen Fassung neue Nummer.
-MAIL_LOGO_PATH = "icons/mail-logo-v1.png"
+#: Seit 15.10.2026 das App-Icon (FX-Kachel) statt der Wortmarke
+#: icons/mail-logo-v1.png - die bleibt liegen, weil bereits verschickte Mails
+#: sie weiter laden.
+MAIL_LOGO_PATH = "icons/mail-icon-v1.png"
 
 
 def _header_html(eyebrow: str) -> str:
-    """Kopf jeder HTML-Mail: Stichzeile links, FLEXR-Wortmarke rechts oben.
+    """Kopf jeder HTML-Mail: Stichzeile links, App-Icon rechts oben.
 
     Als Tabelle, nicht mit float/flex: Outlook und manche Webmailer kennen
-    davon nichts und stapelten Logo und Stichzeile untereinander. Der
-    alt-Text ist gestaltet - wer Bilder blockiert, sieht statt eines leeren
-    Rahmens das Wort FLEXR in den Markenfarben der Schrift."""
+    davon nichts und stapelten Logo und Stichzeile untereinander. Die runden
+    Ecken und die helle Kante stecken im Bild selbst (Outlook kennt kein
+    border-radius). Der alt-Text ist gestaltet - wer Bilder blockiert, sieht
+    statt eines leeren Rahmens FLEXR in der Schriftfarbe der Marke."""
     return f"""    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;margin:0 0 14px;">
       <tr>
         <td style="vertical-align:middle;padding:0;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:#ff5a1f;">{html.escape(eyebrow)}</td>
-        <td style="vertical-align:middle;padding:0 0 0 12px;text-align:right;width:120px;">
-          <a href="{html.escape(settings.frontend_url)}" style="text-decoration:none;color:#f2efea;"><img src="{html.escape(_logo_url())}" width="120" height="33" alt="FLEXR" style="display:block;margin:0 0 0 auto;border:0;outline:none;text-decoration:none;width:120px;height:33px;font-family:Helvetica,Arial,sans-serif;font-size:20px;font-weight:700;letter-spacing:.08em;line-height:33px;color:#f2efea;"></a>
+        <td style="vertical-align:middle;padding:0 0 0 12px;text-align:right;width:44px;">
+          <a href="{html.escape(settings.frontend_url)}" style="text-decoration:none;color:#f2efea;"><img src="{html.escape(_logo_url())}" width="44" height="44" alt="FLEXR" style="display:block;margin:0 0 0 auto;border:0;outline:none;text-decoration:none;width:44px;height:44px;border-radius:10px;font-family:Helvetica,Arial,sans-serif;font-size:11px;font-weight:700;letter-spacing:.04em;line-height:44px;text-align:center;color:#f2efea;"></a>
         </td>
       </tr>
     </table>"""
@@ -283,6 +287,7 @@ def _email_shell(
     body_html kommen vom Aufrufer bereits maskiert/gerendert."""
     return f"""<!doctype html>
 <html lang="{t("html.lang", lang)}">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"></head>
 <body style="margin:0;padding:24px;background:#0f0f11;font-family:Helvetica,Arial,sans-serif;color:#e8e8ea;">
   <div style="max-width:520px;margin:0 auto;background:#17171a;border:1px solid #2a2a30;border-radius:16px;padding:28px;">
 {_header_html(eyebrow)}
@@ -374,6 +379,7 @@ def _verify_html(name: str, link: str, hours: int, lang: str = STANDARD) -> str:
     name = html.escape(name)
     return f"""<!doctype html>
 <html lang="{t("html.lang", lang)}">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"></head>
 <body style="margin:0;padding:24px;background:#0f0f11;font-family:Helvetica,Arial,sans-serif;color:#e8e8ea;">
   <div style="max-width:520px;margin:0 auto;background:#17171a;border:1px solid #2a2a30;border-radius:16px;padding:28px;">
 {_header_html(t("verify.eyebrow", lang))}
@@ -1089,6 +1095,7 @@ def _decision_html(
     knopf = _button_html(*button) if button else ""
     return f"""<!doctype html>
 <html lang="{t("html.lang", lang)}">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"></head>
 <body style="margin:0;padding:24px;background:#0f0f11;font-family:Helvetica,Arial,sans-serif;color:#e8e8ea;">
   <div style="max-width:520px;margin:0 auto;background:#17171a;border:1px solid #2a2a30;border-radius:16px;padding:28px;">
 {_header_html(eyebrow)}

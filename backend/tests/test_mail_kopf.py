@@ -1,5 +1,5 @@
-"""Kopf aller HTML-Mails: Stichzeile links, FLEXR-Wortmarke rechts oben
-(Wunsch des Betreibers, 14.10.2026).
+"""Kopf aller HTML-Mails: Stichzeile links, Logo rechts oben (Wunsch des
+Betreibers, 14.10.2026; seit 15.10.2026 das App-Icon statt der Wortmarke).
 
 Es gibt drei HTML-Gerueste in app/mailer.py (_email_shell, _verify_html,
 _decision_html). Geprueft wird ueber die versendeten Mails, nicht ueber die
@@ -74,11 +74,11 @@ def test_es_werden_alle_mailarten_geprueft():
 def test_jede_mail_traegt_das_logo_rechts_oben(gesendet, fall, lang):
     FAELLE[fall](lang)
     html_body = gesendet[-1]
-    assert 'src="https://flexr.social/icons/mail-logo-v1.png"' in html_body
+    assert 'src="https://flexr.social/icons/mail-icon-v1.png"' in html_body
     assert 'alt="FLEXR"' in html_body
     # Logo steht im Kopf, vor der Ueberschrift - nicht irgendwo im Text.
-    assert html_body.index("mail-logo-v1.png") < html_body.index("<h1")
-    assert html_body.count("mail-logo-v1.png") == 1
+    assert html_body.index("mail-icon-v1.png") < html_body.index("<h1")
+    assert html_body.count("mail-icon-v1.png") == 1
 
 
 def test_logodatei_liegt_dort_wo_nginx_ausliefert():
@@ -87,8 +87,14 @@ def test_logodatei_liegt_dort_wo_nginx_ausliefert():
 
     datei = FRONTEND / mailer.MAIL_LOGO_PATH
     assert datei.is_file()
-    breite, hoehe = Image.open(datei).size
-    # width="120" height="33" im Mailkopf: dasselbe Seitenverhaeltnis
-    assert abs(breite / hoehe - 120 / 33) < 0.05
+    bild = Image.open(datei)
+    breite, hoehe = bild.size
+    # width="44" height="44" im Mailkopf: quadratisch, mindestens doppelt
+    # so viele Pixel fuer hochaufloesende Displays, Ecken transparent.
+    assert breite == hoehe >= 88
+    assert bild.mode == "RGBA" and bild.getpixel((0, 0))[3] < 32
+    # Die Wortmarke von gestern bleibt liegen - bereits verschickte Mails
+    # laden sie weiter.
+    assert (FRONTEND / "icons" / "mail-logo-v1.png").is_file()
     nginx = (FRONTEND.parent / "deploy" / "nginx-flexr.conf").read_text(encoding="utf-8")
     assert "location /icons/" in nginx

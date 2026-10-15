@@ -160,7 +160,9 @@ def write_png(name, width, fg, accent, badge=False, transparent=True, bg=INK):
     return img.size
 
 
-# --- Logo im Kopf der E-Mails (backend/app/mailer.py, _logo_html) -----------
+# --- Wortmarke im Kopf der E-Mails - nur 14./15.10.2026 ----------------------
+# Seit 15.10.2026 steht dort das App-Icon (build_icons.py --mail). Die Datei
+# bleibt liegen, weil bereits verschickte Mails sie weiter laden.
 # Auf der Kartenfarbe der Mails statt transparent: Eine transparente PNG mit
 # heller Schrift verschwaende in Mailprogrammen, die den dunklen Hintergrund
 # durch einen hellen ersetzen. So bleibt die Wortmarke immer lesbar und ist im

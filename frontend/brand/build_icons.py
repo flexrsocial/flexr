@@ -79,6 +79,43 @@ def on_canvas(layer, size, anteil=TILE_ON_CANVAS):
     return canvas
 
 
+# --- Kopf der E-Mails (backend/app/mailer.py, MAIL_LOGO_PATH) ---------------
+# Liegt unter /icons/ (nur dort liefert nginx aus, /brand/ ist gesperrt) und
+# traegt die Version im Namen, weil /icons/ ein Jahr "immutable" gecacht wird.
+MAIL_ICON = f'{ROOT}/frontend/icons/mail-icon-v1.png'
+MAIL_ICON_PX = 132          # dreifache Anzeigegroesse (44 px im Mailkopf)
+MAIL_KANTE_PX = 10          # Breite der hellen Kante, bezogen auf 512 px
+MAIL_KANTE_ALPHA = 0.16     # Deckkraft der Kante (Weiss)
+
+
+def mail_icon(tile):
+    """App-Icon fuer den Kopf der E-Mails.
+
+    Die Kachel hat fast genau die Kartenfarbe der Mails (#17171A) - ohne Kante
+    verschwaende sie, und im Kopf schwebte nur das FX. Eine dezente helle Kante
+    zeichnet die Kachel nach (wie die Store-Darstellung). Die Ecken bleiben
+    transparent und sind ins Bild gerechnet: Outlook kennt kein border-radius.
+    """
+    from PIL import ImageFilter
+
+    gross = tile.resize((512, 512), Image.LANCZOS)
+    # Mit transparentem Rand erodieren: Die Kachel reicht bis an den
+    # Bildrand, und dort wiederholt MinFilter die Randpixel - die Kante
+    # erschiene sonst nur an den runden Ecken.
+    rand = MAIL_KANTE_PX + 2
+    gepolstert = Image.new('L', (512 + 2 * rand, 512 + 2 * rand), 0)
+    gepolstert.paste(gross.getchannel('A'), (rand, rand))
+    alpha = gross.getchannel('A')
+    innen = gepolstert.filter(ImageFilter.MinFilter(2 * MAIL_KANTE_PX + 1)).crop(
+        (rand, rand, rand + 512, rand + 512))
+    ring = np.clip(np.asarray(alpha, np.float32) - np.asarray(innen, np.float32), 0, 255) / 255.0
+    rgba = np.asarray(gross, np.float32)
+    k = (ring * MAIL_KANTE_ALPHA)[..., None]
+    rgba[..., :3] = rgba[..., :3] * (1 - k) + 255.0 * k
+    out = Image.fromarray(np.clip(rgba, 0, 255).astype(np.uint8), 'RGBA')
+    out.resize((MAIL_ICON_PX, MAIL_ICON_PX), Image.LANCZOS).save(MAIL_ICON, optimize=True)
+
+
 def main():
     rgb = load_tile()
     fg = straight_alpha(rgb)
@@ -124,7 +161,17 @@ def main():
     store.save(f'{ROOT}/android/store_icon.png')
     store.save(f'{ROOT}/android/store/icon-512.png')
 
+    mail_icon(tile)
+
     print('fertig')
 
 
-main()
+if __name__ == '__main__':
+    import sys
+
+    # Nur das Mail-Icon neu erzeugen, ohne die uebrigen Dateien anzufassen.
+    if '--mail' in sys.argv:
+        mail_icon(tile_mask(load_tile()))
+        print('mail-icon-v1.png')
+    else:
+        main()
