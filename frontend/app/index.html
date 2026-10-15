@@ -226,6 +226,12 @@
   @media (max-height: 700px){
     #screen-swipe.active{ overflow-y:auto; overflow-x:hidden; }
     #screen-swipe .deck{ flex:none; min-height:440px; }
+    /* Leeres Deck ("Alle Saetze absolviert"): ohne Karte gibt es nichts zu
+       verzerren, die 440px hielten nur den Screen scrollbar. Wer zu den
+       Knoepfen unter der Falz gescrollt hatte, blieb nach der letzten Karte
+       auf der Restspanne stehen - die Ueberschrift klebte halb unter der
+       Kopfleiste (Handy-Browser mit Adresszeile, 15.10.2026). */
+    #screen-swipe .deck.is-empty{ flex:1; min-height:0; }
   }
   /* Dezenter Scrollbalken im FLEXR-Look: dünn, orange-transparent, erscheint
      erst beim Hovern/Scrollen (Thumb sonst unsichtbar). */
@@ -774,6 +780,14 @@
     text-align:center; padding:48px 24px; color:var(--chalk-dim); gap:4px;
   }
   .deck .empty{ position:absolute; inset:0; }
+  /* Ohne Karte liegt der Leerzustand im Fluss: Passt er, sitzt er wie zuvor
+     (flex:1 fuellt das Deck). Auf sehr niedrigen Viewports ragt er dann nach
+     unten heraus, wo der Screen ihn erreicht - absolut zentriert lief er auch
+     oben ueber den Rand, und dorthin scrollt nichts. touch-action wieder frei:
+     es gibt nichts zu ziehen, der Screen muss sich am Handy auch auf dieser
+     Flaeche scrollen lassen. Die Klasse setzt renderCard(). */
+  .deck.is-empty{ display:flex; flex-direction:column; touch-action:auto; }
+  .deck.is-empty .empty{ position:static; flex:1; }
   /* Matches und Chats: derselbe Sitz wie im Deck.
      .empty zentriert seinen Inhalt (justify-content:center), das wirkt aber
      nur, wenn das Element auch Hoehe hat. Im Deck holt .deck{flex:1} die
@@ -7489,7 +7503,11 @@
   function renderCard(){
     const container = $('deck');
     container.innerHTML = '';
+    container.classList.toggle('is-empty', deckIdx >= deck.length);
     if(deckIdx >= deck.length){
+      // Auf niedrigen Viewports scrollt der Screen (Knoepfe unter der Falz).
+      // Die Ueberschrift gehoert zum Leerzustand dazu - nach oben zurueck.
+      $('screen-swipe').scrollTop = 0;
       container.innerHTML = `
         <div class="empty">
           <div class="empty-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M7 8.5v7M10.5 6.5v11M17 8.5v7M13.5 6.5v11M10.5 12h3M3.5 10v4M20.5 10v4"/></svg></div>

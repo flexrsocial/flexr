@@ -114,7 +114,9 @@
 // Hinweis "in der Suche nicht sichtbar" ueber dem Deck; i18n-app.js auf ?v=36.
 // v47: Hinweis ueber dem Deck kompakt; i18n-app.js auf ?v=37.
 // v48: Ins Deck erst mit 3 freigegebenen Fotos - Hinweistexte; i18n-app.js ?v=38.
-const CACHE = 'flexr-shell-v48';
+// v49: Leeres Deck auf niedrigen Viewports - Ueberschrift nicht mehr unter der
+// Kopfleiste, Leerzustand am Handy scrollbar.
+const CACHE = 'flexr-shell-v49';
 // Seit dem 15.08.2026 liegt die App unter /app/, an der Wurzel steht die
 // oeffentliche Landingpage. Beide gehoeren in die Shell: die Landingpage,
 // weil sie der Einstieg ist, die App, weil sie offline funktionieren soll.
