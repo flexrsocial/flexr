@@ -122,6 +122,42 @@ erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 > - Web-App: Deck fragt `/me` nicht doppelt direkt nach dem App-Start
 >   (15-s-Drossel). Navigation lädt HTML netzseitig, daher kein SW-Bump.
 > - Tests: Backend 732 grün (+2).
+>
+> **Nachtrag – Emulator-Test und Mail-Icon (15.10.2026):**
+> - **Android-Emulator eingerichtet** (gab es hier nicht): `emulator` und
+>   `system-images;android-35;google_apis;x86_64` per `sdkmanager` in
+>   `~/.bubblewrap/android_sdk`, AVD `flexr_test` (Pixel, 2 GB). Das alte
+>   `avdmanager` schreibt `image.sysdir.1=android_sdk/system-images/…` - auf
+>   `system-images/…` korrigieren, sonst „Broken AVD system path“. Start ohne
+>   Fenster: `emulator -avd flexr_test -no-window -no-audio -gpu
+>   swiftshader_indirect -no-snapshot`, Bedienung per `adb shell input`,
+>   Bilder per `adb exec-out screencap -p`. Testvariante `assembleLocalDebug`
+>   (API `http://10.0.2.2:8000/`) mit `adb reverse tcp:8000` und `tcp:5055`
+>   gegen die lokale Umgebung (SQLite-Kopie + S3-Attrappe). Die Variante
+>   `local` kam bisher nicht über den Login: Klartext-HTTP war gesperrt -
+>   jetzt `src/local/` mit eigener Netzwerkfreigabe nur für 10.0.2.2 und
+>   localhost (Produktion unberührt).
+> - **Durchgespielt** (lena@example.com): Austausch-Pfeile bei 3 Fotos,
+>   Austauschen über die System-Bildauswahl, abgelehntes Foto per ✕, Hinweis
+>   über dem Deck nach Zurückkehren, Sprung ins Konto, und der gemeldete
+>   Fall (Ablehnung im Hintergrund → ✕ → Meldung, Raster neu geladen). Dabei
+>   gefunden und behoben (`5ac2c56`, deployt): Hinweis über dem Deck zu hoch
+>   (Like-/Nein-Knöpfe verdeckten den Kartentext) → kompakte antippbare
+>   Zeile auf Android, iOS und Web; Positionsnummer lag unter „In Prüfung“/
+>   „Abgelehnt“ (Android, iOS); Sprung zeigt das ganze Raster. Web:
+>   Ersatz-Sprung ohne Animation, falls weiches Scrollen nicht läuft.
+>   `i18n-app.js?v=37`, SW v47.
+> - **Android 2.7.30 / 142** (`release-2.7.30/` mit `SHA256SUMS.txt`,
+>   ersetzt 2.7.29 - die nicht hochladen): AAB `c9c67969…a1f6`, APK
+>   `39d162ca…9a27`, Upload-Key `BC:64:…:79:80` geprüft, 67 Unit-Tests,
+>   Lint sauber.
+> - **Mail-Kopf: App-Icon statt Wortmarke** (Wunsch des Nutzers):
+>   `frontend/icons/mail-icon-v1.png` (132 px für 44 px, aus
+>   `build_icons.py --mail`): Kachel mit transparenten runden Ecken (im Bild,
+>   weil Outlook kein border-radius kennt) und dezenter heller Kante - die
+>   Kachel hat sonst fast genau die Kartenfarbe #17171A und verschwände.
+>   `mail-logo-v1.png` (Wortmarke) bleibt liegen, bereits verschickte Mails
+>   laden sie. Alle drei Mail-Gerüste mit `<meta charset="utf-8">`.
 
 > **Sitzung 14.10.2026 (17): Startradius, Knopf in der Freischalt-Mail,
 > QR-Code „am Handy weitermachen“.**
