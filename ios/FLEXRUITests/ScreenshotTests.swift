@@ -127,21 +127,31 @@ final class ScreenshotTests: XCTestCase {
 
     @discardableResult
     private func tippe(knopf label: String) -> Bool {
-        let treffer = app.buttons.matching(NSPredicate(format: "label ==[c] %@", label)).firstMatch
-        guard treffer.waitForExistence(timeout: 8), treffer.isHittable else {
-            XCTContext.runActivity(named: "Knopf \"\(label)\" nicht gefunden") { _ in }
-            return false
-        }
-        treffer.tap()
-        return true
+        tippe(app.buttons.matching(NSPredicate(format: "label ==[c] %@", label)), name: label)
     }
 
     @discardableResult
     private func tippe(beginntMit text: String) -> Bool {
-        let treffer = app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", text)).firstMatch
-        guard treffer.waitForExistence(timeout: 8), treffer.isHittable else { return false }
-        treffer.tap()
-        return true
+        tippe(app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", text)), name: text)
+    }
+
+    /// Den antippbaren Treffer nehmen. Meldet XCUITest keinen als antippbar
+    /// (erster Lauf: die Reiter der eigenen Tab-Leiste), auf die Mitte des
+    /// ersten sichtbaren tippen - die Koordinate trifft trotzdem.
+    private func tippe(_ abfrage: XCUIElementQuery, name: String) -> Bool {
+        _ = abfrage.firstMatch.waitForExistence(timeout: 8)
+        let alle = abfrage.allElementsBoundByIndex
+        if let ziel = alle.first(where: { $0.isHittable }) {
+            ziel.tap()
+            return true
+        }
+        let bildschirm = app.frame
+        if let ziel = alle.first(where: { !$0.frame.isEmpty && bildschirm.intersects($0.frame) }) {
+            ziel.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+            return true
+        }
+        XCTContext.runActivity(named: "\"\(name)\" nicht gefunden (\(alle.count) Treffer)") { _ in }
+        return false
     }
 
     private func warte(_ sekunden: TimeInterval) {
