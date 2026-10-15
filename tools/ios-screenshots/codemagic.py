@@ -1,8 +1,12 @@
 """iOS-Bildschirmfotos ueber die Codemagic-API starten und abholen.
 
-    python3 tools/ios-screenshots/codemagic.py start            # Lauf starten
-    python3 tools/ios-screenshots/codemagic.py hol [BUILD_ID]   # warten, Bilder laden
-    python3 tools/ios-screenshots/codemagic.py status [WORKFLOW] # letzter Lauf, z. B. ios-tests
+    python3 tools/ios-screenshots/codemagic.py start [WORKFLOW]  # Lauf starten (ios-screenshots)
+    python3 tools/ios-screenshots/codemagic.py hol [BUILD_ID]    # warten, Artefakte laden
+    python3 tools/ios-screenshots/codemagic.py status [WORKFLOW] # letzte Laeufe (ios-tests)
+
+Automatisch startet Codemagic nichts: Es gibt keinen Webhook von GitHub
+(Stand 15.10.2026 waren alle 49 Laeufe von Hand gestartete ios-flexr). Nach
+einem Push auf ios/ deshalb "start ios-tests" und danach "hol".
 
 Der API-Token kommt aus CODEMAGIC_TOKEN oder der Datei
 ~/.config/flexr/codemagic-token (Codemagic: Teams/Benutzer-Einstellungen ->
@@ -55,8 +59,8 @@ def app_id() -> str:
     sys.exit(f"Keine FLEXR-App unter {len(apps)} Codemagic-Apps gefunden.")
 
 
-def start() -> str:
-    build = anfrage("/builds", {"appId": app_id(), "workflowId": "ios-screenshots", "branch": "main"})
+def start(workflow: str = "ios-screenshots") -> str:
+    build = anfrage("/builds", {"appId": app_id(), "workflowId": workflow, "branch": "main"})
     build_id = build["buildId"]
     ZIEL.mkdir(exist_ok=True)
     LETZTER.write_text(build_id)
@@ -85,16 +89,20 @@ def hol(build_id: str | None) -> None:
 
 
 def letzter_status(workflow: str) -> None:
-    builds = anfrage(f"/builds?appId={app_id()}&workflowId={workflow}").get("builds", [])
+    # Workflows aus codemagic.yaml stehen in fileWorkflowId, nicht workflowId.
+    builds = [b for b in anfrage(f"/builds?appId={app_id()}").get("builds", [])
+              if workflow in (b.get("fileWorkflowId"), b.get("workflowId"))]
     for build in builds[:5]:
         print(build.get("_id"), build.get("status"), build.get("startedAt"),
               (build.get("commit") or {}).get("hash", "")[:8])
+    if not builds:
+        print("Keine Laeufe von", workflow)
 
 
 if __name__ == "__main__":
     befehl = sys.argv[1] if len(sys.argv) > 1 else "start"
     if befehl == "start":
-        start()
+        start(sys.argv[2] if len(sys.argv) > 2 else "ios-screenshots")
     elif befehl == "hol":
         hol(sys.argv[2] if len(sys.argv) > 2 else None)
     elif befehl == "status":
