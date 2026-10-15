@@ -10,11 +10,13 @@
 		FE0000000000000000000006 /* FLEXR.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FLEXR.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		FE0000000000000000000007 /* FLEXRTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FLEXRTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		FE000000000000000000001C /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		FE000000000000000000001D /* FLEXRUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FLEXRUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		FE0000000000000000000008 /* FLEXR */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = FLEXR; sourceTree = "<group>"; };
 		FE0000000000000000000009 /* FLEXRTests */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = FLEXRTests; sourceTree = "<group>"; };
+		FE000000000000000000001E /* FLEXRUITests */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = FLEXRUITests; sourceTree = "<group>"; };
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -32,6 +34,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		FE0000000000000000000021 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -40,6 +49,7 @@
 			children = (
 				FE0000000000000000000008 /* FLEXR */,
 				FE0000000000000000000009 /* FLEXRTests */,
+				FE000000000000000000001E /* FLEXRUITests */,
 				FE000000000000000000001B /* Config */,
 				FE0000000000000000000003 /* Products */,
 			);
@@ -50,6 +60,7 @@
 			children = (
 				FE0000000000000000000006 /* FLEXR.app */,
 				FE0000000000000000000007 /* FLEXRTests.xctest */,
+				FE000000000000000000001D /* FLEXRUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -106,6 +117,27 @@
 			productReference = FE0000000000000000000007 /* FLEXRTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
+		FE000000000000000000001F /* FLEXRUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = FE0000000000000000000025 /* Build configuration list for PBXNativeTarget "FLEXRUITests" */;
+			buildPhases = (
+				FE0000000000000000000020 /* Sources */,
+				FE0000000000000000000021 /* Frameworks */,
+				FE0000000000000000000022 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				FE0000000000000000000023 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				FE000000000000000000001E /* FLEXRUITests */,
+			);
+			name = FLEXRUITests;
+			productName = FLEXRUITests;
+			productReference = FE000000000000000000001D /* FLEXRUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -120,6 +152,10 @@
 						CreatedOnToolsVersion = 16.2;
 					};
 					FE0000000000000000000005 = {
+						CreatedOnToolsVersion = 16.2;
+						TestTargetID = FE0000000000000000000004;
+					};
+					FE000000000000000000001F = {
 						CreatedOnToolsVersion = 16.2;
 						TestTargetID = FE0000000000000000000004;
 					};
@@ -141,6 +177,7 @@
 			targets = (
 				FE0000000000000000000004 /* FLEXR */,
 				FE0000000000000000000005 /* FLEXRTests */,
+				FE000000000000000000001F /* FLEXRUITests */,
 			);
 		};
 /* End PBXProject section */
@@ -154,6 +191,13 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		FE000000000000000000000F /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		FE0000000000000000000022 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -177,6 +221,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		FE0000000000000000000020 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -185,10 +236,22 @@
 			target = FE0000000000000000000004 /* FLEXR */;
 			targetProxy = FE000000000000000000001A /* PBXContainerItemProxy */;
 		};
+		FE0000000000000000000023 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = FE0000000000000000000004 /* FLEXR */;
+			targetProxy = FE0000000000000000000024 /* PBXContainerItemProxy */;
+		};
 /* End PBXTargetDependency section */
 
 /* Begin PBXContainerItemProxy section */
 		FE000000000000000000001A /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = FE0000000000000000000001 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = FE0000000000000000000004;
+			remoteInfo = FLEXR;
+		};
+		FE0000000000000000000024 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = FE0000000000000000000001 /* Project object */;
 			proxyType = 1;
@@ -351,6 +414,38 @@
 			};
 			name = Release;
 		};
+		FE0000000000000000000026 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = "$(FLEXR_DEVELOPMENT_TEAM)";
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 2.4.11;
+				PRODUCT_BUNDLE_IDENTIFIER = social.flexr.app.uitests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = FLEXR;
+			};
+			name = Debug;
+		};
+		FE0000000000000000000027 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = "$(FLEXR_DEVELOPMENT_TEAM)";
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 2.4.11;
+				PRODUCT_BUNDLE_IDENTIFIER = social.flexr.app.uitests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = FLEXR;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -377,6 +472,15 @@
 			buildConfigurations = (
 				FE0000000000000000000017 /* Debug */,
 				FE0000000000000000000018 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		FE0000000000000000000025 /* Build configuration list for PBXNativeTarget "FLEXRUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				FE0000000000000000000026 /* Debug */,
+				FE0000000000000000000027 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

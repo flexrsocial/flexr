@@ -132,3 +132,108 @@ workflows:
         notify:
           success: false
           failure: true
+
+  # Bildschirmfotos der iOS-App aus dem Simulator - die Entsprechung dessen,
+  # was fuer Android im Emulator geht (siehe HANDOFF 15.10.2026). Startet im
+  # Mac ein lokales Backend mit Testdaten (SQLite + S3-Attrappe moto, nichts
+  # davon beruehrt flexr.social), faehrt per UI-Test (Schema
+  # FLEXRScreenshots, ios/FLEXRUITests) Deck, Matches, Chats und Konto ab und
+  # legt die Bilder als Artefakte ab. Nur von Hand oder per API gestartet -
+  # jeder Lauf kostet rund 15 Build-Minuten.
+  ios-screenshots:
+    name: FLEXR iOS Screenshots
+    max_build_duration: 45
+    instance_type: mac_mini_m2
+    environment:
+      vars:
+        XCODE_PROJECT: "ios/FLEXR.xcodeproj"
+        SHOT_DIR: "ios-screenshots"
+      xcode: latest
+    scripts:
+      - name: Testumgebung (Backend, S3-Attrappe, Testdaten)
+        script: |
+          set -e
+          # Python 3.12 ueber uv: unabhaengig davon, welches python3 das
+          # Image gerade mitbringt (psycopg2/pillow-Raeder passen zu 3.12).
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          export PATH="$HOME/.local/bin:$PATH"
+          uv venv -p 3.12 /tmp/shotenv
+          uv pip install -p /tmp/shotenv -q -r backend/requirements.txt "moto[server]==5.2.4"
+          PW="Shot-$(openssl rand -hex 8)"
+          cat > /tmp/shot-env.sh <<ENVEOF
+          export DATABASE_URL=sqlite:////tmp/flexr-shots.db
+          export JWT_SECRET=ci-screenshots-$(openssl rand -hex 8)
+          export ENV=development FRONTEND_URL=http://127.0.0.1:8000 PREMIUM_ENABLED=true
+          export SMTP_HOST= SMTP_FROM= STRIPE_SECRET_KEY= STRIPE_WEBHOOK_SECRET= STRIPE_PRICE_ID=
+          export S3_ENDPOINT_URL=http://127.0.0.1:5055 S3_ACCESS_KEY_ID=test S3_SECRET_ACCESS_KEY=test S3_REGION=us-east-1
+          export S3_BUCKET_NAME=flexr-photos S3_PUBLIC_BASE_URL=http://127.0.0.1:5055/flexr-photos S3_PRIVATE_BUCKET_NAME=flexr-verification
+          export WEBPUSH_VAPID_PRIVATE_KEY= TELEGRAM_BOT_TOKEN= TELEGRAM_CHAT_ID=
+          export FLEXR_SHOT_PASSWORD=$PW
+          ENVEOF
+          . /tmp/shot-env.sh
+          nohup /tmp/shotenv/bin/moto_server -H 127.0.0.1 -p 5055 > /tmp/moto.log 2>&1 &
+          for i in $(seq 1 30); do curl -s -o /dev/null 127.0.0.1:5055 && break; sleep 1; done
+          (cd backend && /tmp/shotenv/bin/python ../tools/ios-screenshots/seed.py) > /tmp/seed.log 2>&1 \
+            || { tail -40 /tmp/seed.log; exit 1; }
+          tail -1 /tmp/seed.log
+          (cd backend && nohup /tmp/shotenv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8000 > /tmp/uvicorn.log 2>&1 &)
+          for i in $(seq 1 30); do curl -sf 127.0.0.1:8000/api/health && break; sleep 1; done
+      - name: Screenshots im Simulator
+        script: |
+          set -e
+          . /tmp/shot-env.sh
+          # Ein vorhandenes iPhone nehmen statt eines festen Namens - welche
+          # Simulatoren es gibt, haengt von der Xcode-Version ab (siehe
+          # ios-tests). Bevorzugt ein Pro-Modell mit aktuellem iOS.
+          UDID=$(xcrun simctl list devices available -j | python3 -c '
+          import json, sys
+          geraete = [d for laufzeit, liste in json.load(sys.stdin)["devices"].items()
+                     if "iOS" in laufzeit for d in liste if d["name"].startswith("iPhone")]
+          geraete.sort(key=lambda d: ("Pro" in d["name"] and "Max" not in d["name"], d["name"]))
+          print(geraete[-1]["udid"])')
+          echo "Simulator: $UDID"
+          mkdir -p "$CM_BUILD_DIR/$SHOT_DIR"
+          export TEST_RUNNER_FLEXR_SHOT_EMAIL=lukas@example.com
+          export TEST_RUNNER_FLEXR_SHOT_PASSWORD="$FLEXR_SHOT_PASSWORD"
+          export TEST_RUNNER_FLEXR_SHOT_API=http://127.0.0.1:8000/
+          export TEST_RUNNER_FLEXR_SHOT_DIR="$CM_BUILD_DIR/$SHOT_DIR"
+          set +e
+          xcodebuild test \
+            -project "$XCODE_PROJECT" \
+            -scheme FLEXRScreenshots \
+            -destination "platform=iOS Simulator,id=$UDID" \
+            -resultBundlePath /tmp/screens.xcresult \
+            CODE_SIGNING_ALLOWED=NO > /tmp/xcodebuild-shots.log 2>&1
+          STATUS=$?
+          set -e
+          grep -E "error:|Test Case .* (passed|failed)|Bildschirm|XCTSkip" /tmp/xcodebuild-shots.log | tail -40 || true
+          # Rueckfall, falls der Testlauf nicht in den Ordner schreiben durfte:
+          # die Anhaenge aus dem Ergebnisbuendel holen.
+          if [ -z "$(ls "$CM_BUILD_DIR/$SHOT_DIR"/*.png 2>/dev/null)" ] && [ -d /tmp/screens.xcresult ]; then
+            xcrun xcresulttool export attachments --path /tmp/screens.xcresult \
+              --output-path /tmp/anhaenge || true
+            python3 - <<'PYEOF' || true
+          import json, os, shutil
+          ziel = os.path.join(os.environ["CM_BUILD_DIR"], os.environ["SHOT_DIR"])
+          manifest = json.load(open("/tmp/anhaenge/manifest.json"))
+          for test in manifest:
+              for anhang in test.get("attachments", []):
+                  name = anhang.get("suggestedHumanReadableName") or anhang["exportedFileName"]
+                  shutil.copy(os.path.join("/tmp/anhaenge", anhang["exportedFileName"]),
+                              os.path.join(ziel, name if name.endswith(".png") else name + ".png"))
+          PYEOF
+          fi
+          ls -la "$CM_BUILD_DIR/$SHOT_DIR"
+          exit $STATUS
+    artifacts:
+      - ios-screenshots/*.png
+      - /tmp/xcodebuild-shots.log
+      - /tmp/uvicorn.log
+      - /tmp/seed.log
+    publishing:
+      email:
+        recipients:
+          - pachernegg@gmail.com
+        notify:
+          success: false
+          failure: true

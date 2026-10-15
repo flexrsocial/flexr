@@ -58,3 +58,4 @@ backend/.env.test
 # `git status` als "unversioniert" im Weg.
 release-*/
 instagram/
+/ios-screenshots/
