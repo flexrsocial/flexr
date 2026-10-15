@@ -178,6 +178,16 @@
   .photo-mod-card{ background:var(--surface); border:1px solid var(--steel); border-radius:14px; overflow:hidden; }
   .photo-mod-card img{ width:100%; aspect-ratio:3/4; object-fit:cover; display:block; background:var(--surface-2); }
   /* Abgelehnt: Datei ist geloescht - Platzhalter statt kaputtem Bild. */
+  /* Pruefansicht: Profilfoto noch in der Fotowarteschlange */
+  .verify-imgs figcaption.foto-offen{ color:var(--plate); font-family:'JetBrains Mono',monospace;
+    font-size:10px; text-transform:uppercase; letter-spacing:.05em; }
+  /* Wie .verify-checklist label: die allgemeinen label/input-Regeln
+     (Grossschrift, width:100%) ausdruecklich zuruecksetzen. */
+  .verify-photo-approve{ display:flex; gap:9px; align-items:flex-start; margin:14px 0 4px;
+    font-size:13px; line-height:1.45; color:var(--chalk); cursor:pointer;
+    text-transform:none; letter-spacing:0; }
+  .verify-photo-approve input[type=checkbox]{ width:16px; height:16px; flex:0 0 16px;
+    margin:2px 0 0; padding:0; accent-color:var(--plate); }
   .photo-mod-card .photo-gone{ aspect-ratio:3/4; display:flex; align-items:center; justify-content:center;
     padding:12px; text-align:center; background:var(--surface-2); color:var(--danger);
     font-family:'JetBrains Mono',monospace; font-size:11px; text-transform:uppercase; letter-spacing:.06em; }
@@ -540,6 +550,6 @@
   </div>
 </div>
 
-<script src="/admin.js?v=7"></script>
+<script src="/admin.js?v=8"></script>
 </body>
 </html>

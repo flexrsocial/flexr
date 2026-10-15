@@ -924,6 +924,12 @@
 
   function renderVerificationCard(r){
     const docLabel = r.document_type ? (DOC_TYPE_LABELS[r.document_type] || r.document_type) : null;
+    // Mit Moderationsstand (seit 15.10.2026); ein aelterer Server liefert nur
+    // die Adressen - dann ohne Status und ohne den Haken zum Mitfreigeben.
+    const profilFotos = r.profile_photos && r.profile_photos.length
+      ? r.profile_photos
+      : r.profile_photo_urls.map(url => ({url, status: null}));
+    const offeneFotos = profilFotos.filter(p => p.status === 'pending').length;
     return `
       <div class="verify-review-card" data-req-id="${r.id}">
         <div class="meta">
@@ -961,8 +967,9 @@
               ? `<div class="verify-doc-missing" style="margin-bottom:8px;">Nur ${r.profile_photo_urls.length} gültige${r.profile_photo_urls.length === 1 ? 's' : ''} Profilfoto${r.profile_photo_urls.length === 1 ? '' : 's'} (mindestens ${MIN_PROFILE_PHOTOS}) — ein Foto wurde nach dem Einreichen abgelehnt oder gelöscht.</div>`
               : ''}
             <div class="verify-imgs">
-              ${r.profile_photo_urls.length
-                ? r.profile_photo_urls.map(u => `<figure><img src="${escapeHtml(u)}" loading="lazy"></figure>`).join('')
+              ${profilFotos.length
+                ? profilFotos.map(p => `<figure><img src="${escapeHtml(p.url)}" loading="lazy">${p.status === 'pending'
+                    ? '<figcaption class="foto-offen">noch nicht freigegeben</figcaption>' : ''}</figure>`).join('')
                 : '<div class="mono">Keine Profilfotos</div>'}
             </div>
           </div>
@@ -1002,6 +1009,14 @@
           </label>
         </div>
 
+        ${offeneFotos ? `
+        <label class="verify-photo-approve">
+          <input type="checkbox" data-approve-photos checked>
+          <span>Die ${offeneFotos} noch nicht freigegebene${offeneFotos === 1 ? '' : 'n'} Profilfoto${offeneFotos === 1 ? '' : 's'} mit freigeben.
+            Ohne Haken bleiben sie in der Fotowarteschlange, und das Konto erscheint
+            bis zu ihrer Freigabe in keiner Suche.</span>
+        </label>` : ''}
+
         <div class="actions">
           <button class="btn small" data-action="approve" disabled>Freigeben (blauer Haken)</button>
           <button class="btn secondary small" data-action="reupload">Neue Aufnahme anfordern</button>
@@ -1030,6 +1045,8 @@
           if(action === 'approve'){
             const checklist = {};
             checks.forEach(c => { checklist[c.dataset.check] = c.checked; });
+            const fotosMit = card.querySelector('input[data-approve-photos]');
+            checklist.approve_pending_photos = !!(fotosMit && fotosMit.checked);
             result = await api(`/api/admin/verifications/${reqId}/approve`, {
               method: 'POST', body: JSON.stringify(checklist),
             });

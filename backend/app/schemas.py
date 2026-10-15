@@ -728,6 +728,11 @@ class AdminVerificationOut(BaseModel):
     prompts: list[str]
     selfie_urls: list[dict]  # [{"prompt": ..., "url": ...}] - kurzlebige Signed URLs
     profile_photo_urls: list[str]
+    # Dieselben Fotos mit Moderationsstand ([{"id", "url", "status"}]). Bis
+    # zum 15.10.2026 zeigte die Pruefansicht nur die Bilder: Man bestaetigte
+    # "Selfie passt zu den Profilfotos", schaltete frei - und die Fotos blieben
+    # "in Pruefung", das Konto damit in jeder Suche unsichtbar.
+    profile_photos: list[dict] = []
     document_type: Optional[str] = None
     # [{"side": "front"|"back", "url": ...}] - kurzlebige Signed URLs, nie öffentlich
     document_urls: list[dict] = []
@@ -746,10 +751,20 @@ class AdminVerificationApproveRequest(BaseModel):
     document_dob_matches_registration: bool
     document_legible: bool
     document_plausible: bool
+    # Kein Punkt der Checkliste: Noch nicht freigegebene Profilfotos gleich
+    # mit freigeben. Der Pruefer hat sie in derselben Ansicht vor sich und
+    # bestaetigt ohnehin, dass sie die Person des Selfies zeigen. Ohne das
+    # blieben sie in der Fotowarteschlange, und das frisch freigeschaltete
+    # Konto erschiene in keiner Suche. Vorgabe aus: aeltere Admin-Tools
+    # schicken das Feld nicht.
+    approve_pending_photos: bool = False
 
     @model_validator(mode="after")
     def _all_confirmed(self):
-        missing = [name for name, value in self.model_dump().items() if not value]
+        missing = [
+            name for name, value in self.model_dump(exclude={"approve_pending_photos"}).items()
+            if not value
+        ]
         if missing:
             raise ValueError(
                 "Alle Punkte der Prüfcheckliste müssen bestätigt sein: "

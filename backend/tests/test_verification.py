@@ -689,3 +689,56 @@ def test_freischalt_mail_weiss_ob_schon_ein_foto_freigegeben_ist(client, storage
 
     assert aufrufe[0]["photos_pending"] is True
     assert aufrufe[1]["photos_pending"] is False
+
+
+def test_freigabe_kann_offene_profilfotos_mitfreigeben(client, storage_stub, monkeypatch):
+    """Die Pruefansicht zeigt den Moderationsstand der Profilfotos, und die
+    Freigabe kann noch wartende gleich mitfreigeben (15.10.2026). Vorher
+    blieb ein frisch freigeschaltetes Konto unsichtbar, bis jemand die
+    Fotowarteschlange abarbeitete."""
+    from app import mailer
+
+    aufrufe = []
+    monkeypatch.setattr(
+        mailer, "send_verification_decision", lambda *a, **kw: aufrufe.append(kw) or True
+    )
+    admin_headers, _ = create_admin(client, email="admin.mitfrei@example.com")
+
+    ergebnisse = {}
+    for email, mitfreigeben in (("mit@example.com", True), ("ohne@example.com", False)):
+        headers = register_raw(client, email)
+        _add_photo(client, headers)
+        _complete_submission(client, headers)
+        eintrag = next(
+            e for e in client.get("/api/admin/verifications", headers=admin_headers).json()
+            if e["user_email"] == email
+        )
+        assert [p["status"] for p in eintrag["profile_photos"]] == ["pending"] * MIN_PHOTOS
+        resp = client.post(
+            f"/api/admin/verifications/{eintrag['id']}/approve",
+            headers=admin_headers,
+            json={**FULL_CHECKLIST, "approve_pending_photos": mitfreigeben},
+        )
+        assert resp.status_code == 200, resp.text
+        ergebnisse[email] = client.get("/api/profiles/me", headers=headers).json()
+
+    assert {p["status"] for p in ergebnisse["mit@example.com"]["photos"]} == {"approved"}
+    assert ergebnisse["mit@example.com"]["photo_visibility"] == "visible"
+    assert aufrufe[0]["photos_pending"] is False
+    assert {p["status"] for p in ergebnisse["ohne@example.com"]["photos"]} == {"pending"}
+    assert aufrufe[1]["photos_pending"] is True
+
+
+def test_mitfreigabe_ersetzt_keinen_punkt_der_checkliste(client, storage_stub):
+    headers = register_raw(client, "unvollstaendig.mit@example.com")
+    _add_photo(client, headers)
+    _complete_submission(client, headers)
+    admin_headers, _ = create_admin(client, email="admin.unvollst@example.com")
+    req_id = client.get("/api/admin/verifications", headers=admin_headers).json()[0]["id"]
+    unvollstaendig = {**FULL_CHECKLIST, "document_legible": False, "approve_pending_photos": True}
+    resp = client.post(
+        f"/api/admin/verifications/{req_id}/approve", headers=admin_headers, json=unvollstaendig
+    )
+    assert resp.status_code == 422
+    fotos = client.get("/api/profiles/me", headers=headers).json()["photos"]
+    assert {p["status"] for p in fotos} == {"pending"}

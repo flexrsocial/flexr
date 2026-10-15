@@ -1036,6 +1036,10 @@ def list_verifications(
                 # als kaputtes Bild. Die Ansicht warnt, wenn weniger als
                 # MIN_PHOTOS uebrig bleiben (admin.js).
                 profile_photo_urls=[p.url for p in user.valid_photos],
+                profile_photos=[
+                    {"id": p.id, "url": p.url, "status": p.status.value}
+                    for p in user.valid_photos
+                ],
                 document_type=req.document_type,
                 document_urls=[
                     {"side": d["side"], "url": storage.create_presigned_view_url(d["object_key"])}
@@ -1073,6 +1077,10 @@ def approve_verification(
     user.age_verified_at = req.decided_at
     user.verification_method = "manual_id"
     activate_account(user)
+    if payload.approve_pending_photos:
+        for foto in user.photos:
+            if foto.status == PhotoStatus.pending:
+                foto.status = PhotoStatus.approved
 
     # Temporäre Aufnahmen löschen und das Ergebnis prüfen. Schlägt es fehl,
     # bleibt der Vorgang als aufzuräumen markiert (cleanup_pending) und wird

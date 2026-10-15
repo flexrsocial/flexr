@@ -5448,6 +5448,7 @@
       api('/api/profiles/me'),
       api('/api/billing/status'),
     ]);
+    profilGeholtUm = Date.now();
     gleicheSpracheAb();
     updateStatusPill();
   }
@@ -7138,6 +7139,9 @@
      Fotozahl, die der Server laengst anders sah. Gibt true zurueck, wenn ein
      neuer Stand uebernommen wurde. */
   let profilAbgleich = null;
+  // Zeitpunkt des letzten frischen /me - damit das Deck direkt nach dem
+  // App-Start (loadCurrentUser) nicht gleich ein zweites Mal fragt.
+  let profilGeholtUm = 0;
   function frischeProfilAuf(){
     if(!token) return Promise.resolve(false);
     if(profilAbgleich) return profilAbgleich;
@@ -7147,6 +7151,7 @@
       // Speichern), ist dessen Antwort neuer als diese - nicht ueberschreiben.
       if(!me || myProfile !== vorher) return false;
       myProfile = me;
+      profilGeholtUm = Date.now();
       return true;
     }).catch(() => false).finally(() => { profilAbgleich = null; });
     return profilAbgleich;
@@ -7155,7 +7160,12 @@
   /* Neu holen und neu zeichnen, was davon abhaengt - aber nicht mitten in
      einem Zug oder Upload und ohne die Formularfelder anzufassen, in denen
      gerade jemand tippen koennte. */
-  async function profilAbgleichen(){
+  async function profilAbgleichen(opts){
+    // Nur fuers Deck: ein wenige Sekunden alter Stand reicht dort.
+    if(opts && opts.hoechstensAlle && Date.now() - profilGeholtUm < opts.hoechstensAlle){
+      renderSichtbarkeitsHinweis();
+      return;
+    }
     if(!(await frischeProfilAuf())) return;
     const screen = document.body.dataset.screen;
     if(screen === 'screen-account' && !photoDrag && !acctUpload) renderAccount({keepForm: true});
@@ -7262,7 +7272,7 @@
     $('swipeActions').style.display = 'none';
     renderLikeCounter();
     renderSichtbarkeitsHinweis();
-    profilAbgleichen();
+    profilAbgleichen({hoechstensAlle: 15000});
     try{
       deck = await api('/api/swipes/deck');
       deckIdx = 0;
