@@ -510,6 +510,7 @@ private fun MainGraph(
                 MatchesScreen(
                     onOpenMatchProfile = { navController.navigate(Routes.matchProfile(it)) },
                     onOpenIncoming = { navController.navigate(Routes.INCOMING) },
+                    onOpenChat = { navController.navigate(Routes.chat(it, Routes.MATCHES)) },
                 )
             }
 
@@ -567,7 +568,16 @@ private fun MainGraph(
                 MatchProfileScreen(
                     onBack = { navController.popBackStack() },
                     onOpenChat = { matchId ->
-                        navController.navigate(Routes.chat(matchId, Routes.MATCHES))
+                        // Aus dem Chat geoeffnet (Tipp auf den Chatkopf): zurueck
+                        // in diesen Chat statt einen zweiten daraufzulegen.
+                        val vorher = navController.previousBackStackEntry
+                        if (vorher?.destination?.route == Routes.CHAT &&
+                            vorher.arguments?.getString("matchId") == matchId
+                        ) {
+                            navController.popBackStack()
+                        } else {
+                            navController.navigate(Routes.chat(matchId, Routes.MATCHES))
+                        }
                     },
                     onShowMessage = onShowMessage,
                     onShowStickyMessage = onShowStickyMessage,
@@ -586,6 +596,7 @@ private fun MainGraph(
             ) {
                 ChatScreen(
                     onBack = { navController.popBackStack() },
+                    onOpenProfile = { navController.navigate(Routes.matchProfile(it)) },
                     onShowMessage = onShowMessage,
                     onShowStickyMessage = onShowStickyMessage,
                 )

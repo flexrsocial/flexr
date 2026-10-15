@@ -36,6 +36,7 @@ import flexr.social.app.R
 import flexr.social.app.core.common.ServerTime
 import flexr.social.app.core.designsystem.component.PremiumBadge
 import flexr.social.app.core.designsystem.component.VerifiedBadge
+import flexr.social.app.core.designsystem.icon.FlexrIcons
 import flexr.social.app.core.designsystem.theme.FlexrTheme
 import flexr.social.app.core.designsystem.theme.MonoStyle
 import flexr.social.app.core.locale.LocalAppLanguage
@@ -54,6 +55,8 @@ fun MatchListItem(
     modifier: Modifier = Modifier,
     ownUserId: String? = null,
     showLastMessage: Boolean = false,
+    /** Gesetzt: statt des Pfeils ein Knopf "Hallo sagen", der direkt in den Chat fuehrt. */
+    onSayHi: (() -> Unit)? = null,
 ) {
     val colors = FlexrTheme.colors
     val unread = match.unreadCount > 0
@@ -186,6 +189,31 @@ fun MatchListItem(
                     text = if (match.unreadCount > 9) "9+" else "${match.unreadCount}",
                     style = MaterialTheme.typography.labelSmall,
                     color = colors.plateInk,
+                )
+            }
+        } else if (onSayHi != null) {
+            Row(
+                Modifier
+                    .clip(CircleShape)
+                    .background(colors.plate.copy(alpha = 0.08f))
+                    .border(1.dp, colors.plate.copy(alpha = 0.42f), CircleShape)
+                    .clickable(onClick = onSayHi)
+                    .padding(horizontal = 12.dp, vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Icon(
+                    FlexrIcons.Chats,
+                    contentDescription = null,
+                    tint = colors.plate,
+                    modifier = Modifier.size(14.dp),
+                )
+                Spacer(Modifier.width(6.dp))
+                Text(
+                    text = stringResource(R.string.matches_say_hi),
+                    style = MaterialTheme.typography.bodySmall,
+                    fontWeight = FontWeight.SemiBold,
+                    color = colors.plate,
+                    maxLines = 1,
                 )
             }
         } else {

@@ -230,6 +230,7 @@ extension FlexrStrings {
         .chatsYouPrefix: "You: ",
         .chatsHistoryCleared: "Chat history cleared",
         .matchesOnlineNow: "online now",
+        .matchesSayHi: "Say hi",
 
         // MARK: Match-Profil
         .matchProfileBlockTitle: "Block?",
@@ -246,6 +247,7 @@ extension FlexrStrings {
         .chatEmptyTitle: "No messages yet",
         .chatToday: "Today",
         .chatYesterday: "Yesterday",
+        .chatOpenProfile: "View profile",
         .chatEmptySub: "Write the first one — you did match, after all.",
         .chatIce1: "Hey! Are you more of a morning or an evening trainer?",
         .chatIce2: "What are you enjoying training most right now?",
@@ -386,6 +388,7 @@ extension FlexrStrings {
             from other gyms nearby.
             """,
         .accountSave: "Save profile",
+        .accountUnsaved: "Unsaved changes",
         .accountSaved: "Profile saved ✓",
         .accountSaveFailed: "Saving failed.",
         .accountErrPostalCode: "Please enter a valid Austrian postal code (the town is filled in automatically).",

@@ -12,6 +12,8 @@ struct MatchListItem: View {
     let onTap: () -> Void
     var ownUserID: String?
     var showsLastMessage = false
+    /// Gesetzt: statt des Pfeils ein Knopf „Hallo sagen", der direkt in den Chat führt.
+    var onSayHi: (() -> Void)? = nil
 
     private var isUnread: Bool { match.unreadCount > 0 }
 
@@ -58,6 +60,22 @@ struct MatchListItem: View {
                         .foregroundStyle(FlexrColor.plateInk)
                         .frame(width: 22, height: 22)
                         .background(Circle().fill(FlexrColor.plate))
+                } else if let onSayHi {
+                    Button(action: onSayHi) {
+                        HStack(spacing: 6) {
+                            Image(systemName: "bubble.left.fill")
+                                .font(.system(size: 12, weight: .semibold))
+                            Text(s(.matchesSayHi))
+                                .font(.flexrMono(12, weight: 600))
+                                .lineLimit(1)
+                        }
+                        .foregroundStyle(FlexrColor.plate)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 8)
+                        .background(Capsule().fill(FlexrColor.plate.opacity(0.08)))
+                        .overlay(Capsule().strokeBorder(FlexrColor.plate.opacity(0.42), lineWidth: 1))
+                    }
+                    .buttonStyle(.plain)
                 } else {
                     Image(systemName: FlexrIcon.forward)
                         .font(.system(size: 13, weight: .semibold))

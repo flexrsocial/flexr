@@ -54,6 +54,7 @@ private const val LIST_POLL_INTERVAL_MS = 20_000L
 fun MatchesScreen(
     onOpenMatchProfile: (String) -> Unit,
     onOpenIncoming: () -> Unit,
+    onOpenChat: (String) -> Unit,
     viewModel: MatchesViewModel = hiltViewModel(),
 ) {
     val matches by viewModel.matches.collectAsStateWithLifecycle()
@@ -113,6 +114,11 @@ fun MatchesScreen(
                         MatchListItem(
                             match = match,
                             onClick = { onOpenMatchProfile(match.matchId) },
+                            // Noch keine Unterhaltung: direkter Weg in den Chat
+                            // statt erst ueber das Profil (wie in der Web-App).
+                            onSayHi = if (match.inChats) null else {
+                                { onOpenChat(match.matchId) }
+                            },
                         )
                     }
                     item { Spacer(Modifier.height(12.dp)) }

@@ -90,6 +90,8 @@ import java.time.ZoneId
 @Composable
 fun ChatScreen(
     onBack: () -> Unit,
+    /** Tipp auf Foto oder Namen im Kopf: Profil des Matches oeffnen. */
+    onOpenProfile: (String) -> Unit,
     onShowMessage: (String) -> Unit,
     onShowStickyMessage: (String) -> Unit,
     viewModel: ChatViewModel = hiltViewModel(),
@@ -163,6 +165,7 @@ fun ChatScreen(
             isOnline = match?.isOnline == true,
             avatarUrl = match?.profile?.primaryPhoto?.avatarUrl,
             onBack = onBack,
+            onOpenProfile = match?.let { aktuell -> { onOpenProfile(aktuell.matchId) } },
             onReport = {
                 showMenu = false
                 showReportDialog = true
@@ -331,6 +334,7 @@ private fun ChatHeader(
     isOnline: Boolean,
     avatarUrl: String?,
     onBack: () -> Unit,
+    onOpenProfile: (() -> Unit)?,
     onReport: () -> Unit,
     onBlock: () -> Unit,
     menuExpanded: Boolean,
@@ -348,47 +352,61 @@ private fun ChatHeader(
                 Icon(FlexrIcons.Back, contentDescription = stringResource(R.string.common_back), tint = colors.chalk)
             }
             Spacer(Modifier.width(6.dp))
-            Box(contentAlignment = Alignment.Center) {
-                AsyncImage(
-                    model = avatarUrl,
-                    contentDescription = null,
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier
-                        .size(42.dp)
-                        .clip(CircleShape)
-                        .background(colors.surface2)
-                        // Der Ring markiert "gerade online" - genau wie auf der
-                        // Matches/Chats-Uebersicht (MatchListItem) - und stand hier
-                        // vorher unbedingt, zeigte also faelschlich immer online.
-                        .let { if (isOnline) it.border(1.5.dp, colors.plateDim, CircleShape) else it },
-                )
-                if (avatarUrl == null) {
-                    // Kein freigegebenes Foto: Umriss wie in der Chatliste statt
-                    // einer leeren dunklen Scheibe.
-                    Icon(
-                        Icons.Filled.Person,
+            // Foto und Name fuehren zum Profil - wie in gaengigen Messengern
+            // und in der Web-App.
+            Row(
+                Modifier
+                    .weight(1f)
+                    .clip(RoundedCornerShape(12.dp))
+                    .clickable(
+                        enabled = onOpenProfile != null,
+                        onClickLabel = stringResource(R.string.chat_open_profile),
+                    ) { onOpenProfile?.invoke() }
+                    .padding(vertical = 2.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    AsyncImage(
+                        model = avatarUrl,
                         contentDescription = null,
-                        tint = colors.chalkDim.copy(alpha = 0.45f),
-                        modifier = Modifier.size(26.dp),
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .size(42.dp)
+                            .clip(CircleShape)
+                            .background(colors.surface2)
+                            // Der Ring markiert "gerade online" - genau wie auf der
+                            // Matches/Chats-Uebersicht (MatchListItem) - und stand hier
+                            // vorher unbedingt, zeigte also faelschlich immer online.
+                            .let { if (isOnline) it.border(1.5.dp, colors.plateDim, CircleShape) else it },
                     )
+                    if (avatarUrl == null) {
+                        // Kein freigegebenes Foto: Umriss wie in der Chatliste statt
+                        // einer leeren dunklen Scheibe.
+                        Icon(
+                            Icons.Filled.Person,
+                            contentDescription = null,
+                            tint = colors.chalkDim.copy(alpha = 0.45f),
+                            modifier = Modifier.size(26.dp),
+                        )
+                    }
                 }
-            }
-            Spacer(Modifier.width(11.dp))
-            Row(Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    text = if (name != null && age != null) "$name, $age" else name.orEmpty(),
-                    style = MaterialTheme.typography.titleMedium,
-                    color = colors.chalk,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                if (isVerified) {
-                    Spacer(Modifier.width(6.dp))
-                    VerifiedBadge(size = 14)
-                }
-                if (isPremium) {
-                    Spacer(Modifier.width(6.dp))
-                    PremiumBadge(size = 14)
+                Spacer(Modifier.width(11.dp))
+                Row(Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = if (name != null && age != null) "$name, $age" else name.orEmpty(),
+                        style = MaterialTheme.typography.titleMedium,
+                        color = colors.chalk,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                    if (isVerified) {
+                        Spacer(Modifier.width(6.dp))
+                        VerifiedBadge(size = 14)
+                    }
+                    if (isPremium) {
+                        Spacer(Modifier.width(6.dp))
+                        PremiumBadge(size = 14)
+                    }
                 }
             }
             Box {

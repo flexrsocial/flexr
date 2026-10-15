@@ -85,14 +85,14 @@ enum L: Hashable, Sendable {
     case matchesEyebrow, matchesTitle, matchesEmptyTitle, matchesEmptySub
     case matchesLoadFailed
     case chatsEyebrow, chatsTitle, chatsEmptyTitle, chatsEmptySub, chatsYouPrefix
-    case chatsHistoryCleared, matchesOnlineNow
+    case chatsHistoryCleared, matchesOnlineNow, matchesSayHi
 
     // Match-Profil
     case matchProfileBlockTitle, matchProfileBlockBody, matchProfileUnmatchTitle
     case matchProfileUnmatchBody, matchProfileUnmatchConfirm, unmatchDone
 
     // Chat
-    case chatEmptyTitle, chatEmptySub, chatLoadFailed, chatToday, chatYesterday
+    case chatEmptyTitle, chatEmptySub, chatLoadFailed, chatToday, chatYesterday, chatOpenProfile
     case chatIce1, chatIce2, chatIceGym, chatIce3
     case chatBlockBody, chatClearTitle, chatClearBody, chatClearConfirm
     case chatDeleteTitle, chatDeleteBody, chatDeleteAction, chatClearAction, chatCleared
@@ -141,6 +141,7 @@ enum L: Hashable, Sendable {
     case incomingLockedTitleOne, incomingLockedTitle, incomingLockedSub
     case incomingNone, incomingLoadFailed
     case accountSave, accountSaved, accountSaveFailed, accountErrPostalCode
+    case accountUnsaved
     case accountErrPhotoBeforeSave, accountErrGym, accountNotificationsRow
     case accountNotificationsSub, accountConsentsRow
     case accountBlocksRow, accountNotificationPermission, accountCheckoutConsentMissing

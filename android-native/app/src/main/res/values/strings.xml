@@ -248,7 +248,9 @@
     <string name="chat_empty_title">Noch keine Nachrichten</string>
     <string name="chat_today">Heute</string>
     <string name="chat_yesterday">Gestern</string>
+    <string name="chat_open_profile">Profil ansehen</string>
     <string name="matches_online_now">gerade online</string>
+    <string name="matches_say_hi">Hallo sagen</string>
     <string name="chat_empty_sub">Schreib die erste — ihr habt schließlich gematcht.</string>
     <string name="chat_ice_1">Hey! Trainierst du eher morgens oder abends?</string>
     <string name="chat_ice_2">Was trainierst du im Moment am liebsten?</string>
@@ -389,6 +391,7 @@
     <string name="account_radius_boost">Startboost: Bis %1$s kannst du auch ohne FLEXR Premium den vollen Suchumkreis bis %2$d km nutzen. Ab %3$s sucht FLEXR ohne Premium wieder bis %4$d km.</string>
     <string name="account_section_subscription">Aboverwaltung</string>
     <string name="account_save">Profil speichern</string>
+    <string name="account_unsaved">Ungespeicherte Änderungen</string>
     <string name="account_saved">Profil gespeichert ✓</string>
     <string name="account_save_failed">Speichern fehlgeschlagen.</string>
     <string name="account_err_postal_code">Bitte eine gültige österreichische Postleitzahl eingeben (Ort wird automatisch ermittelt).</string>

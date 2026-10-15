@@ -111,10 +111,27 @@ struct AccountView: View {
                     radiusSlider(model)
 
                     FieldError(message: model.saveError)
-                    FlexrSecondaryButton(title: s(.accountSave), isLoading: model.isSaving) {
-                        Task { await model.saveProfile() }
+                    if model.hasUnsavedChanges {
+                        HStack(spacing: 8) {
+                            Circle()
+                                .fill(FlexrColor.plate)
+                                .frame(width: 7, height: 7)
+                            Text(s(.accountUnsaved))
+                                .flexrText(.bodySmall)
+                                .foregroundStyle(FlexrColor.plateBright)
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.top, 14)
+                        FlexrButton(title: s(.accountSave), isLoading: model.isSaving) {
+                            Task { await model.saveProfile() }
+                        }
+                        .padding(.top, 10)
+                    } else {
+                        FlexrSecondaryButton(title: s(.accountSave), isLoading: model.isSaving) {
+                            Task { await model.saveProfile() }
+                        }
+                        .padding(.top, 16)
                     }
-                    .padding(.top, 16)
 
                     photoSection(model)
                     languageSection

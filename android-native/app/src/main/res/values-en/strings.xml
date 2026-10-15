@@ -208,7 +208,9 @@
     <string name="chat_empty_title">No messages yet</string>
     <string name="chat_today">Today</string>
     <string name="chat_yesterday">Yesterday</string>
+    <string name="chat_open_profile">View profile</string>
     <string name="matches_online_now">online now</string>
+    <string name="matches_say_hi">Say hi</string>
     <string name="chat_empty_sub">Write the first one — you did match, after all.</string>
     <string name="chat_ice_1">Hey! Are you more of a morning or an evening trainer?</string>
     <string name="chat_ice_2">What are you enjoying training most right now?</string>
@@ -340,6 +342,7 @@
     <string name="account_radius_boost">Launch boost: until %1$s you can use the full search radius of up to %2$d km even without FLEXR Premium. From %3$s, FLEXR searches up to %4$d km again without Premium.</string>
     <string name="account_section_subscription">Subscription</string>
     <string name="account_save">Save profile</string>
+    <string name="account_unsaved">Unsaved changes</string>
     <string name="account_saved">Profile saved ✓</string>
     <string name="account_save_failed">Saving failed.</string>
     <string name="account_err_postal_code">Please enter a valid Austrian postal code (the town is filled in automatically).</string>

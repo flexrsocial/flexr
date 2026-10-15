@@ -335,8 +335,11 @@ android {
         // freien Platz (Text endet ueber X und Herz), weicher Uebergang vom
         // Foto in die Karte, Tagestrenner im Chat, Uhrzeit in der Chatliste,
         // Leerzustaende in Markenfarbe, Umriss im Chatkopf ohne Foto.
-        versionCode = 145
-        versionName = "2.7.33"
+        // 146/2.7.34 am 15.10.2026: UX-Runde - "Hallo sagen" bei Matches ohne
+        // Unterhaltung, Chatkopf oeffnet das Profil (zurueck in denselben
+        // Chat), ungespeicherte Profilaenderungen sichtbar.
+        versionCode = 146
+        versionName = "2.7.34"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         // Nur die Sprachen ausliefern, die es wirklich gibt: Deutsch als

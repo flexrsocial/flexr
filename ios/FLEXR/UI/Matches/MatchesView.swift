@@ -14,6 +14,8 @@ struct MatchesView: View {
 
     let onOpenMatchProfile: (String) -> Void
     let onOpenIncoming: () -> Void
+    /// Direkt in den Chat („Hallo sagen" bei Matches ohne Unterhaltung).
+    var onOpenChat: ((String) -> Void)? = nil
 
     @Environment(AppContainer.self) private var container
     @Environment(AppModel.self) private var appModel
@@ -45,7 +47,13 @@ struct MatchesView: View {
                 }
             }
         ) { match in
-            MatchListItem(match: match, onTap: { onOpenMatchProfile(match.matchID) })
+            MatchListItem(
+                match: match,
+                onTap: { onOpenMatchProfile(match.matchID) },
+                // Noch keine Unterhaltung: direkter Weg in den Chat statt erst
+                // über das Profil (wie in der Web-App und auf Android).
+                onSayHi: match.inChats ? nil : onOpenChat.map { open in { () -> Void in open(match.matchID) } }
+            )
         }
         .task { await refresh() }
         .task { await pollWhileVisible() }

@@ -260,6 +260,20 @@ final class AccountModel {
         await refreshMyReports()
     }
 
+    /// Weicht das Formular vom gespeicherten Profil ab? Verglichen wird, was
+    /// „Profil speichern" schickt — wie in der Web-App und auf Android. Der
+    /// Knopf wird dann zum Hauptknopf, darüber steht ein Hinweis.
+    var hasUnsavedChanges: Bool {
+        guard let profile else { return false }
+        let gym = gymPicker.selectedLabel ?? gymPicker.query.trimmingCharacters(in: .whitespaces)
+        let gespeicherterUmkreis = min(profile.searchRadiusKm, maxSelectableRadiusKm)
+        return postalCode.trimmingCharacters(in: .whitespaces) != profile.plz
+            || gym != profile.profile.gym
+            || bio.trimmingCharacters(in: .whitespacesAndNewlines)
+                != (profile.profile.bio ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+            || Int(searchRadiusKm.rounded()) != gespeicherterUmkreis
+    }
+
     private func prefill(from profile: MyProfile) {
         postalCode = profile.plz
         lastHandledPostalCode = profile.plz

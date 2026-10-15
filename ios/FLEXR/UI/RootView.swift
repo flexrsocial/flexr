@@ -181,7 +181,8 @@ private struct MainFlow: View {
                     NavigationStack(path: $matchesPath) {
                         MatchesView(
                             onOpenMatchProfile: { matchesPath.append(.matchProfile(matchID: $0)) },
-                            onOpenIncoming: { matchesPath.append(.incoming) }
+                            onOpenIncoming: { matchesPath.append(.incoming) },
+                            onOpenChat: { matchesPath.append(.chat(matchID: $0)) }
                         )
                             .navigationBarHidden(true)
                             .flexrRoutes(path: $matchesPath)
@@ -234,12 +235,24 @@ private struct FlexrRoutes: ViewModifier {
             Group {
                 switch route {
                 case .chat(let matchID):
-                    ChatView(matchID: matchID, onBack: { pop() })
+                    ChatView(
+                        matchID: matchID,
+                        onBack: { pop() },
+                        onOpenProfile: { path.append(.matchProfile(matchID: $0)) }
+                    )
                 case .matchProfile(let matchID):
                     MatchProfileView(
                         matchID: matchID,
                         onBack: { pop() },
-                        onOpenChat: { path.append(.chat(matchID: $0)) }
+                        onOpenChat: { id in
+                            // Aus dem Chat geöffnet (Tipp auf den Chatkopf):
+                            // zurück in diesen Chat statt einen zweiten darauf.
+                            if path.dropLast().last == .chat(matchID: id) {
+                                pop()
+                            } else {
+                                path.append(.chat(matchID: id))
+                            }
+                        }
                     )
                 case .verification:
                     VerificationView(

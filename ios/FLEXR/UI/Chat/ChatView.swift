@@ -6,6 +6,8 @@ struct ChatView: View {
 
     let matchID: String
     let onBack: () -> Void
+    /// Tipp auf Foto oder Namen im Kopf: Profil des Matches öffnen.
+    var onOpenProfile: ((String) -> Void)? = nil
 
     @Environment(AppContainer.self) private var container
     @Environment(AppModel.self) private var appModel
@@ -46,6 +48,7 @@ struct ChatView: View {
                 profile: model.match?.profile,
                 isOnline: model.match?.isOnline == true,
                 onBack: onBack,
+                onOpenProfile: onOpenProfile.map { open in { () -> Void in open(matchID) } },
                 onReport: { showReportDialog = true },
                 onBlock: { showBlockDialog = true },
                 onClearHistory: { showClearDialog = true },
@@ -238,6 +241,7 @@ private struct ChatHeader: View {
     let profile: Profile?
     let isOnline: Bool
     let onBack: () -> Void
+    let onOpenProfile: (() -> Void)?
     let onReport: () -> Void
     let onBlock: () -> Void
     let onClearHistory: () -> Void
@@ -255,28 +259,40 @@ private struct ChatHeader: View {
                 .buttonStyle(.plain)
                 .accessibilityLabel(s(.commonBack))
 
-                // Der Ring markiert „gerade online" — genau wie in der
-                // Matches-/Chats-Übersicht (MatchListItem). Er stand hier
-                // vorher unbedingt und zeigte damit fälschlich immer online.
-                AvatarImage(
-                    source: PhotoImageSource(profile?.primaryPhoto?.avatarURL),
-                    name: profile?.name ?? "",
-                    size: 42,
-                    ringColor: isOnline ? FlexrColor.plateDim : nil,
-                    ringWidth: 1.5
-                )
-                .padding(.leading, 6)
+                // Foto und Name führen zum Profil — wie in gängigen
+                // Messengern und in der Web-App.
+                Button {
+                    onOpenProfile?()
+                } label: {
+                    HStack(spacing: 0) {
+                        // Der Ring markiert „gerade online" — genau wie in der
+                        // Matches-/Chats-Übersicht (MatchListItem). Er stand hier
+                        // vorher unbedingt und zeigte damit fälschlich immer online.
+                        AvatarImage(
+                            source: PhotoImageSource(profile?.primaryPhoto?.avatarURL),
+                            name: profile?.name ?? "",
+                            size: 42,
+                            ringColor: isOnline ? FlexrColor.plateDim : nil,
+                            ringWidth: 1.5
+                        )
+                        .padding(.leading, 6)
 
-                HStack(spacing: 6) {
-                    Text(profile.map { "\($0.name), \($0.age)" } ?? "")
-                        .flexrText(.titleMedium)
-                        .foregroundStyle(FlexrColor.chalk)
-                        .lineLimit(1)
-                    if profile?.isVerified == true { VerifiedBadge(size: 14) }
-                    if profile?.isPremium == true { PremiumBadge(size: 14) }
+                        HStack(spacing: 6) {
+                            Text(profile.map { "\($0.name), \($0.age)" } ?? "")
+                                .flexrText(.titleMedium)
+                                .foregroundStyle(FlexrColor.chalk)
+                                .lineLimit(1)
+                            if profile?.isVerified == true { VerifiedBadge(size: 14) }
+                            if profile?.isPremium == true { PremiumBadge(size: 14) }
+                        }
+                        .padding(.leading, 11)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                    .contentShape(Rectangle())
                 }
-                .padding(.leading, 11)
-                .frame(maxWidth: .infinity, alignment: .leading)
+                .buttonStyle(.plain)
+                .disabled(onOpenProfile == nil || profile == nil)
+                .accessibilityHint(s(.chatOpenProfile))
 
                 // Melden und Blockieren stehen im Menü statt als eigene
                 // Symbole in der Kopfzeile: zwei Symbole ohne Beschriftung

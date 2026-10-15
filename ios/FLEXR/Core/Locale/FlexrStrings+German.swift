@@ -232,6 +232,7 @@ extension FlexrStrings {
         .chatsYouPrefix: "Du: ",
         .chatsHistoryCleared: "Chatverlauf geleert",
         .matchesOnlineNow: "gerade online",
+        .matchesSayHi: "Hallo sagen",
 
         // MARK: Match-Profil
         .matchProfileBlockTitle: "Blockieren?",
@@ -248,6 +249,7 @@ extension FlexrStrings {
         .chatEmptyTitle: "Noch keine Nachrichten",
         .chatToday: "Heute",
         .chatYesterday: "Gestern",
+        .chatOpenProfile: "Profil ansehen",
         .chatEmptySub: "Schreib die erste — ihr habt schließlich gematcht.",
         .chatIce1: "Hey! Trainierst du eher morgens oder abends?",
         .chatIce2: "Was trainierst du im Moment am liebsten?",
@@ -389,6 +391,7 @@ extension FlexrStrings {
             auch Leute aus anderen Studios in der Nähe.
             """,
         .accountSave: "Profil speichern",
+        .accountUnsaved: "Ungespeicherte Änderungen",
         .accountSaved: "Profil gespeichert ✓",
         .accountSaveFailed: "Speichern fehlgeschlagen.",
         .accountErrPostalCode: "Bitte eine gültige österreichische Postleitzahl eingeben (Ort wird automatisch ermittelt).",

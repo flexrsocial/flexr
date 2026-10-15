@@ -87,6 +87,7 @@ import flexr.social.app.R
 import flexr.social.app.core.common.ServerTime
 import flexr.social.app.core.designsystem.component.FieldError
 import flexr.social.app.core.designsystem.component.FieldLabel
+import flexr.social.app.core.designsystem.component.FlexrButton
 import flexr.social.app.core.designsystem.component.FlexrDangerButton
 import flexr.social.app.core.designsystem.component.FlexrLinkButton
 import flexr.social.app.core.designsystem.component.FlexrPasswordField
@@ -478,12 +479,36 @@ fun AccountScreen(
         }
 
         FieldError(state.saveError)
-        Spacer(Modifier.height(16.dp))
-        FlexrSecondaryButton(
-            text = stringResource(R.string.account_save),
-            onClick = viewModel::saveProfile,
-            loading = state.isSaving,
-        )
+        if (state.hatUngespeicherteAenderungen(currentProfile)) {
+            Spacer(Modifier.height(14.dp))
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(
+                    Modifier
+                        .size(7.dp)
+                        .clip(CircleShape)
+                        .background(colors.plate),
+                )
+                Spacer(Modifier.width(8.dp))
+                Text(
+                    text = stringResource(R.string.account_unsaved),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = colors.plateBright,
+                )
+            }
+            Spacer(Modifier.height(10.dp))
+            FlexrButton(
+                text = stringResource(R.string.account_save),
+                onClick = viewModel::saveProfile,
+                loading = state.isSaving,
+            )
+        } else {
+            Spacer(Modifier.height(16.dp))
+            FlexrSecondaryButton(
+                text = stringResource(R.string.account_save),
+                onClick = viewModel::saveProfile,
+                loading = state.isSaving,
+            )
+        }
 
         // ---------- Fotos ----------
         Spacer(Modifier.height(28.dp))

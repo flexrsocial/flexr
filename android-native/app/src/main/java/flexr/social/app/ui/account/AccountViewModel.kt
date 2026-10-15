@@ -50,6 +50,21 @@ import kotlin.math.roundToInt
 import kotlin.math.sqrt
 import javax.inject.Inject
 
+/**
+ * Weicht das Formular vom gespeicherten Profil ab? Verglichen wird, was
+ * "Profil speichern" schickt - wie in der Web-App (profilFormGeaendert).
+ * Der Knopf wird dann zum Hauptknopf, darueber steht ein Hinweis; vorher sah
+ * man ihm nicht an, ob es ueberhaupt etwas zu speichern gab.
+ */
+internal fun AccountUiState.hatUngespeicherteAenderungen(gespeichert: MyProfile?): Boolean {
+    if (gespeichert == null) return false
+    val gym = gymPicker.selectedLabel ?: gymPicker.query.trim()
+    return postalCode.trim() != gespeichert.plz ||
+        gym != gespeichert.profile.gym ||
+        bio.trim() != gespeichert.profile.bio.orEmpty().trim() ||
+        searchRadiusKm != gespeichert.searchRadiusKm.coerceAtMost(maxSelectableRadiusKm)
+}
+
 data class AccountUiState(
     val postalCode: String = "",
     val plzLookup: PlzLookupState = PlzLookupState.Idle,
