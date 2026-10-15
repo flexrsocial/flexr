@@ -78,7 +78,7 @@ struct SwipeView: View {
             // unter dem Fotoraster im Konto.
             if let profil = container.profiles.myProfile, profil.isAccountActivated,
                profil.photoVisibility != .visible {
-                SearchVisibilityBanner(visibility: profil.photoVisibility) {
+                SearchVisibilityBanner(visibility: profil.photoVisibility, compact: true) {
                     appModel.scrollToOwnPhotos = true
                     appModel.selectedTab = .account
                 }

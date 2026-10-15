@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.SwapHoriz
@@ -274,7 +275,11 @@ private fun FilledPhotoSlot(
         }
         // Position 1 ist das Hauptfoto (Swipe-Karte, Avatar, Chat-Kopf) - die
         // Nummer macht sichtbar, was das Verschieben bewirkt.
-        if (position != null) {
+        // Abgelehnte bekommen keine Nummer (Datei geloescht, nie Hauptfoto).
+        // Bei "In Pruefung" rueckt sie ueber das Etikett, das unten die ganze
+        // Breite belegt - bis 2.7.29 lag sie darunter.
+        val mitEtikett = showStatus && slot.status != null && slot.status != PhotoStatus.APPROVED
+        if (position != null && !(showStatus && slot.status == PhotoStatus.REJECTED)) {
             Text(
                 text = position.toString(),
                 style = MonoStyle.copy(
@@ -283,7 +288,7 @@ private fun FilledPhotoSlot(
                 color = if (position == 1) colors.plateInk else colors.chalkDim,
                 modifier = Modifier
                     .align(Alignment.BottomStart)
-                    .padding(4.dp)
+                    .padding(start = 4.dp, end = 4.dp, top = 4.dp, bottom = if (mitEtikett) 26.dp else 4.dp)
                     .clip(RoundedCornerShape(5.dp))
                     .background(
                         if (position == 1) colors.plate else Color.Black.copy(alpha = 0.62f),
@@ -392,10 +397,64 @@ fun SearchVisibilityBanner(
     visibility: PhotoVisibility,
     onAction: () -> Unit,
     modifier: Modifier = Modifier,
+    /**
+     * Zweizeilig, als Ganzes antippbar - ueber dem Deck. Die volle Fassung
+     * nahm dort so viel Hoehe, dass die Like-/Nein-Knoepfe (sie liegen ueber
+     * dem unteren Kartenrand) den Kartentext verdeckten.
+     */
+    compact: Boolean = false,
 ) {
     if (visibility == PhotoVisibility.VISIBLE) return
     val colors = FlexrTheme.colors
     val akzent = if (visibility == PhotoVisibility.PENDING) colors.plate else colors.danger
+    if (compact) {
+        Row(
+            modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(12.dp))
+                .background(akzent.copy(alpha = 0.11f))
+                .border(1.dp, akzent.copy(alpha = 0.5f), RoundedCornerShape(12.dp))
+                .clickable(role = Role.Button, onClick = onAction)
+                .padding(horizontal = 12.dp, vertical = 9.dp),
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Icon(
+                Icons.Filled.VisibilityOff,
+                contentDescription = null,
+                tint = akzent,
+                modifier = Modifier.size(20.dp),
+            )
+            Column(Modifier.weight(1f)) {
+                Text(
+                    stringResource(R.string.vis_title_short),
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = colors.chalk,
+                )
+                Text(
+                    stringResource(
+                        when (visibility) {
+                            PhotoVisibility.PENDING -> R.string.vis_short_pending
+                            PhotoVisibility.NONE -> R.string.vis_short_none
+                            else -> R.string.vis_short_rejected
+                        },
+                    ),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = colors.chalkDim,
+                )
+            }
+            Icon(
+                Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                contentDescription = stringResource(
+                    if (visibility == PhotoVisibility.PENDING) R.string.vis_cta_pending else R.string.vis_cta_upload,
+                ),
+                tint = akzent,
+                modifier = Modifier.size(22.dp),
+            )
+        }
+        return
+    }
     Row(
         modifier
             .fillMaxWidth()

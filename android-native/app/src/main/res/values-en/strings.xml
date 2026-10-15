@@ -264,6 +264,10 @@
     <string name="vis_none">You have no profile photo yet. Upload at least %1$d photos so others can find you.</string>
     <string name="vis_cta_pending">View my photos</string>
     <string name="vis_cta_upload">Upload a new photo</string>
+    <string name="vis_title_short">Not visible in the search</string>
+    <string name="vis_short_pending">Your photos are still being reviewed.</string>
+    <string name="vis_short_rejected">Photos rejected – upload a new one.</string>
+    <string name="vis_short_none">Upload profile photos so people can find you.</string>
     <string name="photo_lightbox_position">Photo %1$d of %2$d</string>
     <string name="photo_too_small">Photo too small (%1$d×%2$d). At least %3$d×%3$d pixels.</string>
     <string name="photo_read_failed">The image could not be read.</string>

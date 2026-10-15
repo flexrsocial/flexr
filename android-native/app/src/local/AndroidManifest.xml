@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Nur fuer die Variante "local" (API http://10.0.2.2:8000/, siehe
+     build.gradle.kts). Ohne diese Freigabe verweigert Android ab Version 9
+     unverschluesseltes HTTP, und die lokale Variante kam ueber den Login nie
+     hinaus. Die Produktionsvariante bekommt diese Datei nicht. -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application android:networkSecurityConfig="@xml/network_security_config_local" />
+</manifest>

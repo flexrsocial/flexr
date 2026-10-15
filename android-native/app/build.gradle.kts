@@ -321,8 +321,12 @@ android {
         // Austauschen statt Fehlermeldung bei genau drei Fotos, Profil wird
         // beim Zurueckkehren neu geholt; Hinweis "in der Suche nicht sichtbar"
         // ueber dem Deck.
-        versionCode = 141
-        versionName = "2.7.29"
+        // 142/2.7.30 am 15.10.2026: im Emulator nachgetestet - Hinweis ueber
+        // dem Deck kompakt (die Knoepfe verdeckten sonst den Kartentext),
+        // Positionsnummer nicht mehr unter "In Pruefung"/"Abgelehnt", Sprung
+        // zeigt das ganze Fotoraster; Variante "local" darf HTTP zum Host.
+        versionCode = 142
+        versionName = "2.7.30"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         // Nur die Sprachen ausliefern, die es wirklich gibt: Deutsch als

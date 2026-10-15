@@ -308,6 +308,10 @@
     <string name="vis_none">Du hast noch kein Profilfoto. Lade mindestens %1$d Fotos hoch, damit andere dich finden.</string>
     <string name="vis_cta_pending">Zu meinen Fotos</string>
     <string name="vis_cta_upload">Neues Foto hochladen</string>
+    <string name="vis_title_short">In der Suche nicht sichtbar</string>
+    <string name="vis_short_pending">Deine Fotos werden noch geprüft.</string>
+    <string name="vis_short_rejected">Fotos abgelehnt – lade ein neues hoch.</string>
+    <string name="vis_short_none">Lade Profilfotos hoch, damit man dich findet.</string>
     <string name="photo_lightbox_position">Foto %1$d von %2$d</string>
     <string name="photo_too_small">Foto zu klein (%1$d×%2$d). Mindestens %3$d×%3$d Pixel.</string>
     <string name="photo_read_failed">Bild konnte nicht gelesen werden.</string>

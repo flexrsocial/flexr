@@ -208,7 +208,10 @@ private struct FilledPhotoSlot: View {
                 .accessibilityLabel(slot.removable ? s(.photoRemove) : s(.photoSwapTitle))
             }
             .overlay(alignment: .bottomLeading) {
-                if let position {
+                // Abgelehnte bekommen keine Nummer (Datei gelöscht, nie
+                // Hauptfoto). Bei „In Prüfung" rückt sie über das Etikett,
+                // das unten die ganze Breite belegt - vorher lag sie darunter.
+                if let position, !(showsStatus && slot.status == .rejected) {
                     Text("\(position)")
                         .font(.flexrMono(9))
                         .foregroundStyle(position == 1 ? FlexrColor.plateInk : FlexrColor.chalkDim)
@@ -218,7 +221,9 @@ private struct FilledPhotoSlot: View {
                             RoundedRectangle(cornerRadius: 5, style: .continuous)
                                 .fill(position == 1 ? FlexrColor.plate : .black.opacity(0.62))
                         )
-                        .padding(4)
+                        .padding(.horizontal, 4)
+                        .padding(.top, 4)
+                        .padding(.bottom, showsStatus && slot.status == .pending ? 26 : 4)
                 }
             }
             .overlay(alignment: .bottom) {
@@ -328,6 +333,10 @@ struct SearchVisibilityBanner: View {
     private var s: FlexrStrings { languageStore.strings }
 
     let visibility: PhotoVisibility
+    /// Zweizeilig, als Ganzes antippbar - über dem Deck. Die volle Fassung
+    /// nahm dort so viel Höhe, dass die Like-/Nein-Knöpfe (sie liegen über
+    /// dem unteren Kartenrand) den Kartentext verdeckten.
+    var compact = false
     let onAction: () -> Void
 
     private var accent: Color {
@@ -342,7 +351,58 @@ struct SearchVisibilityBanner: View {
         }
     }
 
+    private var shortText: String {
+        switch visibility {
+        case .pending: s(.visShortPending)
+        case .noPhotos: s(.visShortNone)
+        default: s(.visShortRejected)
+        }
+    }
+
     var body: some View {
+        if compact {
+            compactBody
+        } else {
+            fullBody
+        }
+    }
+
+    private var compactBody: some View {
+        Button(action: onAction) {
+            HStack(spacing: 10) {
+                Image(systemName: "eye.slash")
+                    .font(.system(size: 17, weight: .medium))
+                    .foregroundStyle(accent)
+                    .frame(width: 22)
+                VStack(alignment: .leading, spacing: 1) {
+                    Text(s(.visTitleShort))
+                        .flexrText(.titleSmall)
+                        .foregroundStyle(FlexrColor.chalk)
+                    Text(shortText)
+                        .flexrText(.bodySmall)
+                        .foregroundStyle(FlexrColor.chalkDim)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(accent)
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 9)
+            .background(
+                RoundedRectangle(cornerRadius: 12, style: .continuous).fill(accent.opacity(0.11))
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .strokeBorder(accent.opacity(0.5), lineWidth: 1)
+            )
+            .contentShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+        }
+        .buttonStyle(.plain)
+        .accessibilityHint(s(visibility == .pending ? .visCtaPending : .visCtaUpload))
+    }
+
+    private var fullBody: some View {
         HStack(alignment: .top, spacing: 11) {
             Image(systemName: "eye.slash")
                 .font(.system(size: 18, weight: .medium))

@@ -512,6 +512,21 @@
   .vis-banner.rejected .vis-cta{ background:var(--danger); color:#fff; }
   .vis-banner .vis-cta:focus-visible{ outline:2px solid var(--chalk); outline-offset:2px; }
   #screen-account .vis-banner{ margin:4px 0 18px; }
+  /* Kompakte Fassung ueber dem Deck: eine antippbare Zeile mit Pfeil. */
+  .vis-banner.compact{ padding:0; border-radius:12px; }
+  .vis-banner .vis-compact{
+    display:flex; align-items:center; gap:10px; width:100%; padding:9px 12px;
+    background:none; border:0; color:inherit; font:inherit; text-align:left; cursor:pointer; border-radius:12px;
+  }
+  .vis-banner .vis-compact:focus-visible{ outline:2px solid var(--chalk); outline-offset:2px; }
+  .vis-banner .vis-compact .vis-ico{ width:20px; height:20px; margin:0; }
+  .vis-banner .vis-compact-text{ flex:1; min-width:0; display:flex; flex-direction:column; }
+  .vis-banner .vis-compact .vis-title{ margin:0; font-size:13px; }
+  .vis-banner .vis-compact .vis-text{ font-size:12px; }
+  .vis-banner .vis-chevron{ flex-shrink:0; width:20px; height:20px; fill:none; stroke:var(--plate);
+    stroke-width:2.2; stroke-linecap:round; stroke-linejoin:round; }
+  .vis-banner.rejected .vis-chevron{ stroke:var(--danger); }
+  @media (hover:hover){ .vis-banner .vis-compact:hover .vis-chevron{ transform:translateX(2px); } }
 
   /* Rechtstext-Links (.legal-link) hatten ausserhalb bereits gestylter
      Container (.vcard, .consent-note, .legal-footer, ...) keine eigene Farbe
@@ -2278,7 +2293,7 @@
      laufen synchron und damit vor dem DOMContentLoaded, bei dem FlexrI18n die
      data-i18n-Knoten uebersetzt. -->
 <script src="/i18n.js?v=5"></script>
-<script src="/app/i18n-app.js?v=36"></script>
+<script src="/app/i18n-app.js?v=37"></script>
 <a class="skip-link" href="#main-content" data-i18n="common.skipToContent">Zum Inhalt springen</a>
 <div class="app" id="app">
 
@@ -7100,8 +7115,22 @@
         box.innerHTML = '';
         return;
       }
-      box.className = 'vis-banner' + (stand === 'pending' ? '' : ' rejected');
       const cta = stand === 'pending' ? 'vis.ctaPending' : 'vis.ctaUpload';
+      if(id === 'swipeVisBanner'){
+        // Ueber dem Deck zweizeilig und als Ganzes antippbar - die volle
+        // Fassung kostete dort auf kleinen Handys zu viel Kartenhoehe.
+        const kurz = {pending: 'vis.shortPending', rejected: 'vis.shortRejected', none: 'vis.shortNone'}[stand];
+        box.className = 'vis-banner compact' + (stand === 'pending' ? '' : ' rejected');
+        box.innerHTML = `<button type="button" class="vis-compact" aria-label="${escapeHtml(t('vis.titleShort') + ' – ' + t(cta))}">`
+          + ICO_UNSICHTBAR
+          + `<span class="vis-compact-text"><span class="vis-title">${escapeHtml(t('vis.titleShort'))}</span>`
+          + `<span class="vis-text">${escapeHtml(t(kurz))}</span></span>`
+          + `<svg class="vis-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></button>`;
+        box.hidden = false;
+        box.querySelector('.vis-compact').onclick = () => zeigeEigeneFotos(stand !== 'pending');
+        return;
+      }
+      box.className = 'vis-banner' + (stand === 'pending' ? '' : ' rejected');
       box.innerHTML = ICO_UNSICHTBAR
         + `<div><div class="vis-title">${escapeHtml(t('vis.title'))}</div>`
         + `<div class="vis-text">${escapeHtml(t('vis.' + stand, {min: MIN_PHOTOS}))}</div>`
@@ -7124,6 +7153,12 @@
     }
     const grid = $('acctPhotoGrid');
     grid.scrollIntoView({behavior: 'smooth', block: 'center'});
+    // Weiches Scrollen braucht Animationsframes - in einem Tab im
+    // Hintergrund oder einer gedrosselten Web-App bleibt es sonst stehen.
+    setTimeout(() => {
+      const r = grid.getBoundingClientRect();
+      if(r.top < 0 || r.bottom > window.innerHeight) grid.scrollIntoView({block: 'center'});
+    }, 700);
     grid.classList.add('ziel');
     setTimeout(() => grid.classList.remove('ziel'), 1800);
     if(hochladen && (myProfile.photos || []).length < 6 && !(acctUpload && acctUpload.status === 'laeuft')){

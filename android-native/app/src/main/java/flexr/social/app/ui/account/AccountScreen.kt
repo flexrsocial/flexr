@@ -478,12 +478,12 @@ fun AccountScreen(
 
         // ---------- Fotos ----------
         Spacer(Modifier.height(28.dp))
-        SectionTitle(
-            stringResource(R.string.account_section_photos),
-            modifier = Modifier.bringIntoViewRequester(fotoBereich),
-        )
+        SectionTitle(stringResource(R.string.account_section_photos))
         Spacer(Modifier.height(8.dp))
         PhotoGridEditor(
+            // Ziel des Sprungs vom Hinweis: das ganze Raster, nicht nur die
+            // Ueberschrift (sonst stand es halb abgeschnitten am unteren Rand).
+            modifier = Modifier.bringIntoViewRequester(fotoBereich),
             slots = currentProfile?.photos?.map {
                 PhotoSlot(
                     key = it.id,

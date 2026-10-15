@@ -108,6 +108,7 @@ fun SwipeScreen(
             SearchVisibilityBanner(
                 visibility = state.ownPhotoVisibility,
                 onAction = onOpenOwnPhotos,
+                compact = true,
             )
         }
 
