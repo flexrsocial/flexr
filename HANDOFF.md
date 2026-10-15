@@ -32,6 +32,86 @@ erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 
 ## Wo das Projekt gerade steht
 
+> **Sitzung 15.10.2026 (19): Letzte große Bugfix-Runde Web + Android
+> (Emulator). Android 2.7.32 gebaut.**
+>
+> Deployt (`be59d1f`, gepusht, VPS `git pull --ff-only`, `sudo systemctl
+> restart flexr-api`, keine Migration). Live: Health ok, `/app/`, `sw.js` (v50) und
+> `backend/app/routers/gyms.py` md5-gleich; `/api/gyms?q=john&near=8010`
+> liefert live zuerst das Grazer Studio.
+>
+> **Durchgespielt** (lokal, SQLite-Kopie + S3-Attrappe): Web am Handy- und
+> Desktopformat (Deck, Galerie, Matches, Match-Profil, Chat Web↔Android mit
+> Lesebestätigung, Konto, Benachrichtigungen, Datenschutz & Sicherheit,
+> Premium-Seite, Registrierung bis zur Prüfung, Match auflösen) und Android
+> im Emulator mit Lena und Lukas (Chats, Matches, Match-Profil, Konto mit
+> allen Einstellungen, Benachrichtigungen, Hilfe & Rechtliches, Aus- und
+> Einloggen, Deck, Melden mit Aktenzeichen, Match-Overlay, Chat-Vorschläge,
+> Chat-Menü, Englisch).
+>
+> **Gefunden und behoben:**
+> - **Kartenfoto schnitt den Kopf ab (Web, Android, iOS):** Die Fotofläche
+>   (58 % der Karte) ist breiter als hoch; mittig zugeschnitten fehlte auf
+>   Hochformat-Fotos meist der Kopf (Theresa nur Oberkörper, Lukas und
+>   Viktoria ohne Augen). Jetzt oben ausgerichtet: Web `background-position:
+>   center 20%`, Android `BiasAlignment(0f, -0.6f)`, iOS
+>   `PhotoImage(verticalFocus: 0.2)` (selbst gerechneter Cover-Zuschnitt).
+> - **Web: Verlauf auf dem Kartenfoto fehlte ganz.** Das Inline-
+>   `background-image` ersetzte alle Bildebenen der CSS-Regel, also auch den
+>   Verlauf für Name und Ort - „WIEN · FITINN · 3 KM“ stand ohne Kontrast auf
+>   dem Foto. Der Verlauf liegt jetzt im `::after` (wie in den Apps).
+> - **„Meine Meldungen“ fehlte in Android und iOS.** Nutzungsrichtlinien
+>   („Was wir tun“), Sicherheitsseite und FAQ versprechen die Ansicht „im
+>   Konto-Bereich“ mit Entscheidung und Begründung (Art. 16 Abs. 5 DSA) - es
+>   gab sie nur im Web. Jetzt im Konto unter „Blockierte Personen“:
+>   Aktenzeichen, Datum, Grund, „In Prüfung“ bzw. Ergebnis mit Begründung im
+>   Wortlaut, Widerspruchshinweis; lädt beim Aufklappen neu
+>   (`GET /api/reports/mine`). Das „Ausblenden“ des Webs gibt es dort nicht.
+> - **Gym-Chip neben „Online“ abgeschnitten (Android, iOS):** feste Zeile,
+>   die Adresse endete nach zwei Zeilen mit „…“. Jetzt umbrechend wie im Web
+>   (Android `FlowRow`, iOS `ViewThatFits`); der iOS-Chip war sogar nur
+>   einzeilig, jetzt zweizeilig wie Web und Android.
+> - **Match-Overlay (Android, iOS):** Schwarz zu 0,88 ohne Weichzeichner -
+>   das leere Deck dahinter („Alle Sätze absolviert“, „Neu laden“) stand
+>   zwischen Text und Knöpfen. Android 0,97, iOS Material + Schwarz 0,9.
+> - **Android: Matches und Chats beim Wiederbetreten bis zu 20 s veraltet.**
+>   Die Tabs behalten ihr ViewModel (saveState/restoreState), `init` lief
+>   nur beim ersten Mal; erst der 20-s-Abgleich holte neu (Online-Punkt, neue
+>   Nachricht, aufgelöstes Match). Jetzt `refreshOnEnter()` beim Betreten
+>   (nicht direkt nach dem ersten Laden). iOS lädt bei jedem Erscheinen.
+> - **Profil ohne freigegebenes Foto** (Match, dessen Fotos später abgelehnt
+>   wurden): leere Fläche bzw. leere Scheibe → Umriss (Web Match-Profil,
+>   Android Karte und Match-Liste, iOS Karte).
+> - **Gym-Suche nach Nähe:** `GET /api/gyms?near=<PLZ>` stellt nahe Studios
+>   nach vorn (Vorrang „Name beginnt mit dem Suchwort“ bleibt; ohne oder mit
+>   unbekannter PLZ alte Reihenfolge). Vorher zeigte „john“ aus 8010 erst
+>   Wien, Linz und Salzburg; bei Ketten mit 20+ Filialen lag das eigene
+>   Studio weit unten. Bei leerem Feld kommen jetzt die nächstgelegenen
+>   Studios. Web (Registrierung, Konto), Android und iOS schicken die schon
+>   eingegebene PLZ mit; ältere App-Fassungen bekommen die alte Reihenfolge.
+> - Android: Die Zeilen „Nachrichten erhalten“ und die Schalter unter
+>   „Benachrichtigungen“ schalten auch beim Tipp auf die Beschriftung
+>   (`toggleable`); Chat-Menü mit Symbolen für „Chatverlauf leeren“ und „Chat
+>   löschen“ (der Text sprang aus der Flucht).
+> - `sw.js` v50.
+>
+> **Offen (Entscheidung des Nutzers):** Nach „Match auflösen“ bleibt der Like
+> der anderen Person bestehen (gewollt, damit sie wieder im Deck erscheint).
+> Dadurch steht sofort „1 · Jemand hat dich geliked“ über den Matches - und
+> das ist erkennbar die gerade aufgelöste Person.
+>
+> - **Android 2.7.32 / 144** (`release-2.7.32/` mit `SHA256SUMS.txt`,
+>   ersetzt 2.7.31 - die nicht hochladen): AAB `48009f68…47a4`,
+>   APK `58495463…c77b`, Upload-Key `BC:64:…:79:80` geprüft (AAB und APK),
+>   68 Unit-Tests, Lint 0 Fehler. AAB dem Nutzer geschickt.
+> - **iOS:** Quelltext gleichgezogen (Kartenzuschnitt, Chip-Umbruch,
+>   Platzhalter, Overlay, „Meine Meldungen“, Gym-Suche mit `near`), hier
+>   nicht kompilierbar - der Push auf `ios/` startet `ios-tests`. Version
+>   unverändert 2.4.11, nicht eingereicht.
+> - **Tests:** Backend 736 grün (+1 `test_gym_suche_nahe_studios_zuerst`).
+>   Jede Korrektur danach lokal nachgeprüft (Web im Browser, Android im
+>   Emulator mit `assembleLocalDebug`).
+
 > **Sitzung 14./15.10.2026 (18): Fotoraster im Profil, Hinweis „in der
 > Suche nicht sichtbar“, FLEXR-Logo in allen Mails. Android 2.7.29 gebaut.**
 >
