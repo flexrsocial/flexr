@@ -243,6 +243,11 @@ struct FlexrAPI {
         try await client.send(.delete, "api/blocks/\(userID)")
     }
 
+    /// Eigene Meldungen mit Stand und Begründung (Art. 16 Abs. 5 DSA).
+    func listMyReports() async throws -> [MyReportDTO] {
+        try await client.send(.get, "api/reports/mine")
+    }
+
     // MARK: - withdrawal.py
 
     /// Online-Rücktrittsfunktion (§ 13a FAGG) — direkt aus der App statt aus
@@ -254,8 +259,11 @@ struct FlexrAPI {
 
     // MARK: - gyms.py
 
-    func searchGyms(query: String) async throws -> [GymDTO] {
-        try await client.send(.get, "api/gyms", query: ["q": query])
+    /// `near`: schon eingegebene PLZ - nahe Studios kommen dann zuerst.
+    func searchGyms(query: String, near: String? = nil) async throws -> [GymDTO] {
+        var params = ["q": query]
+        if let near { params["near"] = near }
+        return try await client.send(.get, "api/gyms", query: params)
     }
 
     func suggestGym(_ body: GymSuggestRequestDTO) async throws -> GymDTO {

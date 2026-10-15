@@ -7,6 +7,7 @@ import flexr.social.app.data.remote.dto.BlockRequestDto
 import flexr.social.app.data.remote.dto.ReportRequestDto
 import flexr.social.app.domain.model.BlockedUser
 import flexr.social.app.domain.model.ModerationNotice
+import flexr.social.app.domain.model.MyReport
 import flexr.social.app.domain.model.ReportAck
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -58,4 +59,17 @@ class SafetyRepository @Inject constructor(
     suspend fun unblock(userId: String) {
         apiCall { api.unblock(userId) }
     }
+
+    /** Eigene Meldungen, neueste zuerst — mit Entscheidung, sobald es eine gibt. */
+    suspend fun myReports(): List<MyReport> =
+        apiCall { api.listMyReports() }.map { dto ->
+            MyReport(
+                reference = dto.reference,
+                createdAt = ServerTime.parse(dto.createdAt),
+                reason = dto.reason,
+                isOpen = dto.status != "decided",
+                outcome = dto.outcome,
+                decisionNote = dto.decisionNote,
+            )
+        }
 }

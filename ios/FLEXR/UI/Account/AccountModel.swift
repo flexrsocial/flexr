@@ -114,6 +114,9 @@ final class AccountModel {
     var blockedUsers: [BlockedUser] = []
     var blockedUsersLoading = false
     var blockedUsersError: String?
+    var myReports: [MyReport] = []
+    var myReportsLoading = false
+    var myReportsError: String?
     var unblockingUserID: String?
     // Zwei getrennte, nicht vorangekreuzte Erklärungen vor jedem Checkout
     var checkoutSheetVisible = false
@@ -254,6 +257,7 @@ final class AccountModel {
         await refreshVerificationStatus()
         await refreshConsents()
         await refreshBlockedUsers()
+        await refreshMyReports()
     }
 
     private func prefill(from profile: MyProfile) {
@@ -323,7 +327,7 @@ final class AccountModel {
             try? await Task.sleep(for: Self.lookupDebounce)
             guard !Task.isCancelled else { return }
             gymPicker.isSearching = true
-            let results = (try? await gyms.search(query: value)) ?? []
+            let results = (try? await gyms.search(query: value, nearPostalCode: postalCode)) ?? []
             guard !Task.isCancelled else { return }
             gymPicker.results = results
             gymPicker.isSearching = false
@@ -681,6 +685,20 @@ final class AccountModel {
                 ?? s(.consentGrantFailed)
         }
         grantingConsentType = nil
+    }
+
+    // MARK: - Meine Meldungen (Art. 16 Abs. 5 DSA)
+
+    func refreshMyReports() async {
+        myReportsLoading = true
+        myReportsError = nil
+        do {
+            myReports = try await safety.myReports()
+        } catch {
+            myReportsError = (error as? FlexrAPIError)?.message
+                ?? s(.reportsLoadFailed)
+        }
+        myReportsLoading = false
     }
 
     // MARK: - Blockierte Personen

@@ -17,8 +17,18 @@ class GymRepository @Inject constructor(
     private val plzRepository: PlzRepository,
 ) {
 
-    suspend fun search(query: String): List<Gym> =
-        apiCall { api.searchGyms(query.trim()) }.map { it.toDomain() }
+    /**
+     * [nearPostalCode]: die schon eingegebene PLZ. Damit stehen nahe Studios
+     * oben - bei Ketten mit 20+ Filialen lag das eigene sonst hinter allen
+     * Wiener Filialen (Sortierung nur nach Name und PLZ).
+     */
+    suspend fun search(query: String, nearPostalCode: String? = null): List<Gym> =
+        apiCall {
+            api.searchGyms(
+                query = query.trim(),
+                near = nearPostalCode?.trim()?.takeIf { it.length == 4 && it.all(Char::isDigit) },
+            )
+        }.map { it.toDomain() }
 
     /**
      * Vorschlag einreichen. Der Ort wird — wie im Web — still über die

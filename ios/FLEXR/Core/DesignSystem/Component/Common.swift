@@ -222,7 +222,11 @@ struct StatChip: View {
             } else if let icon {
                 FlexrGlyph(icon, size: 13).foregroundStyle(tint)
             }
-            Text(text).flexrText(.mono).foregroundStyle(tint).lineLimit(1)
+            // Zwei Zeilen wie im Web und auf Android: Gym-Namen mit Adresse
+            // ("Bikram Yoga — Maria-Theresien-Straße 32-34, 1010 Wien")
+            // passen selten in eine.
+            Text(text).flexrText(.mono).foregroundStyle(tint).lineLimit(2)
+                .fixedSize(horizontal: false, vertical: true)
         }
         .padding(.horizontal, 10)
         .padding(.vertical, 5)

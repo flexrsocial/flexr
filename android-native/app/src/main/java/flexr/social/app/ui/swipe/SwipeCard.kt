@@ -12,6 +12,8 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -24,6 +26,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -35,6 +39,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.BiasAlignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
@@ -244,7 +249,7 @@ fun BackgroundCard(profile: Profile, progress: Float, modifier: Modifier = Modif
 }
 
 
-
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun CardContent(
     profile: Profile,
@@ -274,8 +279,23 @@ private fun CardContent(
                 model = photos.getOrNull(photoIndex)?.url,
                 contentDescription = stringResource(R.string.common_profile_photo_of, profile.name),
                 contentScale = ContentScale.Crop,
+                // Mittig geschnitten fehlte auf Hochformat-Fotos meist der
+                // Kopf - die Fotoflaeche ist breiter als hoch. -0.6 zeigt den
+                // Bereich ab 20 % des Ueberstands (Web: center 20%).
+                alignment = BiasAlignment(0f, -0.6f),
                 modifier = Modifier.fillMaxSize().background(colors.surface2),
             )
+            if (photos.isEmpty()) {
+                // Profil ohne freigegebenes Foto (z. B. ein Match, dessen Fotos
+                // spaeter abgelehnt wurden): Silhouette statt leerer Flaeche,
+                // wie in der Match-Liste.
+                Icon(
+                    Icons.Filled.Person,
+                    contentDescription = null,
+                    tint = colors.chalkDim.copy(alpha = 0.35f),
+                    modifier = Modifier.align(Alignment.Center).size(96.dp),
+                )
+            }
             // Abdunkelung oben und unten, damit Text auf jedem Foto lesbar bleibt
             Box(
                 Modifier.fillMaxSize().background(
@@ -386,12 +406,16 @@ private fun CardContent(
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 16.dp, vertical = 14.dp),
         ) {
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            // Umbrechend wie im Web (flex-wrap): Mit einer festen Zeile teilte
+            // sich die Gym-Adresse den Platz mit dem Online-Chip und wurde nach
+            // zwei Zeilen abgeschnitten ("Maria-Theresien-Straße 32-34, 1…").
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
                 StatChip(
                     text = profile.gym.ifBlank { stringResource(R.string.gym_none) },
                     icon = FlexrIcons.Gym,
-                    // Nur den freien Platz - der Online-Chip daneben bleibt sichtbar.
-                    modifier = Modifier.weight(1f, fill = false),
                 )
                 if (profile.isOnline) {
                     StatChip(text = "Online", accent = true, pulsingDot = true)

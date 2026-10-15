@@ -327,8 +327,12 @@ android {
         // zeigt das ganze Fotoraster; Variante "local" darf HTTP zum Host.
         // 143/2.7.31 am 15.10.2026: Ins Deck erst mit 3 freigegebenen Fotos
         // (Entscheidung des Betreibers) - Hinweistexte und Rueckfall-Regel.
-        versionCode = 143
-        versionName = "2.7.31"
+        // 144/2.7.32 am 15.10.2026: Bugfix-Runde - Kartenfoto oben ausgerichtet
+        // (Kopf sichtbar), Gym-Chip bricht unter "Online" um, "Meine Meldungen"
+        // im Konto, Match-Overlay deckend, Listen beim Tab-Wechsel aktuell,
+        // Gym-Suche mit naechstgelegenen Studios zuerst.
+        versionCode = 144
+        versionName = "2.7.32"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         // Nur die Sprachen ausliefern, die es wirklich gibt: Deutsch als

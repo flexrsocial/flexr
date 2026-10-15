@@ -70,8 +70,13 @@ final class GymRepository {
         self.plzRepository = plzRepository
     }
 
-    func search(query: String) async throws -> [Gym] {
-        try await api.searchGyms(query: query.trimmingCharacters(in: .whitespaces))
+    /// `nearPostalCode`: die schon eingegebene PLZ. Damit stehen nahe Studios
+    /// oben - bei Ketten mit 20+ Filialen lag das eigene sonst hinter allen
+    /// Wiener Filialen (Sortierung nur nach Name und PLZ).
+    func search(query: String, nearPostalCode: String? = nil) async throws -> [Gym] {
+        let plz = nearPostalCode?.trimmingCharacters(in: .whitespaces) ?? ""
+        let near = plz.count == 4 && plz.allSatisfy(\.isNumber) ? plz : nil
+        return try await api.searchGyms(query: query.trimmingCharacters(in: .whitespaces), near: near)
             .map { $0.toDomain() }
     }
 

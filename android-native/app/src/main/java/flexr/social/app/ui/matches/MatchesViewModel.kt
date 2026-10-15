@@ -65,7 +65,11 @@ class MatchesViewModel @Inject constructor(
         }
     }
 
+    /** Zeitpunkt des letzten Abrufs (System.nanoTime), fuer [refreshOnEnter]. */
+    private var lastRefreshAt = 0L
+
     fun refresh() {
+        lastRefreshAt = System.nanoTime()
         viewModelScope.launch {
             _isRefreshing.value = true
             runCatching { matchRepository.refresh() }
@@ -86,10 +90,24 @@ class MatchesViewModel @Inject constructor(
      * nur in Room; die sichtbare Liste (matches/conversations) zieht über den
      * Room-Flow automatisch nach, kein separater Zeichenschritt nötig.
      */
+    /**
+     * Beim (Wieder-)Betreten von Matches oder Chats. Die Tabs behalten ihr
+     * ViewModel (saveState/restoreState), `init` laeuft also nur beim ersten
+     * Mal - danach stand die Liste bis zum naechsten 20-s-Abgleich auf dem
+     * alten Stand (Online-Punkt, neue Nachricht, gerade aufgeloestes Match).
+     * Direkt nach einem Abruf (erster Aufbau) nicht noch einmal.
+     */
+    fun refreshOnEnter() {
+        if (System.nanoTime() - lastRefreshAt > ENTER_REFRESH_MIN_GAP_NS) silentRefresh()
+    }
+
     fun silentRefresh() {
+        lastRefreshAt = System.nanoTime()
         viewModelScope.launch {
             runCatching { matchRepository.refresh() }
         }
         loadIncoming()
     }
 }
+
+private const val ENTER_REFRESH_MIN_GAP_NS = 3_000_000_000L

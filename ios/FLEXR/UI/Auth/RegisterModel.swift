@@ -172,7 +172,7 @@ final class RegisterModel {
             try? await Task.sleep(for: Self.lookupDebounce)
             guard !Task.isCancelled else { return }
             gymPicker.isSearching = true
-            let results = (try? await gyms.search(query: query)) ?? []
+            let results = (try? await gyms.search(query: query, nearPostalCode: postalCode)) ?? []
             guard !Task.isCancelled else { return }
             gymPicker.results = results
             gymPicker.isSearching = false

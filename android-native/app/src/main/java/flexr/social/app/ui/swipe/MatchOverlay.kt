@@ -73,7 +73,11 @@ fun MatchOverlay(
         Box(
             Modifier
                 .fillMaxSize()
-                .background(Color.Black.copy(alpha = 0.88f))
+                // Fast deckend: Mit 0.88 schien das leere Deck dahinter
+                // ("Alle Sätze absolviert", "Neu laden") zwischen Text und
+                // Knöpfen durch. Das Web verwischt den Hintergrund zusätzlich
+                // (backdrop-filter), das gibt es hier nicht.
+                .background(Color(0xFF090909).copy(alpha = 0.97f))
                 .padding(28.dp),
             contentAlignment = Alignment.Center,
         ) {

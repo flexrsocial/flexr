@@ -116,7 +116,9 @@
 // v48: Ins Deck erst mit 3 freigegebenen Fotos - Hinweistexte; i18n-app.js ?v=38.
 // v49: Leeres Deck auf niedrigen Viewports - Ueberschrift nicht mehr unter der
 // Kopfleiste, Leerzustand am Handy scrollbar.
-const CACHE = 'flexr-shell-v49';
+// v50: Kartenfoto oben ausgerichtet (Kopf sichtbar) mit Verlauf fuer Name/Ort,
+// Umriss bei Profilen ohne Foto, Gym-Suche mit naechstgelegenen Studios zuerst.
+const CACHE = 'flexr-shell-v50';
 // Seit dem 15.08.2026 liegt die App unter /app/, an der Wurzel steht die
 // oeffentliche Landingpage. Beide gehoeren in die Shell: die Landingpage,
 // weil sie der Einstieg ist, die App, weil sie offline funktionieren soll.

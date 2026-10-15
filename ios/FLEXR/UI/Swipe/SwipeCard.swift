@@ -205,12 +205,23 @@ private struct CardContent: View {
         ZStack(alignment: .bottomLeading) {
             PhotoImage(
                 source: PhotoImageSource(profile.photos[safe: photoIndex]?.url),
+                verticalFocus: 0.2,
                 accessibilityLabel: s(.commonProfilePhotoOf, profile.name)
             )
                 .contentShape(Rectangle())
                 .onTapGesture {
                     if isInteractive, !profile.photos.isEmpty { onOpenPhotos(photoIndex) }
                 }
+
+            if profile.photos.isEmpty {
+                // Profil ohne freigegebenes Foto (z. B. ein Match, dessen Fotos
+                // spaeter abgelehnt wurden): Umriss statt leerer Flaeche.
+                Image(systemName: "person.fill")
+                    .font(.system(size: 80))
+                    .foregroundStyle(FlexrColor.chalkDim.opacity(0.35))
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .allowsHitTesting(false)
+            }
 
             // Abdunkelung oben und unten, damit Text auf jedem Foto lesbar bleibt.
             LinearGradient(
@@ -307,18 +318,30 @@ private struct CardContent: View {
         return parts.joined(separator: " · ")
     }
 
+    private var gymChip: some View {
+        StatChip(text: profile.gym.isEmpty ? s(.gymNone) : profile.gym, icon: .dumbbell)
+    }
+
+    private var onlineChip: some View {
+        StatChip(text: "Online", isAccent: true, hasPulsingDot: true)
+    }
+
     private var detailSection: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 12) {
-                HStack(spacing: 8) {
-                    StatChip(
-                        text: profile.gym.isEmpty ? s(.gymNone) : profile.gym,
-                        icon: .dumbbell
-                    )
-                    if profile.isOnline {
-                        StatChip(text: "Online", isAccent: true, hasPulsingDot: true)
+                // Umbrechend wie im Web (flex-wrap) und auf Android (FlowRow):
+                // Passt der Gym-Chip nicht neben "Online", kommt "Online" in
+                // die naechste Zeile, statt die Adresse abzuschneiden.
+                ViewThatFits(in: .horizontal) {
+                    HStack(spacing: 8) {
+                        gymChip
+                        if profile.isOnline { onlineChip }
+                        Spacer(minLength: 0)
                     }
-                    Spacer(minLength: 0)
+                    VStack(alignment: .leading, spacing: 8) {
+                        gymChip
+                        if profile.isOnline { onlineChip }
+                    }
                 }
                 Text(profile.bio?.isEmpty == false ? profile.bio! : s(.bioNone))
                     .flexrText(.bodyMedium)

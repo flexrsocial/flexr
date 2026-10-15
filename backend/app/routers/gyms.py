@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 
 from .. import telegram
 from ..database import get_db
-from ..geo import city_for_plz
+from ..geo import city_for_plz, coords_for_plz, haversine_km
 from ..models import Gym, GymStatus
 from ..rate_limit import limiter
 from ..schemas import GymOut, GymSuggestRequest
@@ -40,10 +40,16 @@ def gym_exists_for_profile(db: Session, gym_value: str) -> bool:
 @router.get("", response_model=list[GymOut])
 def list_gyms(
     q: str = Query("", max_length=100),
+    near: str = Query("", max_length=10),
     db: Session = Depends(get_db),
 ):
     """Durchsuchbare Liste aller freigegebenen Gyms (öffentlich, wird schon
-    bei der Registrierung gebraucht)."""
+    bei der Registrierung gebraucht).
+
+    ``near``: optionale PLZ (die schon eingegebene des Nutzers). Dann kommen
+    nahe Studios zuerst. Vorher stand bei "john" aus Graz erst Wien, Linz und
+    Salzburg vor dem Grazer Studio - bei Ketten mit 20+ Filialen (FitInn,
+    clever fit) lag das eigene Studio weit unten in der Liste."""
     # Nur Einträge mit vollständiger Adresse anzeigen. Die reinen Legacy-Namen
     # (McFit, FitInn, ... ohne Adresse) bleiben in der Tabelle, damit bestehende
     # Profile weiter gültig sind, tauchen aber nicht mehr in der Auswahl auf.
@@ -75,7 +81,26 @@ def list_gyms(
     if words:
         starts = func.replace(Gym.name, " ", "").ilike(f"{words[0]}%", escape="\\")
         order.insert(0, case((starts, 0), else_=1))
-    rows = query.order_by(*order).limit(30).all()
+    origin = coords_for_plz(near.strip()) if near.strip() else None
+    if origin is None:
+        rows = query.order_by(*order).limit(30).all()
+    else:
+        # Nach Entfernung sortieren geht nur in Python (Koordinaten liegen in
+        # einer JSON-Datei, nicht in der DB). Die Tabelle ist klein (~500
+        # Studios), die Treffer sind es erst recht. Der Vorrang "Name beginnt
+        # mit dem ersten Wort" bleibt erhalten; sort() ist stabil, innerhalb
+        # gleicher Entfernung bleibt es alphabetisch.
+        rows = query.order_by(*order).all()
+        first = q.split()[0].lower() if words else ""
+
+        def _rang(g: Gym) -> tuple[int, float]:
+            punkt = coords_for_plz(g.plz)
+            km = haversine_km(*origin, *punkt) if punkt else float("inf")
+            beginnt = bool(first) and g.name.replace(" ", "").lower().startswith(first)
+            return (0 if beginnt or not first else 1, km)
+
+        rows.sort(key=_rang)
+        rows = rows[:30]
     return [
         GymOut(
             id=g.id, name=g.name, street=g.street, house_number=g.house_number,

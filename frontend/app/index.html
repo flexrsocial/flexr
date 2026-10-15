@@ -593,12 +593,26 @@
   }
   .card .stamp.like{ right:16px; color:var(--lime); border-color:var(--lime); transform:rotate(-10deg); }
   .card .stamp.pass{ left:16px; color:var(--danger); border-color:var(--danger); transform:rotate(10deg); }
+  /* Das Foto kommt als Inline-background-image - und das ersetzte frueher
+     ALLE Bildebenen dieser Regel, also auch den Verlauf, der Name und Ort
+     lesbar halten sollte. Der Verlauf liegt deshalb im ::after (wie in den
+     Apps: oben .38, unten .88).
+     center 20% statt center: Die Fotoflaeche ist breiter als hoch, mittig
+     geschnitten fehlte auf Hochformat-Fotos meist der Kopf. */
   .card .photo{
     height:58%; position:relative;
-    background:
-      linear-gradient(180deg, rgba(0,0,0,.38), transparent 16%, transparent 42%, rgba(0,0,0,0.88)),
-      var(--surface-2);
-    background-size:cover; background-position:center;
+    background-color:var(--surface-2);
+    background-size:cover; background-position:center 20%; background-repeat:no-repeat;
+  }
+  .card .photo::after{
+    content:''; position:absolute; inset:0; pointer-events:none;
+    background:linear-gradient(180deg, rgba(0,0,0,.38), transparent 16%, transparent 42%, rgba(0,0,0,0.88));
+  }
+  /* Profil ohne freigegebenes Foto (Match, dessen Fotos spaeter abgelehnt
+     wurden): Umriss wie in der Match-Liste statt leerer Flaeche. */
+  .card .photo.no-photo{
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Ccircle cx='20' cy='15' r='7' fill='%234a4a4a'/%3E%3Cpath d='M6 38c1.5-8 7-12 14-12s12.5 4 14 12z' fill='%234a4a4a'/%3E%3C/svg%3E");
+    background-size:110px; background-position:center 38%;
   }
   .card .photo-index{ position:absolute; top:10px; left:10px; right:10px; display:flex; gap:4px; z-index:2; }
   .card .photo-index i{ flex:1; height:3px; border-radius:2px; background:rgba(255,255,255,0.28); }
@@ -4735,7 +4749,10 @@
   // ---------- Gym-Suchfeld (echte Gyms aus der Datenbank + Vorschlagsfunktion) ----------
   let gymSuggestTargetInput = null;
 
-  function initGymPicker(inputId, resultsId, pickedId){
+  // plzId: das PLZ-Feld desselben Formulars - die Suche schickt die PLZ als
+  // "near" mit, dann stehen nahe Studios oben (bei Ketten mit 20+ Filialen
+  // lag das eigene Studio sonst weit unten).
+  function initGymPicker(inputId, resultsId, pickedId, plzId){
     const input = $(inputId);
     const results = $(resultsId);
     const picked = $(pickedId);
@@ -4792,7 +4809,9 @@
         // aeltere darf die Liste nicht nachtraeglich ueberschreiben.
         const seq = ++searchSeq;
         try{
-          const gyms = await api('/api/gyms?q=' + encodeURIComponent(term));
+          const plz = plzId ? $(plzId).value.trim() : '';
+          const near = /^\d{4}$/.test(plz) ? '&near=' + plz : '';
+          const gyms = await api('/api/gyms?q=' + encodeURIComponent(term) + near);
           if(seq === searchSeq) render(gyms, term);
         }catch(err){ console.error(err); }
       }, 250);
@@ -4805,8 +4824,8 @@
     });
   }
 
-  initGymPicker('f-gym', 'fGymResults', 'fGymPicked');
-  initGymPicker('a-gym', 'aGymResults', 'aGymPicked');
+  initGymPicker('f-gym', 'fGymResults', 'fGymPicked', 'f-plz');
+  initGymPicker('a-gym', 'aGymResults', 'aGymPicked', 'a-plz');
 
   function closeGymSuggest(){ $('gymSuggestBackdrop').classList.remove('open'); }
   $('gymSuggestClose').addEventListener('click', closeGymSuggest);
@@ -7347,7 +7366,7 @@
       </div>` : ''}
       <div class="stamp like">MATCH</div>
       <div class="stamp pass">NOPE</div>
-      <div class="photo" style="background-image:url('${photo}')">
+      <div class="photo${photo ? '' : ' no-photo'}"${photo ? ` style="background-image:url('${photo}')"` : ''}>
         <div class="photo-nav">
           <div class="zone prev" data-dir="-1"></div>
           <div class="zone next" data-dir="1"></div>

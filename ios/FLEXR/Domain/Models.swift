@@ -425,3 +425,17 @@ struct BlockedUser: Identifiable, Sendable {
 
     var id: String { userId }
 }
+
+/// Eine eigene Meldung mit ihrem Stand. Die Nutzungsrichtlinien versprechen
+/// diese Ansicht ("Meine Meldungen" im Konto-Bereich, Art. 16 Abs. 5 DSA);
+/// bis 2.4.11 gab es sie nur im Web.
+struct MyReport: Identifiable, Sendable {
+    let reference: String
+    let createdAt: Date?
+    let reason: String
+    let isOpen: Bool
+    let outcome: String?
+    let decisionNote: String?
+
+    var id: String { reference }
+}

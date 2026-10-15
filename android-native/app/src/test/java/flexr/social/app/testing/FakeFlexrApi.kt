@@ -51,6 +51,7 @@ import flexr.social.app.data.remote.dto.UpdateProfileRequestDto
 import flexr.social.app.data.remote.dto.EmailConfirmRequestDto
 import flexr.social.app.data.remote.dto.EmailConfirmResponseDto
 import flexr.social.app.data.remote.dto.EmailResendResponseDto
+import flexr.social.app.data.remote.dto.MyReportDto
 import flexr.social.app.data.remote.dto.VerificationDocumentPresignRequestDto
 import flexr.social.app.data.remote.dto.VerificationDocumentSubmitRequestDto
 import flexr.social.app.data.remote.dto.VerificationStatusDto
@@ -206,6 +207,8 @@ open class FakeFlexrApi : FlexrApi {
 
     override suspend fun unblock(userId: String) = nichtVorgesehen("unblock")
 
+    override suspend fun listMyReports(): List<MyReportDto> = nichtVorgesehen("listMyReports")
+
     // ---------- withdrawal.py ----------
 
     override suspend fun declareWithdrawal(body: WithdrawalRequestDto): WithdrawalAckDto =
@@ -213,7 +216,7 @@ open class FakeFlexrApi : FlexrApi {
 
     // ---------- gyms.py ----------
 
-    override suspend fun searchGyms(query: String): List<GymDto> = nichtVorgesehen("searchGyms")
+    override suspend fun searchGyms(query: String, near: String?): List<GymDto> = nichtVorgesehen("searchGyms")
 
     override suspend fun suggestGym(body: GymSuggestRequestDto): GymDto =
         nichtVorgesehen("suggestGym")

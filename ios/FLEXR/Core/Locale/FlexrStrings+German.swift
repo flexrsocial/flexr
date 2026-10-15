@@ -465,6 +465,21 @@ extension FlexrStrings {
             ein früheres Match ist samt Chatverlauf wieder da.
             """,
         .blocksLoadFailed: "Deine Blockierungen konnten nicht geladen werden.",
+        .accountReportsTitle: "Meine Meldungen",
+        .accountReportsRow: "Stand und Begründung zu deinen Meldungen",
+        .reportsEmpty: """
+            Du hast noch nichts gemeldet. Melden geht über das Flaggen-Symbol \
+            in jedem Profil und in jedem Chat.
+            """,
+        .reportsPending: "In Prüfung. Wir melden uns binnen 72 Stunden.",
+        .reportsActionTaken: "Wir sind eingeschritten.",
+        .reportsNoAction: "Geprüft — kein Verstoß festgestellt.",
+        .reportsAppeal: """
+            Mit einer Entscheidung nicht einverstanden? Formlose Mail an \
+            flexr.social@proton.me mit dem Aktenzeichen genügt — wir prüfen \
+            erneut und antworten begründet.
+            """,
+        .reportsLoadFailed: "Deine Meldungen konnten gerade nicht geladen werden.",
         .blocksUnblock: "Aufheben",
         .blocksUnblockFailed: "Aufheben fehlgeschlagen.",
 

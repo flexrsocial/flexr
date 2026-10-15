@@ -57,6 +57,20 @@ final class SafetyRepository {
     func unblock(userID: String) async throws {
         try await api.unblock(userID: userID)
     }
+
+    /// Eigene Meldungen, neueste zuerst — mit Entscheidung, sobald es eine gibt.
+    func myReports() async throws -> [MyReport] {
+        try await api.listMyReports().map { dto in
+            MyReport(
+                reference: dto.reference,
+                createdAt: ServerTime.parse(dto.createdAt),
+                reason: dto.reason,
+                isOpen: dto.status != "decided",
+                outcome: dto.outcome,
+                decisionNote: dto.decisionNote
+            )
+        }
+    }
 }
 
 /// Foto-Verifizierung (blauer Haken).

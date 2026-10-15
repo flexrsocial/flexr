@@ -25,6 +25,7 @@ import flexr.social.app.domain.model.BlockedUser
 import flexr.social.app.domain.model.Gym
 import flexr.social.app.domain.model.Membership
 import flexr.social.app.domain.model.MyProfile
+import flexr.social.app.domain.model.MyReport
 import flexr.social.app.domain.model.PhotoStatus
 import flexr.social.app.domain.model.VerificationStatus
 import flexr.social.app.ui.components.GymPickerState
@@ -114,6 +115,9 @@ data class AccountUiState(
     val blockedUsersLoading: Boolean = false,
     val blockedUsersError: String? = null,
     val unblockingUserId: String? = null,
+    val myReports: List<MyReport> = emptyList(),
+    val myReportsLoading: Boolean = false,
+    val myReportsError: String? = null,
     val checkoutDialogVisible: Boolean = false,
     val checkoutImmediateStart: Boolean = false,
     val checkoutWithdrawalAck: Boolean = false,
@@ -192,6 +196,7 @@ class AccountViewModel @Inject constructor(
             refreshVerificationStatus()
             refreshConsents()
             refreshBlockedUsers()
+            refreshMyReports()
             val notificationsEnabled = sessionStore.notificationsEnabled.first()
             val hintDismissed = sessionStore.verifiedHintDismissed.first()
             _uiState.update {
@@ -292,7 +297,8 @@ class AccountViewModel @Inject constructor(
         gymSearchJob = viewModelScope.launch {
             delay(LOOKUP_DEBOUNCE_MS)
             _uiState.update { it.copy(gymPicker = it.gymPicker.copy(isSearching = true)) }
-            val results = runCatching { gymRepository.search(value) }.getOrDefault(emptyList())
+            val results = runCatching { gymRepository.search(value, _uiState.value.postalCode) }
+                .getOrDefault(emptyList())
             _uiState.update { it.copy(gymPicker = it.gymPicker.copy(results = results, isSearching = false)) }
         }
     }
@@ -885,6 +891,29 @@ class AccountViewModel @Inject constructor(
                             unblockingUserId = null,
                             blockedUsersError = (throwable as? FlexrApiException)?.message
                                 ?: strings.get(R.string.reset_err_save),
+                        )
+                    }
+                }
+        }
+    }
+
+    // ---------- Meine Meldungen (Art. 16 Abs. 5 DSA) ----------
+
+    fun refreshMyReports() {
+        _uiState.update { it.copy(myReportsLoading = true, myReportsError = null) }
+        viewModelScope.launch {
+            runCatching { safetyRepository.myReports() }
+                .onSuccess { reports ->
+                    _uiState.update {
+                        it.copy(myReports = reports, myReportsLoading = false, myReportsError = null)
+                    }
+                }
+                .onFailure { throwable ->
+                    _uiState.update {
+                        it.copy(
+                            myReportsLoading = false,
+                            myReportsError = (throwable as? FlexrApiException)?.message
+                                ?: strings.get(R.string.reports_load_failed),
                         )
                     }
                 }

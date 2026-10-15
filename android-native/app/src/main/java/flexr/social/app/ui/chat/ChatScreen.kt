@@ -30,6 +30,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.ClearAll
+import androidx.compose.material.icons.outlined.DeleteOutline
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
@@ -396,13 +399,29 @@ private fun ChatHeader(
                             )
                         },
                     )
+                    // Alle vier Eintraege mit Symbol - ohne sprang der Text der
+                    // beiden unteren nach links aus der Flucht.
                     DropdownMenuItem(
                         text = { Text(stringResource(R.string.chat_clear_action), color = colors.chalk) },
                         onClick = onClearHistory,
+                        leadingIcon = {
+                            Icon(
+                                Icons.Outlined.ClearAll,
+                                contentDescription = null,
+                                tint = colors.chalkDim,
+                            )
+                        },
                     )
                     DropdownMenuItem(
                         text = { Text(stringResource(R.string.chat_delete_action), color = colors.danger) },
                         onClick = onDeleteChat,
+                        leadingIcon = {
+                            Icon(
+                                Icons.Outlined.DeleteOutline,
+                                contentDescription = null,
+                                tint = colors.danger,
+                            )
+                        },
                     )
                 }
             }

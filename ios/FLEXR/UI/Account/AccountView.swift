@@ -15,6 +15,7 @@ struct AccountView: View {
     @State private var deletePassword = ""
     @State private var consentsExpanded = false
     @State private var blockedUsersExpanded = false
+    @State private var myReportsExpanded = false
     @State private var pendingSensitiveRevoke = false
     @State private var notificationDetailsVisible = false
     /// Bildauswahl für „Foto austauschen" und den Knopf im Sichtbarkeitshinweis.
@@ -599,6 +600,45 @@ struct AccountView: View {
                     onUnblock: { userID in Task { await model.unblockUser(userID) } }
                 )
             }
+
+            // Die Nutzungsrichtlinien und die Sicherheitsseite versprechen:
+            // "Unter 'Meine Meldungen' im Konto-Bereich steht zu jeder Meldung,
+            // ob wir eingeschritten sind [...] samt Begründung im Wortlaut."
+            // Bis 2.4.11 gab es das nur im Web ("loadMyReports").
+            Button {
+                withAnimation(.easeOut(duration: 0.18)) { myReportsExpanded.toggle() }
+                // Beim Aufklappen frisch holen: Die Entscheidung kann seit dem
+                // Öffnen des Kontos gefallen sein.
+                if myReportsExpanded { Task { await model.refreshMyReports() } }
+            } label: {
+                HStack {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(s(.accountReportsTitle))
+                            .flexrText(.bodyLarge)
+                            .foregroundStyle(FlexrColor.chalk)
+                        Text(s(.accountReportsRow))
+                            .flexrText(.bodySmall)
+                            .foregroundStyle(FlexrColor.chalkDim)
+                    }
+                    Spacer()
+                    Image(systemName: FlexrIcon.forward)
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(FlexrColor.chalkDim)
+                        .rotationEffect(.degrees(myReportsExpanded ? 90 : 0))
+                }
+                .padding(.vertical, 13)
+                .padding(.horizontal, 4)
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+
+            if myReportsExpanded {
+                MyReportsList(
+                    reports: model.myReports,
+                    isLoading: model.myReportsLoading,
+                    error: model.myReportsError
+                )
+            }
         }
     }
 
@@ -1087,6 +1127,82 @@ private struct BlockedUsersList: View {
             ) { onUnblock(user.userId) }
         }
         .padding(.vertical, 10)
+    }
+}
+
+/// Eigene Meldungen mit Aktenzeichen, Datum, Grund und - sobald entschieden -
+/// Ergebnis samt Begründung im Wortlaut. Entspricht `loadMyReports` im Web.
+private struct MyReportsList: View {
+    @Environment(LanguageStore.self) private var languageStore
+    private var s: FlexrStrings { languageStore.strings }
+
+    let reports: [MyReport]
+    let isLoading: Bool
+    let error: String?
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            if isLoading, reports.isEmpty {
+                HStack(spacing: 8) {
+                    ProgressView().controlSize(.mini).tint(FlexrColor.plate)
+                    Text(s(.commonLoading)).flexrText(.bodySmall).foregroundStyle(FlexrColor.chalkDim)
+                }
+            } else if reports.isEmpty, error == nil {
+                Text(s(.reportsEmpty))
+                    .flexrText(.bodySmall)
+                    .foregroundStyle(FlexrColor.chalkDim)
+            } else if !reports.isEmpty {
+                ForEach(Array(reports.enumerated()), id: \.element.id) { index, report in
+                    row(report)
+                    if index != reports.count - 1 { HairlineDivider() }
+                }
+                Text(s(.reportsAppeal))
+                    .flexrText(.bodySmall)
+                    .foregroundStyle(FlexrColor.chalkDim)
+                    .padding(.top, 8)
+            }
+            FieldError(message: error)
+        }
+    }
+
+    @ViewBuilder
+    private func row(_ report: MyReport) -> some View {
+        VStack(alignment: .leading, spacing: 0) {
+            Text(report.createdAt.map { "\(report.reference) · \(ServerTime.formatDay($0))" } ?? report.reference)
+                .flexrText(.mono)
+                .foregroundStyle(FlexrColor.chalkDim)
+            Text(report.reason)
+                .flexrText(.bodyMedium)
+                .foregroundStyle(FlexrColor.chalk)
+                .padding(.top, 6)
+            if report.isOpen {
+                Text(s(.reportsPending))
+                    .flexrText(.bodySmall)
+                    .foregroundStyle(FlexrColor.chalkDim)
+                    .padding(.top, 8)
+            } else {
+                Text(outcomeText(report.outcome))
+                    .flexrText(.bodySmall)
+                    .foregroundStyle(FlexrColor.chalk)
+                    .padding(.top, 8)
+                if let note = report.decisionNote, !note.isEmpty {
+                    Text(note)
+                        .flexrText(.bodySmall)
+                        .foregroundStyle(FlexrColor.chalkDim)
+                        .padding(.top, 2)
+                }
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.vertical, 10)
+    }
+
+    private func outcomeText(_ outcome: String?) -> String {
+        switch outcome {
+        case "action_taken": return s(.reportsActionTaken)
+        case "no_action": return s(.reportsNoAction)
+        default: return outcome ?? ""
+        }
     }
 }
 

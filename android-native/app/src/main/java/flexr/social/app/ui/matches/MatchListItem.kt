@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -80,6 +81,16 @@ fun MatchListItem(
                     .clip(CircleShape)
                     .background(colors.surface2),
             )
+            if (profile.primaryPhoto == null) {
+                // Kein freigegebenes Foto mehr: Umriss wie im Web statt einer
+                // leeren grauen Scheibe.
+                Icon(
+                    Icons.Filled.Person,
+                    contentDescription = null,
+                    tint = colors.chalkDim.copy(alpha = 0.45f),
+                    modifier = Modifier.align(Alignment.Center).size(34.dp),
+                )
+            }
             if (match.isOnline) {
                 Box(
                     Modifier

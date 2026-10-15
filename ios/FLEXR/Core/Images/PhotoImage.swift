@@ -21,6 +21,12 @@ struct PhotoImage: View {
 
     let source: PhotoImageSource?
     var contentMode: ContentMode = .fill
+    /// Welcher Teil eines zu hohen Fotos beim Zuschnitt sichtbar bleibt:
+    /// 0 = oberer Rand, 0,5 = Mitte (Standard), 1 = unterer Rand. Die Karte
+    /// nutzt 0,2 - mittig geschnitten fehlte auf Hochformat-Fotos meist der
+    /// Kopf (wie `background-position: center 20%` im Web und
+    /// `BiasAlignment(0f, -0.6f)` auf Android).
+    var verticalFocus: CGFloat = 0.5
     /// Entsprechung der `contentDescription` auf Android. Ohne sie bleibt das
     /// Foto für VoiceOver stumm — und Fotos sind der Inhalt dieser App.
     var accessibilityLabel: String?
@@ -48,10 +54,27 @@ struct PhotoImage: View {
         FlexrColor.surface2
             .overlay {
                 if let image {
-                    Image(uiImage: image)
-                        .resizable()
-                        .aspectRatio(contentMode: contentMode)
+                    if contentMode == .fill, verticalFocus != 0.5 {
+                        // Selbst gerechneter Cover-Zuschnitt: das Foto in
+                        // Fuellgroesse, waagrecht mittig, senkrecht um den
+                        // gewuenschten Anteil des Ueberstands verschoben.
+                        GeometryReader { geometry in
+                            let drawn = Self.filledSize(image.size, in: geometry.size)
+                            Image(uiImage: image)
+                                .resizable()
+                                .frame(width: drawn.width, height: drawn.height)
+                                .offset(
+                                    x: (geometry.size.width - drawn.width) / 2,
+                                    y: (geometry.size.height - drawn.height) * verticalFocus
+                                )
+                        }
                         .transition(.opacity)
+                    } else {
+                        Image(uiImage: image)
+                            .resizable()
+                            .aspectRatio(contentMode: contentMode)
+                            .transition(.opacity)
+                    }
                 }
             }
             .clipped()
@@ -78,6 +101,13 @@ struct PhotoImage: View {
             isLoading = false
             image = loaded
         }
+    }
+
+    /// Groesse, in der ein Bild seinen Rahmen ganz ausfuellt (wie `.fill`).
+    private static func filledSize(_ image: CGSize, in frame: CGSize) -> CGSize {
+        guard image.width > 0, image.height > 0 else { return frame }
+        let scale = max(frame.width / image.width, frame.height / image.height)
+        return CGSize(width: image.width * scale, height: image.height * scale)
     }
 }
 

@@ -61,6 +61,7 @@ fun MatchesScreen(
     val incoming by viewModel.incoming.collectAsStateWithLifecycle()
 
     LaunchedEffect(Unit) {
+        viewModel.refreshOnEnter()
         while (isActive) {
             delay(LIST_POLL_INTERVAL_MS)
             viewModel.silentRefresh()
@@ -133,6 +134,7 @@ fun ChatsScreen(
     val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
 
     LaunchedEffect(Unit) {
+        viewModel.refreshOnEnter()
         while (isActive) {
             delay(LIST_POLL_INTERVAL_MS)
             viewModel.silentRefresh()

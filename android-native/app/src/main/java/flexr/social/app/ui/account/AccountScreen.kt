@@ -30,6 +30,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.relocation.BringIntoViewRequester
 import androidx.compose.foundation.relocation.bringIntoViewRequester
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
@@ -61,6 +62,7 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.PlatformTextStyle
@@ -102,6 +104,7 @@ import flexr.social.app.core.locale.LocalAppLanguage
 import flexr.social.app.data.remote.dto.ConsentDto
 import flexr.social.app.data.remote.dto.NotificationSettingsRequestDto
 import flexr.social.app.domain.model.BlockedUser
+import flexr.social.app.domain.model.MyReport
 import flexr.social.app.domain.model.NotificationSettings
 import flexr.social.app.domain.model.PhotoStatus
 import flexr.social.app.domain.model.PhotoVisibility
@@ -201,6 +204,7 @@ fun AccountScreen(
     var pendingSensitiveRevoke by remember { mutableStateOf(false) }
     var consentsExpanded by remember { mutableStateOf(false) }
     var blockedUsersExpanded by remember { mutableStateOf(false) }
+    var myReportsExpanded by remember { mutableStateOf(false) }
     val notificationPermissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission(),
     ) { granted ->
@@ -564,8 +568,31 @@ fun AccountScreen(
                 onSelect = languageViewModel::select,
             )
         }
+        // Die ganze Zeile schaltet, nicht nur der Schalter: Ein Tipp auf die
+        // Beschriftung tat vorher nichts.
         Row(
-            Modifier.fillMaxWidth().padding(top = 12.dp),
+            Modifier
+                .fillMaxWidth()
+                .padding(top = 12.dp)
+                .toggleable(
+                    value = state.notificationsEnabled,
+                    role = Role.Switch,
+                    onValueChange = { enabled ->
+                        // Ab Android 13 braucht das Anzeigen von Benachrichtigungen
+                        // eine Laufzeitberechtigung — hier im Moment des Einschaltens
+                        // erfragt, wo der Zweck offensichtlich ist.
+                        if (enabled &&
+                            Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+                            ContextCompat.checkSelfPermission(
+                                context,
+                                Manifest.permission.POST_NOTIFICATIONS,
+                            ) != PackageManager.PERMISSION_GRANTED
+                        ) {
+                            notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                        }
+                        viewModel.setNotificationsEnabled(enabled)
+                    },
+                ),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Column(Modifier.weight(1f)) {
@@ -577,21 +604,7 @@ fun AccountScreen(
             }
             Switch(
                 checked = state.notificationsEnabled,
-                onCheckedChange = { enabled ->
-                    // Ab Android 13 braucht das Anzeigen von Benachrichtigungen
-                    // eine Laufzeitberechtigung — hier im Moment des Einschaltens
-                    // erfragt, wo der Zweck offensichtlich ist.
-                    if (enabled &&
-                        Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
-                        ContextCompat.checkSelfPermission(
-                            context,
-                            Manifest.permission.POST_NOTIFICATIONS,
-                        ) != PackageManager.PERMISSION_GRANTED
-                    ) {
-                        notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
-                    }
-                    viewModel.setNotificationsEnabled(enabled)
-                },
+                onCheckedChange = null,
                 colors = SwitchDefaults.colors(
                     checkedThumbColor = colors.plateInk,
                     checkedTrackColor = colors.plate,
@@ -752,6 +765,54 @@ fun AccountScreen(
                 error = state.blockedUsersError,
                 unblockingUserId = state.unblockingUserId,
                 onUnblock = viewModel::unblockUser,
+            )
+        }
+
+        // ---------- Meine Meldungen ----------
+        // Die Nutzungsrichtlinien (Abschnitt "Was wir tun") und die
+        // Sicherheitsseite versprechen: "Unter 'Meine Meldungen' im
+        // Konto-Bereich steht zu jeder Meldung, ob wir eingeschritten sind
+        // [...] samt Begründung im Wortlaut." Bis 2.7.31 gab es das nur im Web
+        // (frontend/app/index.html, "loadMyReports").
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(10.dp))
+                .clickable {
+                    myReportsExpanded = !myReportsExpanded
+                    // Beim Aufklappen frisch holen: Die Entscheidung kann seit
+                    // dem Öffnen des Kontos gefallen sein.
+                    if (myReportsExpanded) viewModel.refreshMyReports()
+                }
+                .padding(vertical = 15.dp, horizontal = 2.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Column(Modifier.weight(1f)) {
+                Text(
+                    stringResource(R.string.account_reports_title),
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = colors.chalk,
+                )
+                Text(
+                    stringResource(R.string.account_reports_row),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = colors.chalkDim,
+                )
+            }
+            Icon(
+                Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                contentDescription = null,
+                tint = colors.chalkDim,
+                modifier = Modifier
+                    .size(18.dp)
+                    .rotate(if (myReportsExpanded) 90f else 0f),
+            )
+        }
+        if (myReportsExpanded) {
+            MyReportsSection(
+                reports = state.myReports,
+                loading = state.myReportsLoading,
+                error = state.myReportsError,
             )
         }
 
@@ -1224,6 +1285,86 @@ private fun BlockedUsersSection(
     FieldError(error)
 }
 
+/**
+ * Eigene Meldungen mit Aktenzeichen, Datum, Grund und - sobald entschieden -
+ * Ergebnis samt Begründung im Wortlaut. Entspricht `loadMyReports` im Web.
+ */
+@Composable
+private fun MyReportsSection(
+    reports: List<MyReport>,
+    loading: Boolean,
+    error: String?,
+) {
+    val colors = FlexrTheme.colors
+    when {
+        loading && reports.isEmpty() -> Row(verticalAlignment = Alignment.CenterVertically) {
+            CircularProgressIndicator(Modifier.size(14.dp), color = colors.plate, strokeWidth = 1.5.dp)
+            Spacer(Modifier.width(8.dp))
+            Text(stringResource(R.string.common_loading), style = MaterialTheme.typography.bodySmall, color = colors.chalkDim)
+        }
+        reports.isEmpty() && error == null -> Text(
+            stringResource(R.string.reports_empty),
+            style = MaterialTheme.typography.bodySmall,
+            color = colors.chalkDim,
+        )
+        reports.isNotEmpty() -> Column {
+            reports.forEachIndexed { index, report ->
+                Column(Modifier.fillMaxWidth().padding(vertical = 10.dp)) {
+                    Text(
+                        text = listOfNotNull(report.reference, report.createdAt?.let(ServerTime::formatDay))
+                            .joinToString(" · "),
+                        style = MonoStyle,
+                        color = colors.chalkDim,
+                    )
+                    Text(
+                        text = report.reason,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = colors.chalk,
+                        modifier = Modifier.padding(top = 6.dp),
+                    )
+                    if (report.isOpen) {
+                        Text(
+                            stringResource(R.string.reports_pending),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = colors.chalkDim,
+                            modifier = Modifier.padding(top = 8.dp),
+                        )
+                    } else {
+                        Text(
+                            text = when (report.outcome) {
+                                "action_taken" -> stringResource(R.string.reports_action_taken)
+                                "no_action" -> stringResource(R.string.reports_no_action)
+                                else -> report.outcome.orEmpty()
+                            },
+                            style = MaterialTheme.typography.bodySmall,
+                            color = colors.chalk,
+                            modifier = Modifier.padding(top = 8.dp),
+                        )
+                        report.decisionNote?.takeIf { it.isNotBlank() }?.let { note ->
+                            Text(
+                                note,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = colors.chalkDim,
+                                modifier = Modifier.padding(top = 2.dp),
+                            )
+                        }
+                    }
+                }
+                if (index != reports.lastIndex) {
+                    HorizontalDivider(color = colors.hairline)
+                }
+            }
+            Text(
+                stringResource(R.string.reports_appeal),
+                style = MaterialTheme.typography.bodySmall,
+                color = colors.chalkDim,
+                modifier = Modifier.padding(top = 8.dp),
+            )
+        }
+    }
+    FieldError(error)
+}
+
 // Ressourcen-Kennungen statt fertiger Texte: aufgeloest wird erst dort, wo
 // gezeichnet wird - nur da ist die gewaehlte Sprache bekannt.
 private val CONSENT_LABELS = mapOf(
@@ -1494,7 +1635,10 @@ private fun NotificationSwitchRow(
 ) {
     val colors = FlexrTheme.colors
     Row(
-        Modifier.fillMaxWidth().padding(vertical = 8.dp),
+        Modifier
+            .fillMaxWidth()
+            .toggleable(value = checked, enabled = enabled, role = Role.Switch, onValueChange = onCheckedChange)
+            .padding(vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Column(Modifier.weight(1f)) {
@@ -1511,7 +1655,7 @@ private fun NotificationSwitchRow(
         Switch(
             checked = checked,
             enabled = enabled,
-            onCheckedChange = onCheckedChange,
+            onCheckedChange = null,
             colors = SwitchDefaults.colors(
                 checkedThumbColor = colors.plateInk,
                 checkedTrackColor = colors.plate,

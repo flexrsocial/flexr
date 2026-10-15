@@ -254,7 +254,8 @@ class RegisterViewModel @Inject constructor(
         gymSearchJob = viewModelScope.launch {
             delay(LOOKUP_DEBOUNCE_MS)
             _uiState.update { it.copy(gymPicker = it.gymPicker.copy(isSearching = true)) }
-            val results = runCatching { gymRepository.search(query) }.getOrDefault(emptyList())
+            val results = runCatching { gymRepository.search(query, _uiState.value.postalCode) }
+                .getOrDefault(emptyList())
             _uiState.update {
                 it.copy(gymPicker = it.gymPicker.copy(results = results, isSearching = false))
             }

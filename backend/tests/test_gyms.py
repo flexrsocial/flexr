@@ -257,3 +257,23 @@ def test_gym_suche_wortweise(client):
     # LIKE-Platzhalter aus der Eingabe gelten woertlich.
     assert client.get("/api/gyms", params={"q": "%"}).json() == []
     assert client.get("/api/gyms", params={"q": "_"}).json() == []
+
+
+def test_gym_suche_nahe_studios_zuerst(client):
+    """Mit near=PLZ stehen nahe Studios vorne. Vorher lag bei Ketten das
+    eigene Studio hinter allen Wiener Filialen (Sortierung nur nach Name/PLZ)."""
+    # Ohne near: alphabetisch - die Wiener Studios vor "Kraftwerk Gym".
+    namen = [g["name"] for g in client.get("/api/gyms").json()]
+    assert namen.index("Kraftwerk Gym") > namen.index("FitInn")
+    # Mit Grazer PLZ: das Grazer Studio zuerst, auch bei leerer Eingabe.
+    nah = client.get("/api/gyms", params={"q": "", "near": "8020"}).json()
+    assert nah[0]["name"] == "Kraftwerk Gym"
+    # Der Vorrang "Name beginnt mit dem Suchwort" bleibt: "fit" aus Graz
+    # zeigt FitInn (Wien) vor Studios, die "fit" nur irgendwo enthalten.
+    fit = client.get("/api/gyms", params={"q": "fit", "near": "8020"}).json()
+    assert fit[0]["name"] == "FitInn"
+    # Unbekannte oder kaputte PLZ: einfach die alte Reihenfolge, kein Fehler.
+    for near in ("0000", "abcd", "12345678"):
+        resp = client.get("/api/gyms", params={"q": "", "near": near})
+        assert resp.status_code == 200
+        assert [g["name"] for g in resp.json()] == namen

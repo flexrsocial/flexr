@@ -424,6 +424,14 @@
     <string name="blocks_empty">Du hast niemanden blockiert. Blockieren geht über das Verbots-Symbol in jedem Profil und in jedem Chat.</string>
     <string name="blocks_note">Eine Blockierung blendet ein bestehendes Match nur aus, sie löst es nicht auf. Hebst du sie auf, seht ihr einander wieder im Deck — und ein früheres Match ist samt Chatverlauf wieder da.</string>
     <string name="blocks_load_failed">Deine Blockierungen konnten nicht geladen werden.</string>
+    <string name="account_reports_title">Meine Meldungen</string>
+    <string name="account_reports_row">Stand und Begründung zu deinen Meldungen</string>
+    <string name="reports_empty">Du hast noch nichts gemeldet. Melden geht über das Flaggen-Symbol in jedem Profil und in jedem Chat.</string>
+    <string name="reports_pending">In Prüfung. Wir melden uns binnen 72 Stunden.</string>
+    <string name="reports_action_taken">Wir sind eingeschritten.</string>
+    <string name="reports_no_action">Geprüft — kein Verstoß festgestellt.</string>
+    <string name="reports_appeal">Mit einer Entscheidung nicht einverstanden? Formlose Mail an flexr.social@proton.me mit dem Aktenzeichen genügt — wir prüfen erneut und antworten begründet.</string>
+    <string name="reports_load_failed">Deine Meldungen konnten gerade nicht geladen werden.</string>
 
     <!-- ==== Verifizierungs-Kurzstatus im Konto ==== -->
     <string name="verify_badge_checking">Prüfung läuft …</string>

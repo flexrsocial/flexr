@@ -404,3 +404,17 @@ data class BlockedUser(
     val photoUrl: String?,
     val blockedAt: Instant?,
 )
+
+/**
+ * Eine eigene Meldung mit ihrem Stand. Die Nutzungsrichtlinien versprechen
+ * diese Ansicht ("Meine Meldungen" im Konto-Bereich, Art. 16 Abs. 5 DSA);
+ * bis 2.7.31 gab es sie nur im Web.
+ */
+data class MyReport(
+    val reference: String,
+    val createdAt: Instant?,
+    val reason: String,
+    val isOpen: Boolean,
+    val outcome: String?,
+    val decisionNote: String?,
+)

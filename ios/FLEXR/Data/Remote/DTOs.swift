@@ -459,6 +459,19 @@ struct BlockedUserOutDTO: Decodable {
     let blockedAt: String?
 }
 
+/// Eine eigene Meldung mit ihrem Stand — `MyReportOut` in backend/app/schemas.py.
+struct MyReportDTO: Decodable {
+    let reference: String
+    let createdAt: String?
+    let reason: String
+    /// "open" oder "decided".
+    let status: String
+    /// "action_taken" oder "no_action", solange offen nil.
+    let outcome: String?
+    let decisionNote: String?
+    let decidedAt: String?
+}
+
 // MARK: - Foto-Verifizierung
 
 struct VerificationStatusDTO: Decodable {

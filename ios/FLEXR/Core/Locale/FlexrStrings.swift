@@ -162,6 +162,11 @@ enum L: Hashable, Sendable {
     case consentGrantLink, consentLoadFailed, consentRevokeFailed, consentGrantFailed
     case blocksEmpty, blocksNote, blocksLoadFailed, blocksUnblock, blocksUnblockFailed
 
+    // Meine Meldungen (Art. 16 Abs. 5 DSA)
+    case accountReportsTitle, accountReportsRow
+    case reportsEmpty, reportsPending, reportsActionTaken, reportsNoAction
+    case reportsAppeal, reportsLoadFailed
+
     // Verifizierungs-Kurzstatus
     case verifyBadgeChecking, verifyBadgeConfirmAge, verifyBadgeVerified
     case verifyBadgeReviewing, verifyBadgeDocumentMissing, verifyBadgeFailed

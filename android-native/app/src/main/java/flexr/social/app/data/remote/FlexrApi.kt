@@ -32,6 +32,7 @@ import flexr.social.app.data.remote.dto.MembershipStatusDto
 import flexr.social.app.data.remote.dto.MessageDto
 import flexr.social.app.data.remote.dto.ModerationNoticeDto
 import flexr.social.app.data.remote.dto.MyProfileDto
+import flexr.social.app.data.remote.dto.MyReportDto
 import flexr.social.app.data.remote.dto.NotificationSettingsRequestDto
 import flexr.social.app.data.remote.dto.PlzLookupDto
 import flexr.social.app.data.remote.dto.PortalUrlDto
@@ -285,6 +286,10 @@ interface FlexrApi {
     @DELETE("api/blocks/{userId}")
     suspend fun unblock(@Path("userId") userId: String)
 
+    /** Eigene Meldungen mit Stand und Begründung (Art. 16 Abs. 5 DSA). */
+    @GET("api/reports/mine")
+    suspend fun listMyReports(): List<MyReportDto>
+
     // ---------- withdrawal.py ----------
 
     /**
@@ -297,8 +302,12 @@ interface FlexrApi {
 
     // ---------- gyms.py ----------
 
+    /** near: schon eingegebene PLZ - nahe Studios kommen dann zuerst. */
     @GET("api/gyms")
-    suspend fun searchGyms(@Query("q") query: String): List<GymDto>
+    suspend fun searchGyms(
+        @Query("q") query: String,
+        @Query("near") near: String? = null,
+    ): List<GymDto>
 
     @POST("api/gyms/suggest")
     suspend fun suggestGym(@Body body: GymSuggestRequestDto): GymDto

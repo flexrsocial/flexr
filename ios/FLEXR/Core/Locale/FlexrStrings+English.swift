@@ -461,6 +461,21 @@ extension FlexrStrings {
             comes back with its chat history.
             """,
         .blocksLoadFailed: "Your blocks could not be loaded.",
+        .accountReportsTitle: "My reports",
+        .accountReportsRow: "Status and reasons for your reports",
+        .reportsEmpty: """
+            You have not reported anything yet. You can report from the flag \
+            icon in any profile and any chat.
+            """,
+        .reportsPending: "Under review. We will get back to you within 72 hours.",
+        .reportsActionTaken: "We took action.",
+        .reportsNoAction: "Reviewed — no violation found.",
+        .reportsAppeal: """
+            Disagree with a decision? An informal email to \
+            flexr.social@proton.me quoting the reference is enough — we \
+            review it again and reply with reasons.
+            """,
+        .reportsLoadFailed: "Your reports could not be loaded right now.",
         .blocksUnblock: "Unblock",
         .blocksUnblockFailed: "Unblocking failed.",
 

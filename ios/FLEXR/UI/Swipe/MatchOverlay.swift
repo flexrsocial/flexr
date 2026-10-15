@@ -18,7 +18,14 @@ struct MatchOverlay: View {
 
     var body: some View {
         ZStack {
-            Color.black.opacity(0.88).ignoresSafeArea()
+            // Verwischt und fast deckend wie im Web (backdrop-filter): Mit
+            // reinem Schwarz zu 0,88 schien das leere Deck dahinter ("Alle
+            // Sätze absolviert", "Neu laden") zwischen Text und Knöpfen durch.
+            ZStack {
+                Rectangle().fill(.ultraThinMaterial)
+                Color.black.opacity(0.9)
+            }
+            .ignoresSafeArea()
 
             VStack(spacing: 0) {
                 Eyebrow(text: s(.matchEyebrow))

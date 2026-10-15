@@ -492,6 +492,20 @@ data class BlockedUserDto(
     @SerialName("blocked_at") val blockedAt: String? = null,
 )
 
+/** Eine eigene Meldung mit ihrem Stand — `MyReportOut` in backend/app/schemas.py. */
+@Serializable
+data class MyReportDto(
+    val reference: String,
+    @SerialName("created_at") val createdAt: String? = null,
+    val reason: String,
+    /** "open" oder "decided". */
+    val status: String,
+    /** "action_taken" oder "no_action", solange offen null. */
+    val outcome: String? = null,
+    @SerialName("decision_note") val decisionNote: String? = null,
+    @SerialName("decided_at") val decidedAt: String? = null,
+)
+
 // ---------- Alters- und Identitätsprüfung ----------
 
 @Serializable
