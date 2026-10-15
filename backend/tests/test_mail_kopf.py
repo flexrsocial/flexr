@@ -1,6 +1,11 @@
 """Kopf aller HTML-Mails: Stichzeile links, Logo rechts oben (Wunsch des
 Betreibers, 14.10.2026; seit 15.10.2026 das App-Icon statt der Wortmarke).
 
+Gmail unter Android zeigte das Icon mit weisser Kachel: Die App dunkelt Mails
+mit dem Chromium-Dunkelmodus ab, und der invertiert farbarme Bilder bis
+64 x 64 CSS-px als "Icon". Darum ist das Bild 80 x 44 gross (Kachel rechts,
+links durchsichtig) - test_logo_ist_fuer_den_dunkelmodus_kein_icon.
+
 Es gibt drei HTML-Gerueste in app/mailer.py (_email_shell, _verify_html,
 _decision_html). Geprueft wird ueber die versendeten Mails, nicht ueber die
 Gerueste - so faellt auch ein kuenftiges viertes Geruest ohne Logo auf.
@@ -74,11 +79,24 @@ def test_es_werden_alle_mailarten_geprueft():
 def test_jede_mail_traegt_das_logo_rechts_oben(gesendet, fall, lang):
     FAELLE[fall](lang)
     html_body = gesendet[-1]
-    assert 'src="https://flexr.social/icons/mail-icon-v1.png"' in html_body
+    assert 'src="https://flexr.social/icons/mail-icon-v2.png"' in html_body
     assert 'alt="FLEXR"' in html_body
+    assert 'width="80" height="44"' in html_body
     # Logo steht im Kopf, vor der Ueberschrift - nicht irgendwo im Text.
-    assert html_body.index("mail-icon-v1.png") < html_body.index("<h1")
-    assert html_body.count("mail-icon-v1.png") == 1
+    assert html_body.index("mail-icon-v2.png") < html_body.index("<h1")
+    assert html_body.count("mail-icon-v2.png") == 1
+    # Die Karte traegt Schrift und Textfarbe selbst - falls der Webmailer
+    # die Stile am <body> verwirft (siehe _email_shell).
+    assert 'padding:28px;font-family:Helvetica,Arial,sans-serif;color:#e8e8ea;"' in html_body
+
+
+def test_logo_ist_fuer_den_dunkelmodus_kein_icon():
+    """Chromium (Android-WebView, also die Gmail-App) haelt ein Bild fuer ein
+    Icon, wenn es in beiden Richtungen hoechstens 64 CSS-px gross gezeichnet
+    wird, und invertiert es dann im erzwungenen Dunkelmodus. Gemessen am
+    15.10.2026: 64 x 64 wird invertiert, 66 x 44 nicht. Eine Seite muss
+    also deutlich darueber liegen."""
+    assert max(mailer.MAIL_LOGO_BREITE, mailer.MAIL_LOGO_HOEHE) >= 72
 
 
 def test_logodatei_liegt_dort_wo_nginx_ausliefert():
@@ -89,12 +107,21 @@ def test_logodatei_liegt_dort_wo_nginx_ausliefert():
     assert datei.is_file()
     bild = Image.open(datei)
     breite, hoehe = bild.size
-    # width="44" height="44" im Mailkopf: quadratisch, mindestens doppelt
-    # so viele Pixel fuer hochaufloesende Displays, Ecken transparent.
-    assert breite == hoehe >= 88
-    assert bild.mode == "RGBA" and bild.getpixel((0, 0))[3] < 32
-    # Die Wortmarke von gestern bleibt liegen - bereits verschickte Mails
+    # Seitenverhaeltnis wie im Mailkopf, mindestens doppelt so viele Pixel
+    # fuer hochaufloesende Displays.
+    assert breite * mailer.MAIL_LOGO_HOEHE == hoehe * mailer.MAIL_LOGO_BREITE
+    assert hoehe >= 2 * mailer.MAIL_LOGO_HOEHE
+    assert bild.mode == "RGBA"
+    # Links neben der Kachel ist alles durchsichtig, die Ecken der Kachel
+    # auch (Outlook kennt kein border-radius); die Mitte der Kachel deckt.
+    kachel_links = breite - hoehe
+    assert max(bild.getpixel((x, y))[3] for x in range(kachel_links) for y in range(hoehe)) == 0
+    assert bild.getpixel((kachel_links, 0))[3] < 32
+    assert bild.getpixel((breite - 1, hoehe - 1))[3] < 32
+    assert bild.getpixel((breite - hoehe // 2, hoehe // 2))[3] == 255
+    # Die frueheren Fassungen bleiben liegen - bereits verschickte Mails
     # laden sie weiter.
     assert (FRONTEND / "icons" / "mail-logo-v1.png").is_file()
+    assert (FRONTEND / "icons" / "mail-icon-v1.png").is_file()
     nginx = (FRONTEND.parent / "deploy" / "nginx-flexr.conf").read_text(encoding="utf-8")
     assert "location /icons/" in nginx

@@ -82,8 +82,17 @@ def on_canvas(layer, size, anteil=TILE_ON_CANVAS):
 # --- Kopf der E-Mails (backend/app/mailer.py, MAIL_LOGO_PATH) ---------------
 # Liegt unter /icons/ (nur dort liefert nginx aus, /brand/ ist gesperrt) und
 # traegt die Version im Namen, weil /icons/ ein Jahr "immutable" gecacht wird.
-MAIL_ICON = f'{ROOT}/frontend/icons/mail-icon-v1.png'
+#
+# v2 (15.10.2026): Die Gmail-App unter Android dunkelt Mails mit dem
+# Chromium-Dunkelmodus ab. Der haelt jedes Bild, das hoechstens 64 x 64 CSS-px
+# gross angezeigt wird, fuer ein Icon und invertiert es, wenn es wenige Farben
+# hat - die dunkle FX-Kachel wurde dort weiss. Ist eine Seite groesser,
+# bleibt das Bild unangetastet. Darum ist das Bild 80 x 44 px breit: die
+# Kachel (44 px) sitzt rechts, links ist es durchsichtig. Optisch aendert
+# sich nichts. v1 (quadratisch) bleibt liegen, verschickte Mails laden sie.
+MAIL_ICON = f'{ROOT}/frontend/icons/mail-icon-v2.png'
 MAIL_ICON_PX = 132          # dreifache Anzeigegroesse (44 px im Mailkopf)
+MAIL_BILD_BREITE_PX = 240   # dreifache Bildbreite (80 px im Mailkopf, > 64)
 MAIL_KANTE_PX = 10          # Breite der hellen Kante, bezogen auf 512 px
 MAIL_KANTE_ALPHA = 0.16     # Deckkraft der Kante (Weiss)
 
@@ -113,7 +122,10 @@ def mail_icon(tile):
     k = (ring * MAIL_KANTE_ALPHA)[..., None]
     rgba[..., :3] = rgba[..., :3] * (1 - k) + 255.0 * k
     out = Image.fromarray(np.clip(rgba, 0, 255).astype(np.uint8), 'RGBA')
-    out.resize((MAIL_ICON_PX, MAIL_ICON_PX), Image.LANCZOS).save(MAIL_ICON, optimize=True)
+    bild = Image.new('RGBA', (MAIL_BILD_BREITE_PX, MAIL_ICON_PX), (0, 0, 0, 0))
+    bild.alpha_composite(out.resize((MAIL_ICON_PX, MAIL_ICON_PX), Image.LANCZOS),
+                         (MAIL_BILD_BREITE_PX - MAIL_ICON_PX, 0))
+    bild.save(MAIL_ICON, optimize=True)
 
 
 def main():
@@ -172,6 +184,6 @@ if __name__ == '__main__':
     # Nur das Mail-Icon neu erzeugen, ohne die uebrigen Dateien anzufassen.
     if '--mail' in sys.argv:
         mail_icon(tile_mask(load_tile()))
-        print('mail-icon-v1.png')
+        print(os.path.basename(MAIL_ICON))
     else:
         main()

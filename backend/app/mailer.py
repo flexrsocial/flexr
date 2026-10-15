@@ -254,9 +254,13 @@ def _logo_url() -> str:
 
 #: Pfad des Mail-Logos unter frontend/ - bei einer neuen Fassung neue Nummer.
 #: Seit 15.10.2026 das App-Icon (FX-Kachel) statt der Wortmarke
-#: icons/mail-logo-v1.png - die bleibt liegen, weil bereits verschickte Mails
-#: sie weiter laden.
-MAIL_LOGO_PATH = "icons/mail-icon-v1.png"
+#: icons/mail-logo-v1.png. v2 ist 80 x 44 statt 44 x 44 (siehe _header_html).
+#: Die alten Dateien bleiben liegen, weil bereits verschickte Mails sie laden.
+MAIL_LOGO_PATH = "icons/mail-icon-v2.png"
+#: Anzeigegroesse des Logos in CSS-px. Die Kachel ist MAIL_LOGO_HOEHE breit
+#: und sitzt rechts, der Rest des Bildes ist durchsichtig.
+MAIL_LOGO_BREITE = 80
+MAIL_LOGO_HOEHE = 44
 
 
 def _header_html(eyebrow: str) -> str:
@@ -266,12 +270,18 @@ def _header_html(eyebrow: str) -> str:
     davon nichts und stapelten Logo und Stichzeile untereinander. Die runden
     Ecken und die helle Kante stecken im Bild selbst (Outlook kennt kein
     border-radius). Der alt-Text ist gestaltet - wer Bilder blockiert, sieht
-    statt eines leeren Rahmens FLEXR in der Schriftfarbe der Marke."""
+    statt eines leeren Rahmens FLEXR in der Schriftfarbe der Marke.
+
+    Das Bild ist breiter als die Kachel (MAIL_LOGO_BREITE > 64): Die
+    Gmail-App unter Android dunkelt Mails mit dem Chromium-Dunkelmodus ab,
+    und der invertiert farbarme Bilder bis 64 x 64 px als "Icon" - aus der
+    dunklen Kachel wurde eine weisse. Der durchsichtige linke Teil ersetzt
+    den Abstand zur Stichzeile."""
     return f"""    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;margin:0 0 14px;">
       <tr>
         <td style="vertical-align:middle;padding:0;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:#ff5a1f;">{html.escape(eyebrow)}</td>
-        <td style="vertical-align:middle;padding:0 0 0 12px;text-align:right;width:44px;">
-          <a href="{html.escape(settings.frontend_url)}" style="text-decoration:none;color:#f2efea;"><img src="{html.escape(_logo_url())}" width="44" height="44" alt="FLEXR" style="display:block;margin:0 0 0 auto;border:0;outline:none;text-decoration:none;width:44px;height:44px;border-radius:10px;font-family:Helvetica,Arial,sans-serif;font-size:11px;font-weight:700;letter-spacing:.04em;line-height:44px;text-align:center;color:#f2efea;"></a>
+        <td style="vertical-align:middle;padding:0;text-align:right;width:{MAIL_LOGO_BREITE}px;">
+          <a href="{html.escape(settings.frontend_url)}" style="text-decoration:none;color:#f2efea;"><img src="{html.escape(_logo_url())}" width="{MAIL_LOGO_BREITE}" height="{MAIL_LOGO_HOEHE}" alt="FLEXR" style="display:block;margin:0 0 0 auto;border:0;outline:none;text-decoration:none;width:{MAIL_LOGO_BREITE}px;height:{MAIL_LOGO_HOEHE}px;font-family:Helvetica,Arial,sans-serif;font-size:11px;font-weight:700;letter-spacing:.04em;line-height:{MAIL_LOGO_HOEHE}px;text-align:right;color:#f2efea;"></a>
         </td>
       </tr>
     </table>"""
@@ -285,12 +295,16 @@ def _email_shell(
     lang: str = STANDARD,
 ) -> str:
     """Kartenoptik von _verify_html, generalisiert: heading_html und
-    body_html kommen vom Aufrufer bereits maskiert/gerendert."""
+    body_html kommen vom Aufrufer bereits maskiert/gerendert.
+
+    Schrift und Textfarbe stehen in allen drei Geruesten auch an der Karte:
+    Manche Mailprogramme (Gmail) verwerfen die Stile am <body>, dann stand
+    Text ohne eigene Farbe dunkel auf der dunklen Karte."""
     return f"""<!doctype html>
 <html lang="{t("html.lang", lang)}">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"></head>
 <body style="margin:0;padding:24px;background:#0f0f11;font-family:Helvetica,Arial,sans-serif;color:#e8e8ea;">
-  <div style="max-width:520px;margin:0 auto;background:#17171a;border:1px solid #2a2a30;border-radius:16px;padding:28px;">
+  <div style="max-width:520px;margin:0 auto;background:#17171a;border:1px solid #2a2a30;border-radius:16px;padding:28px;font-family:Helvetica,Arial,sans-serif;color:#e8e8ea;">
 {_header_html(eyebrow)}
     <h1 style="margin:0 0 18px;font-size:22px;line-height:1.3;color:#ffffff;">{heading_html}</h1>
 {body_html}
@@ -382,7 +396,7 @@ def _verify_html(name: str, link: str, hours: int, lang: str = STANDARD) -> str:
 <html lang="{t("html.lang", lang)}">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"></head>
 <body style="margin:0;padding:24px;background:#0f0f11;font-family:Helvetica,Arial,sans-serif;color:#e8e8ea;">
-  <div style="max-width:520px;margin:0 auto;background:#17171a;border:1px solid #2a2a30;border-radius:16px;padding:28px;">
+  <div style="max-width:520px;margin:0 auto;background:#17171a;border:1px solid #2a2a30;border-radius:16px;padding:28px;font-family:Helvetica,Arial,sans-serif;color:#e8e8ea;">
 {_header_html(t("verify.eyebrow", lang))}
     <h1 style="margin:0 0 18px;font-size:24px;line-height:1.25;color:#ffffff;">{t("verify.heading", lang, name=name)}</h1>
     <p style="margin:0 0 14px;font-size:15px;line-height:1.6;">
@@ -1098,7 +1112,7 @@ def _decision_html(
 <html lang="{t("html.lang", lang)}">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"></head>
 <body style="margin:0;padding:24px;background:#0f0f11;font-family:Helvetica,Arial,sans-serif;color:#e8e8ea;">
-  <div style="max-width:520px;margin:0 auto;background:#17171a;border:1px solid #2a2a30;border-radius:16px;padding:28px;">
+  <div style="max-width:520px;margin:0 auto;background:#17171a;border:1px solid #2a2a30;border-radius:16px;padding:28px;font-family:Helvetica,Arial,sans-serif;color:#e8e8ea;">
 {_header_html(eyebrow)}
     <h1 style="margin:0 0 18px;font-size:22px;line-height:1.3;color:#ffffff;">{t("greeting", lang, name=name_safe)}</h1>
     <p style="margin:0 0 22px;font-size:15px;line-height:1.6;">
