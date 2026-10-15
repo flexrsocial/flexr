@@ -255,8 +255,10 @@ def _logo_url() -> str:
 #: Pfad des Mail-Logos unter frontend/ - bei einer neuen Fassung neue Nummer.
 #: Seit 15.10.2026 das App-Icon (FX-Kachel) statt der Wortmarke
 #: icons/mail-logo-v1.png - die bleibt liegen, weil bereits verschickte Mails
-#: sie weiter laden.
-MAIL_LOGO_PATH = "icons/mail-icon-v1.png"
+#: sie weiter laden. Seit v2 ohne Transparenz: die runden Ecken liegen auf der
+#: Kartenfarbe, weil die Gmail-App unter Android transparente Flaechen weiss
+#: hinterlegt.
+MAIL_LOGO_PATH = "icons/mail-icon-v2.png"
 
 
 def _header_html(eyebrow: str) -> str:
@@ -271,7 +273,7 @@ def _header_html(eyebrow: str) -> str:
       <tr>
         <td style="vertical-align:middle;padding:0;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:#ff5a1f;">{html.escape(eyebrow)}</td>
         <td style="vertical-align:middle;padding:0 0 0 12px;text-align:right;width:44px;">
-          <a href="{html.escape(settings.frontend_url)}" style="text-decoration:none;color:#f2efea;"><img src="{html.escape(_logo_url())}" width="44" height="44" alt="FLEXR" style="display:block;margin:0 0 0 auto;border:0;outline:none;text-decoration:none;width:44px;height:44px;border-radius:10px;font-family:Helvetica,Arial,sans-serif;font-size:11px;font-weight:700;letter-spacing:.04em;line-height:44px;text-align:center;color:#f2efea;"></a>
+          <a href="{html.escape(settings.frontend_url)}" style="text-decoration:none;color:#f2efea;"><img src="{html.escape(_logo_url())}" width="44" height="44" alt="FLEXR" style="display:block;margin:0 0 0 auto;border:0;outline:none;text-decoration:none;width:44px;height:44px;border-radius:10px;background-color:#17171a;font-family:Helvetica,Arial,sans-serif;font-size:11px;font-weight:700;letter-spacing:.04em;line-height:44px;text-align:center;color:#f2efea;"></a>
         </td>
       </tr>
     </table>"""
