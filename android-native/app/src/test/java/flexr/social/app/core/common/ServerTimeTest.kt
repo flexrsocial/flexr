@@ -6,6 +6,7 @@ import org.junit.Test
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
+import java.util.Locale
 
 class ServerTimeTest {
 
@@ -55,11 +56,33 @@ class ServerTimeTest {
     }
 
     @Test
-    fun `chatnachricht von heute zeigt nur die uhrzeit, aeltere das datum`() {
+    fun `tage zurueck zaehlt kalendertage in ortszeit`() {
         val wien = ZoneId.of("Europe/Vienna")
-        val heute = LocalDate.of(2026, 9, 25)
-        assertEquals("18:11", ServerTime.formatMessageTime(Instant.parse("2026-09-25T16:11:00Z"), wien, heute))
-        assertEquals("22.09. 18:11", ServerTime.formatMessageTime(Instant.parse("2026-09-22T16:11:00Z"), wien, heute))
-        assertEquals("31.12.2025, 10:00", ServerTime.formatMessageTime(Instant.parse("2025-12-31T09:00:00Z"), wien, heute))
+        val heute = LocalDate.of(2026, 10, 15)
+        assertEquals(0L, ServerTime.daysAgo(Instant.parse("2026-10-14T22:30:00Z"), wien, heute))
+        assertEquals(1L, ServerTime.daysAgo(Instant.parse("2026-10-14T21:30:00Z"), wien, heute))
+        assertEquals(5L, ServerTime.daysAgo(Instant.parse("2026-10-10T07:18:00Z"), wien, heute))
+    }
+
+    @Test
+    fun `tagestrenner nennt wochentag und datum, jahr nur fuer andere jahre`() {
+        val wien = ZoneId.of("Europe/Vienna")
+        val heute = LocalDate.of(2026, 10, 15)
+        val deutsch = Locale.forLanguageTag("de-AT")
+        assertEquals("Samstag, 10. Oktober", ServerTime.formatChatDay(Instant.parse("2026-10-10T07:18:00Z"), deutsch, wien, heute))
+        assertEquals("Mittwoch, 31. Dezember 2025", ServerTime.formatChatDay(Instant.parse("2025-12-31T09:00:00Z"), deutsch, wien, heute))
+        assertEquals("Saturday 10 October", ServerTime.formatChatDay(Instant.parse("2026-10-10T07:18:00Z"), Locale.ENGLISH, wien, heute))
+    }
+
+    @Test
+    fun `chatliste zeigt uhrzeit, wochentag oder datum`() {
+        val wien = ZoneId.of("Europe/Vienna")
+        val heute = LocalDate.of(2026, 10, 15)
+        val deutsch = Locale.forLanguageTag("de-AT")
+        assertEquals("13:13", ServerTime.formatChatListTime(Instant.parse("2026-10-15T11:13:00Z"), deutsch, wien, heute))
+        assertEquals("Sa.", ServerTime.formatChatListTime(Instant.parse("2026-10-10T07:18:00Z"), deutsch, wien, heute))
+        assertEquals("Sat", ServerTime.formatChatListTime(Instant.parse("2026-10-10T07:18:00Z"), Locale.ENGLISH, wien, heute))
+        assertEquals("01.10.", ServerTime.formatChatListTime(Instant.parse("2026-10-01T07:18:00Z"), deutsch, wien, heute))
+        assertEquals("31.12.25", ServerTime.formatChatListTime(Instant.parse("2025-12-31T09:00:00Z"), deutsch, wien, heute))
     }
 }

@@ -119,4 +119,68 @@ enum ServerTime {
         if seconds <= 0 { return 0 }
         return Int(ceil(seconds / 86_400))
     }
+
+    // MARK: - Chat
+
+    /// Kalendertage zwischen dem Zeitpunkt und heute: 0 = heute, 1 = gestern.
+    static func daysAgo(_ date: Date, now: Date = Date(), calendar: Calendar = .current) -> Int {
+        let tag = calendar.startOfDay(for: date)
+        let heute = calendar.startOfDay(for: now)
+        return calendar.dateComponents([.day], from: tag, to: heute).day ?? 0
+    }
+
+    private static func chatFormatter(
+        _ format: String,
+        language: AppLanguage,
+        calendar: Calendar
+    ) -> DateFormatter {
+        let formatter = DateFormatter()
+        formatter.calendar = calendar
+        formatter.timeZone = calendar.timeZone
+        formatter.locale = Locale(identifier: language == .german ? "de_AT" : "en_GB")
+        formatter.dateFormat = format
+        return formatter
+    }
+
+    /// Tagestrenner im Chatverlauf fuer Tage vor gestern ("Samstag, 10. Oktober",
+    /// aus einem anderen Jahr mit Jahreszahl). "Heute" und "Gestern" kommen aus
+    /// den Texten. Gleiche Regel wie in der Web-App (chatDayLabel) und auf Android.
+    static func formatChatDay(
+        _ date: Date,
+        language: AppLanguage,
+        now: Date = Date(),
+        calendar: Calendar = .current
+    ) -> String {
+        let gleichesJahr = calendar.component(.year, from: date) == calendar.component(.year, from: now)
+        let format: String
+        if language == .german {
+            format = gleichesJahr ? "EEEE, d. MMMM" : "EEEE, d. MMMM yyyy"
+        } else {
+            format = gleichesJahr ? "EEEE d MMMM" : "EEEE d MMMM yyyy"
+        }
+        return chatFormatter(format, language: language, calendar: calendar).string(from: date)
+    }
+
+    /// Zeitpunkt der letzten Nachricht in der Chatliste: heute die Uhrzeit,
+    /// innerhalb einer Woche der Wochentag, sonst das Datum. "Gestern" kommt
+    /// aus den Texten (siehe [daysAgo]). Wie in der Web-App (chatListTimeLabel).
+    static func formatChatListTime(
+        _ date: Date,
+        language: AppLanguage,
+        now: Date = Date(),
+        calendar: Calendar = .current
+    ) -> String {
+        let tage = daysAgo(date, now: now, calendar: calendar)
+        let format: String
+        if tage <= 0 {
+            format = "HH:mm"
+        } else if tage < 7 {
+            format = "EEE"
+        } else if calendar.component(.year, from: date) == calendar.component(.year, from: now) {
+            format = "dd.MM."
+        } else {
+            format = "dd.MM.yy"
+        }
+        return chatFormatter(format, language: language, calendar: calendar).string(from: date)
+    }
 }

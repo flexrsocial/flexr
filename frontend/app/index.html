@@ -140,6 +140,23 @@
       repeating-linear-gradient(135deg, rgba(255,255,255,.011) 0 1px, transparent 1px 9px),
       var(--ink);
   }
+  /* Breite Fenster: Die App steht als 430px-Spalte in der Mitte und ging
+     bisher ohne Kante in den gleich dunklen Hintergrund ueber - sie wirkte
+     wie ein abgeschnittener Streifen. Haarlinien, ein weicher Schatten und
+     ein etwas dunklerer Rand setzen sie als Fenster ab. Nicht auf der
+     Startseite, die ihr eigenes breites Layout hat. */
+  @media (min-width: 520px){
+    body:not(.landing){
+      background:
+        radial-gradient(900px 520px at 50% -8%, rgba(255,90,31,.06), transparent 70%),
+        #0c0c0c;
+    }
+    body:not(.landing) .app{
+      border-left:1px solid var(--hairline); border-right:1px solid var(--hairline);
+      box-shadow:0 0 70px rgba(0,0,0,.55);
+    }
+    body:not(.landing) nav.bottom{ border-left:1px solid var(--hairline); border-right:1px solid var(--hairline); }
+  }
   h1,h2,h3,.display{ font-family:'Oswald', sans-serif; text-transform:uppercase; letter-spacing:0.02em; }
   .mono{ font-family:'JetBrains Mono', monospace; }
   svg.ico{ width:22px; height:22px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; display:block; }
@@ -207,6 +224,13 @@
   body:not(.landing):has(nav.bottom[style*="none"]) main{ padding-bottom:calc(28px + env(safe-area-inset-bottom, 0px)); }
   .screen{ display:none; animation:fade .25s ease; }
   .screen.active{ display:flex; flex-direction:column; flex:1; min-height:0; overflow-y:auto; overflow-x:hidden; }
+  /* Luft fuer Schatten und Leuchten: Der Screen schneidet seitlich ab
+     (overflow-x:hidden) und lag buendig an seinem Inhalt. Das Leuchten unter
+     jedem orangen Hauptknopf endete dadurch links und rechts an einer harten
+     Kante und stand als Rechteck um den Knopf, Kartenschatten ebenso. Jetzt
+     reicht der Screen bis an den Rand von main (20px), der Inhalt bleibt per
+     gleichem padding, wo er war. Die Startseite hat ihr eigenes Layout. */
+  body:not(.landing) .screen.active{ margin-left:-20px; margin-right:-20px; padding-left:20px; padding-right:20px; }
   /* Der Chat füllt den Screen exakt (Nachrichten scrollen intern) - kein
      zweiter Scrollbalken auf Screen-Ebene. */
   /* clip statt nur hidden: .chat-messages ragt fuer den Scrollbalken 13px
@@ -247,6 +271,12 @@
      padding wieder zurückgeholt - so bleibt der Feldrand gleich, der Balken
      sitzt aber mittig zwischen Feldrand und Hintergrundende. */
   #screen-account.active, #screen-matches.active, #screen-privacy.active, #screen-notifications.active, #screen-swipe.active{ margin-right:-13px; padding-right:13px; }
+  /* Swipe: Der Kartenschatten (46px weich) braucht auch rechts die vollen
+     20px, sonst endet er an der Scrollbalken-Kante oben. Unten 26px in den
+     Innenabstand von main fuer den Schein unter dem Herz - der Screen
+     schneidet auch senkrecht ab (overflow:hidden), unter der Karte stand
+     sonst ein dunkles Rechteck mit harter Unterkante. */
+  #screen-swipe.active{ margin:0 -20px -26px; padding:0 20px 26px; }
   @keyframes fade{ from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);} }
 
   .eyebrow{ font-family:'JetBrains Mono', monospace; font-size:11px; letter-spacing:0.12em; text-transform:uppercase; color:var(--plate); margin-bottom:6px; }
@@ -385,6 +415,11 @@
   }
   .photo-slot:hover{ border-color:var(--plate-dim); color:var(--plate); }
   .photo-slot img{ width:100%; height:100%; object-fit:cover; }
+  /* Gestrichelt heisst "hier fehlt noch etwas" - fuer die freien Plaetze.
+     Ein belegter Platz bekommt einen ruhigen durchgehenden Rand; in Pruefung
+     und abgelehnt behalten ihre farbigen Raender (Regeln weiter unten). */
+  .photo-slot.filled{ border-style:solid; border-color:rgba(255,255,255,.1); background:var(--surface-2); }
+  .photo-slot.filled:hover{ border-color:rgba(255,90,31,.45); }
   /* Loeschknopf. Bis zum 14.10.2026 ein 20-px-Kreis ohne eigenen Zeiger: Auf
      einem sortierbaren Foto stand ueber dem ✕ dieselbe Greif-Hand wie ueber
      dem Bild, und ein Klick knapp daneben landete auf dem Foto statt auf dem
@@ -596,17 +631,25 @@
   /* Das Foto kommt als Inline-background-image - und das ersetzte frueher
      ALLE Bildebenen dieser Regel, also auch den Verlauf, der Name und Ort
      lesbar halten sollte. Der Verlauf liegt deshalb im ::after (wie in den
-     Apps: oben .38, unten .88).
+     Apps).
      center 20% statt center: Die Fotoflaeche ist breiter als hoch, mittig
-     geschnitten fehlte auf Hochformat-Fotos meist der Kopf. */
+     geschnitten fehlte auf Hochformat-Fotos meist der Kopf.
+     Hoehe: mindestens 58 % der Karte, den Rest bekommt das Foto, soweit der
+     Text darunter ihn nicht braucht. Mit fester 58/42-Teilung stand unter
+     einer kurzen Bio (der Regelfall) ein leeres Drittel der Karte, und das
+     Foto war am Desktop ein Querstreifen. Lange Texte scrollen in .body. */
   .card .photo{
-    height:58%; position:relative;
+    flex:1 1 0; min-height:58%; position:relative;
     background-color:var(--surface-2);
     background-size:cover; background-position:center 20%; background-repeat:no-repeat;
   }
+  /* Unten laeuft der Verlauf in die Kartenfarbe aus statt in Schwarz - vorher
+     stand zwischen Foto und Textbereich eine harte dunkle Kante. Dunkelgrau
+     statt Schwarz in der Mitte, sonst lag bei Profilen ohne Foto (grauer
+     Umriss) ein schwarzer Streifen ueber dem Textbereich. */
   .card .photo::after{
     content:''; position:absolute; inset:0; pointer-events:none;
-    background:linear-gradient(180deg, rgba(0,0,0,.38), transparent 16%, transparent 42%, rgba(0,0,0,0.88));
+    background:linear-gradient(180deg, rgba(0,0,0,.38), transparent 16%, transparent 46%, rgba(18,18,18,.8) 84%, #1c1c1c);
   }
   /* Profil ohne freigegebenes Foto (Match, dessen Fotos spaeter abgelehnt
      wurden): Umriss wie in der Match-Liste statt leerer Flaeche. */
@@ -695,7 +738,7 @@
     font-family:'JetBrains Mono'; font-size:10.5px; color:var(--chalk-dim);
     text-transform:uppercase; letter-spacing:0.07em; margin-top:3px;
   }
-  .card .body{ padding:14px 16px; flex:1; overflow-y:auto; scrollbar-width:thin; }
+  .card .body{ padding:14px 16px 16px; flex:0 1 auto; max-height:42%; overflow-y:auto; scrollbar-width:thin; }
   .stat-row{ display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px; }
   .stat-chip{
     font-family:'JetBrains Mono'; font-size:10.5px; letter-spacing:0.02em;
@@ -819,12 +862,26 @@
      und zuzueglich ihrer ungleichen Innenabstaende ((12-6)/2). Keiner der drei
      Werte haengt an der Fensterhoehe, die Verschiebung gilt also ueberall. */
   #chatMessages .empty{ flex:1; margin-top:58px; }
+  /* Symbol der Leerzustaende: dezent in Markenfarbe statt grauem
+     gestricheltem Kreis - der wirkte wie ein Platzhalter, der noch auf
+     seinen Inhalt wartet ("Alle Saetze absolviert", keine Matches/Chats). */
   .empty .empty-icon{
-    width:68px; height:68px; border-radius:50%; border:1.5px dashed var(--steel);
-    display:flex; align-items:center; justify-content:center; color:var(--chalk-dim);
-    margin-bottom:12px; background:rgba(255,255,255,.015);
+    width:68px; height:68px; border-radius:50%; border:1px solid rgba(255,90,31,.26);
+    display:flex; align-items:center; justify-content:center; color:var(--plate);
+    margin-bottom:14px;
+    background:radial-gradient(circle at 50% 30%, rgba(255,90,31,.16), rgba(255,90,31,.03) 72%);
+    box-shadow:0 0 34px rgba(255,90,31,.08);
   }
-  .empty .empty-icon svg.ico{ width:28px; height:28px; opacity:.8; }
+  .empty .empty-icon svg.ico{ width:28px; height:28px; }
+  /* Premium-Seite: Sie nutzt den Leerzustand nur als Kopf. Der gestrichelte
+     Kreis sagt dort "hier fehlt etwas" - fuer das Angebot selbst ein
+     ausgefuellter Stern in Markenfarbe. Groesse siehe weiter unten. */
+  #screen-premium .empty-icon{
+    border:none; color:#fff;
+    background:linear-gradient(135deg, var(--plate-bright), var(--plate) 55%, #ef4c15);
+    box-shadow:0 6px 18px rgba(255,90,31,.35), inset 0 1px 0 rgba(255,255,255,.3);
+  }
+  #screen-premium .empty-icon svg.ico{ fill:currentColor; }
   .empty .empty-title{ font-family:'Oswald'; text-transform:uppercase; letter-spacing:0.04em; font-size:17px; color:var(--chalk); }
   .empty .empty-sub{ font-size:13px; line-height:1.55; max-width:250px; }
   .eisbrecher{ display:flex; flex-direction:column; align-items:center; gap:8px; margin-top:18px; width:100%; max-width:320px; }
@@ -891,6 +948,14 @@
   }
   .match-item .info{ flex:1; min-width:0; }
   .match-item .info .nm{ font-family:'Oswald'; font-size:16px; letter-spacing:0.01em; }
+  /* Chatliste: Zeitpunkt der letzten Nachricht rechts neben dem Namen. */
+  .match-item .nm-row{ display:flex; align-items:baseline; gap:10px; }
+  .match-item .nm-row .nm{ flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .match-item .li-time{
+    flex-shrink:0; font-family:'JetBrains Mono', monospace; font-size:10.5px;
+    letter-spacing:0.03em; color:var(--chalk-dim);
+  }
+  .match-item.unread .li-time{ color:var(--plate); font-weight:600; }
   .match-item .info .last-msg{ font-size:12.5px; color:var(--chalk-dim); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:3px; }
   .match-item.unread .info .last-msg{ color:var(--chalk); font-weight:500; }
   /* Ungelesene Nachrichten: Rahmen leuchtet orange wie der Online-Ring.
@@ -1022,6 +1087,15 @@
     border-radius:16px 16px 16px 5px;
     background:var(--surface-2); border:1px solid var(--hairline);
   }
+  /* Tagestrenner im Verlauf */
+  .chat-day{ align-self:center; margin:10px 0 4px; }
+  .chat-day:first-child{ margin-top:2px; }
+  .chat-day span{
+    display:inline-block; padding:4px 11px; border-radius:999px;
+    background:var(--surface-2); border:1px solid var(--hairline);
+    font-family:'JetBrains Mono', monospace; font-size:10px; letter-spacing:0.08em;
+    text-transform:uppercase; color:var(--chalk-dim);
+  }
   .msg-bubble .time{ display:block; font-size:9.5px; margin-top:4px; opacity:0.6; font-family:'JetBrains Mono'; }
   .msg-bubble.mine .time{ text-align:right; }
   .msg-bubble .receipt{ margin-left:5px; font-weight:700; }
@@ -1094,6 +1168,14 @@
   .cred-line{ font-size:13px; color:var(--chalk-dim); margin:0 0 12px; overflow-wrap:anywhere; }
   .cred-line b{ color:var(--chalk); font-weight:600; }
   .cred-form{ margin:4px 0 16px; }
+  /* Knopfgruppen "Zugangsdaten" und "Konto": 10px zwischen den Knoepfen und
+     12px unter Ueberschrift bzw. E-Mail-Zeile - wie bei der Einstellungsliste
+     darueber. Mit dem allgemeinen .btn-Abstand (22px) standen "E-Mail-Adresse
+     aendern" und "Passwort aendern" doppelt so weit auseinander wie
+     "Ausloggen" und "Konto loeschen", und unter "Konto" klaffte eine Luecke. */
+  .account-actions > .btn{ margin-top:10px; }
+  .account-actions > .account-section-title + .btn,
+  .account-actions > .cred-line + .btn{ margin-top:0; }
   .cred-form[hidden]{ display:none; }
   .link-btn{
     background:none; border:none; color:var(--chalk-dim); font-size:13px; text-decoration:underline;
@@ -1628,7 +1710,20 @@
   .divider{ height:1px; background:var(--steel); margin:24px 0; position:relative; }
   .divider::after{ content:'●  ●  ●'; position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); background:var(--ink); padding:0 10px; color:var(--steel); font-size:8px; letter-spacing:4px; }
 
-  .account-header{ display:flex; align-items:center; gap:15px; margin-bottom:22px; }
+  /* Raster statt Flex-Reihe: Name und Abzeichen oben, die Zeile "Ort · Gym"
+     darunter ueber die volle Breite. In der Reihe teilte sich die Zeile den
+     Platz mit dem Verifizierungs-Abzeichen und brach schon bei "Wien ·
+     Bikram Yoga" um ("Yoga" allein in der dritten Zeile). */
+  .account-header{
+    display:grid; grid-template-columns:auto minmax(0,1fr) auto;
+    grid-template-areas:"av name badge" "av sub sub";
+    column-gap:15px; align-items:center; margin-bottom:22px;
+  }
+  .account-header .account-avatar{ grid-area:av; }
+  .account-header .account-id{ display:contents; }
+  .account-header #acctName{ grid-area:name; align-self:end; }
+  .account-header .account-sub{ grid-area:sub; align-self:start; }
+  .account-header .verify-badge-wrap{ grid-area:badge; align-self:end; margin-bottom:2px; }
   .account-avatar{
     position:relative;
     width:66px; height:66px; border-radius:50%; background-color:var(--surface-2); background-position:center; background-size:cover;
@@ -2380,7 +2475,7 @@
      laufen synchron und damit vor dem DOMContentLoaded, bei dem FlexrI18n die
      data-i18n-Knoten uebersetzt. -->
 <script src="/i18n.js?v=5"></script>
-<script src="/app/i18n-app.js?v=39"></script>
+<script src="/app/i18n-app.js?v=40"></script>
 <a class="skip-link" href="#main-content" data-i18n="common.skipToContent">Zum Inhalt springen</a>
 <div class="app" id="app">
 
@@ -3028,7 +3123,7 @@
         </div>
       </div>
 
-      <div class="account-section">
+      <div class="account-section account-actions">
         <div class="account-section-title lg" data-i18n="cred.section">Zugangsdaten</div>
         <p class="cred-line" id="credEmailLine"></p>
         <button class="btn secondary" type="button" id="btnCredEmail" aria-expanded="false" aria-controls="credEmailForm" data-i18n="cred.changeEmail">E-Mail-Adresse ändern</button>
@@ -3053,7 +3148,7 @@
         </div>
       </div>
 
-      <div class="account-section" style="margin-bottom:10px;">
+      <div class="account-section account-actions" style="margin-bottom:10px;">
         <div class="account-section-title lg" data-i18n="common.account">Konto</div>
         <button class="btn secondary" id="btnLogout" data-i18n="common.logout">Ausloggen</button>
         <button class="btn danger-ghost" id="btnDeleteAccount" data-i18n="common.deleteAccount">Konto löschen</button>
@@ -4560,6 +4655,7 @@
       const slot = document.createElement('div');
       slot.className = 'photo-slot';
       if(pendingPhotos[i]){
+        slot.classList.add('filled');
         slot.innerHTML = `<img src="${pendingPhotos[i].previewUrl}" alt="">`
           + `<button type="button" class="remove" data-i="${i}" title="${escapeHtml(t('photo.removeTitle'))}" aria-label="${escapeHtml(t('photo.removeTitle'))}">${ICO_X}${ICO_TRASH}</button>`;
         slot.querySelector('.remove').onclick = (e)=>{ e.stopPropagation(); pendingPhotos.splice(i,1); renderPhotoGrid(); renderRegJourney(); };
@@ -7081,6 +7177,7 @@
         const statusCls = st === 'approved' ? '' : (st === 'rejected' ? 'rejected' : 'pending');
         const statusLabel = st === 'approved' ? '' : (st === 'rejected' ? t('photo.rejected') : t('photo.pending'));
         if(statusCls) slot.classList.add(statusCls);
+        if(st !== 'rejected') slot.classList.add('filled');
         // Dieselbe Grenze wie beim Anlegen des Kontos. Der Server sagt pro
         // Foto, ob es weg darf (deletable); die Rechnung ist der Rueckfall
         // fuer einen aelteren Server.
@@ -8080,6 +8177,7 @@
     if(incomingCache.premium_required){
       liste.innerHTML = `
         <div class="empty">
+          <div class="empty-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M12 20.3S4.8 15.7 4.8 10.8C4.8 8 6.9 6 9.3 6c1.2 0 2.3.55 2.7 1.4C12.4 6.55 13.5 6 14.7 6c2.4 0 4.5 2 4.5 4.8 0 4.9-7.2 9.5-7.2 9.5z"/></svg></div>
           <div class="empty-title">${escapeHtml(t(
             incomingCache.count === 1 ? 'incoming.lockedTitle1' : 'incoming.lockedTitle',
             {n: incomingCache.count}))}</div>
@@ -8203,11 +8301,13 @@
         const preview = m.last_message
           ? `${mine ? escapeHtml(t('chats.you')) : ''}${escapeHtml(m.last_message.content)}`
           : escapeHtml(t('chats.cleared'));
+        const gesendet = m.last_message && parseServerDate(m.last_message.created_at);
+        const zeit = gesendet ? `<span class="li-time">${escapeHtml(chatListTimeLabel(gesendet))}</span>` : '';
         return `
         <div class="${cls}" data-match-id="${m.match_id}">
           <span class="av"><img src="${escapeHtml(photo)}" alt="" title="${m.is_online ? escapeHtml(t('matches.online')) : ''}"></span>
           <div class="info">
-            <div class="nm">${nameWithBadges(p, `${p.name}, ${p.age}`)}</div>
+            <div class="nm-row"><div class="nm">${nameWithBadges(p, `${p.name}, ${p.age}`)}</div>${zeit}</div>
             <div class="last-msg">${preview}</div>
           </div>
           ${unread ? `<div class="unread-badge">${m.unread_count}</div>` : '<div class="chev"></div>'}
@@ -9254,17 +9354,45 @@
     }
   }
 
-  /* Uhrzeit am Nachrichtenende. Aeltere Nachrichten bekommen das Datum dazu:
-     Vorher stand ueberall nur "14:32" - ob das heute war oder vor einer
-     Woche, war dem Verlauf nicht anzusehen. */
-  function chatTimeLabel(d){
-    const zeit = d.toLocaleTimeString(dateLocale(), {hour:'2-digit', minute:'2-digit'});
-    const heute = new Date();
-    if(d.toDateString() === heute.toDateString()) return zeit;
-    const datum = d.toLocaleDateString(dateLocale(), d.getFullYear() === heute.getFullYear()
+  /* Uhrzeit am Nachrichtenende. Den Tag zeigt seit dem 15.10.2026 ein
+     Trenner im Verlauf (chatDayLabel) - davor stand an jeder Nachricht eines
+     frueheren Tages das Datum, und noch frueher nur "14:32", ohne dass zu
+     sehen war, ob das heute war oder vor einer Woche. */
+  function chatClockLabel(d){
+    return d.toLocaleTimeString(dateLocale(), {hour:'2-digit', minute:'2-digit'});
+  }
+
+  // Kalendertage zwischen d und heute (0 = heute, 1 = gestern). Gerundet,
+  // weil der Tag der Zeitumstellung 23 bzw. 25 Stunden hat.
+  function tageZurueck(d){
+    const h = new Date();
+    const heute = new Date(h.getFullYear(), h.getMonth(), h.getDate());
+    const tag = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+    return Math.round((heute - tag) / 86400000);
+  }
+
+  // Trenner im Verlauf ("Heute", "Gestern", "Montag, 12. Oktober"). Die
+  // Blasen zeigen darunter nur noch die Uhrzeit - vorher stand an jeder
+  // Nachricht eines frueheren Tages das volle Datum.
+  function chatDayLabel(d){
+    const tage = tageZurueck(d);
+    if(tage <= 0) return t('chat.today');
+    if(tage === 1) return t('chat.yesterday');
+    const opts = {weekday:'long', day:'numeric', month:'long'};
+    if(d.getFullYear() !== new Date().getFullYear()) opts.year = 'numeric';
+    return d.toLocaleDateString(dateLocale(), opts);
+  }
+
+  // Zeitpunkt der letzten Nachricht in der Chatliste, kurz wie in Messengern:
+  // Uhrzeit, "Gestern", Wochentag (innerhalb einer Woche), sonst Datum.
+  function chatListTimeLabel(d){
+    const tage = tageZurueck(d);
+    if(tage <= 0) return chatClockLabel(d);
+    if(tage === 1) return t('chat.yesterday');
+    if(tage < 7) return d.toLocaleDateString(dateLocale(), {weekday:'short'});
+    return d.toLocaleDateString(dateLocale(), d.getFullYear() === new Date().getFullYear()
       ? {day:'2-digit', month:'2-digit'}
-      : {day:'2-digit', month:'2-digit', year:'numeric'});
-    return datum + ' ' + zeit;
+      : {day:'2-digit', month:'2-digit', year:'2-digit'});
   }
 
   /* Gespraechseinstiege im leeren Chat. Ein Tipp setzt den Satz nur ins
@@ -9303,7 +9431,10 @@
 
   function renderMessages(messages){
     const box = $('chatMessages');
+    // Datum und Sprache gehoeren dazu: "Heute" wird um Mitternacht zu
+    // "Gestern", die Trenner stehen in der eingestellten Sprache.
     const key = chatLimit + '|' + ($('chatInput').disabled ? 1 : 0) + '|'
+      + new Date().toDateString() + '|' + FlexrI18n.current() + '|'
       + messages.map(m => m.id + (m.read_at ? 'r' : '')).join(',');
     if(key === chatRenderKey) return;
     chatRenderKey = key;
@@ -9321,9 +9452,16 @@
     const mehr = messages.length >= chatLimit
       ? `<button type="button" class="btn secondary chat-older" id="chatOlder">${escapeHtml(t('chat.older'))}</button>`
       : '';
+    let letzterTag = null;
     box.innerHTML = mehr + messages.map(m => {
       const mine = m.sender_id === myProfile.id;
-      const time = chatTimeLabel(parseServerDate(m.created_at));
+      const gesendet = parseServerDate(m.created_at);
+      const time = chatClockLabel(gesendet);
+      const tag = gesendet.toDateString();
+      const trenner = tag !== letzterTag
+        ? `<div class="chat-day" role="separator"><span>${escapeHtml(chatDayLabel(gesendet))}</span></div>`
+        : '';
+      letzterTag = tag;
       const receipt = mine ? `<span class="receipt ${m.read_at ? 'read' : ''}">${m.read_at ? '✓✓' : '✓'}</span>` : '';
       // Zensur-Hinweis: Absender erfährt, dass die Nachricht geschützt wurde;
       // Empfänger sieht den Grund für den [Link entfernt]-Platzhalter.
@@ -9332,7 +9470,7 @@
             ? escapeHtml(t('chat.censoredOut'))
             : escapeHtml(t('chat.censoredIn'))}</div>`
         : '';
-      return `<div class="msg-wrap ${mine ? 'mine' : 'theirs'}">
+      return `${trenner}<div class="msg-wrap ${mine ? 'mine' : 'theirs'}">
         <div class="msg-bubble ${mine ? 'mine' : 'theirs'}">${escapeHtml(m.content)}<span class="time">${time}${receipt}</span></div>
         ${censorNote}
       </div>`;

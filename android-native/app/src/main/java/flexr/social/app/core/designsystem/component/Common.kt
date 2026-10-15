@@ -36,6 +36,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
@@ -99,22 +100,25 @@ fun EmptyState(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
+        // Dezent in Markenfarbe statt grauem Ring - der wirkte wie ein
+        // Platzhalter, der noch auf seinen Inhalt wartet (wie im Web).
+        val plate = FlexrTheme.colors.plate
         Box(
             Modifier
                 .size(68.dp)
                 .clip(CircleShape)
-                .background(Color.White.copy(alpha = 0.015f))
-                .border(1.5.dp, FlexrTheme.colors.steel, CircleShape),
+                .background(Brush.radialGradient(listOf(plate.copy(alpha = 0.16f), plate.copy(alpha = 0.03f))))
+                .border(1.dp, plate.copy(alpha = 0.26f), CircleShape),
             contentAlignment = Alignment.Center,
         ) {
             Icon(
                 icon,
                 contentDescription = null,
-                tint = FlexrTheme.colors.chalkDim.copy(alpha = 0.8f),
+                tint = plate,
                 modifier = Modifier.size(28.dp),
             )
         }
-        Spacer(Modifier.height(12.dp))
+        Spacer(Modifier.height(14.dp))
         Text(
             text = title.uppercase(),
             style = MaterialTheme.typography.headlineSmall,

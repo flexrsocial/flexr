@@ -33,9 +33,12 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import flexr.social.app.R
+import flexr.social.app.core.common.ServerTime
 import flexr.social.app.core.designsystem.component.PremiumBadge
 import flexr.social.app.core.designsystem.component.VerifiedBadge
 import flexr.social.app.core.designsystem.theme.FlexrTheme
+import flexr.social.app.core.designsystem.theme.MonoStyle
+import flexr.social.app.core.locale.LocalAppLanguage
 import flexr.social.app.domain.model.MatchSummary
 
 /**
@@ -103,22 +106,44 @@ fun MatchListItem(
 
         Column(Modifier.weight(1f)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    text = "${profile.name}, ${profile.age}",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = colors.chalk,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                if (profile.isVerified) {
-                    Spacer(Modifier.width(6.dp))
-                    VerifiedBadge(size = 14)
+                Row(Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = "${profile.name}, ${profile.age}",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = colors.chalk,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f, fill = false),
+                    )
+                    if (profile.isVerified) {
+                        Spacer(Modifier.width(6.dp))
+                        VerifiedBadge(size = 14)
+                    }
+                    if (profile.isPremium) {
+                        Spacer(Modifier.width(6.dp))
+                        PremiumBadge(size = 14)
+                    }
                 }
-                if (profile.isPremium) {
-                    Spacer(Modifier.width(6.dp))
-                    PremiumBadge(size = 14)
+                // Chatliste: Zeitpunkt der letzten Nachricht rechts neben dem
+                // Namen, wie in der Web-App und in Messengern ueblich.
+                val gesendet = match.lastMessage?.createdAt
+                if (showLastMessage && gesendet != null) {
+                    val zeit = if (ServerTime.daysAgo(gesendet) == 1L) {
+                        stringResource(R.string.chat_yesterday)
+                    } else {
+                        ServerTime.formatChatListTime(gesendet, LocalAppLanguage.current.locale)
+                    }
+                    Spacer(Modifier.width(10.dp))
+                    Text(
+                        text = zeit,
+                        style = MonoStyle,
+                        color = if (unread) colors.plate else colors.chalkDim,
+                        fontWeight = if (unread) FontWeight.SemiBold else FontWeight.Medium,
+                        maxLines = 1,
+                    )
                 }
             }
+            val onlineLabel = stringResource(R.string.matches_online_now)
             val secondary = if (showLastMessage) {
                 // lastMessage kann trotz inChats fehlen: nach "Chatverlauf
                 // leeren" ist der Chat weiterhin gelistet, aber (für einen
@@ -135,7 +160,7 @@ fun MatchListItem(
                 buildString {
                     append(profile.city)
                     profile.distanceKm?.let { append(" · $it km") }
-                    if (match.isOnline) append(" · gerade online")
+                    if (match.isOnline) append(" · ").append(onlineLabel)
                 }
             }
             Text(

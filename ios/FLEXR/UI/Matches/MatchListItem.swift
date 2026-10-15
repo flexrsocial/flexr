@@ -34,6 +34,16 @@ struct MatchListItem: View {
                             .lineLimit(1)
                         if match.profile.isVerified { VerifiedBadge(size: 14) }
                         if match.profile.isPremium { PremiumBadge(size: 14) }
+                        // Chatliste: Zeitpunkt der letzten Nachricht rechts,
+                        // wie in der Web-App und auf Android.
+                        if let lastTime {
+                            Spacer(minLength: 8)
+                            Text(lastTime)
+                                .font(.flexrMono(11, weight: isUnread ? 600 : 500))
+                                .foregroundStyle(isUnread ? FlexrColor.plate : FlexrColor.chalkDim)
+                                .lineLimit(1)
+                                .layoutPriority(1)
+                        }
                     }
                     Text(secondaryLine)
                         .flexrText(.bodySmall)
@@ -72,17 +82,23 @@ struct MatchListItem: View {
         .buttonStyle(.plain)
     }
 
+    private var lastTime: String? {
+        guard showsLastMessage, let sent = match.lastMessage?.createdAt else { return nil }
+        if ServerTime.daysAgo(sent) == 1 { return s(.chatYesterday) }
+        return ServerTime.formatChatListTime(sent, language: languageStore.language)
+    }
+
     private var secondaryLine: String {
         if showsLastMessage {
             // lastMessage kann trotz inChats fehlen: Nach „Chatverlauf leeren"
             // ist der Chat weiterhin gelistet, aber (für einen selbst) leer.
-            guard let message = match.lastMessage else { return "Chatverlauf geleert" }
+            guard let message = match.lastMessage else { return s(.chatsHistoryCleared) }
             let prefix = message.senderID == ownUserID ? s(.chatsYouPrefix) : ""
             return prefix + message.content
         }
         var parts = [match.profile.city]
         if let distance = match.profile.distanceKm { parts.append("\(distance) km") }
-        if match.isOnline { parts.append("gerade online") }
+        if match.isOnline { parts.append(s(.matchesOnlineNow)) }
         return parts.joined(separator: " · ")
     }
 }

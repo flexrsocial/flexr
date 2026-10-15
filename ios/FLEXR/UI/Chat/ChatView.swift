@@ -176,12 +176,20 @@ struct ChatView: View {
             ScrollViewReader { proxy in
                 ScrollView {
                     LazyVStack(spacing: 7) {
-                        ForEach(model.messages) { message in
-                            MessageBubble(
-                                message: message,
-                                isMine: message.senderID == model.ownUserID
-                            )
-                            .id(message.id)
+                        // Vor der ersten Nachricht jedes Tages ein Trenner
+                        // ("Heute", "Gestern", "Samstag, 10. Oktober") - die
+                        // Blasen zeigen nur die Uhrzeit.
+                        ForEach(ChatEntry.withDaySeparators(model.messages)) { entry in
+                            switch entry {
+                            case .day(let date, _):
+                                ChatDaySeparator(date: date)
+                            case .message(let message):
+                                MessageBubble(
+                                    message: message,
+                                    isMine: message.senderID == model.ownUserID
+                                )
+                                .id(message.id)
+                            }
                         }
                     }
                     .padding(.vertical, 8)
@@ -299,6 +307,69 @@ private struct ChatHeader: View {
 
             HairlineDivider()
         }
+    }
+}
+
+// MARK: - Tagestrenner
+
+/// Eintrag im Verlauf: ein Tagestrenner oder eine Nachricht.
+enum ChatEntry: Identifiable {
+    case day(Date, key: String)
+    case message(Message)
+
+    var id: String {
+        switch self {
+        case .day(_, let key): return key
+        case .message(let message): return message.id
+        }
+    }
+
+    /// Setzt vor die erste Nachricht jedes Kalendertags (Geraetezeit) einen
+    /// Trenner. Gleiche Regel wie in der Web-App und auf Android.
+    static func withDaySeparators(_ messages: [Message], calendar: Calendar = .current) -> [ChatEntry] {
+        var entries: [ChatEntry] = []
+        var lastDay: Date?
+        for message in messages {
+            let day = calendar.startOfDay(for: message.createdAt)
+            if day != lastDay {
+                let parts = calendar.dateComponents([.year, .month, .day], from: day)
+                let key = "tag-\(parts.year ?? 0)-\(parts.month ?? 0)-\(parts.day ?? 0)"
+                entries.append(.day(message.createdAt, key: key))
+                lastDay = day
+            }
+            entries.append(.message(message))
+        }
+        return entries
+    }
+}
+
+/// Tagestrenner als kleine Pille in der Mitte (wie im Web).
+private struct ChatDaySeparator: View {
+    @Environment(LanguageStore.self) private var languageStore
+    private var s: FlexrStrings { languageStore.strings }
+
+    let date: Date
+
+    private var label: String {
+        switch ServerTime.daysAgo(date) {
+        case ...0: return s(.chatToday)
+        case 1: return s(.chatYesterday)
+        default: return ServerTime.formatChatDay(date, language: languageStore.language)
+        }
+    }
+
+    var body: some View {
+        Text(label.uppercased())
+            .font(.flexrMono(10, weight: 500))
+            .tracking(0.8)
+            .foregroundStyle(FlexrColor.chalkDim)
+            .padding(.horizontal, 11)
+            .padding(.vertical, 4)
+            .background(Capsule().fill(FlexrColor.surface2))
+            .overlay(Capsule().strokeBorder(FlexrColor.hairline, lineWidth: 1))
+            .frame(maxWidth: .infinity)
+            .padding(.top, 6)
+            .padding(.bottom, 2)
     }
 }
 

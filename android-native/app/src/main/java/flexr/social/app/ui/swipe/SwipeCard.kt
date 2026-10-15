@@ -11,6 +11,7 @@ import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -20,6 +21,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
@@ -52,6 +54,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import flexr.social.app.R
@@ -194,6 +197,7 @@ fun SwipeableCard(
             onUnmatch = onUnmatch,
             photoIndex = photoIndex,
             onPhotoIndexChange = onPhotoIndexChange,
+            bottomInset = if (draggable) DECK_BUTTONS_INSET else CARD_TEXT_BOTTOM,
         )
 
         if (draggable) {
@@ -244,9 +248,22 @@ fun BackgroundCard(profile: Profile, progress: Float, modifier: Modifier = Modif
             onUnmatch = null,
             photoIndex = 0,
             onPhotoIndexChange = {},
+            // Gleiche Aufteilung wie die obere Karte, sonst springt das Foto,
+            // sobald diese Karte nach vorn rueckt.
+            bottomInset = DECK_BUTTONS_INSET,
         )
     }
 }
+
+/** Abstand des Textes zum unteren Kartenrand. */
+private val CARD_TEXT_BOTTOM = 16.dp
+
+/**
+ * Im Deck liegen X und Herz ueber dem unteren Kartenrand (64 dp Knopf, 14 dp
+ * Abstand, siehe SwipeScreen). Der Text endet darueber, statt unter den
+ * Knoepfen zu verschwinden.
+ */
+private val DECK_BUTTONS_INSET = 88.dp
 
 
 @OptIn(ExperimentalLayoutApi::class)
@@ -260,173 +277,185 @@ private fun CardContent(
     onUnmatch: (() -> Unit)?,
     photoIndex: Int,
     onPhotoIndexChange: (Int) -> Unit,
+    bottomInset: Dp,
 ) {
     val colors = FlexrTheme.colors
     val photos = profile.photos
 
-    Column(Modifier.fillMaxSize()) {
-        Box(
-            Modifier
-                .fillMaxWidth()
-                .weight(0.58f)
-                .pointerInput(profile.id, interactive) {
-                    if (interactive && photos.isNotEmpty()) {
-                        detectTapGestures { onOpenPhotos(photoIndex) }
-                    }
-                },
-        ) {
-            AsyncImage(
-                model = photos.getOrNull(photoIndex)?.url,
-                contentDescription = stringResource(R.string.common_profile_photo_of, profile.name),
-                contentScale = ContentScale.Crop,
-                // Mittig geschnitten fehlte auf Hochformat-Fotos meist der
-                // Kopf - die Fotoflaeche ist breiter als hoch. -0.6 zeigt den
-                // Bereich ab 20 % des Ueberstands (Web: center 20%).
-                alignment = BiasAlignment(0f, -0.6f),
-                modifier = Modifier.fillMaxSize().background(colors.surface2),
-            )
-            if (photos.isEmpty()) {
-                // Profil ohne freigegebenes Foto (z. B. ein Match, dessen Fotos
-                // spaeter abgelehnt wurden): Silhouette statt leerer Flaeche,
-                // wie in der Match-Liste.
-                Icon(
-                    Icons.Filled.Person,
-                    contentDescription = null,
-                    tint = colors.chalkDim.copy(alpha = 0.35f),
-                    modifier = Modifier.align(Alignment.Center).size(96.dp),
-                )
-            }
-            // Abdunkelung oben und unten, damit Text auf jedem Foto lesbar bleibt
+    // Foto mindestens 58 % der Karte, den Rest bekommt es, soweit der Text
+    // darunter ihn nicht braucht (Web: .card .photo). Mit fester 58/42-Teilung
+    // stand im Match-Profil unter einer kurzen Bio - dem Regelfall - ein
+    // leeres Stueck Karte, und im Deck verschwand eine laengere Bio unter X und
+    // Herz. Lange Texte scrollen im unteren Teil.
+    BoxWithConstraints(Modifier.fillMaxSize()) {
+        val maxTextHeight = maxHeight * 0.42f
+        Column(Modifier.fillMaxSize()) {
             Box(
-                Modifier.fillMaxSize().background(
-                    Brush.verticalGradient(
-                        0f to Color.Black.copy(alpha = 0.38f),
-                        0.16f to Color.Transparent,
-                        0.42f to Color.Transparent,
-                        1f to Color.Black.copy(alpha = 0.88f),
-                    ),
-                ),
-            )
-
-            if (photos.size > 1) {
-                // Die Striche sind die Foto-Auswahl: ein Tipp auf einen Strich
-                // (bzw. den Bereich darunter) schaltet direkt auf dieses Foto —
-                // ohne Umweg über die Vollbildansicht. Der Trefferbereich ist
-                // bewusst 44dp hoch, die Striche selbst wären zu schmal.
+                Modifier
+                    .fillMaxWidth()
+                    .weight(1f)
+                    .pointerInput(profile.id, interactive) {
+                        if (interactive && photos.isNotEmpty()) {
+                            detectTapGestures { onOpenPhotos(photoIndex) }
+                        }
+                    },
+            ) {
+                AsyncImage(
+                    model = photos.getOrNull(photoIndex)?.url,
+                    contentDescription = stringResource(R.string.common_profile_photo_of, profile.name),
+                    contentScale = ContentScale.Crop,
+                    // Mittig geschnitten fehlte auf Hochformat-Fotos meist der
+                    // Kopf - die Fotoflaeche ist breiter als hoch. -0.6 zeigt den
+                    // Bereich ab 20 % des Ueberstands (Web: center 20%).
+                    alignment = BiasAlignment(0f, -0.6f),
+                    modifier = Modifier.fillMaxSize().background(colors.surface2),
+                )
+                if (photos.isEmpty()) {
+                    // Profil ohne freigegebenes Foto (z. B. ein Match, dessen Fotos
+                    // spaeter abgelehnt wurden): Silhouette statt leerer Flaeche,
+                    // wie in der Match-Liste.
+                    Icon(
+                        Icons.Filled.Person,
+                        contentDescription = null,
+                        tint = colors.chalkDim.copy(alpha = 0.35f),
+                        modifier = Modifier.align(Alignment.Center).size(96.dp),
+                    )
+                }
+                // Abdunkelung oben und unten, damit Text auf jedem Foto lesbar bleibt.
+                // Unten laeuft sie in die Kartenfarbe aus statt in Schwarz - vorher
+                // stand zwischen Foto und Textbereich eine harte dunkle Kante.
                 Box(
-                    Modifier
-                        .align(Alignment.TopCenter)
-                        .fillMaxWidth()
-                        .height(44.dp)
-                        .pointerInput(profile.id, photos.size, interactive) {
-                            if (!interactive) return@pointerInput
-                            detectTapGestures { offset ->
-                                val segment = size.width.toFloat() / photos.size
-                                onPhotoIndexChange(
-                                    (offset.x / segment).toInt().coerceIn(0, photos.lastIndex),
+                    Modifier.fillMaxSize().background(
+                        Brush.verticalGradient(
+                            0f to Color.Black.copy(alpha = 0.38f),
+                            0.16f to Color.Transparent,
+                            0.46f to Color.Transparent,
+                            0.84f to Color(0xFF121212).copy(alpha = 0.8f),
+                            1f to Color(0xFF1C1C1C),
+                        ),
+                    ),
+                )
+
+                if (photos.size > 1) {
+                    // Die Striche sind die Foto-Auswahl: ein Tipp auf einen Strich
+                    // (bzw. den Bereich darunter) schaltet direkt auf dieses Foto —
+                    // ohne Umweg über die Vollbildansicht. Der Trefferbereich ist
+                    // bewusst 44dp hoch, die Striche selbst wären zu schmal.
+                    Box(
+                        Modifier
+                            .align(Alignment.TopCenter)
+                            .fillMaxWidth()
+                            .height(44.dp)
+                            .pointerInput(profile.id, photos.size, interactive) {
+                                if (!interactive) return@pointerInput
+                                detectTapGestures { offset ->
+                                    val segment = size.width.toFloat() / photos.size
+                                    onPhotoIndexChange(
+                                        (offset.x / segment).toInt().coerceIn(0, photos.lastIndex),
+                                    )
+                                }
+                            },
+                    ) {
+                        Row(
+                            Modifier.fillMaxWidth().padding(10.dp),
+                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        ) {
+                            photos.forEachIndexed { index, _ ->
+                                Box(
+                                    Modifier
+                                        .weight(1f)
+                                        .height(3.dp)
+                                        .clip(RoundedCornerShape(2.dp))
+                                        .background(
+                                            if (index == photoIndex) colors.plate
+                                            else Color.White.copy(alpha = 0.28f),
+                                        ),
                                 )
                             }
-                        },
-                ) {
-                    Row(
-                        Modifier.fillMaxWidth().padding(10.dp),
-                        horizontalArrangement = Arrangement.spacedBy(4.dp),
-                    ) {
-                        photos.forEachIndexed { index, _ ->
-                            Box(
-                                Modifier
-                                    .weight(1f)
-                                    .height(3.dp)
-                                    .clip(RoundedCornerShape(2.dp))
-                                    .background(
-                                        if (index == photoIndex) colors.plate
-                                        else Color.White.copy(alpha = 0.28f),
-                                    ),
-                            )
                         }
                     }
                 }
-            }
 
-            if (interactive) {
-                Row(
-                    Modifier
-                        .align(Alignment.TopEnd)
-                        .padding(top = 22.dp, end = 10.dp),
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
-                ) {
-                    onUnmatch?.let {
-                        CardActionButton(FlexrIcons.Unmatch, stringResource(R.string.unmatch_action), it)
+                if (interactive) {
+                    Row(
+                        Modifier
+                            .align(Alignment.TopEnd)
+                            .padding(top = 22.dp, end = 10.dp),
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    ) {
+                        onUnmatch?.let {
+                            CardActionButton(FlexrIcons.Unmatch, stringResource(R.string.unmatch_action), it)
+                        }
+                        CardActionButton(FlexrIcons.Report, stringResource(R.string.common_report), onReport)
+                        CardActionButton(FlexrIcons.Block, stringResource(R.string.common_block), onBlock)
                     }
-                    CardActionButton(FlexrIcons.Report, stringResource(R.string.common_report), onReport)
-                    CardActionButton(FlexrIcons.Block, stringResource(R.string.common_block), onBlock)
+                }
+
+                Column(
+                    Modifier
+                        .align(Alignment.BottomStart)
+                        .padding(start = 16.dp, end = 16.dp, bottom = 12.dp),
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = "${profile.name}, ${profile.age}",
+                            style = MaterialTheme.typography.titleLarge.copy(fontSize = androidx.compose.ui.unit.TextUnit(26f, androidx.compose.ui.unit.TextUnitType.Sp)),
+                            color = Color.White,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                        if (profile.isVerified) {
+                            Spacer(Modifier.size(6.dp))
+                            VerifiedBadge()
+                        }
+                        if (profile.isPremium) {
+                            Spacer(Modifier.size(6.dp))
+                            PremiumBadge()
+                        }
+                    }
+                    Text(
+                        text = buildString {
+                            append(profile.city)
+                            if (profile.gymName.isNotBlank()) append(" · ").append(profile.gymName)
+                            profile.distanceKm?.let { append(" · ").append("$it km") }
+                        }.uppercase(),
+                        style = MonoStyle,
+                        color = colors.chalkDim,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
                 }
             }
 
             Column(
                 Modifier
-                    .align(Alignment.BottomStart)
-                    .padding(start = 16.dp, end = 16.dp, bottom = 12.dp),
+                    .fillMaxWidth()
+                    .heightIn(max = maxTextHeight)
+                    .verticalScroll(rememberScrollState())
+                    .padding(start = 16.dp, end = 16.dp, top = 14.dp, bottom = bottomInset),
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        text = "${profile.name}, ${profile.age}",
-                        style = MaterialTheme.typography.titleLarge.copy(fontSize = androidx.compose.ui.unit.TextUnit(26f, androidx.compose.ui.unit.TextUnitType.Sp)),
-                        color = Color.White,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
+                // Umbrechend wie im Web (flex-wrap): Mit einer festen Zeile teilte
+                // sich die Gym-Adresse den Platz mit dem Online-Chip und wurde nach
+                // zwei Zeilen abgeschnitten ("Maria-Theresien-Straße 32-34, 1…").
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    StatChip(
+                        text = profile.gym.ifBlank { stringResource(R.string.gym_none) },
+                        icon = FlexrIcons.Gym,
                     )
-                    if (profile.isVerified) {
-                        Spacer(Modifier.size(6.dp))
-                        VerifiedBadge()
-                    }
-                    if (profile.isPremium) {
-                        Spacer(Modifier.size(6.dp))
-                        PremiumBadge()
+                    if (profile.isOnline) {
+                        StatChip(text = "Online", accent = true, pulsingDot = true)
                     }
                 }
+                Spacer(Modifier.height(12.dp))
                 Text(
-                    text = buildString {
-                        append(profile.city)
-                        if (profile.gymName.isNotBlank()) append(" · ").append(profile.gymName)
-                        profile.distanceKm?.let { append(" · ").append("$it km") }
-                    }.uppercase(),
-                    style = MonoStyle,
+                    text = profile.bio?.takeIf { it.isNotBlank() } ?: stringResource(R.string.bio_none),
+                    style = MaterialTheme.typography.bodyMedium,
                     color = colors.chalkDim,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
                 )
             }
-        }
-
-        Column(
-            Modifier
-                .fillMaxWidth()
-                .weight(0.42f)
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = 16.dp, vertical = 14.dp),
-        ) {
-            // Umbrechend wie im Web (flex-wrap): Mit einer festen Zeile teilte
-            // sich die Gym-Adresse den Platz mit dem Online-Chip und wurde nach
-            // zwei Zeilen abgeschnitten ("Maria-Theresien-Straße 32-34, 1…").
-            FlowRow(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                StatChip(
-                    text = profile.gym.ifBlank { stringResource(R.string.gym_none) },
-                    icon = FlexrIcons.Gym,
-                )
-                if (profile.isOnline) {
-                    StatChip(text = "Online", accent = true, pulsingDot = true)
-                }
-            }
-            Spacer(Modifier.height(12.dp))
-            Text(
-                text = profile.bio?.takeIf { it.isNotBlank() } ?: stringResource(R.string.bio_none),
-                style = MaterialTheme.typography.bodyMedium,
-                color = colors.chalkDim,
-            )
         }
     }
 }

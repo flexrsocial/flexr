@@ -9,6 +9,7 @@ import java.time.ZoneId
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
+import java.time.temporal.ChronoUnit
 import java.util.Locale
 
 /**
@@ -55,24 +56,53 @@ object ServerTime {
     fun formatTime(instant: Instant): String =
         timeFormatter.format(instant.atZone(ZoneId.systemDefault()))
 
-    private val shortDayTimeFormatter = DateTimeFormatter.ofPattern("dd.MM. HH:mm", Locale.GERMAN)
+    /** Kalendertage zwischen dem Zeitpunkt und heute: 0 = heute, 1 = gestern. */
+    fun daysAgo(
+        instant: Instant,
+        zone: ZoneId = ZoneId.systemDefault(),
+        today: LocalDate = LocalDate.now(zone),
+    ): Long = ChronoUnit.DAYS.between(instant.atZone(zone).toLocalDate(), today)
 
     /**
-     * Zeitangabe an einer Chatnachricht: heute nur die Uhrzeit, sonst mit
-     * Datum. Vorher stand ueberall nur "14:32" - ob das heute war oder vor
-     * einer Woche, war dem Verlauf nicht anzusehen. Gleiche Regel wie in der
-     * Web-App (chatTimeLabel).
+     * Tagestrenner im Chatverlauf fuer Tage vor gestern ("Samstag, 10. Oktober",
+     * aus einem anderen Jahr mit Jahreszahl). "Heute" und "Gestern" kommen aus
+     * den Strings. Gleiche Regel wie in der Web-App (chatDayLabel).
      */
-    fun formatMessageTime(
+    fun formatChatDay(
         instant: Instant,
+        locale: Locale,
+        zone: ZoneId = ZoneId.systemDefault(),
+        today: LocalDate = LocalDate.now(zone),
+    ): String {
+        val tag = instant.atZone(zone).toLocalDate()
+        val deutsch = locale.language == "de"
+        val muster = when {
+            tag.year == today.year && deutsch -> "EEEE, d. MMMM"
+            tag.year == today.year -> "EEEE d MMMM"
+            deutsch -> "EEEE, d. MMMM yyyy"
+            else -> "EEEE d MMMM yyyy"
+        }
+        return DateTimeFormatter.ofPattern(muster, locale).format(tag)
+    }
+
+    /**
+     * Zeitpunkt der letzten Nachricht in der Chatliste: heute die Uhrzeit,
+     * innerhalb einer Woche der Wochentag, sonst das Datum. "Gestern" kommt aus
+     * den Strings (siehe [daysAgo]). Wie in der Web-App (chatListTimeLabel).
+     */
+    fun formatChatListTime(
+        instant: Instant,
+        locale: Locale,
         zone: ZoneId = ZoneId.systemDefault(),
         today: LocalDate = LocalDate.now(zone),
     ): String {
         val zeit = instant.atZone(zone)
+        val tage = daysAgo(instant, zone, today)
         return when {
-            zeit.toLocalDate() == today -> timeFormatter.format(zeit)
-            zeit.year == today.year -> shortDayTimeFormatter.format(zeit)
-            else -> dateTimeFormatter.format(zeit)
+            tage <= 0 -> timeFormatter.format(zeit)
+            tage < 7 -> DateTimeFormatter.ofPattern("EEE", locale).format(zeit)
+            zeit.year == today.year -> DateTimeFormatter.ofPattern("dd.MM.", locale).format(zeit)
+            else -> DateTimeFormatter.ofPattern("dd.MM.yy", locale).format(zeit)
         }
     }
 

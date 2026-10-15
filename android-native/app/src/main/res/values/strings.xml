@@ -246,6 +246,9 @@
 
     <!-- ==== Chat ==== -->
     <string name="chat_empty_title">Noch keine Nachrichten</string>
+    <string name="chat_today">Heute</string>
+    <string name="chat_yesterday">Gestern</string>
+    <string name="matches_online_now">gerade online</string>
     <string name="chat_empty_sub">Schreib die erste — ihr habt schließlich gematcht.</string>
     <string name="chat_ice_1">Hey! Trainierst du eher morgens oder abends?</string>
     <string name="chat_ice_2">Was trainierst du im Moment am liebsten?</string>

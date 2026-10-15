@@ -331,8 +331,12 @@ android {
         // (Kopf sichtbar), Gym-Chip bricht unter "Online" um, "Meine Meldungen"
         // im Konto, Match-Overlay deckend, Listen beim Tab-Wechsel aktuell,
         // Gym-Suche mit naechstgelegenen Studios zuerst.
-        versionCode = 144
-        versionName = "2.7.32"
+        // 145/2.7.33 am 15.10.2026: Optik-Runde - Kartenfoto waechst in den
+        // freien Platz (Text endet ueber X und Herz), weicher Uebergang vom
+        // Foto in die Karte, Tagestrenner im Chat, Uhrzeit in der Chatliste,
+        // Leerzustaende in Markenfarbe, Umriss im Chatkopf ohne Foto.
+        versionCode = 145
+        versionName = "2.7.33"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         // Nur die Sprachen ausliefern, die es wirklich gibt: Deutsch als

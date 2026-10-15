@@ -274,3 +274,30 @@ def test_sitemap_enthaelt_nur_oeffentliche_kanonische_seiten():
     lastmods = [node.text for node in root.findall("s:url/s:lastmod", ns)]
     assert len(lastmods) == len(urls)
     assert all(re.fullmatch(r"20\d\d-\d\d-\d\d", d) for d in lastmods)
+
+
+def _woerterbuch(quelltext: str, sprache: str, ende: str) -> set[str]:
+    """Schluessel des Blocks `<sprache>: {` bis zum Beginn von `ende`."""
+    start = re.search(rf"^\s+{sprache}: \{{", quelltext, re.M).end()
+    stop = re.search(rf"^\s+{ende}: \{{", quelltext[start:], re.M) if ende else None
+    block = quelltext[start:start + stop.start()] if stop else quelltext[start:]
+    return set(re.findall(r"^\s+'([\w.]+)':", block, re.M))
+
+
+def test_app_texte_gibt_es_in_beiden_sprachen():
+    """Jeder feste Schluessel, den die Web-App per t('...') abfragt, steht im
+    deutschen und im englischen Woerterbuch.
+
+    Fehlt einer, zeigt FlexrI18n den nackten Schluessel ("chat.yesterday") bzw.
+    auf Englisch den deutschen Text. Zusammengesetzte Schluessel
+    (t('reg.step' + n)) erfasst der Ausdruck bewusst nicht.
+    """
+    app = (FRONTEND / "app" / "index.html").read_text(encoding="utf-8")
+    texte = (FRONTEND / "app" / "i18n-app.js").read_text(encoding="utf-8")
+    gemeinsam = (FRONTEND / "i18n.js").read_text(encoding="utf-8")
+    deutsch = _woerterbuch(texte, "de", "en") | _woerterbuch(gemeinsam, "de", "en")
+    englisch = _woerterbuch(texte, "en", "") | _woerterbuch(gemeinsam, "en", "")
+    verwendet = set(re.findall(r"\bt\('([\w.]+)'\s*[,)]", app))
+    assert {"chat.today", "chat.yesterday"} <= verwendet
+    assert verwendet - deutsch == set()
+    assert verwendet - englisch == set()

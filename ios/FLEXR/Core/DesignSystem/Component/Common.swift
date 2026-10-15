@@ -50,11 +50,20 @@ struct EmptyStateView<Action: View>: View {
 
     var body: some View {
         VStack(spacing: 0) {
+            // Dezent in Markenfarbe statt grauem Ring - der wirkte wie ein
+            // Platzhalter, der noch auf seinen Inhalt wartet (wie Web/Android).
             ZStack {
-                Circle().fill(Color.white.opacity(0.015))
-                Circle().strokeBorder(FlexrColor.steel, lineWidth: 1.5)
+                Circle().fill(
+                    RadialGradient(
+                        colors: [FlexrColor.plate.opacity(0.16), FlexrColor.plate.opacity(0.03)],
+                        center: .center,
+                        startRadius: 0,
+                        endRadius: 34
+                    )
+                )
+                Circle().strokeBorder(FlexrColor.plate.opacity(0.26), lineWidth: 1)
                 FlexrGlyph(icon, size: 28)
-                    .foregroundStyle(FlexrColor.chalkDim.opacity(0.8))
+                    .foregroundStyle(FlexrColor.plate)
             }
             .frame(width: 68, height: 68)
 
@@ -62,7 +71,7 @@ struct EmptyStateView<Action: View>: View {
                 .flexrText(.headlineSmall)
                 .foregroundStyle(FlexrColor.chalk)
                 .multilineTextAlignment(.center)
-                .padding(.top, 12)
+                .padding(.top, 14)
 
             if let message {
                 Text(message)

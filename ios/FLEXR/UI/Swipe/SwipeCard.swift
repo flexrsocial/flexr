@@ -224,12 +224,15 @@ private struct CardContent: View {
             }
 
             // Abdunkelung oben und unten, damit Text auf jedem Foto lesbar bleibt.
+            // Unten laeuft sie in die Kartenfarbe aus statt in Schwarz - vorher
+            // stand zwischen Foto und Textbereich eine harte dunkle Kante.
             LinearGradient(
                 stops: [
                     .init(color: .black.opacity(0.38), location: 0),
                     .init(color: .clear, location: 0.16),
-                    .init(color: .clear, location: 0.42),
-                    .init(color: .black.opacity(0.88), location: 1),
+                    .init(color: .clear, location: 0.46),
+                    .init(color: Color(hex: 0x121212).opacity(0.8), location: 0.84),
+                    .init(color: Color(hex: 0x1C1C1C), location: 1),
                 ],
                 startPoint: .top,
                 endPoint: .bottom

@@ -61,4 +61,72 @@ final class ServerTimeTests: XCTestCase {
         let oldest = ServerTime.birthdate(yearsAgo: 99, from: today)
         XCTAssertEqual(ServerTime.age(from: oldest, today: today), 99)
     }
+
+    // MARK: - Chat
+
+    private var wien: Calendar {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(identifier: "Europe/Vienna")!
+        return calendar
+    }
+
+    func testTageZurueckZaehltKalendertageInOrtszeit() {
+        let now = utc("2026-10-15T10:00:00Z")
+        // 22:30 UTC am 14.10. ist in Wien schon der 15.10.
+        XCTAssertEqual(ServerTime.daysAgo(utc("2026-10-14T22:30:00Z"), now: now, calendar: wien), 0)
+        XCTAssertEqual(ServerTime.daysAgo(utc("2026-10-14T21:30:00Z"), now: now, calendar: wien), 1)
+        XCTAssertEqual(ServerTime.daysAgo(utc("2026-10-10T07:18:00Z"), now: now, calendar: wien), 5)
+    }
+
+    func testTagestrennerNenntWochentagUndDatum() {
+        let now = utc("2026-10-15T10:00:00Z")
+        XCTAssertEqual(
+            ServerTime.formatChatDay(utc("2026-10-10T07:18:00Z"), language: .german, now: now, calendar: wien),
+            "Samstag, 10. Oktober"
+        )
+        XCTAssertEqual(
+            ServerTime.formatChatDay(utc("2025-12-31T09:00:00Z"), language: .german, now: now, calendar: wien),
+            "Mittwoch, 31. Dezember 2025"
+        )
+        XCTAssertEqual(
+            ServerTime.formatChatDay(utc("2026-10-10T07:18:00Z"), language: .english, now: now, calendar: wien),
+            "Saturday 10 October"
+        )
+    }
+
+    func testChatlisteZeigtUhrzeitOderDatum() {
+        let now = utc("2026-10-15T10:00:00Z")
+        XCTAssertEqual(
+            ServerTime.formatChatListTime(utc("2026-10-15T08:13:00Z"), language: .german, now: now, calendar: wien),
+            "10:13"
+        )
+        XCTAssertEqual(
+            ServerTime.formatChatListTime(utc("2026-10-01T07:18:00Z"), language: .german, now: now, calendar: wien),
+            "01.10."
+        )
+        XCTAssertEqual(
+            ServerTime.formatChatListTime(utc("2025-12-31T09:00:00Z"), language: .german, now: now, calendar: wien),
+            "31.12.25"
+        )
+    }
+
+    func testVorDerErstenNachrichtJedesTagesStehtEinTrenner() {
+        func nachricht(_ id: String, _ zeit: String) -> Message {
+            Message(id: id, matchID: "m", senderID: "a", content: id,
+                    createdAt: utc(zeit), readAt: nil, wasCensored: false)
+        }
+        let eintraege = ChatEntry.withDaySeparators(
+            [
+                nachricht("1", "2026-10-10T07:18:00Z"),
+                nachricht("2", "2026-10-14T17:07:00Z"),
+                nachricht("3", "2026-10-14T18:00:00Z"),
+                nachricht("4", "2026-10-14T22:30:00Z"),
+            ],
+            calendar: wien
+        )
+        XCTAssertEqual(
+            eintraege.map(\.id),
+            ["tag-2026-10-10", "1", "tag-2026-10-14", "2", "3", "tag-2026-10-15", "4"]
+        )
+    }
 }

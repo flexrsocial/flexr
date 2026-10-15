@@ -31,6 +31,7 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.outlined.ClearAll
 import androidx.compose.material.icons.outlined.DeleteOutline
 import androidx.compose.material3.DropdownMenu
@@ -62,6 +63,8 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.em
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -77,9 +80,12 @@ import flexr.social.app.core.designsystem.component.withEmojiInserted
 import flexr.social.app.core.designsystem.icon.FlexrIcons
 import flexr.social.app.core.designsystem.theme.FlexrTheme
 import flexr.social.app.core.designsystem.theme.MonoStyle
+import flexr.social.app.core.locale.LocalAppLanguage
 import flexr.social.app.domain.model.Message
 import flexr.social.app.ui.components.ConfirmDialog
 import flexr.social.app.ui.components.ReportDialog
+import java.time.Instant
+import java.time.ZoneId
 
 @Composable
 fun ChatScreen(
@@ -118,9 +124,13 @@ fun ChatScreen(
         }
     }
 
-    // Neue Nachricht: ans Ende scrollen.
+    // Verlauf mit Tagestrennern ("Heute", "Gestern", "Samstag, 10. Oktober").
+    val eintraege = remember(messages) { mitTagestrennern(messages, ZoneId.systemDefault()) }
+
+    // Neue Nachricht: ans Ende scrollen. Der letzte Eintrag ist immer eine
+    // Nachricht, die Trenner stehen davor.
     LaunchedEffect(messages.size) {
-        if (messages.isNotEmpty()) listState.animateScrollToItem(messages.lastIndex)
+        if (eintraege.isNotEmpty()) listState.animateScrollToItem(eintraege.lastIndex)
     }
 
     // Die Tastatur schiebt sich über den Verlauf. Solange sie einfährt, den
@@ -207,8 +217,14 @@ fun ChatScreen(
                     verticalArrangement = Arrangement.spacedBy(7.dp),
                     contentPadding = androidx.compose.foundation.layout.PaddingValues(vertical = 8.dp),
                 ) {
-                    items(messages, key = { it.id }) { message ->
-                        MessageBubble(message = message, isMine = message.senderId == ownUserId)
+                    items(eintraege, key = { it.key }) { eintrag ->
+                        when (eintrag) {
+                            is ChatEintrag.Tag -> ChatDaySeparator(eintrag.zeitpunkt)
+                            is ChatEintrag.Nachricht -> MessageBubble(
+                                message = eintrag.message,
+                                isMine = eintrag.message.senderId == ownUserId,
+                            )
+                        }
                     }
                 }
             }
@@ -332,19 +348,31 @@ private fun ChatHeader(
                 Icon(FlexrIcons.Back, contentDescription = stringResource(R.string.common_back), tint = colors.chalk)
             }
             Spacer(Modifier.width(6.dp))
-            AsyncImage(
-                model = avatarUrl,
-                contentDescription = null,
-                contentScale = ContentScale.Crop,
-                modifier = Modifier
-                    .size(42.dp)
-                    .clip(CircleShape)
-                    .background(colors.surface2)
-                    // Der Ring markiert "gerade online" - genau wie auf der
-                    // Matches/Chats-Uebersicht (MatchListItem) - und stand hier
-                    // vorher unbedingt, zeigte also faelschlich immer online.
-                    .let { if (isOnline) it.border(1.5.dp, colors.plateDim, CircleShape) else it },
-            )
+            Box(contentAlignment = Alignment.Center) {
+                AsyncImage(
+                    model = avatarUrl,
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .size(42.dp)
+                        .clip(CircleShape)
+                        .background(colors.surface2)
+                        // Der Ring markiert "gerade online" - genau wie auf der
+                        // Matches/Chats-Uebersicht (MatchListItem) - und stand hier
+                        // vorher unbedingt, zeigte also faelschlich immer online.
+                        .let { if (isOnline) it.border(1.5.dp, colors.plateDim, CircleShape) else it },
+                )
+                if (avatarUrl == null) {
+                    // Kein freigegebenes Foto: Umriss wie in der Chatliste statt
+                    // einer leeren dunklen Scheibe.
+                    Icon(
+                        Icons.Filled.Person,
+                        contentDescription = null,
+                        tint = colors.chalkDim.copy(alpha = 0.45f),
+                        modifier = Modifier.size(26.dp),
+                    )
+                }
+            }
             Spacer(Modifier.width(11.dp))
             Row(Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
                 Text(
@@ -430,6 +458,33 @@ private fun ChatHeader(
     }
 }
 
+/** Tagestrenner im Verlauf, als kleine Pille in der Mitte (wie im Web). */
+@Composable
+private fun ChatDaySeparator(zeitpunkt: Instant) {
+    val colors = FlexrTheme.colors
+    val tage = ServerTime.daysAgo(zeitpunkt)
+    val text = when {
+        tage <= 0L -> stringResource(R.string.chat_today)
+        tage == 1L -> stringResource(R.string.chat_yesterday)
+        else -> ServerTime.formatChatDay(zeitpunkt, LocalAppLanguage.current.locale)
+    }
+    Box(
+        Modifier.fillMaxWidth().padding(top = 6.dp, bottom = 2.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            text = text.uppercase(LocalAppLanguage.current.locale),
+            style = MonoStyle.copy(fontSize = 10.sp, letterSpacing = 0.08.em),
+            color = colors.chalkDim,
+            modifier = Modifier
+                .clip(CircleShape)
+                .background(colors.surface2)
+                .border(1.dp, colors.hairline, CircleShape)
+                .padding(horizontal = 11.dp, vertical = 4.dp),
+        )
+    }
+}
+
 @Composable
 private fun MessageBubble(message: Message, isMine: Boolean) {
     val colors = FlexrTheme.colors
@@ -471,7 +526,8 @@ private fun MessageBubble(message: Message, isMine: Boolean) {
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
-                    text = ServerTime.formatMessageTime(message.createdAt),
+                    // Nur die Uhrzeit - den Tag zeigt der Trenner darueber.
+                    text = ServerTime.formatTime(message.createdAt),
                     style = MonoStyle,
                     color = (if (isMine) Color(0xFF1C1006) else colors.chalkDim).copy(alpha = 0.6f),
                 )

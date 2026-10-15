@@ -85,13 +85,14 @@ enum L: Hashable, Sendable {
     case matchesEyebrow, matchesTitle, matchesEmptyTitle, matchesEmptySub
     case matchesLoadFailed
     case chatsEyebrow, chatsTitle, chatsEmptyTitle, chatsEmptySub, chatsYouPrefix
+    case chatsHistoryCleared, matchesOnlineNow
 
     // Match-Profil
     case matchProfileBlockTitle, matchProfileBlockBody, matchProfileUnmatchTitle
     case matchProfileUnmatchBody, matchProfileUnmatchConfirm, unmatchDone
 
     // Chat
-    case chatEmptyTitle, chatEmptySub, chatLoadFailed
+    case chatEmptyTitle, chatEmptySub, chatLoadFailed, chatToday, chatYesterday
     case chatIce1, chatIce2, chatIceGym, chatIce3
     case chatBlockBody, chatClearTitle, chatClearBody, chatClearConfirm
     case chatDeleteTitle, chatDeleteBody, chatDeleteAction, chatClearAction, chatCleared

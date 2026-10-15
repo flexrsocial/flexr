@@ -228,6 +228,8 @@ extension FlexrStrings {
         .chatsEmptyTitle: "No chats yet",
         .chatsEmptySub: "Send one of your matches the first message.",
         .chatsYouPrefix: "You: ",
+        .chatsHistoryCleared: "Chat history cleared",
+        .matchesOnlineNow: "online now",
 
         // MARK: Match-Profil
         .matchProfileBlockTitle: "Block?",
@@ -242,6 +244,8 @@ extension FlexrStrings {
 
         // MARK: Chat
         .chatEmptyTitle: "No messages yet",
+        .chatToday: "Today",
+        .chatYesterday: "Yesterday",
         .chatEmptySub: "Write the first one — you did match, after all.",
         .chatIce1: "Hey! Are you more of a morning or an evening trainer?",
         .chatIce2: "What are you enjoying training most right now?",
