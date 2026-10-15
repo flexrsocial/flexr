@@ -114,13 +114,24 @@ final class ScreenshotTests: XCTestCase {
         }
     }
 
-    /// Mitteilungs-Abfrage u. ä. - der Monitor greift erst bei der nächsten
-    /// Berührung der App, deshalb ein harmloser Tipp oben auf die Kopfzeile.
+    /// Mitteilungs-Abfrage und „Passwort sichern?" nach dem Login. Letzteres
+    /// lag im ersten Lauf über dem Deck und schluckte den nächsten Tipp. Der
+    /// Monitor greift erst bei der nächsten Berührung der App, deshalb zum
+    /// Schluss ein harmloser Tipp oben auf die Kopfzeile.
     private func systemdialogeSchliessen() {
         let springboard = XCUIApplication(bundleIdentifier: "com.apple.springboard")
-        for titel in ["Erlauben", "Allow"] {
-            let knopf = springboard.buttons[titel]
-            if knopf.waitForExistence(timeout: 2) { knopf.tap() }
+        for _ in 0..<3 {
+            var getroffen = false
+            for quelle in [app!, springboard] {
+                for titel in ["Not Now", "Jetzt nicht", "Erlauben", "Allow"] {
+                    let knopf = quelle.buttons[titel]
+                    if knopf.waitForExistence(timeout: 2) {
+                        knopf.tap()
+                        getroffen = true
+                    }
+                }
+            }
+            if !getroffen { break }
         }
         app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.06)).tap()
     }
@@ -130,9 +141,11 @@ final class ScreenshotTests: XCTestCase {
         tippe(app.buttons.matching(NSPredicate(format: "label ==[c] %@", label)), name: label)
     }
 
+    /// Listenzeilen heißen für XCUITest „Profilfoto von Lena, Lena, 30, …" -
+    /// deshalb enthält statt beginnt mit.
     @discardableResult
     private func tippe(beginntMit text: String) -> Bool {
-        tippe(app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", text)), name: text)
+        tippe(app.buttons.matching(NSPredicate(format: "label CONTAINS %@", text)), name: text)
     }
 
     /// Den antippbaren Treffer nehmen. Meldet XCUITest keinen als antippbar
