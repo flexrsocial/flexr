@@ -32,6 +32,65 @@ erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 
 ## Wo das Projekt gerade steht
 
+> **Sitzung 15.10.2026 (21): UX-Runde Web + Android, gemeldete Kante über
+> der Navigationsleiste. Android 2.7.34 gebaut.**
+>
+> Web deployt (`d354b21`, VPS `git pull --ff-only`, kein Neustart - nur
+> Frontend). Live: Health ok, `/app/`, `i18n-app.js?v=41` und `sw.js` (v53)
+> md5-gleich. Android/iOS in `94591af`.
+>
+> **Gemeldet (Handy-Browser, Screenshots):** Beim Scrollen im Konto ragten
+> über der Navigationsleiste die Oberkanten der Fotokacheln „wie ein Rahmen“
+> in einen leeren Streifen. Zwei Ursachen:
+> - `main` reservierte pauschal 100px für die Leiste, die nur 68px hoch ist -
+>   der Scrollbereich endete 32px darüber mit harter Kante. Jetzt
+>   `padding-bottom: var(--nav-h)` (gemessen in `navHoeheMerken()`, bei jedem
+>   Tab-Wechsel, `resize` und per ResizeObserver; Rückfall `68px +
+>   safe-area`), Abstand zum letzten Element hält der Screen (16px). Oben
+>   dasselbe: die 22px unter der Kopfzeile sind jetzt Innenabstand des
+>   Screens, nicht von `main`.
+> - `body{min-height:100vh}` ist im Handy-Browser höher als der sichtbare
+>   Bereich bei eingeblendeter Adressleiste - die ganze Seite scrollte mit,
+>   die Kopfzeile rutschte weg, der Streifen wurde größer. Jetzt `100dvh`.
+> - Nachgemessen (375x812, 375x667): Scrollbereich 59-744px, Leiste ab 744px,
+>   Inhalt beginnt wie vorher bei 81px, Dokument nicht mehr scrollbar.
+>
+> **Web-App (UX):**
+> - Deck: Pfeiltasten ←/→ (nur Swipe-Screen, nicht beim Tippen, in Dialogen,
+>   Galerie oder Match-Overlay; Tooltips „Ablehnen (←)“), Karte bleibt beim
+>   Tab-Wechsel stehen statt „Lade Profile …“ und Sprung aufs erste Foto
+>   (`loadDeck({behalten:true})`), „Neu laden“ im leeren Deck mit Hinweis,
+>   wenn es leer bleibt.
+> - Matches/Chats sofort aus `matchesCache`, dann im Hintergrund neu
+>   (Auflösen, Blockieren, Chat löschen pflegen den Speicher mit).
+> - „Hallo sagen“ bei Matches ohne Unterhaltung (direkt in den Chat).
+> - Chat: Foto/Name im Kopf öffnen das Profil (Zurück und „Nachricht
+>   schreiben“ führen in denselben Chat), **Entwürfe je Chat** (vorher
+>   wanderte ein angefangener Text in den nächsten geöffneten Chat),
+>   Senden-Knopf erst bei Text orange (wie Android).
+> - Konto: **ungespeicherte Profiländerungen gingen beim Tab-Wechsel ohne
+>   Hinweis verloren** - jetzt bleiben sie stehen (`profilFormGeaendert`,
+>   `formProfilId`; nach dem Speichern `refillForm`), Hinweis
+>   „Ungespeicherte Änderungen“ + Knopf in Markenfarbe.
+> - Meldungen gestapelt statt übereinander, weiches Ausblenden, gleiche
+>   Meldung nicht doppelt, Bestätigungen grün mit Haken (`toast(…, {art:
+>   'ok'})`, 18 Stellen; „Profil gespeichert“ ohne eigenes ✓).
+>
+> **Android 2.7.34 / 146** (`release-2.7.34/` mit `SHA256SUMS.txt`, ersetzt
+> 2.7.33): AAB `c4e69ae2…eb3e`, APK `b0273bb1…0c5c`, Upload-Key
+> `BC:64:…:79:80` geprüft (AAB und APK), 77 Unit-Tests (+4
+> `UngespeichertTest`), Lint 0 Fehler. Im Emulator durchgespielt: „Hallo
+> sagen“ → Chat, Chatkopf → Profil → Zurück bzw. „Nachricht schreiben“ →
+> derselbe Chat → Zurück → Matches, Bio ändern → Hinweis + Hauptknopf →
+> Speichern → weg. Formular bleibt in Android ohnehin erhalten (ViewModel).
+>
+> **iOS:** gleichgezogen (Hallo sagen, Chatkopf → Profil mit Rückkehr in den
+> Chat über `path.dropLast().last`, `hasUnsavedChanges`) - hier nicht
+> kompilierbar, der Push startet `ios-tests`.
+>
+> **Tests:** Backend 738 grün. Testdaten der lokalen Umgebung: Lukas hat
+> jetzt Matches mit Theresa (mit Nachricht) und Mia (ohne).
+
 > **Sitzung 15.10.2026 (20): Optik-Runde Web + Android (nur optische
 > Kriterien). Android 2.7.33 gebaut.**
 >
