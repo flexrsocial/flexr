@@ -105,8 +105,24 @@ erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 > `tools/ios-screenshots/codemagic.py start|hol|status` startet den Lauf und
 > lädt die Bilder nach `/ios-screenshots/<build>/` (in `.gitignore`); braucht
 > einen Codemagic-API-Token in `~/.config/flexr/codemagic-token` (nie ins
-> Repository). Projektdatei von Hand ergänzt (IDs `FE…1D`–`FE…27`) - erster
-> Lauf steht aus, `ios-tests` prüft dabei mit, dass das Projekt weiter lädt.
+> Repository). Projektdatei von Hand ergänzt (IDs `FE…1D`–`FE…27`).
+> - **Läuft (4. Lauf, `afabb9b`):** 11 Bilder, Test grün. Unterwegs behoben:
+>   unsigniert (`CODE_SIGNING_ALLOWED=NO`) darf die App nicht in den
+>   Schlüsselbund schreiben → Login-Token weg, 401 → jetzt ad hoc signiert;
+>   „Passwort sichern?“ nach dem Login wird weggeklickt; eigene Reiter meldet
+>   XCUITest nicht als antippbar → Tipp per Koordinate; Listenzeilen heißen
+>   „Profilfoto von Lena, …“ → Suche per CONTAINS.
+> - **`ios-tests` lief noch nie automatisch:** In Codemagic gibt es keinen
+>   Webhook von GitHub - alle 49 bisherigen Läufe waren von Hand gestartete
+>   `ios-flexr`. Ältere Einträge „der Push startet ios-tests“ stimmen nicht.
+>   Jetzt per API gestartet: erster Lauf grün, 61 Unit-Tests (inkl. der neuen
+>   für Tagestrenner und Chatliste). Nach iOS-Änderungen künftig
+>   `codemagic.py start ios-tests` + `hol`. Der TestFlight-Lauf `ios-flexr` auf
+>   `e713623` (alle iOS-Änderungen der Runden 20/21) war ebenfalls erfolgreich.
+> - Auf den Bildern sichtbar bestätigt: Tagestrenner, Uhrzeit in der
+>   Chatliste, „Hallo sagen“, Leerzustände. Noch offen in iOS: Deck- und
+>   Match-Profil-Karte haben die feste 58/42-Teilung (leerer Bereich unter
+>   der Bio) - jetzt per Screenshot prüfbar.
 
 > **Sitzung 15.10.2026 (20): Optik-Runde Web + Android (nur optische
 > Kriterien). Android 2.7.33 gebaut.**
