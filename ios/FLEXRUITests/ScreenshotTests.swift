@@ -161,8 +161,12 @@ final class ScreenshotTests: XCTestCase {
         if tippe(knopf: "Melden") {
             warte(1)
             foto("01-deck-melden")
-            let grund = app.textViews.firstMatch
-            if grund.waitForExistence(timeout: 3) {
+            // Natives mehrzeiliges Feld: je nach iOS als Text- oder Eingabefeld.
+            let grund = [
+                app.textViews.firstMatch,
+                app.textFields.matching(NSPredicate(format: "placeholderValue == %@", "Kurze Beschreibung")).firstMatch,
+            ].first { $0.waitForExistence(timeout: 2) } ?? app.textViews.firstMatch
+            if grund.exists {
                 grund.tap()
                 // Das Blatt wächst mit der Tastatur - erst danach tippen.
                 warte(2)

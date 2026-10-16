@@ -58,7 +58,10 @@ struct FlexrTextField: View {
     @FocusState private var isFocused: Bool
     @Environment(LanguageStore.self) private var languageStore
 
-    private var usesEditor: Bool { !isSingleLine || showsEmojiPicker }
+    /// Das eigene UITextView nur, wo die Schreibmarke gebraucht wird (Emoji an
+    /// der Cursorposition). Mehrzeilige Felder ohne Emoji (Meldegrund,
+    /// Anmerkung zum Rücktritt) nehmen das native SwiftUI-Feld.
+    private var usesEditor: Bool { showsEmojiPicker }
     private var showsFocus: Bool { isFocused || isEditorFocused }
 
     var body: some View {
@@ -86,7 +89,12 @@ struct FlexrTextField: View {
                     )
                     .frame(height: max(editorHeight, 22))
                 } else {
-                    TextField(placeholder ?? "", text: $text)
+                    TextField(
+                        placeholder ?? "",
+                        text: $text,
+                        axis: isSingleLine ? .horizontal : .vertical
+                    )
+                        .lineLimit(isSingleLine ? 1 : max(maxLines, 1))
                         .flexrText(.bodyLarge)
                         .foregroundStyle(FlexrColor.chalk)
                         .tint(FlexrColor.plate)

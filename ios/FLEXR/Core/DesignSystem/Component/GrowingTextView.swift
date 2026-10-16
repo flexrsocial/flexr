@@ -105,11 +105,20 @@ struct GrowingTextView: UIViewRepresentable {
             fertig.title = doneLabel
         }
 
+        // Die Schreibmarke nur zusammen mit einer Textänderung von außen
+        // setzen (Emoji eingefügt, Entwurf wiederhergestellt). Beim Tippen
+        // gehört sie dem Textfeld: Ein Abgleich mit einem älteren Stand setzte
+        // sie im Meldeblatt nach dem ersten Zeichen an den Anfang zurück, der
+        // Grund kam verdreht und lückenhaft an („etmels deuestT").
         if view.text != text {
             view.text = text
-        }
-        if view.selectedRange != selection, selection.location <= (view.text as NSString).length {
-            view.selectedRange = selection
+            let laenge = (text as NSString).length
+            if selection.location == 0, selection.length == 0, laenge > 0 {
+                // Frisch befüllt (Entwurf, gespeicherte Bio): ans Ende.
+                view.selectedRange = NSRange(location: laenge, length: 0)
+            } else if selection.location + selection.length <= laenge {
+                view.selectedRange = selection
+            }
         }
 
         context.coordinator.placeholderLabel?.font = font
