@@ -5,6 +5,12 @@
         Basis-Theme der Activity. Die eigentliche Gestaltung liegt komplett in
         Compose (FlexrTheme) — dieses Theme setzt nur die Fensterfarben, damit
         beim Start kein weißes Aufblitzen entsteht.
+
+        Die beiden Leistenfarben sind ab Android 15 wirkungslos (dort ist die
+        randlose Anzeige erzwungen). Bis Android 14 machen nur sie die Leisten
+        durchsichtig, seit 2.7.35 ohne die eingestellten Aufrufe
+        Window.setStatusBarColor/setNavigationBarColor (siehe
+        MainActivity.drawBehindSystemBars).
     -->
     <style name="Theme.Flexr" parent="android:Theme.Material.NoActionBar">
         <item name="android:windowBackground">@color/ink</item>

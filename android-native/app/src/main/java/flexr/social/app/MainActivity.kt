@@ -1,18 +1,20 @@
 package flexr.social.app
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
+import android.content.pm.ActivityInfo
 import android.content.res.Configuration
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
-import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.core.view.WindowCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dagger.hilt.android.AndroidEntryPoint
@@ -94,10 +96,8 @@ class MainActivity : ComponentActivity() {
         // so startet die App nie kurz auf dem Login-Screen, um dann umzuspringen.
         splash.setKeepOnScreenCondition { !SessionGate.isReady }
 
-        enableEdgeToEdge(
-            statusBarStyle = SystemBarStyle.dark(android.graphics.Color.TRANSPARENT),
-            navigationBarStyle = SystemBarStyle.dark(android.graphics.Color.TRANSPARENT),
-        )
+        lockPortraitOnPhones()
+        drawBehindSystemBars()
 
         setContent {
             val languageViewModel: AppLanguageViewModel = hiltViewModel()
@@ -121,6 +121,64 @@ class MainActivity : ComponentActivity() {
                     )
                 }
             }
+        }
+    }
+
+    /**
+     * Hochformat nur auf Handys.
+     *
+     * Bis 2.7.34 stand `screenOrientation="portrait"` im Manifest. Android 16
+     * ignoriert solche Sperren auf großen Displays (kleinste Breite ab 600 dp:
+     * Tablets, aufgeklappte Foldables), und die Play Console meldete sie als
+     * Hindernis für große Displays. Auf Handys gilt die Sperre weiter (Deck und
+     * Kamera sind für das Hochformat gebaut), auf großen Displays dreht die App
+     * frei.
+     *
+     * Reicht in onCreate: Ändert sich die kleinste Breite (Foldable auf- oder
+     * zugeklappt), baut Android die Activity neu auf, weil `smallestScreenSize`
+     * nicht in `configChanges` steht.
+     */
+    @SuppressLint("SourceLockedOrientationActivity")
+    private fun lockPortraitOnPhones() {
+        requestedOrientation = if (resources.configuration.smallestScreenWidthDp < LARGE_SCREEN_MIN_DP) {
+            ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+        } else {
+            ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+        }
+    }
+
+    /**
+     * Inhalt hinter Status- und Navigationsleiste, ohne die mit Android 15
+     * eingestellten Fenster-APIs.
+     *
+     * Bis 2.7.34 lief das über `enableEdgeToEdge()` aus androidx.activity. Die
+     * Bibliothek setzt für Android 8 bis 14 die Leistenfarben über
+     * `Window.setStatusBarColor`/`setNavigationBarColor` und den Ausschnitt-Modus
+     * `LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES`. Alle drei sind seit Android 15
+     * eingestellt. Die Play Console liest diese Aufrufe aus dem Bundle und
+     * meldete für 2.7.34 „veraltete APIs für die randlose Anzeige“. Auch
+     * androidx.activity 1.13.0 enthält sie noch, ein Update hilft also nicht.
+     *
+     * Dasselbe Ergebnis ohne diese Aufrufe:
+     * - Ab Android 15 ist die randlose Anzeige ohnehin erzwungen.
+     * - Bis Android 14 legt `setDecorFitsSystemWindows(false)` den Inhalt hinter
+     *   die Leisten. Durchsichtig macht sie das Theme (`Theme.Flexr`).
+     * - Kein Kontrastschleier hinter den Leisten und helle Symbole, wie vorher
+     *   mit `SystemBarStyle.dark(TRANSPARENT)`.
+     * - Der Ausschnitt-Modus bleibt beim Standard. Im Hochformat liegt die
+     *   Kamera-Aussparung in der Statusleiste, der Inhalt reicht also wie bisher
+     *   bis ganz oben. Im Querformat (nur große Displays) hält bis Android 14
+     *   das System den Rand frei, ab Android 15 die Wurzel in [FlexrApp].
+     */
+    private fun drawBehindSystemBars() {
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            window.isStatusBarContrastEnforced = false
+            window.isNavigationBarContrastEnforced = false
+        }
+        WindowCompat.getInsetsController(window, window.decorView).apply {
+            isAppearanceLightStatusBars = false
+            isAppearanceLightNavigationBars = false
         }
     }
 
@@ -166,6 +224,11 @@ class MainActivity : ComponentActivity() {
         val target = intent.getStringExtra(ActivityNotificationWorker.EXTRA_TARGET)
             ?: intent.getStringExtra(FlexrMessagingService.DATA_TARGET)
         return TopLevelDestination.entries.firstOrNull { it.route == target }?.route
+    }
+
+    private companion object {
+        /** Ab dieser kleinsten Breite ignoriert Android 16 Ausrichtungssperren. */
+        const val LARGE_SCREEN_MIN_DP = 600
     }
 }
 

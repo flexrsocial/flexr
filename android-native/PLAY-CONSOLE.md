@@ -27,6 +27,7 @@ Richtlinienverstoß — unabhängig davon, wie datensparsam die App gebaut ist.
 | 2.7.17 | Online-Rücktrittsfunktion nativ (POST `/api/withdrawal`) | nein |
 | 2.7.22 | Datenschutz-Kurzfassung in der App an die Fassung 2026-10-02 angeglichen | nein |
 | 2.7.28 | Datenschutz-Kurzfassung an die Fassung 2026-10-14 angeglichen (automatisch markierte Nachricht bleibt nach Auflösen des Matches bis zur Prüfung, höchstens 30 Tage) | nein — keine neue Datenart, nur die Speicherdauer |
+| 2.7.35 | Randlose Anzeige ohne eingestellte Fenster-APIs, Tablets/Foldables drehen frei (Abschnitt 4, „Hinweise zu 2.7.34“) | nein |
 
 ### App-Zugriff für die Prüfung (Pflicht)
 
@@ -164,6 +165,28 @@ Console „Werbe-ID: Nein“).
   alle nativen Bibliotheken im Bundle mit 16-KB-Seitenausrichtung (CameraX,
   Datastore, Compose — die App kompiliert selbst keinen nativen Code),
   Edge-to-Edge und vorausschauende Zurück-Geste aktiv.
+* **Richtlinienstatus „App muss auf Android 16 (API-Level 36) ausgerichtet
+  sein“** (gesehen 16.10.2026, Frist 31.08.2026): betrifft nicht die native
+  App, die seit der ersten Fassung auf API 36 zielt, sondern die alte TWA 1.0.4
+  (versionCode 5, `targetSdkVersion 35` in `android/app/build.gradle`), die
+  noch in Produktion liegt. Erledigt sich mit der ersten nativen
+  Produktionsversion; Updates auf API 36 sind von der Sperre nicht betroffen.
+* **Hinweise „Für deinen nächsten Release“ zu 2.7.34** (16.10.2026), in 2.7.35
+  angegangen:
+  - *Randlose Anzeige / nicht mehr unterstützte APIs:* Die beanstandeten
+    Aufrufe (`Window.setStatusBarColor`, `setNavigationBarColor`,
+    `LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES`) kamen aus `enableEdgeToEdge()`
+    von androidx.activity (`EdgeToEdgeApi26`–`30`, auch in 1.13.0 noch
+    enthalten), nicht aus eigenem Code. 2.7.35 setzt die randlose Anzeige
+    selbst (`MainActivity.drawBehindSystemBars`); im Release-Dex von 2.7.35
+    ist keiner der drei Aufrufe mehr enthalten. Übrig bleibt
+    `WindowCompat.setDecorFitsSystemWindows` (nicht eingestellt, nutzt auch
+    Compose für jeden Dialog) — falls die Console den weiter nennt, liegt das
+    an Compose und lässt sich in der App nicht ändern.
+  - *Größenänderung und Ausrichtung:* `screenOrientation="portrait"` ist aus
+    dem Manifest entfernt. Das Hochformat gilt nur noch auf Handys (kleinste
+    Breite unter 600 dp, zur Laufzeit gesetzt); auf Tablets und Foldables dreht
+    die App frei und steht mittig in höchstens 600 dp Breite.
 
 ---
 

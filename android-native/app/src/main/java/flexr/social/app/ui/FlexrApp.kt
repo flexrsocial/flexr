@@ -5,10 +5,17 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.displayCutout
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -97,6 +104,9 @@ private const val MESSAGE_DURATION_MS = 2_000L
 /** Signal an den Konto-Bildschirm: gleich zum Fotoraster scrollen (Hinweis ueber dem Deck). */
 private const val ZU_DEN_FOTOS = "zu_den_fotos"
 
+/** Breiteste Fassung der Oberfläche, siehe [AppFrame]. */
+private val MAX_CONTENT_WIDTH = 600.dp
+
 /**
  * Einstiegspunkt der Oberfläche.
  *
@@ -173,56 +183,89 @@ fun FlexrApp(
 
     Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
         FlexrBackground {
-            when (val state = appState) {
-                AppState.Loading -> LoadingState()
+            AppFrame {
+                when (val state = appState) {
+                    AppState.Loading -> LoadingState()
 
-                AppState.LoggedOut -> AuthGraph(
-                    snackbarHostState = snackbarHostState,
-                    onLoggedIn = viewModel::loadSession,
-                    onShowMessage = showMessage,
-                )
+                    AppState.LoggedOut -> AuthGraph(
+                        snackbarHostState = snackbarHostState,
+                        onLoggedIn = viewModel::loadSession,
+                        onShowMessage = showMessage,
+                    )
 
-                is AppState.NeedsVerification -> VerificationGraph(
-                    snackbarHostState = snackbarHostState,
-                    onLogout = viewModel::logout,
-                    onReloadSession = viewModel::loadSession,
-                    onShowMessage = showMessage,
-                )
+                    is AppState.NeedsVerification -> VerificationGraph(
+                        snackbarHostState = snackbarHostState,
+                        onLogout = viewModel::logout,
+                        onReloadSession = viewModel::loadSession,
+                        onShowMessage = showMessage,
+                    )
 
-                is AppState.Unreachable -> EmptyState(
-                    modifier = Modifier.fillMaxSize().wrapContentHeight(),
-                    icon = FlexrIcons.Offline,
-                    title = stringResource(R.string.startup_offline_title),
-                    description = stringResource(R.string.startup_offline_text) + "\n\n" + state.message,
-                    action = {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            FlexrSecondaryButton(
-                                text = stringResource(R.string.swipe_retry),
-                                onClick = viewModel::loadSession,
-                            )
-                            FlexrLinkButton(
-                                text = stringResource(R.string.common_logout),
-                                onClick = viewModel::logout,
-                                color = FlexrTheme.colors.chalkDim,
-                            )
-                        }
-                    },
-                )
+                    is AppState.Unreachable -> EmptyState(
+                        modifier = Modifier.fillMaxSize().wrapContentHeight(),
+                        icon = FlexrIcons.Offline,
+                        title = stringResource(R.string.startup_offline_title),
+                        description = stringResource(R.string.startup_offline_text) + "\n\n" + state.message,
+                        action = {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                FlexrSecondaryButton(
+                                    text = stringResource(R.string.swipe_retry),
+                                    onClick = viewModel::loadSession,
+                                )
+                                FlexrLinkButton(
+                                    text = stringResource(R.string.common_logout),
+                                    onClick = viewModel::logout,
+                                    color = FlexrTheme.colors.chalkDim,
+                                )
+                            }
+                        },
+                    )
 
-                is AppState.Ready -> MainGraph(
-                    membership = state.membership,
-                    ownUserId = state.profile.id,
-                    unreadCount = unreadCount,
-                    snackbarHostState = snackbarHostState,
-                    onLogout = viewModel::logout,
-                    onOpenUrl = { context.openExternalPage(it) },
-                    onShowMessage = showMessage,
-                    onShowStickyMessage = showStickyMessage,
-                    notificationTarget = notificationTarget,
-                    onNotificationTargetHandled = onNotificationTargetHandled,
-                )
+                    is AppState.Ready -> MainGraph(
+                        membership = state.membership,
+                        ownUserId = state.profile.id,
+                        unreadCount = unreadCount,
+                        snackbarHostState = snackbarHostState,
+                        onLogout = viewModel::logout,
+                        onOpenUrl = { context.openExternalPage(it) },
+                        onShowMessage = showMessage,
+                        onShowStickyMessage = showStickyMessage,
+                        notificationTarget = notificationTarget,
+                        onNotificationTargetHandled = onNotificationTargetHandled,
+                    )
+                }
             }
         }
+    }
+}
+
+/**
+ * Hält die Oberfläche auf großen Displays in Handybreite.
+ *
+ * Seit 2.7.35 dreht die App auf Tablets und aufgeklappten Foldables frei
+ * (Android 16 ignoriert dort jede Ausrichtungssperre, siehe `MainActivity`).
+ * Alle Screens sind für Handybreite gebaut. Über die volle Breite eines
+ * Tablets im Querformat liefen Knöpfe und Textzeilen über 1.200 dp. Bis
+ * [MAX_CONTENT_WIDTH] bleibt alles wie bisher, darüber steht die App mittig,
+ * der Hintergrund läuft über die ganze Fläche.
+ *
+ * Dazu kommt der seitliche Rand der Kamera-Aussparung: Ab Android 15 reicht das
+ * Fenster auch im Querformat bis in die Aussparung, die Screens rechnen aber
+ * nur mit Status- und Navigationsleiste.
+ */
+@Composable
+private fun AppFrame(content: @Composable () -> Unit) {
+    Box(
+        Modifier
+            .fillMaxSize()
+            .windowInsetsPadding(WindowInsets.displayCutout.only(WindowInsetsSides.Horizontal)),
+        contentAlignment = Alignment.TopCenter,
+    ) {
+        Box(
+            Modifier
+                .fillMaxHeight()
+                .widthIn(max = MAX_CONTENT_WIDTH)
+                .fillMaxWidth(),
+        ) { content() }
     }
 }
 

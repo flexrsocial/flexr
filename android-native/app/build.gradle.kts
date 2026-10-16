@@ -338,8 +338,13 @@ android {
         // 146/2.7.34 am 15.10.2026: UX-Runde - "Hallo sagen" bei Matches ohne
         // Unterhaltung, Chatkopf oeffnet das Profil (zurueck in denselben
         // Chat), ungespeicherte Profilaenderungen sichtbar.
-        versionCode = 146
-        versionName = "2.7.34"
+        // 147/2.7.35 am 16.10.2026: Hinweise der Play Console zu 2.7.34 -
+        // randlose Anzeige ohne die mit Android 15 eingestellten Fenster-APIs
+        // (eigene Fassung statt enableEdgeToEdge), Hochformat-Sperre nur noch
+        // auf Handys (zur Laufzeit statt im Manifest), auf Tablets mittig in
+        // hoechstens 600 dp Breite.
+        versionCode = 147
+        versionName = "2.7.35"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         // Nur die Sprachen ausliefern, die es wirklich gibt: Deutsch als
