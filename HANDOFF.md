@@ -32,6 +32,33 @@ erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 
 ## Wo das Projekt gerade steht
 
+> **Sitzung 16.10.2026 (3): Android 2.7.35 - Play-Console-Hinweise zu
+> Edge-to-Edge und großen Displays. Gebaut und dem Nutzer geschickt, noch nicht
+> hochgeladen.**
+>
+> Nur Android (`58baff5`); Backend, Web und iOS unverändert, VPS nur wegen
+> HANDOFF gepullt. Einzelheiten in `android-native/HANDOFF.md` (oberster
+> Abschnitt) und `android-native/PLAY-CONSOLE.md` (Abschnitt 4).
+>
+> - **„App muss auf API-Level 36 ausgerichtet sein“** (Richtlinienstatus, Frist
+>   31.08.): Die native App zielt schon immer auf API 36. Gemeint ist die alte
+>   TWA 1.0.4 (versionCode 5, API 35), die noch in Produktion liegt - erledigt
+>   sich mit der ersten nativen Produktionsversion. Am Code war dafür nichts zu
+>   tun.
+> - **Hinweise zu 2.7.34** („randlose Anzeige“, „nicht mehr unterstützte APIs“,
+>   „Einschränkungen für Größenänderung und Ausrichtung“): Die veralteten
+>   Aufrufe kamen aus `enableEdgeToEdge()` von androidx.activity (auch 1.13.0),
+>   jetzt eigene Fassung ohne sie (im Dex nachgeprüft). Hochformat-Sperre nur
+>   noch auf Handys und zur Laufzeit statt im Manifest; Tablets/Foldables
+>   drehen frei, die Oberfläche steht dort mittig in höchstens 600 dp Breite.
+> - Emulator: Handy unverändert, Tablet hoch/quer durchgespielt (Login,
+>   Gate, Deck, Chats, Chat und Konto mit Tastatur, Entwürfe über das Drehen).
+>   77 Unit-Tests grün, Lint 0 Fehler. AAB `release-2.7.35/` (gitignored),
+>   SHA-256 `18dfa18b…6a3f`.
+> - **Offen:** 2.7.35 hochladen und prüfen, ob die drei Hinweise verschwinden.
+>   Nennt die Console danach noch `setDecorFitsSystemWindows`, kommt das aus
+>   Compose (`DialogWrapper`) und ist in der App nicht zu ändern.
+
 > **Sitzung 16.10.2026 (2): iOS-Gesamtdurchgang - Bugfixes, Optik, A-bis-Z-Test
 > im Simulator. iOS 2.4.12 (50) zu TestFlight hochgeladen (Codemagic `6ad1dcc5…`).**
 >

@@ -1,11 +1,67 @@
 # HANDOFF — native Android-App
 
-Stand: **14.10.2026**, Version 2.7.28 / versionCode 140. Der jüngste
+Stand: **16.10.2026**, Version 2.7.35 / versionCode 147. Der jüngste
 Abschnitt steht oben, ältere folgen darunter. Fassungen zwischen dem
-16.09. und dem 04.10. sind nur im Kommentar am `versionCode` in
-`app/build.gradle.kts` und in der Haupt-`HANDOFF.md` beschrieben.
+16.09. und dem 04.10. sowie 2.7.29 bis 2.7.34 sind nur im Kommentar am
+`versionCode` in `app/build.gradle.kts` und in der Haupt-`HANDOFF.md`
+beschrieben.
 Für Aufbau, Build-Befehle und die Migrationstabelle siehe [README.md](README.md) —
 hier steht nur, was daraus *nicht* hervorgeht.
+
+---
+
+## Play-Console-Hinweise: Edge-to-Edge und große Displays, 16.10.2026 (2.7.35)
+
+**2.7.35 statt 2.7.34 hochladen** (enthält 2.7.34). Anlass: die Hinweise
+„Für deinen nächsten Release“ der Play Console zu 2.7.34 und der
+Richtlinienstatus „App muss auf API-Level 36 ausgerichtet sein“.
+
+* **API 36:** Die native App zielt seit der ersten Fassung auf API 36. Die
+  Meldung kommt von der alten TWA 1.0.4 (versionCode 5, API 35) in Produktion
+  und erledigt sich mit der ersten nativen Produktionsversion.
+* **Randlose Anzeige / eingestellte APIs:** Der Release-Dex von 2.7.34 zeigte
+  (dexdump plus R8-Mapping), dass `Window.setStatusBarColor`,
+  `setNavigationBarColor` und der Cutout-Modus `SHORT_EDGES` nur aus
+  `enableEdgeToEdge()` von androidx.activity kamen (`EdgeToEdgeApi26/28/29/30`).
+  Ein Update hilft nicht, 1.13.0 enthält sie auch noch. Jetzt
+  `MainActivity.drawBehindSystemBars()`: `setDecorFitsSystemWindows(false)`,
+  kein Kontrastschleier, helle Symbole. Durchsichtig sind die Leisten bis
+  Android 14 über das Theme. Im Dex von 2.7.35 sind die drei Aufrufe weg;
+  `setDecorFitsSystemWindows` bleibt (nicht eingestellt, nutzt auch Compose
+  für jeden Dialog, `DialogWrapper`).
+* **Ausrichtung:** `screenOrientation="portrait"` ist aus dem Manifest
+  entfernt. `MainActivity.lockPortraitOnPhones()` setzt das Hochformat zur
+  Laufzeit nur bei kleinster Breite unter 600 dp. Ändert sich die kleinste
+  Breite (Foldable auf-/zuklappen), baut Android die Activity neu auf
+  (`smallestScreenSize` fehlt bewusst in `configChanges`).
+* **Tablets:** `AppFrame` in `FlexrApp.kt` hält die Oberfläche in höchstens
+  600 dp Breite mittig, der Hintergrund läuft über die ganze Fläche, dazu
+  der seitliche Rand der Kamera-Aussparung (ab Android 15 auch im Querformat
+  im Fenster). Unter 600 dp ändert sich nichts.
+
+Geprüft im Emulator (API 35, lokales Backend gegen eine SQLite-Kopie):
+Handy bleibt bei gedrehtem Gerät im Hochformat, Optik unverändert
+(Statusleiste, Gestenleiste, 3-Tasten-Navigation). Tablet (`wm size
+1600x2560`, `wm density 320`, sw 800 dp) hoch und quer: Login, Verifizierungs-
+Gate, Deck mit Karte, Matches, Chats, Chat mit Tastatur, Konto mit Tastatur.
+Entwürfe (Bio, Chat) überstehen das Drehen und den Wechsel Tablet → Handy.
+Die 3-Tasten-Symbole sind im Emulator dunkelgrau auf dunklem Grund, im
+alten Stand mit `enableEdgeToEdge()` genauso (A/B-Build, gleiche Pixelwerte),
+also keine Folge dieser Änderung. Android 8 bis 14 nicht im Emulator geprüft
+(nur das API-35-Image vorhanden).
+
+* 77 Unit-Tests grün, Lint 0 Fehler (122 Warnungen, keine in den geänderten
+  Dateien).
+
+| 2.7.35 / 147 | SHA-256 | Größe |
+|---|---|---|
+| AAB (Play Console) | `18dfa18b4902b09ac24f6c7f3dfbbb0d35cc19060f45578d452ec50ab7fc6a3f` | 8.605.303 Bytes |
+| APK (Testgerät) | `5c892bf4f7f87b56091bd3a890923af696ca14fab02069ce475e70e0c38bd4ed` | 4.459.278 Bytes |
+
+aapt2: 147 / 2.7.35, targetSdk 36, keine Ausrichtungs- oder Größensperre im
+Manifest; Signer SHA-256 `BC:64:AD…79:80` (Upload-Key) für AAB und APK
+geprüft. Liegt in `release-2.7.35/` (gitignored), dort auch
+`tablet-uebersicht-2.7.35.png`.
 
 ---
 
