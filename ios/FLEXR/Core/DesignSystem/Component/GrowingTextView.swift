@@ -95,8 +95,13 @@ struct GrowingTextView: UIViewRepresentable {
         view.isEditable = isEnabled
         view.isSelectable = true
         view.keyboardAppearance = .dark
-        view.accessibilityLabel = voiceOverLabel ?? placeholder
-        if let doneLabel, let fertig = (view.inputAccessoryView as? UIToolbar)?.items?.last {
+        // Nur bei Änderung (Sprachwechsel) - nicht bei jedem Tastendruck an
+        // der Leiste über der Tastatur rühren.
+        if view.accessibilityLabel != voiceOverLabel ?? placeholder {
+            view.accessibilityLabel = voiceOverLabel ?? placeholder
+        }
+        if let doneLabel, let fertig = (view.inputAccessoryView as? UIToolbar)?.items?.last,
+           fertig.title != doneLabel {
             fertig.title = doneLabel
         }
 

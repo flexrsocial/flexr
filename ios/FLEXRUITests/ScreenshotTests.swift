@@ -164,6 +164,8 @@ final class ScreenshotTests: XCTestCase {
             let grund = app.textViews.firstMatch
             if grund.waitForExistence(timeout: 3) {
                 grund.tap()
+                // Das Blatt wächst mit der Tastatur - erst danach tippen.
+                warte(2)
                 grund.typeText("Testmeldung aus dem UI-Test")
                 warte(1)
                 foto("01-deck-melden-grund")
@@ -359,7 +361,9 @@ final class ScreenshotTests: XCTestCase {
         let bio = app.textViews.firstMatch
         if bio.waitForExistence(timeout: 5) {
             bio.tap()
-            bio.typeText(" Test")
+            warte(1)
+            // Länger als ein Wort: Fehlende Zeichen fielen hier sofort auf.
+            bio.typeText(" Suche Trainingspartner fürs Kreuzheben.")
             // Tastatur schließen, sonst liegt sie über der Tab-Leiste.
             if !tippe(knopf: "Fertig", warten: 2) { app.swipeDown() }
             warte(1)
