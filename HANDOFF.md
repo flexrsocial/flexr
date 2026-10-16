@@ -32,6 +32,80 @@ erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 
 ## Wo das Projekt gerade steht
 
+> **Sitzung 16.10.2026 (2): iOS-Gesamtdurchgang - Bugfixes, Optik, A-bis-Z-Test
+> im Simulator. iOS 2.4.12 (50) zu TestFlight hochgeladen (Codemagic `6ad1dcc5…`).**
+>
+> Nur iOS (`7cb01e4`, `f409846`, `71456d7`, `a4445cf`; Test `a036682`,
+> `7a958e4`); Backend und Web unverändert, VPS nur wegen HANDOFF gepullt.
+> Nicht bei App Review eingereicht.
+>
+> **Testen ohne Mac:** Der UI-Test `ios/FLEXRUITests/ScreenshotTests.swift`
+> fährt die App jetzt von A bis Z ab (`testAppVonAbisZ`, ~60 Bilder, ~13 min
+> im Simulator auf Codemagic `ios-screenshots`): falsches Passwort, Passwort
+> vergessen, Englisch, Registrierung mit leerer Prüfung, Deck (Galerie,
+> Melden mit Grund, Blockieren, Like bis zum Match, leeres Deck), Matches,
+> Match-Profil, Match auflösen, Gesprächseinstieg senden, Chat (tippen,
+> senden, Emojis, Menü, Verlauf leeren, Kopf → Profil → zurück), Entwurf und
+> ungespeicherte Bio über den Tab-Wechsel, Konto mit allen Unterseiten,
+> Blockierung aufheben, Rechtstexte, ganze App auf Englisch, Ausloggen und
+> das Verifizierungs-Gate (neues Testkonto Nora in `seed.py`, nicht
+> freigeschaltet). Bilder vorher/nachher: `ios-screenshots/6ad1c2b5…`
+> (Ausgangsstand) und `ios-screenshots/6ad1d885…` (Endstand), nicht im
+> Repository; Vergleich in `ios-screenshots/ios-vorher-nachher-1/2.png`.
+>
+> **Behoben (gefunden im Simulator bzw. beim Durchlesen aller Screens):**
+> - **Schreibmarke sprang zurück (Meldedialog):** Der Meldegrund
+>   „Testmeldung aus dem UI-Test“ kam als „etmels deuestT“ an - nach dem
+>   ersten Zeichen stand die Marke wieder vorn, Zeichen gingen verloren.
+>   `GrowingTextView` glich die Auswahl bei jeder Aktualisierung mit dem
+>   SwiftUI-Stand ab; jetzt nur zusammen mit einer Textänderung von außen.
+>   Mehrzeilige Felder ohne Emoji (Meldegrund, Anmerkung zum Rücktritt)
+>   nehmen das native `TextField(axis: .vertical)`. Nachgeprüft: Meldegrund,
+>   Bio im Konto und in der Registrierung, Chat-Entwurf kommen vollständig an.
+> - **Tab-Wechsel verlor Zustand:** `MainFlow` baut die Reiter per `switch`
+>   neu auf. Das Deck lud jedes Mal neu („Lade Profile …“, Sprung aufs erste
+>   Foto), ungespeicherte Profiländerungen gingen still verloren (im Web am
+>   15.10. behoben). `SwipeModel` und `AccountModel` liegen jetzt in
+>   `MainFlow` (`@Binding` in den Screens); das Deck lädt bei Rückkehr nur
+>   neu, wenn sich Umkreis/Gym geändert haben oder es leer ist;
+>   `AccountModel.load()` überschreibt angefangene Änderungen nicht mehr.
+> - **Chat-Entwürfe** je Chat (`MessageRepository.drafts`, beim Abmelden
+>   geleert) - vorher weg nach Zurück oder Tab-Wechsel.
+> - **Match-Overlay** hing nur über dem Deck, Kopfzeile und Tab-Leiste
+>   blieben sichtbar und antippbar - jetzt über der ganzen App (in
+>   `MainFlow`).
+> - **Tab-Leiste fuhr mit der Tastatur hoch** (Konto) - bei offener Tastatur
+>   ausgeblendet. **Meldungen** lagen auf der Tab-Leiste bzw. der
+>   Chat-Eingabe - jetzt darüber.
+> - **Fest deutsch in der englischen App:** „Senden“, Reiter
+>   Einloggen/Registrieren, „Postleitzahl“. Neuer Test `FlexrStringsTests`:
+>   alle 551 Schlüssel DE+EN mit gleichen Platzhaltern.
+> - **Rechtstexte:** Die fünf Tabellen (alle dreispaltig) scrollten waagrecht
+>   mit 200 pt je Spalte - die dritte Spalte lag auf dem Handy außerhalb des
+>   Bildes (beim Rücktrittsrecht der Weg zur Rückerstattung), große Lücken.
+>   Jetzt Karte je Zeile. Impressum: „Firmenbuchnummer:“ lief in den Wert.
+> - **Bio-Feld:** Platzhalter lief unter den Emoji-Knopf („E☺jis“).
+>   Mehrzeilige Felder haben jetzt VoiceOver-Namen, Fokusrahmen und „Fertig“
+>   über der Tastatur.
+> - **Benachrichtigungs-Schalter** sprangen beim Speichern kurz zurück, ohne
+>   VoiceOver-Namen.
+> - **Verifizierungs-Gate:** „Schritt 1 von 2“ über drei Strichen → „Schritt
+>   3 von 5“ mit beschrifteter Leiste Profil/E-Mail/Selfie/Ausweis/Prüfung wie
+>   Web und Android.
+> - **Optik:** Chat unten verankert (letzte Nachrichten bei Tastatur im
+>   Blick), Chat-Menü mit Symbolen, Kopf-Knöpfe 44 pt; Galerie ohne grauen
+>   Kasten; Premium-Seite mit Zurück-Kopf und Stern statt Schloss; offene
+>   Likes mit Herz; Konto-Einstellungen mit Symbolen (wie Web/Android);
+>   Fotoraster gestrichelt/durchgehend wie im Web; gesperrter roter Knopf
+>   sichtbar; Knopftexte für VoiceOver in normaler Schreibung; Login-Fehler
+>   verschwindet beim Sprachwechsel.
+> - Testdaten: Haken über `is_verified` (das Feld `verified_at` gab es
+>   nicht, kein Profil hatte den Haken).
+>
+> **Geprüft:** `ios-tests` grün (65 Tests, +4), fünf `ios-screenshots`-Läufe
+> grün (Ausgangsstand, Zwischenstände, Endstand `7a958e4` mit 66 Bildern).
+> Version 2.4.12.
+
 > **Sitzung 16.10.2026: iOS-Karte wie Web/Android - Foto wächst, Text endet
 > über X und Herz (`e62cc8c`).** Nur iOS, nichts deployt außer diesem
 > Eintrag; nicht bei App Review eingereicht, kein TestFlight-Lauf.

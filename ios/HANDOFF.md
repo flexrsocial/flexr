@@ -1,8 +1,46 @@
 # HANDOFF — native iOS-App
 
-Stand: **13.10.2026**, Version 2.4.11. Für Aufbau, Build-Befehle und die
+Stand: **16.10.2026**, Version 2.4.12. Für Aufbau, Build-Befehle und die
 Migrationstabelle siehe [README.md](README.md) — hier steht nur, was daraus
 *nicht* hervorgeht.
+
+---
+
+## Bugfix- und Optikrunde, 16.10.2026 (2.4.12) — kompiliert, im Simulator durchgespielt
+
+Seit 15.10.2026 lässt sich die App ohne Mac prüfen: Codemagic `ios-tests`
+(Unit-Tests) und `ios-screenshots` (UI-Test gegen lokales Testbackend), beide
+per `python3 tools/ios-screenshots/codemagic.py start <workflow>` + `hol`.
+Details und Liste der Korrekturen im Haupt-`HANDOFF.md` (Sitzung 16.10.2026
+(2)). Für die Arbeit am Code wichtig:
+
+- **Tab-Wechsel:** `MainFlow` (RootView.swift) zeigt die Reiter per `switch`,
+  jeder Wechsel baut den Bereich neu auf. Zustand, der das überstehen muss,
+  gehört deshalb nach `MainFlow`: `swipeModel` und `accountModel` (als
+  `@Binding` an `SwipeView`/`AccountView`). `SwipeModel.loadedCriteria` +
+  `photoIndex`, `AccountModel.isPrefilled` (load() überschreibt keine
+  ungespeicherten Änderungen). Chat-Entwürfe liegen in
+  `MessageRepository.drafts` (ChatView `.onDisappear` → `persistDraft()`).
+- **Match-Overlay** wird in `MainFlow` über die ganze App gelegt, nicht mehr
+  in `SwipeView`. Tab-Leiste bei offener Tastatur aus (`isKeyboardVisible`),
+  Toasts mit `bottomInset` 76 pt in der App.
+- **Texte:** `L` ist `CaseIterable`; `FLEXRTests/FlexrStringsTests.swift`
+  prüft alle Schlüssel DE/EN samt Platzhaltern. Neue Schlüssel immer in
+  beide Wörterbücher.
+- **GrowingTextView** nur noch für Felder mit Emoji-Auswahl (Chat, Bio) -
+  dort wird die Cursorposition gebraucht. Die Auswahl wird nur zusammen mit
+  einer Textänderung von außen gesetzt; der frühere Abgleich bei jeder
+  Aktualisierung ließ die Schreibmarke im Meldeblatt an den Anfang springen.
+  Platzhalter am `frameLayoutGuide` (einzeilig, gekürzt), Parameter
+  `voiceOverLabel`, `doneLabel` (UIToolbar „Fertig“), `onFocusChange`.
+  Mehrzeilige Felder ohne Emoji: `TextField(axis: .vertical)`.
+- **Verifizierung:** `JourneyStep` (profile, mail, selfie, id, review) und
+  `VerificationStepBar(current:)` in DocumentView.swift - fünf Etappen wie
+  `JourneyBar` auf Android. `GateHeader(step:)` statt `stepIndex`.
+- **Rechtstexte:** `LegalTable` zeigt jede Zeile als Karte (erster Wert als
+  Titel, übrige mit Spaltenüberschrift) statt waagrecht scrollender Spalten.
+- `MARKETING_VERSION` 2.4.12. TestFlight 2.4.12 (50), Codemagic `ios-flexr` `6ad1dcc5…`.
+  **Nicht zur Prüfung einreichen.**
 
 ---
 
