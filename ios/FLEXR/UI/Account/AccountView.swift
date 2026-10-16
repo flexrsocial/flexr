@@ -5,12 +5,15 @@ struct AccountView: View {
     @Environment(LanguageStore.self) private var languageStore
     private var s: FlexrStrings { languageStore.strings }
 
+    /// Gehört `MainFlow`: Mit eigenem `@State` gingen ungespeicherte
+    /// Profiländerungen bei jedem Tab-Wechsel ohne Hinweis verloren (im Web am
+    /// 15.10.2026 behoben).
+    @Binding var model: AccountModel?
     let onOpen: (Route) -> Void
 
     @Environment(AppContainer.self) private var container
     @Environment(AppModel.self) private var appModel
 
-    @State private var model: AccountModel?
     @State private var showDeleteDialog = false
     @State private var deletePassword = ""
     @State private var consentsExpanded = false
@@ -329,16 +332,7 @@ struct AccountView: View {
                         Task { await container.storeKit.aboVerwalten() }
                     }
                 } label: {
-                    HStack {
-                        Text(s(.accountManageSubscription))
-                            .flexrText(.bodyLarge)
-                            .foregroundStyle(FlexrColor.chalk)
-                        Spacer(minLength: 12)
-                        Image(systemName: "chevron.right")
-                            .font(.system(size: 13, weight: .semibold))
-                            .foregroundStyle(FlexrColor.chalkDim)
-                    }
-                    .padding(.vertical, 14)
+                    SettingsRowLabel(icon: "creditcard", title: s(.accountManageSubscription))
                 }
                 .buttonStyle(.plain)
             }
@@ -483,7 +477,8 @@ struct AccountView: View {
     private func notificationSection(_ model: AccountModel) -> some View {
         VStack(alignment: .leading, spacing: 0) {
             SectionTitle(text: s(.accountSectionNotifications)).padding(.top, 28)
-            HStack {
+            HStack(spacing: 12) {
+                SettingsIcon(name: "bubble.left.fill")
                 VStack(alignment: .leading, spacing: 2) {
                     Text(s(.accountNewMessages))
                         .flexrText(.bodyLarge)
@@ -494,7 +489,7 @@ struct AccountView: View {
                 }
                 Spacer(minLength: 12)
                 Toggle(
-                    "",
+                    s(.accountNewMessages),
                     isOn: Binding(
                         get: { model.notificationsEnabled },
                         set: { enabled in Task { await model.setNotificationsEnabled(enabled) } }
@@ -511,21 +506,11 @@ struct AccountView: View {
             Button {
                 notificationDetailsVisible = true
             } label: {
-                HStack {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(s(.accountNotificationsRow))
-                            .flexrText(.bodyLarge)
-                            .foregroundStyle(FlexrColor.chalk)
-                        Text(s(.accountNotificationsSub))
-                            .flexrText(.bodySmall)
-                            .foregroundStyle(FlexrColor.chalkDim)
-                    }
-                    Spacer(minLength: 12)
-                    Image(systemName: "chevron.right")
-                        .font(.system(size: 13, weight: .semibold))
-                        .foregroundStyle(FlexrColor.chalkDim)
-                }
-                .padding(.vertical, 14)
+                SettingsRowLabel(
+                    icon: "bell.fill",
+                    title: s(.accountNotificationsRow),
+                    subtitle: s(.accountNotificationsSub)
+                )
             }
             .buttonStyle(.plain)
         }
@@ -542,24 +527,12 @@ struct AccountView: View {
             Button {
                 withAnimation(.easeOut(duration: 0.18)) { consentsExpanded.toggle() }
             } label: {
-                HStack {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(s(.accountConsentsTitle))
-                            .flexrText(.bodyLarge)
-                            .foregroundStyle(FlexrColor.chalk)
-                        Text(s(.accountConsentsRow))
-                            .flexrText(.bodySmall)
-                            .foregroundStyle(FlexrColor.chalkDim)
-                    }
-                    Spacer()
-                    Image(systemName: FlexrIcon.forward)
-                        .font(.system(size: 13, weight: .semibold))
-                        .foregroundStyle(FlexrColor.chalkDim)
-                        .rotationEffect(.degrees(consentsExpanded ? 90 : 0))
-                }
-                .padding(.vertical, 13)
-                .padding(.horizontal, 4)
-                .contentShape(Rectangle())
+                SettingsRowLabel(
+                    icon: "checkmark.shield",
+                    title: s(.accountConsentsTitle),
+                    subtitle: s(.accountConsentsRow),
+                    chevronRotation: consentsExpanded ? 90 : 0
+                )
             }
             .buttonStyle(.plain)
 
@@ -587,24 +560,12 @@ struct AccountView: View {
             Button {
                 withAnimation(.easeOut(duration: 0.18)) { blockedUsersExpanded.toggle() }
             } label: {
-                HStack {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(s(.accountBlocksTitle))
-                            .flexrText(.bodyLarge)
-                            .foregroundStyle(FlexrColor.chalk)
-                        Text(s(.accountBlocksRow))
-                            .flexrText(.bodySmall)
-                            .foregroundStyle(FlexrColor.chalkDim)
-                    }
-                    Spacer()
-                    Image(systemName: FlexrIcon.forward)
-                        .font(.system(size: 13, weight: .semibold))
-                        .foregroundStyle(FlexrColor.chalkDim)
-                        .rotationEffect(.degrees(blockedUsersExpanded ? 90 : 0))
-                }
-                .padding(.vertical, 13)
-                .padding(.horizontal, 4)
-                .contentShape(Rectangle())
+                SettingsRowLabel(
+                    icon: "nosign",
+                    title: s(.accountBlocksTitle),
+                    subtitle: s(.accountBlocksRow),
+                    chevronRotation: blockedUsersExpanded ? 90 : 0
+                )
             }
             .buttonStyle(.plain)
 
@@ -628,24 +589,12 @@ struct AccountView: View {
                 // Öffnen des Kontos gefallen sein.
                 if myReportsExpanded { Task { await model.refreshMyReports() } }
             } label: {
-                HStack {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(s(.accountReportsTitle))
-                            .flexrText(.bodyLarge)
-                            .foregroundStyle(FlexrColor.chalk)
-                        Text(s(.accountReportsRow))
-                            .flexrText(.bodySmall)
-                            .foregroundStyle(FlexrColor.chalkDim)
-                    }
-                    Spacer()
-                    Image(systemName: FlexrIcon.forward)
-                        .font(.system(size: 13, weight: .semibold))
-                        .foregroundStyle(FlexrColor.chalkDim)
-                        .rotationEffect(.degrees(myReportsExpanded ? 90 : 0))
-                }
-                .padding(.vertical, 13)
-                .padding(.horizontal, 4)
-                .contentShape(Rectangle())
+                SettingsRowLabel(
+                    icon: "flag",
+                    title: s(.accountReportsTitle),
+                    subtitle: s(.accountReportsRow),
+                    chevronRotation: myReportsExpanded ? 90 : 0
+                )
             }
             .buttonStyle(.plain)
 
@@ -702,6 +651,58 @@ struct AccountView: View {
                 NavigationRow(title: s(document.titleKey)) { onOpen(.legal(document)) }
             }
         }
+    }
+}
+
+/// Symbol einer Einstellungszeile: Markenfarbe in einer getönten Kachel, wie
+/// die Einstellungsliste im Web (`.settings-row`) und auf Android.
+private struct SettingsIcon: View {
+    let name: String
+
+    var body: some View {
+        Image(systemName: name)
+            .font(.system(size: 14, weight: .semibold))
+            .foregroundStyle(FlexrColor.plate)
+            .frame(width: 32, height: 32)
+            .background(
+                RoundedRectangle(cornerRadius: 9, style: .continuous)
+                    .fill(FlexrColor.plate.opacity(0.1))
+            )
+            .accessibilityHidden(true)
+    }
+}
+
+/// Zeile einer Einstellungsliste: Symbol, Titel, Untertitel, Pfeil. Bis
+/// 2.4.11 standen hier nur Texte - Web und Android haben seit 15.10.2026
+/// eine Liste mit Symbolen.
+private struct SettingsRowLabel: View {
+    let icon: String
+    let title: String
+    var subtitle: String?
+    /// Aufklappbare Zeilen drehen den Pfeil um 90°.
+    var chevronRotation: Double = 0
+
+    var body: some View {
+        HStack(spacing: 12) {
+            SettingsIcon(name: icon)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title)
+                    .flexrText(.bodyLarge)
+                    .foregroundStyle(FlexrColor.chalk)
+                if let subtitle {
+                    Text(subtitle)
+                        .flexrText(.bodySmall)
+                        .foregroundStyle(FlexrColor.chalkDim)
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            Image(systemName: FlexrIcon.forward)
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundStyle(FlexrColor.chalkDim)
+                .rotationEffect(.degrees(chevronRotation))
+        }
+        .padding(.vertical, 11)
+        .contentShape(Rectangle())
     }
 }
 
@@ -1333,6 +1334,10 @@ private struct NotificationSettingsSheet: View {
 
     let model: AccountModel
     @Environment(\.dismiss) private var dismiss
+    /// Stellung, die gerade zum Server unterwegs ist. Ohne sie las der
+    /// Schalter weiter den alten Serverstand: Er sprang beim Antippen um,
+    /// sofort wieder zurück und erst mit der Antwort erneut um.
+    @State private var unterwegs: [String: Bool] = [:]
 
     var body: some View {
         NavigationStack {
@@ -1342,9 +1347,11 @@ private struct NotificationSettingsSheet: View {
                     row(
                         s(.notifyEmail),
                         hint: s(.notifyMatchHint),
+                        key: "matchEmail",
                         isOn: model.notifications.matchEmail
                     ) { NotificationSettingsRequestDTO(notifyMatchEmail: $0) }
-                    row(s(.notifyPush), hint: nil, isOn: model.notifications.matchPush) {
+                    row(s(.notifyPush), hint: nil, key: "matchPush",
+                        isOn: model.notifications.matchPush) {
                         NotificationSettingsRequestDTO(notifyMatchPush: $0)
                     }
 
@@ -1352,9 +1359,11 @@ private struct NotificationSettingsSheet: View {
                     row(
                         s(.notifyEmail),
                         hint: s(.notifyQueueHint),
+                        key: "queueEmail",
                         isOn: model.notifications.queueEmail
                     ) { NotificationSettingsRequestDTO(notifyQueueEmail: $0) }
-                    row(s(.notifyPush), hint: nil, isOn: model.notifications.queuePush) {
+                    row(s(.notifyPush), hint: nil, key: "queuePush",
+                        isOn: model.notifications.queuePush) {
                         NotificationSettingsRequestDTO(notifyQueuePush: $0)
                     }
 
@@ -1362,9 +1371,11 @@ private struct NotificationSettingsSheet: View {
                     row(
                         s(.notifyEmail),
                         hint: s(.notifyInactiveHint),
+                        key: "inactiveEmail",
                         isOn: model.notifications.inactiveEmail
                     ) { NotificationSettingsRequestDTO(notifyInactiveEmail: $0) }
-                    row(s(.notifyPush), hint: nil, isOn: model.notifications.inactivePush) {
+                    row(s(.notifyPush), hint: nil, key: "inactivePush",
+                        isOn: model.notifications.inactivePush) {
                         NotificationSettingsRequestDTO(notifyInactivePush: $0)
                     }
 
@@ -1372,9 +1383,11 @@ private struct NotificationSettingsSheet: View {
                     row(
                         s(.notifyEmail),
                         hint: s(.notifyLikesHint),
+                        key: "pendingLikesEmail",
                         isOn: model.notifications.pendingLikesEmail
                     ) { NotificationSettingsRequestDTO(notifyPendingLikesEmail: $0) }
-                    row(s(.notifyPush), hint: nil, isOn: model.notifications.pendingLikesPush) {
+                    row(s(.notifyPush), hint: nil, key: "pendingLikesPush",
+                        isOn: model.notifications.pendingLikesPush) {
                         NotificationSettingsRequestDTO(notifyPendingLikesPush: $0)
                     }
 
@@ -1402,6 +1415,7 @@ private struct NotificationSettingsSheet: View {
     private func row(
         _ label: String,
         hint: String?,
+        key: String,
         isOn: Bool,
         request: @escaping (Bool) -> NotificationSettingsRequestDTO
     ) -> some View {
@@ -1418,13 +1432,20 @@ private struct NotificationSettingsSheet: View {
             }
             Spacer(minLength: 12)
             Toggle(
-                "",
+                // Unsichtbar, aber für VoiceOver der Name des Schalters.
+                hint.map { "\(label) – \($0)" } ?? label,
                 isOn: Binding(
-                    get: { isOn },
+                    get: { unterwegs[key] ?? isOn },
                     // Es wird immer nur das eine geänderte Feld geschickt, damit
                     // ein Schalter nie die Stellung der übrigen mit einem
                     // veralteten Stand überschreibt.
-                    set: { neu in Task { await model.updateNotificationSetting(request(neu)) } }
+                    set: { neu in
+                        unterwegs[key] = neu
+                        Task {
+                            await model.updateNotificationSetting(request(neu))
+                            unterwegs[key] = nil
+                        }
+                    }
                 )
             )
             .labelsHidden()

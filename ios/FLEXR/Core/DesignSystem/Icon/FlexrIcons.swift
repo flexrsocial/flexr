@@ -59,6 +59,8 @@ enum FlexrIcon {
     static let forward = "chevron.right"
     static let send = "paperplane.fill"
     static let more = "ellipsis"
+    static let clearHistory = "eraser"
+    static let delete = "trash"
     static let camera = "camera.fill"
     static let photoLibrary = "photo.on.rectangle"
     static let locked = "lock.fill"

@@ -5,16 +5,18 @@ enum AuthTab: String, CaseIterable, Identifiable {
 
     var id: String { rawValue }
 
-    var title: String {
+    /// Bis 2.4.11 fest deutsch - auch bei englischer Oberfläche.
+    var titleKey: L {
         switch self {
-        case .login: "Einloggen"
-        case .register: "Registrieren"
+        case .login: .loginSubmit
+        case .register: .authTabRegister
         }
     }
 }
 
 /// Umschalter zwischen Anmeldung und Registrierung (`.auth-tabs` im Web).
 struct AuthTabs: View {
+    @Environment(LanguageStore.self) private var languageStore
 
     let selected: AuthTab
     let onSelect: (AuthTab) -> Void
@@ -24,7 +26,7 @@ struct AuthTabs: View {
             ForEach(AuthTab.allCases) { tab in
                 let isSelected = tab == selected
                 Button { if !isSelected { onSelect(tab) } } label: {
-                    Text(tab.title)
+                    Text(languageStore.strings(tab.titleKey))
                         .flexrText(.labelLarge)
                         .foregroundStyle(isSelected ? FlexrColor.plate : FlexrColor.chalkDim)
                         .frame(maxWidth: .infinity)
@@ -36,6 +38,7 @@ struct AuthTabs: View {
                         .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
+                .accessibilityAddTraits(isSelected ? [.isSelected] : [])
             }
         }
         .padding(4)

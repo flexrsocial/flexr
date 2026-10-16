@@ -33,7 +33,8 @@ struct PhotoLightbox: View {
                     PhotoImage(
                         source: .remote(photo.url),
                         contentMode: .fit,
-                        accessibilityLabel: s(.photoLightboxPosition, offset + 1, photos.count)
+                        accessibilityLabel: s(.photoLightboxPosition, offset + 1, photos.count),
+                        backdrop: .clear
                     )
                     .padding(.horizontal, 16)
                     .padding(.vertical, 64)

@@ -24,6 +24,8 @@ extension FlexrStrings {
         .commonProfilePhotoOf: "Profilfoto von %@",
         .commonDeleteFailed: "Löschen fehlgeschlagen.",
         .commonMoreOptions: "Weitere Optionen",
+        .chatSend: "Senden",
+        .authTabRegister: "Registrieren",
 
         // MARK: Sprache
         .langLabel: "Sprache",

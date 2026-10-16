@@ -207,6 +207,7 @@ final class AppModel {
         container.profiles.clear()
         container.billing.clear()
         container.matches.clearLocalCache()
+        container.messages.clearDrafts()
         selectedTab = .swipe
         state = .loggedOut
     }

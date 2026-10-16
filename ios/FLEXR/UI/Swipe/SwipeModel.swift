@@ -14,6 +14,12 @@ final class SwipeModel {
     var matchedWith: Profile?
     var ownAvatarURL: String?
     var searchRadiusKm = 20
+    /// Welches Foto die oberste Karte zeigt. Hier und nicht im Bildschirm,
+    /// damit es den Tab-Wechsel übersteht.
+    var photoIndex = 0
+    /// Umkreis und Gym, mit denen das Deck zuletzt geladen wurde (siehe
+    /// `SwipeView.suchkriterien`).
+    var loadedCriteria: String?
     /// Läuft ein Premium-Abo? Nur dann gibt es den Zurücknehmen-Knopf.
     var isPremium: Bool { billing.membership?.isPremium == true }
     var isRewinding = false

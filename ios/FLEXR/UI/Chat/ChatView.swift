@@ -37,6 +37,7 @@ struct ChatView: View {
             model = created
             await created.start()
         }
+        .onDisappear { model?.persistDraft() }
     }
 
     @ViewBuilder
@@ -198,6 +199,10 @@ struct ChatView: View {
                     .padding(.vertical, 8)
                 }
                 .scrollDismissesKeyboard(.interactively)
+                // Unten verankert: Öffnet sich die Tastatur, bleiben die
+                // letzten Nachrichten im Blick, statt hinter ihr zu
+                // verschwinden.
+                .defaultScrollAnchor(.bottom)
                 .frame(maxHeight: .infinity)
                 // Neue Nachricht: ans Ende scrollen. Die Tastatur schiebt sich
                 // über den Verlauf, deshalb zusätzlich beim Fokuswechsel.
@@ -250,11 +255,14 @@ private struct ChatHeader: View {
     var body: some View {
         VStack(spacing: 0) {
             HStack(spacing: 0) {
+                // 44 pt wie im BackHeader der übrigen Unterseiten (Apples
+                // Mindestmaß); vorher 36 pt.
                 Button(action: onBack) {
                     Image(systemName: FlexrIcon.back)
                         .font(.system(size: 18, weight: .semibold))
                         .foregroundStyle(FlexrColor.chalk)
-                        .frame(width: 36, height: 36)
+                        .frame(width: 44, height: 44)
+                        .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel(s(.commonBack))
@@ -275,7 +283,7 @@ private struct ChatHeader: View {
                             ringColor: isOnline ? FlexrColor.plateDim : nil,
                             ringWidth: 1.5
                         )
-                        .padding(.leading, 6)
+                        .padding(.leading, 2)
 
                         HStack(spacing: 6) {
                             Text(profile.map { "\($0.name), \($0.age)" } ?? "")
@@ -309,17 +317,22 @@ private struct ChatHeader: View {
                     } label: {
                         Label(s(.commonBlock), systemImage: FlexrIcon.block)
                     }
-                    Button(s(.chatClearAction), action: onClearHistory)
-                    Button(s(.chatDeleteAction), role: .destructive, action: onDeleteChat)
+                    Button(action: onClearHistory) {
+                        Label(s(.chatClearAction), systemImage: FlexrIcon.clearHistory)
+                    }
+                    Button(role: .destructive, action: onDeleteChat) {
+                        Label(s(.chatDeleteAction), systemImage: FlexrIcon.delete)
+                    }
                 } label: {
                     Image(systemName: FlexrIcon.more)
                         .font(.system(size: 15, weight: .semibold))
                         .foregroundStyle(FlexrColor.chalkDim)
-                        .frame(width: 34, height: 34)
+                        .frame(width: 44, height: 44)
+                        .contentShape(Rectangle())
                 }
                 .accessibilityLabel(s(.commonMoreOptions))
             }
-            .padding(.vertical, 10)
+            .padding(.vertical, 6)
 
             HairlineDivider()
         }
@@ -630,7 +643,7 @@ private struct ChatInputRow: View {
                 }
                 .buttonStyle(.plain)
                 .disabled(!canSend)
-                .accessibilityLabel("Senden")
+                .accessibilityLabel(s(.chatSend))
             }
             .padding(.leading, 6)
             .padding(.trailing, 5)

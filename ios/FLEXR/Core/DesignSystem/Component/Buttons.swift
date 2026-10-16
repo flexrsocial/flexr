@@ -62,6 +62,9 @@ struct FlexrButton: View {
             )
         }
         .buttonStyle(.plain)
+        // Gezeigt wird in Versalien; VoiceOver bekommt die normale
+        // Schreibung, sonst buchstabiert es kurze Wörter.
+        .accessibilityLabel(title)
         .disabled(!active)
         .scaleEffect(isPressed ? 0.98 : 1)
         .animation(.easeOut(duration: 0.12), value: isPressed)
@@ -101,6 +104,7 @@ struct FlexrSecondaryButton: View {
             )
         }
         .buttonStyle(.plain)
+        .accessibilityLabel(title)
         .disabled(!isEnabled || isLoading)
         .opacity(isEnabled && !isLoading ? 1 : 0.5)
     }
@@ -134,6 +138,7 @@ struct FlexrDangerButton: View {
             )
         }
         .buttonStyle(.plain)
+        .accessibilityLabel(title)
         .disabled(!isEnabled || isLoading)
         .opacity(isEnabled && !isLoading ? 1 : 0.5)
     }

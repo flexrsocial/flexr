@@ -90,6 +90,12 @@ final class ChatModel {
         self.onMessage = onMessage
         self.onStickyMessage = onStickyMessage
         messages = messageRepository.messages(matchID: matchID)
+        draft = messageRepository.draft(matchID: matchID)
+    }
+
+    /// Entwurf beim Verlassen des Chats ablegen (siehe MessageRepository).
+    func persistDraft() {
+        messageRepository.saveDraft(draft, matchID: matchID)
     }
 
     // MARK: - Laden

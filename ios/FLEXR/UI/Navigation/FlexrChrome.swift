@@ -156,6 +156,8 @@ struct ToastOverlay: View {
     /// Profilmeldung (Art. 16 Abs. 4 DSA) - die bleibt stehen, bis sie
     /// manuell weggetippt wird.
     var isSticky = false
+    /// Abstand zum unteren Rand (siehe RootView.toastBottomInset).
+    var bottomInset: CGFloat = 12
 
     @Environment(LanguageStore.self) private var languageStore
     private var s: FlexrStrings { languageStore.strings }
@@ -185,7 +187,7 @@ struct ToastOverlay: View {
                 .padding(.vertical, 13)
                 .flexrSurface(fill: FlexrColor.surface3, border: FlexrColor.steel)
                 .padding(.horizontal, 16)
-                .padding(.bottom, 12)
+                .padding(.bottom, bottomInset)
                 .transition(.move(edge: .bottom).combined(with: .opacity))
                 .onTapGesture { self.message = nil }
                 // Zwei Sekunden fuer jede Meldung, wie in Android/Web seit

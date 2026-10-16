@@ -51,8 +51,9 @@ struct IncomingView: View {
             }
             .frame(maxHeight: .infinity)
         } else if let likes, likes.premiumRequired, likes.count > 0 {
+            // Herz wie im Web: Hier warten Leute, das ist keine Sperre.
             EmptyStateView(
-                icon: .symbol(FlexrIcon.premium),
+                icon: .symbol(FlexrIcon.matches),
                 title: likes.count == 1
                     ? s(.incomingLockedTitleOne)
                     : s(.incomingLockedTitle, likes.count),

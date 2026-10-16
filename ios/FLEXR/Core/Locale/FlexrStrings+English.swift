@@ -23,6 +23,8 @@ extension FlexrStrings {
         .commonProfilePhotoOf: "Profile photo of %@",
         .commonDeleteFailed: "Deletion failed.",
         .commonMoreOptions: "More options",
+        .chatSend: "Send",
+        .authTabRegister: "Sign up",
 
         // MARK: Sprache
         .langLabel: "Language",

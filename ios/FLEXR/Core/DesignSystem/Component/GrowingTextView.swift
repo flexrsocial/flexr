@@ -24,6 +24,16 @@ struct GrowingTextView: UIViewRepresentable {
     var returnKeyType: UIReturnKeyType = .default
     var submitsOnReturn: Bool = false
     var onSubmit: (() -> Void)?
+    /// Name des Feldes für VoiceOver. Ohne ihn hieß jedes dieser Felder nur
+    /// „Textfeld" - die Beschriftung darüber ist ein eigener Text.
+    var voiceOverLabel: String?
+    /// Beschriftung eines „Fertig"-Knopfs über der Tastatur. Mehrzeilige
+    /// Felder haben keine Eingabetaste, die schließt - auf dem Kontobildschirm
+    /// lag die Tastatur sonst über der Tab-Leiste, bis man sie wegzog.
+    var doneLabel: String?
+    /// Meldet Fokus an und aus, damit der Rahmen des Feldes wie bei den
+    /// einzeiligen Feldern orange wird.
+    var onFocusChange: ((Bool) -> Void)?
 
     func makeCoordinator() -> Coordinator { Coordinator(self) }
 
@@ -37,17 +47,40 @@ struct GrowingTextView: UIViewRepresentable {
         view.adjustsFontForContentSizeCategory = true
         view.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
 
+        // Eine Zeile, am Rahmen des Feldes gekürzt. Die Anker eines
+        // `UITextView` (einer Scroll-Ansicht) beschreiben dessen Inhalt, nicht
+        // seinen Rahmen: Am Inhalt verankert lief der Platzhalter bis 2.4.11
+        // unter den Emoji-Knopf daneben („gerne mit E☺jis").
         let placeholderLabel = UILabel()
-        placeholderLabel.numberOfLines = 0
+        placeholderLabel.numberOfLines = 1
+        placeholderLabel.lineBreakMode = .byTruncatingTail
         placeholderLabel.textColor = UIColor(FlexrColor.chalkDim)
         placeholderLabel.translatesAutoresizingMaskIntoConstraints = false
+        placeholderLabel.isAccessibilityElement = false
         view.addSubview(placeholderLabel)
         NSLayoutConstraint.activate([
-            placeholderLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            placeholderLabel.topAnchor.constraint(equalTo: view.topAnchor),
-            placeholderLabel.trailingAnchor.constraint(lessThanOrEqualTo: view.trailingAnchor),
+            placeholderLabel.leadingAnchor.constraint(equalTo: view.frameLayoutGuide.leadingAnchor),
+            placeholderLabel.topAnchor.constraint(equalTo: view.frameLayoutGuide.topAnchor),
+            placeholderLabel.trailingAnchor.constraint(lessThanOrEqualTo: view.frameLayoutGuide.trailingAnchor),
         ])
         context.coordinator.placeholderLabel = placeholderLabel
+
+        if let doneLabel {
+            let toolbar = UIToolbar()
+            toolbar.overrideUserInterfaceStyle = .dark
+            toolbar.tintColor = UIColor(FlexrColor.plate)
+            toolbar.items = [
+                UIBarButtonItem(systemItem: .flexibleSpace),
+                UIBarButtonItem(
+                    title: doneLabel,
+                    style: .done,
+                    target: view,
+                    action: #selector(UIResponder.resignFirstResponder)
+                ),
+            ]
+            toolbar.sizeToFit()
+            view.inputAccessoryView = toolbar
+        }
         return view
     }
 
@@ -62,6 +95,10 @@ struct GrowingTextView: UIViewRepresentable {
         view.isEditable = isEnabled
         view.isSelectable = true
         view.keyboardAppearance = .dark
+        view.accessibilityLabel = voiceOverLabel ?? placeholder
+        if let doneLabel, let fertig = (view.inputAccessoryView as? UIToolbar)?.items?.last {
+            fertig.title = doneLabel
+        }
 
         if view.text != text {
             view.text = text
@@ -107,6 +144,18 @@ struct GrowingTextView: UIViewRepresentable {
 
         func textViewDidChangeSelection(_ textView: UITextView) {
             parent.selection = textView.selectedRange
+        }
+
+        // Nicht direkt aus dem Rückruf: Das Ende der Bearbeitung kann mitten in
+        // einer SwiftUI-Aktualisierung kommen (Bildschirm wird abgebaut).
+        func textViewDidBeginEditing(_ textView: UITextView) {
+            let melden = parent.onFocusChange
+            DispatchQueue.main.async { melden?(true) }
+        }
+
+        func textViewDidEndEditing(_ textView: UITextView) {
+            let melden = parent.onFocusChange
+            DispatchQueue.main.async { melden?(false) }
         }
 
         func textView(

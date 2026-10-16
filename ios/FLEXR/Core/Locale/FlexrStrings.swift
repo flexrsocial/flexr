@@ -5,13 +5,14 @@ import Foundation
 /// Geordnet nach Bildschirm, nicht nach Alphabet — so steht beisammen, was auch
 /// auf dem Schirm beisammensteht. Ein Aufzählungstyp statt roher Zeichenketten,
 /// damit ein Tippfehler beim Übersetzen gar nicht erst übersetzt.
-enum L: Hashable, Sendable {
+enum L: Hashable, Sendable, CaseIterable {
     // Allgemein
     case commonBack, commonCancel, commonClose, commonLoading
     case commonDelete, commonReport, commonBlock, commonApply, commonAccount
     case commonLogout, commonDeleteAccount, commonWriteMessage, commonProfile
     case commonVerifiedProfile, commonProfilePhotoOf, commonDeleteFailed
     case commonMoreOptions
+    case chatSend, authTabRegister
 
     // Sprache
     case langLabel, langRowTitle, langRowHint

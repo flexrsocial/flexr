@@ -10,6 +10,11 @@ final class MessageRepository {
 
     private let api: FlexrAPI
     private let store: FlexrStore
+    /// Angefangene, noch nicht gesendete Texte je Chat. Bis 2.4.11 lag der
+    /// Entwurf nur im Chatbildschirm und war weg, sobald man zurückging oder
+    /// den Tab wechselte. Wie im Web bleibt er jetzt je Chat stehen - nur im
+    /// Speicher, nach dem Abmelden oder einem Neustart ist er fort.
+    private var drafts: [String: String] = [:]
 
     init(api: FlexrAPI, store: FlexrStore) {
         self.api = api
@@ -68,6 +73,15 @@ final class MessageRepository {
             throw error
         }
     }
+
+    func draft(matchID: String) -> String { drafts[matchID] ?? "" }
+
+    func saveDraft(_ text: String, matchID: String) {
+        let leer = text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        drafts[matchID] = leer ? nil : text
+    }
+
+    func clearDrafts() { drafts = [:] }
 
     /// Chatverlauf leeren — wirkt nur für die leerende Seite. Serverseitig wird
     /// lediglich ein „geleert ab"-Zeitpunkt gesetzt, für die andere Person

@@ -157,9 +157,11 @@ private struct FilledPhotoSlot: View {
     private var borderColor: Color {
         // Das Ziel des Zugs sticht hervor, solange das Foto darüber schwebt.
         if isDropTarget { return FlexrColor.plate }
-        guard showsStatus else { return .clear }
+        // Belegt: durchgehender Rand, frei: gestrichelt (wie im Web seit
+        // 15.10.2026) - vorher hatten belegte Plätze gar keinen.
+        guard showsStatus else { return FlexrColor.steel }
         switch slot.status {
-        case .approved, .none: return .clear
+        case .approved, .none: return FlexrColor.steel
         case .rejected: return FlexrColor.danger.opacity(0.5)
         case .pending: return FlexrColor.plateDim
         }
@@ -266,7 +268,12 @@ private struct EmptyPhotoSlot: View {
             Color.clear
                 .aspectRatio(3.0 / 4.0, contentMode: .fit)
                 .overlay(shape.fill(Color.white.opacity(0.015)))
-                .overlay(shape.strokeBorder(FlexrColor.steel, lineWidth: 1.5))
+                .overlay(
+                    shape.strokeBorder(
+                        FlexrColor.steel,
+                        style: StrokeStyle(lineWidth: 1.5, dash: [6, 4])
+                    )
+                )
                 .overlay(
                     Image(systemName: FlexrIcon.add)
                         .font(.system(size: 24, weight: .medium))

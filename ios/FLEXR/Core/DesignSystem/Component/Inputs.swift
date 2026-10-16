@@ -54,9 +54,12 @@ struct FlexrTextField: View {
     @State private var isEmojiOpen = false
     @State private var selection = NSRange(location: 0, length: 0)
     @State private var editorHeight: CGFloat = 22
+    @State private var isEditorFocused = false
     @FocusState private var isFocused: Bool
+    @Environment(LanguageStore.self) private var languageStore
 
     private var usesEditor: Bool { !isSingleLine || showsEmojiPicker }
+    private var showsFocus: Bool { isFocused || isEditorFocused }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -76,7 +79,10 @@ struct FlexrTextField: View {
                         keyboardType: keyboardType,
                         returnKeyType: isSingleLine ? .done : .default,
                         submitsOnReturn: isSingleLine,
-                        onSubmit: onSubmit
+                        onSubmit: onSubmit,
+                        voiceOverLabel: label,
+                        doneLabel: isSingleLine ? nil : languageStore.strings(.commonDone),
+                        onFocusChange: { isEditorFocused = $0 }
                     )
                     .frame(height: max(editorHeight, 22))
                 } else {
@@ -118,8 +124,8 @@ struct FlexrTextField: View {
             .flexrSurface(
                 radius: FlexrRadius.small,
                 fill: FlexrColor.surface,
-                border: isError ? FlexrColor.danger : (isFocused ? FlexrColor.plate : FlexrColor.steel),
-                borderWidth: isFocused ? 2 : 1
+                border: isError ? FlexrColor.danger : (showsFocus ? FlexrColor.plate : FlexrColor.steel),
+                borderWidth: showsFocus ? 2 : 1
             )
 
             if showsEmojiPicker {

@@ -1,3 +1,4 @@
+import Combine
 import SwiftUI
 
 /// Einstiegspunkt der Oberfläche.
@@ -31,7 +32,13 @@ struct RootView: View {
                 MainFlow(ownUserID: profile.id, membership: membership)
             }
         }
-        .overlay(ToastOverlay(message: $model.toast, isSticky: model.toastSticky))
+        .overlay(
+            ToastOverlay(
+                message: $model.toast,
+                isSticky: model.toastSticky,
+                bottomInset: toastBottomInset
+            )
+        )
         // Der Sitzungszustand kommt aus dem `isLoggedIn`-Strom des
         // SessionStore; `AppModel` abonniert ihn bei seiner Erzeugung und
         // startet von sich aus mit `.loading`. Bis das Profil geladen ist,
@@ -55,6 +62,16 @@ struct RootView: View {
             guard url.scheme == "flexr" else { return }
             Task { await appModel.refreshMembership() }
         }
+    }
+}
+
+extension RootView {
+    /// In der App über der Tab-Leiste bzw. im Chat über der Eingabezeile -
+    /// mit 12 pt Abstand zum Rand verdeckte die Meldung beides zwei Sekunden
+    /// lang. Vor dem Login gibt es unten nichts zu verdecken.
+    private var toastBottomInset: CGFloat {
+        if case .ready = appModel.state { return 76 }
+        return 12
     }
 }
 
@@ -140,11 +157,22 @@ private struct MainFlow: View {
 
     @Environment(AppModel.self) private var appModel
     @Environment(AppContainer.self) private var container
+    @Environment(LanguageStore.self) private var languageStore
 
     @State private var swipePath: [Route] = []
     @State private var matchesPath: [Route] = []
     @State private var chatsPath: [Route] = []
     @State private var accountPath: [Route] = []
+    /// Die Tab-Leiste zeigt immer nur einen Bereich; die anderen werden beim
+    /// Wechsel abgebaut. Was den Wechsel überstehen muss, liegt deshalb hier:
+    /// das Deck mit der aktuellen Karte und das Kontoformular mit
+    /// ungespeicherten Änderungen. Matches und Chats laden beim Betreten
+    /// ohnehin neu, ihr Bestand liegt im Repository.
+    @State private var swipeModel: SwipeModel?
+    @State private var accountModel: AccountModel?
+    /// Bei offener Tastatur keine Tab-Leiste: Sie fuhr sonst auf der
+    /// Tastatur mit nach oben und nahm dem Formular im Konto die halbe Höhe.
+    @State private var isKeyboardVisible = false
 
     var body: some View {
         @Bindable var model = appModel
@@ -173,7 +201,7 @@ private struct MainFlow: View {
                 switch appModel.selectedTab {
                 case .swipe:
                     NavigationStack(path: $swipePath) {
-                        SwipeView(onOpenChat: { swipePath.append(.chat(matchID: $0)) })
+                        SwipeView(model: $swipeModel, onOpenChat: { swipePath.append(.chat(matchID: $0)) })
                             .navigationBarHidden(true)
                             .flexrRoutes(path: $swipePath)
                     }
@@ -198,7 +226,7 @@ private struct MainFlow: View {
                     }
                 case .account:
                     NavigationStack(path: $accountPath) {
-                        AccountView(onOpen: { accountPath.append($0) })
+                        AccountView(model: $accountModel, onOpen: { accountPath.append($0) })
                             .navigationBarHidden(true)
                             .flexrRoutes(path: $accountPath)
                     }
@@ -206,10 +234,35 @@ private struct MainFlow: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
 
-            if isTopLevel {
+            if isTopLevel && !isKeyboardVisible {
                 FlexrTabBar(selection: $model.selectedTab, unreadCount: appModel.unreadCount)
             }
         }
+        .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillShowNotification)) { _ in
+            isKeyboardVisible = true
+        }
+        .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillHideNotification)) { _ in
+            isKeyboardVisible = false
+        }
+        // Über Kopfzeile und Tab-Leiste, wie im Web - nicht nur über dem Deck.
+        .overlay {
+            if let swipeModel, let matched = swipeModel.matchedWith {
+                MatchOverlay(
+                    matchedProfile: matched,
+                    ownAvatarURL: swipeModel.ownAvatarURL,
+                    ownName: languageStore.strings(.swipeOwnName),
+                    // Der Chat öffnet im Swipe-Tab; kam die Antwort des
+                    // Servers erst nach einem Tab-Wechsel, dorthin zurück.
+                    onWriteMessage: {
+                        appModel.selectedTab = .swipe
+                        swipeModel.openChatWithMatch()
+                    },
+                    onKeepSwiping: swipeModel.dismissMatchOverlay
+                )
+                .transition(.opacity)
+            }
+        }
+        .animation(.easeOut(duration: 0.2), value: swipeModel?.matchedWith?.id)
     }
 
     /// Unterseiten (Chat, Profil, Verifizierung, Rechtstexte) laufen wie in der

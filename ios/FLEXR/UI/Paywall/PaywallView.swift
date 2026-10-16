@@ -50,81 +50,88 @@ struct PaywallView: View {
     }
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 0) {
-                // Der erklaerende Absatz darunter ("FLEXR zu nutzen kostet
-                // nichts ...") ist seit dem 19.09.2026 weg (analog zu Web/
-                // Android) - die Preiskachel darunter ruekt dadurch von
-                // selbst nach oben.
-                EmptyStateView(
-                    icon: .symbol(FlexrIcon.locked),
-                    title: s(.paywallTitle)
-                )
-                .padding(.top, 24)
-
+        VStack(spacing: 0) {
+            // Wie jede Unterseite mit Zurück-Kopf: Vorher gab es nur den Knopf
+            // ganz unten, oben fehlte jeder Weg zurück.
+            BackHeader(title: s(.premiumTitle), onBack: onBack)
+                .padding(.horizontal, 8)
+            ScrollView {
                 VStack(alignment: .leading, spacing: 0) {
-                    Eyebrow(text: s(.premiumEyebrow))
-                    HStack(alignment: .bottom, spacing: 0) {
-                        // Preis aus dem Serverstatus, damit "10 €" nirgends im
-                        // Client festgeschrieben ist.
-                        Text(
-                            container.storeKit.preis
-                                ?? appModel.membership.map { "\($0.priceCents / 100) €" }
-                                ?? "10 €"
-                        )
-                            .flexrText(.displayMedium)
-                            .foregroundStyle(FlexrColor.chalk)
-                        Text(s(.paywallPerMonth))
-                            .flexrText(.bodyMedium)
-                            .foregroundStyle(FlexrColor.chalkDim)
-                            .padding(.bottom, 5)
-                    }
+                    // Der erklaerende Absatz darunter ("FLEXR zu nutzen kostet
+                    // nichts ...") ist seit dem 19.09.2026 weg (analog zu Web/
+                    // Android) - die Preiskachel darunter ruekt dadurch von
+                    // selbst nach oben. Gefüllter Stern statt Schloss wie im Web
+                    // (15.10.2026): Premium ist ein Angebot, keine Sperre.
+                    EmptyStateView(
+                        icon: .symbol(FlexrIcon.premium),
+                        title: s(.paywallTitle)
+                    )
+                    .padding(.top, 8)
 
-                    ForEach(features, id: \.self) { feature in
-                        HStack(alignment: .top, spacing: 10) {
-                            Image(systemName: FlexrIcon.check)
-                                .font(.system(size: 14, weight: .bold))
-                                .foregroundStyle(FlexrColor.lime)
-                            Text(feature)
+                    VStack(alignment: .leading, spacing: 0) {
+                        Eyebrow(text: s(.premiumEyebrow))
+                        HStack(alignment: .bottom, spacing: 0) {
+                            // Preis aus dem Serverstatus, damit "10 €" nirgends im
+                            // Client festgeschrieben ist.
+                            Text(
+                                container.storeKit.preis
+                                    ?? appModel.membership.map { "\($0.priceCents / 100) €" }
+                                    ?? "10 €"
+                            )
+                                .flexrText(.displayMedium)
+                                .foregroundStyle(FlexrColor.chalk)
+                            Text(s(.paywallPerMonth))
                                 .flexrText(.bodyMedium)
                                 .foregroundStyle(FlexrColor.chalkDim)
-                            Spacer(minLength: 0)
+                                .padding(.bottom, 5)
                         }
-                        .padding(.vertical, 6)
-                    }
-                    .padding(.top, 10)
 
-                    // Gekauft werden kann nur, was der Server auch anbietet:
-                    // Er meldet mit `storePurchaseAvailable`, ob dieser Client
-                    // kaufen darf und unter welcher Produktkennung. Fehlt
-                    // beides — weil Premium serverseitig aus ist oder noch kein
-                    // Produkt eingetragen wurde —, steht statt eines Knopfes in
-                    // die Sackgasse der Hinweis.
-                    if let produktID = appModel.membership?.storeProductID,
-                       appModel.membership?.storePurchaseAvailable == true {
-                        FlexrButton(title: s(.paywallSubscribe)) {
-                            Task { await kaufen(produktID) }
+                        ForEach(features, id: \.self) { feature in
+                            HStack(alignment: .top, spacing: 10) {
+                                Image(systemName: FlexrIcon.check)
+                                    .font(.system(size: 14, weight: .bold))
+                                    .foregroundStyle(FlexrColor.lime)
+                                Text(feature)
+                                    .flexrText(.bodyMedium)
+                                    .foregroundStyle(FlexrColor.chalkDim)
+                                Spacer(minLength: 0)
+                            }
+                            .padding(.vertical, 6)
                         }
-                        .padding(.top, 12)
-                        .disabled(container.storeKit.laeuftKauf)
-                    } else {
-                        Text(s(.premiumBetaHint))
-                            .flexrText(.bodySmall)
-                            .foregroundStyle(FlexrColor.chalkDim)
+                        .padding(.top, 10)
+
+                        // Gekauft werden kann nur, was der Server auch anbietet:
+                        // Er meldet mit `storePurchaseAvailable`, ob dieser Client
+                        // kaufen darf und unter welcher Produktkennung. Fehlt
+                        // beides — weil Premium serverseitig aus ist oder noch kein
+                        // Produkt eingetragen wurde —, steht statt eines Knopfes in
+                        // die Sackgasse der Hinweis.
+                        if let produktID = appModel.membership?.storeProductID,
+                           appModel.membership?.storePurchaseAvailable == true {
+                            FlexrButton(title: s(.paywallSubscribe)) {
+                                Task { await kaufen(produktID) }
+                            }
                             .padding(.top, 12)
+                            .disabled(container.storeKit.laeuftKauf)
+                        } else {
+                            Text(s(.premiumBetaHint))
+                                .flexrText(.bodySmall)
+                                .foregroundStyle(FlexrColor.chalkDim)
+                                .padding(.top, 12)
+                        }
                     }
-                }
-                .padding(20)
-                .flexrSurface(radius: FlexrRadius.large, border: FlexrColor.plate.opacity(0.3))
+                    .padding(20)
+                    .flexrSurface(radius: FlexrRadius.large, border: FlexrColor.plate.opacity(0.3))
 
-                // Ausloggen und Selbstlöschung standen hier, solange dieser
-                // Bildschirm der einzige erreichbare war. Der Kontobereich ist
-                // jetzt immer navigierbar; beides sitzt dort, wo man es sucht.
-                FlexrSecondaryButton(title: s(.commonBack)) { onBack() }
-                    .padding(.top, 24)
+                    // Ausloggen und Selbstlöschung standen hier, solange dieser
+                    // Bildschirm der einzige erreichbare war. Der Kontobereich ist
+                    // jetzt immer navigierbar; beides sitzt dort, wo man es sucht.
+                    FlexrSecondaryButton(title: s(.commonBack)) { onBack() }
+                        .padding(.top, 24)
+                }
+                .padding(.horizontal, 20)
+                .padding(.bottom, 40)
             }
-            .padding(.horizontal, 20)
-            .padding(.bottom, 40)
         }
         .task {
             // Den echten Preis holen, bevor jemand tippt.

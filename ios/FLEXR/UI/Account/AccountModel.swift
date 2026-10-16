@@ -150,6 +150,9 @@ final class AccountModel {
     /// Verhindert, dass das Vorbefüllen aus dem Profil eine Ortsermittlung
     /// auslöst — der Ort steht dort ja schon fest.
     @ObservationIgnored private var lastHandledPostalCode: String?
+    /// Stand das Formular schon einmal aus dem Profil? Erst dann ist eine
+    /// Abweichung eine Änderung des Nutzers und kein leeres Formular.
+    @ObservationIgnored private var isPrefilled = false
 
     /// Texte in der gewählten Sprache. Als Referenz auf den Speicher und nicht
     /// als Kopie: eine Umstellung mitten in der Sitzung wirkt dann sofort auch
@@ -242,12 +245,15 @@ final class AccountModel {
     }
 
     func load() async {
-        if let profile = profiles.myProfile { prefill(from: profile) }
+        // Zurück aus einem anderen Tab: Angefangene Änderungen bleiben stehen
+        // und werden nicht vom gespeicherten Profil überschrieben.
+        let aenderungenBehalten = isPrefilled && hasUnsavedChanges
+        if !aenderungenBehalten, let profile = profiles.myProfile { prefill(from: profile) }
         notificationsEnabled = session.notificationsEnabled
         verifiedHintDismissed = session.verifiedHintDismissed
         await reconcileNotificationPermission()
 
-        if let refreshed = try? await profiles.refresh() { prefill(from: refreshed) }
+        if let refreshed = try? await profiles.refresh(), !aenderungenBehalten { prefill(from: refreshed) }
         _ = try? await billing.refresh()
         // Erst jetzt steht die Grenze fest — das Profil war vorher da. Ein
         // Konto, dessen gespeicherter Umkreis über der Grenze liegt (etwa nach
@@ -275,6 +281,7 @@ final class AccountModel {
     }
 
     private func prefill(from profile: MyProfile) {
+        isPrefilled = true
         postalCode = profile.plz
         lastHandledPostalCode = profile.plz
         plzLookup = profile.profile.city.isEmpty ? .idle : .resolved(city: profile.profile.city)
@@ -638,6 +645,10 @@ final class AccountModel {
     }
 
     func setNotificationsEnabled(_ enabled: Bool) async {
+        // Der Schalter folgt sofort dem Finger; ohne Erlaubnis geht er unten
+        // wieder aus. Vorher stand er bis zur Antwort auf die Systemabfrage
+        // auf dem alten Wert.
+        notificationsEnabled = enabled
         if enabled {
             // Ab iOS braucht das Anzeigen von Benachrichtigungen eine
             // Erlaubnis — hier im Moment des Einschaltens erfragt, wo der Zweck

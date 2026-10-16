@@ -99,14 +99,20 @@ private struct LegalBlockView: View {
             VStack(alignment: .leading, spacing: 6) {
                 ForEach(rows.indices, id: \.self) { index in
                     let row = rows[index]
-                    HStack(alignment: .top, spacing: 0) {
+                    // Lange Schlüssel („Firmenbuchnummer:") liefen bis 2.4.11
+                    // in den Wert daneben, der Doppelpunkt brach in eine
+                    // eigene Zeile. Jetzt werden sie kleiner statt breiter.
+                    HStack(alignment: .firstTextBaseline, spacing: 10) {
                         Text("\(row.0):")
                             .flexrText(.bodyMedium)
                             .foregroundStyle(FlexrColor.chalk)
-                            .frame(width: 140, alignment: .leading)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.7)
+                            .frame(width: 132, alignment: .leading)
                         Text(row.1)
                             .flexrText(.bodyMedium)
                             .foregroundStyle(FlexrColor.chalkDim)
+                            .frame(maxWidth: .infinity, alignment: .leading)
                     }
                 }
             }
@@ -130,44 +136,53 @@ private struct LegalBlockView: View {
     }
 }
 
+/// Tabelle als Karte je Zeile: der erste Wert als Titel, die übrigen mit ihrer
+/// Spaltenüberschrift darunter.
+///
+/// Bis 2.4.11 stand hier eine waagrecht scrollende Tabelle mit 200 pt je
+/// Spalte. Alle Tabellen haben drei Spalten - die dritte lag auf dem Handy
+/// ganz außerhalb des Bildes (beim Rücktrittsrecht ausgerechnet der Weg zur
+/// Rückerstattung), die zweite war am Rand mitten im Wort abgeschnitten, und
+/// die Höhe der unsichtbaren Spalte hinterließ große Lücken.
 private struct LegalTable: View {
 
     let headers: [String]
     let rows: [[String]]
 
-    private static let columnWidth: CGFloat = 200
-
     var body: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            VStack(alignment: .leading, spacing: 0) {
-                HStack(alignment: .top, spacing: 0) {
-                    ForEach(headers, id: \.self) { header in
-                        Text(header)
+        VStack(alignment: .leading, spacing: 0) {
+            ForEach(rows.indices, id: \.self) { index in
+                let row = rows[index]
+                if index > 0 { HairlineDivider(color: FlexrColor.steel) }
+                VStack(alignment: .leading, spacing: 8) {
+                    if let titel = row.first {
+                        Text(titel)
                             .flexrText(.titleSmall)
-                            .foregroundStyle(FlexrColor.chalkDim)
-                            .frame(width: Self.columnWidth, alignment: .leading)
-                            .padding(.trailing, 10)
+                            .foregroundStyle(FlexrColor.chalk)
+                            .fixedSize(horizontal: false, vertical: true)
                     }
-                }
-                .padding(.bottom, 6)
-
-                ForEach(rows.indices, id: \.self) { index in
-                    let row = rows[index]
-                    HairlineDivider(color: FlexrColor.steel)
-                    HStack(alignment: .top, spacing: 0) {
-                        ForEach(row.indices, id: \.self) { cellIndex in
+                    ForEach(Array(row.indices.dropFirst()), id: \.self) { cellIndex in
+                        VStack(alignment: .leading, spacing: 2) {
+                            if cellIndex < headers.count {
+                                Text(headers[cellIndex].uppercased())
+                                    .font(.flexrMono(10, weight: 500))
+                                    .tracking(0.6)
+                                    .foregroundStyle(FlexrColor.plate.opacity(0.85))
+                            }
                             Text(row[cellIndex])
                                 .flexrText(.bodySmall)
                                 .foregroundStyle(FlexrColor.chalkDim)
-                                .frame(width: Self.columnWidth, alignment: .leading)
-                                .padding(.trailing, 10)
+                                .fixedSize(horizontal: false, vertical: true)
                         }
                     }
-                    .padding(.vertical, 8)
                 }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.vertical, 12)
             }
         }
-        .padding(.bottom, 12)
+        .padding(.horizontal, 14)
+        .flexrSurface(fill: FlexrColor.surface2, border: FlexrColor.hairline)
+        .padding(.bottom, 14)
     }
 }
 

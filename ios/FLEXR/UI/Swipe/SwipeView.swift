@@ -4,14 +4,17 @@ struct SwipeView: View {
     @Environment(LanguageStore.self) private var languageStore
     private var s: FlexrStrings { languageStore.strings }
 
+    /// Gehört `MainFlow`, nicht diesem Bildschirm: Die Tab-Leiste baut den
+    /// Bildschirm bei jedem Wechsel neu auf. Mit eigenem `@State` stand nach
+    /// jeder Rückkehr wieder „Lade Profile …" da, das Deck kam neu vom Server
+    /// und die Karte sprang aufs erste Foto (im Web am 15.10.2026 behoben).
+    @Binding var model: SwipeModel?
     let onOpenChat: (String) -> Void
 
     @Environment(AppContainer.self) private var container
     @Environment(AppModel.self) private var appModel
 
-    @State private var model: SwipeModel?
     @State private var cardState = SwipeCardState()
-    @State private var photoIndex = 0
     @State private var lightboxStartIndex: Int?
     @State private var showReportDialog = false
     @State private var showBlockDialog = false
@@ -26,7 +29,16 @@ struct SwipeView: View {
             }
         }
         .task {
-            guard model == nil else { return }
+            if let model {
+                // Zurück aus einem anderen Tab: Karte und Foto bleiben stehen.
+                // Neu geladen wird nur, was sich inzwischen geändert haben
+                // kann - Umkreis oder Gym im Konto-Tab, oder ein leeres Deck,
+                // in dem seither neue Profile liegen können.
+                if model.loadedCriteria != suchkriterien || model.isExhausted {
+                    neuLaden(model)
+                }
+                return
+            }
             let created = SwipeModel(
                 container: container,
                 languageStore: languageStore,
@@ -34,19 +46,17 @@ struct SwipeView: View {
                 onStickyMessage: { appModel.showSticky($0) },
                 onOpenChat: onOpenChat
             )
+            created.loadedCriteria = suchkriterien
             model = created
             await created.loadProfileAndDeck()
         }
-        // Der Bildschirm bleibt beim Wechsel der Tab-Leiste am Leben, `.task`
-        // läuft also nur ein einziges Mal. Ohne diese Beobachtung bliebe hier
-        // der Stand vom App-Start stehen: Wer im Konto-Tab den Umkreis ändert,
-        // bekäme weiterhin das alte Deck und die alte Kilometerangabe zu sehen.
-        // Neben dem Radius zählt das Gym mit — es ist der Mittelpunkt der Suche.
+        // Wer im Konto den Umkreis oder das Gym ändert, während dieser
+        // Bildschirm steht (etwa über den Hinweis über dem Deck), bekommt das
+        // neue Deck sofort. Neben dem Radius zählt das Gym mit - es ist der
+        // Mittelpunkt der Suche.
         .onChange(of: suchkriterien) {
-            guard let model, let profil = container.profiles.myProfile else { return }
-            model.searchRadiusKm = profil.searchRadiusKm
-            model.ownAvatarURL = profil.ownAvatarURL
-            Task { await model.loadDeck() }
+            guard let model else { return }
+            neuLaden(model)
         }
         // Zurück in die App: ob inzwischen ein Foto freigegeben ist,
         // entscheidet über den Hinweis über dem Deck.
@@ -54,6 +64,16 @@ struct SwipeView: View {
             guard phase == .active else { return }
             Task { _ = try? await container.profiles.refresh() }
         }
+    }
+
+    private func neuLaden(_ model: SwipeModel) {
+        model.loadedCriteria = suchkriterien
+        if let profil = container.profiles.myProfile {
+            model.searchRadiusKm = profil.searchRadiusKm
+            model.ownAvatarURL = profil.ownAvatarURL
+        }
+        model.photoIndex = 0
+        Task { await model.loadDeck() }
     }
 
     /// Die Merkmale, die bestimmen, wen das Deck zeigt.
@@ -97,7 +117,7 @@ struct SwipeView: View {
             if let startIndex = lightboxStartIndex, let profile = model.current {
                 // Nach dem Schließen zeigt die Karte das zuletzt betrachtete Foto.
                 PhotoLightbox(photos: profile.photos, startIndex: startIndex) { lastIndex in
-                    photoIndex = lastIndex
+                    model.photoIndex = lastIndex
                     lightboxStartIndex = nil
                 }
             }
@@ -124,17 +144,9 @@ struct SwipeView: View {
                 model.block(userID: profile.id, name: profile.name)
             }
         }
-        .overlay {
-            if let matched = model.matchedWith {
-                MatchOverlay(
-                    matchedProfile: matched,
-                    ownAvatarURL: model.ownAvatarURL,
-                    ownName: s(.swipeOwnName),
-                    onWriteMessage: model.openChatWithMatch,
-                    onKeepSwiping: model.dismissMatchOverlay
-                )
-            }
-        }
+        // Das Match-Overlay legt `MainFlow` über die ganze App: Hier hinge es
+        // nur zwischen Kopfzeile und Tab-Leiste, beide blieben sichtbar und
+        // antippbar.
     }
 
     private func locationLabel(_ model: SwipeModel) -> String {
@@ -183,7 +195,10 @@ struct SwipeView: View {
                         onOpenPhotos: { lightboxStartIndex = $0 },
                         onReport: { showReportDialog = true },
                         onBlock: { showBlockDialog = true },
-                        photoIndex: $photoIndex
+                        photoIndex: Binding(
+                            get: { model.photoIndex },
+                            set: { model.photoIndex = $0 }
+                        )
                     )
                     // Beim Kartenwechsel wieder auf das erste Foto.
                     .id(current.id)
@@ -237,7 +252,7 @@ struct SwipeView: View {
     }
 
     private func resetCard() {
-        photoIndex = 0
+        model?.photoIndex = 0
         cardState.reset()
     }
 }

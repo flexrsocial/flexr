@@ -56,7 +56,13 @@ PERSONEN = [
      ["demo-julia.jpg", "demo-anna-v2.jpg", "demo-hannah-v2.jpg"], True),
     ("anna", "Anna", "frau", "1995-02-08", "1030",
      ["demo-anna-v2.jpg", "demo-laura-v2.jpg", "demo-emi-v2.jpg"], False),
+    # Noch nicht freigeschaltet: zeigt nach dem Login das Verifizierungs-Gate
+    # (Selfie-Schritt), erscheint in keinem Deck.
+    ("nora", "Nora", "frau", "1998-05-21", "1060",
+     ["demo-selin-v3.jpg", "demo-melina-v3.jpg", "demo-katharina-v2.jpg"], False),
 ]
+
+NICHT_FREIGESCHALTET = {"nora"}
 
 BIOS = {
     "lena": "Morgens Kraft, abends Laufen. Suche jemanden, der beim Deadlift mitzählt.",
@@ -113,11 +119,13 @@ def main() -> None:
         assert antwort.status_code == 200, antwort.text
         db.expire_all()
         user = db.query(User).filter_by(email=email).one()
-        user.activated_at = utcnow()
+        if key not in NICHT_FREIGESCHALTET:
+            user.activated_at = utcnow()
         user.email_verified_at = utcnow()
         user.bio = BIOS.get(key, f"Hi, ich bin {name} und trainiere gern.")
-        if verifiziert and hasattr(user, "verified_at"):
-            user.verified_at = utcnow()
+        # Der blaue Haken hängt an `is_verified` (bis 16.10.2026 stand hier
+        # `verified_at` - das Feld gibt es nicht, kein Profil hatte den Haken).
+        user.is_verified = verifiziert
         for position, datei in enumerate(fotos):
             pfad = demo_bild(datei)
             endung = pfad.suffix.lstrip(".")

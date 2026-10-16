@@ -65,6 +65,7 @@ final class ScreenshotTests: XCTestCase {
         konto()
         englisch()
         abmelden()
+        gate()
     }
 
     // MARK: - A: ausgeloggt
@@ -425,6 +426,29 @@ final class ScreenshotTests: XCTestCase {
         }
     }
 
+    // MARK: - H: Konto vor der Freischaltung
+
+    /// Nora (seed.py) ist noch nicht freigeschaltet: Nach dem Login steht das
+    /// Verifizierungs-Gate statt der Tab-Leiste.
+    private func gate() {
+        let feld = app.textFields.firstMatch
+        guard feld.waitForExistence(timeout: 10) else { return }
+        leere(feld)
+        tippeFeld(feld, text: "nora@example.com")
+        let pw = app.secureTextFields.firstMatch
+        leere(pw)
+        tippeFeld(pw, text: passwort + "\n")
+        warte(5)
+        systemdialogeSchliessen()
+        foto("15-gate")
+        app.swipeUp()
+        warte(1)
+        foto("15-gate-2")
+        if tippe(knopf: "Ausloggen", scrollen: true) {
+            warte(2)
+        }
+    }
+
     // MARK: - Hilfsschritte
 
     /// Mitteilungs-Abfrage und „Passwort sichern?" nach dem Login. Letzteres
@@ -474,8 +498,13 @@ final class ScreenshotTests: XCTestCase {
     private func tippe(_ abfrage: XCUIElementQuery, name: String, scrollen: Bool, warten: TimeInterval) -> Bool {
         _ = abfrage.firstMatch.waitForExistence(timeout: warten)
         if scrollen {
-            for _ in 0..<14 where !abfrage.allElementsBoundByIndex.contains(where: { $0.isHittable }) {
+            // Erst nach unten suchen, dann zurück nach oben - das Ziel kann
+            // auch über der aktuellen Stelle liegen.
+            for _ in 0..<12 where !abfrage.allElementsBoundByIndex.contains(where: { $0.isHittable }) {
                 app.swipeUp()
+            }
+            for _ in 0..<24 where !abfrage.allElementsBoundByIndex.contains(where: { $0.isHittable }) {
+                app.swipeDown()
             }
         }
         let alle = abfrage.allElementsBoundByIndex

@@ -24,13 +24,15 @@ struct PostalCodeField: View {
 
     @Binding var postalCode: String
     let lookupState: PlzLookupState
-    var label = "Postleitzahl"
+    /// Ohne Angabe "Postleitzahl" in der gewählten Sprache (bis 2.4.11 fest
+    /// deutsch).
+    var label: String?
 
     @FocusState private var isFocused: Bool
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            FieldLabel(text: label)
+            FieldLabel(text: label ?? s(.gymPostalCodeLabel))
 
             HStack(spacing: 0) {
                 TextField("1010", text: $postalCode)

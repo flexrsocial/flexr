@@ -30,6 +30,10 @@ struct PhotoImage: View {
     /// Entsprechung der `contentDescription` auf Android. Ohne sie bleibt das
     /// Foto für VoiceOver stumm — und Fotos sind der Inhalt dieser App.
     var accessibilityLabel: String?
+    /// Fläche hinter dem Foto, solange es lädt - und bei `.fit` an den
+    /// Rändern. Die Galerie setzt sie auf durchsichtig: Dort stand das
+    /// Hochformatfoto sonst auf einem grauen Kasten mit Balken.
+    var backdrop: Color = FlexrColor.surface2
 
     @State private var image: UIImage?
     @State private var isLoading = false
@@ -51,7 +55,7 @@ struct PhotoImage: View {
         // Fehler hatte im Fotoraster schon einmal zugeschlagen (siehe den
         // Kommentar in PhotoGrid.swift) - dort mit einem Umweg umgangen,
         // hier jetzt an der Wurzel behoben.
-        FlexrColor.surface2
+        backdrop
             .overlay {
                 if let image {
                     if contentMode == .fill, verticalFocus != 0.5 {
