@@ -82,7 +82,8 @@ struct SwipeableCard: View {
                 onReport: onReport,
                 onBlock: onBlock,
                 onUnmatch: onUnmatch,
-                photoIndex: $photoIndex
+                photoIndex: $photoIndex,
+                textBottomInset: isDraggable ? CardContent.deckButtonsInset : CardContent.textBottom
             )
             .frame(width: geometry.size.width, height: geometry.size.height)
             .background(FlexrColor.cardGradient)
@@ -159,7 +160,10 @@ struct BackgroundCard: View {
                 onReport: {},
                 onBlock: {},
                 onUnmatch: nil,
-                photoIndex: $photoIndex
+                photoIndex: $photoIndex,
+                // Gleiche Aufteilung wie die obere Karte, sonst springt das
+                // Foto, sobald diese Karte nach vorn rueckt.
+                textBottomInset: CardContent.deckButtonsInset
             )
             .frame(width: geometry.size.width, height: geometry.size.height)
             .background(FlexrColor.cardGradient)
@@ -180,6 +184,13 @@ private struct CardContent: View {
     @Environment(LanguageStore.self) private var languageStore
     private var s: FlexrStrings { languageStore.strings }
 
+    /// Abstand des Textes zum unteren Kartenrand.
+    static let textBottom: CGFloat = 16
+    /// Im Deck liegen X und Herz ueber dem unteren Kartenrand (64 pt Knopf,
+    /// 14 pt Abstand, siehe SwipeView). Der Text endet darueber, statt unter
+    /// den Knoepfen zu verschwinden.
+    static let deckButtonsInset: CGFloat = 88
+
     let profile: Profile
     let isInteractive: Bool
     let onOpenPhotos: (Int) -> Void
@@ -187,17 +198,21 @@ private struct CardContent: View {
     let onBlock: () -> Void
     let onUnmatch: (() -> Void)?
     @Binding var photoIndex: Int
+    let textBottomInset: CGFloat
 
     var body: some View {
-        GeometryReader { geometry in
-            VStack(spacing: 0) {
-                photoSection
-                    .frame(height: geometry.size.height * 0.58)
-                    .clipped()
-                detailSection
-                    .frame(height: geometry.size.height * 0.42)
-                    .clipped()
-            }
+        // Foto mindestens 58 % der Karte, den Rest bekommt es, soweit der Text
+        // darunter ihn nicht braucht (Web: .card .photo, Android: CardContent).
+        // Mit fester 58/42-Teilung stand im Match-Profil unter einer kurzen
+        // Bio - dem Regelfall - ein leeres Stueck Karte.
+        PhotoOverDetailLayout(maxDetailShare: 0.42) {
+            // `Color.clear` ist genau so gross, wie das Layout vorschlaegt, und
+            // ein `overlay` wirkt nicht auf diese Groesse zurueck (wie in
+            // PhotoImage). `.clipped()` schneidet damit an der Fotoflaeche.
+            Color.clear
+                .overlay { photoSection }
+                .clipped()
+            detailSection
         }
     }
 
@@ -250,9 +265,9 @@ private struct CardContent: View {
             nameBlock
         }
         // Kein `.clipped()` hier: Es schnitte an der Groesse dieses Stapels,
-        // nicht an der halben Kartenhoehe, die er bekommen soll. Geschnitten
-        // wird oben in `body` — erst `.frame(height:)`, dann `.clipped()`.
-        // Andersherum lief der Name in die Merkmale darunter (18.09.2026).
+        // nicht an der Fotoflaeche, die er bekommen soll. Geschnitten wird
+        // oben in `body` an `Color.clear`, das die Flaeche vorgibt. Am Stapel
+        // geschnitten lief der Name in die Merkmale darunter (18.09.2026).
     }
 
     /// Die Striche sind die Foto-Auswahl: ein Tipp auf einen Strich (bzw. den
@@ -329,31 +344,80 @@ private struct CardContent: View {
         StatChip(text: "Online", isAccent: true, hasPulsingDot: true)
     }
 
+    /// Ein `ScrollView` nimmt immer die ganze angebotene Hoehe. Deshalb erst
+    /// der Text ohne Scrollen; nur wenn er nicht in den Platz passt, den
+    /// `PhotoOverDetailLayout` anbietet, die scrollende Fassung.
     private var detailSection: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 12) {
-                // Umbrechend wie im Web (flex-wrap) und auf Android (FlowRow):
-                // Passt der Gym-Chip nicht neben "Online", kommt "Online" in
-                // die naechste Zeile, statt die Adresse abzuschneiden.
-                ViewThatFits(in: .horizontal) {
-                    HStack(spacing: 8) {
-                        gymChip
-                        if profile.isOnline { onlineChip }
-                        Spacer(minLength: 0)
-                    }
-                    VStack(alignment: .leading, spacing: 8) {
-                        gymChip
-                        if profile.isOnline { onlineChip }
-                    }
-                }
-                Text(profile.bio?.isEmpty == false ? profile.bio! : s(.bioNone))
-                    .flexrText(.bodyMedium)
-                    .foregroundStyle(FlexrColor.chalkDim)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-            }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 14)
+        ViewThatFits(in: .vertical) {
+            detailContent
+            ScrollView { detailContent }
         }
+    }
+
+    private var detailContent: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            // Umbrechend wie im Web (flex-wrap) und auf Android (FlowRow):
+            // Passt der Gym-Chip nicht neben "Online", kommt "Online" in
+            // die naechste Zeile, statt die Adresse abzuschneiden.
+            ViewThatFits(in: .horizontal) {
+                HStack(spacing: 8) {
+                    gymChip
+                    if profile.isOnline { onlineChip }
+                    Spacer(minLength: 0)
+                }
+                VStack(alignment: .leading, spacing: 8) {
+                    gymChip
+                    if profile.isOnline { onlineChip }
+                }
+            }
+            Text(profile.bio?.isEmpty == false ? profile.bio! : s(.bioNone))
+                .flexrText(.bodyMedium)
+                .foregroundStyle(FlexrColor.chalkDim)
+                .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .padding(.horizontal, 16)
+        .padding(.top, 14)
+        .padding(.bottom, textBottomInset)
+    }
+}
+
+/// Foto oben, Text unten. Der Text (zweite Unteransicht) bekommt die Hoehe, die
+/// er braucht, hoechstens `maxDetailShare` der Karte; das Foto den Rest.
+///
+/// Ein `VStack` mit `.frame(maxHeight:)` ginge nicht: Ein Rahmen mit
+/// Hoechstwert waechst bis zu diesem Wert, sobald mehr angeboten wird, und
+/// meldet dann wieder starre 42 %.
+private struct PhotoOverDetailLayout: Layout {
+
+    let maxDetailShare: CGFloat
+
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        proposal.replacingUnspecifiedDimensions()
+    }
+
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        guard subviews.count == 2 else { return }
+        let photo = subviews[0]
+        let detail = subviews[1]
+        let maxDetailHeight = bounds.height * maxDetailShare
+        // Bei diesem Angebot waehlt `ViewThatFits` den Text ohne Scrollen
+        // (meldet seine eigene Hoehe) oder den scrollenden (meldet das
+        // Angebot) - also nie mehr als `maxDetailHeight`.
+        let needed = detail.sizeThatFits(
+            ProposedViewSize(width: bounds.width, height: maxDetailHeight)
+        ).height
+        let detailHeight = min(needed, maxDetailHeight)
+        let photoHeight = bounds.height - detailHeight
+        photo.place(
+            at: bounds.origin,
+            anchor: .topLeading,
+            proposal: ProposedViewSize(width: bounds.width, height: photoHeight)
+        )
+        detail.place(
+            at: CGPoint(x: bounds.minX, y: bounds.minY + photoHeight),
+            anchor: .topLeading,
+            proposal: ProposedViewSize(width: bounds.width, height: detailHeight)
+        )
     }
 }
 
