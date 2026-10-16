@@ -1,6 +1,6 @@
 # FLEXR — Handoff für ein anderes Gerät / Claude Code
 
-Stand: **15.10.2026**
+Stand: **16.10.2026**
 
 ## ⚠️ Dringend zu prüfen: SSH-Zugang zum VPS hat sich geändert (21.09.2026)
 
@@ -31,6 +31,35 @@ Falls du das liest, weil dein `root@`-Login gerade fehlschlägt: das ist
 erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 
 ## Wo das Projekt gerade steht
+
+> **Sitzung 16.10.2026: iOS-Karte wie Web/Android - Foto wächst, Text endet
+> über X und Herz (`e62cc8c`).** Nur iOS, nichts deployt außer diesem
+> Eintrag; nicht bei App Review eingereicht, kein TestFlight-Lauf.
+>
+> - `ios/FLEXR/UI/Swipe/SwipeCard.swift`: Die feste 58/42-Teilung in
+>   `CardContent` ist weg. Ein eigenes `Layout` (`PhotoOverDetailLayout`)
+>   misst den Textbereich und gibt dem Foto den Rest: Foto mindestens 58 %,
+>   Text höchstens 42 %, scrollt nur bei langer Bio.
+> - Gemessen wird über `ViewThatFits(in: .vertical) { Text; ScrollView { Text } }`:
+>   Ein `ScrollView` meldet sonst immer die ganze angebotene Höhe. Ein `VStack`
+>   mit `.frame(maxHeight:)` geht auch nicht - der Rahmen wächst bis zum
+>   Höchstwert und meldet wieder starre 42 %.
+> - Text endet im Deck 88 pt über dem Kartenrand (`CardContent.deckButtonsInset`,
+>   wie `DECK_BUTTONS_INSET` auf Android), im Match-Profil 16 pt. Die
+>   Hintergrundkarte nutzt dieselben 88 pt, damit das Foto beim Nachrücken
+>   nicht springt.
+> - Foto geschnitten an `Color.clear.overlay { photoSection }.clipped()`
+>   (Fläche kommt vom Layout, nicht vom Stapel - der Kommentar zum Fehler vom
+>   18.09.2026 ist angepasst).
+> - Geprüft auf Codemagic: `ios-tests` grün (61 Tests, Build
+>   `6ad1b56afe73f0c15b3a1c1a`), `ios-screenshots` grün (Build
+>   `6ad1b61491e26ea1572aaed5`). Vorher/nachher in
+>   `ios-screenshots/karte-vorher-nachher.png` (nicht im Repository): Foto
+>   deutlich größer, kein leerer Bereich unter der Bio, im Deck endet die Bio
+>   über X/Herz. Dass Mia im neuen Match-Profil-Bild kein „Online“ hat, liegt
+>   an den Testdaten (online = in den letzten 5 Minuten aktiv), nicht am
+>   Layout.
+> - Version unverändert. Nächster `ios-flexr` (TestFlight) nimmt das mit.
 
 > **Sitzung 15.10.2026 (21): UX-Runde Web + Android, gemeldete Kante über
 > der Navigationsleiste. Android 2.7.34 gebaut.**
@@ -122,7 +151,7 @@ erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 > - Auf den Bildern sichtbar bestätigt: Tagestrenner, Uhrzeit in der
 >   Chatliste, „Hallo sagen“, Leerzustände. Noch offen in iOS: Deck- und
 >   Match-Profil-Karte haben die feste 58/42-Teilung (leerer Bereich unter
->   der Bio) - jetzt per Screenshot prüfbar.
+>   der Bio) - jetzt per Screenshot prüfbar. (Erledigt 16.10.2026, siehe oben.)
 
 > **Sitzung 15.10.2026 (20): Optik-Runde Web + Android (nur optische
 > Kriterien). Android 2.7.33 gebaut.**
