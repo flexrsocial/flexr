@@ -13,6 +13,7 @@ enum L: Hashable, Sendable, CaseIterable {
     case commonVerifiedProfile, commonProfilePhotoOf, commonDeleteFailed
     case commonMoreOptions
     case chatSend, authTabRegister
+    case journeyProfile, journeyMail, journeySelfie, journeyId, journeyReview, journeyA11y
 
     // Sprache
     case langLabel, langRowTitle, langRowHint
@@ -214,7 +215,7 @@ enum L: Hashable, Sendable, CaseIterable {
     case documentSubmitted, documentSubmitFailed, documentConsentNote
 
     // Verifizierungs-Gate: der einzige Bildschirm eines gesperrten Kontos
-    case vgateLoading, vgateStep1of2, vgateStep2of2, vgateStep1of3
+    case vgateLoading, vgateStepSelfie, vgateStepDocument, vgateStepMail
     case vgateUnlockTitle, vgateReworkEyebrow, vgateReworkTitle, vgateReworkChip
     case vgateIntro, vgateNeedTitle, vgateNeedSelfie, vgateNeedDocument
     case vgateMediaTitle, vgateMediaHuman, vgateMediaPrivate, vgateMediaDeleted

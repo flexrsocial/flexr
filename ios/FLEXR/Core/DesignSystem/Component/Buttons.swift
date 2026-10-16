@@ -119,6 +119,11 @@ struct FlexrDangerButton: View {
     var isSolid = false
     let action: () -> Void
 
+    /// Gesperrt wie beim Hauptknopf: Stahlfläche statt halber Deckkraft. Rot
+    /// zu 50 % verschwand auf dem dunklen Grund fast ganz (Meldedialog, bevor
+    /// ein Grund eingetragen ist).
+    private var isBlocked: Bool { !isEnabled && !isLoading }
+
     var body: some View {
         Button(action: action) {
             HStack(spacing: 9) {
@@ -129,18 +134,22 @@ struct FlexrDangerButton: View {
                 }
                 Text(title.uppercased()).flexrText(.labelLarge)
             }
-            .foregroundStyle(isSolid ? Color.white : FlexrColor.danger)
+            .foregroundStyle(
+                isBlocked ? FlexrColor.chalkDim : (isSolid ? Color.white : FlexrColor.danger)
+            )
             .frame(maxWidth: .infinity, minHeight: 50)
             .flexrSurface(
                 radius: FlexrRadius.button,
-                fill: isSolid ? FlexrColor.danger : FlexrColor.danger.opacity(0.08),
-                border: FlexrColor.danger.opacity(isSolid ? 1 : 0.45)
+                fill: isBlocked
+                    ? FlexrColor.surface3
+                    : (isSolid ? FlexrColor.danger : FlexrColor.danger.opacity(0.08)),
+                border: isBlocked ? FlexrColor.steel : FlexrColor.danger.opacity(isSolid ? 1 : 0.45)
             )
         }
         .buttonStyle(.plain)
         .accessibilityLabel(title)
         .disabled(!isEnabled || isLoading)
-        .opacity(isEnabled && !isLoading ? 1 : 0.5)
+        .opacity(isLoading ? 0.6 : 1)
     }
 }
 

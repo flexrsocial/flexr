@@ -358,7 +358,7 @@ private struct SelfiePendingContent: View {
         // Die Schlüssel vorab und ausdrücklich typisiert: `s` ist überladen,
         // ein Bedingungsoperator mitten im Aufruf macht dem Übersetzer die
         // Herleitung unnötig schwer.
-        let eyebrowKey: L = needsNewUpload ? .vgateReworkEyebrow : .vgateStep1of2
+        let eyebrowKey: L = needsNewUpload ? .vgateReworkEyebrow : .vgateStepSelfie
         let titleKey: L = needsNewUpload ? .vgateReworkTitle : .vgateUnlockTitle
         let buttonKey: L = needsNewUpload ? .vgateRetry : .vgateStart
 
@@ -366,7 +366,7 @@ private struct SelfiePendingContent: View {
             GateHeader(
                 eyebrow: s(eyebrowKey),
                 title: s(titleKey),
-                stepIndex: 1,
+                step: .selfie,
                 chip: needsNewUpload ? GateChip.Content(text: s(.vgateReworkChip), isDanger: true) : nil
             )
 
@@ -414,7 +414,7 @@ private struct DocumentPendingContent: View {
     let onContinue: () -> Void
 
     var body: some View {
-        let eyebrowKey: L = needsNewUpload ? .vgateReworkEyebrow : .vgateStep2of2
+        let eyebrowKey: L = needsNewUpload ? .vgateReworkEyebrow : .vgateStepDocument
         let titleKey: L = needsNewUpload ? .vgateReworkTitle : .vgateDocumentTitle
         let buttonKey: L = needsNewUpload ? .vgateDocumentBtnRework : .vgateDocumentBtn
 
@@ -422,7 +422,7 @@ private struct DocumentPendingContent: View {
             GateHeader(
                 eyebrow: s(eyebrowKey),
                 title: s(titleKey),
-                stepIndex: 2,
+                step: .id,
                 chip: needsNewUpload ? GateChip.Content(text: s(.vgateReworkChip), isDanger: true) : nil
             )
 
@@ -461,7 +461,7 @@ private struct WaitingContent: View {
             GateHeader(
                 eyebrow: s(.vgateSubmittedEyebrow),
                 title: s(.vgateSubmittedTitle),
-                stepIndex: 3,
+                step: .review,
                 chip: GateChip.Content(text: s(.vgateSubmittedChip), isDanger: false)
             )
 
@@ -506,9 +506,9 @@ private struct EmailPendingContent: View {
 
         VStack(alignment: .leading, spacing: 0) {
             GateHeader(
-                eyebrow: s(.vgateStep1of3),
+                eyebrow: s(.vgateStepMail),
                 title: s(.vgateMailTitle),
-                stepIndex: 1,
+                step: .mail,
                 chip: GateChip.Content(text: s(.vgateMailChip), isDanger: false)
             )
 
@@ -563,7 +563,7 @@ private struct MissingPhotoContent: View {
             GateHeader(
                 eyebrow: s(.vgatePhotoEyebrow),
                 title: s(.vgatePhotoTitle),
-                stepIndex: 1,
+                step: .profile,
                 chip: GateChip.Content(text: s(.vgatePhotoChip), isDanger: true)
             )
 
@@ -627,7 +627,7 @@ private struct ActivatedContent: View {
             GateHeader(
                 eyebrow: s(.vgateDoneEyebrow),
                 title: s(.vgateUnlockedTitle),
-                stepIndex: 3,
+                step: .review,
                 chip: GateChip.Content(text: s(.vgateUnlockedChip), isDanger: false)
             )
 
@@ -656,7 +656,7 @@ private struct RejectedContent: View {
             GateHeader(
                 eyebrow: s(.vgateRejectedEyebrow),
                 title: s(.vgateRejectedTitle),
-                stepIndex: 3,
+                step: .review,
                 chip: GateChip.Content(text: s(.vgateRejectedChip), isDanger: true)
             )
 
@@ -685,7 +685,7 @@ private struct GateHeader: View {
 
     let eyebrow: String
     let title: String
-    let stepIndex: Int
+    let step: JourneyStep
     var chip: GateChip.Content?
 
     var body: some View {
@@ -695,7 +695,7 @@ private struct GateHeader: View {
                 .flexrText(.headlineMedium)
                 .foregroundStyle(FlexrColor.chalk)
                 .fixedSize(horizontal: false, vertical: true)
-            VerificationStepBar(current: stepIndex)
+            VerificationStepBar(current: step)
                 .padding(.top, 14)
             if let chip {
                 GateChip(content: chip)

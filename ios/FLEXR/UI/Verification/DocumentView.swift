@@ -245,7 +245,7 @@ struct DocumentView: View {
             } else {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 0) {
-                        VerificationStepBar(current: 2)
+                        VerificationStepBar(current: .id)
                             .padding(.top, 16)
 
                         FlexrCard {
@@ -328,26 +328,62 @@ struct DocumentView: View {
 }
 
 /// Schrittanzeige: 1 Selfies, 2 Ausweis, 3 Prüfung.
-struct VerificationStepBar: View {
+/// Die fünf Etappen bis zur Freischaltung - dieselbe Zählung wie im Web und
+/// auf Android („Schritt 3 von 5"). Bis 2.4.12 hatte iOS eine eigene mit drei
+/// unbeschrifteten Strichen, über denen „Schritt 1 von 2" stand.
+enum JourneyStep: Int, CaseIterable {
+    case profile, mail, selfie, id, review
 
-    let current: Int
+    var labelKey: L {
+        switch self {
+        case .profile: .journeyProfile
+        case .mail: .journeyMail
+        case .selfie: .journeySelfie
+        case .id: .journeyId
+        case .review: .journeyReview
+        }
+    }
+}
+
+/// Fortschrittsleiste mit Beschriftung je Etappe (`JourneyBar` auf Android).
+struct VerificationStepBar: View {
+    @Environment(LanguageStore.self) private var languageStore
+
+    let current: JourneyStep
 
     var body: some View {
-        HStack(spacing: 6) {
-            ForEach(1...3, id: \.self) { step in
-                RoundedRectangle(cornerRadius: 2, style: .continuous)
-                    .fill(color(for: step))
-                    .frame(height: 3)
+        HStack(alignment: .top, spacing: 6) {
+            ForEach(JourneyStep.allCases, id: \.self) { step in
+                VStack(alignment: .leading, spacing: 6) {
+                    RoundedRectangle(cornerRadius: 2, style: .continuous)
+                        .fill(barColor(for: step))
+                        .frame(height: 4)
+                    Text(languageStore.strings(step.labelKey).uppercased())
+                        .font(.flexrMono(10, weight: 500))
+                        .tracking(0.8)
+                        .foregroundStyle(labelColor(for: step))
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.7)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
             }
         }
         .accessibilityElement()
-        .accessibilityLabel("\(current) / 3")
+        .accessibilityLabel(
+            languageStore.strings(.journeyA11y, current.rawValue + 1, JourneyStep.allCases.count)
+        )
     }
 
-    private func color(for step: Int) -> Color {
-        if step < current { return FlexrColor.plate }
+    private func barColor(for step: JourneyStep) -> Color {
+        if step.rawValue < current.rawValue { return FlexrColor.plate }
         if step == current { return FlexrColor.chalk }
         return FlexrColor.steel
+    }
+
+    private func labelColor(for step: JourneyStep) -> Color {
+        if step.rawValue < current.rawValue { return FlexrColor.plate }
+        if step == current { return FlexrColor.chalk }
+        return FlexrColor.chalkDim
     }
 }
 

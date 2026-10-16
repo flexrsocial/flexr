@@ -25,6 +25,12 @@ extension FlexrStrings {
         .commonDeleteFailed: "Löschen fehlgeschlagen.",
         .commonMoreOptions: "Weitere Optionen",
         .chatSend: "Senden",
+        .journeyProfile: "Profil",
+        .journeyMail: "E-Mail",
+        .journeySelfie: "Selfie",
+        .journeyId: "Ausweis",
+        .journeyReview: "Prüfung",
+        .journeyA11y: "Schritt %d von %d bis zur Freischaltung",
         .authTabRegister: "Registrieren",
 
         // MARK: Sprache
@@ -641,9 +647,9 @@ extension FlexrStrings {
 
         // MARK: Verifizierungs-Gate
         .vgateLoading: "Status wird geladen …",
-        .vgateStep1of2: "Schritt 1 von 2",
-        .vgateStep2of2: "Schritt 2 von 2",
-        .vgateStep1of3: "Schritt 1 von 3",
+        .vgateStepSelfie: "Schritt 3 von 5",
+        .vgateStepDocument: "Schritt 4 von 5",
+        .vgateStepMail: "Schritt 2 von 5",
         .vgateUnlockTitle: "Konto freischalten",
         .vgateReworkEyebrow: "Nachbesserung",
         .vgateReworkTitle: "Wir konnten deine Verifizierung noch nicht abschließen.",

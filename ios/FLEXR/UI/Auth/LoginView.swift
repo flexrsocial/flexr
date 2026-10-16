@@ -198,6 +198,9 @@ struct LoginView: View {
         .scrollDismissesKeyboard(.interactively)
         .onChange(of: model.email) { _, _ in model.error = nil }
         .onChange(of: model.password) { _, _ in model.error = nil }
+        // Die Meldung kommt in der Sprache, in der sie entstand - nach einem
+        // Wechsel am Regler stünde sonst Deutsch in der englischen Ansicht.
+        .onChange(of: languageStore.language) { _, _ in model.error = nil }
         .sheet(isPresented: $model.forgotOpen) {
             ForgotPasswordSheet(model: model)
                 .presentationDetents([.medium, .large])

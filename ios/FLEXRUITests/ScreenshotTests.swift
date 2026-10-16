@@ -161,7 +161,24 @@ final class ScreenshotTests: XCTestCase {
         if tippe(knopf: "Melden") {
             warte(1)
             foto("01-deck-melden")
-            tippe(knopf: "Abbrechen")
+            let grund = app.textViews.firstMatch
+            if grund.waitForExistence(timeout: 3) {
+                grund.tap()
+                grund.typeText("Testmeldung aus dem UI-Test")
+                warte(1)
+                foto("01-deck-melden-grund")
+                // Der Knopf im Blatt ist der untere der beiden "Melden".
+                if let senden = untersterKnopf("Melden") {
+                    senden.tap()
+                    warte(3)
+                    foto("01-deck-gemeldet")
+                    tippe(knopf: "Schließen", warten: 2)
+                } else {
+                    tippe(knopf: "Abbrechen")
+                }
+            } else {
+                tippe(knopf: "Abbrechen")
+            }
             warte(1)
         }
         if tippe(knopf: "Blockieren") {
@@ -187,6 +204,14 @@ final class ScreenshotTests: XCTestCase {
         }
         if !matchGesehen {
             XCTContext.runActivity(named: "Kein Match-Overlay nach den Likes") { _ in }
+        }
+        // Die nächste Karte wirklich blockieren - im Konto wird sie wieder
+        // freigegeben.
+        if tippe(knopf: "Blockieren", warten: 3) {
+            warte(1)
+            tippeImDialog("Blockieren")
+            warte(2)
+            foto("01-deck-blockiert")
         }
         // Rest ablehnen, bis das Deck leer ist.
         for _ in 0..<4 {
@@ -236,6 +261,19 @@ final class ScreenshotTests: XCTestCase {
             tippe(knopf: "Zurück")
             warte(1)
         }
+
+        // Viktoria wirklich auflösen.
+        if tippe(enthaelt: "Viktoria") {
+            warte(2)
+            if tippe(knopf: "Match auflösen") {
+                warte(1)
+                tippeImDialog("Auflösen")
+                warte(3)
+                foto("03-match-aufgeloest")
+            } else {
+                tippe(knopf: "Zurück")
+            }
+        }
     }
 
     // MARK: - D: Chats
@@ -284,6 +322,19 @@ final class ScreenshotTests: XCTestCase {
         }
         tippe(knopf: "Zurück")
         warte(1)
+        if tippe(enthaelt: "Mia") {
+            warte(2)
+            if tippe(knopf: "Weitere Optionen") {
+                warte(1)
+                tippe(knopf: "Chatverlauf leeren")
+                warte(1)
+                tippeImDialog("Leeren")
+                warte(3)
+                foto("06-chat-geleert")
+            }
+            tippe(knopf: "Zurück")
+            warte(1)
+        }
         tippe(knopf: "Swipe")
         warte(1)
         tippe(knopf: "Chats")
@@ -342,6 +393,10 @@ final class ScreenshotTests: XCTestCase {
         if tippe(enthaelt: "Blockierte", scrollen: true) {
             warte(2)
             foto("10-blockiert")
+            if tippe(knopf: "Aufheben", scrollen: true) {
+                warte(2)
+                foto("10-blockierung-aufgehoben")
+            }
         }
         if tippe(enthaelt: "Meine Meldungen", scrollen: true) {
             warte(2)
@@ -519,6 +574,15 @@ final class ScreenshotTests: XCTestCase {
         }
         XCTContext.runActivity(named: "\"\(name)\" nicht gefunden (\(alle.count) Treffer)") { _ in }
         return false
+    }
+
+    /// Von mehreren gleich beschrifteten Knöpfen den untersten (etwa den im
+    /// Blatt statt des gleichnamigen auf der Karte dahinter).
+    private func untersterKnopf(_ label: String) -> XCUIElement? {
+        app.buttons.matching(NSPredicate(format: "label ==[c] %@", label))
+            .allElementsBoundByIndex
+            .filter { $0.isHittable }
+            .max(by: { $0.frame.minY < $1.frame.minY })
     }
 
     private func tippeImDialog(_ label: String) {
