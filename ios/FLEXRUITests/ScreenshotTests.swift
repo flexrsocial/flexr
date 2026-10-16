@@ -108,6 +108,16 @@ final class ScreenshotTests: XCTestCase {
             app.swipeUp()
             warte(1)
             foto("00-registrieren-3")
+            // Bio im Vollbild-Blatt: Emoji-Feld mit eigener Schreibmarke.
+            let bio = app.textViews.firstMatch
+            if bio.waitForExistence(timeout: 3) {
+                bio.tap()
+                warte(1)
+                bio.typeText("Suche jemanden fürs Training am Morgen.")
+                if !tippe(knopf: "Fertig", warten: 2) { app.swipeDown() }
+                warte(1)
+                foto("00-registrieren-bio")
+            }
             // Leer abschicken: Die Prüfung springt zum ersten offenen Feld.
             if tippe(knopf: "Profil kostenlos erstellen", scrollen: true) {
                 warte(2)
