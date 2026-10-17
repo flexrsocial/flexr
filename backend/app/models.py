@@ -397,6 +397,15 @@ class User(Base):
     # Verifizierungs-Selfies gegen die Profilfotos gesetzt.
     is_verified = Column(Boolean, default=False, nullable=False)
 
+    # Prüfkonto für Google und Apple (appreview@flexr.social): Das Konto kann
+    # die App vollständig benutzen, erscheint aber bei niemandem sonst - weder
+    # im Deck noch unter "Wer dich geliket hat" noch in der Like-Erinnerung.
+    # Echte Nutzer sollen nicht auf ein Konto wischen, hinter dem Prüfer
+    # sitzen, und die Likes der Prüfer nicht als Interesse gemeldet bekommen.
+    # Gesetzt wird es über scripts/activate_review_account.py, nicht über die
+    # API. Bestehende Matches bleiben davon unberührt.
+    hidden_from_others = Column(Boolean, default=False, nullable=False, server_default=false())
+
     # E-Mail-Bestätigung per Aktivierungslink. Steht vor der Alters- und
     # Identitätsprüfung: Ein Mensch soll keine Ausweisaufnahme begutachten,
     # solange nicht feststeht, dass die Adresse überhaupt dem Nutzer gehört -

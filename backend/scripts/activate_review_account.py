@@ -25,6 +25,12 @@ Ausführen:
 
 Idempotent: Ein bereits freigeschaltetes Konto wird nicht erneut angefasst —
 ``activated_at`` bleibt der Zeitpunkt der ersten Freischaltung.
+
+Seit 17.10.2026 ist ein so freigeschaltetes Konto zugleich **für andere
+unsichtbar** (``User.hidden_from_others``): Es sieht selbst Deck, Matches und
+Chats, erscheint aber bei niemandem im Deck oder unter den eingehenden Likes.
+Für ein schon früher freigeschaltetes Prüfkonto genügt es, das Skript erneut
+laufen zu lassen.
 """
 import argparse
 import sys
@@ -64,6 +70,7 @@ def main() -> int:
         print(f"  E-Mail bestätigt: {user.email_verified_at or 'nein'}")
         print(f"  Alter geprüft: {user.age_verified}")
         print(f"  Fotos: {len(user.photos)}")
+        print(f"  für andere unsichtbar: {user.hidden_from_others}")
 
         if not user.photos:
             # Ein Konto ohne Foto erscheint im eigenen Profil leer und wird
@@ -83,6 +90,7 @@ def main() -> int:
             user.age_verified_at = now
         user.verification_method = "manual_id"
         activate_account(user)
+        user.hidden_from_others = True
 
         # Ein offener Vorgang würde den Clients weiterhin einen nächsten
         # Schritt melden - der Prüfer landete im Verifizierungsbildschirm,
@@ -95,7 +103,7 @@ def main() -> int:
             print(f"Offener Vorgang {pending.id} als geprüft geschlossen.")
 
         db.commit()
-        print(f"\nFreigeschaltet: {user.email} (activated_at {user.activated_at}).")
+        print(f"\nFreigeschaltet: {user.email} (activated_at {user.activated_at}), für andere unsichtbar.")
         return 0
     finally:
         db.close()

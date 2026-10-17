@@ -179,6 +179,8 @@ def _pending_likes_count(db: Session, user: User) -> int:
             consents.sensitive_data_consent_condition(),
             # Wie GET /api/swipes/incoming: nur wer genug freigegebene Fotos hat.
             genug_fotos_condition(),
+            # Und kein Like des Prüfkontos (models.User).
+            User.hidden_from_others.is_(False),
         )
         .count()
     )

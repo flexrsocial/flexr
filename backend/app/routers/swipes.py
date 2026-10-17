@@ -146,6 +146,9 @@ def deck_profiles(db: Session, current_user: User, limit: int = DECK_SIZE) -> li
         User.gender == current_user.interest,
         User.interest == current_user.gender,
         genug_fotos_condition(),
+        # Das Prüfkonto für Google/Apple taucht in keinem fremden Deck auf -
+        # auch nicht über den Liker-Vorrang darunter (models.User).
+        User.hidden_from_others.is_(False),
     ]
     if excluded_ids:
         base_filters.append(~User.id.in_(excluded_ids))
@@ -254,6 +257,8 @@ def swipe(
             consents.sensitive_data_consent_condition(),
             User.gender == current_user.interest,
             User.interest == current_user.gender,
+            # Ebenso das Prüfkonto, das in keinem Deck auftaucht.
+            User.hidden_from_others.is_(False),
         )
         .first()
     )
@@ -461,6 +466,8 @@ def incoming_likes(
             # Und dieselbe Fotoschwelle - vorher gab es hier gar keine, ein
             # Liker ohne freigegebenes Foto erschien mit leerem Bild.
             genug_fotos_condition(),
+            # Likes der Prüfer (Prüfkonto, models.User) sind kein Interesse.
+            User.hidden_from_others.is_(False),
         )
         .order_by(Swipe.created_at.desc())
         .all()
