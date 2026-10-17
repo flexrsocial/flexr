@@ -24,6 +24,7 @@ extension FlexrStrings {
         .commonProfilePhotoOf: "Profilfoto von %@",
         .commonDeleteFailed: "Löschen fehlgeschlagen.",
         .commonMoreOptions: "Weitere Optionen",
+        .commonOnline: "Online",
         .chatSend: "Senden",
         .journeyProfile: "Profil",
         .journeyMail: "E-Mail",

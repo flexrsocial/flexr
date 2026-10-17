@@ -1,8 +1,60 @@
 # HANDOFF — native iOS-App
 
-Stand: **16.10.2026**, Version 2.4.12. Für Aufbau, Build-Befehle und die
+Stand: **17.10.2026**, Version 2.4.12. Für Aufbau, Build-Befehle und die
 Migrationstabelle siehe [README.md](README.md) — hier steht nur, was daraus
 *nicht* hervorgeht.
+
+---
+
+## Bio im Deck über X/Herz, 17.10.2026 (nach 2.4.12) — **nicht compilerverifiziert**
+
+**Ohne Versionssprung**, Branch `claude/ios-deck-bio` (lokal, nicht gepusht),
+aufgesetzt auf `main` (`b02d499`). Gleicher Fehler und gleiche Lösung wie auf
+Android (Branch `claude/android-deck-bio-texte`, Commit `05175a4`, oberster
+Abschnitt in `android-native/HANDOFF.md`), dort gefunden beim Aufnehmen der
+Store-Bilder.
+
+* **Fehler:** `SwipeCard.swift`, `CardContent.detailContent` trug
+  `.padding(.bottom, textBottomInset)` (im Deck `deckButtonsInset` = 88 pt,
+  Platz für X und Herz). Wurde der Text gekappt, landete `detailContent` samt
+  Abstand im `ScrollView`, und `PhotoOverDetailLayout(maxDetailShare: 0.42)`
+  zählte den Abstand zu den 42 %. Brauchten Gym-Chip (zweizeilig bei langer
+  Adresse, z. B. „Plate Club — Landstraßer Hauptstraße 50, 1030 Wien“),
+  Online-Chip und Bio mehr Platz, reichte der sichtbare Text bis zum
+  Kartenrand, also unter X und Herz; der Abstand lag unsichtbar am Ende des
+  Scrollinhalts.
+* **Jetzt:** `PhotoOverDetailLayout` hat `bottomInset` und hält den Abstand
+  selbst unter dem Text frei, außerhalb von `detailSection` und damit des
+  `ScrollView`. Die 42 % gelten für die Karte ohne den Abstand:
+  `(Höhe − bottomInset) × 0,42`, wie Android und das Web (dort stehen die
+  Knöpfe unter der Karte). `detailContent` hat unten keinen Abstand mehr.
+  Lange Bios scrollen weiter, ihr sichtbarer Teil endet 88 pt über dem
+  Kartenrand, also über den Knöpfen (64 pt + 14 pt).
+* **Was sich sonst ändert:** Passt der Text ohne Scrollen, bleibt die
+  Aufteilung wie bisher (Text + Abstand unten, das Foto den Rest). Bei langer
+  Bio im Deck bekommt der Text mehr und das Foto weniger, z. B. bei einer
+  520 pt hohen Karte Text 181 statt 130 pt, Foto 251 statt 302 pt (Foto
+  weiter mindestens 58 % der Karte über den Knöpfen). Im Match-Profil
+  (`textBottom` = 16) wächst die Höchstgrenze nur um 0,58 × 16 ≈ 9 pt, und
+  gescrollter Text endet 16 pt über dem Kartenrand statt daran.
+* **Hintergrundkarte:** `BackgroundCard` übergibt weiter
+  `textBottomInset: CardContent.deckButtonsInset` und läuft durch dasselbe
+  Layout, die Aufteilung ist also gleich wie bei der Karte vorn; das Foto
+  springt nicht, wenn sie nach vorn rückt.
+* **„Online“** (`onlineChip`) kommt aus `FlexrStrings`: neuer Schlüssel
+  `.commonOnline`, DE und EN „Online“ (Android `common_online`).
+  `FlexrStringsTests` deckt ihn über `L.allCases` ab.
+
+**Nicht geprüft:** Auf diesem Rechner (Linux) gibt es keine Swift-Toolchain
+und kein SwiftUI; kompiliert wurde nichts, auch kein Simulator. Codemagic
+baut vom GitHub-Stand (`tools/ios-screenshots/codemagic.py start` nimmt
+`main`), eine Prüfung dort hätte einen Push gebraucht. Nach dem Mergen und Pushen:
+`python3 tools/ios-screenshots/codemagic.py start ios-tests`, dann `hol`. Im
+Simulator lohnt der Blick auf dieselben Fälle wie auf Android: Profil mit
+zweizeiligem Gym-Chip, Online und zweizeiliger Bio (alles über den Knöpfen),
+lange Bio (scrollt bis zum letzten Satz, endet über den Knöpfen), Karte
+ziehen (Foto der Hintergrundkarte springt nicht), Match-Profil mit kurzer und
+langer Bio.
 
 ---
 

@@ -11,7 +11,7 @@ enum L: Hashable, Sendable, CaseIterable {
     case commonDelete, commonReport, commonBlock, commonApply, commonAccount
     case commonLogout, commonDeleteAccount, commonWriteMessage, commonProfile
     case commonVerifiedProfile, commonProfilePhotoOf, commonDeleteFailed
-    case commonMoreOptions
+    case commonMoreOptions, commonOnline
     case chatSend, authTabRegister
     case journeyProfile, journeyMail, journeySelfie, journeyId, journeyReview, journeyA11y
 

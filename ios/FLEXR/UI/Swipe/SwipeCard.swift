@@ -201,11 +201,12 @@ private struct CardContent: View {
     let textBottomInset: CGFloat
 
     var body: some View {
-        // Foto mindestens 58 % der Karte, den Rest bekommt es, soweit der Text
-        // darunter ihn nicht braucht (Web: .card .photo, Android: CardContent).
-        // Mit fester 58/42-Teilung stand im Match-Profil unter einer kurzen
-        // Bio - dem Regelfall - ein leeres Stueck Karte.
-        PhotoOverDetailLayout(maxDetailShare: 0.42) {
+        // Foto mindestens 58 % der Karte ueber dem Abstand unten (im Deck:
+        // ueber X und Herz), den Rest bekommt es, soweit der Text darunter ihn
+        // nicht braucht (Web: .card .photo, Android: CardContent). Mit fester
+        // 58/42-Teilung stand im Match-Profil unter einer kurzen Bio - dem
+        // Regelfall - ein leeres Stueck Karte.
+        PhotoOverDetailLayout(maxDetailShare: 0.42, bottomInset: textBottomInset) {
             // `Color.clear` ist genau so gross, wie das Layout vorschlaegt, und
             // ein `overlay` wirkt nicht auf diese Groesse zurueck (wie in
             // PhotoImage). `.clipped()` schneidet damit an der Fotoflaeche.
@@ -341,7 +342,7 @@ private struct CardContent: View {
     }
 
     private var onlineChip: some View {
-        StatChip(text: "Online", isAccent: true, hasPulsingDot: true)
+        StatChip(text: s(.commonOnline), isAccent: true, hasPulsingDot: true)
     }
 
     /// Ein `ScrollView` nimmt immer die ganze angebotene Hoehe. Deshalb erst
@@ -377,12 +378,21 @@ private struct CardContent: View {
         }
         .padding(.horizontal, 16)
         .padding(.top, 14)
-        .padding(.bottom, textBottomInset)
+        // Kein Abstand nach unten: Den haelt `PhotoOverDetailLayout` frei.
+        // Bis 2.4.12 lag er hier und damit im `ScrollView`; wurde gekappt,
+        // endete der sichtbare Text unter X und Herz (17.10.2026).
     }
 }
 
-/// Foto oben, Text unten. Der Text (zweite Unteransicht) bekommt die Hoehe, die
-/// er braucht, hoechstens `maxDetailShare` der Karte; das Foto den Rest.
+/// Foto oben, Text unten, darunter `bottomInset` frei (im Deck Platz fuer
+/// X und Herz). Der Text (zweite Unteransicht) bekommt die Hoehe, die er
+/// braucht, hoechstens `maxDetailShare` der Karte ueber dem Abstand; das Foto
+/// den Rest.
+///
+/// Der Abstand zaehlt nicht zu den 42 %, wie im Web, wo die Knoepfe unter der
+/// Karte stehen (Android: `(maxHeight - bottomInset) * 0.42f`). Und er liegt
+/// ausserhalb des Textes, also auch ausserhalb des `ScrollView`: Gekappter
+/// Text endet so immer ueber den Knoepfen.
 ///
 /// Ein `VStack` mit `.frame(maxHeight:)` ginge nicht: Ein Rahmen mit
 /// Hoechstwert waechst bis zu diesem Wert, sobald mehr angeboten wird, und
@@ -390,6 +400,7 @@ private struct CardContent: View {
 private struct PhotoOverDetailLayout: Layout {
 
     let maxDetailShare: CGFloat
+    let bottomInset: CGFloat
 
     func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
         proposal.replacingUnspecifiedDimensions()
@@ -399,7 +410,7 @@ private struct PhotoOverDetailLayout: Layout {
         guard subviews.count == 2 else { return }
         let photo = subviews[0]
         let detail = subviews[1]
-        let maxDetailHeight = bounds.height * maxDetailShare
+        let maxDetailHeight = max(bounds.height - bottomInset, 0) * maxDetailShare
         // Bei diesem Angebot waehlt `ViewThatFits` den Text ohne Scrollen
         // (meldet seine eigene Hoehe) oder den scrollenden (meldet das
         // Angebot) - also nie mehr als `maxDetailHeight`.
@@ -407,7 +418,7 @@ private struct PhotoOverDetailLayout: Layout {
             ProposedViewSize(width: bounds.width, height: maxDetailHeight)
         ).height
         let detailHeight = min(needed, maxDetailHeight)
-        let photoHeight = bounds.height - detailHeight
+        let photoHeight = max(bounds.height - bottomInset - detailHeight, 0)
         photo.place(
             at: bounds.origin,
             anchor: .topLeading,
