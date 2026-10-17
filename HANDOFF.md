@@ -1,6 +1,6 @@
 # FLEXR — Handoff für ein anderes Gerät / Claude Code
 
-Stand: **16.10.2026**
+Stand: **17.10.2026**
 
 ## ⚠️ Dringend zu prüfen: SSH-Zugang zum VPS hat sich geändert (21.09.2026)
 
@@ -31,6 +31,46 @@ Falls du das liest, weil dein `root@`-Login gerade fehlschlägt: das ist
 erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 
 ## Wo das Projekt gerade steht
+
+> **Sitzung 17.10.2026: Produktionszugang in Google Play erteilt (Mail
+> 04:07). Testprofile gelöscht, Prüfkonto für andere unsichtbar.**
+>
+> Deployt (`9f5596b`, `9509bd6`, gepusht; DB-Sicherungen
+> `/home/deploy/db-backups/flexr-vor-testkonten-20261017-1220.sql.gz` und
+> `flexr-vor-deploy-20261017-1222.sql.gz`, dann `git pull --ff-only`,
+> `alembic upgrade head` → `e3c8b5f1a7d2`, `sudo systemctl restart
+> flexr-api`). Live: Health 200, Journal ohne Fehler.
+>
+> - **Play Console:** 2.7.35 (147) lag schon im geschlossenen Test; der
+>   Nutzer stuft sie von dort in die Produktion hoch (ein zweiter Upload
+>   scheitert an „Versionscode 147 wurde bereits verwendet“ - stattdessen
+>   „Aus der Bibliothek hinzufügen“ bzw. „Release hochstufen“).
+>   Versionshinweise 2.7.35 DE/EN in `android/store/store-texte.md`.
+> - **Testprofile gelöscht** (Wunsch des Nutzers: „alles ohne Haken“): die
+>   20 Konten `@flexrtest.at` vom 14.10. samt 62 Fotos (124 Objekte in R2),
+>   20 Swipes, 2 Matches ohne Nachrichten, 1 Blockierung; keine Meldungen,
+>   keine Abos. Vorher geprüft: alle Konten ohne Haken waren `@flexrtest.at`.
+>   Übrig sind 8 Konten, alle mit Haken (7 echte + `appreview`). Die Likes
+>   von Jakob/Leon/Niklas/Felix für die Prüfer gibt es damit nicht mehr.
+> - **Prüfkonto unsichtbar:** neue Spalte `users.hidden_from_others`. Ein so
+>   markiertes Konto fehlt in jedem fremden Deck (auch im Liker-Vorrang),
+>   unter „Wer dich geliket hat“ und in der Like-Erinnerung; Likes darauf
+>   gibt `POST /api/swipes` mit 404 zurück. Es selbst sieht Deck, Matches und
+>   Chats wie bisher. `scripts/activate_review_account.py` setzt die Spalte
+>   jetzt mit (für `appreview` erneut gelaufen). Das Skript brach seit
+>   `53ea270` mit `ModuleNotFoundError` ab (Import vor `sys.path.insert`) -
+>   behoben.
+> - **Kubi** (echtes Konto) hatte `appreview` am 21.09. geliked und stand
+>   damit vorn im Deck der Prüfer - ein Rechtswisch hätte ein Match mit einem
+>   echten Menschen ergeben. `appreview` hat jetzt einen Pass auf Kubi.
+> - `appreview` behält die zwei Matches mit Chatverlauf mit den Konten des
+>   Betreibers (`styriatrading@`, `pachernegg@`); ein neues Match können die
+>   Prüfer nicht mehr herstellen (kein Testprofil, echte Nutzer sehen das
+>   Konto nicht). Eigenes Deck nach dem Deploy: 1 Profil.
+> - **Konto nicht löschen:** `appreview` ist das Prüfkonto unter „App-Zugriff“
+>   in der Play Console und für Apples App Review - jede neue Version wird
+>   damit geprüft.
+> - Tests: Backend 743 grün (+5, `tests/test_pruefkonto_unsichtbar.py`).
 
 > **Sitzung 16.10.2026 (3): Android 2.7.35 - Play-Console-Hinweise zu
 > Edge-to-Edge und großen Displays. Gebaut und dem Nutzer geschickt, noch nicht
