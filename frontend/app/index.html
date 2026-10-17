@@ -1526,14 +1526,17 @@
        fuer die deutsche Fassung zu schmal (siehe .hero-eyebrow). Das
        Musterdeck beginnt dadurch auf Hoehe der Schlagzeile statt der
        Augenbraue. */
-    /* Der iPhone-Knopf steht direkt unter dem Einleitungstext, neben dem
-       Musterdeck - nicht mehr als letzte Zeile unter den USPs, wo er
-       (30.09.2026) eng auf der Rechtsleiste sass. */
+    /* Der iPhone-Knopf steht direkt unter dem Einleitungstext - nicht mehr
+       als letzte Zeile unter den USPs, wo er (30.09.2026) eng auf der
+       Rechtsleiste sass. Seit dem Google-Play-Knopf daneben (17.10.2026)
+       laeuft die Zeile ueber beide Spalten: Die Textspalte allein ist neben
+       dem Musterdeck rund 300px breit, die beiden Knoepfe brauchen ~380px
+       und standen untereinander. */
     grid-template-areas:
       "eyebrow eyebrow"
       "title demo"
       "sub demo"
-      "dl demo"
+      "dl dl"
       "usps usps";
     column-gap:clamp(18px,3vw,34px); align-items:center;
   }
