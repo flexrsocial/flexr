@@ -420,6 +420,7 @@ TEXTE: dict[str, dict[str, str]] = {
             "each other in FLEXR."
         ),
     },
+    "match.cta": {"de": "Jetzt schreiben", "en": "Message now"},
     "queue.subject": {
         "de": "{count} neue Profile in deinem Umkreis",
         "en": "{count} new profiles within your radius",
@@ -435,6 +436,7 @@ TEXTE: dict[str, dict[str, str]] = {
             "to rate them."
         ),
     },
+    "queue.cta": {"de": "Profile ansehen", "en": "See profiles"},
     "likes.subject.one": {
         "de": "Ein Like wartet auf dich bei FLEXR",
         "en": "A like is waiting for you on FLEXR",
@@ -466,6 +468,7 @@ TEXTE: dict[str, dict[str, str]] = {
             "FLEXR and swipe back to see whether it’s a fit for you too."
         ),
     },
+    "likes.cta": {"de": "Jetzt swipen", "en": "Start swiping"},
     "inactive.subject": {
         "de": "Lange nicht gesehen bei FLEXR",
         "en": "Long time no see on FLEXR",
@@ -481,6 +484,7 @@ TEXTE: dict[str, dict[str, str]] = {
             "up within your radius in the meantime."
         ),
     },
+    "inactive.cta": {"de": "Zurück zu FLEXR", "en": "Back to FLEXR"},
 
     # ---- Push-Benachrichtigungen ----
     # Dieselben vier Anlaesse wie die abbestellbaren Mails oben, nur kuerzer:

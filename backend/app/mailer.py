@@ -912,9 +912,20 @@ def _notify_opt_out(lang: str = STANDARD) -> str:
 _NOTIFY_OPT_OUT = TEXTE["notify.optOut"]["de"]
 
 
+def _app_link(ziel: str) -> str:
+    """Link in die Web-App auf den passenden Reiter (Wunsch des Betreibers,
+    17.10.2026): Bis dahin sagten diese Mails nur "in FLEXR", ohne Link.
+
+    Dieselben Ziele wie die Push-Mitteilungen (``target`` in notifications.py).
+    Die Web-App wertet ``?open=`` aus, auch wenn man sich erst noch einloggen
+    muss (``oeffneZiel`` in frontend/app/index.html)."""
+    return f"{settings.frontend_url.rstrip('/')}/app/?open={ziel}"
+
+
 def _new_match_html(name: str, match_name: str, lang: str = STANDARD) -> str:
     body = "\n".join([
         _p(t("match.intro", lang, other=match_name)),
+        _button_html(_app_link("matches"), t("match.cta", lang)),
         _p(_notify_opt_out(lang)),
     ])
     return _email_shell(t("match.eyebrow", lang), _greeting_html(name, lang), body, lang=lang)
@@ -924,6 +935,8 @@ def send_new_match(email: str, name: str, match_name: str, lang: str = STANDARD)
     body = f"""{_greeting(name, lang)}
 
 {textwrap.fill(t("match.intro", lang, other=match_name), width=76)}
+
+{t("match.cta", lang)}: {_app_link("matches")}
 
 {textwrap.fill(_notify_opt_out(lang), width=76)}
 
@@ -938,6 +951,7 @@ def send_new_match(email: str, name: str, match_name: str, lang: str = STANDARD)
 def _queue_waiting_html(name: str, count: int, lang: str = STANDARD) -> str:
     body = "\n".join([
         _p(t("queue.intro", lang, count=count)),
+        _button_html(_app_link("swipe"), t("queue.cta", lang)),
         _p(_notify_opt_out(lang)),
     ])
     return _email_shell(t("queue.eyebrow", lang), _greeting_html(name, lang), body, lang=lang)
@@ -947,6 +961,8 @@ def send_queue_waiting(email: str, name: str, count: int, lang: str = STANDARD) 
     body = f"""{_greeting(name, lang)}
 
 {textwrap.fill(t("queue.intro", lang, count=count), width=76)}
+
+{t("queue.cta", lang)}: {_app_link("swipe")}
 
 {textwrap.fill(_notify_opt_out(lang), width=76)}
 
@@ -969,6 +985,7 @@ def _pending_likes_intro(count: int, lang: str) -> str:
 def _pending_likes_html(name: str, count: int, lang: str = STANDARD) -> str:
     body = "\n".join([
         _p(_pending_likes_intro(count, lang)),
+        _button_html(_app_link("swipe"), t("likes.cta", lang)),
         _p(_notify_opt_out(lang)),
     ])
     return _email_shell(t("likes.eyebrow", lang), _greeting_html(name, lang), body, lang=lang)
@@ -983,6 +1000,8 @@ def send_pending_likes(email: str, name: str, count: int, lang: str = STANDARD) 
 
 {textwrap.fill(_pending_likes_intro(count, lang), width=76)}
 
+{t("likes.cta", lang)}: {_app_link("swipe")}
+
 {textwrap.fill(_notify_opt_out(lang), width=76)}
 
 {t("signoff", lang)}
@@ -993,6 +1012,7 @@ def send_pending_likes(email: str, name: str, count: int, lang: str = STANDARD) 
 def _inactivity_html(name: str, days: int, lang: str = STANDARD) -> str:
     body = "\n".join([
         _p(t("inactive.intro", lang, days=days)),
+        _button_html(_app_link("swipe"), t("inactive.cta", lang)),
         _p(_notify_opt_out(lang)),
     ])
     return _email_shell(t("inactive.eyebrow", lang), _greeting_html(name, lang), body, lang=lang)
@@ -1004,6 +1024,8 @@ def send_inactivity_reminder(
     body = f"""{_greeting(name, lang)}
 
 {textwrap.fill(t("inactive.intro", lang, days=days), width=76)}
+
+{t("inactive.cta", lang)}: {_app_link("swipe")}
 
 {textwrap.fill(_notify_opt_out(lang), width=76)}
 
