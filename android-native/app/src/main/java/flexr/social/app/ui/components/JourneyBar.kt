@@ -35,7 +35,7 @@ import flexr.social.app.core.designsystem.theme.FlexrTheme
  * drei unbeschriftete Striche; wie viel nach dem Formular noch kommt, erfuhr
  * man erst unterwegs.
  */
-enum class JourneyStep(@StringRes val label: Int) {
+enum class JourneyStep(@param:StringRes val label: Int) {
     PROFILE(R.string.journey_profile),
     MAIL(R.string.journey_mail),
     SELFIE(R.string.journey_selfie),

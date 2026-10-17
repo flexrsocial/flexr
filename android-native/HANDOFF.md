@@ -1,12 +1,231 @@
 # HANDOFF — native Android-App
 
-Stand: **16.10.2026**, Version 2.7.35 / versionCode 147. Der jüngste
+Stand: **17.10.2026**, Version 2.7.36 / versionCode 148. Der jüngste
 Abschnitt steht oben, ältere folgen darunter. Fassungen zwischen dem
 16.09. und dem 04.10. sowie 2.7.29 bis 2.7.34 sind nur im Kommentar am
 `versionCode` in `app/build.gradle.kts` und in der Haupt-`HANDOFF.md`
 beschrieben.
 Für Aufbau, Build-Befehle und die Migrationstabelle siehe [README.md](README.md) —
 hier steht nur, was daraus *nicht* hervorgeht.
+
+---
+
+## Bio im Deck über X/Herz, übersetzbare Texte, 17.10.2026 (2.7.36)
+
+**In 2.7.36 enthalten** (2.7.36 war noch nicht hochgeladen, daher kein eigener
+Versionssprung). Entstanden auf Branch `claude/android-deck-bio-texte`
+(aufgesetzt auf `claude/android-agp9-r8`), am 17.10. in
+`claude/android-agp9-r8` gemergt; das AAB im Abschnitt darunter enthält beides.
+Anlass: drei Funde beim Aufnehmen der Store-Bilder
+(`android/store/neu-2026-10-17/`).
+
+* **Bio lief im Deck unter X und Herz.** `SwipeCard.kt`, `CardContent`: Der
+  Abstand zu den Knöpfen (`DECK_BUTTONS_INSET`, 88 dp) war Innenabstand im
+  Scrollbereich und zählte zur 42-%-Grenze. Brauchten Gym-Chip (zweizeilig bei
+  langer Adresse), Online-Chip und Bio mehr, wurde gekappt: Der sichtbare Text
+  reichte bis zum Kartenrand, der Abstand lag unsichtbar am Ende des
+  Scrollinhalts. Jetzt liegt er außerhalb (`padding(bottom)` vor
+  `heightIn`/`verticalScroll`), und die 42 % gelten für die Karte ohne den
+  Knopfbereich: `(maxHeight - bottomInset) * 0.42f`, wie im Web, wo die Knöpfe
+  unter der Karte stehen. Bei 411x731 dp (Karte 434 dp hoch) bekommt eine
+  lange Bio 145 dp, das Foto behält 201 dp. Mit „42 % der ganzen Karte nur
+  für den Text“ blieben dem Foto 164 dp. Die Hintergrundkarte nutzt dieselbe
+  Funktion mit demselben Abstand, die Aufteilung bleibt also gleich.
+* **Login-Reiter:** `AuthTabs.kt` hatte „Einloggen“/„Registrieren“ fest im
+  Code. Jetzt `login_submit` (wie iOS `loginSubmit`) und neu
+  `auth_tab_register` („Sign up“ wie Web und iOS).
+* **Weitere fest eingetragene Texte** (Suche nach Umlauten und großgeschriebenen
+  Wörtern in Kotlin-Literalen):
+  * `ChatScreen.kt`, Senden-Knopf für TalkBack → `chat_send`.
+  * `PhotoGrid.kt`, „Profilfoto“ → `common_profile_photo`.
+  * `PostalCodeField.kt`: Registrierung und Konto nutzen die
+    Standard-Beschriftung, die fest „Postleitzahl“ war → `plz_label`.
+  * `AccountViewModel.kt`: Eine unbekannte PLZ zeigte im Konto den deutschen
+    Text der Exception (die Registrierung nahm schon
+    `error_postal_code_unknown`), der Dank nach einem Gym-Vorschlag war fest
+    deutsch → `gym_suggest_thanks` wie in der Registrierung.
+  * `PlayBillingService.kt`: fünf Meldungen, die die Paywall anzeigt →
+    `purchase_*`, über `AppStrings` in der gewählten Sprache. Ist Googles
+    `debugMessage` nicht leer, hat sie weiter Vorrang (englischer
+    Entwicklertext, unverändert übernommen).
+  * `SwipeCard.kt`, „Online“ → `common_online` (gleiches Wort, damit der Test
+    keine Ausnahme braucht).
+  * Bewusst geblieben: `LegalContent.kt` (Rechtstexte gelten auf Deutsch),
+    die technischen Exception-Texte in `ImageProcessor`/`PlzRepository`
+    (laut Kommentar nur für Protokolle) und die Ersatztexte in `ApiError`
+    (`text(R.string.…, "…")`).
+* **X, Herz und Zurücknehmen ohne Beschriftung am Knopf** (Fund an den
+  Tablet-Bildern): Im uiautomator-Dump waren die runden Knöpfe unter der Karte
+  `clickable="true"` mit `content-desc=""`. Die Texte (`swipe_pass`,
+  `swipe_like`, `swipe_rewind`) hingen nur am Symbol darin. Jetzt stehen sie
+  per `semantics` am anklickbaren Knopf selbst (`SwipeScreen.kt`,
+  `RoundActionButton`, mit `Role.Button`), das Symbol hat keine eigene
+  Beschreibung mehr. Gleiches Muster bei Melden/Blockieren/Match auflösen auf
+  der Karte (`SwipeCard.kt`, `CardActionButton`): Die tippen über
+  `pointerInput` und hatten im Accessibility-Baum weder Rolle noch
+  Klick-Aktion. Jetzt `role`, `contentDescription` und `onClick` per
+  `semantics`. iOS ist hier in Ordnung: `RoundActionButton` und
+  `CardActionButton` setzen `.accessibilityLabel` am `Button`.
+* **`StringRessourcenTest`:** zwei neue Tests. Jeder Schlüssel aus `values/`
+  braucht eine englische Fassung (außer `translatable="false"`), und in
+  Oberflächen-Aufrufen (`text =`, `contentDescription =`, `label =`,
+  `Text("…")`, `Message("…")`, `?: "…"`, `if (…) "…" else "…"`,
+  `ifBlank { "…" }`) darf kein fester Text mit Wörtern stehen. Gegen den Stand davor
+  nachgerechnet: Alle zwölf Stellen oben wären gemeldet worden. Gegenprobe mit
+  wieder eingesetztem „Senden“: rot.
+* **Web und iOS (nur geprüft):** Web hat das Deck-Problem nicht
+  (`.swipe-actions` steht unter `.deck`). **iOS hat denselben Fehler:**
+  `SwipeCard.swift`, `detailContent` trägt `.padding(.bottom, textBottomInset)`
+  innerhalb des `ScrollView`, und `PhotoOverDetailLayout(maxDetailShare: 0.42)`
+  zählt den Abstand mit. Dort ist auch „Online“ fest im Code (`onlineChip`).
+
+Geprüft im Emulator (`flexr_test`, API 35, 1080x1920, 420 dpi = 411x731 dp,
+`-gpu host`, `localDebug` gegen lokales Backend mit SQLite + Moto, Demo-Konten
+aus `android/store/neu-2026-10-17/werkzeug/seed_store.py`, Miriam am „Plate
+Club — Landstraßer Hauptstraße 50, 1030 Wien“):
+
+* Miriam auf DE und EN mit zweizeiligem Gym-Chip, Online und zweizeiliger Bio:
+  alles über den Knöpfen.
+* Lange Bio: Textbereich 380 px, Foto 528 px, der Text endet über den Knöpfen
+  und scrollt bis zum letzten Satz.
+* Hintergrundkarte beim Ziehen gegen dieselbe Karte vorn: mittlere
+  Pixelabweichung 0,27 von 255 (nur der Kartenrand), das Foto springt nicht.
+* Login EN „Log in“/„Sign up“, Senden-Knopf DE „Senden“ / EN „Send“, Konto EN
+  „POSTAL CODE“, Fotoraster „Profile photo“.
+* uiautomator-Dump des Decks: X und Herz sind jetzt `Button`, `clickable="true"`
+  mit `content-desc` „Ablehnen“/„Gefällt mir“ (EN „Pass“/„Like“) über die
+  ganze Knopffläche (56 bzw. 64 dp), ebenso Melden/Blockieren
+  („Report“/„Block“). Per Touch unverändert (Melden öffnet den Dialog, X lehnt
+  ab), die Knöpfe sind pixelgleich mit vorher. Mit TalkBack selbst nicht
+  durchgehört.
+* 79 Unit-Tests grün, Lint 0 Fehler (97 Warnungen; Lauf mit `--offline`,
+  dabei entfallen die Versionsprüfungen wie `GradleDependency`, die übrigen
+  Kategorien wie bisher).
+
+Hinweise zur Maschine: `testProdDebugUnitTest` und `lintProdRelease` in einem
+Aufruf brachen mit `OutOfMemoryError` im Kotlin-Compiler ab (Debug und Release
+kompilieren parallel, daneben liefen zwei Emulatoren). Nacheinander mit
+`--max-workers=2` ging es. Für den Emulator zeigte `local` vorübergehend auf
+Port 8200, weil 8000 der Store-Sitzung gehörte (nicht committet). Der Emulator
+stürzte einmal beim Neustart der App mit `-gpu host` ab (gfxstream „null ctx“);
+nach einem Neustart lief er weiter.
+
+---
+
+## R8-Ressourcenentfernung und AGP 9, 17.10.2026 (2.7.36)
+
+**Erst nach 2.7.35 hochladen.** 2.7.35 liegt seit dem 17.10. bei Google zur
+Prüfung für die Produktion und bleibt unverändert; 2.7.36 ist die nächste
+Fassung (enthält 2.7.35). Anlass: Empfehlung der Play Console im
+Release-Dashboard zu 2.7.35, „Mit der R8-Optimierung kannst du den
+Arbeitsspeicher und die Leistung deiner App verbessern“: optimierte
+Entfernung von Ressourcen nicht aktiviert, Android-Gradle-Plugin unter 9.0.
+Branch `claude/android-agp9-r8`.
+
+* **Schritt 1, noch mit AGP 8.10.1:** `android.r8.optimizedResourceShrinking=true`
+  in `gradle.properties`. Ergebnis gegen 2.7.35: dieselben 1561 Ressourcen,
+  dieselben Dateien, nur `classes.dex` 52 Bytes kleiner. Unter AGP 8.10 also
+  praktisch ohne Wirkung.
+* **Schritt 2, AGP 9.4.1** (aktuelle stabile 9.x laut Release Notes; verlangt
+  Gradle ab 9.6.0, Build-Tools 36.0.0, JDK 17):
+  * Gradle-Wrapper 9.8.1 (aktuell stabil, mit `distributionSha256Sum`).
+  * Eingebautes Kotlin: Plugin `org.jetbrains.kotlin.android` aus Katalog
+    und Build-Skripten entfernt, ebenso `kotlin { compilerOptions { jvmTarget } }`
+    (folgt jetzt `targetCompatibility` = 17).
+  * Kotlin 2.1.20 → **2.2.10**: Diese KGP-Version bringt AGP 9.4.1 mit, und
+    Compose- und Serialization-Plugin müssen dieselbe Version haben.
+  * KSP 2.1.20-2.0.0 → **2.3.12**, Hilt 2.56.2 → **2.60.1** (das
+    Hilt-Gradle-Plugin läuft erst ab 2.59 mit AGP 9).
+  * **KSP2 statt KSP1:** `ksp.useKSP2=false` ist raus. KSP 2.3.12 bricht dabei
+    mit „KSP1 is no longer available“ ab. Der Hilt/KSP2-Fehler vom 11.09.
+    (doppelt erzeugte Hilt-Klassen nur in `prodRelease`) trat mit KSP 2.3.12
+    und Hilt 2.60.1 nicht mehr auf. Geprüft mit einem Release-Build aus leerem
+    Build-Verzeichnis. Kommentar dazu in `gradle.properties`.
+  * `defaultConfig.resourceConfigurations` (in AGP 9 veraltet) →
+    `androidResources.localeFilters`; `android.defaults.buildfeatures.buildconfig`
+    (in AGP 9 entfernt, Warnung beim Konfigurieren) gestrichen.
+  * Build-Tools 36.0.0 hat AGP beim ersten Build selbst nach
+    `~/.bubblewrap/android_sdk` geladen. JDK 17 reicht weiter.
+* **Wirkung:** R8 entfernt jetzt 405 Ressourcen (1561 → 1156), fast alle aus
+  Bibliotheken (AppCompat-Layouts, Benachrichtigungs-Vorlagen von
+  NotificationCompat, Splash-Layout von core-splashscreen, Tooltips), dazu fünf
+  unbenutzte eigene Strings (`account_subscribe`, `error_postal_code_invalid`,
+  `notification_new_messages_title`, `paywall_feature_chat`,
+  `paywall_feature_unlimited`). Das APK ist rund 120 KB kleiner. Das Manifest
+  ist inhaltlich gleich (nur andere Attribut-Reihenfolge). Im APK fehlen
+  `kotlin-tooling-metadata.json` (kam vom alten Kotlin-Plugin) und eine
+  OSGi-Manifestdatei; die `META-INF/services`-Dateien heißen anders, weil R8
+  die Schnittstellen anders benennt.
+* **Fund: per Name geladene Ressource.** Der erste AGP-9-Build warf
+  `string/fcm_fallback_notification_channel_label` hinaus. Firebase Messaging
+  lädt den Text per `getIdentifier` (Ersatzkanal, falls weder der Kanal aus
+  der Nutzlast noch der aus dem Manifest existiert). Jetzt gehalten über
+  `res/raw/keep.xml`. Alle neun `getIdentifier`-Aufrufe im Release-Dex sind
+  durchgesehen. Die übrigen laden Namen aus der FCM-Nutzlast (Icon, Ton,
+  `*_loc_key`, schickt unser Backend nicht), Ressourcen der Play-Dienste oder
+  `android.resource`-URIs, die die App nicht nutzt.
+* **Neue AGP-9-Standards, die hier greifen:** `strictFullModeForKeepRules`
+  (`-keep class X` hält den Konstruktor nicht mehr mit; die Regeln von Room,
+  WorkManager, Firebase und Startup nennen ihn ausdrücklich, die eigenen
+  `{ *; }`). `onlyEnableUnitTestForTheTestedBuildType`: Unit-Tests gibt es nur
+  noch für `debug`, also `testProdDebugUnitTest`; `testProdReleaseUnitTest`
+  existiert nicht mehr. **Die GitHub-CI** (`.github/workflows/ci.yml`) rief
+  genau diese Aufgabe auf und wäre mit AGP 9 gescheitert, sie läuft jetzt mit
+  `:app:testProdDebugUnitTest :app:lintProdRelease` (wie `PLAY-CONSOLE.md`
+  Abschnitt 6). Der Befehl lief lokal mit `--no-daemon` grün. Der erste
+  Versuch brach mit `OutOfMemoryError` im Kotlin-Daemon ab: Den teilen sich
+  alle Gradle-Builds auf dem Rechner, `~/.gradle/gradle.properties` gibt ihm
+  nur 1,5 GB, und eine andere Sitzung kompilierte gleichzeitig. Auf dem
+  CI-Runner läuft er allein mit 3 GB (erbt `org.gradle.jvmargs`).
+* **Kotlin 2.2:** 13 neue Warnungen „annotation is currently applied to the
+  value parameter only, but in the future it will also be applied to
+  field/property“: Hilt-Qualifier (`@ApplicationContext`, `@ApplicationScope`)
+  an `private val`-Konstruktorparametern und `@StringRes` an Enum-Parametern.
+  Behoben mit ausdrücklichem `@param:` (z. B. `@param:ApplicationContext`). Das
+  schreibt das heutige Verhalten fest, ein späteres Kotlin mit neuem
+  Standard-Zielort ändert also nichts. Die Klassen mit `@param:` sind
+  byte-gleich; neu kompiliert wurden nur 19 Compose-Klassen, die die Enums
+  benutzen, weil der Compose-Compiler Zeichenpositionen der Quelldatei in
+  Gruppenschlüssel und `sourceInformation` schreibt (gleiche Befehlsfolge, nur
+  verschobene Konstanten). Das APK ist deshalb nicht byte-gleich mit dem
+  ersten 2.7.36-Build; die Artefakte unten sind neu gebaut.
+
+Geprüft im Emulator (API 35) mit der minifizierten Variante `localRelease`
+(gleiche R8-Regeln, mit dem Upload-Key signiert) gegen eine eigene lokale
+Umgebung (SQLite + Moto auf Port 8100/5155, die Ports 8000/5055 belegte die
+Store-Sitzung; im Emulator `adb root` und
+`iptables -t nat -A OUTPUT -p tcp -d 10.0.2.2 --dport 8000 -j DNAT --to-destination 10.0.2.2:8100`,
+dazu `adb reverse tcp:5155 tcp:5155`): Login, Deck mit Fotos, Like → Match,
+Chat senden und empfangen, Chatliste, Konto, Sprache DE ↔ EN.
+Firebase holte ein echtes FCM-Token und meldete es an. Eingehende
+FCM-Nachrichten wurden per Broadcast an `FirebaseInstanceIdReceiver` (als
+root) nachgestellt: im Hintergrund zeigt Firebase sie im Kanal
+`flexr_messages` mit Hantel-Icon und Markenfarbe, ein Tippen öffnet die Chats.
+Im Vordergrund baut `FlexrMessagingService` (Hilt) die Benachrichtigung.
+Kein Absturz, der App-Prozess lief die ganze Runde durch. (Der Emulator-Test
+lief mit dem Stand vor den `@param:`-Änderungen; die ändern nur
+Compose-Gruppenschlüssel, siehe oben.)
+**Nicht prüfbar:** Play Billing (das Emulator-Image hat keinen Play Store:
+`BILLING_UNAVAILABLE`, die Klassen laden aber fehlerfrei). Vor der Freigabe
+deshalb einmal über den internen Test-Track mit echtem Gerät.
+
+* 77 Unit-Tests grün, Lint 0 Fehler (132 Warnungen; +10 gegenüber 2.7.35 sind
+  Versionshinweise des neueren Lint, u. a. „API 37 verfügbar“).
+
+| 2.7.36 / 148 | SHA-256 | Größe |
+|---|---|---|
+| AAB (Play Console) | `cca702618f8779183396dbf8c730a6cf7e31593879eb8fd27353ce6c5aac261c` | 8.593.656 Bytes |
+| APK (Testgerät) | `ac955ac432420c91e31c32323bc7ce9df1abed284333717dc5bd0a16e23fe622` | 4.337.619 Bytes |
+
+aapt2: 148 / 2.7.36, targetSdk 36; Signer SHA-256 `BC:64:AD…79:80`
+(Upload-Key) für AAB und APK geprüft. Liegt in `release-2.7.36/` (gitignored)
+mit `SHA256SUMS.txt`. **Dieses AAB enthält auch den Abschnitt darüber**
+(Bio im Deck, übersetzbare Texte, Beschriftung der Deck-Knöpfe; Merge von
+`claude/android-deck-bio-texte` bis `54bed5c`):
+79 Unit-Tests grün, Lint 0 Fehler (132 Warnungen), 1166 Ressourcen (zehn neue
+Strings). Gegenüber 2.7.35: APK 121.659 Bytes, AAB 11.647 Bytes kleiner.
+Ersetzt sind die früheren 2.7.36-Builds (AAB `43943429…7642`,
+`1243e13a…6ccf` und `d6a55fa9…6f98`), alle ohne den vollständigen Merge.
 
 ---
 

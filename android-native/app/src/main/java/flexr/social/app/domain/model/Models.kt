@@ -16,7 +16,7 @@ enum class PhotoStatus { PENDING, APPROVED, REJECTED;
     }
 }
 
-enum class Gender(val apiValue: String, @StringRes val labelRes: Int) {
+enum class Gender(val apiValue: String, @param:StringRes val labelRes: Int) {
     MANN("mann", R.string.gender_male),
     FRAU("frau", R.string.gender_female);
 

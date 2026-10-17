@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Ressourcen, die nur per Name (Resources.getIdentifier) geladen werden und
+     die R8 deshalb nicht als benutzt erkennt. Seit AGP 9 entfernt R8 die
+     Ressourcen zusammen mit dem Code (optimizedResourceShrinking) und warf
+     diese hier im ersten Build von 2.7.36 hinaus; der alte Shrinker hatte sie
+     behalten.
+
+     fcm_fallback_notification_channel_label: Name des Ersatzkanals, den
+     Firebase Messaging anlegt, falls weder der Kanal aus der Nutzlast noch
+     der Standardkanal aus dem Manifest (beide "flexr_messages") existiert -
+     praktisch nie, FlexrApplication legt ihn beim Start an. Fehlt die
+     Ressource, heisst der Kanal "Misc" statt "Miscellaneous" (Text aus
+     firebase-messaging).
+
+     Weitere getIdentifier-Aufrufe im Release-Dex (Stand 2.7.36) betreffen
+     Namen aus der FCM-Nutzlast (Icon, Ton, *_loc_key), die unser Backend nicht
+     schickt, Ressourcen anderer Pakete (Play-Dienste) oder Ressourcen-URIs,
+     die die App nicht verwendet. -->
+<resources xmlns:tools="http://schemas.android.com/tools"
+    tools:keep="@string/fcm_fallback_notification_channel_label" />
