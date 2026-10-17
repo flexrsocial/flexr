@@ -10,6 +10,90 @@ hier steht nur, was daraus *nicht* hervorgeht.
 
 ---
 
+## Bio im Deck über X/Herz, übersetzbare Texte, 17.10.2026 (2.7.36)
+
+**In 2.7.36 enthalten** (2.7.36 war noch nicht hochgeladen, daher kein eigener
+Versionssprung). Entstanden auf Branch `claude/android-deck-bio-texte`
+(aufgesetzt auf `claude/android-agp9-r8`), am 17.10. in
+`claude/android-agp9-r8` gemergt; das AAB im Abschnitt darunter enthält beides.
+Anlass: drei Funde beim Aufnehmen der Store-Bilder
+(`android/store/neu-2026-10-17/`).
+
+* **Bio lief im Deck unter X und Herz.** `SwipeCard.kt`, `CardContent`: Der
+  Abstand zu den Knöpfen (`DECK_BUTTONS_INSET`, 88 dp) war Innenabstand im
+  Scrollbereich und zählte zur 42-%-Grenze. Brauchten Gym-Chip (zweizeilig bei
+  langer Adresse), Online-Chip und Bio mehr, wurde gekappt: Der sichtbare Text
+  reichte bis zum Kartenrand, der Abstand lag unsichtbar am Ende des
+  Scrollinhalts. Jetzt liegt er außerhalb (`padding(bottom)` vor
+  `heightIn`/`verticalScroll`), und die 42 % gelten für die Karte ohne den
+  Knopfbereich: `(maxHeight - bottomInset) * 0.42f`, wie im Web, wo die Knöpfe
+  unter der Karte stehen. Bei 411x731 dp (Karte 434 dp hoch) bekommt eine
+  lange Bio 145 dp, das Foto behält 201 dp. Mit „42 % der ganzen Karte nur
+  für den Text“ blieben dem Foto 164 dp. Die Hintergrundkarte nutzt dieselbe
+  Funktion mit demselben Abstand, die Aufteilung bleibt also gleich.
+* **Login-Reiter:** `AuthTabs.kt` hatte „Einloggen“/„Registrieren“ fest im
+  Code. Jetzt `login_submit` (wie iOS `loginSubmit`) und neu
+  `auth_tab_register` („Sign up“ wie Web und iOS).
+* **Weitere fest eingetragene Texte** (Suche nach Umlauten und großgeschriebenen
+  Wörtern in Kotlin-Literalen):
+  * `ChatScreen.kt`, Senden-Knopf für TalkBack → `chat_send`.
+  * `PhotoGrid.kt`, „Profilfoto“ → `common_profile_photo`.
+  * `PostalCodeField.kt`: Registrierung und Konto nutzen die
+    Standard-Beschriftung, die fest „Postleitzahl“ war → `plz_label`.
+  * `AccountViewModel.kt`: Eine unbekannte PLZ zeigte im Konto den deutschen
+    Text der Exception (die Registrierung nahm schon
+    `error_postal_code_unknown`), der Dank nach einem Gym-Vorschlag war fest
+    deutsch → `gym_suggest_thanks` wie in der Registrierung.
+  * `PlayBillingService.kt`: fünf Meldungen, die die Paywall anzeigt →
+    `purchase_*`, über `AppStrings` in der gewählten Sprache. Ist Googles
+    `debugMessage` nicht leer, hat sie weiter Vorrang (englischer
+    Entwicklertext, unverändert übernommen).
+  * `SwipeCard.kt`, „Online“ → `common_online` (gleiches Wort, damit der Test
+    keine Ausnahme braucht).
+  * Bewusst geblieben: `LegalContent.kt` (Rechtstexte gelten auf Deutsch),
+    die technischen Exception-Texte in `ImageProcessor`/`PlzRepository`
+    (laut Kommentar nur für Protokolle) und die Ersatztexte in `ApiError`
+    (`text(R.string.…, "…")`).
+* **`StringRessourcenTest`:** zwei neue Tests. Jeder Schlüssel aus `values/`
+  braucht eine englische Fassung (außer `translatable="false"`), und in
+  Oberflächen-Aufrufen (`text =`, `contentDescription =`, `label =`,
+  `Text("…")`, `Message("…")`, `?: "…"`, `if (…) "…" else "…"`,
+  `ifBlank { "…" }`) darf kein fester Text mit Wörtern stehen. Gegen 2.7.36
+  nachgerechnet: Alle zwölf Stellen oben wären gemeldet worden. Gegenprobe mit
+  wieder eingesetztem „Senden“: rot.
+* **Web und iOS (nur geprüft):** Web hat das Deck-Problem nicht
+  (`.swipe-actions` steht unter `.deck`). **iOS hat denselben Fehler:**
+  `SwipeCard.swift`, `detailContent` trägt `.padding(.bottom, textBottomInset)`
+  innerhalb des `ScrollView`, und `PhotoOverDetailLayout(maxDetailShare: 0.42)`
+  zählt den Abstand mit. Dort ist auch „Online“ fest im Code (`onlineChip`).
+
+Geprüft im Emulator (`flexr_test`, API 35, 1080x1920, 420 dpi = 411x731 dp,
+`-gpu host`, `localDebug` gegen lokales Backend mit SQLite + Moto, Demo-Konten
+aus `android/store/neu-2026-10-17/werkzeug/seed_store.py`, Miriam am „Plate
+Club — Landstraßer Hauptstraße 50, 1030 Wien“):
+
+* Miriam auf DE und EN mit zweizeiligem Gym-Chip, Online und zweizeiliger Bio:
+  alles über den Knöpfen.
+* Lange Bio: Textbereich 380 px, Foto 528 px, der Text endet über den Knöpfen
+  und scrollt bis zum letzten Satz.
+* Hintergrundkarte beim Ziehen gegen dieselbe Karte vorn: mittlere
+  Pixelabweichung 0,27 von 255 (nur der Kartenrand), das Foto springt nicht.
+* Login EN „Log in“/„Sign up“, Senden-Knopf DE „Senden“ / EN „Send“, Konto EN
+  „POSTAL CODE“, Fotoraster „Profile photo“.
+* 79 Unit-Tests grün, Lint 0 Fehler (97 Warnungen; Lauf mit `--offline`,
+  dabei entfallen die Versionsprüfungen wie `GradleDependency`, die übrigen
+  Kategorien wie bisher).
+
+Hinweise zur Maschine: `testProdDebugUnitTest` und `lintProdRelease` in einem
+Aufruf brachen mit `OutOfMemoryError` im Kotlin-Compiler ab (Debug und Release
+kompilieren parallel, daneben liefen zwei Emulatoren). Nacheinander mit
+`--max-workers=2` ging es. Für den Emulator zeigte `local` vorübergehend auf
+Port 8200, weil 8000 der Store-Sitzung gehörte (nicht committet). Der Emulator
+stürzte einmal beim Neustart der App mit `-gpu host` ab (gfxstream „null ctx“);
+nach einem Neustart lief er weiter.
+
+---
+
 ## R8-Ressourcenentfernung und AGP 9, 17.10.2026 (2.7.36)
 
 **Erst nach 2.7.35 hochladen.** 2.7.35 liegt seit dem 17.10. bei Google zur
@@ -112,14 +196,17 @@ deshalb einmal über den internen Test-Track mit echtem Gerät.
 
 | 2.7.36 / 148 | SHA-256 | Größe |
 |---|---|---|
-| AAB (Play Console) | `1243e13af933ba94af1694bab6da3be6a9805f5b2229a03b88366108fee36ccf` | 8.592.610 Bytes |
-| APK (Testgerät) | `d8cca27b8833d3e5d49d421bd8c56c5a4b82e327b67ea31769fba42cb35971a5` | 4.336.339 Bytes |
+| AAB (Play Console) | `d6a55fa9979acbe745992db817f62b11155a3f482db265b171c2bd740ca86f98` | 8.593.606 Bytes |
+| APK (Testgerät) | `1510648dcd271126915169ca6c1c4bfa1004e0e99d2b35a7a29023cd31a4d719` | 4.337.619 Bytes |
 
 aapt2: 148 / 2.7.36, targetSdk 36; Signer SHA-256 `BC:64:AD…79:80`
 (Upload-Key) für AAB und APK geprüft. Liegt in `release-2.7.36/` (gitignored)
-mit `SHA256SUMS.txt`. Gegenüber 2.7.35: APK 122.939 Bytes, AAB 12.693 Bytes
-kleiner. Der erste Build (AAB `43943429…7642`, APK `00d27d18…7d62`) ist
-ersetzt, er stammte vom Stand vor den `@param:`-Änderungen.
+mit `SHA256SUMS.txt`. **Dieses AAB enthält auch den Abschnitt darüber**
+(Bio im Deck, übersetzbare Texte; Merge von `claude/android-deck-bio-texte`):
+79 Unit-Tests grün, Lint 0 Fehler (132 Warnungen), 1166 Ressourcen (zehn neue
+Strings). Gegenüber 2.7.35: APK 121.659 Bytes, AAB 11.697 Bytes kleiner.
+Ersetzt sind die früheren 2.7.36-Builds (AAB `43943429…7642` und
+`1243e13a…6ccf`), beide ohne den Merge.
 
 ---
 

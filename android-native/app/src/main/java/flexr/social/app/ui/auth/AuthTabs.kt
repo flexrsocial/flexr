@@ -16,7 +16,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import flexr.social.app.R
 import flexr.social.app.core.designsystem.theme.FlexrTheme
 
 enum class AuthTab { LOGIN, REGISTER }
@@ -56,7 +58,7 @@ fun AuthTabs(
                 contentAlignment = Alignment.Center,
             ) {
                 Text(
-                    text = if (tab == AuthTab.LOGIN) "Einloggen" else "Registrieren",
+                    text = stringResource(if (tab == AuthTab.LOGIN) R.string.login_submit else R.string.auth_tab_register),
                     style = MaterialTheme.typography.labelLarge,
                     color = contentColor,
                 )

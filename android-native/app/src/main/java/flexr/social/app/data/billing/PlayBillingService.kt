@@ -13,6 +13,8 @@ import com.android.billingclient.api.Purchase
 import com.android.billingclient.api.QueryProductDetailsParams
 import com.android.billingclient.api.QueryPurchasesParams
 import dagger.hilt.android.qualifiers.ApplicationContext
+import flexr.social.app.R
+import flexr.social.app.core.locale.AppStrings
 import flexr.social.app.data.repository.BillingRepository
 import flexr.social.app.di.ApplicationScope
 import kotlinx.coroutines.CoroutineScope
@@ -59,6 +61,7 @@ class PlayBillingService @Inject constructor(
     @param:ApplicationContext private val context: Context,
     private val repository: BillingRepository,
     @param:ApplicationScope private val scope: CoroutineScope,
+    private val strings: AppStrings,
 ) {
 
     /** Was der Kaufversuch ergeben hat — für die Oberfläche. */
@@ -114,7 +117,7 @@ class PlayBillingService @Inject constructor(
             BillingClient.BillingResponseCode.ITEM_ALREADY_OWNED ->
                 scope.launch { bestehendeKaeufeAbgleichen() }
             else -> _ereignisse.tryEmit(
-                Ereignis.Fehlgeschlagen(ergebnis.debugMessage.ifBlank { "Fehler ${ergebnis.responseCode}" })
+                Ereignis.Fehlgeschlagen(ergebnis.debugMessage.ifBlank { strings.get(R.string.purchase_failed_code, ergebnis.responseCode) })
             )
         }
     }
@@ -187,12 +190,12 @@ class PlayBillingService @Inject constructor(
     suspend fun kaufen(activity: Activity, produktId: String, userId: String) {
         val details = produktLaden(produktId)
         if (details == null) {
-            _ereignisse.tryEmit(Ereignis.Fehlgeschlagen("Das Angebot ist gerade nicht abrufbar."))
+            _ereignisse.tryEmit(Ereignis.Fehlgeschlagen(strings.get(R.string.purchase_offer_unavailable)))
             return
         }
         val angebot = details.subscriptionOfferDetails?.firstOrNull()
         if (angebot == null) {
-            _ereignisse.tryEmit(Ereignis.Fehlgeschlagen("Zu diesem Abo gibt es gerade kein Angebot."))
+            _ereignisse.tryEmit(Ereignis.Fehlgeschlagen(strings.get(R.string.purchase_no_offer)))
             return
         }
 
@@ -216,7 +219,7 @@ class PlayBillingService @Inject constructor(
         if (ergebnis.responseCode != BillingClient.BillingResponseCode.OK) {
             _ereignisse.tryEmit(
                 Ereignis.Fehlgeschlagen(
-                    ergebnis.debugMessage.ifBlank { "Der Kauf konnte nicht gestartet werden." }
+                    ergebnis.debugMessage.ifBlank { strings.get(R.string.purchase_start_failed) }
                 )
             )
         }
@@ -268,7 +271,7 @@ class PlayBillingService @Inject constructor(
             if (meldend) {
                 _ereignisse.tryEmit(
                     Ereignis.Fehlgeschlagen(
-                        fehler.message ?: "Der Kauf konnte nicht bestätigt werden."
+                        fehler.message ?: strings.get(R.string.purchase_confirm_failed)
                     )
                 )
             }

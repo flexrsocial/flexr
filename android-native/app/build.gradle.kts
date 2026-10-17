@@ -344,10 +344,11 @@ android {
         // hoechstens 600 dp Breite.
         // 148/2.7.36 am 17.10.2026: Empfehlung der Play Console zu 2.7.35 -
         // R8-optimierte Ressourcenentfernung, AGP 9.4.1 (eingebautes Kotlin,
-        // Gradle 9.8.1, KSP2, Hilt 2.60.1). Keine Aenderung an Funktionen;
-        // R8 wirft 405 unbenutzte Ressourcen hinaus (fast alle aus
-        // Bibliotheken), APK rund 120 KB kleiner. res/raw/keep.xml haelt eine
-        // nur per Name geladene Firebase-Ressource fest.
+        // Gradle 9.8.1, KSP2, Hilt 2.60.1). R8 wirft 405 unbenutzte
+        // Ressourcen hinaus (fast alle aus Bibliotheken), APK rund 120 KB
+        // kleiner. res/raw/keep.xml haelt eine nur per Name geladene
+        // Firebase-Ressource fest. Dazu: Bio im Deck endet ueber X/Herz statt
+        // darunter, Login-Reiter und weitere feste Texte uebersetzbar.
         versionCode = 148
         versionName = "2.7.36"
 

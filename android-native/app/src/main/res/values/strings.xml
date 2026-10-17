@@ -46,6 +46,8 @@
     <string name="common_profile">Profil</string>
     <string name="common_verified_profile">Verifiziertes Profil</string>
     <string name="common_profile_photo_of">Profilfoto von %1$s</string>
+    <string name="common_profile_photo">Profilfoto</string>
+    <string name="common_online">Online</string>
     <string name="common_delete_failed">Löschen fehlgeschlagen.</string>
     <string name="common_status_load_failed">Status konnte nicht geladen werden.</string>
 
@@ -115,6 +117,7 @@
     <string name="emoji_insert">Emoji einfügen</string>
     <string name="emoji_close">Emoji-Auswahl schließen</string>
     <string name="plz_loading">Lädt …</string>
+    <string name="plz_label">Postleitzahl</string>
     <string name="plz_enter">— PLZ eingeben —</string>
     <string name="plz_unknown">— unbekannte PLZ —</string>
 
@@ -124,6 +127,7 @@
     <string name="login_subtitle">Melde dich mit deinen Zugangsdaten an.</string>
     <string name="login_submit">Einloggen</string>
     <string name="login_register_hint">Neu hier? Erstell dein Profil — FLEXR zu nutzen kostet nichts.</string>
+    <string name="auth_tab_register">Registrieren</string>
     <string name="login_missing_fields">Bitte E-Mail und Passwort angeben.</string>
     <string name="login_reactivate_title">Konto reaktivieren?</string>
     <string name="login_reactivate_confirm">Jetzt reaktivieren</string>
@@ -271,6 +275,7 @@
     <string name="chat_input_placeholder">Nachricht schreiben…</string>
     <string name="chat_input_locked">Chat vorübergehend gesperrt</string>
     <string name="chat_send_failed">Nachricht konnte nicht gesendet werden.</string>
+    <string name="chat_send">Senden</string>
     <string name="chat_cleared">Chatverlauf geleert.</string>
     <string name="chat_clear_failed">Leeren fehlgeschlagen.</string>
     <string name="chat_deleted">Chat gelöscht.</string>
@@ -484,6 +489,11 @@
     <string name="paywall_feature_unlimited">Unbegrenzt liken</string>
     <string name="paywall_subscribe">Premium holen</string>
     <string name="purchase_success">FLEXR Premium läuft. Viel Spaß!</string>
+    <string name="purchase_failed_code">Kauf fehlgeschlagen (Code %1$d).</string>
+    <string name="purchase_offer_unavailable">Das Angebot ist gerade nicht abrufbar.</string>
+    <string name="purchase_no_offer">Zu diesem Abo gibt es gerade kein Angebot.</string>
+    <string name="purchase_start_failed">Der Kauf konnte nicht gestartet werden.</string>
+    <string name="purchase_confirm_failed">Der Kauf konnte nicht bestätigt werden.</string>
     <string name="common_logout">Ausloggen</string>
     <string name="paywall_feature_chat">Unbegrenzt viele Unterhaltungen gleichzeitig</string>
     <string name="paywall_feature_cancel">Monatlich kündbar, keine Mindestlaufzeit, keine versteckten Kosten</string>
