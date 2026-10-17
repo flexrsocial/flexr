@@ -32,6 +32,42 @@ erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 
 ## Wo das Projekt gerade steht
 
+> **Sitzung 17.10.2026 (2): Android 2.7.36 / 148 gebaut - AGP 9 mit
+> R8-Ressourcenentfernung, Bio im Deck über X/Herz, Texte auf Englisch,
+> TalkBack-Beschriftungen. Dem Nutzer zum Upload gegeben, noch nicht
+> hochgeladen.**
+>
+> Gemergt in `main` (`claude/android-agp9-r8` samt
+> `claude/android-deck-bio-texte`), gepusht, VPS per `git pull --ff-only`
+> nachgezogen (nur Android, CI und Doku; kein Neustart, keine Migration).
+> Einzelheiten in `android-native/HANDOFF.md` (die zwei obersten Abschnitte).
+>
+> - **Anlass:** Empfehlung der Play Console zu 2.7.35 („R8-Optimierung“):
+>   `android.r8.optimizedResourceShrinking=true` und AGP 9.4.1 (Gradle
+>   9.8.1, eingebautes Kotlin 2.2.10, KSP 2.3.12 nur noch KSP2, Hilt 2.60.1).
+>   R8 entfernt 405 unbenutzte Ressourcen, APK rund 120 KB kleiner.
+>   `res/raw/keep.xml` hält eine nur per Name geladene Firebase-Ressource.
+> - **GitHub-CI** rief `:app:testProdReleaseUnitTest` auf, das gibt es unter
+>   AGP 9 nicht mehr (Unit-Tests nur noch für `debug`) - jetzt
+>   `:app:testProdDebugUnitTest :app:lintProdRelease`.
+> - **Aus der Store-Bilder-Sitzung mit drin:** Bio im Deck endete unter X und
+>   Herz (Abstand lag im Scrollbereich), Login-Reiter und weitere feste Texte
+>   übersetzbar, `StringRessourcenTest` prüft EN-Vollständigkeit und feste
+>   Texte, X/Herz/Zurücknehmen und Melden/Blockieren mit Beschriftung für
+>   TalkBack. iOS hatte denselben Deck-Fehler, ist in `b398d50` behoben.
+> - **AAB** `android-native/release-2.7.36/flexr-2.7.36-148.aab` (gitignored),
+>   SHA-256 `cca70261…261c`, 8.593.656 Bytes, Upload-Key `BC:64:AD…79:80`.
+>   Frühere 2.7.36-Builds des Tages (`43943429…`, `1243e13a…`, `d6a55fa9…`)
+>   nicht hochladen, ihnen fehlt ein Teil.
+> - **Upload:** 2.7.35 liegt noch in der Produktionsprüfung. 2.7.36 erst in
+>   den internen Test-Track (dort auch Play Billing prüfen, das ging im
+>   Emulator nicht), in die Produktion nach der Freigabe von 2.7.35.
+>   Versionshinweise DE/EN in `android/store/store-texte.md`. Die nächste
+>   Android-Fassung ist 2.7.37 / 149.
+> - Geprüft: 79 Unit-Tests, Lint 0 Fehler; Emulator mit der minifizierten
+>   Variante gegen eine lokale Backend-Kopie (Login, Deck, Match, Chat,
+>   Konto, DE/EN, FCM-Token und nachgestellte Pushes).
+
 > **Sitzung 17.10.2026: Produktionszugang in Google Play erteilt (Mail
 > 04:07). Testprofile gelöscht, Prüfkonto für andere unsichtbar.**
 >
@@ -86,9 +122,8 @@ erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 >   17.10. noch 404** - der Store-Eintrag ist erst nach der Freigabe von
 >   2.7.35 öffentlich.
 > - **Play Console, „R8-Optimierung“ (Empfehlung, kein Blocker):** R8 und
->   `isShrinkResources` sind schon an. Offen für eine nächste Fassung:
->   `android.r8.optimizedResourceShrinking=true` in `gradle.properties`
->   und AGP 8.10.1 → 9.x (Gradle 9, eingebautes Kotlin - eigenes Vorhaben).
+>   `isShrinkResources` sind schon an. `android.r8.optimizedResourceShrinking`
+>   und AGP 9 sind in 2.7.36 erledigt (Sitzung 17.10.2026 (2), oben).
 
 > **Sitzung 16.10.2026 (3): Android 2.7.35 - Play-Console-Hinweise zu
 > Edge-to-Edge und großen Displays. Gebaut und dem Nutzer geschickt, noch nicht
