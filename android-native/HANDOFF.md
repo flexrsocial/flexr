@@ -54,6 +54,18 @@ Anlass: drei Funde beim Aufnehmen der Store-Bilder
     die technischen Exception-Texte in `ImageProcessor`/`PlzRepository`
     (laut Kommentar nur für Protokolle) und die Ersatztexte in `ApiError`
     (`text(R.string.…, "…")`).
+* **X, Herz und Zurücknehmen ohne Beschriftung am Knopf** (Fund an den
+  Tablet-Bildern): Im uiautomator-Dump waren die runden Knöpfe unter der Karte
+  `clickable="true"` mit `content-desc=""`. Die Texte (`swipe_pass`,
+  `swipe_like`, `swipe_rewind`) hingen nur am Symbol darin. Jetzt stehen sie
+  per `semantics` am anklickbaren Knopf selbst (`SwipeScreen.kt`,
+  `RoundActionButton`, mit `Role.Button`), das Symbol hat keine eigene
+  Beschreibung mehr. Gleiches Muster bei Melden/Blockieren/Match auflösen auf
+  der Karte (`SwipeCard.kt`, `CardActionButton`): Die tippen über
+  `pointerInput` und hatten im Accessibility-Baum weder Rolle noch
+  Klick-Aktion. Jetzt `role`, `contentDescription` und `onClick` per
+  `semantics`. iOS ist hier in Ordnung: `RoundActionButton` und
+  `CardActionButton` setzen `.accessibilityLabel` am `Button`.
 * **`StringRessourcenTest`:** zwei neue Tests. Jeder Schlüssel aus `values/`
   braucht eine englische Fassung (außer `translatable="false"`), und in
   Oberflächen-Aufrufen (`text =`, `contentDescription =`, `label =`,
@@ -80,6 +92,12 @@ Club — Landstraßer Hauptstraße 50, 1030 Wien“):
   Pixelabweichung 0,27 von 255 (nur der Kartenrand), das Foto springt nicht.
 * Login EN „Log in“/„Sign up“, Senden-Knopf DE „Senden“ / EN „Send“, Konto EN
   „POSTAL CODE“, Fotoraster „Profile photo“.
+* uiautomator-Dump des Decks: X und Herz sind jetzt `Button`, `clickable="true"`
+  mit `content-desc` „Ablehnen“/„Gefällt mir“ (EN „Pass“/„Like“) über die
+  ganze Knopffläche (56 bzw. 64 dp), ebenso Melden/Blockieren
+  („Report“/„Block“). Per Touch unverändert (Melden öffnet den Dialog, X lehnt
+  ab), die Knöpfe sind pixelgleich mit vorher. Mit TalkBack selbst nicht
+  durchgehört.
 * 79 Unit-Tests grün, Lint 0 Fehler (97 Warnungen; Lauf mit `--offline`,
   dabei entfallen die Versionsprüfungen wie `GradleDependency`, die übrigen
   Kategorien wie bisher).

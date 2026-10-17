@@ -32,6 +32,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
@@ -302,12 +305,16 @@ private fun RoundActionButton(
                         .border(1.dp, colors.steel, CircleShape)
                 },
             )
-            .clickable(enabled = enabled, onClick = onClick),
+            // Beschreibung am anklickbaren Knopf selbst: Bis 2.7.36 hing sie nur
+            // am Symbol darin, im Accessibility-Baum stand der Knopf ohne
+            // Beschriftung (uiautomator: content-desc="" bei X und Herz).
+            .clickable(enabled = enabled, role = Role.Button, onClick = onClick)
+            .semantics { contentDescription = description },
         contentAlignment = Alignment.Center,
     ) {
         Icon(
             icon,
-            contentDescription = description,
+            contentDescription = null,
             tint = tint,
             modifier = Modifier.size(
                 when {

@@ -53,6 +53,11 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.onClick
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -477,12 +482,21 @@ private fun CardActionButton(
             .clip(CircleShape)
             .background(Color.Black.copy(alpha = 0.5f))
             .border(1.dp, Color.White.copy(alpha = 0.22f), CircleShape)
-            .pointerInput(description) { detectTapGestures { onClick() } },
+            .pointerInput(description) { detectTapGestures { onClick() } }
+            // Der Tipp laeuft ueber pointerInput, das steht nicht im
+            // Accessibility-Baum: Bis 2.7.36 hatte der Knopf dort weder Rolle
+            // noch Klick-Aktion, nur das Symbol darin eine Beschreibung.
+            .semantics {
+                role = Role.Button
+                contentDescription = description
+                // label benannt, sonst griffe der Aufruf auf den Parameter onClick.
+                onClick(label = null) { onClick(); true }
+            },
         contentAlignment = Alignment.Center,
     ) {
         Icon(
             icon,
-            contentDescription = description,
+            contentDescription = null,
             tint = Color.White.copy(alpha = 0.85f),
             modifier = Modifier.size(15.dp),
         )
