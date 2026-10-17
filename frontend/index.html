@@ -362,6 +362,19 @@ main{ overflow-x:clip; }
 /* Vom Home-Bildschirm gestartet: schon installiert. */
 @media (display-mode: standalone){ .ios-dl{ display:none !important; } }
 .ios-dl-hero{ margin-top:16px; }
+/* Rechts daneben "Fuer Android - Bei Google Play" (seit 17.10.2026, die
+   native App steht im Play Store): dieselbe Optik, eigenes Symbol (Handy mit
+   Play-Dreieck) statt des Google-Play-Logos, das nur im offiziellen Badge
+   stehen darf. */
+.dl-row{ display:flex; flex-wrap:wrap; gap:10px; }
+/* Am Handy etwas kompakter, damit beide nebeneinander passen (ab ~330px
+   Breite); auf noch schmaleren Geraeten untereinander. */
+@media (max-width:480px){
+  .dl-row{ gap:8px; }
+  .dl-row .ios-dl{ flex:1 1 140px; padding:9px 8px; gap:7px; }
+  .dl-row .ios-dl-icon{ width:20px; height:20px; }
+  .dl-row .ios-dl-text b{ font-size:13.5px; white-space:nowrap; }
+}
 
 .usps{ list-style:none; padding:0; margin:30px 0 0; display:grid; gap:10px; }
 .usps li{ position:relative; padding-left:28px; color:var(--chalk); font-size:15.5px; }
@@ -716,7 +729,7 @@ body.has-beta-bar footer{ padding-bottom:110px; }
           <p class="cta-note" data-i18n="hero.ctaNote">
             Kostenlos registrieren, kein Zahlungsmittel nötig. Ab 18.
           </p>
-          <a class="ios-dl ios-dl-hero" href="/app/?ios=installieren" data-i18n-aria="dl.aria" aria-label="FLEXR-App fürs iPhone installieren"><svg class="ios-dl-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="2.5" width="12" height="19" rx="2.6"/><path d="M12 7.5v7M9 11.5l3 3 3-3M10.5 18.5h3"/></svg><span class="ios-dl-text"><small data-i18n="dl.small">Für iPhone</small><b data-i18n="dl.big">App installieren</b></span></a>
+          <div class="dl-row ios-dl-hero"><a class="ios-dl" href="/app/?ios=installieren" data-i18n-aria="dl.aria" aria-label="FLEXR-App fürs iPhone installieren"><svg class="ios-dl-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="2.5" width="12" height="19" rx="2.6"/><path d="M12 7.5v7M9 11.5l3 3 3-3M10.5 18.5h3"/></svg><span class="ios-dl-text"><small data-i18n="dl.small">Für iPhone</small><b data-i18n="dl.big">App installieren</b></span></a><a class="ios-dl" href="https://play.google.com/store/apps/details?id=flexr.social.app" data-i18n-aria="dl.playAria" aria-label="FLEXR-App für Android bei Google Play installieren"><svg class="ios-dl-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="2.5" width="12" height="19" rx="2.6"/><path d="M10.4 8.6v5.8l4.8-2.9zM10.5 18.5h3"/></svg><span class="ios-dl-text"><small data-i18n="dl.playSmall">Für Android</small><b data-i18n="dl.playBig">Bei Google Play</b></span></a></div>
         </div>
 
         <div class="hero-visual" aria-hidden="true">
@@ -1192,7 +1205,7 @@ body.has-beta-bar footer{ padding-bottom:110px; }
       <div class="cta-row" style="justify-content:center;">
         <a class="btn" href="/app/#registrieren" data-i18n="hero.ctaStart">Gratis loslegen</a>
       </div>
-      <p style="margin:18px auto 0;"><a class="ios-dl" href="/app/?ios=installieren" data-i18n-aria="dl.aria" aria-label="FLEXR-App fürs iPhone installieren"><svg class="ios-dl-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="2.5" width="12" height="19" rx="2.6"/><path d="M12 7.5v7M9 11.5l3 3 3-3M10.5 18.5h3"/></svg><span class="ios-dl-text"><small data-i18n="dl.small">Für iPhone</small><b data-i18n="dl.big">App installieren</b></span></a></p>
+      <div class="dl-row" style="justify-content:center; margin-top:18px;"><a class="ios-dl" href="/app/?ios=installieren" data-i18n-aria="dl.aria" aria-label="FLEXR-App fürs iPhone installieren"><svg class="ios-dl-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="2.5" width="12" height="19" rx="2.6"/><path d="M12 7.5v7M9 11.5l3 3 3-3M10.5 18.5h3"/></svg><span class="ios-dl-text"><small data-i18n="dl.small">Für iPhone</small><b data-i18n="dl.big">App installieren</b></span></a><a class="ios-dl" href="https://play.google.com/store/apps/details?id=flexr.social.app" data-i18n-aria="dl.playAria" aria-label="FLEXR-App für Android bei Google Play installieren"><svg class="ios-dl-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="2.5" width="12" height="19" rx="2.6"/><path d="M10.4 8.6v5.8l4.8-2.9zM10.5 18.5h3"/></svg><span class="ios-dl-text"><small data-i18n="dl.playSmall">Für Android</small><b data-i18n="dl.playBig">Bei Google Play</b></span></a></div>
     </section>
 
   </div>
@@ -1458,7 +1471,7 @@ body.has-beta-bar footer{ padding-bottom:110px; }
     <ul class="beta-facts">
       <li class="is-free"><b data-i18n="beta.freeLabel">Kostenlos</b><span data-i18n="beta.free">dauerhaft, ohne Zahlungsmittel</span></li>
       <li><b>Premium</b><span data-i18n="beta.premium">optional · 10 €/Monat</span></li>
-      <li><b>Android</b><span data-i18n="beta.android">voraussichtlich Mitte Oktober im Play Store</span></li>
+      <li><b>Android</b><span data-i18n="beta.android">in den nächsten Tagen im Play Store</span></li>
       <li><b class="as-written">iOS</b><span data-i18n-html="beta.ios">Web-App für den Home-Bildschirm · <a href="/app/?ios=installieren">jetzt&nbsp;installieren</a></span></li>
       <li><b>Feedback</b><span><a href="mailto:flexr.social@proton.me">flexr.social@proton.me</a></span></li>
     </ul>

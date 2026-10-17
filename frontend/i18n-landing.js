@@ -190,7 +190,7 @@
     'beta.freeLabel': 'Kostenlos',
     'beta.free': 'dauerhaft, ohne Zahlungsmittel',
     'beta.premium': 'optional · 10 €/Monat',
-    'beta.android': 'voraussichtlich Mitte Oktober im Play Store',
+    'beta.android': 'in den nächsten Tagen im Play Store',
     'beta.ios': 'Web-App für den Home-Bildschirm · <a href="/app/?ios=installieren">jetzt&nbsp;installieren</a>',
     'beta.ok': 'Verstanden',
     'beta.barText': 'FLEXR ist noch im Aufbau – dauerhaft kostenlos, Premium optional.',
@@ -199,6 +199,9 @@
     'dl.small': 'Für iPhone',
     'dl.big': 'App installieren',
     'dl.aria': 'FLEXR-App fürs iPhone installieren',
+    'dl.playSmall': 'Für Android',
+    'dl.playBig': 'Bei Google Play',
+    'dl.playAria': 'FLEXR-App für Android bei Google Play installieren',
     'beta.closeAria': 'Hinweis schließen'
   },
 
@@ -369,7 +372,7 @@
     'beta.freeLabel': 'Free',
     'beta.free': 'permanently, no payment method',
     'beta.premium': 'optional · €10/month',
-    'beta.android': 'expected mid-October on Google Play',
+    'beta.android': 'on Google Play in the next few days',
     'beta.ios': 'web app for your Home Screen · <a href="/app/?ios=installieren">install&nbsp;now</a>',
     'beta.ok': 'Got it',
     'beta.barText': 'FLEXR is still being built – free for good, Premium optional.',
@@ -378,6 +381,9 @@
     'dl.small': 'For iPhone',
     'dl.big': 'Install the app',
     'dl.aria': 'Install the FLEXR app on your iPhone',
+    'dl.playSmall': 'For Android',
+    'dl.playBig': 'On Google Play',
+    'dl.playAria': 'Install the FLEXR app for Android on Google Play',
     'beta.closeAria': 'Close notice'
   }
   });
