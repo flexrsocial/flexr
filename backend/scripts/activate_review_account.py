@@ -36,12 +36,12 @@ import argparse
 import sys
 from datetime import datetime
 from pathlib import Path
-from app.timeutil import utcnow
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from app.database import SessionLocal  # noqa: E402
 from app.models import User, VerificationStatus  # noqa: E402
+from app.timeutil import utcnow  # noqa: E402
 from app.verification_service import activate_account, open_request  # noqa: E402
 
 
