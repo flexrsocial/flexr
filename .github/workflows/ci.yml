@@ -50,7 +50,10 @@ jobs:
           java-version: "17"
       - uses: gradle/actions/setup-gradle@v4
       # Ohne Keystore baut Gradle unsigniert - fuer Tests und Lint genuegt das.
-      - run: ./gradlew --no-daemon :app:testProdReleaseUnitTest :app:lintProdRelease
+      # Unit-Tests gibt es seit AGP 9 (Android 2.7.36) nur noch fuer den
+      # getesteten Build-Typ debug (android.onlyEnableUnitTestForTheTestedBuildType),
+      # testProdReleaseUnitTest existiert nicht mehr. Lint prueft weiter release.
+      - run: ./gradlew --no-daemon :app:testProdDebugUnitTest :app:lintProdRelease
       - name: Berichte bei Fehlschlag
         if: failure()
         uses: actions/upload-artifact@v4

@@ -24,7 +24,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 /** Vorder- oder Rückseite des Dokuments. */
-enum class DocumentSide(@StringRes val labelRes: Int) {
+enum class DocumentSide(@param:StringRes val labelRes: Int) {
     FRONT(R.string.document_side_front),
     BACK(R.string.document_side_back),
 }

@@ -39,7 +39,7 @@ object Routes {
  * [flexr.social.app.ui.legal.LegalContent] bleibt bewusst auf Deutsch, weil er
  * in dieser Fassung verbindlich ist.
  */
-enum class LegalDocument(@StringRes val titleRes: Int) {
+enum class LegalDocument(@param:StringRes val titleRes: Int) {
     FAQ(R.string.legal_faq),
     IMPRESSUM(R.string.legal_impressum),
     DATENSCHUTZ(R.string.legal_datenschutz),
@@ -53,7 +53,7 @@ enum class LegalDocument(@StringRes val titleRes: Int) {
 /** Die vier Hauptbereiche der unteren Navigation. */
 enum class TopLevelDestination(
     val route: String,
-    @StringRes val labelRes: Int,
+    @param:StringRes val labelRes: Int,
     val icon: ImageVector,
 ) {
     SWIPE(Routes.SWIPE, R.string.nav_swipe, FlexrIcons.Swipe),

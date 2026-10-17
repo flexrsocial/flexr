@@ -62,7 +62,7 @@ fun interface PhotoPreparer {
  */
 @Singleton
 class ImageProcessor @Inject constructor(
-    @ApplicationContext private val context: Context,
+    @param:ApplicationContext private val context: Context,
 ) : PhotoPreparer {
 
     override suspend fun prepare(uri: Uri): PreparedPhoto = withContext(Dispatchers.Default) {

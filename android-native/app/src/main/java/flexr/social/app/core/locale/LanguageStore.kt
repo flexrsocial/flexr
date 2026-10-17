@@ -58,7 +58,7 @@ private val legacyLanguageKey = stringPreferencesKey("app_language")
  */
 @Singleton
 class LanguageStore @Inject constructor(
-    @ApplicationContext private val context: Context,
+    @param:ApplicationContext private val context: Context,
     @ApplicationScope scope: CoroutineScope,
 ) {
 

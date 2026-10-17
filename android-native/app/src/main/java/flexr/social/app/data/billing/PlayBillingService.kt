@@ -56,9 +56,9 @@ import kotlin.coroutines.resume
  */
 @Singleton
 class PlayBillingService @Inject constructor(
-    @ApplicationContext private val context: Context,
+    @param:ApplicationContext private val context: Context,
     private val repository: BillingRepository,
-    @ApplicationScope private val scope: CoroutineScope,
+    @param:ApplicationScope private val scope: CoroutineScope,
 ) {
 
     /** Was der Kaufversuch ergeben hat — für die Oberfläche. */

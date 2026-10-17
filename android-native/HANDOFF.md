@@ -67,12 +67,26 @@ Branch `claude/android-agp9-r8`.
   WorkManager, Firebase und Startup nennen ihn ausdrücklich, die eigenen
   `{ *; }`). `onlyEnableUnitTestForTheTestedBuildType`: Unit-Tests gibt es nur
   noch für `debug`, also `testProdDebugUnitTest`; `testProdReleaseUnitTest`
-  existiert nicht mehr.
-* **Kotlin 2.2:** zwölf neue Warnungen „annotation is currently applied to the
-  value parameter only“ (Qualifier wie `@ApplicationContext` an
-  Konstruktorparametern). Nur Hinweise, das Verhalten ändert sich in 2.2 nicht.
-  Erst beim Sprung auf eine Kotlin-Version, die den neuen Standard-Zielort
-  einführt, ansehen.
+  existiert nicht mehr. **Die GitHub-CI** (`.github/workflows/ci.yml`) rief
+  genau diese Aufgabe auf und wäre mit AGP 9 gescheitert, sie läuft jetzt mit
+  `:app:testProdDebugUnitTest :app:lintProdRelease` (wie `PLAY-CONSOLE.md`
+  Abschnitt 6). Der Befehl lief lokal mit `--no-daemon` grün. Der erste
+  Versuch brach mit `OutOfMemoryError` im Kotlin-Daemon ab: Den teilen sich
+  alle Gradle-Builds auf dem Rechner, `~/.gradle/gradle.properties` gibt ihm
+  nur 1,5 GB, und eine andere Sitzung kompilierte gleichzeitig. Auf dem
+  CI-Runner läuft er allein mit 3 GB (erbt `org.gradle.jvmargs`).
+* **Kotlin 2.2:** 13 neue Warnungen „annotation is currently applied to the
+  value parameter only, but in the future it will also be applied to
+  field/property“: Hilt-Qualifier (`@ApplicationContext`, `@ApplicationScope`)
+  an `private val`-Konstruktorparametern und `@StringRes` an Enum-Parametern.
+  Behoben mit ausdrücklichem `@param:` (z. B. `@param:ApplicationContext`). Das
+  schreibt das heutige Verhalten fest, ein späteres Kotlin mit neuem
+  Standard-Zielort ändert also nichts. Die Klassen mit `@param:` sind
+  byte-gleich; neu kompiliert wurden nur 19 Compose-Klassen, die die Enums
+  benutzen, weil der Compose-Compiler Zeichenpositionen der Quelldatei in
+  Gruppenschlüssel und `sourceInformation` schreibt (gleiche Befehlsfolge, nur
+  verschobene Konstanten). Das APK ist deshalb nicht byte-gleich mit dem
+  ersten 2.7.36-Build; die Artefakte unten sind neu gebaut.
 
 Geprüft im Emulator (API 35) mit der minifizierten Variante `localRelease`
 (gleiche R8-Regeln, mit dem Upload-Key signiert) gegen eine eigene lokale
@@ -86,7 +100,9 @@ FCM-Nachrichten wurden per Broadcast an `FirebaseInstanceIdReceiver` (als
 root) nachgestellt: im Hintergrund zeigt Firebase sie im Kanal
 `flexr_messages` mit Hantel-Icon und Markenfarbe, ein Tippen öffnet die Chats.
 Im Vordergrund baut `FlexrMessagingService` (Hilt) die Benachrichtigung.
-Kein Absturz, der App-Prozess lief die ganze Runde durch.
+Kein Absturz, der App-Prozess lief die ganze Runde durch. (Der Emulator-Test
+lief mit dem Stand vor den `@param:`-Änderungen; die ändern nur
+Compose-Gruppenschlüssel, siehe oben.)
 **Nicht prüfbar:** Play Billing (das Emulator-Image hat keinen Play Store:
 `BILLING_UNAVAILABLE`, die Klassen laden aber fehlerfrei). Vor der Freigabe
 deshalb einmal über den internen Test-Track mit echtem Gerät.
@@ -96,13 +112,14 @@ deshalb einmal über den internen Test-Track mit echtem Gerät.
 
 | 2.7.36 / 148 | SHA-256 | Größe |
 |---|---|---|
-| AAB (Play Console) | `43943429a42972dbea094531bff4da03207410555fc7d789e7761c3c5c8a7642` | 8.592.797 Bytes |
-| APK (Testgerät) | `00d27d18bcc051b1274986f56a839f6ca17abb15ab33cdf3b9af6f293ca47d62` | 4.336.339 Bytes |
+| AAB (Play Console) | `1243e13af933ba94af1694bab6da3be6a9805f5b2229a03b88366108fee36ccf` | 8.592.610 Bytes |
+| APK (Testgerät) | `d8cca27b8833d3e5d49d421bd8c56c5a4b82e327b67ea31769fba42cb35971a5` | 4.336.339 Bytes |
 
 aapt2: 148 / 2.7.36, targetSdk 36; Signer SHA-256 `BC:64:AD…79:80`
 (Upload-Key) für AAB und APK geprüft. Liegt in `release-2.7.36/` (gitignored)
-mit `SHA256SUMS.txt`. Gegenüber 2.7.35: APK 122.939 Bytes, AAB 12.506 Bytes
-kleiner.
+mit `SHA256SUMS.txt`. Gegenüber 2.7.35: APK 122.939 Bytes, AAB 12.693 Bytes
+kleiner. Der erste Build (AAB `43943429…7642`, APK `00d27d18…7d62`) ist
+ersetzt, er stammte vom Stand vor den `@param:`-Änderungen.
 
 ---
 
