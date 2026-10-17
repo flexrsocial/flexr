@@ -70,7 +70,7 @@ Anlass: drei Funde beim Aufnehmen der Store-Bilder
   braucht eine englische Fassung (außer `translatable="false"`), und in
   Oberflächen-Aufrufen (`text =`, `contentDescription =`, `label =`,
   `Text("…")`, `Message("…")`, `?: "…"`, `if (…) "…" else "…"`,
-  `ifBlank { "…" }`) darf kein fester Text mit Wörtern stehen. Gegen 2.7.36
+  `ifBlank { "…" }`) darf kein fester Text mit Wörtern stehen. Gegen den Stand davor
   nachgerechnet: Alle zwölf Stellen oben wären gemeldet worden. Gegenprobe mit
   wieder eingesetztem „Senden“: rot.
 * **Web und iOS (nur geprüft):** Web hat das Deck-Problem nicht
@@ -214,17 +214,18 @@ deshalb einmal über den internen Test-Track mit echtem Gerät.
 
 | 2.7.36 / 148 | SHA-256 | Größe |
 |---|---|---|
-| AAB (Play Console) | `d6a55fa9979acbe745992db817f62b11155a3f482db265b171c2bd740ca86f98` | 8.593.606 Bytes |
-| APK (Testgerät) | `1510648dcd271126915169ca6c1c4bfa1004e0e99d2b35a7a29023cd31a4d719` | 4.337.619 Bytes |
+| AAB (Play Console) | `cca702618f8779183396dbf8c730a6cf7e31593879eb8fd27353ce6c5aac261c` | 8.593.656 Bytes |
+| APK (Testgerät) | `ac955ac432420c91e31c32323bc7ce9df1abed284333717dc5bd0a16e23fe622` | 4.337.619 Bytes |
 
 aapt2: 148 / 2.7.36, targetSdk 36; Signer SHA-256 `BC:64:AD…79:80`
 (Upload-Key) für AAB und APK geprüft. Liegt in `release-2.7.36/` (gitignored)
 mit `SHA256SUMS.txt`. **Dieses AAB enthält auch den Abschnitt darüber**
-(Bio im Deck, übersetzbare Texte; Merge von `claude/android-deck-bio-texte`):
+(Bio im Deck, übersetzbare Texte, Beschriftung der Deck-Knöpfe; Merge von
+`claude/android-deck-bio-texte` bis `54bed5c`):
 79 Unit-Tests grün, Lint 0 Fehler (132 Warnungen), 1166 Ressourcen (zehn neue
-Strings). Gegenüber 2.7.35: APK 121.659 Bytes, AAB 11.697 Bytes kleiner.
-Ersetzt sind die früheren 2.7.36-Builds (AAB `43943429…7642` und
-`1243e13a…6ccf`), beide ohne den Merge.
+Strings). Gegenüber 2.7.35: APK 121.659 Bytes, AAB 11.647 Bytes kleiner.
+Ersetzt sind die früheren 2.7.36-Builds (AAB `43943429…7642`,
+`1243e13a…6ccf` und `d6a55fa9…6f98`), alle ohne den vollständigen Merge.
 
 ---
 

@@ -437,7 +437,7 @@ private fun CardContent(
             Column(
                 Modifier
                     .fillMaxWidth()
-                    // Abstand ausserhalb des Scrollbereichs: Bis 2.7.36 lag er
+                    // Abstand ausserhalb des Scrollbereichs: Bis 2.7.35 lag er
                     // darin, gekappter Text endete dann unter X und Herz.
                     .padding(bottom = bottomInset)
                     .heightIn(max = maxTextHeight)
@@ -484,7 +484,7 @@ private fun CardActionButton(
             .border(1.dp, Color.White.copy(alpha = 0.22f), CircleShape)
             .pointerInput(description) { detectTapGestures { onClick() } }
             // Der Tipp laeuft ueber pointerInput, das steht nicht im
-            // Accessibility-Baum: Bis 2.7.36 hatte der Knopf dort weder Rolle
+            // Accessibility-Baum: Bis 2.7.35 hatte der Knopf dort weder Rolle
             // noch Klick-Aktion, nur das Symbol darin eine Beschreibung.
             .semantics {
                 role = Role.Button

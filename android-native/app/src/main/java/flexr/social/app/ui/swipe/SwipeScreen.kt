@@ -305,7 +305,7 @@ private fun RoundActionButton(
                         .border(1.dp, colors.steel, CircleShape)
                 },
             )
-            // Beschreibung am anklickbaren Knopf selbst: Bis 2.7.36 hing sie nur
+            // Beschreibung am anklickbaren Knopf selbst: Bis 2.7.35 hing sie nur
             // am Symbol darin, im Accessibility-Baum stand der Knopf ohne
             // Beschriftung (uiautomator: content-desc="" bei X und Herz).
             .clickable(enabled = enabled, role = Role.Button, onClick = onClick)

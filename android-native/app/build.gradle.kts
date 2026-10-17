@@ -348,7 +348,8 @@ android {
         // Ressourcen hinaus (fast alle aus Bibliotheken), APK rund 120 KB
         // kleiner. res/raw/keep.xml haelt eine nur per Name geladene
         // Firebase-Ressource fest. Dazu: Bio im Deck endet ueber X/Herz statt
-        // darunter, Login-Reiter und weitere feste Texte uebersetzbar.
+        // darunter, Login-Reiter und weitere feste Texte uebersetzbar, X/Herz/
+        // Zuruecknehmen und Melden/Blockieren mit Beschriftung fuer TalkBack.
         versionCode = 148
         versionName = "2.7.36"
 
