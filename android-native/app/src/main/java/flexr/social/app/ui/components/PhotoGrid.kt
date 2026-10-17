@@ -235,7 +235,7 @@ private fun FilledPhotoSlot(
     ) {
         AsyncImage(
             model = slot.model,
-            contentDescription = "Profilfoto",
+            contentDescription = stringResource(R.string.common_profile_photo),
             contentScale = ContentScale.Crop,
             modifier = Modifier.fillMaxSize(),
         )

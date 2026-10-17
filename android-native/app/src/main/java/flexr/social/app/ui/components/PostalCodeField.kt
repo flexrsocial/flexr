@@ -53,7 +53,7 @@ fun PostalCodeField(
     lookupState: PlzLookupState,
     onPostalCodeChange: (String) -> Unit,
     modifier: Modifier = Modifier,
-    label: String = "Postleitzahl",
+    label: String = stringResource(R.string.plz_label),
     imeAction: ImeAction = ImeAction.Next,
 ) {
     val colors = FlexrTheme.colors

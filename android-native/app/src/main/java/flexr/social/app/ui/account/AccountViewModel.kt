@@ -286,7 +286,7 @@ class AccountViewModel @Inject constructor(
                         onSuccess = { city -> PlzLookupState.Resolved(city) },
                         onFailure = { throwable ->
                             PlzLookupState.Failed(
-                                if (throwable is UnknownPostalCodeException) throwable.message.orEmpty()
+                                if (throwable is UnknownPostalCodeException) strings.get(R.string.error_postal_code_unknown)
                                 else strings.get(R.string.error_city_lookup),
                             )
                         },
@@ -358,7 +358,7 @@ class AccountViewModel @Inject constructor(
                         ),
                     )
                 }
-                _events.send(AccountEvent.Message("Danke! Vorschlag eingereicht — sofort verwendbar."))
+                _events.send(AccountEvent.Message(strings.get(R.string.gym_suggest_thanks)))
             }.onFailure { throwable ->
                 _uiState.update {
                     it.copy(

@@ -706,7 +706,7 @@ private fun ChatInputRow(
                 IconButton(onClick = onSend, enabled = enabled && value.isNotBlank()) {
                     Icon(
                         FlexrIcons.Send,
-                        contentDescription = "Senden",
+                        contentDescription = stringResource(R.string.chat_send),
                         tint = if (enabled && value.isNotBlank()) Color.White else colors.chalkDim,
                         modifier = Modifier.size(18.dp),
                     )

@@ -10,6 +10,89 @@ hier steht nur, was daraus *nicht* hervorgeht.
 
 ---
 
+## Bio im Deck über X/Herz, übersetzbare Texte, 17.10.2026 (nach 2.7.36)
+
+**Ohne eigenen Versionssprung.** Branch `claude/android-deck-bio-texte`,
+aufgesetzt auf `claude/android-agp9-r8` (2.7.36 / 148). Vor dem nächsten
+Upload `versionCode`/`versionName` erhöhen (2.7.37 / 149) oder, falls 2.7.36
+noch nicht hochgeladen ist, mit in 2.7.36 nehmen. Anlass: drei Funde beim
+Aufnehmen der Store-Bilder (`android/store/neu-2026-10-17/`).
+
+* **Bio lief im Deck unter X und Herz.** `SwipeCard.kt`, `CardContent`: Der
+  Abstand zu den Knöpfen (`DECK_BUTTONS_INSET`, 88 dp) war Innenabstand im
+  Scrollbereich und zählte zur 42-%-Grenze. Brauchten Gym-Chip (zweizeilig bei
+  langer Adresse), Online-Chip und Bio mehr, wurde gekappt: Der sichtbare Text
+  reichte bis zum Kartenrand, der Abstand lag unsichtbar am Ende des
+  Scrollinhalts. Jetzt liegt er außerhalb (`padding(bottom)` vor
+  `heightIn`/`verticalScroll`), und die 42 % gelten für die Karte ohne den
+  Knopfbereich: `(maxHeight - bottomInset) * 0.42f`, wie im Web, wo die Knöpfe
+  unter der Karte stehen. Bei 411x731 dp (Karte 434 dp hoch) bekommt eine
+  lange Bio 145 dp, das Foto behält 201 dp. Mit „42 % der ganzen Karte nur
+  für den Text“ blieben dem Foto 164 dp. Die Hintergrundkarte nutzt dieselbe
+  Funktion mit demselben Abstand, die Aufteilung bleibt also gleich.
+* **Login-Reiter:** `AuthTabs.kt` hatte „Einloggen“/„Registrieren“ fest im
+  Code. Jetzt `login_submit` (wie iOS `loginSubmit`) und neu
+  `auth_tab_register` („Sign up“ wie Web und iOS).
+* **Weitere fest eingetragene Texte** (Suche nach Umlauten und großgeschriebenen
+  Wörtern in Kotlin-Literalen):
+  * `ChatScreen.kt`, Senden-Knopf für TalkBack → `chat_send`.
+  * `PhotoGrid.kt`, „Profilfoto“ → `common_profile_photo`.
+  * `PostalCodeField.kt`: Registrierung und Konto nutzen die
+    Standard-Beschriftung, die fest „Postleitzahl“ war → `plz_label`.
+  * `AccountViewModel.kt`: Eine unbekannte PLZ zeigte im Konto den deutschen
+    Text der Exception (die Registrierung nahm schon
+    `error_postal_code_unknown`), der Dank nach einem Gym-Vorschlag war fest
+    deutsch → `gym_suggest_thanks` wie in der Registrierung.
+  * `PlayBillingService.kt`: fünf Meldungen, die die Paywall anzeigt →
+    `purchase_*`, über `AppStrings` in der gewählten Sprache. Ist Googles
+    `debugMessage` nicht leer, hat sie weiter Vorrang (englischer
+    Entwicklertext, unverändert übernommen).
+  * `SwipeCard.kt`, „Online“ → `common_online` (gleiches Wort, damit der Test
+    keine Ausnahme braucht).
+  * Bewusst geblieben: `LegalContent.kt` (Rechtstexte gelten auf Deutsch),
+    die technischen Exception-Texte in `ImageProcessor`/`PlzRepository`
+    (laut Kommentar nur für Protokolle) und die Ersatztexte in `ApiError`
+    (`text(R.string.…, "…")`).
+* **`StringRessourcenTest`:** zwei neue Tests. Jeder Schlüssel aus `values/`
+  braucht eine englische Fassung (außer `translatable="false"`), und in
+  Oberflächen-Aufrufen (`text =`, `contentDescription =`, `label =`,
+  `Text("…")`, `Message("…")`, `?: "…"`, `if (…) "…" else "…"`,
+  `ifBlank { "…" }`) darf kein fester Text mit Wörtern stehen. Gegen 2.7.36
+  nachgerechnet: Alle zwölf Stellen oben wären gemeldet worden. Gegenprobe mit
+  wieder eingesetztem „Senden“: rot.
+* **Web und iOS (nur geprüft):** Web hat das Deck-Problem nicht
+  (`.swipe-actions` steht unter `.deck`). **iOS hat denselben Fehler:**
+  `SwipeCard.swift`, `detailContent` trägt `.padding(.bottom, textBottomInset)`
+  innerhalb des `ScrollView`, und `PhotoOverDetailLayout(maxDetailShare: 0.42)`
+  zählt den Abstand mit. Dort ist auch „Online“ fest im Code (`onlineChip`).
+
+Geprüft im Emulator (`flexr_test`, API 35, 1080x1920, 420 dpi = 411x731 dp,
+`-gpu host`, `localDebug` gegen lokales Backend mit SQLite + Moto, Demo-Konten
+aus `android/store/neu-2026-10-17/werkzeug/seed_store.py`, Miriam am „Plate
+Club — Landstraßer Hauptstraße 50, 1030 Wien“):
+
+* Miriam auf DE und EN mit zweizeiligem Gym-Chip, Online und zweizeiliger Bio:
+  alles über den Knöpfen.
+* Lange Bio: Textbereich 380 px, Foto 528 px, der Text endet über den Knöpfen
+  und scrollt bis zum letzten Satz.
+* Hintergrundkarte beim Ziehen gegen dieselbe Karte vorn: mittlere
+  Pixelabweichung 0,27 von 255 (nur der Kartenrand), das Foto springt nicht.
+* Login EN „Log in“/„Sign up“, Senden-Knopf DE „Senden“ / EN „Send“, Konto EN
+  „POSTAL CODE“, Fotoraster „Profile photo“.
+* 79 Unit-Tests grün, Lint 0 Fehler (97 Warnungen; Lauf mit `--offline`,
+  dabei entfallen die Versionsprüfungen wie `GradleDependency`, die übrigen
+  Kategorien wie bisher).
+
+Hinweise zur Maschine: `testProdDebugUnitTest` und `lintProdRelease` in einem
+Aufruf brachen mit `OutOfMemoryError` im Kotlin-Compiler ab (Debug und Release
+kompilieren parallel, daneben liefen zwei Emulatoren). Nacheinander mit
+`--max-workers=2` ging es. Für den Emulator zeigte `local` vorübergehend auf
+Port 8200, weil 8000 der Store-Sitzung gehörte (nicht committet). Der Emulator
+stürzte einmal beim Neustart der App mit `-gpu host` ab (gfxstream „null ctx“);
+nach einem Neustart lief er weiter.
+
+---
+
 ## R8-Ressourcenentfernung und AGP 9, 17.10.2026 (2.7.36)
 
 **Erst nach 2.7.35 hochladen.** 2.7.35 liegt seit dem 17.10. bei Google zur
