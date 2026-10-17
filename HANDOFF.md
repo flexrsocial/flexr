@@ -71,6 +71,24 @@ erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 >   in der Play Console und für Apples App Review - jede neue Version wird
 >   damit geprüft.
 > - Tests: Backend 743 grün (+5, `tests/test_pruefkonto_unsichtbar.py`).
+> - **Knopf in die App in den Aktivitäts-Mails** (`358bae6`, deployt, Neustart
+>   ohne Migration): Neues Match → „Jetzt schreiben“ (`/app/?open=matches`),
+>   neue Profile, offene Likes, „Lange nicht gesehen“ → `/app/?open=swipe`
+>   (dieselben Ziele wie die Pushes). Text-Fassung mit Link-Zeile. Am Handy
+>   öffnet das die Web-App, nicht die native App - deren App Links decken nur
+>   `/mail-bestaetigen` ab. Backend 751 grün.
+> - **Web: „Für Android - Bei Google Play“** neben dem iPhone-Knopf
+>   (`c201d80`, deployt, live md5-gleich): Landingpage DE/EN (Hero und
+>   Abschluss) und App-Seite, am Handy kompakter (nebeneinander ab ~330px).
+>   Beta-Hinweis Android „in den nächsten Tagen im Play Store“.
+>   `i18n-app.js?v=42`, Service Worker v54. **Der Play-Link
+>   (`play.google.com/store/apps/details?id=flexr.social.app`) gab am
+>   17.10. noch 404** - der Store-Eintrag ist erst nach der Freigabe von
+>   2.7.35 öffentlich.
+> - **Play Console, „R8-Optimierung“ (Empfehlung, kein Blocker):** R8 und
+>   `isShrinkResources` sind schon an. Offen für eine nächste Fassung:
+>   `android.r8.optimizedResourceShrinking=true` in `gradle.properties`
+>   und AGP 8.10.1 → 9.x (Gradle 9, eingebautes Kotlin - eigenes Vorhaben).
 
 > **Sitzung 16.10.2026 (3): Android 2.7.35 - Play-Console-Hinweise zu
 > Edge-to-Edge und großen Displays. Gebaut und dem Nutzer geschickt, noch nicht
