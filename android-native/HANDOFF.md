@@ -1,12 +1,108 @@
 # HANDOFF — native Android-App
 
-Stand: **16.10.2026**, Version 2.7.35 / versionCode 147. Der jüngste
+Stand: **17.10.2026**, Version 2.7.36 / versionCode 148. Der jüngste
 Abschnitt steht oben, ältere folgen darunter. Fassungen zwischen dem
 16.09. und dem 04.10. sowie 2.7.29 bis 2.7.34 sind nur im Kommentar am
 `versionCode` in `app/build.gradle.kts` und in der Haupt-`HANDOFF.md`
 beschrieben.
 Für Aufbau, Build-Befehle und die Migrationstabelle siehe [README.md](README.md) —
 hier steht nur, was daraus *nicht* hervorgeht.
+
+---
+
+## R8-Ressourcenentfernung und AGP 9, 17.10.2026 (2.7.36)
+
+**Erst nach 2.7.35 hochladen.** 2.7.35 liegt seit dem 17.10. bei Google zur
+Prüfung für die Produktion und bleibt unverändert; 2.7.36 ist die nächste
+Fassung (enthält 2.7.35). Anlass: Empfehlung der Play Console im
+Release-Dashboard zu 2.7.35, „Mit der R8-Optimierung kannst du den
+Arbeitsspeicher und die Leistung deiner App verbessern“: optimierte
+Entfernung von Ressourcen nicht aktiviert, Android-Gradle-Plugin unter 9.0.
+Branch `claude/android-agp9-r8`.
+
+* **Schritt 1, noch mit AGP 8.10.1:** `android.r8.optimizedResourceShrinking=true`
+  in `gradle.properties`. Ergebnis gegen 2.7.35: dieselben 1561 Ressourcen,
+  dieselben Dateien, nur `classes.dex` 52 Bytes kleiner. Unter AGP 8.10 also
+  praktisch ohne Wirkung.
+* **Schritt 2, AGP 9.4.1** (aktuelle stabile 9.x laut Release Notes; verlangt
+  Gradle ab 9.6.0, Build-Tools 36.0.0, JDK 17):
+  * Gradle-Wrapper 9.8.1 (aktuell stabil, mit `distributionSha256Sum`).
+  * Eingebautes Kotlin: Plugin `org.jetbrains.kotlin.android` aus Katalog
+    und Build-Skripten entfernt, ebenso `kotlin { compilerOptions { jvmTarget } }`
+    (folgt jetzt `targetCompatibility` = 17).
+  * Kotlin 2.1.20 → **2.2.10**: Diese KGP-Version bringt AGP 9.4.1 mit, und
+    Compose- und Serialization-Plugin müssen dieselbe Version haben.
+  * KSP 2.1.20-2.0.0 → **2.3.12**, Hilt 2.56.2 → **2.60.1** (das
+    Hilt-Gradle-Plugin läuft erst ab 2.59 mit AGP 9).
+  * **KSP2 statt KSP1:** `ksp.useKSP2=false` ist raus. KSP 2.3.12 bricht dabei
+    mit „KSP1 is no longer available“ ab. Der Hilt/KSP2-Fehler vom 11.09.
+    (doppelt erzeugte Hilt-Klassen nur in `prodRelease`) trat mit KSP 2.3.12
+    und Hilt 2.60.1 nicht mehr auf. Geprüft mit einem Release-Build aus leerem
+    Build-Verzeichnis. Kommentar dazu in `gradle.properties`.
+  * `defaultConfig.resourceConfigurations` (in AGP 9 veraltet) →
+    `androidResources.localeFilters`; `android.defaults.buildfeatures.buildconfig`
+    (in AGP 9 entfernt, Warnung beim Konfigurieren) gestrichen.
+  * Build-Tools 36.0.0 hat AGP beim ersten Build selbst nach
+    `~/.bubblewrap/android_sdk` geladen. JDK 17 reicht weiter.
+* **Wirkung:** R8 entfernt jetzt 405 Ressourcen (1561 → 1156), fast alle aus
+  Bibliotheken (AppCompat-Layouts, Benachrichtigungs-Vorlagen von
+  NotificationCompat, Splash-Layout von core-splashscreen, Tooltips), dazu fünf
+  unbenutzte eigene Strings (`account_subscribe`, `error_postal_code_invalid`,
+  `notification_new_messages_title`, `paywall_feature_chat`,
+  `paywall_feature_unlimited`). Das APK ist rund 120 KB kleiner. Das Manifest
+  ist inhaltlich gleich (nur andere Attribut-Reihenfolge). Im APK fehlen
+  `kotlin-tooling-metadata.json` (kam vom alten Kotlin-Plugin) und eine
+  OSGi-Manifestdatei; die `META-INF/services`-Dateien heißen anders, weil R8
+  die Schnittstellen anders benennt.
+* **Fund: per Name geladene Ressource.** Der erste AGP-9-Build warf
+  `string/fcm_fallback_notification_channel_label` hinaus. Firebase Messaging
+  lädt den Text per `getIdentifier` (Ersatzkanal, falls weder der Kanal aus
+  der Nutzlast noch der aus dem Manifest existiert). Jetzt gehalten über
+  `res/raw/keep.xml`. Alle neun `getIdentifier`-Aufrufe im Release-Dex sind
+  durchgesehen. Die übrigen laden Namen aus der FCM-Nutzlast (Icon, Ton,
+  `*_loc_key`, schickt unser Backend nicht), Ressourcen der Play-Dienste oder
+  `android.resource`-URIs, die die App nicht nutzt.
+* **Neue AGP-9-Standards, die hier greifen:** `strictFullModeForKeepRules`
+  (`-keep class X` hält den Konstruktor nicht mehr mit; die Regeln von Room,
+  WorkManager, Firebase und Startup nennen ihn ausdrücklich, die eigenen
+  `{ *; }`). `onlyEnableUnitTestForTheTestedBuildType`: Unit-Tests gibt es nur
+  noch für `debug`, also `testProdDebugUnitTest`; `testProdReleaseUnitTest`
+  existiert nicht mehr.
+* **Kotlin 2.2:** zwölf neue Warnungen „annotation is currently applied to the
+  value parameter only“ (Qualifier wie `@ApplicationContext` an
+  Konstruktorparametern). Nur Hinweise, das Verhalten ändert sich in 2.2 nicht.
+  Erst beim Sprung auf eine Kotlin-Version, die den neuen Standard-Zielort
+  einführt, ansehen.
+
+Geprüft im Emulator (API 35) mit der minifizierten Variante `localRelease`
+(gleiche R8-Regeln, mit dem Upload-Key signiert) gegen eine eigene lokale
+Umgebung (SQLite + Moto auf Port 8100/5155, die Ports 8000/5055 belegte die
+Store-Sitzung; im Emulator `adb root` und
+`iptables -t nat -A OUTPUT -p tcp -d 10.0.2.2 --dport 8000 -j DNAT --to-destination 10.0.2.2:8100`,
+dazu `adb reverse tcp:5155 tcp:5155`): Login, Deck mit Fotos, Like → Match,
+Chat senden und empfangen, Chatliste, Konto, Sprache DE ↔ EN.
+Firebase holte ein echtes FCM-Token und meldete es an. Eingehende
+FCM-Nachrichten wurden per Broadcast an `FirebaseInstanceIdReceiver` (als
+root) nachgestellt: im Hintergrund zeigt Firebase sie im Kanal
+`flexr_messages` mit Hantel-Icon und Markenfarbe, ein Tippen öffnet die Chats.
+Im Vordergrund baut `FlexrMessagingService` (Hilt) die Benachrichtigung.
+Kein Absturz, der App-Prozess lief die ganze Runde durch.
+**Nicht prüfbar:** Play Billing (das Emulator-Image hat keinen Play Store:
+`BILLING_UNAVAILABLE`, die Klassen laden aber fehlerfrei). Vor der Freigabe
+deshalb einmal über den internen Test-Track mit echtem Gerät.
+
+* 77 Unit-Tests grün, Lint 0 Fehler (132 Warnungen; +10 gegenüber 2.7.35 sind
+  Versionshinweise des neueren Lint, u. a. „API 37 verfügbar“).
+
+| 2.7.36 / 148 | SHA-256 | Größe |
+|---|---|---|
+| AAB (Play Console) | `43943429a42972dbea094531bff4da03207410555fc7d789e7761c3c5c8a7642` | 8.592.797 Bytes |
+| APK (Testgerät) | `00d27d18bcc051b1274986f56a839f6ca17abb15ab33cdf3b9af6f293ca47d62` | 4.336.339 Bytes |
+
+aapt2: 148 / 2.7.36, targetSdk 36; Signer SHA-256 `BC:64:AD…79:80`
+(Upload-Key) für AAB und APK geprüft. Liegt in `release-2.7.36/` (gitignored)
+mit `SHA256SUMS.txt`. Gegenüber 2.7.35: APK 122.939 Bytes, AAB 12.506 Bytes
+kleiner.
 
 ---
 

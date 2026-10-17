@@ -2,7 +2,6 @@ import java.util.Properties
 
 plugins {
     alias(libs.plugins.android.application)
-    alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.ksp)
@@ -343,13 +342,24 @@ android {
         // (eigene Fassung statt enableEdgeToEdge), Hochformat-Sperre nur noch
         // auf Handys (zur Laufzeit statt im Manifest), auf Tablets mittig in
         // hoechstens 600 dp Breite.
-        versionCode = 147
-        versionName = "2.7.35"
+        // 148/2.7.36 am 17.10.2026: Empfehlung der Play Console zu 2.7.35 -
+        // R8-optimierte Ressourcenentfernung, AGP 9.4.1 (eingebautes Kotlin,
+        // Gradle 9.8.1, KSP2, Hilt 2.60.1). Keine Aenderung an Funktionen;
+        // R8 wirft 405 unbenutzte Ressourcen hinaus (fast alle aus
+        // Bibliotheken), APK rund 120 KB kleiner. res/raw/keep.xml haelt eine
+        // nur per Name geladene Firebase-Ressource fest.
+        versionCode = 148
+        versionName = "2.7.36"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    androidResources {
         // Nur die Sprachen ausliefern, die es wirklich gibt: Deutsch als
         // Ausgangssprache, Englisch als Uebersetzung (res/values-en).
-        resourceConfigurations += listOf("de", "en")
+        // localeFilters ersetzt das in AGP 9 veraltete
+        // defaultConfig.resourceConfigurations.
+        localeFilters += listOf("de", "en")
     }
 
     signingConfigs {
@@ -433,12 +443,9 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
         isCoreLibraryDesugaringEnabled = false
     }
-
-    kotlin {
-        compilerOptions {
-            jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
-        }
-    }
+    // Kotlins jvmTarget folgt mit dem eingebauten Kotlin von AGP 9 von selbst
+    // targetCompatibility (17); der eigene kotlin { compilerOptions }-Block
+    // entfaellt.
 
     packaging {
         resources {

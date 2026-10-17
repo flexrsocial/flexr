@@ -1,8 +1,14 @@
 [versions]
-agp = "8.10.1"
-kotlin = "2.1.20"
-ksp = "2.1.20-2.0.0"
-hilt = "2.56.2"
+# AGP 9.4.1 (Gradle ab 9.6, Build-Tools 36): Kotlin ist eingebaut, das
+# Plugin org.jetbrains.kotlin.android entfaellt. AGP 9.4.1 bringt KGP 2.2.10
+# mit; Compose- und Serialization-Plugin muessen dieselbe Version haben.
+agp = "9.4.1"
+kotlin = "2.2.10"
+# Seit 2.3.0 unabhaengig von der Kotlin-Version, 2.3.12 nur noch KSP2; 2.3.10
+# behebt die R-Klassen-Aufloesung mit dem eingebauten Kotlin von AGP 9.
+ksp = "2.3.12"
+# Erst ab 2.59 laeuft das Hilt-Gradle-Plugin mit AGP 9 (und verlangt es).
+hilt = "2.60.1"
 composeBom = "2025.05.00"
 activityCompose = "1.10.1"
 lifecycle = "2.9.0"
@@ -97,7 +103,6 @@ turbine = { module = "app.cash.turbine:turbine", version.ref = "turbine" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }

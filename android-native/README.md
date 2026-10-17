@@ -25,6 +25,9 @@ export JAVA_HOME=$HOME/.bubblewrap/jdk/jdk-17.0.11+9
 export ANDROID_HOME=$HOME/.bubblewrap/android_sdk
 ```
 
+AGP 9.4.1 mit Gradle 9.8.1 läuft mit JDK 17; die nötigen Build-Tools 36.0.0
+lädt AGP beim ersten Build selbst ins SDK.
+
 Unit-Tests:
 
 ```bash
