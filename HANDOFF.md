@@ -69,9 +69,11 @@ erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 > - **Telegram-Warnung ohne pam_unix-Rauschen:** `notify-failure.sh` holt
 >   200 Journalzeilen des Laufs, wirft `pam_unix(...)`-Zeilen raus und
 >   schickt davon die letzten 12 (vorher 6 von 12 Zeilen Rauschen). Auf dem
->   VPS gegen den Fehllauf von 04:25 geprueft (Versand per Stub). Wirksam
->   erst, wenn root die Kopie erneuert:
->   `install -m 755 /flexr/scripts/notify-failure.sh /usr/local/sbin/flexr-notify-failure`
+>   VPS gegen den Fehllauf von 04:25 geprueft (Versand per Stub). Vom
+>   Nutzer als root 11:52 nach `/usr/local/sbin/flexr-notify-failure`
+>   installiert (`install -m 755 ...`, Kopie = `dbeb641`), Testmeldung per
+>   `systemctl start flexr-notify-failure@flexr-backup-verify` kam an:
+>   12 Zeilen, kein pam_unix.
 
 > **Sitzung 17.10.2026 (2): Android 2.7.36 / 148 gebaut - AGP 9 mit
 > R8-Ressourcenentfernung, Bio im Deck über X/Herz, Texte auf Englisch,
