@@ -29,12 +29,20 @@ if [[ -z "$TOKEN" || -z "$CHAT_ID" ]]; then
   exit 1
 fi
 
+# Die letzten zwoelf Zeilen, ohne die Sitzungsmeldungen von pam_unix: jedes
+# `runuser -u postgres` der Backup-Skripte schreibt zwei davon, am 18.10.2026
+# waren es 22 von 42 Zeilen des Laufs und die halbe Meldung.
+journal_tail() {
+  journalctl --no-pager -o cat -n 200 "$@" 2>/dev/null \
+    | grep -v '^pam_unix(' | tail -n 12 || true
+}
+
 # Nur die Zeilen des letzten Laufs, nicht die Historie.
 INVOCATION="$(systemctl show -p InvocationID --value "$UNIT" 2>/dev/null || true)"
 if [[ -n "$INVOCATION" ]]; then
-  LOG="$(journalctl --no-pager -o cat -n 12 _SYSTEMD_INVOCATION_ID="$INVOCATION" 2>/dev/null || true)"
+  LOG="$(journal_tail _SYSTEMD_INVOCATION_ID="$INVOCATION")"
 else
-  LOG="$(journalctl --no-pager -o cat -n 12 -u "$UNIT" 2>/dev/null || true)"
+  LOG="$(journal_tail -u "$UNIT")"
 fi
 
 TEXT="$(printf '⚠️ FLEXR: %s fehlgeschlagen (%s, %s)\n\n%s' \
