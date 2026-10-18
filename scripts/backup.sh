@@ -4,7 +4,8 @@
 # Server-Konfiguration.
 #
 # Gesichert werden:
-#   - Datenbank (pg_dump) und Schema
+#   - Datenbank (pg_dump) und Schema, dazu die Pruefwerte fuer den
+#     Restore-Test aus demselben Stand (restore-check.sql)
 #   - Profilfotos aus dem R2-Foto-Bucket (app.photo_export; OHNE
 #     Pruefaufnahmen, siehe dort)
 #   - /flexr/backend/.env, /etc/flexr (ohne restic-Passwoerter), /etc/nginx
@@ -89,15 +90,54 @@ install -d -m 700 "$WORK_DIR"
 trap scrub_work_dir EXIT
 
 log "Datenbank sichern"
+readonly DB_URL="${DATABASE_URL%%\?*}"
+readonly RESTORE_CHECK_SQL="$(dirname "$0")/restore-check.sql"
+
+# Dump und Pruefwerte fuer den Restore-Test aus EINEM Datenbankstand: psql
+# oeffnet eine REPEATABLE-READ-Transaktion, schreibt darin die Pruefwerte
+# (restore-check.sql) und exportiert ihren Snapshot; pg_dump uebernimmt ihn per
+# --snapshot. psql bleibt dafuer offen, bis pg_dump fertig ist. Was die App
+# zwischendurch schreibt, steht weder im Dump noch in den Pruefwerten.
+#
+# Scheitert dieser Teil, wird trotzdem gesichert - nur ohne Pruefwerte - und
+# der Lauf am Ende als fehlgeschlagen gemeldet, wie beim Foto-Export.
+CHECK_ERROR=""
+DUMP_SNAPSHOT=""
+coproc DUMP_TX { psql "$DB_URL" -XqAt -v ON_ERROR_STOP=1; }
+dump_tx_pid=$DUMP_TX_PID
+dump_tx_in=${DUMP_TX[1]}
+dump_tx_out=${DUMP_TX[0]}
+{
+  echo 'BEGIN ISOLATION LEVEL REPEATABLE READ READ ONLY;'
+  echo "\\o $WORK_DIR/restore-check.txt"
+  cat "$RESTORE_CHECK_SQL"
+  echo '\o'
+  echo 'SELECT pg_export_snapshot();'
+} >&"$dump_tx_in"
+if ! read -r -t 60 DUMP_SNAPSHOT <&"$dump_tx_out" || [[ -z "$DUMP_SNAPSHOT" ]] \
+    || [[ ! -s "$WORK_DIR/restore-check.txt" ]]; then
+  CHECK_ERROR="Pruefwerte fuer den Restore-Test nicht ermittelt"
+  log "FEHLER: $CHECK_ERROR - sichere ohne gemeinsamen Snapshot weiter"
+  DUMP_SNAPSHOT=""
+  rm -f "$WORK_DIR/restore-check.txt"
+fi
+
 # -Fc ist das komprimierte Eigenformat und laesst selektives Restore zu.
 pg_dump --format=custom --no-owner --no-privileges \
-  --file="$WORK_DIR/flexr.dump" "${DATABASE_URL%%\?*}" \
+  ${DUMP_SNAPSHOT:+--snapshot="$DUMP_SNAPSHOT"} \
+  --file="$WORK_DIR/flexr.dump" "$DB_URL" \
   || die "pg_dump fehlgeschlagen"
 
+# Ende der Eingabe beendet psql und damit die Transaktion.
+exec {dump_tx_in}>&-
+wait "$dump_tx_pid" || true
+
 # Schemastand im Klartext dazu: erlaubt Diff und Sichtpruefung ohne Restore.
-pg_dump --schema-only --no-owner --no-privileges \
-  --file="$WORK_DIR/schema.sql" "${DATABASE_URL%%\?*}" \
-  || die "pg_dump (Schema) fehlgeschlagen"
+# Aus dem Dump erzeugt statt per zweitem pg_dump, damit er genau dessen Stand
+# zeigt.
+pg_restore --schema-only --no-owner --no-privileges \
+  --file="$WORK_DIR/schema.sql" "$WORK_DIR/flexr.dump" \
+  || die "Schema aus dem Dump nicht lesbar"
 
 DUMP_SIZE="$(stat -c '%s' "$WORK_DIR/flexr.dump")"
 (( DUMP_SIZE > 0 )) || die "Der Dump ist leer"
@@ -182,6 +222,7 @@ else
 fi
 
 [[ -z "$PHOTO_ERROR" ]] || die "$PHOTO_ERROR (Datenbank ist gesichert, Snapshot ${SNAPSHOT_ID:-unbekannt})"
+[[ -z "$CHECK_ERROR" ]] || die "$CHECK_ERROR (Datenbank ist gesichert, Snapshot ${SNAPSHOT_ID:-unbekannt})"
 
 write_status "ok" "Snapshot ${SNAPSHOT_ID:-unbekannt}"
 log "Fertig"

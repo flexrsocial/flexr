@@ -3,8 +3,9 @@
 # Restore-Test.
 #
 # Ein Backup, das nie zurueckgespielt wurde, ist kein Backup. Dieses Skript
-# spielt den letzten Snapshot in eine Wegwerf-Datenbank ein, vergleicht ihn mit
-# dem Original und raeumt wieder auf. Laeuft woechentlich per Timer.
+# spielt den letzten Snapshot in eine Wegwerf-Datenbank ein, vergleicht sie mit
+# den Pruefwerten, die backup.sh beim Sichern mitgeschrieben hat, und raeumt
+# wieder auf. Laeuft woechentlich per Timer.
 #
 # Zusaetzlich liest `restic check --read-data-subset` einen Teil der Daten
 # wirklich aus, statt nur die Struktur zu pruefen — das faengt stille
@@ -90,57 +91,38 @@ if (( PHOTO_ROWS > 0 && PHOTO_FILES == 0 )); then
 fi
 log "Fotos im Snapshot: ${PHOTO_FILES} Dateien (Datenbank: ${PHOTO_ROWS} Eintraege)"
 
-log "Letzten Snapshot in '$SCRATCH_DB' wiederherstellen"
+# Pruefwerte, die backup.sh aus demselben Datenbankstand wie den Dump
+# mitgeschrieben hat (siehe restore-check.sql). Nicht gegen die Live-Datenbank:
+# die hat sich seit dem Backup weiterbewegt, jeder Push dazwischen waere eine
+# Abweichung.
+readonly RESTORE_CHECK_SQL="$(dirname "$0")/restore-check.sql"
+EXPECTED="$(restic dump "$LATEST_ID" /var/lib/flexr/backup-work/restore-check.txt)" \
+  || die "Snapshot ${LATEST_ID} enthaelt keine Pruefwerte (restore-check.txt) - von einem backup.sh vor dem 18.10.2026?"
+[[ -n "$EXPECTED" ]] || die "Pruefwerte in Snapshot ${LATEST_ID} sind leer"
+
+log "Snapshot ${LATEST_ID} in '$SCRATCH_DB' wiederherstellen"
 drop_scratch
-"$(dirname "$0")/restore.sh" --target "$SCRATCH_DB" >/dev/null \
+"$(dirname "$0")/restore.sh" --target "$SCRATCH_DB" --snapshot "$LATEST_ID" >/dev/null \
   || die "Wiederherstellung fehlgeschlagen"
 
-# --- Vergleich Original gegen Wiederherstellung -----------------------------
+log "Pruefwerte vergleichen"
+# Per Umleitung statt `psql -f`: die Datei oeffnet so root, nicht postgres.
+ACTUAL="$(as_postgres psql -d "$SCRATCH_DB" -XqAt -v ON_ERROR_STOP=1 < "$RESTORE_CHECK_SQL")" \
+  || die "Pruefwerte der Wiederherstellung nicht ermittelt"
 
-query_live()    { psql "$LIVE_URL" -tAc "$1"; }
-query_scratch() { as_postgres psql -d "$SCRATCH_DB" -tAc "$1"; }
-
-compare() {
-  local label="$1" sql="$2" live scratch
-  live="$(query_live "$sql")"
-  scratch="$(query_scratch "$sql")"
-  if [[ "$live" != "$scratch" ]]; then
-    die "$label weicht ab: Original '$live', Wiederherstellung '$scratch'"
-  fi
-  log "  $label: $live"
-}
-
-log "Vergleichen"
-compare "Tabellen" \
-  "SELECT count(*) FROM information_schema.tables WHERE table_schema='public';"
-compare "Aufzaehlungen" \
-  "SELECT count(*) FROM pg_type t JOIN pg_namespace n ON n.oid=t.typnamespace WHERE t.typtype='e' AND n.nspname='public';"
-compare "Fremdschluessel" \
-  "SELECT count(*) FROM information_schema.table_constraints WHERE constraint_type='FOREIGN KEY' AND table_schema='public';"
-compare "Migrationsstand" \
-  "SELECT version_num FROM alembic_version;"
-
-# Zeilenzahlen aller Tabellen auf einmal. Faengt den Fall, dass das Schema
-# vollstaendig ist, die Daten aber fehlen.
-#
-# Exakte Zaehlung ueber query_to_xml statt der Schaetzwerte aus
-# `pg_class.reltuples`: Schaetzwerte verlangen ein vorheriges ANALYZE, das als
-# nicht privilegierte Rolle ueber die Systemkataloge stolpert, und koennten
-# eine Abweichung verdecken. Fuer einen woechentlichen Lauf ist die exakte
-# Zaehlung schnell genug.
-readonly ROW_COUNT_SQL="
-SELECT string_agg(t || ':' || n, ',' ORDER BY t) FROM (
-  SELECT c.relname AS t,
-         (xpath(
-            '/row/cnt/text()',
-            query_to_xml(format('SELECT count(*) AS cnt FROM %I.%I', ns.nspname, c.relname),
-                         false, true, '')
-          ))[1]::text::bigint AS n
-  FROM pg_class c JOIN pg_namespace ns ON ns.oid = c.relnamespace
-  WHERE ns.nspname = 'public' AND c.relkind = 'r'
-) s;"
-log "Zeilenzahlen abgleichen"
-compare "Zeilen je Tabelle" "$ROW_COUNT_SQL"
+MISMATCHES="$(awk -F'|' '
+  NR == FNR { backup[$1] = $2; next }
+  { restored[$1] = $2 }
+  END {
+    for (k in backup)
+      if (!(k in restored) || restored[k] != backup[k])
+        printf "%s: Backup %s, Wiederherstellung %s; ", k, backup[k], (k in restored ? restored[k] : "fehlt")
+    for (k in restored)
+      if (!(k in backup))
+        printf "%s: nur in der Wiederherstellung (%s); ", k, restored[k]
+  }' <(printf '%s\n' "$EXPECTED") <(printf '%s\n' "$ACTUAL"))"
+[[ -z "$MISMATCHES" ]] || die "Wiederherstellung weicht vom Backup ab: ${MISMATCHES%; }"
+log "  $(wc -l <<<"$EXPECTED") Pruefwerte gleich ($(grep -m1 '^Migrationsstand|' <<<"$EXPECTED" | tr '|' ' '), $(grep -c '^Zeilen ' <<<"$EXPECTED") Tabellen mit Zeilenzahl)"
 
 drop_scratch
 write_status "ok" "Restore-Test erfolgreich"

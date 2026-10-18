@@ -1,6 +1,6 @@
 # FLEXR — Handoff für ein anderes Gerät / Claude Code
 
-Stand: **17.10.2026**
+Stand: **18.10.2026**
 
 ## ⚠️ Dringend zu prüfen: SSH-Zugang zum VPS hat sich geändert (21.09.2026)
 
@@ -31,6 +31,35 @@ Falls du das liest, weil dein `root@`-Login gerade fehlschlägt: das ist
 erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 
 ## Wo das Projekt gerade steht
+
+> **Sitzung 18.10.2026: Restore-Test schlug Alarm, das Backup war in
+> Ordnung - der Test verglich gegen die Live-Datenbank.**
+>
+> - **Befund:** Telegram 04:25, `flexr-backup-verify` meldete abweichende
+>   Zeilenzahlen. Ursache: Das Skript verglich die Wiederherstellung des
+>   03:30-Backups mit der Live-DB um 04:25. Dazwischen hatte die App
+>   geschrieben (+2 `push_notifications`, +2 `email_notifications`,
+>   +1 `daily_access`, +1 `user_devices`, je 1 `messages`/`swipes`
+>   geloescht) - per Abfrage auf dem VPS bestaetigt. Bisher gruen, weil
+>   sonntags nachts niemand aktiv war. Kein Datenverlust.
+> - **Behoben:** `backup.sh` ermittelt die Pruefwerte
+>   (`scripts/restore-check.sql`: Tabellen, Aufzaehlungen, Fremdschluessel,
+>   Migrationsstand, Zeilen je Tabelle) in derselben
+>   REPEATABLE-READ-Transaktion, deren Snapshot `pg_dump --snapshot`
+>   sichert, und legt sie als `restore-check.txt` in den restic-Snapshot.
+>   `backup-verify.sh` vergleicht die Wiederherstellung damit statt mit
+>   der Live-DB und stellt genau diesen Snapshot wieder her (`--snapshot`).
+>   `schema.sql` entsteht jetzt per `pg_restore --schema-only` aus dem Dump.
+>   Scheitern die Pruefwerte, sichert `backup.sh` trotzdem (ohne Snapshot)
+>   und meldet den Lauf als fehlgeschlagen.
+> - **Uebergang:** Snapshots von vor dem Deploy haben keine
+>   `restore-check.txt`; ein Restore-Test darauf bricht mit diesem Hinweis
+>   ab. Ab dem ersten Backup nach dem Deploy gruen.
+> - Geprueft lokal (PG 16) mit den echten Skriptbloecken unter Dauerlast
+>   (Live lief von 65 auf 81 Nutzer weiter, Vergleich gruen), dazu
+>   manipulierte Wiederherstellung, scheiternde Pruefabfrage und
+>   unerreichbare DB; `restic dump`/`restore --snapshot` mit Wegwerf-Repo
+>   auf dem VPS (restic 0.18.1). Ein echter Lauf als root steht noch aus.
 
 > **Sitzung 17.10.2026 (2): Android 2.7.36 / 148 gebaut - AGP 9 mit
 > R8-Ressourcenentfernung, Bio im Deck über X/Herz, Texte auf Englisch,
