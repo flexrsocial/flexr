@@ -59,7 +59,13 @@ erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 >   (Live lief von 65 auf 81 Nutzer weiter, Vergleich gruen), dazu
 >   manipulierte Wiederherstellung, scheiternde Pruefabfrage und
 >   unerreichbare DB; `restic dump`/`restore --snapshot` mit Wegwerf-Repo
->   auf dem VPS (restic 0.18.1). Ein echter Lauf als root steht noch aus.
+>   auf dem VPS (restic 0.18.1).
+> - **Deployt** (`c0f3575`, gepusht, VPS `git pull --ff-only`, kein
+>   Neustart). Vom Nutzer als root 11:43 `flexr-backup` und danach
+>   `flexr-backup-verify` von Hand gestartet: beide gruen, „29 Pruefwerte
+>   gleich (Migrationsstand e3c8b5f1a7d2, 25 Tabellen mit Zeilenzahl)“.
+>   Nach dem Pull waren die neuen Skripte gruppenbeschreibbar (umask 0002
+>   von `deploy`), auf 755/644 zurueckgesetzt wie die uebrigen.
 
 > **Sitzung 17.10.2026 (2): Android 2.7.36 / 148 gebaut - AGP 9 mit
 > R8-Ressourcenentfernung, Bio im Deck über X/Herz, Texte auf Englisch,
