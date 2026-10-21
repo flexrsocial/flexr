@@ -96,6 +96,49 @@ erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 >   die fehlende Kategorie App-Aktivitäten (App-Interaktionen, sonstige
 >   nutzergenerierte Inhalte, sonstige Aktionen) - vom Nutzer in Arbeit.
 
+> **Sitzung 21.10.2026: Store-Trailer DE/EN in 4K mit Musik, Thumbnails in
+> 4K, YouTube-Upload vorbereitet. PHP-Lücke geprüft - nicht betroffen.**
+>
+> Kein Code geändert, nichts deployt. Alles unter `android/store/` (von Git
+> ausgenommen, liegt nur in MEGA); Einzelheiten in
+> `android/store/neu-2026-10-17/LIESMICH.md`, Texte und YouTube-Einstellungen
+> in `android/store/store-texte.md` (Abschnitt „YouTube-Trailer“).
+>
+> - **Trailer schärfer:** Der Store bettet YouTube ein, die Qualität wählt der
+>   Player selbst (am Handy meist 480p/720p) - erzwingen geht nicht. Der alte
+>   Trailer (`9UOVw1auAig`) war 1080p mit ~0,5 Mbit/s, YouTube kodiert das
+>   als H.264 mit wenig Bitrate. Neu: `flexr-promo-{de,en}-4k.mp4`
+>   (3840x2160, Lanczos-hochskaliert) - 4K-Uploads bekommen VP9/AV1 und mehr
+>   Bitrate auf allen Stufen. Die Emulator-Aufnahmen vom 17.10. gibt es
+>   nicht mehr; nativ 4K hiesse neu aufnehmen.
+> - **Musik:** „Raving Energy“ von Kevin MacLeod (incompetech.com), CC BY 4.0,
+>   ab Track-Anfang, 2,5 s Ausblenden, -14 LUFS. Quellenangabe im Outro über
+>   „Beispielprofile“ und Pflicht in der YouTube-Beschreibung. Bewusst nicht
+>   Pixabay: dort sind manche Tracks in Content ID, ein Anspruch schaltet
+>   Werbung, und Videos mit Werbung zeigt Google Play nicht.
+> - **Thumbnails** `youtube-thumbnail-{de,en}-4k.jpg`: Intro-Karte nativ in 4K
+>   gezeichnet (`werkzeug/thumbnail.py`), ~350 KB.
+> - **Auf YouTube hochgeladen** (öffentlich, Einstellungen siehe
+>   `store-texte.md`: Altersbeschränkung Nein, Einbetten an, Monetarisierung
+>   aus, KI-Verwendung Ja wegen der KI-Portraits): DE
+>   `https://www.youtube.com/watch?v=c0Qhsvpd5o4`, EN
+>   `https://www.youtube.com/watch?v=LeRYWXSpF0o`. Beide im Browser geprüft:
+>   2160p verarbeitet, VP9 auf allen Stufen (144p-2160p), einbettbar, ohne
+>   Altersbeschränkung, keine Werbung, Tonspur da, Musik-Quellenangabe in der
+>   Beschreibung.
+> - **Offen (Nutzer):** die zwei URLs in der Play Console eintragen
+>   (Store-Eintrag DE, Übersetzung EN). Den alten Trailer `9UOVw1auAig` erst
+>   auf privat stellen, wenn der Store den neuen zeigt.
+> - **ffmpeg** gibt es auf diesem Rechner nur in der Flatpak-Runtime:
+>   `flatpak run --filesystem=<ordner> --command=ffmpeg org.freedesktop.Platform//25.08`
+>   (mit libx264, aac). `werkzeug/musik_einbauen.py` nutzt das.
+> - **PHP-Lücken CVE-2026-109618/-109619 (BSI-Warnung 21.10.):** nicht
+>   betroffen. Auf dem VPS (Ubuntu 26.04.1; flexr.social, tarifbot.at,
+>   vaultonaut.online) kein PHP-Paket, kein PHP-Dienst, kein Docker; die
+>   PHP-Stellen in nginx sind nur auskommentierte Ubuntu-Vorgaben, `default`
+>   ist nicht aktiviert. Backend Python, tarifbot und vaultonaut Node/Next.js.
+>   Lokal kein PHP, keine `.php`-Datei im Home-Verzeichnis.
+
 > **Sitzung 18.10.2026: Restore-Test schlug Alarm, das Backup war in
 > Ordnung - der Test verglich gegen die Live-Datenbank.**
 >
