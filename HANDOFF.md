@@ -32,6 +32,16 @@ erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 
 ## Wo das Projekt gerade steht
 
+> **Sitzung 21.10.2026 (spätabends): Instagram-Material zum Android-Start.**
+>
+> Kein Code geändert, nichts deployt, nichts gepostet. Neu:
+> `instagram/android_launch.py` → `instagram/android-launch/` (Feed 4:5,
+> Stories, Highlight-Cover, Reel 13,6 s ohne Ton) und
+> `instagram/android-launch/TEXTE.md` (Captions, Bio, Links, Posting-Plan ab
+> 22.10.). App-Screens aus den Store-Bildern vom 17.10.; Hinweis
+> „Beispielprofile“ steht auf jedem Bild mit Profilen. Der 580-km-Post läuft
+> am 31.12.2026 ab.
+
 > **Sitzung 21.10.2026 (abends): Neue YouTube-Thumbnails für das
 > Hintergrundbild der Play-Store-Webseite - live geprüft.**
 >
