@@ -3,6 +3,7 @@ package flexr.social.app
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import android.content.pm.ActivityInfo
 import android.content.res.Configuration
 import android.os.Build
@@ -11,6 +12,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
@@ -88,10 +90,27 @@ class MainActivity : ComponentActivity() {
      */
     private var notificationTarget by mutableStateOf<String?>(null)
 
+    /**
+     * Link, mit dem die App geöffnet wurde (Bestätigungs- oder Reset-Link).
+     * Als Zustand, weil die Activity `singleTop` ist: Läuft die App schon,
+     * kommt der Link über [onNewIntent] - vorher las `setContent` nur
+     * `intent?.data` vom Kaltstart, ein Link bei laufender App verpuffte.
+     */
+    private var linkData by mutableStateOf<Uri?>(null)
+
+    /**
+     * Zählt jeden ankommenden Link. Derselbe Link ein zweites Mal (Dialog
+     * versehentlich geschlossen, erneut in der Mail getippt) ist für Compose
+     * sonst kein neuer Wert - der Effekt in FlexrApp liefe nicht noch einmal.
+     */
+    private var linkCount by mutableIntStateOf(0)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         val splash = installSplashScreen()
         super.onCreate(savedInstanceState)
         notificationTarget = targetOf(intent)
+        linkData = intent?.data
+        if (linkData != null) linkCount++
 
         // Der Splash bleibt sichtbar, bis der gespeicherte Token geprüft ist —
         // so startet die App nie kurz auf dem Login-Screen, um dann umzuspringen.
@@ -116,7 +135,8 @@ class MainActivity : ComponentActivity() {
             ProvideAppLanguage(language) {
                 FlexrTheme {
                     FlexrApp(
-                        intentData = intent?.data,
+                        intentData = linkData,
+                        intentId = linkCount,
                         notificationTarget = notificationTarget,
                         onNotificationTargetHandled = { notificationTarget = null },
                     )
@@ -195,6 +215,10 @@ class MainActivity : ComponentActivity() {
         // setIntent, damit ein späteres intent?.data denselben Stand sieht.
         setIntent(intent)
         targetOf(intent)?.let { notificationTarget = it }
+        intent.data?.let {
+            linkData = it
+            linkCount++
+        }
     }
 
     /**

@@ -33,8 +33,12 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -71,12 +75,14 @@ import flexr.social.app.domain.model.Membership
 import flexr.social.app.ui.account.AccountScreen
 import flexr.social.app.ui.auth.LoginScreen
 import flexr.social.app.ui.auth.RegisterScreen
+import flexr.social.app.ui.auth.ResetPasswordDialog
 import flexr.social.app.ui.chat.ChatScreen
 import flexr.social.app.ui.legal.LegalScreen
 import flexr.social.app.ui.matches.ChatsScreen
 import flexr.social.app.ui.matches.MatchProfileScreen
 import flexr.social.app.ui.incoming.IncomingScreen
 import flexr.social.app.ui.matches.MatchesScreen
+import flexr.social.app.ui.navigation.APP_LINK_PREFIX
 import flexr.social.app.ui.navigation.FlexrBottomBar
 import flexr.social.app.ui.navigation.FlexrTopBar
 import flexr.social.app.ui.navigation.LegalDocument
@@ -118,6 +124,8 @@ private val MAX_CONTENT_WIDTH = 600.dp
 @Composable
 fun FlexrApp(
     intentData: Uri? = null,
+    /** Zähler je ankommendem Link - derselbe Link ein zweites Mal läuft so erneut durch. */
+    intentId: Int = 0,
     /** Zielreiter einer angetippten Benachrichtigung, sonst null. */
     notificationTarget: String? = null,
     onNotificationTargetHandled: () -> Unit = {},
@@ -164,8 +172,17 @@ fun FlexrApp(
         // weil inzwischen wieder Empfang da ist) von selbst neu versuchen.
         if (appState is AppState.Unreachable) viewModel.loadSession()
     }
-    LaunchedEffect(intentData) {
+    // Reset-Link aus der Mail (seit 2.7.38): https://flexr.social/app/open/?reset=<token>.
+    // Ueberlebt das Drehen; verschwindet, sobald das Passwort gesetzt oder der
+    // Dialog geschlossen ist.
+    var resetToken by rememberSaveable { mutableStateOf<String?>(null) }
+
+    LaunchedEffect(intentData, intentId) {
         if (intentData?.scheme == "flexr") viewModel.refreshMembership()
+
+        if (intentData?.path?.startsWith(APP_LINK_PREFIX) == true) {
+            intentData.getQueryParameter("reset")?.takeIf { it.isNotBlank() }?.let { resetToken = it }
+        }
 
         // Aktivierungslink aus der Bestätigungsmail. Der Link ist als App Link
         // eingetragen (AndroidManifest) und landet deshalb hier statt im
@@ -234,6 +251,26 @@ fun FlexrApp(
                     )
                 }
             }
+        }
+    }
+
+    resetToken?.let { token ->
+        // Je Link ein frischer Dialog: Kommt ein neuer Link, waehrend einer
+        // offen ist, stuenden sonst Eingabe und Fehlermeldung des alten da.
+        key(token) {
+            ResetPasswordDialog(
+                onSave = { neu, onFehler ->
+                    viewModel.resetPassword(token, neu) { ok, meldung ->
+                        if (ok) {
+                            resetToken = null
+                            showMessage(meldung)
+                        } else {
+                            onFehler(meldung)
+                        }
+                    }
+                },
+                onDismiss = { resetToken = null },
+            )
         }
     }
 }

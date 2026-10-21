@@ -586,14 +586,18 @@
     <!-- Forgot password / sign-in details -->
     <string name="login_forgot">Forgot password?</string>
     <string name="forgot_title">Request a new password</string>
-    <string name="forgot_sub">Enter the email address of your account. We will send you a link to choose a new password in your browser.</string>
-    <string name="forgot_done">If there is an account for this address, the link is on its way. It is valid for 60 minutes. Check your spam folder too, then sign in here with your new password.</string>
+    <string name="forgot_sub">Enter the email address of your account. We will send you a link to choose a new password.</string>
+    <string name="forgot_done">If there is an account for this address, the link is on its way. It is valid for 60 minutes. Check your spam folder too. If you open it on this phone, you can choose the new password right here in the app.</string>
     <string name="forgot_send">Send link</string>
     <string name="forgot_err_email">Please enter a valid email address.</string>
     <string name="forgot_err_send">The link could not be requested. Please try again later.</string>
     <string name="reset_new_pw">New password</string>
     <string name="reset_err_short">The password must have at least 8 characters.</string>
     <string name="reset_err_save">That did not work. Please try again.</string>
+    <string name="reset_title">Choose a new password</string>
+    <string name="reset_sub">Choose a new password for your account. You will be signed in right away.</string>
+    <string name="reset_save">Save password</string>
+    <string name="reset_done">Password changed, you are signed in.</string>
     <string name="cred_section">Sign-in details</string>
     <string name="cred_email_label">Email: %1$s</string>
     <string name="cred_unconfirmed">not confirmed yet</string>

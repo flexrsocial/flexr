@@ -41,6 +41,13 @@ data class LoginRequestDto(val email: String, val password: String)
 @Serializable
 data class PasswordForgotRequestDto(val email: String, val language: String? = null)
 
+/** Neues Passwort mit dem Token aus dem Mail-Link (routers/auth.reset_password). */
+@Serializable
+data class PasswordResetRequestDto(
+    val token: String,
+    @SerialName("new_password") val newPassword: String,
+)
+
 @Serializable
 data class PasswordChangeRequestDto(
     @SerialName("current_password") val currentPassword: String,

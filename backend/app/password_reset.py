@@ -41,10 +41,16 @@ def recently_issued(db: Session, user: User) -> bool:
 
 
 def build_link(token: str) -> str:
-    """Link auf die Web-App. Die Seite fragt das neue Passwort ab und loest
-    den Token per POST ein - ein GET-Endpunkt wuerde von Linkscannern in
-    Mailservern ausgeloest (siehe email_verification.build_link)."""
-    return f"{settings.frontend_url.rstrip('/')}/app/?reset={token}"
+    """Link, der das neue Passwort abfragt und den Token per POST einloest -
+    ein GET-Endpunkt wuerde von Linkscannern in Mailservern ausgeloest (siehe
+    email_verification.build_link).
+
+    Seit 21.10.2026 ``/app/open/?reset=`` statt ``/app/?reset=``: Der Pfad
+    ist in der Android-App (ab 2.7.38) als App Link eingetragen, mit
+    installierter App fragt also die App das Passwort ab. Ohne App liefert
+    nginx darunter die Web-App aus, die den Token wie bisher aus der Abfrage
+    liest (``takeResetTokenFromUrl``)."""
+    return f"{settings.frontend_url.rstrip('/')}/app/open/?reset={token}"
 
 
 def issue(db: Session, user: User) -> str:

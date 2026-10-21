@@ -191,9 +191,10 @@ private fun ReactivateAccountDialog(
 }
 
 /**
- * "Passwort vergessen?": Link per Mail anfordern. Das neue Passwort legt man
- * im Browser fest (der Link zeigt auf flexr.social/app/?reset=...) und meldet
- * sich danach hier wieder an.
+ * "Passwort vergessen?": Link per Mail anfordern. Seit 2.7.38 öffnet der Link
+ * (flexr.social/app/open/?reset=...) die App, die das neue Passwort in
+ * [ResetPasswordDialog] abfragt und gleich anmeldet; ohne App geht es im
+ * Browser.
  */
 @Composable
 private fun ForgotPasswordDialog(

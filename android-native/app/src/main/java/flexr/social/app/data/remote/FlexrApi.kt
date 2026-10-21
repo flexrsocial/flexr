@@ -5,6 +5,7 @@ import flexr.social.app.data.remote.dto.EmailChangeRequestDto
 import flexr.social.app.data.remote.dto.OkResponseDto
 import flexr.social.app.data.remote.dto.PasswordChangeRequestDto
 import flexr.social.app.data.remote.dto.PasswordForgotRequestDto
+import flexr.social.app.data.remote.dto.PasswordResetRequestDto
 import flexr.social.app.data.remote.dto.AgeCheckRequestDto
 import flexr.social.app.data.remote.dto.AgeCheckResponseDto
 import flexr.social.app.data.remote.dto.EmailConfirmRequestDto
@@ -91,9 +92,17 @@ interface FlexrApi {
     @POST("api/auth/reactivate")
     suspend fun reactivate(@Body body: LoginRequestDto): TokenResponseDto
 
-    /** Zuruecksetz-Link per Mail anfordern. Das Zuruecksetzen selbst passiert im Browser. */
+    /** Zuruecksetz-Link per Mail anfordern. */
     @POST("api/auth/password/forgot")
     suspend fun forgotPassword(@Body body: PasswordForgotRequestDto): OkResponseDto
+
+    /**
+     * Token aus dem Mail-Link einloesen und direkt anmelden. Seit 2.7.38 in
+     * der App (Link `https://flexr.social/app/open/?reset=...`), vorher nur
+     * im Browser.
+     */
+    @POST("api/auth/password/reset")
+    suspend fun resetPassword(@Body body: PasswordResetRequestDto): TokenResponseDto
 
     /**
      * Altersprüfung fürs Registrierungsformular. Verbindlich bleibt dieselbe

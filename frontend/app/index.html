@@ -5553,7 +5553,8 @@
     }finally{ btn.disabled = false; }
   });
 
-  // Der Link aus der Mail: /app/?reset=<token>. Der Token wandert sofort aus
+  // Der Link aus der Mail: /app/open/?reset=<token> (bis 21.10.2026
+  // /app/?reset=, beide gehen). Der Token wandert sofort aus
   // der Adresszeile in eine Variable - sonst stuende er im Verlauf und in
   // jedem Bildschirmfoto.
   let resetToken = null;

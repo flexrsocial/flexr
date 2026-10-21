@@ -1,6 +1,6 @@
 # HANDOFF — native Android-App
 
-Stand: **21.10.2026**, Version 2.7.37 / versionCode 149. Der jüngste
+Stand: **21.10.2026**, Version 2.7.38 / versionCode 150. Der jüngste
 Abschnitt steht oben, ältere folgen darunter. Fassungen zwischen dem
 16.09. und dem 04.10. sowie 2.7.29 bis 2.7.34 sind nur im Kommentar am
 `versionCode` in `app/build.gradle.kts` und in der Haupt-`HANDOFF.md`
@@ -9,6 +9,78 @@ Für Aufbau, Build-Befehle und die Migrationstabelle siehe [README.md](README.md
 hier steht nur, was daraus *nicht* hervorgeht.
 
 ---
+
+## Mail-Knöpfe öffnen die App (App Links), Passwort-Reset in der App, 21.10.2026 (2.7.38)
+
+Wunsch des Betreibers: Wer die Android-App installiert hat, soll beim Tipp
+auf den Knopf in einer FLEXR-Mail in der App landen, nicht in der Web-App.
+
+**Bestandsaufnahme der Mails** (`backend/app/mailer.py`):
+
+| Mail | Link | Ziel |
+|---|---|---|
+| Registrierung / neue Adresse bestätigen | `/mail-bestaetigen?token=` | App Link schon seit 2.7.x |
+| Neues Match | `/app/open/matches` | **neu App Link** (vorher `/app/?open=matches`) |
+| Neue Profile, offene Likes, lange nicht gesehen | `/app/open/swipe` | **neu App Link** |
+| Freischaltung | `/app/open/swipe` | **neu App Link** (vorher `/app/`) |
+| Neue Aufnahme nötig (Nachbesserung) | `/app/open/` | **neu App Link**, App zeigt dort das Gate |
+| Passwort zurücksetzen | `/app/open/?reset=` | **neu App Link** + Dialog „Neues Passwort festlegen“ (vorher `/app/?reset=`, nur Browser) |
+| Rücktritt, Rechnungen, Rechtstexte | `/widerruf.html`, Stripe | bleibt Browser |
+
+* **Warum ein neuer Pfad:** Ein Intent-Filter unterscheidet keine Abfrage
+  (`?open=`); `/app/` als App Link hätte auch den Reset-Link, den
+  Stripe-Rücksprung und den Geräte-QR (`/app/#weiter=`) in die App gezogen,
+  die damit nichts anfangen kann. nginx liefert unter jedem `/app/…`-Pfad
+  die Web-App aus (`try_files … /app/index.html`, live geprüft), die Web-App
+  liest `/app/open/<reiter>` in `zielAusAdresse` und setzt die Adresse auf
+  `/app/` zurück. Alte Mails mit `?open=` funktionieren weiter.
+* **Android:** zweiter `autoVerify`-Filter mit `pathPrefix="/app/open/"`
+  (gleiche Domain, die `assetlinks.json` mit Play-Signierschlüssel
+  `3B:2B…` und Upload-Key gilt mit; Google liest sie, per
+  Digital-Asset-Links-API geprüft). `MainActivity.targetOf` nimmt als vierte
+  Quelle `intent.data` → `appLinkTarget()` (`ui/navigation/AppLinks.kt`,
+  getestet in `AppLinkZielTest`) → derselbe Weg wie ein Push-Ziel, auch über
+  den Login hinweg. Unbekanntes Ziel: App öffnet einfach.
+* **Passwort-Reset in der App** (Wunsch des Betreibers): Der Reset-Link liegt
+  jetzt unter `/app/open/?reset=<token>`. `FlexrApp` liest den Token aus
+  `intentData` und zeigt `ResetPasswordDialog` (`ui/auth/`) - Länge ≥ 8 und
+  Wiederholung wie im Konto, dann `POST /api/auth/password/reset`
+  (`AuthRepository.resetPassword`, Server meldet gleich an; ein anderes
+  angemeldetes Konto wird vorher lokal verworfen und vom Push abgemeldet).
+  Serverfehler (Link abgelaufen/benutzt) erscheinen im Dialog. Die Web-App
+  liest `?reset=` unverändert aus der Abfrage, unter `/app/open/` genauso.
+  Texte „Passwort vergessen“ ohne „im Browser“.
+* **Link bei laufender App:** `MainActivity` ist `singleTop`; ein Link bei
+  laufender App kommt über `onNewIntent`. `setContent` las bis 2.7.37 nur
+  `intent?.data` vom Kaltstart, der Link verpuffte (betraf auch den
+  Bestätigungslink). Jetzt `linkData` als Compose-Zustand.
+* Der Reset-Dialog schließt bei einem Tipp daneben nicht (`dismissOnClickOutside
+  = false`): Mit offener Tastatur rückt er nach oben, ein knapp verfehltes
+  zweites Feld verwarf im Emulator alles Eingetippte. Je Link ein frischer
+  Dialog (`key(token)`); derselbe Link ein zweites Mal öffnet ihn wieder
+  (`linkCount` in `MainActivity`, `intentId` an `FlexrApp`).
+* **Geprüft im Emulator** (`localDebug` 2.7.38 gegen lokales Backend, Lukas):
+  `/app/open/matches` bei laufender App im Hintergrund → „Deine Matches“,
+  nach `force-stop` (Kaltstart) → „Deine Matches“, `/app/open/swipe` → Deck.
+  Reset ausgeloggt und bei laufender App: Dialog erscheint; zu kurz und
+  ungleich → Meldungen im Dialog; ersetzter Link → „ungültig oder bereits
+  benutzt“; über 60 Minuten alter Link → „abgelaufen“; gültiger Link →
+  angemeldet im Deck, Login mit neuem Passwort 200, mit altem 401; derselbe
+  benutzte Link noch einmal → Dialog wieder da, Meldung „bereits benutzt“.
+  Kein Absturz. Die Domain-Prüfung selbst (`pm get-app-links`) scheitert bei
+  der Testvariante erwartungsgemäß (Debug-Signatur, anderes Paket); mit der
+  Play-Signatur greift sie wie beim Bestätigungslink.
+* **AAB** `android-native/release-2.7.38/flexr-2.7.38-150.aab` (gitignored),
+  SHA-256 `4e4db828…bbe1`, 8.612.158 Bytes, Upload-Key `BC:64:AD…79:80`.
+  86 Unit-Tests grün; Lint lief auf dem Stand vor dem Reset-Dialog lokal mit
+  0 Fehlern, danach in der GitHub-CI. Enthält 2.7.37. Die nächste Fassung ist
+  2.7.39 / 151.
+* **Voraussetzung, nicht hier prüfbar:** Brevo darf die Links nicht für
+  Klick-Statistiken umschreiben (sonst zeigt der Knopf auf eine
+  Brevo-Adresse und Android öffnet den Browser). Prüfen: Link in einer
+  FLEXR-Mail lange drücken - er muss mit `https://flexr.social/` beginnen.
+* iOS: keine Universal Links (App nicht im Store); am iPhone öffnet der Link
+  wie bisher die Web-App.
 
 ## Fotos im Match-Profil per Wischen, 21.10.2026 (2.7.37)
 

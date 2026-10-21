@@ -7,6 +7,7 @@ import flexr.social.app.data.local.MessageDao
 import flexr.social.app.data.remote.FlexrApi
 import flexr.social.app.data.remote.dto.LoginRequestDto
 import flexr.social.app.data.remote.dto.PasswordForgotRequestDto
+import flexr.social.app.data.remote.dto.PasswordResetRequestDto
 import flexr.social.app.data.remote.dto.RegisterRequestDto
 import flexr.social.app.data.session.SessionStore
 import flexr.social.app.domain.model.Gender
@@ -127,6 +128,17 @@ class AuthRepository @Inject constructor(
     /** "Passwort vergessen": Der Server verraet nicht, ob es das Konto gibt. */
     suspend fun forgotPassword(email: String, language: String) {
         apiCall { api.forgotPassword(PasswordForgotRequestDto(email.trim(), language)) }
+    }
+
+    /**
+     * Neues Passwort aus dem Mail-Link setzen; der Server meldet gleich an.
+     * War auf dem Geraet ein anderes Konto angemeldet, wird dessen Cache
+     * vorher verworfen - wie bei einem Abmelden.
+     */
+    suspend fun resetPassword(token: String, newPassword: String) {
+        val response = apiCall { api.resetPassword(PasswordResetRequestDto(token, newPassword)) }
+        logout()
+        sessionStore.saveToken(response.accessToken)
     }
 
     suspend fun logout() {

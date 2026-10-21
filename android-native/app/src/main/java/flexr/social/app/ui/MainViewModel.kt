@@ -232,6 +232,28 @@ class MainViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Neues Passwort aus dem Mail-Link (seit 2.7.38 in der App, vorher nur im
+     * Browser). Der Server meldet dabei an. War ein anderes Konto angemeldet,
+     * meldet sich das Geraet vorher von dessen Pushes ab - wie bei [logout].
+     */
+    fun resetPassword(token: String, newPassword: String, onResult: (ok: Boolean, message: String) -> Unit) {
+        viewModelScope.launch {
+            if (_appState.value !is AppState.LoggedOut) runCatching { pushTokenRegistrar.abmelden() }
+            runCatching { authRepository.resetPassword(token, newPassword) }
+                .onSuccess {
+                    onResult(true, strings.get(R.string.reset_done))
+                    loadSession()
+                }
+                .onFailure { throwable ->
+                    onResult(
+                        false,
+                        (throwable as? FlexrApiException)?.message ?: strings.get(R.string.reset_err_save),
+                    )
+                }
+        }
+    }
+
     fun logout() {
         viewModelScope.launch {
             notificationScheduler.cancel()

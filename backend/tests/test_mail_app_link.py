@@ -57,3 +57,12 @@ def test_link_pfad_kennen_web_app_und_android():
     assert r"\/app\/open\/" in web
     assert 'android:pathPrefix="/app/open/"' in manifest
     assert mailer._app_link("matches").endswith("/app/open/matches")
+
+
+def test_reset_link_oeffnet_die_app():
+    """Seit 2.7.38 fragt die Android-App das neue Passwort selbst ab: Der
+    Reset-Link liegt unter /app/open/, die Web-App liest ?reset= weiterhin."""
+    from app import password_reset
+
+    link = password_reset.build_link("t" * 32)
+    assert link == f"{settings.frontend_url.rstrip('/')}/app/open/?reset={'t' * 32}"

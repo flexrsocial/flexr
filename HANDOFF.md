@@ -80,6 +80,17 @@ erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 >   `ios-screenshots` auf `48cfbd9` grün (66 Bilder, `testAppVonAbisZ`
 >   695 s); `ios-tests` übersprungen (`when: changeset: ios/` - seit dem
 >   grünen Lauf auf `b398d50` keine iOS-Änderung).
+> - **Mail-Knöpfe öffnen die Android-App** (`99f0154` + Folgecommit,
+>   Android 2.7.38 / 150): Aktivitäts-, Freischalt- und Reset-Mails zeigen auf
+>   `/app/open/<reiter>` bzw. `/app/open/?reset=`, als App Link eingetragen;
+>   ohne App liefert nginx dort die Web-App. Neu in der App: „Neues Passwort
+>   festlegen“ aus dem Reset-Link. Bestandsaufnahme aller Mails und
+>   Emulator-Test im obersten Abschnitt von `android-native/HANDOFF.md`.
+>   **Offen beim Nutzer:** prüfen, ob Brevo Links umschreibt (Link in einer
+>   Mail lange drücken, muss mit `https://flexr.social/` beginnen).
+> - **iOS 2.4.13** (`9ddfb6c`): Foto-Wischen im Match-Profil, `ios-tests`
+>   grün (71 Tests); `ios-screenshots` wurde in Codemagic abgebrochen, bevor
+>   er lief - der Wisch-Schritt im UI-Test ist also noch nicht gelaufen.
 > - **Datensicherheit nach der ersten Korrektur** (englische Store-Seite,
 >   die deutsche hing noch im Cache): alle Typen und Zwecke richtig bis auf
 >   die fehlende Kategorie App-Aktivitäten (App-Interaktionen, sonstige

@@ -6,6 +6,7 @@ import flexr.social.app.data.remote.dto.EmailChangeRequestDto
 import flexr.social.app.data.remote.dto.OkResponseDto
 import flexr.social.app.data.remote.dto.PasswordChangeRequestDto
 import flexr.social.app.data.remote.dto.PasswordForgotRequestDto
+import flexr.social.app.data.remote.dto.PasswordResetRequestDto
 import flexr.social.app.data.remote.dto.AgeCheckRequestDto
 import flexr.social.app.data.remote.dto.AgeCheckResponseDto
 import flexr.social.app.data.remote.dto.BlockRequestDto
@@ -88,6 +89,9 @@ open class FakeFlexrApi : FlexrApi {
 
     override suspend fun forgotPassword(body: PasswordForgotRequestDto): OkResponseDto =
         nichtVorgesehen("forgotPassword")
+
+    override suspend fun resetPassword(body: PasswordResetRequestDto): TokenResponseDto =
+        nichtVorgesehen("resetPassword")
 
     override suspend fun checkAge(body: AgeCheckRequestDto): AgeCheckResponseDto =
         nichtVorgesehen("checkAge")
