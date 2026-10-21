@@ -635,7 +635,8 @@ body.has-beta-bar footer{ padding-bottom:110px; }
   box-shadow:0 30px 60px rgba(0,0,0,.5);
   padding:28px 26px 24px;
 }
-.beta-modal .eyebrow{ margin-bottom:8px; }
+/* Farbe ausdruecklich: .beta-modal p (grau) wiegt sonst schwerer als .eyebrow. */
+.beta-modal .eyebrow{ margin-bottom:8px; color:var(--plate); }
 .beta-modal h2{ font-size:clamp(21px, 5vw, 26px); margin:0 0 8px; }
 .beta-modal p{ font-size:15px; color:var(--chalk-dim); }
 .beta-modal p:last-of-type{ margin-bottom:0; }
@@ -656,9 +657,9 @@ body.has-beta-bar footer{ padding-bottom:110px; }
    klein. Ohne diese Ausnahme macht das text-transform daraus ein "IOS". */
 .beta-facts b.as-written{ text-transform:none; }
 .beta-facts span{ color:var(--chalk-dim); }
-.beta-facts a{ color:var(--chalk); text-decoration:underline; text-underline-offset:2px; }
-/* "jetzt installieren" (iOS) ist die einzige Handlung in der Liste. */
-.beta-facts a[href*="ios=installieren"]{ color:var(--plate); font-weight:600; }
+/* Seit 21.10.2026 alle Links der Liste in Orange: "jetzt installieren" bei
+   Android und iOS, dazu die Feedback-Adresse. */
+.beta-facts a{ color:var(--plate); font-weight:600; text-decoration:underline; text-underline-offset:2px; }
 .beta-facts li.is-free b, .beta-facts li.is-free span{ color:var(--lime); }
 .beta-modal .btn{
   display:block; width:100%; margin-top:16px; padding:14px 24px;
