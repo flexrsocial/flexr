@@ -912,14 +912,18 @@ def _notify_opt_out(lang: str = STANDARD) -> str:
 _NOTIFY_OPT_OUT = TEXTE["notify.optOut"]["de"]
 
 
-def _app_link(ziel: str) -> str:
-    """Link in die Web-App auf den passenden Reiter (Wunsch des Betreibers,
+def _app_link(ziel: str = "") -> str:
+    """Link in die App auf den passenden Reiter (Wunsch des Betreibers,
     17.10.2026): Bis dahin sagten diese Mails nur "in FLEXR", ohne Link.
 
     Dieselben Ziele wie die Push-Mitteilungen (``target`` in notifications.py).
-    Die Web-App wertet ``?open=`` aus, auch wenn man sich erst noch einloggen
-    muss (``oeffneZiel`` in frontend/app/index.html)."""
-    return f"{settings.frontend_url.rstrip('/')}/app/?open={ziel}"
+    Seit 21.10.2026 ``/app/open/<ziel>`` statt ``/app/?open=<ziel>``: Der Pfad
+    ist in der Android-App (ab 2.7.38) als App Link eingetragen, mit
+    installierter App oeffnet der Knopf also die App. Ohne App liefert nginx
+    darunter die Web-App aus, die den Reiter genauso oeffnet - auch wenn man
+    sich erst noch einloggen muss (``zielAusAdresse``/``oeffneZiel`` in
+    frontend/app/index.html). Leeres Ziel: nur die App oeffnen."""
+    return f"{settings.frontend_url.rstrip('/')}/app/open/{ziel}"
 
 
 def _new_match_html(name: str, match_name: str, lang: str = STANDARD) -> str:
@@ -1166,7 +1170,8 @@ def send_verification_decision(
     # Wo es weitergeht, ein Knopf direkt in die Web-App (Wunsch des
     # Betreibers, 14.10.2026): Bis dahin stand in der Freischalt-Mail nur
     # "Oeffne FLEXR" - ohne Link, wer am Rechner las, musste die Seite suchen.
-    app_link = f"{settings.frontend_url.rstrip('/')}/app/"
+    # Seit 21.10.2026 ueber _app_link, damit der Knopf mit installierter
+    # Android-App die App oeffnet.
     button = None
     if outcome == "approved":
         subject = t("verified.subject", lang)
@@ -1174,7 +1179,7 @@ def send_verification_decision(
         detail = t("verified.detail", lang)
         if photos_pending:
             detail = f'{detail}\n\n{t("verified.photosPending", lang, min=MIN_PHOTOS)}'
-        button = (app_link, t("verified.cta", lang))
+        button = (_app_link("swipe"), t("verified.cta", lang))
     elif outcome == "reupload_required":
         subject = t("reupload.subject", lang)
         eyebrow = t("reupload.eyebrow", lang)
@@ -1183,7 +1188,7 @@ def send_verification_decision(
             "reupload.detail", lang,
             what=umfang, reason=reason or t("reupload.fallbackReason", lang),
         )
-        button = (app_link, t("reupload.cta", lang))
+        button = (_app_link(), t("reupload.cta", lang))
     else:
         subject = t("rejected.subject", lang)
         eyebrow = t("rejected.eyebrow", lang)

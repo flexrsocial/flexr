@@ -354,8 +354,11 @@ android {
         // Wischen durch die Fotos (vorher nur ueber die Vollbildansicht), die
         // Vollbildansicht oeffnet beim angezeigten statt beim ersten Foto.
         // 148 war da schon ausgerollt (ohne diesen Fix).
-        versionCode = 149
-        versionName = "2.7.37"
+        // 150/2.7.38 am 21.10.2026: Knoepfe in den Aktivitaets-Mails
+        // (https://flexr.social/app/open/<reiter>) als App Link - mit
+        // installierter App oeffnet sich die App statt der Web-App.
+        versionCode = 150
+        versionName = "2.7.38"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

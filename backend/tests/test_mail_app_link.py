@@ -38,9 +38,22 @@ def test_mail_fuehrt_auf_den_passenden_reiter(gesendet, fall, lang):
     senden, ziel, schluessel = FAELLE[fall]
     senden(lang)
     text, html = gesendet[-1]
-    link = f"https://flexr.social/app/?open={ziel}"
+    link = f"https://flexr.social/app/open/{ziel}"
     beschriftung = TEXTE[schluessel][lang]
 
     assert f'href="{link}"' in html
     assert f">{beschriftung}</a>" in html
     assert f"{beschriftung}: {link}" in text
+
+
+def test_link_pfad_kennen_web_app_und_android():
+    """Der Mail-Link /app/open/<reiter> muss an beiden Enden ankommen: in der
+    Web-App (zielAusAdresse) und als App Link im Android-Manifest (2.7.38)."""
+    from pathlib import Path
+
+    repo = Path(__file__).resolve().parents[2]
+    web = (repo / "frontend" / "app" / "index.html").read_text(encoding="utf-8")
+    manifest = (repo / "android-native" / "app" / "src" / "main" / "AndroidManifest.xml").read_text(encoding="utf-8")
+    assert r"\/app\/open\/" in web
+    assert 'android:pathPrefix="/app/open/"' in manifest
+    assert mailer._app_link("matches").endswith("/app/open/matches")

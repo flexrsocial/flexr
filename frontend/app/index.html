@@ -6603,6 +6603,15 @@
     history.replaceState(null, '', location.pathname + location.search);
   })();
   (function zielAusAdresse(){
+    // Mail-Links seit 21.10.2026: /app/open/<reiter>. Der Pfad ist in der
+    // Android-App als App Link eingetragen und oeffnet sie, wenn sie
+    // installiert ist; sonst liefert nginx hier die Web-App aus (try_files auf
+    // /app/index.html). Zurueck auf /app/, damit Neuladen nicht erneut springt.
+    const pfad = location.pathname.match(/^\/app\/open\/([a-z]*)\/?$/);
+    if(pfad){
+      if(pfad[1]) offenesZiel = pfad[1];
+      history.replaceState(null, '', '/app/' + location.search);
+    }
     const params = new URLSearchParams(location.search);
     const ziel = params.get('open');
     if(!ziel) return;

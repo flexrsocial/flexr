@@ -20,9 +20,9 @@ def test_freischaltung_hat_knopf_zur_app(monkeypatch):
     mailer.send_verification_decision("a@example.com", "Anna", "approved", lang="de")
 
     betreff, text, html_text = gesendet[0]
-    assert 'href="https://flexr.social/app/"' in html_text
+    assert 'href="https://flexr.social/app/open/swipe"' in html_text
     assert "Jetzt loslegen" in html_text
-    assert "Jetzt loslegen: https://flexr.social/app/" in text
+    assert "Jetzt loslegen: https://flexr.social/app/open/swipe" in text
 
 
 def test_freischaltung_englisch(monkeypatch):
@@ -36,6 +36,7 @@ def test_nachbesserung_hat_knopf_ablehnung_nicht(monkeypatch):
     mailer.send_verification_decision("a@example.com", "Anna", "reupload_required", reason="unscharf")
     mailer.send_verification_decision("a@example.com", "Anna", "rejected", reason="Ausweis abgelaufen")
     assert "Neue Aufnahme machen" in gesendet[0][2]
+    assert "/app/open/" in gesendet[0][2]
     assert "/app/" not in gesendet[1][2]
 
 

@@ -69,6 +69,23 @@
                     android:host="flexr.social"
                     android:path="/mail-bestaetigen" />
             </intent-filter>
+
+            <!--
+                Seit 2.7.38: Knöpfe in den Aktivitäts-Mails (neues Match, neue
+                Profile, offene Likes, Freischaltung) öffnen die App auf dem
+                passenden Reiter statt der Web-App - siehe AppLinks.kt. Dieselbe
+                Domain wie oben, die Prüfung der assetlinks.json gilt für beide.
+                Ohne App öffnet der Browser die Web-App unter derselben Adresse.
+            -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data
+                    android:scheme="https"
+                    android:host="flexr.social"
+                    android:pathPrefix="/app/open/" />
+            </intent-filter>
         </activity>
 
         <!-- WorkManager wird über Hilt initialisiert, nicht über den Default-Provider. -->

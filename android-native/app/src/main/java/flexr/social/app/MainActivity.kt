@@ -28,6 +28,7 @@ import flexr.social.app.notifications.NewMessageWorker
 import flexr.social.app.push.FlexrMessagingService
 import flexr.social.app.ui.FlexrApp
 import flexr.social.app.ui.navigation.TopLevelDestination
+import flexr.social.app.ui.navigation.appLinkTarget
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -213,8 +214,10 @@ class MainActivity : ComponentActivity() {
      * ein Tipp aus dem gemeldeten Fall - Telefon gesperrt, App beendet -
      * stumm auf dem Startbildschirm der App statt im Chat.
      *
-     * Bewusst getrennt von `intent.data`: darüber läuft der Bestätigungslink
-     * aus der Registrierungsmail, und der bleibt hier unangetastet.
+     * Vierte Quelle seit 2.7.38: ein Mail-Link `https://flexr.social/app/open/<reiter>`
+     * in `intent.data` ([appLinkTarget]). Der Bestätigungslink aus der
+     * Registrierungsmail (`/mail-bestaetigen`) läuft ebenfalls über
+     * `intent.data`, ist aber kein Reiter und bleibt FlexrApp überlassen.
      */
     private fun targetOf(intent: Intent?): String? {
         if (intent == null) return null
@@ -223,7 +226,8 @@ class MainActivity : ComponentActivity() {
         }
         val target = intent.getStringExtra(ActivityNotificationWorker.EXTRA_TARGET)
             ?: intent.getStringExtra(FlexrMessagingService.DATA_TARGET)
-        return TopLevelDestination.entries.firstOrNull { it.route == target }?.route
+        TopLevelDestination.entries.firstOrNull { it.route == target }?.let { return it.route }
+        return intent.data?.takeIf { it.host == "flexr.social" }?.let { appLinkTarget(it.path) }
     }
 
     private companion object {
