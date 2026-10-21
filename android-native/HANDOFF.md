@@ -1,6 +1,6 @@
 # HANDOFF — native Android-App
 
-Stand: **17.10.2026**, Version 2.7.36 / versionCode 148. Der jüngste
+Stand: **21.10.2026**, Version 2.7.36 / versionCode 148. Der jüngste
 Abschnitt steht oben, ältere folgen darunter. Fassungen zwischen dem
 16.09. und dem 04.10. sowie 2.7.29 bis 2.7.34 sind nur im Kommentar am
 `versionCode` in `app/build.gradle.kts` und in der Haupt-`HANDOFF.md`
@@ -9,6 +9,44 @@ Für Aufbau, Build-Befehle und die Migrationstabelle siehe [README.md](README.md
 hier steht nur, was daraus *nicht* hervorgeht.
 
 ---
+
+## Fotos im Match-Profil per Wischen, 21.10.2026 (2.7.36)
+
+**In 2.7.36 enthalten** (148 war nie hochgeladen, daher kein Versionssprung).
+Anlass: Rückmeldung des Nutzers am Tag des Produktionsstarts von 2.7.35 -
+im Profil eines Matches ließ sich nicht durch die Fotos wischen, nur ein Tipp
+öffnete die Vollbildansicht, erst dort ging es.
+
+* **Ursache:** `SwipeCard.kt`, `CardContent`: Auf der Fotofläche lag nur
+  `detectTapGestures` (Vollbild) und oben der Strichstreifen (Tipp wählt das
+  Foto). Im Deck gehört das waagrechte Wischen dem Like/Pass
+  (`detectDragGestures` auf der Karte), im Match-Profil (`draggable = false`)
+  nahm es niemand an.
+* **Jetzt:** `CardContent` bekommt `swipePhotos` (`SwipeableCard` setzt
+  `!draggable`, `BackgroundCard` `false`). Dann hängt an der Fotofläche
+  zusätzlich `detectHorizontalDragGestures`: nach links das nächste, nach
+  rechts das vorige Foto, ab 40 dp Weg (`PHOTO_SWIPE_THRESHOLD_DP`), an den
+  Enden bleibt es stehen. Die Entscheidung steckt in `photoIndexAfterSwipe`
+  (getestet in `FotoWischenTest`). Die Geste verbraucht die Bewegung, ein
+  Wisch öffnet also nicht nebenbei die Vollbildansicht. Im Deck unverändert.
+* **Mitbehoben:** Der Tipp auf das Foto übergab der Vollbildansicht den
+  `photoIndex` vom ersten Aufbau der Karte (`pointerInput` startet nur bei
+  geänderten Schlüsseln neu, der Lambda hielt den alten Wert). Nach einem
+  Wechsel über die Striche öffnete sie deshalb beim ersten statt beim
+  angezeigten Foto. Jetzt über `rememberUpdatedState`.
+* **Nicht geprüft am Gerät:** Auf diesem Rechner gibt es keinen Emulator.
+  Unit-Tests und Lint grün; das Wischen selbst im internen Test-Track
+  ausprobieren, bevor 2.7.36 in die Produktion geht.
+* **Web und iOS** haben dieselbe Lücke (Web: Tippzonen links/rechts, iOS:
+  nur Tipp und Striche). Nicht angefasst.
+* **AAB** `android-native/release-2.7.36/flexr-2.7.36-148.aab` (gitignored),
+  SHA-256 `3ad36c95…1ce0`, 8.600.716 Bytes, Upload-Key `BC:64:AD…79:80`.
+  Das AAB vom 17.10. (`cca70261…`) liegt in
+  `release-2.7.36/alt-17.10-ohne-fotowischen/` - **nicht hochladen**.
+* Geprüft: 83 Unit-Tests (+4), Lint 0 Fehler. Gebaut auf dem Rechner mit
+  JDK 21 (`~/.bubblewrap/jdk/jdk-21.0.12.1+1`, ein JDK 17 liegt dort nicht mehr)
+  aus einem frischen Klon; `local.properties` mit dem SDK-Pfad dieses Rechners,
+  Keystore und `KEYSTORE-CREDENTIALS.txt` per Symlink aus dem MEGA-Ordner.
 
 ## Bio im Deck über X/Herz, übersetzbare Texte, 17.10.2026 (2.7.36)
 

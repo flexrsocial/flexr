@@ -63,6 +63,10 @@ Dieser Eintrag nennt bisher nur den „Konto-Bereich“, nicht ausdrücklich den
 
 ## 1. Datensicherheit (Data safety)
 
+**Formular Schritt für Schritt: [DATENSICHERHEIT.md](DATENSICHERHEIT.md)** (21.10.2026).
+Der Store-Eintrag zeigte nach dem Produktionsstart „Keine Daten erhoben“ - die
+Angaben in der Console waren nicht gesetzt oder nicht veröffentlicht.
+
 ### Seit 2.2.0 zu deklarieren
 
 | Feld | Angabe |

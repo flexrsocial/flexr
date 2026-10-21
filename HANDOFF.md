@@ -1,6 +1,6 @@
 # FLEXR — Handoff für ein anderes Gerät / Claude Code
 
-Stand: **18.10.2026**
+Stand: **21.10.2026**
 
 ## ⚠️ Dringend zu prüfen: SSH-Zugang zum VPS hat sich geändert (21.09.2026)
 
@@ -31,6 +31,39 @@ Falls du das liest, weil dein `root@`-Login gerade fehlschlägt: das ist
 erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 
 ## Wo das Projekt gerade steht
+
+> **Sitzung 21.10.2026: Android 2.7.35 ist live in Google Play. Beta-Hinweis
+> angepasst, Datensicherheit war leer, 2.7.36 mit Foto-Wischen im Match-Profil
+> neu gebaut.**
+>
+> - **Play Store:** „FLEXR – Gym Dating Österreich“ ist öffentlich (2.7.35 /
+>   147, PEGI 18), der Play-Knopf auf der Website führt jetzt zum Eintrag.
+> - **Datensicherheit:** Der Store zeigte „Keine Daten erhoben“, die Angaben
+>   stammten vom 25.07. (TWA-Zeit). Formular Schritt für Schritt in
+>   `android-native/DATENSICHERHEIT.md`; vom Nutzer am 21.10. in der Console
+>   ausgefüllt. **Offen:** ob die Änderung zur Prüfung gesendet und im Store
+>   übernommen ist (`play.google.com/store/apps/datasafety?id=flexr.social.app`).
+> - **Web** (`1adc732`, live md5-gleich, kein Neustart): Beta-Hinweis Android
+>   „App bei Google Play · jetzt installieren“ mit Store-Link statt „in den
+>   nächsten Tagen“, Landingpage DE/EN und App. Merker
+>   `flexr_beta_notice_v8`, `i18n-app.js?v=43`, Service Worker v55.
+> - **Android 2.7.36 / 148 neu gebaut** (148 war nie hochgeladen): zusätzlich
+>   blättert waagrechtes Wischen im Match-Profil durch die Fotos (vorher nur
+>   über die Vollbildansicht), und die Vollbildansicht öffnet beim angezeigten
+>   statt beim ersten Foto. Einzelheiten und Prüfsumme in
+>   `android-native/HANDOFF.md` (oberster Abschnitt). Am Gerät noch nicht
+>   ausprobiert - erst interner Test, dann Produktion. Versionshinweise DE/EN in
+>   `android/store/store-texte.md` um das Foto-Wischen ergänzt.
+> - **Web und iOS** blättern im Match-Profil weiterhin nur per Tipp.
+> - **Arbeitsweise auf diesem Rechner:** `~/MEGA/flexr/flexr` ist kein
+>   Git-Checkout mehr. Gearbeitet in einem frischen Klon; der lokale
+>   GitHub-Schlüssel gehört zu einem anderen Repository (nur Lesen), daher
+>   Commits per `git format-patch` → `git am` auf dem VPS und von dort
+>   gepusht. Geänderte Dateien danach in den MEGA-Ordner kopiert.
+>   `flexr-vps` in `~/.ssh/config` meldet sich noch als `root` an - für
+>   Automatisierung `deploy@31.220.73.67` nehmen.
+> - Lokal fehlen pip/venv: `test_public_frontend.py` (nur Standardbibliothek)
+>   lief direkt ohne pytest, 11/11 grün.
 
 > **Sitzung 18.10.2026: Restore-Test schlug Alarm, das Backup war in
 > Ordnung - der Test verglich gegen die Live-Datenbank.**
