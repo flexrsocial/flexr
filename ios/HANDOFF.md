@@ -27,8 +27,10 @@ Deck-Fix vom 17.10. unten).
   `03-match-profil-gewischt`.
 * Den Index-Fehler der Android-Vollbildansicht gab es hier nicht: SwiftUI
   baut den Tipp-Closure bei jedem `body` neu.
-* Auf diesem Rechner nicht compilierbar - Prüfung über Codemagic
-  (`ios-tests`, `ios-screenshots`).
+* Auf diesem Rechner nicht compilierbar - geprüft über Codemagic:
+  `ios-tests` grün (71 Tests, `6ad8c9a1…`), `ios-screenshots` grün
+  (`6ad8f850…` auf `d90e8fd`, 67 Bilder, der Wisch-Schritt bestanden).
+  TestFlight-Lauf `ios-flexr` (`6ad8d0b1…`) vom Nutzer, erfolgreich.
 
 ## Bio im Deck über X/Herz, 17.10.2026 (nach 2.4.12) — **nicht compilerverifiziert**
 

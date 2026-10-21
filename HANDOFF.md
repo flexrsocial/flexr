@@ -10143,9 +10143,10 @@ Neu aus der Sitzung 21.10.2026 (Play-Start, Android 2.7.37/2.7.38, iOS 2.4.13):
   erforderlich statt optional - kein Verstoß, nur strenger als nötig.
 - **iOS 2.4.13:** `ios-tests` grün; TestFlight-Lauf `ios-flexr`
   (`6ad8d0b1…`, auf `99f0154`) vom Nutzer gestartet, erfolgreich.
-  `ios-screenshots` (mit dem neuen Wisch-Schritt `matchProfilFotosWischen`)
-  wurde abgebrochen und ist noch nicht gelaufen -
-  `python3 tools/ios-screenshots/codemagic.py start` + `hol`.
+  `ios-screenshots` auf `d90e8fd` grün (`6ad8f850…`, 67 Bilder, 762 s):
+  `matchProfilFotosWischen` bestanden (Mia: 1 → 2, am Ende 3, zurück 2),
+  Bild `03-match-profil-gewischt`; Vergleich in
+  `ios-screenshots/ios-foto-wischen.jpg` (nicht im Repository).
 - **Web-App:** Im Match-Profil blättert man weiterhin nur per Tipp
   (Android und iOS wischen seit heute).
 - **Emulator-Test:** Anleitung und Werkzeuge in
