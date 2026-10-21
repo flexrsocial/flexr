@@ -10136,14 +10136,16 @@ Neu aus der Sitzung 21.10.2026 (Play-Start, Android 2.7.37/2.7.38, iOS 2.4.13):
   öffnet Android statt der App den Browser. Link in einer FLEXR-Mail lange
   drücken - muss mit `https://flexr.social/` beginnen, sonst in Brevo bei den
   Transaktions-Mails das Klick-Tracking aus.
-- **Datensicherheit:** Store zeigte nach der ersten Korrektur alles außer der
-  Kategorie App-Aktivitäten; der Nutzer trägt sie nach. Danach
-  `play.google.com/store/apps/datasafety?id=flexr.social.app&hl=en` prüfen
-  (die deutsche Seite hing im Cache).
-- **iOS 2.4.13:** `ios-tests` grün, `ios-screenshots` (mit dem neuen
-  Wisch-Schritt `matchProfilFotosWischen`) wurde abgebrochen und ist noch
-  nicht gelaufen - `python3 tools/ios-screenshots/codemagic.py start` +
-  `hol`. TestFlight (`ios-flexr`) startet der Nutzer selbst.
+- ~~**Datensicherheit**~~ - **erledigt 21.10. abends:** Store (DE und EN)
+  zeigt alle 13 Datentypen mit den Zwecken aus
+  `android-native/DATENSICHERHEIT.md`, „Keine Daten geteilt“, verschlüsselt,
+  Löschung beantragbar. Kaufverlauf und In-App-Nachrichten stehen als
+  erforderlich statt optional - kein Verstoß, nur strenger als nötig.
+- **iOS 2.4.13:** `ios-tests` grün; TestFlight-Lauf `ios-flexr`
+  (`6ad8d0b1…`, auf `99f0154`) vom Nutzer gestartet, erfolgreich.
+  `ios-screenshots` (mit dem neuen Wisch-Schritt `matchProfilFotosWischen`)
+  wurde abgebrochen und ist noch nicht gelaufen -
+  `python3 tools/ios-screenshots/codemagic.py start` + `hol`.
 - **Web-App:** Im Match-Profil blättert man weiterhin nur per Tipp
   (Android und iOS wischen seit heute).
 - **Emulator-Test:** Anleitung und Werkzeuge in
