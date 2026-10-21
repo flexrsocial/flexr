@@ -224,7 +224,11 @@ def test_frontend_laedt_ueberhaupt_keine_fremden_hosts():
                # App-Store-/Play-Store-Abos auf Apple bzw. Google, die dafuer
                # in datenschutz.html (Abschnitt 6, "Empfaenger") als eigene
                # Vertragspartner genannt sind.
-               "getsupport.apple.com", "support.google.com"}
+               "getsupport.apple.com", "support.google.com",
+               # Seit 17.10.2026 der Knopf "Fuer Android - Bei Google Play" und
+               # der Beta-Hinweis: ein Link auf den Store-Eintrag, kein
+               # eingebundenes Bild/Skript - geladen wird erst nach dem Klick.
+               "play.google.com"}
 
     for name in ("index.html", "app/index.html", "admin.html", "admin.js", "legal.css",
                  "agb.html", "datenschutz.html", "impressum.html", "faq.html",
