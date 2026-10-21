@@ -1,10 +1,34 @@
 # HANDOFF — native iOS-App
 
-Stand: **17.10.2026**, Version 2.4.12. Für Aufbau, Build-Befehle und die
+Stand: **21.10.2026**, Version 2.4.13. Für Aufbau, Build-Befehle und die
 Migrationstabelle siehe [README.md](README.md) — hier steht nur, was daraus
 *nicht* hervorgeht.
 
 ---
+
+## Fotos im Match-Profil per Wischen, 21.10.2026 (2.4.13)
+
+Wie Android 2.7.37 (oberster Abschnitt in `android-native/HANDOFF.md`):
+Im Match-Profil blätterte man bisher nur per Tipp auf die Striche oder über
+die Vollbildansicht. Version 2.4.12 → **2.4.13** (enthält auch den
+Deck-Fix vom 17.10. unten).
+
+* `SwipeCard.swift`: `CardContent` bekommt `swipesPhotos` (`SwipeableCard`
+  setzt `!isDraggable`, `BackgroundCard` `false`). Am Kartenfoto hängt
+  `.gesture(photoSwipeGesture, including: canSwipePhotos ? .all : .subviews)` -
+  `.subviews` lässt im Deck den Tipp aktiv, dort gehört das Wischen weiter
+  dem Like/Pass. `DragGesture(minimumDistance: 12)`, ausgewertet in
+  `FotoWischen.photoIndex` (40 pt wie Android, eher senkrechte Bewegungen
+  zählen nicht), getestet in `FLEXRTests/FotoWischenTests.swift`.
+* Das Kartenfoto trägt jetzt den Wert „Foto x von y“
+  (`photoLightboxPosition`) für VoiceOver. Daran prüft der UI-Test
+  (`matchProfilFotosWischen` in `ScreenshotTests`, Mia mit drei Fotos):
+  links → 2, zweimal links → bleibt 3, rechts → 2; Bild
+  `03-match-profil-gewischt`.
+* Den Index-Fehler der Android-Vollbildansicht gab es hier nicht: SwiftUI
+  baut den Tipp-Closure bei jedem `body` neu.
+* Auf diesem Rechner nicht compilierbar - Prüfung über Codemagic
+  (`ios-tests`, `ios-screenshots`).
 
 ## Bio im Deck über X/Herz, 17.10.2026 (nach 2.4.12) — **nicht compilerverifiziert**
 

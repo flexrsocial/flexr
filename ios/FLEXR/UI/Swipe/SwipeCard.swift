@@ -68,7 +68,7 @@ struct SwipeableCard: View {
     let onBlock: () -> Void
     @Binding var photoIndex: Int
     var onUnmatch: (() -> Void)?
-    /// Wischgeste aktiv. Im Match-Profil wird nicht gewischt, nur betrachtet.
+    /// Like/Pass-Wischgeste aktiv. Im Match-Profil blättert Wischen stattdessen die Fotos.
     var isDraggable = true
     /// Melde-/Block-Knöpfe, Fotogalerie und Stempel.
     var isInteractive = true
@@ -83,6 +83,9 @@ struct SwipeableCard: View {
                 onBlock: onBlock,
                 onUnmatch: onUnmatch,
                 photoIndex: $photoIndex,
+                // Im Deck gehoert das waagrechte Wischen dem Like/Pass, sonst
+                // blaettert es durch die Fotos.
+                swipesPhotos: !isDraggable,
                 textBottomInset: isDraggable ? CardContent.deckButtonsInset : CardContent.textBottom
             )
             .frame(width: geometry.size.width, height: geometry.size.height)
@@ -161,6 +164,7 @@ struct BackgroundCard: View {
                 onBlock: {},
                 onUnmatch: nil,
                 photoIndex: $photoIndex,
+                swipesPhotos: false,
                 // Gleiche Aufteilung wie die obere Karte, sonst springt das
                 // Foto, sobald diese Karte nach vorn rueckt.
                 textBottomInset: CardContent.deckButtonsInset
@@ -175,6 +179,24 @@ struct BackgroundCard: View {
             .scaleEffect(scale)
             .offset(y: 14 * (1 - progress))
         }
+    }
+}
+
+// MARK: - Fotos blaettern
+
+/// Foto nach einer Wischgeste im Match-Profil: nach links (negativ) das
+/// naechste, nach rechts das vorige. Am ersten und letzten Foto bleibt es
+/// stehen, wie in der Vollbildansicht. Eher senkrechte Bewegungen zaehlen
+/// nicht. Gleiche Schwelle wie Android (`PHOTO_SWIPE_THRESHOLD_DP`).
+enum FotoWischen {
+    static let threshold: CGFloat = 40
+
+    static func photoIndex(after current: Int, count: Int, translation: CGSize,
+                           threshold: CGFloat = FotoWischen.threshold) -> Int {
+        guard count > 1, abs(translation.width) > abs(translation.height) else { return current }
+        if translation.width <= -threshold { return min(current + 1, count - 1) }
+        if translation.width >= threshold { return max(current - 1, 0) }
+        return current
     }
 }
 
@@ -198,7 +220,12 @@ private struct CardContent: View {
     let onBlock: () -> Void
     let onUnmatch: (() -> Void)?
     @Binding var photoIndex: Int
+    let swipesPhotos: Bool
     let textBottomInset: CGFloat
+
+    private var canSwipePhotos: Bool {
+        swipesPhotos && isInteractive && profile.photos.count > 1
+    }
 
     var body: some View {
         // Foto mindestens 58 % der Karte ueber dem Abstand unten (im Deck:
@@ -228,6 +255,17 @@ private struct CardContent: View {
                 .onTapGesture {
                     if isInteractive, !profile.photos.isEmpty { onOpenPhotos(photoIndex) }
                 }
+                // Im Match-Profil war Blaettern bis 2.4.12 nur ueber die
+                // Vollbildansicht oder die Striche moeglich. `.subviews` laesst
+                // den Tipp aktiv, wenn die Wischgeste aus ist (Deck).
+                .gesture(photoSwipeGesture, including: canSwipePhotos ? .all : .subviews)
+                // VoiceOver sagt, welches Foto zu sehen ist; der UI-Test prueft
+                // daran das Blaettern.
+                .accessibilityValue(
+                    profile.photos.count > 1
+                        ? s(.photoLightboxPosition, photoIndex + 1, profile.photos.count)
+                        : ""
+                )
 
             if profile.photos.isEmpty {
                 // Profil ohne freigegebenes Foto (z. B. ein Match, dessen Fotos
@@ -269,6 +307,19 @@ private struct CardContent: View {
         // nicht an der Fotoflaeche, die er bekommen soll. Geschnitten wird
         // oben in `body` an `Color.clear`, das die Flaeche vorgibt. Am Stapel
         // geschnitten lief der Name in die Merkmale darunter (18.09.2026).
+    }
+
+    /// Nach links das naechste, nach rechts das vorige Foto (Android:
+    /// `detectHorizontalDragGestures` in `CardContent`).
+    private var photoSwipeGesture: some Gesture {
+        DragGesture(minimumDistance: 12)
+            .onEnded { value in
+                photoIndex = FotoWischen.photoIndex(
+                    after: photoIndex,
+                    count: profile.photos.count,
+                    translation: value.translation
+                )
+            }
     }
 
     /// Die Striche sind die Foto-Auswahl: ein Tipp auf einen Strich (bzw. den

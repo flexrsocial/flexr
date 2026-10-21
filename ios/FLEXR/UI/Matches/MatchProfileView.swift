@@ -40,8 +40,9 @@ struct MatchProfileView: View {
                     onReport: { showReportDialog = true },
                     onBlock: { showBlockDialog = true },
                     photoIndex: $photoIndex,
-                    // Auf dem Profil wird nicht gewischt — nur betrachtet.
-                    // Melden, Blockieren, Auflösen und die Galerie bleiben aktiv.
+                    // Auf dem Profil wird nicht geliked oder gepasst - waagrechtes
+                    // Wischen blättert durch die Fotos. Melden, Blockieren,
+                    // Auflösen und die Galerie bleiben aktiv.
                     onUnmatch: { showUnmatchDialog = true },
                     isDraggable: false
                 )

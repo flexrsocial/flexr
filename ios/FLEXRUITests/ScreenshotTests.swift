@@ -239,6 +239,32 @@ final class ScreenshotTests: XCTestCase {
 
     // MARK: - C: Matches und Match-Profil
 
+    /// Seit 21.10.2026 blättert waagrechtes Wischen im Match-Profil durch die
+    /// Fotos. Mia hat drei; das Kartenfoto trägt den Wert „Foto x von 3“.
+    private func matchProfilFotosWischen() {
+        let kartenFoto = app.descendants(matching: .any)
+            .matching(NSPredicate(format: "label == %@", "Profilfoto von Mia")).firstMatch
+        guard kartenFoto.waitForExistence(timeout: 5) else {
+            XCTFail("Kartenfoto im Match-Profil nicht gefunden")
+            return
+        }
+        XCTAssertEqual(kartenFoto.value as? String, "Foto 1 von 3", "Start")
+        kartenFoto.swipeLeft()
+        warte(1)
+        XCTAssertEqual(kartenFoto.value as? String, "Foto 2 von 3", "nach links gewischt")
+        foto("03-match-profil-gewischt")
+        kartenFoto.swipeLeft()
+        warte(1)
+        kartenFoto.swipeLeft()
+        warte(1)
+        XCTAssertEqual(kartenFoto.value as? String, "Foto 3 von 3", "am Ende stehen geblieben")
+        kartenFoto.swipeRight()
+        warte(1)
+        XCTAssertEqual(kartenFoto.value as? String, "Foto 2 von 3", "nach rechts gewischt")
+        kartenFoto.swipeRight()
+        warte(1)
+    }
+
     private func matches() {
         guard tippe(knopf: "Matches") else { return }
         warte(2)
@@ -254,6 +280,7 @@ final class ScreenshotTests: XCTestCase {
         if tippe(enthaelt: "Mia") {
             warte(2)
             foto("03-match-profil")
+            matchProfilFotosWischen()
             if tippe(knopf: "Match auflösen") {
                 warte(1)
                 foto("03-match-aufloesen")
