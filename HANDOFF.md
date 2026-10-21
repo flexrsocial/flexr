@@ -32,6 +32,33 @@ erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 
 ## Wo das Projekt gerade steht
 
+> **Sitzung 21.10.2026 (abends): Neue YouTube-Thumbnails für das
+> Hintergrundbild der Play-Store-Webseite - live geprüft.**
+>
+> Kein Code geändert, nichts deployt. Dateien unter `android/store/` (von Git
+> ausgenommen, liegen nur in MEGA), Beschreibung in
+> `android/store/neu-2026-10-17/LIESMICH.md`.
+>
+> - **Ursache des verpixelten Hintergrunds** auf play.google.com (Desktop):
+>   Das ist nicht die Feature-Grafik, sondern YouTubes `hqdefault.jpg` des
+>   Trailers - 480x360 mit schwarzen Balken, JPEG-Qualität 50, ~7 KB. Bei
+>   1882 px Fensterbreite zieht Google es auf 1067x600 hoch und dunkelt es
+>   von links, rechts und unten mit `#202124` ab (je bis 56 %); nur die
+>   obere Mitte bleibt hell. Höher aufgelöste Uploads ändern daran nichts.
+>   Apps ohne Trailer haben dort gar kein Bild (geprüft: Calm, Strava).
+> - **Neue Thumbnails** `youtube-thumbnail-{de,en}-4k.jpg`
+>   (`werkzeug/thumbnail.py`, 3840x2160, ~270 KB): einfarbiger Grund statt
+>   Verlauf, Überschrift groß ganz oben, Logo darunter, kein Kleingedrucktes
+>   (zeigt keine Profile; der Hinweis „Beispielprofile“ steht im Video).
+>   Mit einer Simulation verglichen, die das echte `hqdefault.jpg` nachbildet:
+>   fettere Schrift, Sperrung und 8er-Raster bringen nichts, eine dunkle
+>   Kontur ~6 %, wirkt aber wie ein Aufkleber - verworfen.
+> - **Vom Nutzer in YouTube Studio getauscht**; beide Videos liefern die neuen
+>   Bilder aus, die Play-Seite DE (`c0Qhsvpd5o4`) und EN (`LeRYWXSpF0o`) zeigt
+>   sie. Damit ist auch geprüft: die neuen Trailer-URLs sind in der Console
+>   eingetragen und live.
+> - **Offen (Nutzer):** den alten Trailer `9UOVw1auAig` auf privat stellen.
+
 > **Sitzung 21.10.2026: Android 2.7.35 ist live in Google Play. Beta-Hinweis
 > angepasst, Datensicherheit war leer, 2.7.37 mit Foto-Wischen im Match-Profil
 > gebaut.**
