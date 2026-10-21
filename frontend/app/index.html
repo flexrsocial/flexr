@@ -2537,12 +2537,104 @@
   // an einem await auf /api/me, und der Parser hat den Hero laengst gemalt.
   if(localStorage.getItem('flexr_token')) document.body.classList.remove('landing');
 </script>
+<!-- Mail-Link in die Android-App (22.10.2026). Brevo schreibt jeden Link einer
+     Mail auf seine Klickzaehl-Domain um (https://….sendibt3.com/tr/cl/…).
+     Android sieht beim Tipp also keinen flexr.social-Link, der App Link aus
+     2.7.38 greift nicht, und der Browser landet nach Brevos Weiterleitung hier.
+     Abschalten laesst Brevo das Zaehlen bei Transaktions-Mails nur
+     Enterprise-Kunden auf Anfrage. Deshalb reicht die Seite den Link selbst
+     weiter: als intent://-Adresse mit Paketname, die Chrome, Samsung Internet
+     und Firefox ohne Domain-Pruefung an die App geben.
+     Steht vor allen anderen Skripten, weil die Web-App die Adresse spaeter auf
+     /app/ zuruecksetzt (zielAusAdresse, takeResetTokenFromUrl). -->
+<div class="applink-bar" id="appLinkBar" role="region" data-i18n-aria="applink.barAria" aria-label="FLEXR-App" hidden>
+  <span class="applink-bar-text" data-i18n="applink.barText">FLEXR-App installiert?</span>
+  <a class="applink-bar-open" id="appLinkOpen" href="#" data-i18n="applink.open">In der App öffnen</a>
+  <button type="button" class="applink-bar-close" id="appLinkClose" data-i18n-aria="beta.closeAria" aria-label="Hinweis schließen">✕</button>
+</div>
+<style>
+  .applink-bar{
+    position:fixed; left:50%; transform:translateX(-50%); z-index:70;
+    top:calc(8px + env(safe-area-inset-top, 0px)); width:calc(100% - 16px); max-width:420px;
+    display:flex; align-items:center; gap:10px;
+    padding:8px 8px 8px 14px; border-radius:14px;
+    background:var(--surface-2); border:1px solid var(--steel);
+    box-shadow:0 10px 30px rgba(0,0,0,.5);
+    font-size:13px; line-height:1.35; color:var(--chalk-dim);
+  }
+  .applink-bar[hidden]{ display:none; }
+  .applink-bar-text{ flex:1; min-width:0; }
+  .applink-bar-open{
+    flex:0 0 auto; padding:9px 14px; border-radius:10px; text-decoration:none;
+    font-family:'Oswald', sans-serif; font-weight:600; font-size:13px; letter-spacing:.06em; text-transform:uppercase;
+    background:linear-gradient(135deg, var(--plate-bright), var(--plate) 55%, #ef4c15); color:#191008;
+  }
+  .applink-bar-close{
+    flex:0 0 auto; width:32px; height:32px; border-radius:50%; cursor:pointer;
+    border:1px solid var(--steel); background:var(--surface); color:var(--chalk); font-size:14px; line-height:1;
+  }
+</style>
+<script>
+(function(){
+  var pfad = location.pathname;
+  // #web: Chrome kam ueber den Rueckfall unten zurueck - die App ist nicht
+  // installiert (oder Chrome hat den Sprung ohne Tipp verweigert).
+  var zurueck = location.hash === '#web';
+  if (zurueck) history.replaceState(null, '', pfad + location.search);
+
+  var ziel, bestaetigung = false;
+  if (/^\/app\/open\//.test(pfad)) {
+    ziel = pfad + location.search;
+  } else if (pfad === '/mail-bestaetigen' || pfad === '/app/mail-bestaetigen') {
+    // Den Bestaetigungslink loest die Web-App sofort selbst ein. Die App
+    // bekommt deshalb nur /app/open/ ohne Token - mit Token meldete sie
+    // "bereits benutzt" - und holt den neuen Stand beim Oeffnen selbst.
+    ziel = '/app/open/';
+    bestaetigung = true;
+  } else {
+    return;
+  }
+  var ua = navigator.userAgent;
+  // Nur Android und nicht im WebView einer fremden Mail-App (Kennung "; wv)"):
+  // Der kennt intent:// nicht und zeigt eine Fehlerseite.
+  if (!/Android/.test(ua) || /; wv\)/.test(ua)) return;
+
+  // Host fest: Der Intent-Filter der App kennt nur flexr.social.
+  function intentAdresse(rueckfall){
+    return 'intent://flexr.social' + ziel + '#Intent;scheme=https;package=flexr.social.app'
+      + (rueckfall ? ';S.browser_fallback_url=' + encodeURIComponent(rueckfall) : '') + ';end';
+  }
+  // Der Knopf hat keinen Rueckfall: Ohne App oeffnet Android den Store-Eintrag.
+  document.getElementById('appLinkOpen').href = intentAdresse(null);
+  var bar = document.getElementById('appLinkBar');
+  document.getElementById('appLinkClose').addEventListener('click', function(){ bar.hidden = true; });
+  bar.hidden = false;
+
+  // Sofort selbst versuchen, nur in Chromium-Browsern (Chrome, Custom Tab aus
+  // Gmail, Samsung Internet): Sie lassen den Sprung zu, solange er zur
+  // Weiterleitungskette des Mail-Tipps gehoert. Ohne App laedt Chrome den
+  // Rueckfall mit #web und es bleibt bei der Web-App. Nicht beim
+  // Bestaetigungslink: Der waere dann schon eingeloest.
+  if (!zurueck && !bestaetigung && /Chrome\/\d/.test(ua)) {
+    var hier = pfad + location.search + '#web';
+    location.href = intentAdresse(location.origin + hier);
+    // Der Sprung bricht das Laden dieser Seite ab, sie endet hier bei der
+    // Leiste. Ist sie nach zwei Sekunden noch da (App offen und man kehrt
+    // zurueck, oder Chrome hat ohne Tipp nicht gesprungen), mit #web neu
+    // laden: dann ganz, ohne zweiten Versuch, die Leiste bleibt.
+    setTimeout(function(){
+      history.replaceState(null, '', hier);
+      location.reload();
+    }, 2000);
+  }
+})();
+</script>
 <!-- Zweisprachigkeit: /i18n.js bringt die Maschinerie und die Spracherkennung
      (DACH-Raum -> Deutsch), i18n-app.js das Woerterbuch dieser Seite. Beide
      laufen synchron und damit vor dem DOMContentLoaded, bei dem FlexrI18n die
      data-i18n-Knoten uebersetzt. -->
 <script src="/i18n.js?v=5"></script>
-<script src="/app/i18n-app.js?v=43"></script>
+<script src="/app/i18n-app.js?v=44"></script>
 <a class="skip-link" href="#main-content" data-i18n="common.skipToContent">Zum Inhalt springen</a>
 <div class="app" id="app">
 

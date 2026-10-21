@@ -129,13 +129,15 @@
 // Beta-Hinweis Android "in den naechsten Tagen"; i18n-app.js ?v=42.
 // v55: Android-App ist bei Google Play erschienen - Beta-Hinweis verlinkt
 // den Store-Eintrag (Merker flexr_beta_notice_v8); i18n-app.js ?v=43.
-const CACHE = 'flexr-shell-v55';
+// v56: Mail-Links auf Android - Leiste "In der App oeffnen", weil Brevo
+// die Links umschreibt und der App Link nicht greift; i18n-app.js ?v=44.
+const CACHE = 'flexr-shell-v56';
 // Seit dem 15.08.2026 liegt die App unter /app/, an der Wurzel steht die
 // oeffentliche Landingpage. Beide gehoeren in die Shell: die Landingpage,
 // weil sie der Einstieg ist, die App, weil sie offline funktionieren soll.
 const SHELL = ['/', '/index.html', '/en/', '/en/index.html',
                '/app/', '/app/index.html',
-               '/lang-switch.js?v=2', '/i18n.js?v=5', '/app/i18n-app.js?v=43',
+               '/lang-switch.js?v=2', '/i18n.js?v=5', '/app/i18n-app.js?v=44',
                '/startboost.js?v=1',
                '/manifest.json', '/favicon.ico', '/legal.css?v=2',
                '/fonts/work-sans.woff2?v=1', '/fonts/oswald.woff2?v=1',

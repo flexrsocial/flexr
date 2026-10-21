@@ -1,6 +1,6 @@
 # FLEXR — Handoff für ein anderes Gerät / Claude Code
 
-Stand: **21.10.2026**
+Stand: **22.10.2026**
 
 ## ⚠️ Dringend zu prüfen: SSH-Zugang zum VPS hat sich geändert (21.09.2026)
 
@@ -31,6 +31,22 @@ Falls du das liest, weil dein `root@`-Login gerade fehlschlägt: das ist
 erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 
 ## Wo das Projekt gerade steht
+
+> **Sitzung 22.10.2026: Mail-Knöpfe öffnen die Android-App trotz Brevo
+> (nur Frontend).**
+>
+> - **Meldung des Nutzers:** Mit 2.7.38 aus dem Play Store öffnet der
+>   Reset-Knopf in der Mail die Web-App statt der App. Link lange gedrückt:
+>   `https://….sendibt3.com/tr/cl/…` - Brevos Klickzähler. Abschalten gibt
+>   es für Transaktions-Mails nur für Enterprise-Kunden auf Anfrage.
+> - **Lösung:** Die Web-App reicht `/app/open/…` auf Android selbst per
+>   `intent://` an die App weiter (automatisch in Chromium-Browsern, sonst
+>   Leiste „In der App öffnen“); ohne App bleibt es bei der Web-App.
+>   Keine neue App-Fassung nötig. Details und Emulator-Test im obersten
+>   Abschnitt von `android-native/HANDOFF.md`. `i18n-app.js` ?v=44, Shell v56.
+> - Frontend-Tests (stdlib-Teil von `test_public_frontend.py`) 11/11 grün;
+>   die Backend-Suite lief nicht (kein venv mit FastAPI auf dem ThinkPad,
+>   `~/.cache/flexr-test` fehlt), Backend ist unverändert.
 
 > **Sitzung 21.10.2026 (spätabends): Instagram-Material zum Android-Start.**
 >
@@ -123,8 +139,8 @@ erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 >   ohne App liefert nginx dort die Web-App. Neu in der App: „Neues Passwort
 >   festlegen“ aus dem Reset-Link. Bestandsaufnahme aller Mails und
 >   Emulator-Test im obersten Abschnitt von `android-native/HANDOFF.md`.
->   **Offen beim Nutzer:** prüfen, ob Brevo Links umschreibt (Link in einer
->   Mail lange drücken, muss mit `https://flexr.social/` beginnen).
+>   ~~**Offen beim Nutzer:** prüfen, ob Brevo Links umschreibt~~ - tut es,
+>   gelöst über die Web-App (Sitzung 22.10.2026).
 > - **iOS 2.4.13** (`9ddfb6c`): Foto-Wischen im Match-Profil, `ios-tests`
 >   grün (71 Tests); `ios-screenshots` wurde in Codemagic abgebrochen, bevor
 >   er lief - der Wisch-Schritt im UI-Test ist also noch nicht gelaufen.
@@ -10142,10 +10158,11 @@ Neu aus der Sitzung 21.10.2026 (Play-Start, Android 2.7.37/2.7.38, iOS 2.4.13):
   und echte App Links prüfen: Knopf in einer FLEXR-Mail muss die App
   öffnen), dann Produktion. 2.7.37 kann übersprungen werden. Nächste
   Fassung 2.7.39 / 151.
-- **Brevo-Klick-Tracking prüfen** (Nutzer): Schreibt Brevo die Mail-Links um,
-  öffnet Android statt der App den Browser. Link in einer FLEXR-Mail lange
-  drücken - muss mit `https://flexr.social/` beginnen, sonst in Brevo bei den
-  Transaktions-Mails das Klick-Tracking aus.
+- ~~**Brevo-Klick-Tracking prüfen**~~ - **erledigt 22.10.:** Brevo schreibt
+  um (`sendibt3.com`), abschalten geht nicht; die Web-App springt jetzt per
+  `intent://` in die App (siehe Sitzung 22.10.). Am echten Handy einmal
+  nachprüfen: Reset-Mail anfordern, Knopf tippen - die App soll den Dialog
+  „Neues Passwort festlegen“ zeigen.
 - ~~**Datensicherheit**~~ - **erledigt 21.10. abends:** Store (DE und EN)
   zeigt alle 13 Datentypen mit den Zwecken aus
   `android-native/DATENSICHERHEIT.md`, „Keine Daten geteilt“, verschlüsselt,

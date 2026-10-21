@@ -710,6 +710,11 @@
     'beta.barAria': 'Hinweis zur Beta-Phase',
     'beta.closeAria': 'Hinweis schließen',
 
+    // ---- Mail-Link auf Android: Leiste "In der App öffnen" (siehe index.html)
+    'applink.barText': 'FLEXR-App installiert?',
+    'applink.open': 'In der App öffnen',
+    'applink.barAria': 'FLEXR-App öffnen',
+
     // ---- Sitzungs- und Serverfehler
     'err.session': 'Sitzung abgelaufen. Bitte erneut einloggen.',
     // 'err.trialOver' ist entfallen: Es gibt keinen Probemonat und keine
@@ -1359,6 +1364,10 @@
     'beta.barMore': 'Details',
     'beta.barAria': 'Beta notice',
     'beta.closeAria': 'Close notice',
+
+    'applink.barText': 'Got the FLEXR app?',
+    'applink.open': 'Open in app',
+    'applink.barAria': 'Open the FLEXR app',
 
     'err.session': 'Session expired. Please log in again.',
     // 'err.trialOver' removed - no trial, no paywall, no 402 any more.

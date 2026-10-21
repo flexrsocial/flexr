@@ -77,10 +77,28 @@ auf den Knopf in einer FLEXR-Mail in der App landen, nicht in der Web-App.
   2.7.39 / 151.
 * **Emulator-Werkzeuge** (Seed, Backend/Moto-Skripte, adb-Helfer) liegen
   jetzt in `tools/android-emulator/` mit Anleitung `LIESMICH.md`.
-* **Voraussetzung, nicht hier prüfbar:** Brevo darf die Links nicht für
-  Klick-Statistiken umschreiben (sonst zeigt der Knopf auf eine
-  Brevo-Adresse und Android öffnet den Browser). Prüfen: Link in einer
-  FLEXR-Mail lange drücken - er muss mit `https://flexr.social/` beginnen.
+* ~~**Voraussetzung:** Brevo darf die Links nicht umschreiben~~ - **tut es
+  aber** (22.10.2026, Nutzer mit 2.7.38 aus dem Play Store): Der Knopf zeigt
+  auf `https://….sendibt3.com/tr/cl/…`, Android kennt dafür keine App und
+  öffnet den Browser, der nach Brevos Weiterleitung auf der Web-App landet.
+  Abschalten lässt Brevo das Klick-Tracking bei Transaktions-Mails nur
+  Enterprise-Kunden auf Anfrage (Community-Forum, Brevo-Mitarbeiter
+  10/2024); ein Header oder Link-Attribut dafür gibt es nicht. **Lösung in
+  der Web-App** (`frontend/app/index.html`, Block direkt hinter `<body>`):
+  Kommt `/app/open/…` auf Android im Browser an, springt die Seite selbst per
+  `intent://flexr.social/app/open/…#Intent;scheme=https;package=flexr.social.app;
+  S.browser_fallback_url=…#web;end` in die App (nur Chromium-UA, nicht in
+  WebViews `; wv)`), dazu Leiste „In der App öffnen“ (Intent ohne Rückfall,
+  ohne App → Store-Eintrag). Ohne App lädt Chrome den Rückfall mit `#web`:
+  Web-App wie bisher, kein zweiter Versuch. Der Sprung bricht das Laden der
+  Seite ab - bleibt man im Browser, lädt sie nach 2 s mit `#web` neu.
+  `/mail-bestaetigen` bekommt nur die Leiste, mit `/app/open/` ohne Token
+  (die Web-App löst ihn sofort selbst ein). **Keine neue App-Fassung nötig**,
+  2.7.38 kann das schon (der Intent geht an denselben App-Link-Filter).
+  **Geprüft im Emulator** (Chrome 2.7.38-local-debug, Paketname per
+  Testserver eingesetzt, 302 wie Brevo davor): Chrome-Tab und Custom Tab
+  (wie Gmail) → App mit „Choose a new password“, Chrome schließt den Tab
+  dabei selbst; ohne App → Web-Formular mit Leiste.
 * iOS: keine Universal Links (App nicht im Store); am iPhone öffnet der Link
   wie bisher die Web-App.
 
