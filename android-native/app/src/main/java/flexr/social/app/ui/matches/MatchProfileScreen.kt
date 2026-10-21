@@ -43,8 +43,9 @@ import flexr.social.app.ui.swipe.rememberSwipeCardState
 /**
  * Profil eines Matches — der Zwischenschritt vor dem Chat.
  *
- * Zeigt dieselbe Karte wie das Deck, aber ohne Wischgeste; stattdessen gibt es
- * „Match auflösen", „Melden" und „Blockieren" direkt auf der Karte.
+ * Zeigt dieselbe Karte wie das Deck, aber ohne Like/Pass-Wischgeste: Waagrecht
+ * gewischt blättert das Foto, dazu gibt es „Match auflösen", „Melden" und
+ * „Blockieren" direkt auf der Karte.
  */
 @Composable
 fun MatchProfileScreen(
@@ -112,8 +113,9 @@ fun MatchProfileScreen(
                 onOpenPhotos = { index -> lightboxStartIndex = index },
                 onReport = { showReportDialog = true },
                 onBlock = { showBlockDialog = true },
-                // Auf dem Profil wird nicht gewischt — nur betrachtet.
-                // Melden, Blockieren, Auflösen und die Fotogalerie bleiben aktiv.
+                // Auf dem Profil wird nicht geliked oder gepasst - waagrechtes
+                // Wischen blättert durch die Fotos. Melden, Blockieren, Auflösen
+                // und die Fotogalerie bleiben aktiv.
                 onUnmatch = { showUnmatchDialog = true },
                 draggable = false,
                 photoIndex = photoIndex,

@@ -8,6 +8,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -39,6 +40,7 @@ import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.BiasAlignment
@@ -133,7 +135,7 @@ fun SwipeableCard(
     onPhotoIndexChange: (Int) -> Unit,
     modifier: Modifier = Modifier,
     onUnmatch: (() -> Unit)? = null,
-    /** Wischgeste aktiv. Im Match-Profil wird nicht gewischt, nur betrachtet. */
+    /** Like/Pass-Wischgeste aktiv. Im Match-Profil blättert Wischen stattdessen die Fotos. */
     draggable: Boolean = true,
     /** Melde-/Block-Knöpfe, Fotogalerie und Stempel. */
     interactive: Boolean = true,
@@ -202,6 +204,9 @@ fun SwipeableCard(
             onUnmatch = onUnmatch,
             photoIndex = photoIndex,
             onPhotoIndexChange = onPhotoIndexChange,
+            // Im Deck gehoert das waagrechte Wischen dem Like/Pass, sonst blaettert
+            // es durch die Fotos.
+            swipePhotos = !draggable,
             bottomInset = if (draggable) DECK_BUTTONS_INSET else CARD_TEXT_BOTTOM,
         )
 
@@ -253,6 +258,7 @@ fun BackgroundCard(profile: Profile, progress: Float, modifier: Modifier = Modif
             onUnmatch = null,
             photoIndex = 0,
             onPhotoIndexChange = {},
+            swipePhotos = false,
             // Gleiche Aufteilung wie die obere Karte, sonst springt das Foto,
             // sobald diese Karte nach vorn rueckt.
             bottomInset = DECK_BUTTONS_INSET,
@@ -262,6 +268,21 @@ fun BackgroundCard(profile: Profile, progress: Float, modifier: Modifier = Modif
 
 /** Abstand des Textes zum unteren Kartenrand. */
 private val CARD_TEXT_BOTTOM = 16.dp
+
+/** So weit muss ein Finger waagrecht wandern, bis das Foto wechselt. */
+private const val PHOTO_SWIPE_THRESHOLD_DP = 40
+
+/**
+ * Foto nach einer waagrechten Wischgeste: nach links (negativ) das naechste,
+ * nach rechts das vorige. Am ersten und letzten Foto bleibt es stehen, wie in
+ * der Vollbildansicht.
+ */
+internal fun photoIndexAfterSwipe(current: Int, count: Int, dragX: Float, threshold: Float): Int = when {
+    count <= 1 -> current
+    dragX <= -threshold -> (current + 1).coerceAtMost(count - 1)
+    dragX >= threshold -> (current - 1).coerceAtLeast(0)
+    else -> current
+}
 
 /**
  * Im Deck liegen X und Herz ueber dem unteren Kartenrand (64 dp Knopf, 14 dp
@@ -282,10 +303,18 @@ private fun CardContent(
     onUnmatch: (() -> Unit)?,
     photoIndex: Int,
     onPhotoIndexChange: (Int) -> Unit,
+    swipePhotos: Boolean,
     bottomInset: Dp,
 ) {
     val colors = FlexrTheme.colors
     val photos = profile.photos
+    // pointerInput startet nur bei geaenderten Schluesseln neu; ohne
+    // rememberUpdatedState sahen Tipp und Wischen den Fotoindex vom ersten
+    // Aufbau (die Vollbildansicht oeffnete beim falschen Foto).
+    val currentPhotoIndex by rememberUpdatedState(photoIndex)
+    val currentOnPhotoIndexChange by rememberUpdatedState(onPhotoIndexChange)
+    val currentOnOpenPhotos by rememberUpdatedState(onOpenPhotos)
+    val photoSwipeThreshold = with(LocalDensity.current) { PHOTO_SWIPE_THRESHOLD_DP.dp.toPx() }
 
     // Foto mindestens 58 % der Karte, den Rest bekommt es, soweit der Text
     // darunter ihn nicht braucht (Web: .card .photo). Mit fester 58/42-Teilung
@@ -303,9 +332,38 @@ private fun CardContent(
                     .weight(1f)
                     .pointerInput(profile.id, interactive) {
                         if (interactive && photos.isNotEmpty()) {
-                            detectTapGestures { onOpenPhotos(photoIndex) }
+                            detectTapGestures { currentOnOpenPhotos(currentPhotoIndex) }
                         }
-                    },
+                    }
+                    .then(
+                        if (swipePhotos && interactive && photos.size > 1) {
+                            // Im Match-Profil war Blaettern bis 2.7.35 nur ueber die
+                            // Vollbildansicht oder die Striche moeglich. Nach links
+                            // das naechste, nach rechts das vorige Foto; die Geste
+                            // verbraucht die Bewegung, der Tipp loest dann nicht aus.
+                            Modifier.pointerInput(profile.id, photos.size) {
+                                var dragged = 0f
+                                detectHorizontalDragGestures(
+                                    onDragStart = { dragged = 0f },
+                                    onDragEnd = {
+                                        val next = photoIndexAfterSwipe(
+                                            current = currentPhotoIndex,
+                                            count = photos.size,
+                                            dragX = dragged,
+                                            threshold = photoSwipeThreshold,
+                                        )
+                                        if (next != currentPhotoIndex) currentOnPhotoIndexChange(next)
+                                    },
+                                    onHorizontalDrag = { change, amount ->
+                                        change.consume()
+                                        dragged += amount
+                                    },
+                                )
+                            }
+                        } else {
+                            Modifier
+                        },
+                    ),
             ) {
                 AsyncImage(
                     model = photos.getOrNull(photoIndex)?.url,
