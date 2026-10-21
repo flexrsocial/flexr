@@ -33,8 +33,8 @@ erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 ## Wo das Projekt gerade steht
 
 > **Sitzung 21.10.2026: Android 2.7.35 ist live in Google Play. Beta-Hinweis
-> angepasst, Datensicherheit war leer, 2.7.36 mit Foto-Wischen im Match-Profil
-> neu gebaut.**
+> angepasst, Datensicherheit war leer, 2.7.37 mit Foto-Wischen im Match-Profil
+> gebaut.**
 >
 > - **Play Store:** „FLEXR – Gym Dating Österreich“ ist öffentlich (2.7.35 /
 >   147, PEGI 18), der Play-Knopf auf der Website führt jetzt zum Eintrag.
@@ -47,13 +47,13 @@ erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 >   „App bei Google Play · jetzt installieren“ mit Store-Link statt „in den
 >   nächsten Tagen“, Landingpage DE/EN und App. Merker
 >   `flexr_beta_notice_v8`, `i18n-app.js?v=43`, Service Worker v55.
-> - **Android 2.7.36 / 148 neu gebaut** (148 war nie hochgeladen): zusätzlich
->   blättert waagrechtes Wischen im Match-Profil durch die Fotos (vorher nur
->   über die Vollbildansicht), und die Vollbildansicht öffnet beim angezeigten
->   statt beim ersten Foto. Einzelheiten und Prüfsumme in
->   `android-native/HANDOFF.md` (oberster Abschnitt). Am Gerät noch nicht
->   ausprobiert - erst interner Test, dann Produktion. Versionshinweise DE/EN in
->   `android/store/store-texte.md` um das Foto-Wischen ergänzt.
+> - **Android 2.7.36 / 148** hat der Nutzer schon ausgerollt (AAB vom 17.10.,
+>   ohne Foto-Wischen). **2.7.37 / 149** bringt: waagrechtes Wischen im
+>   Match-Profil blättert durch die Fotos (vorher nur über die
+>   Vollbildansicht), die Vollbildansicht öffnet beim angezeigten statt beim
+>   ersten Foto. Einzelheiten und Prüfsumme in `android-native/HANDOFF.md`
+>   (oberster Abschnitt). Erst interner Test, dann Produktion.
+>   Versionshinweise 2.7.37 DE/EN in `android/store/store-texte.md`.
 > - **Web und iOS** blättern im Match-Profil weiterhin nur per Tipp.
 > - **Arbeitsweise auf diesem Rechner:** `~/MEGA/flexr/flexr` ist kein
 >   Git-Checkout mehr. Gearbeitet in einem frischen Klon; der lokale

@@ -350,8 +350,12 @@ android {
         // Firebase-Ressource fest. Dazu: Bio im Deck endet ueber X/Herz statt
         // darunter, Login-Reiter und weitere feste Texte uebersetzbar, X/Herz/
         // Zuruecknehmen und Melden/Blockieren mit Beschriftung fuer TalkBack.
-        versionCode = 148
-        versionName = "2.7.36"
+        // 149/2.7.37 am 21.10.2026: Im Match-Profil blaettert waagrechtes
+        // Wischen durch die Fotos (vorher nur ueber die Vollbildansicht), die
+        // Vollbildansicht oeffnet beim angezeigten statt beim ersten Foto.
+        // 148 war da schon ausgerollt (ohne diesen Fix).
+        versionCode = 149
+        versionName = "2.7.37"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
