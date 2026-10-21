@@ -75,6 +75,8 @@ auf den Knopf in einer FLEXR-Mail in der App landen, nicht in der Web-App.
   86 Unit-Tests grün; Lint lief auf dem Stand vor dem Reset-Dialog lokal mit
   0 Fehlern, danach in der GitHub-CI. Enthält 2.7.37. Die nächste Fassung ist
   2.7.39 / 151.
+* **Emulator-Werkzeuge** (Seed, Backend/Moto-Skripte, adb-Helfer) liegen
+  jetzt in `tools/android-emulator/` mit Anleitung `LIESMICH.md`.
 * **Voraussetzung, nicht hier prüfbar:** Brevo darf die Links nicht für
   Klick-Statistiken umschreiben (sonst zeigt der Knopf auf eine
   Brevo-Adresse und Android öffnet den Browser). Prüfen: Link in einer

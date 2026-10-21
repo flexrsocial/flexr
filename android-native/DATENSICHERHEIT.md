@@ -1,5 +1,9 @@
 # Play Console — Datensicherheit ausfüllen (Stand 21.10.2026, App 2.7.35/2.7.36)
 
+**Stand 21.10.2026 abends:** vom Nutzer ausgefüllt und veröffentlicht; der
+Store (englische Seite) zeigt alle Typen und Zwecke wie unten bis auf die
+Kategorie **App-Aktivitäten**, die noch nachgetragen wird.
+
 **Anlass:** Der öffentliche Store-Eintrag zeigte am 21.10.2026 „Keine Daten
 erhoben“ und „Keine Daten werden geteilt“. Das Zweite stimmt, das Erste nicht.
 Die Antworten unten folgen der Datenschutzerklärung (Fassung 2026-10-14,

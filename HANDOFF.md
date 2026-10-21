@@ -10125,6 +10125,35 @@ print(re.findall(rb"[0-9]+\.[0-9]+\.[0-9]+", d)[:5])' \
 
 ## Erinnerung für die nächste Sitzung
 
+Neu aus der Sitzung 21.10.2026 (Play-Start, Android 2.7.37/2.7.38, iOS 2.4.13):
+
+- **Android 2.7.38 / 150** (`flexr-2.7.38-150.aab`, SHA-256 `4e4db828…bbe1`)
+  dem Nutzer zum Upload gegeben - erst interner Test (dort auch Play Billing
+  und echte App Links prüfen: Knopf in einer FLEXR-Mail muss die App
+  öffnen), dann Produktion. 2.7.37 kann übersprungen werden. Nächste
+  Fassung 2.7.39 / 151.
+- **Brevo-Klick-Tracking prüfen** (Nutzer): Schreibt Brevo die Mail-Links um,
+  öffnet Android statt der App den Browser. Link in einer FLEXR-Mail lange
+  drücken - muss mit `https://flexr.social/` beginnen, sonst in Brevo bei den
+  Transaktions-Mails das Klick-Tracking aus.
+- **Datensicherheit:** Store zeigte nach der ersten Korrektur alles außer der
+  Kategorie App-Aktivitäten; der Nutzer trägt sie nach. Danach
+  `play.google.com/store/apps/datasafety?id=flexr.social.app&hl=en` prüfen
+  (die deutsche Seite hing im Cache).
+- **iOS 2.4.13:** `ios-tests` grün, `ios-screenshots` (mit dem neuen
+  Wisch-Schritt `matchProfilFotosWischen`) wurde abgebrochen und ist noch
+  nicht gelaufen - `python3 tools/ios-screenshots/codemagic.py start` +
+  `hol`. TestFlight (`ios-flexr`) startet der Nutzer selbst.
+- **Web-App:** Im Match-Profil blättert man weiterhin nur per Tipp
+  (Android und iOS wischen seit heute).
+- **Emulator-Test:** Anleitung und Werkzeuge in
+  `tools/android-emulator/LIESMICH.md`, venv unter `~/.cache/flexr-test/venv`.
+- **Parallele Sitzungen:** Eine zweite Sitzung auf einem anderen Gerät hat
+  am 21.10. über MEGA `HANDOFF.md` und `android/store/store-texte.md` mit
+  älteren Ständen überschrieben (von Hand zusammengeführt, `3c40610`). Vor
+  dem Überschreiben MEGA-Dateien gegen Git abgleichen; `store-texte.md` liegt
+  nur in MEGA.
+
 Neu aus der Sitzung 13.10.2026 (3):
 
 - **Android 2.7.23 (versionCode 135) in die Play Console laden**, statt 2.7.22.
