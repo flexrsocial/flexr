@@ -1371,7 +1371,7 @@ body.has-beta-bar footer{ padding-bottom:110px; }
     <ul class="beta-facts">
       <li class="is-free"><b data-i18n="beta.freeLabel">Free</b><span data-i18n="beta.free">permanently, no payment method</span></li>
       <li><b>Premium</b><span data-i18n="beta.premium">optional · €10/month</span></li>
-      <li><b>Android</b><span data-i18n="beta.android">on Google Play in the next few days</span></li>
+      <li><b>Android</b><span data-i18n-html="beta.android">app on Google Play · <a href="https://play.google.com/store/apps/details?id=flexr.social.app">install&nbsp;now</a></span></li>
       <li><b class="as-written">iOS</b><span data-i18n-html="beta.ios">web app for your Home Screen · <a href="/app/?ios=installieren">install&nbsp;now</a></span></li>
       <li><b>Feedback</b><span><a href="mailto:flexr.social@proton.me">flexr.social@proton.me</a></span></li>
     </ul>
@@ -1398,7 +1398,9 @@ body.has-beta-bar footer{ padding-bottom:110px; }
   // Installationsanleitung in der App (/app/?ios=installieren).
   // v7 seit 04.10.2026: Die Android-Zeile nennt den voraussichtlichen Start
   // (Mitte Oktober) statt "bald" - neu fuer alle, die v6 schon weggeklickt hatten.
-  var KEY = 'flexr_beta_notice_v7';
+  // v8 seit 21.10.2026: Die Android-App ist bei Google Play erschienen, die
+  // Zeile verlinkt "jetzt installieren" auf den Store-Eintrag.
+  var KEY = 'flexr_beta_notice_v8';
   var backdrop = document.getElementById('betaBackdrop');
   var bar = document.getElementById('betaBar');
   if (!backdrop || !bar) return;
