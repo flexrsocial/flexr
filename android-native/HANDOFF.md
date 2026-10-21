@@ -36,9 +36,27 @@ im Profil eines Matches ließ sich nicht durch die Fotos wischen, nur ein Tipp
   geänderten Schlüsseln neu, der Lambda hielt den alten Wert). Nach einem
   Wechsel über die Striche öffnete sie deshalb beim ersten statt beim
   angezeigten Foto. Jetzt über `rememberUpdatedState`.
-* **Nicht geprüft am Gerät:** Auf diesem Rechner gibt es keinen Emulator.
-  Unit-Tests und Lint grün; das Wischen selbst im internen Test-Track
-  ausprobieren, bevor 2.7.37 in die Produktion geht.
+* **Geprüft im Emulator** (21.10., `flexr_test`, API 35 google_apis,
+  Pixel 5 1080x2340, `-gpu host`; `localDebug` 2.7.37 gegen lokales Backend
+  mit SQLite + Moto, Demo-Konten aus `seed_store.py`, angemeldet als Lukas):
+  Match-Profil Laura (3 Fotos), Striche per Pixelauswertung: Start 1, links
+  → 2, links → 3, links am Ende bleibt 3, rechts → 2, kurzer Wisch (40 px ≈
+  15 dp) bleibt und öffnet nicht die Vollbildansicht. Tipp öffnet die
+  Vollbildansicht bei „2 / 3“; dort weitergewischt auf 3, nach dem Schließen
+  zeigt die Karte 3; Tipp auf Strich 1 → 1, danach Tipp → „1 / 3“. Melden-
+  Dialog, Chat senden (am Server angekommen), Deck: kurzer Zug federt zurück
+  ohne Fotowechsel, Like auf Miriam → Match-Overlay, schnelle Wische (350/250/
+  200 ms) passen. Matches, Konto. Kein Absturz, kein ANR, ein Prozess über
+  die ganze Runde. Ein einzelner schneller Wisch direkt nach dem Tab-Wechsel
+  löste nichts aus, nicht wiederholbar. Bildfolge
+  `release-2.7.37/emulator-foto-wischen.jpg` (gitignored).
+  **Nicht geprüft:** die minifizierte Variante im Emulator (der
+  `assembleLocalRelease`-Lauf wurde beim R8-Schritt vom OOM-Killer beendet,
+  8 GB RAM reichen nicht für R8 + Browser + Desktop-App), Play Billing.
+* **Emulator auf diesem Rechner** (seit 21.10.): `~/.bubblewrap/android_sdk/emulator`,
+  AVD `flexr_test` mit 2 GB RAM. Gradle mit `--max-workers=1
+  -Dorg.gradle.jvmargs=-Xmx2560m -Pkotlin.compiler.execution.strategy=in-process`
+  und den Emulator nie gleichzeitig mit Gradle laufen lassen.
 * **Web und iOS** haben dieselbe Lücke (Web: Tippzonen links/rechts, iOS:
   nur Tipp und Striche). Nicht angefasst.
 * **AAB** `android-native/release-2.7.37/flexr-2.7.37-149.aab` (gitignored),

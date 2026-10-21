@@ -63,7 +63,27 @@ erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 >   `flexr-vps` in `~/.ssh/config` meldet sich noch als `root` an - für
 >   Automatisierung `deploy@31.220.73.67` nehmen.
 > - Lokal fehlen pip/venv: `test_public_frontend.py` (nur Standardbibliothek)
->   lief direkt ohne pytest, 11/11 grün.
+>   lief direkt ohne pytest, 11/11 grün. Später venv per `get-pip.py` im
+>   Scratchpad: Backend 751 Tests.
+> - **GitHub-CI war seit 17.10. rot** (Mails „CI: Some jobs were not
+>   successful“): `test_frontend_laedt_ueberhaupt_keine_fremden_hosts` lehnte
+>   den Play-Link aus `c201d80` ab. `play.google.com` steht jetzt in der
+>   Erlaubnisliste (nur Link, nichts eingebunden).
+> - **Beta-Popup** (`7988ddc`): alle Links der Liste und die Überschrift in
+>   Orange (Landing DE/EN, App); auf der Landingpage war die Überschrift grau,
+>   weil `.beta-modal p` schwerer wog.
+> - **Emulator** auf diesem Rechner eingerichtet (API 35, AVD `flexr_test`),
+>   2.7.37 durchgetestet - siehe `android-native/HANDOFF.md`. Achtung 8 GB RAM:
+>   ein `assembleLocalRelease` neben Browser und Desktop-App führte zum
+>   OOM-Kill (auch der Claude-App).
+> - **iOS auf Codemagic** (Token jetzt in `~/.config/flexr/codemagic-token`):
+>   `ios-screenshots` auf `48cfbd9` grün (66 Bilder, `testAppVonAbisZ`
+>   695 s); `ios-tests` übersprungen (`when: changeset: ios/` - seit dem
+>   grünen Lauf auf `b398d50` keine iOS-Änderung).
+> - **Datensicherheit nach der ersten Korrektur** (englische Store-Seite,
+>   die deutsche hing noch im Cache): alle Typen und Zwecke richtig bis auf
+>   die fehlende Kategorie App-Aktivitäten (App-Interaktionen, sonstige
+>   nutzergenerierte Inhalte, sonstige Aktionen) - vom Nutzer in Arbeit.
 
 > **Sitzung 18.10.2026: Restore-Test schlug Alarm, das Backup war in
 > Ordnung - der Test verglich gegen die Live-Datenbank.**
