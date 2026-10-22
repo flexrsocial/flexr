@@ -1,10 +1,33 @@
 # HANDOFF — native iOS-App
 
-Stand: **22.10.2026**, Version 2.4.14. Für Aufbau, Build-Befehle und die
+Stand: **22.10.2026**, Version 2.4.15. Für Aufbau, Build-Befehle und die
 Migrationstabelle siehe [README.md](README.md) — hier steht nur, was daraus
 *nicht* hervorgeht.
 
 ---
+
+## Fotoindex nach Melden/Blockieren, Kinderschutz, Freunde einladen, 22.10.2026 (2.4.15) — **nicht compilerverifiziert**
+
+Version 2.4.14 → **2.4.15** (Übersicht in der Haupt-`HANDOFF.md`, Sitzung
+22.10.2026 (4)).
+
+* **Fehler:** Nach „Melden“ oder „Blockieren“ im Deck öffnete die nächste
+  Karte beim Foto, bis zu dem man die vorige geblättert hatte - `photoIndex`
+  liegt im `SwipeModel`, `.id(current.id)` setzt es nicht zurück. Bei weniger
+  Fotos blieb das Bild leer. `SwipeModel.ueberspringe` schaltet weiter und
+  setzt es auf 0 (Like/Pass taten das schon über `resetCard`).
+* **Kinderschutz-Standards (CSAE)** als eigener Rechtstext
+  (`LegalDocument.kinderschutz`, `L.legalKinderschutz`, Inhalt gekürzt aus
+  `frontend/kinderschutz.html`) unter „Rechtliches“ im Konto; Verweis in
+  Abschnitt 7 der Nutzungsrichtlinien.
+* **„Freunde einladen“** im leeren Deck (`ShareLink`, Schlüssel
+  `.swipeInvite`, `.swipeInviteText`, `.swipeInviteURL`).
+* **Ladekreise bei der Mehrfachauswahl** der Fotos (`PhotoGridEditor.laedt`,
+  `LoadingPhotoSlot`), solange `loadTransferable` läuft.
+* **UI-Test:** neuer Schritt `offeneLikes()` vor dem Deck (im Workflow
+  gesperrte Ansicht, Bild `02-offene-likes`; mit Premium zusätzlich
+  `02-offene-likes-profil`), im Deck vor dem Melden über die Galerie zum
+  zweiten Foto und danach Prüfung „Foto 1 von …“ auf der nächsten Karte.
 
 ## Registrierung behält Eingaben, offene Likes mit X/Herz und mehr, 22.10.2026 (2.4.14) — **nicht compilerverifiziert**
 

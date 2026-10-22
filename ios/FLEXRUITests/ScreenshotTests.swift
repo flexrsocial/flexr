@@ -59,6 +59,7 @@ final class ScreenshotTests: XCTestCase {
         ausgeloggt()
         einloggen()
         systemdialogeSchliessen()
+        offeneLikes()
         deck()
         matches()
         chats()
@@ -209,6 +210,15 @@ final class ScreenshotTests: XCTestCase {
         // Gemeldet wird deshalb die naechste Karte (Lauf vom 22.10.: Anna),
         // nicht Theresa - deren Like braucht das Match-Overlay oben. Die
         // Bestaetigung ist ein Hinweis mit "OK".
+        // Vor dem Melden über die Galerie zum zweiten Foto blättern: Bis
+        // 2.4.14 öffnete die nächste Karte danach bei diesem Foto statt beim
+        // ersten (SwipeModel.ueberspringe).
+        app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.45)).tap()
+        warte(2)
+        app.swipeLeft()
+        warte(1)
+        tippe(knopf: "Schließen")
+        warte(1)
         if tippe(knopf: "Melden") {
             warte(1)
             foto("01-deck-melden")
@@ -232,6 +242,11 @@ final class ScreenshotTests: XCTestCase {
                     tippe(knopf: "OK", warten: 3)
                     warte(1)
                     foto("01-deck-nach-meldung")
+                    let naechsteKarte = app.descendants(matching: .any)
+                        .matching(NSPredicate(format: "label BEGINSWITH %@", "Profilfoto von"))
+                        .allElementsBoundByIndex.first { $0.isHittable }
+                    XCTAssertTrue(((naechsteKarte?.value as? String) ?? "").hasPrefix("Foto 1 von"),
+                                  "Nach dem Melden nicht beim ersten Foto der nächsten Karte")
                 } else {
                     tippe(knopf: "Abbrechen")
                 }
@@ -254,6 +269,34 @@ final class ScreenshotTests: XCTestCase {
             warte(2)
         }
         foto("01-deck-leer")
+    }
+
+    // MARK: - B0: Offene Likes
+
+    /// Vor dem Deck, solange Theresas Like noch offen ist. Im Workflow ist
+    /// Premium scharf und Lukas ohne Abo - also die gesperrte Ansicht mit
+    /// Anzahl, wie sie die meisten Nutzer sehen. Wäre die Liste offen
+    /// (Premium), öffnet ein Tipp das Profil mit X und Herz (seit 2.4.14);
+    /// gelikt wird dort nicht, das Match mit Theresa gehört dem Deck.
+    private func offeneLikes() {
+        guard tippe(knopf: "Matches") else { return }
+        warte(2)
+        if tippe(enthaelt: "geliked") {
+            warte(2)
+            foto("02-offene-likes")
+            if tippe(enthaelt: "Theresa") {
+                warte(2)
+                foto("02-offene-likes-profil")
+                tippe(knopf: "Zurück")
+                warte(1)
+            }
+            tippe(knopf: "Zurück")
+            warte(1)
+        } else {
+            XCTFail("Kachel „… geliked“ in den Matches fehlt")
+        }
+        tippe(knopf: "Swipe")
+        warte(2)
     }
 
     // MARK: - C: Matches und Match-Profil

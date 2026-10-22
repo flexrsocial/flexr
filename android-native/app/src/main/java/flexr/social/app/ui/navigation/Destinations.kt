@@ -46,6 +46,7 @@ enum class LegalDocument(@param:StringRes val titleRes: Int) {
     AGB(R.string.legal_agb),
     SICHERHEIT(R.string.legal_sicherheit),
     NUTZUNGSRICHTLINIEN(R.string.legal_nutzungsrichtlinien),
+    KINDERSCHUTZ(R.string.legal_kinderschutz),
     STRAFVERFOLGUNG(R.string.legal_strafverfolgung),
     WIDERRUF(R.string.legal_widerruf),
 }

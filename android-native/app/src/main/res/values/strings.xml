@@ -81,6 +81,7 @@
     <string name="legal_agb">Allgemeine Geschäftsbedingungen</string>
     <string name="legal_sicherheit">Sicherheitstipps</string>
     <string name="legal_nutzungsrichtlinien">Nutzungsrichtlinien</string>
+    <string name="legal_kinderschutz">Kinderschutz</string>
     <string name="legal_strafverfolgung">Strafverfolgungsbehörden</string>
     <string name="legal_only_german">Diese Rechtstexte liegen nur auf Deutsch vor und sind in dieser Fassung verbindlich.</string>
     <!-- Oeffnet nativ in der LegalScreen wie alle anderen Rechtstexte,
@@ -211,6 +212,8 @@
     <string name="swipe_radius">%1$d km rund um dein Gym</string>
     <string name="swipe_empty_title">Alle Sätze absolviert</string>
     <string name="swipe_empty_sub">Keine neuen Profile in deiner Nähe. Schau später nochmal vorbei.</string>
+    <string name="swipe_invite">Freunde einladen</string>
+    <string name="swipe_invite_text">Ich bin auf FLEXR – Dating für Leute, die im Gym zuhause sind. Kostenlos in ganz Österreich: https://flexr.social</string>
     <string name="swipe_like">Gefällt mir</string>
     <string name="swipe_pass">Ablehnen</string>
     <string name="swipe_block_body">Ihr seht euch danach nicht mehr — weder im Deck noch in den Matches.</string>

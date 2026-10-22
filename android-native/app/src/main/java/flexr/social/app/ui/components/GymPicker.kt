@@ -8,6 +8,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
@@ -37,6 +39,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -76,12 +80,17 @@ fun GymPicker(
     lockedUntilLabel: String? = null,
 ) {
     val colors = FlexrTheme.colors
+    val focusManager = LocalFocusManager.current
     var showLockInfo by remember { mutableStateOf(false) }
 
     // Erscheinen Vorschlaege, holt sich die Auswahl samt Liste ins Bild - bei
     // offener Tastatur lag die Liste sonst darunter (Emulator, 15.10.2026).
     val sichtbarMachen = remember { BringIntoViewRequester() }
-    LaunchedEffect(state.expanded, state.results.size) {
+    // An den Treffern selbst statt an ihrer Anzahl (von "Ironclub" zu
+    // "Plates" blieb sie bei 1, die Liste lag unter der Tastatur) und an der
+    // Tastatur, die den sichtbaren Bereich erst nach dem Tippen verkleinert.
+    val tastaturOffen = WindowInsets.ime.getBottom(LocalDensity.current) > 0
+    LaunchedEffect(state.expanded, state.results, tastaturOffen) {
         if (state.expanded && state.results.isNotEmpty()) sichtbarMachen.bringIntoView()
     }
     Column(modifier.fillMaxWidth().bringIntoViewRequester(sichtbarMachen)) {
@@ -159,7 +168,12 @@ fun GymPicker(
                 }
                 LazyColumn(Modifier.heightIn(max = 260.dp)) {
                     items(state.results, key = { it.id }) { gym ->
-                        GymResultRow(gym = gym, onClick = { onSelect(gym) })
+                        GymResultRow(gym = gym, onClick = {
+                            // Gewaehlt ist gewaehlt: Die Tastatur blieb bis
+                            // 2.7.40 offen und verdeckte das naechste Feld.
+                            focusManager.clearFocus()
+                            onSelect(gym)
+                        })
                     }
                     item {
                         Row(

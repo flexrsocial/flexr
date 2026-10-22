@@ -59,6 +59,7 @@
     <string name="legal_agb">Terms and conditions</string>
     <string name="legal_sicherheit">Safety tips</string>
     <string name="legal_nutzungsrichtlinien">Community guidelines</string>
+    <string name="legal_kinderschutz">Child safety</string>
     <string name="legal_strafverfolgung">Law enforcement</string>
     <string name="legal_only_german">These legal texts are available in German only and are binding in that version.</string>
     <string name="legal_widerruf">Right of withdrawal</string>
@@ -175,6 +176,8 @@
     <string name="swipe_radius">%1$d km around your gym</string>
     <string name="swipe_empty_title">All sets done</string>
     <string name="swipe_empty_sub">No new profiles near you. Check back later.</string>
+    <string name="swipe_invite">Invite friends</string>
+    <string name="swipe_invite_text">I\'m on FLEXR – dating for people who live in the gym. Free across Austria: https://flexr.social/en/</string>
     <string name="swipe_like">Like</string>
     <string name="swipe_pass">Pass</string>
     <string name="swipe_block_body">You will no longer see each other — neither in the deck nor in your matches.</string>

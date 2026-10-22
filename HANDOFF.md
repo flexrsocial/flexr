@@ -32,6 +32,80 @@ erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 
 ## Wo das Projekt gerade steht
 
+> **Sitzung 22.10.2026 (4): Letzter Bugfix-Durchgang vor dem Marketing
+> (Android-Emulator, Web, iOS über Codemagic-Bilder) - lokal erstmals mit
+> `PREMIUM_ENABLED=true` wie in der Produktion. Android 2.7.40 / 152,
+> iOS 2.4.15.**
+>
+> - **Fehler 1 - Like-Erinnerung zählte Gemeldete (Backend):** Seit (2) lässt
+>   `GET /api/swipes/incoming` gemeldete Personen weg, die wöchentliche
+>   Mail/Push „X Leute warten“ (`email_jobs._pending_likes_count`) zählte sie
+>   weiter - die Mail versprach, was die App nicht zeigt. Jetzt derselbe
+>   Filter; Test in `test_safety.py`.
+> - **Fehler 2 - iOS: nächste Karte nach Melden/Blockieren beim falschen
+>   Foto:** `photoIndex` liegt im `SwipeModel`, `.id(current.id)` setzt es
+>   nicht zurück; die nächste Karte öffnete beim zuletzt geblätterten Foto
+>   (oder leer bei weniger Fotos). `SwipeModel.ueberspringe` setzt es auf 0.
+>   Android (`remember(current?.id)`) und Web nicht betroffen. Der UI-Test
+>   blättert jetzt vor dem Melden über die Galerie weiter und prüft danach
+>   „Foto 1 von …“; neuer Schritt `offeneLikes()` (gesperrte Ansicht, Bild
+>   `02-offene-likes`).
+> - **Fehler 3 - Datenschutz-Tabelle unlesbar (Hinweis des Nutzers):**
+>   `.wrap` setzt `overflow-wrap:anywhere`, das in Tabellen schon die
+>   Mindestbreite drückt („Zuga|ngsd|aten“). `legal.css` (?v=3): Zellen
+>   brechen nur an Wortgrenzen, erste Spalte mind. 8,5em mit Luft rechts,
+>   Fünf-Spalten-Tabelle (`table.spalten-5`) gibt Breite von „Konkret“ ab;
+>   lange Komposita in `datenschutz.html` mit `&shy;`, „Art.&nbsp;6
+>   Abs.&nbsp;1 lit.&nbsp;b“ bricht nicht mehr zwischen „lit.“ und „b“. Bei
+>   860 px passt die Tabelle jetzt in 720 px (vorher Überlauf), am Handy
+>   scrollt sie im eigenen Kasten.
+> - **Fehler 4 - Kinderschutz-Seite kaum verlinkt (Hinweis des Nutzers):**
+>   Nur Abschnitt 7 der Nutzungsrichtlinien und die Sitemap verwiesen darauf.
+>   Jetzt: Fußleiste der Landingpage DE/EN (Spalte Sicherheit, `build-en.py`
+>   kennt `kinderschutz`), Web-App-Fußleiste und Konto → Rechtliches (öffnet
+>   im Modal), `nav-legal` aller Rechts- und SEO-Seiten DE/EN
+>   (`tools/seo/build_seo_pages.py` mitgezogen), Android und iOS nativ als
+>   eigener Rechtstext „Kinderschutz“ (`LegalDocument.KINDERSCHUTZ` /
+>   `.kinderschutz`, gekürzt aus der Webseite) samt Verweis in Abschnitt 7
+>   der nativen Nutzungsrichtlinien. Test
+>   `test_kinderschutz_ist_von_ueberall_erreichbar`.
+> - **Verbesserungen (auf Wunsch des Nutzers alle in dieser Fassung):**
+>   1. **„Freunde einladen“ im leeren Deck** (Android Teilen-Menü, iOS
+>      `ShareLink`, Web `navigator.share`, sonst Zwischenablage bzw. Hinweis
+>      mit dem Link): In der Startphase ist das leere Deck der Normalfall.
+>      Text DE/EN mit `https://flexr.social` bzw. `/en/`.
+>   2. **Entfernung in „Wer dich geliked hat“** (Backend,
+>      `swipes.incoming_likes`, Test `test_offene_likes_mit_entfernung`): Die
+>      Profilkarte dort war die einzige ohne km; die Clients zeigen sie mit
+>      derselben Karte automatisch.
+>   3. **Web: Lade-Ringe bei der Mehrfachauswahl der Fotos** (~2 s je Foto
+>      ohne Rückmeldung), Absenden wartet, bis alle aufbereitet sind. iOS
+>      ebenso (`LoadingPhotoSlot`, solange Fotos aus der Mediathek kommen).
+>   4. **Android: Tastatur schließt nach der Gym-Auswahl** (`GymPicker`,
+>      Registrierung und Konto) - sie verdeckte das nächste Feld.
+> - **Fehler 5 - Android: Gym-Suche im Konto zeigte bei offener Tastatur
+>   keine Treffer** (im Emulator gefunden): `AccountScreen.imePadding()` zählte
+>   den Abstand der unteren Leiste doppelt (leerer Streifen über der
+>   Tastatur, Treffer dahinter), und `GymPicker` holte die Liste nur bei
+>   geänderter Trefferzahl ins Bild. Jetzt `consumeWindowInsets(padding)` für
+>   den Konto-Reiter, `bringIntoView` bei jedem neuen Ergebnis und beim
+>   Öffnen der Tastatur.
+> - **Geprüft:** Backend 757 Tests (+2), `test_public_frontend.py` grün.
+>   Android im Emulator (localDebug, Premium an): offene Likes gesperrt
+>   („Eine Person wartet auf dich“, ohne Kaufknopf mangels Play Billing),
+>   bei Premium aus: Profil → Ablehnen → Person verschwindet aus dem Deck;
+>   Chat Android↔Web in beide Richtungen (Link zensiert, HTML escaped);
+>   Bio speichern; komplette Neuregistrierung mit drei Fotos in einem
+>   Picker-Durchgang → Gate „Schritt 3 von 5“; Hilfe & Rechtliches →
+>   Kinderschutz. Web: offene Likes → Like → Match-Overlay → Deck ohne die
+>   Person; gesperrte Ansicht mit Premium-Knopf; Neuregistrierung mit vier
+>   Fotos auf einmal (Reihenfolge 0-3 in der DB). iOS: 68 Bilder des Laufs
+>   `6ad9b3a7…` gesichtet, kein sichtbarer Fehler; neuer Lauf siehe unten.
+> - **Android-AAB** `android-native/release-2.7.40/flexr-2.7.40-152.aab`
+>   (SHA-256 `386564b3…38ee`, Upload-Key) dem Nutzer zum Hochladen gegeben;
+>   Versionshinweise in `android/store/store-texte.md`.
+> - Web: Shell v58, `i18n.js?v=6`, `i18n-app.js?v=46`, `legal.css?v=3`.
+
 > **Sitzung 22.10.2026 (3): Google Play lehnte 2.7.38 ab - „Child Safety
 > Standards“.**
 >

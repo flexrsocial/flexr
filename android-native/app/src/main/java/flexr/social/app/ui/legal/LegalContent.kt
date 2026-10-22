@@ -44,6 +44,7 @@ object LegalContent {
         LegalDocument.AGB -> agb
         LegalDocument.SICHERHEIT -> sicherheit
         LegalDocument.NUTZUNGSRICHTLINIEN -> nutzungsrichtlinien
+        LegalDocument.KINDERSCHUTZ -> kinderschutz
         LegalDocument.STRAFVERFOLGUNG -> strafverfolgung
         LegalDocument.WIDERRUF -> widerruf
     }
@@ -805,6 +806,10 @@ object LegalContent {
                 ),
             ),
             LegalBlock.Heading("7. Protokoll: Schutz Minderjähriger und CSAM"),
+            LegalBlock.Paragraph(
+                "Zusammengefasst samt Ansprechpartner unter „Kinderschutz“ (Rechtliches) " +
+                    "und auf flexr.social/kinderschutz.html.",
+            ),
             LegalBlock.Note(
                 "Nulltoleranz — Meldungen zu diesem Bereich haben unbedingten Vorrang vor " +
                     "allen anderen Vorgängen.",
@@ -936,6 +941,100 @@ object LegalContent {
                     "ist ein Kleinstunternehmen und daher nach Art. 19 DSA von den " +
                     "zusätzlichen Pflichten für Online-Plattformen ausgenommen; die Pflichten " +
                     "für Hostingdienste erfüllen wir wie oben beschrieben.",
+            ),
+        ),
+    )
+
+    // Kinderschutz-Standards (CSAE), seit 22.10.2026 fuer Google Play. Gekuerzt
+    // aus flexr.social/kinderschutz.html — beide Fassungen zusammen pflegen.
+    private val kinderschutz = LegalPage(
+        document = LegalDocument.KINDERSCHUTZ,
+        intro = "Standards gegen sexuellen Kindesmissbrauch und sexuelle Ausbeutung von Kindern (CSAE) für FLEXR – Gym Dating Österreich. Stand: 22. Oktober 2026. Diese Fassung ist gekürzt; maßgeblich ist der vollständige Text unter flexr.social/kinderschutz.html.",
+        blocks = listOf(
+            LegalBlock.Heading("1. Geltungsbereich"),
+            LegalBlock.Paragraph(
+                "Diese Standards gelten für FLEXR – Gym Dating Österreich: die Android-App " +
+                    "(bei Google Play, Entwicklername flexr.social), die iOS-App und die " +
+                    "Web-App unter flexr.social. Betreiber ist Julian Pachernegg, " +
+                    "Einzelunternehmer, Johann-Schrey-Weg 260, 8232 Grafendorf, Österreich. " +
+                    "FLEXR ist ausschließlich für Erwachsene ab 18 Jahren. Die Standards " +
+                    "ergänzen die Nutzungsrichtlinien (Abschnitt 7) und die AGB.",
+            ),
+            LegalBlock.Heading("2. Verbot von CSAE — Nulltoleranz"),
+            LegalBlock.Note(
+                "FLEXR verbietet sexuellen Kindesmissbrauch und die sexuelle Ausbeutung " +
+                    "von Kindern (CSAE) in jeder Form.",
+            ),
+            LegalBlock.Bullets(
+                listOf(
+                    "Jede Darstellung sexuellen Kindesmissbrauchs (CSAM) in Profilfotos, " +
+                        "Chatnachrichten oder Profiltexten — einschließlich des Teilens, " +
+                        "Anforderns, Anbietens oder Verlinkens solcher Inhalte.",
+                    "Jede Sexualisierung von Minderjährigen, auch in Text-, Zeichnungs-, " +
+                        "Comic- oder KI-generierter Form.",
+                    "Das Anbahnen sexueller Kontakte zu Minderjährigen (Grooming) sowie " +
+                        "das Erfragen oder Anbieten entsprechender Inhalte.",
+                    "Das Erpressen oder Nötigen Minderjähriger zu sexuellen Inhalten " +
+                        "(Sextortion) und jede Form des Menschenhandels mit Minderjährigen.",
+                    "Die Nutzung der Plattform durch Personen unter 18 Jahren.",
+                    "Fotos, auf denen Minderjährige erkennbar abgebildet sind — auch als " +
+                        "Beiwerk oder Familienfoto.",
+                ),
+            ),
+            LegalBlock.Paragraph(
+                "Ein Verstoß führt zur sofortigen Sperre und endgültigen Löschung des " +
+                    "Kontos und wird den Strafverfolgungsbehörden gemeldet.",
+            ),
+            LegalBlock.Heading("3. Vorbeugende Maßnahmen"),
+            LegalBlock.Bullets(
+                listOf(
+                    "Altersgrenze: Der Server weist jedes Geburtsdatum unter 18 Jahren ab; " +
+                        "vor der Freischaltung prüft ein Mensch das Alter anhand eines " +
+                        "amtlichen Lichtbildausweises und eines Live-Selfies.",
+                    "Kein Foto wird ohne manuelle Freigabe an andere ausgeliefert; bei " +
+                        "Zweifeln an der Volljährigkeit wird es abgelehnt und das Konto geprüft.",
+                    "Der Chat überträgt ausschließlich Text.",
+                    "Zulässig sind nur Fotos, die die anmeldende Person selbst zeigen.",
+                ),
+            ),
+            LegalBlock.Heading("4. Melden"),
+            LegalBlock.Bullets(
+                listOf(
+                    "In der App: Knopf „Melden“ an jedem Profil und in jedem Chat. Stand " +
+                        "und Ergebnis stehen unter „Meine Meldungen“ im Konto.",
+                    "Ohne Konto: über das Formular flexr.social/meldung.html.",
+                    "Per E-Mail mit dem Betreff „CSAM“ an flexr.social@proton.me — bitte " +
+                        "keine Bilddateien anhängen, nur Profil-Links, Namen und Zeitpunkte.",
+                    "Bei akuter Gefahr für ein Kind: sofort Polizeinotruf 133 bzw. 112.",
+                ),
+            ),
+            LegalBlock.Heading("5. Umgang mit CSAM und minderjährigen Konten"),
+            LegalBlock.Lettered(
+                listOf(
+                    "Unbedingter Vorrang vor allen anderen Vorgängen in der Prüfliste.",
+                    "Sofortige Entfernung des Inhalts und sofortige Sperre des Kontos — " +
+                        "ohne vorherige Anhörung, ohne Wartefrist.",
+                    "Beweissicherung: gegen automatische Löschung gesperrt, nur zur " +
+                        "Weitergabe an die Strafverfolgung aufbewahrt.",
+                    "Meldung binnen 24 Stunden an das Bundeskriminalamt (Meldestelle für " +
+                        "Kinderpornografie und Kindersextourismus) und Anzeige bei der " +
+                        "Kriminalpolizei.",
+                    "Endgültige Löschung des Kontos; ein erneuter Zugang wird dauerhaft " +
+                        "verweigert. Konten Minderjähriger werden gesperrt und gelöscht.",
+                ),
+            ),
+            LegalBlock.Heading("6. Gesetze"),
+            LegalBlock.Paragraph(
+                "FLEXR hält die Gesetze zum Schutz von Kindern ein, insbesondere das " +
+                    "österreichische Strafrecht und die Verordnung (EU) 2022/2065 (DSA), " +
+                    "einschließlich der Meldung des Verdachts auf Straftaten nach Art. 18 DSA.",
+            ),
+            LegalBlock.Heading("7. Ansprechpartner für Kinderschutz"),
+            LegalBlock.KeyValues(
+                listOf(
+                    "Name" to "Julian Pachernegg, Betreiber von FLEXR – Gym Dating Österreich",
+                    "E-Mail" to "flexr.social@proton.me (Betreff „CSAM“ oder „Kinderschutz“)",
+                ),
             ),
         ),
     )

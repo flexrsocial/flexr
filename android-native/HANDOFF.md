@@ -1,6 +1,6 @@
 # HANDOFF — native Android-App
 
-Stand: **22.10.2026**, Version 2.7.39 / versionCode 151. Der jüngste
+Stand: **22.10.2026**, Version 2.7.40 / versionCode 152. Der jüngste
 Abschnitt steht oben, ältere folgen darunter. Fassungen zwischen dem
 16.09. und dem 04.10. sowie 2.7.29 bis 2.7.34 sind nur im Kommentar am
 `versionCode` in `app/build.gradle.kts` und in der Haupt-`HANDOFF.md`
@@ -9,6 +9,50 @@ Für Aufbau, Build-Befehle und die Migrationstabelle siehe [README.md](README.md
 hier steht nur, was daraus *nicht* hervorgeht.
 
 ---
+
+## Kinderschutz, Freunde einladen, Gym-Suche im Konto, 22.10.2026 (2.7.40)
+
+**Version 2.7.40 / 152.** Letzter Durchgang vor dem Marketing (Übersicht in
+der Haupt-`HANDOFF.md`, Sitzung 22.10.2026 (4)); auf Wunsch des Nutzers alle
+Fixes und Verbesserungen dieses Durchgangs in dieser Fassung.
+
+* **Kinderschutz-Standards (CSAE)** als eigener Rechtstext:
+  `LegalDocument.KINDERSCHUTZ` (nach den Nutzungsrichtlinien, damit im Dialog
+  „Hilfe & Rechtliches“), Inhalt in `LegalContent.kinderschutz` - gekürzt aus
+  `frontend/kinderschutz.html`, beide zusammen pflegen. Titel
+  `legal_kinderschutz` DE „Kinderschutz“, EN „Child safety“. Abschnitt 7 der
+  nativen Nutzungsrichtlinien verweist darauf.
+* **„Freunde einladen“** im leeren Deck (`SwipeScreen`, `ACTION_SEND` mit
+  Chooser, Text `swipe_invite_text`), über „Neu laden“.
+* **Tastatur zu nach der Gym-Auswahl** (`GymPicker`: `focusManager.clearFocus()`
+  vor `onSelect`).
+* **Fehler: Gym-Suche im Konto ohne sichtbare Treffer bei offener Tastatur.**
+  Der Scaffold-Inhalt hat unten schon den Abstand der Tab-Leiste,
+  `AccountScreen` legte mit `imePadding()` die volle Tastaturhöhe obendrauf -
+  über der Tastatur blieb ein leerer Streifen, die Treffer lagen dahinter.
+  Jetzt `Modifier.consumeWindowInsets(padding)` am Konto-Ziel in `FlexrApp`
+  (neuer Parameter `modifier` an `AccountScreen`); andere Ziele unverändert
+  (der Chat rechnet selbst mit `ime.exclude(navigationBars)`). Dazu holt
+  `GymPicker` die Liste bei jedem neuen Ergebnis und beim Öffnen der Tastatur
+  ins Bild, nicht nur bei geänderter Trefferzahl (von „Ironclub“ zu „Plates“
+  blieb sie 1). Im Emulator: Treffer über der Tastatur, nach der Auswahl
+  Tastatur zu.
+* **Entfernung im Profil aus „Wer dich geliked hat“** - liefert jetzt der
+  Server, die `SwipeableCard` zeigt sie ohne Änderung an.
+* **Geprüft im Emulator** (`localDebug`, Backend mit `PREMIUM_ENABLED=true` wie
+  in der Produktion): offene Likes gesperrt („Eine Person wartet auf dich“,
+  ohne Kaufknopf - kein Play Billing im Image); mit Premium aus: Miriam über
+  offene Likes abgelehnt → aus dem Deck; Chat mit der Web-App in beide
+  Richtungen; Bio gespeichert (Server bestätigt); Neuregistrierung mit drei
+  Fotos in einem Picker-Durchgang → Gate „Schritt 3 von 5“; Kinderschutz-Seite
+  bis zum Ansprechpartner; „Freunde einladen“ öffnet das Teilen-Menü mit dem
+  Text; Profil aus offenen Likes mit „< 1 KM“. 88 Unit-Tests grün, Lint 0
+  Fehler (134 Warnungen wie bisher).
+* **AAB** `android-native/release-2.7.40/flexr-2.7.40-152.aab` (gitignored),
+  SHA-256 `386564b3…38ee`, 8.648.838 Bytes, Upload-Key `BC:64:AD…79:80`.
+  Versionshinweise 2.7.40 DE/EN in `android/store/store-texte.md` (Langfassung
+  2.7.37-2.7.40, falls 2.7.39 nicht in der Produktion ist). Die nächste
+  Fassung ist 2.7.41 / 153.
 
 ## Durchgang mit Emulator: drei Fehler, neun Verbesserungen, 22.10.2026 (2.7.39)
 

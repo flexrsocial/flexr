@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.displayCutout
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -654,6 +655,11 @@ private fun MainGraph(
                     onOpenPremium = { navController.navigate(Routes.PAYWALL) },
                     onOpenUrl = onOpenUrl,
                     onShowMessage = onShowMessage,
+                    // Die untere Leiste haelt schon Abstand nach unten; ohne
+                    // das zaehlte AccountScreen.imePadding() ihn bei offener
+                    // Tastatur doppelt, und die Gym-Treffer lagen in einem
+                    // leeren Streifen hinter ihr (Emulator, 22.10.2026).
+                    modifier = Modifier.consumeWindowInsets(padding),
                 )
             }
 

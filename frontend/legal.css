@@ -215,6 +215,19 @@ h2[id] { scroll-margin-top: 16px; }
 table { width: 100%; border-collapse: collapse; font-size: 13.5px; min-width: 460px; }
 th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--steel); vertical-align: top; }
 th { color: var(--chalk-dim); font-weight: 600; }
+/* Zellen brechen nur zwischen Woertern oder per Silbentrennung. Das
+   overflow-wrap:anywhere aus .wrap zaehlt in Tabellen schon bei der
+   Mindestbreite mit: Bis 22.10.2026 schrumpfte die erste Spalte der
+   Datenschutz-Tabelle auf wenige Zeichen ("Zuga|ngsd|aten"). */
+th, td { overflow-wrap: break-word; hyphens: auto; }
+/* Die erste Spalte benennt die Zeile, mit etwas Luft zur Trennlinie
+   rechts davon. */
+th:first-child, td:first-child { min-width: 8.5em; padding-right: 18px; }
+/* Fuenf Spalten (Datenschutz, Abschnitt 2): "Konkret" gibt Breite an die
+   erste Spalte ab, die uebrigen behalten ihre Woerter am Stueck. */
+table.spalten-5 { font-size: 13px; }
+table.spalten-5 th:nth-child(1) { width: 17%; }
+table.spalten-5 th:nth-child(2) { width: 30%; }
 
 .nav-legal { margin-top: 48px; padding-top: 16px; border-top: 1px solid var(--steel); font-size: 13px; }
 .nav-legal a { margin-right: 16px; display: inline-block; margin-bottom: 6px; }

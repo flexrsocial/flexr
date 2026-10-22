@@ -135,6 +135,7 @@ fun AccountScreen(
     /** Vom Hinweis ueber dem Deck: gleich zum Fotoraster scrollen. */
     scrollToPhotos: Boolean = false,
     onScrolledToPhotos: () -> Unit = {},
+    modifier: Modifier = Modifier,
     viewModel: AccountViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -235,7 +236,7 @@ fun AccountScreen(
     }
 
     Column(
-        Modifier
+        modifier
             .fillMaxSize()
             // Tastatur vor dem Scrollen: Sonst verschwanden Bio, PLZ und
             // Gym-Suche beim Tippen hinter der Tastatur, die Seite scrollte das

@@ -362,8 +362,10 @@ android {
         // offene Likes oeffnen das Profil mit X/Herz, gemeldete Karten fliegen
         // aus dem Deck, Meldebestaetigung als Dialog, Mehrfachauswahl der
         // Fotos, "< 1 km", Foto-Striche mit Schatten, "Neue Nachrichten".
-        versionCode = 151
-        versionName = "2.7.39"
+        // 152/2.7.40 am 22.10.2026: Kinderschutz-Standards (CSAE) unter
+        // "Hilfe & Rechtliches", Verweis aus den Nutzungsrichtlinien.
+        versionCode = 152
+        versionName = "2.7.40"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

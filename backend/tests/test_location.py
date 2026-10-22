@@ -67,6 +67,22 @@ def test_deck_includes_distance_km(client):
     assert deck[0]["distance_km"] <= 20
 
 
+
+def test_offene_likes_mit_entfernung(client):
+    """Wie im Deck: Bis 22.10.2026 kam das Profil aus "Wer dich geliked hat"
+    als einzige Karte ohne Entfernung."""
+    headers_a = register_user(client, "inc.m@example.com", gender="mann", gym=GYM_WIEN)
+    _mit_premium(client, headers_a)
+    headers_b = register_user_with_photo(client, "inc.f@example.com", name="Grazerin",
+                                         gender="frau", gym=GYM_GRAZ)
+    a_id = client.get("/api/profiles/me", headers=headers_a).json()["id"]
+    like = client.post("/api/swipes", headers=headers_b, json={"to_user_id": a_id, "action": "like"})
+    assert like.status_code == 200
+
+    incoming = client.get("/api/swipes/incoming", headers=headers_a).json()
+    assert [p["name"] for p in incoming["profiles"]] == ["Grazerin"]
+    assert 100 < incoming["profiles"][0]["distance_km"] < 250
+
 def test_larger_radius_includes_faraway_gyms(client, monkeypatch):
     """Der volle Umkreis gehoert zu FLEXR Premium.
 

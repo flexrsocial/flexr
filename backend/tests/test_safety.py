@@ -1,4 +1,6 @@
-from tests.conftest import register_user, register_user_with_photo
+from app.email_jobs import _pending_likes_count
+from app.models import User
+from tests.conftest import TestingSessionLocal, register_user, register_user_with_photo
 
 
 def make_pair(client):
@@ -87,6 +89,11 @@ def test_report_removes_like_from_incoming(client):
     nachher = client.get("/api/swipes/incoming", headers=headers_a).json()
     assert nachher["count"] == 0
     assert nachher["profiles"] == []
+    # Die woechentliche Like-Erinnerung (Mail/Push) zaehlt genauso - sie zaehlte
+    # die gemeldete Person bis zum zweiten Durchgang am 22.10.2026 weiter mit.
+    with TestingSessionLocal() as db:
+        a_row = db.query(User).filter(User.id == user_a["id"]).one()
+        assert _pending_likes_count(db, a_row) == 0
 
 
 def test_unblock_restores_visibility(client):

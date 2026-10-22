@@ -53,6 +53,7 @@ extension FlexrStrings {
         .legalAgb: "Allgemeine Geschäftsbedingungen",
         .legalSicherheit: "Sicherheitstipps",
         .legalNutzungsrichtlinien: "Nutzungsrichtlinien",
+        .legalKinderschutz: "Kinderschutz",
         .legalStrafverfolgung: "Strafverfolgungsbehörden",
         .legalWiderruf: "Rücktrittsrecht",
 
@@ -208,6 +209,9 @@ extension FlexrStrings {
         .swipeErrorTitle: "Nicht geladen",
         .swipeRetry: "Erneut versuchen",
         .swipeReload: "Neu laden",
+        .swipeInvite: "Freunde einladen",
+        .swipeInviteText: "Ich bin auf FLEXR – Dating für Leute, die im Gym zuhause sind. Kostenlos in ganz Österreich:",
+        .swipeInviteURL: "https://flexr.social/",
         .swipePass: "Ablehnen",
         .blockDone: "%@ blockiert.",
         .swipeRadius: "%d km rund um dein Gym",

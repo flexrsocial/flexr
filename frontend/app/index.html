@@ -904,6 +904,7 @@
   .empty .empty-title{ font-family:'Oswald'; text-transform:uppercase; letter-spacing:0.04em; font-size:17px; color:var(--chalk); }
   .empty .empty-sub{ font-size:13px; line-height:1.55; max-width:250px; }
   .empty .btn.empty-action{ width:auto; min-width:180px; margin-top:20px; padding:12px 26px; }
+  .empty .btn.empty-action + .btn.empty-action{ margin-top:10px; }
   .eisbrecher{ display:flex; flex-direction:column; align-items:center; gap:8px; margin-top:18px; width:100%; max-width:320px; }
   .eisbrecher-chip{
     width:100%; padding:10px 14px; border-radius:999px; cursor:pointer;
@@ -2635,8 +2636,8 @@
      (DACH-Raum -> Deutsch), i18n-app.js das Woerterbuch dieser Seite. Beide
      laufen synchron und damit vor dem DOMContentLoaded, bei dem FlexrI18n die
      data-i18n-Knoten uebersetzt. -->
-<script src="/i18n.js?v=5"></script>
-<script src="/app/i18n-app.js?v=45"></script>
+<script src="/i18n.js?v=6"></script>
+<script src="/app/i18n-app.js?v=46"></script>
 <a class="skip-link" href="#main-content" data-i18n="common.skipToContent">Zum Inhalt springen</a>
 <div class="app" id="app">
 
@@ -3516,6 +3517,7 @@
           <a data-i18n="legal.agb" href="/agb.html" class="legal-link settings-row" data-legal-page="agb.html">AGB</a>
           <a data-i18n="legal.widerruf" href="/widerruf.html" class="legal-link settings-row" data-legal-page="widerruf.html" data-widerruf-link>Rücktrittsrecht</a>
           <a data-i18n="legal.nutzungsrichtlinien" href="/nutzungsrichtlinien.html" class="legal-link settings-row" data-legal-page="nutzungsrichtlinien.html">Nutzungsrichtlinien</a>
+          <a data-i18n="legal.kinderschutz" href="/kinderschutz.html" class="legal-link settings-row" data-legal-page="kinderschutz.html">Kinderschutz</a>
           <a data-i18n="legal.impressum" href="/impressum.html" class="legal-link settings-row" data-legal-page="impressum.html">Impressum</a>
           <a data-i18n="legal.meldung" href="/meldung.html" class="legal-link settings-row" data-legal-page="meldung.html">Inhalt melden</a>
         </nav>
@@ -3693,6 +3695,7 @@
     <a data-i18n="legal.agb" href="/agb.html" class="legal-link" data-legal-page="agb.html">AGB</a>
     <a data-i18n="legal.widerruf" href="/widerruf.html" class="legal-link" data-legal-page="widerruf.html" data-widerruf-link>Rücktrittsrecht</a>
     <a data-i18n="legal.nutzungsrichtlinien" href="/nutzungsrichtlinien.html" class="legal-link" data-legal-page="nutzungsrichtlinien.html">Nutzungsrichtlinien</a>
+    <a data-i18n="legal.kinderschutz" href="/kinderschutz.html" class="legal-link" data-legal-page="kinderschutz.html">Kinderschutz</a>
     <a data-i18n="legal.sicherheit" href="/sicherheit.html" class="legal-link" data-legal-page="sicherheit.html">Sicherheit</a>
     <a data-i18n="legal.meldung" href="/meldung.html" class="legal-link" data-legal-page="meldung.html">Inhalt melden</a>
     <a data-i18n="legal.strafverfolgung" href="/strafverfolgung.html" class="legal-link" data-legal-page="strafverfolgung.html">Strafverfolgung</a>
@@ -4879,13 +4882,22 @@
   const ICO_TRASH = '<svg class="ico-hover" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 7h15M10 11v6M14 11v6M6 7l1 12.5h10L18 7M9 7V4.5h6V7"/></svg>';
   const ICO_SWAP = '<svg class="ico-rest" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5 3.5 8 7 11.5M3.5 8H17M17 12.5l3.5 3.5-3.5 3.5M20.5 16H7"/></svg>';
 
+  // Wie viele gewaehlte Dateien noch aufbereitet werden (Mehrfachauswahl).
+  let fotosInArbeit = 0;
   function renderPhotoGrid(){
     const grid = $('photoGrid');
     grid.innerHTML = '';
     for(let i=0;i<MAX_PHOTOS;i++){
       const slot = document.createElement('div');
       slot.className = 'photo-slot';
-      if(pendingPhotos[i]){
+      if(!pendingPhotos[i] && i < pendingPhotos.length + fotosInArbeit){
+        // Aufbereiten dauert je Foto rund zwei Sekunden - bei vier auf einmal
+        // stand das Raster bis 22.10.2026 so lange ohne Rueckmeldung da.
+        slot.classList.add('uploading');
+        slot.innerHTML = '<div class="uploading-ring"></div>';
+        slot.setAttribute('role', 'img');
+        slot.setAttribute('aria-label', t('common.loading'));
+      } else if(pendingPhotos[i]){
         slot.classList.add('filled');
         slot.innerHTML = `<img src="${pendingPhotos[i].previewUrl}" alt="">`
           + `<button type="button" class="remove" data-i="${i}" title="${escapeHtml(t('photo.removeTitle'))}" aria-label="${escapeHtml(t('photo.removeTitle'))}">${ICO_X}${ICO_TRASH}</button>`;
@@ -4916,16 +4928,22 @@
     if(!files.length) return;
     if(pendingPhotos.length >= MAX_PHOTOS){ $("photoErr").textContent = t('photo.max'); return; }
     $('photoErr').textContent = '';
-    for(const file of files){
-      if(pendingPhotos.length >= MAX_PHOTOS){ $("photoErr").textContent = t('photo.max'); break; }
+    const freiePlaetze = Math.max(0, MAX_PHOTOS - pendingPhotos.length - fotosInArbeit);
+    const reihe = files.slice(0, freiePlaetze);
+    if(files.length > reihe.length) $("photoErr").textContent = t('photo.max');
+    fotosInArbeit += reihe.length;
+    renderPhotoGrid();
+    for(const file of reihe){
       try{
         const photo = await preparePhoto(file);
         pendingPhotos.push({blob: photo.blob, thumbBlob: photo.thumbBlob, previewUrl: URL.createObjectURL(photo.blob)});
-        renderPhotoGrid();
-        renderRegJourney();
       }catch(err){
         $('photoErr').textContent = uploadFehlerText(err);
         logUploadFehler('onboarding-auswahl', err);
+      }finally{
+        fotosInArbeit--;
+        renderPhotoGrid();
+        renderRegJourney();
       }
     }
   });
@@ -5507,6 +5525,9 @@
     const errEl = $('formErr');
     errEl.textContent = '';
     regFehlerWeg();
+    // Noch nicht fertig aufbereitete Fotos kaemen sonst nach dem Absenden
+    // dazu und blieben ungeladen.
+    if(fotosInArbeit > 0){ errEl.textContent = t('common.loading'); return; }
 
     const payload = regPayload();
     for(let schritt = 1; schritt <= REG_SCHRITTE; schritt++){
@@ -8041,9 +8062,30 @@
           <div class="empty-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M7 8.5v7M10.5 6.5v11M17 8.5v7M13.5 6.5v11M10.5 12h3M3.5 10v4M20.5 10v4"/></svg></div>
           <div class="empty-title">${escapeHtml(t(matchingWiderrufen ? 'swipe.revokedTitle' : 'swipe.emptyTitle'))}</div>
           <div class="empty-sub">${escapeHtml(t(matchingWiderrufen ? 'swipe.revokedSub' : 'swipe.emptySub'))}</div>
-          ${matchingWiderrufen ? '' : `<button type="button" class="btn secondary empty-action" id="btnDeckReload">${escapeHtml(t('swipe.reload'))}</button>`}
+          ${matchingWiderrufen ? '' : `<button type="button" class="btn empty-action" id="btnDeckInvite">${escapeHtml(t('swipe.invite'))}</button>
+          <button type="button" class="btn secondary empty-action" id="btnDeckReload">${escapeHtml(t('swipe.reload'))}</button>`}
         </div>`;
       $('swipeActions').style.display = 'none';
+      // Leeres Deck ist in der Startphase der Normalfall - seit 22.10.2026
+      // der Weg, Leute aus dem eigenen Gym dazuzuholen. Teilen-Menue, wo es
+      // eines gibt (Handy), sonst der Link in die Zwischenablage.
+      const einladen = $('btnDeckInvite');
+      if(einladen) einladen.addEventListener('click', async () => {
+        const text = t('swipe.inviteText');
+        const url = FlexrI18n.current() === 'en' ? 'https://flexr.social/en/' : 'https://flexr.social/';
+        try{
+          if(navigator.share){ await navigator.share({text, url}); return; }
+          await navigator.clipboard.writeText(`${text} ${url}`);
+          toast(t('swipe.inviteCopied'));
+        }catch(err){
+          // Abgebrochenes Teilen ist kein Fehler. Sonst (Zwischenablage
+          // gesperrt) steht der Link zum Markieren im Hinweis.
+          if(err && err.name !== 'AbortError'){
+            frage({titel: t('swipe.invite'), text: `${text} ${url}`, ja: t('common.ok'),
+                   gefaehrlich: false, nurOk: true});
+          }
+        }
+      });
       // Neu laden wie in den Apps - neue Profile kommen laufend dazu. Bleibt
       // es leer, sagt ein kurzer Hinweis, dass wirklich nachgesehen wurde.
       const neuLaden = $('btnDeckReload');

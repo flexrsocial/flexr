@@ -201,7 +201,7 @@ final class SwipeModel {
                 // Gemeldete Person überspringen, ohne einen Swipe zu senden —
                 // der Server lässt sie seit 2.4.14 auch aus jedem neuen Deck
                 // weg. Vorher blieb die Karte einfach liegen.
-                if current?.id == userID { currentIndex += 1 }
+                ueberspringe(userID)
                 onStickyMessage(ack.message)
             } catch {
                 onMessage(error.localizedDescription)
@@ -214,11 +214,23 @@ final class SwipeModel {
             do {
                 try await safety.block(userID: userID)
                 // Blockierte Person überspringen, ohne dafür einen Swipe zu senden.
-                if current?.id == userID { currentIndex += 1 }
+                ueberspringe(userID)
                 onMessage(s(.blockDone, name))
             } catch {
                 onMessage(error.localizedDescription)
             }
         }
+    }
+
+    /// Nächste Karte ohne Swipe, wieder beim ersten Foto. `photoIndex` liegt
+    /// hier im Modell und nicht in der Karte - `.id(current.id)` setzt es
+    /// nicht zurück. Bis 2.4.14 öffnete die nächste Karte nach Melden oder
+    /// Blockieren deshalb beim Foto, bis zu dem man die gemeldete geblättert
+    /// hatte, oder leer, wenn sie weniger Fotos hatte (Android und Web nicht
+    /// betroffen).
+    private func ueberspringe(_ userID: String) {
+        guard current?.id == userID else { return }
+        currentIndex += 1
+        photoIndex = 0
     }
 }

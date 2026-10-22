@@ -131,6 +131,7 @@ def ersetze_auszeichnungen(html: str, texte: dict[str, str]) -> tuple[str, list[
 RECHTSTEXTE = [
     "faq", "impressum", "datenschutz", "agb", "widerruf",
     "nutzungsrichtlinien", "sicherheit", "meldung", "strafverfolgung",
+    "kinderschutz",
 ]
 
 

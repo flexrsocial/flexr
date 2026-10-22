@@ -144,9 +144,31 @@ def test_kontoprofil_bleibt_offen_und_scrollbar():
     assert 'data-i18n-aria="legal.docs.aria"' in privacy
     for page in (
         "datenschutz.html", "agb.html", "widerruf.html",
-        "nutzungsrichtlinien.html", "impressum.html", "meldung.html",
+        "nutzungsrichtlinien.html", "kinderschutz.html", "impressum.html", "meldung.html",
     ):
         assert f'href="/{page}"' in privacy
+
+
+def test_kinderschutz_ist_von_ueberall_erreichbar():
+    """Googles Child Safety Standards verlangen veroeffentlichte Standards - am
+    22.10.2026 verwies nur Abschnitt 7 der Nutzungsrichtlinien darauf, weder die
+    Fussleiste der Landingpage noch die Web-App noch die anderen Rechtsseiten."""
+    for name, ziel in (("index.html", "/kinderschutz.html"),
+                       ("en/index.html", "/en/kinderschutz.html")):
+        fuss = (FRONTEND / name).read_text(encoding="utf-8").split('<footer', 1)[1]
+        assert f'href="{ziel}"' in fuss, name
+
+    app = (FRONTEND / "app" / "index.html").read_text(encoding="utf-8")
+    assert 'data-legal-page="kinderschutz.html"' in app.split('<footer class="legal-footer">', 1)[1]
+
+    for name in [*LEGAL_PAGES, *(f"en/{n}" for n in LEGAL_PAGES), *SEO_PAGES]:
+        if name.endswith("kinderschutz.html"):
+            continue
+        quelle = (FRONTEND / name).read_text(encoding="utf-8")
+        nav = re.search(r'<nav class="nav-legal".*?</nav>', quelle, re.S)
+        assert nav, name
+        ziel = "/en/kinderschutz.html" if name.startswith("en/") else "/kinderschutz.html"
+        assert f'href="{ziel}"' in nav.group(0), name
 
 
 def test_rechtstexte_gibt_es_zweisprachig_und_wechselseitig_verlinkt():

@@ -38,6 +38,9 @@ struct PhotoGridEditor: View {
 
     @State private var selection: PhotosPickerItem?
     @State private var multiSelection: [PhotosPickerItem] = []
+    /// Wie viele der mehrfach gewählten Fotos noch aus der Mediathek kommen -
+    /// so viele freie Felder zeigen solange einen Ladekreis.
+    @State private var laedt = 0
     @State private var draggingID: String?
     @State private var targetID: String?
 
@@ -77,6 +80,8 @@ struct PhotoGridEditor: View {
                     } else {
                         filledSlot(slot, at: index)
                     }
+                } else if index < slots.count + laedt {
+                    LoadingPhotoSlot()
                 } else if onPhotosPicked != nil && freeSlots >= 2 {
                     EmptyPhotoSlot(auswahl: .mehrere($multiSelection, max: freeSlots))
                 } else {
@@ -96,6 +101,7 @@ struct PhotoGridEditor: View {
         .onChange(of: multiSelection) { _, items in
             guard !items.isEmpty else { return }
             let platz = freeSlots
+            laedt = min(items.count, platz)
             Task {
                 var daten: [Data] = []
                 for item in items.prefix(platz) {
@@ -104,6 +110,7 @@ struct PhotoGridEditor: View {
                     }
                 }
                 multiSelection = []
+                laedt = 0
                 if !daten.isEmpty { onPhotosPicked?(daten) }
             }
         }
@@ -273,6 +280,25 @@ private struct FilledPhotoSlot: View {
             // Trefferflaeche fuer Tippen und Ziehen ist die ganze Kachel, nicht
             // nur deren deckende Stellen - `Color.clear` ist keine davon.
             .contentShape(shape)
+    }
+}
+
+/// Freies Feld, solange ein gewähltes Foto noch geladen wird (Fotos aus der
+/// iCloud brauchen dafür spürbar; bis 2.4.15 stand das Raster dabei still).
+private struct LoadingPhotoSlot: View {
+    @Environment(LanguageStore.self) private var languageStore
+
+    private var shape: RoundedRectangle {
+        RoundedRectangle(cornerRadius: 11, style: .continuous)
+    }
+
+    var body: some View {
+        Color.clear
+            .aspectRatio(3.0 / 4.0, contentMode: .fit)
+            .overlay(shape.fill(Color.white.opacity(0.015)))
+            .overlay(shape.strokeBorder(FlexrColor.plate.opacity(0.45), lineWidth: 1.5))
+            .overlay(ProgressView().tint(FlexrColor.plate))
+            .accessibilityLabel(languageStore.strings(.commonLoading))
     }
 }
 

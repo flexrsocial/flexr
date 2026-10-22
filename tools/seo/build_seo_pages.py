@@ -467,6 +467,7 @@ FUSS = """  <nav class="nav-legal" aria-label="Rechtliche Seiten">
     <a href="/widerruf.html" data-widerruf-link>Rücktrittsrecht</a>
     <a href="/nutzungsrichtlinien.html">Nutzungsrichtlinien</a>
     <a href="/sicherheit.html">Sicherheit</a>
+    <a href="/kinderschutz.html">Kinderschutz</a>
     <a href="/meldung.html">Inhalt melden</a>
     <a href="/faq.html">FAQ</a>
   </nav>"""
@@ -518,7 +519,7 @@ def seite(*, url: str, titel: str, beschreibung: str, og_titel: str,
 <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png?v=4">
 <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon-180.png?v=1">
 <link rel="preload" href="/fonts/oswald.woff2?v=1" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="/legal.css?v=2">
+<link rel="stylesheet" href="/legal.css?v=3">
 <script src="/startboost.js?v=1"></script>
 {jsonld(graph)}
 {STIL}

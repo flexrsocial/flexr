@@ -497,11 +497,17 @@ def incoming_likes(
 
     if premium.feature_locked(current_user):
         return IncomingLikesOut(count=len(offen), profiles=[], premium_required=True)
-    return IncomingLikesOut(
-        count=len(offen),
-        profiles=[to_public_profile(u) for u in offen],
-        premium_required=False,
-    )
+    # Entfernung Gym zu Gym wie im Deck - bis 22.10.2026 fehlte sie hier, das
+    # Profil aus "Wer dich geliked hat" zeigte als einzige Karte keine.
+    my_coords = coords_for_gym(db, current_user.gym)
+    liker_coords = coords_for_gyms(db, {u.gym for u in offen if u.gym}) if my_coords else {}
+    profiles = []
+    for u in offen:
+        profile = to_public_profile(u)
+        coords = liker_coords.get(u.gym)
+        profile.distance_km = round(haversine_km(*my_coords, *coords)) if coords else None
+        profiles.append(profile)
+    return IncomingLikesOut(count=len(offen), profiles=profiles, premium_required=False)
 
 
 @router.post("/rewind", response_model=RewindResult)

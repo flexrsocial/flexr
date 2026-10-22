@@ -172,10 +172,27 @@ struct SwipeView: View {
                 title: s(.swipeEmptyTitle),
                 message: s(.swipeEmptySub)
             ) {
-                FlexrSecondaryButton(title: s(.swipeReload)) {
-                    Task { await model.loadDeck() }
+                VStack(spacing: 10) {
+                    // Leeres Deck ist in der Startphase der Normalfall - seit
+                    // 2.4.15 der Weg, Leute aus dem eigenen Gym dazuzuholen.
+                    if let url = URL(string: s(.swipeInviteURL)) {
+                        ShareLink(item: url, message: Text(s(.swipeInviteText))) {
+                            Text(s(.swipeInvite).uppercased())
+                                .flexrText(.labelLarge)
+                                .foregroundStyle(FlexrColor.plateInk)
+                                .frame(maxWidth: .infinity, minHeight: 50)
+                                .background(
+                                    RoundedRectangle(cornerRadius: FlexrRadius.button, style: .continuous)
+                                        .fill(FlexrColor.plateGradient)
+                                )
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel(s(.swipeInvite))
+                    }
+                    FlexrSecondaryButton(title: s(.swipeReload)) {
+                        Task { await model.loadDeck() }
+                    }
                 }
-            }
         } else {
             ZStack(alignment: .bottom) {
                 if let next = model.next {

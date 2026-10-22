@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 from . import consents, mailer, notifications
 from .database import SessionLocal
 from .email_notifications import send_once
-from .models import Block, Swipe, User
+from .models import Block, Report, Swipe, User
 from .verification_service import account_visible_condition
 
 # Ab wie vielen wartenden Profilen im Suchradius benachrichtigt wird.
@@ -161,6 +161,9 @@ def _pending_likes_count(db: Session, user: User) -> int:
     # während die Liste in der App leer blieb.
     blocked_ids = db.query(Block.blocked_id).filter(Block.blocker_id == user.id)
     blocker_ids = db.query(Block.blocker_id).filter(Block.blocked_id == user.id)
+    # Seit 22.10.2026 laesst GET /api/swipes/incoming auch Gemeldete weg
+    # (swipes.gemeldete_ids) - die Mail zaehlte sie bis dahin weiter mit.
+    reported_ids = db.query(Report.reported_id).filter(Report.reporter_id == user.id)
     return (
         db.query(Swipe)
         .join(User, User.id == Swipe.from_user_id)
@@ -173,6 +176,7 @@ def _pending_likes_count(db: Session, user: User) -> int:
             ~Swipe.from_user_id.in_(swiped_ids),
             ~Swipe.from_user_id.in_(blocked_ids),
             ~Swipe.from_user_id.in_(blocker_ids),
+            ~Swipe.from_user_id.in_(reported_ids),
             User.deleted_at.is_(None),
             User.is_banned.is_(False),
             account_visible_condition(),

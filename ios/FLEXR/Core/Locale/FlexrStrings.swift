@@ -23,7 +23,7 @@ enum L: Hashable, Sendable, CaseIterable {
 
     // Rechtsdokumente
     case legalFaq, legalImpressum, legalDatenschutz, legalAgb, legalSicherheit
-    case legalNutzungsrichtlinien, legalStrafverfolgung, legalWiderruf
+    case legalNutzungsrichtlinien, legalKinderschutz, legalStrafverfolgung, legalWiderruf
 
     // Online-Rücktrittsfunktion (§ 13a FAGG)
     case withdrawalNameLabel, withdrawalNamePlaceholder
@@ -76,6 +76,7 @@ enum L: Hashable, Sendable, CaseIterable {
     // Swipe
     case swipeEyebrow, swipeTitle, swipeRadius, swipeEmptyTitle, swipeEmptySub
     case swipeLike, swipePass, swipeLoading, swipeErrorTitle, swipeRetry, swipeReload
+    case swipeInvite, swipeInviteText, swipeInviteURL
     case blockDone
     case swipeBlockTitle, swipeBlockBody, swipeLoadFailed, swipeFailed
     case swipeStampMatch, swipeStampPass, swipeOwnName, unmatchAction

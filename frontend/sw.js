@@ -134,15 +134,18 @@
 // v57: Match-Profil blaettert per Wisch durch die Fotos wie Android/iOS;
 // offene Likes oeffnen das Profil mit X und Herz, Meldebestaetigung als
 // Hinweis, Mehrfachauswahl der Fotos; i18n-app.js ?v=45.
-const CACHE = 'flexr-shell-v57';
+// v58: Kinderschutz-Standards in Fussleiste und Konto, Lade-Ringe bei der
+// Mehrfachauswahl der Fotos, "Freunde einladen" im leeren Deck; legal.css
+// ?v=3 (Tabellen brechen nur an Wortgrenzen), i18n.js ?v=6, i18n-app.js ?v=46.
+const CACHE = 'flexr-shell-v58';
 // Seit dem 15.08.2026 liegt die App unter /app/, an der Wurzel steht die
 // oeffentliche Landingpage. Beide gehoeren in die Shell: die Landingpage,
 // weil sie der Einstieg ist, die App, weil sie offline funktionieren soll.
 const SHELL = ['/', '/index.html', '/en/', '/en/index.html',
                '/app/', '/app/index.html',
-               '/lang-switch.js?v=2', '/i18n.js?v=5', '/app/i18n-app.js?v=45',
+               '/lang-switch.js?v=2', '/i18n.js?v=6', '/app/i18n-app.js?v=46',
                '/startboost.js?v=1',
-               '/manifest.json', '/favicon.ico', '/legal.css?v=2',
+               '/manifest.json', '/favicon.ico', '/legal.css?v=3',
                '/fonts/work-sans.woff2?v=1', '/fonts/oswald.woff2?v=1',
                '/icons/icon-192.png?v=4', '/icons/icon-512.png?v=4'];
 const SHELL_PATHS = new Set(SHELL.map((path) => new URL(path, self.location.origin).pathname));

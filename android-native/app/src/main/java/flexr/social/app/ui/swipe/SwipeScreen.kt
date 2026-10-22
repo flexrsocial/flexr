@@ -1,5 +1,6 @@
 package flexr.social.app.ui.swipe
 
+import android.content.Intent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -31,6 +32,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
@@ -134,18 +136,36 @@ fun SwipeScreen(
                     },
                 )
 
-                state.isExhausted -> EmptyState(
-                    modifier = Modifier.align(Alignment.Center),
-                    icon = FlexrIcons.Swipe,
-                    title = stringResource(R.string.swipe_empty_title),
-                    description = stringResource(R.string.swipe_empty_sub),
-                    action = {
-                        flexr.social.app.core.designsystem.component.FlexrSecondaryButton(
-                            text = stringResource(R.string.swipe_reload),
-                            onClick = viewModel::loadDeck,
-                        )
-                    },
-                )
+                state.isExhausted -> {
+                    val context = LocalContext.current
+                    val einladung = stringResource(R.string.swipe_invite_text)
+                    EmptyState(
+                        modifier = Modifier.align(Alignment.Center),
+                        icon = FlexrIcons.Swipe,
+                        title = stringResource(R.string.swipe_empty_title),
+                        description = stringResource(R.string.swipe_empty_sub),
+                        action = {
+                            // Leeres Deck ist in der Startphase der Normalfall -
+                            // seit 2.7.40 der Weg, Leute aus dem eigenen Gym
+                            // dazuzuholen (Teilen-Menue des Systems).
+                            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                                flexr.social.app.core.designsystem.component.FlexrButton(
+                                    text = stringResource(R.string.swipe_invite),
+                                    onClick = {
+                                        val senden = Intent(Intent.ACTION_SEND)
+                                            .setType("text/plain")
+                                            .putExtra(Intent.EXTRA_TEXT, einladung)
+                                        runCatching { context.startActivity(Intent.createChooser(senden, null)) }
+                                    },
+                                )
+                                flexr.social.app.core.designsystem.component.FlexrSecondaryButton(
+                                    text = stringResource(R.string.swipe_reload),
+                                    onClick = viewModel::loadDeck,
+                                )
+                            }
+                        },
+                    )
+                }
 
                 else -> {
                     val current = state.current
