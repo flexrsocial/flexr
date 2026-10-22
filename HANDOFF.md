@@ -32,6 +32,28 @@ erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 
 ## Wo das Projekt gerade steht
 
+> **Sitzung 22.10.2026 (3): Google Play lehnte 2.7.38 ab - „Child Safety
+> Standards“.**
+>
+> - **Befund:** Googles Prüfung verlangt veröffentlichte Standards, die
+>   *child sexual abuse and exploitation (CSAE)* ausdrücklich verbieten und
+>   den App- oder Entwicklernamen wie im Store nennen („FLEXR – Gym Dating
+>   Österreich“, Entwickler „flexr.social“). Die Nutzungsrichtlinien hatten
+>   einen CSAM-Abschnitt (Abschnitt 7), aber weder das Wort CSAE noch den
+>   Store-Namen; `sicherheit.html` nichts zum Kinderschutz.
+> - **Neu:** `frontend/kinderschutz.html` (verbindlich, deutsch) und
+>   `frontend/en/kinderschutz.html`: CSAE-Verbot mit Liste, Vorbeugung,
+>   Meldewege (In-App-Knopf, Formular, Mail mit Betreff „CSAM“), Ablauf bei
+>   CSAM (aus Abschnitt 7 übernommen, nichts Neues zugesagt), Gesetze (StGB,
+>   DSA Art. 18), Ansprechpartner Julian Pachernegg,
+>   flexr.social@proton.me. Verlinkt aus Abschnitt 7 der Nutzungsrichtlinien,
+>   in der Sitemap, in `LEGAL_PAGES` von `test_public_frontend.py`.
+> - **Nutzer:** In der Play Console unter *Richtlinien → App-Inhalte →
+>   Kinderschutzstandards* die URL `https://flexr.social/en/kinderschutz.html`
+>   eintragen, Ansprechpartner prüfen, speichern, dann unter
+>   *Veröffentlichungsübersicht* die Änderungen erneut zur Prüfung senden
+>   (2.7.39 / 151 liegt bereit und enthält 2.7.38).
+
 > **Sitzung 22.10.2026 (2): Durchgang Android (Emulator), Web und iOS
 > (Codemagic-Bilder) - drei Fehler behoben, danach alle neun
 > Verbesserungsvorschläge umgesetzt. Android 2.7.39 / 151, iOS 2.4.14.**
@@ -72,9 +94,12 @@ erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 >   9. 409 „E-Mail gibt es schon“ steht am E-Mail-Feld und scrollt hin
 >      (Android, iOS; Web konnte das schon).
 > - **iOS-UI-Test** (`ScreenshotTests`): prüft nach Registrieren → Einloggen
->   → Registrieren, ob die Bio noch steht; meldet jetzt nach dem Match (Julia
->   statt Theresa, deren Like das Match-Overlay braucht) und bestätigt mit
->   „OK“. iOS auf diesem Rechner nicht kompiliert - Codemagic.
+>   → Registrieren, ob die Bio noch steht; meldet jetzt nach dem Match (die
+>   nächste Karte statt Theresa, deren Like das Match-Overlay braucht) und
+>   bestätigt mit „OK“. Codemagic grün: `ios-tests` 72 Tests,
+>   `ios-screenshots` bestanden; TestFlight `ios-flexr` gestartet.
+> - **Deployt** (`fd25ac9`, VPS `git pull --ff-only`, `flexr-api` neu
+>   gestartet wegen `swipes.py`/`safety.py`, Web live md5-gleich).
 > - **Deck räumt auf:** Wer unter „offene Likes“ erledigt wird, fliegt auch aus
 >   dem schon geladenen Deck (sonst zweites „Match!“ bzw. Pass überschreibt den
 >   Like) - Android per StateFlow im `SwipeRepository`, iOS beim nächsten

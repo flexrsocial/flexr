@@ -66,6 +66,16 @@
     <priority>0.5</priority>
   </url>
   <url>
+    <loc>https://flexr.social/kinderschutz.html</loc>
+    <xhtml:link rel="alternate" hreflang="de-AT" href="https://flexr.social/kinderschutz.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://flexr.social/kinderschutz.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://flexr.social/en/kinderschutz.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://flexr.social/kinderschutz.html"/>
+    <lastmod>2026-10-22</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
     <loc>https://flexr.social/meldung.html</loc>
     <xhtml:link rel="alternate" hreflang="de-AT" href="https://flexr.social/meldung.html"/>
     <xhtml:link rel="alternate" hreflang="de" href="https://flexr.social/meldung.html"/>
@@ -152,6 +162,16 @@
     <xhtml:link rel="alternate" hreflang="en" href="https://flexr.social/en/nutzungsrichtlinien.html"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://flexr.social/nutzungsrichtlinien.html"/>
     <lastmod>2026-08-20</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.4</priority>
+  </url>
+  <url>
+    <loc>https://flexr.social/en/kinderschutz.html</loc>
+    <xhtml:link rel="alternate" hreflang="de-AT" href="https://flexr.social/kinderschutz.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://flexr.social/kinderschutz.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://flexr.social/en/kinderschutz.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://flexr.social/kinderschutz.html"/>
+    <lastmod>2026-10-22</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.4</priority>
   </url>

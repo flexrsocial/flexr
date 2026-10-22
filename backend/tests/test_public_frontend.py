@@ -17,6 +17,9 @@ LEGAL_PAGES = [
     "faq.html", "sicherheit.html", "nutzungsrichtlinien.html", "meldung.html",
     "widerruf.html", "agb.html", "datenschutz.html", "impressum.html",
     "strafverfolgung.html",
+    # Seit 22.10.2026: Googles "Child Safety Standards" verlangen eigene,
+    # oeffentlich erreichbare Standards mit App-Namen und CSAE-Verbot.
+    "kinderschutz.html",
 ]
 
 PUBLIC_PAGES = {

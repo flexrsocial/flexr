@@ -206,8 +206,9 @@ final class ScreenshotTests: XCTestCase {
         }
         // Melden nach dem Match: Seit 2.4.14 ueberspringt das Deck die
         // gemeldete Karte (und der Server laesst sie aus jedem neuen Deck weg).
-        // Gemeldet wird deshalb Julia, nicht Theresa - deren Like braucht das
-        // Match-Overlay oben. Die Bestaetigung ist ein Hinweis mit "OK".
+        // Gemeldet wird deshalb die naechste Karte (Lauf vom 22.10.: Anna),
+        // nicht Theresa - deren Like braucht das Match-Overlay oben. Die
+        // Bestaetigung ist ein Hinweis mit "OK".
         if tippe(knopf: "Melden") {
             warte(1)
             foto("01-deck-melden")

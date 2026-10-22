@@ -25,9 +25,15 @@ Abschnitt in `android-native/HANDOFF.md`, Übersicht in der Haupt-`HANDOFF.md`):
 * `Entfernung.text` („< 1 km“, Test in `FotoWischenTests`), Foto-Striche Weiß
   55 % + Schatten, `.deleteConfirm` „Konto löschen“ und Rücknahme-Satz in
   `.deleteBody`, 409 bei der Registrierung → `errorField = .email`.
-* **UI-Test:** Melden jetzt nach dem Match (Julia statt Theresa - deren Like
-  braucht das Match-Overlay, und gemeldete Karten verschwinden jetzt), Dialog
-  mit „OK“ bestätigt, neues Bild `01-deck-nach-meldung`.
+* **UI-Test:** Melden jetzt nach dem Match (die nächste Karte, im Lauf Anna,
+  statt Theresa - deren Like braucht das Match-Overlay, und gemeldete Karten
+  verschwinden jetzt), Dialog mit „OK“ bestätigt, neues Bild
+  `01-deck-nach-meldung`.
+* **Codemagic grün** (22.10.2026, `fd25ac9`): `ios-tests` 72 Tests
+  (`6ad9b3a6…cf0`), `ios-screenshots` (`6ad9b3a7…d5f`) mit der neuen
+  Registrierungs-Prüfung; Bilder zeigen Dialog „Meldung eingegangen“, danach
+  Julia statt Anna oben, Löschdialog „Konto löschen“. TestFlight `ios-flexr`
+  gestartet (`6ad9dced…e34`).
 
 ### Registrierung behält Eingaben beim Reiterwechsel
 
