@@ -758,7 +758,13 @@ fun AccountScreen(
             Modifier
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(10.dp))
-                .clickable { blockedUsersExpanded = !blockedUsersExpanded }
+                .clickable {
+                    blockedUsersExpanded = !blockedUsersExpanded
+                    // Beim Aufklappen frisch holen: Das Konto-ViewModel lebt über
+                    // Tab-Wechsel hinweg, eine Blockierung aus Deck oder Chat kam
+                    // sonst erst nach einem Neustart der App hier an.
+                    if (blockedUsersExpanded) viewModel.refreshBlockedUsers()
+                }
                 .padding(vertical = 15.dp, horizontal = 2.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {

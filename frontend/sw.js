@@ -131,7 +131,8 @@
 // den Store-Eintrag (Merker flexr_beta_notice_v8); i18n-app.js ?v=43.
 // v56: Mail-Links auf Android - Leiste "In der App oeffnen", weil Brevo
 // die Links umschreibt und der App Link nicht greift; i18n-app.js ?v=44.
-const CACHE = 'flexr-shell-v56';
+// v57: Match-Profil blaettert per Wisch durch die Fotos wie Android/iOS.
+const CACHE = 'flexr-shell-v57';
 // Seit dem 15.08.2026 liegt die App unter /app/, an der Wurzel steht die
 // oeffentliche Landingpage. Beide gehoeren in die Shell: die Landingpage,
 // weil sie der Einstieg ist, die App, weil sie offline funktionieren soll.

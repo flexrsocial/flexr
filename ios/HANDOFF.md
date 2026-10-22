@@ -6,6 +6,27 @@ Migrationstabelle siehe [README.md](README.md) — hier steht nur, was daraus
 
 ---
 
+## Registrierung behält Eingaben beim Reiterwechsel, 22.10.2026 (nach 2.4.13) — **nicht compilerverifiziert**
+
+Gleicher Fehler wie auf Android (oberster Abschnitt in
+`android-native/HANDOFF.md`), dort im Emulator gefunden; hier aus dem Code
+abgeleitet.
+
+* **Fehler:** `LoginView` zeigt die `RegisterView` als `fullScreenCover`.
+  Der Reiter „Einloggen“ setzt `showRegister = false`, das Vollbild verschwindet
+  samt `@State private var model: RegisterModel?` - beim nächsten
+  „Registrieren“ war das Formular leer, auch die gewählten Fotos.
+* **Jetzt:** `LoginView` hält `@State private var registerModel` und reicht
+  es als `@Binding var model` hinein (`RegisterView(onGoToLogin:onOpenLegal:model:)`).
+  Angelegt wird es weiter in `RegisterView.onAppear`. Nach der Anmeldung
+  baut `RootView` die Login-Ansicht ab, das Modell geht mit.
+* **Test:** `ScreenshotTests` tippt nach der Bio und dem leeren Abschicken
+  „Einloggen“ und dann wieder „Registrieren“ und prüft, ob die Bio („Training
+  am Morgen“) noch im Feld steht.
+* **Nicht geprüft:** kompiliert wurde nichts (Linux). Nach dem Push
+  `python3 tools/ios-screenshots/codemagic.py start ios-tests` und
+  `start ios-screenshots`, dann `hol`.
+
 ## Fotos im Match-Profil per Wischen, 21.10.2026 (2.4.13)
 
 Wie Android 2.7.37 (oberster Abschnitt in `android-native/HANDOFF.md`):

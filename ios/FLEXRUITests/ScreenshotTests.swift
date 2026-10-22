@@ -126,6 +126,18 @@ final class ScreenshotTests: XCTestCase {
             for _ in 0..<6 { app.swipeDown() }
             tippe(knopf: "Einloggen")
             warte(2)
+            // Zurück zur Registrierung: Die Bio von oben steht noch da. Bis
+            // 2.4.13 verwarf der Reiter „Einloggen" das ganze Formular.
+            if tippe(knopf: "Registrieren") {
+                warte(2)
+                let bioDanach = app.textViews.firstMatch
+                XCTAssertTrue(bioDanach.waitForExistence(timeout: 3), "Bio-Feld nach dem Reiterwechsel")
+                XCTAssertTrue(((bioDanach.value as? String) ?? "").contains("Training am Morgen"),
+                              "Eingaben nach dem Reiterwechsel verloren")
+                for _ in 0..<6 { app.swipeDown() }
+                tippe(knopf: "Einloggen")
+                warte(2)
+            }
         }
     }
 

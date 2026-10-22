@@ -112,6 +112,11 @@ struct LoginView: View {
     @Environment(AppContainer.self) private var container
     @State private var model: LoginModel?
     @State private var showRegister = false
+    /// Gehört hier hin statt in die `RegisterView`: Der Reiter „Einloggen"
+    /// schließt das Vollbild, und mit ihm verschwanden bis 2.4.13 alle
+    /// Eingaben samt gewählter Fotos. Nach der Anmeldung baut `RootView` die
+    /// Login-Ansicht ab, das Modell geht mit.
+    @State private var registerModel: RegisterModel?
 
     var body: some View {
         Group {
@@ -129,7 +134,8 @@ struct LoginView: View {
         .fullScreenCover(isPresented: $showRegister) {
             RegisterView(
                 onGoToLogin: { showRegister = false },
-                onOpenLegal: onOpenLegal
+                onOpenLegal: onOpenLegal,
+                model: $registerModel
             )
         }
     }

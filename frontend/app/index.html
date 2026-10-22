@@ -7907,6 +7907,21 @@
         }
         openLightbox(photos, currentPhotoIdx, showPhoto);
       });
+
+      // Im Match-Profil zieht niemand die Karte - dort blättert ein
+      // waagrechter Wisch durch die Fotos, wie auf Android (2.7.37) und iOS
+      // (2.4.13): ab 40 px, eher senkrechte Bewegungen zählen nicht, an den
+      // Enden bleibt es stehen. Den Klick danach fängt die 8-px-Prüfung oben
+      // ab, ein Wisch öffnet also nicht nebenbei das Vollbild. Im Deck gehört
+      // das Wischen weiter dem Like/Pass.
+      if(handlers && handlers.swipePhotos && photos.length > 1){
+        photoEl.addEventListener('touchend', (e) => {
+          const pt = e.changedTouches[0];
+          const dx = pt.clientX - downX, dy = pt.clientY - downY;
+          if(Math.abs(dx) <= Math.abs(dy) || Math.abs(dx) < 40) return;
+          showPhoto(currentPhotoIdx + (dx < 0 ? 1 : -1));
+        });
+      }
     }
     return el;
   }
@@ -8689,6 +8704,7 @@
       loadMatches();
     };
     const cardEl = buildCardEl(match.profile, true, {
+      swipePhotos: true,
       onReport: () => reportUser(match.profile.id, match.profile.name),
       onBlock: () => blockUser(match.profile.id, match.profile.name, backToMatches),
       onUnmatch: () => unmatchMatch(matchId, match.profile.name, backToMatches),

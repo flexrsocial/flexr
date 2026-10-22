@@ -382,8 +382,15 @@ private fun AuthGraph(
                     onGoToRegister = { navController.navigate(Routes.REGISTER) },
                 )
             }
-            composable(Routes.REGISTER) {
+            composable(Routes.REGISTER) { entry ->
+                // Das ViewModel gehört dem Login-Eintrag, nicht diesem: Zurück
+                // oder der Reiter "Einloggen" nimmt REGISTER vom Stapel, und mit
+                // ihm verschwanden bis 2.7.38 alle Eingaben samt gewählter
+                // Fotos. LOGIN bleibt darunter liegen, bis die Anmeldung den
+                // ganzen Graphen ersetzt.
+                val loginEntry = remember(entry) { navController.getBackStackEntry(Routes.LOGIN) }
                 RegisterScreen(
+                    viewModel = hiltViewModel(loginEntry),
                     onRegistered = { notice ->
                         notice?.let(onShowMessage)
                         onLoggedIn()

@@ -10,6 +10,34 @@ hier steht nur, was daraus *nicht* hervorgeht.
 
 ---
 
+## Registrierung behält Eingaben, Blockierliste frisch, 22.10.2026 (nach 2.7.38, noch ohne Versionssprung)
+
+Gefunden beim Emulator-Durchgang (Einzelheiten und Vorschlagsliste in der
+Haupt-`HANDOFF.md`, Sitzung 22.10.2026 (2)). Die nächste Fassung ist
+2.7.39 / 151.
+
+* **Registrierung:** `REGISTER` ist ein eigenes Ziel über `LOGIN`. Zurück-
+  Geste und Reiter „Einloggen“ (`popBackStack(LOGIN)`) nahmen es vom Stapel,
+  mit ihm das `RegisterViewModel` - E-Mail, Name, Geburtsdatum, gewählte
+  Fotos waren weg. Jetzt `hiltViewModel(navController.getBackStackEntry(LOGIN))`
+  in `FlexrApp.kt`. `LOGIN` ist Startziel und liegt immer darunter; nach der
+  Anmeldung ersetzt der Verifizierungs- bzw. Hauptgraph den ganzen
+  ausgeloggten Graphen. Das ViewModel hat weder `init` noch `onCleared`.
+* **Blockierte Personen:** `refreshBlockedUsers()` lief nur im `init` des
+  `AccountViewModel`, das über Tab-Wechsel lebt. Jetzt zusätzlich beim
+  Aufklappen (`AccountScreen.kt`), wie „Meine Meldungen“ seit 2.7.32.
+* **Geprüft im Emulator** (`flexr_test`, 1080x1920, `localDebug`): Formular
+  mit E-Mail, Name und einem Foto → Zurück → „Registrieren“: alles da, Zähler
+  „2 von 10“; ebenso über den Reiter. Als Lukas: Liste aufgeklappt (Sofia),
+  im Deck Anna blockiert, Liste wieder aufgeklappt → Anna und Sofia; Aufheben
+  → nur Sofia, Server bestätigt. 86 Unit-Tests grün.
+* **Emulator auf dem Rechner `B360`** (15 GB): Emulator und Gradle laufen
+  nebeneinander (`--max-workers=2`, Build 3:38 min). JDK 17 unter
+  `~/.bubblewrap/jdk/jdk-17.0.11+9`. MEGA hat die Ausführrechte von
+  `tools/android-emulator/*.sh` verloren - mit `bash run-s3.sh` starten.
+  Die AVD hat hier 1080x1920; die Tastatur verdeckt „Einloggen“, Enter im
+  Passwortfeld meldet an (ESC schließt sie hier nicht).
+
 ## Mail-Knöpfe öffnen die App (App Links), Passwort-Reset in der App, 21.10.2026 (2.7.38)
 
 Wunsch des Betreibers: Wer die Android-App installiert hat, soll beim Tipp

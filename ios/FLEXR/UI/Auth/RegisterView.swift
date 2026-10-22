@@ -10,7 +10,9 @@ struct RegisterView: View {
     @Environment(AppContainer.self) private var container
     @Environment(AppModel.self) private var appModel
 
-    @State private var model: RegisterModel?
+    /// Liegt in der `LoginView`, damit ein Wechsel zum Reiter „Einloggen" und
+    /// zurück die Eingaben nicht verwirft.
+    @Binding var model: RegisterModel?
     @State private var legalDocument: LegalDocument?
 
     var body: some View {
