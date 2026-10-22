@@ -22,6 +22,7 @@
     <string name="common_back">Back</string>
     <string name="common_cancel">Cancel</string>
     <string name="common_close">Close</string>
+    <string name="common_ok">OK</string>
     <string name="common_continue">Continue</string>
     <string name="common_loading">Loading …</string>
     <string name="common_delete">Delete</string>
@@ -242,6 +243,7 @@
     <string name="chat_open_failed">The chat could not be opened.</string>
 
     <string name="report_dialog_title">Report %1$s</string>
+    <string name="report_ack_title">Report received</string>
     <string name="report_dialog_body">What happened? We will review your report.</string>
     <string name="report_failed">Report failed.</string>
     <string name="report_reason_label">Reason</string>
@@ -286,7 +288,8 @@
     <string name="account_radius_label">Search radius</string>
     <string name="account_radius_value">%1$d km</string>
     <string name="account_section_settings">Settings</string>
-    <string name="account_messages_switch">Receive notifications</string>
+    <string name="account_messages_switch">New messages</string>
+    <string name="account_messages_switch_hint">Notification when a match writes to you.</string>
     <string name="account_notifications_title">Notifications</string>
     <string name="account_legal_title">Help &amp; legal</string>
     <string name="account_privacy_title">Privacy &amp; safety</string>
@@ -419,7 +422,7 @@
     <string name="delete_sub_stripe">Your FLEXR Premium then ends at the end of the period you have paid for; nothing further will be charged.</string>
     <string name="delete_sub_store">Your FLEXR Premium is billed through Google Play or the App Store. Deleting your account does not end it – please cancel it there, otherwise you will keep being charged.</string>
     <string name="delete_password_label">Your password to confirm</string>
-    <string name="delete_confirm">Delete permanently</string>
+    <string name="delete_confirm">Delete account</string>
     <string name="delete_password_missing">Please enter your password to confirm.</string>
     <string name="delete_done">Your account has been deactivated and will be permanently deleted in 30 days.</string>
 

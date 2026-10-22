@@ -152,10 +152,6 @@ struct FlexrTabBar: View {
 struct ToastOverlay: View {
 
     @Binding var message: String?
-    /// True nur fuer die Empfangsbestaetigung mit Aktenzeichen einer
-    /// Profilmeldung (Art. 16 Abs. 4 DSA) - die bleibt stehen, bis sie
-    /// manuell weggetippt wird.
-    var isSticky = false
     /// Abstand zum unteren Rand (siehe RootView.toastBottomInset).
     var bottomInset: CGFloat = 12
 
@@ -191,12 +187,9 @@ struct ToastOverlay: View {
                 .transition(.move(edge: .bottom).combined(with: .opacity))
                 .onTapGesture { self.message = nil }
                 // Zwei Sekunden fuer jede Meldung, wie in Android/Web seit
-                // 19./20.09.2026 - einzige Ausnahme ist die Empfangs-
-                // bestaetigung mit Aktenzeichen (isSticky), die bleibt stehen,
-                // bis sie manuell weggetippt wird oder eine neue Meldung sie
-                // ersetzt (siehe AppModel.showSticky).
+                // 19./20.09.2026. Die Empfangsbestaetigung mit Aktenzeichen
+                // ist seit 2.4.14 ein eigener Hinweis (AppModel.showSticky).
                 .task(id: message) {
-                    guard !isSticky else { return }
                     try? await Task.sleep(for: .seconds(2))
                     if !Task.isCancelled { self.message = nil }
                 }

@@ -49,6 +49,28 @@ fun ConfirmDialog(
     )
 }
 
+/** Hinweis mit einem einzigen Knopf - etwa die Empfangsbestätigung einer Meldung. */
+@Composable
+fun InfoDialog(
+    title: String,
+    text: String,
+    onDismiss: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = MaterialTheme.colorScheme.surface,
+        title = { Text(title, style = MaterialTheme.typography.headlineSmall) },
+        text = {
+            Text(text, style = MaterialTheme.typography.bodyMedium, color = FlexrTheme.colors.chalkDim)
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.common_ok), color = FlexrTheme.colors.plate)
+            }
+        },
+    )
+}
+
 /**
  * Meldedialog mit Freitextbegründung. Im Web war das ein `prompt()` des
  * Browsers — nativ ein richtiger Dialog mit Längenprüfung (3–500 Zeichen,

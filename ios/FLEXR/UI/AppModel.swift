@@ -56,10 +56,9 @@ final class AppModel {
 
     /// Kurze Rückmeldung am unteren Rand (Ersatz für die Snackbar).
     var toast: String?
-    /// True nur fuer die Empfangsbestaetigung mit Aktenzeichen einer
-    /// Profilmeldung (Art. 16 Abs. 4 DSA, siehe `showSticky`) - dann bleibt
-    /// [toast] stehen, statt nach zwei Sekunden zu verschwinden.
-    var toastSticky = false
+    /// Empfangsbestätigung mit Aktenzeichen einer Profilmeldung (Art. 16
+    /// Abs. 4 DSA) - als Hinweis mit „OK", siehe `showSticky`.
+    var meldungsBestaetigung: String?
 
     @ObservationIgnored private let container: AppContainer
     /// Gehört dem App-Delegierten, nicht dem Container: Die Sprachwahl ist eine
@@ -213,19 +212,16 @@ final class AppModel {
     }
 
     func show(_ message: String) {
-        toastSticky = false
         toast = message
     }
 
-    /// Bleibt stehen, bis sie manuell weggetippt wird oder eine neue Meldung
-    /// sie ersetzt - fuer die Empfangsbestaetigung mit Aktenzeichen einer
-    /// Profilmeldung (Art. 16 Abs. 4 DSA). Das Aktenzeichen ist der einzige
-    /// Text in der App, den man womoeglich abschreiben will; zwei Sekunden
-    /// reichen dafuer nicht (analog zu `showStickyMessage` in der
-    /// Android-Fassung).
+    /// Empfangsbestätigung mit Aktenzeichen einer Profilmeldung (Art. 16
+    /// Abs. 4 DSA) - als Hinweis mit „OK" (RootView). Bis 2.4.13 ein Toast,
+    /// der stehen blieb, bis man ihn wegtippte: Im Deck lag er über X und Herz
+    /// der nächsten Karte. Abschreiben muss niemand mehr etwas, das
+    /// Aktenzeichen steht auch unter „Meine Meldungen" (wie Android).
     func showSticky(_ message: String) {
-        toastSticky = true
-        toast = message
+        meldungsBestaetigung = message
     }
 
     func openChatsTab() {

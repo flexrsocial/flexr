@@ -357,8 +357,13 @@ android {
         // 150/2.7.38 am 21.10.2026: Knoepfe in den Aktivitaets-Mails
         // (https://flexr.social/app/open/<reiter>) als App Link - mit
         // installierter App oeffnet sich die App statt der Web-App.
-        versionCode = 150
-        versionName = "2.7.38"
+        // 151/2.7.39 am 22.10.2026: Durchgang mit Emulator - Registrierung
+        // behaelt Eingaben bei Zurueck/Reiterwechsel, Blockierliste frisch,
+        // offene Likes oeffnen das Profil mit X/Herz, gemeldete Karten fliegen
+        // aus dem Deck, Meldebestaetigung als Dialog, Mehrfachauswahl der
+        // Fotos, "< 1 km", Foto-Striche mit Schatten, "Neue Nachrichten".
+        versionCode = 151
+        versionName = "2.7.39"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

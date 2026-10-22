@@ -30,6 +30,7 @@ struct SwipeView: View {
         }
         .task {
             if let model {
+                model.bereinigeDeck()
                 // Zurück aus einem anderen Tab: Karte und Foto bleiben stehen.
                 // Neu geladen wird nur, was sich inzwischen geändert haben
                 // kann - Umkreis oder Gym im Konto-Tab, oder ein leeres Deck,

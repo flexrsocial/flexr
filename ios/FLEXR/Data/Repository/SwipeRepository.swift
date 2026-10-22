@@ -6,8 +6,19 @@ final class SwipeRepository {
 
     private let api: FlexrAPI
 
+    /// Wer außerhalb des Decks erledigt wurde - unter „Wer dich geliked hat"
+    /// zurückgeliked, abgelehnt, gemeldet oder blockiert. Das Deck war da
+    /// womöglich schon geladen und nimmt sie beim nächsten Erscheinen heraus
+    /// (`SwipeModel.bereinigeDeck`): Ein zweiter Like zeigte sonst noch einmal
+    /// „Match!", ein Pass überschriebe den Like.
+    private(set) var anderswoErledigt: Set<String> = []
+
     init(api: FlexrAPI) {
         self.api = api
+    }
+
+    func alsErledigtMerken(_ userID: String) {
+        anderswoErledigt.insert(userID)
     }
 
     /// Kandidaten im gewählten Umkreis, bereits serverseitig nach Entfernung

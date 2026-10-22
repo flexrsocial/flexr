@@ -10,6 +10,7 @@ import SwiftUI
 struct RootView: View {
 
     @Environment(AppModel.self) private var appModel
+    @Environment(LanguageStore.self) private var languageStore
     @Environment(\.scenePhase) private var scenePhase
 
     var body: some View {
@@ -35,9 +36,19 @@ struct RootView: View {
         .overlay(
             ToastOverlay(
                 message: $model.toast,
-                isSticky: model.toastSticky,
                 bottomInset: toastBottomInset
             )
+        )
+        .alert(
+            languageStore.strings(.reportAckTitle),
+            isPresented: Binding(
+                get: { model.meldungsBestaetigung != nil },
+                set: { if !$0 { model.meldungsBestaetigung = nil } }
+            ),
+            actions: {
+                Button(languageStore.strings(.commonOk)) { model.meldungsBestaetigung = nil }
+            },
+            message: { Text(model.meldungsBestaetigung ?? "") }
         )
         // Der Sitzungszustand kommt aus dem `isLoggedIn`-Strom des
         // SessionStore; `AppModel` abonniert ihn bei seiner Erzeugung und
@@ -329,7 +340,13 @@ private struct FlexrRoutes: ViewModifier {
                 case .incoming:
                     IncomingView(
                         onBack: { pop() },
-                        onOpenPremium: { path.append(.premium) }
+                        onOpenPremium: { path.append(.premium) },
+                        // Zurückgeliked und "Nachricht schreiben": Der Chat
+                        // ersetzt die Liste, zurück geht es in die Matches.
+                        onOpenChat: { id in
+                            pop()
+                            path.append(.chat(matchID: id))
+                        }
                     )
                 case .legal(let document):
                     LegalView(document: document, onBack: { pop() })

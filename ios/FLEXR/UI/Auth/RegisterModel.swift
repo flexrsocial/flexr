@@ -301,7 +301,15 @@ final class RegisterModel {
                 successNotice = s(.registerDonePartial)
             }
         } catch {
-            self.error = (error as? FlexrAPIError)?.message ?? s(.registerFailed)
+            let apiError = error as? FlexrAPIError
+            self.error = apiError?.message ?? s(.registerFailed)
+            // 409 "Mit dieser E-Mail-Adresse gibt es schon ein Konto": an das
+            // E-Mail-Feld, dorthin scrollen (wie Web und Android). Bis 2.4.13
+            // stand das unten am Knopf, das Feld aber weit oben im Formular.
+            if apiError?.statusCode == 409 {
+                errorField = .email
+                errorSeq += 1
+            }
         }
         isSubmitting = false
     }

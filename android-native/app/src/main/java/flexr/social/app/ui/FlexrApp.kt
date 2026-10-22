@@ -77,6 +77,7 @@ import flexr.social.app.ui.auth.LoginScreen
 import flexr.social.app.ui.auth.RegisterScreen
 import flexr.social.app.ui.auth.ResetPasswordDialog
 import flexr.social.app.ui.chat.ChatScreen
+import flexr.social.app.ui.components.InfoDialog
 import flexr.social.app.ui.legal.LegalScreen
 import flexr.social.app.ui.matches.ChatsScreen
 import flexr.social.app.ui.matches.MatchProfileScreen
@@ -155,12 +156,14 @@ fun FlexrApp(
     val showMessage: (String) -> Unit = { message -> showMessageFor(message, MESSAGE_DURATION_MS) }
 
     /**
-     * Bleibt stehen, bis sie manuell weggetippt wird - fuer die
      * Empfangsbestaetigung mit Aktenzeichen einer Profilmeldung
-     * (Art. 16 Abs. 4 DSA). Das Aktenzeichen ist der einzige Text in der App,
-     * den man womoeglich abschreiben will; zwei Sekunden reichen dafuer nicht.
+     * (Art. 16 Abs. 4 DSA) - als Dialog mit "OK". Bis 2.7.38 eine Snackbar,
+     * die stehen blieb, bis man sie wegtippte: Im Deck lag sie ueber X und
+     * Herz der naechsten Karte. Abschreiben muss niemand mehr etwas, das
+     * Aktenzeichen steht auch unter "Meine Meldungen".
      */
-    val showStickyMessage: (String) -> Unit = { message -> showMessageFor(message, null) }
+    var meldungsBestaetigung by rememberSaveable { mutableStateOf<String?>(null) }
+    val showStickyMessage: (String) -> Unit = { message -> meldungsBestaetigung = message }
 
     // Rueckkehr aus dem Stripe-Checkout im Browser: Premium-Status neu holen.
     // Frueher nur im gesperrten Zustand - den gibt es nicht mehr, also bei
@@ -252,6 +255,14 @@ fun FlexrApp(
                 }
             }
         }
+    }
+
+    meldungsBestaetigung?.let { text ->
+        InfoDialog(
+            title = stringResource(R.string.report_ack_title),
+            text = text,
+            onDismiss = { meldungsBestaetigung = null },
+        )
     }
 
     resetToken?.let { token ->
@@ -609,6 +620,15 @@ private fun MainGraph(
                 IncomingScreen(
                     onBack = { navController.popBackStack() },
                     onOpenPremium = { navController.navigate(Routes.PAYWALL) },
+                    // Zurückgeliked und "Nachricht schreiben": Der Chat ersetzt
+                    // die Liste, Zurück führt in die Matches.
+                    onOpenChat = { matchId ->
+                        navController.navigate(Routes.chat(matchId, Routes.MATCHES)) {
+                            popUpTo(Routes.INCOMING) { inclusive = true }
+                        }
+                    },
+                    onShowMessage = onShowMessage,
+                    onShowStickyMessage = onShowStickyMessage,
                     premiumOffered = membership.storePurchaseAvailable,
                 )
             }

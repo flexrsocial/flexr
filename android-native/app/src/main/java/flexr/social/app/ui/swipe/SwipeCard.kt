@@ -47,6 +47,7 @@ import androidx.compose.ui.BiasAlignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -277,6 +278,12 @@ private const val PHOTO_SWIPE_THRESHOLD_DP = 40
  * nach rechts das vorige. Am ersten und letzten Foto bleibt es stehen, wie in
  * der Vollbildansicht.
  */
+/**
+ * Entfernung zwischen den Gyms. Der Server rundet auf ganze Kilometer; „0 km"
+ * (bis 2.7.38 so angezeigt, meist dasselbe Gym) heißt unter 500 m.
+ */
+internal fun distanceLabel(km: Int): String = if (km < 1) "< 1 km" else "$km km"
+
 internal fun photoIndexAfterSwipe(current: Int, count: Int, dragX: Float, threshold: Float): Int = when {
     count <= 1 -> current
     dragX <= -threshold -> (current + 1).coerceAtMost(count - 1)
@@ -426,14 +433,18 @@ private fun CardContent(
                             horizontalArrangement = Arrangement.spacedBy(4.dp),
                         ) {
                             photos.forEachIndexed { index, _ ->
+                                // Mit Schatten und kräftigerem Weiß: Bis 2.7.38 waren
+                                // die übrigen Striche (Weiß 28 %) auf hellen Fotos -
+                                // weiße Wand, Fenster - praktisch unsichtbar.
                                 Box(
                                     Modifier
                                         .weight(1f)
                                         .height(3.dp)
+                                        .shadow(2.dp, RoundedCornerShape(2.dp))
                                         .clip(RoundedCornerShape(2.dp))
                                         .background(
                                             if (index == photoIndex) colors.plate
-                                            else Color.White.copy(alpha = 0.28f),
+                                            else Color.White.copy(alpha = 0.55f),
                                         ),
                                 )
                             }
@@ -482,7 +493,7 @@ private fun CardContent(
                         text = buildString {
                             append(profile.city)
                             if (profile.gymName.isNotBlank()) append(" · ").append(profile.gymName)
-                            profile.distanceKm?.let { append(" · ").append("$it km") }
+                            profile.distanceKm?.let { append(" · ").append(distanceLabel(it)) }
                         }.uppercase(),
                         style = MonoStyle,
                         color = colors.chalkDim,

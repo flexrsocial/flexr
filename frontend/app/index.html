@@ -675,7 +675,9 @@
     background-size:110px; background-position:center 38%;
   }
   .card .photo-index{ position:absolute; top:10px; left:10px; right:10px; display:flex; gap:4px; z-index:2; }
-  .card .photo-index i{ flex:1; height:3px; border-radius:2px; background:rgba(255,255,255,0.28); }
+  /* Kraeftigeres Weiss plus Schatten: Mit 28 % waren die uebrigen Striche auf
+     hellen Fotos (weisse Wand, Fenster) bis 22.10.2026 kaum zu sehen. */
+  .card .photo-index i{ flex:1; height:3px; border-radius:2px; background:rgba(255,255,255,0.55); box-shadow:0 0 2px rgba(0,0,0,0.55); }
   .card .photo-index i.on{ background:var(--plate); box-shadow:0 0 8px var(--plate-glow); }
 
   /* Tippflächen auf dem Foto: aussen blättern, in der Mitte vergrössern.
@@ -2634,7 +2636,7 @@
      laufen synchron und damit vor dem DOMContentLoaded, bei dem FlexrI18n die
      data-i18n-Knoten uebersetzt. -->
 <script src="/i18n.js?v=5"></script>
-<script src="/app/i18n-app.js?v=44"></script>
+<script src="/app/i18n-app.js?v=45"></script>
 <a class="skip-link" href="#main-content" data-i18n="common.skipToContent">Zum Inhalt springen</a>
 <div class="app" id="app">
 
@@ -2961,7 +2963,7 @@
       <div class="reg-step" data-step="3" hidden>
       <label id="photoGridLabel" data-i18n="reg.photos">Fotos (mind. 3, max. 6)</label>
       <div class="photo-grid" id="photoGrid" role="group" aria-labelledby="photoGridLabel"></div>
-      <input type="file" id="photoInput" accept="image/*" style="display:none">
+      <input type="file" id="photoInput" accept="image/*" multiple style="display:none">
       <!-- Zaehler, solange die Pflichtzahl fehlt: Sonst bleibt der Knopf unten
            grundlos unerreichbar. -->
       <div class="photo-hint warn" id="photoCountHint" hidden></div>
@@ -3076,6 +3078,24 @@
       <h2 class="headline" style="font-size:22px; margin-bottom:16px;" data-i18n="incoming.h2">Wer dich geliked hat</h2>
       <div id="incomingList"><div class="loading" data-i18n="incoming.loading">Lade …</div></div>
       <button class="btn secondary" id="btnIncomingBack" style="margin-top:18px;" data-i18n="common.back">Zurück</button>
+    </section>
+
+    <!-- Profil aus "Wer dich geliked hat": Karte wie im Match-Profil, darunter
+         X und Herz wie im Deck (seit 22.10.2026) -->
+    <section class="screen" id="screen-incoming-profile">
+      <div class="chat-header">
+        <button class="back-btn" id="btnIncomingProfileBack" data-i18n-aria="common.back" aria-label="Zurück"><svg class="ico" viewBox="0 0 24 24"><path d="M14.5 5 8 12l6.5 7"/></svg></button>
+        <div class="nm" id="incomingProfileTitle"></div>
+      </div>
+      <div class="profile-card-wrap" id="incomingProfileCardWrap"></div>
+      <div class="swipe-actions">
+        <button class="round-btn pass" id="btnIncomingPass" data-i18n-aria="swipe.pass" aria-label="Ablehnen">
+          <svg class="ico" viewBox="0 0 24 24"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/></svg>
+        </button>
+        <button class="round-btn like" id="btnIncomingLike" data-i18n-aria="swipe.like" aria-label="Gefällt mir">
+          <svg class="ico" viewBox="0 0 24 24"><path d="M12 20.3S4.8 15.7 4.8 10.8C4.8 8 6.9 6 9.3 6c1.2 0 2.3.55 2.7 1.4C12.4 6.55 13.5 6 14.7 6c2.4 0 4.5 2 4.5 4.8 0 4.9-7.2 9.5-7.2 9.5z" fill="currentColor" stroke="none"/></svg>
+        </button>
+      </div>
     </section>
 
     <!-- CHATS -->
@@ -3792,7 +3812,7 @@
         <input type="password" id="deletePassword" placeholder="••••••••" autocomplete="current-password">
         <div class="field-err" id="deleteErr"></div>
         <div class="btn-row" style="margin-top:18px;">
-          <button class="btn danger-solid" id="btnConfirmDelete" data-i18n="del.confirm">Endgültig löschen</button>
+          <button class="btn danger-solid" id="btnConfirmDelete" data-i18n="del.confirm">Konto löschen</button>
           <button class="btn secondary" id="btnCancelDelete" data-i18n="common.cancel">Abbrechen</button>
         </div>
       </div>
@@ -4886,20 +4906,27 @@
   }
   renderPhotoGrid();
 
+  // Seit 22.10.2026 mehrere auf einmal ("multiple") - fuer die drei
+  // Pflichtfotos waren es vorher drei Durchgaenge durch die Dateiauswahl.
+  // Nacheinander, damit die Reihenfolge der Auswahl bleibt; was ueber die
+  // sechs Felder hinausgeht, faellt weg.
   $('photoInput').addEventListener('change', async (e)=>{
-    const file = e.target.files[0];
+    const files = [...e.target.files];
     e.target.value = '';
-    if(!file) return;
+    if(!files.length) return;
     if(pendingPhotos.length >= MAX_PHOTOS){ $("photoErr").textContent = t('photo.max'); return; }
     $('photoErr').textContent = '';
-    try{
-      const photo = await preparePhoto(file);
-      pendingPhotos.push({blob: photo.blob, thumbBlob: photo.thumbBlob, previewUrl: URL.createObjectURL(photo.blob)});
-      renderPhotoGrid();
-      renderRegJourney();
-    }catch(err){
-      $('photoErr').textContent = uploadFehlerText(err);
-      logUploadFehler('onboarding-auswahl', err);
+    for(const file of files){
+      if(pendingPhotos.length >= MAX_PHOTOS){ $("photoErr").textContent = t('photo.max'); break; }
+      try{
+        const photo = await preparePhoto(file);
+        pendingPhotos.push({blob: photo.blob, thumbBlob: photo.thumbBlob, previewUrl: URL.createObjectURL(photo.blob)});
+        renderPhotoGrid();
+        renderRegJourney();
+      }catch(err){
+        $('photoErr').textContent = uploadFehlerText(err);
+        logUploadFehler('onboarding-auswahl', err);
+      }
     }
   });
 
@@ -5788,7 +5815,9 @@
      "Konto wiederherstellen" - nichts daran ist gefaehrlich). Der Fokus liegt
      auf "Abbrechen": Wer versehentlich Enter drueckt, blockiert niemanden. */
   let frageOffen = null;
-  function frage({titel, text, ja, gefaehrlich = true}){
+  /* nurOk: Hinweis ohne "Abbrechen", der Fokus liegt dann auf dem einen Knopf
+     (Empfangsbestaetigung einer Meldung, siehe sendReport). */
+  function frage({titel, text, ja, gefaehrlich = true, nurOk = false}){
     if(frageOffen) frageOffen(false);
     const backdrop = $('confirmModalBackdrop');
     $('confirmModalTitle').textContent = titel;
@@ -5796,9 +5825,11 @@
     const jaKnopf = $('btnConfirmModalYes');
     jaKnopf.textContent = ja;
     jaKnopf.className = gefaehrlich ? 'btn danger-solid' : 'btn';
+    // style statt hidden: .btn setzt display und schlaegt das Attribut.
+    $('btnConfirmModalNo').style.display = nurOk ? 'none' : '';
     const vorherFokus = document.activeElement;
     backdrop.classList.add('open');
-    $('btnConfirmModalNo').focus();
+    (nurOk ? jaKnopf : $('btnConfirmModalNo')).focus();
     return new Promise(resolve => {
       frageOffen = (antwort) => {
         frageOffen = null;
@@ -7810,6 +7841,11 @@
     }
   }
 
+  /* Entfernung zwischen den Gyms. Der Server rundet auf ganze Kilometer;
+     "0 km" (bis 22.10.2026 so angezeigt, meist dasselbe Gym) heisst unter
+     500 m. */
+  function entfernung(km){ return km < 1 ? '< 1 km' : `${km} km`; }
+
   function buildCardEl(p, interactive, handlers){
     const el = document.createElement('div');
     el.className = 'card';
@@ -7832,7 +7868,7 @@
           <div class="zone zoom"></div>
         </div>
         <div class="photo-index">${(p.photos||[]).map((_,i)=>`<i class="${i===0?'on':''}"></i>`).join('')}</div>
-        <div class="name-row"><div class="nm">${nameWithBadges(p, `${p.name}, ${p.age}`)}</div><div class="loc">${escapeHtml(p.city)} · ${escapeHtml(gymName(p.gym))}${p.distance_km != null ? ` · ${p.distance_km} km` : ''}</div></div>
+        <div class="name-row"><div class="nm">${nameWithBadges(p, `${p.name}, ${p.age}`)}</div><div class="loc">${escapeHtml(p.city)} · ${escapeHtml(gymName(p.gym))}${p.distance_km != null ? ` · ${escapeHtml(entfernung(p.distance_km))}` : ''}</div></div>
       </div>
       <div class="body">
         <div class="stat-row">
@@ -8041,8 +8077,10 @@
     reportBackdrop.classList.remove('open');
     reportTarget = null;
   }
-  function reportUser(userId, name){
-    reportTarget = {userId, name};
+  /* nachMeldung: laeuft nach einer angenommenen Meldung - das Deck schiebt
+     damit die gemeldete Karte weiter, die offenen Likes nehmen sie heraus. */
+  function reportUser(userId, name, nachMeldung){
+    reportTarget = {userId, name, nachMeldung};
     $('reportModalTitle').textContent = t('report.title', {name});
     $('reportReason').value = '';
     $('reportCounter').textContent = '0/500';
@@ -8063,22 +8101,29 @@
     if(reason.length < 3){ $('reportErr').textContent = t('report.errShort'); return; }
     const btn = $('btnReportSend');
     btn.disabled = true;
-    const ok = await sendReport(reportTarget.userId, reason);
+    const ziel = reportTarget;
+    const ok = await sendReport(ziel.userId, reason);
     btn.disabled = false;
-    if(ok) closeReportModal();
+    if(ok){
+      closeReportModal();
+      if(ziel.nachMeldung) ziel.nachMeldung();
+    }
   });
 
   async function sendReport(userId, reason){
     try{
       // Art. 16 Abs. 4 DSA: Das Aktenzeichen aus der Empfangsbestätigung gehört
-      // dem Melder gezeigt - er soll sich darauf berufen können. Kein Verweis
-      // auf eine Übersicht: die gibt es in der Web-Version bewusst nicht.
-      // Bleibt deshalb als einziger Toast stehen, bis er ihn selbst schliesst
-      // (siehe toast()) - fuer das Aktenzeichen soll niemand mitschreiben muessen.
+      // dem Melder gezeigt - er soll sich darauf berufen können. Seit
+      // 22.10.2026 als Hinweis mit "OK" statt als stehender Toast, der im Deck
+      // ueber X und Herz der naechsten Karte lag; das Aktenzeichen steht
+      // ausserdem unter "Meine Meldungen" (Datenschutz & Sicherheit).
       const ack = await api('/api/reports', {method: 'POST', body: JSON.stringify({reported_user_id: userId, reason})});
-      toast(ack && ack.reference
-        ? t('report.ack', {ref: ack.reference})
-        : t('report.ackPlain'), {sticky: !!(ack && ack.reference)});
+      if(ack && ack.reference){
+        frage({titel: t('report.ackTitle'), text: t('report.ack', {ref: ack.reference}),
+               ja: t('common.ok'), gefaehrlich: false, nurOk: true});
+      } else {
+        toast(t('report.ackPlain'));
+      }
       return true;
     }catch(err){
       $('reportErr').textContent = err.message || t('err.failed');
@@ -8109,7 +8154,11 @@
   function reportCurrentCard(){
     if(deckIdx >= deck.length) return;
     const target = deck[deckIdx];
-    reportUser(target.id, target.name);
+    // Gemeldete Person ueberspringen, ohne einen Swipe zu senden - der Server
+    // laesst sie seit 22.10.2026 auch aus jedem neuen Deck weg.
+    reportUser(target.id, target.name, () => {
+      if(deck[deckIdx] && deck[deckIdx].id === target.id){ deckIdx++; renderCard(); }
+    });
   }
 
   function blockCurrentCard(){
@@ -8531,16 +8580,90 @@
       return;
     }
     // Dieselbe Zeilenform wie die Matchliste, damit die Ansicht nicht wie ein
-    // fremder Teil der App wirkt.
+    // fremder Teil der App wirkt. Ein Tipp oeffnet das Profil mit X und Herz
+    // (bis 22.10.2026 ohne Tippziel, obwohl "Ansehen und zurueckliken" dastand).
     liste.innerHTML = incomingCache.profiles.map(p => `
-      <div class="match-item">
+      <div class="match-item" data-user-id="${escapeHtml(p.id)}">
         <span class="av"><img src="${escapeHtml(photoThumb(p.photos && p.photos[0]))}" alt=""></span>
         <div class="info">
           <div class="nm">${nameWithBadges(p, `${p.name}, ${p.age}`)}</div>
           <div class="last-msg">${escapeHtml([p.city, gymName(p.gym)].filter(Boolean).join(' · '))}</div>
         </div>
+        <div class="chev"></div>
       </div>`).join('');
+    liste.querySelectorAll('.match-item').forEach(el => {
+      el.addEventListener('click', () => {
+        const profil = incomingCache && incomingCache.profiles.find(p => p.id === el.dataset.userId);
+        if(profil) openIncomingProfile(profil);
+      });
+    });
   }
+
+  let incomingProfil = null;
+
+  function openIncomingProfile(profile){
+    incomingProfil = profile;
+    $('incomingProfileTitle').textContent = profile.name + ', ' + profile.age;
+    const wrap = $('incomingProfileCardWrap');
+    wrap.innerHTML = '';
+    const weg = () => { ausIncomingEntfernen(profile.id); zurIncomingListe(); };
+    wrap.appendChild(buildCardEl(profile, true, {
+      swipePhotos: true,
+      onReport: () => reportUser(profile.id, profile.name, weg),
+      onBlock: () => blockUser(profile.id, profile.name, weg),
+    }));
+    showScreen('screen-incoming-profile');
+  }
+
+  function ausIncomingEntfernen(userId){
+    // Auch aus dem schon geladenen Deck (nur ab der aktuellen Karte): Ein
+    // zweiter Like zeigte sonst noch einmal "Match!", ein Pass ueberschriebe
+    // den Like.
+    const imDeck = deck.findIndex((p, i) => i >= deckIdx && p.id === userId);
+    if(imDeck >= 0){ deck.splice(imDeck, 1); renderCard(); }
+    if(!incomingCache) return;
+    incomingCache.profiles = incomingCache.profiles.filter(p => p.id !== userId);
+    incomingCache.count = Math.max(0, incomingCache.count - 1);
+    renderIncomingCard();
+  }
+
+  function zurIncomingListe(){
+    incomingProfil = null;
+    renderIncomingList();
+    showScreen('screen-incoming');
+  }
+
+  // Ein Like hier ist immer ein Match - die Person hat schon geliked.
+  async function incomingSwipe(action){
+    const profile = incomingProfil;
+    if(!profile) return;
+    const knoepfe = [$('btnIncomingLike'), $('btnIncomingPass')];
+    knoepfe.forEach(k => { k.disabled = true; });
+    try{
+      const result = await api('/api/swipes', {method: 'POST', body: JSON.stringify({to_user_id: profile.id, action})});
+      if(membership && 'likes_remaining' in result){
+        membership.likes_remaining = result.likes_remaining;
+        updateStatusPill();
+        renderLikeCounter();
+      }
+      ausIncomingEntfernen(profile.id);
+      zurIncomingListe();
+      if(result.matched) showMatchOverlay(profile);
+    }catch(err){
+      // Etwa das aufgebrauchte Like-Kontingent: Das Profil bleibt offen.
+      if(err.detail && err.detail.code === 'like_limit_reached'){
+        await refreshMembership();
+        showLikeLimit();
+      } else {
+        toast(err.message || t('swipe.failed'));
+      }
+    }finally{
+      knoepfe.forEach(k => { k.disabled = false; });
+    }
+  }
+  $('btnIncomingLike').addEventListener('click', () => incomingSwipe('like'));
+  $('btnIncomingPass').addEventListener('click', () => incomingSwipe('pass'));
+  $('btnIncomingProfileBack').addEventListener('click', zurIncomingListe);
 
   $('incomingLikes').addEventListener('click', ()=>{
     renderIncomingList();
@@ -8581,7 +8704,7 @@
           <span class="av"><img src="${escapeHtml(photo)}" alt="" title="${m.is_online ? escapeHtml(t('matches.online')) : ''}"></span>
           <div class="info">
             <div class="nm">${nameWithBadges(p, `${p.name}, ${p.age}`)}</div>
-            <div class="last-msg">${escapeHtml(p.city)}${p.distance_km != null ? ` · ${p.distance_km} km` : ''}${m.is_online ? ' · ' + escapeHtml(t('matches.online')) : ''}</div>
+            <div class="last-msg">${escapeHtml(p.city)}${p.distance_km != null ? ` · ${escapeHtml(entfernung(p.distance_km))}` : ''}${m.is_online ? ' · ' + escapeHtml(t('matches.online')) : ''}</div>
           </div>
           ${rechts}
         </div>`;

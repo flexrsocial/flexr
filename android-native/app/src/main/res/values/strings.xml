@@ -33,6 +33,7 @@
     <string name="common_back">Zurück</string>
     <string name="common_cancel">Abbrechen</string>
     <string name="common_close">Schließen</string>
+    <string name="common_ok">OK</string>
     <string name="common_continue">Weiter</string>
     <string name="common_loading">Lädt …</string>
     <string name="common_delete">Löschen</string>
@@ -283,6 +284,7 @@
 
     <!-- ==== Melden ==== -->
     <string name="report_dialog_title">%1$s melden</string>
+    <string name="report_ack_title">Meldung eingegangen</string>
     <string name="report_dialog_body">Was ist vorgefallen? Deine Meldung wird von uns geprüft.</string>
     <string name="report_failed">Meldung fehlgeschlagen.</string>
     <string name="report_reason_label">Grund</string>
@@ -331,7 +333,8 @@
     <string name="account_radius_label">Suchumkreis</string>
     <string name="account_radius_value">%1$d km</string>
     <string name="account_section_settings">Einstellungen</string>
-    <string name="account_messages_switch">Nachrichten erhalten</string>
+    <string name="account_messages_switch">Neue Nachrichten</string>
+    <string name="account_messages_switch_hint">Benachrichtigung, wenn dir ein Match schreibt.</string>
     <string name="account_notifications_title">Benachrichtigungen</string>
     <string name="account_legal_title">Hilfe &amp; Rechtliches</string>
     <string name="account_privacy_title">Datenschutz &amp; Sicherheit</string>
@@ -475,7 +478,7 @@
     <string name="delete_sub_stripe">Dein FLEXR Premium endet damit zum Ende des bezahlten Zeitraums, danach wird nichts mehr abgebucht.</string>
     <string name="delete_sub_store">Dein FLEXR Premium läuft über Google Play bzw. den App Store. Die Löschung beendet es nicht – kündige es bitte dort, sonst wird weiter abgebucht.</string>
     <string name="delete_password_label">Zur Bestätigung dein Passwort</string>
-    <string name="delete_confirm">Endgültig löschen</string>
+    <string name="delete_confirm">Konto löschen</string>
     <string name="delete_password_missing">Bitte gib zur Bestätigung dein Passwort ein.</string>
     <string name="delete_done">Dein Konto wurde deaktiviert und wird in 30 Tagen endgültig gelöscht.</string>
 

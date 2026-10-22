@@ -620,11 +620,19 @@ fun AccountScreen(
                 ),
             verticalAlignment = Alignment.CenterVertically,
         ) {
+            // Bis 2.7.38 nur "Nachrichten erhalten" - las sich wie "darf man
+            // mir schreiben?". Der Schalter steuert die Push-Benachrichtigung
+            // bei neuen Chatnachrichten; Wortlaut wie iOS.
             Column(Modifier.weight(1f)) {
                 Text(
                     stringResource(R.string.account_messages_switch),
                     style = MaterialTheme.typography.bodyLarge,
                     color = colors.chalk,
+                )
+                Text(
+                    stringResource(R.string.account_messages_switch_hint),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = colors.chalkDim,
                 )
             }
             Switch(

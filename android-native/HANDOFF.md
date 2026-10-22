@@ -1,6 +1,6 @@
 # HANDOFF — native Android-App
 
-Stand: **21.10.2026**, Version 2.7.38 / versionCode 150. Der jüngste
+Stand: **22.10.2026**, Version 2.7.39 / versionCode 151. Der jüngste
 Abschnitt steht oben, ältere folgen darunter. Fassungen zwischen dem
 16.09. und dem 04.10. sowie 2.7.29 bis 2.7.34 sind nur im Kommentar am
 `versionCode` in `app/build.gradle.kts` und in der Haupt-`HANDOFF.md`
@@ -10,11 +10,51 @@ hier steht nur, was daraus *nicht* hervorgeht.
 
 ---
 
-## Registrierung behält Eingaben, Blockierliste frisch, 22.10.2026 (nach 2.7.38, noch ohne Versionssprung)
+## Durchgang mit Emulator: drei Fehler, neun Verbesserungen, 22.10.2026 (2.7.39)
 
-Gefunden beim Emulator-Durchgang (Einzelheiten und Vorschlagsliste in der
-Haupt-`HANDOFF.md`, Sitzung 22.10.2026 (2)). Die nächste Fassung ist
-2.7.39 / 151.
+**Version 2.7.39 / 151.** Gefunden beim Emulator-Durchgang, danach auf Wunsch
+alle Vorschläge umgesetzt (Übersicht für alle Plattformen in der
+Haupt-`HANDOFF.md`, Sitzung 22.10.2026 (2)).
+
+* **Offene Likes** (`ui/incoming/`): Zeile antippen → `IncomingProfile` mit
+  derselben `SwipeableCard` wie im Match-Profil (`draggable = false`) und
+  `RoundActionButton` X/Herz darunter (jetzt `internal` in `SwipeScreen.kt`).
+  `IncomingViewModel` schickt Like/Pass über `SwipeRepository`, nimmt die
+  Person aus der Liste, zeigt bei Match das `MatchOverlay`; „Nachricht
+  schreiben“ navigiert mit `popUpTo(INCOMING)` in den Chat. Melden/Blockieren
+  auf der Karte. Zurück schließt zuerst das Profil (`BackHandler`).
+* **Melden im Deck** überspringt die Karte (`SwipeViewModel.report`, wie
+  `block`); der Server lässt Gemeldete ohnehin aus jedem neuen Deck weg.
+* **Meldebestätigung** als `InfoDialog` (neu in `Dialogs.kt`) statt
+  stehender Snackbar: `showStickyMessage` in `FlexrApp` setzt nur noch
+  `meldungsBestaetigung`; alle drei Meldestellen (Deck, Chat, Match-Profil,
+  dazu offene Likes) laufen darüber.
+* **Mehrfachauswahl** bei der Registrierung: `PhotoGridEditor(onPhotosPicked =)`
+  nimmt ab zwei freien Feldern `PickMultipleVisualMedia(maxItems = frei)`;
+  `RegisterViewModel.onPhotosPicked` verarbeitet nacheinander in einer
+  Coroutine (Reihenfolge bleibt). Konto und Gate bleiben bei einem Foto.
+* `distanceLabel` (`SwipeCard.kt`, Test `EntfernungTest`): „< 1 km“ statt
+  „0 km“, auch in der Matchliste. Foto-Striche Weiß 55 % + `shadow(2.dp)`.
+  „Neue Nachrichten“ mit Untertitel (`account_messages_switch_hint`).
+  `delete_confirm` „Konto löschen“. 409 bei der Registrierung →
+  `errorField = EMAIL`.
+* **Deck räumt auf:** Wer unter „offene Likes“ zurückgeliked, abgelehnt,
+  gemeldet oder blockiert wird, steht womöglich noch im schon geladenen Deck
+  (ein zweiter Like zeigte erneut „Match!“, ein Pass überschriebe den Like).
+  `SwipeRepository.anderswoErledigt` (StateFlow), `SwipeViewModel` nimmt diese
+  Personen ab der aktuellen Karte heraus.
+* **Geprüft im Emulator** (`localDebug` gegen lokales Backend): offene Likes →
+  Hannah → Like → Match-Overlay → Chat → Zurück in die Matches (Hannah neu,
+  noch 1 offener Like); Sofia oben im Deck, über offene Likes geliked → Deck
+  zeigt Emi; Melden im Deck → Dialog „Meldung eingegangen“ mit OK, Karte
+  übersprungen; „< 1 KM“; „Neue Nachrichten“ mit Untertitel; Löschdialog
+  „Konto löschen“; Registrierung: drei Fotos in einem Picker-Durchgang
+  („Add (3)“), Reihenfolge wie gewählt; Formular übersteht Zurück und
+  Reiterwechsel. **Nicht im Emulator:** die 409-Meldung am E-Mail-Feld.
+* **AAB** `android-native/release-2.7.39/flexr-2.7.39-151.aab` (gitignored),
+  SHA-256 `4d985b60…f603`, 8.642.482 Bytes, Upload-Key `BC:64:AD…79:80`.
+  88 Unit-Tests grün, Lint 0 Fehler. Versionshinweise 2.7.39 DE/EN in
+  `android/store/store-texte.md`. Die nächste Fassung ist 2.7.40 / 152.
 
 * **Registrierung:** `REGISTER` ist ein eigenes Ziel über `LOGIN`. Zurück-
   Geste und Reiter „Einloggen“ (`popBackStack(LOGIN)`) nahmen es vom Stapel,

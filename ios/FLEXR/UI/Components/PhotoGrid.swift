@@ -29,8 +29,15 @@ struct PhotoGridEditor: View {
     /// nil schaltet das Sortieren ab — etwa im Onboarding, wo die Fotos noch
     /// gar keine Server-IDs haben.
     var onReorder: (([String]) -> Void)?
+    /// Gesetzt: Bei mindestens zwei freien Feldern lässt die Fotoauswahl
+    /// mehrere Bilder auf einmal zu, in der gewählten Reihenfolge
+    /// (Registrierung, seit 2.4.14 - vorher drei Durchgänge für die drei
+    /// Pflichtfotos). Das Konto lädt jedes Foto sofort hoch und bleibt bei
+    /// einem pro Durchgang.
+    var onPhotosPicked: (([Data]) -> Void)?
 
     @State private var selection: PhotosPickerItem?
+    @State private var multiSelection: [PhotosPickerItem] = []
     @State private var draggingID: String?
     @State private var targetID: String?
 
@@ -38,6 +45,8 @@ struct PhotoGridEditor: View {
     private var reorderable: Bool { onReorder != nil && slots.count > 1 }
 
     private let columns = Array(repeating: GridItem(.flexible(), spacing: 8), count: 3)
+
+    private var freeSlots: Int { maxPhotos - slots.count }
 
     var body: some View {
         LazyVGrid(columns: columns, spacing: 8) {
@@ -68,8 +77,10 @@ struct PhotoGridEditor: View {
                     } else {
                         filledSlot(slot, at: index)
                     }
+                } else if onPhotosPicked != nil && freeSlots >= 2 {
+                    EmptyPhotoSlot(auswahl: .mehrere($multiSelection, max: freeSlots))
                 } else {
-                    EmptyPhotoSlot(selection: $selection)
+                    EmptyPhotoSlot(auswahl: .einzeln($selection))
                 }
             }
         }
@@ -80,6 +91,20 @@ struct PhotoGridEditor: View {
                     onPhotoPicked(data)
                 }
                 selection = nil
+            }
+        }
+        .onChange(of: multiSelection) { _, items in
+            guard !items.isEmpty else { return }
+            let platz = freeSlots
+            Task {
+                var daten: [Data] = []
+                for item in items.prefix(platz) {
+                    if let data = try? await item.loadTransferable(type: Data.self) {
+                        daten.append(data)
+                    }
+                }
+                multiSelection = []
+                if !daten.isEmpty { onPhotosPicked?(daten) }
             }
         }
     }
@@ -255,33 +280,57 @@ private struct EmptyPhotoSlot: View {
     @Environment(LanguageStore.self) private var languageStore
     private var s: FlexrStrings { languageStore.strings }
 
-    @Binding var selection: PhotosPickerItem?
+    enum Auswahl {
+        case einzeln(Binding<PhotosPickerItem?>)
+        case mehrere(Binding<[PhotosPickerItem]>, max: Int)
+    }
+
+    let auswahl: Auswahl
 
     private var shape: RoundedRectangle {
         RoundedRectangle(cornerRadius: 11, style: .continuous)
     }
 
     var body: some View {
-        // Gleiche Groessenlogik wie in FilledPhotoSlot, damit belegte und leere
-        // Felder in derselben Zeile exakt gleich hoch sind.
-        PhotosPicker(selection: $selection, matching: .images, photoLibrary: .shared()) {
-            Color.clear
-                .aspectRatio(3.0 / 4.0, contentMode: .fit)
-                .overlay(shape.fill(Color.white.opacity(0.015)))
-                .overlay(
-                    shape.strokeBorder(
-                        FlexrColor.steel,
-                        style: StrokeStyle(lineWidth: 1.5, dash: [6, 4])
-                    )
-                )
-                .overlay(
-                    Image(systemName: FlexrIcon.add)
-                        .font(.system(size: 24, weight: .medium))
-                        .foregroundStyle(FlexrColor.chalkDim)
-                )
-                .contentShape(shape)
+        Group {
+            switch auswahl {
+            case .einzeln(let selection):
+                PhotosPicker(selection: selection, matching: .images, photoLibrary: .shared()) {
+                    feld
+                }
+            case .mehrere(let selection, let max):
+                PhotosPicker(
+                    selection: selection,
+                    maxSelectionCount: max,
+                    selectionBehavior: .ordered,
+                    matching: .images,
+                    photoLibrary: .shared()
+                ) {
+                    feld
+                }
+            }
         }
         .accessibilityLabel(s(.photoAdd))
+    }
+
+    /// Gleiche Groessenlogik wie in FilledPhotoSlot, damit belegte und leere
+    /// Felder in derselben Zeile exakt gleich hoch sind.
+    private var feld: some View {
+        Color.clear
+            .aspectRatio(3.0 / 4.0, contentMode: .fit)
+            .overlay(shape.fill(Color.white.opacity(0.015)))
+            .overlay(
+                shape.strokeBorder(
+                    FlexrColor.steel,
+                    style: StrokeStyle(lineWidth: 1.5, dash: [6, 4])
+                )
+            )
+            .overlay(
+                Image(systemName: FlexrIcon.add)
+                    .font(.system(size: 24, weight: .medium))
+                    .foregroundStyle(FlexrColor.chalkDim)
+            )
+            .contentShape(shape)
     }
 }
 

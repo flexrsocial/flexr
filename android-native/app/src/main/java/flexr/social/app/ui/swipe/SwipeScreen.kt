@@ -267,9 +267,9 @@ fun SwipeScreen(
     }
 }
 
-/** Runder Aktionsknopf unter dem Deck (`.round-btn`). */
+/** Runder Aktionsknopf unter dem Deck (`.round-btn`), auch unter „Wer dich geliked hat". */
 @Composable
-private fun RoundActionButton(
+internal fun RoundActionButton(
     icon: androidx.compose.ui.graphics.vector.ImageVector,
     description: String,
     tint: Color,

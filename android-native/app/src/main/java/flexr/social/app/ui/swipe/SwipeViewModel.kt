@@ -80,7 +80,27 @@ class SwipeViewModel @Inject constructor(
     init {
         observeMembership()
         observeMyProfile()
+        observeAnderswoErledigt()
         loadDeck()
+    }
+
+    /**
+     * Personen herausnehmen, die inzwischen unter „Wer dich geliked hat"
+     * erledigt sind ([SwipeRepository.anderswoErledigt]). Nur ab der aktuellen
+     * Karte - davor ist alles gewischt, der Index bleibt gültig.
+     */
+    private fun observeAnderswoErledigt() {
+        viewModelScope.launch {
+            swipeRepository.anderswoErledigt.collect { erledigt ->
+                if (erledigt.isEmpty()) return@collect
+                _uiState.update { state ->
+                    val deck = state.deck.filterIndexed { index, profile ->
+                        index < state.currentIndex || profile.id !in erledigt
+                    }
+                    if (deck.size == state.deck.size) state else state.copy(deck = deck)
+                }
+            }
+        }
     }
 
     /**
@@ -276,7 +296,16 @@ class SwipeViewModel @Inject constructor(
         viewModelScope.launch {
             runCatching { safetyRepository.report(userId, reason) }
                 // Empfangsbestätigung mit Aktenzeichen (Art. 16 Abs. 4 DSA)
-                .onSuccess { _events.send(SwipeEvent.Message(it.message, sticky = true)) }
+                .onSuccess {
+                    // Gemeldete Person überspringen, ohne einen Swipe zu senden -
+                    // der Server lässt sie seit 2.7.39 auch aus jedem neuen Deck
+                    // weg. Vorher blieb die Karte einfach liegen.
+                    _uiState.update { state ->
+                        if (state.current?.id == userId) state.copy(currentIndex = state.currentIndex + 1)
+                        else state
+                    }
+                    _events.send(SwipeEvent.Message(it.message, sticky = true))
+                }
                 .onFailure {
                     _events.send(SwipeEvent.Message(it.message ?: strings.get(R.string.report_failed)))
                 }

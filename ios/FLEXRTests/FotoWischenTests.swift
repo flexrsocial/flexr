@@ -42,4 +42,12 @@ final class FotoWischenTests: XCTestCase {
     func testStandardschwelleWieAndroid() {
         XCTAssertEqual(FotoWischen.threshold, 40)
     }
+
+    /// Bis 2.4.13 stand beim selben Gym „0 km" auf der Karte (wie Android
+    /// `EntfernungTest`).
+    func testNullKilometerHeisstUnterEinemKilometer() {
+        XCTAssertEqual(Entfernung.text(0), "< 1 km")
+        XCTAssertEqual(Entfernung.text(1), "1 km")
+        XCTAssertEqual(Entfernung.text(142), "142 km")
+    }
 }

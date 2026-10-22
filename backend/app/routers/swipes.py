@@ -10,7 +10,7 @@ from .. import consents, notifications, premium
 from ..database import get_db
 from ..geo import haversine_km
 from ..gym_geo import coords_for_gym, coords_for_gyms, gym_values_within
-from ..models import MIN_PHOTOS, Block, ConsentType, Match, Photo, PhotoStatus, Swipe, User
+from ..models import MIN_PHOTOS, Block, ConsentType, Match, Photo, PhotoStatus, Report, Swipe, User
 from ..rate_limit import limiter
 from ..schemas import IncomingLikesOut, ProfileOut, RewindResult, SwipeRequest, SwipeResult
 from ..security import require_active_membership
@@ -77,6 +77,21 @@ def genug_fotos_condition():
     return freigegeben >= MIN_PHOTOS
 
 
+def gemeldete_ids(db: Session, current_user: User) -> set[str]:
+    """Wen dieser Nutzer gemeldet hat.
+
+    Wer jemanden meldet, will ihn nicht als naechste Karte wiedersehen - egal,
+    wie die Pruefung ausgeht. Bis 22.10.2026 blieb die Karte nach "Melden" in
+    allen drei Clients einfach liegen, und nach dem naechsten Laden stand die
+    Person wieder im Deck. Blockieren bleibt der Weg, sich auch gegenseitig
+    unsichtbar zu machen; das hier wirkt nur fuer den Melder.
+    """
+    return {
+        row.reported_id
+        for row in db.query(Report.reported_id).filter(Report.reporter_id == current_user.id)
+    }
+
+
 @router.get("/deck", response_model=list[ProfileOut])
 def get_deck(
     current_user: User = Depends(require_active_membership),
@@ -108,7 +123,9 @@ def deck_profiles(db: Session, current_user: User, limit: int = DECK_SIZE) -> li
         row.blocker_id
         for row in db.query(Block.blocker_id).filter(Block.blocked_id == current_user.id)
     }
-    excluded_ids = set(already_swiped_ids) | blocked_ids | blocked_by_ids
+    excluded_ids = (
+        set(already_swiped_ids) | blocked_ids | blocked_by_ids | gemeldete_ids(db, current_user)
+    )
 
     # Umkreissuche rund um das eingetragene Gym - nicht um den Wohnort und
     # nicht um die aktuelle Geräteposition. Wer kein Gym mit auflösbarer
@@ -472,8 +489,10 @@ def incoming_likes(
         .order_by(Swipe.created_at.desc())
         .all()
     )
+    gemeldet = gemeldete_ids(db, current_user)
     offen = [
-        u for u in likers if u.id not in eigene_swipes and u.id not in blockiert
+        u for u in likers
+        if u.id not in eigene_swipes and u.id not in blockiert and u.id not in gemeldet
     ]
 
     if premium.feature_locked(current_user):

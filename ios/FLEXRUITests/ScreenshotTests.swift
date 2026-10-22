@@ -180,35 +180,6 @@ final class ScreenshotTests: XCTestCase {
         tippe(knopf: "Schließen")
         warte(1)
 
-        if tippe(knopf: "Melden") {
-            warte(1)
-            foto("01-deck-melden")
-            // Natives mehrzeiliges Feld: je nach iOS als Text- oder Eingabefeld.
-            let grund = [
-                app.textViews.firstMatch,
-                app.textFields.matching(NSPredicate(format: "placeholderValue == %@", "Kurze Beschreibung")).firstMatch,
-            ].first { $0.waitForExistence(timeout: 2) } ?? app.textViews.firstMatch
-            if grund.exists {
-                grund.tap()
-                // Das Blatt wächst mit der Tastatur - erst danach tippen.
-                warte(2)
-                grund.typeText("Testmeldung aus dem UI-Test")
-                warte(1)
-                foto("01-deck-melden-grund")
-                // Der Knopf im Blatt ist der untere der beiden "Melden".
-                if let senden = untersterKnopf("Melden") {
-                    senden.tap()
-                    warte(3)
-                    foto("01-deck-gemeldet")
-                    tippe(knopf: "Schließen", warten: 2)
-                } else {
-                    tippe(knopf: "Abbrechen")
-                }
-            } else {
-                tippe(knopf: "Abbrechen")
-            }
-            warte(1)
-        }
         if tippe(knopf: "Blockieren") {
             warte(1)
             foto("01-deck-blockieren")
@@ -232,6 +203,41 @@ final class ScreenshotTests: XCTestCase {
         }
         if !matchGesehen {
             XCTContext.runActivity(named: "Kein Match-Overlay nach den Likes") { _ in }
+        }
+        // Melden nach dem Match: Seit 2.4.14 ueberspringt das Deck die
+        // gemeldete Karte (und der Server laesst sie aus jedem neuen Deck weg).
+        // Gemeldet wird deshalb Julia, nicht Theresa - deren Like braucht das
+        // Match-Overlay oben. Die Bestaetigung ist ein Hinweis mit "OK".
+        if tippe(knopf: "Melden") {
+            warte(1)
+            foto("01-deck-melden")
+            // Natives mehrzeiliges Feld: je nach iOS als Text- oder Eingabefeld.
+            let grund = [
+                app.textViews.firstMatch,
+                app.textFields.matching(NSPredicate(format: "placeholderValue == %@", "Kurze Beschreibung")).firstMatch,
+            ].first { $0.waitForExistence(timeout: 2) } ?? app.textViews.firstMatch
+            if grund.exists {
+                grund.tap()
+                // Das Blatt wächst mit der Tastatur - erst danach tippen.
+                warte(2)
+                grund.typeText("Testmeldung aus dem UI-Test")
+                warte(1)
+                foto("01-deck-melden-grund")
+                // Der Knopf im Blatt ist der untere der beiden "Melden".
+                if let senden = untersterKnopf("Melden") {
+                    senden.tap()
+                    warte(3)
+                    foto("01-deck-gemeldet")
+                    tippe(knopf: "OK", warten: 3)
+                    warte(1)
+                    foto("01-deck-nach-meldung")
+                } else {
+                    tippe(knopf: "Abbrechen")
+                }
+            } else {
+                tippe(knopf: "Abbrechen")
+            }
+            warte(1)
         }
         // Die nächste Karte wirklich blockieren - im Konto wird sie wieder
         // freigegeben.

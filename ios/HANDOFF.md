@@ -1,15 +1,37 @@
 # HANDOFF — native iOS-App
 
-Stand: **21.10.2026**, Version 2.4.13. Für Aufbau, Build-Befehle und die
+Stand: **22.10.2026**, Version 2.4.14. Für Aufbau, Build-Befehle und die
 Migrationstabelle siehe [README.md](README.md) — hier steht nur, was daraus
 *nicht* hervorgeht.
 
 ---
 
-## Registrierung behält Eingaben beim Reiterwechsel, 22.10.2026 (nach 2.4.13) — **nicht compilerverifiziert**
+## Registrierung behält Eingaben, offene Likes mit X/Herz und mehr, 22.10.2026 (2.4.14) — **nicht compilerverifiziert**
 
-Gleicher Fehler wie auf Android (oberster Abschnitt in
-`android-native/HANDOFF.md`), dort im Emulator gefunden; hier aus dem Code
+Version 2.4.13 → **2.4.14**. Gleiche Änderungen wie Android 2.7.39 (oberster
+Abschnitt in `android-native/HANDOFF.md`, Übersicht in der Haupt-`HANDOFF.md`):
+
+* **Offene Likes** (`IncomingView`): Zeile antippen → `SwipeableCard`
+  (`isDraggable: false`) mit `RoundActionButton` X/Herz darunter, Melden/
+  Blockieren auf der Karte, `MatchOverlay` als `.overlay` bei Match;
+  `RootView` gibt `onOpenChat` mit (ersetzt die Liste durch den Chat).
+* **Melden im Deck** überspringt die Karte (`SwipeModel.report`).
+* **Meldebestätigung** als `.alert` in `RootView` (`AppModel.meldungsBestaetigung`,
+  `showSticky` setzt nur noch das); `toastSticky`/`isSticky` sind weg.
+  Neue Schlüssel `.commonOk`, `.reportAckTitle`.
+* **Mehrfachauswahl** bei der Registrierung: `PhotoGridEditor(onPhotosPicked:)`,
+  `EmptyPhotoSlot(auswahl: .mehrere(…, max:))` mit `PhotosPicker(maxSelectionCount:
+  selectionBehavior: .ordered)`; `RegisterView` lädt nacheinander.
+* `Entfernung.text` („< 1 km“, Test in `FotoWischenTests`), Foto-Striche Weiß
+  55 % + Schatten, `.deleteConfirm` „Konto löschen“ und Rücknahme-Satz in
+  `.deleteBody`, 409 bei der Registrierung → `errorField = .email`.
+* **UI-Test:** Melden jetzt nach dem Match (Julia statt Theresa - deren Like
+  braucht das Match-Overlay, und gemeldete Karten verschwinden jetzt), Dialog
+  mit „OK“ bestätigt, neues Bild `01-deck-nach-meldung`.
+
+### Registrierung behält Eingaben beim Reiterwechsel
+
+Gleicher Fehler wie auf Android, dort im Emulator gefunden; hier aus dem Code
 abgeleitet.
 
 * **Fehler:** `LoginView` zeigt die `RegisterView` als `fullScreenCover`.

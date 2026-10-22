@@ -115,7 +115,7 @@ struct MatchListItem: View {
             return prefix + message.content
         }
         var parts = [match.profile.city]
-        if let distance = match.profile.distanceKm { parts.append("\(distance) km") }
+        if let distance = match.profile.distanceKm { parts.append(Entfernung.text(distance)) }
         if match.isOnline { parts.append(s(.matchesOnlineNow)) }
         return parts.joined(separator: " · ")
     }

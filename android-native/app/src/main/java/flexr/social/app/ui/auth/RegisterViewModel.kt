@@ -316,7 +316,15 @@ class RegisterViewModel @Inject constructor(
 
     // ---------- Fotos ----------
 
-    fun onPhotoPicked(uri: Uri) {
+    fun onPhotoPicked(uri: Uri) = onPhotosPicked(listOf(uri))
+
+    /**
+     * Seit 2.7.39 mehrere auf einmal (Mehrfachauswahl im Photo Picker) - für
+     * die drei Pflichtfotos waren es vorher drei Durchgänge. Nacheinander in
+     * einer Coroutine, damit die Reihenfolge der Auswahl erhalten bleibt.
+     */
+    fun onPhotosPicked(uris: List<Uri>) {
+        if (uris.isEmpty()) return
         if (_uiState.value.photos.size >= ImageProcessor.MAX_PHOTOS) {
             _uiState.update {
                 it.copy(photoError = strings.get(R.string.register_photo_max, ImageProcessor.MAX_PHOTOS))
@@ -325,32 +333,35 @@ class RegisterViewModel @Inject constructor(
         }
         _uiState.update { it.copy(isPreparingPhoto = true, photoError = null) }
         viewModelScope.launch {
-            runCatching { imageProcessor.prepare(uri) }
-                .onSuccess { prepared ->
-                    _uiState.update {
-                        it.copy(
-                            isPreparingPhoto = false,
-                            photos = it.photos + PendingPhoto(uri.toString(), uri, prepared),
-                            error = null,
-                        )
+            for (uri in uris) {
+                if (_uiState.value.photos.size >= ImageProcessor.MAX_PHOTOS) break
+                if (_uiState.value.photos.any { it.id == uri.toString() }) continue
+                runCatching { imageProcessor.prepare(uri) }
+                    .onSuccess { prepared ->
+                        _uiState.update {
+                            it.copy(
+                                photos = it.photos + PendingPhoto(uri.toString(), uri, prepared),
+                                error = null,
+                            )
+                        }
                     }
-                }
-                .onFailure { throwable ->
-                    _uiState.update {
-                        it.copy(
-                            isPreparingPhoto = false,
-                            photoError = when (throwable) {
-                                is PhotoTooSmallException -> strings.get(
-                                    R.string.photo_too_small,
-                                    throwable.width,
-                                    throwable.height,
-                                    ImageProcessor.MIN_EDGE_PX,
-                                )
-                                else -> strings.get(R.string.register_photo_load_failed)
-                            },
-                        )
+                    .onFailure { throwable ->
+                        _uiState.update {
+                            it.copy(
+                                photoError = when (throwable) {
+                                    is PhotoTooSmallException -> strings.get(
+                                        R.string.photo_too_small,
+                                        throwable.width,
+                                        throwable.height,
+                                        ImageProcessor.MIN_EDGE_PX,
+                                    )
+                                    else -> strings.get(R.string.register_photo_load_failed)
+                                },
+                            )
+                        }
                     }
-                }
+            }
+            _uiState.update { it.copy(isPreparingPhoto = false) }
         }
     }
 
@@ -413,11 +424,17 @@ class RegisterViewModel @Inject constructor(
                         it.copy(isSubmitting = false, success = true, successNotice = notice)
                     }
                 }.onFailure { throwable ->
+                    val fehler = throwable as? FlexrApiException
                     _uiState.update {
                         it.copy(
                             isSubmitting = false,
-                            error = (throwable as? FlexrApiException)?.message
-                                ?: strings.get(R.string.register_failed),
+                            error = fehler?.message ?: strings.get(R.string.register_failed),
+                            // 409 "Mit dieser E-Mail-Adresse gibt es schon ein
+                            // Konto": an das E-Mail-Feld, dorthin scrollen. Bis
+                            // 2.7.38 stand das unten am Knopf, das Feld aber
+                            // weit oben im Formular.
+                            errorField = if (fehler?.statusCode == 409) RegisterField.EMAIL else null,
+                            errorSeq = it.errorSeq + 1,
                         )
                     }
                 }

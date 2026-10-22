@@ -115,8 +115,8 @@ _TEXTE: dict[str, str] = {
         "Your consent is active again. You appear in the deck again from now on and profiles are suggested to you again.",
     "Deine Einwilligung ist wieder aktiv. Bereits gelöschte Aufnahmen sind damit nicht wiederhergestellt - für eine neue Prüfung reichst du sie im Verifizierungsschritt erneut ein.":
         "Your consent is active again. Images that were already deleted are not restored - for a new review, submit them again in the verification step.",
-    "Deine Meldung ist eingegangen (Aktenzeichen {reference}). Wir prüfen sie innerhalb von 72 Stunden — bei Gefahr für eine Person sofort. Notiere dir das Aktenzeichen, falls du dich später darauf berufen willst.":
-        "Your report has been received (reference {reference}). We review it within 72 hours — immediately if a person is in danger. Note down the reference in case you want to refer to it later.",
+    "Deine Meldung ist eingegangen (Aktenzeichen {reference}). Wir prüfen sie innerhalb von 72 Stunden — bei Gefahr für eine Person sofort. Stand und Ergebnis findest du jederzeit unter „Meine Meldungen“ im Konto.":
+        "Your report has been received (reference {reference}). We review it within 72 hours — immediately if a person is in danger. You can find its status and outcome at any time under “My reports” in your account.",
     # ---- Swipes / Matches / Chat
     "Du kannst nicht mit dir selbst swipen.": "You cannot swipe on yourself.",
     "Nutzer nicht gefunden.": "User not found.",

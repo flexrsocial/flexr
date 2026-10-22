@@ -33,52 +33,62 @@ erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 ## Wo das Projekt gerade steht
 
 > **Sitzung 22.10.2026 (2): Durchgang Android (Emulator), Web und iOS
-> (Codemagic-Bilder) - drei Fehler behoben, Vorschläge gesammelt.**
+> (Codemagic-Bilder) - drei Fehler behoben, danach alle neun
+> Verbesserungsvorschläge umgesetzt. Android 2.7.39 / 151, iOS 2.4.14.**
 >
-> - **Registrierung verlor alle Eingaben (Android + iOS):** Android: Zurück-
->   Geste oder Reiter „Einloggen“ nahm `REGISTER` vom Navigationsstapel, das
->   ViewModel samt E-Mail, Name und gewählten Fotos ging mit. Jetzt gehört
+> - **Fehler 1 - Registrierung verlor alle Eingaben (Android + iOS):**
+>   Android: Zurück-Geste oder Reiter „Einloggen“ nahm `REGISTER` vom Stapel,
+>   das ViewModel samt E-Mail, Name und Fotos ging mit; jetzt gehört
 >   `RegisterViewModel` dem `LOGIN`-Eintrag (`FlexrApp.kt`). iOS: Der Reiter
->   „Einloggen“ schloss das `fullScreenCover`, das `@State`-Modell der
->   `RegisterView` verschwand; jetzt hält die `LoginView` das Modell
->   (`@Binding`). Web nicht betroffen (beide Formulare stehen im DOM).
-> - **Android: „Blockierte Personen“ veraltet.** Geladen nur beim ersten
->   Öffnen des Kontos; wer danach im Deck oder Chat blockierte, sah „Du hast
->   niemanden blockiert“ bis zum App-Neustart. Lädt jetzt beim Aufklappen neu
->   wie „Meine Meldungen“. iOS (`.task` bei jedem Tab-Besuch) und Web (beim
->   Öffnen der Seite) waren nicht betroffen.
-> - **Web: Fotos im Match-Profil per Wisch** wie Android 2.7.37 / iOS 2.4.13
->   (ab 40 px, eher waagrecht, an den Enden bleibt es stehen; im Deck
->   unverändert). Shell v57.
-> - **Geprüft:** Emulator (dieser Rechner `B360`, 15 GB; `localDebug` mit den
->   Fixes gegen lokales Backend): Formular mit Foto übersteht Zurück und
->   Reiterwechsel; im Deck blockiert → sofort in der Liste, Aufheben geht.
->   86 Unit-Tests grün. Web: synthetische Touch-Wische 1→2→3, am Ende 3,
->   rechts 2, kurz/senkrecht nichts, kein Vollbild; Tippzonen und Vollbild
->   unverändert, keine Konsolenfehler; `test_public_frontend.py` 11/11.
->   **iOS nicht kompiliert** (Linux): `ScreenshotTests` prüft jetzt nach
->   Registrieren → Einloggen → Registrieren, ob die Bio noch steht - nach dem
->   Push `codemagic.py start ios-tests` und `start ios-screenshots`.
-> - **Sonst ohne Befund** durchgespielt (Android): Login per Enter, Deck,
->   Vollbild, Like → Match, Chat mit Vorschlag, Empfang und ✓✓ nach 3 s,
->   Chatmenü, Match-Profil, offene Likes, Konto (Bio speichern, Sprache EN,
->   Benachrichtigungen, FAQ, Einwilligungen), Melden mit Aktenzeichen,
->   Blockieren, Passwort-Reset-Mail, Registrierung bis zum Gate. Web: Login,
->   Deck, Matches, Chat, Datenschutz-Seite. iOS: alle 67 Bilder vom 21.10.
-> - **Vorschläge, nicht umgesetzt:** (1) „Wer dich geliked hat“: Zeilen nicht
->   antippbar, Untertitel verspricht „Ansehen und zurückliken“ - Profil mit
->   Like/Pass öffnen oder Text ändern. (2) Gemeldete Profile bleiben im Deck
->   (alle drei Plattformen) - überspringen oder „auch blockieren?“ anbieten.
->   (3) Der stehende Aktenzeichen-Hinweis verdeckt X und Herz. (4) Fotoauswahl
->   bei der Registrierung nur einzeln (3× Picker für die Pflichtfotos) -
->   Mehrfachauswahl. (5) Graue Foto-Striche auf hellen Fotos kaum sichtbar -
->   leichter Verlauf oben. (6) „0 km“ beim selben Gym → „im selben Gym“.
->   (7) Android „Nachrichten erhalten“ mehrdeutig - iOS sagt „Neue Nachrichten
->   · Benachrichtigung, wenn dir ein Match schreibt“. (8) iOS-Löschdialog:
->   Knopf „Endgültig löschen“, Text nennt 30 Tage Frist. (9) Android: 409
->   „E-Mail gibt es schon“ steht unten am Knopf statt am E-Mail-Feld.
-> - **Offen:** Push + VPS-Pull (nur Frontend, kein Neustart); Android
->   2.7.39 / 151 bauen; iOS 2.4.14 nach grünem Codemagic.
+>   schloss das `fullScreenCover` samt `@State`-Modell; jetzt hält die
+>   `LoginView` das Modell (`@Binding`). Web nicht betroffen.
+> - **Fehler 2 - Android „Blockierte Personen“ veraltet** bis zum App-Neustart;
+>   lädt jetzt beim Aufklappen neu wie „Meine Meldungen“.
+> - **Fehler 3 - Web ohne Foto-Wischen im Match-Profil** (Android/iOS hatten
+>   es); jetzt wie dort (40 px, eher waagrecht, Enden bleiben stehen).
+> - **Vorschläge, umgesetzt (alle drei Plattformen, wo zutreffend):**
+>   1. „Wer dich geliked hat“: Zeile antippen → Profilkarte (Fotos wischen,
+>      Melden, Blockieren) mit X und Herz darunter; Like = Match-Overlay,
+>      „Nachricht schreiben“ ersetzt die Liste durch den Chat.
+>   2. Gemeldete Profile: Deck überspringt die Karte sofort; **Backend**
+>      (`swipes.gemeldete_ids`) lässt sie aus jedem neuen Deck des Melders und
+>      aus seinen offenen Likes weg (nur für den Melder, nicht gegenseitig wie
+>      Blockieren). Tests in `test_safety.py`.
+>   3. Meldebestätigung mit Aktenzeichen als Dialog mit „OK“ statt stehender
+>      Meldung über X/Herz; Text verweist auf „Meine Meldungen“ statt
+>      „Notiere dir das Aktenzeichen“ (Server-Text DE/EN in `safety.py` /
+>      `api_i18n.py`, Web `report.ack`).
+>   4. Registrierung: Mehrfachauswahl im Fotopicker (Android
+>      `PickMultipleVisualMedia`, iOS `PhotosPicker` mit `maxSelectionCount`,
+>      Web `multiple`), Reihenfolge bleibt. Im Konto bewusst weiter einzeln
+>      (dort wird jedes Foto sofort hochgeladen).
+>   5. Foto-Striche: übrige Striche Weiß 55 % statt 28 % plus Schatten.
+>   6. Entfernung „0 km“ → „< 1 km“ (Gym-zu-Gym, der Server rundet; „im selben
+>      Gym“ wäre bei zwei Gyms unter 500 m falsch).
+>   7. Android „Nachrichten erhalten“ → „Neue Nachrichten · Benachrichtigung,
+>      wenn dir ein Match schreibt“ (Wortlaut wie iOS).
+>   8. Konto löschen: Knopf „Konto löschen“ statt „Endgültig löschen“ (30 Tage
+>      Rücknahme); iOS-Text nennt die Rücknahme jetzt wie Android/Web.
+>   9. 409 „E-Mail gibt es schon“ steht am E-Mail-Feld und scrollt hin
+>      (Android, iOS; Web konnte das schon).
+> - **iOS-UI-Test** (`ScreenshotTests`): prüft nach Registrieren → Einloggen
+>   → Registrieren, ob die Bio noch steht; meldet jetzt nach dem Match (Julia
+>   statt Theresa, deren Like das Match-Overlay braucht) und bestätigt mit
+>   „OK“. iOS auf diesem Rechner nicht kompiliert - Codemagic.
+> - **Deck räumt auf:** Wer unter „offene Likes“ erledigt wird, fliegt auch aus
+>   dem schon geladenen Deck (sonst zweites „Match!“ bzw. Pass überschreibt den
+>   Like) - Android per StateFlow im `SwipeRepository`, iOS beim nächsten
+>   Erscheinen des Decks (`SwipeModel.bereinigeDeck`), Web sofort.
+> - **Geprüft:** Backend 755 Tests grün (neu: 2 in `test_safety.py`),
+>   `test_public_frontend.py` 11/11. Android im Emulator (Einzelheiten im
+>   obersten Abschnitt von `android-native/HANDOFF.md`), 88 Unit-Tests, Lint 0
+>   Fehler, AAB `release-2.7.39/flexr-2.7.39-151.aab` (SHA-256 `4d985b60…f603`,
+>   Upload-Key). Web im Browser: offene Likes → Profil → Like → Match-Overlay;
+>   Melden → Dialog nur mit „OK“, Karte übersprungen, Gemeldete serverseitig
+>   aus dem Deck; „< 1 KM“; Pass über offene Likes nimmt die Karte aus dem
+>   Deck. iOS nicht kompiliert (Linux) - Codemagic.
+> - Web: `i18n-app.js` ?v=45, Shell v57. Versionshinweise 2.7.39 DE/EN in
+>   `android/store/store-texte.md`.
 
 > **Sitzung 22.10.2026: Mail-Knöpfe öffnen die Android-App trotz Brevo
 > (nur Frontend).**

@@ -6,6 +6,10 @@ import flexr.social.app.data.remote.dto.SwipeRequestDto
 import flexr.social.app.domain.model.IncomingLikes
 import flexr.social.app.domain.model.Profile
 import flexr.social.app.domain.model.SwipeOutcome
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -14,6 +18,19 @@ import javax.inject.Singleton
 class SwipeRepository @Inject constructor(
     private val api: FlexrApi,
 ) {
+
+    private val _anderswoErledigt = MutableStateFlow<Set<String>>(emptySet())
+
+    /**
+     * Wer außerhalb des Decks erledigt wurde - unter „Wer dich geliked hat"
+     * zurückgeliked, abgelehnt, gemeldet oder blockiert. Das Deck war da
+     * womöglich schon geladen und nimmt sie heraus (SwipeViewModel): Ein
+     * zweiter Like zeigte sonst noch einmal „Match!", ein Pass überschriebe
+     * den Like.
+     */
+    val anderswoErledigt: StateFlow<Set<String>> = _anderswoErledigt.asStateFlow()
+
+    fun alsErledigtMerken(userId: String) = _anderswoErledigt.update { it + userId }
 
     /**
      * Kandidaten im gewählten Umkreis, bereits serverseitig nach Entfernung

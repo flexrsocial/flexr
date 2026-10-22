@@ -66,8 +66,8 @@ def _report_ack(report: Report, lang: str = "de") -> ReportAck:
         message=api_i18n.translate(
             f"Deine Meldung ist eingegangen (Aktenzeichen {report.reference}). "
             "Wir prüfen sie innerhalb von 72 Stunden — bei Gefahr für eine Person "
-            "sofort. Notiere dir das Aktenzeichen, falls du dich später darauf "
-            "berufen willst.",
+            "sofort. Stand und Ergebnis findest du jederzeit unter „Meine "
+            "Meldungen“ im Konto.",
             lang,
         ),
     )

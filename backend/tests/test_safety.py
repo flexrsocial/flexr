@@ -52,6 +52,43 @@ def test_block_removes_user_from_deck(client):
     assert not any(p["id"] == user_a["id"] for p in deck_of_b)
 
 
+def test_report_removes_user_from_reporters_deck(client):
+    """Bis 22.10.2026 lag die gemeldete Person nach dem naechsten Laden wieder
+    im Deck. Jetzt verschwindet sie - nur fuer den Melder, nicht umgekehrt
+    (das ist Blockieren)."""
+    (headers_a, user_a), (headers_b, user_b) = make_pair(client)
+    resp = client.post(
+        "/api/reports",
+        headers=headers_a,
+        json={"reported_user_id": user_b["id"], "reason": "Fake-Profil"},
+    )
+    assert resp.status_code == 201
+
+    deck_a = client.get("/api/swipes/deck", headers=headers_a).json()
+    assert not any(p["id"] == user_b["id"] for p in deck_a)
+    deck_b = client.get("/api/swipes/deck", headers=headers_b).json()
+    assert any(p["id"] == user_a["id"] for p in deck_b)
+
+
+def test_report_removes_like_from_incoming(client):
+    (headers_a, user_a), (headers_b, user_b) = make_pair(client)
+    like = client.post(
+        "/api/swipes", headers=headers_b, json={"to_user_id": user_a["id"], "action": "like"}
+    )
+    assert like.status_code == 200
+    vorher = client.get("/api/swipes/incoming", headers=headers_a).json()
+    assert vorher["count"] == 1
+
+    client.post(
+        "/api/reports",
+        headers=headers_a,
+        json={"reported_user_id": user_b["id"], "reason": "Belaestigung"},
+    )
+    nachher = client.get("/api/swipes/incoming", headers=headers_a).json()
+    assert nachher["count"] == 0
+    assert nachher["profiles"] == []
+
+
 def test_unblock_restores_visibility(client):
     (headers_a, user_a), (headers_b, user_b) = make_pair(client)
     client.post("/api/blocks", headers=headers_a, json={"user_id": user_b["id"]})

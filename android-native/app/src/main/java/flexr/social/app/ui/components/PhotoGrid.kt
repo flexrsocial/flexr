@@ -94,10 +94,21 @@ fun PhotoGridEditor(
      * gar keine Server-IDs haben.
      */
     onReorder: ((List<String>) -> Unit)? = null,
+    /**
+     * Gesetzt: Bei mindestens zwei freien Feldern lässt der Picker mehrere
+     * Fotos auf einmal wählen (Registrierung, seit 2.7.39). Das Konto lädt
+     * jedes Foto sofort hoch und bleibt deshalb bei einem pro Durchgang.
+     */
+    onPhotosPicked: ((List<android.net.Uri>) -> Unit)? = null,
 ) {
     val picker = rememberLauncherForActivityResult(
         ActivityResultContracts.PickVisualMedia(),
     ) { uri -> uri?.let(onPhotoPicked) }
+    val freieFelder = maxPhotos - slots.size
+    // PickMultipleVisualMedia verlangt maxItems > 1.
+    val mehrfachPicker = rememberLauncherForActivityResult(
+        ActivityResultContracts.PickMultipleVisualMedia(maxItems = freieFelder.coerceAtLeast(2)),
+    ) { uris -> if (uris.isNotEmpty()) onPhotosPicked?.invoke(uris.take(freieFelder)) }
 
     // Sortieren per langem Druck: ein kurzer Tipper bleibt fuer "Entfernen"
     // und die Bildauswahl reserviert. Reihenfolge lohnt erst ab zwei Fotos.
@@ -187,11 +198,14 @@ fun PhotoGridEditor(
                             } else {
                                 EmptyPhotoSlot(
                                     onClick = {
-                                        picker.launch(
-                                            PickVisualMediaRequest(
-                                                ActivityResultContracts.PickVisualMedia.ImageOnly,
-                                            ),
+                                        val anfrage = PickVisualMediaRequest(
+                                            ActivityResultContracts.PickVisualMedia.ImageOnly,
                                         )
+                                        if (onPhotosPicked != null && freieFelder >= 2) {
+                                            mehrfachPicker.launch(anfrage)
+                                        } else {
+                                            picker.launch(anfrage)
+                                        }
                                     },
                                 )
                             }

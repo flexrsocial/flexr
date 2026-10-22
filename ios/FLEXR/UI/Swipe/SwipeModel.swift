@@ -95,6 +95,19 @@ final class SwipeModel {
         isLoading = false
     }
 
+    /// Personen herausnehmen, die inzwischen unter „Wer dich geliked hat"
+    /// erledigt sind (`SwipeRepository.anderswoErledigt`). Nur ab der
+    /// aktuellen Karte - davor ist alles gewischt, der Index bleibt gültig.
+    func bereinigeDeck() {
+        let erledigt = swipes.anderswoErledigt
+        guard !erledigt.isEmpty else { return }
+        let vorher = current?.id
+        deck = deck.enumerated()
+            .filter { $0.offset < currentIndex || !erledigt.contains($0.element.id) }
+            .map(\.element)
+        if current?.id != vorher { photoIndex = 0 }
+    }
+
     func like() { swipe(isLike: true) }
 
     func pass() { swipe(isLike: false) }
@@ -185,6 +198,10 @@ final class SwipeModel {
             do {
                 // Empfangsbestätigung mit Aktenzeichen (Art. 16 Abs. 4 DSA)
                 let ack = try await safety.report(userID: userID, reason: reason)
+                // Gemeldete Person überspringen, ohne einen Swipe zu senden —
+                // der Server lässt sie seit 2.4.14 auch aus jedem neuen Deck
+                // weg. Vorher blieb die Karte einfach liegen.
+                if current?.id == userID { currentIndex += 1 }
                 onStickyMessage(ack.message)
             } catch {
                 onMessage(error.localizedDescription)

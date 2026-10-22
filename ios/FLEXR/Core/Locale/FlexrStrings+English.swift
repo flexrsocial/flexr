@@ -9,6 +9,7 @@ extension FlexrStrings {
         .commonBack: "Back",
         .commonCancel: "Cancel",
         .commonClose: "Close",
+        .commonOk: "OK",
         .commonDelete: "Delete",
         .commonReport: "Report",
         .commonLoading: "Loading …",
@@ -285,6 +286,7 @@ extension FlexrStrings {
         // MARK: Melden
         .reportDialogTitle: "Report %@",
         .reportBlockTitleNamed: "Block %@?",
+        .reportAckTitle: "Report received",
         .reportDialogBody: "What happened? We will review your report.",
         .reportReasonLabel: "Reason",
         .reportReasonPlaceholder: "Brief description",
@@ -529,10 +531,11 @@ extension FlexrStrings {
         .deleteBody: """
             Your account is deactivated immediately and is no longer visible to \
             others. All data including photos is permanently and irreversibly \
-            deleted after 30 days (see the privacy policy).
+            deleted after 30 days (see the privacy policy). Within those 30 days \
+            you can log in again with your existing password to undo the deletion.
             """,
         .deletePasswordLabel: "Your password to confirm",
-        .deleteConfirm: "Delete permanently",
+        .deleteConfirm: "Delete account",
         .deletePasswordMissing: "Please enter your password to confirm.",
         .deleteDone: "Your account has been deactivated and will be permanently deleted in 30 days.",
 

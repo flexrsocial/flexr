@@ -40,6 +40,7 @@ import flexr.social.app.core.designsystem.icon.FlexrIcons
 import flexr.social.app.core.designsystem.theme.FlexrTheme
 import flexr.social.app.core.designsystem.theme.MonoStyle
 import flexr.social.app.core.locale.LocalAppLanguage
+import flexr.social.app.ui.swipe.distanceLabel
 import flexr.social.app.domain.model.MatchSummary
 
 /**
@@ -162,7 +163,7 @@ fun MatchListItem(
             } else {
                 buildString {
                     append(profile.city)
-                    profile.distanceKm?.let { append(" · $it km") }
+                    profile.distanceKm?.let { append(" · ").append(distanceLabel(it)) }
                     if (match.isOnline) append(" · ").append(onlineLabel)
                 }
             }

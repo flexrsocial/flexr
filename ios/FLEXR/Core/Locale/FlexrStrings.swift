@@ -7,7 +7,7 @@ import Foundation
 /// damit ein Tippfehler beim Übersetzen gar nicht erst übersetzt.
 enum L: Hashable, Sendable, CaseIterable {
     // Allgemein
-    case commonBack, commonCancel, commonClose, commonLoading
+    case commonBack, commonCancel, commonClose, commonOk, commonLoading
     case commonDelete, commonReport, commonBlock, commonApply, commonAccount
     case commonLogout, commonDeleteAccount, commonWriteMessage, commonProfile
     case commonVerifiedProfile, commonProfilePhotoOf, commonDeleteFailed
@@ -103,7 +103,7 @@ enum L: Hashable, Sendable, CaseIterable {
 
     // Melden
     case reportDialogTitle, reportDialogBody, reportReasonLabel, reportReasonPlaceholder
-    case reportBlockTitleNamed
+    case reportBlockTitleNamed, reportAckTitle
 
     // Fotos
     case photoRemove, photoAdd, photoPending, photoRejected, photoUploading, photoHintNone

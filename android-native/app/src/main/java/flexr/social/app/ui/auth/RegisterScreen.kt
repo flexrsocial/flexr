@@ -235,6 +235,7 @@ fun RegisterScreen(
                 slots = state.photos.map { PhotoSlot(key = it.id, model = it.previewUri) },
                 onPhotoPicked = viewModel::onPhotoPicked,
                 onRemove = viewModel::onPhotoRemoved,
+                onPhotosPicked = viewModel::onPhotosPicked,
             )
         }
         // Solange die Pflichtzahl nicht erreicht ist, bleibt der Knopf unten

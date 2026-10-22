@@ -188,6 +188,14 @@ struct BackgroundCard: View {
 /// naechste, nach rechts das vorige. Am ersten und letzten Foto bleibt es
 /// stehen, wie in der Vollbildansicht. Eher senkrechte Bewegungen zaehlen
 /// nicht. Gleiche Schwelle wie Android (`PHOTO_SWIPE_THRESHOLD_DP`).
+/// Entfernung zwischen den Gyms. Der Server rundet auf ganze Kilometer;
+/// „0 km" (bis 2.4.13 so angezeigt, meist dasselbe Gym) heißt unter 500 m.
+enum Entfernung {
+    static func text(_ km: Int) -> String {
+        km < 1 ? "< 1 km" : "\(km) km"
+    }
+}
+
 enum FotoWischen {
     static let threshold: CGFloat = 40
 
@@ -329,10 +337,14 @@ private struct CardContent: View {
     private var photoSelector: some View {
         GeometryReader { geometry in
             HStack(spacing: 4) {
+                // Mit Schatten und kräftigerem Weiß: Bis 2.4.13 waren die
+                // übrigen Striche (Weiß 28 %) auf hellen Fotos - weiße Wand,
+                // Fenster - praktisch unsichtbar.
                 ForEach(profile.photos.indices, id: \.self) { offset in
                     Capsule()
-                        .fill(offset == photoIndex ? FlexrColor.plate : Color.white.opacity(0.28))
+                        .fill(offset == photoIndex ? FlexrColor.plate : Color.white.opacity(0.55))
                         .frame(height: 3)
+                        .shadow(color: .black.opacity(0.45), radius: 1.5, y: 0.5)
                 }
             }
             .padding(10)
@@ -384,7 +396,7 @@ private struct CardContent: View {
     private var subtitle: String {
         var parts = [profile.city]
         if !profile.gymName.isEmpty { parts.append(profile.gymName) }
-        if let distance = profile.distanceKm { parts.append("\(distance) km") }
+        if let distance = profile.distanceKm { parts.append(Entfernung.text(distance)) }
         return parts.joined(separator: " · ")
     }
 

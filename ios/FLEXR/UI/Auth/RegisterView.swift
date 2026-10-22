@@ -154,7 +154,11 @@ struct RegisterView: View {
                         PhotoSlot(id: $0.id, source: .data($0.preview))
                     },
                     onPhotoPicked: { data in Task { await model.onPhotoPicked(data) } },
-                    onRemove: model.removePhoto
+                    onRemove: model.removePhoto,
+                    // Nacheinander, damit die Reihenfolge der Auswahl bleibt.
+                    onPhotosPicked: { daten in
+                        Task { for data in daten { await model.onPhotoPicked(data) } }
+                    }
                 )
                 .id(RegisterField.photos)
                 FieldError(message: model.fieldError(.photos))

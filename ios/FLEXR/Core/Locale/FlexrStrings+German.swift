@@ -10,6 +10,7 @@ extension FlexrStrings {
         .commonBack: "Zurück",
         .commonCancel: "Abbrechen",
         .commonClose: "Schließen",
+        .commonOk: "OK",
         .commonDelete: "Löschen",
         .commonReport: "Melden",
         .commonLoading: "Lädt …",
@@ -287,6 +288,7 @@ extension FlexrStrings {
         // MARK: Melden
         .reportDialogTitle: "%@ melden",
         .reportBlockTitleNamed: "%@ blockieren?",
+        .reportAckTitle: "Meldung eingegangen",
         .reportDialogBody: "Was ist vorgefallen? Deine Meldung wird von uns geprüft.",
         .reportReasonLabel: "Grund",
         .reportReasonPlaceholder: "Kurze Beschreibung",
@@ -530,10 +532,12 @@ extension FlexrStrings {
         .deleteBody: """
             Dein Konto wird sofort deaktiviert und ist für andere nicht mehr \
             sichtbar. Alle Daten inklusive Fotos werden nach 30 Tagen endgültig \
-            und unwiderruflich gelöscht (siehe Datenschutzerklärung).
+            und unwiderruflich gelöscht (siehe Datenschutzerklärung). Innerhalb \
+            der 30 Tage kannst du dich mit deinem bisherigen Passwort erneut \
+            einloggen, um die Löschung rückgängig zu machen.
             """,
         .deletePasswordLabel: "Zur Bestätigung dein Passwort",
-        .deleteConfirm: "Endgültig löschen",
+        .deleteConfirm: "Konto löschen",
         .deletePasswordMissing: "Bitte gib zur Bestätigung dein Passwort ein.",
         .deleteDone: "Dein Konto wurde deaktiviert und wird in 30 Tagen endgültig gelöscht.",
 
