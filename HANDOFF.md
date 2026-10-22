@@ -44,6 +44,9 @@ erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 >   Leiste „In der App öffnen“); ohne App bleibt es bei der Web-App.
 >   Keine neue App-Fassung nötig. Details und Emulator-Test im obersten
 >   Abschnitt von `android-native/HANDOFF.md`. `i18n-app.js` ?v=44, Shell v56.
+> - **Deployt** (`40631a9`, gepusht, VPS `git pull --ff-only`, nur Frontend,
+>   kein Neustart, live md5-gleich). **Vom Nutzer am echten Handy bestätigt:**
+>   Reset-Knopf in der Mail öffnet die App mit „Neues Passwort festlegen“.
 > - Frontend-Tests (stdlib-Teil von `test_public_frontend.py`) 11/11 grün;
 >   die Backend-Suite lief nicht (kein venv mit FastAPI auf dem ThinkPad,
 >   `~/.cache/flexr-test` fehlt), Backend ist unverändert.
@@ -10160,9 +10163,8 @@ Neu aus der Sitzung 21.10.2026 (Play-Start, Android 2.7.37/2.7.38, iOS 2.4.13):
   Fassung 2.7.39 / 151.
 - ~~**Brevo-Klick-Tracking prüfen**~~ - **erledigt 22.10.:** Brevo schreibt
   um (`sendibt3.com`), abschalten geht nicht; die Web-App springt jetzt per
-  `intent://` in die App (siehe Sitzung 22.10.). Am echten Handy einmal
-  nachprüfen: Reset-Mail anfordern, Knopf tippen - die App soll den Dialog
-  „Neues Passwort festlegen“ zeigen.
+  `intent://` in die App (siehe Sitzung 22.10.). **Vom Nutzer am echten
+  Handy bestätigt** (22.10., 2.7.38 aus dem Play Store, Reset-Mail aus Gmail).
 - ~~**Datensicherheit**~~ - **erledigt 21.10. abends:** Store (DE und EN)
   zeigt alle 13 Datentypen mit den Zwecken aus
   `android-native/DATENSICHERHEIT.md`, „Keine Daten geteilt“, verschlüsselt,

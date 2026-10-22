@@ -99,6 +99,9 @@ auf den Knopf in einer FLEXR-Mail in der App landen, nicht in der Web-App.
   Testserver eingesetzt, 302 wie Brevo davor): Chrome-Tab und Custom Tab
   (wie Gmail) → App mit „Choose a new password“, Chrome schließt den Tab
   dabei selbst; ohne App → Web-Formular mit Leiste.
+  **Am echten Handy vom Nutzer bestätigt** (22.10.2026, 2.7.38 aus dem Play
+  Store, Reset-Mail in Gmail): Der Knopf öffnet die App mit dem Dialog.
+  Deployt mit `40631a9`.
 * iOS: keine Universal Links (App nicht im Store); am iPhone öffnet der Link
   wie bisher die Web-App.
 
