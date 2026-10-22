@@ -70,8 +70,20 @@ struct RootView: View {
             Task { await appModel.refreshMembership() }
         }
         .onOpenURL { url in
+            // Mail-Links über die Web-App (Passwort, Reiter), sonst die
+            // Rückkehr aus dem Stripe-Checkout.
+            if appModel.handleLink(url) { return }
             guard url.scheme == "flexr" else { return }
             Task { await appModel.refreshMembership() }
+        }
+        .sheet(isPresented: Binding(
+            get: { model.resetToken != nil },
+            set: { if !$0 { model.resetToken = nil } }
+        )) {
+            if let token = model.resetToken {
+                // Je Link ein frisches Blatt (wie `key(token)` unter Android).
+                ResetPasswordSheet(token: token).id(token)
+            }
         }
     }
 }

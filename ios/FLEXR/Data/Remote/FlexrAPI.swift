@@ -28,9 +28,15 @@ struct FlexrAPI {
         try await client.send(.post, "api/auth/reactivate", body: body)
     }
 
-    /// Zurücksetz-Link per Mail anfordern. Das Zurücksetzen selbst passiert im Browser.
+    /// Zurücksetz-Link per Mail anfordern.
     func forgotPassword(_ body: PasswordForgotRequestDTO) async throws -> OkResponseDTO {
         try await client.send(.post, "api/auth/password/forgot", body: body)
+    }
+
+    /// Token aus dem Link einlösen - seit 2.4.16 auch in der App (wie
+    /// Android 2.7.38), vorher nur im Browser.
+    func resetPassword(_ body: PasswordResetRequestDTO) async throws -> TokenResponseDTO {
+        try await client.send(.post, "api/auth/password/reset", body: body)
     }
 
     // MARK: - profiles.py

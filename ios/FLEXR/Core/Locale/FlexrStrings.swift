@@ -47,6 +47,7 @@ enum L: Hashable, Sendable, CaseIterable {
     // Passwort vergessen / Zugangsdaten
     case loginForgot, forgotTitle, forgotSub, forgotDone, forgotSend
     case forgotErrEmail, forgotErrSend, resetNewPw, resetErrShort, resetErrSave
+    case resetTitle, resetSub, resetSave, resetDone
     case credSection, credEmailLabel, credUnconfirmed, credChangeEmail, credChangePw
     case credNewEmail, credCurrentPw, credSave, credErrPw, credEmailDone, credPwDone
 

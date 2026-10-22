@@ -364,8 +364,11 @@ android {
         // Fotos, "< 1 km", Foto-Striche mit Schatten, "Neue Nachrichten".
         // 152/2.7.40 am 22.10.2026: Kinderschutz-Standards (CSAE) unter
         // "Hilfe & Rechtliches", Verweis aus den Nutzungsrichtlinien.
-        versionCode = 152
-        versionName = "2.7.40"
+        // 153/2.7.41 am 22.10.2026: dazu Kopf des Decks wie im Web ("Heutige
+        // Saetze / Wer trainiert, wo du bist"). Ersetzt 152, falls die noch
+        // nicht hochgeladen war.
+        versionCode = 153
+        versionName = "2.7.41"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

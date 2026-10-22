@@ -2598,8 +2598,24 @@
     return;
   }
   var ua = navigator.userAgent;
-  // Nur Android und nicht im WebView einer fremden Mail-App (Kennung "; wv)"):
-  // Der kennt intent:// nicht und zeigt eine Fehlerseite.
+  var bar = document.getElementById('appLinkBar');
+  document.getElementById('appLinkClose').addEventListener('click', function(){ bar.hidden = true; });
+
+  // iPhone (seit 22.10.2026, iOS 2.4.16): Die App hat keine Universal Links,
+  // kennt aber ihr Schema flexr:// - die Leiste reicht den Passwort-Link
+  // dorthin weiter, die App zeigt "Neues Passwort festlegen". Nur auf Tipp
+  // und nur beim Passwort-Link: Ohne App meldet Safari eine ungueltige
+  // Adresse, und die meisten iPhone-Nutzer haben die Web-App.
+  var iphone = /iPhone|iPad|iPod/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1);
+  if (iphone) {
+    if (!/[?&]reset=/.test(location.search)) return;
+    document.getElementById('appLinkOpen').href = 'flexr://flexr.social' + ziel;
+    bar.hidden = false;
+    return;
+  }
+
+  // Sonst nur Android und nicht im WebView einer fremden Mail-App (Kennung
+  // "; wv)"): Der kennt intent:// nicht und zeigt eine Fehlerseite.
   if (!/Android/.test(ua) || /; wv\)/.test(ua)) return;
 
   // Host fest: Der Intent-Filter der App kennt nur flexr.social.
@@ -2609,8 +2625,6 @@
   }
   // Der Knopf hat keinen Rueckfall: Ohne App oeffnet Android den Store-Eintrag.
   document.getElementById('appLinkOpen').href = intentAdresse(null);
-  var bar = document.getElementById('appLinkBar');
-  document.getElementById('appLinkClose').addEventListener('click', function(){ bar.hidden = true; });
   bar.hidden = false;
 
   // Sofort selbst versuchen, nur in Chromium-Browsern (Chrome, Custom Tab aus

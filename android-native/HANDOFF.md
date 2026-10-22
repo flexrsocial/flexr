@@ -1,6 +1,6 @@
 # HANDOFF — native Android-App
 
-Stand: **22.10.2026**, Version 2.7.40 / versionCode 152. Der jüngste
+Stand: **22.10.2026**, Version 2.7.41 / versionCode 153. Der jüngste
 Abschnitt steht oben, ältere folgen darunter. Fassungen zwischen dem
 16.09. und dem 04.10. sowie 2.7.29 bis 2.7.34 sind nur im Kommentar am
 `versionCode` in `app/build.gradle.kts` und in der Haupt-`HANDOFF.md`
@@ -9,6 +9,17 @@ Für Aufbau, Build-Befehle und die Migrationstabelle siehe [README.md](README.md
 hier steht nur, was daraus *nicht* hervorgeht.
 
 ---
+
+## Deck-Kopf wie im Web, 22.10.2026 (2.7.41)
+
+**Version 2.7.41 / 153** - ersetzt 2.7.40 / 152 (die ging dem Nutzer schon
+zum Hochladen; 153 passt, egal ob 152 hochgeladen war). Inhaltlich 2.7.40 plus
+`swipe_eyebrow`/`swipe_title` „Heutige Sätze“ / „Wer trainiert, wo du bist“
+(EN „Today's sets“ / „Who trains where you are“) wie in der Web-App.
+AAB-Angaben unten im 2.7.40-Abschnitt sind damit überholt, siehe hier:
+
+* **AAB** `android-native/release-2.7.41/flexr-2.7.41-153.aab` (gitignored),
+  Prüfsumme in der Haupt-`HANDOFF.md`. Die nächste Fassung ist 2.7.42 / 154.
 
 ## Kinderschutz, Freunde einladen, Gym-Suche im Konto, 22.10.2026 (2.7.40)
 

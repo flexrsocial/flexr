@@ -202,8 +202,8 @@
     <string name="bio_none">Keine Bio angegeben.</string>
 
     <!-- ==== Swipe ==== -->
-    <string name="swipe_eyebrow">Entdecken</string>
-    <string name="swipe_title">Profile in deiner Nähe</string>
+    <string name="swipe_eyebrow">Heutige Sätze</string>
+    <string name="swipe_title">Wer trainiert, wo du bist</string>
     <string name="swipe_loading">Lade Profile …</string>
     <string name="swipe_error_title">Nicht geladen</string>
     <string name="swipe_retry">Erneut versuchen</string>

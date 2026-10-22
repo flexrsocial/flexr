@@ -137,7 +137,8 @@
 // v58: Kinderschutz-Standards in Fussleiste und Konto, Lade-Ringe bei der
 // Mehrfachauswahl der Fotos, "Freunde einladen" im leeren Deck; legal.css
 // ?v=3 (Tabellen brechen nur an Wortgrenzen), i18n.js ?v=6, i18n-app.js ?v=46.
-const CACHE = 'flexr-shell-v58';
+// v59: Passwort-Link am iPhone - Leiste "In der App oeffnen" ueber flexr://.
+const CACHE = 'flexr-shell-v59';
 // Seit dem 15.08.2026 liegt die App unter /app/, an der Wurzel steht die
 // oeffentliche Landingpage. Beide gehoeren in die Shell: die Landingpage,
 // weil sie der Einstieg ist, die App, weil sie offline funktionieren soll.

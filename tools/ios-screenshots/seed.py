@@ -174,6 +174,14 @@ def main() -> None:
     viktoria.created_at = jetzt - timedelta(days=1, hours=5)
     db.commit()
 
+    # Passwort-Link fuer den Klicktest (seit iOS 2.4.16): codemagic.yaml reicht
+    # den Token als FLEXR_SHOT_RESET_TOKEN an den Test weiter.
+    from app import password_reset
+    lukas = db.query(User).filter(User.id == ids["lukas"]).one()
+    pathlib.Path(os.environ.get("FLEXR_SHOT_RESET_FILE", "/tmp/flexr-shot-reset-token")).write_text(
+        password_reset.issue(db, lukas)
+    )
+
     print("Testdaten:", {k: v for k, v in ids.items()},
           "Matches:", list(matches), "Nutzer:", db.query(User).count(), "Gyms:", db.query(Gym).count())
     assert db.query(Match).count() == 3

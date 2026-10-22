@@ -104,6 +104,13 @@ final class AuthRepository {
         )
     }
 
+    /// Neues Passwort setzen. Liefert den Sitzungstoken, speichert ihn aber
+    /// nicht: Ist auf dem Gerät noch ein anderes Konto angemeldet, meldet
+    /// `AppModel.resetPassword` es vorher ab (samt Push).
+    func resetPassword(token: String, newPassword: String) async throws -> String {
+        try await api.resetPassword(PasswordResetRequestDTO(token: token, newPassword: newPassword)).accessToken
+    }
+
     func reactivate(email: String, password: String) async throws {
         let response = try await api.reactivate(
             LoginRequestDTO(email: email.trimmingCharacters(in: .whitespaces), password: password)

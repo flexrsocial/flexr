@@ -1,10 +1,34 @@
 # HANDOFF — native iOS-App
 
-Stand: **22.10.2026**, Version 2.4.15. Für Aufbau, Build-Befehle und die
+Stand: **22.10.2026**, Version 2.4.16. Für Aufbau, Build-Befehle und die
 Migrationstabelle siehe [README.md](README.md) — hier steht nur, was daraus
 *nicht* hervorgeht.
 
 ---
+
+## Neues Passwort in der App, Deck-Kopf wie im Web, 22.10.2026 (2.4.16) — **nicht compilerverifiziert**
+
+Version 2.4.15 → **2.4.16** (enthält 2.4.15, die nie gebaut wurde).
+
+* **Passwort-Link:** Keine Universal Links (kein Associated Domains); die
+  Web-App reicht `/app/open/?reset=…` am iPhone per Leiste als
+  `flexr://flexr.social/app/open/?reset=…` weiter. `RootView.onOpenURL` →
+  `AppModel.handleLink` → `MailLinkZiel` (reine Auswertung, getestet in
+  `FLEXRTests/MailLinkTests.swift`) → `resetToken` → `.sheet` mit
+  `ResetPasswordSheet` (in `LoginView.swift`, `interactiveDismissDisabled`,
+  `.id(token)`). `AppModel.resetPassword` löst den Token ein
+  (`AuthRepository.resetPassword`, `FlexrAPI.resetPassword`,
+  `PasswordResetRequestDTO`), meldet ein angemeldetes Konto vorher ab
+  (`logout()` samt Push) und speichert den neuen Token - der Sitzungsstrom
+  übernimmt wie beim Login. Neue Schlüssel `.resetTitle`, `.resetSub`,
+  `.resetSave`, `.resetDone`; `.forgotSub`/`.forgotDone` ohne „im Browser“,
+  mit Hinweis auf „In der App öffnen“.
+* **Deck-Kopf** `.swipeEyebrow`/`.swipeTitle` „Heutige Sätze“ / „Wer
+  trainiert, wo du bist“ wie im Web.
+* **UI-Test** `passwortLink()` am Ende: `app.open(flexr://…)` mit dem Token aus
+  `seed.py`, gleiches Passwort setzen (Zeilenschaltung im zweiten Feld),
+  danach Tab-Leiste da; derselbe Link noch einmal → „bereits benutzt“. Bilder
+  `16-passwort-neu`, `16-passwort-gesetzt`, `16-passwort-link-benutzt`.
 
 ## Fotoindex nach Melden/Blockieren, Kinderschutz, Freunde einladen, 22.10.2026 (2.4.15) — **nicht compilerverifiziert**
 

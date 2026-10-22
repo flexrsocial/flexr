@@ -67,6 +67,7 @@ final class ScreenshotTests: XCTestCase {
         englisch()
         abmelden()
         gate()
+        passwortLink()
     }
 
     // MARK: - A: ausgeloggt
@@ -609,6 +610,57 @@ final class ScreenshotTests: XCTestCase {
         if tippe(knopf: "Ausloggen", scrollen: true) {
             warte(2)
         }
+    }
+
+    // MARK: - P: Passwort-Link aus der Mail
+
+    /// Seit 2.4.16 reicht die Web-App den Passwort-Link am iPhone als
+    /// `flexr://flexr.social/app/open/?reset=…` an die App weiter. Der Token
+    /// kommt aus seed.py; gesetzt wird dasselbe Passwort wie bisher. Danach
+    /// muss die App angemeldet sein, und derselbe Link noch einmal meldet der
+    /// Server als benutzt.
+    private func passwortLink() {
+        guard let token = ProcessInfo.processInfo.environment["FLEXR_SHOT_RESET_TOKEN"], !token.isEmpty,
+              let link = URL(string: "flexr://flexr.social/app/open/?reset=\(token)")
+        else {
+            XCTContext.runActivity(named: "Kein FLEXR_SHOT_RESET_TOKEN - Passwort-Link übersprungen") { _ in }
+            return
+        }
+        app.open(link)
+        guard app.secureTextFields.firstMatch.waitForExistence(timeout: 10) else {
+            foto("16-passwort-fehlt")
+            XCTFail("Kein Blatt „Neues Passwort festlegen“ nach dem Link")
+            return
+        }
+        warte(1)
+        foto("16-passwort-neu")
+        tippeFeld(app.secureTextFields.element(boundBy: 0), text: passwort)
+        // Zeilenschaltung im zweiten Feld speichert - der Knopf liegt bei
+        // offener Tastatur womöglich darunter.
+        tippeFeld(app.secureTextFields.element(boundBy: 1), text: passwort + "\n")
+        if !app.buttons["Konto"].waitForExistence(timeout: 20) {
+            foto("16-passwort-nach-speichern")
+            XCTFail("Nach dem neuen Passwort nicht angemeldet")
+            return
+        }
+        systemdialogeSchliessen()
+        warte(2)
+        foto("16-passwort-gesetzt")
+
+        app.open(link)
+        guard app.secureTextFields.firstMatch.waitForExistence(timeout: 10) else { return }
+        tippeFeld(app.secureTextFields.element(boundBy: 0), text: passwort)
+        // Zeilenschaltung im zweiten Feld speichert - der Knopf liegt bei
+        // offener Tastatur womöglich darunter.
+        tippeFeld(app.secureTextFields.element(boundBy: 1), text: passwort + "\n")
+        warte(3)
+        foto("16-passwort-link-benutzt")
+        XCTAssertTrue(
+            app.staticTexts.containing(NSPredicate(format: "label CONTAINS[c] %@", "bereits benutzt")).firstMatch.exists,
+            "Zweiter Versuch mit demselben Link ohne Hinweis „bereits benutzt“"
+        )
+        tippe(knopf: "Abbrechen")
+        warte(1)
     }
 
     // MARK: - Hilfsschritte

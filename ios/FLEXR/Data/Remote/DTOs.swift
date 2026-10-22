@@ -43,6 +43,13 @@ struct PasswordForgotRequestDTO: Encodable {
     let language: String?
 }
 
+/// Neues Passwort mit dem Token aus dem Mail-Link; meldet gleich an
+/// (routers/auth.reset_password).
+struct PasswordResetRequestDTO: Encodable {
+    let token: String
+    let newPassword: String
+}
+
 struct PasswordChangeRequestDTO: Encodable {
     let currentPassword: String
     let newPassword: String

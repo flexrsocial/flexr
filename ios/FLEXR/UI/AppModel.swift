@@ -54,6 +54,10 @@ final class AppModel {
         return container.billing.membership ?? fromState
     }
 
+    /// Token aus einem Passwort-Link (`/app/open/?reset=…`), solange das Blatt
+    /// „Neues Passwort festlegen" offen ist (RootView).
+    var resetToken: String?
+
     /// Kurze Rückmeldung am unteren Rand (Ersatz für die Snackbar).
     var toast: String?
     /// Empfangsbestätigung mit Aktenzeichen einer Profilmeldung (Art. 16
@@ -215,6 +219,32 @@ final class AppModel {
         toast = message
     }
 
+    /// Link aus einer Mail, den die Web-App über `flexr://` weiterreicht
+    /// (iPhone: Leiste „In der App öffnen“, siehe frontend/app/index.html) -
+    /// gleiche Ziele wie die App Links unter Android:
+    /// `/app/open/?reset=<token>` öffnet „Neues Passwort festlegen“,
+    /// `/app/open/<reiter>` den Reiter. `https://flexr.social/app/open/…`
+    /// gilt ebenso, falls Universal Links einmal dazukommen.
+    /// - Returns: `true`, wenn der Link ein solches Ziel war.
+    @discardableResult
+    func handleLink(_ url: URL) -> Bool {
+        guard let ziel = MailLinkZiel(url: url) else { return false }
+        switch ziel {
+        case .passwort(let token): resetToken = token
+        case .reiter(let reiter): selectedTab = reiter
+        case .app: break
+        }
+        return true
+    }
+
+    /// Neues Passwort setzen und gleich anmelden. Ein anderes, hier noch
+    /// angemeldetes Konto wird vorher abgemeldet - wie unter Android.
+    func resetPassword(token: String, newPassword: String) async throws {
+        let sitzung = try await container.auth.resetPassword(token: token, newPassword: newPassword)
+        if container.session.isLoggedInNow { await logout() }
+        container.session.save(token: sitzung)
+    }
+
     /// Empfangsbestätigung mit Aktenzeichen einer Profilmeldung (Art. 16
     /// Abs. 4 DSA) - als Hinweis mit „OK" (RootView). Bis 2.4.13 ein Toast,
     /// der stehen blieb, bis man ihn wegtippte: Im Deck lag er über X und Herz
@@ -237,5 +267,30 @@ final class AppModel {
     func open(target rawValue: String) {
         guard let destination = TopLevelDestination(rawValue: rawValue) else { return }
         selectedTab = destination
+    }
+}
+
+/// Ziel eines Mail-Links unter `/app/open/` (siehe `AppModel.handleLink`) -
+/// dieselben Pfade wie die App Links der Android-App.
+enum MailLinkZiel: Equatable {
+    case passwort(token: String)
+    case reiter(TopLevelDestination)
+    /// `/app/open/` ohne bekannten Reiter: nur die App öffnen.
+    case app
+
+    init?(url: URL) {
+        guard let teile = URLComponents(url: url, resolvingAgainstBaseURL: false),
+              teile.scheme == "flexr" || teile.scheme == "https",
+              teile.host == "flexr.social",
+              teile.path == "/app/open" || teile.path.hasPrefix("/app/open/")
+        else { return nil }
+        if let token = teile.queryItems?.first(where: { $0.name == "reset" })?.value, !token.isEmpty {
+            self = .passwort(token: token)
+        } else if let name = teile.path.split(separator: "/").dropFirst(2).first,
+                  let reiter = TopLevelDestination(rawValue: String(name)) {
+            self = .reiter(reiter)
+        } else {
+            self = .app
+        }
     }
 }

@@ -32,6 +32,46 @@ erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 
 ## Wo das Projekt gerade steht
 
+> **Sitzung 22.10.2026 (5): iOS legt das neue Passwort in der App fest,
+> Deck-Kopf auf allen Plattformen gleich. Android 2.7.41 / 153 (ersetzt
+> 2.7.40 / 152), iOS 2.4.16.**
+>
+> - **Passwort-Link am iPhone:** iOS hat keine Universal Links, und Brevo
+>   schreibt die Mail-Links ohnehin auf seine Zähldomain um. Wie bei Android
+>   reicht deshalb die Web-App weiter: Unter `/app/open/?reset=…` zeigt sie am
+>   iPhone die Leiste „FLEXR-App installiert? In der App öffnen“ mit
+>   `flexr://flexr.social/app/open/?reset=…` (Schema `flexr` war schon für den
+>   Checkout registriert). Nur auf Tipp und nur beim Passwort-Link - ohne App
+>   meldet Safari eine ungültige Adresse, und die meisten iPhone-Nutzer haben
+>   die Web-App. Die App wertet den Link aus (`MailLinkZiel`,
+>   `AppModel.handleLink`, auch `/app/open/<reiter>` und https für spätere
+>   Universal Links) und zeigt `ResetPasswordSheet`: Länge ≥ 8, Wiederholung,
+>   `POST /api/auth/password/reset`, ein anderes angemeldetes Konto wird
+>   vorher abgemeldet (wie Android). Texte „Passwort vergessen“ ohne „im
+>   Browser“. Unit-Tests `MailLinkTests`; im Klicktest `passwortLink()` mit
+>   echtem Token aus `seed.py` (über `TEST_RUNNER_FLEXR_SHOT_RESET_TOKEN` in
+>   `codemagic.yaml`): Passwort setzen → angemeldet, derselbe Link noch einmal
+>   → „bereits benutzt“. Web-Weiterleitung mit nachgestellten Browsern
+>   geprüft (iPhone, iPad mit Mac-Kennung, Android unverändert, Desktop
+>   nichts). Shell v59.
+> - **Deck-Kopf wie im Web:** Android und iOS zeigen jetzt „Heutige Sätze /
+>   Wer trainiert, wo du bist“ (EN „Today’s sets / Who trains where you are“)
+>   statt „Entdecken / Profile in deiner Nähe“.
+> - **iOS weiterhin nicht kompiliert** (Linux); Codemagic-Start war aus der
+>   Sitzung heraus gesperrt - `ios-tests` und `ios-screenshots` muss der
+>   Nutzer starten.
+> - **Play-Hinweis zu 2.7.40 „Bitmap-Downsampling“ (`hp1.X`):** Laut Mapping im
+>   AAB (`BUNDLE-METADATA/…/proguard.map`) ist das
+>   `androidx.core…IconCompat$Api23Impl.toIcon` aus androidx.core 1.16.0, von R8
+>   in `kotlin.jvm.internal.Intrinsics` gelegt - `BitmapFactory.decodeStream`
+>   für Benachrichtigungs-Icons aus einer URI. FLEXR nutzt `IconCompat` nicht
+>   selbst, der Pfad läuft nie; das eigene Laden (`ImageProcessor`) hat
+>   `inSampleSize`. Bewusst nicht geändert (nur eine Empfehlung; eine neuere
+>   androidx.core kurz vor dem Release ungeprüft hochzuziehen wäre riskanter).
+> - **Android-AAB** `android-native/release-2.7.41/flexr-2.7.41-153.aab`
+>   (SHA-256 `2052baec…f416`, 8.648.859 Bytes, Upload-Key), 88 Unit-Tests,
+>   Lint 0 Fehler; im Emulator „Heutige Sätze / Wer trainiert, wo du bist“.
+
 > **Sitzung 22.10.2026 (4): Letzter Bugfix-Durchgang vor dem Marketing
 > (Android-Emulator, Web, iOS über Codemagic-Bilder) - lokal erstmals mit
 > `PREMIUM_ENABLED=true` wie in der Produktion. Android 2.7.40 / 152,

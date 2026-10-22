@@ -196,6 +196,8 @@ workflows:
           export TEST_RUNNER_FLEXR_SHOT_EMAIL=lukas@example.com
           export TEST_RUNNER_FLEXR_SHOT_PASSWORD="$FLEXR_SHOT_PASSWORD"
           export TEST_RUNNER_FLEXR_SHOT_API=http://127.0.0.1:8000/
+          # Passwort-Link aus seed.py (Schritt passwortLink im Test).
+          export TEST_RUNNER_FLEXR_SHOT_RESET_TOKEN="$(cat /tmp/flexr-shot-reset-token 2>/dev/null)"
           export TEST_RUNNER_FLEXR_SHOT_DIR="$CM_BUILD_DIR/$SHOT_DIR"
           # Ad-hoc signieren ("-"), nicht CODE_SIGNING_ALLOWED=NO: Eine ganz
           # unsignierte App darf im Simulator nichts in den Schluesselbund

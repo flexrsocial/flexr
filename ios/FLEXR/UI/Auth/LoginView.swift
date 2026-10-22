@@ -228,6 +228,88 @@ struct LoginView: View {
 
 /// „Passwort vergessen?": Link per Mail anfordern. Das neue Passwort legt man
 /// im Browser fest (flexr.social/app/?reset=…) und meldet sich danach hier an.
+/// „Neues Passwort festlegen“ aus dem Mail-Link (`AppModel.resetToken`, seit
+/// 2.4.16 wie Android 2.7.38). Länge und Wiederholung wie im Konto, danach ist
+/// man gleich angemeldet. Wischen schließt das Blatt nicht: Unter Android ging
+/// ein Tipp daneben bei offener Tastatur leicht los, und alles Eingetippte war
+/// weg.
+struct ResetPasswordSheet: View {
+    @Environment(LanguageStore.self) private var languageStore
+    @Environment(AppModel.self) private var appModel
+    private var s: FlexrStrings { languageStore.strings }
+
+    let token: String
+
+    @State private var passwort = ""
+    @State private var wiederholung = ""
+    @State private var fehler: String?
+    @State private var speichert = false
+
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 0) {
+                ScreenHeader(eyebrow: s(.loginForgot), title: s(.resetTitle), subtitle: s(.resetSub))
+                    .padding(.top, 24)
+                VStack(alignment: .leading, spacing: 14) {
+                    FlexrPasswordField(
+                        text: $passwort,
+                        label: s(.resetNewPw),
+                        placeholder: s(.registerPasswordPlaceholder),
+                        textContentType: .newPassword,
+                        submitLabel: .next
+                    )
+                    FlexrPasswordField(
+                        text: $wiederholung,
+                        label: s(.registerPasswordRepeat),
+                        textContentType: .newPassword,
+                        onSubmit: { speichern() }
+                    )
+                }
+                .padding(.top, 18)
+                FieldError(message: fehler)
+                FlexrButton(title: s(.resetSave), isEnabled: !speichert, isLoading: speichert) {
+                    speichern()
+                }
+                .padding(.top, 22)
+                Button(s(.commonCancel)) { appModel.resetToken = nil }
+                    .flexrText(.bodySmall)
+                    .foregroundStyle(FlexrColor.chalkDim)
+                    .frame(maxWidth: .infinity)
+                    .padding(.top, 14)
+            }
+            .padding(.horizontal, 20)
+            .padding(.bottom, 30)
+        }
+        .background(FlexrColor.ink.ignoresSafeArea())
+        .interactiveDismissDisabled()
+    }
+
+    private func speichern() {
+        guard !speichert else { return }
+        guard passwort.count >= 8 else {
+            fehler = s(.resetErrShort)
+            return
+        }
+        guard passwort == wiederholung else {
+            fehler = s(.registerErrPasswordMismatchShort)
+            return
+        }
+        speichert = true
+        fehler = nil
+        Task {
+            do {
+                try await appModel.resetPassword(token: token, newPassword: passwort)
+                appModel.resetToken = nil
+                appModel.show(s(.resetDone))
+            } catch {
+                // Abgelaufen oder schon benutzt: die Meldung des Servers.
+                fehler = (error as? FlexrAPIError)?.message ?? s(.resetErrSave)
+            }
+            speichert = false
+        }
+    }
+}
+
 private struct ForgotPasswordSheet: View {
     @Environment(LanguageStore.self) private var languageStore
     private var s: FlexrStrings { languageStore.strings }
