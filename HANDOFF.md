@@ -66,8 +66,16 @@ erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 >   in `kotlin.jvm.internal.Intrinsics` gelegt - `BitmapFactory.decodeStream`
 >   für Benachrichtigungs-Icons aus einer URI. FLEXR nutzt `IconCompat` nicht
 >   selbst, der Pfad läuft nie; das eigene Laden (`ImageProcessor`) hat
->   `inSampleSize`. Bewusst nicht geändert (nur eine Empfehlung; eine neuere
->   androidx.core kurz vor dem Release ungeprüft hochzuziehen wäre riskanter).
+>   `inSampleSize`. **Ein Update hilft nicht** (auf Wunsch des Nutzers
+>   geprüft): Auch die neueste androidx.core 1.19.1 (Quellen von
+>   dl.google.com) ruft in `IconCompat.toIcon` für `TYPE_URI_ADAPTIVE_BITMAP`
+>   weiter `BitmapFactory.decodeStream(is)` ohne Optionen auf - deshalb keine
+>   2.7.42. Im Dex von 2.7.41 gibt es genau einen zweiten solchen Aufruf:
+>   `com.google.firebase.messaging.ImageDownload.blockingDownload`
+>   (`decodeByteArray` ohne Optionen, Bilder in FCM-Pushs; FLEXR schickt keine)
+>   - von Play bisher nicht gemeldet. Prüfen ging so: `dexdump -d` über
+>   `base/dex/*.dex` aus dem AAB, Aufrufer über
+>   `BUNDLE-METADATA/com.android.tools.build.obfuscation/proguard.map`.
 > - **Android-AAB** `android-native/release-2.7.41/flexr-2.7.41-153.aab`
 >   (SHA-256 `2052baec…f416`, 8.648.859 Bytes, Upload-Key), 88 Unit-Tests,
 >   Lint 0 Fehler; im Emulator „Heutige Sätze / Wer trainiert, wo du bist“.
