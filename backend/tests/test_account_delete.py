@@ -271,7 +271,8 @@ def test_loeschung_klappt_auch_wenn_stripe_streikt(client, monkeypatch):
     headers = _abonnent(client, "del.abo2@example.com")
     resp = client.request("DELETE", "/api/profiles/me", headers=headers, json={"password": "supersecret123"})
     assert resp.status_code == 200
-    assert len(hinweise) == 1 and "sub_loesch_123" in hinweise[0]
+    assert len(hinweise) == 2 and "sub_loesch_123" in hinweise[0]
+    assert "Profil gelöscht" in hinweise[1]
 
     # Endgueltige Loeschung versucht es noch einmal
     zweiter = []
@@ -285,3 +286,26 @@ def test_loeschung_klappt_auch_wenn_stripe_streikt(client, monkeypatch):
     finally:
         db.close()
     assert zweiter == ["sub_loesch_123"]
+
+
+def test_loeschung_meldet_sich_per_telegram(client, monkeypatch):
+    from app import telegram
+
+    hinweise = []
+    monkeypatch.setattr(telegram, "notify_admin_task", hinweise.append)
+    headers = register_user(client, "del.telegram@example.com")
+    resp = client.request("DELETE", "/api/profiles/me", headers=headers, json={"password": "supersecret123"})
+    assert resp.status_code == 200
+    assert len(hinweise) == 1
+    assert "Profil gelöscht" in hinweise[0] and "reaktivierbar" in hinweise[0]
+
+
+def test_falsches_passwort_meldet_nichts(client, monkeypatch):
+    from app import telegram
+
+    hinweise = []
+    monkeypatch.setattr(telegram, "notify_admin_task", hinweise.append)
+    headers = register_user(client, "del.telegram2@example.com")
+    resp = client.request("DELETE", "/api/profiles/me", headers=headers, json={"password": "falsch-falsch"})
+    assert resp.status_code == 400
+    assert hinweise == []

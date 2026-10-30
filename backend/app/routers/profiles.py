@@ -287,6 +287,12 @@ def delete_my_account(
         ACCOUNT_GRACE_PERIOD_DAYS,
         current_user.language,
     )
+    # Hinweis ans Admin-Team (Wunsch des Betreibers, 30.10.2026).
+    background_tasks.add_task(
+        telegram.notify_admin_task,
+        f"🗑️ Profil gelöscht: {current_user.name} ({current_user.id}) - "
+        f"endgültig weg am {format_date(purge_at)}, bis dahin reaktivierbar.",
+    )
 
     return {"deleted": True, "purge_after_days": ACCOUNT_GRACE_PERIOD_DAYS}
 

@@ -9055,12 +9055,17 @@
       statusWrap.innerHTML = isReupload
         ? gateStatusChip('bad', t('vgate.reworkChip'))
         : '';
+      // Auch hier der QR-Code: Wer nach "Ausweis unlesbar" ueber den Link
+      // aus der Mail am Rechner landet, kam bis zum 30.10.2026 nur ueber den
+      // Selfie-Schritt ans Handy - fehlt nur der Ausweis, gab es keinen Code.
       body.innerHTML = `
+        ${amRechner() ? '<div class="vcard handoff-card" id="handoffCard"></div>' : ''}
         <div class="vcard">
           ${isReupload ? `<p>${escapeHtml(st.reason || '')}</p>` : ''}
           <p>${escapeHtml(t('vgate.docP1'))}</p>
         </div>`;
       btn.textContent = isReupload ? t('vgate.docBtnRework') : t('vgate.docBtn');
+      if(amRechner()) renderHandoffCard('doc');
       return;
     }
 
@@ -9117,12 +9122,14 @@
     handoffPoll = null;
   }
 
-  async function renderHandoffCard(){
+  // art 'doc': Ausweis-Schritt (eigener Text, sonst alles wie beim Selfie).
+  async function renderHandoffCard(art){
     const karte = $('handoffCard');
     if(!karte) return;
+    const doc = art === 'doc';
     karte.innerHTML = `
-      <h3>${escapeHtml(t('handoff.title'))}</h3>
-      <p>${escapeHtml(t('handoff.text'))}</p>
+      <h3>${escapeHtml(t(doc ? 'handoff.titleDoc' : 'handoff.title'))}</h3>
+      <p>${escapeHtml(t(doc ? 'handoff.textDoc' : 'handoff.text'))}</p>
       <div id="handoffQr"></div>
       <button type="button" class="btn secondary" id="btnHandoffShow">${escapeHtml(t('handoff.show'))}</button>`;
     $('btnHandoffShow').addEventListener('click', () => zeigeHandoffQr(!!handoffAktuell));

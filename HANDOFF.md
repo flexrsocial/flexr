@@ -1,6 +1,6 @@
 # FLEXR — Handoff für ein anderes Gerät / Claude Code
 
-Stand: **22.10.2026**
+Stand: **30.10.2026**
 
 ## ⚠️ Dringend zu prüfen: SSH-Zugang zum VPS hat sich geändert (21.09.2026)
 
@@ -31,6 +31,21 @@ Falls du das liest, weil dein `root@`-Login gerade fehlschlägt: das ist
 erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 
 ## Wo das Projekt gerade steht
+
+> **Sitzung 30.10.2026: QR-Code auch im Ausweis-Schritt, Telegram bei
+> Profillöschung.** Nur Web/Backend, keine App-Version.
+>
+> - **QR-Code bei Nachbesserung:** Der Kasten "Am Handy weitermachen"
+>   (`renderHandoffCard`, `frontend/app/index.html`) kam bisher nur im
+>   Selfie-Schritt. Wer nach "Ausweis unlesbar/fehlt" (`reupload_required`,
+>   nur Ausweis neu) über den Mail-Link am Rechner landet, steht aber im
+>   Ausweis-Schritt (`next_step === 'document'`) - dort gab es keinen Code.
+>   Jetzt auch dort, mit eigenem Text (`handoff.titleDoc`/`handoff.textDoc`).
+>   `handoff.signedIn` sagt neutral "weiter geht's mit der Prüfung".
+> - **Telegram bei Selbstlöschung:** `DELETE /api/profiles/me` schickt
+>   "🗑️ Profil gelöscht: Name (ID) - endgültig weg am …, bis dahin
+>   reaktivierbar." Bewusst nicht bei Admin-Löschung und nicht beim
+>   endgültigen Purge nach 30 Tagen. Tests in `test_account_delete.py`.
 
 > **Sitzung 22.10.2026 (5): iOS legt das neue Passwort in der App fest,
 > Deck-Kopf auf allen Plattformen gleich. Android 2.7.41 / 153 (ersetzt
