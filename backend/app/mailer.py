@@ -1239,6 +1239,61 @@ def send_verification_required(email: str, name: str, lang: str = STANDARD) -> b
     )
 
 
+def _verification_reminder_intro(next_step: str, missing_photos: int, lang: str) -> str:
+    """Der eine Satz, der sagt, was fehlt. Fehlende Profilfotos zuerst: Ohne
+    sie laesst der Pruefbildschirm nicht weiter, auch wenn das Selfie schon
+    da ist."""
+    if missing_photos > 0:
+        danach = t(
+            "remind.photos.thenDocument" if next_step == "document"
+            else "remind.photos.thenSelfie",
+            lang,
+        )
+        return f'{t("remind.photos", lang, min=MIN_PHOTOS, missing=missing_photos)} {danach}'
+    return t("remind.document" if next_step == "document" else "remind.selfie", lang)
+
+
+def _verification_reminder_html(
+    name: str, next_step: str, missing_photos: int, lang: str = STANDARD
+) -> str:
+    body = "\n".join([
+        _p(_verification_reminder_intro(next_step, missing_photos, lang)),
+        _p(t("remind.idHint", lang)),
+        _button_html(_app_link(), t("remind.cta", lang)),
+        _p(t("remind.optOut", lang)),
+    ])
+    return _email_shell(t("remind.eyebrow", lang), _greeting_html(name, lang), body, lang=lang)
+
+
+def send_verification_reminder(
+    email: str, name: str, next_step: str, missing_photos: int = 0, lang: str = STANDARD
+) -> bool:
+    """Erinnerung an eine angefangene Alters- und Identitaetspruefung.
+
+    ``next_step`` ist der Schritt laut verification_service.next_step_for
+    ("selfie" oder "document"), ``missing_photos`` wie viele Profilfotos bis
+    MIN_PHOTOS fehlen. Wann sie verschickt wird, entscheidet email_jobs.py.
+    """
+    body = f"""{_greeting(name, lang)}
+
+{textwrap.fill(_verification_reminder_intro(next_step, missing_photos, lang), width=76)}
+
+{textwrap.fill(t("remind.idHint", lang), width=76)}
+
+{t("remind.cta", lang)}: {_app_link()}
+
+{textwrap.fill(t("remind.optOut", lang), width=76)}
+
+{t("signoff", lang)}
+"""
+    return send_email(
+        email,
+        t("remind.subject", lang),
+        body,
+        _verification_reminder_html(name, next_step, missing_photos, lang),
+    )
+
+
 def _moderation_decision_html(
     name: str, measure: str, summary: str, details: list[str] | None, appeal: bool,
     lang: str = STANDARD,

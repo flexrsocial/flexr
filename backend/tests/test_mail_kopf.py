@@ -44,6 +44,7 @@ FAELLE = {
     "verif_ok": lambda l: mailer.send_verification_decision("a@b.c", "Anna", "approved", None, False, l),
     "verif_no": lambda l: mailer.send_verification_decision("a@b.c", "Anna", "rejected", "x", False, l),
     "verifreq": lambda l: mailer.send_verification_required("a@b.c", "Anna", l),
+    "verifremind": lambda l: mailer.send_verification_reminder("a@b.c", "Anna", "document", 2, l),
     "moderation": lambda l: mailer.send_moderation_decision("a@b.c", "Anna", "M", "Z", ["D"], True, l),
     "photorej": lambda l: mailer.send_photo_rejected("a@b.c", "Anna", "Grund", l),
     "report": lambda l: mailer.send_report_decision("a@b.c", "FX-1", "o", "r", l, name="Anna"),

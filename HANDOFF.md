@@ -1,6 +1,6 @@
 # FLEXR — Handoff für ein anderes Gerät / Claude Code
 
-Stand: **30.10.2026**
+Stand: **31.10.2026**
 
 ## ⚠️ Dringend zu prüfen: SSH-Zugang zum VPS hat sich geändert (21.09.2026)
 
@@ -31,6 +31,36 @@ Falls du das liest, weil dein `root@`-Login gerade fehlschlägt: das ist
 erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 
 ## Wo das Projekt gerade steht
+
+> **Sitzung 31.10.2026: Erinnerungsmail für angefangene Prüfungen.** Nur
+> Backend, keine App-Version, keine Migration.
+>
+> - **Anlass:** Zwei neue Konten (beide Safari am iPhone, iOS 26) mit Fotos
+>   und Selfie, aber ohne Ausweis. Ausweis-Upload geprüft (Backend, Web,
+>   Android, iOS, CORS des privaten Buckets): kein Fehler. Laut nginx-Log
+>   hatte einer am 25.10. eingereicht (presign + submit 200) - ein Bild vom
+>   Hintergrund statt des Ausweises, vom Betreiber zurückgewiesen
+>   (`reupload_required`). Der andere hat nach dem Selfie nie ein
+>   Ausweisbild angefordert. Der iPhone-Weg funktioniert also.
+> - **Erinnerung** (`email_jobs.run_verification_reminders`, im Tagesjob
+>   um 9:00): Konten mit bestätigter Adresse, noch nicht freigeschaltet,
+>   seit 20 h ohne Aktivität, höchstens 14 Tage (`ORPHAN_RETENTION_DAYS`).
+>   Nennt den fehlenden Schritt (Fotos mit Anzahl / Selfie / Ausweis), Knopf
+>   `/app/open/`. Eine Mail je Vorgang, Status und Schritt (`send_once`,
+>   ohne neue Spalte) - wer weiterkommt und wieder hängt, wird erneut
+>   erinnert. Nur Mail, kein Push (bräuchte einen neuen Wert im
+>   Postgres-Enum `NotificationTopic`). Texte `remind.*` DE/EN.
+> - **Inaktivitäts-/Deck-/Like-Mails** gehen nicht mehr an noch nicht
+>   freigeschaltete Konten (`account_visible_condition()` in
+>   `run_activity_notifications`) - „neue Profile warten“ führte sie nur
+>   auf den Prüfbildschirm.
+> - **Produktion lesen im Auto-Modus gesperrt:** Nur-Lese-Skript lokal gegen
+>   SQLite testen, der Nutzer startet es mit
+>   `ssh flexr-vps 'cd /flexr/backend && venv/bin/python -' < skript.py`;
+>   nginx-Logs liest `deploy` per `zgrep /var/log/nginx/access.log*`.
+> - **Tests:** Backend 774 grün (+13, `test_pruefungs_erinnerung.py`).
+>   Deploy: `git pull --ff-only` auf dem VPS, kein Neustart nötig (der
+>   Tagesjob lädt den Code bei jedem Lauf neu).
 
 > **Sitzung 30.10.2026: QR-Code auch im Ausweis-Schritt, Telegram bei
 > Profillöschung.** Nur Web/Backend, keine App-Version.

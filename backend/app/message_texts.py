@@ -712,6 +712,84 @@ TEXTE: dict[str, dict[str, str]] = {
         "en": "If you have questions, just reply to this email.",
     },
 
+    # ---- Erinnerung an eine angefangene Pruefung (email_jobs) ----
+    # Geht an Konten, die mitten in der Pruefung stehen geblieben sind. Der
+    # Text nennt genau den Schritt, der fehlt - "schliess deine Pruefung ab"
+    # allein sagt nicht, ob noch fuenf Minuten oder ein Handgriff fehlen.
+    "remind.subject": {
+        "de": "Dein FLEXR-Konto ist fast startklar",
+        "en": "Your FLEXR account is almost ready",
+    },
+    "remind.eyebrow": {"de": "Fast geschafft", "en": "Almost there"},
+    "remind.document": {
+        "de": (
+            "dein Selfie ist da - es fehlt nur noch ein Foto deines Ausweises. "
+            "Danach prüfen wir dein Konto und schalten dich frei."
+        ),
+        "en": (
+            "we have your selfie - all that is missing is a photo of your ID. "
+            "After that we check your account and activate it."
+        ),
+    },
+    "remind.selfie": {
+        "de": (
+            "dein Konto ist noch nicht freigeschaltet. Es fehlen noch zwei kurze "
+            "Schritte: ein Selfie und ein Foto deines Ausweises. Danach prüfen wir "
+            "dein Konto und schalten dich frei."
+        ),
+        "en": (
+            "your account is not activated yet. Two short steps are left: a selfie "
+            "and a photo of your ID. After that we check your account and activate "
+            "it."
+        ),
+    },
+    "remind.photos": {
+        "de": (
+            "dein Konto ist noch nicht freigeschaltet. Für die Prüfung brauchen wir "
+            "mindestens {min} Profilfotos - bitte lade noch {missing} weitere hoch."
+        ),
+        "en": (
+            "your account is not activated yet. For the check we need at least "
+            "{min} profile photos - please upload {missing} more."
+        ),
+    },
+    "remind.photos.thenDocument": {
+        "de": "Danach fehlt nur noch ein Foto deines Ausweises.",
+        "en": "After that, all that is missing is a photo of your ID.",
+    },
+    "remind.photos.thenSelfie": {
+        "de": "Danach folgen ein Selfie und ein Foto deines Ausweises.",
+        "en": "After that come a selfie and a photo of your ID.",
+    },
+    "remind.idHint": {
+        "de": (
+            "Den Ausweis kannst du direkt fotografieren oder ein vorhandenes Bild "
+            "wählen. Geprüft wird von einem Menschen, nicht automatisch. Angaben, "
+            "die wir nicht brauchen, darfst du schwärzen - Foto, Geburtsdatum und "
+            "Gültigkeit müssen sichtbar bleiben. Nach der Prüfung löschen wir die "
+            "Aufnahme."
+        ),
+        "en": (
+            "You can photograph your ID directly or choose an existing image. A "
+            "person does the check, not an automated system. You may black out "
+            "details we do not need - the photo, date of birth and validity must "
+            "stay visible. We delete the image after the check."
+        ),
+    },
+    "remind.cta": {"de": "Jetzt abschließen", "en": "Finish now"},
+    "remind.optOut": {
+        "de": (
+            "Du willst FLEXR doch nicht nutzen? Dann kannst du dein Konto in der "
+            "App löschen - danach hörst du nichts mehr von uns. Bei Fragen antworte "
+            "einfach auf diese Mail."
+        ),
+        "en": (
+            "Changed your mind about FLEXR? You can delete your account in the app "
+            "- after that you will not hear from us again. If you have questions, "
+            "just reply to this email."
+        ),
+    },
+
     # ---- Moderationsmitteilung (Art. 17 DSA) ----
     "moderation.subject": {
         "de": "Wichtige Mitteilung zu deinem FLEXR-Konto",

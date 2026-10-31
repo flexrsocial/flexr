@@ -8,8 +8,14 @@ from sqlalchemy.orm import Session
 from . import consents, mailer, notifications
 from .database import SessionLocal
 from .email_notifications import send_once
-from .models import Block, Report, Swipe, User
-from .verification_service import account_visible_condition
+from .models import MIN_PHOTOS, Block, Report, Swipe, User, VerificationStatus
+from .verification_service import (
+    ORPHAN_RETENTION_DAYS,
+    account_visible_condition,
+    decision_is_binding,
+    latest_request,
+    next_step_for,
+)
 
 # Ab wie vielen wartenden Profilen im Suchradius benachrichtigt wird.
 QUEUE_THRESHOLD = 3
@@ -24,6 +30,18 @@ INACTIVITY_LAST_DAY = 14
 # Wochentag (Montag = 0), an dem die "offene Likes"-Mail läuft - einmal
 # wöchentlich statt bei jedem täglichen Joblauf.
 PENDING_LIKES_WEEKDAY = 0
+
+# Erinnerung an eine angefangene Prüfung: fällig, wenn so lange nichts mehr
+# passiert ist. Der Job läuft einmal am Tag um 9 Uhr (deploy/
+# flexr-email-jobs.timer) - mit glatten 24 Stunden bekäme, wer um 10 Uhr
+# hängen bleibt, die Erinnerung erst nach 47 Stunden. 20 Stunden heißt: am
+# nächsten Morgen, sofern es bis etwa 13 Uhr war.
+VERIFICATION_REMINDER_AFTER = timedelta(hours=20)
+
+# Danach nicht mehr: Nach dieser Frist räumt cleanup.py die verwaisten
+# Prüfaufnahmen weg, und wer zwei Wochen nicht weitergemacht hat, wird durch
+# eine weitere Mail nicht zurückgewonnen.
+VERIFICATION_REMINDER_LAST_DAY = ORPHAN_RETENTION_DAYS
 
 
 def _utc_naive(value: datetime) -> datetime:
@@ -44,6 +62,7 @@ def run_due_email_jobs(db: Session, now: datetime | None = None) -> dict[str, in
     # (scripts/, Admin-Ansicht) unveraendert weiterlaeuft.
     result: dict[str, int] = {"trial_ending_sent": 0, "trial_ended_sent": 0, "failed": 0}
     result.update(run_activity_notifications(db, current))
+    result.update(run_verification_reminders(db, current))
     return result
 
 
@@ -68,6 +87,11 @@ def run_activity_notifications(db: Session, current: datetime) -> dict[str, int]
             User.deleted_at.is_(None),
             User.is_banned.is_(False),
             User.email_verified_at.isnot(None),
+            # Noch nicht freigeschaltete Konten haben weder Deck noch Likes,
+            # und "Lange nicht gesehen, neue Profile warten" führte sie nur
+            # auf den Prüfbildschirm. Sie bekommen stattdessen die Erinnerung
+            # an den fehlenden Schritt (run_verification_reminders).
+            account_visible_condition(),
         )
         .all()
     )
@@ -114,6 +138,85 @@ def run_activity_notifications(db: Session, current: datetime) -> dict[str, int]
             if pending >= 1:
                 notifications.notify_pending_likes(db, user, pending, week_key)
                 result["pending_likes_notified"] += 1
+
+    return result
+
+
+def run_verification_reminders(db: Session, current: datetime) -> dict[str, int]:
+    """Erinnert an eine angefangene Alters- und Identitätsprüfung.
+
+    Anlass (31.10.2026): Zwei neue Konten hatten Profilfotos und Selfie, aber
+    nie einen Ausweis hochgeladen - und nichts holte sie zurück, denn alle
+    übrigen Mails setzen ein freigeschaltetes Konto voraus.
+
+    Eine Erinnerung je Schritt: Der Schlüssel enthält Vorgang, Status und den
+    fehlenden Schritt. Wer danach weiterkommt (Selfie gemacht, Fotos ergänzt,
+    Neu-Upload angefordert), steht vor einem neuen Schritt und wird dort noch
+    einmal erinnert - wer nichts tut, bekommt keine zweite Mail.
+
+    Bewusst nur per E-Mail: Eine App-Benachrichtigung bräuchte einen neuen
+    Anlass im Postgres-Enum (models.NotificationTopic), und die Web-App am
+    iPhone - dort hingen beide Konten - ist ohne Installation auf dem
+    Home-Bildschirm per Push gar nicht erreichbar.
+    """
+    result = {"verification_reminded": 0}
+    candidates = (
+        db.query(User)
+        .filter(
+            User.deleted_at.is_(None),
+            User.is_banned.is_(False),
+            # Ohne bestätigte Adresse geht keine Mail raus (wie
+            # notifications.is_reachable) - dafür gibt es den Aktivierungslink.
+            User.email_verified_at.isnot(None),
+            User.verification_required.is_(True),
+            User.activated_at.is_(None),
+        )
+        .all()
+    )
+    due_before = current - VERIFICATION_REMINDER_AFTER
+    too_old = current - timedelta(days=VERIFICATION_REMINDER_LAST_DAY)
+
+    for user in candidates:
+        reference = user.last_active_at or user.created_at
+        if reference is None or reference > due_before or reference <= too_old:
+            continue
+
+        req = latest_request(db, user.id)
+        if req is not None and req.status == VerificationStatus.submitted:
+            continue  # liegt beim Prüfer, der Nutzer hat nichts mehr zu tun
+        step_req = req
+        if req is not None and req.status in (
+            VerificationStatus.approved, VerificationStatus.rejected
+        ):
+            if decision_is_binding(user, req):
+                continue  # abgeschlossen - eine Ablehnung lässt sich nicht wiederholen
+            step_req = None  # Prüfung neu angefordert: beginnt beim Selfie
+        step = next_step_for(step_req)
+        if step not in ("selfie", "document"):
+            continue
+        missing = max(0, MIN_PHOTOS - len(user.valid_photos))
+
+        key = ":".join([
+            "verify_reminder", user.id,
+            step_req.id if step_req else "-",
+            step_req.status.value if step_req else "none",
+            step, "photos" if missing else "ok",
+        ])
+        versendet = []
+
+        def senden(user=user, step=step, missing=missing) -> bool:
+            ok = mailer.send_verification_reminder(
+                user.email, user.name, step, missing, user.language
+            )
+            if ok:
+                versendet.append(True)
+            return ok
+
+        # Scheitert der Versand, gibt send_once die Reservierung wieder frei -
+        # der nächste Tageslauf versucht es erneut.
+        send_once(db, key, "verification_reminder", senden)
+        if versendet:
+            result["verification_reminded"] += 1
 
     return result
 
