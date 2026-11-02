@@ -138,14 +138,15 @@
 // Mehrfachauswahl der Fotos, "Freunde einladen" im leeren Deck; legal.css
 // ?v=3 (Tabellen brechen nur an Wortgrenzen), i18n.js ?v=6, i18n-app.js ?v=46.
 // v59: Passwort-Link am iPhone - Leiste "In der App oeffnen" ueber flexr://.
-const CACHE = 'flexr-shell-v59';
+// v60: Startboost-Skript inline im <head>, /startboost.js entfaellt;
+// Musterprofile per srcset in 360/540/720 px.
+const CACHE = 'flexr-shell-v60';
 // Seit dem 15.08.2026 liegt die App unter /app/, an der Wurzel steht die
 // oeffentliche Landingpage. Beide gehoeren in die Shell: die Landingpage,
 // weil sie der Einstieg ist, die App, weil sie offline funktionieren soll.
 const SHELL = ['/', '/index.html', '/en/', '/en/index.html',
                '/app/', '/app/index.html',
                '/lang-switch.js?v=2', '/i18n.js?v=6', '/app/i18n-app.js?v=46',
-               '/startboost.js?v=1',
                '/manifest.json', '/favicon.ico', '/legal.css?v=3',
                '/fonts/work-sans.woff2?v=1', '/fonts/oswald.woff2?v=1',
                '/icons/icon-192.png?v=4', '/icons/icon-512.png?v=4'];

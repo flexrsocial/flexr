@@ -233,6 +233,28 @@ def test_nginx_liefert_echte_404_und_cachet_nur_versionierte_demo_assets():
     assert 'max-age=31536000, immutable' in nginx
 
 
+def test_skripte_und_stylesheets_cachen_nur_mit_versionsparameter():
+    nginx = NGINX.read_text(encoding="utf-8")
+    # Ohne ?v= muss es no-cache bleiben, sonst haengt /sw.js ein Jahr fest.
+    assert re.search(r'map \$arg_v \$flexr_asset_cache \{\s*""\s+"no-cache";', nginx)
+    block = re.search(r"location ~\* \^/\(\?!api/\|photos/\|brand/\)[^{]*\{(.*?)\n    \}",
+                      nginx, re.S)
+    assert block, "eigene location fuer .js/.css fehlt"
+    assert "include /etc/nginx/snippets/flexr-security.conf;" in block.group(1)
+    # Jeder Verweis auf eigene Skripte/Stylesheets braucht die Versionsnummer.
+    for page in FRONTEND.rglob("*.html"):
+        for ref in re.findall(r'(?:src|href)="(/[^"?]+\.(?:js|css)(?:\?[^"]*)?)"', page.read_text(encoding="utf-8")):
+            assert "?v=" in ref, (page.name, ref)
+
+
+def test_srcset_der_musterprofile_zeigt_auf_vorhandene_dateien():
+    seite = (FRONTEND / "index.html").read_text(encoding="utf-8")
+    kandidaten = re.findall(r'(/brand/demo/[^"\s?]+)\?v=1 \d+w', seite)
+    assert len(kandidaten) >= 3 * 28
+    for pfad in kandidaten:
+        assert (FRONTEND / pfad.lstrip("/")).exists(), pfad
+
+
 def test_service_worker_cachet_weder_nutzerfotos_noch_downloads():
     worker = (FRONTEND / "sw.js").read_text(encoding="utf-8")
     # Bewusst nur das Muster, nicht die Nummer: Der Shell-Cache wird bei jeder

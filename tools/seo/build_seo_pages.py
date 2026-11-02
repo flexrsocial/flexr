@@ -42,9 +42,10 @@ HEUTE = dt.date.today().isoformat()
 
 # Startboost bis 31.12.2026: voller Suchumkreis bis 580 km auch ohne Premium.
 # Der Zusatz steht nur im sichtbaren Text, als <span class="startboost">, den
-# /startboost.js ab dem 01.01.2027 ausblendet. In die strukturierten Daten
+# STARTBOOST_SKRIPT ab dem 01.01.2027 ausblendet. In die strukturierten Daten
 # (FAQPage) kommt er bewusst nicht: Die liest keine Suchmaschine mit Skript
 # neu, ein abgelaufenes Angebot bliebe dort bis zum naechsten Bauen stehen.
+STARTBOOST_SKRIPT = '<script>/* Startboost-Zusaetze (class="startboost") ab 01.01.2027 (Wiener Zeit) ausblenden. Inline statt eigener Datei: keine blockierende Anfrage vor dem ersten Zeichnen. Bei Verlaengerung Datum hier, in tools/seo/build_seo_pages.py und backend/app/premium.py mitziehen. */\n(function(){var d;try{d=new Intl.DateTimeFormat(\'en-CA\',{timeZone:\'Europe/Vienna\',year:\'numeric\',month:\'2-digit\',day:\'2-digit\'}).format(new Date())}catch(e){d=new Date().toISOString().slice(0,10)}if(d>\'2026-12-31\'){var s=document.createElement(\'style\');s.textContent=\'.startboost{display:none !important}\';document.head.appendChild(s)}})();</script>'
 STARTBOOST = ('<span class="startboost"> Bis 31.12.2026 ist der volle Suchumkreis '
               'bis 580&nbsp;Kilometer für alle frei.</span>')
 
@@ -520,7 +521,7 @@ def seite(*, url: str, titel: str, beschreibung: str, og_titel: str,
 <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon-180.png?v=1">
 <link rel="preload" href="/fonts/oswald.woff2?v=1" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="/legal.css?v=3">
-<script src="/startboost.js?v=1"></script>
+{STARTBOOST_SKRIPT}
 {jsonld(graph)}
 {STIL}
 </head>
