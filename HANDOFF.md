@@ -32,6 +32,44 @@ erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 
 ## Wo das Projekt gerade steht
 
+> **Sitzung 02.11.2026: Website-Tuning (Bilder, Startboost, Caching).** Nur
+> Website und nginx, keine App-Version, kein Backend-Neustart. Commit
+> `c551ba4`, gemergt in `ebf84c8`, deployt.
+>
+> - **Anlass:** Lighthouse mobil vorher 88, LCP 3,2 s (LCP-Element: hinteres
+>   Hero-Foto), Speed Index 4,4 s, ~230 KB Bild-Überhang, `/startboost.js`
+>   als einzige blockierende Ressource.
+> - **Musterprofile per srcset:** `frontend/brand/build_demo_sizes.py`
+>   erzeugt aus jedem Demo-JPEG `-360.webp` und `-540.webp` (Qualität 80,
+>   method 6 = Einstellung der vorhandenen 720er). Hero `sizes` 200/218/261 px,
+>   Deck bis 380 px. **Neue Demo-Fotos: Skript laufen lassen**, sonst fehlen
+>   die kleinen Fassungen (Test `test_srcset_der_musterprofile_...`).
+> - **Startboost inline** im `<head>` (Landing DE/EN, FAQ DE/EN, SEO-Seiten
+>   über `STARTBOOST_SKRIPT` in `tools/seo/build_seo_pages.py`).
+>   `/startboost.js` gelöscht, SW-Cache `v60`. Verlängerung: Datum in
+>   `index.html`, `faq.html`, `en/faq.html`, `build_seo_pages.py`, danach
+>   `build-en.py` und `build_seo_pages.py` laufen lassen.
+> - **nginx:** `.js/.css` mit `?v=` → `public, max-age=31536000, immutable`,
+>   ohne `?v=` `no-cache` (`/sw.js`!). `map $arg_v $flexr_asset_cache` plus
+>   Regex-Location ohne `/api/`, `/photos/`, `/brand/`. Live mit `curl`
+>   geprüft. **Jeder neue JS/CSS-Verweis braucht `?v=`** (Test prüft das).
+> - **Falle auf dem VPS:** `/etc/nginx/sites-enabled/flexr.social` ist eine
+>   **eigene Datei, kein Symlink**, und trug seit 01.11. zusätzlich
+>   `http2 on;`. Eine Änderung nur in `sites-available` wirkt nicht. Beide
+>   sind jetzt wieder gleich; Sicherungen in `/root/flexr-backups/`.
+> - **Zugang:** Der lokale Alias `flexr-vps` steht jetzt auf `User deploy`
+>   (root von Hand: `ssh root@flexr-vps`, mit TOTP). Gescheiterte
+>   root-Logins hatten Port 22 für die eigene IP gesperrt („Connection
+>   refused“); ein Router-Neustart (neue IP) half.
+> - **Lokales Git war veraltet:** `.git` stand auf 17.08., GitHub 506
+>   Commits weiter, Arbeitsbaum aber gleich `origin/main` (MEGA hatte nur
+>   Dotfiles verschluckt). Mit `git reset --mixed origin/main` und
+>   Zurückholen von `.gitignore`/`.megaignore`/`.github` behoben. venv
+>   nachgezogen (`pyotp` fehlte).
+> - **Messung danach** (Rechner unter Last, TBT verfälscht): Performance
+>   81–90, LCP 2,0–2,7 s, Speed Index 2,5–2,8 s, nichts blockierend. Saubere
+>   PageSpeed-Messung steht noch aus (Kontingent war erschöpft).
+
 > **Sitzung 31.10.2026: Erinnerungsmail für angefangene Prüfungen.** Nur
 > Backend, keine App-Version, keine Migration.
 >
