@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <title>FLEXR — Dating-App für Gym-People</title>
-<meta name="description" content="Bei FLEXR anmelden oder kostenlos registrieren: Dating für Gym-People mit Matches nach Fitnessstudio und Umkreis in Österreich.">
+<meta name="description" content="Bei FLEXR anmelden oder kostenlos registrieren: Dating für Gym-People mit Matches nach Fitnessstudio und Umkreis in Österreich und Deutschland.">
 <!-- Die Web-App gehoert nicht in den Index: Login, Registrierung, Profile,
      Chats und Konto haben keinen Suchwert, und ihre Inhalte sind ohnehin nur
      angemeldet erreichbar. Die indexierbare Seite ist die Landingpage unter /.
@@ -2676,14 +2676,14 @@
 
     <!-- LANDING-HERO (nur sichtbar im Landing-Modus, d.h. ausgeloggt) -->
     <div class="landing-hero">
-      <div class="hero-eyebrow" data-i18n="hero.eyebrow">Dating für Gym-People · Österreich</div>
+      <div class="hero-eyebrow" data-i18n="hero.eyebrow">Dating für Gym-People · Österreich &amp; Deutschland</div>
       <h1 data-i18n-html="hero.h1">Match.<br>Train.<br><em>Repeat.</em></h1>
       <p class="hero-sub" data-i18n="hero.sub">
         Dating für Leute, die auch montags Beintag machen. Finde Menschen,
         die dein Training genauso ernst nehmen wie du — in deinem Gym, in deiner Stadt.
       </p>
       <ul class="hero-usps">
-        <li data-i18n-html="hero.usp1">Matches nach Gym &amp; Stadt — kein Ghosting am anderen Ende Österreichs</li>
+        <li data-i18n-html="hero.usp1">Matches nach Gym &amp; Stadt — kein Ghosting am anderen Ende des Landes</li>
         <!-- Beta-Gratisphase: Diese Zeile und der Registrierungstext weiter
              unten stehen fest im Markup, weil sie vor dem Login gezeigt werden
              - da gibt es noch keinen /api/billing/status. Wird die Gebuehr
@@ -2934,7 +2934,7 @@
         <div>
           <label for="f-plz" data-i18n="reg.plz">Postleitzahl</label>
           <div class="plz-combo" id="plzCombo">
-            <input type="text" id="f-plz" placeholder="1010" inputmode="numeric" maxlength="4" autocomplete="postal-code">
+            <input type="text" id="f-plz" placeholder="PLZ" inputmode="numeric" maxlength="5" autocomplete="postal-code">
             <span class="ort-display" id="ortDisplay" data-i18n="reg.plzPlaceholderHint">— PLZ eingeben —</span>
           </div>
         </div>
@@ -3012,7 +3012,7 @@
       <!-- Beta-Gratisphase, siehe Kommentar bei den Hero-USPs. Seit der
            Aufteilung in Schritte hier vor dem Absenden statt ueber dem
            Formular - dort hielt er Schritt 1 hoeher als den Bildschirm. -->
-      <p class="sub reg-kosten" data-i18n-html="reg.sub">Erstell dein Profil — kostenlos, und das dauerhaft. FLEXR zu nutzen kostet nichts; es wird kein Zahlungsmittel abgefragt. FLEXR&nbsp;Premium (10&nbsp;€/Monat, jederzeit kündbar) ist freiwillig. Aktuell nur in Österreich verfügbar.</p>
+      <p class="sub reg-kosten" data-i18n-html="reg.sub">Erstell dein Profil — kostenlos, und das dauerhaft. FLEXR zu nutzen kostet nichts; es wird kein Zahlungsmittel abgefragt. FLEXR&nbsp;Premium (10&nbsp;€/Monat, jederzeit kündbar) ist freiwillig. Verfügbar in Österreich und Deutschland.</p>
       <!-- Aufklappbar seit der Aufteilung in Schritte: Der Kasten war allein
            fast 300px hoch. Dass Selfie und Ausweis folgen, sagt schon der
            Hinweis im ersten Schritt; hier stehen die Einzelheiten. -->
@@ -3207,7 +3207,7 @@
 
         <label for="a-plz" data-i18n="reg.plz">Postleitzahl</label>
         <div class="plz-combo" id="acctPlzCombo">
-          <input type="text" id="a-plz" placeholder="1010" inputmode="numeric" maxlength="4" autocomplete="postal-code">
+          <input type="text" id="a-plz" placeholder="PLZ" inputmode="numeric" maxlength="5" autocomplete="postal-code">
           <span class="ort-display" id="acctOrtDisplay" data-i18n="reg.plzPlaceholderHint">— PLZ eingeben —</span>
         </div>
         <div class="field-err" id="acctPlzErr"></div>
@@ -3776,7 +3776,7 @@
           </div>
           <div>
             <label for="sg-plz" data-i18n="gym.plz">Postleitzahl</label>
-            <input type="text" id="sg-plz" placeholder="1010" inputmode="numeric" maxlength="4" autocomplete="postal-code">
+            <input type="text" id="sg-plz" placeholder="PLZ" inputmode="numeric" maxlength="5" autocomplete="postal-code">
           </div>
         </div>
         <div class="field-err" id="sgErr"></div>
@@ -5117,7 +5117,7 @@
       pw.length >= 8 && pw === $('f-password2').value,
       !!$('f-name').value.trim(),
       !!geburt && !ageGateBlocked && calcAge(geburt) >= 18,
-      /^\d{4}$/.test($('f-plz').value.trim()) && !!resolvedCity,
+      /^\d{4,5}$/.test($('f-plz').value.trim()) && !!resolvedCity,
       !!$('f-gender').value,
       !!($('f-gym').dataset.label || $('f-gym').value.trim()),
       pendingPhotos.length >= MIN_PHOTOS,
@@ -5152,6 +5152,14 @@
     return (await api(`/api/geo/plz/${encodeURIComponent(plz)}`)).city;
   }
 
+  // Vier Ziffern koennen eine fertige oesterreichische PLZ sein - oder die
+  // ersten vier einer deutschen. Deshalb: Eine Antwort, die erst nach der
+  // naechsten Ziffer eintrifft, wird verworfen (sonst ueberschriebe "8033"
+  // das Ergebnis fuer "80331"), und ein 404 bei vier Ziffern ist noch kein
+  // Fehler, sondern "weitertippen". Eine falsche vierstellige PLZ faellt
+  // trotzdem auf: Ohne aufgeloesten Ort laesst sich nicht speichern.
+  function plzVielleichtUnfertig(plz){ return plz.length === 4; }
+
   async function lookupLocalityForPlz(plz){
     const ortDisplay = $('ortDisplay');
     const plzErr = $('plzErr');
@@ -5160,11 +5168,18 @@
     ortDisplay.classList.remove('resolved');
     resolvedCity = '';
     try{
-      resolvedCity = await lookupCityForPlz(plz);
+      const city = await lookupCityForPlz(plz);
+      if($('f-plz').value.trim() !== plz) return;
+      resolvedCity = city;
       setPlainText(ortDisplay, resolvedCity);   // Eigenname, nicht uebersetzbar
       ortDisplay.classList.add('resolved');
       renderRegJourney();
     }catch(err){
+      if($('f-plz').value.trim() !== plz) return;
+      if(err.status === 404 && plzVielleichtUnfertig(plz)){
+        setI18nText(ortDisplay, 'reg.plzPlaceholderHint');
+        return;
+      }
       if(err.status === 404){
         setI18nText(ortDisplay, 'plz.unknownShort');
         setI18nText(plzErr, 'plz.notFound');
@@ -5179,7 +5194,7 @@
   $('f-plz').addEventListener('input', () => {
     const plz = $('f-plz').value.trim();
     clearTimeout(plzLookupTimeout);
-    if(!/^\d{4}$/.test(plz)){
+    if(!/^\d{4,5}$/.test(plz)){
       setI18nText($('ortDisplay'), 'reg.plzPlaceholderHint');
       $('ortDisplay').classList.remove('resolved');
       setPlainText($('plzErr'), '');
@@ -5256,7 +5271,7 @@
         const seq = ++searchSeq;
         try{
           const plz = plzId ? $(plzId).value.trim() : '';
-          const near = /^\d{4}$/.test(plz) ? '&near=' + plz : '';
+          const near = /^\d{4,5}$/.test(plz) ? '&near=' + plz : '';
           const gyms = await api('/api/gyms?q=' + encodeURIComponent(term) + near);
           if(seq === searchSeq) render(gyms, term);
         }catch(err){ console.error(err); }
@@ -5287,7 +5302,7 @@
     const street = $('sg-street').value.trim();
     const number = $('sg-number').value.trim();
     const plz = $('sg-plz').value.trim();
-    if(name.length < 2 || street.length < 2 || !number || !/^\d{4}$/.test(plz)){
+    if(name.length < 2 || street.length < 2 || !number || !/^\d{4,5}$/.test(plz)){
       errEl.textContent = t('gym.errFields');
       return;
     }
@@ -5471,7 +5486,7 @@
       return null;
     }
     if(schritt === 2){
-      if(!/^\d{4}$/.test(payload.plz) || !payload.city) return ['f-plz', t('reg.errPlz')];
+      if(!/^\d{4,5}$/.test(payload.plz) || !payload.city) return ['f-plz', t('reg.errPlz')];
       if(!payload.gender) return ['f-gender', t('reg.errGender')];
       if(!payload.gym) return ['f-gym', t('reg.errGym')];
       return null;
@@ -7258,10 +7273,17 @@
     ortDisplay.classList.remove('resolved');
     acctResolvedCity = '';
     try{
-      acctResolvedCity = await lookupCityForPlz(plz);
+      const city = await lookupCityForPlz(plz);
+      if($('a-plz').value.trim() !== plz) return;
+      acctResolvedCity = city;
       setPlainText(ortDisplay, acctResolvedCity);   // Eigenname, nicht uebersetzbar
       ortDisplay.classList.add('resolved');
     }catch(err){
+      if($('a-plz').value.trim() !== plz) return;
+      if(err.status === 404 && plzVielleichtUnfertig(plz)){
+        setI18nText(ortDisplay, 'reg.plzPlaceholderHint');
+        return;
+      }
       if(err.status === 404){
         setI18nText(ortDisplay, 'plz.unknownShort');
         setI18nText($('acctPlzErr'), 'plz.notFound');
@@ -7276,7 +7298,7 @@
   $('a-plz').addEventListener('input', () => {
     const plz = $('a-plz').value.trim();
     clearTimeout(acctPlzLookupTimeout);
-    if(!/^\d{4}$/.test(plz)){
+    if(!/^\d{4,5}$/.test(plz)){
       setI18nText($('acctOrtDisplay'), 'reg.plzPlaceholderHint');
       $('acctOrtDisplay').classList.remove('resolved');
       setPlainText($('acctPlzErr'), '');
@@ -7299,7 +7321,7 @@
     setPlainText(errEl, '');
 
     const plz = $('a-plz').value.trim();
-    if(!/^\d{4}$/.test(plz) || !acctResolvedCity){
+    if(!/^\d{4,5}$/.test(plz) || !acctResolvedCity){
       setI18nText(errEl, 'reg.errPlz');
       return;
     }
