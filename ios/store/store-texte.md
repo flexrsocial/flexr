@@ -130,24 +130,23 @@ Dating für Gym-People
 ## Werbetext / Promotional Text (max. 170 Zeichen, jederzeit änderbar)
 
 ```
-Dating für Leute, die auch montags Beintag machen. Match nach Gym und Umkreis –
-in ganz Österreich. Kostenlos nutzbar.
+Dating für Leute, die auch montags Beintag machen. Match nach Gym und Umkreis – in Österreich und jetzt auch in Deutschland. Kostenlos nutzbar.
 ```
 
 ## Keywords (max. 100 Zeichen, kommagetrennt, ohne Leerzeichen)
 
 ```
-gym,fitness,dating,österreich,training,partner,krafttraining,studio,match,sport,flirten,single
+gym,fitness,dating,deutschland,österreich,training,krafttraining,studio,match,sport,flirten,single
 ```
 
-*(93 Zeichen. „FLEXR" nicht aufnehmen — der App-Name wird ohnehin indexiert.)*
+*(98 Zeichen. „FLEXR" nicht aufnehmen — der App-Name wird ohnehin indexiert.)*
 
 ## Beschreibung (max. 4000 Zeichen)
 
 ```
 FLEXR ist Dating für Leute, die auch montags Beintag machen.
 
-Schluss mit endlosem Wischen an Menschen, die „ins Fitnessstudio gehen" nur ins Profil schreiben. Auf FLEXR triffst du echte Gym-People aus deinem Umkreis – in ganz Österreich, von Wien über Graz und Linz bis Innsbruck.
+Schluss mit endlosem Wischen an Menschen, die „ins Fitnessstudio gehen" nur ins Profil schreiben. Auf FLEXR triffst du echte Gym-People aus deinem Umkreis – in Österreich und Deutschland, von Wien, Graz und Salzburg bis Berlin, Hamburg und München.
 
 WARUM FLEXR?
 
@@ -163,8 +162,8 @@ Ob Powerlifting, Crossfit, Bodybuilding oder einfach der tägliche Gang aufs Lau
 • Chatten, wenn's matcht
 Sobald es auf beiden Seiten funkt, könnt ihr schreiben. Verabrede dich zum gemeinsamen Workout oder auf einen Kaffee (oder Protein-Shake) danach.
 
-• Made in Austria
-FLEXR ist für Österreich gebaut – mit echten Standorten und Studios im ganzen Land.
+• Neu in Deutschland
+FLEXR kommt aus Österreich und ist jetzt auch in Deutschland verfügbar – mit über 2.500 echten Studios in beiden Ländern. In deutschen Städten fangen wir gerade erst an.
 
 SO FUNKTIONIERT'S
 
@@ -190,8 +189,10 @@ Lade FLEXR und finde jemanden, der deine PRs feiert statt sie zu googeln.
 
 ## Neue Funktionen (bei jedem Update)
 
+2.4.17:
+
 ```
-Erste Fassung für iPhone und iPad.
+FLEXR gibt es jetzt auch in Deutschland: Registrierung mit deutscher Postleitzahl und über 2.000 deutsche Studios zur Auswahl. Dazu Rechtstexte für Deutschland und kleinere Verbesserungen.
 ```
 
 ---
@@ -219,14 +220,13 @@ Dating for Gym People
 ### Promotional Text (max. 170 characters, changeable anytime)
 
 ```
-Dating for people who do leg day on Mondays too. Match by gym and radius –
-all over Austria. Free to use.
+Dating for people who do leg day on Mondays too. Match by gym and radius – in Austria and now in Germany too. Free to use.
 ```
 
 ### Keywords (max. 100 characters, comma-separated, no spaces)
 
 ```
-gym,fitness,dating,austria,training,partner,strength,studio,match,sport,flirt,single
+gym,fitness,dating,germany,austria,training,strength,studio,match,sport,flirt,single
 ```
 
 *(84 characters. Don't include „FLEXR" — the app name is indexed anyway.)*
@@ -236,7 +236,7 @@ gym,fitness,dating,austria,training,partner,strength,studio,match,sport,flirt,si
 ```
 FLEXR is dating for people who do leg day on Mondays too.
 
-Enough with endless swiping on people who only write "goes to the gym" in their bio. On FLEXR you meet real gym-people near you – all over Austria, from Vienna to Graz, Linz and Innsbruck.
+Enough with endless swiping on people who only write "goes to the gym" in their bio. On FLEXR you meet real gym-people near you – in Austria and Germany, from Vienna, Graz and Salzburg to Berlin, Hamburg and Munich.
 
 WHY FLEXR?
 
@@ -252,8 +252,8 @@ Powerlifting, CrossFit, bodybuilding, or just the daily walk on the treadmill: y
 • Chat once you match
 Once it clicks on both sides, you can message. Meet up for a workout together, or a coffee (or protein shake) afterwards.
 
-• Made in Austria
-FLEXR is built for Austria – with real locations and gyms across the country.
+• New in Germany
+FLEXR comes from Austria and is now available in Germany too – with over 2,500 real gyms in both countries. In German cities we are only just getting started.
 
 HOW IT WORKS
 
@@ -279,8 +279,10 @@ Get FLEXR and find someone who celebrates your PRs instead of googling them.
 
 ### What's New (with every update)
 
+2.4.17:
+
 ```
-First release for iPhone and iPad.
+FLEXR is now available in Germany too: sign up with a German postal code and choose from over 2,000 German gyms. Plus legal texts for Germany and minor improvements.
 ```
 
 ---
