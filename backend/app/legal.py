@@ -24,7 +24,7 @@ from typing import Final
 # ---------------------------------------------------------------------------
 
 BRAND: Final = "FLEXR"
-POSITIONING: Final = "Dating für Gym-People in Österreich"
+POSITIONING: Final = "Dating für Gym-People in Österreich und Deutschland"
 DOMAIN: Final = "flexr.social"
 SITE_URL: Final = "https://flexr.social"
 
@@ -81,11 +81,11 @@ def operator_inline() -> str:
 # steht sichtbar unter "Stand:" auf jeder Seite.
 # ---------------------------------------------------------------------------
 
-TERMS_VERSION: Final = "2026-10-13"           # AGB (Premium-Umkreis 580 km, Startaktion 7 e bis 31.12.2026)
-PRIVACY_VERSION: Final = "2026-10-14"          # Datenschutzerklärung (markierte Nachricht nach Auflösen des Matches: höchstens 30 Tage)
-AUP_VERSION: Final = "2026-08-19"              # Nutzungsrichtlinien
+TERMS_VERSION: Final = "2026-11-03"           # AGB (Deutschland: Geltungsbereich, Kündigungsbutton § 312k BGB, Gerichtsstand, DSC)
+PRIVACY_VERSION: Final = "2026-11-03"          # Datenschutzerklärung (Kündigungserklärungen, Beschwerde bei der Aufsicht am Wohnort)
+AUP_VERSION: Final = "2026-11-03"              # Nutzungsrichtlinien (Behörden, Notrufe und Hilfsangebote in Deutschland)
 LE_GUIDELINES_VERSION: Final = "2026-08-19"    # Strafverfolgungsrichtlinien
-WITHDRAWAL_VERSION: Final = "2026-08-17"      # Widerrufsbelehrung
+WITHDRAWAL_VERSION: Final = "2026-11-03"      # Widerrufsbelehrung (Hinweis für Verbraucher in Deutschland, §§ 312g, 355 BGB)
 WITHDRAWAL_ACK_VERSION: Final = "2026-08-17"  # Checkout: Kenntnisnahme Erlöschen Rücktrittsrecht
 
 

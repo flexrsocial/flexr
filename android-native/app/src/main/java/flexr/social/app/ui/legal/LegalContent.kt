@@ -51,13 +51,14 @@ object LegalContent {
 
     private val faq = LegalPage(
         document = LegalDocument.FAQ,
-        intro = "Alles Wichtige zu FLEXR — der Dating-App für Gym-People in Österreich. Tippe auf eine Frage, um die Antwort zu öffnen.",
+        intro = "Alles Wichtige zu FLEXR — der Dating-App für Gym-People in Österreich und Deutschland. Tippe auf eine Frage, um die Antwort zu öffnen.",
         blocks = listOf(
             LegalBlock.Faq(
                 "Was ist FLEXR?",
                 "FLEXR ist eine Dating-App für Menschen, denen Training und Gym wichtig " +
                     "sind. Du findest Matches nach deinem Fitnessstudio und deiner Stadt — " +
-                    "Leute in ganz Österreich, die einen ähnlichen Lifestyle leben wie du.",
+                    "Leute in ganz Österreich und Deutschland, die einen ähnlichen Lifestyle " +
+                    "leben wie du.",
             ),
             LegalBlock.Faq(
                 "Was kostet FLEXR?",
@@ -72,9 +73,9 @@ object LegalContent {
             ),
             LegalBlock.Faq(
                 "In welchen Städten ist FLEXR verfügbar?",
-                "FLEXR ist in ganz Österreich verfügbar. Die Matches richten sich nach " +
-                    "deinem Gym und deinem Umkreis — von Wien über Graz, Linz und Salzburg " +
-                    "bis Innsbruck und Klagenfurt.",
+                "FLEXR ist in ganz Österreich und Deutschland verfügbar. Die Matches " +
+                    "richten sich nach deinem Gym und deinem Umkreis — von Wien, Graz und " +
+                    "Salzburg bis Berlin, Hamburg und München.",
             ),
             LegalBlock.Faq(
                 "Wie funktioniert das Matching?",
@@ -190,8 +191,8 @@ object LegalContent {
                     "Bei begründetem Verdacht auf Falschangaben behalten wir uns die " +
                         "Sperre des Accounts vor. Bestehende Accounts können wir zur Alters- " +
                         "und Identitätsprüfung nachträglich auffordern.",
-                    "Nutzung aktuell nur für Personen mit Wohnsitz/Aufenthalt in " +
-                        "Österreich (Postleitzahl bei der Registrierung).",
+                    "Nutzung für Personen mit Wohnsitz/Aufenthalt in Österreich oder " +
+                        "Deutschland (Postleitzahl bei der Registrierung).",
                     "Ein Account pro Person; keine Erstellung von Fake-Profilen oder " +
                         "Profilen für Dritte.",
                 ),
@@ -237,7 +238,9 @@ object LegalContent {
                     "Premium verlängert sich jeweils um einen Monat, bis es gekündigt " +
                         "wird. Keine Mindestlaufzeit. Kündigung jederzeit zum Ende der " +
                         "laufenden Abrechnungsperiode selbstständig über „Abo verwalten / " +
-                        "kündigen“ im Konto-Bereich der App (Stripe Billing Portal). " +
+                        "kündigen“ im Konto-Bereich der App (Stripe Billing Portal) oder " +
+                        "ohne Anmeldung über „Verträge hier kündigen“ auf " +
+                        "flexr.social/kuendigen.html (§ 312k BGB). " +
                         "Danach läuft das Konto als kostenloses Konto weiter.",
                     "Zahlungsabwicklung über Stripe. Es gelten zusätzlich die " +
                         "Stripe-Nutzungsbedingungen.",
@@ -612,7 +615,7 @@ object LegalContent {
                 ),
             ),
             LegalBlock.Heading("6. Im Notfall"),
-            LegalBlock.Note("Bei akuter Gefahr: Polizei 133 oder Euronotruf 112."),
+            LegalBlock.Note("Bei akuter Gefahr: Euronotruf 112, Polizei in Österreich 133, in Deutschland 110."),
             LegalBlock.KeyValues(
                 listOf(
                     "Opfer-Notruf" to "0800 112 112 (rund um die Uhr, kostenlos)",
@@ -633,7 +636,7 @@ object LegalContent {
     // flexr.social/nutzungsrichtlinien.html — beide Fassungen zusammen pflegen.
     private val nutzungsrichtlinien = LegalPage(
         document = LegalDocument.NUTZUNGSRICHTLINIEN,
-        intro = "Verbindliche Verhaltens- und Inhaltsregeln für alle Nutzer von FLEXR. Stand: 19. August 2026. Diese Fassung ist gekürzt; maßgeblich ist der vollständige Text unter flexr.social/nutzungsrichtlinien.html.",
+        intro = "Verbindliche Verhaltens- und Inhaltsregeln für alle Nutzer von FLEXR. Stand: 3. November 2026. Diese Fassung ist gekürzt; maßgeblich ist der vollständige Text unter flexr.social/nutzungsrichtlinien.html.",
         blocks = listOf(
             LegalBlock.Heading("1. Geltung"),
             LegalBlock.Paragraph(
@@ -721,10 +724,11 @@ object LegalContent {
                         "österreichischen Strafverfolgungsbehörde (Bundeskriminalamt, " +
                         "Zentralstelle zur Bekämpfung der Schlepperkriminalität und des " +
                         "Menschenhandels) und endgültige Löschung des Kontos.",
-                    "Bei akuter Gefahr für eine Person: unverzüglich Polizeinotruf 133 " +
-                        "bzw. 112.",
+                    "Bei akuter Gefahr für eine Person: unverzüglich Polizeinotruf " +
+                        "(Österreich 133, Deutschland 110, EU-weit 112).",
                     "Betroffene werden auf Hilfsangebote hingewiesen, in Österreich " +
-                        "insbesondere LEFÖ-IBF und den Opfer-Notruf 0800 112 112.",
+                        "insbesondere LEFÖ-IBF und den Opfer-Notruf 0800 112 112, in " +
+                        "Deutschland das Hilfetelefon 116 016 und den Weißen Ring 116 006.",
                 ),
             ),
             LegalBlock.Heading("5. Protokoll: Illegale Handlungen"),
@@ -850,7 +854,8 @@ object LegalContent {
                     "Meldung binnen 24 Stunden nach Kenntnis an das Bundeskriminalamt, " +
                         "Meldestelle für Kinderpornografie und Kindersextourismus, und " +
                         "Anzeige bei der Kriminalpolizei. Bei akuter Gefahr für ein Kind " +
-                        "zusätzlich sofort Polizeinotruf 133 bzw. 112.",
+                        "zusätzlich sofort Polizeinotruf (112, in Österreich 133, in " +
+                        "Deutschland 110).",
                     "Endgültige Löschung des Kontos; ein erneuter Zugang wird dauerhaft " +
                         "verweigert.",
                     "Bei einem Konto, das eine minderjährige Person betreibt: Sperre und " +
@@ -930,7 +935,8 @@ object LegalContent {
                     "Kontosperre beim Anmeldeversuch. Beides nennt Grund, Dauer und den Weg " +
                     "zum Widerspruch. Der Rechtsweg bleibt unberührt; ebenso die Möglichkeit, " +
                     "sich an den österreichischen Koordinator für digitale Dienste " +
-                    "(KommAustria/RTR) zu wenden.",
+                    "(KommAustria/RTR) oder an den des eigenen Wohnsitzstaates zu wenden, " +
+                    "in Deutschland die Bundesnetzagentur.",
             ),
             LegalBlock.Heading("10. Kontakt und Kontaktstellen"),
             LegalBlock.Paragraph(
@@ -949,7 +955,7 @@ object LegalContent {
     // aus flexr.social/kinderschutz.html — beide Fassungen zusammen pflegen.
     private val kinderschutz = LegalPage(
         document = LegalDocument.KINDERSCHUTZ,
-        intro = "Standards gegen sexuellen Kindesmissbrauch und sexuelle Ausbeutung von Kindern (CSAE) für FLEXR – Gym Dating Österreich. Stand: 22. Oktober 2026. Diese Fassung ist gekürzt; maßgeblich ist der vollständige Text unter flexr.social/kinderschutz.html.",
+        intro = "Standards gegen sexuellen Kindesmissbrauch und sexuelle Ausbeutung von Kindern (CSAE) für FLEXR – Gym Dating Österreich. Stand: 3. November 2026. Diese Fassung ist gekürzt; maßgeblich ist der vollständige Text unter flexr.social/kinderschutz.html.",
         blocks = listOf(
             LegalBlock.Heading("1. Geltungsbereich"),
             LegalBlock.Paragraph(
@@ -1005,7 +1011,7 @@ object LegalContent {
                     "Ohne Konto: über das Formular flexr.social/meldung.html.",
                     "Per E-Mail mit dem Betreff „CSAM“ an flexr.social@proton.me — bitte " +
                         "keine Bilddateien anhängen, nur Profil-Links, Namen und Zeitpunkte.",
-                    "Bei akuter Gefahr für ein Kind: sofort Polizeinotruf 133 bzw. 112.",
+                    "Bei akuter Gefahr für ein Kind: sofort Polizeinotruf (112, in Österreich 133, in Deutschland 110).",
                 ),
             ),
             LegalBlock.Heading("5. Umgang mit CSAM und minderjährigen Konten"),
@@ -1219,7 +1225,7 @@ object LegalContent {
     // Matches).
     private val datenschutz = LegalPage(
         document = LegalDocument.DATENSCHUTZ,
-        intro = "Wie FLEXR mit deinen Daten umgeht. Stand: 14. Oktober 2026. Diese Fassung ist gekürzt; maßgeblich ist der vollständige Text unter flexr.social/datenschutz.html.",
+        intro = "Wie FLEXR mit deinen Daten umgeht. Stand: 3. November 2026. Diese Fassung ist gekürzt; maßgeblich ist der vollständige Text unter flexr.social/datenschutz.html.",
         blocks = listOf(
             LegalBlock.Heading("1. Verantwortlicher"),
             LegalBlock.Paragraph(
@@ -1463,7 +1469,8 @@ object LegalContent {
             LegalBlock.Heading("7. Beschwerderecht"),
             LegalBlock.Paragraph(
                 "Österreichische Datenschutzbehörde (DSB), Barichgasse 40–42, 1030 Wien, " +
-                    "www.dsb.gv.at.",
+                    "www.dsb.gv.at - oder die Aufsichtsbehörde deines Wohnorts, in " +
+                    "Deutschland die Datenschutzaufsicht deines Bundeslandes.",
             ),
             LegalBlock.Heading("8. Keine Standortdaten"),
             LegalBlock.Paragraph(

@@ -266,6 +266,47 @@ Koordinierungsstelle (KommAustria) registrieren bzw. melden muss.
 
 ---
 
+## DE — Start in Deutschland (seit 03.11.2026)
+
+Umgesetzt im Code und in den Texten (Ablaufplan: `docs/EXPORT-DEUTSCHLAND.md`):
+Kündigungsbutton nach § 312k BGB (`/kuendigen.html`, `routers/cancellation.py`),
+Hinweis „Widerrufsrecht“ nach §§ 312g, 355 BGB auf `/widerruf.html` und in
+AGB 13 c, Geltungsbereich AGB 3 c, Gerichtsstand AGB 21 (Art. 18 Brüssel Ia),
+Koordinator des Wohnsitzstaates (Art. 53 DSA), § 5 DDG und § 18 Abs. 2 MStV im
+Impressum, Beschwerde bei der Aufsicht am Wohnort (Art. 77 DSGVO), Notrufe und
+Hilfsangebote in Deutschland. Der Betreiber hat am 03.11.2026 entschieden, die
+geänderten Texte **ohne** anwaltliche Prüfung zu verwenden. Offen bleibt:
+
+### DE-01 · Umsatzsteuer bei Verkäufen an deutsche Verbraucher
+Die Kleinunternehmerregelung (L-05) gilt für österreichische Umsätze. Bei
+elektronisch erbrachten Leistungen an Verbraucher in anderen EU-Staaten gilt
+bis 10.000 € EU-Auslandsumsatz im Jahr das Ursprungsland, darüber deutsche
+Umsatzsteuer (19 %) über das OSS-Verfahren. Seit 2025 gibt es zusätzlich die
+grenzüberschreitende Kleinunternehmerregelung (KU-Nummer). **Mit der
+Steuerberatung klären**, bevor die Schwelle näher rückt; danach Preisangaben
+(Bruttopreis), Impressum („Umsatzsteuer“) und Stripe-Steuereinstellungen
+nachziehen.
+
+### DE-02 · Muster-Widerrufsbelehrung nach deutschem Recht
+Die Belehrung folgt dem österreichischen Muster (FAGG). Inhaltlich deckt sie
+sich mit Anlage 1 zu Art. 246a EGBGB (beide setzen Anhang I der Richtlinie
+2011/83/EU um); die Gesetzlichkeitsfiktion des Art. 246a § 1 Abs. 2 S. 2 EGBGB
+greift aber nur bei wörtlicher Verwendung des deutschen Musters. Abwägen, ob
+für deutsche Verbraucher eine eigene, wörtliche Fassung angeboten werden soll.
+
+### DE-03 · App-Store-Einträge und Store-Namen
+Der Play-Store-Name lautet „FLEXR – Gym Dating Österreich“ und steht so auf
+`kinderschutz.html` (Google verlangt den App-Namen dort wörtlich). Nach einer
+Umbenennung im Store die Seite angleichen. Verfügbarkeit Deutschland in der Play
+Console und in App Store Connect freischalten — nur der Betreiber.
+
+### DE-04 · Kündigungsbutton — Handbearbeitung
+Außerordentliche Kündigungen, Wunschtermine, Store-Abos und Erklärungen ohne
+zuordenbares Web-Abo kommen nur per Telegram an und müssen von Hand in Stripe
+umgesetzt werden. Es gibt dafür noch keine Ansicht im Admin-Bereich.
+
+---
+
 ## T — Technisch, aber nur von Julian lösbar
 
 ### T-01 · Zwei-Faktor-Authentifizierung für den Admin-Zugang

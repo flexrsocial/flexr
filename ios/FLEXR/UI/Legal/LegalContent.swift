@@ -64,11 +64,11 @@ enum LegalContent {
 
     private static let faq = LegalPage(
         document: .faq,
-        intro: "Alles Wichtige zu FLEXR — der Dating-App für Gym-People in Österreich. Tippe auf eine Frage, um die Antwort zu öffnen.",
+        intro: "Alles Wichtige zu FLEXR — der Dating-App für Gym-People in Österreich und Deutschland. Tippe auf eine Frage, um die Antwort zu öffnen.",
         blocks: [
             .faq(
                 question: "Was ist FLEXR?",
-                answer: "FLEXR ist eine Dating-App für Menschen, denen Training und Gym wichtig sind. Du findest Matches nach deinem Fitnessstudio und deiner Stadt — Leute in ganz Österreich, die einen ähnlichen Lifestyle leben wie du."
+                answer: "FLEXR ist eine Dating-App für Menschen, denen Training und Gym wichtig sind. Du findest Matches nach deinem Fitnessstudio und deiner Stadt — Leute in ganz Österreich und Deutschland, die einen ähnlichen Lifestyle leben wie du."
             ),
             .faq(
                 question: "Was kostet FLEXR?",
@@ -76,7 +76,7 @@ enum LegalContent {
             ),
             .faq(
                 question: "In welchen Städten ist FLEXR verfügbar?",
-                answer: "FLEXR ist in ganz Österreich verfügbar. Die Matches richten sich nach deinem Gym und deinem Umkreis — von Wien über Graz, Linz und Salzburg bis Innsbruck und Klagenfurt."
+                answer: "FLEXR ist in ganz Österreich und Deutschland verfügbar. Die Matches richten sich nach deinem Gym und deinem Umkreis — von Wien, Graz und Salzburg bis Berlin, Hamburg und München."
             ),
             .faq(
                 question: "Wie funktioniert das Matching?",
@@ -184,8 +184,8 @@ enum LegalContent {
                 "Bei begründetem Verdacht auf Falschangaben behalten wir uns die Sperre "
                     + "des Accounts vor. Bestehende Accounts können wir zur Alters- und "
                     + "Identitätsprüfung nachträglich auffordern.",
-                "Nutzung aktuell nur für Personen mit Wohnsitz/Aufenthalt in Österreich "
-                    + "(Postleitzahl bei der Registrierung).",
+                "Nutzung für Personen mit Wohnsitz/Aufenthalt in Österreich oder "
+                    + "Deutschland (Postleitzahl bei der Registrierung).",
                 "Ein Account pro Person; keine Erstellung von Fake-Profilen oder Profilen "
                     + "für Dritte.",
             ]),
@@ -230,8 +230,9 @@ enum LegalContent {
                 "Premium verlängert sich jeweils um einen Monat, bis es gekündigt wird. "
                     + "Keine Mindestlaufzeit. Kündigung jederzeit zum Ende der laufenden "
                     + "Abrechnungsperiode selbstständig über „Abo verwalten / kündigen\" im "
-                    + "Konto-Bereich der App (Stripe Billing Portal). Danach läuft das Konto "
-                    + "als kostenloses Konto weiter.",
+                    + "Konto-Bereich der App (Stripe Billing Portal) oder ohne Anmeldung über "
+                    + "„Verträge hier kündigen\" auf flexr.social/kuendigen.html (§ 312k BGB). "
+                    + "Danach läuft das Konto als kostenloses Konto weiter.",
                 "Zahlungsabwicklung über Stripe. Es gelten zusätzlich die "
                     + "Stripe-Nutzungsbedingungen.",
             ]),
@@ -590,7 +591,7 @@ enum LegalContent {
                 "Verifizierung über ein live aufgenommenes Selfie.",
             ]),
             .heading("6. Im Notfall"),
-            .note("Bei akuter Gefahr: Polizei 133 oder Euronotruf 112."),
+            .note("Bei akuter Gefahr: Euronotruf 112, Polizei in Österreich 133, in Deutschland 110."),
             .keyValues([
                 ("Opfer-Notruf", "0800 112 112 (rund um die Uhr, kostenlos)"),
                 ("Frauenhelpline gegen Gewalt", "0800 222 555"),
@@ -609,7 +610,7 @@ enum LegalContent {
 
     private static let nutzungsrichtlinien = LegalPage(
         document: .nutzungsrichtlinien,
-        intro: "Verbindliche Verhaltens- und Inhaltsregeln für alle Nutzer von FLEXR. Stand: 19. August 2026. Diese Fassung ist gekürzt; maßgeblich ist der vollständige Text unter flexr.social/nutzungsrichtlinien.html.",
+        intro: "Verbindliche Verhaltens- und Inhaltsregeln für alle Nutzer von FLEXR. Stand: 3. November 2026. Diese Fassung ist gekürzt; maßgeblich ist der vollständige Text unter flexr.social/nutzungsrichtlinien.html.",
         blocks: [
             .heading("1. Geltung"),
             .paragraph(
@@ -687,9 +688,11 @@ enum LegalContent {
                     + "Strafverfolgungsbehörde (Bundeskriminalamt, Zentralstelle zur Bekämpfung "
                     + "der Schlepperkriminalität und des Menschenhandels) und endgültige "
                     + "Löschung des Kontos.",
-                "Bei akuter Gefahr für eine Person: unverzüglich Polizeinotruf 133 bzw. 112.",
+                "Bei akuter Gefahr für eine Person: unverzüglich Polizeinotruf (Österreich "
+                    + "133, Deutschland 110, EU-weit 112).",
                 "Betroffene werden auf Hilfsangebote hingewiesen, in Österreich "
-                    + "insbesondere LEFÖ-IBF und den Opfer-Notruf 0800 112 112.",
+                    + "insbesondere LEFÖ-IBF und den Opfer-Notruf 0800 112 112, in "
+                    + "Deutschland das Hilfetelefon 116 016 und den Weißen Ring 116 006.",
             ]),
             .heading("5. Protokoll: Illegale Handlungen"),
             .bullets([
@@ -802,7 +805,7 @@ enum LegalContent {
                 "Meldung binnen 24 Stunden nach Kenntnis an das Bundeskriminalamt, "
                     + "Meldestelle für Kinderpornografie und Kindersextourismus, und Anzeige "
                     + "bei der Kriminalpolizei. Bei akuter Gefahr für ein Kind zusätzlich "
-                    + "sofort Polizeinotruf 133 bzw. 112.",
+                    + "sofort Polizeinotruf (112, in Österreich 133, in Deutschland 110).",
                 "Endgültige Löschung des Kontos; ein erneuter Zugang wird dauerhaft "
                     + "verweigert.",
                 "Bei einem Konto, das eine minderjährige Person betreibt: Sperre und "
@@ -876,7 +879,8 @@ enum LegalContent {
                     + "Kontosperre beim Anmeldeversuch. Beides nennt Grund, Dauer und den Weg "
                     + "zum Widerspruch. Der Rechtsweg bleibt unberührt; ebenso die Möglichkeit, "
                     + "sich an den österreichischen Koordinator für digitale Dienste "
-                    + "(KommAustria/RTR) zu wenden."
+                    + "(KommAustria/RTR) oder an den des eigenen Wohnsitzstaates zu wenden, "
+                    + "in Deutschland die Bundesnetzagentur."
             ),
             .heading("10. Kontakt und Kontaktstellen"),
             .paragraph(
@@ -896,7 +900,7 @@ enum LegalContent {
 
     private static let kinderschutz = LegalPage(
         document: .kinderschutz,
-        intro: "Standards gegen sexuellen Kindesmissbrauch und sexuelle Ausbeutung von Kindern (CSAE) für FLEXR – Gym Dating Österreich. Stand: 22. Oktober 2026. Diese Fassung ist gekürzt; maßgeblich ist der vollständige Text unter flexr.social/kinderschutz.html.",
+        intro: "Standards gegen sexuellen Kindesmissbrauch und sexuelle Ausbeutung von Kindern (CSAE) für FLEXR – Gym Dating Österreich. Stand: 3. November 2026. Diese Fassung ist gekürzt; maßgeblich ist der vollständige Text unter flexr.social/kinderschutz.html.",
         blocks: [
             .heading("1. Geltungsbereich"),
             .paragraph(
@@ -947,7 +951,7 @@ enum LegalContent {
                 "Ohne Konto: über das Formular flexr.social/meldung.html.",
                 "Per E-Mail mit dem Betreff „CSAM“ an flexr.social@proton.me — bitte "
                     + "keine Bilddateien anhängen, nur Profil-Links, Namen und Zeitpunkte.",
-                "Bei akuter Gefahr für ein Kind: sofort Polizeinotruf 133 bzw. 112.",
+                "Bei akuter Gefahr für ein Kind: sofort Polizeinotruf (112, in Österreich 133, in Deutschland 110).",
             ]),
             .heading("5. Umgang mit CSAM und minderjährigen Konten"),
             .lettered([
@@ -1135,7 +1139,7 @@ enum LegalContent {
     // Matches; dabei auch die Sicherungskopien aus der Fassung 2026-10-02 nachgeholt).
     private static let datenschutz = LegalPage(
         document: .datenschutz,
-        intro: "Wie FLEXR mit deinen Daten umgeht. Stand: 14. Oktober 2026. Diese Fassung ist "
+        intro: "Wie FLEXR mit deinen Daten umgeht. Stand: 3. November 2026. Diese Fassung ist "
             + "gekürzt; maßgeblich ist der vollständige Text unter flexr.social/datenschutz.html.",
         blocks: [
             .heading("1. Verantwortlicher"),
@@ -1361,7 +1365,8 @@ enum LegalContent {
             .heading("7. Beschwerderecht"),
             .paragraph(
                 "Österreichische Datenschutzbehörde (DSB), Barichgasse 40–42, 1030 Wien, "
-                    + "www.dsb.gv.at."
+                    + "www.dsb.gv.at - oder die Aufsichtsbehörde deines Wohnorts, in "
+                    + "Deutschland die Datenschutzaufsicht deines Bundeslandes."
             ),
             .heading("8. Keine Standortdaten"),
             .paragraph(
