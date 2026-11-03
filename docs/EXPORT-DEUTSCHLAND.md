@@ -10,10 +10,10 @@ Was weiter unten steht, setzt das Obere voraus.
 |---|---|
 | 1 Daten/Backend | ✅ 8.211 deutsche PLZ (Großkunden-/Postfach-PLZ ausgefiltert), Migrationen `f4d9b2e6a8c1` (PLZ 5-stellig) und `b8d4f0a2c6e3` (deutsche Gyms aus OSM, nur mit vollständiger Adresse) |
 | 2 Web/Admin | ✅ inkl. Schutz gegen veraltete Antworten bei 4 getippten Ziffern |
-| 3 Apps | ✅ Code, Android 2.7.42 / 154 und iOS 2.4.17 — **Hochladen in die Stores macht der Nutzer**, iOS ungebaut (kein Mac) |
+| 3 Apps | ✅ Code; Android 2.7.42 / 154 gebaut und signiert (`release-2.7.42/`), Store-Texte DE/EN fertig — **Hochladen macht der Nutzer**, iOS 2.4.17 ungebaut (kein Mac) |
 | 4 Recht | ✅ Kündigungsbutton (§ 312k BGB), AGB, Widerruf, Impressum, Datenschutz, Nutzungsrichtlinien, Sicherheit — DE/EN und App-Kopien. Offen: Umsatzsteuer (LEGAL_REVIEW DE-01) |
 | 5 Website/SEO | ✅ Landingpage, FAQ, Hub, Stadtseiten Berlin, Hamburg, München, Köln, Frankfurt |
-| 6 Abschluss | ✅ Tests, Deploy |
+| 6 Abschluss | ✅ Tests (812 Backend, 90 Android, Journey-Test `test_journey_deutschland.py`), Deploy `8f2510b` |
 
 **Gym-Daten:** 2.073 Studios aus 69 Großstädten. Der Overpass-Dienst war
 überlastet; nicht mehr abgerufen wurden Recklinghausen, Erlangen, Bergisch
