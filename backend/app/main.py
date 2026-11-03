@@ -16,7 +16,7 @@ from . import api_i18n
 from .config import settings
 from .rate_limit import limiter
 from .routers import (
-    admin, auth, billing, email_verify, geo, gyms, matches, messages, notices,
+    admin, auth, billing, cancellation, email_verify, geo, gyms, matches, messages, notices,
     notifications, profiles, safety, store_billing, swipes,
     verification, withdrawal,
 )
@@ -138,9 +138,10 @@ app.include_router(billing.router)
 # ganz andere Vertrauensfrage (siehe routers/store_billing.py).
 app.include_router(store_billing.router)
 app.include_router(safety.router)
-# Beide ohne Anmeldezwang - siehe die Modulkommentare: § 13a FAGG und
+# Ohne Anmeldezwang - siehe die Modulkommentare: § 13a FAGG, § 312k BGB und
 # Art. 16 DSA stehen jedem offen, nicht nur angemeldeten Nutzern.
 app.include_router(withdrawal.router)
+app.include_router(cancellation.router)
 app.include_router(notices.router)
 app.include_router(verification.router)
 app.include_router(gyms.router)

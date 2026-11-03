@@ -1544,6 +1544,106 @@ def send_withdrawal_confirmation(
 
 
 # ---------------------------------------------------------------------------
+# Kündigungsbestätigung (Kündigungsbutton, § 312k Abs. 4 BGB)
+# ---------------------------------------------------------------------------
+
+def _cancellation_rows(
+    reference: str, received_at: str, contract_reference: str | None,
+    kind: str, end_text: str, lang: str,
+) -> list[tuple[str, str]]:
+    return [
+        (t("cancellation.kv.reference", lang), reference),
+        (
+            t("cancellation.kv.receivedAt", lang),
+            t("withdrawal.kv.timezone", lang, received=received_at),
+        ),
+        (
+            t("cancellation.kv.contract", lang),
+            contract_reference or t("value.none", lang),
+        ),
+        (t("cancellation.kv.kind", lang), t(f"cancellation.kind.{kind}", lang)),
+        (t("cancellation.kv.end", lang), end_text),
+    ]
+
+
+def _cancellation_text(
+    name: str, reference: str, received_at: str, declaration_text: str,
+    contract_reference: str | None, kind: str, end_text: str, done: bool,
+    lang: str = STANDARD,
+) -> str:
+    rows = _cancellation_rows(reference, received_at, contract_reference, kind, end_text, lang)
+    folge = t("cancellation.done" if done else "cancellation.pending", lang)
+    return f"""{_greeting(name, lang)}
+
+{textwrap.fill(t("cancellation.intro", lang), width=76)}
+
+{_kv_rows_text(rows)}
+
+{t("cancellation.wording", lang)}
+
+{declaration_text}
+
+{textwrap.fill(folge, width=76)}
+
+{t("questions.reply", lang)}
+
+{_operator_block_text()}"""
+
+
+def _cancellation_html(
+    name: str, reference: str, received_at: str, declaration_text: str,
+    contract_reference: str | None, kind: str, end_text: str, done: bool,
+    lang: str = STANDARD,
+) -> str:
+    rows = _cancellation_rows(reference, received_at, contract_reference, kind, end_text, lang)
+    declaration_html = html.escape(declaration_text).replace(chr(10), "<br>")
+    body = "\n".join([
+        _p(t("cancellation.intro", lang)),
+        _kv_rows_html(rows),
+        _p(t("cancellation.wording", lang)),
+        f'    <blockquote style="margin:0 0 18px;padding:2px 16px;'
+        f'border-left:2px solid #2a2a30;font-size:14px;line-height:1.6;'
+        f'color:#c8c8ce;">{declaration_html}</blockquote>',
+        _p(t("cancellation.done" if done else "cancellation.pending", lang)),
+    ])
+    return _email_shell(
+        t("cancellation.eyebrow", lang), _greeting_html(name, lang), body,
+        _operator_footer_html(), lang,
+    )
+
+
+def send_cancellation_confirmation(
+    email: str,
+    name: str,
+    reference: str,
+    received_at: str,
+    declaration_text: str,
+    contract_reference: str | None,
+    kind: str,
+    end_text: str,
+    done: bool,
+    lang: str = STANDARD,
+) -> bool:
+    """Unverzügliche Eingangsbestätigung einer Kündigung (§ 312k Abs. 4 BGB):
+    Inhalt, Datum und Uhrzeit des Zugangs und der Beendigungszeitpunkt.
+
+    Wie beim Rücktritt mit Wiederholungen - die Erklärung ist zu diesem
+    Zeitpunkt schon gespeichert (routers/cancellation.py)."""
+    return send_email_with_retry(
+        to_address=email,
+        subject=t("cancellation.subject", lang, reference=reference),
+        text_body=_cancellation_text(
+            name, reference, received_at, declaration_text, contract_reference,
+            kind, end_text, done, lang,
+        ),
+        html_body=_cancellation_html(
+            name, reference, received_at, declaration_text, contract_reference,
+            kind, end_text, done, lang,
+        ),
+    )
+
+
+# ---------------------------------------------------------------------------
 # Empfangsbestätigung einer DSA-Meldung (Art. 16 Abs. 4)
 # ---------------------------------------------------------------------------
 

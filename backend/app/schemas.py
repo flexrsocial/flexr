@@ -1157,6 +1157,54 @@ class WithdrawalStatus(BaseModel):
     effective_date: str
 
 
+class CancellationRequest(BaseModel):
+    """Kündigung über den Kündigungsbutton (§ 312k Abs. 3 BGB).
+
+    Abgefragt wird genau, was das Gesetz für die Bestätigungsseite vorsieht:
+    Art der Kündigung (bei außerordentlicher mit Grund), Angaben zur
+    Identifizierung, Bezeichnung des Vertrags, Zeitpunkt und eine
+    elektronische Adresse für die Bestätigung. Mehr nicht - jede weitere
+    Pflichtangabe wäre eine unzulässige Hürde.
+    """
+
+    kind: Literal["ordentlich", "ausserordentlich"] = "ordentlich"
+    reason: Optional[str] = Field(default=None, max_length=1000)
+    name: str = Field(min_length=1, max_length=120)
+    email: EmailStr
+    contract_reference: Optional[str] = Field(default=None, max_length=200)
+    # Leer = zum nächstmöglichen Zeitpunkt (§ 312k Abs. 3 Nr. 4 BGB).
+    requested_end: Optional[date] = None
+    # Der Knopf "Jetzt kündigen" - erst er macht das Formular zur Erklärung.
+    confirmed: bool
+    request_id: Optional[str] = Field(default=None, max_length=64)
+    language: Optional[Language] = None
+
+    _trim = field_validator("name", "contract_reference", "reason", mode="before")(_strip)
+
+    @field_validator("confirmed")
+    @classmethod
+    def _require_confirmation(cls, v: bool) -> bool:
+        if not v:
+            raise ValueError("Bitte mit „Jetzt kündigen“ bestätigen.")
+        return v
+
+    @model_validator(mode="after")
+    def _grund_bei_ausserordentlich(self):
+        if self.kind == "ausserordentlich" and not self.reason:
+            raise ValueError("Bei einer außerordentlichen Kündigung bitte den Grund angeben.")
+        return self
+
+
+class CancellationAck(BaseModel):
+    reference: str
+    received_at: datetime
+    declaration_text: str
+    confirmation_sent: bool
+    effective_at: Optional[datetime] = None
+    message: str
+    status: str
+
+
 # ---------------------------------------------------------------------------
 # Meldeverfahren nach Art. 16 DSA
 # ---------------------------------------------------------------------------

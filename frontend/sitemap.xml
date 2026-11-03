@@ -96,6 +96,16 @@
     <priority>0.4</priority>
   </url>
   <url>
+    <loc>https://flexr.social/kuendigen.html</loc>
+    <xhtml:link rel="alternate" hreflang="de-AT" href="https://flexr.social/kuendigen.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://flexr.social/kuendigen.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://flexr.social/en/kuendigen.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://flexr.social/kuendigen.html"/>
+    <lastmod>2026-11-03</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.4</priority>
+  </url>
+  <url>
     <loc>https://flexr.social/agb.html</loc>
     <xhtml:link rel="alternate" hreflang="de-AT" href="https://flexr.social/agb.html"/>
     <xhtml:link rel="alternate" hreflang="de" href="https://flexr.social/agb.html"/>
@@ -192,6 +202,16 @@
     <xhtml:link rel="alternate" hreflang="en" href="https://flexr.social/en/widerruf.html"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://flexr.social/widerruf.html"/>
     <lastmod>2026-09-10</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
+  <url>
+    <loc>https://flexr.social/en/kuendigen.html</loc>
+    <xhtml:link rel="alternate" hreflang="de-AT" href="https://flexr.social/kuendigen.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://flexr.social/kuendigen.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://flexr.social/en/kuendigen.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://flexr.social/kuendigen.html"/>
+    <lastmod>2026-11-03</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
