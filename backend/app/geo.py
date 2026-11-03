@@ -1,6 +1,11 @@
 """Geo-Helfer für die Umkreissuche.
 
-PLZ-Koordinaten in app/data/plz_coords.json stammen überwiegend aus dem
+FLEXR deckt Österreich und Deutschland ab. Österreichische PLZ haben vier,
+deutsche fünf Stellen - die beiden Räume überschneiden sich also nicht, und
+das Land ergibt sich eindeutig aus der Länge (``country_for_plz``). Beide
+Länder liegen deshalb in denselben zwei Tabellen.
+
+Österreich: PLZ-Koordinaten in app/data/plz_coords.json stammen überwiegend aus dem
 GeoNames-Postleitzahlen-Datensatz für Österreich
 (https://download.geonames.org/export/zip/, Lizenz CC BY 4.0), aggregiert als
 Mittelwert je PLZ.
@@ -14,12 +19,24 @@ Koordinaten daher aus den PLZ-Gebietszentren von OpenStreetMap
 Die Ortsnamen in app/data/plz_cities.json stammen aus dem amtlichen
 Postleitzahlenverzeichnis der Österreichischen Post, bezogen über RTR Open Data
 (https://data.rtr.at, Lizenz CC BY 4.0). Erzeugt von scripts/build_plz_cities.py.
+
+Deutschland: Koordinaten und Ortsnamen aus dem GeoNames-Datensatz für
+Deutschland (CC BY 4.0), Koordinate als Mittelwert je PLZ. Wie in Österreich
+legt GeoNames die PLZ der Großstädte teils auf denselben Punkt; für diese PLZ
+stammen die Koordinaten aus den PLZ-Gebietszentren von OpenStreetMap
+(Nominatim, ODbL). Ortsname bei mehreren Orten je PLZ: der gemeinsame
+Stadtname ("Hamburg" statt "Hamburg Altstadt"), sonst der erste Eintrag.
+Erzeugt von tools/plz/build_plz_de.py.
 """
 
 import json
 import math
 from pathlib import Path
 from typing import Optional
+
+# Vier Ziffern = Österreich, fünf = Deutschland. Eine Stelle für Schemas und
+# Router, damit die Prüfung nicht wieder an zehn Orten auseinanderläuft.
+PLZ_PATTERN = r"^\d{4,5}$"
 
 _DATA_DIR = Path(__file__).parent / "data"
 
@@ -31,14 +48,22 @@ with open(_DATA_DIR / "plz_cities.json", encoding="utf-8") as f:
 
 
 def coords_for_plz(plz: str) -> Optional[tuple[float, float]]:
-    """Liefert (lat, lon) für eine österreichische PLZ oder None."""
+    """Liefert (lat, lon) für eine österreichische oder deutsche PLZ oder None."""
     entry = _PLZ_COORDS.get(plz)
     return (entry[0], entry[1]) if entry else None
 
 
 def city_for_plz(plz: str) -> Optional[str]:
-    """Liefert den amtlichen Ortsnamen zu einer österreichischen PLZ oder None."""
+    """Liefert den Ortsnamen zu einer österreichischen oder deutschen PLZ oder None."""
     return _PLZ_CITIES.get((plz or "").strip())
+
+
+def country_for_plz(plz: Optional[str]) -> Optional[str]:
+    """Ländercode (ISO 3166-1) einer PLZ: "AT" bei vier, "DE" bei fünf Ziffern."""
+    value = (plz or "").strip()
+    if not value.isdigit():
+        return None
+    return {4: "AT", 5: "DE"}.get(len(value))
 
 
 def haversine_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:

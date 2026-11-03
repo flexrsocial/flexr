@@ -13,6 +13,7 @@ from sqlalchemy.orm import Session
 
 from .config import settings
 from .database import get_db
+from .geo import country_for_plz
 from .models import AdminUser, ModerationAction, User
 from .moderation import restriction_detail
 from .timeutil import utcnow
@@ -186,10 +187,10 @@ def optional_current_user(
 
 
 def _country_for_user(user: User) -> str:
-    """Grober Ländercode für die Statistik. Alle Profile sind über die
-    Pflicht-PLZ in Österreich verortet, eine Geräteposition wird nicht mehr
-    erhoben - daher konstant "AT". Keine IP-Speicherung."""
-    return "AT"
+    """Grober Ländercode für die Statistik, abgeleitet aus der Pflicht-PLZ
+    (4 Ziffern = AT, 5 = DE). Eine Geräteposition wird nicht erhoben, keine
+    IP-Speicherung."""
+    return country_for_plz(user.plz) or "AT"
 
 
 def _record_daily_access(db: Session, user: User) -> None:

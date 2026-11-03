@@ -1,14 +1,14 @@
 from fastapi import APIRouter, HTTPException, Path
 
-from ..geo import city_for_plz
+from ..geo import PLZ_PATTERN, city_for_plz
 from ..schemas import PlzLookupOut
 
 router = APIRouter(prefix="/api/geo", tags=["geo"])
 
 
 @router.get("/plz/{plz}", response_model=PlzLookupOut)
-def lookup_plz(plz: str = Path(pattern=r"^\d{4}$")):
-    """Amtlicher Ortsname zu einer österreichischen PLZ (öffentlich, wird schon
+def lookup_plz(plz: str = Path(pattern=PLZ_PATTERN)):
+    """Ortsname zu einer österreichischen oder deutschen PLZ (öffentlich, wird schon
     bei der Registrierung gebraucht).
 
     Früher haben Web, Android und iOS dafür jeweils selbst openplzapi.org
