@@ -896,8 +896,9 @@ TEXTE: dict[str, dict[str, str]] = {
     "withdrawal.eyebrow": {"de": "Rücktritt bestätigt", "en": "Withdrawal confirmed"},
     "withdrawal.intro": {
         "de": (
-            "deine Rücktrittserklärung ist bei uns eingegangen. Diese Mail ist die "
-            "Bestätigung nach § 13a Abs. 4 FAGG — bewahre sie auf."
+            "deine Rücktrittserklärung (in Deutschland: Widerrufserklärung) ist bei "
+            "uns eingegangen. Diese Mail ist die Bestätigung nach § 13a Abs. 4 FAGG "
+            "und zugleich die Eingangsbestätigung deines Widerrufs — bewahre sie auf."
         ),
         "en": (
             "we have received your withdrawal statement. This email is the "
@@ -1129,7 +1130,8 @@ TEXTE: dict[str, dict[str, str]] = {
     "api.withdrawal.confirmed": {
         "de": (
             "Die Bestätigung geht an {email}. Bewahre sie auf — sie ist dein "
-            "Nachweis nach § 13a Abs. 4 FAGG."
+            "Nachweis nach § 13a Abs. 4 FAGG, in Deutschland die Eingangsbestätigung "
+            "deines Widerrufs."
         ),
         "en": (
             "The confirmation goes to {email}. Keep it — it is your evidence under "
