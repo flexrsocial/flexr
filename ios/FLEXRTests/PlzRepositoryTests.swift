@@ -76,10 +76,13 @@ final class PlzRepositoryTests: XCTestCase {
         XCTAssertEqual(api.callCount, 1)
     }
 
-    func testFormatpruefungAkzeptiertNurVierZiffern() {
+    func testFormatpruefungAkzeptiertVierOderFuenfZiffern() {
         XCTAssertTrue(PlzRepository.isValidPostalCode("1010"))
         XCTAssertFalse(PlzRepository.isValidPostalCode("101"))
-        XCTAssertFalse(PlzRepository.isValidPostalCode("10100"))
+        XCTAssertTrue(PlzRepository.isValidPostalCode("10115"), "Deutschland: fünf Stellen")
+        XCTAssertFalse(PlzRepository.isValidPostalCode("101150"))
+        XCTAssertTrue(PlzRepository.mayBeIncomplete("8033"))
+        XCTAssertFalse(PlzRepository.mayBeIncomplete("80331"))
         XCTAssertFalse(PlzRepository.isValidPostalCode("A010"))
     }
 }

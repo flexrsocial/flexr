@@ -26,7 +26,7 @@ class GymRepository @Inject constructor(
         apiCall {
             api.searchGyms(
                 query = query.trim(),
-                near = nearPostalCode?.trim()?.takeIf { it.length == 4 && it.all(Char::isDigit) },
+                near = nearPostalCode?.trim()?.takeIf { PlzRepository.POSTAL_CODE_PATTERN.matches(it) },
             )
         }.map { it.toDomain() }
 

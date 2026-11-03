@@ -213,10 +213,10 @@ struct GymSuggestionSheet: View {
                             FlexrTextField(
                                 text: Binding(
                                     get: { state.postalCode },
-                                    set: { state.postalCode = String($0.filter(\.isNumber).prefix(4)) }
+                                    set: { state.postalCode = String($0.filter(\.isNumber).prefix(5)) }
                                 ),
                                 label: s(.gymPostalCodeLabel),
-                                placeholder: "1010",
+                                placeholder: "PLZ",
                                 keyboardType: .numberPad,
                                 submitLabel: .done
                             )

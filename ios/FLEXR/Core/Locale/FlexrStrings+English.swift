@@ -131,8 +131,8 @@ extension FlexrStrings {
         .registerTitle: "Dating for people\nwho do leg day\non Mondays.",
         .registerSubtitle: """
             Create your profile — free of charge, permanently. Using FLEXR costs \
-            nothing; no payment method is requested. Currently available in \
-            Austria only.
+            nothing; no payment method is requested. Available in Austria and \
+            Germany.
             """,
         .registerPasswordPlaceholder: "At least 8 characters",
         .registerNamePlaceholder: "Alex",
@@ -158,7 +158,7 @@ extension FlexrStrings {
         .registerErrRequired: "Please enter email, password (min. %d characters), name and date of birth.",
         .registerErrUnder18: "You must be at least 18 years old.",
         .registerErrBirthdate: "Please enter a valid date of birth.",
-        .registerErrPostalCode: "Please enter a valid Austrian postal code (the town is filled in automatically).",
+        .registerErrPostalCode: "Please enter a valid postal code from Austria (4 digits) or Germany (5 digits) – the town is filled in automatically.",
         .registerErrGender: "Please select a gender.",
         .registerErrGym: "Please select a gym from the list.",
         .registerErrPhoto: "Please upload at least %d photos.",
@@ -212,7 +212,7 @@ extension FlexrStrings {
         .swipeRetry: "Try again",
         .swipeReload: "Reload",
         .swipeInvite: "Invite friends",
-        .swipeInviteText: "I’m on FLEXR – dating for people who live in the gym. Free across Austria:",
+        .swipeInviteText: "I’m on FLEXR – dating for people who live in the gym. Free across Austria and Germany:",
         .swipeInviteURL: "https://flexr.social/en/",
         .swipePass: "Pass",
         .blockDone: "%@ blocked.",
@@ -410,7 +410,7 @@ extension FlexrStrings {
         .accountUnsaved: "Unsaved changes",
         .accountSaved: "Profile saved ✓",
         .accountSaveFailed: "Saving failed.",
-        .accountErrPostalCode: "Please enter a valid Austrian postal code (the town is filled in automatically).",
+        .accountErrPostalCode: "Please enter a valid postal code from Austria (4 digits) or Germany (5 digits) – the town is filled in automatically.",
         .accountErrPhotoBeforeSave: "Please upload at least %d photos before saving.",
         .accountErrGym: "Please select a gym from the list.",
         .accountNotificationsRow: "Matches, profiles & reminders",

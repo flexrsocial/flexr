@@ -13,11 +13,10 @@ enum PlzLookupState: Equatable {
     }
 }
 
-/// Kombiniertes PLZ-/Ortsfeld: links vier Ziffern, rechts der automatisch
-/// ermittelte Gemeindename.
+/// Kombiniertes PLZ-/Ortsfeld: links vier (Österreich) oder fünf
+/// (Deutschland) Ziffern, rechts der automatisch ermittelte Ortsname.
 ///
-/// Es gibt bewusst keine Städteauswahl — die PLZ bestimmt den Ort, damit ganz
-/// Österreich abgedeckt ist.
+/// Es gibt bewusst keine Städteauswahl — die PLZ bestimmt den Ort.
 struct PostalCodeField: View {
     @Environment(LanguageStore.self) private var languageStore
     private var s: FlexrStrings { languageStore.strings }
@@ -35,7 +34,7 @@ struct PostalCodeField: View {
             FieldLabel(text: label ?? s(.gymPostalCodeLabel))
 
             HStack(spacing: 0) {
-                TextField("1010", text: $postalCode)
+                TextField("PLZ", text: $postalCode)
                     .flexrText(.bodyLarge)
                     .foregroundStyle(FlexrColor.chalk)
                     .tint(FlexrColor.plate)
@@ -43,7 +42,7 @@ struct PostalCodeField: View {
                     .frame(width: 56)
                     .focused($isFocused)
                     .onChange(of: postalCode) { _, newValue in
-                        let digits = String(newValue.filter(\.isNumber).prefix(4))
+                        let digits = String(newValue.filter(\.isNumber).prefix(5))
                         if digits != newValue { postalCode = digits }
                     }
 

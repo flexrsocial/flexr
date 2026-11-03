@@ -43,9 +43,9 @@ sealed interface PlzLookupState {
 }
 
 /**
- * Kombiniertes PLZ-/Ortsfeld: links vier Ziffern, rechts der automatisch
- * ermittelte Gemeindename. Es gibt bewusst keine Städteauswahl — die PLZ
- * bestimmt den Ort, damit ganz Österreich abgedeckt ist.
+ * Kombiniertes PLZ-/Ortsfeld: links vier (Österreich) oder fünf
+ * (Deutschland) Ziffern, rechts der automatisch ermittelte Ortsname. Es gibt
+ * bewusst keine Städteauswahl — die PLZ bestimmt den Ort.
  */
 @Composable
 fun PostalCodeField(
@@ -77,7 +77,7 @@ fun PostalCodeField(
         ) {
             BasicTextField(
                 value = postalCode,
-                onValueChange = { input -> onPostalCodeChange(input.filter(Char::isDigit).take(4)) },
+                onValueChange = { input -> onPostalCodeChange(input.filter(Char::isDigit).take(5)) },
                 modifier = Modifier.width(56.dp).padding(vertical = 14.dp),
                 textStyle = MaterialTheme.typography.bodyLarge.copy(color = colors.chalk),
                 cursorBrush = SolidColor(colors.plate),
@@ -90,7 +90,7 @@ fun PostalCodeField(
                 decorationBox = { inner ->
                     if (postalCode.isEmpty()) {
                         Text(
-                            "1010",
+                            "PLZ",
                             style = MaterialTheme.typography.bodyLarge,
                             color = colors.chalkDim,
                         )

@@ -135,8 +135,8 @@ extension FlexrStrings {
         // Sinne von App Review Guideline 3.1.1 (siehe backend/app/clients.py).
         .registerSubtitle: """
             Erstell dein Profil — kostenlos, und das dauerhaft. FLEXR zu nutzen \
-            kostet nichts; es wird kein Zahlungsmittel abgefragt. Aktuell nur \
-            in Österreich verfügbar.
+            kostet nichts; es wird kein Zahlungsmittel abgefragt. Verfügbar in \
+            Österreich und Deutschland.
             """,
         .registerPasswordPlaceholder: "Mind. 8 Zeichen",
         .registerNamePlaceholder: "Max",
@@ -161,7 +161,7 @@ extension FlexrStrings {
         .registerErrRequired: "Bitte E-Mail, Passwort (min. %d Zeichen), Name und Geburtsdatum angeben.",
         .registerErrUnder18: "Du musst mindestens 18 Jahre alt sein.",
         .registerErrBirthdate: "Bitte ein gültiges Geburtsdatum angeben.",
-        .registerErrPostalCode: "Bitte eine gültige österreichische Postleitzahl eingeben (Ort wird automatisch ermittelt).",
+        .registerErrPostalCode: "Bitte eine gültige Postleitzahl aus Österreich (4-stellig) oder Deutschland (5-stellig) eingeben – der Ort wird automatisch ermittelt.",
         .registerErrGender: "Bitte ein Geschlecht auswählen.",
         .registerErrGym: "Bitte ein Gym aus der Liste auswählen.",
         .registerErrPhoto: "Bitte lade mindestens %d Fotos hoch.",
@@ -214,7 +214,7 @@ extension FlexrStrings {
         .swipeRetry: "Erneut versuchen",
         .swipeReload: "Neu laden",
         .swipeInvite: "Freunde einladen",
-        .swipeInviteText: "Ich bin auf FLEXR – Dating für Leute, die im Gym zuhause sind. Kostenlos in ganz Österreich:",
+        .swipeInviteText: "Ich bin auf FLEXR – Dating für Leute, die im Gym zuhause sind. Kostenlos in ganz Österreich und Deutschland:",
         .swipeInviteURL: "https://flexr.social/",
         .swipePass: "Ablehnen",
         .blockDone: "%@ blockiert.",
@@ -413,7 +413,7 @@ extension FlexrStrings {
         .accountUnsaved: "Ungespeicherte Änderungen",
         .accountSaved: "Profil gespeichert ✓",
         .accountSaveFailed: "Speichern fehlgeschlagen.",
-        .accountErrPostalCode: "Bitte eine gültige österreichische Postleitzahl eingeben (Ort wird automatisch ermittelt).",
+        .accountErrPostalCode: "Bitte eine gültige Postleitzahl aus Österreich (4-stellig) oder Deutschland (5-stellig) eingeben – der Ort wird automatisch ermittelt.",
         .accountErrPhotoBeforeSave: "Bitte lade mindestens %d Fotos hoch, bevor du speicherst.",
         .accountErrGym: "Bitte ein Gym aus der Liste auswählen.",
         .accountNotificationsRow: "Matches, Profile & Erinnerungen",

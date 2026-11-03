@@ -51,6 +51,7 @@ import flexr.social.app.core.designsystem.component.FieldError
 import flexr.social.app.core.designsystem.component.FlexrTextField
 import flexr.social.app.core.designsystem.theme.FlexrTheme
 import flexr.social.app.core.designsystem.theme.MonoStyle
+import flexr.social.app.data.repository.PlzRepository
 import flexr.social.app.domain.model.Gym
 
 /** Zustand des Gym-Suchfeldes. */
@@ -257,7 +258,7 @@ data class GymSuggestionState(
         get() = name.trim().length >= 2 &&
             street.trim().length >= 2 &&
             houseNumber.isNotBlank() &&
-            Regex("^\\d{4}$").matches(postalCode)
+            PlzRepository.POSTAL_CODE_PATTERN.matches(postalCode)
 }
 
 /**
@@ -312,9 +313,9 @@ fun GymSuggestionDialog(
                     Box(Modifier.weight(1f)) {
                         FlexrTextField(
                             value = state.postalCode,
-                            onValueChange = { onPostalCodeChange(it.filter(Char::isDigit).take(4)) },
+                            onValueChange = { onPostalCodeChange(it.filter(Char::isDigit).take(5)) },
                             label = stringResource(R.string.gym_postal_code_label),
-                            placeholder = "1010",
+                            placeholder = "PLZ",
                             keyboardType = KeyboardType.NumberPassword,
                             imeAction = ImeAction.Done,
                         )

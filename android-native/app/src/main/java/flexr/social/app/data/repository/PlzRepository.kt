@@ -7,7 +7,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * Fehler, wenn zu einer eingegebenen PLZ kein österreichischer Ort existiert.
+ * Fehler, wenn zu einer eingegebenen PLZ kein Ort in Österreich oder Deutschland existiert.
  *
  * Der Text ist eine technische Beschreibung fuer Protokolle. Was der Nutzer
  * liest, baut das ViewModel aus `R.string.error_postal_code_unknown` — nur
@@ -48,6 +48,14 @@ class PlzRepository @Inject constructor(
     }
 
     companion object {
-        val POSTAL_CODE_PATTERN = Regex("^\\d{4}$")
+        val POSTAL_CODE_PATTERN = Regex("^\\d{4,5}$")
+
+        /**
+         * Vier Ziffern können eine fertige österreichische PLZ sein oder die
+         * ersten vier einer deutschen. Ein 404 bei vier Ziffern heißt daher
+         * nur "weitertippen" und wird nicht als Fehler angezeigt; ohne
+         * aufgelösten Ort lässt sich trotzdem nichts speichern.
+         */
+        fun mayBeIncomplete(plz: String): Boolean = plz.length == 4
     }
 }
