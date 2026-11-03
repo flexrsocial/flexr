@@ -41,7 +41,9 @@ PUBLIC_PAGES.update(
 SEO_PAGES = [
     "gym-dating.html", "gym-crush-ansprechen.html", "date-ideen-sportler.html",
     *(f"fitness-dating-{stadt}.html"
-      for stadt in ("wien", "graz", "linz", "salzburg", "innsbruck", "klagenfurt")),
+      for stadt in ("wien", "graz", "linz", "salzburg", "innsbruck", "klagenfurt",
+                    # Seit 03.11.2026: Deutschland
+                    "berlin", "hamburg", "muenchen", "koeln", "frankfurt")),
 ]
 PUBLIC_PAGES.update({name: f"https://flexr.social/{name}" for name in SEO_PAGES})
 
@@ -92,7 +94,11 @@ def test_oeffentliche_seiten_haben_vollstaendige_seo_und_semantik():
             if tag == "link" and attrs.get("rel") == "canonical"
         ]
 
-        erwartete_sprache = "en" if filename.startswith("en/") else "de-AT"
+        # Deutsche Stadtseiten (seit 03.11.2026) sind de-DE, sonst de-AT.
+        deutsche_stadt = filename.removeprefix("fitness-dating-").removesuffix(".html") in (
+            "berlin", "hamburg", "muenchen", "koeln", "frankfurt")
+        erwartete_sprache = ("en" if filename.startswith("en/")
+                             else "de-DE" if deutsche_stadt else "de-AT")
         assert html.get("lang") == erwartete_sprache, filename
         assert len(mains) == 1 and mains[0].get("id") == "main-content", filename
         assert any(link == "#main-content" for link in parser.links), filename
