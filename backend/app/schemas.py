@@ -4,6 +4,7 @@ from typing import Literal, Optional
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator, model_validator
 
 from .age import is_plausible_birthdate
+from .geo import PLZ_PATTERN
 
 # Spannweite des Umkreis-Reglers. Benannt statt an jeder Stelle als Zahl:
 # ``premium.max_radius_km()`` kappt gegen dieselbe Obergrenze, und die
@@ -60,8 +61,9 @@ class RegisterRequest(BaseModel):
     birthdate: date
     # Adresse: city ist der amtliche Ortsname zur PLZ. Der Client holt ihn über
     # GET /api/geo/plz/{plz}; maßgeblich ist ohnehin, was der Server daraus
-    # macht (siehe routers/auth.py) - keine feste Städteliste, ganz Österreich.
-    plz: str = Field(pattern=r"^\d{4}$", description="4-stellige österreichische Postleitzahl")
+    # macht (siehe routers/auth.py) - keine feste Städteliste, ganz Österreich
+    # und Deutschland.
+    plz: str = Field(pattern=PLZ_PATTERN, description="Postleitzahl: 4 Ziffern (Österreich) oder 5 (Deutschland)")
     city: str = Field(min_length=1, max_length=100)
     gender: Literal["mann", "frau"]
     gym: str
@@ -336,7 +338,7 @@ class UpdateProfileRequest(BaseModel):
     Ort gespeichert wird, entscheidet aber die PLZ (siehe routers/profiles.py).
     Das Geburtsdatum ist bewusst nicht änderbar."""
 
-    plz: Optional[str] = Field(default=None, pattern=r"^\d{4}$")
+    plz: Optional[str] = Field(default=None, pattern=PLZ_PATTERN)
     city: Optional[str] = Field(default=None, min_length=1, max_length=100)
     gym: Optional[str] = None
     bio: Optional[str] = Field(default=None, max_length=280)
@@ -628,7 +630,7 @@ class GymSuggestRequest(BaseModel):
     name: str = Field(min_length=2, max_length=120)
     street: str = Field(min_length=2, max_length=120)
     house_number: str = Field(min_length=1, max_length=20)
-    plz: str = Field(pattern=r"^\d{4}$")
+    plz: str = Field(pattern=PLZ_PATTERN)
     city: Optional[str] = Field(default=None, max_length=100)
 
 
@@ -994,7 +996,7 @@ class AdminGymUpdate(BaseModel):
     name: Optional[str] = Field(default=None, min_length=2, max_length=120)
     street: Optional[str] = Field(default=None, max_length=120)
     house_number: Optional[str] = Field(default=None, max_length=20)
-    plz: Optional[str] = Field(default=None, pattern=r"^\d{4}$")
+    plz: Optional[str] = Field(default=None, pattern=PLZ_PATTERN)
     city: Optional[str] = Field(default=None, max_length=100)
 
 

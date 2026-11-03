@@ -254,7 +254,7 @@ def relabel_profiles(db, old_label: str, new_label: str) -> int:
 
 
 class Gym(Base):
-    """Fitnessstudios in Österreich: Basisdaten aus OpenStreetMap (Name,
+    """Fitnessstudios in Österreich und Deutschland: Basisdaten aus OpenStreetMap (Name,
     Straße, Hausnummer, PLZ), ergänzt um Nutzer-Vorschläge, die nach
     Admin-Freigabe in die Auswahlliste aufgenommen werden."""
 
@@ -264,7 +264,7 @@ class Gym(Base):
     name = Column(String, nullable=False, index=True)
     street = Column(String, nullable=False, default="")
     house_number = Column(String, nullable=False, default="")
-    plz = Column(String(4), nullable=False, default="", index=True)
+    plz = Column(String(5), nullable=False, default="", index=True)
     city = Column(String, nullable=False, default="")
     status = Column(Enum(GymStatus), nullable=False, default=GymStatus.pending)
     suggested_by = Column(
@@ -288,8 +288,9 @@ class User(Base):
     # und bleibt so in allen Profilen automatisch aktuell.
     birthdate = Column(Date, nullable=False)
     # Adresse: city ist der amtliche Ortsname zur PLZ (app/data/plz_cities.json,
-    # siehe geo.py) - keine feste Städteliste, ganz Österreich ist abgedeckt.
-    plz = Column(String(4), nullable=False)
+    # siehe geo.py) - keine feste Städteliste, ganz Österreich und
+    # Deutschland sind abgedeckt (4- bzw. 5-stellige PLZ).
+    plz = Column(String(5), nullable=False)
     city = Column(String, nullable=False)  # aus der PLZ abgeleiteter Ortsname
     gender = Column(Enum(Gender), nullable=False)
     interest = Column(Enum(Gender), nullable=False)  # sucht Mann oder Frau
@@ -923,7 +924,7 @@ class DailyAccess(Base):
     """Ein Eintrag pro Nutzer, Tag und Ländercode - Basis für die
     Zugriffsstatistik im Admin-Dashboard (tagesaktive Nutzer, Länderverteilung).
     Es wird bewusst KEINE IP-Adresse gespeichert, nur der grobe Ländercode aus
-    der Geo-Zuordnung (bzw. der aus der PLZ abgeleitete Länderbezug "AT")."""
+    der Geo-Zuordnung (bzw. der aus der PLZ abgeleitete Länderbezug "AT"/"DE")."""
 
     __tablename__ = "daily_access"
     __table_args__ = (
