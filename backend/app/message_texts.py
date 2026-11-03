@@ -945,6 +945,74 @@ TEXTE: dict[str, dict[str, str]] = {
         ),
     },
 
+    # ---- Kuendigungsbestaetigung (Kuendigungsbutton, § 312k Abs. 4 BGB) ----
+    "cancellation.subject": {
+        "de": "Bestätigung deiner Kündigung ({reference}) — FLEXR",
+        "en": "Confirmation of your cancellation ({reference}) — FLEXR",
+    },
+    "cancellation.eyebrow": {"de": "Kündigung bestätigt", "en": "Cancellation confirmed"},
+    "cancellation.intro": {
+        "de": (
+            "deine Kündigung ist bei uns eingegangen. Diese Mail ist die "
+            "Eingangsbestätigung — bewahre sie auf."
+        ),
+        "en": (
+            "we have received your notice of cancellation. This email is the "
+            "confirmation of receipt — please keep it."
+        ),
+    },
+    "cancellation.kv.reference": {"de": "Aktenzeichen", "en": "Reference number"},
+    "cancellation.kv.receivedAt": {"de": "Eingegangen am", "en": "Received on"},
+    "cancellation.kv.contract": {"de": "Vertrag/Konto", "en": "Contract/account"},
+    "cancellation.kv.kind": {"de": "Art der Kündigung", "en": "Type of cancellation"},
+    "cancellation.kv.end": {"de": "Vertragsende", "en": "Contract ends"},
+    "cancellation.kind.ordentlich": {"de": "ordentlich", "en": "ordinary"},
+    "cancellation.kind.ausserordentlich": {
+        "de": "außerordentlich (fristlos)", "en": "extraordinary (without notice)",
+    },
+    "cancellation.end.date": {
+        "de": "mit Ablauf des {date}", "en": "at the end of {date}",
+    },
+    "cancellation.end.next": {
+        "de": "zum nächstmöglichen Zeitpunkt, also zum Ende des laufenden Abrechnungszeitraums",
+        "en": "at the earliest possible date, i.e. at the end of the current billing period",
+    },
+    "cancellation.end.requested": {
+        "de": "gewünscht: {date}", "en": "requested: {date}",
+    },
+    "cancellation.wording": {
+        "de": "Wortlaut deiner Erklärung:",
+        "en": "Wording of your statement, as recorded:",
+    },
+    "cancellation.done": {
+        "de": (
+            "Was jetzt passiert: Dein Web-Abo ist bereits gekündigt und verlängert "
+            "sich nicht mehr. FLEXR Premium bleibt bis zum oben genannten Vertragsende "
+            "nutzbar, danach läuft dein Konto kostenlos weiter. Dein Konto selbst "
+            "wird dadurch nicht gelöscht."
+        ),
+        "en": (
+            "What happens now: your web subscription has already been cancelled and "
+            "will not renew. FLEXR Premium remains available until the end date shown "
+            "above; after that your account continues free of charge. Your account "
+            "itself is not deleted."
+        ),
+    },
+    "cancellation.pending": {
+        "de": (
+            "Was jetzt passiert: Wir ordnen die Kündigung deinem Vertrag zu und setzen "
+            "sie um — wirksam ist sie bereits mit dem Eingang. Ein über den App Store "
+            "oder Google Play abgeschlossenes Abo kündigst du bitte zusätzlich dort; "
+            "dort ist Apple bzw. Google dein Vertragspartner."
+        ),
+        "en": (
+            "What happens now: we assign the cancellation to your contract and carry it "
+            "out — it is already effective on receipt. If you subscribed through the "
+            "App Store or Google Play, please also cancel there; for those purchases "
+            "Apple or Google is your contractual partner."
+        ),
+    },
+
     # ---- Empfangsbestaetigung einer DSA-Meldung (Art. 16 Abs. 4) ----
     "notice.subject": {
         "de": "Deine Meldung an FLEXR ({reference})",
@@ -1030,6 +1098,28 @@ TEXTE: dict[str, dict[str, str]] = {
             "You did not give a contact address — that is permitted for this "
             "category (Art. 16(3) DSA). We cannot send you a decision in that case. "
             "Please note down the reference number."
+        ),
+    },
+    "api.cancellation.received": {
+        "de": "Deine Kündigung ist eingegangen (Aktenzeichen {reference}). {hint}",
+        "en": "Your cancellation has been received (reference number {reference}). {hint}",
+    },
+    "api.cancellation.confirmed": {
+        "de": "Die Bestätigung geht an {email}. Bewahre sie auf.",
+        "en": "The confirmation goes to {email}. Please keep it.",
+    },
+    "api.cancellation.noMail": {
+        "de": (
+            "Wir können dir gerade keine Bestätigungsmail schicken. Deine Kündigung "
+            "ist trotzdem wirksam — sie gilt mit dem Eingang. Bitte sichere dir den "
+            "unten angezeigten Wortlaut samt Aktenzeichen (Bildschirmfoto genügt) und "
+            "schreib uns zur Sicherheit an flexr.social@proton.me."
+        ),
+        "en": (
+            "We cannot send you a confirmation email right now. Your cancellation is "
+            "effective all the same — it takes effect on receipt. Please save the "
+            "wording shown below together with the reference number (a screenshot is "
+            "enough) and, to be safe, write to us at flexr.social@proton.me."
         ),
     },
     "api.withdrawal.received": {

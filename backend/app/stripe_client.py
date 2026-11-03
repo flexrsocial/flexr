@@ -1,3 +1,6 @@
+from datetime import datetime, timezone
+from typing import Optional
+
 import stripe
 
 from .config import settings
@@ -47,15 +50,28 @@ def construct_webhook_event(payload: bytes, sig_header: str):
     return stripe.Webhook.construct_event(payload, sig_header, settings.stripe_webhook_secret)
 
 
-def cancel_subscription_at_period_end(subscription_id: str) -> None:
+def cancel_subscription_at_period_end(subscription_id: str) -> Optional[datetime]:
     """Keine Verlaengerung mehr, der bezahlte Zeitraum laeuft aus.
 
     Fuer die Selbstloeschung des Kontos (routers/profiles.py): Bis zum
     14.10.2026 lief ein Abo danach einfach weiter und wurde monatlich
     abgebucht - und nach der Karenzzeit gab es kein Konto mehr, ueber das
-    sich noch haette kuendigen lassen.
+    sich noch haette kuendigen lassen. Seit dem 03.11.2026 auch fuer den
+    Kuendigungsbutton (routers/cancellation.py).
+
+    Zurueck kommt das Ende des bezahlten Zeitraums (naiv, UTC), soweit Stripe
+    es meldet - die Kuendigungsbestaetigung nach § 312k Abs. 4 BGB muss den
+    Beendigungszeitpunkt nennen. Seit der API-Fassung 2025-03 steht er an den
+    Abo-Positionen statt am Abo selbst; beide Orte werden gelesen.
     """
-    stripe.Subscription.modify(subscription_id, cancel_at_period_end=True)
+    sub = stripe.Subscription.modify(subscription_id, cancel_at_period_end=True)
+    try:
+        ende = sub.get("current_period_end") or sub.get("cancel_at")
+        if not ende:
+            ende = sub["items"]["data"][0].get("current_period_end")
+    except (KeyError, IndexError, TypeError, AttributeError):
+        ende = None
+    return datetime.fromtimestamp(ende, tz=timezone.utc).replace(tzinfo=None) if ende else None
 
 
 def cancel_subscription_immediately(subscription_id: str) -> None:

@@ -20,6 +20,8 @@ LEGAL_PAGES = [
     # Seit 22.10.2026: Googles "Child Safety Standards" verlangen eigene,
     # oeffentlich erreichbare Standards mit App-Namen und CSAE-Verbot.
     "kinderschutz.html",
+    # Seit 03.11.2026: Kuendigungsbutton nach § 312k BGB (Start in Deutschland).
+    "kuendigen.html",
 ]
 
 PUBLIC_PAGES = {

@@ -1131,6 +1131,57 @@ class WithdrawalDeclaration(Base):
         return "W-" + self.id.replace("-", "")[:8].upper()
 
 
+class CancellationDeclaration(Base):
+    """Kündigung über den Kündigungsbutton (§ 312k BGB).
+
+    Seit dem Start in Deutschland Pflicht: Wer Abos über eine Website
+    abschließt, muss dort eine ständig verfügbare Schaltfläche "Verträge hier
+    kündigen" anbieten, die ohne Anmeldung zu einer Bestätigungsseite führt.
+    Die Kündigung gilt mit dem Zugang und muss unverzüglich mit Inhalt, Datum,
+    Uhrzeit und dem Beendigungszeitpunkt bestätigt werden.
+
+    Nicht dasselbe wie der Rücktritt (``WithdrawalDeclaration``): Die
+    Kündigung beendet das Abo zum Ende der Abrechnungsperiode, der Rücktritt
+    löst es binnen 14 Tagen rückwirkend auf.
+    """
+
+    __tablename__ = "cancellation_declarations"
+
+    id = Column(String, primary_key=True, default=gen_uuid)
+    # ondelete SET NULL: Die Erklärung ist Nachweis und überdauert das Konto.
+    user_id = Column(String, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    request_id = Column(String(64), unique=True, nullable=True, index=True)
+
+    name = Column(String(120), nullable=False)
+    email = Column(String, nullable=False, index=True)
+    contract_reference = Column(String(200), nullable=True)
+    # "ordentlich" oder "ausserordentlich" (§ 312k Abs. 3 Nr. 1 BGB); bei der
+    # außerordentlichen Kündigung ist der Grund anzugeben.
+    kind = Column(String(20), nullable=False, default="ordentlich")
+    reason = Column(String(1000), nullable=True)
+    # Gewünschter Beendigungszeitpunkt; leer = zum nächstmöglichen Zeitpunkt.
+    requested_end = Column(Date, nullable=True)
+
+    declaration_text = Column(Text, nullable=False)
+    received_at = Column(DateTime, nullable=False, default=utcnow, index=True)
+    received_at_local = Column(String(40), nullable=False)
+
+    # Ende des bezahlten Zeitraums, wie Stripe es beim automatischen Kündigen
+    # zurückmeldet. Leer, wenn kein Abo automatisch zugeordnet werden konnte.
+    effective_at = Column(DateTime, nullable=True)
+    subscription_cancelled_at = Column(DateTime, nullable=True)
+    confirmation_sent_at = Column(DateTime, nullable=True)
+    # "eingegangen" -> "bestaetigt" (Mail raus) -> "abgeschlossen" (Betreiber)
+    status = Column(String(30), nullable=False, default="eingegangen")
+    processed_at = Column(DateTime, nullable=True)
+    processing_note = Column(String(500), nullable=True)
+
+    @property
+    def reference(self) -> str:
+        """Aktenzeichen für die Bestätigung, Form: K-XXXXXXXX."""
+        return "K-" + self.id.replace("-", "")[:8].upper()
+
+
 class Notice(Base):
     """Meldung nach Art. 16 DSA über das öffentliche Formular.
 

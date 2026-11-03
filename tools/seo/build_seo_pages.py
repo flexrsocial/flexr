@@ -466,6 +466,7 @@ FUSS = """  <nav class="nav-legal" aria-label="Rechtliche Seiten">
     <a href="/datenschutz.html">Datenschutz</a>
     <a href="/agb.html">AGB</a>
     <a href="/widerruf.html" data-widerruf-link>Rücktrittsrecht</a>
+    <a href="/kuendigen.html">Verträge hier kündigen</a>
     <a href="/nutzungsrichtlinien.html">Nutzungsrichtlinien</a>
     <a href="/sicherheit.html">Sicherheit</a>
     <a href="/kinderschutz.html">Kinderschutz</a>

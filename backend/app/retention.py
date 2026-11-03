@@ -188,6 +188,12 @@ RETENTION_TABLE: Final[tuple[RetentionRow, ...]] = (
         "models.WithdrawalDeclaration",
     ),
     RetentionRow(
+        "Kündigungserklärungen (Kündigungsbutton, § 312k BGB)",
+        f"{TAX_RECORD_RETENTION_YEARS} Jahre als Nachweis der Vertragsabwicklung",
+        "gesetzliche Aufbewahrungsfrist",
+        "models.CancellationDeclaration",
+    ),
+    RetentionRow(
         "Einwilligungsnachweise (Art. 7 Abs. 1 DSGVO)",
         "solange die Einwilligung wirkt, danach als Widerrufsnachweis bis zur "
         "Kontolöschung",

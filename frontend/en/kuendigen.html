@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cancel contracts here — FLEXR</title>
+<meta name="description" content="Cancel FLEXR Premium: no login needed, with an immediate confirmation of receipt by email. Your free FLEXR account remains.">
+<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1">
+<link rel="canonical" href="https://flexr.social/en/kuendigen.html">
+<link rel="alternate" hreflang="de-AT" href="https://flexr.social/kuendigen.html">
+<link rel="alternate" hreflang="de" href="https://flexr.social/kuendigen.html">
+<link rel="alternate" hreflang="en" href="https://flexr.social/en/kuendigen.html">
+<link rel="alternate" hreflang="x-default" href="https://flexr.social/kuendigen.html">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="FLEXR">
+<meta property="og:locale" content="en">
+<meta property="og:locale:alternate" content="de_AT">
+<meta property="og:title" content="Cancel contracts here — FLEXR">
+<meta property="og:description" content="Cancel without logging in, with an immediate confirmation of receipt by email.">
+<meta property="og:url" content="https://flexr.social/en/kuendigen.html">
+<meta property="og:image" content="https://flexr.social/og-image.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="stylesheet" href="/legal.css?v=3">
+</head>
+<body>
+<a class="skip-link" href="#main-content">Skip to content</a>
+<div class="wrap">
+  <div class="legal-head">
+    <a class="back" href="/en/">← back to FLEXR</a>
+    <span class="lang-switch" data-active="en" role="group" aria-label="Sprache / Language">
+      <a href="/kuendigen.html" hreflang="de" title="Deutsch">DE</a>
+      <a href="/en/kuendigen.html" hreflang="en" class="on" aria-current="true" title="English">EN</a>
+      <span class="knob" aria-hidden="true"></span>
+    </span>
+  </div>
+
+  <main id="main-content">
+  <h1>Cancel contracts here</h1>
+  <p class="lead">Cancel your FLEXR Premium subscription — no login needed, confirmed immediately.</p>
+  <p class="stand">Last updated: 3 November 2026</p>
+
+  <p class="en">
+    This is a translation provided for convenience. The
+    <a href="/kuendigen.html" hreflang="de">German version</a> is the legally
+    binding one; if the two differ, the German wording prevails.
+  </p>
+
+  <div class="box hint">
+    <h3>Good to know</h3>
+    <ul>
+      <li><b>Cancelling is not deleting.</b> Your free FLEXR account remains. To
+        delete your account, use “Delete account” in the app.</li>
+      <li><b>When the subscription ends.</b> An ordinary cancellation takes
+        effect at the end of the current billing period. Premium stays available
+        until then; nothing is charged afterwards.</li>
+      <li><b>Store subscriptions.</b> If you bought Premium in the App&nbsp;Store
+        or on Google&nbsp;Play, Apple or Google is your contractual partner —
+        please cancel in the store’s subscription settings. We still accept your
+        statement here.</li>
+      <li><b>Withdrawal is something else.</b> Within 14 days of purchase you can
+        instead <a href="/en/widerruf.html#funktion">withdraw from the
+        contract</a> and get your money back.</li>
+    </ul>
+  </div>
+
+  <form id="kuendigungForm" novalidate>
+    <fieldset style="border:0;padding:0;margin:0;">
+      <legend style="font-weight:600;margin-bottom:6px;">Type of cancellation <span aria-hidden="true">*</span></legend>
+      <label class="check" style="cursor:pointer;">
+        <input type="radio" name="kind" value="ordentlich" checked>
+        <span><b>Ordinary</b> — at the end of the current billing period</span>
+      </label>
+      <label class="check" style="cursor:pointer;">
+        <input type="radio" name="kind" value="ausserordentlich">
+        <span><b>Extraordinary (without notice)</b> — for good cause</span>
+      </label>
+    </fieldset>
+
+    <div id="k-reason-wrap" hidden>
+      <label for="k-reason">Reason for the extraordinary cancellation <span aria-hidden="true">*</span></label>
+      <textarea id="k-reason" name="reason" maxlength="1000"
+                placeholder="Please briefly describe why you are cancelling without notice."></textarea>
+    </div>
+
+    <label for="k-name">Your name <span aria-hidden="true">*</span></label>
+    <input type="text" id="k-name" name="name" autocomplete="name" required
+           placeholder="First and last name">
+
+    <label for="k-email">Email address <span aria-hidden="true">*</span></label>
+    <input type="email" id="k-email" name="email" autocomplete="email" required
+           placeholder="you@example.com">
+    <p class="hint">
+      Ideally the address of your FLEXR account — then we can match the
+      subscription right away. The confirmation of receipt goes to this address.
+    </p>
+
+    <label for="k-contract">Contract or account (optional)</label>
+    <input type="text" id="k-contract" name="contract_reference"
+           placeholder="e.g. invoice number or another account email">
+
+    <label for="k-end">Effective date</label>
+    <select id="k-end-mode" name="end_mode" aria-describedby="k-end-hint">
+      <option value="next" selected>At the earliest possible date</option>
+      <option value="date">On a specific date</option>
+    </select>
+    <input type="date" id="k-end" name="requested_end" hidden aria-label="Requested date">
+    <p class="hint" id="k-end-hint">Without a date we cancel at the earliest possible date.</p>
+
+    <p class="hint" id="k-disabled-hint" style="margin-top:10px;"></p>
+    <div class="err" id="k-err" role="alert" aria-live="assertive"></div>
+
+    <button type="submit" class="btn" id="k-submit" disabled>Cancel now</button>
+  </form>
+
+  <div class="result" id="k-result" role="status" aria-live="polite">
+    <div class="box" style="border-color:var(--lime);">
+      <h3>Cancellation received</h3>
+      <p id="k-result-msg"></p>
+      <p id="k-result-end"></p>
+      <p><b>Wording of your statement:</b></p>
+      <pre id="k-result-text"></pre>
+      <p class="hint">
+        Save this page or take a screenshot — the wording with date and time is
+        your evidence. The same details are sent to you by email.
+      </p>
+      <button type="button" class="btn" id="k-save" style="margin-top:4px;">Save statement</button>
+    </div>
+  </div>
+  </main>
+
+  <nav class="nav-legal" aria-label="Legal pages">
+    <a href="/en/faq.html">FAQ</a>
+    <a href="/en/impressum.html">Legal notice</a>
+    <a href="/en/datenschutz.html">Privacy</a>
+    <a href="/en/agb.html">Terms</a>
+    <a href="/en/nutzungsrichtlinien.html">Community guidelines</a>
+    <a href="/en/sicherheit.html">Safety</a>
+    <a href="/en/kinderschutz.html">Child safety</a>
+    <a href="/en/meldung.html">Report content</a>
+    <a href="/en/strafverfolgung.html">Law enforcement</a>
+    <a href="/en/widerruf.html" data-widerruf-link>Right of withdrawal</a>
+  </nav>
+</div>
+
+<script>
+(function(){
+  var form     = document.getElementById('kuendigungForm');
+  var submit   = document.getElementById('k-submit');
+  var err      = document.getElementById('k-err');
+  var result   = document.getElementById('k-result');
+  var nameEl   = document.getElementById('k-name');
+  var emailEl  = document.getElementById('k-email');
+  var reasonEl = document.getElementById('k-reason');
+  var endMode  = document.getElementById('k-end-mode');
+  var endEl    = document.getElementById('k-end');
+  var hint     = document.getElementById('k-disabled-hint');
+
+  // Eine UUID pro Formularaufruf: Ein Doppelklick schickt dieselbe ID, der
+  // Server legt keine zweite Erklaerung an (siehe routers/cancellation.py).
+  var requestId = (window.crypto && crypto.randomUUID) ? crypto.randomUUID()
+    : 'k-' + Date.now() + '-' + Math.random().toString(16).slice(2);
+
+  function art(){ return form.querySelector('input[name="kind"]:checked').value; }
+
+  // § 312k Abs. 3 BGB: nur die Angaben, die das Gesetz vorsieht - und der
+  // Knopf sagt live, was noch fehlt, statt grau und stumm zu bleiben.
+  function aktualisieren(){
+    var ausser = art() === 'ausserordentlich';
+    document.getElementById('k-reason-wrap').hidden = !ausser;
+    endEl.hidden = endMode.value !== 'date';
+    var fehlend = [];
+    if(ausser && !reasonEl.value.trim()) fehlend.push('the reason');
+    if(!nameEl.value.trim()) fehlend.push('your name');
+    if(!emailEl.value.trim()) fehlend.push('your email address');
+    if(endMode.value === 'date' && !endEl.value) fehlend.push('the date');
+    submit.disabled = fehlend.length > 0;
+    if(fehlend.length === 0){ hint.textContent = ''; }
+    else if(fehlend.length === 1){ hint.textContent = 'Still missing: ' + fehlend[0] + '.'; }
+    else { var letzte = fehlend.pop(); hint.textContent = 'Still missing: ' + fehlend.join(', ') + ' and ' + letzte + '.'; }
+  }
+  form.addEventListener('input', aktualisieren);
+  form.addEventListener('change', aktualisieren);
+  aktualisieren();
+
+  function fehler(text){
+    err.textContent = text;
+    submit.disabled = false;
+    submit.textContent = 'Cancel now';
+  }
+
+  form.addEventListener('submit', async function(ev){
+    ev.preventDefault();
+    err.textContent = '';
+    submit.disabled = true;
+    submit.textContent = 'Sending …';
+
+    var headers = {'Content-Type': 'application/json', 'Accept-Language': 'en'};
+    try {
+      var token = localStorage.getItem('flexr_token');
+      if(token){ headers['Authorization'] = 'Bearer ' + token; }
+    } catch(e){ /* localStorage gesperrt - es geht auch ohne */ }
+
+    try {
+      var resp = await fetch('/api/cancellation', {
+        method: 'POST',
+        headers: headers,
+        body: JSON.stringify({
+          kind: art(),
+          reason: art() === 'ausserordentlich' ? reasonEl.value.trim() : null,
+          name: nameEl.value.trim(),
+          email: emailEl.value.trim(),
+          contract_reference: document.getElementById('k-contract').value.trim() || null,
+          requested_end: endMode.value === 'date' ? endEl.value : null,
+          confirmed: true,
+          request_id: requestId,
+          language: 'en'
+        })
+      });
+      var body = await resp.json();
+      if(!resp.ok){
+        var detail = body && body.detail;
+        if(Array.isArray(detail) && detail.length){ detail = String(detail[0].msg).replace(/^Value error, /, ''); }
+        return fehler(typeof detail === 'string' ? detail
+          : 'The cancellation could not be received. Please send it to us '
+            + 'informally by email to flexr.social@proton.me instead.');
+      }
+      document.getElementById('k-result-msg').textContent  = body.message;
+      document.getElementById('k-result-text').textContent = body.declaration_text;
+      if(body.effective_at){
+        var ende = new Date(body.effective_at + 'Z');
+        document.getElementById('k-result-end').textContent =
+          'Your web subscription ends on ' + ende.toLocaleDateString('en-GB') + ' and will not renew.';
+      }
+      if(body.confirmation_sent === false){
+        var kasten = result.querySelector('.box');
+        kasten.style.borderColor = 'var(--warn)';
+        kasten.querySelector('h3').textContent = 'Cancellation received — please save the wording';
+      }
+      form.style.display   = 'none';
+      result.style.display = 'block';
+      result.scrollIntoView({behavior: 'smooth', block: 'start'});
+    } catch(e){
+      fehler('No connection to the server. Please send us the cancellation '
+           + 'informally by email to flexr.social@proton.me instead.');
+    }
+  });
+
+  // § 312k Abs. 4 BGB: Die Erklärung muss sich mit Datum und Uhrzeit
+  // speichern lassen - als Textdatei, unabhängig von der Bestätigungsmail.
+  document.getElementById('k-save').addEventListener('click', function(){
+    var text = document.getElementById('k-result-msg').textContent + '\n\n'
+             + document.getElementById('k-result-text').textContent + '\n';
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([text], {type: 'text/plain;charset=utf-8'}));
+    a.download = 'FLEXR-cancellation.txt';
+    document.body.appendChild(a); a.click(); a.remove();
+  });
+})();
+</script>
+<script src="/lang-switch.js?v=2" defer></script>
+<script src="/legal-status.js?v=2" defer></script>
+</body>
+</html>

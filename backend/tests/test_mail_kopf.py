@@ -50,6 +50,9 @@ FAELLE = {
     "report": lambda l: mailer.send_report_decision("a@b.c", "FX-1", "o", "r", l, name="Anna"),
     "withdrawal": lambda l: mailer.send_withdrawal_confirmation(
         "a@b.c", "Anna", "RT-1", "14.10.2026", "Text", "sub_1", True, l),
+    "cancellation": lambda l: mailer.send_cancellation_confirmation(
+        "a@b.c", "Anna", "K-1", "03.11.2026", "Text", "sub_1", "ordentlich",
+        "mit Ablauf des 03.12.2026", True, l),
     "notice": lambda l: mailer.send_notice_acknowledgement("a@b.c", "DSA-1", "14.10.2026", "B", l, name="Anna"),
 }
 
