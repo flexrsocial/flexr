@@ -324,6 +324,10 @@ final class AccountModel {
                 plzLookup = .resolved(city: city)
             } catch {
                 guard !Task.isCancelled else { return }
+                if error is UnknownPostalCodeError && PlzRepository.mayBeIncomplete(value) {
+                    plzLookup = .idle
+                    return
+                }
                 plzLookup = .failed(
                     message: error is UnknownPostalCodeError
                         ? s(.errorPostalCodeUnknown)

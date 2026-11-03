@@ -45,6 +45,19 @@ class PlzRepositoryTest {
     }
 
     @Test
+    fun `deutsche plz mit fuenf stellen geht durch`() = runTest {
+        val api = FakePlzApi { PlzLookupDto(plz = "10115", city = "Berlin") }
+        assertEquals("Berlin", PlzRepository(api).municipalityFor("10115"))
+    }
+
+    @Test
+    fun `vier stellen koennen unfertig sein, fuenf nicht`() {
+        assertEquals(true, PlzRepository.mayBeIncomplete("8033"))
+        assertEquals(false, PlzRepository.mayBeIncomplete("80331"))
+        assertEquals(false, PlzRepository.POSTAL_CODE_PATTERN.matches("123456"))
+    }
+
+    @Test
     fun `ungueltiges format wird gar nicht erst angefragt`() = runTest {
         val api = FakePlzApi { PlzLookupDto(plz = "1010", city = "Wien") }
         val repository = PlzRepository(api)

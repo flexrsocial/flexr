@@ -1,6 +1,6 @@
 import Foundation
 
-/// Fehler, wenn zu einer eingegebenen PLZ kein österreichischer Ort existiert.
+/// Fehler, wenn zu einer eingegebenen PLZ kein Ort in Österreich oder Deutschland existiert.
 ///
 /// Die Texte sind technische Beschreibungen für Protokolle. Was der Nutzer
 /// liest, bauen die Modelle aus `L.errorPostalCodeUnknown` — nur dort ist die
@@ -9,7 +9,7 @@ struct UnknownPostalCodeError: LocalizedError {
     var errorDescription: String? { "Unbekannte Postleitzahl." }
 }
 
-/// Fehler, wenn die Eingabe gar keine vierstellige PLZ ist.
+/// Fehler, wenn die Eingabe gar keine vier- oder fünfstellige PLZ ist.
 struct InvalidPostalCodeError: LocalizedError {
     var errorDescription: String? { "Ungültiges PLZ-Format." }
 }
@@ -25,9 +25,18 @@ struct InvalidPostalCodeError: LocalizedError {
 @MainActor
 final class PlzRepository {
 
-    /// Vier ASCII-Ziffern — dasselbe Muster wie serverseitig.
+    /// Vier (Österreich) oder fünf (Deutschland) ASCII-Ziffern — dasselbe
+    /// Muster wie serverseitig.
     nonisolated static func isValidPostalCode(_ value: String) -> Bool {
-        value.count == 4 && value.allSatisfy { $0.isASCII && $0.isNumber }
+        (4...5).contains(value.count) && value.allSatisfy { $0.isASCII && $0.isNumber }
+    }
+
+    /// Vier Ziffern können eine fertige österreichische PLZ sein oder die
+    /// ersten vier einer deutschen. Ein „unbekannt" bei vier Ziffern heißt
+    /// daher nur „weitertippen" und wird nicht als Fehler angezeigt; ohne
+    /// aufgelösten Ort lässt sich trotzdem nichts speichern.
+    nonisolated static func mayBeIncomplete(_ value: String) -> Bool {
+        value.count == 4
     }
 
     private let api: any PostalCodeLookup
@@ -75,7 +84,7 @@ final class GymRepository {
     /// Wiener Filialen (Sortierung nur nach Name und PLZ).
     func search(query: String, nearPostalCode: String? = nil) async throws -> [Gym] {
         let plz = nearPostalCode?.trimmingCharacters(in: .whitespaces) ?? ""
-        let near = plz.count == 4 && plz.allSatisfy(\.isNumber) ? plz : nil
+        let near = Self.isValidPostalCode(plz) ? plz : nil
         return try await api.searchGyms(query: query.trimmingCharacters(in: .whitespaces), near: near)
             .map { $0.toDomain() }
     }

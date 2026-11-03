@@ -106,7 +106,7 @@
     <string name="login_reactivate_confirm">Reactivate now</string>
 
     <string name="register_title">Dating for people\nwho do leg day\non Mondays.</string>
-    <string name="register_subtitle">Create your profile — free of charge, permanently. Using FLEXR costs nothing; no payment method is requested. Currently available in Austria only.</string>
+    <string name="register_subtitle">Create your profile — free of charge, permanently. Using FLEXR costs nothing; no payment method is requested. Available in Austria and Germany.</string>
     <string name="register_password_repeat">Repeat password</string>
     <string name="register_password_repeat_placeholder">Enter password again</string>
     <string name="register_photos_label">Photos (min. %1$d, max. %2$d)</string>
@@ -130,7 +130,7 @@
     <string name="register_err_password_mismatch">The two passwords do not match.</string>
     <string name="register_err_under_18">You must be at least 18 years old to use FLEXR.</string>
     <string name="register_err_birthdate">Please enter a valid date of birth.</string>
-    <string name="register_err_postal_code">Please enter a valid Austrian postal code (the town is filled in automatically).</string>
+    <string name="register_err_postal_code">Please enter a valid postal code from Austria (4 digits) or Germany (5 digits) – the town is filled in automatically.</string>
     <string name="register_err_gender">Please select a gender.</string>
     <string name="register_err_gym">Please select a gym from the list.</string>
     <string name="register_err_photo">Please upload at least %1$d photos.</string>
@@ -177,7 +177,7 @@
     <string name="swipe_empty_title">All sets done</string>
     <string name="swipe_empty_sub">No new profiles near you. Check back later.</string>
     <string name="swipe_invite">Invite friends</string>
-    <string name="swipe_invite_text">I\'m on FLEXR – dating for people who live in the gym. Free across Austria: https://flexr.social/en/</string>
+    <string name="swipe_invite_text">I\'m on FLEXR – dating for people who live in the gym. Free across Austria and Germany: https://flexr.social/en/</string>
     <string name="swipe_like">Like</string>
     <string name="swipe_pass">Pass</string>
     <string name="swipe_block_body">You will no longer see each other — neither in the deck nor in your matches.</string>
@@ -356,7 +356,7 @@
     <string name="account_unsaved">Unsaved changes</string>
     <string name="account_saved">Profile saved ✓</string>
     <string name="account_save_failed">Saving failed.</string>
-    <string name="account_err_postal_code">Please enter a valid Austrian postal code (the town is filled in automatically).</string>
+    <string name="account_err_postal_code">Please enter a valid postal code from Austria (4 digits) or Germany (5 digits) – the town is filled in automatically.</string>
     <string name="account_err_photo_before_save">Please upload at least %1$d photos before saving.</string>
     <string name="account_err_gym">Please select a gym from the list.</string>
     <string name="account_notifications_row">Matches, new profiles and reminders</string>

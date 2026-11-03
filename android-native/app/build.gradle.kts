@@ -367,8 +367,10 @@ android {
         // 153/2.7.41 am 22.10.2026: dazu Kopf des Decks wie im Web ("Heutige
         // Saetze / Wer trainiert, wo du bist"). Ersetzt 152, falls die noch
         // nicht hochgeladen war.
-        versionCode = 153
-        versionName = "2.7.41"
+        // 154/2.7.42 am 03.11.2026: Deutschland - PLZ mit vier (AT) oder
+        // fuenf (DE) Ziffern, 404 bei vier Ziffern heisst "weitertippen".
+        versionCode = 154
+        versionName = "2.7.42"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

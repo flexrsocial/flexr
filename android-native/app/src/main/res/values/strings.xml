@@ -138,7 +138,7 @@
     <string name="register_title">Dating für Leute,\ndie auch montags\nBeintag machen.</string>
     <!-- Kein Preis und kein Abschluss-Angebot in der App: Der Verkauf laeuft
          im Browser, siehe backend/app/clients.py. -->
-    <string name="register_subtitle">Erstell dein Profil — kostenlos, und das dauerhaft. FLEXR zu nutzen kostet nichts; es wird kein Zahlungsmittel abgefragt. Aktuell nur in Österreich verfügbar.</string>
+    <string name="register_subtitle">Erstell dein Profil — kostenlos, und das dauerhaft. FLEXR zu nutzen kostet nichts; es wird kein Zahlungsmittel abgefragt. Verfügbar in Österreich und Deutschland.</string>
     <string name="register_password_repeat">Passwort wiederholen</string>
     <string name="register_password_repeat_placeholder">Passwort erneut eingeben</string>
     <string name="register_photos_label">Fotos (mind. %1$d, max. %2$d)</string>
@@ -162,7 +162,7 @@
     <string name="register_err_password_mismatch">Die beiden Passwörter stimmen nicht überein.</string>
     <string name="register_err_under_18">Du musst mindestens 18 Jahre alt sein, um FLEXR nutzen zu können.</string>
     <string name="register_err_birthdate">Bitte ein gültiges Geburtsdatum angeben.</string>
-    <string name="register_err_postal_code">Bitte eine gültige österreichische Postleitzahl eingeben (Ort wird automatisch ermittelt).</string>
+    <string name="register_err_postal_code">Bitte eine gültige Postleitzahl aus Österreich (4-stellig) oder Deutschland (5-stellig) eingeben – der Ort wird automatisch ermittelt.</string>
     <string name="register_err_gender">Bitte ein Geschlecht auswählen.</string>
     <string name="register_err_gym">Bitte ein Gym aus der Liste auswählen.</string>
     <string name="register_err_photo">Bitte lade mindestens %1$d Fotos hoch.</string>
@@ -213,7 +213,7 @@
     <string name="swipe_empty_title">Alle Sätze absolviert</string>
     <string name="swipe_empty_sub">Keine neuen Profile in deiner Nähe. Schau später nochmal vorbei.</string>
     <string name="swipe_invite">Freunde einladen</string>
-    <string name="swipe_invite_text">Ich bin auf FLEXR – Dating für Leute, die im Gym zuhause sind. Kostenlos in ganz Österreich: https://flexr.social</string>
+    <string name="swipe_invite_text">Ich bin auf FLEXR – Dating für Leute, die im Gym zuhause sind. Kostenlos in ganz Österreich und Deutschland: https://flexr.social</string>
     <string name="swipe_like">Gefällt mir</string>
     <string name="swipe_pass">Ablehnen</string>
     <string name="swipe_block_body">Ihr seht euch danach nicht mehr — weder im Deck noch in den Matches.</string>
@@ -405,7 +405,7 @@
     <string name="account_unsaved">Ungespeicherte Änderungen</string>
     <string name="account_saved">Profil gespeichert ✓</string>
     <string name="account_save_failed">Speichern fehlgeschlagen.</string>
-    <string name="account_err_postal_code">Bitte eine gültige österreichische Postleitzahl eingeben (Ort wird automatisch ermittelt).</string>
+    <string name="account_err_postal_code">Bitte eine gültige Postleitzahl aus Österreich (4-stellig) oder Deutschland (5-stellig) eingeben – der Ort wird automatisch ermittelt.</string>
     <string name="account_err_photo_before_save">Bitte lade mindestens %1$d Fotos hoch, bevor du speicherst.</string>
     <string name="account_err_gym">Bitte ein Gym aus der Liste auswählen.</string>
     <string name="account_notifications_row">Matches, neue Profile und Erinnerungen</string>

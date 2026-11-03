@@ -285,6 +285,9 @@ class AccountViewModel @Inject constructor(
                     plzLookup = result.fold(
                         onSuccess = { city -> PlzLookupState.Resolved(city) },
                         onFailure = { throwable ->
+                            if (throwable is UnknownPostalCodeException && PlzRepository.mayBeIncomplete(value)) {
+                                return@fold PlzLookupState.Idle
+                            }
                             PlzLookupState.Failed(
                                 if (throwable is UnknownPostalCodeException) strings.get(R.string.error_postal_code_unknown)
                                 else strings.get(R.string.error_city_lookup),
