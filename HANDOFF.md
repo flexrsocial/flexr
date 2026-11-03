@@ -1,6 +1,6 @@
 # FLEXR — Handoff für ein anderes Gerät / Claude Code
 
-Stand: **31.10.2026**
+Stand: **03.11.2026**
 
 ## ⚠️ Dringend zu prüfen: SSH-Zugang zum VPS hat sich geändert (21.09.2026)
 
@@ -31,6 +31,78 @@ Falls du das liest, weil dein `root@`-Login gerade fehlschlägt: das ist
 erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 
 ## Wo das Projekt gerade steht
+
+> **Sitzung 03.11.2026: Start in Deutschland.** Backend, Web, Apps, Recht,
+> SEO. Deployt, GitHub und VPS auf `8f2510b`, Alembic `b8d4f0a2c6e3`.
+> Ablaufplan mit Stand je Phase: `docs/EXPORT-DEUTSCHLAND.md`. Offene
+> Rechtspunkte: `LEGAL_REVIEW.md` Abschnitt **DE**.
+>
+> - **PLZ:** 4 Ziffern = Österreich, 5 = Deutschland; das Land ergibt sich
+>   aus der Länge (`geo.country_for_plz`, `geo.PLZ_PATTERN`), **keine
+>   Länderspalte** (Nutzer-Entscheidung). 8.211 deutsche PLZ aus GeoNames,
+>   Großkunden-/Postfach-PLZ ausgefiltert, 229 Großstadt-PLZ mit
+>   OSM-Koordinate; Erzeuger `tools/plz/build_plz_de.py` (Quelldateien nicht
+>   im Repo). Migration `f4d9b2e6a8c1`: `users.plz`/`gyms.plz` VARCHAR(5).
+> - **Vier getippte Ziffern sind mehrdeutig** (fertige AT-PLZ oder Anfang
+>   einer DE-PLZ): Web, Android, iOS zeigen bei 404 nach vier Ziffern nur
+>   „PLZ eingeben“ statt Fehler, veraltete Antworten werden verworfen.
+> - **Gyms:** 2.073 deutsche Studios aus OSM (69 Großstädte, nur mit Adresse)
+>   in `backend/app/data/gyms_seed_de.json`, Migration `b8d4f0a2c6e3`
+>   (getrennt von `gyms_seed.json`, weil `caf8f084232e` jene bei jedem
+>   Neuaufbau einliest). Erzeuger `tools/gyms/build_gyms_de.py`. **28
+>   kleinere Großstädte fehlen** (Overpass überlastet) — Liste und Weg zum
+>   Nachholen im Plan-Dokument; dafür eine *neue* Migration nach demselben
+>   Muster.
+> - **Kündigungsbutton § 312k BGB:** `/kuendigen.html` + `/en/kuendigen.html`,
+>   `POST /api/cancellation` (`routers/cancellation.py`), Tabelle
+>   `cancellation_declarations` (Migration `a7c3e9d1f5b2`), Aktenzeichen
+>   `K-…`. Link „Verträge hier kündigen“ neben jedem Rücktritts-Link
+>   (Test erzwingt das). Ordentlich + nächstmöglich + Stripe-Abo
+>   zuordenbar (Login **oder** passende Konto-E-Mail, Nutzer-Entscheidung)
+>   → `cancel_at_period_end` automatisch; alles andere nur Telegram, von
+>   Hand in Stripe umsetzen (DE-04). `stripe_client.cancel_subscription_at_period_end`
+>   gibt jetzt das Periodenende zurück.
+> - **Rechtstexte DE/EN + gekürzte App-Kopien:** AGB (Fassung 2026-11-03:
+>   Geltungsbereich, Kündigung ohne Login, § 356 Abs. 4 BGB, Art. 53 DSA,
+>   Art. 18 Brüssel Ia), Widerruf (Kasten „Verbraucher in Deutschland“,
+>   Art. 11a VRRL), Impressum (§ 5 DDG, § 18 MStV), Datenschutz (Fassung
+>   2026-11-03, Kündigungserklärungen, Art. 77 DSGVO), Nutzungsrichtlinien,
+>   Sicherheit, Kinderschutz (deutsche Notrufe, Hilfsangebote, BKA).
+>   `legal.py`: TERMS/PRIVACY/AUP/WITHDRAWAL_VERSION 2026-11-03. **Ohne
+>   anwaltliche Prüfung** verwendet (Nutzer-Entscheidung).
+> - **Website/SEO:** Landingpage, FAQ, Hub „Österreich und Deutschland“,
+>   Stadtseiten Berlin, Hamburg, München, Köln, Frankfurt (`lang="de-DE"`,
+>   Generator `tools/seo/build_seo_pages.py`, `"lang"` je Stadt).
+>   `tools/gyms/merge_seo_gyms.py` trägt die DE-Studios in
+>   `tools/seo/gyms.json` nach (die Live-API liefert sie inzwischen auch,
+>   `--refresh` geht jetzt bis fünf Stellen ab Ziffer 0).
+>   `i18n.js ?v=7`, `i18n-app.js ?v=47`, SW-Cache `flexr-shell-v61`.
+> - **Apps:** Android 2.7.42 / versionCode 154 gebaut und signiert
+>   (`release-2.7.42/flexr-2.7.42-154.aab`, Fingerabdruck geprüft,
+>   SHA-256 in `SHA256SUMS.txt`) — **noch nicht hochgeladen**. iOS 2.4.17
+>   nur Code, nie gebaut (kein Mac). Store-Texte DE/EN:
+>   `android/store/store-texte.md` (gitignored) und `ios/store/store-texte.md`.
+> - **Getestet:** Backend 812 grün (neu `test_plz_deutschland.py`,
+>   `test_kuendigungsbutton.py`, `test_journey_deutschland.py`), Android 90
+>   Unit-Tests. Journey lokal in der Web-App bis Deck/Konto durchgeklickt;
+>   Fotos, Prüfung, Bezahlung lokal nicht möglich (keine R2/Stripe-Daten),
+>   nur über Tests. Kündigungsbutton nie mit echtem Abo durchgespielt.
+> - **Beim Nutzer:** Bundle hochladen, iOS bauen, Deutschland in beiden
+>   Stores freischalten, Store-Name „FLEXR – Gym Dating Österreich“ ändern
+>   (dann `kinderschutz.html` angleichen, DE-03), Umsatzsteuer/OSS mit der
+>   Steuerberatung (DE-01).
+> - **Fallen dieser Sitzung:** `pkill -f muster` beendet die eigene Shell,
+>   wenn das Muster in der Befehlszeile steht. `sudo systemctl status
+>   flexr-api` als `deploy` nur **ohne** Zusatzschalter (`SYSTEMD_PAGER=cat`
+>   davor statt `--no-pager`). Sicherung vor Migrationen kann `deploy` selbst:
+>   `pg_dump` mit der URL aus `backend/.env` (ohne `+psycopg2`), liegt in
+>   `~deploy/flexr-backups/`. Der Rechner ist schwach: Gradle mit
+>   `--no-daemon --max-workers=1 -Dorg.gradle.jvmargs=-Xmx1536m
+>   -Pkotlin.compiler.execution.strategy=in-process` und `nice` bauen,
+>   vorher alte Gradle-/Kotlin-Daemons beenden (`./gradlew --stop`).
+> - **Lokale Datenbank** steht jetzt auf `b8d4f0a2c6e3` (vorher August-Stand)
+>   und enthält zwei Testkonten `lena.muenchen@example.com` /
+>   `max.muenchen@example.com`.
 
 > **Sitzung 02.11.2026: Website-Tuning (Bilder, Startboost, Caching).** Nur
 > Website und nginx, keine App-Version, kein Backend-Neustart. Commit
