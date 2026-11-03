@@ -287,7 +287,7 @@
           <input class="gym-edit-input" data-f="name" placeholder="Name" value="${escapeHtml(g.name)}">
           <input class="gym-edit-input" data-f="street" placeholder="Straße" value="${escapeHtml(g.street)}">
           <input class="gym-edit-input short" data-f="house_number" placeholder="Nr." value="${escapeHtml(g.house_number)}">
-          <input class="gym-edit-input short" data-f="plz" placeholder="PLZ" inputmode="numeric" maxlength="4" value="${escapeHtml(g.plz)}">
+          <input class="gym-edit-input short" data-f="plz" placeholder="PLZ" inputmode="numeric" maxlength="5" value="${escapeHtml(g.plz)}">
           <input class="gym-edit-input" data-f="city" placeholder="Ort" value="${escapeHtml(g.city)}">
           <div class="gym-edit-actions">
             ${canApprove ? `<button class="btn small" data-save-approve>Speichern &amp; Freigeben</button>` : ''}
@@ -304,7 +304,7 @@
     };
     const validate = (v) => {
       if(v.name.length < 2){ toast('Name ist zu kurz.'); return false; }
-      if(!/^\d{4}$/.test(v.plz)){ toast('PLZ muss 4 Ziffern haben.'); return false; }
+      if(!/^\d{4,5}$/.test(v.plz)){ toast('PLZ muss 4 (AT) oder 5 (DE) Ziffern haben.'); return false; }
       return true;
     };
     const save = async (thenApprove) => {
