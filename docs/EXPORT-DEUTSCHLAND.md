@@ -4,6 +4,34 @@ Stand: 03.11.2026. Grundlage ist eine Durchsicht des Codes (Backend, Web,
 Android, iOS, SEO-Generator, Rechtstexte). Reihenfolge = Abhängigkeiten:
 Was weiter unten steht, setzt das Obere voraus.
 
+## Umsetzungsstand (03.11.2026)
+
+| Phase | Stand |
+|---|---|
+| 1 Daten/Backend | ✅ 8.211 deutsche PLZ (Großkunden-/Postfach-PLZ ausgefiltert), Migrationen `f4d9b2e6a8c1` (PLZ 5-stellig) und `b8d4f0a2c6e3` (deutsche Gyms aus OSM, nur mit vollständiger Adresse) |
+| 2 Web/Admin | ✅ inkl. Schutz gegen veraltete Antworten bei 4 getippten Ziffern |
+| 3 Apps | ✅ Code, Android 2.7.42 / 154 und iOS 2.4.17 — **Hochladen in die Stores macht der Nutzer**, iOS ungebaut (kein Mac) |
+| 4 Recht | ✅ Kündigungsbutton (§ 312k BGB), AGB, Widerruf, Impressum, Datenschutz, Nutzungsrichtlinien, Sicherheit — DE/EN und App-Kopien. Offen: Umsatzsteuer (LEGAL_REVIEW DE-01) |
+| 5 Website/SEO | ✅ Landingpage, FAQ, Hub, Stadtseiten Berlin, Hamburg, München, Köln, Frankfurt |
+| 6 Abschluss | ✅ Tests, Deploy |
+
+**Gym-Daten:** 2.073 Studios aus 69 Großstädten. Der Overpass-Dienst war
+überlastet; nicht mehr abgerufen wurden Recklinghausen, Erlangen, Bergisch
+Gladbach, Remscheid, Jena, Trier, Salzgitter, Moers, Siegen, Hildesheim,
+Gütersloh, Cottbus, Kaiserslautern, Witten, Hanau, Schwerin, Ludwigsburg,
+Esslingen, Gera, Iserlohn, Düren, Tübingen, Flensburg, Zwickau, Gießen,
+Ratingen, Konstanz, Villingen-Schwenningen und Worms (ab Recklinghausen, die
+Liste ist nach Einwohnerzahl sortiert). Nachholen: Abrufskript erneut
+laufen lassen, `tools/gyms/build_gyms_de.py`, dann eine **neue** Migration nach
+dem Muster von `b8d4f0a2c6e3` (die bestehende überspringt schon vorhandene
+Name/PLZ-Paare, ist also auch erneut ausführbar).
+
+**Bewusst nicht gemacht:** OSM-Studios ohne Adresse (rund 40 % der Treffer)
+sind nicht per Rückwärts-Geokodierung ergänzt worden — eine geratene
+Hausnummer wäre schlechter als ein fehlendes Studio, das Nutzer vorschlagen
+können. Store-Einträge (Verfügbarkeit Deutschland, Name „… Österreich“) liegen
+beim Nutzer (LEGAL_REVIEW DE-03).
+
 **Leitgedanke:** Deutsche PLZ haben 5 Stellen, österreichische 4. Damit gibt
 es keine Überschneidung, und das Land lässt sich eindeutig aus der PLZ
 ablesen. Alles, was heute „genau 4 Ziffern“ prüft, muss „4 oder 5“ lernen —

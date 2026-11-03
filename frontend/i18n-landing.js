@@ -22,9 +22,9 @@
 
   FlexrI18n.register({
   de: {
-    'meta.title': 'FLEXR – Dating für Gym-People in Österreich',
-    'meta.description': 'FLEXR ist die Dating-App für Gym-People in Österreich: Matches nach Fitnessstudio und Umkreis. Die Nutzung ist dauerhaft kostenlos; FLEXR Premium (10 €/Monat) ist freiwillig.',
-    'meta.ogTitle': 'FLEXR – Dating für Gym-People in Österreich',
+    'meta.title': 'FLEXR – Dating für Gym-People in Österreich und Deutschland',
+    'meta.description': 'FLEXR ist die Dating-App für Gym-People in Österreich und Deutschland: Matches nach Fitnessstudio und Umkreis. Die Nutzung ist dauerhaft kostenlos; FLEXR Premium (10 €/Monat) ist freiwillig.',
+    'meta.ogTitle': 'FLEXR – Dating für Gym-People in Österreich und Deutschland',
     'meta.ogDescription': 'Finde Menschen, die Training genauso ernst nehmen wie du – in deinem Gym und in deiner Nähe. Dauerhaft kostenlos nutzbar.',
     'meta.ogLocale': 'de_AT',
 
@@ -37,13 +37,13 @@
     'common.skipToContent': 'Zum Inhalt springen',
 
     'hero.eyebrow': 'FLEXR · Dating für Gym-People',
-    'hero.h1': 'Dating für<br>Gym-People<br>in <em>Österreich</em>',
+    'hero.h1': 'Dating für<br>Gym-People<br>in <em>Österreich &amp; Deutschland</em>',
     'hero.sub': 'Finde Menschen, die Training genauso ernst nehmen wie du – in deinem Gym und in deiner Nähe. Match. Train. Repeat.',
     'hero.ctaStart': 'Gratis loslegen',
     'hero.ctaNote': 'Kostenlos registrieren, kein Zahlungsmittel nötig. Ab 18.',
     'hero.cardSub': 'Krafttraining · Wien',
     'hero.badge': 'In deiner Nähe',
-    'hero.usp1': 'Matches nach Gym und Umkreis — nicht am anderen Ende Österreichs',
+    'hero.usp1': 'Matches nach Gym und Umkreis — nicht am anderen Ende des Landes',
     'hero.usp2': 'Dauerhaft gratis nutzbar — <b>nichts wird abgebucht</b>, Premium ist freiwillig',
     'hero.usp3': 'Jedes Konto wird vor der Freischaltung auf Volljährigkeit geprüft',
 
@@ -54,7 +54,7 @@
 
     'gym.h2': 'Matches rund um dein Gym',
     'gym.p1': 'Die meisten Dating-Apps fragen dein Handy nach dem Standort und zeigen dir dann, wer gerade in der Nähe ist. FLEXR macht das anders – und zwar bewusst:',
-    'gym.li1': '<b>Du wählst dein Studio.</b> Aus einer Liste österreichischer Fitnessstudios mit Adresse. Fehlt deins, reichst du es mit Adresse ein und kannst es sofort verwenden.',
+    'gym.li1': '<b>Du wählst dein Studio.</b> Aus einer Liste von Fitnessstudios in Österreich und Deutschland mit Adresse. Fehlt deins, reichst du es mit Adresse ein und kannst es sofort verwenden.',
     'gym.li2': '<b>Du stellst deinen Suchradius ein.</b> Von 2 bis 580 Kilometer. Größerer Radius heißt mehr Profile, dafür weitere Wege.',
     'gym.li3': '<b>Keine GPS-Ortung.</b> Weder Browser noch App fragen deine Geräteposition ab. Gerechnet wird ausschließlich mit der öffentlichen Adresse des Studios, das du selbst angegeben hast. Dein Wohnort wird niemandem angezeigt – andere sehen nur deine Stadt.',
     'gym.li4': '<b>Du siehst Leute aus Studios im Umkreis</b>, nicht nur aus deinem eigenen. Das Gym ist der Mittelpunkt, nicht der Zaun.',
@@ -105,10 +105,10 @@
     'how.step3H3': 'Liken, matchen, schreiben',
     'how.step3P': 'Du siehst passende Profile aus deinem Umkreis. Liken sich zwei Leute gegenseitig, entsteht ein Match – und erst dann könnt ihr schreiben. Vorher landet bei dir keine ungefragte Nachricht.',
 
-    'at.h2': 'Für Gym-People in ganz Österreich',
-    'at.p1': 'FLEXR funktioniert mit jeder österreichischen Postleitzahl – in <a href="/fitness-dating-wien.html"><b>Wien</b></a> genauso wie in <a href="/fitness-dating-graz.html"><b>Graz</b></a>, <a href="/fitness-dating-linz.html"><b>Linz</b></a>, <a href="/fitness-dating-salzburg.html"><b>Salzburg</b></a>, <a href="/fitness-dating-innsbruck.html"><b>Innsbruck</b></a>, <a href="/fitness-dating-klagenfurt.html"><b>Klagenfurt</b></a>, <b>Villach</b>, <b>Wels</b>, <b>St. Pölten</b>, <b>Dornbirn</b> oder <b>Wiener Neustadt</b>.',
+    'at.h2': 'Für Gym-People in Österreich und Deutschland',
+    'at.p1': 'FLEXR funktioniert mit jeder Postleitzahl in Österreich und Deutschland – in <a href="/fitness-dating-wien.html"><b>Wien</b></a> genauso wie in <a href="/fitness-dating-graz.html"><b>Graz</b></a>, <a href="/fitness-dating-linz.html"><b>Linz</b></a>, <a href="/fitness-dating-salzburg.html"><b>Salzburg</b></a>, <a href="/fitness-dating-innsbruck.html"><b>Innsbruck</b></a>, <a href="/fitness-dating-klagenfurt.html"><b>Klagenfurt</b></a>, <b>Villach</b>, <b>Wels</b>, <b>St. Pölten</b>, <b>Dornbirn</b> oder <b>Wiener Neustadt</b> genauso wie in <b>Berlin</b>, <b>Hamburg</b>, <b>München</b>, <b>Köln</b> oder <b>Frankfurt</b>.',
     'at.p2': 'Ehrlich dazu: Wie viele Profile du siehst, hängt davon ab, wie viele Leute in deinem Umkreis dabei sind. In Ballungsräumen sind es mehr als am Land. Wir nennen bewusst keine Nutzerzahlen und versprechen keine bestimmte Anzahl an Matches – wer das tut, hat sie meist erfunden. Wenn du am Land wohnst, stell den Radius größer ein; die nächste größere Stadt ist oft näher, als es sich anfühlt.',
-    'at.p3': 'FLEXR ist derzeit auf Österreich beschränkt. Das ist keine Übergangslösung, sondern der Punkt: Eine Dating-App, die in einem überschaubaren Markt gut funktioniert, ist mehr wert als eine, die überall ein bisschen läuft.',
+    'at.p3': 'FLEXR gibt es in Österreich und seit November 2026 auch in Deutschland. Ehrlich dazu: In deutschen Städten fängt FLEXR gerade erst an, dort sind anfangs weniger Profile zu sehen als in Wien oder Graz. Wer früh dabei ist, bestimmt mit, wer im eigenen Studio auftaucht.',
 
     'safe.h2': 'Geprüfte Profile und Sicherheit',
     'safe.p1': 'Dating-Apps ziehen Betrüger an. Dagegen tun wir Folgendes – und das sind keine Marketingversprechen, sondern das, was tatsächlich läuft:',
@@ -143,7 +143,7 @@
 
     'faq.h2': 'Häufige Fragen',
     'faq.q1': 'Was ist FLEXR?',
-    'faq.a1': 'Eine Dating-App für Menschen, denen Training und Gym wichtig sind. Du findest Matches nach deinem Fitnessstudio und deinem Umkreis — in ganz Österreich.',
+    'faq.a1': 'Eine Dating-App für Menschen, denen Training und Gym wichtig sind. Du findest Matches nach deinem Fitnessstudio und deinem Umkreis — in ganz Österreich und Deutschland.',
     'faq.q2': 'Für wen ist FLEXR?',
     'faq.a2': 'Für alle ab 18, die Training ernst nehmen und jemanden mit ähnlichem Lifestyle kennenlernen wollen. Der gemeinsame Nenner ist nicht ein Körper, sondern ein Alltag, in dem das Studio fix eingeplant ist.',
     'faq.q3': 'Ist FLEXR nur für Bodybuilder?',
@@ -160,8 +160,8 @@
     'faq.a8': 'Du bestätigst deine E-Mail-Adresse, nimmst ein Selfie live über die Kamera auf und lädst eine Aufnahme eines amtlichen Lichtbildausweises hoch — als Foto oder als Datei von deinem Gerät. Ein Mensch vergleicht Profilbild, Selfie und Ausweisfoto und prüft das Geburtsdatum — <b>keine automatische Gesichtserkennung</b>. Die Aufnahmen werden danach gelöscht.',
     'faq.q9': 'Speichert FLEXR meinen Standort?',
     'faq.a9': 'Nein. Weder Browser noch App fragen eine Geräteposition ab. Die Umkreissuche rechnet ausschließlich mit der öffentlichen Adresse des Studios, das du selbst auswählst.',
-    'faq.q10': 'Ist FLEXR in ganz Österreich verfügbar?',
-    'faq.a10': 'Ja, jede österreichische Postleitzahl funktioniert. Wie viele Profile du siehst, hängt davon ab, wie viele Leute in deinem Umkreis dabei sind — in Ballungsräumen mehr als am Land.',
+    'faq.q10': 'Ist FLEXR in ganz Österreich und Deutschland verfügbar?',
+    'faq.a10': 'Ja, jede österreichische und jede deutsche Postleitzahl funktioniert. Wie viele Profile du siehst, hängt davon ab, wie viele Leute in deinem Umkreis dabei sind — in Ballungsräumen mehr als am Land.',
     'faq.qIphone': 'Gibt es FLEXR fürs iPhone?',
     'faq.aIphone': 'Ja, als Web-App: Öffne <b>flexr.social/app</b> in Safari, tippe auf „Teilen“ (ab iOS 26 im Menü an der Adresszeile) und dann auf „Zu Home-Bildschirm hinzufügen“ (<a href="/app/?ios=installieren">Schritt-für-Schritt-Anleitung</a>). FLEXR startet dann wie eine App, ohne Browserleisten; dort meldest du dich einmal neu an. Unter Konto → Benachrichtigungen kannst du Mitteilungen bei neuen Nachrichten und Matches einschalten (ab iOS 16.4).',
     'faq.q11': 'Wie kündige ich?',
@@ -175,7 +175,7 @@
 
     'foot.toApp': 'Zur App',
     'foot.discoverTitle': 'Entdecken',
-    'foot.gymDating': 'Gym-Dating in Österreich',
+    'foot.gymDating': 'Gym-Dating in Österreich und Deutschland',
     'foot.wien': 'Fitness-Dating Wien',
     'foot.graz': 'Fitness-Dating Graz',
     'foot.dateIdeas': 'Date-Ideen für Sportler',
@@ -206,9 +206,9 @@
   },
 
   en: {
-    'meta.title': 'FLEXR – dating for gym people in Austria',
-    'meta.description': 'FLEXR is the dating app for gym people in Austria: matches by gym and radius. Using it is permanently free; FLEXR Premium (€10/month) is optional.',
-    'meta.ogTitle': 'FLEXR – dating for gym people in Austria',
+    'meta.title': 'FLEXR – dating for gym people in Austria and Germany',
+    'meta.description': 'FLEXR is the dating app for gym people in Austria and Germany: matches by gym and radius. Using it is permanently free; FLEXR Premium (€10/month) is optional.',
+    'meta.ogTitle': 'FLEXR – dating for gym people in Austria and Germany',
     'meta.ogDescription': 'Find people who take training as seriously as you do – at your gym and close to you. Free to use, permanently.',
     'meta.ogLocale': 'en',
 
@@ -221,13 +221,13 @@
     'common.skipToContent': 'Skip to content',
 
     'hero.eyebrow': 'FLEXR · dating for gym people',
-    'hero.h1': 'Dating for<br>gym people<br>in <em>Austria</em>',
+    'hero.h1': 'Dating for<br>gym people<br>in <em>Austria &amp; Germany</em>',
     'hero.sub': 'Find people who take training as seriously as you do – at your gym and close to you. Match. Train. Repeat.',
     'hero.ctaStart': 'Start for free',
     'hero.ctaNote': 'Sign up free, no payment method needed. 18+.',
     'hero.cardSub': 'Strength training · Vienna',
     'hero.badge': 'Near you',
-    'hero.usp1': 'Matches by gym and radius — not from the other end of Austria',
+    'hero.usp1': 'Matches by gym and radius — not from the other end of the country',
     'hero.usp2': 'Free to use, permanently — <b>nothing is charged</b>, Premium is optional',
     'hero.usp3': 'Every account is checked for being of age before it is unlocked',
 
@@ -238,7 +238,7 @@
 
     'gym.h2': 'Matches around your gym',
     'gym.p1': 'Most dating apps ask your phone for your location and then show you who happens to be nearby. FLEXR does it differently – deliberately:',
-    'gym.li1': '<b>You choose your gym.</b> From a list of Austrian gyms with addresses. If yours is missing, submit it with its address and use it right away.',
+    'gym.li1': '<b>You choose your gym.</b> From a list of gyms in Austria and Germany with addresses. If yours is missing, submit it with its address and use it right away.',
     'gym.li2': '<b>You set your search radius.</b> From 2 to 580 kilometres. A larger radius means more profiles, but longer trips.',
     'gym.li3': '<b>No GPS tracking.</b> Neither the browser nor the app asks for your device location. Distances are calculated solely from the public address of the gym you entered yourself. Your home address is never shown to anyone – others only see your city.',
     'gym.li4': '<b>You see people from gyms in the area</b>, not only from your own. The gym is the centre, not the fence.',
@@ -287,10 +287,10 @@
     'how.step3H3': 'Like, match, message',
     'how.step3P': 'You see matching profiles from your area. If two people like each other, a match is created – and only then can you message. Before that, no unsolicited message reaches you.',
 
-    'at.h2': 'For gym people all across Austria',
-    'at.p1': 'FLEXR works with every Austrian postal code – in <b>Vienna</b> just as in <b>Graz</b>, <b>Linz</b>, <b>Salzburg</b>, <b>Innsbruck</b>, <b>Klagenfurt</b>, <b>Villach</b>, <b>Wels</b>, <b>St. Pölten</b>, <b>Dornbirn</b> or <b>Wiener Neustadt</b>.',
+    'at.h2': 'For gym people in Austria and Germany',
+    'at.p1': 'FLEXR works with every postal code in Austria and Germany – in <b>Vienna</b> just as in <b>Graz</b>, <b>Linz</b>, <b>Salzburg</b>, <b>Innsbruck</b>, <b>Klagenfurt</b>, <b>Villach</b>, <b>Wels</b>, <b>St. Pölten</b>, <b>Dornbirn</b> or <b>Wiener Neustadt</b> just as in <b>Berlin</b>, <b>Hamburg</b>, <b>Munich</b>, <b>Cologne</b> or <b>Frankfurt</b>.',
     'at.p2': 'Honestly: how many profiles you see depends on how many people are on board within your radius. In urban areas there are more than in the countryside. We deliberately do not quote user numbers and do not promise a certain number of matches – those who do have usually made them up. If you live rurally, set the radius wider; the next larger town is often closer than it feels.',
-    'at.p3': 'FLEXR is currently limited to Austria. That is not a stopgap, that is the point: a dating app that works well in a manageable market is worth more than one that runs a little bit everywhere.',
+    'at.p3': 'FLEXR is available in Austria and, since November 2026, in Germany too. Honestly: in German cities FLEXR is only just starting, so at first you will see fewer profiles there than in Vienna or Graz. Joining early means you help decide who shows up at your gym.',
 
     'safe.h2': 'Checked profiles and safety',
     'safe.p1': 'Dating apps attract scammers. Here is what we do about it – these are not marketing promises but what actually happens:',
@@ -325,7 +325,7 @@
 
     'faq.h2': 'Frequently asked questions',
     'faq.q1': 'What is FLEXR?',
-    'faq.a1': 'A dating app for people who care about training and the gym. You find matches by your gym and your radius — all across Austria.',
+    'faq.a1': 'A dating app for people who care about training and the gym. You find matches by your gym and your radius — all across Austria and Germany.',
     'faq.q2': 'Who is FLEXR for?',
     'faq.a2': 'For everyone 18 and over who takes training seriously and wants to meet someone with a similar lifestyle. The common ground is not a body, it is a daily routine with the gym firmly in it.',
     'faq.q3': 'Is FLEXR only for bodybuilders?',
@@ -342,8 +342,8 @@
     'faq.a8': 'You confirm your email address, take a selfie live with the camera and upload an image of an official photo ID — either as a photo you take now or as a file from your device. A person compares profile picture, selfie and ID photo and checks the date of birth — <b>no automated facial recognition</b>. The images are deleted afterwards.',
     'faq.q9': 'Does FLEXR store my location?',
     'faq.a9': 'No. Neither the browser nor the app asks for a device location. The radius search works solely with the public address of the gym you select yourself.',
-    'faq.q10': 'Is FLEXR available all across Austria?',
-    'faq.a10': 'Yes, every Austrian postal code works. How many profiles you see depends on how many people are on board within your radius — more in urban areas than in the countryside.',
+    'faq.q10': 'Is FLEXR available all across Austria and Germany?',
+    'faq.a10': 'Yes, every Austrian and every German postal code works. How many profiles you see depends on how many people are on board within your radius — more in urban areas than in the countryside.',
     'faq.qIphone': 'Is FLEXR available for iPhone?',
     'faq.aIphone': 'Yes, as a web app: open <b>flexr.social/app</b> in Safari, tap “Share” (from iOS 26 in the menu by the address bar) and then “Add to Home Screen” (<a href="/app/?ios=installieren">step-by-step guide</a>). FLEXR then starts like an app, without browser bars; log in there once more. Under Account → Notifications you can switch on notifications for new messages and matches (iOS 16.4 or later).',
     'faq.q11': 'How do I cancel?',
@@ -357,7 +357,7 @@
 
     'foot.toApp': 'To the app',
     'foot.discoverTitle': 'Discover (German)',
-    'foot.gymDating': 'Gym dating in Austria',
+    'foot.gymDating': 'Gym dating in Austria and Germany',
     'foot.wien': 'Fitness dating Vienna',
     'foot.graz': 'Fitness dating Graz',
     'foot.dateIdeas': 'Date ideas for athletes',

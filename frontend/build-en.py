@@ -209,9 +209,9 @@ def englische_kopfdaten(html: str, texte: dict[str, str]) -> str:
             f'<meta name="twitter:description" content="{texte["meta.ogDescription"]}">',
         r'<meta property="og:image:alt" content="[^"]*">':
             '<meta property="og:image:alt" content="FLEXR — Match. Train. Repeat. '
-            'Dating for gym people in Austria.">',
+            'Dating for gym people in Austria and Germany.">',
         r'<meta name="twitter:image:alt" content="[^"]*">':
-            '<meta name="twitter:image:alt" content="FLEXR — dating for gym people in Austria.">',
+            '<meta name="twitter:image:alt" content="FLEXR — dating for gym people in Austria and Germany.">',
     }
     for muster, neu in ersatz_meta.items():
         html, anzahl = re.subn(muster, lambda _m, n=neu: n, html, count=1)
@@ -238,15 +238,15 @@ def englische_kopfdaten(html: str, texte: dict[str, str]) -> str:
             '"operatingSystem": "Web, Android",\n      "url": "https://flexr.social/en/",',
         ),
         (
-            '"description": "Betreiber der Dating-App FLEXR für Gym-People in Österreich. '
+            '"description": "Betreiber der Dating-App FLEXR für Gym-People in Österreich und Deutschland. '
             'Nicht verwandt mit gleichnamigen Fitness- oder Software-Anbietern.",',
-            '"description": "Operator of the FLEXR dating app for gym people in Austria. '
+            '"description": "Operator of the FLEXR dating app for gym people in Austria and Germany. '
             'Not affiliated with similarly named fitness or software providers.",',
         ),
         (
-            '"description": "Dating-App für Gym-People in Österreich: '
+            '"description": "Dating-App für Gym-People in Österreich und Deutschland: '
             'Matches nach Fitnessstudio und Umkreis.",',
-            '"description": "Dating app for gym people in Austria: '
+            '"description": "Dating app for gym people in Austria and Germany: '
             'matches by gym and radius.",',
         ),
         (
@@ -256,8 +256,8 @@ def englische_kopfdaten(html: str, texte: dict[str, str]) -> str:
             '"description": "Using FLEXR is permanently free; no payment method is stored. '
             'FLEXR Premium costs €10 per month, is optional and can be cancelled monthly."',
         ),
-        ('"areaServed": { "@type": "Country", "name": "Österreich" }',
-         '"areaServed": { "@type": "Country", "name": "Austria" }'),
+        ('{ "@type": "Country", "name": "Österreich" },\n        { "@type": "Country", "name": "Deutschland" }',
+         '{ "@type": "Country", "name": "Austria" },\n        { "@type": "Country", "name": "Germany" }'),
     ]
     for alt, neu in json_ld_ersatz:
         if alt not in html:

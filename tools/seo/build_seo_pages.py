@@ -73,8 +73,10 @@ def gyms_abrufen() -> list[dict]:
     Treffer; dann bricht das Skript ab, statt still eine Luecke zu bauen.
     """
     gesehen: dict[str, dict] = {}
-    # Alle 4-stelligen PLZ waeren ~8000 Anfragen - stattdessen mit der ersten
+    # Alle PLZ einzeln waeren ~10.000 Anfragen - stattdessen mit der ersten
     # Ziffer anfangen und nur bei voller Seite eine Stelle genauer werden.
+    # Deutsche PLZ (seit 03.11.2026) haben fuenf Stellen und beginnen auch
+    # mit 0.
     def hole(q: str) -> list[dict]:
         time.sleep(0.1)
         url = f"{SITE}/api/gyms?q=" + urllib.parse.quote(q)
@@ -84,7 +86,7 @@ def gyms_abrufen() -> list[dict]:
     def sammle(prefix: str) -> None:
         treffer = hole(prefix)
         if len(treffer) == 30:
-            if len(prefix) >= 4:
+            if len(prefix) >= 5:
                 sys.exit(f"FEHLER: PLZ {prefix} liefert 30 Treffer - Liste unvollstaendig")
             for ziffer in "0123456789":
                 sammle(prefix + ziffer)
@@ -92,7 +94,7 @@ def gyms_abrufen() -> list[dict]:
         for g in treffer:
             gesehen[g["id"]] = g
 
-    for erste in "123456789":
+    for erste in "0123456789":
         sammle(erste)
     return sorted(gesehen.values(), key=lambda g: (g["plz"], g["name"].lower()))
 
@@ -278,7 +280,8 @@ STAEDTE = [
         ],
         "faq": [
             ("Gibt es eine Dating-App für sportliche Singles in Salzburg?",
-             "FLEXR ist die Dating-App für Gym-People in Österreich, auch in "
+             "FLEXR ist die Dating-App für Gym-People in Österreich und "
+             "Deutschland, auch in "
              "Salzburg. Du matchst nach Fitnessstudio und Umkreis; jedes "
              "Konto wird vor der Freischaltung manuell geprüft."),
             ("Muss ich ein Abo abschließen?",
@@ -369,6 +372,232 @@ STAEDTE = [
              "identitätsgeprüft, jedes Foto von einem Menschen freigegeben. "
              "Eine Garantie, dass jedes Profil echt ist, gibt es trotzdem "
              "nirgends – lies vor einem Treffen die Sicherheitstipps."),
+        ],
+    },
+    # ---- Deutschland (seit 03.11.2026) ----
+    {
+        "slug": "berlin",
+        "name": "Berlin",
+        "lang": "de-DE",
+        "orte": ["Berlin"],
+        "umland": ["Potsdam"],
+        "umland_titel": "Rund um Berlin",
+        "intro": (
+            "Berlin ist groß, und genau das macht Dating schwer: Wer in "
+            "Neukölln trainiert, trifft selten jemanden aus Spandau. FLEXR "
+            "dreht das um – du siehst Menschen, die in Studios in deiner Nähe "
+            "trainieren, statt die halbe Stadt durchzuswipen."
+        ),
+        "radius": (
+            "In Berlin reicht oft ein kleiner Umkreis: Schon wenige Kilometer "
+            "um dein Studio decken mehrere Kieze ab. Wer am Stadtrand "
+            "trainiert, stellt den Radius größer ein."
+        ),
+        "dates": [
+            ("Laufrunde auf dem Tempelhofer Feld",
+             "Weit, flach und autofrei – ein erstes Treffen in Bewegung, bei "
+             "dem man nebeneinander reden kann."),
+            ("Bouldern",
+             "Berlin hat viele Boulderhallen. Gemeinsam Routen zu lösen bricht "
+             "das Eis schneller als jedes Café."),
+            ("Rund um den Schlachtensee",
+             "Knapp fünf Kilometer Uferweg im Grünen – zum Laufen oder für "
+             "einen langen Spaziergang."),
+            ("Stand-up-Paddling auf der Spree oder am Müggelsee",
+             "Im Sommer ein Klassiker, und wer ins Wasser fällt, hat sofort "
+             "eine gemeinsame Geschichte."),
+            ("Outdoor-Training im Park",
+             "Calisthenics-Anlagen gibt es in vielen Berliner Parks – ein "
+             "lockerer Einstieg für alle, die gern trainieren."),
+        ],
+        "faq": [
+            ("Gibt es in Berlin eine Dating-App für Leute aus dem Fitnessstudio?",
+             "Ja, FLEXR. Du wählst dein Berliner Studio aus einer Liste und "
+             "siehst Profile von Leuten, die in Studios in deinem Umkreis "
+             "trainieren. Die Nutzung ist dauerhaft kostenlos."),
+            ("Muss ich im selben Studio trainieren wie mein Match?",
+             "Nein. FLEXR zeigt Profile aus allen Studios innerhalb deines "
+             "Suchumkreises – kostenlos bis 50 Kilometer.",
+             STARTBOOST),
+        ],
+    },
+    {
+        "slug": "hamburg",
+        "name": "Hamburg",
+        "lang": "de-DE",
+        "orte": ["Hamburg"],
+        "umland": ["Norderstedt"],
+        "umland_titel": "Rund um Hamburg",
+        "intro": (
+            "Hamburg trainiert gern draußen – an der Alster, an der Elbe, im "
+            "Stadtpark – und genauso viel im Studio. FLEXR verbindet Leute, "
+            "die denselben Rhythmus haben: Training gehört zum Alltag, nicht "
+            "nur zum Vorsatz."
+        ),
+        "radius": (
+            "Hamburg ist weitläufig. Mit einem mittleren Umkreis erreichst du "
+            "von deinem Studio aus mehrere Stadtteile; wer im Süden oder "
+            "Westen trainiert, stellt ihn größer ein."
+        ),
+        "dates": [
+            ("Laufrunde um die Außenalster",
+             "Rund siebeneinhalb Kilometer, flach und belebt – ideal für ein "
+             "erstes Treffen in Bewegung."),
+            ("Stadtpark",
+             "Wiesen, Wege und Outdoor-Geräte: genug Platz für eine lockere "
+             "Runde oder ein kleines Workout zu zweit."),
+            ("Elbstrand",
+             "Am Elbufer laufen oder spazieren und den Schiffen zusehen – "
+             "danach ist Zeit zum Reden."),
+            ("Bouldern",
+             "Mehrere Hamburger Boulderhallen machen das zum Date mit "
+             "eingebautem Gesprächsstoff."),
+            ("Kanu oder SUP auf den Alsterkanälen",
+             "Im Sommer mit Leihboot durch die Kanäle – ruhig, sportlich und "
+             "garantiert nicht langweilig."),
+        ],
+        "faq": [
+            ("Gibt es in Hamburg eine Dating-App für sportliche Singles?",
+             "FLEXR ist die Dating-App für Gym-People in Österreich und "
+             "Deutschland, auch in Hamburg. Du matchst nach Fitnessstudio und "
+             "Umkreis; jedes Konto wird vor der Freischaltung manuell geprüft."),
+            ("Muss ich ein Abo abschließen?",
+             "Nein. FLEXR ist dauerhaft kostenlos nutzbar, ohne "
+             "Zahlungsmittel. Premium ist freiwillig und monatlich kündbar."),
+        ],
+    },
+    {
+        "slug": "muenchen",
+        "name": "München",
+        "lang": "de-DE",
+        "orte": ["München"],
+        "umland": ["Unterschleißheim", "Garching bei München"],
+        "umland_titel": "Rund um München",
+        "intro": (
+            "München ist eine Sportstadt: unter der Woche ins Studio, am "
+            "Wochenende in die Berge. Wer so lebt, sucht jemanden mit "
+            "demselben Takt – FLEXR zeigt dir Menschen, die in Studios in "
+            "deiner Nähe trainieren."
+        ),
+        "radius": (
+            "Die meisten Münchner Studios liegen innerhalb des Mittleren "
+            "Rings dicht beieinander. Ein mittlerer Umkreis deckt die Stadt "
+            "ab, ein größerer auch das Umland."
+        ),
+        "dates": [
+            ("Laufen im Englischen Garten",
+             "Einer der größten Stadtparks Europas, mit Wegen für jede "
+             "Streckenlänge."),
+            ("An der Isar",
+             "Laufen, Radfahren oder an den Kiesbänken sitzen – die Isarauen "
+             "sind im Sommer der natürliche Treffpunkt."),
+            ("Olympiapark",
+             "Hinauf auf den Olympiaberg, oben der Blick über die Stadt und "
+             "bei klarer Sicht bis zu den Alpen."),
+            ("Bouldern",
+             "München hat mehrere große Boulderhallen – ideal für ein Date "
+             "mit gemeinsamer Herausforderung."),
+            ("Tagesausflug in die Berge",
+             "Für das zweite oder dritte Date: eine leichte Bergtour im "
+             "Voralpenland, mit dem Zug gut erreichbar."),
+        ],
+        "faq": [
+            ("Gibt es in München eine Dating-App für Leute aus dem Fitnessstudio?",
+             "Ja, FLEXR. Du wählst dein Münchner Studio aus einer Liste und "
+             "siehst Profile von Leuten, die in Studios in deinem Umkreis "
+             "trainieren. Die Nutzung ist dauerhaft kostenlos."),
+            ("Kann ich auch Leute aus Salzburg sehen?",
+             "Ja, wenn dein Suchumkreis groß genug ist. FLEXR rechnet mit der "
+             "Entfernung zwischen den Studios, nicht mit Ländergrenzen.",
+             STARTBOOST),
+        ],
+    },
+    {
+        "slug": "koeln",
+        "name": "Köln",
+        "lang": "de-DE",
+        "orte": ["Köln"],
+        "umland": ["Leverkusen", "Hürth"],
+        "umland_titel": "Rund um Köln",
+        "intro": (
+            "Köln ist offen und unkompliziert – und das gilt auch fürs "
+            "Training: vom großen Kettenstudio bis zur kleinen Box im "
+            "Veedel. FLEXR bringt Leute zusammen, denen das Gym genauso "
+            "wichtig ist wie dir."
+        ),
+        "radius": (
+            "Links und rechts des Rheins liegen viele Studios nah beieinander. "
+            "Mit einem mittleren Umkreis erreichst du die ganze Stadt."
+        ),
+        "dates": [
+            ("Laufen am Rheinufer",
+             "Flach, mit Blick auf Dom und Brücken – ein erstes Treffen in "
+             "Bewegung mitten in der Stadt."),
+            ("Stadtwald und Decksteiner Weiher",
+             "Im Kölner Grüngürtel gibt es Wege für jede Distanz und genug Ruhe "
+             "zum Reden."),
+            ("Bouldern",
+             "Mehrere Kölner Boulderhallen – zu zweit Routen lösen macht das "
+             "erste Kennenlernen leichter."),
+            ("Fühlinger See",
+             "Im Sommer zum Schwimmen, Paddeln oder für eine Runde um den See."),
+            ("Outdoor-Workout im Park",
+             "Fitness-Stationen gibt es in mehreren Kölner Parks – ein lockerer "
+             "Einstieg für alle, die gern trainieren."),
+        ],
+        "faq": [
+            ("Gibt es in Köln eine Dating-App für sportliche Singles?",
+             "FLEXR ist die Dating-App für Gym-People in Österreich und "
+             "Deutschland, auch in Köln. Du matchst nach Fitnessstudio und "
+             "Umkreis; jedes Konto wird vor der Freischaltung manuell geprüft."),
+            ("Muss ich ein Abo abschließen?",
+             "Nein. FLEXR ist dauerhaft kostenlos nutzbar, ohne "
+             "Zahlungsmittel. Premium ist freiwillig und monatlich kündbar."),
+        ],
+    },
+    {
+        "slug": "frankfurt",
+        "name": "Frankfurt",
+        "lang": "de-DE",
+        "orte": ["Frankfurt am Main"],
+        "umland": ["Offenbach am Main", "Bad Homburg vor der Höhe"],
+        "umland_titel": "Rund um Frankfurt",
+        "intro": (
+            "In Frankfurt ist der Alltag oft eng getaktet – Training vor oder "
+            "nach der Arbeit gehört für viele fest dazu. FLEXR zeigt dir "
+            "Menschen, die genauso leben und in Studios in deiner Nähe "
+            "trainieren."
+        ),
+        "radius": (
+            "Frankfurt ist kompakt. Schon ein kleiner Umkreis deckt die "
+            "Innenstadt ab; mit einem größeren sind auch Offenbach und das "
+            "Umland dabei."
+        ),
+        "dates": [
+            ("Laufen am Mainufer",
+             "Zwischen den Brücken am Wasser entlang – flach, belebt und mit "
+             "Blick auf die Skyline."),
+            ("Stadtwald",
+             "Einer der größten Stadtwälder Deutschlands, mit vielen Lauf- und "
+             "Spazierwegen."),
+            ("Bouldern",
+             "Frankfurt hat mehrere Boulderhallen – ein Date mit gemeinsamer "
+             "Aufgabe statt Small Talk am Tisch."),
+            ("Ausflug in den Taunus",
+             "Für ein späteres Date: auf den Großen Feldberg wandern oder "
+             "radeln."),
+            ("Grüneburgpark",
+             "Wiesen und Wege mitten in der Stadt – gut für eine lockere Runde "
+             "nach der Arbeit."),
+        ],
+        "faq": [
+            ("Gibt es in Frankfurt eine Dating-App für Leute aus dem Fitnessstudio?",
+             "Ja, FLEXR. Du wählst dein Frankfurter Studio aus einer Liste und "
+             "siehst Profile von Leuten, die in Studios in deinem Umkreis "
+             "trainieren. Die Nutzung ist dauerhaft kostenlos."),
+            ("Muss ich ein Abo abschließen?",
+             "Nein. FLEXR ist dauerhaft kostenlos nutzbar, ohne "
+             "Zahlungsmittel. Premium ist freiwillig und monatlich kündbar."),
         ],
     },
 ]
@@ -486,7 +715,7 @@ def cta(text: str) -> str:
 
 def seite(*, url: str, titel: str, beschreibung: str, og_titel: str,
           krumen: list[tuple[str, str]], schema: list[dict], rumpf: str,
-          og_type: str = "website") -> str:
+          og_type: str = "website", lang: str = "de-AT") -> str:
     if len(titel) > 65:
         sys.exit(f"FEHLER: Titel zu lang ({len(titel)}): {titel}")
     if not 70 <= len(beschreibung) <= 160:
@@ -498,7 +727,7 @@ def seite(*, url: str, titel: str, beschreibung: str, og_titel: str,
     return f"""<!DOCTYPE html>
 <!-- ERZEUGTE DATEI - nicht von Hand aendern.
      Quelle: tools/seo/build_seo_pages.py (python3 tools/seo/build_seo_pages.py) -->
-<html lang="de-AT">
+<html lang="{lang}">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -651,8 +880,9 @@ def stadtseite(stadt: dict, gyms: list[dict]) -> str:
 
   <h2>FLEXR in anderen Städten</h2>
 {andere_staedte(stadt['slug'])}
-  <p>FLEXR funktioniert mit jeder österreichischen Postleitzahl. Mehr zum
-  Konzept: <a href="/gym-dating.html">Gym-Dating in Österreich</a>.</p>
+  <p>FLEXR funktioniert mit jeder Postleitzahl in Österreich und Deutschland.
+  Mehr zum Konzept: <a href="/gym-dating.html">Gym-Dating in Österreich und
+  Deutschland</a>.</p>
 """
     beschreibung = (
         f"Fitness-Singles in {name} kennenlernen: FLEXR matcht dich nach "
@@ -667,13 +897,14 @@ def stadtseite(stadt: dict, gyms: list[dict]) -> str:
         krumen=[("FLEXR", "/"), ("Gym-Dating", "/gym-dating.html"), (name, url)],
         schema=[
             {"@type": "WebPage", "@id": SITE + url, "url": SITE + url,
-             "name": f"Fitness-Dating in {name}", "inLanguage": "de-AT",
+             "name": f"Fitness-Dating in {name}", "inLanguage": stadt.get("lang", "de-AT"),
              "isPartOf": {"@id": SITE + "/#website"},
              "about": {"@id": SITE + "/#app"},
              "dateModified": HEUTE},
             faq_schema(url, fragen),
         ],
         rumpf=rumpf,
+        lang=stadt.get("lang", "de-AT"),
     )
 
 
@@ -686,8 +917,9 @@ def hub(gyms: list[dict]) -> str:
          "Training kennenzulernen. Statt nach Fotos allein zu swipen, siehst "
          "du Menschen, die einen ähnlichen Alltag haben: feste Trainingszeiten, "
          "Ernährung, frühes Aufstehen."),
-        ("Welche Dating-App ist für Sportler in Österreich?",
-         "FLEXR ist eine Dating-App speziell für Gym-People in Österreich. Sie "
+        ("Welche Dating-App ist für Sportler in Österreich und Deutschland?",
+         "FLEXR ist eine Dating-App speziell für Gym-People in Österreich und "
+         "Deutschland. Sie "
          "matcht nach Fitnessstudio und Umkreis und ist dauerhaft kostenlos "
          "nutzbar."),
         ("Ist FLEXR nur für Bodybuilder?",
@@ -704,11 +936,11 @@ def hub(gyms: list[dict]) -> str:
          "– wer aber ausschließlich einen Trainingspartner ohne romantisches "
          "Interesse sucht, sollte das im Profil offen schreiben."),
     ]
-    rumpf = f"""  <h1>Gym-Dating in Österreich: Die Dating-App für Fitness-Singles</h1>
+    rumpf = f"""  <h1>Gym-Dating in Österreich und Deutschland: Die Dating-App für Fitness-Singles</h1>
   <p class="lead">Du trainierst vier Mal die Woche, planst deine Mahlzeiten und
   gehst früh schlafen, weil morgen Beintag ist? Dann weißt du, wie schwer es
   ist, jemanden zu finden, der das nicht seltsam findet. FLEXR ist die
-  Dating-App für genau diese Leute – in ganz Österreich.</p>
+  Dating-App für genau diese Leute – in Österreich und Deutschland.</p>
 
   <h2>Warum Dating über das Fitnessstudio funktioniert</h2>
   <p>Wer regelmäßig trainiert, hat einen Alltag mit festen Zeiten: Training
@@ -727,7 +959,7 @@ def hub(gyms: list[dict]) -> str:
     trainierst. Jedes Konto wird vor der Freischaltung manuell alters- und
     identitätsgeprüft.</li>
     <li><b>Gym und Umkreis wählen:</b> Du suchst dein Studio aus {gesamt}
-    Fitnessstudios in ganz Österreich aus – oder schlägst es vor, falls es
+    Fitnessstudios in Österreich und Deutschland aus – oder schlägst es vor, falls es
     fehlt. Der Suchumkreis ist kostenlos bis 50&nbsp;km.{STARTBOOST}</li>
     <li><b>Liken, matchen, schreiben:</b> Liken sich zwei Personen
     gegenseitig, entsteht ein Match, und ihr könnt chatten.</li>
@@ -736,8 +968,9 @@ def hub(gyms: list[dict]) -> str:
 {cta("Die Nutzung ist dauerhaft kostenlos – 20 Likes am Tag, 3 Unterhaltungen gleichzeitig, 50&nbsp;km Umkreis. FLEXR&nbsp;Premium (10&nbsp;€ im Monat) ist freiwillig." + STARTBOOST)}
 
   <h2>Fitness-Dating in deiner Stadt</h2>
-  <p>FLEXR funktioniert mit jeder österreichischen Postleitzahl. Für die
-  größten Städte gibt es eigene Seiten mit den auswählbaren Studios und Ideen
+  <p>FLEXR funktioniert mit jeder Postleitzahl in Österreich und Deutschland.
+  In deutschen Städten fängt FLEXR gerade erst an – dort sind anfangs weniger
+  Profile zu sehen. Für die größten Städte gibt es eigene Seiten mit den auswählbaren Studios und Ideen
   fürs erste Date vor Ort:</p>
 {andere_staedte(None)}
 
@@ -760,17 +993,16 @@ def hub(gyms: list[dict]) -> str:
 """
     return seite(
         url=url,
-        titel="Gym-Dating in Österreich – Dating-App für Fitness-Singles | FLEXR",
-        og_titel="Gym-Dating in Österreich – FLEXR",
+        titel="Gym-Dating in Österreich & Deutschland | FLEXR",
+        og_titel="Gym-Dating in Österreich und Deutschland – FLEXR",
         beschreibung=(
-            "Gym-Dating in Österreich: FLEXR ist die Dating-App für Sportler "
-            "und Fitness-Singles. Matches nach Fitnessstudio und Umkreis, "
-            "dauerhaft kostenlos."
+            "Gym-Dating in Österreich und Deutschland: FLEXR ist die Dating-App "
+            "für Fitness-Singles. Matches nach Studio und Umkreis, kostenlos."
         ),
         krumen=[("FLEXR", "/"), ("Gym-Dating", url)],
         schema=[
             {"@type": "WebPage", "@id": SITE + url, "url": SITE + url,
-             "name": "Gym-Dating in Österreich", "inLanguage": "de-AT",
+             "name": "Gym-Dating in Österreich und Deutschland", "inLanguage": "de",
              "isPartOf": {"@id": SITE + "/#website"},
              "about": {"@id": SITE + "/#app"}, "dateModified": HEUTE},
             faq_schema(url, fragen),
@@ -856,7 +1088,7 @@ def gym_crush() -> str:
   Ein Chat entsteht nur, wenn beide Interesse haben – keine Unsicherheit, kein
   unangenehmer Moment am Rack.</p>
 
-{cta("FLEXR ist die Dating-App für Gym-People in Österreich – dauerhaft kostenlos nutzbar.")}
+{cta("FLEXR ist die Dating-App für Gym-People in Österreich und Deutschland – dauerhaft kostenlos nutzbar.")}
 """
     fragen = [
         ("Ist es okay, jemanden im Fitnessstudio anzusprechen?",
