@@ -10,6 +10,21 @@ from sqlalchemy.orm import Session
 from .models import EmailNotification
 
 
+def _stored_key(notification_key: str) -> str:
+    # Keine Nutzer-, Stripe- oder Rechnungs-ID als Klartext in der
+    # Versandhistorie speichern. Fuer die Idempotenz reicht der Hash.
+    return sha256(notification_key.encode("utf-8")).hexdigest()
+
+
+def sent_at(db: Session, notification_key: str) -> datetime | None:
+    """Wann die Nachricht verschickt wurde - None, wenn (noch) nicht."""
+    return (
+        db.query(EmailNotification.sent_at)
+        .filter(EmailNotification.notification_key == _stored_key(notification_key))
+        .scalar()
+    )
+
+
 def send_once(
     db: Session,
     notification_key: str,
@@ -22,9 +37,7 @@ def send_once(
     Versand fehl, wird sie wieder entfernt, damit ein spaeterer Webhook oder
     Job erneut versuchen kann.
     """
-    # Keine Nutzer-, Stripe- oder Rechnungs-ID als Klartext in der
-    # Versandhistorie speichern. Fuer die Idempotenz reicht der Hash.
-    stored_key = sha256(notification_key.encode("utf-8")).hexdigest()
+    stored_key = _stored_key(notification_key)
     record = (
         db.query(EmailNotification)
         .filter(EmailNotification.notification_key == stored_key)

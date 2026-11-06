@@ -1294,6 +1294,60 @@ def send_verification_reminder(
     )
 
 
+def _id_second_reminder_intro(missing_photos: int, lang: str) -> str:
+    if missing_photos > 0:
+        return _verification_reminder_intro("document", missing_photos, lang)
+    return t("remind2.intro", lang)
+
+
+def send_id_second_reminder(
+    email: str, name: str, missing_photos: int = 0, lang: str = STANDARD
+) -> bool:
+    """Zweite Erinnerung beim Ausweis: erklaert, wozu wir ihn brauchen.
+
+    Wann sie verschickt wird, entscheidet email_jobs.py.
+    """
+    intro = _id_second_reminder_intro(missing_photos, lang)
+    punkte = [
+        t(f"remind2.{punkt}", lang) for punkt in ("use", "human", "redact", "delete")
+    ]
+    liste_text = "\n".join(
+        textwrap.fill(punkt, width=76, initial_indent="- ", subsequent_indent="  ")
+        for punkt in punkte
+    )
+    text_body = f"""{_greeting(name, lang)}
+
+{textwrap.fill(intro, width=76)}
+
+{textwrap.fill(t("remind2.why", lang), width=76)}
+
+{t("remind2.heading", lang)}
+
+{liste_text}
+
+{t("remind.cta", lang)}: {_app_link()}
+
+{textwrap.fill(t("remind.optOut", lang), width=76)}
+
+{t("signoff", lang)}
+"""
+    liste_html = "".join(f"<li>{html.escape(punkt)}</li>" for punkt in punkte)
+    body = "\n".join([
+        _p(intro),
+        _p(t("remind2.why", lang)),
+        _p(t("remind2.heading", lang)),
+        f'<ul style="margin:0 0 18px;padding-left:20px;font-size:15px;line-height:1.7;">{liste_html}</ul>',
+        _button_html(_app_link(), t("remind.cta", lang)),
+        _p(t("remind.optOut", lang)),
+    ])
+    return send_email(
+        email,
+        t("remind2.subject", lang),
+        text_body,
+        _email_shell(t("remind2.eyebrow", lang), _greeting_html(name, lang), body, lang=lang),
+    )
+
+
 def _moderation_decision_html(
     name: str, measure: str, summary: str, details: list[str] | None, appeal: bool,
     lang: str = STANDARD,

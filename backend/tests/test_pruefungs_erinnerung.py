@@ -8,7 +8,14 @@ import json
 from datetime import datetime, timedelta
 
 from app.email_jobs import run_activity_notifications, run_due_email_jobs, run_verification_reminders
-from app.models import Photo, PhotoStatus, User, VerificationRequest, VerificationStatus
+from app.models import (
+    EmailNotification,
+    Photo,
+    PhotoStatus,
+    User,
+    VerificationRequest,
+    VerificationStatus,
+)
 from app.timeutil import utcnow
 from tests.conftest import (
     TestingSessionLocal,
@@ -90,10 +97,25 @@ def _capture(monkeypatch):
         "app.email_jobs.mailer.send_verification_reminder",
         lambda email, name, step, missing=0, lang="de": mails.append((email, step, missing)) or True,
     )
+    monkeypatch.setattr(
+        "app.email_jobs.mailer.send_id_second_reminder",
+        lambda email, name, missing=0, lang="de": mails.append((email, "zweite", missing)) or True,
+    )
     return mails
 
 
-def test_selfie_da_ausweis_fehlt_genau_eine_erinnerung(client, monkeypatch):
+def _erste_mail_ging_raus_am(moment):
+    """send_once stempelt die echte Uhrzeit, die Tests rechnen mit NOW."""
+    db = TestingSessionLocal()
+    try:
+        for record in db.query(EmailNotification):
+            record.sent_at = moment
+        db.commit()
+    finally:
+        db.close()
+
+
+def test_selfie_da_ausweis_fehlt_erst_einmal_eine_erinnerung(client, monkeypatch):
     mails = _capture(monkeypatch)
     user_id = _stuck(client, "ausweis@example.com")
     _add_request(user_id, VerificationStatus.id_required, selfies=SELFIES)
@@ -101,11 +123,100 @@ def test_selfie_da_ausweis_fehlt_genau_eine_erinnerung(client, monkeypatch):
     assert _run() == {"verification_reminded": 1}
     assert mails == [("ausweis@example.com", "document", 0)]
 
-    # Die folgenden Tageslaeufe schicken nichts mehr - auch nicht, solange
-    # das Konto in der Frist bleibt.
-    for tag in range(1, 6):
+    # Die folgenden Tageslaeufe schicken nichts - die zweite Mail kommt erst
+    # nach fuenf Tagen (siehe unten).
+    _erste_mail_ging_raus_am(NOW)
+    for tag in range(1, 5):
         assert _run(NOW + timedelta(days=tag)) == {"verification_reminded": 0}
     assert len(mails) == 1
+
+
+def test_ausweis_fehlt_weiter_zweite_mail_nach_fuenf_tagen_dann_schluss(client, monkeypatch):
+    mails = _capture(monkeypatch)
+    user_id = _stuck(client, "zoegert@example.com")
+    _add_request(user_id, VerificationStatus.id_required, selfies=SELFIES)
+    _run()
+    _erste_mail_ging_raus_am(NOW + timedelta(seconds=20))
+
+    # Der Job laeuft nicht sekundengenau: Auch ein paar Sekunden frueher als
+    # fuenf Tage nach der ersten Mail reicht.
+    assert _run(NOW + timedelta(days=5)) == {"verification_reminded": 1}
+    assert mails[-1] == ("zoegert@example.com", "zweite", 0)
+
+    for tag in range(6, 13):
+        assert _run(NOW + timedelta(days=tag)) == {"verification_reminded": 0}
+    assert len(mails) == 2
+
+
+def test_zweite_mail_nennt_fehlende_fotos(client, monkeypatch):
+    mails = _capture(monkeypatch)
+    user_id = _stuck(client, "wenigfotos@example.com", photos=False)
+    _add_request(user_id, VerificationStatus.id_required, selfies=SELFIES)
+    _run()
+    _erste_mail_ging_raus_am(NOW)
+
+    _run(NOW + timedelta(days=5))
+    assert mails[-1][1] == "zweite" and mails[-1][2] > 0
+
+
+def test_keine_zweite_mail_beim_selfie(client, monkeypatch):
+    mails = _capture(monkeypatch)
+    user_id = _stuck(client, "selfie@example.com")
+    _add_request(user_id, VerificationStatus.in_progress)
+    _run()
+    _erste_mail_ging_raus_am(NOW)
+
+    assert _run(NOW + timedelta(days=6)) == {"verification_reminded": 0}
+    assert len(mails) == 1
+
+
+def test_keine_zweite_mail_nach_der_frist(client, monkeypatch):
+    mails = _capture(monkeypatch)
+    user_id = _stuck(client, "spaet@example.com")
+    _add_request(user_id, VerificationStatus.id_required, selfies=SELFIES)
+    _run()
+    _erste_mail_ging_raus_am(NOW)
+
+    assert _run(NOW + timedelta(days=13)) == {"verification_reminded": 0}
+    assert len(mails) == 1
+
+
+def test_keine_zweite_mail_wenn_der_ausweis_inzwischen_da_ist(client, monkeypatch):
+    mails = _capture(monkeypatch)
+    user_id = _stuck(client, "fertig@example.com")
+    req_id = _add_request(user_id, VerificationStatus.id_required, selfies=SELFIES)
+    _run()
+    _erste_mail_ging_raus_am(NOW)
+
+    _set_request(req_id, status=VerificationStatus.submitted)
+    assert _run(NOW + timedelta(days=5)) == {"verification_reminded": 0}
+    assert len(mails) == 1
+
+
+def test_lange_haengend_ohne_erste_mail_bekommt_nur_die_erste(client, monkeypatch):
+    """Fiel der Job tagelang aus, kommen nicht beide Mails auf einmal."""
+    mails = _capture(monkeypatch)
+    user_id = _stuck(client, "ausfall@example.com", inactive=timedelta(days=8))
+    _add_request(user_id, VerificationStatus.id_required, selfies=SELFIES)
+
+    assert _run() == {"verification_reminded": 1}
+    assert mails == [("ausfall@example.com", "document", 0)]
+
+
+def test_gescheiterte_zweite_mail_wird_wiederholt(client, monkeypatch):
+    mails = _capture(monkeypatch)
+    user_id = _stuck(client, "wackel2@example.com")
+    _add_request(user_id, VerificationStatus.id_required, selfies=SELFIES)
+    _run()
+    _erste_mail_ging_raus_am(NOW)
+
+    monkeypatch.setattr(
+        "app.email_jobs.mailer.send_id_second_reminder", lambda *args, **kwargs: False
+    )
+    assert _run(NOW + timedelta(days=5)) == {"verification_reminded": 0}
+
+    _capture(monkeypatch)
+    assert _run(NOW + timedelta(days=6)) == {"verification_reminded": 1}
 
 
 def test_neuer_schritt_neue_erinnerung(client, monkeypatch):
@@ -307,4 +418,33 @@ def test_mail_auf_englisch(monkeypatch):
     assert subject == "Your FLEXR account is almost ready"
     assert "Hi Sam," in text
     assert "a selfie and a photo of your ID" in text.replace("\n", " ")
+    assert 'lang="en"' in html
+
+
+def test_zweite_mail_erklaert_den_ausweis(monkeypatch):
+    from app import mailer
+
+    sent = _sent_mail(monkeypatch)
+    assert mailer.send_id_second_reminder("a@example.com", "Goran")
+    to, subject, text, html = sent[0]
+    flat = " ".join(text.split())
+    assert subject == "Warum wir deinen Ausweis brauchen"
+    assert "Hallo Goran," in text
+    assert "nur noch ein Foto deines Ausweises" in flat
+    assert "ausschließlich für diese Prüfung" in flat
+    assert "keine automatische Gesichtserkennung" in flat
+    assert "schwärzen" in flat
+    assert "löschen wir die Aufnahme" in flat
+    assert "/app/open/" in text and "/app/open/" in html
+    assert "<li>" in html
+
+
+def test_zweite_mail_mit_fehlenden_fotos_und_auf_englisch(monkeypatch):
+    from app import mailer
+
+    sent = _sent_mail(monkeypatch)
+    mailer.send_id_second_reminder("e@example.com", "Sam", missing_photos=1, lang="en")
+    to, subject, text, html = sent[0]
+    assert subject == "Why we need your ID"
+    assert "please upload 1 more" in " ".join(text.split())
     assert 'lang="en"' in html

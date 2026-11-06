@@ -776,6 +776,63 @@ TEXTE: dict[str, dict[str, str]] = {
             "stay visible. We delete the image after the check."
         ),
     },
+    # Zweite Erinnerung beim Ausweis. Die erste sagt, was fehlt; wer darauf
+    # nicht reagiert hat, zoegert vermutlich beim Ausweis selbst - deshalb
+    # steht hier das Warum. Die Saetze folgen den Texten der App (vgate_*,
+    # document_why); was dort nicht zugesagt ist, darf hier nicht stehen.
+    "remind2.subject": {
+        "de": "Warum wir deinen Ausweis brauchen",
+        "en": "Why we need your ID",
+    },
+    "remind2.eyebrow": {"de": "Letzter Schritt", "en": "Last step"},
+    "remind2.intro": {
+        "de": "bis zur Freischaltung fehlt dir nur noch ein Foto deines Ausweises.",
+        "en": "all that is missing before we can activate your account is a photo of your ID.",
+    },
+    "remind2.why": {
+        "de": (
+            "Vielleicht zögerst du, ihn hochzuladen - das verstehen wir. FLEXR ist "
+            "ab 18. Damit hier keine Minderjährigen und keine Fake-Profile landen, "
+            "prüfen wir einmalig, ob du wirklich du bist und mindestens 18 Jahre alt."
+        ),
+        "en": (
+            "You may be hesitant to upload it - we understand. FLEXR is 18+. To keep "
+            "minors and fake profiles out, we check once that you really are you and "
+            "at least 18 years old."
+        ),
+    },
+    "remind2.heading": {
+        "de": "So gehen wir mit deinem Ausweis um:",
+        "en": "How we handle your ID:",
+    },
+    "remind2.use": {
+        "de": "Wir verwenden ihn ausschließlich für diese Prüfung.",
+        "en": "We use it solely for this check.",
+    },
+    "remind2.human": {
+        "de": (
+            "Ein Mensch vergleicht Profilfotos, Selfie und Ausweis - keine "
+            "automatische Gesichtserkennung."
+        ),
+        "en": (
+            "A person compares your profile photos, selfie and ID - no automated "
+            "facial recognition."
+        ),
+    },
+    "remind2.redact": {
+        "de": (
+            "Angaben, die wir nicht brauchen, darfst du schwärzen. Foto, "
+            "Geburtsdatum und Gültigkeit müssen sichtbar bleiben."
+        ),
+        "en": (
+            "You may black out details we do not need. The photo, date of birth and "
+            "validity must stay visible."
+        ),
+    },
+    "remind2.delete": {
+        "de": "Nach der Prüfung löschen wir die Aufnahme.",
+        "en": "We delete the image after the check.",
+    },
     "remind.cta": {"de": "Jetzt abschließen", "en": "Finish now"},
     "remind.optOut": {
         "de": (

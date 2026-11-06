@@ -1,6 +1,6 @@
 # FLEXR — Handoff für ein anderes Gerät / Claude Code
 
-Stand: **03.11.2026**
+Stand: **06.11.2026**
 
 ## ⚠️ Dringend zu prüfen: SSH-Zugang zum VPS hat sich geändert (21.09.2026)
 
@@ -31,6 +31,25 @@ Falls du das liest, weil dein `root@`-Login gerade fehlschlägt: das ist
 erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 
 ## Wo das Projekt gerade steht
+
+> **Sitzung 06.11.2026: Zweite Ausweis-Erinnerung.** Nur Backend, keine
+> App-Version, keine Migration.
+>
+> - **Anlass:** Konten mit Fotos, aber ohne Ausweis. Tagesjob-Log: seit dem
+>   03.11. `verification_reminded: 0`. `scripts/pruefung_haenger.py` (neu, nur
+>   lesen, nur Summen) zeigte 5 offene Konten, alle mit bestätigter Adresse;
+>   3 davon beim Ausweis, zahlenmäßig passend zu den 3 verschickten
+>   Erinnerungen. Sie reagierten nur nicht, und weitere Mails gab es nicht.
+> - **Zweite Mail** (`email_jobs.run_verification_reminders`,
+>   `mailer.send_id_second_reminder`, Texte `remind2.*`): nur im Schritt
+>   Ausweis, fünf Tage nach der ersten (`ID_SECOND_REMINDER_AFTER`), innerhalb
+>   der 14 Tage. Erklärt das Warum und den Umgang mit dem Ausweis. Danach
+>   keine weitere Mail. `kind` = `verification_reminder_2`.
+> - **Nicht auf main:** Erinnerung an die offene Adressbestätigung, lokaler
+>   Branch `email-bestaetigung-erinnerung` (`d07151d`). Am 06.11. gab es dafür
+>   kein einziges Konto.
+> - Aufruf des Skripts vom eigenen Rechner:
+>   `ssh flexr-vps 'cd /flexr/backend && venv/bin/python -' < backend/scripts/pruefung_haenger.py`
 
 > **Sitzung 03.11.2026: Start in Deutschland.** Backend, Web, Apps, Recht,
 > SEO. Deployt, GitHub und VPS auf `8f2510b`, Alembic `b8d4f0a2c6e3`.

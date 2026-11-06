@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 
 from . import consents, mailer, notifications
 from .database import SessionLocal
-from .email_notifications import send_once
+from .email_notifications import send_once, sent_at
 from .models import MIN_PHOTOS, Block, Report, Swipe, User, VerificationStatus
 from .verification_service import (
     ORPHAN_RETENTION_DAYS,
@@ -37,6 +37,11 @@ PENDING_LIKES_WEEKDAY = 0
 # hängen bleibt, die Erinnerung erst nach 47 Stunden. 20 Stunden heißt: am
 # nächsten Morgen, sofern es bis etwa 13 Uhr war.
 VERIFICATION_REMINDER_AFTER = timedelta(hours=20)
+
+# Zweite Erinnerung beim Ausweis: fünf Tage nach der ersten. Etwas darunter,
+# weil der Tagesjob nicht sekundengenau läuft - mit glatten fünf Tagen fiele
+# sie um ein paar Sekunden durchs Raster und käme erst einen Tag später.
+ID_SECOND_REMINDER_AFTER = timedelta(days=4, hours=20)
 
 # Danach nicht mehr: Nach dieser Frist räumt cleanup.py die verwaisten
 # Prüfaufnahmen weg, und wer zwei Wochen nicht weitergemacht hat, wird durch
@@ -152,7 +157,13 @@ def run_verification_reminders(db: Session, current: datetime) -> dict[str, int]
     Eine Erinnerung je Schritt: Der Schlüssel enthält Vorgang, Status und den
     fehlenden Schritt. Wer danach weiterkommt (Selfie gemacht, Fotos ergänzt,
     Neu-Upload angefordert), steht vor einem neuen Schritt und wird dort noch
-    einmal erinnert - wer nichts tut, bekommt keine zweite Mail.
+    einmal erinnert.
+
+    Nur beim Ausweis kommt fünf Tage später eine zweite Mail, die erklärt,
+    wozu wir ihn brauchen. Anlass (06.11.2026): Die drei Konten, denen der
+    Ausweis fehlte, hatten die erste Erinnerung bekommen und nichts getan -
+    sie blieben ohne weitere Nachricht liegen. Mehr als diese zwei Mails gibt
+    es je Schritt nicht.
 
     Bewusst nur per E-Mail: Eine App-Benachrichtigung bräuchte einen neuen
     Anlass im Postgres-Enum (models.NotificationTopic), und die Web-App am
@@ -203,18 +214,31 @@ def run_verification_reminders(db: Session, current: datetime) -> dict[str, int]
             step, "photos" if missing else "ok",
         ])
         versendet = []
+        erste_mail = sent_at(db, key)
+        if erste_mail is not None and (
+            step != "document" or erste_mail > current - ID_SECOND_REMINDER_AFTER
+        ):
+            continue
 
-        def senden(user=user, step=step, missing=missing) -> bool:
-            ok = mailer.send_verification_reminder(
-                user.email, user.name, step, missing, user.language
-            )
+        def senden(user=user, step=step, missing=missing, zweite=erste_mail is not None) -> bool:
+            if zweite:
+                ok = mailer.send_id_second_reminder(
+                    user.email, user.name, missing, user.language
+                )
+            else:
+                ok = mailer.send_verification_reminder(
+                    user.email, user.name, step, missing, user.language
+                )
             if ok:
                 versendet.append(True)
             return ok
 
         # Scheitert der Versand, gibt send_once die Reservierung wieder frei -
         # der nächste Tageslauf versucht es erneut.
-        send_once(db, key, "verification_reminder", senden)
+        if erste_mail is None:
+            send_once(db, key, "verification_reminder", senden)
+        else:
+            send_once(db, f"{key}:zweite", "verification_reminder_2", senden)
         if versendet:
             result["verification_reminded"] += 1
 
