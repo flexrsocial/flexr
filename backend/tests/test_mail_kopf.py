@@ -11,7 +11,7 @@ _decision_html). Geprueft wird ueber die versendeten Mails, nicht ueber die
 Gerueste - so faellt auch ein kuenftiges viertes Geruest ohne Logo auf.
 """
 
-from datetime import datetime
+from datetime import date, datetime
 from pathlib import Path
 
 import pytest
@@ -46,6 +46,7 @@ FAELLE = {
     "verifreq": lambda l: mailer.send_verification_required("a@b.c", "Anna", l),
     "verifremind": lambda l: mailer.send_verification_reminder("a@b.c", "Anna", "document", 2, l),
     "verifremind2": lambda l: mailer.send_id_second_reminder("a@b.c", "Anna", 2, l),
+    "loeschfrist": lambda l: mailer.send_deletion_warning("a@b.c", "Anna", date(2026, 12, 8), l),
     "gym_ok": lambda l: mailer.send_gym_decision("a@b.c", "Anna", "Eisenschmiede", True, l),
     "gym_no": lambda l: mailer.send_gym_decision("a@b.c", "Anna", "Eisenschmiede", False, l),
     "moderation": lambda l: mailer.send_moderation_decision("a@b.c", "Anna", "M", "Z", ["D"], True, l),

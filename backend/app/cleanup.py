@@ -1,9 +1,11 @@
 """Aufräumarbeiten im Objekt-Storage.
 
-Zwei Aufgaben:
+Aufgaben:
 
 * Endgültige Löschung von Konten nach der 30-Tage-Karenzzeit. Die Selbstlöschung
   (DELETE /api/profiles/me) deaktiviert das Konto nur (deleted_at gesetzt).
+* Konten, die nie einen Ausweis zur Prüfung eingereicht haben, einen Monat
+  nach der Registrierung (siehe verification_deadline).
 * Temporäre Aufnahmen der Alters- und Identitätsprüfung, die niemand mehr
   braucht: abgebrochene Registrierungen und Vorgänge, bei denen das Löschen
   nach der Entscheidung fehlgeschlagen ist.
@@ -216,6 +218,53 @@ def purge_deleted_users(db: Session) -> int:
     return len(expired)
 
 
+# Notbremse für purge_unverified_accounts: Mehr Konten auf einmal löscht der
+# Lauf nie. Schlägt sie an, stimmt eher die Abfrage nicht (etwa ein Fehler bei
+# activated_at oder submitted_at) als dass so viele Konten verfallen wären -
+# dann wird nichts gelöscht und der Lauf meldet einen Fehler.
+UNVERIFIED_MAX_PER_RUN = 30
+
+
+class UnverifiedPurgeBlocked(Exception):
+    """Die Notbremse hat angeschlagen - nichts gelöscht."""
+
+
+def purge_unverified_accounts(db: Session, now: datetime | None = None) -> int:
+    """Konten ohne eingereichten Ausweis nach Ablauf der Frist endgültig löschen.
+
+    Regel und Fristbeginn: verification_deadline. Gelöscht wird sofort und
+    vollständig wie nach der Karenzzeit (purge_deleted_users) - eine Karenz
+    gibt es hier nicht, die Frist samt Wochenmails war die Karenz.
+    """
+    from . import verification_deadline as frist
+
+    current = now or utcnow()
+    # Vorfilter in SQL: Vor Ablauf von UNVERIFIED_ACCOUNT_DAYS seit der
+    # Registrierung kann kein Konto fällig sein.
+    candidates = (
+        frist.subject_accounts(db)
+        .filter(User.created_at < current - timedelta(days=frist.UNVERIFIED_ACCOUNT_DAYS - 1))
+        .all()
+    )
+    due = [u for u in candidates if frist.is_due(frist.deadline_start(db, u), current)]
+    if not due:
+        return 0
+    if len(due) > UNVERIFIED_MAX_PER_RUN:
+        logger.error(
+            "%d Konten ohne Prüfung fällig - mehr als %d, nichts gelöscht. Bitte prüfen.",
+            len(due), UNVERIFIED_MAX_PER_RUN,
+        )
+        raise UnverifiedPurgeBlocked(len(due))
+
+    for user in due:
+        stripe_abo_auslaufen_lassen(user)
+        delete_storage_objects(storage_keys_for_user(db, user))
+        db.delete(user)  # Kaskaden räumen Fotos, Vorgänge, Einwilligungen etc. ab
+        logger.info("Konto %s ohne Prüfung nach Fristablauf endgültig gelöscht", user.id)
+    db.commit()
+    return len(due)
+
+
 def purge_old_report_evidence(db: Session) -> int:
     """Chat-Auszuege entschiedener Meldungen nach Ablauf der Frist leeren.
 
@@ -362,9 +411,19 @@ def purge_stale_push_tokens(db: Session) -> int:
 
 
 def run_all(db: Session) -> dict[str, int]:
-    """Alle Fristen auf einmal - für den täglichen Timer."""
+    """Alle Fristen auf einmal - für den stündlichen Timer.
+
+    Hat die Notbremse bei Konten ohne Prüfung angeschlagen, steht dort -1;
+    main() meldet das als Fehler, die übrigen Fristen laufen trotzdem.
+    """
+    try:
+        unverified = purge_unverified_accounts(db)
+    except UnverifiedPurgeBlocked:
+        db.rollback()
+        unverified = -1
     return {
         "deleted_users": purge_deleted_users(db),
+        "unverified_accounts": unverified,
         "verification_requests": purge_stale_verification_uploads(db),
         "report_evidence": purge_old_report_evidence(db),
         "push_notifications": purge_old_push_notifications(db),
@@ -384,6 +443,9 @@ def main() -> None:
     finally:
         db.close()
     print(result)
+    if result["unverified_accounts"] < 0:
+        print("Löschung von Konten ohne Prüfung angehalten (Notbremse) - bitte prüfen")
+        raise SystemExit(1)
     # Fehlgeschlagene Storage-Löschungen bleiben als cleanup_pending stehen und
     # werden beim nächsten Lauf wiederholt; als Fehler melden, damit es auffällt.
     db = SessionLocal()

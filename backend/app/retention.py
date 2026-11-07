@@ -21,6 +21,13 @@ from typing import Final, NamedTuple
 #: Verwendet in cleanup.purge_deleted_users().
 ACCOUNT_GRACE_PERIOD_DAYS: Final = 30
 
+#: Konto, das nie einen Ausweis zur Prüfung eingereicht hat: endgültige
+#: Löschung so viele Tage nach Fristbeginn (Registrierung, für Bestandskonten
+#: der 08.11.2026). Verwendet in verification_deadline / cleanup.
+#: purge_unverified_accounts(). Eingeführt am 08.11.2026 - vorher blieben
+#: solche Konten unbegrenzt liegen.
+UNVERIFIED_ACCOUNT_DAYS: Final = 30
+
 #: Aufnahmen aus abgebrochenen Verifizierungen ohne Einreichung.
 #: Verwendet in verification_service.ORPHAN_RETENTION_DAYS.
 VERIFICATION_ORPHAN_DAYS: Final = 14
@@ -101,6 +108,15 @@ RETENTION_TABLE: Final[tuple[RetentionRow, ...]] = (
         f"bis zur Löschung durch dich, danach {ACCOUNT_GRACE_PERIOD_DAYS} Tage Karenz",
         "Selbstlöschung im Konto-Bereich",
         "cleanup.purge_deleted_users",
+    ),
+    RetentionRow(
+        "Konto ohne abgeschlossene Alters- und Identitätsprüfung (alle Konto-, "
+        "Profil- und Fotodaten)",
+        f"{UNVERIFIED_ACCOUNT_DAYS} Tage nach der Registrierung, wenn bis dahin kein "
+        "Ausweis zur Prüfung eingereicht wurde; vorher wöchentliche Erinnerung "
+        "per E-Mail mit dem Löschdatum",
+        "Fristablauf ohne Einreichung",
+        "cleanup.purge_unverified_accounts",
     ),
     RetentionRow(
         "Profilfotos und Thumbnails",

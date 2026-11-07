@@ -21,7 +21,7 @@ import logging
 import smtplib
 import ssl
 import textwrap
-from datetime import datetime
+from datetime import date, datetime
 from email.message import EmailMessage
 from email.utils import formataddr
 
@@ -1291,6 +1291,45 @@ def send_verification_reminder(
         t("remind.subject", lang),
         body,
         _verification_reminder_html(name, next_step, missing_photos, lang),
+    )
+
+
+def _plain_date(value: date, lang: str) -> str:
+    """Kalendertag ohne Uhrzeit, wie message_texts.format_date."""
+    if message_texts.normalise(lang) == "en":
+        return f"{value.day} {value.strftime('%B %Y')}"
+    return value.strftime("%d.%m.%Y")
+
+
+def send_deletion_warning(
+    email: str, name: str, deletion_date: date, lang: str = STANDARD
+) -> bool:
+    """Wochenmail: Konto ohne eingereichten Ausweis wird am ``deletion_date``
+    gelöscht. Wann sie verschickt wird, entscheidet email_jobs.py."""
+    datum = _plain_date(deletion_date, lang)
+    absaetze = [
+        t("deadline.intro", lang),
+        t("deadline.rule", lang, date=datum),
+        t("deadline.keep", lang),
+        t("remind.idHint", lang),
+    ]
+    text_body = "\n\n".join([
+        _greeting(name, lang),
+        *(textwrap.fill(a, width=76) for a in absaetze),
+        f'{t("remind.cta", lang)}: {_app_link()}',
+        textwrap.fill(t("deadline.optOut", lang, date=datum), width=76),
+        t("signoff", lang),
+    ]) + "\n"
+    body = "\n".join([
+        *(_p(a) for a in absaetze),
+        _button_html(_app_link(), t("remind.cta", lang)),
+        _p(t("deadline.optOut", lang, date=datum)),
+    ])
+    return send_email(
+        email,
+        t("deadline.subject", lang, date=datum),
+        text_body,
+        _email_shell(t("deadline.eyebrow", lang), _greeting_html(name, lang), body, lang=lang),
     )
 
 

@@ -776,6 +776,61 @@ TEXTE: dict[str, dict[str, str]] = {
             "stay visible. We delete the image after the check."
         ),
     },
+    # Wochenmail mit dem Loeschdatum (email_jobs.run_deletion_warnings, seit
+    # 08.11.2026). Geht an Konten, die nach einer Woche noch keinen Ausweis
+    # eingereicht haben - bis zur Loeschung einmal pro Woche. {date} ist der
+    # Tag, an dem cleanup.purge_unverified_accounts das Konto loescht.
+    "deadline.subject": {
+        "de": "Dein FLEXR-Konto wird am {date} gelöscht",
+        "en": "Your FLEXR account will be deleted on {date}",
+    },
+    "deadline.eyebrow": {"de": "Löschung angekündigt", "en": "Deletion scheduled"},
+    "deadline.intro": {
+        "de": (
+            "dein FLEXR-Konto ist noch nicht freigeschaltet: Die Alters- und "
+            "Identitätsprüfung ist nicht abgeschlossen, weil dein Ausweis noch fehlt."
+        ),
+        "en": (
+            "your FLEXR account is not activated yet: the age and identity check is "
+            "not complete because your ID is still missing."
+        ),
+    },
+    "deadline.rule": {
+        "de": (
+            "Konten, deren Prüfung nicht innerhalb eines Monats abgeschlossen wird, "
+            "löschen wir automatisch. Lädst du bis dahin keinen Ausweis hoch, wird "
+            "dein Konto am {date} endgültig gelöscht - mit Profil, Fotos und allen "
+            "übrigen Daten."
+        ),
+        "en": (
+            "We automatically delete accounts whose check is not completed within "
+            "one month. If you do not upload your ID before then, your account will "
+            "be permanently deleted on {date} - including your profile, photos and "
+            "all other data."
+        ),
+    },
+    "deadline.keep": {
+        "de": (
+            "Du möchtest FLEXR nutzen? Dann schließ die Prüfung in der App ab - "
+            "sobald dein Ausweis eingereicht ist, wird nichts gelöscht."
+        ),
+        "en": (
+            "Want to use FLEXR? Then finish the check in the app - once your ID has "
+            "been submitted, nothing will be deleted."
+        ),
+    },
+    "deadline.optOut": {
+        "de": (
+            "Du willst FLEXR doch nicht nutzen? Dann musst du nichts tun - dein "
+            "Konto wird am {date} von selbst gelöscht. Bei Fragen antworte einfach "
+            "auf diese Mail."
+        ),
+        "en": (
+            "Decided not to use FLEXR after all? Then you do not need to do "
+            "anything - your account will be deleted automatically on {date}. If "
+            "you have questions, just reply to this email."
+        ),
+    },
     # Zweite Erinnerung beim Ausweis. Die erste sagt, was fehlt; wer darauf
     # nicht reagiert hat, zoegert vermutlich beim Ausweis selbst - deshalb
     # steht hier das Warum. Die Saetze folgen den Texten der App (vgate_*,

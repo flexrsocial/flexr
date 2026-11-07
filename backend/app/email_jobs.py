@@ -6,6 +6,7 @@ from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from . import consents, mailer, notifications
+from . import verification_deadline as frist
 from .database import SessionLocal
 from .email_notifications import send_once, sent_at
 from .models import MIN_PHOTOS, Block, Report, Swipe, User, VerificationStatus
@@ -67,7 +68,48 @@ def run_due_email_jobs(db: Session, now: datetime | None = None) -> dict[str, in
     # (scripts/, Admin-Ansicht) unveraendert weiterlaeuft.
     result: dict[str, int] = {"trial_ending_sent": 0, "trial_ended_sent": 0, "failed": 0}
     result.update(run_activity_notifications(db, current))
-    result.update(run_verification_reminders(db, current))
+    warned: set[str] = set()
+    result.update(run_deletion_warnings(db, current, warned))
+    result.update(run_verification_reminders(db, current, skip=warned))
+    return result
+
+
+def run_deletion_warnings(
+    db: Session, current: datetime, warned: set[str] | None = None
+) -> dict[str, int]:
+    """Wöchentliche Mail mit dem Löschdatum an Konten ohne eingereichten Ausweis.
+
+    Regel und Fristbeginn: verification_deadline. Eine Mail je Woche der
+    Frist (Schlüssel: Konto, Fristbeginn, Wochennummer) - fällt der Job ein
+    paar Tage aus, geht nur die aktuelle Woche raus, nicht alle verpassten.
+
+    Nur an bestätigte Adressen (wie notifications.is_reachable): Bei einer
+    unbestätigten könnte ein Tippfehler die Mail zu einer fremden Person
+    schicken. Gelöscht werden solche Konten trotzdem.
+
+    ``warned`` sammelt die IDs der heute Angeschriebenen, damit
+    run_verification_reminders ihnen nicht am selben Morgen eine zweite Mail
+    schickt.
+    """
+    result = {"deletion_warned": 0}
+    candidates = frist.subject_accounts(db).filter(User.email_verified_at.isnot(None)).all()
+    for user in candidates:
+        start = frist.deadline_start(db, user)
+        number = frist.warning_number(start, current)
+        if number is None:
+            continue
+        key = f"loeschfrist:{user.id}:{start.isoformat()}:{number}"
+        if sent_at(db, key) is not None:
+            continue
+        datum = frist.deletion_date(start)
+
+        def senden(user=user, datum=datum) -> bool:
+            return mailer.send_deletion_warning(user.email, user.name, datum, user.language)
+
+        if send_once(db, key, "verification_deletion_warning", senden) and sent_at(db, key):
+            result["deletion_warned"] += 1
+            if warned is not None:
+                warned.add(user.id)
     return result
 
 
@@ -147,7 +189,9 @@ def run_activity_notifications(db: Session, current: datetime) -> dict[str, int]
     return result
 
 
-def run_verification_reminders(db: Session, current: datetime) -> dict[str, int]:
+def run_verification_reminders(
+    db: Session, current: datetime, skip: set[str] | None = None
+) -> dict[str, int]:
     """Erinnert an eine angefangene Alters- und Identitätsprüfung.
 
     Anlass (31.10.2026): Zwei neue Konten hatten Profilfotos und Selfie, aber
@@ -188,6 +232,8 @@ def run_verification_reminders(db: Session, current: datetime) -> dict[str, int]
     too_old = current - timedelta(days=VERIFICATION_REMINDER_LAST_DAY)
 
     for user in candidates:
+        if skip and user.id in skip:
+            continue  # hat heute schon die Mail mit dem Löschdatum bekommen
         reference = user.last_active_at or user.created_at
         if reference is None or reference > due_before or reference <= too_old:
             continue

@@ -81,8 +81,8 @@ def operator_inline() -> str:
 # steht sichtbar unter "Stand:" auf jeder Seite.
 # ---------------------------------------------------------------------------
 
-TERMS_VERSION: Final = "2026-11-03"           # AGB (Deutschland: Geltungsbereich, Kündigungsbutton § 312k BGB, Gerichtsstand, DSC)
-PRIVACY_VERSION: Final = "2026-11-03"          # Datenschutzerklärung (Kündigungserklärungen, Beschwerde bei der Aufsicht am Wohnort)
+TERMS_VERSION: Final = "2026-11-08"           # AGB (Löschung ohne Ausweis nach 30 Tagen, 5 g; davor 2026-11-03: Deutschland)
+PRIVACY_VERSION: Final = "2026-11-08"          # Datenschutzerklärung (Löschfrist für Konten ohne Ausweis; davor 2026-11-03: Kündigungserklärungen, Aufsicht am Wohnort)
 AUP_VERSION: Final = "2026-11-03"              # Nutzungsrichtlinien (Behörden, Notrufe und Hilfsangebote in Deutschland)
 LE_GUIDELINES_VERSION: Final = "2026-08-19"    # Strafverfolgungsrichtlinien
 WITHDRAWAL_VERSION: Final = "2026-11-03"      # Widerrufsbelehrung (Hinweis für Verbraucher in Deutschland, §§ 312g, 355 BGB)
