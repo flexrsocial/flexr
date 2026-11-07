@@ -32,6 +32,20 @@ erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 
 ## Wo das Projekt gerade steht
 
+> **Bugfix-Durchlauf 07.11.2026 (über alle Änderungen des Tages):**
+> - **Löschfrist ohne Ausweis:** galt auch für Bestandskonten, für die ein Admin
+>   die Prüfung nachfordert (`admin.require_verification` bzw. Ablehnung leeren
+>   `activated_at`) – sie wären 30 Tage später samt Matches/Chats gelöscht
+>   worden, ohne Ankündigung und entgegen AGB 5 g („nach der Registrierung“).
+>   Jetzt nur Konten mit Prüfpflicht seit der Registrierung
+>   (`verification_deadline.required_since_registration`:
+>   `verification_required_at` höchstens 1 h nach `created_at`). Test dazu.
+> - Geprüft ohne Befund: Restore-Key-Kryptografie und Kontoregeln (gelöscht,
+>   gesperrt, Passwortwechsel, Cascade beim Löschen), Android-Startablauf
+>   (Timeout, kein stilles Wiederanmelden nach Abmelden), Umkreis 1100 in
+>   Server/Web/Apps, Beta-Ende (nur die Kopf-Pille hängt am Schalter),
+>   In-App-Bewertung.
+
 > **Play Store, Stand 07.11.2026 abends (vom Nutzer umgesetzt, zur Prüfung
 > gesendet):** Titel „FLEXR – Gym & Fitness Dating“, Kurzbeschreibung mit
 > „jedes Profil per Ausweis geprüft“, Absatz „Neu in Deutschland“ positiv

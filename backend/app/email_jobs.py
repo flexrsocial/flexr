@@ -94,6 +94,8 @@ def run_deletion_warnings(
     result = {"deletion_warned": 0}
     candidates = frist.subject_accounts(db).filter(User.email_verified_at.isnot(None)).all()
     for user in candidates:
+        if not frist.required_since_registration(user):
+            continue  # Prüfung nachträglich verlangt - fällt nicht unter die Frist
         start = frist.deadline_start(db, user)
         number = frist.warning_number(start, current)
         if number is None:

@@ -11,10 +11,17 @@ Was "eingereicht" heißt: Der Vorgang wurde mit Ausweis abgeschickt
 beim Nutzer - ein Konto, das auf die Prüfung wartet, wird nie gelöscht. Auch
 bindende Ablehnungen fallen nicht unter die Regel, sie haben eingereicht.
 
+Nur für Konten, die seit der Registrierung geprüft werden müssen: Ein
+Bestandskonto, für das ein Admin die Prüfung nachträglich verlangt
+(admin.require_verification, auch nach einer Ablehnung), fällt nicht
+darunter - es hat Matches und Chats, die Aufforderungs-Mail kündigt keine
+Löschung an, und AGB 5 g spricht von 30 Tagen "nach der Registrierung".
+Bei neuen Konten setzt auth.register ``verification_required_at`` auf den
+Zeitpunkt der Registrierung.
+
 Wann die Frist beginnt (der späteste dieser Zeitpunkte):
 
 * Registrierung (``created_at``),
-* nachträglich verlangte Prüfung (``verification_required_at``),
 * Anforderung eines neuen Ausweises durch den Prüfer: Wer rechtzeitig
   eingereicht hat, soll nicht deshalb gelöscht werden, weil die Rückfrage am
   29. Tag kam - ab der Rückfrage läuft wieder ein voller Monat,
@@ -38,6 +45,11 @@ from .retention import UNVERIFIED_ACCOUNT_DAYS
 
 #: Einführung der Regel: 08.11.2026, 00:00 Uhr in Wien (naive UTC wie in der DB).
 RULE_START = datetime(2026, 11, 7, 23, 0, 0)
+
+#: Spielraum zwischen created_at und verification_required_at, in dem die
+#: Prüfpflicht noch als "seit der Registrierung" gilt (beide werden in
+#: auth.register gesetzt, nur nicht im selben Augenblick).
+REGISTRATION_SLACK = timedelta(hours=1)
 
 #: Abstand der Erinnerungsmails.
 WARNING_INTERVAL_DAYS = 7
@@ -82,6 +94,18 @@ def subject_accounts(db: Session) -> Query:
         User.activated_at.is_(None),
         ~submitted_condition(),
     )
+
+
+def required_since_registration(user: User) -> bool:
+    """Prüfpflicht seit der Registrierung - nicht nachträglich verlangt.
+
+    In Python statt in der Abfrage: ``DateTime + timedelta`` rechnet SQLite
+    (Testdatenbank) in SQL nicht verlässlich. Die Aufrufer filtern damit die
+    Treffer von subject_accounts().
+    """
+    if user.verification_required_at is None or user.created_at is None:
+        return True
+    return user.verification_required_at <= user.created_at + REGISTRATION_SLACK
 
 
 def deadline_start(db: Session, user: User) -> datetime:

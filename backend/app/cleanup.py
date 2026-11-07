@@ -246,7 +246,11 @@ def purge_unverified_accounts(db: Session, now: datetime | None = None) -> int:
         .filter(User.created_at < current - timedelta(days=frist.UNVERIFIED_ACCOUNT_DAYS - 1))
         .all()
     )
-    due = [u for u in candidates if frist.is_due(frist.deadline_start(db, u), current)]
+    due = [
+        u for u in candidates
+        if frist.required_since_registration(u)
+        and frist.is_due(frist.deadline_start(db, u), current)
+    ]
     if not due:
         return 0
     if len(due) > UNVERIFIED_MAX_PER_RUN:

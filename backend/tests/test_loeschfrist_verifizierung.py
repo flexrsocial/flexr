@@ -41,6 +41,9 @@ def _konto(client, email, created_at=REG, **felder):
         user = db.query(User).filter(User.email == email).one()
         user.created_at = created_at
         user.last_active_at = created_at
+        # Wie bei einer echten Registrierung (auth.register): Prüfpflicht ab
+        # dem Registrierungszeitpunkt.
+        user.verification_required_at = created_at
         for k, v in felder.items():
             setattr(user, k, v)
         db.commit()
@@ -233,3 +236,17 @@ def test_datenschutz_und_agb_nennen_die_frist():
         frontend / "agb.html").read_text(encoding="utf-8")
     assert f"{UNVERIFIED_ACCOUNT_DAYS} days of\n      registration" in (
         frontend / "en" / "agb.html").read_text(encoding="utf-8")
+
+
+def test_nachtraeglich_verlangte_pruefung_faellt_nicht_unter_die_frist(client, mails):
+    """Bestandskonto, für das ein Admin die Prüfung nachfordert: keine
+    Lösch-Mail, keine Löschung - es hat Matches und Chats, und AGB 5 g spricht
+    von 30 Tagen nach der Registrierung."""
+    user_id = _konto(
+        client, "bestand@example.com",
+        created_at=datetime(2026, 9, 1, 8, 0),
+        verification_required_at=REG,
+    )
+    assert _warnungen(REG + timedelta(days=7)) == 0
+    assert _loeschen(REG + timedelta(days=60)) == 0
+    assert _gibt_es(user_id)
