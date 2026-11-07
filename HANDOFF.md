@@ -32,6 +32,36 @@ erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 
 ## Wo das Projekt gerade steht
 
+> **Sitzung 07.11.2026 (2): Konten ohne Ausweis werden nach 30 Tagen
+> gelöscht.** Backend, Rechtstexte (Web + gekürzte App-Kopien), Android
+> 2.7.43 / 155, iOS 2.4.18. Keine Migration. **Braucht `sudo systemctl
+> restart flexr-api`** (neue Fassungen in `legal.py`).
+>
+> - **Regel (Nutzer-Entscheidung):** Wer 30 Tage nach der Registrierung
+>   keinen Ausweis eingereicht hat (`VerificationRequest.submitted_at`), wird
+>   endgültig gelöscht – sofort, ohne Karenz, wie `purge_deleted_users`
+>   (Storage, Stripe-Abo, Kaskaden). Logik in `app/verification_deadline.py`,
+>   Frist `retention.UNVERIFIED_ACCOUNT_DAYS`.
+> - **Fristbeginn** = spätester von: `created_at`, `verification_required_at`,
+>   `decided_at` einer Neu-Upload-Anforderung (dann wieder voller Monat),
+>   `RULE_START` = 08.11.2026 00:00 Wien. **Bestandskonten** werden also
+>   frühestens am **08.12.2026** gelöscht und bekommen sofort Mail 0.
+> - **Ausgenommen:** eingereicht/wartend, bindend abgelehnt, freigeschaltet,
+>   gesperrt (`is_banned`), Bestandskonten ohne Prüfpflicht. Unbestätigte
+>   E-Mail: gelöscht, aber ohne Mail (Tippfehler-Schutz).
+> - **Löschung:** `cleanup.purge_unverified_accounts` im stündlichen
+>   `flexr-cleanup.timer`, am Löschtag (Kalendertag Wien) ab Mitternacht.
+>   **Notbremse:** mehr als 30 fällige Konten → nichts löschen, Exit 1
+>   (Fehlermeldung über `flexr-notify-failure@`), Wert `unverified_accounts: -1`.
+> - **Wochenmail:** `email_jobs.run_deletion_warnings` (Tagesjob 9:00), Mail
+>   `deadline.*` / `mailer.send_deletion_warning` nach 7/14/21/28 Tagen mit
+>   dem Löschdatum, Schlüssel `loeschfrist:<user>:<start>:<woche>`. Am selben
+>   Morgen keine zusätzliche Prüf-Erinnerung (`skip`).
+> - **Rechtstexte:** AGB 5 g neu, Datenschutz-Tabelle neue Zeile (de/en),
+>   TERMS/PRIVACY_VERSION **2026-11-08**; gekürzte Kopien in
+>   `LegalContent.kt` / `LegalContent.swift` gleichgezogen.
+> - **Tests:** `test_loeschfrist_verifizierung.py` (13), Backend gesamt grün.
+
 > **Sitzung 07.11.2026: Mails bei Gym-Entscheidungen.** Backend, Admin-
 > Dashboard, Web-App (ein Linkziel). Keine App-Version, keine Migration.
 > **Braucht `sudo systemctl restart flexr-api`.**
