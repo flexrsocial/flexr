@@ -458,17 +458,23 @@ fun AccountScreen(
             style = MaterialTheme.typography.bodySmall,
             color = colors.chalkDim,
         )
-        // Startboost bis 31.12.2026 - wie in der Web-App unter dem Regler.
-        // Ab Neujahr liefert der Server kein Datum mehr, der Hinweis entfaellt.
-        state.radiusBoostLastDay?.let { bis ->
+        // Voller Umkreis fuer alle (unbefristet) bzw. befristeter Startboost -
+        // wie in der Web-App unter dem Regler. Ohne beides entfaellt der Hinweis.
+        val boostBis = state.radiusBoostLastDay
+        val boostText = when {
+            state.radiusFreeForAll -> stringResource(R.string.account_radius_free)
+            boostBis != null -> stringResource(
+                R.string.account_radius_boost,
+                ServerTime.formatDay(boostBis),
+                AccountViewModel.MAX_RADIUS_KM,
+                ServerTime.formatDay(boostBis.plusDays(1)),
+                state.freeMaxRadiusKm,
+            )
+            else -> null
+        }
+        boostText?.let { text ->
             Text(
-                text = stringResource(
-                    R.string.account_radius_boost,
-                    ServerTime.formatDay(bis),
-                    AccountViewModel.MAX_RADIUS_KM,
-                    ServerTime.formatDay(bis.plusDays(1)),
-                    state.freeMaxRadiusKm,
-                ),
+                text = text,
                 style = MaterialTheme.typography.bodySmall,
                 color = colors.lime,
                 modifier = Modifier

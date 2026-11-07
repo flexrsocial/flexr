@@ -280,6 +280,8 @@ struct MembershipStatusDTO: Decodable {
     /// Startboost: letzter Tag (ISO) mit vollem Umkreis ohne Premium. Nur
     /// gesetzt, solange der Boost läuft und dem Konto etwas bringt.
     let radiusBoostLastDay: String?
+    /// Voller Umkreis unbefristet für alle (seit 07.11.2026). Ältere Server: nil.
+    let radiusFreeForAll: Bool?
     /// nil = unbegrenzt (Beta oder Premium).
     let likesRemaining: Int?
     let openChatsRemaining: Int?

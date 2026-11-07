@@ -26,6 +26,18 @@ struct AccountView: View {
     @State private var replacementSelection: PhotosPickerItem?
     @Environment(\.scenePhase) private var scenePhase
 
+    private func radiusBoostHinweis(_ model: AccountModel) -> String? {
+        if model.radiusFreeForAll { return s(.accountRadiusFree) }
+        guard let bis = model.radiusBoostLastDay else { return nil }
+        return s(
+            .accountRadiusBoost,
+            ServerTime.formatCalendarDay(bis),
+            AccountModel.maxRadiusKm,
+            ServerTime.formatCalendarDay(bis, plusDays: 1),
+            model.freeMaxRadiusKm
+        )
+    }
+
     var body: some View {
         Group {
             if let model {
@@ -385,18 +397,10 @@ struct AccountView: View {
             )
             .flexrText(.bodySmall)
             .foregroundStyle(FlexrColor.chalkDim)
-            // Startboost bis 31.12.2026 - wie in Web und Android unter dem
-            // Regler. Ab Neujahr liefert der Server kein Datum mehr.
-            if let bis = model.radiusBoostLastDay {
-                Text(
-                    s(
-                        .accountRadiusBoost,
-                        ServerTime.formatCalendarDay(bis),
-                        AccountModel.maxRadiusKm,
-                        ServerTime.formatCalendarDay(bis, plusDays: 1),
-                        model.freeMaxRadiusKm
-                    )
-                )
+            // Voller Umkreis für alle (unbefristet) bzw. befristeter Startboost -
+            // wie in Web und Android unter dem Regler. Ohne beides kein Hinweis.
+            if let hinweis = radiusBoostHinweis(model) {
+                Text(hinweis)
                 .flexrText(.bodySmall)
                 .foregroundStyle(FlexrColor.lime)
                 .frame(maxWidth: .infinity, alignment: .leading)

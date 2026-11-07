@@ -168,10 +168,12 @@ fun PaywallScreen(
                 stringResource(R.string.premium_feature_chats),
                 stringResource(R.string.premium_feature_incoming),
                 stringResource(R.string.premium_feature_rewind),
-                if (boostBis != null) {
-                    stringResource(R.string.premium_feature_radius_boost, ServerTime.formatDay(boostBis))
-                } else {
-                    stringResource(R.string.premium_feature_radius)
+                when {
+                    membership?.radiusFreeForAll == true ->
+                        stringResource(R.string.premium_feature_radius_free)
+                    boostBis != null ->
+                        stringResource(R.string.premium_feature_radius_boost, ServerTime.formatDay(boostBis))
+                    else -> stringResource(R.string.premium_feature_radius)
                 },
                 stringResource(R.string.premium_feature_badge),
                 stringResource(R.string.paywall_feature_cancel),

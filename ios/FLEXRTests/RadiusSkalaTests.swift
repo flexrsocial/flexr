@@ -2,13 +2,13 @@ import XCTest
 
 @testable import FLEXR
 
-/// Seit 13.10.2026 reicht der Umkreis-Regler bis 580 km und läuft quadratisch
-/// (siehe `RadiusSkala`). Linear lägen 50 km bei 8 % der Schiene - die kleinen
+/// Seit 07.11.2026 reicht der Umkreis-Regler bis 1100 km und läuft quadratisch
+/// (siehe `RadiusSkala`). Linear lägen 50 km bei 4 % der Schiene - die kleinen
 /// Umkreise wären mit dem Finger kaum zu treffen.
 final class RadiusSkalaTests: XCTestCase {
 
     func testEndenDesReglersSindMinimumUndMaximum() {
-        XCTAssertEqual(RadiusSkala.maxKm, 580)
+        XCTAssertEqual(RadiusSkala.maxKm, 1100)
         XCTAssertEqual(RadiusSkala.radius(fromPosition: 0, maxKm: RadiusSkala.maxKm), RadiusSkala.minKm)
         XCTAssertEqual(RadiusSkala.radius(fromPosition: 1, maxKm: RadiusSkala.maxKm), RadiusSkala.maxKm)
     }
@@ -16,8 +16,8 @@ final class RadiusSkalaTests: XCTestCase {
     func testKleineUmkreiseBekommenEinenBrauchbarenTeilDerSchiene() {
         let bei50 = RadiusSkala.position(fromRadius: 50, maxKm: RadiusSkala.maxKm)
         let bei20 = RadiusSkala.position(fromRadius: 20, maxKm: RadiusSkala.maxKm)
-        XCTAssertEqual(bei50, 0.288, accuracy: 0.01)
-        XCTAssertEqual(bei20, 0.176, accuracy: 0.01)
+        XCTAssertEqual(bei50, 0.209, accuracy: 0.01)
+        XCTAssertEqual(bei20, 0.128, accuracy: 0.01)
     }
 
     /// Der Regler zeigt den gespeicherten Wert an; das Zurückrechnen darf ihn
@@ -33,7 +33,7 @@ final class RadiusSkalaTests: XCTestCase {
     }
 
     func testAusserhalbLiegendeWerteWerdenGekappt() {
-        XCTAssertEqual(RadiusSkala.position(fromRadius: 900, maxKm: RadiusSkala.maxKm), 1)
+        XCTAssertEqual(RadiusSkala.position(fromRadius: 1500, maxKm: RadiusSkala.maxKm), 1)
         XCTAssertEqual(RadiusSkala.position(fromRadius: 0, maxKm: RadiusSkala.maxKm), 0)
         XCTAssertEqual(RadiusSkala.radius(fromPosition: 1.5, maxKm: RadiusSkala.maxKm), RadiusSkala.maxKm)
         XCTAssertEqual(RadiusSkala.position(fromRadius: 2, maxKm: 2), 1)

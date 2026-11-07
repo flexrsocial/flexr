@@ -164,10 +164,19 @@ class Settings(BaseSettings):
     # ``res/values*/strings.xml`` und ``agb.html`` gehoert dazu.
     free_daily_likes: int = 20          # rollierend ueber 24 Stunden
     free_open_chats: int = 3            # gleichzeitig laufende Unterhaltungen
-    free_max_radius_km: int = 50        # Premium bis zum vollen Regler (580)
+    free_max_radius_km: int = 50        # Premium bis zum vollen Regler (1100)
 
-    # Startboost (seit 13.10.2026): Bis einschliesslich diesem Tag
-    # (Europe/Vienna) gilt der volle Umkreis bis 580 km auch ohne Premium.
+    # Voller Umkreis fuer alle, unbefristet (seit 07.11.2026, Wunsch des
+    # Betreibers: neue Nutzer gewinnen, gerade in Deutschland). Solange True,
+    # gilt der volle Regler auch ohne Premium, egal was radius_boost_last_day
+    # sagt. Wird der Umkreis irgendwann wieder ein Premium-Vorteil: auf False
+    # setzen (in .env RADIUS_FREE_FOR_ALL=false) und - mit Vorlauf und
+    # angekuendigt, siehe AGB 7 e - ein Enddatum in radius_boost_last_day.
+    radius_free_for_all: bool = True
+
+    # Startboost (13.10.2026 bis 07.11.2026 mit Enddatum 31.12.2026): Bis
+    # einschliesslich diesem Tag (Europe/Vienna) gilt der volle Umkreis auch
+    # ohne Premium - wirkt nur, wenn radius_free_for_all False ist.
     # Ab dem Folgetag 00:00 greift ``free_max_radius_km`` wieder von selbst -
     # ohne Deploy, ohne Neustart, ohne Datenkorrektur (premium.max_radius_km
     # fragt bei jedem Aufruf neu). Nur der Umkreis, Likes und Chats bleiben

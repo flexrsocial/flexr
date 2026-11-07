@@ -2651,7 +2651,7 @@
      laufen synchron und damit vor dem DOMContentLoaded, bei dem FlexrI18n die
      data-i18n-Knoten uebersetzt. -->
 <script src="/i18n.js?v=7"></script>
-<script src="/app/i18n-app.js?v=47"></script>
+<script src="/app/i18n-app.js?v=48"></script>
 <a class="skip-link" href="#main-content" data-i18n="common.skipToContent">Zum Inhalt springen</a>
 <div class="app" id="app">
 
@@ -3250,8 +3250,8 @@
           <span class="radius-value mono" id="radiusValue">20 km</span>
         </div>
         <div class="radius-hint" id="radiusHint" data-i18n="acct.radiusHint">Profile im Umkreis deines Gyms.</div>
-        <!-- Startboost bis 31.12.2026: Text und Sichtbarkeit setzt
-             renderRadiusBoostHint() aus membership.radius_boost_last_day. -->
+        <!-- Voller Umkreis fuer alle (radius_free_for_all) bzw. befristeter
+             Startboost: Text und Sichtbarkeit setzt renderRadiusBoostHint(). -->
         <div class="radius-hint radius-boost" id="radiusBoost" hidden></div>
 
         <div class="field-err" id="acctProfileErr"></div>
@@ -3681,7 +3681,7 @@
           <li><svg class="ico" viewBox="0 0 24 24"><path d="M5 12.5 10 17 19 7"/></svg><span data-i18n="premium.featChats">So viele Unterhaltungen gleichzeitig, wie du willst</span></li>
           <li><svg class="ico" viewBox="0 0 24 24"><path d="M5 12.5 10 17 19 7"/></svg><span data-i18n="premium.featIncoming">Sehen, wer dich schon geliked hat</span></li>
           <li><svg class="ico" viewBox="0 0 24 24"><path d="M5 12.5 10 17 19 7"/></svg><span data-i18n="premium.featRewind">Den letzten Swipe zurücknehmen</span></li>
-          <li><svg class="ico" viewBox="0 0 24 24"><path d="M5 12.5 10 17 19 7"/></svg><span><span data-i18n="premium.featRadius">Voller Suchumkreis bis 580 km</span><span class="feat-boost" id="premiumRadiusBoost" hidden></span></span></li>
+          <li><svg class="ico" viewBox="0 0 24 24"><path d="M5 12.5 10 17 19 7"/></svg><span><span data-i18n="premium.featRadius">Voller Suchumkreis bis 1.100 km</span><span class="feat-boost" id="premiumRadiusBoost" hidden></span></span></li>
           <li><svg class="ico" viewBox="0 0 24 24"><path d="M5 12.5 10 17 19 7"/></svg><span data-i18n="premium.featBadge">Premium-Abzeichen in deinem Profil</span></li>
         </ul>
         <button class="btn" id="btnSubscribe2" data-i18n="premium.subscribe">Premium holen</button>
@@ -4276,7 +4276,7 @@
   let membership = null;
   // Umkreis-Regler (Spannweite wie schemas.MAX_SEARCH_RADIUS_KM); Erklaerung
   // der quadratischen Skala bei radiusSetzen().
-  const RADIUS_MIN_KM = 2, RADIUS_MAX_KM = 580, RADIUS_STELLUNGEN = 1000;
+  const RADIUS_MIN_KM = 2, RADIUS_MAX_KM = 1100, RADIUS_STELLUNGEN = 1000;
   let radiusWertKm = 20;
   let pendingPhotos = []; // {blob, previewUrl} während Onboarding, vor Registrierung
   // Pflichtzahl an Profilfotos - beim Anlegen des Kontos und danach. Der Server
@@ -6232,8 +6232,9 @@
     // Vorteilsliste das dazu, statt ihn als reinen Premium-Vorteil zu bewerben.
     const boost = $('premiumRadiusBoost');
     const bis = membership.radius_boost_last_day;
-    boost.hidden = !bis;
-    if(bis) setI18nText(boost, 'premium.featRadiusBoost', {bis: boostDatum(bis, 0)});
+    boost.hidden = !(bis || membership.radius_free_for_all);
+    if(membership.radius_free_for_all) setI18nText(boost, 'premium.featRadiusFree', {});
+    else if(bis) setI18nText(boost, 'premium.featRadiusBoost', {bis: boostDatum(bis, 0)});
   }
   $('istartCancel').addEventListener('click', closeImmediateStartOverlay);
   $('istartConfirm').addEventListener('click', confirmImmediateStartAndSubscribe);
@@ -7104,10 +7105,11 @@
     el.style.setProperty('--p', max > min ? (Number(el.value) - min) / (max - min) : 0);
   }
 
-  /* Der Regler laeuft quadratisch, nicht linear. Seit 13.10.2026 reicht er bis
-     580 km; linear laegen 50 km dann bei 8 % der Schiene, und die kleinen
-     Umkreise, um die es meistens geht, waeren kaum zu treffen. Quadratisch
-     liegen 20 km bei 18 %, 50 km bei 29 % und 250 km bei 65 %.
+  /* Der Regler laeuft quadratisch, nicht linear. Seit 07.11.2026 reicht er bis
+     1100 km (ganz AT+DE, vorher 580); linear laegen 50 km dann bei 4 % der
+     Schiene, und die kleinen Umkreise, um die es meistens geht, waeren kaum zu
+     treffen. Quadratisch liegen 20 km bei 13 %, 50 km bei 21 % und 250 km bei
+     48 %.
 
      Das <input> haelt deshalb die Reglerstellung (0..1000), nie Kilometer.
      Der Wert in km steht in radiusWertKm: gesetzt beim Fuellen des Formulars
@@ -7143,12 +7145,17 @@
     return membership && membership.max_radius_km ? membership.max_radius_km : RADIUS_MAX_KM;
   }
 
-  /* Startboost: Bis 31.12.2026 hat jedes Konto den vollen Umkreis, auch ohne
-     Premium. Der Server liefert den letzten Boost-Tag nur, solange der Boost
-     laeuft und dem Konto etwas bringt - ab Neujahr fehlt das Feld, der Hinweis
-     verschwindet, und radiusCap() faellt von selbst auf die 50 km zurueck. */
+  /* Seit 07.11.2026 hat jedes Konto den vollen Umkreis unbefristet, auch ohne
+     Premium (radius_free_for_all). Fuer einen spaeteren befristeten Boost
+     liefert der Server stattdessen den letzten Boost-Tag. Fehlt beides,
+     verschwindet der Hinweis, und radiusCap() faellt auf die 50 km zurueck. */
   function renderRadiusBoostHint(){
     const box = $('radiusBoost');
+    if(membership && membership.radius_free_for_all){
+      setI18nText(box, 'premium.radiusFree', {voll: RADIUS_MAX_KM.toLocaleString(dateLocale())});
+      box.hidden = false;
+      return;
+    }
     const bis = membership && membership.radius_boost_last_day;
     if(!bis){ box.hidden = true; return; }
     setI18nText(box, 'premium.radiusBoost', {

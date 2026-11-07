@@ -8,10 +8,13 @@ from .geo import PLZ_PATTERN
 
 # Spannweite des Umkreis-Reglers. Benannt statt an jeder Stelle als Zahl:
 # ``premium.max_radius_km()`` kappt gegen dieselbe Obergrenze, und die
-# Oberflaeche stellt den Regler danach. Bis 13.10.2026 waren es 250 km; 580 km
-# reichen von jedem Gym aus durch ganz Oesterreich (Bregenz-Wien ~500 km).
+# Oberflaeche stellt den Regler danach. Bis 13.10.2026 waren es 250 km, bis
+# 07.11.2026 580 km (ganz Oesterreich). Seit dem Start in Deutschland 1100 km:
+# Die weiteste Strecke innerhalb von Oesterreich und Deutschland, Sylt (List)
+# bis Bad Radkersburg, misst rund 1076 km Luftlinie - mit 1100 km erreicht
+# jeder Punkt jeden anderen.
 MIN_SEARCH_RADIUS_KM = 2
-MAX_SEARCH_RADIUS_KM = 580
+MAX_SEARCH_RADIUS_KM = 1100
 
 #: Die Sprache, in der ein Client gerade laeuft. Sie steht am Nutzerprofil
 #: (``User.language``) und entscheidet, in welcher Sprache der Server E-Mails
@@ -480,6 +483,10 @@ class MembershipStatus(BaseModel):
     # dem Regler den Hinweis, ab wann wieder ``free_max_radius_km`` gilt.
     # Ab dem Folgetag ``None``, und ``max_radius_km`` faellt von selbst zurueck.
     radius_boost_last_day: Optional[date] = None
+    # Voller Umkreis unbefristet fuer alle (settings.radius_free_for_all,
+    # seit 07.11.2026). Dann ohne Datum - die Clients sagen "derzeit fuer alle
+    # frei" statt "bis ...". Aeltere Clients kennen das Feld nicht.
+    radius_free_for_all: bool = False
 
     # Verbrauch. ``None`` heisst unbegrenzt - waehrend der Beta immer, mit
     # Premium immer, sonst nie.

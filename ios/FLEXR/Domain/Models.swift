@@ -212,6 +212,8 @@ struct Membership: Hashable, Sendable {
     /// Startboost (bis 31.12.2026): letzter Tag mit vollem Umkreis ohne
     /// Premium, als UTC-Mitternacht (`ServerTime.parseDate`); sonst nil.
     let radiusBoostLastDay: Date?
+    /// Voller Umkreis unbefristet für alle, ohne Datum (radius_free_for_all).
+    let radiusFreeForAll: Bool
     /// nil = unbegrenzt (Beta oder Premium).
     let likesRemaining: Int?
     let openChatsRemaining: Int?
@@ -238,6 +240,7 @@ struct Membership: Hashable, Sendable {
             freeMaxRadiusKm: freeMaxRadiusKm,
             maxRadiusKm: maxRadiusKm,
             radiusBoostLastDay: radiusBoostLastDay,
+            radiusFreeForAll: radiusFreeForAll,
             likesRemaining: remaining,
             openChatsRemaining: openChatsRemaining,
             nextLikeAt: nextLikeAt

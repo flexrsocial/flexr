@@ -286,8 +286,9 @@ def register(
         language=payload.language or "de",
     )
     # Startwert des Suchradius: das Groesste, was das Konto gerade einstellen
-    # darf (Wunsch des Betreibers, 14.10.2026) - bis 31.12.2026 also fuer alle
-    # der volle Regler, danach fuer Standardkonten free_max_radius_km. Vorher
+    # darf (Wunsch des Betreibers, 14.10.2026) - solange der Umkreis fuer alle
+    # frei ist (radius_free_for_all) also der volle Regler, sonst fuer
+    # Standardkonten free_max_radius_km. Vorher
     # stand jedes neue Konto auf dem Spalten-Default von 20 km und sah in
     # einer duenn besetzten Gegend ein fast leeres Deck. Faellt die Grenze
     # spaeter, kappt die Suche ohnehin bei jedem Aufruf (premium.clamp_radius).

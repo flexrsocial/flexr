@@ -43,6 +43,7 @@ struct PaywallView: View {
     }
 
     private var radiusFeature: String {
+        if appModel.membership?.radiusFreeForAll == true { return s(.premiumFeatureRadiusFree) }
         guard let bis = appModel.membership?.radiusBoostLastDay else {
             return s(.premiumFeatureRadius)
         }

@@ -324,13 +324,15 @@ data class MembershipStatusDto(
     @SerialName("free_daily_likes") val freeDailyLikes: Int = 20,
     @SerialName("free_open_chats") val freeOpenChats: Int = 3,
     @SerialName("free_max_radius_km") val freeMaxRadiusKm: Int = 50,
-    @SerialName("max_radius_km") val maxRadiusKm: Int = 580,
+    @SerialName("max_radius_km") val maxRadiusKm: Int = 1100,
     /**
      * Startboost: letzter Tag (ISO), an dem dieses Konto ohne Premium den
      * vollen Umkreis hat. Nur gesetzt, solange der Boost laeuft und dem Konto
      * etwas bringt (premium.radius_boost_last_day); sonst null.
      */
     @SerialName("radius_boost_last_day") val radiusBoostLastDay: String? = null,
+    /** Voller Umkreis unbefristet fuer alle (seit 07.11.2026, premium.radius_free_for_all). */
+    @SerialName("radius_free_for_all") val radiusFreeForAll: Boolean = false,
     /** null = unbegrenzt (Beta oder Premium). */
     @SerialName("likes_remaining") val likesRemaining: Int? = null,
     @SerialName("open_chats_remaining") val openChatsRemaining: Int? = null,

@@ -193,6 +193,7 @@ struct SwipeView: View {
                         Task { await model.loadDeck() }
                     }
                 }
+            }
         } else {
             ZStack(alignment: .bottom) {
                 if let next = model.next {

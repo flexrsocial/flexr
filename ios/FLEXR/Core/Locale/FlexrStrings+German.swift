@@ -351,8 +351,9 @@ extension FlexrStrings {
         .premiumFeatureChats: "So viele Unterhaltungen gleichzeitig, wie du willst",
         .premiumFeatureIncoming: "Sehen, wer dich schon geliked hat",
         .premiumFeatureRewind: "Den letzten Swipe zurücknehmen",
-        .premiumFeatureRadius: "Voller Suchumkreis bis 580 km",
-        .premiumFeatureRadiusBoost: "Voller Suchumkreis bis 580 km – bis %@ für alle frei",
+        .premiumFeatureRadius: "Voller Suchumkreis bis 1.100 km",
+        .premiumFeatureRadiusBoost: "Voller Suchumkreis bis 1.100 km – bis %@ für alle frei",
+        .premiumFeatureRadiusFree: "Voller Suchumkreis bis 1.100 km – derzeit für alle frei",
         .premiumFeatureBadge: "Premium-Abzeichen in deinem Profil",
         .premiumBetaHint: """
             FLEXR Premium lässt sich in dieser App nicht abschließen. Die \
@@ -399,6 +400,10 @@ extension FlexrStrings {
         .accountSectionSubscription: "Aboverwaltung",
         .accountManageSubscription: "Abo verwalten / kündigen",
         .accountRadiusCapped: "Ohne FLEXR Premium reicht die Suche bis %d km.",
+        .accountRadiusFree: """
+            Derzeit kannst du auch ohne FLEXR Premium den vollen Suchumkreis bis \
+            1.100 km nutzen – damit erreichst du ganz Österreich und Deutschland.
+            """,
         .accountRadiusBoost: """
             Startboost: Bis %@ kannst du auch ohne FLEXR Premium den vollen \
             Suchumkreis bis %d km nutzen. Ab %@ sucht FLEXR ohne Premium wieder \
