@@ -61,6 +61,17 @@ erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 >   TERMS/PRIVACY_VERSION **2026-11-08**; gekürzte Kopien in
 >   `LegalContent.kt` / `LegalContent.swift` gleichgezogen.
 > - **Tests:** `test_loeschfrist_verifizierung.py` (13), Backend gesamt grün.
+> - **Android In-App-Bewertung (neu in 2.7.43):** `core/review/ReviewPrompter`
+>   (Play In-App Review API `com.google.android.play:review` 2.0.2) fragt nach
+>   der 3. erfolgreich gesendeten Chatnachricht, höchstens 3-mal, frühestens 60
+>   Tage nach dem letzten Versuch (SharedPreferences `review_prompt`, überlebt
+>   Logout). Ob der Dialog erscheint, entscheidet Play; in Debug-Builds nie –
+>   testen nur über Internal App Sharing / interner Test-Track. iOS hat das noch
+>   nicht (Kandidat: `SKStoreReviewController`/`requestReview`).
+> - **Android-AAB** `release-2.7.43/flexr-2.7.43-155.aab` (SHA-256
+>   `39a450f2…0f30`, Upload-Key `BC:64:…:79:80` geprüft), 90 Unit-Tests, Lint
+>   0 Fehler – **noch nicht hochgeladen**. 2.7.42/154 wird damit hinfällig.
+>   iOS 2.4.18 nur Code → Codemagic `ios-flexr`.
 
 > **Sitzung 07.11.2026: Mails bei Gym-Entscheidungen.** Backend, Admin-
 > Dashboard, Web-App (ein Linkziel). Keine App-Version, keine Migration.

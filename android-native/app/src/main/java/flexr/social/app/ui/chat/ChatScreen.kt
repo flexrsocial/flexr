@@ -1,5 +1,7 @@
 package flexr.social.app.ui.chat
 
+import flexr.social.app.core.review.findActivity
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -116,12 +118,14 @@ fun ChatScreen(
     var showClearDialog by remember { mutableStateOf(false) }
     var showDeleteDialog by remember { mutableStateOf(false) }
 
+    val context = LocalContext.current
     LaunchedEffect(Unit) {
         viewModel.events.collect { event ->
             when (event) {
                 is ChatEvent.Message ->
                     if (event.sticky) onShowStickyMessage(event.text) else onShowMessage(event.text)
                 ChatEvent.Closed -> onBack()
+                ChatEvent.AskForReview -> context.findActivity()?.let(viewModel::askForReview)
             }
         }
     }

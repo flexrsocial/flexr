@@ -188,6 +188,13 @@ object LegalContent {
                         "anfordern oder die Registrierung ablehnen. Die Aufnahmen des " +
                         "Ausweises und die Verifizierungs-Selfie werden nach Abschluss der " +
                         "Prüfung gelöscht (Einzelheiten in der Datenschutzerklärung).",
+                    "Löschfrist. Wird nicht innerhalb von 30 Tagen nach der Registrierung " +
+                        "ein Ausweis zur Prüfung eingereicht, löschen wir das noch nicht " +
+                        "freigeschaltete Konto automatisch und endgültig, samt Profil, Fotos " +
+                        "und allen übrigen Daten. Bis dahin erinnern wir jede Woche per " +
+                        "E-Mail an die Frist und nennen das Löschdatum. Fordern wir eine neue " +
+                        "Aufnahme an, beginnt die Frist ab dieser Anforderung neu; solange " +
+                        "der Ausweis auf die Prüfung wartet, wird nichts gelöscht.",
                     "Bei begründetem Verdacht auf Falschangaben behalten wir uns die " +
                         "Sperre des Accounts vor. Bestehende Accounts können wir zur Alters- " +
                         "und Identitätsprüfung nachträglich auffordern.",
@@ -1225,7 +1232,7 @@ object LegalContent {
     // Matches).
     private val datenschutz = LegalPage(
         document = LegalDocument.DATENSCHUTZ,
-        intro = "Wie FLEXR mit deinen Daten umgeht. Stand: 3. November 2026. Diese Fassung ist gekürzt; maßgeblich ist der vollständige Text unter flexr.social/datenschutz.html.",
+        intro = "Wie FLEXR mit deinen Daten umgeht. Stand: 8. November 2026. Diese Fassung ist gekürzt; maßgeblich ist der vollständige Text unter flexr.social/datenschutz.html.",
         blocks = listOf(
             LegalBlock.Heading("1. Verantwortlicher"),
             LegalBlock.Paragraph(
@@ -1439,6 +1446,10 @@ object LegalContent {
             LegalBlock.Bullets(
                 listOf(
                     "Kontodaten: bis zur Löschung des Profils durch den Nutzer.",
+                    "Konto ohne abgeschlossene Alters- und Identitätsprüfung: wird 30 Tage " +
+                        "nach der Registrierung mit allen Konto-, Profil- und Fotodaten " +
+                        "gelöscht, wenn bis dahin kein Ausweis zur Prüfung eingereicht wurde; " +
+                        "vorher wöchentliche Erinnerung per E-Mail mit dem Löschdatum.",
                     "Nach Löschung: 30 Tage Karenzzeit, danach werden die Datensätze und " +
                         "die Dateien im Objektspeicher gelöscht und sind über die App nicht " +
                         "wiederherstellbar. Zahlungsbezogene Aufzeichnungen bleiben nach " +

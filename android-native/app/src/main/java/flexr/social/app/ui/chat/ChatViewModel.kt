@@ -1,5 +1,6 @@
 package flexr.social.app.ui.chat
 
+import flexr.social.app.core.review.ReviewPrompter
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -49,6 +50,9 @@ sealed interface ChatEvent {
      * `FlexrApp.kt`.
      */
     data class Message(val text: String, val sticky: Boolean = false) : ChatEvent
+
+    /** Jetzt ist ein guter Moment für die Bewertungsabfrage (ReviewPrompter). */
+    data object AskForReview : ChatEvent
     data object Closed : ChatEvent
 }
 
@@ -67,6 +71,7 @@ class ChatViewModel @Inject constructor(
     private val safetyRepository: SafetyRepository,
     private val profileRepository: ProfileRepository,
     private val strings: AppStrings,
+    private val reviewPrompter: ReviewPrompter,
 ) : ViewModel() {
 
     val matchId: String = checkNotNull(savedStateHandle["matchId"])
@@ -171,6 +176,7 @@ class ChatViewModel @Inject constructor(
             runCatching { messageRepository.send(matchId, senderId, content) }
                 .onSuccess {
                     _uiState.update { it.copy(isSending = false) }
+                    if (reviewPrompter.registerSentMessage()) _events.send(ChatEvent.AskForReview)
                     runCatching { matchRepository.refresh() }
                 }
                 .onFailure { throwable ->
@@ -195,6 +201,11 @@ class ChatViewModel @Inject constructor(
                     }
                 }
         }
+    }
+
+    /** Bewertungsdialog von Google Play zeigen (entscheidet Play selbst, ob er erscheint). */
+    fun askForReview(activity: android.app.Activity) {
+        viewModelScope.launch { reviewPrompter.launch(activity) }
     }
 
     /** Verlauf leeren — nur für die eigene Seite. */

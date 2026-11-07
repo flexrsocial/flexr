@@ -369,8 +369,8 @@ android {
         // nicht hochgeladen war.
         // 154/2.7.42 am 03.11.2026: Deutschland - PLZ mit vier (AT) oder
         // fuenf (DE) Ziffern, 404 bei vier Ziffern heisst "weitertippen".
-        versionCode = 154
-        versionName = "2.7.42"
+        versionCode = 155
+        versionName = "2.7.43"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -526,6 +526,8 @@ dependencies {
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.browser)
     implementation(libs.billing.ktx)
+    // In-App-Bewertung (Play In-App Review API), siehe core/review/ReviewPrompter.
+    implementation(libs.play.review)
     implementation(libs.firebase.messaging)
     implementation(libs.coroutines.play.services)
 
