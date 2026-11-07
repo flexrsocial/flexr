@@ -32,6 +32,16 @@ erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 
 ## Wo das Projekt gerade steht
 
+> **Play Store, Stand 07.11.2026 abends (vom Nutzer umgesetzt, zur Prüfung
+> gesendet):** Titel „FLEXR – Gym & Fitness Dating“, Kurzbeschreibung mit
+> „jedes Profil per Ausweis geprüft“, Absatz „Neu in Deutschland“ positiv
+> („Sei unter den Ersten in deiner Stadt“, 1.100 km), Preis-Absatz mit „1.100 km
+> – derzeit für alle frei“, Screenshots ohne Beta aus
+> `android/store/neu-2026-11-07/`, Reihenfolge 1 Dating / 2 Jedes Profil
+> geprüft / 3 Dein Gym. Versionshinweise 2.7.44/2.7.45 in
+> `android/store/store-texte.md`. Händlerstatus angegeben. Offen: YouTube-
+> Trailer zeigt evtl. noch „Beta“; iOS-Build wartet auf Apples PLA.
+
 > **Sitzung 07.11.2026 (6): Beta beendet.** `config.beta_active = False`
 > (keine `.env`-Zeile auf dem VPS, geprüft). Alle Clients lesen das aus
 > `/api/billing/status`, kein App-Update nötig: Die Kopf-Pille zeigt jetzt die
