@@ -250,6 +250,8 @@ def radius_boost_active(now: datetime | None = None) -> bool:
     endete der Boost in der Silvesternacht schon um 01:00 Ortszeit statt um
     Mitternacht. ``now`` ist naives UTC wie ueberall (timeutil.utcnow).
     """
+    if settings.radius_free_for_all:
+        return True
     current = (now or utcnow()).replace(tzinfo=timezone.utc)
     return current.astimezone(_VIENNA).date() <= settings.radius_boost_last_day
 
@@ -261,9 +263,17 @@ def radius_boost_last_day(user: User, now: datetime | None = None) -> date | Non
     Stichtag: Dann gibt es keinen Hinweis zu zeigen. Die Oberflaeche zeigt den
     Hinweis genau dann, wenn hier ein Datum steht.
     """
+    if settings.radius_free_for_all:
+        return None  # unbefristet - es gibt kein Datum zu nennen (radius_free_for_all)
     if settings.premium_enabled and not user.is_premium and radius_boost_active(now):
         return settings.radius_boost_last_day
     return None
+
+
+def radius_free_for_all(user: User) -> bool:
+    """Ist der volle Umkreis gerade unbefristet für alle frei - und bringt das
+    diesem Konto etwas (kein Premium, Premium-Schalter an)?"""
+    return bool(settings.radius_free_for_all and settings.premium_enabled and not user.is_premium)
 
 
 def max_radius_km(user: User, now: datetime | None = None) -> int:
@@ -286,7 +296,7 @@ def clamp_radius(user: User, radius_km: int) -> int:
     """Kappt einen Umkreiswunsch auf das Erlaubte.
 
     Bewusst kappen statt ablehnen: Wer Premium kuendigt, hat unter Umstaenden
-    580 km eingestellt. Ein Fehler bei jedem spaeteren Speichern des Profils
+    1100 km eingestellt. Ein Fehler bei jedem spaeteren Speichern des Profils
     waere eine Sackgasse - stillschweigend auf 50 km zurueckzugehen ist das,
     was der Nutzer ohnehin tun muesste. Beim aktiven Verstellen faengt die
     Oberflaeche den Fall vorher ab und erklaert ihn.

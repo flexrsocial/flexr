@@ -40,14 +40,14 @@ GYMS = HIER / "gyms.json"
 SITE = "https://flexr.social"
 HEUTE = dt.date.today().isoformat()
 
-# Startboost bis 31.12.2026: voller Suchumkreis bis 580 km auch ohne Premium.
-# Der Zusatz steht nur im sichtbaren Text, als <span class="startboost">, den
-# STARTBOOST_SKRIPT ab dem 01.01.2027 ausblendet. In die strukturierten Daten
-# (FAQPage) kommt er bewusst nicht: Die liest keine Suchmaschine mit Skript
-# neu, ein abgelaufenes Angebot bliebe dort bis zum naechsten Bauen stehen.
-STARTBOOST_SKRIPT = '<script>/* Startboost-Zusaetze (class="startboost") ab 01.01.2027 (Wiener Zeit) ausblenden. Inline statt eigener Datei: keine blockierende Anfrage vor dem ersten Zeichnen. Bei Verlaengerung Datum hier, in tools/seo/build_seo_pages.py und backend/app/premium.py mitziehen. */\n(function(){var d;try{d=new Intl.DateTimeFormat(\'en-CA\',{timeZone:\'Europe/Vienna\',year:\'numeric\',month:\'2-digit\',day:\'2-digit\'}).format(new Date())}catch(e){d=new Date().toISOString().slice(0,10)}if(d>\'2026-12-31\'){var s=document.createElement(\'style\');s.textContent=\'.startboost{display:none !important}\';document.head.appendChild(s)}})();</script>'
-STARTBOOST = ('<span class="startboost"> Bis 31.12.2026 ist der volle Suchumkreis '
-              'bis 580&nbsp;Kilometer für alle frei.</span>')
+# Startaktion seit 07.11.2026 ohne Enddatum: voller Suchumkreis bis 1100 km
+# (ganz AT+DE) auch ohne Premium (backend/app/config.radius_free_for_all). Bis
+# dahin war sie bis 31.12.2026 befristet und ein Inline-Skript blendete den
+# Zusatz danach aus - das Skript ist entfallen. Endet die Aktion, den Zusatz
+# hier entfernen und die Seiten neu bauen. In die strukturierten Daten
+# (FAQPage) kommt er bewusst nicht.
+STARTBOOST = ('<span class="startboost"> Derzeit ist der volle Suchumkreis '
+              'bis 1.100&nbsp;Kilometer für alle frei.</span>')
 
 WIEN_BEZIRKE = {
     "1010": "Innere Stadt", "1020": "Leopoldstadt", "1030": "Landstraße",
@@ -751,7 +751,6 @@ def seite(*, url: str, titel: str, beschreibung: str, og_titel: str,
 <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon-180.png?v=1">
 <link rel="preload" href="/fonts/oswald.woff2?v=1" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="/legal.css?v=3">
-{STARTBOOST_SKRIPT}
 {jsonld(graph)}
 {STIL}
 </head>

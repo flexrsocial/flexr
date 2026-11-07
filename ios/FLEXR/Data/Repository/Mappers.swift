@@ -114,8 +114,9 @@ extension MembershipStatusDTO {
             freeDailyLikes: freeDailyLikes ?? 20,
             freeOpenChats: freeOpenChats ?? 3,
             freeMaxRadiusKm: freeMaxRadiusKm ?? 50,
-            maxRadiusKm: maxRadiusKm ?? 580,
+            maxRadiusKm: maxRadiusKm ?? 1100,
             radiusBoostLastDay: radiusBoostLastDay.flatMap(ServerTime.parseDate),
+            radiusFreeForAll: radiusFreeForAll ?? false,
             likesRemaining: likesRemaining,
             openChatsRemaining: openChatsRemaining,
             nextLikeAt: nextLikeAt.flatMap(ServerTime.parse)

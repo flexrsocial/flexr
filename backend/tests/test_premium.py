@@ -105,7 +105,7 @@ def test_ohne_premium_schalter_ist_alles_unbegrenzt(client, monkeypatch):
     # None = unbegrenzt. Die Oberflaeche blendet den Zaehler daran aus.
     assert status["likes_remaining"] is None
     assert status["open_chats_remaining"] is None
-    assert status["max_radius_km"] == 580
+    assert status["max_radius_km"] == 1100
 
     # Das Deck war frueher der Endpunkt hinter der Bezahlwand.
     assert client.get("/api/swipes/deck", headers=headers).status_code == 200
@@ -336,7 +336,7 @@ def test_match_aufloesen_gibt_den_chatplatz_frei(client, monkeypatch):
 # Nach der Beta: Suchumkreis
 # ---------------------------------------------------------------------------
 
-@pytest.mark.parametrize("premium,erwartet", [(False, 50), (True, 580)])
+@pytest.mark.parametrize("premium,erwartet", [(False, 50), (True, 1100)])
 def test_umkreis_wird_auf_das_erlaubte_gekappt(client, monkeypatch, premium, erwartet):
     monkeypatch.setattr(settings, "premium_enabled", True)
     monkeypatch.setattr(settings, "free_max_radius_km", 50)
@@ -346,7 +346,7 @@ def test_umkreis_wird_auf_das_erlaubte_gekappt(client, monkeypatch, premium, erw
         _set_premium(_user_id(client, headers))
 
     resp = client.patch(
-        "/api/profiles/me", json={"search_radius_km": 580}, headers=headers
+        "/api/profiles/me", json={"search_radius_km": 1100}, headers=headers
     )
     assert resp.status_code == 200
     assert resp.json()["search_radius_km"] == erwartet
@@ -440,12 +440,12 @@ def test_startboost_gibt_standardkonten_den_vollen_umkreis(client, monkeypatch):
     headers = register_user(client, "boost@example.com")
 
     resp = client.patch(
-        "/api/profiles/me", json={"search_radius_km": 580}, headers=headers
+        "/api/profiles/me", json={"search_radius_km": 1100}, headers=headers
     )
-    assert resp.json()["search_radius_km"] == 580
+    assert resp.json()["search_radius_km"] == 1100
 
     status = client.get("/api/billing/status", headers=headers).json()
-    assert status["max_radius_km"] == 580
+    assert status["max_radius_km"] == 1100
     # Die reguläre Grenze bleibt sichtbar - der Hinweis nennt sie.
     assert status["free_max_radius_km"] == 50
     assert status["radius_boost_last_day"] == settings.radius_boost_last_day.isoformat()
@@ -461,7 +461,7 @@ def test_startboost_meldet_sich_nur_wo_er_etwas_bringt(client, monkeypatch):
     _set_premium(_user_id(client, headers))
     status = client.get("/api/billing/status", headers=headers).json()
     assert status["radius_boost_last_day"] is None
-    assert status["max_radius_km"] == 580
+    assert status["max_radius_km"] == 1100
 
     monkeypatch.setattr(settings, "premium_enabled", False)
     headers = register_user(client, "boost-beta@example.com")

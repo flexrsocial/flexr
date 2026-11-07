@@ -348,8 +348,9 @@ extension FlexrStrings {
         .premiumFeatureChats: "As many conversations at once as you like",
         .premiumFeatureIncoming: "See who already liked you",
         .premiumFeatureRewind: "Undo your last swipe",
-        .premiumFeatureRadius: "Full search radius up to 580 km",
-        .premiumFeatureRadiusBoost: "Full search radius up to 580 km – free for everyone until %@",
+        .premiumFeatureRadius: "Full search radius up to 1,100 km",
+        .premiumFeatureRadiusBoost: "Full search radius up to 1,100 km – free for everyone until %@",
+        .premiumFeatureRadiusFree: "Full search radius up to 1,100 km – currently free for everyone",
         .premiumFeatureBadge: "Premium badge on your profile",
         .premiumBetaHint: """
             FLEXR Premium cannot be purchased in this app. Using FLEXR still \
@@ -396,6 +397,10 @@ extension FlexrStrings {
         .accountSectionSubscription: "Subscription",
         .accountManageSubscription: "Manage / cancel subscription",
         .accountRadiusCapped: "Without FLEXR Premium the search reaches %d km.",
+        .accountRadiusFree: """
+            For now you can use the full search radius of up to 1,100 km even \
+            without FLEXR Premium – enough to reach all of Austria and Germany.
+            """,
         .accountRadiusBoost: """
             Launch boost: until %@ you can use the full search radius of up to \
             %d km even without FLEXR Premium. From %@, FLEXR searches up to %d km \

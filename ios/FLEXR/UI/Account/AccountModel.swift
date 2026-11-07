@@ -3,15 +3,15 @@ import Foundation
 /// Spannweite und Skala des Umkreis-Reglers. Eigener Typ ohne MainActor,
 /// damit die reine Rechnung auch aus Tests aufrufbar ist.
 ///
-/// Seit 13.10.2026 reicht der Regler bis 580 statt 250 km (ganz Österreich,
-/// wie backend/app/schemas.py `MAX_SEARCH_RADIUS_KM`) und läuft quadratisch:
-/// km = min + (max−min)·p². Linear lägen 50 km bei 8 % der Schiene, die
-/// kleinen Umkreise wären mit dem Finger kaum zu treffen; quadratisch liegen
-/// 20 km bei 18 %, 50 km bei 29 %. Dieselbe Skala wie in Web und Android.
+/// Seit 07.11.2026 reicht der Regler bis 1100 km (ganz Österreich und
+/// Deutschland; vorher 580, davor 250 - wie backend/app/schemas.py
+/// `MAX_SEARCH_RADIUS_KM`) und läuft quadratisch: km = min + (max−min)·p².
+/// Linear lägen 50 km bei 4 % der Schiene, die kleinen Umkreise wären mit dem
+/// Finger kaum zu treffen; quadratisch liegen 20 km bei 13 %, 50 km bei 21 %. Dieselbe Skala wie in Web und Android.
 /// `AccountModel.searchRadiusKm` bleibt in km - nur der Regler rechnet in 0…1.
 enum RadiusSkala {
     static let minKm = 2
-    static let maxKm = 580
+    static let maxKm = 1100
 
     static func radius(fromPosition position: Double, maxKm: Int) -> Int {
         let p = min(max(position, 0), 1)
@@ -102,6 +102,8 @@ final class AccountModel {
     /// etwas bringt; ab Neujahr fällt die Grenze über `maxSelectableRadiusKm`
     /// von selbst zurück.
     var radiusBoostLastDay: Date? { membership?.radiusBoostLastDay }
+    /// Voller Umkreis unbefristet für alle (seit 07.11.2026) - Hinweis ohne Datum.
+    var radiusFreeForAll: Bool { membership?.radiusFreeForAll ?? false }
     var freeMaxRadiusKm: Int { membership?.freeMaxRadiusKm ?? 50 }
 
     // Einwilligungen (Art. 7 Abs. 3 DSGVO)
@@ -296,7 +298,7 @@ final class AccountModel {
     /// Hält den Regler innerhalb dessen, was das Konto einstellen darf.
     ///
     /// Nötig, weil der gespeicherte Wert älter sein kann als die Grenze: Wer
-    /// Premium hatte und kündigt, kommt mit bis zu 580 km zurück. Der Server kappt
+    /// Premium hatte und kündigt, kommt mit bis zu 1100 km zurück. Der Server kappt
     /// beim nächsten Speichern ohnehin, hier wird nur sichtbar, worauf.
     private func clampRadiusToLimit() {
         let grenze = Double(maxSelectableRadiusKm)

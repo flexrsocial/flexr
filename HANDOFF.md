@@ -32,6 +32,40 @@ erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 
 ## Wo das Projekt gerade steht
 
+> **Sitzung 07.11.2026 (3): Suchumkreis bis 1100 km, unbefristet für alle
+> frei.** Backend, Web-App, Website, AGB 7 e (de/en), Android 2.7.44 / 156,
+> iOS 2.4.19. Keine Migration. **Braucht `sudo systemctl restart flexr-api`.**
+>
+> - **Obergrenze** `schemas.MAX_SEARCH_RADIUS_KM = 1100` (vorher 580): Sylt
+>   (List) ↔ Bad Radkersburg ≈ 1076 km ist die weiteste Strecke in AT+DE –
+>   von jedem Punkt aus ist alles erreichbar (Test in `test_startradius.py`).
+>   Regler in allen Clients bis 1100, weiter quadratisch (50 km bei 21 %).
+> - **Unbefristet (Nutzer-Entscheidung):** `config.radius_free_for_all = True`
+>   hat Vorrang vor `radius_boost_last_day`. `/api/billing/status` liefert
+>   `radius_free_for_all: true` und **kein** `radius_boost_last_day`; neue
+>   Clients zeigen „derzeit für alle frei“ (Paywall) bzw. den Hinweis unter dem
+>   Regler. Alte Clients (≤ 2.7.43 / 2.4.18) zeigen dann nur den Premium-Vorteil
+>   ohne Zusatz und haben den Regler bis 580 – funktioniert, Server kappt nicht.
+> - **Später Premium-Feature:** `.env` `RADIUS_FREE_FOR_ALL=false` (+ optional
+>   Enddatum in `RADIUS_BOOST_LAST_DAY`). Laut AGB 7 e (neu) ist das Ende wie
+>   eine Senkung einer Grenze nach Punkt 18 **vorher anzukündigen**; Website-
+>   Zusätze (`class="startboost"`, Generator `tools/seo/build_seo_pages.py`
+>   `STARTBOOST`) dann von Hand entfernen – das datumsgesteuerte
+>   Ausblend-Skript ist entfallen. AGB-Fassung blieb 2026-11-08 (noch nicht in
+>   Kraft, Text vor Inkrafttreten angepasst).
+> - **Bestehende Konten** behalten ihren gespeicherten Umkreis (meist 580 bzw.
+>   kleiner); nur neue Konten starten bei 1100 (`auth.register`).
+> - **iOS-Build war seit 22.10.2026 kaputt:** In `SwipeView.swift` fehlte seit
+>   `47c57d9` (Einladen-Knopf im leeren Deck) die schließende Klammer der
+>   `EmptyStateView`-Closure – Codemagic brach beim Kompilieren ab. Ergänzt;
+>   alle seither geänderten Swift-Dateien haben ausgeglichene Klammern, mehr
+>   ließ sich ohne Mac nicht prüfen.
+> - **Android-AAB** `release-2.7.44/flexr-2.7.44-156.aab` (Upload-Key geprüft,
+>   90 Unit-Tests, Lint 0 Fehler) ersetzt 2.7.43 (enthält dessen
+>   In-App-Bewertung und Rechtstexte) – **noch nicht hochgeladen**.
+> - Web: `i18n-app.js?v=48`, SW-Cache `flexr-shell-v62`. Play-Store-Text in
+>   `android/store/store-texte.md` (gitignored) angepasst.
+
 > **Sitzung 07.11.2026 (2): Konten ohne Ausweis werden nach 30 Tagen
 > gelöscht.** Backend, Rechtstexte (Web + gekürzte App-Kopien), Android
 > 2.7.43 / 155, iOS 2.4.18. Keine Migration. **Braucht `sudo systemctl

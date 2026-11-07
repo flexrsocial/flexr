@@ -142,13 +142,15 @@
 // Musterprofile per srcset in 360/540/720 px.
 // v61: Deutschland - PLZ mit vier oder fuenf Ziffern, Texte "Oesterreich und
 // Deutschland", Link "Vertraege hier kuendigen"; i18n.js ?v=7, i18n-app.js ?v=47.
-const CACHE = 'flexr-shell-v61';
+// v62: Suchumkreis bis 1100 km, unbefristet fuer alle frei (radius_free_for_all),
+// Startboost-Zusaetze ohne Datum und ohne Ausblend-Skript; i18n-app.js ?v=48.
+const CACHE = 'flexr-shell-v62';
 // Seit dem 15.08.2026 liegt die App unter /app/, an der Wurzel steht die
 // oeffentliche Landingpage. Beide gehoeren in die Shell: die Landingpage,
 // weil sie der Einstieg ist, die App, weil sie offline funktionieren soll.
 const SHELL = ['/', '/index.html', '/en/', '/en/index.html',
                '/app/', '/app/index.html',
-               '/lang-switch.js?v=2', '/i18n.js?v=7', '/app/i18n-app.js?v=47',
+               '/lang-switch.js?v=2', '/i18n.js?v=7', '/app/i18n-app.js?v=48',
                '/manifest.json', '/favicon.ico', '/legal.css?v=3',
                '/fonts/work-sans.woff2?v=1', '/fonts/oswald.woff2?v=1',
                '/icons/icon-192.png?v=4', '/icons/icon-512.png?v=4'];

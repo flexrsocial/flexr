@@ -96,6 +96,8 @@ data class AccountUiState(
      * von selbst auf `free_max_radius_km` zurueck.
      */
     val radiusBoostLastDay: LocalDate? = null,
+    /** Voller Umkreis unbefristet fuer alle (seit 07.11.2026) - Hinweis ohne Datum. */
+    val radiusFreeForAll: Boolean = false,
     /** Regulaere Grenze ohne Premium, fuer den Startboost-Hinweis. */
     val freeMaxRadiusKm: Int = 50,
     /** Solange gesetzt, ist ein Gym-Wechsel gesperrt (siehe MyProfile.activeGymLockUntil). */
@@ -264,6 +266,7 @@ class AccountViewModel @Inject constructor(
                 maxSelectableRadiusKm = grenze,
                 searchRadiusKm = it.searchRadiusKm.coerceAtMost(grenze),
                 radiusBoostLastDay = status?.radiusBoostLastDay,
+                radiusFreeForAll = status?.radiusFreeForAll ?: false,
                 freeMaxRadiusKm = status?.freeMaxRadiusKm ?: it.freeMaxRadiusKm,
             )
         }
@@ -1042,15 +1045,15 @@ class AccountViewModel @Inject constructor(
     companion object {
         const val BIO_MAX_LENGTH = 280
         const val MIN_RADIUS_KM = 2
-        // Seit 13.10.2026 580 statt 250 km (ganz Oesterreich), wie
-        // backend/app/schemas.py MAX_SEARCH_RADIUS_KM.
-        const val MAX_RADIUS_KM = 580
+        // Seit 07.11.2026 1100 km (ganz Oesterreich und Deutschland, vorher
+        // 580, davor 250), wie backend/app/schemas.py MAX_SEARCH_RADIUS_KM.
+        const val MAX_RADIUS_KM = 1100
 
         /*
          * Der Regler laeuft quadratisch, nicht linear: km = min + (max-min)·p².
-         * Bei 2..580 km laegen 50 km linear bei 8 % der Schiene, und die
+         * Bei 2..1100 km laegen 50 km linear bei 4 % der Schiene, und die
          * kleinen Umkreise, um die es meistens geht, waeren mit dem Finger
-         * kaum zu treffen. Quadratisch liegen 20 km bei 18 %, 50 km bei 29 %.
+         * kaum zu treffen. Quadratisch liegen 20 km bei 13 %, 50 km bei 21 %.
          * Dieselbe Skala wie in der Web-App (frontend/app/index.html,
          * radiusSetzen). Der Wert im Zustand bleibt in km - nur der Regler
          * rechnet in Stellungen 0..1.
