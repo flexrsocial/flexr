@@ -780,6 +780,61 @@ TEXTE: dict[str, dict[str, str]] = {
     # nicht reagiert hat, zoegert vermutlich beim Ausweis selbst - deshalb
     # steht hier das Warum. Die Saetze folgen den Texten der App (vgate_*,
     # document_why); was dort nicht zugesagt ist, darf hier nicht stehen.
+    # Entscheidung ueber einen Gym-Vorschlag (admin.approve_gym/reject_gym,
+    # seit 07.11.2026). Geht an alle, die das Studio im Profil haben - fast
+    # immer die Vorschlagenden selbst. {gym} ist der Studioname.
+    "gymok.subject": {
+        "de": "Dein Gym ist jetzt in der Liste",
+        "en": "Your gym is now on the list",
+    },
+    "gymok.eyebrow": {"de": "Gym freigegeben", "en": "Gym approved"},
+    "gymok.detail": {
+        "de": (
+            "gute Nachricht: Wir haben dein vorgeschlagenes Gym \"{gym}\" geprüft "
+            "und in die Gym-Liste aufgenommen. Für dich ändert sich nichts - es "
+            "bleibt dein Gym. Ab sofort können es auch andere auswählen, und "
+            "Mitglieder deines Gyms finden dich leichter."
+        ),
+        "en": (
+            "good news: we reviewed the gym you suggested, \"{gym}\", and added it "
+            "to the gym list. Nothing changes for you - it stays your gym. From "
+            "now on others can choose it too, and members of your gym will find "
+            "you more easily."
+        ),
+    },
+    "gymok.cta": {"de": "FLEXR öffnen", "en": "Open FLEXR"},
+    "gymno.subject": {
+        "de": "Bitte wähle dein Gym neu",
+        "en": "Please choose your gym again",
+    },
+    "gymno.eyebrow": {"de": "Gym nicht aufgenommen", "en": "Gym not added"},
+    "gymno.detail": {
+        "de": (
+            "wir konnten das Gym \"{gym}\" leider nicht in unsere Gym-Liste "
+            "aufnehmen - etwa weil es nicht auffindbar war, die Adresse nicht "
+            "gestimmt hat oder es bereits unter anderem Namen in der Liste steht."
+        ),
+        "en": (
+            "unfortunately we could not add the gym \"{gym}\" to our gym list - "
+            "for example because we could not find it, the address was not right "
+            "or it is already on the list under a different name."
+        ),
+    },
+    "gymno.action": {
+        "de": (
+            "Damit dir wieder Profile in deiner Nähe angezeigt werden und andere "
+            "dich finden, wähle bitte in deinem Profil ein Gym aus der Liste. Die "
+            "3-Monats-Sperre für Gym-Wechsel gilt für diese Änderung nicht. Fehlt "
+            "dein Gym weiterhin, kannst du es mit korrekter Adresse neu vorschlagen."
+        ),
+        "en": (
+            "So that you see profiles near you again and others can find you, "
+            "please choose a gym from the list in your profile. The 3-month lock "
+            "on gym changes does not apply to this change. If your gym is still "
+            "missing, you can suggest it again with the correct address."
+        ),
+    },
+    "gymno.cta": {"de": "Gym auswählen", "en": "Choose gym"},
     "remind2.subject": {
         "de": "Warum wir deinen Ausweis brauchen",
         "en": "Why we need your ID",

@@ -1348,6 +1348,36 @@ def send_id_second_reminder(
     )
 
 
+def send_gym_decision(
+    email: str, name: str, gym_name: str, approved: bool, lang: str = STANDARD
+) -> bool:
+    """Entscheidung ueber einen Gym-Vorschlag (admin.approve_gym/reject_gym).
+
+    Bei Ablehnung bittet die Mail, ein Gym aus der Liste zu waehlen: Bis dahin
+    ist das Deck leer, das Konto in keinem fremden Deck und das Profil laesst
+    sich nicht speichern (das abgelehnte Gym gilt nirgends mehr).
+    """
+    art = "gymok" if approved else "gymno"
+    absaetze = [t(f"{art}.detail", lang, gym=gym_name)]
+    if not approved:
+        absaetze.append(t("gymno.action", lang))
+    link = _app_link("" if approved else "account")
+    cta = t(f"{art}.cta", lang)
+    text_body = "\n\n".join([
+        _greeting(name, lang),
+        *(textwrap.fill(a, width=76, break_on_hyphens=False) for a in absaetze),
+        f"{cta}: {link}",
+        t("signoff", lang),
+    ]) + "\n"
+    body = "\n".join([*(_p(a) for a in absaetze), _button_html(link, cta)])
+    return send_email(
+        email,
+        t(f"{art}.subject", lang),
+        text_body,
+        _email_shell(t(f"{art}.eyebrow", lang), _greeting_html(name, lang), body, lang=lang),
+    )
+
+
 def _moderation_decision_html(
     name: str, measure: str, summary: str, details: list[str] | None, appeal: bool,
     lang: str = STANDARD,

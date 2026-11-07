@@ -1,6 +1,6 @@
 # FLEXR — Handoff für ein anderes Gerät / Claude Code
 
-Stand: **06.11.2026**
+Stand: **07.11.2026**
 
 ## ⚠️ Dringend zu prüfen: SSH-Zugang zum VPS hat sich geändert (21.09.2026)
 
@@ -31,6 +31,29 @@ Falls du das liest, weil dein `root@`-Login gerade fehlschlägt: das ist
 erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 
 ## Wo das Projekt gerade steht
+
+> **Sitzung 07.11.2026: Mails bei Gym-Entscheidungen.** Backend, Admin-
+> Dashboard, Web-App (ein Linkziel). Keine App-Version, keine Migration.
+> **Braucht `sudo systemctl restart flexr-api`.**
+>
+> - **Anlass:** Eine Ablehnung setzte nur den Status. Wer das Studio im Profil
+>   hatte, sah danach ein leeres Deck (`swipes`: keine Koordinate, also `[]`),
+>   war für andere unsichtbar und konnte das Profil nicht speichern (die Web-App
+>   schickt `gym` immer mit, `gym_exists_for_profile` schlägt fehl). Niemand
+>   bekam Bescheid, auch bei der Freigabe nicht.
+> - **Empfänger:** `models.gym_members` bzw. `gym_profile_values`. Das sind
+>   Konten mit dem Label im Profil; den bloßen Namen nur, wenn kein anderes
+>   gültiges Studio so heißt, damit Legacy-Profile wie „McFit“ unberührt
+>   bleiben. `Gym.suggested_by` wird weiterhin nicht befüllt, weil der
+>   Vorschlag ohne Login läuft.
+> - **Freigabe:** Mail `gymok.*` (`mailer.send_gym_decision`). **Ablehnung:**
+>   Mail `gymno.*` mit Link `/app/open/account`, außerdem
+>   `gym_changed_at = NULL`, damit die 3-Monats-Sperre für den Wechsel
+>   wegfällt. Beides nur beim Statuswechsel; die Antwort enthält `notified`.
+> - **Admin-Dashboard:** Spalte „Nutzer“ (`AdminGymOut.member_count`) und eine
+>   Rückfrage vor der Ablehnung, wenn jemand das Gym nutzt.
+> - **Web-App:** `account` ist jetzt in `OEFFNEN_ZIELE`. Die native
+>   Android-App kennt das Ziel nicht und öffnet dann nur die App.
 
 > **Sitzung 06.11.2026: Zweite Ausweis-Erinnerung.** Nur Backend, keine
 > App-Version, keine Migration.

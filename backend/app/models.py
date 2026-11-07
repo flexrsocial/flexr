@@ -253,6 +253,40 @@ def relabel_profiles(db, old_label: str, new_label: str) -> int:
     )
 
 
+def gym_profile_values(db, gym) -> set[str]:
+    """Profilwerte (User.gym), die auf genau dieses Studio zeigen.
+
+    Profile halten normalerweise das volle Label. Der blosse Name gilt als
+    Profil-Gym ebenfalls (routers/gyms.gym_exists_for_profile), zaehlt hier
+    aber nur, wenn kein anderes freigegebenes/offenes Studio so heisst - sonst
+    traefe z. B. die Ablehnung eines vorgeschlagenen "McFit" alle Bestands-
+    profile mit dem Legacy-Eintrag "McFit".
+    """
+    values = {gym.label}
+    andere = (
+        db.query(Gym.id)
+        .filter(
+            Gym.id != gym.id,
+            Gym.name == gym.name,
+            Gym.status.in_([GymStatus.approved, GymStatus.pending]),
+        )
+        .first()
+    )
+    if andere is None:
+        values.add(gym.name)
+    return values
+
+
+def gym_members(db, gym) -> list["User"]:
+    """Nicht geloeschte Konten, deren Profil-Gym dieses Studio ist - fuer die
+    Mails bei Freigabe/Ablehnung und die Anzeige im Admin-Dashboard."""
+    return (
+        db.query(User)
+        .filter(User.gym.in_(gym_profile_values(db, gym)), User.deleted_at.is_(None))
+        .all()
+    )
+
+
 class Gym(Base):
     """Fitnessstudios in Österreich und Deutschland: Basisdaten aus OpenStreetMap (Name,
     Straße, Hausnummer, PLZ), ergänzt um Nutzer-Vorschläge, die nach

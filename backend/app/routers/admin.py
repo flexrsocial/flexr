@@ -2,7 +2,7 @@ from datetime import date, datetime, timedelta, timezone
 from zoneinfo import ZoneInfo
 from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, Request, Response
 from sqlalchemy import and_, func, not_, or_
 from sqlalchemy.orm import Session
 
@@ -11,6 +11,8 @@ from ..database import get_db
 from ..geo import city_for_plz
 from ..models import (
     relabel_profiles,
+    gym_members,
+    gym_profile_values,
     AdminUser,
     Block,
     DailyAccess,
@@ -1245,27 +1247,61 @@ def list_admin_gyms(
         except ValueError:
             raise HTTPException(400, "Ungültiger Status-Filter.")
     rows = query.order_by(Gym.created_at.desc()).limit(limit).all()
+    # Wie viele Konten das Studio gerade im Profil haben - vor einer Ablehnung
+    # wichtig: Fuer sie gilt das Gym danach nirgends mehr (leeres Deck, fuer
+    # andere unsichtbar, Profil nicht speicherbar), bis sie ein neues waehlen.
+    werte = {g.id: gym_profile_values(db, g) for g in rows}
+    alle = set().union(*werte.values()) if werte else set()
+    pro_wert = dict(
+        db.query(User.gym, func.count(User.id))
+        .filter(User.gym.in_(alle), User.deleted_at.is_(None))
+        .group_by(User.gym)
+        .all()
+    ) if alle else {}
     return [
         AdminGymOut(
             id=g.id, name=g.name, street=g.street, house_number=g.house_number,
             plz=g.plz, city=g.city, status=g.status.value, created_at=g.created_at,
+            member_count=sum(pro_wert.get(w, 0) for w in werte[g.id]),
         )
         for g in rows
     ]
 
 
+def _gym_decision_mails(db: Session, gym: Gym, approved: bool) -> list[tuple]:
+    """Empfaenger der Entscheidungs-Mail, vor dem Commit eingesammelt.
+
+    Bei Ablehnung faellt zugleich die 3-Monats-Sperre fuer den Gym-Wechsel
+    weg: Wer sein Gym gerade erst gewechselt hat, muss sonst bis zu drei Monate
+    mit einem Gym leben, das nirgends mehr gilt. Der naechste Wechsel setzt
+    die Sperre wieder (profiles.py)."""
+    empfaenger = []
+    for user in gym_members(db, gym):
+        if not approved:
+            user.gym_changed_at = None
+        empfaenger.append((user.email, user.name, gym.name, approved, user.language))
+    return empfaenger
+
+
 @router.post("/gyms/{gym_id}/approve")
 def approve_gym(
     gym_id: str,
+    background_tasks: BackgroundTasks,
     admin: AdminUser = Depends(get_current_admin),
     db: Session = Depends(get_db),
 ):
+    """Freigabe; wer das Studio im Profil hat, bekommt eine kurze Bestaetigung
+    (seit 07.11.2026). Nur beim Statuswechsel - ein erneuter Klick auf ein
+    schon freigegebenes Gym verschickt nichts."""
     gym = db.query(Gym).filter(Gym.id == gym_id).first()
     if not gym:
         raise HTTPException(404, "Gym nicht gefunden.")
+    mails = [] if gym.status == GymStatus.approved else _gym_decision_mails(db, gym, True)
     gym.status = GymStatus.approved
     db.commit()
-    return {"status": gym.status.value}
+    for args in mails:
+        background_tasks.add_task(mailer.send_gym_decision, *args)
+    return {"status": gym.status.value, "notified": len(mails)}
 
 
 @router.patch("/gyms/{gym_id}", response_model=AdminGymOut)
@@ -1331,15 +1367,26 @@ def update_gym(
 @router.post("/gyms/{gym_id}/reject")
 def reject_gym(
     gym_id: str,
+    background_tasks: BackgroundTasks,
     admin: AdminUser = Depends(get_current_admin),
     db: Session = Depends(get_db),
 ):
+    """Ablehnung. Bis 07.11.2026 aenderte sie nur den Status - wer das Studio
+    im Profil hatte, sah danach ein leeres Deck, war fuer andere unsichtbar
+    und konnte sein Profil nicht mehr speichern, ohne davon zu erfahren. Jetzt
+    bekommen diese Konten eine Mail mit der Bitte, ein Gym aus der Liste zu
+    waehlen, und die Wechselsperre faellt fuer sie weg."""
     gym = db.query(Gym).filter(Gym.id == gym_id).first()
     if not gym:
         raise HTTPException(404, "Gym nicht gefunden.")
+    # Vor dem Statuswechsel einsammeln: gym_profile_values schaut auf andere
+    # gueltige Studios gleichen Namens, nicht auf dieses.
+    mails = [] if gym.status == GymStatus.rejected else _gym_decision_mails(db, gym, False)
     gym.status = GymStatus.rejected
     db.commit()
-    return {"status": gym.status.value}
+    for args in mails:
+        background_tasks.add_task(mailer.send_gym_decision, *args)
+    return {"status": gym.status.value, "notified": len(mails)}
 
 
 @router.delete("/gyms/{gym_id}", status_code=204)

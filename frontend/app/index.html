@@ -6741,7 +6741,7 @@
   // Tipp auf eine Mitteilung: auf den passenden Reiter. Der Service Worker
   // schickt das Ziel als Nachricht (App war offen) oder als ?open= (App wurde
   // dafuer gestartet).
-  const OEFFNEN_ZIELE = ['swipe', 'matches', 'chats', 'premium'];
+  const OEFFNEN_ZIELE = ['swipe', 'matches', 'chats', 'account', 'premium'];
   let offenesZiel = null;
   function oeffneZiel(ziel){
     if(!OEFFNEN_ZIELE.includes(ziel)) return;

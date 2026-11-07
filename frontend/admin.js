@@ -229,12 +229,13 @@
       }
       wrap.innerHTML = `
         <table>
-          <thead><tr><th>Name</th><th>Adresse</th><th>Eingereicht</th><th></th></tr></thead>
+          <thead><tr><th>Name</th><th>Adresse</th><th title="Konten mit diesem Gym im Profil">Nutzer</th><th>Eingereicht</th><th></th></tr></thead>
           <tbody>
             ${gyms.map(g => `
               <tr id="gymrow-${g.id}">
                 <td>${escapeHtml(g.name)}</td>
                 <td>${escapeHtml([`${g.street} ${g.house_number}`.trim(), `${g.plz} ${g.city}`.trim()].filter(Boolean).join(', ') || '—')}</td>
+                <td>${g.member_count || 0}</td>
                 <td>${g.created_at ? fmtDate(g.created_at) : '—'}</td>
                 <td style="white-space:nowrap;">
                   <button class="btn small secondary" data-edit-gym="${g.id}">Bearbeiten</button>
@@ -248,15 +249,21 @@
       const gymById = Object.fromEntries(gyms.map(g => [g.id, g]));
       wrap.querySelectorAll('button[data-approve-gym]').forEach(btn => {
         btn.addEventListener('click', async () => {
-          try{ await api(`/api/admin/gyms/${btn.dataset.approveGym}/approve`, {method: 'POST'});
-            toast('Gym freigegeben.'); loadGyms(); loadDashboard(); }
+          try{ const r = await api(`/api/admin/gyms/${btn.dataset.approveGym}/approve`, {method: 'POST'});
+            toast(r.notified ? `Gym freigegeben, ${r.notified} Nutzer per Mail informiert.` : 'Gym freigegeben.');
+            loadGyms(); loadDashboard(); }
           catch(err){ toast(err.message); }
         });
       });
       wrap.querySelectorAll('button[data-reject-gym]').forEach(btn => {
         btn.addEventListener('click', async () => {
-          try{ await api(`/api/admin/gyms/${btn.dataset.rejectGym}/reject`, {method: 'POST'});
-            toast('Gym abgelehnt.'); loadGyms(); loadDashboard(); }
+          // Fuer diese Konten gilt das Gym danach nirgends mehr (leeres Deck,
+          // unsichtbar, Profil nicht speicherbar), bis sie ein neues waehlen.
+          const n = (gymById[btn.dataset.rejectGym] || {}).member_count || 0;
+          if(n > 0 && !confirm(`${n} Nutzer ${n === 1 ? 'hat' : 'haben'} dieses Gym im Profil. Sie bekommen eine Mail mit der Bitte, ein anderes Gym zu wählen, und sehen bis dahin keine Profile. Trotzdem ablehnen?`)) return;
+          try{ const r = await api(`/api/admin/gyms/${btn.dataset.rejectGym}/reject`, {method: 'POST'});
+            toast(r.notified ? `Gym abgelehnt, ${r.notified} Nutzer per Mail informiert.` : 'Gym abgelehnt.');
+            loadGyms(); loadDashboard(); }
           catch(err){ toast(err.message); }
         });
       });
@@ -282,7 +289,7 @@
     if(!row) return;
     const canApprove = g.status !== 'approved';
     row.innerHTML = `
-      <td colspan="4">
+      <td colspan="5">
         <div class="gym-edit">
           <input class="gym-edit-input" data-f="name" placeholder="Name" value="${escapeHtml(g.name)}">
           <input class="gym-edit-input" data-f="street" placeholder="Straße" value="${escapeHtml(g.street)}">

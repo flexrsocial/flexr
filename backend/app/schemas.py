@@ -986,6 +986,8 @@ class AdminGymOut(BaseModel):
     city: str
     status: str
     created_at: Optional[datetime] = None
+    # Konten, die dieses Studio im Profil haben (nur in der Liste befuellt).
+    member_count: int = 0
 
 
 class AdminGymUpdate(BaseModel):
