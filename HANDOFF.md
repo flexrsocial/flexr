@@ -32,6 +32,13 @@ erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 
 ## Wo das Projekt gerade steht
 
+> **Sitzung 07.11.2026 (5): Zero-Tap-Zweig (PR #3) in main übernommen**,
+> Android auf 2.7.45 / 157 gestellt (noch **nicht gebaut**), neue Migration
+> `f1a7c3e9b5d2`: alle bestehenden Konten auf 1100 km Umkreis. **Deploy offen:**
+> `git pull --ff-only`, dann `venv/bin/alembic upgrade head` (zwei Migrationen),
+> dann `sudo systemctl restart flexr-api`. Reihenfolge einhalten – der
+> stündliche Cleanup braucht die neuen Tabellen.
+
 > **Sitzung 07.11.2026 (4): Restore Credentials – Android-Anmeldung nach dem
 > Gerätewechsel** (Play-Vorgabe „Zero-Tap-Wiederherstellung von
 > Anmeldedaten“ ab April 2027). Branch `claude/restore-credentials`, PR gegen

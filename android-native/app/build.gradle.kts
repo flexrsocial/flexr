@@ -369,8 +369,8 @@ android {
         // nicht hochgeladen war.
         // 154/2.7.42 am 03.11.2026: Deutschland - PLZ mit vier (AT) oder
         // fuenf (DE) Ziffern, 404 bei vier Ziffern heisst "weitertippen".
-        versionCode = 156
-        versionName = "2.7.44"
+        versionCode = 157
+        versionName = "2.7.45"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
