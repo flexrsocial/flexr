@@ -33,11 +33,20 @@ erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 ## Wo das Projekt gerade steht
 
 > **Sitzung 07.11.2026 (5): Zero-Tap-Zweig (PR #3) in main übernommen**,
-> Android auf 2.7.45 / 157 gestellt (noch **nicht gebaut**), neue Migration
-> `f1a7c3e9b5d2`: alle bestehenden Konten auf 1100 km Umkreis. **Deploy offen:**
-> `git pull --ff-only`, dann `venv/bin/alembic upgrade head` (zwei Migrationen),
-> dann `sudo systemctl restart flexr-api`. Reihenfolge einhalten – der
-> stündliche Cleanup braucht die neuen Tabellen.
+> neue Migration `f1a7c3e9b5d2`: alle bestehenden Konten auf 1100 km Umkreis.
+> Deployt mit `git pull --ff-only` → `venv/bin/alembic upgrade head` (zwei
+> Migrationen) → `sudo systemctl restart flexr-api` (Reihenfolge wichtig: der
+> stündliche Cleanup braucht die neuen Tabellen). Backend 883 Tests grün.
+> - **Android-AAB** `release-2.7.45/flexr-2.7.45-157.aab` (Upload-Key geprüft,
+>   109 Unit-Tests, Lint 0 Fehler) ersetzt 2.7.43 und 2.7.44 – **noch nicht
+>   hochgeladen**; `assetlinks.json` mit `get_login_creds` ist live.
+> - **Datenschutz-Fassung bleibt 2026-11-09:** 2026-11-08 ist seit dem
+>   Nachmittag live und in Einwilligungen gespeichert, die neue Fassung muss
+>   danach liegen. iOS-Kurzfassung bleibt „Stand: 8. November“ (dort keine
+>   Restore Keys).
+> - **iOS:** nächster Kompilierfehler aus der Zeit ohne Build behoben
+>   (`GymRepository.search` rief `Self.isValidPostalCode` – gehört zu
+>   `PlzRepository`).
 
 > **Sitzung 07.11.2026 (4): Restore Credentials – Android-Anmeldung nach dem
 > Gerätewechsel** (Play-Vorgabe „Zero-Tap-Wiederherstellung von
