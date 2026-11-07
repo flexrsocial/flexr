@@ -16,6 +16,7 @@ import flexr.social.app.data.repository.BillingRepository
 import flexr.social.app.data.repository.MatchRepository
 import flexr.social.app.data.repository.ProfileRepository
 import flexr.social.app.data.repository.VerificationRepository
+import flexr.social.app.data.restore.RestoreKeyManager
 import flexr.social.app.domain.model.Membership
 import flexr.social.app.domain.model.MyProfile
 import flexr.social.app.notifications.MessageNotificationScheduler
@@ -76,6 +77,7 @@ class MainViewModel @Inject constructor(
     private val verificationRepository: VerificationRepository,
     private val notificationScheduler: MessageNotificationScheduler,
     private val pushTokenRegistrar: PushTokenRegistrar,
+    private val restoreKeyManager: RestoreKeyManager,
     matchRepository: MatchRepository,
     private val strings: AppStrings,
 ) : ViewModel() {
@@ -87,10 +89,18 @@ class MainViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), 0)
 
     init {
-        authRepository.isLoggedIn
-            .distinctUntilChanged()
-            .onEach { loggedIn -> if (loggedIn) loadSession() else markLoggedOut() }
-            .launchIn(viewModelScope)
+        viewModelScope.launch {
+            // Erster Start auf einem neuen Geraet: Liegt ein mitgewanderter
+            // Restore Key da, meldet er still an (RestoreKeyManager). Erst
+            // danach den Anmeldezustand beobachten - sonst blitzte kurz die
+            // Anmeldemaske auf. Der Startbildschirm bleibt so lange stehen
+            // (SessionGate), hoechstens RESTORE_TIMEOUT_MS und nur einmal.
+            runCatching { restoreKeyManager.restoreSession() }
+            authRepository.isLoggedIn
+                .distinctUntilChanged()
+                .onEach { loggedIn -> if (loggedIn) loadSession() else markLoggedOut() }
+                .launchIn(viewModelScope)
+        }
 
         // 401 vom Backend: Sitzung ist weg, zurück auf den Login.
         authRepository.sessionExpired
@@ -182,6 +192,10 @@ class MainViewModel @Inject constructor(
                 // Adresse, die es nicht mehr gibt. Laeuft still; ohne
                 // Firebase-Konfiguration passiert nichts.
                 launch { runCatching { pushTokenRegistrar.anmelden() } }
+
+                // Restore Key fuer den naechsten Geraetewechsel anlegen bzw.
+                // erneuern - still, bei jedem Start pruefend, ob er faellig ist.
+                launch { restoreKeyManager.ensureKey() }
             }.onFailure { throwable ->
                 val fehler = throwable as? FlexrApiException
                 when {
@@ -262,6 +276,11 @@ class MainViewModel @Inject constructor(
             // er bekaeme weiter Nachrichten fuer ein Konto geschickt, das auf
             // diesem Geraet niemand mehr benutzt.
             runCatching { pushTokenRegistrar.abmelden() }
+            // Ebenso vor dem Abmelden: Restore Key beim Server und auf dem
+            // Geraet verwerfen, sonst waere man nach einer Uebertragung auf
+            // ein neues Geraet still wieder angemeldet. Gilt auch nach der
+            // Kontoloeschung - beide Wege enden hier.
+            restoreKeyManager.forget()
             authRepository.logout()
             profileRepository.clear()
             billingRepository.clear()

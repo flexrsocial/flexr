@@ -18,7 +18,8 @@ def test_run_all_stoesst_alle_fristen_an():
          patch.object(cleanup, "purge_orphan_photo_objects", return_value=5) as fotos, \
          patch.object(cleanup, "purge_unmatched_flagged_messages", return_value=6) as markiert, \
          patch.object(cleanup, "purge_stale_push_tokens", return_value=7) as tokens, \
-         patch.object(cleanup, "purge_unverified_accounts", return_value=8) as ungeprueft:
+         patch.object(cleanup, "purge_unverified_accounts", return_value=8) as ungeprueft, \
+         patch.object(cleanup, "purge_restore_keys", return_value=9) as restore:
         assert cleanup.run_all("db") == {
             "deleted_users": 1,
             "unverified_accounts": 8,
@@ -28,8 +29,9 @@ def test_run_all_stoesst_alle_fristen_an():
             "orphan_photos": 5,
             "unmatched_flagged_messages": 6,
             "push_tokens": 7,
+            "restore_keys": 9,
         }
-    for mock in (konten, aufnahmen, beweise, mitteilungen, fotos, markiert, tokens, ungeprueft):
+    for mock in (konten, aufnahmen, beweise, mitteilungen, fotos, markiert, tokens, ungeprueft, restore):
         mock.assert_called_once_with("db")
 
 

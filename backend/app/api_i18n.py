@@ -33,6 +33,8 @@ _TEXTE: dict[str, str] = {
     "Zu viele Fehlversuche. Bitte versuche es in {minuten} Minuten erneut.":
         "Too many failed attempts. Please try again in {minuten} minutes.",
     "Ungültige oder abgelaufene Anmeldung.": "Invalid or expired sign-in. Please log in again.",
+    "Wiederherstellungsschlüssel ungültig.": "Invalid restore key.",
+    "Automatische Anmeldung nicht möglich. Bitte melde dich an.": "Automatic sign-in is not possible. Please log in.",
     "Not authenticated": "Not signed in. Please log in.",
     "Dieses Konto wurde gelöscht.": "This account has been deleted.",
     "Dieses Konto wurde gelöscht. Bis zum {datum} kannst du es noch reaktivieren.":

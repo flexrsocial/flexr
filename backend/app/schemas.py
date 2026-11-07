@@ -379,6 +379,29 @@ class EmailChangeRequest(BaseModel):
     _email_norm = field_validator("new_email", mode="before")(_normalize_email)
 
 
+class RestoreKeyOptionsResponse(BaseModel):
+    """WebAuthn-Optionen als fertiger JSON-Text - die App reicht ihn
+    unveraendert an den Credential Manager weiter (requestJson)."""
+
+    request_json: str
+
+
+class RestoreKeyRegisterRequest(BaseModel):
+    registration_response_json: str = Field(..., min_length=2, max_length=20000)
+
+
+class RestoreKeyRegisterResponse(BaseModel):
+    credential_id: str
+
+
+class RestoreKeyLoginRequest(BaseModel):
+    authentication_response_json: str = Field(..., min_length=2, max_length=20000)
+
+
+class RestoreKeyDeleteRequest(BaseModel):
+    credential_id: Optional[str] = Field(None, max_length=2000)
+
+
 class OkResponse(BaseModel):
     ok: bool = True
 

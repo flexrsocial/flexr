@@ -81,6 +81,12 @@ def set_new_password(db: Session, user: User, new_password: str) -> None:
     user.failed_login_attempts = 0
     user.login_locked_until = None
     db.query(PasswordReset).filter(PasswordReset.user_id == user.id).delete()
+    # Restore Keys der Android-App gelten ebenfalls als Sitzung: Wer das
+    # Passwort wechselt (etwa weil jemand Fremdes im Konto war), will auch
+    # keine stille Anmeldung auf einem anderen Geraet mehr zulassen.
+    from .restore_keys import delete_all_for_user
+
+    delete_all_for_user(db, user, commit=False)
 
 
 def redeem(db: Session, token: str, new_password: str) -> User:

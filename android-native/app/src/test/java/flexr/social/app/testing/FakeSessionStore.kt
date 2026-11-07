@@ -45,6 +45,8 @@ class FakeSessionStore(
         lastNotifiedId = null
         // Geräte-ID bleibt erhalten — wie in der echten Umsetzung.
         verifiedHintState.value = false
+        restoreKeyId = null
+        restoreKeySyncedAt = null
     }
 
     override suspend fun setNotificationsEnabled(enabled: Boolean) {
@@ -63,6 +65,30 @@ class FakeSessionStore(
 
     override suspend fun setLastNotifiedMessageId(id: String) {
         lastNotifiedId = id
+    }
+
+    var restoreKeyId: String? = null
+    var restoreKeySyncedAt: Long? = null
+    var restoreAttempted = false
+
+    override suspend fun restoreKeyCredentialId(): String? = restoreKeyId
+
+    override suspend fun restoreKeySyncedAt(): Long? = restoreKeySyncedAt
+
+    override suspend fun saveRestoreKey(credentialId: String, syncedAt: Long) {
+        restoreKeyId = credentialId
+        restoreKeySyncedAt = syncedAt
+    }
+
+    override suspend fun clearRestoreKey() {
+        restoreKeyId = null
+        restoreKeySyncedAt = null
+    }
+
+    override suspend fun restoreAttempted(): Boolean = restoreAttempted
+
+    override suspend fun setRestoreAttempted() {
+        restoreAttempted = true
     }
 
     override suspend fun deviceId(): String = "test-device-id"

@@ -71,6 +71,10 @@ class SessionExpiryInterceptor @Inject constructor(
             "/api/auth/reactivate",
             "/api/auth/email/confirm",
             "/api/auth/age-check",
+            // Stille Anmeldung per Restore Key: 401 heisst "Schluessel taugt
+            // nicht", die App zeigt dann einfach die Anmeldemaske.
+            "/api/auth/restore-key/login/options",
+            "/api/auth/restore-key/login",
         )
     }
 

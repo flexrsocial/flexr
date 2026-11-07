@@ -1,3 +1,4 @@
+import json
 import logging
 import re
 from datetime import date, datetime, timedelta
@@ -12,7 +13,7 @@ from ..age import UNDERAGE_MESSAGE, age_on, is_adult
 from ..database import get_db
 from ..email_verification import TOKEN_TTL_HOURS, build_link, issue
 from ..geo import city_for_plz
-from .. import password_reset
+from .. import password_reset, restore_keys
 from ..mailer import send_password_reset, send_verification_email
 from ..message_texts import format_date
 from ..models import ConsentType, ModerationAction, UnderageSignupAttempt, User, UserDevice
@@ -29,9 +30,14 @@ from ..schemas import (
     HandoffRedeemRequest,
     LoginRequest,
     RegisterRequest,
+    RestoreKeyDeleteRequest,
+    RestoreKeyLoginRequest,
+    RestoreKeyOptionsResponse,
+    RestoreKeyRegisterRequest,
+    RestoreKeyRegisterResponse,
     TokenResponse,
 )
-from ..security import create_access_token, hash_password, verify_password
+from ..security import create_access_token, get_current_user, hash_password, verify_password
 from ..timeutil import utcnow
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
@@ -510,5 +516,119 @@ def reset_password(
         user = password_reset.redeem(db, payload.token, payload.new_password)
     except password_reset.ResetError as err:
         raise HTTPException(400, str(err))
+    record_device(db, user.id, request)
+    return TokenResponse(access_token=create_access_token(user.id))
+
+
+# ---------- Restore Key: Anmeldung nach dem Geraetewechsel (Android) ----------
+#
+# Ablauf und Pruefung: siehe app/restore_keys.py. Fehlschlaege beantwortet
+# der Login immer gleich (401) - die App faellt dann still auf die
+# Anmeldemaske zurueck, und ein Angreifer erfaehrt nicht, woran es lag.
+
+RESTORE_LOGIN_FAILED = "Automatische Anmeldung nicht möglich. Bitte melde dich an."
+
+
+def _restore_failed() -> HTTPException:
+    return HTTPException(
+        status.HTTP_401_UNAUTHORIZED,
+        {"code": "restore_key_invalid", "message": RESTORE_LOGIN_FAILED},
+    )
+
+
+@router.post("/restore-key/options", response_model=RestoreKeyOptionsResponse)
+@limiter.limit("20/hour")
+def restore_key_options(
+    request: Request,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Erstellungsoptionen fuer CreateRestoreCredentialRequest."""
+    options = restore_keys.registration_options(db, current_user)
+    return RestoreKeyOptionsResponse(request_json=json.dumps(options))
+
+
+@router.post("/restore-key", response_model=RestoreKeyRegisterResponse)
+@limiter.limit("20/hour")
+def restore_key_register(
+    request: Request,
+    payload: RestoreKeyRegisterRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Registrierungsantwort des Credential Managers pruefen und den
+    oeffentlichen Schluessel am Konto speichern."""
+    try:
+        entry = restore_keys.register(
+            db, current_user, payload.registration_response_json, _device_id_from(request)
+        )
+    except restore_keys.RestoreKeyError as err:
+        db.rollback()
+        logger.info("Restore Key fuer Konto %s abgelehnt: %s", current_user.id, err)
+        raise HTTPException(400, "Wiederherstellungsschlüssel ungültig.")
+    return RestoreKeyRegisterResponse(credential_id=entry.credential_id)
+
+
+@router.post("/restore-key/delete", response_model=OkResponse)
+@limiter.limit("20/hour")
+def restore_key_delete(
+    request: Request,
+    payload: RestoreKeyDeleteRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Beim Abmelden: Schluessel dieses Geraets verwerfen (Credential-ID aus
+    der App oder Geraete-ID aus dem Header)."""
+    restore_keys.delete_for_device(
+        db, current_user, _device_id_from(request), payload.credential_id
+    )
+    return OkResponse()
+
+
+@router.post("/restore-key/login/options", response_model=RestoreKeyOptionsResponse)
+@limiter.limit("10/minute")
+def restore_key_login_options(request: Request, db: Session = Depends(get_db)):
+    """Challenge fuer GetRestoreCredentialOption - ohne Anmeldung, denn das
+    neue Geraet weiss noch nicht, zu welchem Konto es gehoert."""
+    options = restore_keys.authentication_options(db)
+    return RestoreKeyOptionsResponse(request_json=json.dumps(options))
+
+
+@router.post("/restore-key/login", response_model=TokenResponse)
+@limiter.limit("10/minute")
+def restore_key_login(
+    request: Request,
+    payload: RestoreKeyLoginRequest,
+    db: Session = Depends(get_db),
+):
+    """Signierte Challenge gegen ein Zugriffstoken tauschen.
+
+    Dieselben Kontoregeln wie /login: geloeschte Konten kommen nicht hinein
+    (auch nicht waehrend der Karenz - reaktivieren geht nur mit Passwort),
+    gesperrte erfahren Grund und Widerspruchsweg, und ein Schluessel von vor
+    dem letzten Passwortwechsel gilt nicht mehr.
+    """
+    try:
+        user, entry = restore_keys.authenticate(db, payload.authentication_response_json)
+    except restore_keys.RestoreKeyError as err:
+        db.rollback()
+        logger.info("Restore-Key-Anmeldung abgelehnt: %s", err)
+        raise _restore_failed()
+
+    if user.deleted_at is not None:
+        # Bei der Selbstloeschung werden die Schluessel verworfen; ein Rest
+        # (etwa aus einer Wettlaufsituation) wird es spaetestens hier.
+        restore_keys.delete_all_for_user(db, user)
+        raise _restore_failed()
+    if user.password_changed_at is not None and entry.created_at < user.password_changed_at:
+        db.delete(entry)
+        db.commit()
+        raise _restore_failed()
+    if user.is_banned:
+        raise HTTPException(
+            status.HTTP_403_FORBIDDEN,
+            restriction_detail(user, ModerationAction.ban),
+        )
+
     record_device(db, user.id, request)
     return TokenResponse(access_token=create_access_token(user.id))

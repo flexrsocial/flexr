@@ -48,6 +48,11 @@ import flexr.social.app.data.remote.dto.SendMessageRequestDto
 import flexr.social.app.data.remote.dto.SwipeRequestDto
 import flexr.social.app.data.remote.dto.SwipeResultDto
 import flexr.social.app.data.remote.dto.TokenResponseDto
+import flexr.social.app.data.remote.dto.RestoreKeyDeleteRequestDto
+import flexr.social.app.data.remote.dto.RestoreKeyLoginRequestDto
+import flexr.social.app.data.remote.dto.RestoreKeyOptionsDto
+import flexr.social.app.data.remote.dto.RestoreKeyRegisterRequestDto
+import flexr.social.app.data.remote.dto.RestoreKeyRegisterResponseDto
 import flexr.social.app.data.remote.dto.UpdateProfileRequestDto
 import flexr.social.app.data.remote.dto.EmailConfirmRequestDto
 import flexr.social.app.data.remote.dto.EmailConfirmResponseDto
@@ -86,6 +91,21 @@ open class FakeFlexrApi : FlexrApi {
 
     override suspend fun reactivate(body: LoginRequestDto): TokenResponseDto =
         nichtVorgesehen("reactivate")
+
+    override suspend fun restoreKeyOptions(): RestoreKeyOptionsDto =
+        nichtVorgesehen("restoreKeyOptions")
+
+    override suspend fun registerRestoreKey(body: RestoreKeyRegisterRequestDto): RestoreKeyRegisterResponseDto =
+        nichtVorgesehen("registerRestoreKey")
+
+    override suspend fun deleteRestoreKey(body: RestoreKeyDeleteRequestDto): OkResponseDto =
+        nichtVorgesehen("deleteRestoreKey")
+
+    override suspend fun restoreKeyLoginOptions(): RestoreKeyOptionsDto =
+        nichtVorgesehen("restoreKeyLoginOptions")
+
+    override suspend fun restoreKeyLogin(body: RestoreKeyLoginRequestDto): TokenResponseDto =
+        nichtVorgesehen("restoreKeyLogin")
 
     override suspend fun forgotPassword(body: PasswordForgotRequestDto): OkResponseDto =
         nichtVorgesehen("forgotPassword")

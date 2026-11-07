@@ -831,6 +831,56 @@ class DeviceHandoff(Base):
     created_at = Column(DateTime, default=utcnow)
 
 
+class RestoreCredential(Base):
+    """Restore Key der Android-App (Credential Manager, "Restore Credentials").
+
+    Ein WebAuthn-Schluessel, den die App nach dem Anmelden still anlegt. Der
+    private Teil bleibt auf dem Geraet und wandert beim Geraetewechsel mit
+    (Geraet-zu-Geraet-Uebertragung oder Ende-zu-Ende-verschluesseltes
+    Google-Backup); hier liegt nur der oeffentliche Schluessel. Damit meldet
+    die App den Nutzer auf dem neuen Geraet ohne Passwort an - siehe
+    restore_keys.py.
+
+    Bewusst getrennt von Passkeys (die es bei FLEXR nicht gibt): Ein Restore
+    Key ist kein sichtbares Anmeldeverfahren und wird ohne
+    Nutzerbestaetigung (uv) eingeloest.
+    """
+
+    __tablename__ = "restore_credentials"
+
+    id = Column(String, primary_key=True, default=gen_uuid)
+    user_id = Column(String, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    #: WebAuthn-Credential-ID, base64url ohne Auffuellung.
+    credential_id = Column(String, nullable=False, unique=True)
+    #: Oeffentlicher Schluessel als COSE-Key, base64url.
+    public_key = Column(Text, nullable=False)
+    sign_count = Column(Integer, nullable=False, default=0)
+    #: Geraete-ID (X-Device-Id) des Geraets, das den Schluessel angelegt hat -
+    #: ein Geraet hat je Konto hoechstens einen.
+    device_id = Column(String, nullable=True, index=True)
+    created_at = Column(DateTime, default=utcnow, nullable=False)
+    last_used_at = Column(DateTime, nullable=True)
+
+
+class RestoreChallenge(Base):
+    """Einmal-Challenge fuer Anlegen oder Einloesen eines Restore Keys.
+
+    Kurz gueltig (restore_keys.CHALLENGE_TTL), beim Pruefen geloescht - eine
+    abgefangene Antwort laesst sich dadurch nicht ein zweites Mal einloesen.
+    """
+
+    __tablename__ = "restore_challenges"
+
+    id = Column(String, primary_key=True, default=gen_uuid)
+    challenge = Column(String, nullable=False, unique=True)
+    #: "register" oder "login"
+    purpose = Column(String, nullable=False)
+    #: Nur beim Anlegen: das Konto, fuer das der Schluessel entsteht.
+    user_id = Column(String, ForeignKey("users.id", ondelete="CASCADE"), nullable=True, index=True)
+    expires_at = Column(DateTime, nullable=False)
+    created_at = Column(DateTime, default=utcnow)
+
+
 class UserDevice(Base):
     """Geräteprüfung: Client erzeugt eine zufällige Geräte-ID (localStorage) und
     sendet sie bei Registrierung/Login mit. Dient der Erkennung von

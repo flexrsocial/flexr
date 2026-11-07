@@ -51,6 +51,11 @@ import flexr.social.app.data.remote.dto.RewindResultDto
 import flexr.social.app.data.remote.dto.SwipeRequestDto
 import flexr.social.app.data.remote.dto.SwipeResultDto
 import flexr.social.app.data.remote.dto.TokenResponseDto
+import flexr.social.app.data.remote.dto.RestoreKeyDeleteRequestDto
+import flexr.social.app.data.remote.dto.RestoreKeyLoginRequestDto
+import flexr.social.app.data.remote.dto.RestoreKeyOptionsDto
+import flexr.social.app.data.remote.dto.RestoreKeyRegisterRequestDto
+import flexr.social.app.data.remote.dto.RestoreKeyRegisterResponseDto
 import flexr.social.app.data.remote.dto.VerificationDocumentPresignRequestDto
 import flexr.social.app.data.remote.dto.VerificationDocumentSubmitRequestDto
 import flexr.social.app.data.remote.dto.VerificationStatusDto
@@ -91,6 +96,23 @@ interface FlexrApi {
      */
     @POST("api/auth/reactivate")
     suspend fun reactivate(@Body body: LoginRequestDto): TokenResponseDto
+
+    // Restore Key: Anmeldung nach dem Geraetewechsel (data/restore/RestoreKeyManager.kt)
+
+    @POST("api/auth/restore-key/options")
+    suspend fun restoreKeyOptions(): RestoreKeyOptionsDto
+
+    @POST("api/auth/restore-key")
+    suspend fun registerRestoreKey(@Body body: RestoreKeyRegisterRequestDto): RestoreKeyRegisterResponseDto
+
+    @POST("api/auth/restore-key/delete")
+    suspend fun deleteRestoreKey(@Body body: RestoreKeyDeleteRequestDto): OkResponseDto
+
+    @POST("api/auth/restore-key/login/options")
+    suspend fun restoreKeyLoginOptions(): RestoreKeyOptionsDto
+
+    @POST("api/auth/restore-key/login")
+    suspend fun restoreKeyLogin(@Body body: RestoreKeyLoginRequestDto): TokenResponseDto
 
     /** Zuruecksetz-Link per Mail anfordern. */
     @POST("api/auth/password/forgot")

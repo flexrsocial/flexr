@@ -410,6 +410,13 @@ def purge_stale_push_tokens(db: Session) -> int:
     return n
 
 
+def purge_restore_keys(db: Session) -> int:
+    """Restore Keys der Android-App nach RESTORE_KEY_MAX_AGE_DAYS (restore_keys.py)."""
+    from .restore_keys import purge_expired
+
+    return purge_expired(db)
+
+
 def run_all(db: Session) -> dict[str, int]:
     """Alle Fristen auf einmal - für den stündlichen Timer.
 
@@ -430,6 +437,7 @@ def run_all(db: Session) -> dict[str, int]:
         "orphan_photos": purge_orphan_photo_objects(db),
         "unmatched_flagged_messages": purge_unmatched_flagged_messages(db),
         "push_tokens": purge_stale_push_tokens(db),
+        "restore_keys": purge_restore_keys(db),
     }
 
 

@@ -530,6 +530,8 @@ dependencies {
     implementation(libs.play.review)
     implementation(libs.firebase.messaging)
     implementation(libs.coroutines.play.services)
+    implementation(libs.androidx.credentials)
+    implementation(libs.androidx.credentials.play.services)
 
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.lifecycle.runtime.compose)

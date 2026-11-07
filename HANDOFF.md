@@ -32,6 +32,62 @@ erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 
 ## Wo das Projekt gerade steht
 
+> **Sitzung 07.11.2026 (3): Restore Credentials – Android-Anmeldung nach dem
+> Gerätewechsel** (Play-Vorgabe „Zero-Tap-Wiederherstellung von
+> Anmeldedaten“ ab April 2027). Branch `claude/restore-credentials`, PR gegen
+> `main`. **Nicht deployt, keine App-Version gebaut.**
+>
+> - **Ablauf:** Nach jeder Sitzungsbestimmung (Login, Registrierung, Start mit
+>   Token) legt die App still einen Restore Key an
+>   (`CreateRestoreCredentialRequest`, `isCloudBackupEnabled = true`, bei
+>   `E2eeUnavailableException` lokal) und erneuert ihn, sobald er älter als 30
+>   Tage ist. Beim **ersten Start ohne Token** holt sie ihn
+>   (`GetRestoreCredentialOption`) und meldet still an – Startbildschirm
+>   bleibt höchstens 10 s stehen, nur einmal pro Installation
+>   (`restore_attempted`, bei Netzfehler erneut). Abmelden und Kontolöschung
+>   (beide enden in `MainViewModel.logout`) verwerfen ihn beim Server und per
+>   `ClearCredentialStateRequest(TYPE_CLEAR_RESTORE_CREDENTIAL)`.
+>   Passwortwechsel in der App legt sofort einen neuen an.
+>   Code: `android-native/.../data/restore/` (`RestoreKeyManager`,
+>   `RestoreCredentialClient`), `androidx.credentials` **1.6.0**.
+>   `allowBackup="false"` bleibt – der Schlüssel wandert über die Play-Dienste
+>   unabhängig davon; deshalb nur „Tier 2“ (Activity-Start), kein BackupAgent.
+> - **Backend:** `app/restore_keys.py` prüft WebAuthn selbst (Attestation
+>   „none“, ES256/RS256/EdDSA, CBOR-Leser) mit `cryptography` – **keine neue
+>   Abhängigkeit**, kein `pip install` beim Deploy. Endpunkte unter
+>   `/api/auth/restore-key` (`/options`, ohne Zusatz = anlegen, `/delete`,
+>   `/login/options`, `/login`). Login prüft wie `/login`: gelöscht (auch in
+>   der Karenz) → 401, gesperrt → 403 mit DSA-Begründung, Schlüssel älter als
+>   `password_changed_at` → 401. Challenges einmalig, 5 min. Ursprung =
+>   `android:apk-key-hash:` der beiden Fingerprints aus `assetlinks.json`
+>   (`settings.restore_key_cert_fingerprints`), rpId `flexr.social`.
+>   Verworfen bei Abmelden (Gerät), Kontolöschung und jedem Passwortwechsel
+>   (alle), spätestens 90 Tage nach Anlage (`cleanup.purge_restore_keys`,
+>   stündlicher Lauf), höchstens 5 je Konto.
+> - **Migration `e5b9c2d7f4a1`** (Tabellen `restore_credentials`,
+>   `restore_challenges`) → beim Deploy `alembic upgrade head` +
+>   `sudo systemctl restart flexr-api`.
+> - **`assetlinks.json`:** für `flexr.social.app` zusätzlich
+>   `delegate_permission/common.get_login_creds` (die Credential-Manager-
+>   Verknüpfung von App und rpId). Muss **vor** der App-Fassung live sein.
+> - **Rechtliches:** Ja, nötig – personenbezogene Daten am Konto (öffentlicher
+>   Schlüssel, Kennung, Geräte-ID, Zeitpunkte). Datenschutz de/en: neue Zeile
+>   „Anmeldung nach dem Gerätewechsel (Android)“ (Art. 6 Abs. 1 lit. b) und
+>   Speicherdauer-Zeile; `retention.RESTORE_KEY_MAX_AGE_DAYS = 90` samt
+>   `RETENTION_TABLE`-Zeile; `PRIVACY_VERSION` **2026-11-09** (Datum beim
+>   Deploy ggf. auf den tatsächlichen Tag ziehen, dann auch `Fassung …` in
+>   beiden HTML-Dateien und „Stand“ in `LegalContent.kt`). Android-
+>   `LegalContent.kt` gleichgezogen; **iOS `LegalContent.swift` nicht**
+>   (Funktion gibt es dort nicht, nur „Stand: 8. November“ bleibt stehen).
+> - **Testen auf dem Gerät:** Debug-Builds sind mit dem Debug-Keystore
+>   signiert – dessen Fingerprint in `RESTORE_KEY_CERT_FINGERPRINTS` der
+>   Test-`.env` ergänzen, sonst lehnt der Server den Ursprung ab. Google:
+>   Android Studio „Backup and Restore“ (Device to Device) oder `adb shell bmgr`.
+>   Auf dem Emulator noch **nicht** geprüft.
+> - **Tests:** `backend/tests/test_restore_keys.py` (30, mit echtem
+>   P-256-Schlüssel als Authenticator) + Retention/Cleanup/i18n, Backend
+>   gesamt grün. Android `RestoreKeyManagerTest` (19).
+
 > **Sitzung 07.11.2026 (2): Konten ohne Ausweis werden nach 30 Tagen
 > gelöscht.** Backend, Rechtstexte (Web + gekürzte App-Kopien), Android
 > 2.7.43 / 155, iOS 2.4.18. Keine Migration. **Braucht `sudo systemctl

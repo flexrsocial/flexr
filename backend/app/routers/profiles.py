@@ -273,6 +273,13 @@ def delete_my_account(
     # die 30-tägige Karenzzeit nicht überdauern.
     purge_verification_uploads_for_user(db, current_user)
 
+    # Restore Keys der Android-App sofort verwerfen: Ein geloeschtes Konto
+    # darf sich auf keinem neuen Geraet still wieder anmelden (die App loescht
+    # ihren Schluessel zusaetzlich auf dem Geraet).
+    from .. import restore_keys
+
+    restore_keys.delete_all_for_user(db, current_user, commit=False)
+
     current_user.deleted_at = utcnow()
     db.commit()
 

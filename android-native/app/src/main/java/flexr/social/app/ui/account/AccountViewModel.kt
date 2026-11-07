@@ -19,6 +19,7 @@ import flexr.social.app.data.repository.ProfileRepository
 import flexr.social.app.data.repository.SafetyRepository
 import flexr.social.app.data.repository.UnknownPostalCodeException
 import flexr.social.app.data.repository.VerificationRepository
+import flexr.social.app.data.restore.RestoreKeyManager
 import flexr.social.app.push.PushTokenRegistrar
 import flexr.social.app.data.session.SessionStore
 import flexr.social.app.domain.model.BlockedUser
@@ -177,6 +178,7 @@ class AccountViewModel @Inject constructor(
     private val imageProcessor: ImageProcessor,
     private val sessionStore: SessionStore,
     private val pushTokenRegistrar: PushTokenRegistrar,
+    private val restoreKeyManager: RestoreKeyManager,
     private val strings: AppStrings,
 ) : ViewModel() {
 
@@ -978,6 +980,9 @@ class AccountViewModel @Inject constructor(
                     }
                     CredentialsMode.PASSWORD -> {
                         profileRepository.changePassword(dialog.currentPassword, dialog.newPassword)
+                        // Der Server verwirft beim Passwortwechsel alle Restore
+                        // Keys - fuer dieses Geraet gleich einen neuen anlegen.
+                        launch { restoreKeyManager.renew() }
                         strings.get(R.string.cred_pw_done)
                     }
                 }

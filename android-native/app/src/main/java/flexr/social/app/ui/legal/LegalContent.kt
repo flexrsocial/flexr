@@ -1232,7 +1232,7 @@ object LegalContent {
     // Matches).
     private val datenschutz = LegalPage(
         document = LegalDocument.DATENSCHUTZ,
-        intro = "Wie FLEXR mit deinen Daten umgeht. Stand: 8. November 2026. Diese Fassung ist gekürzt; maßgeblich ist der vollständige Text unter flexr.social/datenschutz.html.",
+        intro = "Wie FLEXR mit deinen Daten umgeht. Stand: 9. November 2026. Diese Fassung ist gekürzt; maßgeblich ist der vollständige Text unter flexr.social/datenschutz.html.",
         blocks = listOf(
             LegalBlock.Heading("1. Verantwortlicher"),
             LegalBlock.Paragraph(
@@ -1295,6 +1295,16 @@ object LegalContent {
                         "Nach dem Anmelden, solange Mitteilungen in der App " +
                             "eingeschaltet sind; gelöscht beim Ausschalten, Abmelden oder " +
                             "wenn Google den Token als ungültig meldet",
+                    ),
+                    listOf(
+                        "Anmeldung nach dem Gerätewechsel",
+                        "Öffentlicher Teil eines Wiederherstellungsschlüssels (Restore Key), " +
+                            "dessen Kennung, Geräte-ID und Zeitpunkte. Der private Schlüssel " +
+                            "bleibt auf dem Gerät und wandert beim Gerätewechsel mit (direkt " +
+                            "oder Ende-zu-Ende-verschlüsselt über die Google-Datensicherung); " +
+                            "wir erhalten ihn nie. Kein Name, keine E-Mail",
+                        "Still nach dem Anmelden; damit du auf einem neuen Gerät, auf das du " +
+                            "deine Daten überträgst, ohne erneute Anmeldung eingeloggt bist",
                     ),
                     listOf(
                         "Zahlungsdaten",
@@ -1461,6 +1471,9 @@ object LegalContent {
                         "Ausfall wiederherzustellen; einzelne Konten werden daraus nicht " +
                         "wiederhergestellt. Verifizierungs-Selfies und Ausweisaufnahmen sind " +
                         "darin nicht enthalten.",
+                    "Wiederherstellungsschlüssel (öffentlicher Teil): bis zum Abmelden auf " +
+                        "dem Gerät, zur Passwortänderung oder Kontolöschung, spätestens 90 Tage " +
+                        "nach dem Anlegen; die App erneuert ihn regelmäßig.",
                     "Verifizierungs-Selfie: wird unmittelbar nach Abschluss der Prüfung " +
                         "(Freigabe oder Ablehnung) gelöscht.",
                     "Automatisch markierte Nachricht, wenn das Match vor der Prüfung " +

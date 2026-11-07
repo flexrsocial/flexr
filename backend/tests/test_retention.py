@@ -149,6 +149,20 @@ def test_datenschutz_nennt_die_frist_fuer_push_adressen(datenschutz_text):
     assert f"not opened FLEXR on the device for {tage} days" in en
 
 
+def test_datenschutz_nennt_die_frist_fuer_restore_keys(datenschutz_text):
+    tage = retention.RESTORE_KEY_MAX_AGE_DAYS
+    assert f"spätestens {tage} Tage nach dem Anlegen" in datenschutz_text
+    en = (REPO / "frontend" / "en" / "datenschutz.html").read_text(encoding="utf-8")
+    assert f"at the latest {tage} days after it was created" in en
+
+
+def test_restore_key_frist_steht_in_der_tabelle():
+    from app.restore_keys import RESTORE_KEY_MAX_AGE_DAYS
+
+    assert RESTORE_KEY_MAX_AGE_DAYS == retention.RESTORE_KEY_MAX_AGE_DAYS
+    assert any("restore_keys.purge_expired" in row.beleg for row in retention.RETENTION_TABLE)
+
+
 def test_datenschutz_nennt_die_legal_hold_frist(datenschutz_text):
     assert f"{retention.LEGAL_HOLD_DAYS} Tage" in datenschutz_text
 

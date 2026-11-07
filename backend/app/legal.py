@@ -82,7 +82,7 @@ def operator_inline() -> str:
 # ---------------------------------------------------------------------------
 
 TERMS_VERSION: Final = "2026-11-08"           # AGB (Löschung ohne Ausweis nach 30 Tagen, 5 g; davor 2026-11-03: Deutschland)
-PRIVACY_VERSION: Final = "2026-11-08"          # Datenschutzerklärung (Löschfrist für Konten ohne Ausweis; davor 2026-11-03: Kündigungserklärungen, Aufsicht am Wohnort)
+PRIVACY_VERSION: Final = "2026-11-09"          # Datenschutzerklärung (Restore Key der Android-App; davor 2026-11-08: Löschfrist für Konten ohne Ausweis)
 AUP_VERSION: Final = "2026-11-03"              # Nutzungsrichtlinien (Behörden, Notrufe und Hilfsangebote in Deutschland)
 LE_GUIDELINES_VERSION: Final = "2026-08-19"    # Strafverfolgungsrichtlinien
 WITHDRAWAL_VERSION: Final = "2026-11-03"      # Widerrufsbelehrung (Hinweis für Verbraucher in Deutschland, §§ 312g, 355 BGB)

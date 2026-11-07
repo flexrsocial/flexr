@@ -56,6 +56,14 @@ PUSH_NOTIFICATION_RETENTION_DAYS: Final = 30
 #: beim Zustellen als ungültig meldete; ein Konto sammelte so zwölf.
 PUSH_TOKEN_STALE_DAYS: Final = 60
 
+#: Restore Key der Android-App (oeffentlicher Schluessel fuer die Anmeldung
+#: nach dem Geraetewechsel, restore_keys.py): spaetestens so viele Tage nach
+#: dem Anlegen. Die App legt ihn bei jedem Start neu an, sobald ihrer aelter
+#: als 30 Tage ist - wer FLEXR 90 Tage nicht geoeffnet hat, meldet sich auf
+#: dem neuen Geraet wieder mit Passwort an. Verwendet in
+#: restore_keys.purge_expired(). Eingefuehrt am 07.11.2026.
+RESTORE_KEY_MAX_AGE_DAYS: Final = 90
+
 #: Automatisch markierte Nachricht, deren Match vor der Prüfung aufgelöst
 #: wurde: so viele Tage nach dem Senden, falls die Moderation sie bis dahin
 #: nicht geprüft hat (mit der Prüfung sofort). Verwendet in
@@ -165,6 +173,14 @@ RETENTION_TABLE: Final[tuple[RetentionRow, ...]] = (
         f"{PUSH_TOKEN_STALE_DAYS} Tage nicht geöffnet wurde; spätestens mit dem Konto",
         "Ausschalten, Abmelden, Rückmeldung des Push-Dienstes, Zeitablauf, Kontolöschung",
         "push.unregister / push._send_fcm / cleanup.purge_stale_push_tokens",
+    ),
+    RetentionRow(
+        "Restore Key der Android-App (öffentlicher Schlüssel, Kennung, Geräte-ID, "
+        "Zeitpunkte)",
+        "bis zum Abmelden auf dem Gerät, zur Passwortänderung oder Kontolöschung, "
+        f"spätestens {RESTORE_KEY_MAX_AGE_DAYS} Tage nach dem Anlegen",
+        "Abmelden, Passwortänderung, Kontolöschung, Zeitablauf",
+        "restore_keys.delete_for_device / delete_all_for_user / restore_keys.purge_expired",
     ),
     RetentionRow(
         "Automatisch markierte Nachricht nach Auflösen des Matches (Moderation)",

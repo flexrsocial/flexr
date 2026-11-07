@@ -5,6 +5,7 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -35,6 +36,9 @@ class DataStoreSessionStore @Inject constructor(
         val LAST_NOTIFIED_MESSAGE = stringPreferencesKey("last_notified_message_id")
         val PUSH_TOKEN = stringPreferencesKey("push_token")
         val VERIFIED_HINT_DISMISSED = booleanPreferencesKey("verified_hint_dismissed")
+        val RESTORE_KEY_ID = stringPreferencesKey("restore_key_credential_id")
+        val RESTORE_KEY_SYNCED_AT = longPreferencesKey("has_synced_restore_credential_at")
+        val RESTORE_ATTEMPTED = booleanPreferencesKey("restore_attempted")
     }
 
     override val token: Flow<String?> = context.sessionDataStore.data.map { it[Keys.TOKEN] }
@@ -70,6 +74,9 @@ class DataStoreSessionStore @Inject constructor(
             prefs.remove(Keys.LAST_NOTIFIED_MESSAGE)
             // Bestätigter Hinweis gilt pro Konto — beim Abmelden zurücksetzen.
             prefs.remove(Keys.VERIFIED_HINT_DISMISSED)
+            // Restore Key gehoert zur Sitzung; RESTORE_ATTEMPTED bleibt.
+            prefs.remove(Keys.RESTORE_KEY_ID)
+            prefs.remove(Keys.RESTORE_KEY_SYNCED_AT)
             // Die Geräte-ID bleibt bewusst erhalten: sie ist an das Gerät gebunden
             // (Mehrfachkonto-Erkennung / Ban-Evasion-Schutz im Backend) und darf
             // sich durch ein simples Ausloggen nicht ändern.
@@ -94,6 +101,33 @@ class DataStoreSessionStore @Inject constructor(
 
     override suspend fun setLastNotifiedMessageId(id: String) {
         context.sessionDataStore.edit { it[Keys.LAST_NOTIFIED_MESSAGE] = id }
+    }
+
+    override suspend fun restoreKeyCredentialId(): String? =
+        context.sessionDataStore.data.first()[Keys.RESTORE_KEY_ID]
+
+    override suspend fun restoreKeySyncedAt(): Long? =
+        context.sessionDataStore.data.first()[Keys.RESTORE_KEY_SYNCED_AT]
+
+    override suspend fun saveRestoreKey(credentialId: String, syncedAt: Long) {
+        context.sessionDataStore.edit {
+            it[Keys.RESTORE_KEY_ID] = credentialId
+            it[Keys.RESTORE_KEY_SYNCED_AT] = syncedAt
+        }
+    }
+
+    override suspend fun clearRestoreKey() {
+        context.sessionDataStore.edit {
+            it.remove(Keys.RESTORE_KEY_ID)
+            it.remove(Keys.RESTORE_KEY_SYNCED_AT)
+        }
+    }
+
+    override suspend fun restoreAttempted(): Boolean =
+        context.sessionDataStore.data.first()[Keys.RESTORE_ATTEMPTED] ?: false
+
+    override suspend fun setRestoreAttempted() {
+        context.sessionDataStore.edit { it[Keys.RESTORE_ATTEMPTED] = true }
     }
 
     override suspend fun deviceId(): String {

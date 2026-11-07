@@ -175,6 +175,20 @@ class Settings(BaseSettings):
     radius_boost_last_day: date = date(2026, 12, 31)
 
     frontend_url: str = "https://flexr.social"
+
+    # ---- Restore Credentials der Android-App (restore_keys.py) -------------
+    #
+    # Relying-Party-ID der Restore Keys: die Domain, unter der die App in
+    # frontend/.well-known/assetlinks.json eingetragen ist.
+    webauthn_rp_id: str = "flexr.social"
+    # SHA-256-Fingerprints der Signaturzertifikate, deren App-Antworten als
+    # Herkunft gelten (Kommagetrennt). Voreingestellt: Play-App-Signing-
+    # Schluessel und Upload-Key, dieselben wie in assetlinks.json. Fuer einen
+    # lokalen Debug-Build den Fingerprint des Debug-Keystores ergaenzen.
+    restore_key_cert_fingerprints: str = (
+        "3B:2B:6E:27:3E:87:D3:7D:F7:71:B7:2A:64:81:67:11:0A:B2:E4:55:32:DE:D7:3E:D0:F3:F0:19:40:5E:01:4A,"
+        "BC:64:AD:3F:27:3E:B2:2D:38:1E:D7:CB:46:DE:67:6E:6A:1C:C6:3B:18:C9:64:FA:AB:A3:DD:A5:14:0E:79:80"
+    )
     env: str = "development"
 
     # Objekt-Storage (S3-kompatibel, z. B. Cloudflare R2) für Foto-Uploads

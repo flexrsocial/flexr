@@ -52,6 +52,29 @@ interface SessionStore {
     suspend fun setLastNotifiedMessageId(id: String)
 
     /**
+     * Restore Key dieses Geräts (data/restore/RestoreKeyManager.kt): Kennung
+     * beim Server und Zeitpunkt des Anlegens in Millisekunden. Liegt wie alles
+     * hier außerhalb des Backups - sonst hielte das neue Gerät den Schlüssel
+     * des alten für seinen eigenen und legte nie einen an.
+     */
+    suspend fun restoreKeyCredentialId(): String?
+
+    suspend fun restoreKeySyncedAt(): Long?
+
+    suspend fun saveRestoreKey(credentialId: String, syncedAt: Long)
+
+    suspend fun clearRestoreKey()
+
+    /**
+     * Ob die stille Anmeldung per Restore Key auf diesem Gerät schon versucht
+     * wurde. Überlebt [clear] bewusst: Nach dem Abmelden soll die App nicht
+     * bei jedem Start erneut nachfragen.
+     */
+    suspend fun restoreAttempted(): Boolean
+
+    suspend fun setRestoreAttempted()
+
+    /**
      * Stabile, zufällige Geräte-ID — entspricht `flexr_device_id` im Web und
      * erfüllt das vom Backend erwartete Format `^[A-Za-z0-9-]{8,64}$`.
      * Bewusst keine Hardware-Kennung (ANDROID_ID o. Ä.): die ID ist nicht

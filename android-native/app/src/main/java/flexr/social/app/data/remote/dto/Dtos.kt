@@ -81,6 +81,28 @@ data class TokenResponseDto(
     @SerialName("token_type") val tokenType: String = "bearer",
 )
 
+// ---------- Restore Key (routers/auth.py, restore_keys.py) ----------
+
+/** WebAuthn-Optionen als fertiger JSON-Text fuer den Credential Manager. */
+@Serializable
+data class RestoreKeyOptionsDto(@SerialName("request_json") val requestJson: String)
+
+@Serializable
+data class RestoreKeyRegisterRequestDto(
+    @SerialName("registration_response_json") val registrationResponseJson: String,
+)
+
+@Serializable
+data class RestoreKeyRegisterResponseDto(@SerialName("credential_id") val credentialId: String)
+
+@Serializable
+data class RestoreKeyLoginRequestDto(
+    @SerialName("authentication_response_json") val authenticationResponseJson: String,
+)
+
+@Serializable
+data class RestoreKeyDeleteRequestDto(@SerialName("credential_id") val credentialId: String? = null)
+
 // ---------- Profile ----------
 
 @Serializable
