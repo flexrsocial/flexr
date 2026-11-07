@@ -52,6 +52,9 @@ erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 >   wegfällt. Beides nur beim Statuswechsel; die Antwort enthält `notified`.
 > - **Admin-Dashboard:** Spalte „Nutzer“ (`AdminGymOut.member_count`) und eine
 >   Rückfrage vor der Ablehnung, wenn jemand das Gym nutzt.
+> - **Nachversand** für Vorschläge, die vor der Einführung entschieden wurden:
+>   `backend/scripts/gym_entscheid_nachsenden.py`. Ohne Schalter zeigt es nur
+>   an, mit `--senden` verschickt es jede Mail höchstens einmal (`send_once`).
 > - **Web-App:** `account` ist jetzt in `OEFFNEN_ZIELE`. Die native
 >   Android-App kennt das Ziel nicht und öffnet dann nur die App.
 
