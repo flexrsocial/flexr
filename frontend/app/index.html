@@ -4189,6 +4189,9 @@
   var backdrop = document.getElementById('betaBackdrop');
   var bar = document.getElementById('betaBar');
   if (!backdrop || !bar) return;
+  // Beta beendet am 07.11.2026 (config.beta_active = False): Leiste und Dialog
+  // erscheinen nicht mehr. Markup und Texte bleiben vorerst stehen.
+  return;
 
   var lastFocus = null;
   function merken(){ try { localStorage.setItem(KEY, '1'); } catch (e) {} }
@@ -6037,7 +6040,9 @@
       : !!membership.premium_enabled;
   }
   function betaActive(){
-    return !membership || membership.beta_active !== false;
+    // Seit dem Ende der Beta (07.11.2026) nur noch, wenn der Server es
+    // ausdruecklich sagt - sonst blitzte vor dem Laden des Status "Beta" auf.
+    return !!(membership && membership.beta_active === true);
   }
   function isPremium(){
     return !!(membership && membership.is_premium);

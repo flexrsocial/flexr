@@ -150,7 +150,12 @@ class Settings(BaseSettings):
     # "Beta" sagt seither etwas ueber den Reifegrad des Angebots aus und nichts
     # mehr ueber den Tarif. Die Clients lesen es als ``beta_active`` aus
     # GET /api/billing/status.
-    beta_active: bool = True
+    #
+    # Beendet am 07.11.2026 (Wunsch des Betreibers): Mit dem Start in
+    # Deutschland, dem Suchumkreis bis 1100 km und laufendem Premium bremste
+    # das Abzeichen mehr, als es erklaerte. Die Pille zeigt seither die
+    # restlichen Likes (bzw. "Premium"); Beta-Leiste und -Dialog im Web sind aus.
+    beta_active: bool = False
 
     # Preis in Cent, damit Anzeige und Rechnung dieselbe Quelle haben.
     premium_price_cents: int = 1000

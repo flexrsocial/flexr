@@ -144,7 +144,8 @@
 // Deutschland", Link "Vertraege hier kuendigen"; i18n.js ?v=7, i18n-app.js ?v=47.
 // v62: Suchumkreis bis 1100 km, unbefristet fuer alle frei (radius_free_for_all),
 // Startboost-Zusaetze ohne Datum und ohne Ausblend-Skript; i18n-app.js ?v=48.
-const CACHE = 'flexr-shell-v62';
+// v63: Beta beendet - Beta-Leiste und -Dialog auf Landingpage und in der App aus.
+const CACHE = 'flexr-shell-v63';
 // Seit dem 15.08.2026 liegt die App unter /app/, an der Wurzel steht die
 // oeffentliche Landingpage. Beide gehoeren in die Shell: die Landingpage,
 // weil sie der Einstieg ist, die App, weil sie offline funktionieren soll.

@@ -32,6 +32,23 @@ erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 
 ## Wo das Projekt gerade steht
 
+> **Sitzung 07.11.2026 (6): Beta beendet.** `config.beta_active = False`
+> (keine `.env`-Zeile auf dem VPS, geprüft). Alle Clients lesen das aus
+> `/api/billing/status`, kein App-Update nötig: Die Kopf-Pille zeigt jetzt die
+> restlichen Likes („20 Likes“) bzw. „Premium“. Web: Beta-Leiste und -Dialog auf
+> Landingpage und in `/app/` per frühem `return` aus (Markup/Texte stehen noch),
+> `betaActive()` nur noch bei ausdrücklichem `true`, SW-Cache `v63`. AGB 7 c
+> (de/en): „frühere Kennzeichnung als Beta (bis 7. November 2026)“ – Fassung
+> bleibt 2026-11-08 (noch nicht in Kraft).
+> - **Store-Bilder ohne Beta:** `android/store/neu-2026-11-07/{de,en}/` (alle
+>   Bilder kopiert; `phone-1/2`, `tablet7-1/2`, `tablet10-1/2` retuschiert: Pille
+>   „Beta“ → „20 Likes“/„20 likes“ in JetBrains Mono Medium, Geometrie aus der
+>   Texthöhe). Die Rohaufnahmen vom 17.10. gibt es nicht mehr; Skript im
+>   Scratchpad der Sitzung, nicht im Repo.
+> - iOS-Codemagic 07.11. abends: Unit-Tests grün (kompiliert wieder),
+>   „Fetch signing files“ scheiterte an Apples neuer Programmlizenz (PLA) –
+>   muss der Account Holder akzeptieren.
+
 > **Sitzung 07.11.2026 (5): Zero-Tap-Zweig (PR #3) in main übernommen**,
 > neue Migration `f1a7c3e9b5d2`: alle bestehenden Konten auf 1100 km Umkreis.
 > Deployt mit `git pull --ff-only` → `venv/bin/alembic upgrade head` (zwei

@@ -1408,6 +1408,9 @@ body.has-beta-bar footer{ padding-bottom:110px; }
   var backdrop = document.getElementById('betaBackdrop');
   var bar = document.getElementById('betaBar');
   if (!backdrop || !bar) return;
+  // Beta beendet am 07.11.2026 (config.beta_active = False): Leiste und Dialog
+  // erscheinen nicht mehr. Markup und Texte bleiben vorerst stehen.
+  return;
 
   try {
     // Eingeloggte Besucher leitet das Skript weiter oben nach /app/ um. Dort
