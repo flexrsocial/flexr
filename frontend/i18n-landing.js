@@ -23,7 +23,7 @@
   FlexrI18n.register({
   de: {
     'meta.title': 'FLEXR – Dating für Gym-People in Österreich und Deutschland',
-    'meta.description': 'FLEXR ist die Dating-App für Gym-People in Österreich und Deutschland: Matches nach Fitnessstudio und Umkreis. Die Nutzung ist dauerhaft kostenlos; FLEXR Premium (10 €/Monat) ist freiwillig.',
+    'meta.description': 'FLEXR ist die Dating-App für Gym-People in Österreich und Deutschland: Matches nach Fitnessstudio und Umkreis. Dauerhaft kostenlos, Premium ist freiwillig.',
     'meta.ogTitle': 'FLEXR – Dating für Gym-People in Österreich und Deutschland',
     'meta.ogDescription': 'Finde Menschen, die Training genauso ernst nehmen wie du – in deinem Gym und in deiner Nähe. Dauerhaft kostenlos nutzbar.',
     'meta.ogLocale': 'de_AT',
@@ -57,7 +57,7 @@
     'gym.li1': '<b>Du wählst dein Studio.</b> Aus einer Liste von Fitnessstudios in Österreich und Deutschland mit Adresse. Fehlt deins, reichst du es mit Adresse ein und kannst es sofort verwenden.',
     'gym.li2': '<b>Du stellst deinen Suchradius ein.</b> Von 2 bis 1.100 Kilometer. Größerer Radius heißt mehr Profile, dafür weitere Wege.',
     'gym.li3': '<b>Keine GPS-Ortung.</b> Weder Browser noch App fragen deine Geräteposition ab. Gerechnet wird ausschließlich mit der öffentlichen Adresse des Studios, das du selbst angegeben hast. Dein Wohnort wird niemandem angezeigt – andere sehen nur deine Stadt.',
-    'gym.li4': '<b>Du siehst Leute aus Studios im Umkreis</b>, nicht nur aus deinem eigenen. Das Gym ist der Mittelpunkt, nicht der Zaun.',
+    'gym.li4': '<b>Auch Studios im Umkreis.</b> Du siehst Leute aus Studios in deiner Nähe, nicht nur aus deinem eigenen. Das Gym ist der Mittelpunkt, nicht der Zaun.',
     'gym.p2': 'Der praktische Vorteil: Ihr habt von Anfang an einen Ort, den ihr beide kennt, und einen naheliegenden Vorschlag fürs erste Treffen.',
 
     'sample.h2': 'So könnte dein Match aussehen',
@@ -106,7 +106,7 @@
     'how.step3P': 'Du siehst passende Profile aus deinem Umkreis. Liken sich zwei Leute gegenseitig, entsteht ein Match – und erst dann könnt ihr schreiben. Vorher landet bei dir keine ungefragte Nachricht.',
 
     'at.h2': 'Für Gym-People in Österreich und Deutschland',
-    'at.p1': 'FLEXR funktioniert mit jeder Postleitzahl in Österreich und Deutschland – in <a href="/fitness-dating-wien.html"><b>Wien</b></a> genauso wie in <a href="/fitness-dating-graz.html"><b>Graz</b></a>, <a href="/fitness-dating-linz.html"><b>Linz</b></a>, <a href="/fitness-dating-salzburg.html"><b>Salzburg</b></a>, <a href="/fitness-dating-innsbruck.html"><b>Innsbruck</b></a>, <a href="/fitness-dating-klagenfurt.html"><b>Klagenfurt</b></a>, <b>Villach</b>, <b>Wels</b>, <b>St. Pölten</b>, <b>Dornbirn</b> oder <b>Wiener Neustadt</b> genauso wie in <b>Berlin</b>, <b>Hamburg</b>, <b>München</b>, <b>Köln</b> oder <b>Frankfurt</b>.',
+    'at.p1': 'FLEXR funktioniert mit jeder Postleitzahl in Österreich und Deutschland – in <a href="/fitness-dating-wien.html"><b>Wien</b></a> genauso wie in <a href="/fitness-dating-graz.html"><b>Graz</b></a>, <a href="/fitness-dating-linz.html"><b>Linz</b></a>, <a href="/fitness-dating-salzburg.html"><b>Salzburg</b></a>, <a href="/fitness-dating-innsbruck.html"><b>Innsbruck</b></a>, <a href="/fitness-dating-klagenfurt.html"><b>Klagenfurt</b></a>, <b>Villach</b>, <b>Wels</b>, <b>St. Pölten</b>, <b>Dornbirn</b> oder <b>Wiener Neustadt</b> genauso wie in <a href="/fitness-dating-berlin.html"><b>Berlin</b></a>, <a href="/fitness-dating-hamburg.html"><b>Hamburg</b></a>, <a href="/fitness-dating-muenchen.html"><b>München</b></a>, <a href="/fitness-dating-koeln.html"><b>Köln</b></a> oder <a href="/fitness-dating-frankfurt.html"><b>Frankfurt</b></a>.',
     'at.p2': 'Ehrlich dazu: Wie viele Profile du siehst, hängt davon ab, wie viele Leute in deinem Umkreis dabei sind. In Ballungsräumen sind es mehr als am Land. Wir nennen bewusst keine Nutzerzahlen und versprechen keine bestimmte Anzahl an Matches – wer das tut, hat sie meist erfunden. Wenn du am Land wohnst, stell den Radius größer ein; die nächste größere Stadt ist oft näher, als es sich anfühlt.',
     'at.p3': 'FLEXR gibt es in Österreich und seit November 2026 auch in Deutschland. Ehrlich dazu: In deutschen Städten fängt FLEXR gerade erst an, dort sind anfangs weniger Profile zu sehen als in Wien oder Graz. Wer früh dabei ist, bestimmt mit, wer im eigenen Studio auftaucht.',
 
@@ -176,8 +176,8 @@
     'foot.toApp': 'Zur App',
     'foot.discoverTitle': 'Entdecken',
     'foot.gymDating': 'Gym-Dating in Österreich und Deutschland',
-    'foot.wien': 'Fitness-Dating Wien',
-    'foot.graz': 'Fitness-Dating Graz',
+    'foot.gymCrush': 'Gym-Crush ansprechen',
+    'foot.cities': '<span class="foot-cities-label">Fitness-Dating in:</span> <a href="/fitness-dating-wien.html" hreflang="de">Wien</a> <a href="/fitness-dating-graz.html" hreflang="de">Graz</a> <a href="/fitness-dating-linz.html" hreflang="de">Linz</a> <a href="/fitness-dating-salzburg.html" hreflang="de">Salzburg</a> <a href="/fitness-dating-innsbruck.html" hreflang="de">Innsbruck</a> <a href="/fitness-dating-klagenfurt.html" hreflang="de">Klagenfurt</a> <a href="/fitness-dating-berlin.html" hreflang="de">Berlin</a> <a href="/fitness-dating-hamburg.html" hreflang="de">Hamburg</a> <a href="/fitness-dating-muenchen.html" hreflang="de">München</a> <a href="/fitness-dating-koeln.html" hreflang="de">Köln</a> <a href="/fitness-dating-frankfurt.html" hreflang="de">Frankfurt</a>',
     'foot.dateIdeas': 'Date-Ideen für Sportler',
     'foot.safetyTitle': 'Sicherheit',
     'foot.safetyTips': 'Sicherheitstipps',
@@ -241,7 +241,7 @@
     'gym.li1': '<b>You choose your gym.</b> From a list of gyms in Austria and Germany with addresses. If yours is missing, submit it with its address and use it right away.',
     'gym.li2': '<b>You set your search radius.</b> From 2 to 1,100 kilometres. A larger radius means more profiles, but longer trips.',
     'gym.li3': '<b>No GPS tracking.</b> Neither the browser nor the app asks for your device location. Distances are calculated solely from the public address of the gym you entered yourself. Your home address is never shown to anyone – others only see your city.',
-    'gym.li4': '<b>You see people from gyms in the area</b>, not only from your own. The gym is the centre, not the fence.',
+    'gym.li4': '<b>Nearby gyms included.</b> You see people from gyms in your area, not only from your own. The gym is the centre, not the fence.',
     'gym.p2': 'The practical upside: from the start you both know a place, and there is an obvious suggestion for a first meeting.',
 
     'sample.h2': 'What your match could look like',
@@ -358,8 +358,8 @@
     'foot.toApp': 'To the app',
     'foot.discoverTitle': 'Discover (German)',
     'foot.gymDating': 'Gym dating in Austria and Germany',
-    'foot.wien': 'Fitness dating Vienna',
-    'foot.graz': 'Fitness dating Graz',
+    'foot.gymCrush': 'Talking to your gym crush',
+    'foot.cities': '<span class="foot-cities-label">Fitness dating in (German):</span> <a href="/fitness-dating-wien.html" hreflang="de">Vienna</a> <a href="/fitness-dating-graz.html" hreflang="de">Graz</a> <a href="/fitness-dating-linz.html" hreflang="de">Linz</a> <a href="/fitness-dating-salzburg.html" hreflang="de">Salzburg</a> <a href="/fitness-dating-innsbruck.html" hreflang="de">Innsbruck</a> <a href="/fitness-dating-klagenfurt.html" hreflang="de">Klagenfurt</a> <a href="/fitness-dating-berlin.html" hreflang="de">Berlin</a> <a href="/fitness-dating-hamburg.html" hreflang="de">Hamburg</a> <a href="/fitness-dating-muenchen.html" hreflang="de">Munich</a> <a href="/fitness-dating-koeln.html" hreflang="de">Cologne</a> <a href="/fitness-dating-frankfurt.html" hreflang="de">Frankfurt</a>',
     'foot.dateIdeas': 'Date ideas for athletes',
     'foot.safetyTitle': 'Safety',
     'foot.safetyTips': 'Safety tips',

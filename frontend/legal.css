@@ -105,8 +105,26 @@ h3 { font-size: 15.5px; color: var(--chalk); margin-top: 24px; margin-bottom: 6p
  * Englisch gibt, braucht der Rueckweg einen Nachbarn. */
 .legal-head {
   display: flex; align-items: center; justify-content: space-between;
-  gap: 12px; margin-bottom: 20px;
+  gap: 12px; margin-bottom: 24px;
+  padding-bottom: 14px; border-bottom: 1px solid var(--hairline);
 }
+/* Seit 14.11.2026 steht links die Wortmarke statt "<- zurueck zu FLEXR":
+ * dieselbe Marke wie auf der Landingpage, damit Besucher aus der Suche
+ * sofort sehen, wo sie sind. Sie fuehrt weiter zur Startseite. */
+.legal-head .brand {
+  font-family: 'Oswald', system-ui, sans-serif; font-size: 22px; font-weight: 700;
+  letter-spacing: .12em; line-height: 1.2; color: var(--chalk); text-decoration: none;
+}
+.legal-head .brand:hover { color: var(--chalk); }
+.legal-head .brand span { color: var(--plate); }
+/* Registrieren-Knopf im Kopf der Such-Einstiegsseiten (Stadtseiten, Ratgeber). */
+.head-cta {
+  display: inline-block; padding: 8px 14px; border-radius: 10px; white-space: nowrap;
+  font-family: 'Oswald', system-ui, sans-serif; font-size: 13px; font-weight: 600;
+  letter-spacing: .06em; text-transform: uppercase; text-decoration: none;
+  background: var(--plate); color: #1a0a04;
+}
+.head-cta:hover { background: var(--plate-bright); color: #1a0a04; }
 .legal-head .back { margin-bottom: 0; }
 
 .back { display: inline-block; margin-bottom: 20px; font-size: 13px; color: var(--chalk-dim); text-decoration: none; }

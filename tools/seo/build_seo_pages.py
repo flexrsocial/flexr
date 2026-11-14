@@ -750,7 +750,7 @@ def seite(*, url: str, titel: str, beschreibung: str, og_titel: str,
 <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png?v=4">
 <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon-180.png?v=1">
 <link rel="preload" href="/fonts/oswald.woff2?v=1" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="/legal.css?v=3">
+<link rel="stylesheet" href="/legal.css?v=4">
 {jsonld(graph)}
 {STIL}
 </head>
@@ -758,7 +758,8 @@ def seite(*, url: str, titel: str, beschreibung: str, og_titel: str,
 <a class="skip-link" href="#main-content">Zum Inhalt springen</a>
 <div class="wrap">
   <div class="legal-head">
-    <a class="back" href="/">← zu FLEXR</a>
+    <a class="brand" href="/" aria-label="FLEXR Startseite">FLE<span>X</span>R</a>
+    <a class="head-cta" href="/app/#registrieren">Gratis loslegen</a>
   </div>
 
   <main id="main-content">
@@ -1191,7 +1192,7 @@ def date_ideen() -> str:
 # Sitemap
 # --------------------------------------------------------------------------
 
-def sitemap_aktualisieren(urls: list[tuple[str, str]]) -> None:
+def sitemap_aktualisieren(urls: list[tuple[str, str]], stand: dict[str, str]) -> None:
     pfad = FRONTEND / "sitemap.xml"
     xml = pfad.read_text(encoding="utf-8")
     eintraege = ["  <!-- SEO-SEITEN-ANFANG (erzeugt von tools/seo/build_seo_pages.py) -->"]
@@ -1199,7 +1200,7 @@ def sitemap_aktualisieren(urls: list[tuple[str, str]]) -> None:
         eintraege.append(
             "  <url>\n"
             f"    <loc>{SITE}{url}</loc>\n"
-            f"    <lastmod>{HEUTE}</lastmod>\n"
+            f"    <lastmod>{stand.get(url, HEUTE)}</lastmod>\n"
             "    <changefreq>monthly</changefreq>\n"
             f"    <priority>{prio}</priority>\n"
             "  </url>"
@@ -1227,14 +1228,27 @@ def main() -> None:
     seiten["/gym-crush-ansprechen.html"] = gym_crush()
     seiten["/date-ideen-sportler.html"] = date_ideen()
 
+    # Das Datum (dateModified, lastmod) soll nur wandern, wenn sich eine Seite
+    # wirklich geaendert hat. Vorher stempelte jeder Lauf alle Seiten auf
+    # "heute" - Suchmaschinen lernen dann, dem lastmod nicht zu trauen.
+    stand: dict[str, str] = {}
     for url, inhalt in seiten.items():
-        (FRONTEND / url.lstrip("/")).write_text(inhalt, encoding="utf-8")
+        ziel = FRONTEND / url.lstrip("/")
+        alt = ziel.read_text(encoding="utf-8") if ziel.exists() else ""
+        treffer = re.search(r'"dateModified": "(\d{4}-\d\d-\d\d)"', alt)
+        if treffer and alt.replace(treffer.group(1), HEUTE) == inhalt:
+            stand[url] = treffer.group(1)
+            print("unveraendert:", url)
+            continue
+        ziel.write_text(inhalt, encoding="utf-8")
+        stand[url] = HEUTE
         print("geschrieben:", url)
 
     sitemap_aktualisieren(
         [("/gym-dating.html", "0.8")]
         + [(f"/fitness-dating-{s['slug']}.html", "0.7") for s in STAEDTE]
-        + [("/gym-crush-ansprechen.html", "0.6"), ("/date-ideen-sportler.html", "0.6")]
+        + [("/gym-crush-ansprechen.html", "0.6"), ("/date-ideen-sportler.html", "0.6")],
+        stand,
     )
     print("sitemap.xml aktualisiert")
 

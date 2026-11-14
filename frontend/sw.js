@@ -145,14 +145,17 @@
 // v62: Suchumkreis bis 1100 km, unbefristet fuer alle frei (radius_free_for_all),
 // Startboost-Zusaetze ohne Datum und ohne Ausblend-Skript; i18n-app.js ?v=48.
 // v63: Beta beendet - Beta-Leiste und -Dialog auf Landingpage und in der App aus.
-const CACHE = 'flexr-shell-v63';
+// v64: Website-Overhaul - stehende Kopfzeile mit Registrieren-Knopf, Merkmal-
+// Karten, Fusszeile mit allen Stadtseiten, Wortmarke im Kopf der Unterseiten;
+// legal.css ?v=4.
+const CACHE = 'flexr-shell-v64';
 // Seit dem 15.08.2026 liegt die App unter /app/, an der Wurzel steht die
 // oeffentliche Landingpage. Beide gehoeren in die Shell: die Landingpage,
 // weil sie der Einstieg ist, die App, weil sie offline funktionieren soll.
 const SHELL = ['/', '/index.html', '/en/', '/en/index.html',
                '/app/', '/app/index.html',
                '/lang-switch.js?v=2', '/i18n.js?v=7', '/app/i18n-app.js?v=48',
-               '/manifest.json', '/favicon.ico', '/legal.css?v=3',
+               '/manifest.json', '/favicon.ico', '/legal.css?v=4',
                '/fonts/work-sans.woff2?v=1', '/fonts/oswald.woff2?v=1',
                '/icons/icon-192.png?v=4', '/icons/icon-512.png?v=4'];
 const SHELL_PATHS = new Set(SHELL.map((path) => new URL(path, self.location.origin).pathname));

@@ -1,6 +1,6 @@
 # FLEXR — Handoff für ein anderes Gerät / Claude Code
 
-Stand: **07.11.2026**
+Stand: **14.11.2026**
 
 ## ⚠️ Dringend zu prüfen: SSH-Zugang zum VPS hat sich geändert (21.09.2026)
 
@@ -31,6 +31,45 @@ Falls du das liest, weil dein `root@`-Login gerade fehlschlägt: das ist
 erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 
 ## Wo das Projekt gerade steht
+
+> **Sitzung 14.11.2026: Website-Overhaul (Design, SEO).** Nur `frontend/` und
+> `tools/seo/`, kein Backend, keine Migration, kein Neustart, keine App-Version.
+>
+> - **Landingpage DE/EN:** Kopfzeile steht beim Scrollen (`position:sticky`)
+>   und trägt „Gratis loslegen" (`.nav-cta`; am Handy entfällt dort
+>   „Einloggen", der Knopf steht im Hero). Sprungziele mit `scroll-margin-top`.
+>   Abschnitte „Gym" und „Sicherheit" als Karten (`.feature-grid`, der fette
+>   Satzanfang wird Kartentitel; `gym.li4` beginnt jetzt mit „Auch Studios im
+>   Umkreis."). Lifestyle zweispaltig, dritter Absatz als Karte
+>   (`.life-grid`/`.life-callout`). Fußzeile: Links grau statt orange, am Handy
+>   zweispaltig, neue Zeile mit allen elf Stadtseiten (`foot.cities`),
+>   „Gym-Crush ansprechen" unter Entdecken. **Preiskarten bewusst unverändert**
+>   (Lime-Rahmen bei Premium ist Nutzerwunsch vom 01.10.).
+> - **SEO:** Meta-Description der Startseite 190 → 155 Zeichen; Berlin,
+>   Hamburg, München, Köln, Frankfurt im Abschnitt „Österreich und
+>   Deutschland" verlinkt (DE; EN bleibt ohne Links, die Stadtseiten sind
+>   deutsch). Fünf Descriptions über 160 Zeichen gekürzt (AGB,
+>   Nutzungsrichtlinien DE/EN, EN-Meldung, EN-Impressum). **Kinderschutz bleibt
+>   lang**, weil dort der Store-Name stehen muss (DE-03).
+> - **`tools/seo/build_seo_pages.py`:** `dateModified` und `lastmod` wandern
+>   nur noch, wenn sich eine Seite wirklich ändert (vorher stempelte jeder Lauf
+>   alle 14 Seiten auf heute). Zweiter Lauf meldet „unveraendert".
+> - **Unterseiten:** Wortmarke FLEXR statt „← zurück zu FLEXR"
+>   (`.legal-head .brand`), auf den SEO-Seiten zusätzlich „Gratis loslegen"
+>   (`.head-cta`). `legal.css ?v=4`, SW-Cache `flexr-shell-v64`.
+> - **Getestet:** Backend 884 grün (`pytest -n 2`, venv
+>   `~/.cache/flexr-test/venv`). Landing DE/EN bei 320/375/1024 px ohne
+>   Quer-Scroll, Stadt-/Rechtsseiten, Web-App lokal (Login, Deck, Match, Chat,
+>   Konto) gegen Moto + SQLite.
+> - **Falle auf dem ThinkPad:** Der MEGA-Ordner `~/MEGA/flexr/flexr` war
+>   **hinter origin** (Stand ~06.11., lokales `main` 63 Commits zurück, mit
+>   226 nicht committeten Änderungen eines anderen Geräts). Gearbeitet wurde
+>   deshalb in einem Worktree auf `origin/main`, Änderungen per
+>   `git merge-file` übertragen. Vor neuer Arbeit dort erst
+>   `git fetch` und den Stand klären, nicht blind committen. `backend/venv`
+>   ist dort leer (MEGA synchronisiert ihn nicht).
+> - **Lokal:** Hat der Service Worker eine alte Seite festgehalten (Server war
+>   kurz weg), in der Konsole abmelden und `caches` löschen.
 
 > **Bugfix-Durchlauf 07.11.2026 (über alle Änderungen des Tages):**
 > - **Löschfrist ohne Ausweis:** galt auch für Bestandskonten, für die ein Admin

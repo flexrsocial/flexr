@@ -7,7 +7,7 @@
 <!-- Unter 160 Zeichen bleiben: Google schneidet das Snippet sonst mitten im
      Satz ab. Dass die Nutzung dauerhaft nichts kostet, ist der eigentliche
      Conversion-Vorteil und gehoert deshalb hinein. -->
-<meta name="description" content="FLEXR ist die Dating-App für Gym-People in Österreich und Deutschland: Matches nach Fitnessstudio und Umkreis. Die Nutzung ist dauerhaft kostenlos; FLEXR Premium (10 €/Monat) ist freiwillig.">
+<meta name="description" content="FLEXR ist die Dating-App für Gym-People in Österreich und Deutschland: Matches nach Fitnessstudio und Umkreis. Dauerhaft kostenlos, Premium ist freiwillig.">
 <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1">
 <link rel="canonical" href="https://flexr.social/">
 <!-- Zweisprachigkeit: die kanonische Adresse ist und bleibt die deutsche
@@ -207,16 +207,46 @@ h3{ font-size:18px; margin:0 0 8px; }
 p{ margin:0 0 14px; }
 
 /* ---- Kopfzeile ---- */
+/* Seit 14.11.2026 bleibt die Kopfzeile beim Scrollen stehen und traegt den
+   Registrieren-Knopf: Die Seite ist rund 7700px lang, vorher gab es nach dem
+   Hero bis zum Preisabschnitt keinen Weg zur Registrierung. */
 .top{
+  position:sticky; top:0; z-index:900;
   display:flex; align-items:center; justify-content:space-between; gap:16px;
-  padding:16px 0; border-bottom:1px solid var(--hairline);
+  padding:12px 0; border-bottom:1px solid var(--hairline);
+  background:rgba(18,18,18,.9);
+  -webkit-backdrop-filter:saturate(140%) blur(12px); backdrop-filter:saturate(140%) blur(12px);
 }
+/* Sprungziele (#so-gehts, #preis, #faq) nicht unter der stehenden Kopfzeile. */
+section[id]{ scroll-margin-top:72px; }
 .brand{ font-family:'Oswald', sans-serif; font-size:24px; font-weight:700; letter-spacing:.12em; }
 .brand span{ color:var(--plate); }
 .top nav{ display:flex; gap:18px; align-items:center; font-size:14px; }
 .top nav a{ color:var(--chalk-dim); text-decoration:none; }
 .top nav a:hover{ color:var(--chalk); }
-@media (max-width:560px){ .top nav .hide-s{ display:none; } }
+/* Nur die direkten Links - die des Sprachreglers liegen eine Ebene tiefer.
+   Das Padding macht die Tippflaeche hoch genug (vorher 23px). */
+.top nav > a{ padding:8px 0; }
+.top nav a.nav-cta{
+  padding:8px 14px; border-radius:10px; white-space:nowrap;
+  font-family:'Oswald', sans-serif; font-size:13px; font-weight:600;
+  letter-spacing:.06em; text-transform:uppercase;
+  background:var(--plate); color:#1a0a04;
+}
+.top nav a.nav-cta:hover{ background:var(--plate-bright); color:#1a0a04; }
+@media (max-width:560px){
+  .top nav .hide-s{ display:none; }
+  /* Am Handy steht "Einloggen" als Knopf direkt im Hero; in der schmalen
+     Kopfzeile ist nur Platz fuer Marke, Registrieren und Sprachregler. */
+  .top nav .nav-login{ display:none; }
+  .top nav{ gap:10px; }
+  .top nav a.nav-cta{ padding:8px 11px; font-size:12.5px; letter-spacing:.04em; }
+}
+@media (max-width:360px){
+  .brand{ font-size:20px; letter-spacing:.1em; }
+  .top nav{ gap:8px; }
+  .top nav a.nav-cta{ padding:8px 9px; font-size:12px; letter-spacing:.02em; }
+}
 /* Sprachregler in der Kopfzeile - dieselbe Optik wie in der Web-App. */
 .lang-switch{
   position:relative; display:inline-flex; align-items:stretch; flex-shrink:0;
@@ -435,6 +465,43 @@ section p b, section li b{ color:var(--chalk); }
   color:var(--plate); text-transform:uppercase; margin-bottom:8px;
 }
 
+/* Merkmal-Karten (Abschnitte "Gym" und "Sicherheit"): vorher zwei lange
+   Aufzaehlungen in einer schmalen Textspalte, direkt hintereinander mit zwei
+   weiteren Fliesstext-Abschnitten. Der fette Satzanfang jedes Punkts wird zur
+   Kartenueberschrift - die Texte selbst sind unveraendert. */
+.feature-grid{
+  list-style:none; padding:0; margin:22px 0; display:grid; gap:14px;
+  grid-template-columns:repeat(2, minmax(0, 1fr));
+}
+.feature-grid li{
+  background:var(--surface); border:1px solid var(--hairline); border-radius:14px;
+  padding:18px 20px 20px; color:var(--chalk-dim); font-size:14.5px; line-height:1.6;
+}
+.feature-grid li::before{
+  content:''; display:block; width:24px; height:3px; border-radius:2px;
+  background:var(--plate); margin-bottom:12px;
+}
+.feature-grid li > b:first-child{
+  display:block; margin-bottom:6px;
+  font-family:'Oswald', sans-serif; font-size:17px; font-weight:600; letter-spacing:.02em;
+}
+/* Ungerade Anzahl: die letzte Karte laeuft ueber die volle Breite. */
+.feature-grid li:last-child:nth-child(odd){ grid-column:1 / -1; }
+@media (max-width:640px){ .feature-grid{ grid-template-columns:1fr; } }
+
+/* Lifestyle-Abschnitt: vorher drei Absaetze untereinander in schmaler Spalte.
+   Jetzt links der Fliesstext, rechts der Kernsatz ("nicht um einen bestimmten
+   Koerper") als Karte - er ist die eigentliche Botschaft des Abschnitts. */
+.life-grid{ display:grid; grid-template-columns:minmax(0,1.35fr) minmax(0,1fr); gap:28px; align-items:start; }
+.life-callout{
+  position:relative; padding:22px 22px 8px; border-radius:14px;
+  background:linear-gradient(160deg, rgba(255,90,31,.12), rgba(255,90,31,.03) 60%), var(--surface);
+  border:1px solid rgba(255,90,31,.3);
+}
+.life-callout p{ color:var(--chalk); font-size:15.5px; }
+.life-callout p b{ color:var(--plate-bright); }
+@media (max-width:760px){ .life-grid{ grid-template-columns:1fr; gap:6px; } }
+
 ul.plain{ padding-left:20px; color:var(--chalk-dim); max-width:62ch; }
 ul.plain li{ margin-bottom:9px; }
 
@@ -575,14 +642,30 @@ details[open] summary::after{ content:'\2212'; }
 /* ---- Fuss ---- */
 footer{ border-top:1px solid var(--steel); padding:32px 0 60px; margin-top:20px; }
 .foot-cols{ display:grid; gap:26px; grid-template-columns:repeat(auto-fit, minmax(190px, 1fr)); }
+/* Am Handy zwei Spalten statt einer langen. */
+@media (max-width:560px){ .foot-cols{ grid-template-columns:repeat(2, minmax(0, 1fr)); gap:24px 18px; } }
 .foot-title{
   font-family:'Oswald', sans-serif; font-size:12px; letter-spacing:.18em;
   text-transform:uppercase; color:var(--chalk-dim); margin-bottom:10px;
 }
 .foot-cols ul{ list-style:none; padding:0; margin:0; }
 .foot-cols li{ margin-bottom:8px; }
-.foot-cols a{ font-size:14px; text-decoration:none; }
-.foot-note{ margin-top:30px; padding-top:18px; border-top:1px solid var(--hairline); font-size:13px; color:var(--chalk-dim); }
+/* Fusszeilen-Links zurueckgenommen in Grau, Orange erst beim Ueberfahren:
+   20 orange Links nebeneinander konkurrierten mit dem Registrieren-Knopf. */
+.foot-cols a, .foot-cities a{ font-size:14px; text-decoration:none; color:var(--chalk-dim); }
+.foot-cols a:hover, .foot-cities a:hover{ color:var(--plate-bright); }
+.foot-cols a{ display:inline-block; padding:2px 0; }
+/* Alle Stadtseiten in einer Zeile - vorher waren nur Wien und Graz verlinkt. */
+.foot-cities{
+  display:flex; flex-wrap:wrap; gap:6px 16px; align-items:baseline;
+  margin:28px 0 0; padding-top:18px; border-top:1px solid var(--hairline);
+}
+.foot-cities-label{
+  font-family:'Oswald', sans-serif; font-size:12px; letter-spacing:.18em;
+  text-transform:uppercase; color:var(--chalk-dim);
+}
+.foot-cities a{ padding:4px 0; }
+.foot-note{ margin-top:18px; padding-top:18px; border-top:1px solid var(--hairline); font-size:13px; color:var(--chalk-dim); }
 
 @media (prefers-reduced-motion: reduce){
   html{ scroll-behavior:auto; }
@@ -700,7 +783,8 @@ body.has-beta-bar footer{ padding-bottom:110px; }
       <a href="#so-gehts" class="hide-s" data-i18n="nav.how">So funktioniert's</a>
       <a href="#preis" class="hide-s" data-i18n="nav.price">Preis</a>
       <a href="#faq" class="hide-s" data-i18n="nav.faq">FAQ</a>
-      <a href="/app/#login" data-i18n="nav.login">Einloggen</a>
+      <a href="/app/#login" class="nav-login" data-i18n="nav.login">Einloggen</a>
+      <a href="/app/#registrieren" class="nav-cta" data-i18n="hero.ctaStart">Gratis loslegen</a>
       <!-- Sprachregler "on-top", damit ein Besucher aus dem Ausland die Seite
            sofort umstellen kann. -->
       <span class="lang-switch" data-active="de" role="group" aria-label="Sprache / Language">
@@ -988,7 +1072,7 @@ body.has-beta-bar footer{ padding-bottom:110px; }
         dir dann, wer gerade in der Nähe ist. FLEXR macht das anders – und zwar
         bewusst:
       </p>
-      <ul class="plain">
+      <ul class="feature-grid">
         <li data-i18n-html="gym.li1"><b>Du wählst dein Studio.</b> Aus einer Liste von
           Fitnessstudios in Österreich und Deutschland mit Adresse. Fehlt deins, reichst du es mit Adresse
           ein und kannst es sofort verwenden.</li>
@@ -998,8 +1082,7 @@ body.has-beta-bar footer{ padding-bottom:110px; }
           Geräteposition ab. Gerechnet wird ausschließlich mit der öffentlichen
           Adresse des Studios, das du selbst angegeben hast. Dein Wohnort wird
           niemandem angezeigt – andere sehen nur deine Stadt.</li>
-        <li data-i18n-html="gym.li4"><b>Du siehst Leute aus Studios im Umkreis</b>, nicht nur aus deinem
-          eigenen. Das Gym ist der Mittelpunkt, nicht der Zaun.</li>
+        <li data-i18n-html="gym.li4"><b>Auch Studios im Umkreis.</b> Du siehst Leute aus Studios in deiner Nähe, nicht nur aus deinem eigenen. Das Gym ist der Mittelpunkt, nicht der Zaun.</li>
       </ul>
       <p data-i18n="gym.p2">
         Der praktische Vorteil: Ihr habt von Anfang an einen Ort, den ihr beide
@@ -1009,27 +1092,33 @@ body.has-beta-bar footer{ padding-bottom:110px; }
 
     <section id="lifestyle">
       <h2 data-i18n="life.h2">Dating, das zu deinem Lifestyle passt</h2>
-      <p data-i18n-html="life.p1">
-        Wer regelmäßig trainiert, kennt das Gespräch: „Du gehst schon
-        <i>wieder</i> ins Gym?“ Fünf Einheiten die Woche, das Abendessen nach
-        dem Training statt davor, der Wecker am Sonntag um sieben – das ist
-        kein Hobby, das man nebenbei erklärt. Es ist ein Teil des Tages, um den
-        herum der Rest geplant wird.
-      </p>
-      <p data-i18n-html="life.p2">
-        FLEXR ist für Menschen, die sich das nicht erklären wollen. Nicht, weil
-        Training das Einzige wäre, was zählt, sondern weil ein gemeinsames
-        Verständnis für Zeitaufwand und Disziplin eine Menge Reibung wegnimmt.
-        Wer selbst trainiert, fragt nicht, warum du am Freitagabend noch eine
-        Einheit einschiebst – und schlägt vielleicht vor, mitzukommen.
-      </p>
-      <p data-i18n-html="life.p3">
-        Und damit das klar ist: Es geht <b>nicht</b> um einen bestimmten Körper.
-        Kraftsport, Functional Fitness, Ausdauer, Kampfsport, Klettern, der
-        dritte Monat nach dem Wiedereinstieg – alles zählt. FLEXR ist kein
-        Wettbewerb um Körperfettanteile, sondern eine Plattform für Leute, die
-        einen ähnlichen Alltag führen.
-      </p>
+      <div class="life-grid">
+        <div class="life-copy">
+        <p data-i18n-html="life.p1">
+          Wer regelmäßig trainiert, kennt das Gespräch: „Du gehst schon
+          <i>wieder</i> ins Gym?“ Fünf Einheiten die Woche, das Abendessen nach
+          dem Training statt davor, der Wecker am Sonntag um sieben – das ist
+          kein Hobby, das man nebenbei erklärt. Es ist ein Teil des Tages, um den
+          herum der Rest geplant wird.
+        </p>
+        <p data-i18n-html="life.p2">
+          FLEXR ist für Menschen, die sich das nicht erklären wollen. Nicht, weil
+          Training das Einzige wäre, was zählt, sondern weil ein gemeinsames
+          Verständnis für Zeitaufwand und Disziplin eine Menge Reibung wegnimmt.
+          Wer selbst trainiert, fragt nicht, warum du am Freitagabend noch eine
+          Einheit einschiebst – und schlägt vielleicht vor, mitzukommen.
+        </p>
+        </div>
+        <div class="life-callout">
+        <p data-i18n-html="life.p3">
+          Und damit das klar ist: Es geht <b>nicht</b> um einen bestimmten Körper.
+          Kraftsport, Functional Fitness, Ausdauer, Kampfsport, Klettern, der
+          dritte Monat nach dem Wiedereinstieg – alles zählt. FLEXR ist kein
+          Wettbewerb um Körperfettanteile, sondern eine Plattform für Leute, die
+          einen ähnlichen Alltag führen.
+        </p>
+        </div>
+      </div>
     </section>
 
     <section id="oesterreich">
@@ -1038,7 +1127,7 @@ body.has-beta-bar footer{ padding-bottom:110px; }
         FLEXR funktioniert mit jeder Postleitzahl in Österreich und Deutschland – in
         <a href="/fitness-dating-wien.html"><b>Wien</b></a> genauso wie in <a href="/fitness-dating-graz.html"><b>Graz</b></a>, <a href="/fitness-dating-linz.html"><b>Linz</b></a>, <a href="/fitness-dating-salzburg.html"><b>Salzburg</b></a>,
         <a href="/fitness-dating-innsbruck.html"><b>Innsbruck</b></a>, <a href="/fitness-dating-klagenfurt.html"><b>Klagenfurt</b></a>, <b>Villach</b>, <b>Wels</b>,
-        <b>St. Pölten</b>, <b>Dornbirn</b> oder <b>Wiener Neustadt</b> genauso wie in <b>Berlin</b>, <b>Hamburg</b>, <b>München</b>, <b>Köln</b> oder <b>Frankfurt</b>.
+        <b>St. Pölten</b>, <b>Dornbirn</b> oder <b>Wiener Neustadt</b> genauso wie in <a href="/fitness-dating-berlin.html"><b>Berlin</b></a>, <a href="/fitness-dating-hamburg.html"><b>Hamburg</b></a>, <a href="/fitness-dating-muenchen.html"><b>München</b></a>, <a href="/fitness-dating-koeln.html"><b>Köln</b></a> oder <a href="/fitness-dating-frankfurt.html"><b>Frankfurt</b></a>.
       </p>
       <p data-i18n="at.p2">
         Ehrlich dazu: Wie viele Profile du siehst, hängt davon ab, wie viele
@@ -1062,7 +1151,7 @@ body.has-beta-bar footer{ padding-bottom:110px; }
         Dating-Apps ziehen Betrüger an. Dagegen tun wir Folgendes – und das
         sind keine Marketingversprechen, sondern das, was tatsächlich läuft:
       </p>
-      <ul class="plain">
+      <ul class="feature-grid">
         <li data-i18n-html="safe.li1"><b>Ab 18, und das wird geprüft.</b> Das Alter wird serverseitig aus
           dem Geburtsdatum berechnet. Vor der Freischaltung vergleicht ein
           Mensch dein Profilbild, ein live aufgenommenes Selfie und ein
@@ -1229,8 +1318,7 @@ body.has-beta-bar footer{ padding-bottom:110px; }
         <div class="foot-title" data-i18n="foot.discoverTitle">Entdecken</div>
         <ul>
           <li><a href="/gym-dating.html" hreflang="de" data-i18n="foot.gymDating">Gym-Dating in Österreich und Deutschland</a></li>
-          <li><a href="/fitness-dating-wien.html" hreflang="de" data-i18n="foot.wien">Fitness-Dating Wien</a></li>
-          <li><a href="/fitness-dating-graz.html" hreflang="de" data-i18n="foot.graz">Fitness-Dating Graz</a></li>
+          <li><a href="/gym-crush-ansprechen.html" hreflang="de" data-i18n="foot.gymCrush">Gym-Crush ansprechen</a></li>
           <li><a href="/date-ideen-sportler.html" hreflang="de" data-i18n="foot.dateIdeas">Date-Ideen für Sportler</a></li>
         </ul>
       </div>
@@ -1255,6 +1343,7 @@ body.has-beta-bar footer{ padding-bottom:110px; }
         </ul>
       </div>
     </div>
+    <p class="foot-cities" data-i18n-html="foot.cities"><span class="foot-cities-label">Fitness-Dating in:</span> <a href="/fitness-dating-wien.html" hreflang="de">Wien</a> <a href="/fitness-dating-graz.html" hreflang="de">Graz</a> <a href="/fitness-dating-linz.html" hreflang="de">Linz</a> <a href="/fitness-dating-salzburg.html" hreflang="de">Salzburg</a> <a href="/fitness-dating-innsbruck.html" hreflang="de">Innsbruck</a> <a href="/fitness-dating-klagenfurt.html" hreflang="de">Klagenfurt</a> <a href="/fitness-dating-berlin.html" hreflang="de">Berlin</a> <a href="/fitness-dating-hamburg.html" hreflang="de">Hamburg</a> <a href="/fitness-dating-muenchen.html" hreflang="de">München</a> <a href="/fitness-dating-koeln.html" hreflang="de">Köln</a> <a href="/fitness-dating-frankfurt.html" hreflang="de">Frankfurt</a></p>
     <p class="foot-note" data-i18n-html="foot.note">
       FLEXR ist eine Marke von Julian Pachernegg, Einzelunternehmer,
       8232 Grafendorf, Österreich. Nutzung ab 18 Jahren. Vollständige
