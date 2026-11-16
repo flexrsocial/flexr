@@ -1,3 +1,5 @@
+import pytest
+
 from app.email_jobs import _pending_likes_count
 from app.models import User
 from tests.conftest import TestingSessionLocal, register_user, register_user_with_photo
@@ -170,6 +172,41 @@ def test_detail_liste_zeigt_nur_eigene_blockierungen(client):
 
     # B hat selbst niemanden blockiert und darf As Liste nicht sehen
     assert client.get("/api/blocks?detail=true", headers=headers_b).json() == []
+
+
+@pytest.mark.parametrize("zustand", ["deleted_at", "is_banned", "hidden_from_others"])
+def test_detail_liste_verraet_nichts_ueber_unsichtbare_konten(client, zustand):
+    """Gelöschte (Karenz), gesperrte und unsichtbar geschaltete Konten sind
+    überall sonst verschwunden - die Blockierliste darf über ?detail=true
+    nicht weiter Name, Alter und Foto liefern. Nur user_id und blocked_at,
+    damit sich die Blockierung zurücknehmen lässt."""
+    from app.timeutil import utcnow
+
+    (headers_a, user_a), (headers_b, user_b) = make_pair(client)
+    client.post("/api/blocks", headers=headers_a, json={"user_id": user_b["id"]})
+
+    with TestingSessionLocal() as db:
+        b = db.query(User).filter(User.id == user_b["id"]).first()
+        if zustand == "deleted_at":
+            b.deleted_at = utcnow()
+        else:
+            setattr(b, zustand, True)
+        db.commit()
+
+    for sprache, platzhalter in (("de", "Profil nicht verfügbar"), ("en", "Profile unavailable")):
+        rows = client.get(
+            "/api/blocks?detail=true", headers={**headers_a, "Accept-Language": sprache}
+        ).json()
+        assert len(rows) == 1
+        eintrag = rows[0]
+        assert eintrag["user_id"] == user_b["id"]
+        assert eintrag["blocked_at"]
+        assert eintrag["name"] == platzhalter
+        assert eintrag["age"] is None
+        assert eintrag["photo_url"] is None
+
+    # Zurücknehmen geht weiterhin
+    assert client.delete(f"/api/blocks/{user_b['id']}", headers=headers_a).status_code == 200
 
 
 def test_aufheben_holt_match_und_chatverlauf_zurueck(client):

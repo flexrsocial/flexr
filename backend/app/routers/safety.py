@@ -210,8 +210,14 @@ def create_block(
     return {"blocked": True}
 
 
+# Angezeigter Name für blockierte Konten, die nicht mehr sichtbar sind
+# (gelöscht, gesperrt, unsichtbar) - siehe list_blocks.
+BLOCKED_PROFILE_UNAVAILABLE = "Profil nicht verfügbar"
+
+
 @router.get("/blocks")
 def list_blocks(
+    request: Request,
     detail: bool = Query(
         False,
         description="Mit Name, Alter und Vorschaubild statt nur der IDs.",
@@ -250,6 +256,27 @@ def list_blocks(
             # Konto endgültig gelöscht - die Blockierung hängt dann an einer
             # Person, die es nicht mehr gibt. Nicht anzeigen, aber auch nicht
             # stillschweigend loeschen: das erledigt der Fremdschlüssel.
+            continue
+        if user.deleted_at is not None or user.is_banned or user.hidden_from_others:
+            # Gelöscht (Karenz läuft), gesperrt oder unsichtbar geschaltet:
+            # Überall sonst ist so ein Profil verschwunden, hier darf die
+            # Blockierliste es nicht weiter zeigen - sonst ließe sich über
+            # Blockieren Name, Alter und Foto eines solchen Kontos abrufen.
+            # Nur user_id und blocked_at, damit die Blockierung zurückgenommen
+            # werden kann. "name" bleibt als neutraler Platzhalter stehen,
+            # weil Android (BlockedUserDto) und iOS (BlockedUserOutDTO) das
+            # Feld als Pflichtfeld deklarieren.
+            out.append(
+                BlockedUserOut(
+                    user_id=user.id,
+                    name=api_i18n.translate(
+                        BLOCKED_PROFILE_UNAVAILABLE, api_i18n.request_language(request)
+                    ),
+                    age=None,
+                    photo_url=None,
+                    blocked_at=row.created_at,
+                )
+            )
             continue
         # Nur freigegebene Fotos, gleiche Regel wie in to_public_profile().
         # Ein noch ungeprüftes oder abgelehntes Foto darf hier so wenig

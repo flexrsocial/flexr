@@ -28,6 +28,7 @@ from fastapi import Request
 _TEXTE: dict[str, str] = {
     # ---- Anmeldung / Konto
     "E-Mail oder Passwort falsch.": "Incorrect email or password.",
+    "Profil nicht verfügbar": "Profile unavailable",
     "Konto wegen zu vieler Fehlversuche vorübergehend gesperrt. Bitte in ein paar Minuten erneut versuchen.":
         "Account temporarily locked after too many failed attempts. Please try again in a few minutes.",
     "Zu viele Fehlversuche. Bitte versuche es in {minuten} Minuten erneut.":
