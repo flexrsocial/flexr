@@ -218,6 +218,31 @@ def test_email_censored_for_recipient(client):
     assert "[Kontakt entfernt]" in msgs_b[0]["content"]
 
 
+def test_match_list_last_message_censored_for_recipient(client):
+    """Regression: Die Vorschau in GET /api/matches (last_message) zeigte dem
+    Empfänger das unzensierte Original, obwohl der Chat selbst die zensierte
+    Fassung liefert."""
+    match_id, (headers_a, _), (headers_b, _) = make_match(client)
+    client.post(
+        f"/api/matches/{match_id}/messages",
+        headers=headers_a,
+        json={"content": "Schau mal https://scam.example.com/gewinn oder hallo@example.com"},
+    )
+
+    # Empfänger B: zensierte Fassung, weder Link noch E-Mail-Adresse
+    last_b = client.get("/api/matches", headers=headers_b).json()[0]["last_message"]
+    assert "scam.example.com" not in last_b["content"]
+    assert "hallo@example.com" not in last_b["content"]
+    assert "[Link entfernt]" in last_b["content"]
+    assert "[Kontakt entfernt]" in last_b["content"]
+    assert last_b["was_censored"] is True
+
+    # Absender A sieht in seiner Vorschau weiterhin das Original
+    last_a = client.get("/api/matches", headers=headers_a).json()[0]["last_message"]
+    assert "scam.example.com" in last_a["content"]
+    assert "hallo@example.com" in last_a["content"]
+
+
 def test_normal_message_not_censored(client):
     match_id, (headers_a, _), (headers_b, _) = make_match(client)
     client.post(

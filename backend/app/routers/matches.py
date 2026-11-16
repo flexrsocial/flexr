@@ -5,6 +5,7 @@ from sqlalchemy import and_, func, or_
 from sqlalchemy.orm import Session, aliased, selectinload
 
 from ..database import get_db
+from ..message_view import message_out
 from ..models import Block, Match, Message, Swipe, User
 from ..schemas import MatchOut
 from ..security import require_active_membership
@@ -130,7 +131,13 @@ def get_matches(
                 MatchOut(
                     match_id=row.id,
                     profile=to_public_profile(users_by_id[other_id]),
-                    last_message=last_message_by_match.get(row.id),
+                    # Betrachterabhängig wie im Chat selbst: der Empfänger
+                    # sieht auch in der Vorschau nur die zensierte Fassung.
+                    last_message=(
+                        message_out(last_message_by_match[row.id], current_user.id)
+                        if row.id in last_message_by_match
+                        else None
+                    ),
                     unread_count=unread_count_by_match.get(row.id, 0),
                     is_online=users_by_id[other_id].is_online,
                     in_chats=row.id in in_chats_ids,

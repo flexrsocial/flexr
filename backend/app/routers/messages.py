@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 
 from .. import premium, push, telegram
 from ..database import get_db
+from ..message_view import message_out
 from ..models import Block, Match, Message, ModerationAction, User
 from ..moderation import restriction_detail
 from ..rate_limit import limiter
@@ -42,22 +43,8 @@ def _get_match_and_other_id(match_id: str, current_user: User, db: Session) -> t
     return match, other_id
 
 
-def _message_out(m: Message, viewer_id: str) -> MessageOut:
-    """Baut die Nachrichten-Ausgabe je nach Betrachter: der Absender (und Admin)
-    sieht sein Original, der Empfänger die zensierte Fassung."""
-    if m.sender_id == viewer_id:
-        shown = m.content
-    else:
-        shown = m.display_content if m.display_content is not None else m.content
-    return MessageOut(
-        id=m.id,
-        match_id=m.match_id,
-        sender_id=m.sender_id,
-        content=shown,
-        created_at=m.created_at,
-        read_at=m.read_at,
-        was_censored=m.was_censored,
-    )
+# Gemeinsam mit der Match-Liste genutzt (last_message), siehe message_view.py.
+_message_out = message_out
 
 
 # Wie lang der Text in der Benachrichtigung höchstens wird. Auf einem
