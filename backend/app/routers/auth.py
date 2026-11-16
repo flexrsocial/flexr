@@ -362,11 +362,13 @@ def _check_credentials(db: Session, payload: LoginRequest) -> User:
 
     jetzt = utcnow()
     if user.login_locked_until and user.login_locked_until > jetzt:
-        minuten = max(1, int((user.login_locked_until - jetzt).total_seconds() // 60) + 1)
-        raise HTTPException(
-            status.HTTP_429_TOO_MANY_REQUESTS,
-            f"Zu viele Fehlversuche. Bitte versuche es in {minuten} Minuten erneut.",
-        )
+        # Gesperrt - aber nach aussen dieselbe Antwort wie bei falschen
+        # Zugangsdaten (Status, Text, bcrypt-Laufzeit). Ein eigenes 429 gab es
+        # nur fuer existierende Konten und verriet damit, wer eins hat.
+        # Die Sperre selbst wirkt weiter: auch das richtige Passwort kommt
+        # bis login_locked_until nicht durch, "Passwort vergessen" hebt sie auf.
+        verify_password(payload.password, _DUMMY_HASH)
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "E-Mail oder Passwort falsch.")
 
     if not verify_password(payload.password, user.password_hash):
         user.failed_login_attempts = (user.failed_login_attempts or 0) + 1

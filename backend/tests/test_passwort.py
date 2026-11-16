@@ -163,10 +163,14 @@ def test_login_sperre_nach_zehn_fehlversuchen(client, monkeypatch):
     register_user(client, "rate@example.com")
     for _ in range(10):
         assert _login(client, "rate@example.com", "falsch123").status_code == 401
-    # Jetzt gesperrt - auch das richtige Passwort kommt nicht durch.
+    # Jetzt gesperrt - auch das richtige Passwort kommt nicht durch. Die
+    # Antwort gleicht der fuer falsche Zugangsdaten bzw. ein unbekanntes
+    # Konto, damit die Sperre nicht verraet, dass es die Adresse gibt.
     gesperrt = _login(client, "rate@example.com", PW)
-    assert gesperrt.status_code == 429
-    assert "Minuten" in gesperrt.json()["detail"]
+    unbekannt = _login(client, "gibtsnicht@example.com", PW)
+    assert gesperrt.status_code == 401
+    assert unbekannt.status_code == 401
+    assert gesperrt.json() == unbekannt.json()
 
     # "Passwort vergessen" hebt die Sperre auf.
     client.post("/api/auth/password/forgot", json={"email": "rate@example.com"})
