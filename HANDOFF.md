@@ -1,11 +1,11 @@
 # FLEXR — Handoff für ein anderes Gerät / Claude Code
 
-Stand: **14.11.2026**
+Stand: **17.11.2026**
 
 ## ⚠️ Dringend zu prüfen: SSH-Zugang zum VPS hat sich geändert (21.09.2026)
 
 **Falls du (Claude Code auf einem anderen Gerät) bisher mit
-`ssh ... root@31.220.73.67` auf den Server gehst — das bricht demnächst.**
+`ssh ... root@<vps-ip>` auf den Server gehst — das bricht demnächst.**
 Root-SSH-Login verlangt seit heute zusätzlich zum Key einen TOTP-Code
 (2FA), den nur der Nutzer per Handy eingeben kann; automatisierte Logins
 als root sind damit nicht mehr möglich.
@@ -31,6 +31,43 @@ Falls du das liest, weil dein `root@`-Login gerade fehlschlägt: das ist
 erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 
 ## Wo das Projekt gerade steht
+
+> **Sitzung 17.11.2026: Sicherheitsbefunde (Branch `security-audit-fixes`,
+> nicht deployt, nicht nach `main` gemergt).** Nur Backend und diese Datei;
+> keine Migration, keine App-Version.
+>
+> - **Match-Liste:** `last_message` in `GET /api/matches` kam als rohe
+>   Message-Zeile, der Empfänger sah in der Vorschau unzensierte Links und
+>   E-Mail-Adressen. Jetzt über `app/message_view.py::message_out` (vorher
+>   `messages._message_out`, dort als Alias erhalten). Android
+>   `NewMessageWorker` liest dasselbe Feld, keine App-Änderung nötig.
+> - **Login:** Ein nach zehn Fehlversuchen gesperrtes Konto antwortet mit
+>   demselben 401 „E-Mail oder Passwort falsch." (samt bcrypt-Laufzeit) wie
+>   ein unbekanntes, statt mit einem eigenen 429. Sperre wirkt unverändert.
+> - **Blockierliste:** `GET /api/blocks?detail=true` liefert für gelöschte,
+>   gesperrte und unsichtbare Konten nur `user_id`/`blocked_at`; `name` ist
+>   der Platzhalter „Profil nicht verfügbar"/„Profile unavailable", weil
+>   Android und iOS das Feld als Pflichtfeld dekodieren.
+> - **Offen – Registrierung verrät weiterhin, ob es eine Adresse gibt**
+>   (`POST /api/auth/register` antwortet 409 bei vergebener Adresse). Eine
+>   für neu und vergeben gleiche Antwort (z. B. 202 „schau in dein Postfach",
+>   dem Bestandskonto eine Hinweismail) bricht die ausgelieferten Clients:
+>   Web (`frontend/app/index.html`, `setToken(tokenRes.access_token)` mit
+>   Foto-Upload direkt danach), Android (`FlexrApi.register` →
+>   `TokenResponseDto`) und iOS (`FlexrAPI.register` → `TokenResponseDTO`)
+>   brauchen das Token aus der Antwort. Umsetzbar erst mit neuen
+>   App-Fassungen, die einen tokenlosen Ablauf (Anmeldung nach
+>   E-Mail-Bestätigung) beherrschen, und nachdem die alten Fassungen
+>   ausgelaufen sind. Bis dahin bremst die IP-Grenze (5/Minute).
+> - **Öffentliches Repo:** VPS-IP, private und fremde E-Mail-Adressen sowie
+>   die Passwörter der fünf `+flexrtest`-Konten aus dieser Datei entfernt
+>   (Platzhalter wie `<vps-ip>`, `<betreiber-konto-1>`). **Die Git-Historie
+>   enthält sie weiterhin**, auch der erste Commit. Die fünf Testkonten-
+>   Passwörter gelten deshalb als bekannt: Konten löschen oder Passwörter
+>   ändern. `codemagic.yaml` trägt noch eine private Adresse als
+>   Build-Benachrichtigung (bewusst nicht geändert).
+> - **Getestet:** Backend 888 grün (`pytest -n 4`, venv mit Python 3.12 —
+>   unter 3.13 baut `psycopg2-binary==2.9.9` nicht).
 
 > **Sitzung 14.11.2026: Website-Overhaul (Design, SEO).** Nur `frontend/` und
 > `tools/seo/`, kein Backend, keine Migration, kein Neustart, keine App-Version.
@@ -751,7 +788,7 @@ erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 >   Commits per `git format-patch` → `git am` auf dem VPS und von dort
 >   gepusht. Geänderte Dateien danach in den MEGA-Ordner kopiert.
 >   `flexr-vps` in `~/.ssh/config` meldet sich noch als `root` an - für
->   Automatisierung `deploy@31.220.73.67` nehmen.
+>   Automatisierung `deploy@<vps-ip>` nehmen.
 > - Lokal fehlen pip/venv: `test_public_frontend.py` (nur Standardbibliothek)
 >   lief direkt ohne pytest, 11/11 grün. Später venv per `get-pip.py` im
 >   Scratchpad: Backend 751 Tests.
@@ -940,7 +977,7 @@ erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 >   damit vorn im Deck der Prüfer - ein Rechtswisch hätte ein Match mit einem
 >   echten Menschen ergeben. `appreview` hat jetzt einen Pass auf Kubi.
 > - `appreview` behält die zwei Matches mit Chatverlauf mit den Konten des
->   Betreibers (`styriatrading@`, `pachernegg@`); ein neues Match können die
+>   Betreibers (`<betreiber-konto-2>`, `<betreiber-konto-1>`); ein neues Match können die
 >   Prüfer nicht mehr herstellen (kein Testprofil, echte Nutzer sehen das
 >   Konto nicht). Eigenes Deck nach dem Deploy: 1 Profil.
 > - **Konto nicht löschen:** `appreview` ist das Prüfkonto unter „App-Zugriff“
@@ -1387,7 +1424,7 @@ erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 >
 > **Meldung des Nutzers:** ✕ im Fotoraster löscht sporadisch nicht, beim
 > Darüberfahren nur eine Hand, „Mindestens 3 Fotos sind erforderlich“ trotz
-> drei freigegebener Fotos (Konto pachernegg@gmail.com, nach einer früheren
+> drei freigegebener Fotos (Konto <betreiber-konto-1>, nach einer früheren
 > Ablehnung). Produktion geprüft (nur lesend): das Konto hat genau 3
 > freigegebene Fotos, Dateien erreichbar - die Meldung war die Regel selbst
 > (3 gültige = Minimum), nur sah man dem ✕ die Sperre nicht an. Dazu echte
@@ -1573,8 +1610,8 @@ erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 >   Screen springt auf `scrollTop = 0`. Auf hohen Viewports gemessen
 >   unveränderte Lage, im Querformat ragt der Leerzustand nur noch nach
 >   unten (erreichbar). `sw.js` v49.
-> - **Passwort-vergessen-Mails geprüft** (Prod nur lesend): pachernegg@ –
->   Token 12:30:49, später erneut 12:51:05; styriatrading@ – Token 12:41:17.
+> - **Passwort-vergessen-Mails geprüft** (Prod nur lesend): <betreiber-konto-1> –
+>   Token 12:30:49, später erneut 12:51:05; <betreiber-konto-2> – Token 12:41:17.
 >   Beide ohne Versandfehler an Brevo übergeben (seit 01.09. kein einziger
 >   „Mailversand … fehlgeschlagen“ im Journal), SMTP-Handshake VPS→Brevo
 >   ~0,1 s. Verzögerung (40 s) bzw. fehlende Mail liegen also hinter der
@@ -1692,7 +1729,7 @@ erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 >
 > - **Prüfkonto `appreview@flexr.social`** hat jetzt dauerhaft Premium
 >   (`store_premium_until` = 31.12.2099, wie `testuserfiverr@flexrtest.at`
->   und `styriatrading@gmail.com`; keine Store-Abo-Zeile). Grund: Ein
+>   und `<betreiber-konto-2>`; keine Store-Abo-Zeile). Grund: Ein
 >   Testkauf eines Google-Prüfers würde vom Server abgelehnt (Testkäufe
 >   schalten kein Premium frei, Entscheidung vom 20.09.) - mit Premium muss
 >   niemand kaufen, um die Funktionen zu sehen. Live geprüft: Premium aktiv,
@@ -2576,7 +2613,7 @@ erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 >   unverändert** („… oder als In-App-Kauf in der Android-App"), obwohl die
 >   App erst Mitte Oktober erscheint. Nicht ungefragt ändern.
 > - **Zugang auf diesem Gerät:** Der Key `~/.ssh/id_ed25519_flexr_vps`
->   funktioniert nur als `deploy@31.220.73.67`. Der Alias `flexr-vps` in der
+>   funktioniert nur als `deploy@<vps-ip>`. Der Alias `flexr-vps` in der
 >   `~/.ssh/config` steht hier noch auf `User root` und scheitert mit
 >   `Permission denied (publickey)`; deshalb `deploy@` und
 >   `-o IdentitiesOnly=yes` ausdrücklich angeben (sonst „Too many
@@ -5450,7 +5487,7 @@ adressiert) irgendwo landet oder ins Leere geht.
 `~/MEGA/flexr/seed/seed_fiverr.py` (außerhalb des Repos, siehe dessen README)
 legt `testuserfiverr@flexrtest.at` an: Prüfung bestanden, E-Mail bestätigt,
 FLEXR Premium dauerhaft (`store_premium_until` = 31.12.2099, wie bei
-`styriatrading@gmail.com` — nicht `is_subscribed`), drei freigegebene Fotos,
+`<betreiber-konto-2>` — nicht `is_subscribed`), drei freigegebene Fotos,
 Gym in 1090 Wien, Umkreis 250 km (der volle Premium-Regler; Standardkonten
 werden bei 50 km gekappt). Deck gegengeprüft: 32 Profile. Die drei Portraits
 stammen aus derselben Unsplash-Serie, damit das Profil nicht nach drei
@@ -5600,7 +5637,7 @@ genau das schon vorher absichtlich.
   in `frontend/brand/demo/`.
 - Diverse Logs, `__pycache__`-Ordner projektweit entfernt.
 
-### FLEXR Premium für `styriatrading@gmail.com`
+### FLEXR Premium für `<betreiber-konto-2>`
 
 Auf Wunsch **dauerhaft** freigeschaltet — `store_premium_until` auf
 `2099-12-31` gesetzt (nicht `is_subscribed`, um keine Stripe-Vertrags-
@@ -5868,7 +5905,7 @@ Baustein (`ios/FLEXR/UI/Chat/ChatView.swift`). Commit `feadf87`.
 Play Console hat den API-Zugriff aus den Kontoeinstellungen entfernt.
 Dienstkonten werden jetzt **in der Google Cloud Console** angelegt (IAM &
 Verwaltung → Dienstkonten, im selben Projekt `flexr-a0625` wie Firebase - das
-Firebase-Projekt lag „ohne Organisation", nicht unter `pachernegg-org`, daher
+Firebase-Projekt lag „ohne Organisation", nicht unter `<google-org des Betreibers>`, daher
 in der Projektauswahl zunächst nicht sichtbar) und dann in der Play Console
 unter **„Nutzer und Berechtigungen" → „Neue Nutzer einladen"** wie ein
 gewöhnlicher Nutzer eingeladen - mit der Dienstkonto-E-Mail-Adresse statt
@@ -6254,8 +6291,8 @@ ja nicht an. In der Produktion betraf das beim Nachsehen **drei Konten mit
 
 ```
 appreview@flexr.social      radius=250  premium=False
-zahariev.bul@gmail.com      radius=250  premium=False
-liisa_koch@hotmail.com      radius=250  premium=False
+<nutzer-1>                  radius=250  premium=False
+<nutzer-2>                  radius=250  premium=False
 ```
 
 Sie bekamen damit ohne Abo genau das, wofür Premium bezahlt wird.
@@ -6417,7 +6454,7 @@ beiden Apps — deutsch und englisch.
 **`TERMS_VERSION` bleibt `2026-09-17`.** Geprüft, warum das zulässig ist: Die
 Zwischenfassung von nachmittags war rund eine Stunde online, und in dieser Zeit
 hat sich **niemand** registriert — die beiden heutigen Konten (`testuser2`,
-`info@akhunstech.com`) tragen beide noch `terms 2026-09-10`. Es gibt also
+`<externer-tester>`) tragen beide noch `terms 2026-09-10`. Es gibt also
 keinen Nutzer, der die Zwischenfassung unter diesem Label akzeptiert hätte.
 
 ### Geprüft
@@ -6493,7 +6530,7 @@ Umlegen nachgeprüft, nicht angenommen:
 
 Die dabei entstandene `CheckoutConsent`-Zeile von `testuser2` wurde
 anschließend wieder entfernt; in der Tabelle steht nur noch der echte Eintrag
-von `styriatrading@gmail.com` vom 23.08.
+von `<betreiber-konto-2>` vom 23.08.
 
 ### Der Grund für das neue Modul `backend/app/clients.py`
 
@@ -9770,7 +9807,7 @@ nativer Code dazukommt; ein NDK ist dafür aktuell nicht nötig.
 - Repository: `git@github.com:flexrsocial/flexr.git`
 - Produktionsseite: <https://flexr.social>
 - API-Healthcheck: <https://flexr.social/api/health>
-- VPS-SSH-Alias: `flexr-vps` (root@31.220.73.67, Key
+- VPS-SSH-Alias: `flexr-vps` (root@<vps-ip>, IP siehe private Notizen; Key
   `~/.ssh/id_ed25519_flexr_vps` — lag auf diesem Gerät bereits vor, keine
   Neueinrichtung nötig)
 - Repository auf dem VPS: `/flexr`
@@ -9903,7 +9940,7 @@ auftauchte." Geprüft:
   fehlender Konfiguration oder Fehlschlag), ein stiller Erfolg sieht in den
   Logs also identisch zu „nie aufgerufen" aus.
 - Timeline aus der DB rekonstruiert: Die letzte echte (Nicht-Test-)
-  Registrierung vor dieser Sitzung war **Melanie** (`meli.moeser@gmail.com`,
+  Registrierung vor dieser Sitzung war **eine Nutzerin** (Adresse entfernt,
   24.08.2026 18:52) — **einen Tag vor** dem Telegram-Deploy (`086341b`,
   25.08. 14:47). Für ihre Registrierung *konnte* also gar kein Push kommen,
   das Feature existierte serverseitig noch nicht. Ihr Foto lag seither
@@ -10296,7 +10333,7 @@ gar nicht. Neuer Filter `consents.sensitive_data_consent_condition()`
 ### 8. Datenlücke dabei entdeckt: mehrere Konten ohne Consent-Zeile
 
 Beim Testen von Punkt 7 fiel auf: mehrere aktive Konten — **darunter das
-echte Konto `pachernegg@gmail.com`** — hatten trotz gesetztem Altfeld
+echte Konto `<betreiber-konto-1>`** — hatten trotz gesetztem Altfeld
 `users.sensitive_data_consent_at` **keine** Zeile in der neueren
 `consents`-Tabelle. Ohne Nachtrag hätte der neue Deck-Filter aus Punkt 7 sie
 fälschlich unsichtbar gemacht, obwohl nie widerrufen wurde. Migration
@@ -10308,7 +10345,7 @@ Skript direkt in die DB geschriebenen Testkonten jener Sitzung).
 
 **Falle beim ersten Migrationslauf:** Die Bedingung prüfte zunächst nur
 „keine AKTIVE Zeile" statt „noch nie irgendeine Zeile" — dadurch bekam
-`pachernegg@gmail.com`, das kurz zuvor testweise selbst über die App
+`<betreiber-konto-1>`, das kurz zuvor testweise selbst über die App
 widerrufen hatte, fälschlich eine neue aktive Zeile und der Widerruf wurde
 stillschweigend rückgängig gemacht. Auf Produktion von Hand korrigiert
 (die einzelne betroffene Zeile wieder gelöscht), Migrationsdatei danach
@@ -10507,16 +10544,15 @@ sichtbar getestet werden kann — die vorherigen Läufe nutzten quadratische
 Demo-Bilder aus `frontend/brand/demo/`, an denen der Crop-Unterschied gar
 nicht sichtbar gewesen wäre.
 
-Alle im 158-km-Suchradius von `pachernegg@gmail.com` (Julian, McFit
-Triester Straße, 1100 Wien), `verification_required=False`, sofort aktiv:
+Alle im 158-km-Suchradius des Betreiberkontos `<betreiber-konto-1>`, `verification_required=False`, sofort aktiv:
 
 | Name | Login-E-Mail | Passwort |
 |---|---|---|
-| Katharina | `pachernegg+flexrtest-katharina@gmail.com` | `2fCSNfuA9tZa` |
-| Sarah | `pachernegg+flexrtest-sarah@gmail.com` | `AOjXkqxhzcHF` |
-| Verena | `pachernegg+flexrtest-verena@gmail.com` | `l54K_mGm3i_T` |
-| Sophie | `pachernegg+flexrtest-sophie@gmail.com` | `XSpTcLIPXnT5` |
-| Elena | `pachernegg+flexrtest-elena@gmail.com` | `-YcvPAAMriaQ` |
+| Katharina | `<betreiber-konto-1>+flexrtest-katharina` | *(entfernt, siehe private Notizen)* |
+| Sarah | `<betreiber-konto-1>+flexrtest-sarah` | *(entfernt, siehe private Notizen)* |
+| Verena | `<betreiber-konto-1>+flexrtest-verena` | *(entfernt, siehe private Notizen)* |
+| Sophie | `<betreiber-konto-1>+flexrtest-sophie` | *(entfernt, siehe private Notizen)* |
+| Elena | `<betreiber-konto-1>+flexrtest-elena` | *(entfernt, siehe private Notizen)* |
 
 Anlage-Skript lief direkt gegen die Produktions-DB auf dem VPS (SQLAlchemy,
 kein rohes SQL), Fotos per `storage.get_s3_client()` nach R2 hochgeladen —
@@ -10527,10 +10563,10 @@ Git-Commits jener Sitzung rekonstruieren, oder aus
 `@flexrtest.at`, seit Sitzung 18.09.2026 (3) wieder aktuell: 30+30 Konten
 für den Premium-Funktionstest).
 
-**Bewusst nicht angerührt:** `teresa.pachernegg@gmail.com` — weiterhin
+**Bewusst nicht angerührt:** `<privates-konto-3>` — weiterhin
 unklar, ob Testkonto, auf Nutzerwunsch erhalten.
 
-Zum späteren Aufräumen: `email LIKE 'pachernegg+flexrtest-%'`, über den
+Zum späteren Aufräumen: `email LIKE '<betreiber-konto-1-lokalteil>+flexrtest-%'`, über den
 echten Löschweg (`delete_storage_objects`/`storage_keys_for_user` +
 `db.delete(user)`), nicht per rohem SQL.
 
