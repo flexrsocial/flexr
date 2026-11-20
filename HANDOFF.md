@@ -1,6 +1,6 @@
 # FLEXR — Handoff für ein anderes Gerät / Claude Code
 
-Stand: **17.11.2026**
+Stand: **20.11.2026**
 
 ## ⚠️ Dringend zu prüfen: SSH-Zugang zum VPS hat sich geändert (21.09.2026)
 
@@ -31,6 +31,21 @@ Falls du das liest, weil dein `root@`-Login gerade fehlschlägt: das ist
 erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 
 ## Wo das Projekt gerade steht
+
+> **Sitzung 20.11.2026: iOS 2.4.19 (61) ausgeliefert, SDK-Frist April 2027.**
+> Nur diese Datei; kein Code, keine Migration, keine App-Version.
+>
+> - **iOS 2.4.19 Build 61** über Codemagic `ios-flexr` an App Store Connect
+>   geliefert, Auslieferung erfolgreich.
+> - **Offen – bis April 2027 mit Xcode 27 bauen.** Apple-Hinweis
+>   ITMS-90725 zu Build 61: gebaut mit dem iOS-26.5-SDK; ab April 2027
+>   nimmt App Store Connect nur noch Builds mit iOS-27-SDK (Xcode 27+) an.
+>   `codemagic.yaml` steht auf `xcode: latest`, Codemagic hat damit aber
+>   noch Xcode 26.x genommen. Vor dem ersten iOS-Build ab etwa März 2027
+>   (besser früher) im Build-Log von `ios-flexr` die Xcode-Version prüfen;
+>   ist es noch 26.x, in `codemagic.yaml` eine 27er-Version fest eintragen
+>   und zuerst `ios-tests` laufen lassen (neues SDK kann neue
+>   Compilerfehler bringen).
 
 > **Sitzung 17.11.2026: Sicherheitsbefunde (Branch `security-audit-fixes`,
 > nicht deployt, nicht nach `main` gemergt).** Nur Backend und diese Datei;
