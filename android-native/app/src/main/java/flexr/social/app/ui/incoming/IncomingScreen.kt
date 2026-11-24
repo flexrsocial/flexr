@@ -258,7 +258,7 @@ private fun IncomingProfile(
             RoundActionButton(
                 icon = FlexrIcons.Like,
                 description = stringResource(R.string.swipe_like),
-                tint = Color.White,
+                tint = FlexrTheme.colors.plateInk,
                 large = true,
                 enabled = !isSwiping,
                 onClick = onLike,

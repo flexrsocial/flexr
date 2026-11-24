@@ -32,6 +32,13 @@ erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 
 ## Wo das Projekt gerade steht
 
+> **Sitzung 24.11.2026 (5): Android 2.7.47 / 159 gebaut, Upload offen.**
+> AAB `release-2.7.47/flexr-2.7.47-159.aab` (gitignored), SHA-256
+> `7779a1417ba20414ce1d34b7bc9ba50dbb13c3c5502101ce10a68ac18d8f52b6`,
+> 8.940.126 Bytes, signiert. Einzige Änderung zu 2.7.46: Herz unter „Offene
+> Likes“ `plateInk` statt Weiß (`IncomingScreen.kt`). 109 Unit-Tests grün.
+> Ersetzt 2.7.46, falls die noch nicht hochgeladen war.
+
 > **Sitzung 24.11.2026 (4): iOS 2.4.20 angepasst, Build über Codemagic offen.**
 > Lokal ohne Swift-Toolchain geändert - **ungeprüft kompiliert**, bis
 > `ios-tests` (startet automatisch beim Push nach `ios/`) grün ist. Danach
@@ -51,9 +58,7 @@ erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 > - Karten-Knöpfe Melden/Blockieren/Entmatchen: 44-pt-Tippfläche, 36-pt-Kreis.
 >   Chat-Kopf war schon 44 pt.
 > - Den Hinweis „… etwa 5 Minuten“ gibt es in iOS nicht.
-> - Kleine Abweichung Android 2.7.46: Herz in „Offene Likes“ noch weiß
->   (`IncomingScreen.kt:261`), im Deck schon `plateInk` - beim nächsten
->   Android-Release angleichen.
+> - Herz in „Offene Likes“ auf Android: in 2.7.47 angeglichen.
 
 > **Sitzung 24.11.2026 (3): Android 2.7.46 / 158 gebaut, Upload offen.**
 > AAB `release-2.7.46/flexr-2.7.46-158.aab` (gitignored), SHA-256

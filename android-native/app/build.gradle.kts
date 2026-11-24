@@ -373,8 +373,10 @@ android {
         // Leuchtschleier, Work Sans statt Mono (mind. 12 sp), ohne Wortspiel-
         // Vorzeilen, Symbolknoepfe 48 dp; Registrierungshinweis "das dauert
         // zusammen etwa 5 Minuten".
-        versionCode = 158
-        versionName = "2.7.46"
+        // 159/2.7.47 am 24.11.2026: Herz unter "Offene Likes" dunkel auf
+        // Orange wie im Deck (in 2.7.46 dort noch weiss).
+        versionCode = 159
+        versionName = "2.7.47"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
