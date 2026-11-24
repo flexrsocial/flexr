@@ -154,13 +154,14 @@
 // v66: Web-App-Login - Herz im Beispiel-Deck flach, Beispielprofil-Hinweis leiser.
 // v67: Web-App-Review - Hero ohne Slogan und Vorzeile, keine Leuchteffekte,
 // Work Sans statt Mono, mind. 12 px, groessere Symbolknoepfe; i18n-app.js ?v=49.
-const CACHE = 'flexr-shell-v67';
+// v68: Registrierungshinweis "das dauert zusammen etwa 5 Minuten"; i18n-app.js ?v=50.
+const CACHE = 'flexr-shell-v68';
 // Seit dem 15.08.2026 liegt die App unter /app/, an der Wurzel steht die
 // oeffentliche Landingpage. Beide gehoeren in die Shell: die Landingpage,
 // weil sie der Einstieg ist, die App, weil sie offline funktionieren soll.
 const SHELL = ['/', '/index.html', '/en/', '/en/index.html',
                '/app/', '/app/index.html',
-               '/lang-switch.js?v=2', '/i18n.js?v=7', '/app/i18n-app.js?v=49',
+               '/lang-switch.js?v=2', '/i18n.js?v=7', '/app/i18n-app.js?v=50',
                '/manifest.json', '/favicon.ico', '/legal.css?v=4',
                '/fonts/work-sans.woff2?v=1', '/fonts/oswald.woff2?v=1',
                '/icons/icon-192.png?v=4', '/icons/icon-512.png?v=4'];

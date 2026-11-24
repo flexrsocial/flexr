@@ -459,7 +459,7 @@
     'journey.id': 'Ausweis',
     'journey.review': 'Prüfung',
     'journey.regCount': '{fertig} von {gesamt} Angaben',
-    'journey.regInfo': 'Nach dem Profil bestätigst du deine E-Mail und machst ein Selfie und ein Foto deines Ausweises – zusammen etwa 5 Minuten.',
+    'journey.regInfo': 'Nach dem Profil bestätigst du deine E-Mail und machst ein Selfie und ein Foto deines Ausweises – das dauert zusammen etwa 5 Minuten.',
     'iosinst.aria': 'FLEXR aufs iPhone holen',
     'iosinst.title': 'FLEXR aufs iPhone holen',
     'iosinst.text': 'Tippe in Safari auf <svg class="ios-share" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V3.5M8 7.5l4-4 4 4M7 11H5.5v9.5h13V11H17"/></svg> „Teilen“ (ab iOS&nbsp;26 im Menü an der Adresszeile) und dann auf „Zu Home-Bildschirm hinzufügen“. FLEXR startet dann wie eine App – mit Mitteilungen bei neuen Nachrichten.',
