@@ -59,6 +59,9 @@ erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 >   `sw.js` v69, `i18n-app.js?v=51`.
 > - **Android 2.7.48 / 160:** Deck-Karte, Match-Liste, Offene Likes flach
 >   (`MaterialTheme.colorScheme.surface`).
+>   AAB `release-2.7.48/flexr-2.7.48-160.aab` (gitignored), 8.939.760 Bytes,
+>   SHA-256 `9ac5a17b72500452aebedf1fee3fe7453d2408043a82ee5b11114bd009c77310`,
+>   signiert, 109 Unit-Tests grün. Upload in die Play Console macht der Nutzer.
 > - **iOS 2.4.21:** Chat-Senden-Knopf und Schließen in der Fotoansicht 44 pt.
 >   Ungeprüft kompiliert bis `ios-tests` grün; danach `ios-flexr` starten.
 > - Offen (Nutzer): echte Gym-Fotos ohne Gesichter (Punkt B).
