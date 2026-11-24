@@ -162,13 +162,15 @@
 // Reihe, Preis-Fussnote; Web-App ohne Leucht-Schatten; legal.css ?v=5
 // (Zwischenueberschriften in Oswald).
 // v71: Hero Entwurf B - Kurzfakten statt Aufzaehlung, Studio-Schild an der Karte.
-const CACHE = 'flexr-shell-v71';
+// v72: Web-App-Startbereich mit derselben Faktenzeile; i18n-app.js ?v=52;
+// Landing-Karte ohne Studio-Schild, Studio wieder unten ("Wien · Fitinn").
+const CACHE = 'flexr-shell-v72';
 // Seit dem 15.08.2026 liegt die App unter /app/, an der Wurzel steht die
 // oeffentliche Landingpage. Beide gehoeren in die Shell: die Landingpage,
 // weil sie der Einstieg ist, die App, weil sie offline funktionieren soll.
 const SHELL = ['/', '/index.html', '/en/', '/en/index.html',
                '/app/', '/app/index.html',
-               '/lang-switch.js?v=2', '/i18n.js?v=7', '/app/i18n-app.js?v=51',
+               '/lang-switch.js?v=2', '/i18n.js?v=7', '/app/i18n-app.js?v=52',
                '/manifest.json', '/favicon.ico', '/legal.css?v=5',
                '/fonts/work-sans.woff2?v=1', '/fonts/oswald.woff2?v=1',
                '/icons/icon-192.png?v=4', '/icons/icon-512.png?v=4'];

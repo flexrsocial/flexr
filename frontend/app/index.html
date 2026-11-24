@@ -1507,16 +1507,16 @@
     color:var(--chalk); font-size:clamp(15px,1.3vw,17px); line-height:1.6;
     max-width:480px; margin-bottom:28px; text-shadow:0 2px 12px rgba(0,0,0,.7);
   }
-  .hero-usps{ display:flex; flex-direction:column; gap:12px; margin-bottom:32px; }
-  /* Block statt Flex: der Text enthaelt <b>, das sonst zur eigenen Spalte wird. */
+  /* Kurzfakten-Zeile mit Trennstrichen, wie .fact-row auf flexr.social. */
+  .hero-usps{ list-style:none; display:flex; flex-wrap:wrap; padding:0; margin:0 0 28px; }
   .hero-usps li{
-    list-style:none; position:relative; padding-left:21px;
-    font-size:14.5px; line-height:1.5; color:var(--chalk);
+    font-family:'Oswald', system-ui, sans-serif; text-transform:uppercase; letter-spacing:.06em;
+    font-size:13px; color:var(--chalk-dim); padding:3px 14px; border-left:1px solid var(--steel);
   }
-  /* Gleiche Aufzaehlungspunkte wie auf flexr.social (orangene Punkte). */
-  .hero-usps li::before{
-    content:''; position:absolute; left:2px; top:.45em; width:9px; height:9px;
-    border-radius:50%; background:var(--plate);
+  .hero-usps li:first-child{ padding-left:0; border-left:0; }
+  @media (max-width:420px){
+    .hero-usps{ display:grid; grid-template-columns:auto auto; justify-content:start; gap:6px 0; }
+    .hero-usps li:nth-child(3){ padding-left:0; border-left:0; }
   }
 
   /* Interaktives Musterdeck im Marketing-Hero. Es benutzt bewusst dieselbe
@@ -1744,8 +1744,7 @@
          fiel mobil direkt auf die erste USP-Zeile darunter und dunkelte sie ab */
       box-shadow:0 6px 18px rgba(0,0,0,.3);
     }
-    .hero-usps{ gap:9px; margin-bottom:0; }
-    .hero-usps li{ font-size:13.5px; }
+    .hero-usps{ margin-bottom:0; }
     .hero-demo{ padding-top:2px; }
     .hero-demo-stack{ width:154px; height:202px; margin-bottom:9px; }
     .hero-demo-card .hero-demo-name{ left:10px; right:10px; bottom:9px; font-size:14px; }
@@ -2658,7 +2657,7 @@
      laufen synchron und damit vor dem DOMContentLoaded, bei dem FlexrI18n die
      data-i18n-Knoten uebersetzt. -->
 <script src="/i18n.js?v=7"></script>
-<script src="/app/i18n-app.js?v=51"></script>
+<script src="/app/i18n-app.js?v=52"></script>
 <a class="skip-link" href="#main-content" data-i18n="common.skipToContent">Zum Inhalt springen</a>
 <div class="app" id="app">
 
@@ -2688,16 +2687,13 @@
         Dating für Leute, die auch montags Beintag machen. Finde Menschen,
         die Training genauso ernst nehmen wie du – in deinem Gym und in deiner Nähe.
       </p>
-      <ul class="hero-usps">
-        <li data-i18n-html="hero.usp1">Matches nach Gym und Umkreis — nicht am anderen Ende des Landes</li>
-        <!-- Beta-Gratisphase: Diese Zeile und der Registrierungstext weiter
-             unten stehen fest im Markup, weil sie vor dem Login gezeigt werden
-             - da gibt es noch keinen /api/billing/status. Wird die Gebuehr
-             wieder scharf geschaltet (BILLING_ENABLED=true, siehe
-             backend/app/config.py), gehoeren beide zurueck auf "1 Monat gratis,
-             danach 5 EUR/Monat". -->
-        <li data-i18n-html="hero.usp2">Dauerhaft gratis nutzbar — <b>nichts wird abgebucht</b>, Premium ist freiwillig</li>
-        <li data-i18n-html="hero.usp3">Jedes Konto wird vor der Freischaltung auf Volljährigkeit geprüft</li>
+      <!-- Kurzfakten wie auf flexr.social (Hero Entwurf B, 24.11.2026) statt der
+           drei Aufzaehlungspunkte. Klasse hero-usps bleibt wegen grid-area. -->
+      <ul class="hero-usps fact-row">
+        <li data-i18n="hero.fact1">Kostenlos</li>
+        <li data-i18n-html="hero.fact2">Nach Gym &amp; Umkreis</li>
+        <li data-i18n="hero.fact3">Jedes Profil geprüft</li>
+        <li data-i18n="hero.fact4">Ab 18</li>
       </ul>
       <div class="hero-dl"><a class="ios-dl" href="/app/?ios=installieren" data-i18n-aria="dl.aria" aria-label="FLEXR-App fürs iPhone installieren"><svg class="ios-dl-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="2.5" width="12" height="19" rx="2.6"/><path d="M12 7.5v7M9 11.5l3 3 3-3M10.5 18.5h3"/></svg><span class="ios-dl-text"><small data-i18n="dl.small">Für iPhone</small><b data-i18n="dl.big">App installieren</b></span></a><a class="ios-dl" href="https://play.google.com/store/apps/details?id=flexr.social.app" data-i18n-aria="dl.playAria" aria-label="FLEXR-App für Android bei Google Play installieren"><svg class="ios-dl-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="2.5" width="12" height="19" rx="2.6"/><path d="M10.4 8.6v5.8l4.8-2.9zM10.5 18.5h3"/></svg><span class="ios-dl-text"><small data-i18n="dl.playSmall">Für Android</small><b data-i18n="dl.playBig">Bei Google Play</b></span></a></div>
       <!-- Hier stand bis zum 15.08.2026 ein Demo-Deck mit acht Fotos echter

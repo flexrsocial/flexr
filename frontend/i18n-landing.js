@@ -42,8 +42,7 @@
     'hero.fact2': 'Nach Gym &amp; Umkreis',
     'hero.fact3': 'Jedes Profil geprüft',
     'hero.fact4': 'Ab 18',
-    'hero.gymChip': 'Ironclub Wien · 3 km',
-    'hero.cardSub': 'Krafttraining · Wien',
+    'hero.cardSub': 'Wien · Fitinn',
 
     'life.h2': 'Dating, das zu deinem Lifestyle passt',
     'life.p1': 'Fünf Einheiten die Woche, Abendessen nach dem Training, der Wecker am Sonntag um sieben: Wer selbst trainiert, fragt nicht, warum du am Freitagabend noch ins Gym gehst – und kommt vielleicht einfach mit.',
@@ -237,8 +236,7 @@
     'hero.fact2': 'By gym &amp; radius',
     'hero.fact3': 'Every profile checked',
     'hero.fact4': '18+',
-    'hero.gymChip': 'Ironclub Vienna · 3 km',
-    'hero.cardSub': 'Strength training · Vienna',
+    'hero.cardSub': 'Vienna · Fitinn',
 
     'life.h2': 'Dating that fits your lifestyle',
     'life.p1': 'Five sessions a week, dinner after training, the alarm at seven on a Sunday: someone who trains themselves won’t ask why you’re heading to the gym on a Friday night – and might just come along.',

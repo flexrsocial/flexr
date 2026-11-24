@@ -35,9 +35,12 @@ erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 > **Sitzung 24.11.2026 (8): Hero Entwurf B.** Aufzählung unter dem Hero und
 > Hinweissatz ersetzt durch Kurzfakten-Zeile (`hero.fact1-4`: Kostenlos | Nach
 > Gym & Umkreis | Jedes Profil geprüft | Ab 18), „In deiner Nähe“-Schild durch
-> Studio-Schild an der Karte (`hero.gymChip`, Beispiel „Ironclub Wien · 3 km“,
-> fiktives Studio). Entfernt: `hero.ctaNote`, `hero.badge`, `hero.usp1-3` (nur
-> Landing; die Web-App hat eigene Keys). `sw.js` v71.
+> nichts ersetzt (Studio-Schild „Ironclub Wien · 3 km“ auf Wunsch wieder
+> entfernt); Kartenzeile zeigt jetzt das Studio wie im Muster-Deck
+> (`hero.cardSub` „Wien · Fitinn“). Entfernt: `hero.ctaNote`, `hero.badge`, `hero.usp1-3` (nur
+> Landing). Danach auch die Web-App: `hero-usps` als Faktenzeile mit
+> `hero.fact1-4` (fact2 per `data-i18n-html` wegen `&amp;`), `hero.usp1-3`
+> entfernt, `i18n-app.js?v=52`, `sw.js` v72.
 
 > **Sitzung 24.11.2026 (7): Dritte Design-Runde (nur Web), live.**
 > - **Landing:** FAQ als Register in 4 Themen (Entwurf 2) mit Nummern je Thema
