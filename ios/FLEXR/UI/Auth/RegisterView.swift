@@ -58,7 +58,6 @@ struct RegisterView: View {
                 .padding(.top, 8)
 
                 ScreenHeader(
-                    eyebrow: s(.registerEyebrow),
                     title: s(.registerTitle),
                     // Der Text steht fest im Wörterbuch, weil vor dem Login
                     // noch kein /api/billing/status abrufbar ist. Er nennt

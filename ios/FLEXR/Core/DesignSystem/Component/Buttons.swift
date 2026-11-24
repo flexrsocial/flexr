@@ -202,13 +202,7 @@ struct RoundActionButton: View {
                 if isLarge {
                     Circle().fill(FlexrColor.plateGradient)
                 } else {
-                    Circle().fill(
-                        LinearGradient(
-                            colors: [Color(hex: 0x222222), Color(hex: 0x1B1B1B)],
-                            startPoint: .top,
-                            endPoint: .bottom
-                        )
-                    )
+                    Circle().fill(FlexrColor.surface2)
                     Circle().strokeBorder(FlexrColor.steel, lineWidth: 1)
                 }
                 Image(systemName: icon)

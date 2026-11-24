@@ -86,7 +86,7 @@ struct SwipeView: View {
     @ViewBuilder
     private func content(_ model: SwipeModel) -> some View {
         VStack(alignment: .leading, spacing: 0) {
-            ScreenHeader(eyebrow: s(.swipeEyebrow), title: s(.swipeTitle))
+            ScreenHeader(title: s(.swipeTitle))
                 .padding(.top, 18)
 
             Text(locationLabel(model).uppercased())
@@ -254,7 +254,7 @@ struct SwipeView: View {
                         RoundActionButton(
                             icon: FlexrIcon.like,
                             accessibilityLabel: s(.swipeLike),
-                            tint: .white,
+                            tint: FlexrColor.plateInk,
                             isLarge: true
                         ) {
                             Task {

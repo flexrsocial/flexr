@@ -492,13 +492,7 @@ private struct MessageBubble: View {
         .padding(.vertical, 9)
         .background {
             if isMine {
-                bubbleShape.fill(
-                    LinearGradient(
-                        colors: [FlexrColor.plateBright, FlexrColor.plate],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                )
+                bubbleShape.fill(FlexrColor.plate)
             } else {
                 bubbleShape.fill(FlexrColor.surface2)
                 bubbleShape.strokeBorder(FlexrColor.hairline, lineWidth: 1)
@@ -625,18 +619,12 @@ private struct ChatInputRow: View {
                 Button(action: onSend) {
                     Image(systemName: FlexrIcon.send)
                         .font(.system(size: 16, weight: .semibold))
-                        .foregroundStyle(canSend ? Color.white : FlexrColor.chalkDim)
+                        .foregroundStyle(canSend ? FlexrColor.plateInk : FlexrColor.chalkDim)
                         .frame(width: 40, height: 40)
                         .background(
                             Circle().fill(
                                 canSend
-                                    ? AnyShapeStyle(
-                                        LinearGradient(
-                                            colors: [FlexrColor.plateBright, FlexrColor.plate],
-                                            startPoint: .topLeading,
-                                            endPoint: .bottomTrailing
-                                        )
-                                    )
+                                    ? AnyShapeStyle(FlexrColor.plate)
                                     : AnyShapeStyle(FlexrColor.surface3)
                             )
                         )

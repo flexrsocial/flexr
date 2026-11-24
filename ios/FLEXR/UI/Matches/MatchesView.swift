@@ -172,7 +172,7 @@ private struct MatchListScreen<Row: View, Header: View>: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            ScreenHeader(eyebrow: eyebrow, title: title)
+            ScreenHeader(title: title)
                 .padding(.top, 18)
                 .padding(.horizontal, 20)
 

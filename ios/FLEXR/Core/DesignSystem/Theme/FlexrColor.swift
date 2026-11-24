@@ -31,22 +31,24 @@ enum FlexrColor {
     /// Blauer Haken verifizierter Profile.
     static let verified = Color(hex: 0x2D9CDB)
 
-    /// Verlauf der primären Aktion (`.btn` im Web).
+    /// Fläche der primären Aktion (`.btn` im Web). Seit 2.4.20 flach - der
+    /// orangene Verlauf gehörte zum KI-Look (Design-Review 24.11.2026). Der
+    /// Typ bleibt `LinearGradient`, damit alle Aufrufer unverändert bleiben.
     static let plateGradient = LinearGradient(
-        colors: [plateBright, plate, plateDeep],
-        startPoint: .topLeading,
-        endPoint: .bottomTrailing
+        colors: [plate, plate],
+        startPoint: .top,
+        endPoint: .bottom
     )
 
-    /// Kartenfläche im Deck und in den Listen.
+    /// Kartenfläche im Deck und in den Listen (seit 2.4.20 flach).
     static let cardGradient = LinearGradient(
-        colors: [Color(hex: 0x202020), Color(hex: 0x191919)],
+        colors: [surface, surface],
         startPoint: .top,
         endPoint: .bottom
     )
 
     static let listItemGradient = LinearGradient(
-        colors: [Color(hex: 0x1F1F1F), Color(hex: 0x1A1A1A)],
+        colors: [surface, surface],
         startPoint: .top,
         endPoint: .bottom
     )
@@ -64,19 +66,12 @@ extension Color {
     }
 }
 
-/// Hintergrund der App-Fläche: entspricht dem mehrschichtigen Verlauf aus
-/// `.app` im Web (orangefarbener Schleier über der Grundfarbe).
+/// Hintergrund der App-Fläche: ruhige Grundfarbe. Bis 2.4.19 lag hier ein
+/// orangener Schleier (wie damals `.app` im Web) - seit dem Design-Review
+/// 24.11.2026 in Web, Android und iOS entfernt.
 struct FlexrBackground: View {
     var body: some View {
-        ZStack {
-            FlexrColor.ink
-            RadialGradient(
-                colors: [FlexrColor.plate.opacity(0.12), .clear],
-                center: UnitPoint(x: 0.12, y: -0.04),
-                startRadius: 0,
-                endRadius: 460
-            )
-        }
-        .ignoresSafeArea()
+        FlexrColor.ink
+            .ignoresSafeArea()
     }
 }

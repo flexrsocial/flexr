@@ -12,15 +12,19 @@ struct Eyebrow: View {
     }
 }
 
-/// Standard-Kopf eines Bildschirms: Vorzeile plus Überschrift.
+/// Standard-Kopf eines Bildschirms: Überschrift, optional mit Vorzeile.
+/// Seit 2.4.20 ohne die Wortspiel-Vorzeilen ("Heutige Sätze", "Trefferquote"
+/// ...) - sie wirkten in dieser Menge wie aus einer Vorlage (Design-Review).
 struct ScreenHeader: View {
-    let eyebrow: String
+    var eyebrow: String? = nil
     let title: String
     var subtitle: String?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            Eyebrow(text: eyebrow)
+            if let eyebrow {
+                Eyebrow(text: eyebrow)
+            }
             Text(title)
                 .flexrText(.headlineMedium)
                 .foregroundStyle(FlexrColor.chalk)
@@ -53,14 +57,7 @@ struct EmptyStateView<Action: View>: View {
             // Dezent in Markenfarbe statt grauem Ring - der wirkte wie ein
             // Platzhalter, der noch auf seinen Inhalt wartet (wie Web/Android).
             ZStack {
-                Circle().fill(
-                    RadialGradient(
-                        colors: [FlexrColor.plate.opacity(0.16), FlexrColor.plate.opacity(0.03)],
-                        center: .center,
-                        startRadius: 0,
-                        endRadius: 34
-                    )
-                )
+                Circle().fill(FlexrColor.surface)
                 Circle().strokeBorder(FlexrColor.plate.opacity(0.26), lineWidth: 1)
                 FlexrGlyph(icon, size: 28)
                     .foregroundStyle(FlexrColor.plate)

@@ -133,7 +133,7 @@ struct IncomingView: View {
                 RoundActionButton(
                     icon: FlexrIcon.like,
                     accessibilityLabel: s(.swipeLike),
-                    tint: .white,
+                    tint: FlexrColor.plateInk,
                     isLarge: true,
                     isEnabled: !isSwiping
                 ) {

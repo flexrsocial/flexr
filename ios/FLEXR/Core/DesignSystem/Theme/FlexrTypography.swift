@@ -34,8 +34,12 @@ enum FlexrFont {
         Font(uiFont(PostScriptName.workSans, size: size, weight: weight))
     }
 
+    /// Seit 2.4.20 (24.11.2026) Work Sans statt JetBrains Mono und mindestens
+    /// 12 pt - wie Web und Android nach dem Design-Review: Mono wirkte technisch
+    /// und war mit 9-11 pt zu klein. Der Name bleibt, damit die Aufrufer
+    /// (`.flexrMono`, Stil `.mono`) unverändert bleiben.
     static func mono(_ size: CGFloat, weight: CGFloat = 500) -> Font {
-        Font(uiFont(PostScriptName.jetBrainsMono, size: size, weight: weight))
+        Font(uiFont(PostScriptName.workSans, size: max(size, 12), weight: weight))
     }
 
     static func uiFont(_ postScriptName: String, size: CGFloat, weight: CGFloat) -> UIFont {
@@ -84,13 +88,13 @@ extension FlexrTextStyle {
     static let bodySmall = FlexrTextStyle(font: .flexrWorkSans(13), lineSpacing: 4)
 
     static let labelLarge = FlexrTextStyle(font: .flexrOswald(15, weight: 600), tracking: 0.9)
-    static let labelMedium = FlexrTextStyle(font: .flexrMono(11), tracking: 0.66, lineSpacing: 1)
-    static let labelSmall = FlexrTextStyle(font: .flexrMono(10), tracking: 0.8, lineSpacing: 1)
+    static let labelMedium = FlexrTextStyle(font: .flexrWorkSans(12, weight: 500), tracking: 0.36, lineSpacing: 1)
+    static let labelSmall = FlexrTextStyle(font: .flexrWorkSans(12, weight: 500), tracking: 0.48, lineSpacing: 1)
 
-    /// `.eyebrow` aus dem Web: Mono, gesperrt, Versalien, Akzentfarbe.
-    static let eyebrow = FlexrTextStyle(font: .flexrMono(11), tracking: 1.32, lineSpacing: 1)
+    /// `.eyebrow` aus dem Web: gesperrt, Versalien, Akzentfarbe.
+    static let eyebrow = FlexrTextStyle(font: .flexrWorkSans(12, weight: 600), tracking: 0.96, lineSpacing: 1)
     /// `.mono` — technische Werte (Entfernung, Radius, Zeitstempel).
-    static let mono = FlexrTextStyle(font: .flexrMono(11), tracking: 0.22, lineSpacing: 2)
+    static let mono = FlexrTextStyle(font: .flexrWorkSans(12, weight: 500), tracking: 0.24, lineSpacing: 2)
     /// Wortmarke im Header, leicht verbreitert (`.brand` im Web).
     static let brand = FlexrTextStyle(font: .flexrOswald(22, weight: 700), tracking: 1.32)
 

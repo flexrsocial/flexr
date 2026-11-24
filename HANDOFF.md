@@ -32,6 +32,29 @@ erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 
 ## Wo das Projekt gerade steht
 
+> **Sitzung 24.11.2026 (4): iOS 2.4.20 angepasst, Build über Codemagic offen.**
+> Lokal ohne Swift-Toolchain geändert - **ungeprüft kompiliert**, bis
+> `ios-tests` (startet automatisch beim Push nach `ios/`) grün ist. Danach
+> baut der Nutzer `ios-flexr` in Codemagic (Build-Nummer setzt die CI).
+>
+> - `FlexrFont.mono` liefert jetzt Work Sans mit mindestens 12 pt (Name
+>   bleibt, damit `.flexrMono(...)`-Aufrufer unverändert bleiben);
+>   `labelSmall`/`labelMedium`/`eyebrow`/`mono` in Work Sans 12 pt.
+> - `plateGradient`/`cardGradient`/`listItemGradient` sind flach (Typ bleibt
+>   `LinearGradient`), `FlexrBackground` ohne orangen Schleier, Leerzustand
+>   ohne radialen Verlauf, kleine Rund-Knöpfe `surface2`, eigene Chatblasen
+>   und Senden flach orange (Senden-Pfeil `plateInk`), Herz in Swipe und
+>   Offene Likes mit `plateInk` statt Weiß, Swipe-Karte Haarlinie statt
+>   orangem Rand.
+> - `ScreenHeader(eyebrow:)` optional; Swipe, Matches, Chats, Login,
+>   Registrierung ohne Vorzeile („Passwort vergessen“ bleibt).
+> - Karten-Knöpfe Melden/Blockieren/Entmatchen: 44-pt-Tippfläche, 36-pt-Kreis.
+>   Chat-Kopf war schon 44 pt.
+> - Den Hinweis „… etwa 5 Minuten“ gibt es in iOS nicht.
+> - Kleine Abweichung Android 2.7.46: Herz in „Offene Likes“ noch weiß
+>   (`IncomingScreen.kt:261`), im Deck schon `plateInk` - beim nächsten
+>   Android-Release angleichen.
+
 > **Sitzung 24.11.2026 (3): Android 2.7.46 / 158 gebaut, Upload offen.**
 > AAB `release-2.7.46/flexr-2.7.46-158.aab` (gitignored), SHA-256
 > `681379a3b5938e4e64c8333a4989490f2c2aa4f92aa5bfec755550ac0b5cf95b`,

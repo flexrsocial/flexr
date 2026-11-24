@@ -93,7 +93,7 @@ struct SwipeableCard: View {
             .clipShape(RoundedRectangle(cornerRadius: FlexrRadius.large, style: .continuous))
             .overlay(
                 RoundedRectangle(cornerRadius: FlexrRadius.large, style: .continuous)
-                    .strokeBorder(FlexrColor.plate.opacity(0.3), lineWidth: 1.5)
+                    .strokeBorder(FlexrColor.hairline, lineWidth: 1)
             )
             .overlay(alignment: .topTrailing) {
                 if isDraggable {
@@ -361,15 +361,17 @@ private struct CardContent: View {
     }
 
     private var actionButtons: some View {
-        HStack(spacing: 6) {
+        // Knöpfe haben 4 pt unsichtbaren Rand (44 pt Tippfläche, 36 pt Kreis),
+        // daher kein Zwischenraum und kleinere Außenabstände.
+        HStack(spacing: 0) {
             if let onUnmatch {
                 CardActionButton(icon: FlexrIcon.unmatch, label: s(.unmatchAction), action: onUnmatch)
             }
             CardActionButton(icon: FlexrIcon.report, label: s(.commonReport), action: onReport)
             CardActionButton(icon: FlexrIcon.block, label: s(.commonBlock), action: onBlock)
         }
-        .padding(.top, 22)
-        .padding(.trailing, 10)
+        .padding(.top, 18)
+        .padding(.trailing, 6)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
     }
 
@@ -502,13 +504,17 @@ private struct CardActionButton: View {
     let action: () -> Void
 
     var body: some View {
+        // 44 pt Tippfläche (Apple-Mindestmaß), sichtbar ein 36-pt-Kreis.
+        // Bis 2.4.19 war beides 30 pt.
         Button(action: action) {
             Image(systemName: icon)
-                .font(.system(size: 13, weight: .semibold))
+                .font(.system(size: 15, weight: .semibold))
                 .foregroundStyle(.white.opacity(0.85))
-                .frame(width: 30, height: 30)
+                .frame(width: 36, height: 36)
                 .background(Circle().fill(.black.opacity(0.5)))
                 .overlay(Circle().strokeBorder(.white.opacity(0.22), lineWidth: 1))
+                .frame(width: 44, height: 44)
+                .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .accessibilityLabel(label)

@@ -152,7 +152,6 @@ struct LoginView: View {
                 .padding(.top, 8)
 
                 ScreenHeader(
-                    eyebrow: s(.loginEyebrow),
                     title: s(.loginTitle),
                     subtitle: s(.loginSubtitle)
                 )
