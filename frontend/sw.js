@@ -151,7 +151,8 @@
 // v65: Design-Runde 24.11.2026 - Schritte mit Kontur-Ziffern, Gym-Karte mit
 // Stammstudio, Sicherheit als grosser Satz, ohne Leuchteffekte; groessere
 // Tippflaechen, Abschluss-Kasten auf den Such-Einstiegsseiten.
-const CACHE = 'flexr-shell-v65';
+// v66: Web-App-Login - Herz im Beispiel-Deck flach, Beispielprofil-Hinweis leiser.
+const CACHE = 'flexr-shell-v66';
 // Seit dem 15.08.2026 liegt die App unter /app/, an der Wurzel steht die
 // oeffentliche Landingpage. Beide gehoeren in die Shell: die Landingpage,
 // weil sie der Einstieg ist, die App, weil sie offline funktionieren soll.

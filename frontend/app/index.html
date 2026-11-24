@@ -1636,9 +1636,16 @@
   .hero-demo-actions .round-btn.like{ width:56px; height:56px; }
   .hero-demo-actions .round-btn svg.ico{ width:22px; height:22px; }
   .hero-demo-actions .round-btn.like svg.ico{ width:25px; height:25px; }
+  /* Herz im Beispiel-Deck flach wie auf der Landingpage (seit 24.11.2026):
+     ohne Verlauf, ohne orangenen Schein, Hover nur ueber die Farbe. */
+  .hero-demo-actions .round-btn.like{ background:var(--plate); color:#1a0a04; box-shadow:none; }
+  .hero-demo-actions .round-btn.like:hover{ background:var(--plate-bright); transform:none; box-shadow:none; }
+  .hero-demo-actions .round-btn.pass:hover{ box-shadow:none; }
   .hero-demo-hint.short{ display:none; }
+  /* Kennzeichnung als Beispiel muss bleiben (brand/demo/README.md), soll aber
+     nicht mit dem Formular daneben konkurrieren - deshalb stark zurueckgenommen. */
   .hero-demo-hint{
-    margin-top:7px; text-align:center; color:var(--chalk-dim);
+    margin-top:7px; text-align:center; color:var(--chalk-dim); opacity:.5;
     font-family:'JetBrains Mono', monospace; font-size:8.5px;
     letter-spacing:.08em; text-transform:uppercase;
   }
