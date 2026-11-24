@@ -161,7 +161,8 @@
 // v70: FAQ als Register (Themen, nummeriert), Lifestyle-Satz gross, Staedte-
 // Reihe, Preis-Fussnote; Web-App ohne Leucht-Schatten; legal.css ?v=5
 // (Zwischenueberschriften in Oswald).
-const CACHE = 'flexr-shell-v70';
+// v71: Hero Entwurf B - Kurzfakten statt Aufzaehlung, Studio-Schild an der Karte.
+const CACHE = 'flexr-shell-v71';
 // Seit dem 15.08.2026 liegt die App unter /app/, an der Wurzel steht die
 // oeffentliche Landingpage. Beide gehoeren in die Shell: die Landingpage,
 // weil sie der Einstieg ist, die App, weil sie offline funktionieren soll.

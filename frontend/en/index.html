@@ -354,12 +354,21 @@ main{ overflow-x:clip; }
   letter-spacing:.03em;
 }
 .hero-profile-info span{ font-size:12.5px; color:rgba(255,255,255,.82); }
-.hero-match-badge{
-  position:absolute; z-index:5; right:-2px; top:20px; padding:9px 13px;
-  border:2px solid var(--lime); border-radius:9px; color:var(--lime);
-  background:rgba(18,18,18,.84); backdrop-filter:blur(8px);
-  font-family:'Oswald',sans-serif; font-size:14px; font-weight:700;
-  letter-spacing:.13em; text-transform:uppercase; transform:rotate(4deg);
+/* Studio-Schild an der Karte (Entwurf B, 24.11.2026): zeigt den Gym-Bezug
+   statt des allgemeinen "In deiner Naehe". Beispielwerte, nicht live. */
+.hero-gym-chip{
+  position:absolute; z-index:5; right:-2px; top:14px; display:flex; align-items:center; gap:6px;
+  background:var(--ink); color:var(--chalk); border:1px solid var(--steel); border-left:3px solid var(--plate);
+  padding:7px 12px 7px 9px; font-size:13px; font-weight:600; border-radius:4px;
+}
+.hero-gym-chip svg{ width:16px; height:16px; fill:none; stroke:var(--plate); stroke-width:2; flex-shrink:0; }
+/* Kurzfakten unter den Buttons statt Hinweissatz und Aufzaehlung. */
+.fact-row{ list-style:none; display:flex; flex-wrap:wrap; padding:0; margin:18px 0 0; }
+.fact-row li{ font-family:'Oswald',sans-serif; text-transform:uppercase; letter-spacing:.06em; font-size:13px; color:var(--chalk-dim); padding:3px 14px; border-left:1px solid var(--steel); }
+.fact-row li:first-child{ padding-left:0; border-left:0; }
+@media (max-width:420px){
+  .fact-row{ display:grid; grid-template-columns:auto auto; justify-content:start; gap:6px 0; }
+  .fact-row li:nth-child(3){ padding-left:0; border-left:0; }
 }
 .hero-actions{
   position:absolute; z-index:5; right:28px; bottom:9px; display:flex; gap:12px;
@@ -419,12 +428,7 @@ main{ overflow-x:clip; }
   .dl-row .ios-dl-text b{ font-size:13.5px; white-space:nowrap; }
 }
 
-.usps{ list-style:none; padding:0; margin:30px 0 0; display:grid; gap:10px; }
-.usps li{ position:relative; padding-left:28px; color:var(--chalk); font-size:15.5px; }
-.usps li::before{
-  content:''; position:absolute; left:2px; top:.62em; width:9px; height:9px;
-  border-radius:50%; background:var(--plate);
-}
+
 
 @media (max-width:760px){
   .hero{ padding-top:34px; }
@@ -439,7 +443,7 @@ main{ overflow-x:clip; }
   .hero-profile-main{ right:18px; top:24px; }
   .hero-profile-back{ left:20px; }
   .hero-profile-mid{ left:55px; top:42px; }
-  .hero-match-badge{ right:10px; top:4px; }
+  .hero-gym-chip{ right:6px; top:4px; }
   .hero-actions{ right:34px; bottom:0; }
 }
 @media (max-width:340px){
@@ -915,7 +919,12 @@ body.has-beta-bar footer{ padding-bottom:110px; }
             <a class="btn" href="/app/#registrieren" data-i18n="hero.ctaStart">Start for free</a>
             <a class="btn ghost" href="/app/#login" data-i18n="nav.login">Log in</a>
           </div>
-          <p class="cta-note" data-i18n="hero.ctaNote">Sign up free, no payment method needed. 18+.</p>
+          <ul class="fact-row">
+            <li data-i18n="hero.fact1">Free</li>
+            <li data-i18n="hero.fact2">By gym &amp; radius</li>
+            <li data-i18n="hero.fact3">Every profile checked</li>
+            <li data-i18n="hero.fact4">18+</li>
+          </ul>
           <div class="dl-row ios-dl-hero"><a class="ios-dl" href="/app/?ios=installieren" data-i18n-aria="dl.aria" aria-label="Install the FLEXR app on your iPhone"><svg class="ios-dl-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="2.5" width="12" height="19" rx="2.6"/><path d="M12 7.5v7M9 11.5l3 3 3-3M10.5 18.5h3"/></svg><span class="ios-dl-text"><small data-i18n="dl.small">For iPhone</small><b data-i18n="dl.big">Install the app</b></span></a><a class="ios-dl" href="https://play.google.com/store/apps/details?id=flexr.social.app" data-i18n-aria="dl.playAria" aria-label="Install the FLEXR app for Android on Google Play"><svg class="ios-dl-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="2.5" width="12" height="19" rx="2.6"/><path d="M10.4 8.6v5.8l4.8-2.9zM10.5 18.5h3"/></svg><span class="ios-dl-text"><small data-i18n="dl.playSmall">For Android</small><b data-i18n="dl.playBig">On Google Play</b></span></a></div>
         </div>
 
@@ -933,19 +942,13 @@ body.has-beta-bar footer{ padding-bottom:110px; }
               <span data-i18n="hero.cardSub">Strength training · Vienna</span>
             </div>
           </div>
-          <div class="hero-match-badge" data-i18n="hero.badge">Near you</div>
+          <div class="hero-gym-chip"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-6-5.3-6-10a6 6 0 1 1 12 0c0 4.7-6 10-6 10z"/><circle cx="12" cy="11" r="2.2"/></svg><span data-i18n="hero.gymChip">Ironclub Vienna · 3 km</span></div>
           <div class="hero-actions">
             <span class="hero-action hero-action-nope">×</span>
             <span class="hero-action hero-action-like">♥</span>
           </div>
         </div>
       </div>
-
-      <ul class="usps">
-        <li data-i18n-html="hero.usp1">Matches by gym and radius — not from the other end of the country</li>
-        <li data-i18n-html="hero.usp2">Free to use, permanently — <b>nothing is charged</b>, Premium is optional</li>
-        <li data-i18n-html="hero.usp3">Every account is checked for being of age before it is unlocked</li>
-      </ul>
     </div>
 
     <!-- Reihenfolge seit 30.09.2026: erst "So funktioniert's" und das

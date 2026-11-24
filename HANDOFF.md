@@ -32,6 +32,13 @@ erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 
 ## Wo das Projekt gerade steht
 
+> **Sitzung 24.11.2026 (8): Hero Entwurf B.** Aufzählung unter dem Hero und
+> Hinweissatz ersetzt durch Kurzfakten-Zeile (`hero.fact1-4`: Kostenlos | Nach
+> Gym & Umkreis | Jedes Profil geprüft | Ab 18), „In deiner Nähe“-Schild durch
+> Studio-Schild an der Karte (`hero.gymChip`, Beispiel „Ironclub Wien · 3 km“,
+> fiktives Studio). Entfernt: `hero.ctaNote`, `hero.badge`, `hero.usp1-3` (nur
+> Landing; die Web-App hat eigene Keys). `sw.js` v71.
+
 > **Sitzung 24.11.2026 (7): Dritte Design-Runde (nur Web), live.**
 > - **Landing:** FAQ als Register in 4 Themen (Entwurf 2) mit Nummern je Thema
 >   ab 01 und Oswald-Fragen (aus Entwurf 1), Keys `faq.g1-4`; Lifestyle-Kernsatz
