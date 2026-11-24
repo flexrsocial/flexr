@@ -50,7 +50,7 @@ struct PhotoLightbox: View {
                         Image(systemName: FlexrIcon.close)
                             .font(.system(size: 17, weight: .semibold))
                             .foregroundStyle(.white)
-                            .frame(width: 42, height: 42)
+                            .frame(width: 44, height: 44)
                             .background(Circle().fill(.white.opacity(0.08)))
                     }
                     .buttonStyle(.plain)

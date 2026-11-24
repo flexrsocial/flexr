@@ -560,9 +560,9 @@ ul.plain li{ margin-bottom:9px; }
 }
 .sample-profile-card{
   position:absolute; inset:0; display:flex; flex-direction:column; overflow:hidden;
-  border-radius:20px; background:linear-gradient(180deg,#202020,#191919);
+  border-radius:20px; background:var(--surface);
   border:1px solid var(--hairline); cursor:grab; user-select:none;
-  box-shadow:0 22px 46px rgba(0,0,0,.55);
+  box-shadow:0 10px 24px rgba(0,0,0,.35);
   transform-origin:bottom center;
   transition:transform .36s cubic-bezier(.2,.8,.3,1), opacity .3s ease;
 }
@@ -627,39 +627,64 @@ ul.plain li{ margin-bottom:9px; }
   margin-top:10px; text-align:center; color:var(--chalk-dim); font-size:12px;
   letter-spacing:.07em; text-transform:uppercase;
 }
+/* Am Handy keine Pfeiltasten erwaehnen - nur mit echter Maus. */
+.sample-deck-hint .hint-mouse{ display:none; }
+@media (hover:hover) and (pointer:fine){
+  .sample-deck-hint .hint-touch{ display:none; }
+  .sample-deck-hint .hint-mouse{ display:inline; }
+}
 @media(max-width:520px){
   .sample-deck{ width:min(100%, 340px); }
   .sample-deck-stage{ height:480px; }
   .sample-name{ font-size:24px; }
 }
 /* ---- Preis ---- */
-/* Zwei Karten nebeneinander, ab 720px. Darunter untereinander - die kostenlose
-   zuerst, weil sie das eigentliche Angebot ist. */
-.price-grid{
-  display:grid; gap:18px; margin-top:22px;
-  grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); max-width:900px;
+/* Plakat (orange, gratis zuerst) und darunter der Vergleich als Tabelle.
+   Premium: oranger Spaltenkopf wie ein Stueck Plakat plus orange Linie,
+   bewusst ohne Karte/Rahmen (Entwurf 4, 24.11.2026). */
+.sr-only{ position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
+.price-poster{
+  background:var(--plate); color:#140700; border-radius:4px 4px 0 0;
+  padding:clamp(26px,5vw,48px); margin-top:22px;
+  display:grid; grid-template-columns:auto 1fr; gap:10px 36px; align-items:end;
 }
-.price-card{
-  background:var(--surface); border:1px solid rgba(255,90,31,.3); border-radius:16px;
-  padding:26px; max-width:440px;
+.price-zero{ font-family:'Oswald',sans-serif; font-weight:700; font-size:clamp(110px,22vw,200px); line-height:.82; letter-spacing:-.02em; }
+.price-zero span{ font-size:.45em; vertical-align:top; margin-left:4px; }
+.price-poster-copy h3{ font-size:clamp(26px,4.4vw,40px); line-height:1.02; margin:0 0 12px; text-transform:uppercase; color:#140700; }
+section .price-poster-copy p{ color:#2a1206; margin:0 0 6px; max-width:40ch; font-size:15px; }
+section .price-poster-copy p b{ color:#140700; }
+.btn.price-poster-btn{ background:#140700; color:var(--chalk); border-color:#140700; margin-top:14px; transition:background .15s ease, transform .15s ease; }
+.btn.price-poster-btn:hover{ background:#000; border-color:#000; color:#fff; transform:translateY(-1px); }
+.price-compare{ border:1px solid var(--steel); border-top:0; border-radius:0 0 4px 4px; padding:8px clamp(16px,4vw,32px) 22px; }
+.price-table{ width:100%; border-collapse:collapse; font-size:15px; }
+.price-table th, .price-table td{ padding:14px 10px; border-bottom:1px solid var(--hairline); text-align:left; vertical-align:top; font-weight:400; }
+.price-table thead th{ border-bottom:2px solid var(--steel); padding-top:18px; padding-bottom:16px; }
+.price-table tbody th{ padding-left:0; color:var(--chalk-dim); width:40%; }
+.price-table td{ color:var(--chalk-dim); }
+.price-plan{ display:block; font-family:'Oswald',sans-serif; text-transform:uppercase; letter-spacing:.06em; font-size:13px; color:var(--chalk-dim); font-weight:500; }
+.price-amount{ display:block; font-family:'Oswald',sans-serif; font-size:clamp(24px,4.6vw,32px); line-height:1.05; color:var(--chalk); font-weight:600; margin-top:4px; }
+.price-amount small{ font-size:14px; color:var(--chalk-dim); font-family:'Work Sans',sans-serif; font-weight:400; }
+.price-table th.prem, .price-table td.prem{ border-left:3px solid var(--plate); padding-left:16px; padding-right:12px; }
+.price-table thead th.prem{ background:var(--plate); border-bottom-color:var(--plate); border-radius:0 4px 0 0; }
+.price-table thead th.prem .price-plan{ color:#140700; font-weight:600; }
+.price-table thead th.prem .price-amount{ color:#140700; font-size:clamp(30px,5.8vw,40px); font-weight:700; }
+.price-table thead th.prem .price-amount small{ color:#3a1606; }
+.price-table td.prem{ color:var(--chalk); font-weight:600; }
+.price-table td.prem .yes{ color:var(--plate); font-weight:700; }
+.price-table .startboost{ color:var(--lime); }
+.price-table tfoot td{ border:0; padding:0; }
+.price-table tfoot td.price-cta{ padding:18px 0 0; }
+.price-table tfoot td.price-cta .btn{ display:block; width:100%; padding:14px 10px; font-size:15px; text-align:center; white-space:nowrap; }
+@media (max-width:640px){ .price-poster{ grid-template-columns:1fr; } }
+@media (max-width:560px){
+  .price-table{ font-size:14px; }
+  .price-table th, .price-table td{ padding:12px 6px; }
+  .price-table tbody th{ width:38%; }
+  .price-amount small{ display:block; margin-top:4px; }
+  .price-table th.prem, .price-table td.prem{ padding-left:10px; padding-right:8px; }
+  .price-table tfoot td.price-cta .btn{ font-size:14px; letter-spacing:.03em; padding:14px 4px; }
 }
-.price-grid .price-card{ margin-top:0; max-width:none; display:flex; flex-direction:column; }
-.price-grid .price-card > ul{ flex:1; }
-/* Premium-Karte mit neongruenem Rahmen (Wunsch 01.10.2026), passend zur
-   Ueberschrift der kostenlosen Karte. */
-.price-card-premium{ border-color:var(--lime); }
-.price-free.premium{ color:var(--plate); }
-.price-soon{
-  margin:22px 0 0; padding:11px 14px; border-radius:10px; text-align:center;
-  background:var(--surface-2); border:1px solid var(--steel);
-  color:var(--chalk-dim); font-size:13.5px;
-}
-.price{ font-family:'Oswald', sans-serif; font-size:46px; line-height:1; margin:6px 0 4px; }
-.price small{ font-size:17px; color:var(--chalk-dim); }
-.price-free{ font-family:'Oswald', sans-serif; font-size:20px; color:var(--lime); text-transform:uppercase; letter-spacing:.06em; }
-.price ~ ul{ list-style:none; padding:0; margin:16px 0 0; }
-.price ~ ul li{ padding-left:24px; position:relative; font-size:14.5px; color:var(--chalk-dim); margin-bottom:9px; }
-.price ~ ul li::before{ content:'✓'; position:absolute; left:0; color:var(--lime); font-weight:700; }
+@media (max-width:370px){ .price-table tfoot td.price-cta .btn{ white-space:normal; line-height:1.2; } }
 
 /* ---- FAQ ---- */
 .faq{ margin-top:22px; }
@@ -1081,7 +1106,7 @@ body.has-beta-bar footer{ padding-bottom:110px; }
             <svg viewBox="0 0 24 24"><path d="M12 20.3S4.8 15.7 4.8 10.8C4.8 8 6.9 6 9.3 6c1.2 0 2.3.55 2.7 1.4C12.4 6.55 13.5 6 14.7 6c2.4 0 4.5 2 4.5 4.8 0 4.9-7.2 9.5-7.2 9.5z" fill="currentColor" stroke="none"/></svg>
           </button>
         </div>
-        <div class="sample-deck-hint" data-i18n="sample.hint">Drag, tap or use the arrow keys</div>
+        <div class="sample-deck-hint"><span class="hint-touch" data-i18n="sample.hintTouch">Drag the card or tap the buttons</span><span class="hint-mouse" data-i18n="sample.hint">Drag, click or use the arrow keys</span></div>
       </div>
       </div>
     </section>
@@ -1150,37 +1175,40 @@ body.has-beta-bar footer{ padding-bottom:110px; }
       <p data-i18n-html="safe.p2">A visual check makes deception harder, it does not rule it out. Before a first meeting, please read our <a href="/en/sicherheit.html">safety tips</a>.</p>
     </section>
 
-    <!-- Zwei Karten nebeneinander: kostenlos und Premium. Die kostenlose steht
-         links und zuerst - sie ist das Angebot, nicht der Lockvogel. -->
+    <!-- Preis als Plakat (gratis zuerst, das eigentliche Angebot) und
+         darunter der Vergleich Gratis/Premium als Tabelle. Premium hebt sich
+         ueber den orangen Kopf und die orange Linie ab, nicht ueber eine Karte. -->
     <section id="preis">
       <h2 data-i18n="price.h2">What FLEXR costs</h2>
-      <p style="margin-top:-6px; margin-bottom:26px;" data-i18n-html="price.lead"><b>Using FLEXR costs nothing — permanently.</b> Signing up, browsing profiles, liking, matching and chatting are and stay free. No payment method is requested.</p>
-      <div class="price-grid">
-        <div class="price-card">
-          <p class="price-free" data-i18n="price.freeEyebrow">FLEXR</p>
-          <div class="price">0&nbsp;€ <small data-i18n="price.forever">/ forever</small></div>
-          <ul>
-            <li data-i18n="price.free1">Browse profiles and match</li>
-            <li data-i18n="price.free2">20 likes per day</li>
-            <li data-i18n="price.free3">3 conversations at once</li>
-            <li data-i18n-html="price.free4">Search radius up to 50 km<span class="startboost"> – currently even up to 1,100 km for everyone</span></li>
-            <li data-i18n="price.free5">No payment method, nothing to cancel</li>
-          </ul>
-          <a class="btn" href="/app/#registrieren" style="display:block; text-align:center; margin-top:22px;" data-i18n="price.cta">Start for free</a>
+      <div class="price-poster">
+        <div class="price-zero" aria-hidden="true">0<span>€</span></div>
+        <div class="price-poster-copy">
+          <h3 data-i18n-html="price.posterH">Costs nothing.<br>Stays that way.</h3>
+          <p data-i18n-html="price.posterP"><b>Browse profiles, like, match, chat</b> – no payment method, nothing to cancel.</p>
+          <a class="btn price-poster-btn" href="/app/#registrieren" data-i18n="price.cta">Start for free</a>
         </div>
-        <div class="price-card price-card-premium">
-          <p class="price-free premium" data-i18n="price.premiumEyebrow">FLEXR Premium</p>
-          <div class="price">10&nbsp;€ <small data-i18n="price.perMonth">/ month</small></div>
-          <ul>
-            <li data-i18n="price.prem1">Unlimited likes</li>
-            <li data-i18n="price.prem2">Unlimited conversations</li>
-            <li data-i18n="price.prem3">See who liked you</li>
-            <li data-i18n="price.prem4">Undo your last swipe</li>
-            <li data-i18n-html="price.prem5">Full search radius up to 1,100 km<span class="startboost"> – currently free for everyone</span></li>
-            <li data-i18n="price.prem6">Premium badge on your profile</li>
-          </ul>
-          <a class="btn" href="/app/#premium" style="display:block; text-align:center; margin-top:22px;" data-i18n="price.premiumCta">Get Premium</a>
-        </div>
+      </div>
+      <div class="price-compare">
+        <table class="price-table">
+          <thead>
+            <tr>
+              <th scope="col"><span class="sr-only" data-i18n="price.colFeature">Feature</span></th>
+              <th scope="col"><span class="price-plan" data-i18n="price.colFree">Free</span><span class="price-amount">0&nbsp;€ <small data-i18n="price.forever">forever</small></span></th>
+              <th scope="col" class="prem"><span class="price-plan" data-i18n="price.colPremium">Premium</span><span class="price-amount">10&nbsp;€ <small data-i18n="price.perMonth">/ month</small></span></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><th scope="row" data-i18n="price.rowLikes">Likes</th><td data-i18n="price.free2">20 per day</td><td class="prem" data-i18n="price.unlimited">unlimited</td></tr>
+            <tr><th scope="row" data-i18n="price.rowChats">Conversations</th><td data-i18n="price.free3">3 at once</td><td class="prem" data-i18n="price.unlimited">unlimited</td></tr>
+            <tr><th scope="row" data-i18n="price.rowRadius">Search radius</th><td data-i18n-html="price.free4">50&nbsp;km<span class="startboost"> – currently 1,100&nbsp;km</span></td><td class="prem" data-i18n-html="price.prem5">1,100&nbsp;km</td></tr>
+            <tr><th scope="row" data-i18n="price.prem3">See who liked you</th><td><span aria-hidden="true">–</span><span class="sr-only" data-i18n="price.no">no</span></td><td class="prem"><span class="yes" aria-hidden="true">✓</span> <span data-i18n="price.yes">yes</span></td></tr>
+            <tr><th scope="row" data-i18n="price.prem4">Undo your last swipe</th><td><span aria-hidden="true">–</span><span class="sr-only" data-i18n="price.no">no</span></td><td class="prem"><span class="yes" aria-hidden="true">✓</span> <span data-i18n="price.yes">yes</span></td></tr>
+            <tr><th scope="row" data-i18n="price.prem6">Premium badge</th><td><span aria-hidden="true">–</span><span class="sr-only" data-i18n="price.no">no</span></td><td class="prem"><span class="yes" aria-hidden="true">✓</span> <span data-i18n="price.yes">yes</span></td></tr>
+          </tbody>
+          <tfoot>
+            <tr><td></td><td></td><td class="price-cta"><a class="btn" href="/app/#premium" data-i18n="price.premiumCta">Get Premium</a></td></tr>
+          </tfoot>
+        </table>
       </div>
       <p style="margin-top:22px;" data-i18n-html="price.p1"><b>A free account never turns into a subscription by itself.</b></p>
       <details class="fine">

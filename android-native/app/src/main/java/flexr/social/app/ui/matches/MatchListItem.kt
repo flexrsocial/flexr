@@ -24,7 +24,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
@@ -67,7 +66,7 @@ fun MatchListItem(
         modifier = modifier
             .fillMaxWidth()
             .clip(MaterialTheme.shapes.medium)
-            .background(Brush.verticalGradient(listOf(Color(0xFF1F1F1F), Color(0xFF1A1A1A))))
+            .background(MaterialTheme.colorScheme.surface)
             .border(
                 width = if (unread) 1.5.dp else 1.dp,
                 color = if (unread) colors.plateDim else colors.hairline,

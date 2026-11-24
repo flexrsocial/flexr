@@ -247,7 +247,7 @@ fun BackgroundCard(profile: Profile, progress: Float, modifier: Modifier = Modif
                 translationY = 14f * (1f - progress)
             }
             .clip(RoundedCornerShape(20.dp))
-            .background(Brush.verticalGradient(listOf(Color(0xFF202020), Color(0xFF191919))))
+            .background(MaterialTheme.colorScheme.surface)
             .border(1.dp, FlexrTheme.colors.hairline, RoundedCornerShape(20.dp)),
     ) {
         CardContent(

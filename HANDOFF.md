@@ -1,6 +1,6 @@
 # FLEXR — Handoff für ein anderes Gerät / Claude Code
 
-Stand: **20.11.2026**
+Stand: **24.11.2026**
 
 ## ⚠️ Dringend zu prüfen: SSH-Zugang zum VPS hat sich geändert (21.09.2026)
 
@@ -31,6 +31,37 @@ Falls du das liest, weil dein `root@`-Login gerade fehlschlägt: das ist
 erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 
 ## Wo das Projekt gerade steht
+
+> **Sitzung 24.11.2026 (6): Zweite Design-Runde (Web, App, Android, iOS) und DESIGN.md.**
+> Prüfpunkte wie in Runde 1 (Referenzen, 3 Entwürfe, KI-Look-Verbot,
+> Fremd-Urteil, Feinschliff bei 375 px). Alles live auf flexr.social.
+>
+> - **`DESIGN.md` (neu, Repo-Wurzel):** eine Vorgabe für alle vier
+>   Oberflächen - Referenzsichtung (10 Fitness-/Sportseiten; Dating-Seiten
+>   im Prüf-Browser gesperrt), Verbotsliste KI-Look, Farb-/Schrift-Tokens,
+>   Radien, Bausteine, Tippflächen, Hover-Regel, Ablauf mit 3 Entwürfen.
+> - **Landing Preis neu (Entwurf 4):** oranges Plakat „0 € · Kostet nichts.
+>   Bleibt so.“ plus Vergleichstabelle Gratis/Premium (Werte statt Haken).
+>   Premium-Spalte: oranger Kopf + 3 px Linie links, kein Rahmen; „Premium
+>   holen“ mit Abstand unter der Spalte. Neue Keys `price.posterH/posterP/
+>   colFeature/colFree/colPremium/rowLikes/rowChats/rowRadius/unlimited/yes/no`,
+>   entfernt `price.lead/free1/free5/freeEyebrow/premiumEyebrow/prem1/prem2`.
+>   `en/index.html` neu erzeugt.
+> - **Landing Musterkarte:** flach (kein Verlauf, leichter Schatten); Hinweis
+>   am Handy „Karte ziehen oder Knöpfe antippen“ (`sample.hintTouch`), mit
+>   Maus weiter mit Pfeiltasten (`@media (hover:hover) and (pointer:fine)`).
+> - **Web-App:** Startbereich-Texte und Aufzählungspunkte wie flexr.social
+>   (`hero.sub/usp1-3`), letzte Verläufe weg (Swipe-Karte, Match-Zeilen,
+>   Einstellungsliste, Premium-Karte), oranger Strich unter dem Logo und
+>   Balken vor Konto-Überschriften entfernt, Footer-Links und „Passwort
+>   vergessen?“ 44 px hoch (Touch), alle 60 `:hover`-Regeln in
+>   `@media (hover:hover)` (Hilfsskript im Scratchpad, nicht im Repo).
+>   `sw.js` v69, `i18n-app.js?v=51`.
+> - **Android 2.7.48 / 160:** Deck-Karte, Match-Liste, Offene Likes flach
+>   (`MaterialTheme.colorScheme.surface`).
+> - **iOS 2.4.21:** Chat-Senden-Knopf und Schließen in der Fotoansicht 44 pt.
+>   Ungeprüft kompiliert bis `ios-tests` grün; danach `ios-flexr` starten.
+> - Offen (Nutzer): echte Gym-Fotos ohne Gesichter (Punkt B).
 
 > **Sitzung 24.11.2026 (5): Android 2.7.47 / 159 gebaut, Upload offen.**
 > AAB `release-2.7.47/flexr-2.7.47-159.aab` (gitignored), SHA-256

@@ -375,8 +375,10 @@ android {
         // zusammen etwa 5 Minuten".
         // 159/2.7.47 am 24.11.2026: Herz unter "Offene Likes" dunkel auf
         // Orange wie im Deck (in 2.7.46 dort noch weiss).
-        versionCode = 159
-        versionName = "2.7.47"
+        // 160/2.7.48 am 24.11.2026: letzte Kartenverlaeufe flach (Deck-Karte,
+        // Match-Liste, Offene Likes).
+        versionCode = 160
+        versionName = "2.7.48"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

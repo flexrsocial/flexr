@@ -168,12 +168,6 @@
     border-bottom:1px solid var(--hairline);
     position:relative;
   }
-  header.top::after{
-    content:''; position:absolute; left:20px; bottom:-1px; height:2px; width:64px;
-    background:linear-gradient(90deg, var(--plate), rgba(255,90,31,0));
-    border-radius:2px;
-  }
-  body.landing header.top::after{ display:none; }
   .brand{ font-size:22px; font-weight:700; letter-spacing:0.06em; }
   .brand span{ color:var(--plate); }
   .header-actions{ display:flex; align-items:center; gap:8px; }
@@ -191,7 +185,7 @@
     padding:5px 10px; border-radius:20px; border:1px solid var(--plate);
     color:var(--plate); background:rgba(255,90,31,.08); cursor:pointer;
   }
-  .premium-cta-pill:hover{ background:rgba(255,90,31,.16); }
+  @media (hover:hover){ .premium-cta-pill:hover{ background:rgba(255,90,31,.16); } }
 
   /* scrollbar-gutter:stable reserviert den Platz für einen (nicht-Overlay-)
      Scrollbalken immer, egal ob der Inhalt gerade lang genug zum Scrollen
@@ -272,12 +266,12 @@
   /* Dezenter Scrollbalken im FLEXR-Look: dünn, orange-transparent, erscheint
      erst beim Hovern/Scrollen (Thumb sonst unsichtbar). */
   .screen.active{ scrollbar-width:thin; scrollbar-color:transparent transparent; }
-  .screen.active:hover{ scrollbar-color:rgba(255,90,31,.45) transparent; }
+  @media (hover:hover){ .screen.active:hover{ scrollbar-color:rgba(255,90,31,.45) transparent; } }
   .screen.active::-webkit-scrollbar{ width:7px; }
   .screen.active::-webkit-scrollbar-track{ background:transparent; }
   .screen.active::-webkit-scrollbar-thumb{ background:transparent; border-radius:20px; }
-  .screen.active:hover::-webkit-scrollbar-thumb{ background:rgba(255,90,31,.45); }
-  .screen.active::-webkit-scrollbar-thumb:hover{ background:rgba(255,90,31,.7); }
+  @media (hover:hover){ .screen.active:hover::-webkit-scrollbar-thumb{ background:rgba(255,90,31,.45); } }
+  @media (hover:hover){ .screen.active::-webkit-scrollbar-thumb:hover{ background:rgba(255,90,31,.7); } }
   /* Scrollbalken mittig in den rechten Außenrand rücken: der Scroll-Container
      ragt per negativem Margin in den 20px-Rand, der Inhalt wird per gleichem
      padding wieder zurückgeholt - so bleibt der Feldrand gleich, der Balken
@@ -321,11 +315,16 @@
   select option{ color:var(--chalk); background:var(--surface); }
   select option[disabled]{ color:var(--chalk-dim); }
   input[type=password]::-ms-reveal{ display:none; }
-  input:-webkit-autofill, input:-webkit-autofill:hover, input:-webkit-autofill:focus{
+  input:-webkit-autofill, input:-webkit-autofill:focus{
     -webkit-text-fill-color:var(--chalk);
     -webkit-box-shadow:0 0 0 1000px var(--surface) inset;
     transition:background-color 9999s ease-in-out 0s;
   }
+  @media (hover:hover){ input:-webkit-autofill:hover{
+    -webkit-text-fill-color:var(--chalk);
+    -webkit-box-shadow:0 0 0 1000px var(--surface) inset;
+    transition:background-color 9999s ease-in-out 0s;
+  } }
   /* Fokus-Rahmen INNEN (inset), nicht als outline aussen: die Felder liegen
      buendig an .screen.active (overflow-x:hidden) - eine aeussere outline wuerde
      links/rechts abgeschnitten. Der inset box-shadow bleibt immer sichtbar. */
@@ -395,14 +394,14 @@
     box-shadow:none;
     transition:transform .12s ease, box-shadow .15s ease, filter .15s ease;
   }
-  .btn:hover{ background:var(--plate-bright); }
+  @media (hover:hover){ .btn:hover{ background:var(--plate-bright); } }
   .btn:active{ transform:translateY(0) scale(0.98); }
   .btn svg.ico{ width:17px; height:17px; }
   .btn.secondary{
     background:rgba(255,255,255,.03); border:1px solid var(--steel); color:var(--chalk);
     box-shadow:none;
   }
-  .btn.secondary:hover{ background:var(--surface-2); filter:none; transform:none; box-shadow:none; }
+  @media (hover:hover){ .btn.secondary:hover{ background:var(--surface-2); filter:none; transform:none; box-shadow:none; } }
   /* Gesperrt heißt sichtbar gesperrt. opacity:0.4 ließ den orangen Verlauf auf
      dem dunklen Grund praktisch verschwinden — in der Android-App wurde genau
      das zweimal als "der Knopf ist weg" gemeldet (Registrierung, Login). Statt
@@ -411,7 +410,7 @@
     background:var(--surface-3); border:1px solid var(--steel); color:var(--chalk-dim);
     cursor:not-allowed; filter:none; transform:none; box-shadow:none;
   }
-  .btn:disabled:hover{ filter:none; transform:none; box-shadow:none; }
+  @media (hover:hover){ .btn:disabled:hover{ filter:none; transform:none; box-shadow:none; } }
   /* Gleich breite Knoepfe nebeneinander; passt ein langer Text nicht
      ("Konto wiederherstellen" am Handy), bricht die Zeile um, statt dass der
      zweite Knopf aus dem Dialog ragt. */
@@ -426,13 +425,13 @@
     background:rgba(255,255,255,.015);
     transition:border-color .15s ease, color .15s ease;
   }
-  .photo-slot:hover{ border-color:var(--plate-dim); color:var(--plate); }
+  @media (hover:hover){ .photo-slot:hover{ border-color:var(--plate-dim); color:var(--plate); } }
   .photo-slot img{ width:100%; height:100%; object-fit:cover; }
   /* Gestrichelt heisst "hier fehlt noch etwas" - fuer die freien Plaetze.
      Ein belegter Platz bekommt einen ruhigen durchgehenden Rand; in Pruefung
      und abgelehnt behalten ihre farbigen Raender (Regeln weiter unten). */
   .photo-slot.filled{ border-style:solid; border-color:rgba(255,255,255,.1); background:var(--surface-2); }
-  .photo-slot.filled:hover{ border-color:rgba(255,90,31,.45); }
+  @media (hover:hover){ .photo-slot.filled:hover{ border-color:rgba(255,90,31,.45); } }
   /* Loeschknopf. Bis zum 14.10.2026 ein 20-px-Kreis ohne eigenen Zeiger: Auf
      einem sortierbaren Foto stand ueber dem ✕ dieselbe Greif-Hand wie ueber
      dem Bild, und ein Klick knapp daneben landete auf dem Foto statt auf dem
@@ -590,7 +589,7 @@
      gewinnen und sich nichts an deren Look aendert. */
   .legal-link{ color:var(--plate); text-decoration:underline; text-underline-offset:2px; }
   .legal-link:visited{ color:var(--plate); }
-  .legal-link:hover{ color:var(--chalk); }
+  @media (hover:hover){ .legal-link:hover{ color:var(--chalk); } }
 
   /* swipe card */
   /* Kein festes min-height: auf einem Telefon mit sichtbarer Adresszeile
@@ -605,7 +604,7 @@
   .deck{ position:relative; flex:1; min-height:0; touch-action:none; }
   .card{
     position:absolute; inset:0; border-radius:20px; overflow:hidden;
-    background:linear-gradient(180deg, #202020, #191919);
+    background:var(--surface);
     border:1px solid var(--hairline);
     box-shadow:0 22px 46px rgba(0,0,0,0.5);
     display:flex; flex-direction:column;
@@ -723,7 +722,7 @@
     display:flex; align-items:center; justify-content:center;
     transition:background .15s ease;
   }
-  .lightbox-close:hover{ background:rgba(255,255,255,.16); }
+  @media (hover:hover){ .lightbox-close:hover{ background:rgba(255,255,255,.16); } }
   .lightbox-close svg{ width:20px; height:20px; fill:none; stroke:currentColor; stroke-width:2.2; stroke-linecap:round; }
   .lightbox-nav{
     position:absolute; top:50%; transform:translateY(-50%); z-index:2;
@@ -733,7 +732,7 @@
     display:flex; align-items:center; justify-content:center;
     transition:background .15s ease, opacity .15s ease;
   }
-  .lightbox-nav:hover{ background:rgba(255,255,255,.16); }
+  @media (hover:hover){ .lightbox-nav:hover{ background:rgba(255,255,255,.16); } }
   .lightbox-nav:disabled{ opacity:.25; cursor:default; }
   .lightbox-nav.prev{ left:12px; }
   .lightbox-nav.next{ right:12px; }
@@ -785,21 +784,21 @@
   }
   .round-btn svg.ico{ width:24px; height:24px; }
   .round-btn.pass{ color:var(--danger); }
-  .round-btn.pass:hover{ border-color:var(--danger); }
+  @media (hover:hover){ .round-btn.pass:hover{ border-color:var(--danger); } }
   .round-btn.like{
     width:64px; height:64px; color:#1a0a04; border:none;
     background:var(--plate);
     box-shadow:none;
   }
   .round-btn.like svg.ico{ width:28px; height:28px; }
-  .round-btn.like:hover{ background:var(--plate-bright); }
+  @media (hover:hover){ .round-btn.like:hover{ background:var(--plate-bright); } }
   .round-btn:active{ transform:scale(0.92); }
   /* Zuruecknehmen ist die leiseste der drei Aktionen - kleiner und ohne
      eigene Farbe, damit sie neben Like/Pass nicht wie eine dritte
      gleichrangige Entscheidung wirkt. */
   .round-btn.rewind{ width:46px; height:46px; color:var(--chalk-dim); }
   .round-btn.rewind svg.ico{ width:20px; height:20px; }
-  .round-btn.rewind:hover{ border-color:var(--plate); color:var(--plate); }
+  @media (hover:hover){ .round-btn.rewind:hover{ border-color:var(--plate); color:var(--plate); } }
   .round-btn:disabled{ opacity:.4; cursor:default; transform:none; }
 
   /* Rest-Likes unter den Aktionsknoepfen. Mono, damit die wechselnde Zahl die
@@ -826,7 +825,7 @@
     background:var(--surface); border:1px solid var(--steel); border-radius:14px;
     color:var(--chalk); font-family:inherit;
   }
-  .incoming-card:hover{ border-color:var(--plate); }
+  @media (hover:hover){ .incoming-card:hover{ border-color:var(--plate); } }
   .incoming-count{
     flex-shrink:0; min-width:38px; height:38px; border-radius:50%;
     display:flex; align-items:center; justify-content:center;
@@ -908,7 +907,8 @@
     font:inherit; font-size:13.5px; line-height:1.35; text-align:center;
     transition:border-color .15s, background .15s;
   }
-  .eisbrecher-chip:hover, .eisbrecher-chip:focus-visible{ border-color:var(--plate); background:var(--surface-3); }
+  .eisbrecher-chip:focus-visible{ border-color:var(--plate); background:var(--surface-3); }
+  @media (hover:hover){ .eisbrecher-chip:hover{ border-color:var(--plate); background:var(--surface-3); } }
 
   /* Der Premium-Screen benutzt .empty als **Kopfzeile**, nicht als
      Leerzustand: Die 48px Innenabstand oben stammen aus dem Deck, wo der Block
@@ -932,7 +932,7 @@
 
   .match-item{
     display:flex; gap:13px; align-items:center; padding:12px 14px;
-    background:linear-gradient(180deg, #1f1f1f, #1a1a1a);
+    background:var(--surface);
     border-radius:14px; margin-bottom:10px; border:1px solid var(--hairline);
     cursor:pointer; position:relative;
     transition:background .15s ease, border-color .15s ease;
@@ -947,7 +947,7 @@
      screenRect.right. Die Randfarbe allein reicht als Hover-Feedback. (Dieser
      Fix wurde schon einmal versucht und am selben Tag wieder reverted, ohne
      dass die Ursache damit behoben war - das Problem bestand weiter.) */
-  .match-item:hover{ border-color:rgba(255,90,31,.35); }
+  @media (hover:hover){ .match-item:hover{ border-color:rgba(255,90,31,.35); } }
   .match-item .av{
     position:relative; width:54px; height:54px; flex-shrink:0; display:block;
   }
@@ -994,7 +994,7 @@
     border-color:var(--plate-dim);
     box-shadow:inset 0 0 14px var(--plate-glow);
   }
-  .match-item.unread:hover{ border-color:var(--plate); }
+  @media (hover:hover){ .match-item.unread:hover{ border-color:var(--plate); } }
   .match-item .unread-badge{
     background:var(--plate); color:#191008; font-family:'Work Sans', system-ui, sans-serif; font-size:11px; font-weight:700;
     border-radius:50%; min-width:21px; height:21px; display:flex; align-items:center; justify-content:center;
@@ -1006,7 +1006,7 @@
      Vorschaubild ist absichtlich gedaempft: die Person ist blockiert, ihr
      Profil soll hier nicht wieder wie ein Angebot aussehen. */
   .blocked-item{ cursor:default; }
-  .blocked-item:hover{ border-color:var(--hairline); transform:none; }
+  @media (hover:hover){ .blocked-item:hover{ border-color:var(--hairline); transform:none; } }
   .blocked-item .av img{ filter:grayscale(1); opacity:.72; }
   .blocked-item .av{
     display:flex; align-items:center; justify-content:center;
@@ -1031,7 +1031,7 @@
     color:var(--chalk-dim); display:flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0;
     font:inherit; transition:color .15s ease, border-color .15s ease;
   }
-  .icon-btn:hover{ color:var(--chalk); border-color:var(--chalk-dim); }
+  @media (hover:hover){ .icon-btn:hover{ color:var(--chalk); border-color:var(--chalk-dim); } }
   .icon-btn svg.ico{ width:16px; height:16px; stroke-width:2.2; }
 
   .chat-header{
@@ -1051,7 +1051,7 @@
   }
   .chat-header .chat-peer:focus-visible{ outline:2px solid var(--plate); outline-offset:2px; }
   @media (hover:hover){ .chat-header .chat-peer:hover .nm{ color:var(--plate-bright); } }
-  .chat-header .back-btn:hover{ color:var(--plate); }
+  @media (hover:hover){ .chat-header .back-btn:hover{ color:var(--plate); } }
   /* Ring als EIN gefüllter Kreis (background statt border), das Foto sitzt
      per Padding darin - keine zwei separat positionierten Kreisrandlinien
      (Foto-eigener Rand + ::after-Ring), die bei Sub-Pixel-Rundung (z. B. bei
@@ -1090,7 +1090,7 @@
     color:var(--chalk); font-family:'Work Sans', sans-serif; font-size:14px;
     padding:11px 12px; border-radius:8px;
   }
-  .chat-menu button:hover{ background:var(--surface-3); }
+  @media (hover:hover){ .chat-menu button:hover{ background:var(--surface-3); } }
   .chat-menu button.danger{ color:var(--danger); }
 
   .chat-messages{
@@ -1098,7 +1098,7 @@
     padding:6px 13px 12px 2px; margin-right:-13px;
     scrollbar-width:thin; scrollbar-color:transparent transparent;
   }
-  .chat-messages:hover{ scrollbar-color:rgba(255,90,31,.45) transparent; }
+  @media (hover:hover){ .chat-messages:hover{ scrollbar-color:rgba(255,90,31,.45) transparent; } }
   .msg-wrap{ display:flex; flex-direction:column; max-width:82%; }
   .chat-older{ align-self:center; width:auto; margin:4px 0 8px; min-height:44px; }
   .msg-wrap.mine{ align-self:flex-end; align-items:flex-end; }
@@ -1153,7 +1153,7 @@
     display:flex; align-items:center; justify-content:center;
     transition:color .15s ease, background .15s ease;
   }
-  .chat-emoji-btn:hover{ color:var(--chalk); background:var(--surface-2); }
+  @media (hover:hover){ .chat-emoji-btn:hover{ color:var(--chalk); background:var(--surface-2); } }
   .chat-emoji-btn svg.ico{ width:21px; height:21px; }
   .chat-emoji-panel{ bottom:52px; left:8px; right:8px; }
   /* Fokus zeigt die Leiste als Ganzes an - ein zusätzlicher Rahmen um das
@@ -1176,7 +1176,7 @@
     box-shadow:none;
     transition:transform .12s ease, filter .15s ease;
   }
-  .chat-send-btn:hover{ background:var(--plate-bright); }
+  @media (hover:hover){ .chat-send-btn:hover{ background:var(--plate-bright); } }
   .chat-input-row:not(.has-text) .chat-send-btn{
     background:var(--surface-3); color:var(--chalk-dim); box-shadow:none;
   }
@@ -1192,7 +1192,7 @@
     color:rgba(255,255,255,.85); display:flex; align-items:center; justify-content:center; cursor:pointer;
     font:inherit; backdrop-filter:blur(3px); transition:background .15s ease, color .15s ease;
   }
-  .card .flag-btn:hover{ background:rgba(0,0,0,.75); color:#fff; }
+  @media (hover:hover){ .card .flag-btn:hover{ background:rgba(0,0,0,.75); color:#fff; } }
   .card .flag-btn svg.ico{ width:16px; height:16px; stroke-width:2.2; }
   .cred-line{ font-size:13px; color:var(--chalk-dim); margin:0 0 12px; overflow-wrap:anywhere; }
   .cred-line b{ color:var(--chalk); font-weight:600; }
@@ -1218,7 +1218,8 @@
   .cred-form[hidden]{ display:none; }
   .link-btn{
     background:none; border:none; color:var(--chalk-dim); font-size:13px; text-decoration:underline;
-    cursor:pointer; margin-top:14px; display:block; text-align:center; width:100%;
+    cursor:pointer; margin-top:4px; display:block; text-align:center; width:100%;
+    min-height:44px; /* Tippflaeche, vorher nur 15 px hoch */
   }
 
   nav.bottom{
@@ -1251,7 +1252,7 @@
     display:flex; align-items:center; justify-content:center;
     border:2px solid var(--ink); box-shadow:0 0 10px var(--plate-glow);
   }
-  nav.bottom button:hover{ color:var(--chalk); }
+  @media (hover:hover){ nav.bottom button:hover{ color:var(--chalk); } }
   nav.bottom button.active{ color:var(--plate); }
   nav.bottom button.active::before{ transform:translateX(-50%) scaleX(1); }
   nav.bottom button.active svg.ico{ transform:translateY(-1px); }
@@ -1267,7 +1268,13 @@
      und Nutzungsrichtlinien sprangen deshalb orange auf, sobald sie einmal
      besucht waren, waehrend nie besuchte Fusszeilen-Links grau blieben. */
   .legal-footer a:link, .legal-footer a:visited{ color:var(--chalk-dim); text-decoration:none; }
-  .legal-footer a:hover{ color:var(--chalk); }
+  @media (hover:hover){ .legal-footer a:hover{ color:var(--chalk); } }
+  /* Am Touchgeraet hoehere Tippflaechen (vorher 14 px). Der Abstand kommt
+     jetzt aus dem Innenabstand der Links statt aus gap. */
+  @media (pointer:coarse){
+    .legal-footer{ gap:0 2px; }
+    .legal-footer a{ display:inline-flex; align-items:center; min-height:44px; padding:0 7px; }
+  }
 
   .legal-modal-backdrop{
     display:none; position:fixed; inset:0; z-index:100;
@@ -1286,7 +1293,7 @@
     border:1px solid var(--steel); background:var(--surface-2); color:var(--chalk);
     font-size:15px; cursor:pointer; z-index:2;
   }
-  .legal-modal-close:hover{ background:var(--ink); }
+  @media (hover:hover){ .legal-modal-close:hover{ background:var(--ink); } }
   .legal-modal-body{
     overflow-y:auto; padding:32px 28px 36px; font-size:15px; line-height:1.6;
   }
@@ -1355,7 +1362,7 @@
   .legal-modal-body summary::-webkit-details-marker{ display:none; }
   .legal-modal-body summary::after{ content:'+'; position:absolute; right:16px; top:50%; transform:translateY(-50%); font-size:23px; line-height:1; color:var(--plate); }
   .legal-modal-body details[open] summary::after{ content:'\2212'; }
-  .legal-modal-body summary:hover{ color:var(--plate-bright); }
+  @media (hover:hover){ .legal-modal-body summary:hover{ color:var(--plate-bright); } }
   .legal-modal-body .faq-a{ padding:0 16px 16px; color:var(--chalk-dim); font-size:14px; }
   .legal-modal-body .intro{ color:var(--chalk-dim); font-size:14px; margin:0 0 20px; }
   /* Nutzungsrichtlinien/Sicherheit/Strafverfolgung bringen eigene Bausteine mit
@@ -1417,7 +1424,7 @@
     color:#1a0a04; background:var(--plate);
     border:none; border-radius:12px; cursor:pointer;
   }
-  .legal-modal-body .btn:hover{ background:var(--plate-bright); }
+  @media (hover:hover){ .legal-modal-body .btn:hover{ background:var(--plate-bright); } }
   .legal-modal-body .btn[disabled]{ opacity:.45; cursor:not-allowed; }
   .legal-modal-body .btn.secondary{ color:var(--chalk); background:transparent; border:1px solid var(--steel); }
   /* In einer Knopfzeile regelt .btn-row den Abstand (auch beim Umbruch). */
@@ -1442,7 +1449,7 @@
   /* :link/:visited explizit, siehe Kommentar bei .legal-footer a - sonst
      gewinnt .legal-link:visited nach dem ersten Besuch. */
   .legal-modal-permalink a:link, .legal-modal-permalink a:visited{ color:var(--chalk-dim); text-decoration:underline; }
-  .legal-modal-permalink a:hover{ color:var(--plate); }
+  @media (hover:hover){ .legal-modal-permalink a:hover{ color:var(--plate); } }
 
   /* ---------- Landing-Modus (ausgeloggt: Login/Registrierung) ---------- */
   body.landing{
@@ -1506,12 +1513,15 @@
     max-width:480px; margin-bottom:28px; text-shadow:0 2px 12px rgba(0,0,0,.7);
   }
   .hero-usps{ display:flex; flex-direction:column; gap:12px; margin-bottom:32px; }
+  /* Block statt Flex: der Text enthaelt <b>, das sonst zur eigenen Spalte wird. */
   .hero-usps li{
-    list-style:none; display:flex; align-items:flex-start; gap:10px;
+    list-style:none; position:relative; padding-left:21px;
     font-size:14.5px; line-height:1.5; color:var(--chalk);
   }
+  /* Gleiche Aufzaehlungspunkte wie auf flexr.social (orangene Punkte). */
   .hero-usps li::before{
-    content:'▸'; color:var(--plate); font-size:15px; line-height:1.5; flex-shrink:0;
+    content:''; position:absolute; left:2px; top:.45em; width:9px; height:9px;
+    border-radius:50%; background:var(--plate);
   }
 
   /* Interaktives Musterdeck im Marketing-Hero. Es benutzt bewusst dieselbe
@@ -1633,8 +1643,8 @@
   /* Herz im Beispiel-Deck flach wie auf der Landingpage (seit 24.11.2026):
      ohne Verlauf, ohne orangenen Schein, Hover nur ueber die Farbe. */
   .hero-demo-actions .round-btn.like{ background:var(--plate); color:#1a0a04; box-shadow:none; }
-  .hero-demo-actions .round-btn.like:hover{ background:var(--plate-bright); transform:none; box-shadow:none; }
-  .hero-demo-actions .round-btn.pass:hover{ box-shadow:none; }
+  @media (hover:hover){ .hero-demo-actions .round-btn.like:hover{ background:var(--plate-bright); transform:none; box-shadow:none; } }
+  @media (hover:hover){ .hero-demo-actions .round-btn.pass:hover{ box-shadow:none; } }
   .hero-demo-hint.short{ display:none; }
   /* Kennzeichnung als Beispiel muss bleiben (brand/demo/README.md), soll aber
      nicht mit dem Formular daneben konkurrieren - deshalb stark zurueckgenommen. */
@@ -1670,7 +1680,7 @@
     transition:background .15s ease, color .15s ease;
   }
   .auth-tab.active{ background:var(--plate); color:#141414; }
-  .auth-tab:not(.active):hover{ color:var(--chalk); }
+  @media (hover:hover){ .auth-tab:not(.active):hover{ color:var(--chalk); } }
 
   body.landing .legal-footer{ display:flex; padding:14px 20px 22px; }
 
@@ -1805,7 +1815,7 @@
   /* "Ausblenden" bei bereits bearbeiteten Meldungen - bewusst dezent (grauer
      .pill-action statt Markenfarbe), das ist kein Angebot, sondern Aufraeumen. */
   .pill-action.report-hide-btn{ display:flex; width:fit-content; margin:14px 0 0 auto; padding:6px 12px; font-size:12px; color:var(--chalk-dim); }
-  .pill-action.report-hide-btn:hover{ color:var(--chalk); }
+  @media (hover:hover){ .pill-action.report-hide-btn:hover{ color:var(--chalk); } }
 
   .account-section{ margin-bottom:26px; }
 
@@ -1864,7 +1874,7 @@
     stroke-linecap:round; stroke-linejoin:round; flex-shrink:0;
   }
   .verify-badge.attention{ color:var(--plate); border-color:rgba(255,90,31,.4); }
-  .verify-badge.attention:hover{ background:rgba(255,90,31,.08); }
+  @media (hover:hover){ .verify-badge.attention:hover{ background:rgba(255,90,31,.08); } }
   .verify-badge.done{ color:#1d9bf0; border-color:rgba(29,155,240,.4); cursor:default; }
   .verify-badge.pending{ cursor:default; }
   .verify-tooltip{
@@ -1873,8 +1883,8 @@
     border-radius:12px; padding:11px 13px; font-size:12.5px; line-height:1.5;
     color:var(--chalk); box-shadow:0 14px 34px rgba(0,0,0,.5);
   }
-  .verify-badge-wrap:hover .verify-tooltip,
   .verify-badge-wrap:focus-within .verify-tooltip{ display:block; }
+  @media (hover:hover){ .verify-badge-wrap:hover .verify-tooltip{ display:block; } }
   /* Im Fließtext des Tooltips soll der Haken symmetrisch zwischen den Wörtern
      sitzen (der Standard-margin-left des Badges wirkt sonst nur einseitig) */
   .verify-tooltip .verified-badge{ margin:0 .1em; }
@@ -1888,7 +1898,7 @@
     font-family:'Work Sans', system-ui, sans-serif; font-size:12px; line-height:1;
     display:flex; align-items:center; justify-content:center;
   }
-  .info-hint button:hover{ border-color:var(--plate); color:var(--plate); }
+  @media (hover:hover){ .info-hint button:hover{ border-color:var(--plate); color:var(--plate); } }
   .info-hint .bubble{
     display:none; position:absolute; bottom:calc(100% + 8px); left:-8px; z-index:30;
     width:250px; background:var(--surface-2); border:1px solid var(--steel);
@@ -1896,14 +1906,15 @@
     color:var(--chalk); box-shadow:0 14px 34px rgba(0,0,0,.5); text-transform:none;
     letter-spacing:0; font-family:'Work Sans', system-ui, sans-serif;
   }
-  .info-hint:hover .bubble, .info-hint:focus-within .bubble{ display:block; }
+  .info-hint:focus-within .bubble{ display:block; }
+  @media (hover:hover){ .info-hint:hover .bubble{ display:block; } }
 
   /* Konto löschen */
   .btn.danger-ghost{
     background:transparent; border:1px solid rgba(227,72,72,.35); color:var(--danger);
     box-shadow:none; margin-top:10px;
   }
-  .btn.danger-ghost:hover{ background:rgba(227,72,72,.08); filter:none; transform:none; box-shadow:none; }
+  @media (hover:hover){ .btn.danger-ghost:hover{ background:rgba(227,72,72,.08); filter:none; transform:none; box-shadow:none; } }
   .btn.danger-solid{
     background:var(--danger);
     color:#1a0808; box-shadow:0 6px 20px rgba(227,72,72,.22), inset 0 1px 0 rgba(255,255,255,.25);
@@ -2042,7 +2053,7 @@
     background:rgba(255,255,255,.02); color:var(--chalk); font-size:14.5px;
     font-family:'Work Sans', system-ui, sans-serif; cursor:pointer;
   }
-  .doc-type:hover{ border-color:var(--chalk-dim); }
+  @media (hover:hover){ .doc-type:hover{ border-color:var(--chalk-dim); } }
   .doc-type.selected{ border-color:var(--plate); background:rgba(255,90,31,.08); }
   .doc-type .hint{ display:block; font-size:12px; color:var(--chalk-dim); margin-top:2px; }
 
@@ -2089,7 +2100,7 @@
     background:rgba(255,255,255,.02); color:var(--chalk-dim); cursor:pointer;
     font-family:'Work Sans', system-ui, sans-serif; font-size:12.5px; line-height:1.2;
   }
-  .doc-slot-actions button:hover{ border-color:var(--plate-dim); color:var(--chalk); }
+  @media (hover:hover){ .doc-slot-actions button:hover{ border-color:var(--plate-dim); color:var(--chalk); } }
   .doc-slot-actions svg{
     width:15px; height:15px; flex-shrink:0; fill:none; stroke:currentColor;
     stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round;
@@ -2118,14 +2129,14 @@
   .gym-result{
     padding:10px 14px; cursor:pointer; border-bottom:1px solid var(--hairline);
   }
-  .gym-result:hover{ background:var(--surface-3); }
+  @media (hover:hover){ .gym-result:hover{ background:var(--surface-3); } }
   .gym-result .g-name{ font-size:14px; color:var(--chalk); }
   .gym-result .g-addr{ font-size:12px; color:var(--chalk-dim); margin-top:2px; }
   .gym-result.suggest-row{
     color:var(--plate); font-size:13px; border-bottom:none;
     display:flex; align-items:center; gap:8px;
   }
-  .gym-result.suggest-row:hover{ background:rgba(255,90,31,.08); }
+  @media (hover:hover){ .gym-result.suggest-row:hover{ background:rgba(255,90,31,.08); } }
   .gym-picked{
     display:none; margin-top:6px; font-size:12px; color:var(--chalk-dim);
     font-family:'Work Sans', system-ui, sans-serif;
@@ -2161,7 +2172,7 @@
     display:flex; align-items:center; justify-content:center; border-radius:50%;
     transition:color .15s ease, background .15s ease;
   }
-  .emoji-btn:hover{ color:var(--chalk); background:var(--surface-2); }
+  @media (hover:hover){ .emoji-btn:hover{ color:var(--chalk); background:var(--surface-2); } }
   .emoji-btn svg.ico{ width:19px; height:19px; }
   .bio-counter{
     font-family:'Work Sans', system-ui, sans-serif; font-size:12px; color:var(--chalk-dim);
@@ -2182,7 +2193,7 @@
     background:none; border:none; font-size:19px; line-height:1.6; cursor:pointer;
     border-radius:8px; padding:2px 0;
   }
-  .emoji-panel button:hover{ background:var(--surface-3); }
+  @media (hover:hover){ .emoji-panel button:hover{ background:var(--surface-3); } }
 
   /* Suchumkreis-Regler */
   .radius-row{ display:flex; align-items:center; gap:14px; }
@@ -2240,14 +2251,10 @@
     color:var(--chalk-dim); margin-bottom:12px; padding-bottom:9px; border-bottom:1px solid var(--hairline);
     display:flex; align-items:center; gap:8px;
   }
-  .account-section-title::before{
-    content:''; width:3px; height:11px; background:var(--plate); border-radius:2px; flex-shrink:0;
-  }
   /* Die drei Hauptueberschriften im Konto-Screen (Profil/Fotos/Konto) staerker
      gewichten als die uebrigen Untermenues: groesser, weiss, fett statt der
      kleinen grauen Mono-Zeile. */
   .account-section-title.lg{ font-size:15px; font-weight:700; color:var(--chalk); }
-  .account-section-title.lg::before{ height:13px; }
   /* Benachrichtigungen und Datenschutz & Sicherheit bekommen dieselbe weisse
      Farbe wie oben, aber bewusst ohne die groessere/fette Schrift - das sind
      Untermenues, keine Hauptueberschriften. */
@@ -2294,7 +2301,7 @@
      ausgeblendeter Eintrag (Abo verwalten) keine doppelte Linie hinterlaesst. */
   .settings-list{
     border:1px solid var(--hairline); border-radius:16px; overflow:hidden;
-    background:linear-gradient(180deg, #1f1f1f, #1a1a1a);
+    background:var(--surface);
   }
   .settings-row{
     display:flex; align-items:center; gap:13px; width:100%; min-height:62px;
@@ -2304,7 +2311,7 @@
   }
   /* Nach .settings-row, sonst gewinnt dessen border:0 (gleiche Spezifitaet). */
   .settings-list > * + *{ border-top:1px solid var(--hairline); }
-  .settings-row:hover{ background:rgba(255,255,255,.035); }
+  @media (hover:hover){ .settings-row:hover{ background:rgba(255,255,255,.035); } }
   .settings-row:focus-visible{ outline:2px solid var(--plate-bright); outline-offset:-2px; }
   .settings-ico{
     flex:0 0 auto; width:36px; height:36px; border-radius:10px;
@@ -2331,8 +2338,8 @@
      Uebersetzung setzen den Linktext per textContent und wuerden Kinder
      loeschen ("Ruecktrittsrecht" -> "Vertrag widerrufen" ab dem Stichtag). */
   .legal-link-list a.settings-row{ min-height:50px; padding:11px 14px; font-size:14px; font-weight:500; }
-  .legal-link-list a.settings-row:link, .legal-link-list a.settings-row:visited,
-  .legal-link-list a.settings-row:hover{ color:var(--chalk); text-decoration:none; }
+  .legal-link-list a.settings-row:link, .legal-link-list a.settings-row:visited{ color:var(--chalk); text-decoration:none; }
+  @media (hover:hover){ .legal-link-list a.settings-row:hover{ color:var(--chalk); text-decoration:none; } }
   .legal-link-list a.settings-row::before{
     content:''; flex:0 0 auto; width:18px; height:18px; background:var(--chalk-dim);
     -webkit-mask:var(--legal-ico) center/contain no-repeat; mask:var(--legal-ico) center/contain no-repeat;
@@ -2360,13 +2367,13 @@
     transition:background .15s ease, border-color .15s ease, color .15s ease;
   }
   .pill-action svg{ width:14px; height:14px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
-  .pill-action:hover{ background:rgba(255,255,255,.06); border-color:#4a4a4a; }
+  @media (hover:hover){ .pill-action:hover{ background:rgba(255,255,255,.06); border-color:#4a4a4a; } }
   .pill-action:focus-visible{ outline:2px solid var(--plate-bright); outline-offset:2px; }
   .pill-action:disabled{ opacity:.6; cursor:default; }
   .pill-action.danger{ color:#ff7a6e; border-color:rgba(227,72,72,.42); background:rgba(227,72,72,.06); }
-  .pill-action.danger:hover{ background:rgba(227,72,72,.12); border-color:rgba(227,72,72,.6); }
+  @media (hover:hover){ .pill-action.danger:hover{ background:rgba(227,72,72,.12); border-color:rgba(227,72,72,.6); } }
   .pill-action.accent{ color:var(--plate); border-color:rgba(255,90,31,.42); background:rgba(255,90,31,.07); }
-  .pill-action.accent:hover{ background:rgba(255,90,31,.13); border-color:rgba(255,90,31,.6); }
+  @media (hover:hover){ .pill-action.accent:hover{ background:rgba(255,90,31,.13); border-color:rgba(255,90,31,.6); } }
 
   /* "Details" in den Einwilligungskarten: eigener Pfeil statt des
      Browser-Dreiecks. */
@@ -2380,10 +2387,10 @@
     transform:rotate(-45deg); transition:transform .15s ease; margin-right:2px;
   }
   .consent-details[open] summary::before{ transform:rotate(45deg); }
-  .consent-details summary:hover{ color:var(--chalk); }
+  @media (hover:hover){ .consent-details summary:hover{ color:var(--chalk); } }
 
   .price-card{
-    background:linear-gradient(180deg, rgba(255,90,31,.07), rgba(26,26,26,0) 45%), linear-gradient(180deg, #1f1f1f, #191919);
+    background:var(--surface);
     border:1px solid rgba(255,90,31,.35); border-radius:18px; padding:24px 20px 22px; text-align:center;
     box-shadow:0 16px 36px rgba(0,0,0,.35);
   }
@@ -2431,7 +2438,7 @@
     background:none; border:none; padding:0; margin:-2px -4px 0 0; color:var(--chalk-dim);
     font-size:15px; line-height:1; cursor:pointer; flex-shrink:0;
   }
-  .toast-close:hover{ color:var(--chalk); }
+  @media (hover:hover){ .toast-close:hover{ color:var(--chalk); } }
   @keyframes toastIn{ from{opacity:0; transform:translateY(-10px);} to{opacity:1; transform:none;} }
   @keyframes toastOut{ to{opacity:0; transform:translateY(-6px);} }
 
@@ -2529,9 +2536,9 @@
   .chat-messages::-webkit-scrollbar{ width:5px; }
   .chat-messages::-webkit-scrollbar-track{ background:transparent; }
   .chat-messages::-webkit-scrollbar-thumb{ background:transparent; border-radius:3px; }
-  .chat-messages:hover::-webkit-scrollbar-thumb{ background:rgba(255,90,31,.45); }
-  .chat-messages::-webkit-scrollbar-thumb:hover{ background:rgba(255,90,31,.7); }
-  #btnLogout:hover{ border-color:rgba(227,72,72,.5); color:var(--danger); background:rgba(227,72,72,.05); }
+  @media (hover:hover){ .chat-messages:hover::-webkit-scrollbar-thumb{ background:rgba(255,90,31,.45); } }
+  @media (hover:hover){ .chat-messages::-webkit-scrollbar-thumb:hover{ background:rgba(255,90,31,.7); } }
+  @media (hover:hover){ #btnLogout:hover{ border-color:rgba(227,72,72,.5); color:var(--danger); background:rgba(227,72,72,.05); } }
 </style>
 </head>
 <!-- class="landing" gehoert in den Quelltext, nicht erst per JS: sonst ist der
@@ -2656,7 +2663,7 @@
      laufen synchron und damit vor dem DOMContentLoaded, bei dem FlexrI18n die
      data-i18n-Knoten uebersetzt. -->
 <script src="/i18n.js?v=7"></script>
-<script src="/app/i18n-app.js?v=50"></script>
+<script src="/app/i18n-app.js?v=51"></script>
 <a class="skip-link" href="#main-content" data-i18n="common.skipToContent">Zum Inhalt springen</a>
 <div class="app" id="app">
 
@@ -2684,7 +2691,7 @@
       <h1 data-i18n-html="hero.h1">Dating für<br><em>Gym-People</em></h1>
       <p class="hero-sub" data-i18n="hero.sub">
         Dating für Leute, die auch montags Beintag machen. Finde Menschen,
-        die dein Training genauso ernst nehmen wie du — in deinem Gym, in deiner Stadt.
+        die Training genauso ernst nehmen wie du – in deinem Gym und in deiner Nähe.
       </p>
       <ul class="hero-usps">
         <li data-i18n-html="hero.usp1">Matches nach Gym und Umkreis — nicht am anderen Ende des Landes</li>
@@ -2694,8 +2701,8 @@
              wieder scharf geschaltet (BILLING_ENABLED=true, siehe
              backend/app/config.py), gehoeren beide zurueck auf "1 Monat gratis,
              danach 5 EUR/Monat". -->
-        <li data-i18n-html="hero.usp2">Dauerhaft gratis — FLEXR Premium (10&nbsp;€/Monat) ist freiwillig</li>
-        <li data-i18n-html="hero.usp3">Jedes Konto wird vor der Freischaltung von einem Menschen geprüft</li>
+        <li data-i18n-html="hero.usp2">Dauerhaft gratis nutzbar — <b>nichts wird abgebucht</b>, Premium ist freiwillig</li>
+        <li data-i18n-html="hero.usp3">Jedes Konto wird vor der Freischaltung auf Volljährigkeit geprüft</li>
       </ul>
       <div class="hero-dl"><a class="ios-dl" href="/app/?ios=installieren" data-i18n-aria="dl.aria" aria-label="FLEXR-App fürs iPhone installieren"><svg class="ios-dl-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="2.5" width="12" height="19" rx="2.6"/><path d="M12 7.5v7M9 11.5l3 3 3-3M10.5 18.5h3"/></svg><span class="ios-dl-text"><small data-i18n="dl.small">Für iPhone</small><b data-i18n="dl.big">App installieren</b></span></a><a class="ios-dl" href="https://play.google.com/store/apps/details?id=flexr.social.app" data-i18n-aria="dl.playAria" aria-label="FLEXR-App für Android bei Google Play installieren"><svg class="ios-dl-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="2.5" width="12" height="19" rx="2.6"/><path d="M10.4 8.6v5.8l4.8-2.9zM10.5 18.5h3"/></svg><span class="ios-dl-text"><small data-i18n="dl.playSmall">Für Android</small><b data-i18n="dl.playBig">Bei Google Play</b></span></a></div>
       <!-- Hier stand bis zum 15.08.2026 ein Demo-Deck mit acht Fotos echter
@@ -4006,7 +4013,7 @@
     color:var(--chalk); text-decoration:none; line-height:1.15;
     transition:border-color .15s, background .15s;
   }
-  .ios-dl:hover{ border-color:var(--plate); color:var(--chalk); }
+  @media (hover:hover){ .ios-dl:hover{ border-color:var(--plate); color:var(--chalk); } }
   .ios-dl-icon{
     width:26px; height:26px; flex:0 0 auto;
     fill:none; stroke:var(--plate); stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round;

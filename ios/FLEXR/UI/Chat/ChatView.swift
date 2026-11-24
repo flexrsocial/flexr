@@ -620,7 +620,7 @@ private struct ChatInputRow: View {
                     Image(systemName: FlexrIcon.send)
                         .font(.system(size: 16, weight: .semibold))
                         .foregroundStyle(canSend ? FlexrColor.plateInk : FlexrColor.chalkDim)
-                        .frame(width: 40, height: 40)
+                        .frame(width: 44, height: 44)
                         .background(
                             Circle().fill(
                                 canSend
