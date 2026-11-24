@@ -661,12 +661,22 @@ def faq_html(fragen: list[tuple]) -> str:
 
 STIL = """<style>
   /* Nur auf den Such-Einstiegsseiten (erzeugt von tools/seo/build_seo_pages.py). */
+  /* Ueberschriften wie auf der Startseite (Oswald, Versalien) - bis 24.11.2026
+     standen hier die Work-Sans-Ueberschriften der Rechtstexte. */
+  h1{ font-size:clamp(28px,6vw,36px); margin:0 0 14px; }
+  h2{ font-family:'Oswald', system-ui, sans-serif; font-size:21px; font-weight:600; letter-spacing:.02em; text-transform:uppercase; margin-top:44px; }
+  .head-cta{ padding:12px 16px; }
   .crumbs{ font-size:13px; color:var(--chalk-dim); margin:0 0 14px; }
   .crumbs a{ color:var(--chalk-dim); }
   .crumbs a:hover{ color:var(--chalk); }
   .cta-box{ margin:28px 0; padding:18px; border:1px solid rgba(255,90,31,.35); border-radius:14px; background:var(--surface); }
   .cta-box p{ margin:0; }
   .cta-box .btn{ margin-top:14px; text-decoration:none; }
+  /* Abschluss-Kasten am Seitenende: Wer bis unten gelesen hat, soll nicht
+     erst wieder nach oben zur Kopfzeile muessen. */
+  .cta-end{ margin-top:44px; padding:24px 22px; border:0; border-left:4px solid var(--plate); border-radius:0 14px 14px 0; }
+  .cta-end .cta-title{ margin:0 0 6px; font-family:'Oswald', system-ui, sans-serif; font-size:24px; font-weight:700; line-height:1.15; text-transform:uppercase; color:var(--chalk); }
+  .cta-end p{ color:var(--chalk-dim); }
   .gym-group{ margin:0 0 14px; }
   .gym-group h3{ margin:16px 0 6px; }
   .gym-group ul{ margin:0; padding-left:18px; color:var(--chalk-dim); font-size:14.5px; }
@@ -765,6 +775,12 @@ def seite(*, url: str, titel: str, beschreibung: str, og_titel: str,
   <main id="main-content">
   <nav class="crumbs" aria-label="Brotkrumen">{krumen_html}</nav>
 {rumpf}
+
+  <div class="cta-box cta-end">
+    <p class="cta-title">Wer trainiert in deinem Gym?</p>
+    <p>Profil anlegen, Studio wählen, nachsehen. Kostenlos, ohne Zahlungsmittel und ohne Frist.</p>
+    <a class="btn" href="/app/#registrieren">Gratis loslegen</a>
+  </div>
   </main>
 
 {FUSS}

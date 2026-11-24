@@ -148,7 +148,10 @@
 // v64: Website-Overhaul - stehende Kopfzeile mit Registrieren-Knopf, Merkmal-
 // Karten, Fusszeile mit allen Stadtseiten, Wortmarke im Kopf der Unterseiten;
 // legal.css ?v=4.
-const CACHE = 'flexr-shell-v64';
+// v65: Design-Runde 24.11.2026 - Schritte mit Kontur-Ziffern, Gym-Karte mit
+// Stammstudio, Sicherheit als grosser Satz, ohne Leuchteffekte; groessere
+// Tippflaechen, Abschluss-Kasten auf den Such-Einstiegsseiten.
+const CACHE = 'flexr-shell-v65';
 // Seit dem 15.08.2026 liegt die App unter /app/, an der Wurzel steht die
 // oeffentliche Landingpage. Beide gehoeren in die Shell: die Landingpage,
 // weil sie der Einstieg ist, die App, weil sie offline funktionieren soll.

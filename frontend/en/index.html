@@ -239,8 +239,8 @@ section[id]{ scroll-margin-top:72px; }
    Das Padding macht die Tippflaeche hoch genug (vorher 23px). */
 .top nav > a{ padding:8px 0; }
 .top nav a.nav-cta{
-  padding:8px 14px; border-radius:10px; white-space:nowrap;
-  font-family:'Oswald', sans-serif; font-size:13px; font-weight:600;
+  padding:12px 16px; border-radius:10px; white-space:nowrap;
+  font-family:'Oswald', sans-serif; font-size:13.5px; font-weight:600;
   letter-spacing:.06em; text-transform:uppercase;
   background:var(--plate); color:#1a0a04;
 }
@@ -251,12 +251,14 @@ section[id]{ scroll-margin-top:72px; }
      Kopfzeile ist nur Platz fuer Marke, Registrieren und Sprachregler. */
   .top nav .nav-login{ display:none; }
   .top nav{ gap:10px; }
-  .top nav a.nav-cta{ padding:8px 11px; font-size:12.5px; letter-spacing:.04em; }
+  .top nav a.nav-cta{ padding:12px 12px; font-size:13px; letter-spacing:.04em; }
+  .top .lang-switch a{ padding:10px 10px; }
 }
 @media (max-width:360px){
   .brand{ font-size:20px; letter-spacing:.1em; }
   .top nav{ gap:8px; }
-  .top nav a.nav-cta{ padding:8px 9px; font-size:12px; letter-spacing:.02em; }
+  .top nav a.nav-cta{ padding:12px 9px; font-size:12px; letter-spacing:.02em; }
+  .top .lang-switch a{ padding:10px 8px; }
 }
 /* Sprachregler in der Kopfzeile - dieselbe Optik wie in der Web-App. */
 .lang-switch{
@@ -270,8 +272,8 @@ section[id]{ scroll-margin-top:72px; }
    deutscher Auszeichnung, je nachdem, aus welcher Zeitzone der Renderer laeuft. */
 .lang-switch a{
   position:relative; z-index:2; text-decoration:none; display:block;
-  padding:4px 10px; border-radius:999px;
-  font-family:'Work Sans', system-ui, sans-serif; font-size:12px; font-weight:600;
+  padding:10px 12px; border-radius:999px;
+  font-family:'Work Sans', system-ui, sans-serif; font-size:12.5px; font-weight:600;
   letter-spacing:.06em; line-height:1.5; transition:color .18s ease;
 }
 .lang-switch a:link, .lang-switch a:visited{ color:var(--chalk-dim); }
@@ -297,7 +299,7 @@ section[id]{ scroll-margin-top:72px; }
 .lang-notice a:link, .lang-notice a:visited{ color:var(--plate); font-weight:600; }
 .lang-notice-close{
   margin-left:auto; border:0; background:transparent; cursor:pointer;
-  color:var(--chalk-dim); font-size:15px; line-height:1; padding:4px 6px;
+  color:var(--chalk-dim); font-size:15px; line-height:1; padding:14px 14px; margin:-10px -10px -10px auto;
 }
 .lang-notice-close:hover{ color:var(--chalk); }
 
@@ -312,11 +314,8 @@ section[id]{ scroll-margin-top:72px; }
   isolation:isolate; overflow-x:visible; overflow-y:clip;
 }
 main{ overflow-x:clip; }
-.hero::before{
-  content:''; position:absolute; z-index:-1; width:500px; height:500px;
-  right:-150px; top:-120px; border-radius:50%; pointer-events:none;
-  background:radial-gradient(circle, rgba(255,90,31,.17), rgba(255,90,31,0) 68%);
-}
+/* Bis 24.11.2026 lag hier ein orangener Lichtschein hinter den Profilkarten
+   (radial-gradient) - entfernt, weil er zum typischen KI-Seiten-Look gehoerte. */
 .hero-grid{
   display:grid; grid-template-columns:minmax(0,1fr) minmax(270px,320px);
   gap:42px; align-items:center;
@@ -401,7 +400,7 @@ main{ overflow-x:clip; }
   fill:none; stroke:var(--plate); stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round;
 }
 .ios-dl-text{ display:flex; flex-direction:column; text-align:left; }
-.ios-dl-text small{ font-size:11px; color:var(--chalk-dim); letter-spacing:.02em; }
+.ios-dl-text small{ font-size:12px; color:var(--chalk-dim); letter-spacing:.02em; }
 .ios-dl-text b{ font-size:15px; font-weight:600; }
 /* Vom Home-Bildschirm gestartet: schon installiert. */
 @media (display-mode: standalone){ .ios-dl{ display:none !important; } }
@@ -468,46 +467,81 @@ section{ padding:44px 0; border-top:1px solid var(--hairline); }
 section p{ color:var(--chalk-dim); max-width:62ch; }
 section p b, section li b{ color:var(--chalk); }
 
-.cards{ display:grid; gap:16px; margin-top:24px; grid-template-columns:repeat(auto-fit, minmax(230px, 1fr)); }
-.card{ background:var(--surface); border:1px solid var(--hairline); border-radius:14px; padding:20px; }
-.card p{ margin:0; font-size:14.5px; }
-.card .num{
-  font-family:'Oswald', sans-serif; font-size:13px; letter-spacing:.16em;
-  color:var(--plate); text-transform:uppercase; margin-bottom:8px;
+/* ---- So funktioniert's: drei Schritte mit grossen Kontur-Ziffern ----
+   Seit 24.11.2026 statt dreier gleich aussehender Karten (Entwurf 1 aus der
+   Design-Runde). Die Ziffern kommen per CSS-Zaehler, stehen also nicht im
+   Text und werden von Screenreadern als Listennummer gelesen. */
+.steps{ list-style:none; padding:0; margin:30px 0 0; display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); counter-reset:step; }
+.steps li{ position:relative; padding-right:24px; }
+.steps li::before{
+  counter-increment:step; content:'0' counter(step);
+  display:block; margin-bottom:16px;
+  font-family:'Oswald',sans-serif; font-weight:700; font-size:84px; line-height:.9;
+  color:transparent; -webkit-text-stroke:1.5px var(--plate);
+}
+.steps li::after{ content:''; position:absolute; z-index:-1; left:0; right:0; top:92px; height:2px; background:var(--steel); }
+.steps h3{ font-size:19px; margin:0 0 4px; text-transform:uppercase; }
+.steps p{ font-size:15px; margin:0; }
+@media (max-width:700px){
+  .steps{ grid-template-columns:1fr; gap:24px; }
+  .steps li{ display:grid; grid-template-columns:72px minmax(0,1fr); gap:0 12px; padding:0; }
+  .steps li::before{ font-size:56px; margin:0; grid-row:span 2; }
+  .steps li::after{ display:none; }
 }
 
-/* Merkmal-Karten (Abschnitte "Gym" und "Sicherheit"): vorher zwei lange
-   Aufzaehlungen in einer schmalen Textspalte, direkt hintereinander mit zwei
-   weiteren Fliesstext-Abschnitten. Der fette Satzanfang jedes Punkts wird zur
-   Kartenueberschrift - die Texte selbst sind unveraendert. */
-.feature-grid{
-  list-style:none; padding:0; margin:22px 0; display:grid; gap:14px;
-  grid-template-columns:repeat(2, minmax(0, 1fr));
+/* ---- Matches rund um dein Gym: Kartenausschnitt mit Umkreis + Liste ----
+   Kombination aus der Design-Runde vom 24.11.2026: Karte aus Entwurf 3,
+   Liste aus Entwurf 1. Die Karte ist rein dekorativ (aria-hidden), alle
+   Aussagen stehen in der Liste daneben. */
+.gym-layout{ display:grid; grid-template-columns:minmax(0,1.05fr) minmax(0,1fr); gap:36px; align-items:center; margin-top:28px; }
+.gym-map{ position:relative; height:360px; background:#161616; overflow:hidden; border:1px solid var(--hairline); border-radius:14px; }
+.gym-map svg{ position:absolute; inset:0; width:100%; height:100%; }
+.gym-points{ list-style:none; padding:0; margin:0; }
+.gym-points li{ padding:15px 0; border-top:1px solid var(--steel); color:var(--chalk-dim); font-size:15px; }
+.gym-points li:last-child{ border-bottom:1px solid var(--steel); }
+.gym-points b{
+  display:block; margin-bottom:2px; color:var(--chalk);
+  font-family:'Oswald',sans-serif; font-size:18px; font-weight:600; letter-spacing:.03em; text-transform:uppercase;
 }
-.feature-grid li{
-  background:var(--surface); border:1px solid var(--hairline); border-radius:14px;
-  padding:18px 20px 20px; color:var(--chalk-dim); font-size:14.5px; line-height:1.6;
+@media (max-width:760px){
+  .gym-layout{ grid-template-columns:1fr; gap:22px; }
+  .gym-map{ height:250px; }
 }
-.feature-grid li::before{
-  content:''; display:block; width:24px; height:3px; border-radius:2px;
-  background:var(--plate); margin-bottom:12px;
+
+/* ---- Sicherheit: ein grosser Satz, darunter die Massnahmen mit Symbol ---- */
+.safe-quote{
+  font-family:'Oswald',sans-serif; font-weight:700; text-transform:uppercase;
+  font-size:clamp(30px,6.5vw,56px); line-height:1.05; letter-spacing:.01em;
+  margin:6px 0 30px; max-width:20ch; color:var(--chalk);
 }
-.feature-grid li > b:first-child{
-  display:block; margin-bottom:6px;
-  font-family:'Oswald', sans-serif; font-size:17px; font-weight:600; letter-spacing:.02em;
+.safe-quote em{ font-style:normal; color:var(--plate); }
+.safe-list{ list-style:none; padding:0; margin:0 0 20px; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:0 40px; }
+.safe-list li{ display:grid; grid-template-columns:34px minmax(0,1fr); gap:12px; padding:16px 0; border-top:1px solid var(--steel); font-size:14.5px; color:var(--chalk-dim); }
+.safe-list svg{ width:28px; height:28px; stroke:var(--plate); fill:none; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+.safe-list b{ display:block; color:var(--chalk); font-size:15.5px; }
+@media (max-width:700px){ .safe-list{ grid-template-columns:1fr; } }
+
+/* ---- Muster-Deck: am Desktop Text links, Karte rechts ---- */
+.sample-grid{ display:grid; grid-template-columns:minmax(0,1fr) 380px; gap:48px; align-items:center; }
+.sample-grid .sample-deck{ margin-top:0; }
+@media (max-width:800px){
+  .sample-grid{ grid-template-columns:1fr; gap:6px; }
+  .sample-grid .sample-deck{ margin-top:22px; }
 }
-/* Ungerade Anzahl: die letzte Karte laeuft ueber die volle Breite. */
-.feature-grid li:last-child:nth-child(odd){ grid-column:1 / -1; }
-@media (max-width:640px){ .feature-grid{ grid-template-columns:1fr; } }
+
+/* ---- Kleingedrucktes zum Abo: aufklappbar statt zwei Absaetze Fliesstext ---- */
+details.fine{ margin-top:22px; background:transparent; border:1px solid var(--steel); }
+details.fine summary{ font-size:14.5px; }
+details.fine p{ padding:0 18px; font-size:14.5px; }
+details.fine p:last-child{ padding-bottom:4px; }
 
 /* Lifestyle-Abschnitt: vorher drei Absaetze untereinander in schmaler Spalte.
    Jetzt links der Fliesstext, rechts der Kernsatz ("nicht um einen bestimmten
    Koerper") als Karte - er ist die eigentliche Botschaft des Abschnitts. */
 .life-grid{ display:grid; grid-template-columns:minmax(0,1.35fr) minmax(0,1fr); gap:28px; align-items:start; }
 .life-callout{
-  position:relative; padding:22px 22px 8px; border-radius:14px;
-  background:linear-gradient(160deg, rgba(255,90,31,.12), rgba(255,90,31,.03) 60%), var(--surface);
-  border:1px solid rgba(255,90,31,.3);
+  position:relative; padding:20px 22px 6px; border-radius:0 12px 12px 0;
+  background:var(--surface); border-left:4px solid var(--plate);
 }
 .life-callout p{ color:var(--chalk); font-size:15.5px; }
 .life-callout p b{ color:var(--plate-bright); }
@@ -528,7 +562,7 @@ ul.plain li{ margin-bottom:9px; }
   position:absolute; inset:0; display:flex; flex-direction:column; overflow:hidden;
   border-radius:20px; background:linear-gradient(180deg,#202020,#191919);
   border:1px solid var(--hairline); cursor:grab; user-select:none;
-  box-shadow:0 22px 46px rgba(0,0,0,.55), 0 0 0 1.5px rgba(255,90,31,.22);
+  box-shadow:0 22px 46px rgba(0,0,0,.55);
   transform-origin:bottom center;
   transition:transform .36s cubic-bezier(.2,.8,.3,1), opacity .3s ease;
 }
@@ -553,18 +587,17 @@ ul.plain li{ margin-bottom:9px; }
 }
 .sample-name span{
   display:block; margin-top:2px; font-family:'Work Sans',sans-serif;
-  font-size:11px; line-height:1.4; color:rgba(255,255,255,.78);
+  font-size:12.5px; line-height:1.4; color:rgba(255,255,255,.82);
 }
 .sample-card-body{ padding:15px 16px 18px; flex:1; }
 .sample-chip-row{ display:flex; flex-wrap:wrap; gap:7px; margin-bottom:12px; }
 .sample-chip{
   display:inline-flex; align-items:center; gap:6px; padding:5px 9px; border-radius:7px;
   border:1px solid rgba(199,255,74,.24); background:rgba(199,255,74,.07);
-  color:var(--lime); font-size:10px; line-height:1.25;
+  color:var(--lime); font-size:12px; line-height:1.25;
 }
 .sample-chip .dot{
   width:7px; height:7px; border-radius:50%; background:var(--plate);
-  box-shadow:0 0 8px rgba(255,90,31,.45);
 }
 .sample-card-body p{ margin:0; color:var(--chalk-dim); font-size:13px; line-height:1.5; }
 .sample-stamp{
@@ -578,22 +611,20 @@ ul.plain li{ margin-bottom:9px; }
 .sample-actions{ display:flex; justify-content:center; align-items:center; gap:26px; margin-top:18px; }
 .sample-action{
   width:56px; height:56px; border-radius:50%; border:1px solid var(--steel);
-  background:linear-gradient(180deg,#222,#1b1b1b); color:var(--danger);
+  background:var(--surface-2); color:var(--danger);
   display:flex; align-items:center; justify-content:center; cursor:pointer;
-  transition:transform .12s ease,border-color .15s ease,box-shadow .15s ease;
+  transition:transform .12s ease,border-color .15s ease,background .15s ease;
 }
 .sample-action svg{ width:24px; height:24px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
-.sample-action:hover{ border-color:var(--danger); box-shadow:0 0 18px rgba(227,72,72,.2); }
+.sample-action:hover{ border-color:var(--danger); }
 .sample-action.like{
-  width:64px; height:64px; color:#fff; border:none;
-  background:linear-gradient(135deg,var(--plate-bright),var(--plate) 55%,#ef4c15);
-  box-shadow:0 8px 22px rgba(255,90,31,.35),inset 0 1px 0 rgba(255,255,255,.3);
+  width:64px; height:64px; color:#1a0a04; border:none; background:var(--plate);
 }
 .sample-action.like svg{ width:28px; height:28px; }
-.sample-action.like:hover{ transform:translateY(-2px); box-shadow:0 12px 28px rgba(255,90,31,.45),inset 0 1px 0 rgba(255,255,255,.3); }
+.sample-action.like:hover{ background:var(--plate-bright); }
 .sample-action:active{ transform:scale(.92); }
 .sample-deck-hint{
-  margin-top:10px; text-align:center; color:var(--chalk-dim); font-size:11px;
+  margin-top:10px; text-align:center; color:var(--chalk-dim); font-size:12px;
   letter-spacing:.07em; text-transform:uppercase;
 }
 @media(max-width:520px){
@@ -639,7 +670,7 @@ details{
 details[open]{ border-color:rgba(255,90,31,.35); }
 summary{
   list-style:none; cursor:pointer; padding:16px 46px 16px 18px; position:relative;
-  font-weight:600; font-size:15.5px; color:var(--chalk);
+  font-weight:600; font-size:15.5px; color:var(--chalk); min-height:48px;
 }
 summary::-webkit-details-marker{ display:none; }
 summary::after{
@@ -660,22 +691,22 @@ footer{ border-top:1px solid var(--steel); padding:32px 0 60px; margin-top:20px;
   text-transform:uppercase; color:var(--chalk-dim); margin-bottom:10px;
 }
 .foot-cols ul{ list-style:none; padding:0; margin:0; }
-.foot-cols li{ margin-bottom:8px; }
+.foot-cols li{ margin-bottom:0; }
 /* Fusszeilen-Links zurueckgenommen in Grau, Orange erst beim Ueberfahren:
    20 orange Links nebeneinander konkurrierten mit dem Registrieren-Knopf. */
 .foot-cols a, .foot-cities a{ font-size:14px; text-decoration:none; color:var(--chalk-dim); }
 .foot-cols a:hover, .foot-cities a:hover{ color:var(--plate-bright); }
-.foot-cols a{ display:inline-block; padding:2px 0; }
+.foot-cols a{ display:inline-block; padding:11px 0; }
 /* Alle Stadtseiten in einer Zeile - vorher waren nur Wien und Graz verlinkt. */
 .foot-cities{
-  display:flex; flex-wrap:wrap; gap:6px 16px; align-items:baseline;
+  display:flex; flex-wrap:wrap; gap:0 14px; align-items:baseline;
   margin:28px 0 0; padding-top:18px; border-top:1px solid var(--hairline);
 }
 .foot-cities-label{
   font-family:'Oswald', sans-serif; font-size:12px; letter-spacing:.18em;
   text-transform:uppercase; color:var(--chalk-dim);
 }
-.foot-cities a{ padding:4px 0; }
+.foot-cities a{ display:inline-block; padding:11px 2px; }
 .foot-note{ margin-top:18px; padding-top:18px; border-top:1px solid var(--hairline); font-size:13px; color:var(--chalk-dim); }
 
 @media (prefers-reduced-motion: reduce){
@@ -710,7 +741,7 @@ footer{ border-top:1px solid var(--steel); padding:32px 0 60px; margin-top:20px;
   text-decoration:underline; text-underline-offset:2px;
 }
 .beta-bar-close{
-  flex:0 0 auto; width:32px; height:32px; border-radius:50%; cursor:pointer;
+  flex:0 0 auto; width:40px; height:40px; border-radius:50%; cursor:pointer;
   border:1px solid var(--steel); background:var(--surface); color:var(--chalk); font-size:14px; line-height:1;
 }
 body.has-beta-bar footer{ padding-bottom:110px; }
@@ -813,9 +844,8 @@ body.has-beta-bar footer{ padding-bottom:110px; }
     <div class="hero">
       <div class="hero-grid">
         <div class="hero-copy">
-          <p class="eyebrow" data-i18n="hero.eyebrow">FLEXR · dating for gym people</p>
           <h1 data-i18n-html="hero.h1">Dating for<br>gym people<br>in <em>Austria &amp; Germany</em></h1>
-          <p class="sub" data-i18n="hero.sub">Find people who take training as seriously as you do – at your gym and close to you. Match. Train. Repeat.</p>
+          <p class="sub" data-i18n="hero.sub">Find people who take training as seriously as you do – at your gym and close to you.</p>
           <div class="cta-row">
             <a class="btn" href="/app/#registrieren" data-i18n="hero.ctaStart">Start for free</a>
             <a class="btn ghost" href="/app/#login" data-i18n="nav.login">Log in</a>
@@ -858,23 +888,20 @@ body.has-beta-bar footer{ padding-bottom:110px; }
          Absaetze Lifestyle-Text direkt unter dem Hero. -->
     <section id="so-gehts">
       <h2 data-i18n="how.h2">How FLEXR works</h2>
-      <div class="cards">
-        <div class="card">
-          <div class="num" data-i18n="how.step1">Step 1</div>
+      <ol class="steps">
+        <li>
           <h3 data-i18n="how.step1H3">Create your profile</h3>
-          <p data-i18n="how.step1P">Email, date of birth, postal code, at least three photos. Free and without a payment method. Then we check once that you are at least 18 – only then does it continue. No costs arise, now or later.</p>
-        </div>
-        <div class="card">
-          <div class="num" data-i18n="how.step2">Step 2</div>
+          <p data-i18n="how.step1P">Three photos, a one-time 18+ check. Free.</p>
+        </li>
+        <li>
           <h3 data-i18n="how.step2H3">Choose gym and radius</h3>
-          <p data-i18n="how.step2P">Search for your gym by name, town or postal code and set how far you would travel. You can change both at any time in your account.</p>
-        </div>
-        <div class="card">
-          <div class="num" data-i18n="how.step3">Step 3</div>
+          <p data-i18n="how.step2P">Find your gym, set your radius.</p>
+        </li>
+        <li>
           <h3 data-i18n="how.step3H3">Like, match, message</h3>
-          <p data-i18n="how.step3P">You see matching profiles from your area. If two people like each other, a match is created – and only then can you message. Before that, no unsolicited message reaches you.</p>
-        </div>
-      </div>
+          <p data-i18n="how.step3P">Messages only after a mutual like.</p>
+        </li>
+      </ol>
     </section>
 
     <!-- Musterprofile: KI-generierte Beispielfotos, keine echten Mitglieder.
@@ -886,8 +913,11 @@ body.has-beta-bar footer{ padding-bottom:110px; }
          selbst gehostet (kein Fremdaufruf) und mit Gesichtern, die keine
          reale Person abbilden - siehe frontend/brand/demo/README.md. -->
     <section id="musterprofile">
-      <h2 data-i18n="sample.h2">What your match could look like</h2>
-      <p data-i18n="sample.p1">A slice of the deck as it looks when swiping. Drag the card or try X and the heart. No real members — the faces are AI-generated.</p>
+      <div class="sample-grid">
+      <div class="sample-copy">
+        <h2 data-i18n="sample.h2">What your match could look like</h2>
+        <p data-i18n="sample.p1">This is what the deck looks like in the app. Drag the card or tap X and the heart. No real members – the faces are AI-generated.</p>
+      </div>
       <div class="sample-deck" id="sampleDeck" data-i18n-aria="sample.deckAria" aria-label="Interactive sample swipe deck">
         <div class="sample-deck-stage" id="sampleDeckStage" aria-live="polite">
           <article class="sample-profile-card" tabindex="-1" aria-label="Tobias, 28, John Harris Salzburg">
@@ -1053,29 +1083,50 @@ body.has-beta-bar footer{ padding-bottom:110px; }
         </div>
         <div class="sample-deck-hint" data-i18n="sample.hint">Drag, tap or use the arrow keys</div>
       </div>
+      </div>
     </section>
 
     <section id="gym">
       <h2 data-i18n="gym.h2">Matches around your gym</h2>
-      <p data-i18n="gym.p1">Most dating apps ask your phone for your location and then show you who happens to be nearby. FLEXR does it differently – deliberately:</p>
-      <ul class="feature-grid">
-        <li data-i18n-html="gym.li1"><b>You choose your gym.</b> From a list of gyms in Austria and Germany with addresses. If yours is missing, submit it with its address and use it right away.</li>
-        <li data-i18n-html="gym.li2"><b>You set your search radius.</b> From 2 to 1,100 kilometres. A larger radius means more profiles, but longer trips.</li>
-        <li data-i18n-html="gym.li3"><b>No GPS tracking.</b> Neither the browser nor the app asks for your device location. Distances are calculated solely from the public address of the gym you entered yourself. Your home address is never shown to anyone – others only see your city.</li>
-        <li data-i18n-html="gym.li4"><b>Nearby gyms included.</b> You see people from gyms in your area, not only from your own. The gym is the centre, not the fence.</li>
-      </ul>
-      <p data-i18n="gym.p2">The practical upside: from the start you both know a place, and there is an obvious suggestion for a first meeting.</p>
+      <p data-i18n="gym.p1">Other apps ask your phone for your location. FLEXR only uses the address of your gym.</p>
+      <div class="gym-layout">
+        <div class="gym-map" aria-hidden="true">
+          <svg viewBox="0 0 440 360" preserveAspectRatio="xMidYMid slice">
+            <defs><clipPath id="gymIconClip"><rect x="200" y="148" width="40" height="40" rx="9"/></clipPath></defs>
+            <g stroke="#262626" stroke-width="1" fill="none">
+              <path d="M0 60 C110 85 200 35 300 70 S400 50 440 75"/>
+              <path d="M0 290 C120 265 220 320 320 280 S410 300 440 270"/>
+              <path d="M70 0 C90 120 50 230 80 360"/>
+              <path d="M370 0 C345 120 395 230 360 360"/>
+              <path d="M200 0 C215 60 190 100 205 140"/>
+            </g>
+            <path d="M-20 225 C80 205 160 250 250 220 S380 240 460 205" stroke="#2c2c2c" stroke-width="10" fill="none"/>
+            <circle cx="220" cy="168" r="122" fill="rgba(255,90,31,.07)" stroke="#ff5a1f" stroke-width="2" stroke-dasharray="7 7"/>
+            <g fill="#ede9e2"><circle cx="150" cy="110" r="5"/><circle cx="295" cy="118" r="5"/><circle cx="285" cy="235" r="5"/><circle cx="140" cy="215" r="5"/></g>
+            <g fill="#555"><circle cx="400" cy="40" r="4"/><circle cx="40" cy="120" r="4"/><circle cx="410" cy="320" r="4"/><circle cx="60" cy="330" r="4"/></g>
+            <image href="/icons/icon-192.png" x="200" y="148" width="40" height="40" clip-path="url(#gymIconClip)"/>
+            <rect x="200" y="148" width="40" height="40" rx="9" fill="none" stroke="#ff5a1f" stroke-width="1.5"/>
+            <rect x="166" y="196" width="108" height="22" rx="4" fill="#121212"/>
+            <text x="220" y="211.5" text-anchor="middle" fill="#ede9e2" font-family="Oswald, sans-serif" font-size="12.5" font-weight="600" letter-spacing="1.6" data-i18n="gym.homeGym">YOUR GYM</text>
+          </svg>
+        </div>
+        <ul class="gym-points">
+          <li data-i18n-html="gym.li1"><b>You choose your gym</b>From all gyms in Austria and Germany. If yours is missing, add it yourself.</li>
+          <li data-i18n-html="gym.li2"><b>Radius up to 1,100 km</b>More radius, more profiles – but longer trips.</li>
+          <li data-i18n-html="gym.li3"><b>No GPS tracking</b>Others only see your city, never where you live.</li>
+          <li data-i18n-html="gym.li4"><b>Nearby gyms too</b>The gym is the centre, not the fence.</li>
+        </ul>
+      </div>
     </section>
 
     <section id="lifestyle">
       <h2 data-i18n="life.h2">Dating that fits your lifestyle</h2>
       <div class="life-grid">
         <div class="life-copy">
-        <p data-i18n-html="life.p1">Anyone who trains regularly knows the conversation: “You’re going to the gym <i>again</i>?” Five sessions a week, dinner after training instead of before, the alarm at seven on a Sunday – that is not a hobby you explain in passing. It is a part of the day that the rest gets planned around.</p>
-        <p data-i18n-html="life.p2">FLEXR is for people who would rather not have to explain that. Not because training is the only thing that counts, but because a shared understanding of the time and discipline involved removes a lot of friction. Someone who trains themselves does not ask why you squeeze in a session on a Friday evening – and might suggest coming along.</p>
+        <p data-i18n-html="life.p1">Five sessions a week, dinner after training, the alarm at seven on a Sunday: someone who trains themselves won’t ask why you’re heading to the gym on a Friday night – and might just come along.</p>
         </div>
         <div class="life-callout">
-        <p data-i18n-html="life.p3">And to be clear: this is <b>not</b> about a particular body. Strength training, functional fitness, endurance, martial arts, climbing, the third month back after a break – all of it counts. FLEXR is not a contest about body fat percentages, it is a place for people who live a similar everyday life.</p>
+        <p data-i18n-html="life.p3">This is <b>not</b> about a particular body. Strength training, endurance, martial arts, climbing or your third month back after a break – all of it counts.</p>
         </div>
       </div>
     </section>
@@ -1083,21 +1134,20 @@ body.has-beta-bar footer{ padding-bottom:110px; }
     <section id="oesterreich">
       <h2 data-i18n="at.h2">For gym people in Austria and Germany</h2>
       <p data-i18n-html="at.p1">FLEXR works with every postal code in Austria and Germany – in <b>Vienna</b> just as in <b>Graz</b>, <b>Linz</b>, <b>Salzburg</b>, <b>Innsbruck</b>, <b>Klagenfurt</b>, <b>Villach</b>, <b>Wels</b>, <b>St. Pölten</b>, <b>Dornbirn</b> or <b>Wiener Neustadt</b> just as in <b>Berlin</b>, <b>Hamburg</b>, <b>Munich</b>, <b>Cologne</b> or <b>Frankfurt</b>.</p>
-      <p data-i18n="at.p2">Honestly: how many profiles you see depends on how many people are on board within your radius. In urban areas there are more than in the countryside. We deliberately do not quote user numbers and do not promise a certain number of matches – those who do have usually made them up. If you live rurally, set the radius wider; the next larger town is often closer than it feels.</p>
-      <p data-i18n="at.p3">FLEXR is available in Austria and, since November 2026, in Germany too. Honestly: in German cities FLEXR is only just starting, so at first you will see fewer profiles there than in Vienna or Graz. Joining early means you help decide who shows up at your gym.</p>
+      <p data-i18n="at.p2">How many profiles you see depends on how many people within your radius are on board. In Germany FLEXR is only just starting – joining early means you help decide who shows up at your gym.</p>
     </section>
 
     <section id="sicherheit">
       <h2 data-i18n="safe.h2">Checked profiles and safety</h2>
-      <p data-i18n="safe.p1">Dating apps attract scammers. Here is what we do about it – these are not marketing promises but what actually happens:</p>
-      <ul class="feature-grid">
-        <li data-i18n-html="safe.li1"><b>18+, and it is checked.</b> Age is calculated on the server from your date of birth. Before your account is unlocked, a person compares your profile picture, a live selfie and an official photo ID document and checks the date of birth.</li>
-        <li data-i18n-html="safe.li2"><b>Manual review, no facial recognition.</b> No automated biometric recognition is used, no facial features are computed or stored, and the images are deleted after the review.</li>
-        <li data-i18n-html="safe.li3"><b>Every photo is approved before anyone sees it.</b> By a person. If we reject one, we tell you why.</li>
-        <li data-i18n-html="safe.li4"><b>Scam protection in chat.</b> Links and email addresses are removed automatically, and suspicious messages go to moderation. Profile texts containing links, phone numbers or typical scam wording are not published at all.</li>
-        <li data-i18n-html="safe.li5"><b>Report and block.</b> Blocking takes effect immediately and both ways. When you report someone you get a reference number and see the decision with its reasons in your account.</li>
+      <p class="safe-quote" data-i18n-html="safe.quote">A <em>person</em> checks every profile before anyone sees it.</p>
+      <ul class="safe-list">
+        <li><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="12" r="2.5"/><path d="M14 10h4M14 14h3"/></svg><span data-i18n-html="safe.li1"><b>18+, checked</b>Profile picture, live selfie and ID are compared.</span></li>
+        <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4l16 16"/><path d="M9 4H6a2 2 0 0 0-2 2v3M20 9V6a2 2 0 0 0-2-2h-3M4 15v3a2 2 0 0 0 2 2h3M15 20h3a2 2 0 0 0 2-2v-3"/></svg><span data-i18n-html="safe.li2"><b>No facial recognition</b>No biometrics, and the images are deleted afterwards.</span></li>
+        <li><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M8 12.5l3 3 5-6"/></svg><span data-i18n-html="safe.li3"><b>Every photo approved</b>Before anyone sees it. If we reject one, we tell you why.</span></li>
+        <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"/><path d="M9 10h6"/></svg><span data-i18n-html="safe.li4"><b>Scam protection in chat</b>Links and email addresses are removed, anything suspicious goes to moderation.</span></li>
+        <li><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M5.6 5.6l12.8 12.8"/></svg><span data-i18n-html="safe.li5"><b>Report and block</b>Blocking works instantly, reports get a reference number.</span></li>
       </ul>
-      <p data-i18n-html="safe.p2">What we do <b>not</b> claim: that every profile is guaranteed genuine or that FLEXR is completely safe. A visual check makes deception harder, it does not rule it out. Before a first meeting, please read our <a href="/en/sicherheit.html">safety tips</a> – they are short and can save you a lot.</p>
+      <p data-i18n-html="safe.p2">A visual check makes deception harder, it does not rule it out. Before a first meeting, please read our <a href="/en/sicherheit.html">safety tips</a>.</p>
     </section>
 
     <!-- Zwei Karten nebeneinander: kostenlos und Premium. Die kostenlose steht
@@ -1132,8 +1182,12 @@ body.has-beta-bar footer{ padding-bottom:110px; }
           <a class="btn" href="/app/#premium" style="display:block; text-align:center; margin-top:22px;" data-i18n="price.premiumCta">Get Premium</a>
         </div>
       </div>
-      <p style="margin-top:22px;" data-i18n-html="price.p1"><b>A free account never turns into a subscription by itself.</b> No payment method is requested or stored at sign-up. Premium only exists if you explicitly take it out — otherwise there is nothing to cancel and no deadline to miss.</p>
-      <p data-i18n-html="price.p2">You can get FLEXR&nbsp;Premium here on flexr.social from your account – including the web app on your iPhone – or as an in-app purchase in the Android app. You cancel wherever you ordered — one click, effective at the end of the current month. The €10 per month is the final price on flexr.social; VAT is not charged on top. In the Play&nbsp;Store its own price points apply — the store shows you the price before the purchase.</p>
+      <p style="margin-top:22px;" data-i18n-html="price.p1"><b>A free account never turns into a subscription by itself.</b></p>
+      <details class="fine">
+        <summary data-i18n="price.fineSummary">Subscription, cancellation and price in detail</summary>
+        <p data-i18n-html="price.fine1">No payment method is requested or stored at sign-up. Premium only exists if you explicitly take it out — otherwise there is nothing to cancel and no deadline to miss.</p>
+        <p data-i18n-html="price.p2">You can get FLEXR&nbsp;Premium here on flexr.social from your account – including the web app on your iPhone – or as an in-app purchase in the Android app. You cancel wherever you ordered — one click, effective at the end of the current month. The €10 per month is the final price on flexr.social; VAT is not charged on top. In the Play&nbsp;Store its own price points apply — the store shows you the price before the purchase.</p>
+      </details>
     </section>
 
     <section id="faq">
@@ -1177,7 +1231,7 @@ body.has-beta-bar footer{ padding-bottom:110px; }
         </details>
         <details>
           <summary data-i18n="faq.q10">Is FLEXR available all across Austria and Germany?</summary>
-          <div class="faq-a" data-i18n-html="faq.a10">Yes, every Austrian and every German postal code works. How many profiles you see depends on how many people are on board within your radius — more in urban areas than in the countryside.</div>
+          <div class="faq-a" data-i18n-html="faq.a10">Yes, every Austrian and every German postal code works. How many profiles you see depends on how many people within your radius are on board — more in urban areas than in the countryside. We deliberately do not quote user numbers and do not promise a certain number of matches. In rural areas a larger radius helps. FLEXR has been available in Germany since November 2026; at first you will see fewer profiles there than in Vienna or Graz.</div>
         </details>
         <details>
           <summary data-i18n="faq.qIphone">Is FLEXR available for iPhone?</summary>
@@ -1196,8 +1250,8 @@ body.has-beta-bar footer{ padding-bottom:110px; }
     </section>
 
     <section id="start" style="text-align:center;">
-      <h2 data-i18n="start.h2">Ready?</h2>
-      <p style="margin-left:auto; margin-right:auto;" data-i18n="start.p">Create a profile, pick your gym, get going. Using FLEXR costs nothing — no payment method, no deadline.</p>
+      <h2 data-i18n="start.h2">Who trains at your gym?</h2>
+      <p style="margin-left:auto; margin-right:auto;" data-i18n="start.p">Create a profile, pick your gym, take a look. Free, no payment method, no deadline.</p>
       <div class="cta-row" style="justify-content:center;">
         <a class="btn" href="/app/#registrieren" data-i18n="hero.ctaStart">Start for free</a>
       </div>

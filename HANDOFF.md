@@ -32,6 +32,48 @@ erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 
 ## Wo das Projekt gerade steht
 
+> **Sitzung 24.11.2026: Design-Runde Website (gegen den „KI-Look“), deployt.**
+> Nur Frontend, SEO-Generator und diese Datei; kein Backend, keine
+> Migration, keine App-Version. Service-Worker-Cache `v65`.
+>
+> - **Ausgangspunkt:** Review der Startseite nach Kriterien „sieht aus wie
+>   jede KI-Seite“ (gleiche Kartenraster, Vorzeile über der H1, Leuchteffekte,
+>   Textwände). Der Nutzer hat aus drei Entwürfen gewählt und gemischt.
+> - **So funktioniert's:** `<ol class="steps">` mit Kontur-Ziffern 01–03 per
+>   CSS-Zähler, Texte stark gekürzt. `how.step1`–`3` („Schritt n“) entfallen.
+> - **Matches rund um dein Gym:** `.gym-layout` = dekorative SVG-Karte
+>   (`aria-hidden`, gestrichelter Umkreis, App-Icon `/icons/icon-192.png` als
+>   „Stammstudio“, Beschriftung per `data-i18n="gym.homeGym"` auf dem
+>   `<text>`) + Liste `.gym-points`. Wunsch des Nutzers: kein „2 bis“, sondern
+>   „Radius bis 1.100 km“; kein H-/Hantelsymbol.
+> - **Sicherheit:** großer Satz `.safe-quote` („Ein *Mensch* prüft jedes
+>   Profil …“, `<em>` in Orange) + `.safe-list` mit Inline-SVG-Symbolen.
+> - **Entfernt/gekürzt:** Hero-Vorzeile (`hero.eyebrow`), „Match. Train.
+>   Repeat.“ (nur noch in `og:image:alt` von build-en.py), orangener
+>   Radial-Glow im Hero, Verlauf/Glow am Herz-Button und an den Deck-Karten,
+>   `life.p2`, `at.p3`, `safe.p1`, `gym.p2`. Die „Ehrlich dazu“-Aussagen
+>   (keine Nutzerzahlen, Deutschland startet erst) stehen jetzt in `faq.a10`.
+>   Abo-Kleingedrucktes als `<details class="fine">`. Schluss-Aufruf „Wer
+>   trainiert in deinem Gym?“ statt „Bereit?“.
+> - **Muster-Deck:** `.sample-grid`, am Desktop Text links, Karte rechts.
+> - **Tippflächen/Schrift:** DE/EN 39 px, Kopfzeilen-CTA 42 px, Footer-Links
+>   ≥ 40 px, kleinste Schrift 12 px (Chips, Hinweise, „Für iPhone“).
+> - **Such-Einstiegsseiten** (`tools/seo/build_seo_pages.py`, `STIL` und
+>   `seite()`): H2 in Oswald/Versalien, Abstand H1→Lead, Abschluss-Kasten
+>   `.cta-end` vor `</main>`. Mit `--refresh` neu gebaut, damit „Stand:“ der
+>   Studioliste stimmt (6 live gelöschte Doppel weg, McFit Gablenzgasse neu).
+> - **Wörterbuch:** `de`- und `en`-Block in `i18n-landing.js` gepflegt,
+>   `en/index.html` per `python3 frontend/build-en.py` erzeugt.
+> - **Tests:** Frontend-Tests 66 grün (`test_public_frontend`,
+>   `test_journey_befunde`, `test_kuendigungsbutton`, `test_mail_app_link`,
+>   `test_csp_storage_hosts`). Hinweis: `backend/venv` ist lokal leer (nur
+>   `__pycache__`), für Tests neu anlegen.
+> - **Nebenbei (Produktion, nur Daten):** Gym „McFit — Äußere Brucker
+>   Straße 51, 91052 Erlangen“ hatte einen zerschossenen Namen (doppelt
+>   eingefügter Text) - korrigiert; zwei abgelehnte Duplikate gelöscht.
+>   Ausweis-Freigabe gibt offene Profilfotos mit frei, wenn der (vorab
+>   gesetzte) Haken `approve_pending_photos` an ist - so gewollt.
+
 > **Sitzung 20.11.2026: iOS 2.4.19 (61) ausgeliefert, SDK-Frist April 2027.**
 > Nur diese Datei; kein Code, keine Migration, keine App-Version.
 >
