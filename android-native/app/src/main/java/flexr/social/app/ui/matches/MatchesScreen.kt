@@ -72,7 +72,6 @@ fun MatchesScreen(
     Column(Modifier.fillMaxSize().padding(horizontal = 20.dp)) {
         Spacer(Modifier.height(18.dp))
         ScreenHeader(
-            eyebrow = stringResource(R.string.matches_eyebrow),
             title = stringResource(R.string.matches_title),
         )
         Spacer(Modifier.height(16.dp))
@@ -150,7 +149,6 @@ fun ChatsScreen(
     Column(Modifier.fillMaxSize().padding(horizontal = 20.dp)) {
         Spacer(Modifier.height(18.dp))
         ScreenHeader(
-            eyebrow = stringResource(R.string.chats_eyebrow),
             title = stringResource(R.string.chats_title),
         )
         Spacer(Modifier.height(16.dp))

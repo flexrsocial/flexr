@@ -89,7 +89,7 @@ fun JourneyBar(
                     Spacer(Modifier.height(6.dp))
                     Text(
                         text = stringResource(step.label).uppercase(),
-                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp, letterSpacing = 0.8.sp),
+                        style = MaterialTheme.typography.labelSmall.copy(letterSpacing = 0.4.sp),
                         color = when {
                             erledigt -> colors.plate
                             aktiv -> colors.chalk

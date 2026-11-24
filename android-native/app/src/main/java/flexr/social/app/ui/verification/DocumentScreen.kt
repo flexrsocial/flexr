@@ -165,7 +165,7 @@ private fun DocumentForm(
             Modifier.fillMaxWidth().padding(vertical = 10.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            IconButton(onClick = onBack, modifier = Modifier.size(36.dp)) {
+            IconButton(onClick = onBack, modifier = Modifier.size(48.dp)) {
                 Icon(FlexrIcons.Back, contentDescription = stringResource(R.string.common_back), tint = colors.chalk)
             }
             Spacer(Modifier.width(6.dp))
@@ -506,7 +506,7 @@ private fun DocumentCamera(
             Modifier.fillMaxWidth().padding(vertical = 10.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            IconButton(onClick = onCancel, modifier = Modifier.size(36.dp)) {
+            IconButton(onClick = onCancel, modifier = Modifier.size(48.dp)) {
                 Icon(FlexrIcons.Back, contentDescription = stringResource(R.string.common_cancel), tint = colors.chalk)
             }
             Spacer(Modifier.width(6.dp))

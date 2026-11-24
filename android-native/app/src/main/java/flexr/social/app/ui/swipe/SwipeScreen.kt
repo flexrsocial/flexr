@@ -96,7 +96,6 @@ fun SwipeScreen(
     ) {
         Spacer(Modifier.height(18.dp))
         ScreenHeader(
-            eyebrow = stringResource(R.string.swipe_eyebrow),
             title = stringResource(R.string.swipe_title),
         )
         Text(
@@ -239,7 +238,7 @@ fun SwipeScreen(
                             RoundActionButton(
                                 icon = FlexrIcons.Like,
                                 description = stringResource(R.string.swipe_like),
-                                tint = Color.White,
+                                tint = FlexrTheme.colors.plateInk,
                                 large = true,
                                 onClick = { scope.commitSwipe(cardState, true) { viewModel.like() } },
                             )
@@ -312,16 +311,10 @@ internal fun RoundActionButton(
             .clip(CircleShape)
             .then(
                 if (large) {
-                    Modifier.background(
-                        Brush.linearGradient(
-                            listOf(colors.plateBright, colors.plate, Color(0xFFEF4C15)),
-                        ),
-                    )
+                    Modifier.background(colors.plate)
                 } else {
                     Modifier
-                        .background(
-                            Brush.verticalGradient(listOf(Color(0xFF222222), Color(0xFF1B1B1B))),
-                        )
+                        .background(colors.surface2)
                         .border(1.dp, colors.steel, CircleShape)
                 },
             )

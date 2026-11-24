@@ -369,8 +369,12 @@ android {
         // nicht hochgeladen war.
         // 154/2.7.42 am 03.11.2026: Deutschland - PLZ mit vier (AT) oder
         // fuenf (DE) Ziffern, 404 bei vier Ziffern heisst "weitertippen".
-        versionCode = 157
-        versionName = "2.7.45"
+        // 158/2.7.46 am 24.11.2026: Design-Review wie Web - keine Verlaeufe und
+        // Leuchtschleier, Work Sans statt Mono (mind. 12 sp), ohne Wortspiel-
+        // Vorzeilen, Symbolknoepfe 48 dp; Registrierungshinweis "das dauert
+        // zusammen etwa 5 Minuten".
+        versionCode = 158
+        versionName = "2.7.46"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

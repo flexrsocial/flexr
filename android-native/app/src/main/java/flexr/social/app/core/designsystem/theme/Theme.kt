@@ -98,21 +98,16 @@ val FlexrShapes = Shapes(
 )
 
 /**
- * Hintergrund der App-Fläche: entspricht dem mehrschichtigen Verlauf aus
- * `.app` im Web (zwei radiale Orange-Schleier über der Grundfarbe).
+ * Hintergrund der App-Fläche: ruhige Grundfarbe. Bis 2.7.45 lag hier ein
+ * orangener radialer Schleier (wie damals `.app` im Web) - seit dem
+ * Design-Review 24.11.2026 in Web und App entfernt.
  */
 @Composable
 fun FlexrBackground(content: @Composable () -> Unit) {
-    val glow = Brush.radialGradient(
-        colors = listOf(Color(0x1FFF5A1F), Color.Transparent),
-        center = Offset(120f, -40f),
-        radius = 900f,
-    )
     Box(
         Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-            .background(glow),
+            .background(MaterialTheme.colorScheme.background),
     ) { content() }
 }
 

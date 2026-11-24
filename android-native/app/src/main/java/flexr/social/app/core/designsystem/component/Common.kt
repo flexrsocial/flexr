@@ -60,16 +60,20 @@ fun Eyebrow(text: String, modifier: Modifier = Modifier) {
     )
 }
 
-/** Standard-Kopf eines Bildschirms: Vorzeile plus Überschrift. */
+/**
+ * Standard-Kopf eines Bildschirms: Überschrift, optional mit Vorzeile.
+ * Seit 2.7.46 ohne die Wortspiel-Vorzeilen ("Heutige Sätze", "Trefferquote"
+ * ...) - sie wirkten in dieser Menge wie aus einer Vorlage (Design-Review).
+ */
 @Composable
 fun ScreenHeader(
-    eyebrow: String,
     title: String,
     modifier: Modifier = Modifier,
+    eyebrow: String? = null,
     subtitle: String? = null,
 ) {
     Column(modifier.fillMaxWidth()) {
-        Eyebrow(eyebrow)
+        if (eyebrow != null) Eyebrow(eyebrow)
         Text(
             text = title,
             style = MaterialTheme.typography.headlineMedium,
@@ -107,7 +111,7 @@ fun EmptyState(
             Modifier
                 .size(68.dp)
                 .clip(CircleShape)
-                .background(Brush.radialGradient(listOf(plate.copy(alpha = 0.16f), plate.copy(alpha = 0.03f))))
+                .background(MaterialTheme.colorScheme.surface)
                 .border(1.dp, plate.copy(alpha = 0.26f), CircleShape),
             contentAlignment = Alignment.Center,
         ) {

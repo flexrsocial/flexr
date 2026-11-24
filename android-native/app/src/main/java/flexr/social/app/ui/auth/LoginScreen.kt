@@ -66,7 +66,6 @@ fun LoginScreen(
 
         Spacer(Modifier.height(24.dp))
         ScreenHeader(
-            eyebrow = stringResource(R.string.login_eyebrow),
             title = stringResource(R.string.login_title),
             subtitle = stringResource(R.string.login_subtitle),
         )

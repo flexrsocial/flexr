@@ -83,7 +83,7 @@ fun MatchProfileScreen(
             Modifier.fillMaxWidth().padding(vertical = 10.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            IconButton(onClick = onBack, modifier = Modifier.size(36.dp)) {
+            IconButton(onClick = onBack, modifier = Modifier.size(48.dp)) {
                 Icon(
                     FlexrIcons.Back,
                     contentDescription = stringResource(R.string.common_back),

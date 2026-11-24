@@ -73,9 +73,7 @@ fun FlexrButton(
                 if (isBlocked) {
                     SolidColor(colors.surface3)
                 } else {
-                    Brush.linearGradient(
-                        listOf(colors.plateBright, colors.plate, Color(0xFFEF4C15)),
-                    )
+                    SolidColor(colors.plate)
                 },
             )
             .then(

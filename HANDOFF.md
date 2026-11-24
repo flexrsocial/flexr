@@ -32,6 +32,28 @@ erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 
 ## Wo das Projekt gerade steht
 
+> **Sitzung 24.11.2026 (3): Android 2.7.46 / 158 gebaut, Upload offen.**
+> AAB `release-2.7.46/flexr-2.7.46-158.aab` (gitignored), SHA-256
+> `681379a3b5938e4e64c8333a4989490f2c2aa4f92aa5bfec755550ac0b5cf95b`,
+> 8.940.159 Bytes, signiert (`META-INF/FLEXR.RSA`). **Hochladen und
+> freigeben in der Play Console macht der Nutzer.**
+>
+> - Gleiches Review wie Web: Verläufe/Leuchtschleier weg (`Buttons.kt`,
+>   Herz in `SwipeScreen.kt`, Chatblasen/Senden in `ChatScreen.kt`,
+>   `FlexrBackground` in `Theme.kt`, Leerzustand in `Common.kt`), Swipe-Karte
+>   mit Haarlinie statt orangem Rahmen.
+> - `Type.kt`: `labelSmall`/`labelMedium`/`EyebrowStyle`/`MonoStyle` in
+>   Work Sans, 12 sp (vorher JetBrains Mono, 10/11 sp). Die Konstante
+>   `JetBrainsMono` steht noch, wird aber nicht mehr verwendet.
+> - `ScreenHeader(eyebrow = …)` ist jetzt optional; Login, Registrierung,
+>   Swipe, Matches, Chats, Offene Likes ohne Vorzeile. Die Strings
+>   `*_eyebrow` bleiben stehen.
+> - 48-dp-Tippflächen: Karten-Knöpfe Melden/Blockieren/Entmatchen (38-dp-
+>   Kreis), Zurück/Menü im Chat, Zurück in Verifizierung, Dokument,
+>   Offene Likes, Match-Profil.
+> - String `journey_register_note`: „das dauert zusammen etwa 5 Minuten“.
+> - Geprüft: 109 Unit-Tests grün, Emulator (Swipe, Matches, Chat).
+
 > **Sitzung 24.11.2026 (2): Web-App `/app` nach demselben Review, deployt.**
 > Nur `frontend/app/index.html`, `app/i18n-app.js` (`?v=49`), `sw.js` (`v67`).
 >

@@ -352,7 +352,7 @@ private fun ChatHeader(
             Modifier.fillMaxWidth().padding(vertical = 10.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            IconButton(onClick = onBack, modifier = Modifier.size(36.dp)) {
+            IconButton(onClick = onBack, modifier = Modifier.size(48.dp)) {
                 Icon(FlexrIcons.Back, contentDescription = stringResource(R.string.common_back), tint = colors.chalk)
             }
             Spacer(Modifier.width(6.dp))
@@ -414,7 +414,7 @@ private fun ChatHeader(
                 }
             }
             Box {
-                IconButton(onClick = onMenuToggle, modifier = Modifier.size(34.dp)) {
+                IconButton(onClick = onMenuToggle, modifier = Modifier.size(48.dp)) {
                     Icon(
                         FlexrIcons.More,
                         contentDescription = stringResource(R.string.common_more_options),
@@ -496,7 +496,7 @@ private fun ChatDaySeparator(zeitpunkt: Instant) {
     ) {
         Text(
             text = text.uppercase(LocalAppLanguage.current.locale),
-            style = MonoStyle.copy(fontSize = 10.sp, letterSpacing = 0.08.em),
+            style = MonoStyle.copy(letterSpacing = 0.06.em),
             color = colors.chalkDim,
             modifier = Modifier
                 .clip(CircleShape)
@@ -523,9 +523,7 @@ private fun MessageBubble(message: Message, isMine: Boolean) {
                 )
                 .then(
                     if (isMine) {
-                        Modifier.background(
-                            Brush.linearGradient(listOf(colors.plateBright, colors.plate)),
-                        )
+                        Modifier.background(colors.plate)
                     } else {
                         Modifier
                             .background(colors.surface2)
@@ -699,11 +697,7 @@ private fun ChatInputRow(
                     .size(40.dp)
                     .clip(CircleShape)
                     .background(
-                        if (enabled && value.isNotBlank()) {
-                            Brush.linearGradient(listOf(colors.plateBright, colors.plate))
-                        } else {
-                            Brush.linearGradient(listOf(colors.surface3, colors.surface3))
-                        },
+                        if (enabled && value.isNotBlank()) colors.plate else colors.surface3,
                     ),
                 contentAlignment = Alignment.Center,
             ) {

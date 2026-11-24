@@ -109,7 +109,6 @@ fun RegisterScreen(
 
         Spacer(Modifier.height(24.dp))
         ScreenHeader(
-            eyebrow = stringResource(R.string.register_eyebrow),
             title = stringResource(R.string.register_title),
             // Beta-Gratisphase: Der Text steht fest im Code, weil vor dem Login
             // noch kein /api/billing/status abrufbar ist. Wird die Gebuehr

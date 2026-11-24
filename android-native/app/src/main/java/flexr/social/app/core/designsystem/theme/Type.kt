@@ -126,37 +126,40 @@ val FlexrTypography = Typography(
         lineHeight = 18.sp,
         letterSpacing = 0.06.em,
     ),
+    // Seit 2.7.46 (24.11.2026) Work Sans statt JetBrains Mono und mindestens
+    // 12 sp - wie die Web-App nach dem Design-Review (Mono wirkte technisch und
+    // war mit 10/11 sp zu klein).
     labelMedium = TextStyle(
-        fontFamily = JetBrainsMono,
+        fontFamily = WorkSans,
         fontWeight = FontWeight.Medium,
-        fontSize = 11.sp,
-        lineHeight = 14.sp,
-        letterSpacing = 0.06.em,
+        fontSize = 12.sp,
+        lineHeight = 16.sp,
+        letterSpacing = 0.03.em,
     ),
     labelSmall = TextStyle(
-        fontFamily = JetBrainsMono,
+        fontFamily = WorkSans,
         fontWeight = FontWeight.Medium,
-        fontSize = 10.sp,
-        lineHeight = 13.sp,
-        letterSpacing = 0.08.em,
+        fontSize = 12.sp,
+        lineHeight = 16.sp,
+        letterSpacing = 0.04.em,
     ),
 )
 
 /** `.eyebrow` aus dem Web: Mono, gesperrt, Versalien, Akzentfarbe. */
 val EyebrowStyle = TextStyle(
-    fontFamily = JetBrainsMono,
-    fontWeight = FontWeight.Medium,
-    fontSize = 11.sp,
-    lineHeight = 14.sp,
-    letterSpacing = 0.12.em,
+    fontFamily = WorkSans,
+    fontWeight = FontWeight.SemiBold,
+    fontSize = 12.sp,
+    lineHeight = 16.sp,
+    letterSpacing = 0.08.em,
 )
 
 /** `.mono` — technische Werte (Entfernung, Radius, Zeitstempel). */
 val MonoStyle = TextStyle(
-    fontFamily = JetBrainsMono,
+    fontFamily = WorkSans,
     fontWeight = FontWeight.Medium,
-    fontSize = 11.sp,
-    lineHeight = 15.sp,
+    fontSize = 12.sp,
+    lineHeight = 16.sp,
     letterSpacing = 0.02.em,
 )
 

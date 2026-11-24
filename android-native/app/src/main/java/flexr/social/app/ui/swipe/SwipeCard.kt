@@ -159,8 +159,8 @@ fun SwipeableCard(
                 alpha = 1f - (progress * 0.15f)
             }
             .clip(RoundedCornerShape(20.dp))
-            .background(Brush.verticalGradient(listOf(Color(0xFF202020), Color(0xFF191919))))
-            .border(1.5.dp, FlexrTheme.colors.plate.copy(alpha = 0.3f), RoundedCornerShape(20.dp))
+            .background(MaterialTheme.colorScheme.surface)
+            .border(1.dp, FlexrTheme.colors.hairline, RoundedCornerShape(20.dp))
             .then(
                 if (draggable) {
                     Modifier.pointerInput(profile.id) {
@@ -456,8 +456,10 @@ private fun CardContent(
                     Row(
                         Modifier
                             .align(Alignment.TopEnd)
-                            .padding(top = 22.dp, end = 10.dp),
-                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                            // Knoepfe haben 5 dp unsichtbaren Rand (48 dp Tippflaeche,
+                            // 38 dp Kreis) - Abstaende entsprechend kleiner.
+                            .padding(top = 17.dp, end = 5.dp),
+                        horizontalArrangement = Arrangement.spacedBy(0.dp),
                     ) {
                         onUnmatch?.let {
                             CardActionButton(FlexrIcons.Unmatch, stringResource(R.string.unmatch_action), it)
@@ -545,12 +547,11 @@ private fun CardActionButton(
     description: String,
     onClick: () -> Unit,
 ) {
+    // 48 dp Tippflaeche (Android-Mindestmass), sichtbar ein 38-dp-Kreis.
+    // Bis 2.7.45 war beides 30 dp.
     Box(
         Modifier
-            .size(30.dp)
-            .clip(CircleShape)
-            .background(Color.Black.copy(alpha = 0.5f))
-            .border(1.dp, Color.White.copy(alpha = 0.22f), CircleShape)
+            .size(48.dp)
             .pointerInput(description) { detectTapGestures { onClick() } }
             // Der Tipp laeuft ueber pointerInput, das steht nicht im
             // Accessibility-Baum: Bis 2.7.35 hatte der Knopf dort weder Rolle
@@ -563,12 +564,21 @@ private fun CardActionButton(
             },
         contentAlignment = Alignment.Center,
     ) {
-        Icon(
-            icon,
-            contentDescription = null,
-            tint = Color.White.copy(alpha = 0.85f),
-            modifier = Modifier.size(15.dp),
-        )
+        Box(
+            Modifier
+                .size(38.dp)
+                .clip(CircleShape)
+                .background(Color.Black.copy(alpha = 0.5f))
+                .border(1.dp, Color.White.copy(alpha = 0.22f), CircleShape),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(
+                icon,
+                contentDescription = null,
+                tint = Color.White.copy(alpha = 0.85f),
+                modifier = Modifier.size(17.dp),
+            )
+        }
     }
 }
 

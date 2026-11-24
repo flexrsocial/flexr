@@ -111,7 +111,7 @@ fun IncomingScreen(
         ) {
             IconButton(
                 onClick = { if (selected != null) viewModel.closeProfile() else onBack() },
-                modifier = Modifier.size(36.dp),
+                modifier = Modifier.size(48.dp),
             ) {
                 Icon(
                     FlexrIcons.Back,
@@ -121,7 +121,6 @@ fun IncomingScreen(
             }
             Spacer(Modifier.width(6.dp))
             ScreenHeader(
-                eyebrow = stringResource(R.string.incoming_eyebrow),
                 title = selected?.let { "${it.name}, ${it.age}" } ?: stringResource(R.string.incoming_h2),
             )
         }
