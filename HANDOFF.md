@@ -32,6 +32,26 @@ erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 
 ## Wo das Projekt gerade steht
 
+> **Sitzung 24.11.2026 (7): Dritte Design-Runde (nur Web), live.**
+> - **Landing:** FAQ als Register in 4 Themen (Entwurf 2) mit Nummern je Thema
+>   ab 01 und Oswald-Fragen (aus Entwurf 1), Keys `faq.g1-4`; Lifestyle-Kernsatz
+>   gross statt Kasten (`life.quote`, `life.p3` gekürzt); Städte als Reihe
+>   (`at.p1` gekürzt, `at.labelAT/DE`, `at.citiesAT/DE`); Preistabelle am Handy
+>   entzerrt (1.100-km-Hinweis als Fußnote `price.boostNote`, kürzere Zeilen);
+>   „So könnte dein Match aussehen“ am Desktop oben bündig.
+> - **Web-App:** alle orangen Leuchtschatten entfernt (Nav, Badges, Online-
+>   Punkte, Fotobalken, Regler, Match-Titel); Fokusring am Regler bleibt.
+> - **Unterseiten:** `legal.css?v=5` (h2 in Oswald, überall hochgezählt);
+>   Städteseiten mit Studios je Bezirk aufklappbar, H1 in Versalien, Links und
+>   FAQ als Linien statt Kästen, Abschluss-Kasten ohne Seitenbalken
+>   (`tools/seo/build_seo_pages.py`, mit `--refresh` neu erzeugt);
+>   `faq.html`/`en/faq.html` im selben FAQ-Stil.
+> - **Daten (Prod):** Gym „Yoga-Institut;Psychotherapie“ → „Yoga-Institut“.
+>   „Fitness Pro – Jariya road 12, 1010 Wien“ (approved, von niemandem genutzt,
+>   angelegt 18.09.2026 zusammen mit abgelehntem „Golden Gym – mandia road“)
+>   auf Wunsch des Nutzers gelöscht, Städteseiten danach neu erzeugt.
+> - `sw.js` v70. DESIGN.md um FAQ-Register, Kernsatz und Städte-Reihe ergänzt.
+
 > **Sitzung 24.11.2026 (6): Zweite Design-Runde (Web, App, Android, iOS) und DESIGN.md.**
 > Prüfpunkte wie in Runde 1 (Referenzen, 3 Entwürfe, KI-Look-Verbot,
 > Fremd-Urteil, Feinschliff bei 375 px). Alles live auf flexr.social.

@@ -90,8 +90,12 @@ summary:focus-visible {
 }
 
 h1 { font-family: 'Oswald', system-ui, sans-serif; font-size: 28px; line-height: 1.2; margin: 0 0 6px; }
+/* Zwischenueberschriften in Oswald wie auf der Startseite (DESIGN.md,
+   24.11.2026) - vorher Work Sans fett. */
 h2 {
-  font-size: 18px; color: var(--chalk); margin-top: 40px;
+  font-family: 'Oswald', system-ui, sans-serif; font-weight: 600;
+  text-transform: uppercase; letter-spacing: .02em; line-height: 1.2;
+  font-size: 20px; color: var(--chalk); margin-top: 40px;
   border-bottom: 1px solid var(--steel); padding-bottom: 6px;
 }
 /* Ausnahme: Ueberschrift direkt vor einer Ausklapp-Kartenliste (FAQ). Die

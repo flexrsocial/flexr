@@ -24,7 +24,7 @@
 <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png?v=4">
 <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon-180.png?v=1">
 <link rel="preload" href="/fonts/oswald.woff2?v=1" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="/legal.css?v=4">
+<link rel="stylesheet" href="/legal.css?v=5">
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -104,7 +104,7 @@
   /* Nur auf den Such-Einstiegsseiten (erzeugt von tools/seo/build_seo_pages.py). */
   /* Ueberschriften wie auf der Startseite (Oswald, Versalien) - bis 24.11.2026
      standen hier die Work-Sans-Ueberschriften der Rechtstexte. */
-  h1{ font-size:clamp(28px,6vw,36px); margin:0 0 14px; }
+  h1{ font-size:clamp(28px,6vw,36px); margin:0 0 14px; text-transform:uppercase; line-height:1.1; }
   h2{ font-family:'Oswald', system-ui, sans-serif; font-size:21px; font-weight:600; letter-spacing:.02em; text-transform:uppercase; margin-top:44px; }
   .head-cta{ padding:12px 16px; }
   .crumbs{ font-size:13px; color:var(--chalk-dim); margin:0 0 14px; }
@@ -115,29 +115,37 @@
   .cta-box .btn{ margin-top:14px; text-decoration:none; }
   /* Abschluss-Kasten am Seitenende: Wer bis unten gelesen hat, soll nicht
      erst wieder nach oben zur Kopfzeile muessen. */
-  .cta-end{ margin-top:44px; padding:24px 22px; border:0; border-left:4px solid var(--plate); border-radius:0 14px 14px 0; }
+  .cta-end{ margin-top:44px; padding:24px 22px; border:0; border-top:3px solid var(--plate); border-radius:0; }
   .cta-end .cta-title{ margin:0 0 6px; font-family:'Oswald', system-ui, sans-serif; font-size:24px; font-weight:700; line-height:1.15; text-transform:uppercase; color:var(--chalk); }
   .cta-end p{ color:var(--chalk-dim); }
-  .gym-group{ margin:0 0 14px; }
-  .gym-group h3{ margin:16px 0 6px; }
-  .gym-group ul{ margin:0; padding-left:18px; color:var(--chalk-dim); font-size:14.5px; }
+  .gym-group{ border-bottom:1px solid var(--hairline); }
+  .gym-group:first-of-type{ border-top:1px solid var(--hairline); }
+  .gym-group summary{ list-style:none; cursor:pointer; display:flex; align-items:center; gap:12px; min-height:52px; padding:10px 0; }
+  .gym-group summary::-webkit-details-marker{ display:none; }
+  .gym-group .gg-t{ flex:1; font-family:'Oswald', system-ui, sans-serif; font-size:17px; text-transform:uppercase; letter-spacing:.03em; color:var(--chalk); }
+  .gym-group .gg-n{ font-size:13px; color:var(--chalk-dim); }
+  .gym-group summary::after{ content:'+'; color:var(--plate); font-size:22px; width:18px; text-align:right; transition:transform .2s ease; }
+  .gym-group[open] summary::after{ transform:rotate(45deg); }
+  .gym-group ul{ margin:0 0 14px; padding-left:18px; color:var(--chalk-dim); font-size:14.5px; }
   .gym-group li b{ color:var(--chalk); font-weight:600; }
   .link-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:10px; margin:14px 0; padding:0; list-style:none; grid-auto-rows:1fr; }
   .link-grid li{ display:flex; }
-  .link-grid a{ display:block; flex:1; padding:12px 14px; border:1px solid var(--steel); border-radius:12px; background:var(--surface); text-decoration:none; color:var(--chalk); font-weight:600; }
-  .link-grid a:hover{ border-color:var(--plate); color:var(--plate-bright); }
+  .link-grid{ gap:0 24px; }
+  .link-grid a{ display:block; flex:1; padding:12px 0; border-bottom:1px solid var(--hairline); text-decoration:none; color:var(--chalk); font-family:'Oswald', system-ui, sans-serif; font-weight:500; text-transform:uppercase; letter-spacing:.03em; }
+  @media (hover:hover){ .link-grid a:hover{ color:var(--plate-bright); } }
+  .link-grid span{ font-family:'Work Sans', system-ui, sans-serif; text-transform:none; letter-spacing:0; }
   .link-grid span{ display:block; font-weight:400; font-size:13px; color:var(--chalk-dim); }
   .ideas{ padding-left:18px; }
   .ideas li{ margin-bottom:10px; }
   .ideas b{ color:var(--chalk); }
   .note{ font-size:13px; color:var(--chalk-dim); }
-  .faq-item{ border:1px solid var(--hairline); border-radius:14px; background:var(--surface); margin-bottom:12px; overflow:hidden; }
-  .faq-item[open]{ border-color:rgba(255,90,31,.35); }
-  .faq-item summary{ list-style:none; cursor:pointer; padding:16px 48px 16px 18px; position:relative; font-weight:600; font-size:16px; color:var(--chalk); }
+  /* FAQ wie auf der Startseite: Linien statt Kaesten, Fragen in Oswald. */
+  .faq-item{ border-bottom:1px solid var(--hairline); }
+  .faq-item summary{ list-style:none; cursor:pointer; padding:14px 40px 14px 0; position:relative; font-family:'Oswald', system-ui, sans-serif; font-weight:500; font-size:17px; text-transform:uppercase; letter-spacing:.03em; color:var(--chalk); min-height:52px; }
   .faq-item summary::-webkit-details-marker{ display:none; }
-  .faq-item summary::after{ content:'+'; position:absolute; right:18px; top:50%; transform:translateY(-50%); font-size:24px; line-height:1; color:var(--plate); }
-  .faq-item[open] summary::after{ content:'\2212'; }
-  .faq-a{ padding:0 18px 18px; color:var(--chalk-dim); font-size:14.5px; }
+  .faq-item summary::after{ content:'+'; position:absolute; right:0; top:50%; transform:translateY(-50%); font-size:22px; line-height:1; color:var(--plate); transition:transform .2s ease; }
+  .faq-item[open] summary::after{ transform:translateY(-50%) rotate(45deg); }
+  .faq-a{ padding:0 0 18px; color:var(--chalk-dim); font-size:15px; }
 </style>
 </head>
 <body>
@@ -174,270 +182,270 @@
   <p>Diese 101 Studios kannst du derzeit in FLEXR als dein Gym auswählen.
   Dein Studio fehlt? Du kannst es bei der Registrierung mit Adresse vorschlagen
   und sofort verwenden.</p>
-  <div class="gym-group">
-    <h3>20095 Hamburg</h3>
+  <details class="gym-group">
+    <summary><span class="gg-t">20095 Hamburg</span><span class="gg-n">1 Studio</span></summary>
     <ul>
       <li><b>Fitness First</b> – Ballindamm 39</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>20097 Hamburg</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">20097 Hamburg</span><span class="gg-n">1 Studio</span></summary>
     <ul>
       <li><b>McFit</b> – Kurt-Schumacher-Allee 2</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>20099 Hamburg</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">20099 Hamburg</span><span class="gg-n">3 Studios</span></summary>
     <ul>
       <li><b>PRIME Twenty</b> – Lange Reihe 103</li>
       <li><b>Sportspaß</b> – Westphalensweg 11</li>
       <li><b>Urban Yoga</b> – Rostocker Straße 4</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>20146 Hamburg</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">20146 Hamburg</span><span class="gg-n">1 Studio</span></summary>
     <ul>
       <li><b>Grindel Gym</b> – Hallerstraße 1c</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>20249 Hamburg</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">20249 Hamburg</span><span class="gg-n">2 Studios</span></summary>
     <ul>
       <li><b>PRIME TIME fitness Eppendorf</b> – Eppendorfer Landstraße 23</li>
       <li><b>sporting live</b> – Robert-Koch-Straße 26</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>20251 Hamburg</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">20251 Hamburg</span><span class="gg-n">3 Studios</span></summary>
     <ul>
       <li><b>Elbgym</b> – Straßenbahnring 8</li>
       <li><b>PRIME TIME fitness Hoheluft</b> – Straßenbahnring 15</li>
       <li><b>Urban Bodies</b> – Christoph-Probst-Weg 26</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>20253 Hamburg</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">20253 Hamburg</span><span class="gg-n">1 Studio</span></summary>
     <ul>
       <li><b>VIMODROM Hamburg Eppendorf</b> – Hoheluftchaussee 60</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>20255 Hamburg</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">20255 Hamburg</span><span class="gg-n">2 Studios</span></summary>
     <ul>
       <li><b>Kieser Training</b> – Heußweg 37d</li>
       <li><b>Yutori</b> – Heußweg 98</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>20257 Hamburg</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">20257 Hamburg</span><span class="gg-n">1 Studio</span></summary>
     <ul>
       <li><b>Animo Studio</b> – Müggenkampstraße 1</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>20259 Hamburg</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">20259 Hamburg</span><span class="gg-n">2 Studios</span></summary>
     <ul>
       <li><b>Pilatespeople Pilates Studio</b> – Schulweg 30a</li>
       <li><b>Tai Chi Schule Daniel Grolle</b> – Eppendorfer Weg 64</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>20354 Hamburg</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">20354 Hamburg</span><span class="gg-n">2 Studios</span></summary>
     <ul>
       <li><b>ELB GYM</b> – Gorch-Fock-Wall 3</li>
       <li><b>Fitness First</b> – Gorch-Fock-Wall 1a</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>20355 Hamburg</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">20355 Hamburg</span><span class="gg-n">4 Studios</span></summary>
     <ul>
       <li><b>BEAT81</b> – Kaiser-Wilhelm-Straße 14</li>
       <li><b>Devah Yoga e.V.</b> – Pilatuspool 11a</li>
       <li><b>OHANA</b> – Bäckerbreitergang 14</li>
       <li><b>Urban Heroes Hamburg Fitness</b> – Valentinskamp 88</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>20457 Hamburg</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">20457 Hamburg</span><span class="gg-n">3 Studios</span></summary>
     <ul>
       <li><b>ESN Gym by Prime Time fitness</b> – Großer Burstah 18</li>
       <li><b>Hongkong Studios Yoga</b> – Hongkongstraße 5-6</li>
       <li><b>PRIME TIME fitness HafenCity</b> – Überseeboulevard 3</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>20459 Hamburg</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">20459 Hamburg</span><span class="gg-n">2 Studios</span></summary>
     <ul>
       <li><b>Fitness First</b> – Rödingsmarkt 9</li>
       <li><b>ISY Innersmile Yoga</b> – Ditmar-Koel-Straße 23a</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>20537 Hamburg</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">20537 Hamburg</span><span class="gg-n">1 Studio</span></summary>
     <ul>
       <li><b>McFit</b> – Eiffestraße 664</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>20539 Hamburg</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">20539 Hamburg</span><span class="gg-n">1 Studio</span></summary>
     <ul>
       <li><b>Clever fit</b> – Billhorner Deich 94</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>21029 Hamburg</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">21029 Hamburg</span><span class="gg-n">1 Studio</span></summary>
     <ul>
       <li><b>Well You</b> – Curslacker Neuer Deich 44</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>21033 Hamburg</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">21033 Hamburg</span><span class="gg-n">2 Studios</span></summary>
     <ul>
       <li><b>Studio Mohnblume</b> – Kurt-A.-Körber-Chaussee 5</li>
       <li><b>TSG Sportforum</b> – Billwerder Billdeich 607</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>21035 Hamburg</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">21035 Hamburg</span><span class="gg-n">2 Studios</span></summary>
     <ul>
       <li><b>Athlevo CrossFit</b> – Dusiplatz 8</li>
       <li><b>Kieser Training</b> – Weidenbaumsweg 139</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>21073 Hamburg</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">21073 Hamburg</span><span class="gg-n">2 Studios</span></summary>
     <ul>
       <li><b>Fitness First</b> – Lüneburger Tor 8</li>
       <li><b>JOHN REED Fitness</b> – Am Werder 1</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>21079 Hamburg</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">21079 Hamburg</span><span class="gg-n">2 Studios</span></summary>
     <ul>
       <li><b>Fitness First</b> – Theodor-Yorck-Straße 4</li>
       <li><b>Kieser Training</b> – Hannoversche Straße 83</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>21109 Hamburg</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">21109 Hamburg</span><span class="gg-n">1 Studio</span></summary>
     <ul>
       <li><b>Sportstudio Kirchdorf</b> – Kirchdorfer Straße 171b</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>21149 Hamburg</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">21149 Hamburg</span><span class="gg-n">2 Studios</span></summary>
     <ul>
       <li><b>form-fit</b> – Cuxhavener Straße 293b</li>
       <li><b>Jonja Yoga</b> – Groot Enn 4</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>22041 Hamburg</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">22041 Hamburg</span><span class="gg-n">3 Studios</span></summary>
     <ul>
       <li><b>Eisenhauer Training</b> – Am Neumarkt 30</li>
       <li><b>Fitness First</b> – Wandsbeker Marktstraße 2</li>
       <li><b>JOHN REED Fitness</b> – Walddörferstraße 140-142</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>22043 Hamburg</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">22043 Hamburg</span><span class="gg-n">2 Studios</span></summary>
     <ul>
       <li><b>EasyFitness</b> – Barsbütteler Straße 37</li>
       <li><b>Universitätsgym-DB-Campus</b> – Holstenhofweg 85</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>22047 Hamburg</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">22047 Hamburg</span><span class="gg-n">1 Studio</span></summary>
     <ul>
       <li><b>Sports Club Wandsbek</b> – Friedrich-Ebert-Damm 128</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>22081 Hamburg</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">22081 Hamburg</span><span class="gg-n">1 Studio</span></summary>
     <ul>
       <li><b>Lorenzen Training</b> – Holsteinischer Kamp 1</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>22083 Hamburg</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">22083 Hamburg</span><span class="gg-n">2 Studios</span></summary>
     <ul>
       <li><b>BEAT81</b> – Heinrich-Hertz-Straße 105</li>
       <li><b>Holmes Place</b> – Bostelreihe 2</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>22087 Hamburg</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">22087 Hamburg</span><span class="gg-n">1 Studio</span></summary>
     <ul>
       <li><b>The Ray</b> – Sechslingspforte 15</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>22089 Hamburg</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">22089 Hamburg</span><span class="gg-n">1 Studio</span></summary>
     <ul>
       <li><b>Hama Studio</b> – Pappelallee 16a</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>22143 Hamburg</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">22143 Hamburg</span><span class="gg-n">1 Studio</span></summary>
     <ul>
       <li><b>juka dojo Fitness Club Rahlstedt GmbH</b> – Schweriner Straße 8-12</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>22177 Hamburg</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">22177 Hamburg</span><span class="gg-n">1 Studio</span></summary>
     <ul>
       <li><b>Körperformen</b> – Bramfelder Chaussee 239</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>22179 Hamburg</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">22179 Hamburg</span><span class="gg-n">1 Studio</span></summary>
     <ul>
       <li><b>VIMODROM Hamburg Bramfeld</b> – Bramfelder Dorfplatz 10</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>22297 Hamburg</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">22297 Hamburg</span><span class="gg-n">2 Studios</span></summary>
     <ul>
       <li><b>beneFit</b> – Überseering 32-34</li>
       <li><b>CrossFit Virage</b> – Wesselyring 51</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>22299 Hamburg</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">22299 Hamburg</span><span class="gg-n">1 Studio</span></summary>
     <ul>
       <li><b>Kieser Training</b> – Winterhuder Marktplatz 6-7a</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>22301 Hamburg</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">22301 Hamburg</span><span class="gg-n">2 Studios</span></summary>
     <ul>
       <li><b>On Stage Training Center</b> – Krohnskamp 33</li>
       <li><b>PRIME TIME fitness Winterhude</b> – Dorotheenstraße 84</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>22303 Hamburg</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">22303 Hamburg</span><span class="gg-n">2 Studios</span></summary>
     <ul>
       <li><b>Hansa Yoga</b> – Saarlandstraße 7</li>
       <li><b>PRIME TIME fitness Kampnagel</b> – Barmbeker Straße 10</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>22305 Hamburg</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">22305 Hamburg</span><span class="gg-n">1 Studio</span></summary>
     <ul>
       <li><b>TRU Fitness</b> – Krüsistraße 7</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>22307 Hamburg</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">22307 Hamburg</span><span class="gg-n">3 Studios</span></summary>
     <ul>
       <li><b>Körperformen</b> – Fuhlsbüttler Straße 225</li>
       <li><b>Living Room Barmbek</b> – Habichtstraße 124</li>
       <li><b>NAYOKi</b> – Hartzlohplatz 17</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>22309 Hamburg</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">22309 Hamburg</span><span class="gg-n">8 Studios</span></summary>
     <ul>
       <li><b>Alsterfit</b> – Steilshooper Straße</li>
       <li><b>EMS Fitnessstudio fitbox</b> – Fuhlsbüttler Straße 396</li>
@@ -448,118 +456,118 @@
       <li><b>Meridian Spa</b> – Fuhlsbüttler Straße 405</li>
       <li><b>Smartfit</b> – Fuhlsbüttler Straße 456</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>22335 Hamburg</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">22335 Hamburg</span><span class="gg-n">1 Studio</span></summary>
     <ul>
       <li><b>FitX</b> – Röntgenstraße 28</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>22391 Hamburg</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">22391 Hamburg</span><span class="gg-n">2 Studios</span></summary>
     <ul>
       <li><b>Kieser Training</b> – Kritenbarg 4</li>
       <li><b>Meridian Spa</b> – Heegbarg 6</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>22415 Hamburg</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">22415 Hamburg</span><span class="gg-n">2 Studios</span></summary>
     <ul>
       <li><b>Fitness First</b> – Langenhorner Markt 1-18</li>
       <li><b>Kieser Training</b> – Krohnstieg 41</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>22419 Hamburg</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">22419 Hamburg</span><span class="gg-n">2 Studios</span></summary>
     <ul>
       <li><b>Elixia</b> – Essener Straße 4</li>
       <li><b>VIMODROM Hamburg Langenhorn</b> – Langenhorner Chaussee 680</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>22453 Hamburg</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">22453 Hamburg</span><span class="gg-n">1 Studio</span></summary>
     <ul>
       <li><b>Fitness First</b> – Kollaustraße 135</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>22459 Hamburg</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">22459 Hamburg</span><span class="gg-n">1 Studio</span></summary>
     <ul>
       <li><b>FitnessCenter-Niendorf</b> – Krähenweg 9</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>22523 Hamburg</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">22523 Hamburg</span><span class="gg-n">2 Studios</span></summary>
     <ul>
       <li><b>beneFit</b> – Hörgensweg 5</li>
       <li><b>Mindful Me Studio</b> – Holsteiner Chaussee 10a</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>22525 Hamburg</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">22525 Hamburg</span><span class="gg-n">2 Studios</span></summary>
     <ul>
       <li><b>Fitness First</b> – Schnackenburgallee 50</li>
       <li><b>FitX</b> – Schnackenburgallee 43 - 45</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>22529 Hamburg</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">22529 Hamburg</span><span class="gg-n">1 Studio</span></summary>
     <ul>
       <li><b>WYSH.Fitness</b> – Rütersbarg 50</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>22547 Hamburg</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">22547 Hamburg</span><span class="gg-n">1 Studio</span></summary>
     <ul>
       <li><b>Bellas ladys Gym</b> – Lüttkamp 23</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>22587 Hamburg</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">22587 Hamburg</span><span class="gg-n">1 Studio</span></summary>
     <ul>
       <li><b>VIMODROM® Hamburg Blankenese</b> – Blankeneser Bahnhofstraße 14</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>22605 Hamburg</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">22605 Hamburg</span><span class="gg-n">1 Studio</span></summary>
     <ul>
       <li><b>McFit</b> – Baurstraße 2</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>22763 Hamburg</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">22763 Hamburg</span><span class="gg-n">1 Studio</span></summary>
     <ul>
       <li><b>Roots Studios</b> – Große Brunnenstraße 63a</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>22765 Hamburg</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">22765 Hamburg</span><span class="gg-n">3 Studios</span></summary>
     <ul>
       <li><b>Odissi Tanz Atellier</b> – Gaußstraße 136</li>
       <li><b>TOUGH GYM</b> – Max-Brauer-Allee 155</li>
       <li><b>Urban Yoga</b> – Gerichtstraße 49</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>22767 Hamburg</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">22767 Hamburg</span><span class="gg-n">2 Studios</span></summary>
     <ul>
       <li><b>Lady Fitness Center</b> – Schillerstraße 44</li>
       <li><b>LeFit</b> – Jessenstraße 4</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>22769 Hamburg</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">22769 Hamburg</span><span class="gg-n">2 Studios</span></summary>
     <ul>
       <li><b>[jo:ga]</b> – Kieler Straße 147</li>
       <li><b>McFit</b> – Kieler Straße 147</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>Rund um Hamburg</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">Rund um Hamburg</span><span class="gg-n">1 Studio</span></summary>
     <ul>
       <li><b>JOY Fitness Norderstedt</b> – Niendorfer Straße 141</li>
     </ul>
-  </div>
+  </details>
   <p class="note">FLEXR ist mit den genannten Studios nicht verbunden und wird
   von ihnen nicht empfohlen. Die Liste zeigt nur, welche Studios in der App
   auswählbar sind (Stand: 24.11.2026).</p>

@@ -24,7 +24,7 @@
 <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png?v=4">
 <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon-180.png?v=1">
 <link rel="preload" href="/fonts/oswald.woff2?v=1" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="/legal.css?v=4">
+<link rel="stylesheet" href="/legal.css?v=5">
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -104,7 +104,7 @@
   /* Nur auf den Such-Einstiegsseiten (erzeugt von tools/seo/build_seo_pages.py). */
   /* Ueberschriften wie auf der Startseite (Oswald, Versalien) - bis 24.11.2026
      standen hier die Work-Sans-Ueberschriften der Rechtstexte. */
-  h1{ font-size:clamp(28px,6vw,36px); margin:0 0 14px; }
+  h1{ font-size:clamp(28px,6vw,36px); margin:0 0 14px; text-transform:uppercase; line-height:1.1; }
   h2{ font-family:'Oswald', system-ui, sans-serif; font-size:21px; font-weight:600; letter-spacing:.02em; text-transform:uppercase; margin-top:44px; }
   .head-cta{ padding:12px 16px; }
   .crumbs{ font-size:13px; color:var(--chalk-dim); margin:0 0 14px; }
@@ -115,29 +115,37 @@
   .cta-box .btn{ margin-top:14px; text-decoration:none; }
   /* Abschluss-Kasten am Seitenende: Wer bis unten gelesen hat, soll nicht
      erst wieder nach oben zur Kopfzeile muessen. */
-  .cta-end{ margin-top:44px; padding:24px 22px; border:0; border-left:4px solid var(--plate); border-radius:0 14px 14px 0; }
+  .cta-end{ margin-top:44px; padding:24px 22px; border:0; border-top:3px solid var(--plate); border-radius:0; }
   .cta-end .cta-title{ margin:0 0 6px; font-family:'Oswald', system-ui, sans-serif; font-size:24px; font-weight:700; line-height:1.15; text-transform:uppercase; color:var(--chalk); }
   .cta-end p{ color:var(--chalk-dim); }
-  .gym-group{ margin:0 0 14px; }
-  .gym-group h3{ margin:16px 0 6px; }
-  .gym-group ul{ margin:0; padding-left:18px; color:var(--chalk-dim); font-size:14.5px; }
+  .gym-group{ border-bottom:1px solid var(--hairline); }
+  .gym-group:first-of-type{ border-top:1px solid var(--hairline); }
+  .gym-group summary{ list-style:none; cursor:pointer; display:flex; align-items:center; gap:12px; min-height:52px; padding:10px 0; }
+  .gym-group summary::-webkit-details-marker{ display:none; }
+  .gym-group .gg-t{ flex:1; font-family:'Oswald', system-ui, sans-serif; font-size:17px; text-transform:uppercase; letter-spacing:.03em; color:var(--chalk); }
+  .gym-group .gg-n{ font-size:13px; color:var(--chalk-dim); }
+  .gym-group summary::after{ content:'+'; color:var(--plate); font-size:22px; width:18px; text-align:right; transition:transform .2s ease; }
+  .gym-group[open] summary::after{ transform:rotate(45deg); }
+  .gym-group ul{ margin:0 0 14px; padding-left:18px; color:var(--chalk-dim); font-size:14.5px; }
   .gym-group li b{ color:var(--chalk); font-weight:600; }
   .link-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:10px; margin:14px 0; padding:0; list-style:none; grid-auto-rows:1fr; }
   .link-grid li{ display:flex; }
-  .link-grid a{ display:block; flex:1; padding:12px 14px; border:1px solid var(--steel); border-radius:12px; background:var(--surface); text-decoration:none; color:var(--chalk); font-weight:600; }
-  .link-grid a:hover{ border-color:var(--plate); color:var(--plate-bright); }
+  .link-grid{ gap:0 24px; }
+  .link-grid a{ display:block; flex:1; padding:12px 0; border-bottom:1px solid var(--hairline); text-decoration:none; color:var(--chalk); font-family:'Oswald', system-ui, sans-serif; font-weight:500; text-transform:uppercase; letter-spacing:.03em; }
+  @media (hover:hover){ .link-grid a:hover{ color:var(--plate-bright); } }
+  .link-grid span{ font-family:'Work Sans', system-ui, sans-serif; text-transform:none; letter-spacing:0; }
   .link-grid span{ display:block; font-weight:400; font-size:13px; color:var(--chalk-dim); }
   .ideas{ padding-left:18px; }
   .ideas li{ margin-bottom:10px; }
   .ideas b{ color:var(--chalk); }
   .note{ font-size:13px; color:var(--chalk-dim); }
-  .faq-item{ border:1px solid var(--hairline); border-radius:14px; background:var(--surface); margin-bottom:12px; overflow:hidden; }
-  .faq-item[open]{ border-color:rgba(255,90,31,.35); }
-  .faq-item summary{ list-style:none; cursor:pointer; padding:16px 48px 16px 18px; position:relative; font-weight:600; font-size:16px; color:var(--chalk); }
+  /* FAQ wie auf der Startseite: Linien statt Kaesten, Fragen in Oswald. */
+  .faq-item{ border-bottom:1px solid var(--hairline); }
+  .faq-item summary{ list-style:none; cursor:pointer; padding:14px 40px 14px 0; position:relative; font-family:'Oswald', system-ui, sans-serif; font-weight:500; font-size:17px; text-transform:uppercase; letter-spacing:.03em; color:var(--chalk); min-height:52px; }
   .faq-item summary::-webkit-details-marker{ display:none; }
-  .faq-item summary::after{ content:'+'; position:absolute; right:18px; top:50%; transform:translateY(-50%); font-size:24px; line-height:1; color:var(--plate); }
-  .faq-item[open] summary::after{ content:'\2212'; }
-  .faq-a{ padding:0 18px 18px; color:var(--chalk-dim); font-size:14.5px; }
+  .faq-item summary::after{ content:'+'; position:absolute; right:0; top:50%; transform:translateY(-50%); font-size:22px; line-height:1; color:var(--plate); transition:transform .2s ease; }
+  .faq-item[open] summary::after{ transform:translateY(-50%) rotate(45deg); }
+  .faq-a{ padding:0 0 18px; color:var(--chalk-dim); font-size:15px; }
 </style>
 </head>
 <body>
@@ -174,17 +182,17 @@
   <p>Diese 186 Studios kannst du derzeit in FLEXR als dein Gym auswählen.
   Dein Studio fehlt? Du kannst es bei der Registrierung mit Adresse vorschlagen
   und sofort verwenden.</p>
-  <div class="gym-group">
-    <h3>80331 München</h3>
+  <details class="gym-group">
+    <summary><span class="gg-t">80331 München</span><span class="gg-n">4 Studios</span></summary>
     <ul>
       <li><b>ardor</b> – Tal 32</li>
       <li><b>Bikram Hot Yoga</b> – Tal 9</li>
       <li><b>Body &amp; Soul München Mitte</b> – Sonnenstraße 9</li>
       <li><b>Fitness First</b> – Kaufingerstraße 17</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>80333 München</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">80333 München</span><span class="gg-n">10 Studios</span></summary>
     <ul>
       <li><b>Bodystreet</b> – Brienner Straße 59</li>
       <li><b>Drops Barre</b> – Theresienstraße 31</li>
@@ -197,9 +205,9 @@
       <li><b>The Sanctuary</b> – Gabelsbergerstraße 77</li>
       <li><b>the stretching tiger</b> – Augustenstraße 80</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>80335 München</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">80335 München</span><span class="gg-n">6 Studios</span></summary>
     <ul>
       <li><b>Basic fit</b> – Marsstraße 20</li>
       <li><b>M&amp;V Body</b> – Nymphenburger Straße 49</li>
@@ -208,15 +216,15 @@
       <li><b>Simon Vincent @ International Ballet School</b> – Marsstraße 40</li>
       <li><b>Studio Equilibrium</b> – Erzgießereistraße 48</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>80336 München</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">80336 München</span><span class="gg-n">1 Studio</span></summary>
     <ul>
       <li><b>Shiva Shiva Yoga</b> – Goethestraße 40</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>80337 München</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">80337 München</span><span class="gg-n">5 Studios</span></summary>
     <ul>
       <li><b>Bodystreet</b> – Kapuzinerstraße 11</li>
       <li><b>Fitness First</b> – Lindwurmstraße 114</li>
@@ -224,9 +232,9 @@
       <li><b>Masachis°YOGA @ Svaira Yoga</b> – Lindwurmstraße 7</li>
       <li><b>Studio numi</b> – Zenettiplatz 1</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>80339 München</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">80339 München</span><span class="gg-n">5 Studios</span></summary>
     <ul>
       <li><b>body + soul</b> – Theresienhöhe 7</li>
       <li><b>DEINCrossFit</b> – Ganghoferstraße 3</li>
@@ -234,9 +242,9 @@
       <li><b>The Bodyworkers</b> – Westendstraße 100</li>
       <li><b>YogaBee</b> – Heimeranstraße 49</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>80469 München</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">80469 München</span><span class="gg-n">9 Studios</span></summary>
     <ul>
       <li><b>Bodystreet</b> – Corneliusstraße 31</li>
       <li><b>EVO Fitness</b> – Baaderstraße 80</li>
@@ -248,25 +256,25 @@
       <li><b>Yoga und Klang</b> – Müllerstraße 35</li>
       <li><b>Yogaraum</b> – Jahnstraße 46</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>80538 München</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">80538 München</span><span class="gg-n">4 Studios</span></summary>
     <ul>
       <li><b>Happy Body</b> – Sternstraße 20</li>
       <li><b>Jivamukti Yoga</b> – Robert-Koch-Straße 13</li>
       <li><b>Thora Space</b> – Wagmüllerstraße 21</li>
       <li><b>Toemek Sport</b> – Paradiesstraße 8</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>80539 München</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">80539 München</span><span class="gg-n">2 Studios</span></summary>
     <ul>
       <li><b>OM One</b> – Schönfeldstraße 17</li>
       <li><b>YogicLoveAffair-SummerLoveYoga</b> – Veterinärstraße 18</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>80634 München</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">80634 München</span><span class="gg-n">6 Studios</span></summary>
     <ul>
       <li><b>Happy Mind Yoga</b> – Donnersbergerstraße 22a</li>
       <li><b>Hatha-Yoga-Muenchen</b> – Leonrodstraße 19</li>
@@ -275,77 +283,77 @@
       <li><b>Pilates now</b> – Donnersbergerstraße 8</li>
       <li><b>Yoga im Studio Ygia</b> – Ysenburgstraße 16</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>80636 München</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">80636 München</span><span class="gg-n">4 Studios</span></summary>
     <ul>
       <li><b>Beat81</b> – Klaus-Mann-Platz 1</li>
       <li><b>Bodystreet</b> – Arnulfstraße 104a</li>
       <li><b>Orange Room</b> – Nymphenburger Straße 92</li>
       <li><b>Praxis84</b> – Blutenburgstraße 84</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>80637 München</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">80637 München</span><span class="gg-n">1 Studio</span></summary>
     <ul>
       <li><b>pilatesbee – bodywork &amp; more</b> – Helene-Weber-Allee 11</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>80639 München</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">80639 München</span><span class="gg-n">4 Studios</span></summary>
     <ul>
       <li><b>body + soul Hirschgarten</b> – Friedenheimer Brücke 16</li>
       <li><b>Bodystreet</b> – Hirschgartenallee 26a</li>
       <li><b>EVO Fitness</b> – Winthirstraße 4</li>
       <li><b>Naturheilpraxis Degenhardt</b> – Romanstraße 14</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>80686 München</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">80686 München</span><span class="gg-n">1 Studio</span></summary>
     <ul>
       <li><b>Bodystreet</b> – Fürstenrieder Straße 149</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>80687 München</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">80687 München</span><span class="gg-n">2 Studios</span></summary>
     <ul>
       <li><b>all inclusive Fitness München-Laim</b> – Landsberger Straße 314</li>
       <li><b>McFit</b> – Landsberger Straße 163</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>80689 München</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">80689 München</span><span class="gg-n">1 Studio</span></summary>
     <ul>
       <li><b>Prime Time Fitness Laim</b> – Fürstenrieder Straße 68</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>80796 München</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">80796 München</span><span class="gg-n">4 Studios</span></summary>
     <ul>
       <li><b>Kieser Training</b> – Belgradstraße 5a</li>
       <li><b>mind body concept</b> – Belgradstraße 47</li>
       <li><b>Stadtsport München</b> – Tengstraße 36</li>
       <li><b>Yoga Woman</b> – Belgradstraße 14</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>80797 München</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">80797 München</span><span class="gg-n">2 Studios</span></summary>
     <ul>
       <li><b>ars movendi</b> – Winzererstraße 47d</li>
       <li><b>M-Fitnesscenter Nordbad</b> – Schleißheimer Straße 142</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>80798 München</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">80798 München</span><span class="gg-n">4 Studios</span></summary>
     <ul>
       <li><b>Bodystreet</b> – Görresstraße 10</li>
       <li><b>MBSR - 8samer</b> – Luisenstraße 72</li>
       <li><b>Pilates Now</b> – Hiltenspergerstraße 15</li>
       <li><b>SOLID PEOPLE</b> – Luisenstraße 67c</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>80799 München</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">80799 München</span><span class="gg-n">7 Studios</span></summary>
     <ul>
       <li><b>Beat81</b> – Kurfürstenstraße 8</li>
       <li><b>Happy Body Institute</b> – Schellingstraße 20</li>
@@ -355,9 +363,9 @@
       <li><b>The Good Gym</b> – Amalienstraße 87</li>
       <li><b>Traum München - Yoga Studio</b> – Amalienstraße 65</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>80801 München</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">80801 München</span><span class="gg-n">6 Studios</span></summary>
     <ul>
       <li><b>Eternity Health Club</b> – Hohenzollernstraße 5</li>
       <li><b>Josef P</b> – Nordendstraße 29</li>
@@ -366,108 +374,108 @@
       <li><b>PLX Studios</b> – Hohenzollernstraße 31a</li>
       <li><b>Sue Coaching</b> – Hohenzollernstraße 60</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>80802 München</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">80802 München</span><span class="gg-n">3 Studios</span></summary>
     <ul>
       <li><b>Cryosizer</b> – Leopoldstraße 17</li>
       <li><b>Luisa Harisch Yoga</b> – Marschallstraße 8</li>
       <li><b>The Drop Club</b> – Siegesstraße 22a</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>80803 München</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">80803 München</span><span class="gg-n">2 Studios</span></summary>
     <ul>
       <li><b>Bodystreet</b> – Siegfriedstraße 9</li>
       <li><b>The Sanctuary</b> – Pündterplatz 2</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>80804 München</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">80804 München</span><span class="gg-n">2 Studios</span></summary>
     <ul>
       <li><b>all inclusive Fitness</b> – Leopoldstraße 208</li>
       <li><b>The Munich Collective</b> – Belgradstraße 66</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>80805 München</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">80805 München</span><span class="gg-n">1 Studio</span></summary>
     <ul>
       <li><b>Body &amp; Soul Englischer Garten</b> – Ungererstraße 175</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>80807 München</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">80807 München</span><span class="gg-n">3 Studios</span></summary>
     <ul>
       <li><b>Bodystreet</b> – Knorrstraße 66</li>
       <li><b>CrossFit</b> – Frankfurter Ring 255</li>
       <li><b>Pro Health Club</b> – Alfred-Arndt-Straße 1</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>80809 München</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">80809 München</span><span class="gg-n">2 Studios</span></summary>
     <ul>
       <li><b>Bodystreet</b> – Schleißheimer Straße 201</li>
       <li><b>Ladypower MIUC</b> – Moosacher Straße 75</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>80933 München</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">80933 München</span><span class="gg-n">1 Studio</span></summary>
     <ul>
       <li><b>Fitnesspoint München</b> – Schleißheimer Straße 523</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>80939 München</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">80939 München</span><span class="gg-n">1 Studio</span></summary>
     <ul>
       <li><b>McFit</b> – Maria-Probst-Straße 17</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>80992 München</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">80992 München</span><span class="gg-n">4 Studios</span></summary>
     <ul>
       <li><b>body + soul</b> – Riesstraße 16</li>
       <li><b>Bodystreet</b> – Dachauer Straße 180</li>
       <li><b>Fitness First</b> – Pelkovenstraße 143-147</li>
       <li><b>MOVEMENT Fitness &amp; Wellness Club</b> – Dachauer Straße 192</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>80995 München</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">80995 München</span><span class="gg-n">1 Studio</span></summary>
     <ul>
       <li><b>Bodystreet</b> – Josef-Frankl-Straße 51</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>81241 München</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">81241 München</span><span class="gg-n">3 Studios</span></summary>
     <ul>
       <li><b>Fit Star München-Pasing (FitStar)</b> – Kaflerstraße 12</li>
       <li><b>Fitness First</b> – Bodenseestraße 29</li>
       <li><b>Kieser Training</b> – Landsberger Straße 404</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>81247 München</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">81247 München</span><span class="gg-n">3 Studios</span></summary>
     <ul>
       <li><b>Anse Yoga</b> – Gebhardweg 3</li>
       <li><b>BJJ Europe</b> – Verdistraße 58</li>
       <li><b>Bodystreet</b> – Verdistraße 45</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>81248 München</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">81248 München</span><span class="gg-n">1 Studio</span></summary>
     <ul>
       <li><b>Ai Fitness München - Freiham</b> – Amalie-Nacken-Straße 4</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>81249 München</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">81249 München</span><span class="gg-n">2 Studios</span></summary>
     <ul>
       <li><b>Kolibri Ballettschule</b> – Clarita-Bernhard-Straße 10</li>
       <li><b>TA.MI Yogaraum</b> – Weißensteinstraße 2c</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>81369 München</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">81369 München</span><span class="gg-n">5 Studios</span></summary>
     <ul>
       <li><b>Beat81</b> – Plinganserstraße 45</li>
       <li><b>Bodystreet</b> – Passauerstraße 24</li>
@@ -475,36 +483,36 @@
       <li><b>My Private Gym</b> – Plinganserstraße 132</li>
       <li><b>Pilates Pop-Up</b> – Plinganserstraße 24</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>81371 München</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">81371 München</span><span class="gg-n">3 Studios</span></summary>
     <ul>
       <li><b>Beat81</b> – Implerstraße 7</li>
       <li><b>Bodystreet</b> – Implerstraße 59</li>
       <li><b>Momax</b> – Implerstraße 84</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>81373 München</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">81373 München</span><span class="gg-n">2 Studios</span></summary>
     <ul>
       <li><b>Beat81</b> – Adi-Maislinger-Straße 9</li>
       <li><b>FitX</b> – Landaubogen 1</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>81375 München</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">81375 München</span><span class="gg-n">1 Studio</span></summary>
     <ul>
       <li><b>all inclusive Fitness München Großhadern</b> – Haderunstraße 4</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>81377 München</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">81377 München</span><span class="gg-n">1 Studio</span></summary>
     <ul>
       <li><b>trainingsraum</b> – Sauerbruchstraße 2</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>81379 München</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">81379 München</span><span class="gg-n">6 Studios</span></summary>
     <ul>
       <li><b>all inclusive Fitness München-Sendling</b> – Kistlerhofstraße 70</li>
       <li><b>CrossFit Munich SOUTH</b> – Hofmannstraße 7</li>
@@ -513,73 +521,73 @@
       <li><b>Kieser Training</b> – Geisenhausenerstraße 15</li>
       <li><b>Yogastudio Rolfing</b> – Aidenbachstraße 52a</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>81476 München</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">81476 München</span><span class="gg-n">1 Studio</span></summary>
     <ul>
       <li><b>Gympod</b> – Forstenrieder Allee 70</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>81477 München</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">81477 München</span><span class="gg-n">2 Studios</span></summary>
     <ul>
       <li><b>BoXFit</b> – Geigenbergerstraße 51</li>
       <li><b>McFit</b> – Meglingerstraße 19</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>81539 München</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">81539 München</span><span class="gg-n">2 Studios</span></summary>
     <ul>
       <li><b>Santosa Yoga</b> – Tegernseer Landstraße 98</li>
       <li><b>tenless</b> – Tegernseer Landstraße 103</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>81541 München</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">81541 München</span><span class="gg-n">3 Studios</span></summary>
     <ul>
       <li><b>Om und Company</b> – Ohlmüllerstraße 19</li>
       <li><b>Samasti Yoga</b> – Dollmannstraße 2</li>
       <li><b>Yoga mit Angelika Wenzel in Giesing</b> – Untere Grasstraße 9</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>81543 München</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">81543 München</span><span class="gg-n">3 Studios</span></summary>
     <ul>
       <li><b>Ambitional Training</b> – Humboldtstraße 22</li>
       <li><b>Bloomergym</b> – Oefelestraße 13a</li>
       <li><b>Nadine Rothfuss</b> – Kolumbusstraße 33</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>81549 München</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">81549 München</span><span class="gg-n">2 Studios</span></summary>
     <ul>
       <li><b>all inclusive Fitness München-Giesing</b> – Chiemgaustraße 116</li>
       <li><b>Clever fit</b> – Chiemgaustraße 148</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>81667 München</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">81667 München</span><span class="gg-n">3 Studios</span></summary>
     <ul>
       <li><b>PAPUSA - Pilates &amp; Yoga</b> – Wörthstraße 30</li>
       <li><b>trainingsraum</b> – Pariser Straße 29a</li>
       <li><b>Yoga Nebenan</b> – Innere Wiener Straße 18</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>81669 München</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">81669 München</span><span class="gg-n">2 Studios</span></summary>
     <ul>
       <li><b>Sahaja Yoga Zentrum</b> – Am Lilienberg 2</li>
       <li><b>Sweat &amp; Tears Crossfit</b> – Balanstraße 34</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>81671 München</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">81671 München</span><span class="gg-n">1 Studio</span></summary>
     <ul>
       <li><b>body + soul Center WERK12</b> – Speicherstraße 20</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>81673 München</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">81673 München</span><span class="gg-n">7 Studios</span></summary>
     <ul>
       <li><b>all inclusive Fitness München-Berg am Laim</b> – Dingolfinger Straße 15</li>
       <li><b>Bodystreet</b> – Kreillerstraße 64</li>
@@ -589,9 +597,9 @@
       <li><b>Twin Taekwondo - München Ost</b> – Josephsburgstraße 69</li>
       <li><b>Yogic Life</b> – Berg-am-Laim-Straße 143</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>81675 München</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">81675 München</span><span class="gg-n">6 Studios</span></summary>
     <ul>
       <li><b>Bodystreet</b> – Ismaninger Straße 55</li>
       <li><b>Fitness First</b> – Einsteinstraße 130</li>
@@ -600,41 +608,41 @@
       <li><b>Place to Be Yoga Studio</b> – Kirchenstraße 88</li>
       <li><b>Yoga am Engel</b> – Prinzregentenstraße 78b</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>81677 München</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">81677 München</span><span class="gg-n">2 Studios</span></summary>
     <ul>
       <li><b>eo GYM – Kaiser &amp; Petrik GbR</b> – Weltenburger Straße 6b</li>
       <li><b>Fitness First - Der Bogen</b> – Prinzregentenstraße 159</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>81679 München</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">81679 München</span><span class="gg-n">1 Studio</span></summary>
     <ul>
       <li><b>Bodystreet</b> – Menzelstraße 9</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>81735 München</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">81735 München</span><span class="gg-n">1 Studio</span></summary>
     <ul>
       <li><b>SVN Fitness Studio</b> – Staudingerstraße 20</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>81737 München</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">81737 München</span><span class="gg-n">1 Studio</span></summary>
     <ul>
       <li><b>Fit Star (FitStar)</b> – Thomas-Dehler-Straße 15</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>81739 München</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">81739 München</span><span class="gg-n">2 Studios</span></summary>
     <ul>
       <li><b>FitX</b> – Putzbrunner Straße 73</li>
       <li><b>PhysioFitness München</b> – Carl-Wery-Straße 26</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>81825 München</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">81825 München</span><span class="gg-n">6 Studios</span></summary>
     <ul>
       <li><b>all inclusive Fitness München-Trudering</b> – Kreillerstraße 210</li>
       <li><b>Body &amp; Soul</b> – Kreillerstraße 215</li>
@@ -643,33 +651,33 @@
       <li><b>Körperformen</b> – Kreillerstraße 172</li>
       <li><b>Pilates mal anders</b> – Feldbergstraße 123</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>81827 München</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">81827 München</span><span class="gg-n">1 Studio</span></summary>
     <ul>
       <li><b>Body Street</b> – Wasserburger Landstraße 245</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>81829 München</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">81829 München</span><span class="gg-n">1 Studio</span></summary>
     <ul>
       <li><b>Groupfit</b> – Schatzbogen 62</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>81927 München</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">81927 München</span><span class="gg-n">3 Studios</span></summary>
     <ul>
       <li><b>Bodystreet Denning</b> – Ostpreußenstraße 31</li>
       <li><b>CoreWerstatt</b> – Ostpreußenstraße 9</li>
       <li><b>The Bali Space</b> – Englschalkinger Straße 198</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>Rund um München</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">Rund um München</span><span class="gg-n">1 Studio</span></summary>
     <ul>
       <li><b>FIT MIT MIR</b> – Münchener Straße 27</li>
     </ul>
-  </div>
+  </details>
   <p class="note">FLEXR ist mit den genannten Studios nicht verbunden und wird
   von ihnen nicht empfohlen. Die Liste zeigt nur, welche Studios in der App
   auswählbar sind (Stand: 24.11.2026).</p>

@@ -990,15 +990,6 @@
   "label": "FITINN — Laurenzerberg 2, 1010 Wien"
  },
  {
-  "id": "90451217-aece-4123-a54f-48621177150a",
-  "name": "Fitness Pro",
-  "street": "Jariya road",
-  "house_number": "12",
-  "plz": "1010",
-  "city": "Wien",
-  "label": "Fitness Pro — Jariya road 12, 1010 Wien"
- },
- {
   "id": "36a8a7f9-d182-40f1-a7cc-0f46b69f1d32",
   "name": "John Harris Fitness",
   "street": "Nibelungengasse",
@@ -3079,12 +3070,12 @@
  },
  {
   "id": "5155e0cf-e8d5-44f6-8b89-d543d4150b75",
-  "name": "Yoga-Institut;Psychotherapie",
+  "name": "Yoga-Institut",
   "street": "Davidgasse",
   "house_number": "97",
   "plz": "1100",
   "city": "Wien",
-  "label": "Yoga-Institut;Psychotherapie — Davidgasse 97, 1100 Wien"
+  "label": "Yoga-Institut — Davidgasse 97, 1100 Wien"
  },
  {
   "id": "d0bbae9d-af99-4b10-b080-6acbaf60ebec",

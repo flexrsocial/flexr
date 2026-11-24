@@ -673,7 +673,7 @@
   /* Kraeftigeres Weiss plus Schatten: Mit 28 % waren die uebrigen Striche auf
      hellen Fotos (weisse Wand, Fenster) bis 22.10.2026 kaum zu sehen. */
   .card .photo-index i{ flex:1; height:3px; border-radius:2px; background:rgba(255,255,255,0.55); box-shadow:0 0 2px rgba(0,0,0,0.55); }
-  .card .photo-index i.on{ background:var(--plate); box-shadow:0 0 8px var(--plate-glow); }
+  .card .photo-index i.on{ background:var(--plate);  }
 
   /* Tippflächen auf dem Foto: aussen blättern, in der Mitte vergrössern.
      Sie liegen unter der Namenszeile und den Melde-Knöpfen und fangen bewusst
@@ -765,8 +765,7 @@
     background:rgba(255,90,31,.09); border-color:rgba(255,90,31,.35); color:var(--plate);
   }
   .stat-chip.online-chip .online-dot{
-    width:7px; height:7px; border-radius:50%; background:var(--plate);
-    box-shadow:0 0 8px var(--plate-glow); flex-shrink:0;
+    width:7px; height:7px; border-radius:50%; background:var(--plate);  flex-shrink:0;
     animation:onlinePulse 2s ease-in-out infinite;
   }
   @keyframes onlinePulse{
@@ -960,8 +959,7 @@
      als Ring zeigte auf manchen Android-Geräten Nähte/Lücken. */
   .match-item.online .av::after{
     content:''; position:absolute; inset:-2px; border-radius:50%;
-    border:2px solid var(--plate-dim); box-sizing:border-box; pointer-events:none;
-    box-shadow:0 0 12px var(--plate-glow);
+    border:2px solid var(--plate-dim); box-sizing:border-box; pointer-events:none; 
   }
   .match-item .info{ flex:1; min-width:0; }
   .match-item .info .nm{ font-family:'Oswald'; font-size:16px; letter-spacing:0.01em; }
@@ -992,13 +990,13 @@
      Schatten ab. */
   .match-item.unread{
     border-color:var(--plate-dim);
-    box-shadow:inset 0 0 14px var(--plate-glow);
+    box-shadow:none;
   }
   @media (hover:hover){ .match-item.unread:hover{ border-color:var(--plate); } }
   .match-item .unread-badge{
     background:var(--plate); color:#191008; font-family:'Work Sans', system-ui, sans-serif; font-size:11px; font-weight:700;
     border-radius:50%; min-width:21px; height:21px; display:flex; align-items:center; justify-content:center;
-    padding:0 5px; flex-shrink:0; box-shadow:0 0 12px var(--plate-glow);
+    padding:0 5px; flex-shrink:0; 
   }
   /* Blockierte Person: dieselbe Kachel wie Match und Chat, aber die Zeile
      selbst fuehrt nirgendwohin - nur der "Aufheben"-Knopf ist anklickbar.
@@ -1069,8 +1067,7 @@
      immer "online" zeigte, unabhaengig vom tatsaechlichen Status (der auf
      Matches/Chats-Uebersicht korrekt nur bei .match-item.online erscheint). */
   .chat-header .av.online{
-    background:var(--plate-dim);
-    box-shadow:0 0 12px var(--plate-glow);
+    background:var(--plate-dim); 
   }
   .chat-header .av img{
     width:100%; height:100%; border-radius:50%; object-fit:cover; background:var(--surface-2); display:block;
@@ -1202,8 +1199,7 @@
     font-size:12.5px; color:var(--plate-bright);
   }
   .unsaved-hint::before{
-    content:''; width:7px; height:7px; border-radius:50%; background:var(--plate);
-    box-shadow:0 0 8px var(--plate-glow); flex-shrink:0;
+    content:''; width:7px; height:7px; border-radius:50%; background:var(--plate);  flex-shrink:0;
   }
   .unsaved-hint[hidden]{ display:none; }
   .unsaved-hint:not([hidden]) + #btnSaveProfile{ margin-top:10px !important; }
@@ -1238,8 +1234,7 @@
   }
   nav.bottom button::before{
     content:''; position:absolute; top:-6px; left:50%; transform:translateX(-50%) scaleX(0);
-    width:26px; height:3px; border-radius:0 0 3px 3px; background:var(--plate);
-    box-shadow:0 0 14px var(--plate-glow); transition:transform .2s ease;
+    width:26px; height:3px; border-radius:0 0 3px 3px; background:var(--plate);  transition:transform .2s ease;
   }
   nav.bottom button svg.ico{ transition:transform .18s ease; }
   /* Zähler ungelesener Nachrichten rechts oben am Chat-Symbol */
@@ -1250,7 +1245,7 @@
     font-family:'Work Sans', system-ui, sans-serif; font-size:9.5px; font-weight:700; line-height:1;
     min-width:16px; height:16px; padding:0 4px; border-radius:9px;
     display:flex; align-items:center; justify-content:center;
-    border:2px solid var(--ink); box-shadow:0 0 10px var(--plate-glow);
+    border:2px solid var(--ink); 
   }
   @media (hover:hover){ nav.bottom button:hover{ color:var(--chalk); } }
   nav.bottom button.active{ color:var(--plate); }
@@ -2215,12 +2210,12 @@
   .radius-row input[type=range]::-moz-range-track{ background:transparent; }
   .radius-row input[type=range]::-webkit-slider-thumb{
     -webkit-appearance:none; appearance:none; width:18px; height:18px; border-radius:50%;
-    background:var(--plate); cursor:pointer; box-shadow:0 0 10px var(--plate-glow);
+    background:var(--plate); cursor:pointer; 
     border:2px solid var(--ink);
   }
   .radius-row input[type=range]::-moz-range-thumb{
     width:16px; height:16px; border-radius:50%; background:var(--plate); cursor:pointer;
-    border:2px solid var(--ink); box-shadow:0 0 10px var(--plate-glow);
+    border:2px solid var(--ink); 
   }
   /* Der Regler ist zwar ein <input>, hat aber kein Feldaussehen. Die
      generische Fokus-Regel weiter oben (box-shadow:inset 0 0 0 2px var(--plate))
@@ -2233,10 +2228,10 @@
      Griff, was passiert). Ohne ihn haetten Tastaturnutzer gar keine
      Fokusanzeige mehr, weil die Regel darueber sie entfernt. */
   .radius-row input[type=range]:focus-visible::-webkit-slider-thumb{
-    box-shadow:0 0 0 3px var(--plate-glow), 0 0 10px var(--plate-glow);
+    box-shadow:0 0 0 3px var(--plate-glow);
   }
   .radius-row input[type=range]:focus-visible::-moz-range-thumb{
-    box-shadow:0 0 0 3px var(--plate-glow), 0 0 10px var(--plate-glow);
+    box-shadow:0 0 0 3px var(--plate-glow);
   }
   .radius-value{ font-size:12.5px; color:var(--chalk); min-width:52px; text-align:right; }
   .radius-hint.over-cap{ color:var(--plate); }
@@ -2459,7 +2454,7 @@
   .match-title{
     font-family:'Oswald'; font-weight:700; font-size:64px; line-height:1; text-transform:uppercase;
     color:var(--plate); letter-spacing:0.01em;
-    text-shadow:0 0 34px var(--plate-glow), 0 4px 18px rgba(0,0,0,.6);
+    text-shadow:0 4px 18px rgba(0,0,0,.6);
     animation:matchPop .5s cubic-bezier(.2,1.6,.4,1);
   }
   @keyframes matchPop{ from{ transform:scale(.55) rotate(-4deg); opacity:0; } to{ transform:scale(1) rotate(0); opacity:1; } }

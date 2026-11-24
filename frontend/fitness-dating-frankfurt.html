@@ -24,7 +24,7 @@
 <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png?v=4">
 <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon-180.png?v=1">
 <link rel="preload" href="/fonts/oswald.woff2?v=1" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="/legal.css?v=4">
+<link rel="stylesheet" href="/legal.css?v=5">
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -104,7 +104,7 @@
   /* Nur auf den Such-Einstiegsseiten (erzeugt von tools/seo/build_seo_pages.py). */
   /* Ueberschriften wie auf der Startseite (Oswald, Versalien) - bis 24.11.2026
      standen hier die Work-Sans-Ueberschriften der Rechtstexte. */
-  h1{ font-size:clamp(28px,6vw,36px); margin:0 0 14px; }
+  h1{ font-size:clamp(28px,6vw,36px); margin:0 0 14px; text-transform:uppercase; line-height:1.1; }
   h2{ font-family:'Oswald', system-ui, sans-serif; font-size:21px; font-weight:600; letter-spacing:.02em; text-transform:uppercase; margin-top:44px; }
   .head-cta{ padding:12px 16px; }
   .crumbs{ font-size:13px; color:var(--chalk-dim); margin:0 0 14px; }
@@ -115,29 +115,37 @@
   .cta-box .btn{ margin-top:14px; text-decoration:none; }
   /* Abschluss-Kasten am Seitenende: Wer bis unten gelesen hat, soll nicht
      erst wieder nach oben zur Kopfzeile muessen. */
-  .cta-end{ margin-top:44px; padding:24px 22px; border:0; border-left:4px solid var(--plate); border-radius:0 14px 14px 0; }
+  .cta-end{ margin-top:44px; padding:24px 22px; border:0; border-top:3px solid var(--plate); border-radius:0; }
   .cta-end .cta-title{ margin:0 0 6px; font-family:'Oswald', system-ui, sans-serif; font-size:24px; font-weight:700; line-height:1.15; text-transform:uppercase; color:var(--chalk); }
   .cta-end p{ color:var(--chalk-dim); }
-  .gym-group{ margin:0 0 14px; }
-  .gym-group h3{ margin:16px 0 6px; }
-  .gym-group ul{ margin:0; padding-left:18px; color:var(--chalk-dim); font-size:14.5px; }
+  .gym-group{ border-bottom:1px solid var(--hairline); }
+  .gym-group:first-of-type{ border-top:1px solid var(--hairline); }
+  .gym-group summary{ list-style:none; cursor:pointer; display:flex; align-items:center; gap:12px; min-height:52px; padding:10px 0; }
+  .gym-group summary::-webkit-details-marker{ display:none; }
+  .gym-group .gg-t{ flex:1; font-family:'Oswald', system-ui, sans-serif; font-size:17px; text-transform:uppercase; letter-spacing:.03em; color:var(--chalk); }
+  .gym-group .gg-n{ font-size:13px; color:var(--chalk-dim); }
+  .gym-group summary::after{ content:'+'; color:var(--plate); font-size:22px; width:18px; text-align:right; transition:transform .2s ease; }
+  .gym-group[open] summary::after{ transform:rotate(45deg); }
+  .gym-group ul{ margin:0 0 14px; padding-left:18px; color:var(--chalk-dim); font-size:14.5px; }
   .gym-group li b{ color:var(--chalk); font-weight:600; }
   .link-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:10px; margin:14px 0; padding:0; list-style:none; grid-auto-rows:1fr; }
   .link-grid li{ display:flex; }
-  .link-grid a{ display:block; flex:1; padding:12px 14px; border:1px solid var(--steel); border-radius:12px; background:var(--surface); text-decoration:none; color:var(--chalk); font-weight:600; }
-  .link-grid a:hover{ border-color:var(--plate); color:var(--plate-bright); }
+  .link-grid{ gap:0 24px; }
+  .link-grid a{ display:block; flex:1; padding:12px 0; border-bottom:1px solid var(--hairline); text-decoration:none; color:var(--chalk); font-family:'Oswald', system-ui, sans-serif; font-weight:500; text-transform:uppercase; letter-spacing:.03em; }
+  @media (hover:hover){ .link-grid a:hover{ color:var(--plate-bright); } }
+  .link-grid span{ font-family:'Work Sans', system-ui, sans-serif; text-transform:none; letter-spacing:0; }
   .link-grid span{ display:block; font-weight:400; font-size:13px; color:var(--chalk-dim); }
   .ideas{ padding-left:18px; }
   .ideas li{ margin-bottom:10px; }
   .ideas b{ color:var(--chalk); }
   .note{ font-size:13px; color:var(--chalk-dim); }
-  .faq-item{ border:1px solid var(--hairline); border-radius:14px; background:var(--surface); margin-bottom:12px; overflow:hidden; }
-  .faq-item[open]{ border-color:rgba(255,90,31,.35); }
-  .faq-item summary{ list-style:none; cursor:pointer; padding:16px 48px 16px 18px; position:relative; font-weight:600; font-size:16px; color:var(--chalk); }
+  /* FAQ wie auf der Startseite: Linien statt Kaesten, Fragen in Oswald. */
+  .faq-item{ border-bottom:1px solid var(--hairline); }
+  .faq-item summary{ list-style:none; cursor:pointer; padding:14px 40px 14px 0; position:relative; font-family:'Oswald', system-ui, sans-serif; font-weight:500; font-size:17px; text-transform:uppercase; letter-spacing:.03em; color:var(--chalk); min-height:52px; }
   .faq-item summary::-webkit-details-marker{ display:none; }
-  .faq-item summary::after{ content:'+'; position:absolute; right:18px; top:50%; transform:translateY(-50%); font-size:24px; line-height:1; color:var(--plate); }
-  .faq-item[open] summary::after{ content:'\2212'; }
-  .faq-a{ padding:0 18px 18px; color:var(--chalk-dim); font-size:14.5px; }
+  .faq-item summary::after{ content:'+'; position:absolute; right:0; top:50%; transform:translateY(-50%); font-size:22px; line-height:1; color:var(--plate); transition:transform .2s ease; }
+  .faq-item[open] summary::after{ transform:translateY(-50%) rotate(45deg); }
+  .faq-a{ padding:0 0 18px; color:var(--chalk-dim); font-size:15px; }
 </style>
 </head>
 <body>
@@ -174,16 +182,16 @@
   <p>Diese 36 Studios kannst du derzeit in FLEXR als dein Gym auswählen.
   Dein Studio fehlt? Du kannst es bei der Registrierung mit Adresse vorschlagen
   und sofort verwenden.</p>
-  <div class="gym-group">
-    <h3>60313 Frankfurt</h3>
+  <details class="gym-group">
+    <summary><span class="gg-t">60313 Frankfurt</span><span class="gg-n">3 Studios</span></summary>
     <ul>
       <li><b>cycletic</b> – Meisengasse 13-15</li>
       <li><b>Fitness First</b> – Zeil 106-110</li>
       <li><b>McFit</b> – Zeil 64</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>60314 Frankfurt</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">60314 Frankfurt</span><span class="gg-n">7 Studios</span></summary>
     <ul>
       <li><b>Critical Muay Thai</b> – Henschelstraße 18</li>
       <li><b>Fitness First</b> – Hanauer Landstraße 148</li>
@@ -193,128 +201,128 @@
       <li><b>Pilates Twentyfour</b> – Danziger Platz 2-4</li>
       <li><b>Top Form</b> – Henschelstraße 26</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>60316 Frankfurt</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">60316 Frankfurt</span><span class="gg-n">1 Studio</span></summary>
     <ul>
       <li><b>JULY BABY Pilates</b> – Rotteckstraße 13</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>60322 Frankfurt</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">60322 Frankfurt</span><span class="gg-n">1 Studio</span></summary>
     <ul>
       <li><b>FITSEVENELEVEN</b> – Adickesallee 36a</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>60323 Frankfurt</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">60323 Frankfurt</span><span class="gg-n">1 Studio</span></summary>
     <ul>
       <li><b>MFT Westend</b> – Bockenheimer Landstraße 98-100</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>60325 Frankfurt</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">60325 Frankfurt</span><span class="gg-n">1 Studio</span></summary>
     <ul>
       <li><b>FITSEVENELEVEN</b> – Mainzer Landstraße 50</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>60329 Frankfurt</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">60329 Frankfurt</span><span class="gg-n">2 Studios</span></summary>
     <ul>
       <li><b>Kieser Training</b> – Marienstraße 2</li>
       <li><b>Yoga Vidya Frankfurt</b> – Niddastraße</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>60385 Frankfurt</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">60385 Frankfurt</span><span class="gg-n">2 Studios</span></summary>
     <ul>
       <li><b>bewegung pur</b> – Wittelsbacherallee 87</li>
       <li><b>box5</b> – Inheidener Straße 67</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>60386 Frankfurt</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">60386 Frankfurt</span><span class="gg-n">1 Studio</span></summary>
     <ul>
       <li><b>McFit</b> – Hanauer Landstraße 523</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>60388 Frankfurt</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">60388 Frankfurt</span><span class="gg-n">2 Studios</span></summary>
     <ul>
       <li><b>CUERPO</b> – Haingasse 11</li>
       <li><b>Koi Gym</b> – Flinschstraße 51</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>60431 Frankfurt</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">60431 Frankfurt</span><span class="gg-n">2 Studios</span></summary>
     <ul>
       <li><b>Fangi Lam Personal Training</b> – Am Ginnheimer Wäldchen 1</li>
       <li><b>YOGABOXFRANKFURT</b> – Am Schwalbenschwanz 75</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>60435 Frankfurt</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">60435 Frankfurt</span><span class="gg-n">1 Studio</span></summary>
     <ul>
       <li><b>Fitness First</b> – Karl-von-Drais-Straße 5a</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>60437 Frankfurt</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">60437 Frankfurt</span><span class="gg-n">1 Studio</span></summary>
     <ul>
       <li><b>XTRAFIT Frankfurt-Nord</b> – Berner Straße 109</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>60486 Frankfurt</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">60486 Frankfurt</span><span class="gg-n">2 Studios</span></summary>
     <ul>
       <li><b>Fitness First</b> – Solmsstraße 18</li>
       <li><b>Main Pilates Studio</b> – Europa-Allee 101</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>60487 Frankfurt</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">60487 Frankfurt</span><span class="gg-n">1 Studio</span></summary>
     <ul>
       <li><b>Fitness First</b> – Trakehner Straße 5</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>60528 Frankfurt</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">60528 Frankfurt</span><span class="gg-n">2 Studios</span></summary>
     <ul>
       <li><b>Quartier Yoga</b> – Hahnstraße 40</li>
       <li><b>Studio für Bewegung</b> – Güntherstraße 39</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>60549 Frankfurt</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">60549 Frankfurt</span><span class="gg-n">1 Studio</span></summary>
     <ul>
       <li><b>FITSEVENELEVEN</b> – The Squaire</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>60594 Frankfurt</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">60594 Frankfurt</span><span class="gg-n">1 Studio</span></summary>
     <ul>
       <li><b>FITSEVENELEVEN</b> – Dreieichstraße 59</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>60596 Frankfurt</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">60596 Frankfurt</span><span class="gg-n">1 Studio</span></summary>
     <ul>
       <li><b>Prime Time Fitness</b> – Schwanthalerstraße 48a</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>60599 Frankfurt</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">60599 Frankfurt</span><span class="gg-n">1 Studio</span></summary>
     <ul>
       <li><b>Elements Henninger Turm</b> – Hainer Weg 60</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>Rund um Frankfurt</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">Rund um Frankfurt</span><span class="gg-n">2 Studios</span></summary>
     <ul>
       <li><b>KörperManagement</b> – Hessenring 92a</li>
       <li><b>FITSEVENELEVEN</b> – Basler Straße 1</li>
     </ul>
-  </div>
+  </details>
   <p class="note">FLEXR ist mit den genannten Studios nicht verbunden und wird
   von ihnen nicht empfohlen. Die Liste zeigt nur, welche Studios in der App
   auswählbar sind (Stand: 24.11.2026).</p>

@@ -24,7 +24,7 @@
 <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png?v=4">
 <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon-180.png?v=1">
 <link rel="preload" href="/fonts/oswald.woff2?v=1" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="/legal.css?v=4">
+<link rel="stylesheet" href="/legal.css?v=5">
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -104,7 +104,7 @@
   /* Nur auf den Such-Einstiegsseiten (erzeugt von tools/seo/build_seo_pages.py). */
   /* Ueberschriften wie auf der Startseite (Oswald, Versalien) - bis 24.11.2026
      standen hier die Work-Sans-Ueberschriften der Rechtstexte. */
-  h1{ font-size:clamp(28px,6vw,36px); margin:0 0 14px; }
+  h1{ font-size:clamp(28px,6vw,36px); margin:0 0 14px; text-transform:uppercase; line-height:1.1; }
   h2{ font-family:'Oswald', system-ui, sans-serif; font-size:21px; font-weight:600; letter-spacing:.02em; text-transform:uppercase; margin-top:44px; }
   .head-cta{ padding:12px 16px; }
   .crumbs{ font-size:13px; color:var(--chalk-dim); margin:0 0 14px; }
@@ -115,29 +115,37 @@
   .cta-box .btn{ margin-top:14px; text-decoration:none; }
   /* Abschluss-Kasten am Seitenende: Wer bis unten gelesen hat, soll nicht
      erst wieder nach oben zur Kopfzeile muessen. */
-  .cta-end{ margin-top:44px; padding:24px 22px; border:0; border-left:4px solid var(--plate); border-radius:0 14px 14px 0; }
+  .cta-end{ margin-top:44px; padding:24px 22px; border:0; border-top:3px solid var(--plate); border-radius:0; }
   .cta-end .cta-title{ margin:0 0 6px; font-family:'Oswald', system-ui, sans-serif; font-size:24px; font-weight:700; line-height:1.15; text-transform:uppercase; color:var(--chalk); }
   .cta-end p{ color:var(--chalk-dim); }
-  .gym-group{ margin:0 0 14px; }
-  .gym-group h3{ margin:16px 0 6px; }
-  .gym-group ul{ margin:0; padding-left:18px; color:var(--chalk-dim); font-size:14.5px; }
+  .gym-group{ border-bottom:1px solid var(--hairline); }
+  .gym-group:first-of-type{ border-top:1px solid var(--hairline); }
+  .gym-group summary{ list-style:none; cursor:pointer; display:flex; align-items:center; gap:12px; min-height:52px; padding:10px 0; }
+  .gym-group summary::-webkit-details-marker{ display:none; }
+  .gym-group .gg-t{ flex:1; font-family:'Oswald', system-ui, sans-serif; font-size:17px; text-transform:uppercase; letter-spacing:.03em; color:var(--chalk); }
+  .gym-group .gg-n{ font-size:13px; color:var(--chalk-dim); }
+  .gym-group summary::after{ content:'+'; color:var(--plate); font-size:22px; width:18px; text-align:right; transition:transform .2s ease; }
+  .gym-group[open] summary::after{ transform:rotate(45deg); }
+  .gym-group ul{ margin:0 0 14px; padding-left:18px; color:var(--chalk-dim); font-size:14.5px; }
   .gym-group li b{ color:var(--chalk); font-weight:600; }
   .link-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:10px; margin:14px 0; padding:0; list-style:none; grid-auto-rows:1fr; }
   .link-grid li{ display:flex; }
-  .link-grid a{ display:block; flex:1; padding:12px 14px; border:1px solid var(--steel); border-radius:12px; background:var(--surface); text-decoration:none; color:var(--chalk); font-weight:600; }
-  .link-grid a:hover{ border-color:var(--plate); color:var(--plate-bright); }
+  .link-grid{ gap:0 24px; }
+  .link-grid a{ display:block; flex:1; padding:12px 0; border-bottom:1px solid var(--hairline); text-decoration:none; color:var(--chalk); font-family:'Oswald', system-ui, sans-serif; font-weight:500; text-transform:uppercase; letter-spacing:.03em; }
+  @media (hover:hover){ .link-grid a:hover{ color:var(--plate-bright); } }
+  .link-grid span{ font-family:'Work Sans', system-ui, sans-serif; text-transform:none; letter-spacing:0; }
   .link-grid span{ display:block; font-weight:400; font-size:13px; color:var(--chalk-dim); }
   .ideas{ padding-left:18px; }
   .ideas li{ margin-bottom:10px; }
   .ideas b{ color:var(--chalk); }
   .note{ font-size:13px; color:var(--chalk-dim); }
-  .faq-item{ border:1px solid var(--hairline); border-radius:14px; background:var(--surface); margin-bottom:12px; overflow:hidden; }
-  .faq-item[open]{ border-color:rgba(255,90,31,.35); }
-  .faq-item summary{ list-style:none; cursor:pointer; padding:16px 48px 16px 18px; position:relative; font-weight:600; font-size:16px; color:var(--chalk); }
+  /* FAQ wie auf der Startseite: Linien statt Kaesten, Fragen in Oswald. */
+  .faq-item{ border-bottom:1px solid var(--hairline); }
+  .faq-item summary{ list-style:none; cursor:pointer; padding:14px 40px 14px 0; position:relative; font-family:'Oswald', system-ui, sans-serif; font-weight:500; font-size:17px; text-transform:uppercase; letter-spacing:.03em; color:var(--chalk); min-height:52px; }
   .faq-item summary::-webkit-details-marker{ display:none; }
-  .faq-item summary::after{ content:'+'; position:absolute; right:18px; top:50%; transform:translateY(-50%); font-size:24px; line-height:1; color:var(--plate); }
-  .faq-item[open] summary::after{ content:'\2212'; }
-  .faq-a{ padding:0 18px 18px; color:var(--chalk-dim); font-size:14.5px; }
+  .faq-item summary::after{ content:'+'; position:absolute; right:0; top:50%; transform:translateY(-50%); font-size:22px; line-height:1; color:var(--plate); transition:transform .2s ease; }
+  .faq-item[open] summary::after{ transform:translateY(-50%) rotate(45deg); }
+  .faq-a{ padding:0 0 18px; color:var(--chalk-dim); font-size:15px; }
 </style>
 </head>
 <body>
@@ -174,31 +182,31 @@
   <p>Diese 81 Studios kannst du derzeit in FLEXR als dein Gym auswählen.
   Dein Studio fehlt? Du kannst es bei der Registrierung mit Adresse vorschlagen
   und sofort verwenden.</p>
-  <div class="gym-group">
-    <h3>50667 Köln</h3>
+  <details class="gym-group">
+    <summary><span class="gg-t">50667 Köln</span><span class="gg-n">1 Studio</span></summary>
     <ul>
       <li><b>McFit</b> – Hohe Straße 68-82</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>50670 Köln</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">50670 Köln</span><span class="gg-n">3 Studios</span></summary>
     <ul>
       <li><b>All Inclusive Fitness</b> – Krefelder Straße 79</li>
       <li><b>Kieser</b> – Neusser Straße 27-29</li>
       <li><b>Studio Rohschliff</b> – Neusser Straße 71</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>50672 Köln</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">50672 Köln</span><span class="gg-n">4 Studios</span></summary>
     <ul>
       <li><b>BesYoga</b> – Venloer Straße 2</li>
       <li><b>Knirpse &amp; Komplizen</b> – Gladbacher Straße 21</li>
       <li><b>Reforma Pilates Club</b> – Maastrichter Straße 24</li>
       <li><b>Yogamama</b> – Maastrichter Straße 26</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>50674 Köln</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">50674 Köln</span><span class="gg-n">6 Studios</span></summary>
     <ul>
       <li><b>A place like Om</b> – Eifelwall 44</li>
       <li><b>Fitness First RED Köln - Richard-Wagner-Str.</b> – Richard-Wagner-Straße 51-53</li>
@@ -207,198 +215,198 @@
       <li><b>Just Fit 13 Classic</b> – Hohenstaufenring 30</li>
       <li><b>Lord Vishnus Couch</b> – Aachener Straße 23</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>50676 Köln</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">50676 Köln</span><span class="gg-n">3 Studios</span></summary>
     <ul>
       <li><b>Kader 1 fitness studio</b> – Neue Weyerstraße 6</li>
       <li><b>King Muay Thai / MMA Team</b> – Neue Weyerstraße 5</li>
       <li><b>Yoga-Base</b> – Am Rinkenpfuhl 27</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>50677 Köln</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">50677 Köln</span><span class="gg-n">1 Studio</span></summary>
     <ul>
       <li><b>studiosüd CGN</b> – Maria-Hilf-Straße 15-17</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>50678 Köln</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">50678 Köln</span><span class="gg-n">3 Studios</span></summary>
     <ul>
       <li><b>Bodystreet</b> – Karolingerring 30</li>
       <li><b>Ginger Up</b> – Seyengasse 3a</li>
       <li><b>Next Door</b> – Severinstraße 111</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>50679 Köln</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">50679 Köln</span><span class="gg-n">3 Studios</span></summary>
     <ul>
       <li><b>Fitness First</b> – Gummersbacher Straße 29</li>
       <li><b>Lord Vishnus Couch</b> – Düppelstraße 23</li>
       <li><b>Next Door 03</b> – Deutzer Freiheit 77</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>50733 Köln</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">50733 Köln</span><span class="gg-n">3 Studios</span></summary>
     <ul>
       <li><b>Beat81</b> – Niehler Straße 104</li>
       <li><b>Fitness First</b> – Niehler Straße 94</li>
       <li><b>Körperformen</b> – Wilhelmstraße 41</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>50765 Köln</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">50765 Köln</span><span class="gg-n">1 Studio</span></summary>
     <ul>
       <li><b>B-Fit</b> – Staffelsbergstraße 108</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>50767 Köln</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">50767 Köln</span><span class="gg-n">1 Studio</span></summary>
     <ul>
       <li><b>fitness-studio Pesch</b> – Schulstraße 4</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>50823 Köln</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">50823 Köln</span><span class="gg-n">1 Studio</span></summary>
     <ul>
       <li><b>Ashtanga Connection Yogastudio</b> – Geisselstraße 8</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>50825 Köln</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">50825 Köln</span><span class="gg-n">1 Studio</span></summary>
     <ul>
       <li><b>McFit</b> – Herbrandstraße 9</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>50829 Köln</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">50829 Köln</span><span class="gg-n">2 Studios</span></summary>
     <ul>
       <li><b>Flexx Fitness</b> – Hugo-Eckener-Straße 27</li>
       <li><b>XTRAFIT</b> – Am Coloneum 2a</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>50858 Köln</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">50858 Köln</span><span class="gg-n">2 Studios</span></summary>
     <ul>
       <li><b>Fitness First</b> – Aachener Straße 1143</li>
       <li><b>Körperformen</b> – Kirchweg 127</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>50859 Köln</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">50859 Köln</span><span class="gg-n">3 Studios</span></summary>
     <ul>
       <li><b>Curati Premium Fitness &amp; Gesundheit</b> – Ottostraße 26</li>
       <li><b>fisico Fitness- und Wellness Lounge</b> – Unter Linden 248</li>
       <li><b>Fitness First</b> – Aachener Straße 1281</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>50931 Köln</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">50931 Köln</span><span class="gg-n">2 Studios</span></summary>
     <ul>
       <li><b>Beat81</b> – Dürener Straße 85</li>
       <li><b>Cryosizer</b> – Dürener Straße 232</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>50933 Köln</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">50933 Köln</span><span class="gg-n">2 Studios</span></summary>
     <ul>
       <li><b>bodhi</b> – Aachener Straße 326-328</li>
       <li><b>Next Door</b> – Aachener Straße 519</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>50937 Köln</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">50937 Köln</span><span class="gg-n">2 Studios</span></summary>
     <ul>
       <li><b>Beat81</b> – Sülzburgstraße 104</li>
       <li><b>in.form</b> – Zülpicher Straße 261</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>50939 Köln</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">50939 Köln</span><span class="gg-n">2 Studios</span></summary>
     <ul>
       <li><b>Fitness First</b> – Luxemburger Straße 253</li>
       <li><b>Pulse Fitness</b> – Luxemburger Straße 265</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>50968 Köln</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">50968 Köln</span><span class="gg-n">3 Studios</span></summary>
     <ul>
       <li><b>Fitness First</b> – Bonner Straße 271</li>
       <li><b>McFit</b> – Bonner Straße 209</li>
       <li><b>Tajet Garden</b> – Alteburger Straße 250</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>50969 Köln</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">50969 Köln</span><span class="gg-n">1 Studio</span></summary>
     <ul>
       <li><b>Iron&amp;Soul</b> – Weyerstraßerweg 10A</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>50996 Köln</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">50996 Köln</span><span class="gg-n">3 Studios</span></summary>
     <ul>
       <li><b>Kieser Training</b> – Konrad-Adenauer-Straße 13</li>
       <li><b>Pilates Bodymotion</b> – Hauptstraße 64-68</li>
       <li><b>PT1 Let&#x27;s Lift</b> – Hauptstraße 25a</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>51063 Köln</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">51063 Köln</span><span class="gg-n">2 Studios</span></summary>
     <ul>
       <li><b>McFit</b> – Clevischer Ring 121-123</li>
       <li><b>Zeiträume</b> – Wallstraße 80</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>51069 Köln</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">51069 Köln</span><span class="gg-n">2 Studios</span></summary>
     <ul>
       <li><b>Omega Sports</b> – Thurner Kamp 46</li>
       <li><b>Vitasana</b> – Dellbrücker Hauptstraße 102</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>51103 Köln</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">51103 Köln</span><span class="gg-n">3 Studios</span></summary>
     <ul>
       <li><b>CO Yoga</b> – Breuerstraße 8</li>
       <li><b>McFit</b> – Wipperfürther Straße 25</li>
       <li><b>Werde leichter! Yoga, Klang &amp; Tanz</b> – Kalk-Mülheimer Straße 20</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>51105 Köln</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">51105 Köln</span><span class="gg-n">2 Studios</span></summary>
     <ul>
       <li><b>all inclusive Fitness</b> – Poll-Vingster Straße 120</li>
       <li><b>XTRAFIT</b> – Rolshover Straße 227</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>51109 Köln</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">51109 Köln</span><span class="gg-n">1 Studio</span></summary>
     <ul>
       <li><b>SportsClub4</b> – Broichstraße 52</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>51143 Köln</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">51143 Köln</span><span class="gg-n">1 Studio</span></summary>
     <ul>
       <li><b>Ilbay Sports</b> – Klingerstraße 10a</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>51145 Köln</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">51145 Köln</span><span class="gg-n">2 Studios</span></summary>
     <ul>
       <li><b>Gym Project</b> – Humboldtstraße 137</li>
       <li><b>Next Door</b> – Frankfurter Straße 565</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>51147 Köln</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">51147 Köln</span><span class="gg-n">2 Studios</span></summary>
     <ul>
       <li><b>all inclusive Fitness</b> – Max-Reichpietsch-Straße 4</li>
       <li><b>INJOY</b> – Albin-Köbis-Straße 3</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>Rund um Köln</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">Rund um Köln</span><span class="gg-n">13 Studios</span></summary>
     <ul>
       <li><b>Ai Fitness</b> – Daimlerstraße 6a</li>
       <li><b>Concept Fitness Hürth</b> – Robert-Bosch-Straße 1</li>
@@ -414,7 +422,7 @@
       <li><b>by linzenich</b> – Bruchhauser Straße 30</li>
       <li><b>Kieser Training Leverkusen</b> – Dieselstraße 2</li>
     </ul>
-  </div>
+  </details>
   <p class="note">FLEXR ist mit den genannten Studios nicht verbunden und wird
   von ihnen nicht empfohlen. Die Liste zeigt nur, welche Studios in der App
   auswählbar sind (Stand: 24.11.2026).</p>

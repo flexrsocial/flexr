@@ -138,6 +138,13 @@ Regeln:
   Hervorgehobene Spalte: oranger Kopf als Plakat-Stück und 3 px orange Linie
   links, **kein Rahmen um die Spalte**. Aktion darunter mit Abstand, so breit
   wie die Spalte.
+- **FAQ als Register:** Themen-Titel links (am Handy orange darüber), Fragen
+  rechts als Liste mit Trennlinien, je Thema ab 01 nummeriert (orange Oswald-
+  Ziffer), Frage in Oswald-Großbuchstaben, „+“ dreht sich zu „×“. Keine Kästen.
+- **Kernsatz:** ein Satz groß in Oswald-Großbuchstaben, ein Wort orange
+  (Sicherheit, Lifestyle), darunter eine Zeile Text. Kein Hinweiskasten mit Balken.
+- **Städte-Reihe:** Land als kleines oranges Label, Städte in Oswald-Großbuchstaben
+  nebeneinander; mit Stadtseite hell, ohne gedimmt. Keine fetten Links im Fließtext.
 - **Schrittfolge:** große Oswald-Kontur-Ziffern 01/02/03, kurzer Titel, eine Zeile Text.
 - **Checkliste Sicherheit:** großer Satz als Zitat, darunter Punkte mit eigenem
   Linien-Symbol, keine Karten.

@@ -21,7 +21,7 @@
 <meta property="og:image" content="https://flexr.social/og-image.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="/favicon.ico" sizes="any">
-<link rel="stylesheet" href="/legal.css?v=4">
+<link rel="stylesheet" href="/legal.css?v=5">
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -244,21 +244,22 @@
 </div>
 
 <style>
-  /* Nur hier gebraucht: das Aufklapp-Verhalten der Fragen. */
-  .faq-item{ border:1px solid var(--hairline); border-radius:14px; background:var(--surface); margin-bottom:12px; overflow:hidden; }
-  .faq-item[open]{ border-color:rgba(255,90,31,.35); }
+  /* Nur hier gebraucht: das Aufklapp-Verhalten der Fragen. Linien statt
+     Kaesten, Fragen in Oswald - wie die FAQ auf der Startseite. */
+  .faq-item{ border-bottom:1px solid var(--hairline); }
   .faq-item summary{
-    list-style:none; cursor:pointer; padding:16px 48px 16px 18px; position:relative;
-    font-weight:600; font-size:16px; color:var(--chalk);
+    list-style:none; cursor:pointer; padding:14px 40px 14px 0; position:relative; min-height:52px;
+    font-family:'Oswald', system-ui, sans-serif; font-weight:500; font-size:17px;
+    text-transform:uppercase; letter-spacing:.03em; color:var(--chalk);
   }
   .faq-item summary::-webkit-details-marker{ display:none; }
   .faq-item summary::after{
-    content:'+'; position:absolute; right:18px; top:50%; transform:translateY(-50%);
-    font-size:24px; line-height:1; color:var(--plate);
+    content:'+'; position:absolute; right:0; top:50%; transform:translateY(-50%);
+    font-size:22px; line-height:1; color:var(--plate); transition:transform .2s ease;
   }
-  .faq-item[open] summary::after{ content:'\2212'; }
-  .faq-item summary:hover{ color:var(--plate-bright); }
-  .faq-a{ padding:0 18px 18px; color:var(--chalk-dim); font-size:14.5px; }
+  .faq-item[open] summary::after{ transform:translateY(-50%) rotate(45deg); }
+  @media (hover:hover){ .faq-item summary:hover{ color:var(--plate-bright); } }
+  .faq-a{ padding:0 0 18px; color:var(--chalk-dim); font-size:15px; }
   .faq-a b{ color:var(--chalk); }
 </style>
 <script src="/lang-switch.js?v=2" defer></script>

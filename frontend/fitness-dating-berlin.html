@@ -24,7 +24,7 @@
 <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png?v=4">
 <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon-180.png?v=1">
 <link rel="preload" href="/fonts/oswald.woff2?v=1" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="/legal.css?v=4">
+<link rel="stylesheet" href="/legal.css?v=5">
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -104,7 +104,7 @@
   /* Nur auf den Such-Einstiegsseiten (erzeugt von tools/seo/build_seo_pages.py). */
   /* Ueberschriften wie auf der Startseite (Oswald, Versalien) - bis 24.11.2026
      standen hier die Work-Sans-Ueberschriften der Rechtstexte. */
-  h1{ font-size:clamp(28px,6vw,36px); margin:0 0 14px; }
+  h1{ font-size:clamp(28px,6vw,36px); margin:0 0 14px; text-transform:uppercase; line-height:1.1; }
   h2{ font-family:'Oswald', system-ui, sans-serif; font-size:21px; font-weight:600; letter-spacing:.02em; text-transform:uppercase; margin-top:44px; }
   .head-cta{ padding:12px 16px; }
   .crumbs{ font-size:13px; color:var(--chalk-dim); margin:0 0 14px; }
@@ -115,29 +115,37 @@
   .cta-box .btn{ margin-top:14px; text-decoration:none; }
   /* Abschluss-Kasten am Seitenende: Wer bis unten gelesen hat, soll nicht
      erst wieder nach oben zur Kopfzeile muessen. */
-  .cta-end{ margin-top:44px; padding:24px 22px; border:0; border-left:4px solid var(--plate); border-radius:0 14px 14px 0; }
+  .cta-end{ margin-top:44px; padding:24px 22px; border:0; border-top:3px solid var(--plate); border-radius:0; }
   .cta-end .cta-title{ margin:0 0 6px; font-family:'Oswald', system-ui, sans-serif; font-size:24px; font-weight:700; line-height:1.15; text-transform:uppercase; color:var(--chalk); }
   .cta-end p{ color:var(--chalk-dim); }
-  .gym-group{ margin:0 0 14px; }
-  .gym-group h3{ margin:16px 0 6px; }
-  .gym-group ul{ margin:0; padding-left:18px; color:var(--chalk-dim); font-size:14.5px; }
+  .gym-group{ border-bottom:1px solid var(--hairline); }
+  .gym-group:first-of-type{ border-top:1px solid var(--hairline); }
+  .gym-group summary{ list-style:none; cursor:pointer; display:flex; align-items:center; gap:12px; min-height:52px; padding:10px 0; }
+  .gym-group summary::-webkit-details-marker{ display:none; }
+  .gym-group .gg-t{ flex:1; font-family:'Oswald', system-ui, sans-serif; font-size:17px; text-transform:uppercase; letter-spacing:.03em; color:var(--chalk); }
+  .gym-group .gg-n{ font-size:13px; color:var(--chalk-dim); }
+  .gym-group summary::after{ content:'+'; color:var(--plate); font-size:22px; width:18px; text-align:right; transition:transform .2s ease; }
+  .gym-group[open] summary::after{ transform:rotate(45deg); }
+  .gym-group ul{ margin:0 0 14px; padding-left:18px; color:var(--chalk-dim); font-size:14.5px; }
   .gym-group li b{ color:var(--chalk); font-weight:600; }
   .link-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:10px; margin:14px 0; padding:0; list-style:none; grid-auto-rows:1fr; }
   .link-grid li{ display:flex; }
-  .link-grid a{ display:block; flex:1; padding:12px 14px; border:1px solid var(--steel); border-radius:12px; background:var(--surface); text-decoration:none; color:var(--chalk); font-weight:600; }
-  .link-grid a:hover{ border-color:var(--plate); color:var(--plate-bright); }
+  .link-grid{ gap:0 24px; }
+  .link-grid a{ display:block; flex:1; padding:12px 0; border-bottom:1px solid var(--hairline); text-decoration:none; color:var(--chalk); font-family:'Oswald', system-ui, sans-serif; font-weight:500; text-transform:uppercase; letter-spacing:.03em; }
+  @media (hover:hover){ .link-grid a:hover{ color:var(--plate-bright); } }
+  .link-grid span{ font-family:'Work Sans', system-ui, sans-serif; text-transform:none; letter-spacing:0; }
   .link-grid span{ display:block; font-weight:400; font-size:13px; color:var(--chalk-dim); }
   .ideas{ padding-left:18px; }
   .ideas li{ margin-bottom:10px; }
   .ideas b{ color:var(--chalk); }
   .note{ font-size:13px; color:var(--chalk-dim); }
-  .faq-item{ border:1px solid var(--hairline); border-radius:14px; background:var(--surface); margin-bottom:12px; overflow:hidden; }
-  .faq-item[open]{ border-color:rgba(255,90,31,.35); }
-  .faq-item summary{ list-style:none; cursor:pointer; padding:16px 48px 16px 18px; position:relative; font-weight:600; font-size:16px; color:var(--chalk); }
+  /* FAQ wie auf der Startseite: Linien statt Kaesten, Fragen in Oswald. */
+  .faq-item{ border-bottom:1px solid var(--hairline); }
+  .faq-item summary{ list-style:none; cursor:pointer; padding:14px 40px 14px 0; position:relative; font-family:'Oswald', system-ui, sans-serif; font-weight:500; font-size:17px; text-transform:uppercase; letter-spacing:.03em; color:var(--chalk); min-height:52px; }
   .faq-item summary::-webkit-details-marker{ display:none; }
-  .faq-item summary::after{ content:'+'; position:absolute; right:18px; top:50%; transform:translateY(-50%); font-size:24px; line-height:1; color:var(--plate); }
-  .faq-item[open] summary::after{ content:'\2212'; }
-  .faq-a{ padding:0 18px 18px; color:var(--chalk-dim); font-size:14.5px; }
+  .faq-item summary::after{ content:'+'; position:absolute; right:0; top:50%; transform:translateY(-50%); font-size:22px; line-height:1; color:var(--plate); transition:transform .2s ease; }
+  .faq-item[open] summary::after{ transform:translateY(-50%) rotate(45deg); }
+  .faq-a{ padding:0 0 18px; color:var(--chalk-dim); font-size:15px; }
 </style>
 </head>
 <body>
@@ -174,8 +182,8 @@
   <p>Diese 320 Studios kannst du derzeit in FLEXR als dein Gym auswählen.
   Dein Studio fehlt? Du kannst es bei der Registrierung mit Adresse vorschlagen
   und sofort verwenden.</p>
-  <div class="gym-group">
-    <h3>10115 Berlin</h3>
+  <details class="gym-group">
+    <summary><span class="gg-t">10115 Berlin</span><span class="gg-n">6 Studios</span></summary>
     <ul>
       <li><b>Bikram Yoga Berlin-Mitte</b> – Krausnickstraße 23</li>
       <li><b>Campusfit - HU GYM</b> – Hannoversche Straße 25</li>
@@ -184,9 +192,9 @@
       <li><b>Slim-Gym Club</b> – Chausseestraße 51</li>
       <li><b>Yoga Rebellion</b> – Gartenstraße 6</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>10117 Berlin</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">10117 Berlin</span><span class="gg-n">7 Studios</span></summary>
     <ul>
       <li><b>Barry&#x27;s</b> – Friedrichstraße 83</li>
       <li><b>CrossFit Grenzgänger</b> – Reinhardtstraße 29</li>
@@ -196,9 +204,9 @@
       <li><b>Shapesty</b> – Aaron-Bernstein-Platz 3</li>
       <li><b>Sports Club</b> – Leipziger Platz 12</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>10119 Berlin</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">10119 Berlin</span><span class="gg-n">5 Studios</span></summary>
     <ul>
       <li><b>Evo Fitness</b> – Torstraße 125</li>
       <li><b>John &amp; Jane&#x27;s Soulbase</b> – Rosenthaler Straße 63/64</li>
@@ -206,25 +214,25 @@
       <li><b>Rocycle Berlin Mitte</b> – Linienstraße 41</li>
       <li><b>Three Boons Yoga</b> – Brunnenstraße 29</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>10178 Berlin</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">10178 Berlin</span><span class="gg-n">4 Studios</span></summary>
     <ul>
       <li><b>Beat81</b> – Dircksenstraße 47</li>
       <li><b>Evo Fitness</b> – Rosa-Luxemburg-Straße 14</li>
       <li><b>FitX</b> – Alexanderstraße 7</li>
       <li><b>Ladycompany - Fitness für Frauen</b> – Spandauer Straße 4</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>10179 Berlin</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">10179 Berlin</span><span class="gg-n">2 Studios</span></summary>
     <ul>
       <li><b>Evo Fitness</b> – Wallstraße 27</li>
       <li><b>SuperFit</b> – Grunerstraße 20</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>10243 Berlin</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">10243 Berlin</span><span class="gg-n">7 Studios</span></summary>
     <ul>
       <li><b>Bodystreet</b> – Karl-Marx-Allee 110</li>
       <li><b>Fitness Company Berlin</b> – Rüdersdorfer Straße 71</li>
@@ -234,9 +242,9 @@
       <li><b>Soulsport Yoga</b> – Gubener Straße 47</li>
       <li><b>SunYoga</b> – Torellstraße 7</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>10245 Berlin</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">10245 Berlin</span><span class="gg-n">9 Studios</span></summary>
     <ul>
       <li><b>Beat81</b> – Libauer Straße 1</li>
       <li><b>Berlin Strength</b> – Revaler Straße 99</li>
@@ -248,51 +256,51 @@
       <li><b>Studio Glücksmama</b> – Döringstraße 2</li>
       <li><b>Yogibar</b> – Boxhagener Straße 31</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>10247 Berlin</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">10247 Berlin</span><span class="gg-n">3 Studios</span></summary>
     <ul>
       <li><b>Green Studio Pilates</b> – Jessnerstraße 58</li>
       <li><b>Superfit</b> – Frankfurter Allee 111</li>
       <li><b>Yogi Escape</b> – Rigaer Straße 25</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>10317 Berlin</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">10317 Berlin</span><span class="gg-n">3 Studios</span></summary>
     <ul>
       <li><b>AXT CrossFit</b> – Hauptstraße 13</li>
       <li><b>Fitbox</b> – Hauptstraße 6D</li>
       <li><b>Yoga Barn</b> – Münsterlandstraße 5</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>10318 Berlin</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">10318 Berlin</span><span class="gg-n">1 Studio</span></summary>
     <ul>
       <li><b>Mrs. Sporty</b> – Marksburgstraße 41</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>10319 Berlin</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">10319 Berlin</span><span class="gg-n">1 Studio</span></summary>
     <ul>
       <li><b>FitX</b> – Otto-Schmirgal-Straße 7</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>10365 Berlin</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">10365 Berlin</span><span class="gg-n">2 Studios</span></summary>
     <ul>
       <li><b>aGYM</b> – Frankfurter Allee 113-117</li>
       <li><b>McFit</b> – Siegfriedstraße 177</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>10369 Berlin</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">10369 Berlin</span><span class="gg-n">2 Studios</span></summary>
     <ul>
       <li><b>Crunch Fit</b> – Weißenseer Weg 112</li>
       <li><b>FitX</b> – Oderbruchstraße 14</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>10405 Berlin</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">10405 Berlin</span><span class="gg-n">10 Studios</span></summary>
     <ul>
       <li><b>B23 Space</b> – Greifswalder Straße 23</li>
       <li><b>Casa FLOW</b> – Prenzlauer Allee 38</li>
@@ -305,9 +313,9 @@
       <li><b>Pantarei Approach</b> – Winsstraße 60</li>
       <li><b>Yoga Hub Berlin</b> – Greifswalder Straße 8d</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>10407 Berlin</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">10407 Berlin</span><span class="gg-n">5 Studios</span></summary>
     <ul>
       <li><b>EVOPE Performance Center</b> – Storkower Straße 105</li>
       <li><b>FEEL THE BARRE</b> – Bötzowstraße 26</li>
@@ -315,26 +323,26 @@
       <li><b>Krav Maga</b> – Dietrich-Bonhoeffer-Straße 17a</li>
       <li><b>Makeda</b> – Pasteurstraße 20</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>10409 Berlin</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">10409 Berlin</span><span class="gg-n">3 Studios</span></summary>
     <ul>
       <li><b>clever fit Berlin-Prenzlauer Berg</b> – Greifswalder Straße 90</li>
       <li><b>Kieser Training</b> – Ostseestraße 107</li>
       <li><b>McFit</b> – Greifswalder Straße 90</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>10435 Berlin</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">10435 Berlin</span><span class="gg-n">4 Studios</span></summary>
     <ul>
       <li><b>Beat81</b> – Knaackstraße 87</li>
       <li><b>Hadi Zalzadeh</b> – Kollwitzstraße 102</li>
       <li><b>My Sports</b> – Danziger Straße 69</li>
       <li><b>Women&#x27;s Lift Lounge</b> – Danziger Straße 55</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>10437 Berlin</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">10437 Berlin</span><span class="gg-n">11 Studios</span></summary>
     <ul>
       <li><b>Arcoverde Pilates Zentrum</b> – Cantianstraße 11</li>
       <li><b>Beat81</b> – Schönhauser Allee 124</li>
@@ -348,9 +356,9 @@
       <li><b>Via Pilates</b> – Dunckerstraße 84</li>
       <li><b>YogaCircle</b> – Schliemannstraße 22</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>10439 Berlin</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">10439 Berlin</span><span class="gg-n">6 Studios</span></summary>
     <ul>
       <li><b>Abnehmen im Liegen</b> – Schivelbeiner Straße 35</li>
       <li><b>Boaré</b> – Rodenbergstraße 2</li>
@@ -359,81 +367,81 @@
       <li><b>Mrs. Sporty</b> – Rodenbergstraße 35</li>
       <li><b>Yoga am Arnimplatz</b> – Schönfließer Straße 11</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>10551 Berlin</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">10551 Berlin</span><span class="gg-n">3 Studios</span></summary>
     <ul>
       <li><b>all inclusive Fitness Berlin-Moabit</b> – Turmstraße 29</li>
       <li><b>Fitbox</b> – Turmstraße 74</li>
       <li><b>Pole Sport Studio Berlin</b> – Wiclefstraße 18</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>10555 Berlin</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">10555 Berlin</span><span class="gg-n">1 Studio</span></summary>
     <ul>
       <li><b>Yogaschule Petersen</b> – Dortmunder Straße 6</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>10557 Berlin</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">10557 Berlin</span><span class="gg-n">3 Studios</span></summary>
     <ul>
       <li><b>CrossFit Mitte</b> – Heidestraße 48</li>
       <li><b>EVO Fitness Berlin Europacity</b> – Heidestraße 34</li>
       <li><b>FITYES Berlin Europacity</b> – Otto-Weidt-Platz 9</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>10559 Berlin</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">10559 Berlin</span><span class="gg-n">4 Studios</span></summary>
     <ul>
       <li><b>Abityoga</b> – Alt-Moabit 104</li>
       <li><b>Alpha-Reha Berlin</b> – Alt-Moabit 101B</li>
       <li><b>McFit</b> – Alt-Moabit 96D</li>
       <li><b>Slim-Gym</b> – Alt-Moabit 92</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>10585 Berlin</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">10585 Berlin</span><span class="gg-n">1 Studio</span></summary>
     <ul>
       <li><b>Holmes Place</b> – Wilmersdorfer Straße 38</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>10589 Berlin</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">10589 Berlin</span><span class="gg-n">1 Studio</span></summary>
     <ul>
       <li><b>Tayfun Personal Trainer</b> – Kaiserin-Augusta-Allee 45</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>10623 Berlin</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">10623 Berlin</span><span class="gg-n">3 Studios</span></summary>
     <ul>
       <li><b>Fitness Unlimited</b> – Uhlandstraße 194</li>
       <li><b>Fitnessstudio TU Sport</b> – Straße des 17. Juni 145</li>
       <li><b>Spirit Joga</b> – Goethestraße 2-3</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>10625 Berlin</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">10625 Berlin</span><span class="gg-n">2 Studios</span></summary>
     <ul>
       <li><b>Brooklyn Fitboxing Charlottenburg</b> – Kantstraße 38</li>
       <li><b>Mrs. Sporty</b> – Weimarer Straße 32</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>10627 Berlin</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">10627 Berlin</span><span class="gg-n">3 Studios</span></summary>
     <ul>
       <li><b>Iyengar Yoga</b> – Krumme Straße 61</li>
       <li><b>JOHN REED Fitness</b> – Wilmersdorfer Straße 126-127</li>
       <li><b>Superfit</b> – Wilmersdorfer Straße 54</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>10629 Berlin</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">10629 Berlin</span><span class="gg-n">1 Studio</span></summary>
     <ul>
       <li><b>Viva Studio</b> – Wilmersdorfer Straße 98</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>10707 Berlin</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">10707 Berlin</span><span class="gg-n">5 Studios</span></summary>
     <ul>
       <li><b>Rocycle</b> – Kurfürstendamm 64-65</li>
       <li><b>Studio K8</b> – Konstanzer Straße 8</li>
@@ -441,22 +449,22 @@
       <li><b>Three Boons Yoga</b> – Kurfürstendamm</li>
       <li><b>Urban Boost</b> – Pariser Straße 43</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>10709 Berlin</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">10709 Berlin</span><span class="gg-n">1 Studio</span></summary>
     <ul>
       <li><b>FitX</b> – Kurfürstendamm 156</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>10711 Berlin</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">10711 Berlin</span><span class="gg-n">2 Studios</span></summary>
     <ul>
       <li><b>Be Your Star Fitnesscoaching</b> – Joachim-Friedrich-Straße 41</li>
       <li><b>Beat81</b> – Kurfürstendamm 102</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>10715 Berlin</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">10715 Berlin</span><span class="gg-n">5 Studios</span></summary>
     <ul>
       <li><b>CrossFit</b> – Berliner Straße 30</li>
       <li><b>Hundred &amp; Friends</b> – Berliner Straße 161</li>
@@ -464,74 +472,74 @@
       <li><b>Sarasvati Yoga Berlin</b> – Bundesallee 53</li>
       <li><b>Strom-Linien</b> – Prinzregentenstraße 42</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>10717 Berlin</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">10717 Berlin</span><span class="gg-n">2 Studios</span></summary>
     <ul>
       <li><b>Aum Yoga Studio</b> – Nassauische Straße 62</li>
       <li><b>Yoga Vidya Center Berlin-Wilmersdorf</b> – Pfalzburger Straße 43</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>10719 Berlin</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">10719 Berlin</span><span class="gg-n">2 Studios</span></summary>
     <ul>
       <li><b>Clever fit</b> – Joachimsthaler Straße 19</li>
       <li><b>UFC Gym</b> – Kurfürstendamm 38</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>10777 Berlin</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">10777 Berlin</span><span class="gg-n">3 Studios</span></summary>
     <ul>
       <li><b>Peter Strom EMS Fitness</b> – Nollendorfstraße 25</li>
       <li><b>Rent-A-Trainer-Berlin Gym</b> – Nollendorfstraße 23</li>
       <li><b>Stromtown</b> – Motzstraße 9</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>10783 Berlin</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">10783 Berlin</span><span class="gg-n">1 Studio</span></summary>
     <ul>
       <li><b>Brooklyn Fitboxing Postdamer-Str</b> – Potsdamer Straße 125</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>10785 Berlin</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">10785 Berlin</span><span class="gg-n">1 Studio</span></summary>
     <ul>
       <li><b>Barliner Workout</b> – Eichhornstraße 3</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>10789 Berlin</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">10789 Berlin</span><span class="gg-n">1 Studio</span></summary>
     <ul>
       <li><b>McFit</b> – Tauentzienstraße 8</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>10823 Berlin</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">10823 Berlin</span><span class="gg-n">4 Studios</span></summary>
     <ul>
       <li><b>Die Schönebergerin</b> – Grunewaldstraße 86</li>
       <li><b>Flowsol</b> – Apostel-Paulus-Straße 30</li>
       <li><b>Yoga in der Schwangerschaft Frauke Stadali</b> – Belziger Straße 7</li>
       <li><b>Yogafürdich</b> – Akazienstraße 27/28</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>10825 Berlin</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">10825 Berlin</span><span class="gg-n">2 Studios</span></summary>
     <ul>
       <li><b>Fitbox</b> – Martin-Luther-Straße 103</li>
       <li><b>Schule für Yoga und Prana</b> – Innsbrucker Straße 56</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>10827 Berlin</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">10827 Berlin</span><span class="gg-n">4 Studios</span></summary>
     <ul>
       <li><b>Die Yogapraxis</b> – Crellestraße 22</li>
       <li><b>FitX</b> – Hauptstraße 141</li>
       <li><b>Pilates Chalotte Nexgaard</b> – Albertstraße 10</li>
       <li><b>Soul Yoga Berlin</b> – Herbertstraße 11</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>10829 Berlin</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">10829 Berlin</span><span class="gg-n">5 Studios</span></summary>
     <ul>
       <li><b>CrossFit</b> – Wilhelm-Kabus-Straße 40</li>
       <li><b>Emotions Studio</b> – Gotenstraße 46</li>
@@ -539,40 +547,40 @@
       <li><b>FitX</b> – Wilhelm-Kabus-Straße 77</li>
       <li><b>Iyengar Yoga Zentrum</b> – Hochkirchstraße 9/2</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>10961 Berlin</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">10961 Berlin</span><span class="gg-n">2 Studios</span></summary>
     <ul>
       <li><b>SunYoga</b> – Mehringdamm 33</li>
       <li><b>Yoga-Institut Berlin</b> – Bergmannstraße 91</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>10963 Berlin</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">10963 Berlin</span><span class="gg-n">3 Studios</span></summary>
     <ul>
       <li><b>Forde Fitness</b> – Stresemannstraße 65</li>
       <li><b>Urban Gladiators</b> – Wilhelmstraße 14</li>
       <li><b>X-Step</b> – Tempelhofer Ufer 36</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>10967 Berlin</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">10967 Berlin</span><span class="gg-n">4 Studios</span></summary>
     <ul>
       <li><b>American Fitness</b> – Hermannplatz 10</li>
       <li><b>Beat81</b> – Graefestraße 71</li>
       <li><b>JOHN REED Fitness</b> – Kottbusser Damm 1</li>
       <li><b>Yoga im Graefekiez</b> – Grimmstraße 19</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>10969 Berlin</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">10969 Berlin</span><span class="gg-n">2 Studios</span></summary>
     <ul>
       <li><b>Luft</b> – Friedrichstraße 14</li>
       <li><b>QP Fitness</b> – Oranienstraße 163</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>10997 Berlin</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">10997 Berlin</span><span class="gg-n">5 Studios</span></summary>
     <ul>
       <li><b>Beat81</b> – Zeughofstraße 20</li>
       <li><b>Gelber Raum</b> – Mariannenstraße 48</li>
@@ -580,9 +588,9 @@
       <li><b>Peace Yoga Berlin</b> – Eisenbahnstraße 5</li>
       <li><b>Sportetage</b> – Audre-Lorde-Straße 74</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>10999 Berlin</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">10999 Berlin</span><span class="gg-n">5 Studios</span></summary>
     <ul>
       <li><b>Beat81</b> – Paul-Lincke-Ufer 19</li>
       <li><b>FLOAT Studio GmbH</b> – Glogauer Straße 6</li>
@@ -590,64 +598,64 @@
       <li><b>Yellow Yoga Studio Berg</b> – Wiener Straße 18</li>
       <li><b>Zentrum für Yoga und Stimme</b> – Paul-Lincke-Ufer 30</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>12043 Berlin</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">12043 Berlin</span><span class="gg-n">2 Studios</span></summary>
     <ul>
       <li><b>Fitbox</b> – Karl-Marx-Straße 108</li>
       <li><b>Superfit</b> – Karl-Marx-Straße 66</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>12045 Berlin</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">12045 Berlin</span><span class="gg-n">1 Studio</span></summary>
     <ul>
       <li><b>Studio Sonne</b> – Sonnenallee 67</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>12049 Berlin</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">12049 Berlin</span><span class="gg-n">2 Studios</span></summary>
     <ul>
       <li><b>Dharma Yoga</b> – Kienitzer Straße 98</li>
       <li><b>Tagtigall</b> – Herrfurthstraße 6a</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>12051 Berlin</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">12051 Berlin</span><span class="gg-n">1 Studio</span></summary>
     <ul>
       <li><b>Flow Motion Studio Neukölln</b> – Glasower Straße 60</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>12055 Berlin</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">12055 Berlin</span><span class="gg-n">1 Studio</span></summary>
     <ul>
       <li><b>Oma Om Yoga</b> – Richardstraße 43</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>12059 Berlin</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">12059 Berlin</span><span class="gg-n">1 Studio</span></summary>
     <ul>
       <li><b>Yoga Futura</b> – Weigandufer 18</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>12103 Berlin</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">12103 Berlin</span><span class="gg-n">4 Studios</span></summary>
     <ul>
       <li><b>Crunch Fit Studio Berlin-Schöneberg</b> – Bessemerstrasse 57-75</li>
       <li><b>Hyrox &amp; CrossFit Gym Aorta</b> – Alboinstraße 11</li>
       <li><b>McFit</b> – Schöneberger Straße 12-15</li>
       <li><b>Tayopi</b> – Borussiastraße 13</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>12157 Berlin</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">12157 Berlin</span><span class="gg-n">3 Studios</span></summary>
     <ul>
       <li><b>Entspannt mit Yoga</b> – Beckerstraße 9</li>
       <li><b>MO.VE</b> – Kissinger Straße 9</li>
       <li><b>unbekannt - noch ungeöffnet</b> – Bismarckstraße 6</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>12159 Berlin</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">12159 Berlin</span><span class="gg-n">5 Studios</span></summary>
     <ul>
       <li><b>Bahntrainig</b> – Handjerystraße 1</li>
       <li><b>Fitbox</b> – Rheinstraße 17</li>
@@ -655,9 +663,9 @@
       <li><b>myoga</b> – Sieglindestraße 7</li>
       <li><b>Raum für Bewegung Quan Dao</b> – Niedstraße 12</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>12161 Berlin</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">12161 Berlin</span><span class="gg-n">9 Studios</span></summary>
     <ul>
       <li><b>Akademie für Yoga Berlin</b> – Wilhelmshöher Straße 5</li>
       <li><b>deen</b> – Rheinstraße 45-46</li>
@@ -669,9 +677,9 @@
       <li><b>Sivananda Yoga</b> – Schmiljanstraße 24</li>
       <li><b>Twenty Minutes Fitness Lounge</b> – Stubenrauchstraße 1</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>12163 Berlin</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">12163 Berlin</span><span class="gg-n">5 Studios</span></summary>
     <ul>
       <li><b>Fitness First</b> – Schloßstraße 110</li>
       <li><b>Holmes Place</b> – Schildhornstraße 1</li>
@@ -679,216 +687,216 @@
       <li><b>Superfit</b> – Schloßstraße 1</li>
       <li><b>Superfit Woman</b> – Schloßstraße 1</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>12169 Berlin</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">12169 Berlin</span><span class="gg-n">2 Studios</span></summary>
     <ul>
       <li><b>Krav Maga Berlin Headquarters</b> – Bergstraße 93</li>
       <li><b>OMNI Yoga</b> – Bergstraße 92</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>12203 Berlin</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">12203 Berlin</span><span class="gg-n">1 Studio</span></summary>
     <ul>
       <li><b>fourty fit healthclub</b> – Gardeschützenweg 57</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>12247 Berlin</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">12247 Berlin</span><span class="gg-n">1 Studio</span></summary>
     <ul>
       <li><b>Kieser Training</b> – Teltowkanalstraße 2</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>12249 Berlin</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">12249 Berlin</span><span class="gg-n">1 Studio</span></summary>
     <ul>
       <li><b>INJOY</b> – Kamenzer Damm 30</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>12277 Berlin</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">12277 Berlin</span><span class="gg-n">1 Studio</span></summary>
     <ul>
       <li><b>McFit</b> – Großbeerenstraße 148</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>12347 Berlin</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">12347 Berlin</span><span class="gg-n">1 Studio</span></summary>
     <ul>
       <li><b>Venice Sporting Club</b> – Tempelhofer Weg 44</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>12349 Berlin</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">12349 Berlin</span><span class="gg-n">1 Studio</span></summary>
     <ul>
       <li><b>Studio47</b> – Rufacher Weg 66</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>12351 Berlin</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">12351 Berlin</span><span class="gg-n">1 Studio</span></summary>
     <ul>
       <li><b>Kieser Training</b> – Rudower Straße 132</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>12435 Berlin</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">12435 Berlin</span><span class="gg-n">3 Studios</span></summary>
     <ul>
       <li><b>Fitness am Park</b> – Elsenstraße 113</li>
       <li><b>Paramount Fitness</b> – Puderstraße 8</li>
       <li><b>Urban Street Gym</b> – Bouchéstraße 12</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>12489 Berlin</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">12489 Berlin</span><span class="gg-n">4 Studios</span></summary>
     <ul>
       <li><b>FITOMAT</b> – Dörpfeldstraße 27-29</li>
       <li><b>Impuls EMS-Studio</b> – Genossenschaftsstraße 69</li>
       <li><b>McFit</b> – Adlergestell 299</li>
       <li><b>Yoga Glück</b> – Hackenbergstraße 7</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>12555 Berlin</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">12555 Berlin</span><span class="gg-n">2 Studios</span></summary>
     <ul>
       <li><b>Kieser Training</b> – Bahnhofstraße 33-38</li>
       <li><b>Superfit</b> – Bahnhofstraße 23-25</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>12559 Berlin</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">12559 Berlin</span><span class="gg-n">1 Studio</span></summary>
     <ul>
       <li><b>Nature Womb</b> – Eppenbrunner Weg 30</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>12587 Berlin</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">12587 Berlin</span><span class="gg-n">2 Studios</span></summary>
     <ul>
       <li><b>Fitbox</b> – Bölschestraße 45</li>
       <li><b>Localfit</b> – Fürstenwalder Damm 479</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>12589 Berlin</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">12589 Berlin</span><span class="gg-n">2 Studios</span></summary>
     <ul>
       <li><b>fit &amp; feminin</b> – Fürstenwalder Allee 318</li>
       <li><b>Rialtoring 74</b> – Rialtoring 74</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>12619 Berlin</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">12619 Berlin</span><span class="gg-n">1 Studio</span></summary>
     <ul>
       <li><b>skyfit-Club</b> – Hellersdorfer Straße 83</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>12621 Berlin</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">12621 Berlin</span><span class="gg-n">1 Studio</span></summary>
     <ul>
       <li><b>Die Bewegungsebene</b> – Alt-Kaulsdorf 18</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>12623 Berlin</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">12623 Berlin</span><span class="gg-n">2 Studios</span></summary>
     <ul>
       <li><b>McFit</b> – Alt-Mahlsdorf 24</li>
       <li><b>Yoga &amp; Friends</b> – Hultschiner Damm 38</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>12627 Berlin</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">12627 Berlin</span><span class="gg-n">3 Studios</span></summary>
     <ul>
       <li><b>Elixia</b> – Heidenauer Straße 26</li>
       <li><b>FitX</b> – Hellersdorfer Straße 235</li>
       <li><b>Power Factory GmbH</b> – Tangermünder Straße 129</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>12629 Berlin</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">12629 Berlin</span><span class="gg-n">1 Studio</span></summary>
     <ul>
       <li><b>CITI-Frauen-Fitness</b> – Alte Hellersdorfer Straße 119</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>12681 Berlin</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">12681 Berlin</span><span class="gg-n">3 Studios</span></summary>
     <ul>
       <li><b>clever fit Berlin-Marzahn</b> – Helene-Weigel-Platz 5</li>
       <li><b>McFit</b> – Märkische Allee 160a</li>
       <li><b>Pyramide Fitness World</b> – Alte Rhinstraße 16</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>12683 Berlin</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">12683 Berlin</span><span class="gg-n">1 Studio</span></summary>
     <ul>
       <li><b>FitX</b> – Weißenhöher Straße 108</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>13051 Berlin</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">13051 Berlin</span><span class="gg-n">2 Studios</span></summary>
     <ul>
       <li><b>Active Ladies</b> – Zingster Straße 4</li>
       <li><b>Fitness First</b> – Hansastraße 236</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>13055 Berlin</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">13055 Berlin</span><span class="gg-n">1 Studio</span></summary>
     <ul>
       <li><b>McFit</b> – Konrad-Wolf-Straße 56-60</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>13059 Berlin</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">13059 Berlin</span><span class="gg-n">1 Studio</span></summary>
     <ul>
       <li><b>Mrs. Sporty</b> – Rostocker Straße 15</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>13086 Berlin</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">13086 Berlin</span><span class="gg-n">1 Studio</span></summary>
     <ul>
       <li><b>Soulstone Studio</b> – Lehderstraße 26</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>13088 Berlin</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">13088 Berlin</span><span class="gg-n">3 Studios</span></summary>
     <ul>
       <li><b>BiSee Yoga</b> – Bizetstraße 43</li>
       <li><b>Fitbox</b> – Berliner Allee 108</li>
       <li><b>Sonne Mond &amp; Sterne</b> – Meyerbeerstraße 59</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>13089 Berlin</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">13089 Berlin</span><span class="gg-n">2 Studios</span></summary>
     <ul>
       <li><b>Lyra Aerial Dance Studio</b> – Prenzlauer Promenade 47A</li>
       <li><b>McFit</b> – Romain-Rolland-Straße 30, 32</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>13125 Berlin</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">13125 Berlin</span><span class="gg-n">1 Studio</span></summary>
     <ul>
       <li><b>Clever fit</b> – Walter-Friedrich-Straße 1</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>13127 Berlin</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">13127 Berlin</span><span class="gg-n">2 Studios</span></summary>
     <ul>
       <li><b>Clever fit</b> – Rosenthaler Weg 24B</li>
       <li><b>Vital One</b> – Hugenottenplatz 3</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>13156 Berlin</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">13156 Berlin</span><span class="gg-n">3 Studios</span></summary>
     <ul>
       <li><b>Green Yoga</b> – Dietzgenstraße 56</li>
       <li><b>Ground Fitness</b> – Dietzgenstraße 22</li>
       <li><b>New Evolution</b> – Elisabeth-Christinen-Straße 27</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>13158 Berlin</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">13158 Berlin</span><span class="gg-n">1 Studio</span></summary>
     <ul>
       <li><b>Mrs. Sporty</b> – Hauptstraße 101B</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>13187 Berlin</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">13187 Berlin</span><span class="gg-n">5 Studios</span></summary>
     <ul>
       <li><b>40 Min</b> – Florastraße 88/89</li>
       <li><b>Argo Athletics</b> – Mühlenstraße 62;63;64;65</li>
@@ -896,165 +904,165 @@
       <li><b>Fitness First</b> – Breite Straße 33-34</li>
       <li><b>Ki-Haus</b> – Wollankstraße 6</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>13347 Berlin</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">13347 Berlin</span><span class="gg-n">2 Studios</span></summary>
     <ul>
       <li><b>Ginkgo Yoga</b> – Liebenwalder Straße 11</li>
       <li><b>McFit</b> – Seestraße 64</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>13349 Berlin</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">13349 Berlin</span><span class="gg-n">1 Studio</span></summary>
     <ul>
       <li><b>Spitfire</b> – Müllerstraße 46</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>13351 Berlin</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">13351 Berlin</span><span class="gg-n">1 Studio</span></summary>
     <ul>
       <li><b>Blue Panta</b> – Transvaalstraße 11</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>13353 Berlin</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">13353 Berlin</span><span class="gg-n">3 Studios</span></summary>
     <ul>
       <li><b>Fit T9 Frauenfitness</b> – Müllerstraße 36</li>
       <li><b>Fitness First</b> – Müllerstraße 35</li>
       <li><b>Yoga Stübchen</b> – Genter Straße 65</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>13355 Berlin</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">13355 Berlin</span><span class="gg-n">1 Studio</span></summary>
     <ul>
       <li><b>JOHN REED Fitness</b> – Brunnenstraße 105-109</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>13437 Berlin</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">13437 Berlin</span><span class="gg-n">1 Studio</span></summary>
     <ul>
       <li><b>Therapiezentrum Waidmannslust</b> – Oranienburger Straße 141</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>13439 Berlin</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">13439 Berlin</span><span class="gg-n">2 Studios</span></summary>
     <ul>
       <li><b>Crunchfit</b> – Wilhelmsruher Damm 128</li>
       <li><b>Fitnessclub Vitalis</b> – Zerpenschleuser Ring 37</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>13465 Berlin</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">13465 Berlin</span><span class="gg-n">1 Studio</span></summary>
     <ul>
       <li><b>B-touched Yoga by Bianca</b> – Königsbacher Zeile 23</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>13467 Berlin</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">13467 Berlin</span><span class="gg-n">1 Studio</span></summary>
     <ul>
       <li><b>formwerk</b> – Hermsdorfer Damm 182</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>13469 Berlin</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">13469 Berlin</span><span class="gg-n">2 Studios</span></summary>
     <ul>
       <li><b>FitX</b> – Oraniendamm 6-10</li>
       <li><b>McFit</b> – Oraniendamm 64</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>13507 Berlin</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">13507 Berlin</span><span class="gg-n">3 Studios</span></summary>
     <ul>
       <li><b>Dawgz Life Muay Thai</b> – Flohrstraße 26</li>
       <li><b>Future Fit</b> – Alt-Tegel 19</li>
       <li><b>Superfit</b> – Am Borsigturm 2</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>13509 Berlin</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">13509 Berlin</span><span class="gg-n">2 Studios</span></summary>
     <ul>
       <li><b>Fit in Tegel</b> – Ernststraße 2</li>
       <li><b>Kieser Training</b> – Holzhauser Straße 140d</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>13581 Berlin</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">13581 Berlin</span><span class="gg-n">1 Studio</span></summary>
     <ul>
       <li><b>McFit</b> – Altonaer Straße 59-61</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>13593 Berlin</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">13593 Berlin</span><span class="gg-n">1 Studio</span></summary>
     <ul>
       <li><b>Spannkraft</b> – Wilhelmstraße 23</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>13595 Berlin</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">13595 Berlin</span><span class="gg-n">1 Studio</span></summary>
     <ul>
       <li><b>VIP’n’Fit</b> – Pichelsdorfer Straße 31</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>13599 Berlin</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">13599 Berlin</span><span class="gg-n">1 Studio</span></summary>
     <ul>
       <li><b>Crunchfit</b> – Am Juliusturm 55</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>13629 Berlin</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">13629 Berlin</span><span class="gg-n">1 Studio</span></summary>
     <ul>
       <li><b>Gold&#x27;s Gym Fitnessstudio</b> – Paulsternstraße 22</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>14057 Berlin</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">14057 Berlin</span><span class="gg-n">1 Studio</span></summary>
     <ul>
       <li><b>Casa Flow Studios</b> – Suarezstraße 13</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>14163 Berlin</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">14163 Berlin</span><span class="gg-n">1 Studio</span></summary>
     <ul>
       <li><b>clever fit Berlin-Zehlendorf</b> – Martin-Buber-Straße 12</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>14167 Berlin</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">14167 Berlin</span><span class="gg-n">3 Studios</span></summary>
     <ul>
       <li><b>ClaraJoe’s Pilates</b> – Goerzallee 299</li>
       <li><b>McFit</b> – Goerzallee 188</li>
       <li><b>WILD SIDE Athletics</b> – Goerzallee 299-301</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>14169 Berlin</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">14169 Berlin</span><span class="gg-n">1 Studio</span></summary>
     <ul>
       <li><b>Fitness First</b> – Clayallee 328-334</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>14195 Berlin</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">14195 Berlin</span><span class="gg-n">1 Studio</span></summary>
     <ul>
       <li><b>Clays</b> – Clayallee 171</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>14197 Berlin</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">14197 Berlin</span><span class="gg-n">2 Studios</span></summary>
     <ul>
       <li><b>Classic Crossfit</b> – Mecklenburgische Straße 24a</li>
       <li><b>Sporteve</b> – Laubacher Straße 12</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>14199 Berlin</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">14199 Berlin</span><span class="gg-n">2 Studios</span></summary>
     <ul>
       <li><b>Kieser Training</b> – Forckenbeckstraße 9-13</li>
       <li><b>Pilatesraum Berlin</b> – Breite Straße 33</li>
     </ul>
-  </div>
-  <div class="gym-group">
-    <h3>Rund um Berlin</h3>
+  </details>
+  <details class="gym-group">
+    <summary><span class="gg-t">Rund um Berlin</span><span class="gg-n">21 Studios</span></summary>
     <ul>
       <li><b>Abendschein EMS</b> – Lindenstraße 6</li>
       <li><b>Bodystreet</b> – Charlottenstraße 128</li>
@@ -1078,7 +1086,7 @@
       <li><b>Sporteve Potsdam Frauenfitness</b> – Kopernikusstraße 12</li>
       <li><b>VitalBody</b> – Großbeerenstraße 21a</li>
     </ul>
-  </div>
+  </details>
   <p class="note">FLEXR ist mit den genannten Studios nicht verbunden und wird
   von ihnen nicht empfohlen. Die Liste zeigt nur, welche Studios in der App
   auswählbar sind (Stand: 24.11.2026).</p>
