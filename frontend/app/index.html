@@ -84,7 +84,7 @@
    in legal.css und in sw.js gemeinsam hochzaehlen. */
 @font-face{ font-family:'Oswald';         src:url('/fonts/oswald.woff2?v=1')         format('woff2'); font-weight:400 700; font-display:swap; }
 @font-face{ font-family:'Work Sans';      src:url('/fonts/work-sans.woff2?v=1')      format('woff2'); font-weight:400 700; font-display:swap; }
-@font-face{ font-family:'JetBrains Mono'; src:url('/fonts/jetbrains-mono.woff2?v=1') format('woff2'); font-weight:400 700; font-display:swap; }
+@font-face{ font-family:'Work Sans', system-ui, sans-serif; src:url('/fonts/jetbrains-mono.woff2?v=1') format('woff2'); font-weight:400 700; font-display:swap; }
 
   :root{
     --ink:#121212;
@@ -140,9 +140,6 @@
     display:flex; flex-direction:column;
     position:relative;
     background:
-      radial-gradient(circle at 15% -4%, rgba(255,90,31,0.12), transparent 42%),
-      radial-gradient(circle at 100% 100%, rgba(255,90,31,0.05), transparent 38%),
-      repeating-linear-gradient(135deg, rgba(255,255,255,.011) 0 1px, transparent 1px 9px),
       var(--ink);
   }
   /* Breite Fenster: Die App steht als 430px-Spalte in der Mitte und ging
@@ -153,7 +150,6 @@
   @media (min-width: 520px){
     body:not(.landing){
       background:
-        radial-gradient(900px 520px at 50% -8%, rgba(255,90,31,.06), transparent 70%),
         #0c0c0c;
     }
     body:not(.landing) .app{
@@ -163,7 +159,7 @@
     body:not(.landing) nav.bottom{ border-left:1px solid var(--hairline); border-right:1px solid var(--hairline); }
   }
   h1,h2,h3,.display{ font-family:'Oswald', sans-serif; text-transform:uppercase; letter-spacing:0.02em; }
-  .mono{ font-family:'JetBrains Mono', monospace; }
+  .mono{ font-family:'Work Sans', system-ui, sans-serif; }
   svg.ico{ width:22px; height:22px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; display:block; }
 
   header.top{
@@ -182,7 +178,7 @@
   .brand span{ color:var(--plate); }
   .header-actions{ display:flex; align-items:center; gap:8px; }
   .status-pill{
-    font-family:'JetBrains Mono', monospace; font-size:11px;
+    font-family:'Work Sans', system-ui, sans-serif; font-size:12px;
     padding:5px 10px; border-radius:20px; border:1px solid var(--steel); color:var(--chalk-dim);
     background:rgba(255,255,255,.02);
   }
@@ -191,7 +187,7 @@
   /* Aufruf zum Handeln, keine Statusanzeige - deshalb Markenfarbe statt der
      neutralen .status-pill-Optik, und ein echter Knopf statt eines div. */
   .premium-cta-pill{
-    font-family:'JetBrains Mono', monospace; font-size:11px; font-weight:600;
+    font-family:'Work Sans', system-ui, sans-serif; font-size:12px; font-weight:600;
     padding:5px 10px; border-radius:20px; border:1px solid var(--plate);
     color:var(--plate); background:rgba(255,90,31,.08); cursor:pointer;
   }
@@ -296,7 +292,7 @@
   #screen-swipe.active{ margin:0 -20px -26px; padding:22px 20px 42px; }
   @keyframes fade{ from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);} }
 
-  .eyebrow{ font-family:'JetBrains Mono', monospace; font-size:11px; letter-spacing:0.12em; text-transform:uppercase; color:var(--plate); margin-bottom:6px; }
+  .eyebrow{ font-family:'Work Sans', system-ui, sans-serif; font-size:12px; letter-spacing:0.12em; text-transform:uppercase; color:var(--plate); margin-bottom:6px; }
   .headline{ font-size:30px; line-height:1.1; margin-bottom:10px; }
   .sub{ color:var(--chalk-dim); font-size:14px; line-height:1.5; margin-bottom:22px; }
 
@@ -394,12 +390,12 @@
     display:inline-flex; align-items:center; justify-content:center; gap:9px;
     width:100%; padding:14px 18px; border-radius:12px; border:none; cursor:pointer;
     font-family:'Oswald', sans-serif; font-weight:600; font-size:15px; letter-spacing:0.06em; text-transform:uppercase;
-    background:linear-gradient(135deg, var(--plate-bright), var(--plate) 55%, #ef4c15);
+    background:var(--plate);
     color:#191008; margin-top:22px;
-    box-shadow:0 6px 20px rgba(255,90,31,.22), inset 0 1px 0 rgba(255,255,255,.28);
+    box-shadow:none;
     transition:transform .12s ease, box-shadow .15s ease, filter .15s ease;
   }
-  .btn:hover{ filter:brightness(1.07); transform:translateY(-1px); box-shadow:0 9px 26px rgba(255,90,31,.32), inset 0 1px 0 rgba(255,255,255,.28); }
+  .btn:hover{ background:var(--plate-bright); }
   .btn:active{ transform:translateY(0) scale(0.98); }
   .btn svg.ico{ width:17px; height:17px; }
   .btn.secondary{
@@ -472,7 +468,7 @@
   .photo-slot.rejected{ border-style:solid; border-color:rgba(227,72,72,.5); }
   .photo-slot .pstatus{
     position:absolute; left:4px; right:4px; bottom:4px; text-align:center;
-    font-family:'JetBrains Mono'; font-size:9px; letter-spacing:0.06em; text-transform:uppercase;
+    font-family:'Work Sans', system-ui, sans-serif; font-size:12px; letter-spacing:0.06em; text-transform:uppercase;
     padding:2px 3px; border-radius:6px; background:rgba(0,0,0,0.62);
   }
   .photo-slot.pending .pstatus{ color:var(--plate); }
@@ -495,7 +491,7 @@
   .photo-slot .retry{
     position:absolute; inset:0; display:flex; flex-direction:column; gap:2px;
     align-items:center; justify-content:center; text-align:center;
-    font-family:'JetBrains Mono'; font-size:9px; letter-spacing:.06em; text-transform:uppercase;
+    font-family:'Work Sans', system-ui, sans-serif; font-size:12px; letter-spacing:.06em; text-transform:uppercase;
     color:var(--danger); background:rgba(0,0,0,.45); padding:4px;
   }
   .photo-slot .retry b{ color:var(--plate); font-weight:600; }
@@ -513,7 +509,7 @@
     position:absolute; left:4px; top:4px; width:20px; height:20px;
     display:flex; align-items:center; justify-content:center;
     border-radius:6px; background:rgba(0,0,0,.6); color:#fff;
-    font-size:11px; line-height:1; pointer-events:none;
+    font-size:12px; line-height:1; pointer-events:none;
   }
   /* Position 1 ist das Hauptfoto (Swipe-Karte, Avatar, Chat-Kopf) - die
      Nummer macht sichtbar, was das Ziehen ueberhaupt bewirkt. */
@@ -521,7 +517,7 @@
     position:absolute; left:4px; bottom:4px; min-width:16px; height:16px; padding:0 4px;
     display:flex; align-items:center; justify-content:center;
     border-radius:5px; background:rgba(0,0,0,.62); color:var(--chalk-dim);
-    font-family:'JetBrains Mono'; font-size:9px; pointer-events:none;
+    font-family:'Work Sans', system-ui, sans-serif; font-size:9px; pointer-events:none;
   }
   .photo-slot.is-main .pos-badge{ background:var(--plate); color:#141414; }
   /* "In Pruefung" liegt unten ueber die ganze Breite - die Nummer rueckt
@@ -754,13 +750,13 @@
   .card .name-row{ position:absolute; bottom:12px; left:16px; right:16px; }
   .card .name-row .nm{ font-family:'Oswald'; font-size:26px; text-transform:none; letter-spacing:0; text-shadow:0 2px 10px rgba(0,0,0,.55); }
   .card .name-row .loc{
-    font-family:'JetBrains Mono'; font-size:10.5px; color:var(--chalk-dim);
+    font-family:'Work Sans', system-ui, sans-serif; font-size:12px; color:var(--chalk-dim);
     text-transform:uppercase; letter-spacing:0.07em; margin-top:3px;
   }
   .card .body{ padding:14px 16px 16px; flex:0 1 auto; max-height:42%; overflow-y:auto; scrollbar-width:thin; }
   .stat-row{ display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px; }
   .stat-chip{
-    font-family:'JetBrains Mono'; font-size:10.5px; letter-spacing:0.02em;
+    font-family:'Work Sans', system-ui, sans-serif; font-size:12px; letter-spacing:0.02em;
     background:rgba(199,255,74,.07); border:1px solid rgba(199,255,74,.24);
     padding:5px 10px; border-radius:7px; color:var(--lime);
     display:inline-flex; align-items:center; gap:6px;
@@ -783,20 +779,20 @@
   .swipe-actions{ display:flex; justify-content:center; align-items:center; gap:26px; margin:18px 0 4px; flex-shrink:0; }
   .round-btn{
     width:56px; height:56px; border-radius:50%; border:1px solid var(--steel);
-    background:linear-gradient(180deg, #222, #1b1b1b);
+    background:var(--surface-2);
     display:flex; align-items:center; justify-content:center; cursor:pointer;
-    transition:transform .12s ease, border-color .15s ease, box-shadow .15s ease;
+    transition:transform .12s ease, border-color .15s ease, background .15s ease;
   }
   .round-btn svg.ico{ width:24px; height:24px; }
   .round-btn.pass{ color:var(--danger); }
-  .round-btn.pass:hover{ border-color:var(--danger); box-shadow:0 0 18px rgba(227,72,72,.2); }
+  .round-btn.pass:hover{ border-color:var(--danger); }
   .round-btn.like{
-    width:64px; height:64px; color:#fff; border:none;
-    background:linear-gradient(135deg, var(--plate-bright), var(--plate) 55%, #ef4c15);
-    box-shadow:0 8px 22px rgba(255,90,31,.35), inset 0 1px 0 rgba(255,255,255,.3);
+    width:64px; height:64px; color:#1a0a04; border:none;
+    background:var(--plate);
+    box-shadow:none;
   }
   .round-btn.like svg.ico{ width:28px; height:28px; }
-  .round-btn.like:hover{ transform:translateY(-2px); box-shadow:0 12px 28px rgba(255,90,31,.45), inset 0 1px 0 rgba(255,255,255,.3); }
+  .round-btn.like:hover{ background:var(--plate-bright); }
   .round-btn:active{ transform:scale(0.92); }
   /* Zuruecknehmen ist die leiseste der drei Aktionen - kleiner und ohne
      eigene Farbe, damit sie neben Like/Pass nicht wie eine dritte
@@ -814,8 +810,8 @@
      zaehlen. Dieselbe Zahl steht ueber der Knopfreihe: Die Reihe sitzt damit
      gleich weit von Karte und Zeile entfernt. */
   .like-counter{
-    text-align:center; margin-top:18px; font-family:'JetBrains Mono', monospace;
-    font-size:11.5px; letter-spacing:0.07em; color:var(--chalk-dim);
+    text-align:center; margin-top:18px; font-family:'Work Sans', system-ui, sans-serif;
+    font-size:12px; letter-spacing:0.07em; color:var(--chalk-dim);
   }
   .like-counter.empty-quota{ color:var(--plate); }
   .like-counter button{
@@ -834,7 +830,7 @@
   .incoming-count{
     flex-shrink:0; min-width:38px; height:38px; border-radius:50%;
     display:flex; align-items:center; justify-content:center;
-    background:linear-gradient(135deg, var(--plate-bright), var(--plate) 55%, #ef4c15);
+    background:var(--plate);
     color:#191008; font-family:'Oswald', sans-serif; font-weight:600; font-size:16px;
   }
   .incoming-text{ flex:1; min-width:0; display:flex; flex-direction:column; gap:2px; }
@@ -888,8 +884,8 @@
     width:68px; height:68px; border-radius:50%; border:1px solid rgba(255,90,31,.26);
     display:flex; align-items:center; justify-content:center; color:var(--plate);
     margin-bottom:14px;
-    background:radial-gradient(circle at 50% 30%, rgba(255,90,31,.16), rgba(255,90,31,.03) 72%);
-    box-shadow:0 0 34px rgba(255,90,31,.08);
+    background:var(--surface);
+    
   }
   .empty .empty-icon svg.ico{ width:28px; height:28px; }
   /* Premium-Seite: Sie nutzt den Leerzustand nur als Kopf. Der gestrichelte
@@ -897,8 +893,8 @@
      ausgefuellter Stern in Markenfarbe. Groesse siehe weiter unten. */
   #screen-premium .empty-icon{
     border:none; color:#fff;
-    background:linear-gradient(135deg, var(--plate-bright), var(--plate) 55%, #ef4c15);
-    box-shadow:0 6px 18px rgba(255,90,31,.35), inset 0 1px 0 rgba(255,255,255,.3);
+    background:var(--plate);
+    box-shadow:none;
   }
   #screen-premium .empty-icon svg.ico{ fill:currentColor; }
   .empty .empty-title{ font-family:'Oswald'; text-transform:uppercase; letter-spacing:0.04em; font-size:17px; color:var(--chalk); }
@@ -973,7 +969,7 @@
   .match-item .nm-row{ display:flex; align-items:baseline; gap:10px; }
   .match-item .nm-row .nm{ flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .match-item .li-time{
-    flex-shrink:0; font-family:'JetBrains Mono', monospace; font-size:10.5px;
+    flex-shrink:0; font-family:'Work Sans', system-ui, sans-serif; font-size:12px;
     letter-spacing:0.03em; color:var(--chalk-dim);
   }
   .match-item.unread .li-time{ color:var(--plate); font-weight:600; }
@@ -1000,7 +996,7 @@
   }
   .match-item.unread:hover{ border-color:var(--plate); }
   .match-item .unread-badge{
-    background:var(--plate); color:#191008; font-family:'JetBrains Mono'; font-size:11px; font-weight:700;
+    background:var(--plate); color:#191008; font-family:'Work Sans', system-ui, sans-serif; font-size:11px; font-weight:700;
     border-radius:50%; min-width:21px; height:21px; display:flex; align-items:center; justify-content:center;
     padding:0 5px; flex-shrink:0; box-shadow:0 0 12px var(--plate-glow);
   }
@@ -1031,20 +1027,20 @@
      und ausloesbar sein. Der globale Reset deckt margin/padding/box-sizing
      schon ab, `font:inherit` fehlt bei Buttons aber. */
   .icon-btn{
-    width:31px; height:31px; border-radius:50%; background:var(--surface-2); border:1px solid var(--steel);
+    width:40px; height:40px; border-radius:50%; background:var(--surface-2); border:1px solid var(--steel);
     color:var(--chalk-dim); display:flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0;
     font:inherit; transition:color .15s ease, border-color .15s ease;
   }
   .icon-btn:hover{ color:var(--chalk); border-color:var(--chalk-dim); }
-  .icon-btn svg.ico{ width:14px; height:14px; stroke-width:2.2; }
+  .icon-btn svg.ico{ width:16px; height:16px; stroke-width:2.2; }
 
   .chat-header{
     display:flex; align-items:center; gap:11px; margin-bottom:12px; flex-shrink:0;
     padding-bottom:12px; border-bottom:1px solid var(--hairline);
   }
   .chat-header .back-btn{
-    background:none; border:none; color:var(--chalk); cursor:pointer; padding:4px 6px 4px 0; line-height:1;
-    display:flex; align-items:center;
+    background:none; border:none; color:var(--chalk); cursor:pointer; padding:0; line-height:1;
+    display:flex; align-items:center; justify-content:flex-start; min-width:40px; min-height:40px;
   }
   .chat-header .back-btn svg.ico{ width:20px; height:20px; }
   /* Foto + Name als ein Knopf zum Profil */
@@ -1110,8 +1106,8 @@
   .msg-bubble{ max-width:100%; padding:9px 13px; font-size:14px; line-height:1.45; word-wrap:break-word; }
   .msg-bubble.mine{
     border-radius:16px 16px 5px 16px;
-    background:linear-gradient(135deg, var(--plate-bright), var(--plate));
-    color:#1c1006; box-shadow:0 4px 14px rgba(255,90,31,.15);
+    background:var(--plate);
+    color:#1c1006; box-shadow:none;
   }
   .msg-bubble.theirs{
     border-radius:16px 16px 16px 5px;
@@ -1123,15 +1119,15 @@
   .chat-day span{
     display:inline-block; padding:4px 11px; border-radius:999px;
     background:var(--surface-2); border:1px solid var(--hairline);
-    font-family:'JetBrains Mono', monospace; font-size:10px; letter-spacing:0.08em;
+    font-family:'Work Sans', system-ui, sans-serif; font-size:12px; letter-spacing:0.08em;
     text-transform:uppercase; color:var(--chalk-dim);
   }
-  .msg-bubble .time{ display:block; font-size:9.5px; margin-top:4px; opacity:0.6; font-family:'JetBrains Mono'; }
+  .msg-bubble .time{ display:block; font-size:12px; margin-top:4px; opacity:0.6; font-family:'Work Sans', system-ui, sans-serif; }
   .msg-bubble.mine .time{ text-align:right; }
   .msg-bubble .receipt{ margin-left:5px; font-weight:700; }
   .msg-bubble .receipt.read{ color:#1e5f74; }
   .censor-note{
-    font-size:10.5px; line-height:1.35; color:var(--chalk-dim);
+    font-size:12px; line-height:1.35; color:var(--chalk-dim);
     margin-top:3px; max-width:100%; padding:0 4px;
   }
   .msg-wrap.mine .censor-note{ text-align:right; }
@@ -1152,7 +1148,7 @@
     transition:border-color .15s ease;
   }
   .chat-emoji-btn{
-    width:34px; height:34px; border-radius:50%; flex-shrink:0;
+    width:40px; height:40px; border-radius:50%; flex-shrink:0;
     background:none; border:none; cursor:pointer; color:var(--chalk-dim);
     display:flex; align-items:center; justify-content:center;
     transition:color .15s ease, background .15s ease;
@@ -1175,12 +1171,12 @@
   .chat-input-row input::placeholder{ color:var(--chalk-dim); }
   .chat-send-btn{
     width:40px; height:40px; border-radius:50%; border:none; cursor:pointer; flex-shrink:0;
-    display:flex; align-items:center; justify-content:center; color:#fff;
-    background:linear-gradient(135deg, var(--plate-bright), var(--plate) 60%, #ef4c15);
-    box-shadow:0 4px 14px rgba(255,90,31,.3), inset 0 1px 0 rgba(255,255,255,.28);
+    display:flex; align-items:center; justify-content:center; color:#1a0a04;
+    background:var(--plate);
+    box-shadow:none;
     transition:transform .12s ease, filter .15s ease;
   }
-  .chat-send-btn:hover{ filter:brightness(1.08); }
+  .chat-send-btn:hover{ background:var(--plate-bright); }
   .chat-input-row:not(.has-text) .chat-send-btn{
     background:var(--surface-3); color:var(--chalk-dim); box-shadow:none;
   }
@@ -1192,12 +1188,12 @@
   .card .flag-btns{ position:absolute; top:22px; right:10px; display:flex; gap:6px; z-index:2; }
   /* Ebenfalls <button> - siehe Kommentar bei .icon-btn. */
   .card .flag-btn{
-    width:29px; height:29px; border-radius:50%; background:rgba(0,0,0,0.5); border:1px solid rgba(255,255,255,0.22);
+    width:40px; height:40px; border-radius:50%; background:rgba(0,0,0,0.5); border:1px solid rgba(255,255,255,0.22);
     color:rgba(255,255,255,.85); display:flex; align-items:center; justify-content:center; cursor:pointer;
     font:inherit; backdrop-filter:blur(3px); transition:background .15s ease, color .15s ease;
   }
   .card .flag-btn:hover{ background:rgba(0,0,0,.75); color:#fff; }
-  .card .flag-btn svg.ico{ width:14px; height:14px; stroke-width:2.2; }
+  .card .flag-btn svg.ico{ width:16px; height:16px; stroke-width:2.2; }
   .cred-line{ font-size:13px; color:var(--chalk-dim); margin:0 0 12px; overflow-wrap:anywhere; }
   .cred-line b{ color:var(--chalk); font-weight:600; }
   .cred-form{ margin:4px 0 16px; }
@@ -1235,8 +1231,8 @@
   nav.bottom button{
     flex:1; background:none; border:none; color:var(--chalk-dim); padding:10px 0 6px;
     display:flex; flex-direction:column; align-items:center; gap:4px;
-    font-size:9.5px; text-transform:uppercase; letter-spacing:0.08em; cursor:pointer;
-    font-family:'JetBrains Mono'; position:relative; border-radius:12px;
+    font-size:12px; text-transform:uppercase; letter-spacing:0.08em; cursor:pointer;
+    font-family:'Work Sans', system-ui, sans-serif; position:relative; border-radius:12px;
     transition:color .18s ease;
   }
   nav.bottom button::before{
@@ -1250,7 +1246,7 @@
   .nav-badge{
     position:absolute; top:-6px; right:-9px;
     background:var(--plate); color:#191008;
-    font-family:'JetBrains Mono'; font-size:9.5px; font-weight:700; line-height:1;
+    font-family:'Work Sans', system-ui, sans-serif; font-size:9.5px; font-weight:700; line-height:1;
     min-width:16px; height:16px; padding:0 4px; border-radius:9px;
     display:flex; align-items:center; justify-content:center;
     border:2px solid var(--ink); box-shadow:0 0 10px var(--plate-glow);
@@ -1263,7 +1259,7 @@
   .legal-footer{
     display:none; justify-content:center; flex-wrap:wrap; gap:8px 16px;
     padding:14px 20px 84px;
-    font-size:11px; font-family:'JetBrains Mono', monospace;
+    font-size:12px; font-family:'Work Sans', system-ui, sans-serif;
   }
   /* :link/:visited explizit, nicht nur die unbesuchte Grundfarbe: die
      globale .legal-link:visited-Regel hat zwei Klassen in der Spezifitaet
@@ -1375,7 +1371,7 @@
   .legal-modal-body .box{ background:var(--surface-2); border:1px solid var(--steel); border-radius:12px; padding:14px 16px; margin:14px 0; }
   .legal-modal-body .box.alarm{ border-color:var(--danger); }
   .legal-modal-body .box h3{ margin-top:0; }
-  .legal-modal-body .tag{ display:inline-block; font-size:11px; letter-spacing:.06em; text-transform:uppercase;
+  .legal-modal-body .tag{ display:inline-block; font-size:12px; letter-spacing:.06em; text-transform:uppercase;
     border:1px solid var(--steel); border-radius:20px; padding:2px 9px; color:var(--chalk-dim); margin-bottom:8px; }
   .legal-modal-body .tag.zero{ border-color:var(--danger); color:var(--danger); }
   .legal-modal-body .flag{ color:var(--danger); font-weight:600; }
@@ -1431,7 +1427,7 @@
   .legal-modal-body .result pre{
     white-space:pre-wrap; word-break:break-word;
     background:var(--surface-2); border:1px solid var(--steel); border-radius:10px;
-    padding:14px; font-family:'JetBrains Mono', ui-monospace, monospace; font-size:13px;
+    padding:14px; font-family:'Work Sans', system-ui, sans-serif, ui-monospace, monospace; font-size:13px;
     color:var(--chalk);
   }
   .legal-modal-body .sr-only{
@@ -1456,10 +1452,6 @@
          der Datenschutzerklaerung nirgends stand - dieselbe Sache wie bei den
          Google-Schriften. Ersetzt durch reine Verlaeufe: kein Fremdaufruf,
          keine 300 kB, und die Marke traegt es genauso. */
-      linear-gradient(180deg, rgba(10,10,10,.66) 0%, rgba(10,10,10,.9) 55%, rgba(8,8,8,.99) 100%),
-      radial-gradient(circle at 18% 8%, rgba(255,90,31,.28), transparent 58%),
-      radial-gradient(circle at 82% 78%, rgba(199,255,74,.10), transparent 55%),
-      repeating-linear-gradient(115deg, rgba(255,255,255,.022) 0 2px, transparent 2px 9px),
       var(--ink);
   }
   /* Landing: kein festes Viewport-Fenster - die Seite wächst mit dem Inhalt
@@ -1489,7 +1481,7 @@
   body.landing .landing-hero{ display:block; }
   .landing-hero{ display:none; }
   .landing-hero .hero-eyebrow{
-    font-family:'JetBrains Mono', monospace; font-size:12px; letter-spacing:0.16em;
+    font-family:'Work Sans', system-ui, sans-serif; font-size:12px; letter-spacing:0.16em;
     text-transform:uppercase; color:var(--lime); margin-bottom:16px;
     /* Eine Zeile, unabhaengig von der Sprache. "DATING FÜR GYM-PEOPLE ·
        ÖSTERREICH" ist drei Zeichen laenger als die englische Fassung und lief
@@ -1500,11 +1492,15 @@
        noch ein Stueck laenger wird. */
     white-space:nowrap;
   }
+  /* Seit 24.11.2026 "Dating fuer Gym-People" statt "Match. Train. Repeat.".
+     "GYM-PEOPLE" braucht rund das Fuenffache der Schriftgroesse an Breite und
+     darf nicht am Bindestrich umbrechen - daher nowrap und eine Groesse, die
+     in die Textspalte neben dem Musterdeck passt. */
   .landing-hero h1{
-    font-size:clamp(42px,6vw,76px); line-height:1.08; margin-bottom:22px;
+    font-size:clamp(40px,4.1vw,56px); line-height:1.08; margin-bottom:22px;
     text-shadow:0 4px 30px rgba(0,0,0,.6); letter-spacing:-0.01em;
   }
-  .landing-hero h1 em{ font-style:normal; color:var(--plate); }
+  .landing-hero h1 em{ font-style:normal; color:var(--plate); white-space:nowrap; }
   .landing-hero .hero-sub{
     color:var(--chalk); font-size:clamp(15px,1.3vw,17px); line-height:1.6;
     max-width:480px; margin-bottom:28px; text-shadow:0 2px 12px rgba(0,0,0,.7);
@@ -1536,7 +1532,6 @@
        dem Musterdeck rund 300px breit, die beiden Knoepfe brauchen ~380px
        und standen untereinander. */
     grid-template-areas:
-      "eyebrow eyebrow"
       "title demo"
       "sub demo"
       "dl dl"
@@ -1568,7 +1563,6 @@
     body.landing .landing-hero{
       grid-template-columns:minmax(0,1fr);
       grid-template-areas:
-        "eyebrow"
         "title"
         "sub"
         "dl"
@@ -1577,7 +1571,6 @@
     body.landing .hero-demo{ display:none; }
   }
 
-  .landing-hero .hero-eyebrow{ grid-area:eyebrow; }
   .landing-hero h1{ grid-area:title; }
   .landing-hero .hero-sub{ grid-area:sub; }
   .hero-usps{ grid-area:usps; }
@@ -1600,12 +1593,12 @@
   .hero-demo-card{
     position:absolute; inset:0; border-radius:18px; overflow:hidden;
     background:var(--surface); border:1px solid rgba(255,255,255,.10);
-    box-shadow:0 18px 40px rgba(0,0,0,.52), 0 0 0 1px rgba(255,90,31,.15);
+    box-shadow:0 18px 40px rgba(0,0,0,.52);
     transform-origin:bottom center; cursor:grab; user-select:none;
     transition:transform .36s cubic-bezier(.2,.8,.3,1), opacity .3s ease;
   }
   .hero-demo-card:not(:last-child){ pointer-events:none; }
-  .hero-demo-card:last-child{ box-shadow:0 22px 48px rgba(0,0,0,.58), 0 0 0 1.5px rgba(255,90,31,.34); }
+  .hero-demo-card:last-child{ box-shadow:0 22px 48px rgba(0,0,0,.58); }
   .hero-demo-card.dragging{ cursor:grabbing; transition:none; }
   .hero-demo-card::after{
     content:''; position:absolute; inset:0; pointer-events:none;
@@ -1619,9 +1612,10 @@
   }
   .hero-demo-card .hero-demo-name b{ font-weight:600; }
   .hero-demo-card .hero-demo-name span{
-    display:block; margin-top:2px; font-family:'JetBrains Mono', monospace;
-    font-size:8.5px; line-height:1.35; letter-spacing:.03em; text-transform:uppercase;
-    color:rgba(255,255,255,.78); font-weight:400;
+    display:block; margin-top:2px; font-family:'Work Sans', system-ui, sans-serif;
+    font-size:12px; line-height:1.35; letter-spacing:0;
+    color:rgba(255,255,255,.82); font-weight:400;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
   }
   .hero-demo-stamp{
     position:absolute; top:18px; z-index:3; opacity:0; padding:4px 9px;
@@ -1646,15 +1640,15 @@
      nicht mit dem Formular daneben konkurrieren - deshalb stark zurueckgenommen. */
   .hero-demo-hint{
     margin-top:7px; text-align:center; color:var(--chalk-dim); opacity:.5;
-    font-family:'JetBrains Mono', monospace; font-size:8.5px;
-    letter-spacing:.08em; text-transform:uppercase;
+    font-family:'Work Sans', system-ui, sans-serif; font-size:12px;
+    letter-spacing:0;
   }
 
   body.landing .screen{ display:none; }
   body.landing .screen.active{
     display:block;
-    background:rgba(24,24,24,.82); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px);
-    border:1px solid rgba(255,255,255,.10); border-radius:22px;
+    background:var(--surface);
+    border:1px solid var(--steel); border-radius:22px;
     padding:26px 26px 30px; box-shadow:0 34px 70px rgba(0,0,0,.55);
     /* Kein internes Scrollen mehr - die ganze Landingpage scrollt außen. */
     animation:fade .3s ease;
@@ -1719,14 +1713,13 @@
       display:grid; width:100%; margin-bottom:28px;
       grid-template-columns:minmax(0,1fr) 178px;
       grid-template-areas:
-        "eyebrow eyebrow"
         "title demo"
         "sub sub"
         "usps usps"
         "dl dl";
       column-gap:16px;
     }
-    .landing-hero .hero-eyebrow{ font-size:10.5px; margin-bottom:10px; }
+    .landing-hero .hero-eyebrow{ font-size:12px; margin-bottom:10px; }
     .landing-hero h1{
       font-size:clamp(34px,10vw,44px); line-height:1.06; margin-bottom:14px;
     }
@@ -1751,11 +1744,12 @@
     .hero-demo{ padding-top:2px; }
     .hero-demo-stack{ width:154px; height:202px; margin-bottom:9px; }
     .hero-demo-card .hero-demo-name{ left:10px; right:10px; bottom:9px; font-size:14px; }
-    .hero-demo-card .hero-demo-name span{ font-size:7px; }
+    .hero-demo-card .hero-demo-name span{ font-size:12px; }
     .hero-demo-actions{ gap:12px; }
     .hero-demo-actions .round-btn{ width:42px; height:42px; }
     .hero-demo-actions .round-btn.like{ width:48px; height:48px; }
-    .hero-demo-hint{ font-size:7px; }
+    .hero-demo-hint{ display:none; }
+    .hero-demo-hint.short{ display:block; margin-top:4px; }
   }
   @media (max-width: 420px){
     body.landing .landing-hero{ grid-template-columns:minmax(0,1fr) 142px; column-gap:10px; }
@@ -1768,6 +1762,11 @@
        muss aber bleiben (brand/demo/README.md). */
     .hero-demo-hint{ display:none; }
     .hero-demo-hint.short{ display:block; margin-top:4px; }
+  }
+  /* Sehr schmale Handys (z. B. 320px): Die Textspalte neben dem Musterdeck
+     ist nur noch rund 130px breit - "GYM-PEOPLE" muss trotzdem hineinpassen. */
+  @media (max-width: 360px){
+    .landing-hero h1{ font-size:25px; }
   }
 
   .divider{ height:1px; background:var(--steel); margin:24px 0; position:relative; }
@@ -1855,7 +1854,7 @@
      Maße exakt wie .status-pill */
   .verify-badge-wrap{ position:relative; align-self:flex-start; flex-shrink:0; }
   .verify-badge{
-    font-family:'JetBrains Mono', monospace; font-size:11px; line-height:normal; cursor:pointer;
+    font-family:'Work Sans', system-ui, sans-serif; font-size:12px; line-height:normal; cursor:pointer;
     padding:5px 10px; border-radius:20px; border:1px solid var(--steel);
     background:rgba(255,255,255,.02); color:var(--chalk-dim);
     display:inline-flex; align-items:center; gap:5px; white-space:nowrap;
@@ -1886,7 +1885,7 @@
   .info-hint button{
     width:15px; height:15px; border-radius:50%; padding:0; cursor:help;
     background:transparent; border:1px solid var(--chalk-dim); color:var(--chalk-dim);
-    font-family:'JetBrains Mono', monospace; font-size:10px; line-height:1;
+    font-family:'Work Sans', system-ui, sans-serif; font-size:12px; line-height:1;
     display:flex; align-items:center; justify-content:center;
   }
   .info-hint button:hover{ border-color:var(--plate); color:var(--plate); }
@@ -1906,7 +1905,7 @@
   }
   .btn.danger-ghost:hover{ background:rgba(227,72,72,.08); filter:none; transform:none; box-shadow:none; }
   .btn.danger-solid{
-    background:linear-gradient(135deg, #f05a5a, var(--danger) 60%, #c93a3a);
+    background:var(--danger);
     color:#1a0808; box-shadow:0 6px 20px rgba(227,72,72,.22), inset 0 1px 0 rgba(255,255,255,.25);
   }
   .delete-modal{ max-width:420px; }
@@ -1921,7 +1920,7 @@
     font-family:'Oswald'; font-size:20px; text-transform:uppercase; letter-spacing:0.03em;
     text-align:center; color:var(--chalk); margin:6px 0 2px;
   }
-  .verify-step{ font-family:'JetBrains Mono'; font-size:11px; color:var(--plate); text-align:center; letter-spacing:0.1em; }
+  .verify-step{ font-family:'Work Sans', system-ui, sans-serif; font-size:12px; color:var(--plate); text-align:center; letter-spacing:0.1em; }
   .verify-thumbs{ display:flex; gap:8px; justify-content:center; margin-top:12px; }
   .verify-thumbs img{
     width:52px; height:66px; object-fit:cover; border-radius:8px;
@@ -1930,7 +1929,7 @@
   .verify-thumbs .placeholder{
     width:52px; height:66px; border-radius:8px; border:1.5px dashed var(--steel);
     display:flex; align-items:center; justify-content:center; color:var(--chalk-dim);
-    font-family:'JetBrains Mono'; font-size:11px;
+    font-family:'Work Sans', system-ui, sans-serif; font-size:12px;
   }
   .verify-error{ color:var(--danger); font-size:13px; text-align:center; margin-top:10px; }
 
@@ -1947,7 +1946,7 @@
   .journey-seg.done .fill{ width:100%; }
   .journey-seg.active .fill{ background:var(--chalk); }
   .journey-seg .lbl{
-    margin-top:6px; font-family:'Oswald', sans-serif; font-size:10.5px;
+    margin-top:6px; font-family:'Oswald', sans-serif; font-size:12px;
     letter-spacing:.08em; text-transform:uppercase; color:var(--chalk-dim);
     white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
   }
@@ -1969,7 +1968,7 @@
     margin:4px 0 2px;
   }
   .reg-step-nr{
-    font-family:'Oswald', sans-serif; font-size:11px; letter-spacing:.12em;
+    font-family:'Oswald', sans-serif; font-size:12px; letter-spacing:.12em;
     text-transform:uppercase; color:var(--plate);
   }
   .reg-step-titel{
@@ -2025,8 +2024,8 @@
 
   /* Statusanzeige (wird geprüft / abgelehnt / neue Aufnahme nötig) */
   .vstatus{
-    display:inline-flex; align-items:center; gap:8px; font-family:'JetBrains Mono';
-    font-size:11px; letter-spacing:0.08em; text-transform:uppercase;
+    display:inline-flex; align-items:center; gap:8px; font-family:'Work Sans', system-ui, sans-serif;
+    font-size:12px; letter-spacing:0.08em; text-transform:uppercase;
     padding:6px 12px; border-radius:20px; border:1px solid var(--steel);
     color:var(--chalk-dim); margin-bottom:14px;
   }
@@ -2058,7 +2057,7 @@
   .doc-slot.filled{ border-style:solid; border-color:var(--plate); }
   .doc-slot img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
   .doc-slot .slot-label{
-    position:relative; z-index:2; font-family:'JetBrains Mono'; font-size:10.5px;
+    position:relative; z-index:2; font-family:'Work Sans', system-ui, sans-serif; font-size:12px;
     letter-spacing:0.08em; text-transform:uppercase;
   }
   .doc-slot.filled .slot-label{
@@ -2121,15 +2120,15 @@
   }
   .gym-result:hover{ background:var(--surface-3); }
   .gym-result .g-name{ font-size:14px; color:var(--chalk); }
-  .gym-result .g-addr{ font-size:11.5px; color:var(--chalk-dim); margin-top:2px; }
+  .gym-result .g-addr{ font-size:12px; color:var(--chalk-dim); margin-top:2px; }
   .gym-result.suggest-row{
     color:var(--plate); font-size:13px; border-bottom:none;
     display:flex; align-items:center; gap:8px;
   }
   .gym-result.suggest-row:hover{ background:rgba(255,90,31,.08); }
   .gym-picked{
-    display:none; margin-top:6px; font-size:11.5px; color:var(--chalk-dim);
-    font-family:'JetBrains Mono', monospace;
+    display:none; margin-top:6px; font-size:12px; color:var(--chalk-dim);
+    font-family:'Work Sans', system-ui, sans-serif;
   }
   .gym-picked.show{ display:block; }
   /* Karenz zwischen zwei Gym-Wechseln (Umgehungsschutz fuer den per
@@ -2137,7 +2136,7 @@
      Datum der naechsten moeglichen Aenderung sichtbar statt erst beim
      Speichern als Fehler zu ueberraschen. */
   .gym-picker input:disabled{ opacity:.55; cursor:not-allowed; }
-  .gym-lock-hint{ display:none; margin-top:6px; font-size:11.5px; color:var(--plate); }
+  .gym-lock-hint{ display:none; margin-top:6px; font-size:12px; color:var(--plate); }
   .gym-lock-hint.show{ display:block; }
 
   .bio-wrap{ position:relative; }
@@ -2157,7 +2156,7 @@
     margin-top:6px;
   }
   .emoji-btn{
-    width:28px; height:28px;
+    width:40px; height:40px;
     background:none; border:none; cursor:pointer; color:var(--chalk-dim);
     display:flex; align-items:center; justify-content:center; border-radius:50%;
     transition:color .15s ease, background .15s ease;
@@ -2165,7 +2164,7 @@
   .emoji-btn:hover{ color:var(--chalk); background:var(--surface-2); }
   .emoji-btn svg.ico{ width:19px; height:19px; }
   .bio-counter{
-    font-family:'JetBrains Mono', monospace; font-size:11px; color:var(--chalk-dim);
+    font-family:'Work Sans', system-ui, sans-serif; font-size:12px; color:var(--chalk-dim);
   }
   .bio-counter.at-limit{ color:var(--plate); }
   /* bottom:100% relativ zu .bio-toolbar (nicht mehr zu .bio-wrap) - so
@@ -2230,14 +2229,14 @@
   }
   .radius-value{ font-size:12.5px; color:var(--chalk); min-width:52px; text-align:right; }
   .radius-hint.over-cap{ color:var(--plate); }
-  .radius-hint{ font-size:11.5px; color:var(--chalk-dim); margin-top:6px; }
+  .radius-hint{ font-size:12px; color:var(--chalk-dim); margin-top:6px; }
   .radius-boost{
     color:var(--lime); line-height:1.45; margin-top:8px; padding:8px 10px;
     border:1px solid rgba(199,255,74,0.3); border-radius:8px;
   }
   .radius-boost[hidden]{ display:none; }
   .account-section-title{
-    font-family:'JetBrains Mono', monospace; font-size:11px; letter-spacing:0.1em; text-transform:uppercase;
+    font-family:'Work Sans', system-ui, sans-serif; font-size:12px; letter-spacing:0.1em; text-transform:uppercase;
     color:var(--chalk-dim); margin-bottom:12px; padding-bottom:9px; border-bottom:1px solid var(--hairline);
     display:flex; align-items:center; gap:8px;
   }
@@ -2264,7 +2263,7 @@
   .switch-row:last-child{ border-bottom:none; }
   .switch-row .switch-text{ min-width:0; }
   .switch-row .switch-label{ font-size:13.5px; line-height:1.4; }
-  .switch-row .switch-hint{ font-size:11.5px; line-height:1.45; color:var(--chalk-dim); margin-top:3px; }
+  .switch-row .switch-hint{ font-size:12px; line-height:1.45; color:var(--chalk-dim); margin-top:3px; }
   .switch{ position:relative; flex-shrink:0; width:42px; height:24px; }
   .switch input{
     position:absolute; inset:0; margin:0; width:100%; height:100%;
@@ -2389,7 +2388,7 @@
     box-shadow:0 16px 36px rgba(0,0,0,.35);
   }
   .price-card .price-eyebrow{
-    font-family:'JetBrains Mono'; font-size:10.5px; letter-spacing:0.18em; text-transform:uppercase;
+    font-family:'Work Sans', system-ui, sans-serif; font-size:12px; letter-spacing:0.18em; text-transform:uppercase;
     color:var(--lime); margin-bottom:6px;
   }
   .price-card .price{ font-family:'Oswald'; font-weight:700; font-size:44px; color:var(--plate); line-height:1; }
@@ -2441,14 +2440,13 @@
     position:fixed; inset:0; z-index:80; display:none;
     align-items:center; justify-content:center;
     background:
-      radial-gradient(circle at 50% 38%, rgba(255,90,31,.16), transparent 55%),
-      rgba(9,9,9,.9);
+      rgba(9,9,9,.94);
     backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
   }
   .match-overlay.open{ display:flex; }
   .match-overlay-inner{ text-align:center; padding:30px 24px; max-width:360px; width:100%; animation:fade .3s ease; }
   .match-eyebrow{
-    font-family:'JetBrains Mono'; font-size:11px; letter-spacing:0.22em; text-transform:uppercase;
+    font-family:'Work Sans', system-ui, sans-serif; font-size:12px; letter-spacing:0.22em; text-transform:uppercase;
     color:var(--lime); margin-bottom:6px;
   }
   .match-title{
@@ -2500,7 +2498,7 @@
   .lang-switch button{
     position:relative; z-index:2; border:0; background:transparent; cursor:pointer;
     padding:4px 10px; border-radius:999px; color:var(--chalk); font-weight:700;
-    font-family:'JetBrains Mono', monospace; font-size:10.5px; letter-spacing:0.09em;
+    font-family:'Work Sans', system-ui, sans-serif; font-size:12px; letter-spacing:0.09em;
     line-height:1.5;
   }
   .lang-switch .knob{
@@ -2521,7 +2519,7 @@
   }
 
   .loading{
-    text-align:center; padding:60px 0; color:var(--chalk-dim); font-family:'JetBrains Mono'; font-size:12.5px;
+    text-align:center; padding:60px 0; color:var(--chalk-dim); font-family:'Work Sans', system-ui, sans-serif; font-size:12.5px;
     letter-spacing:0.06em; text-transform:uppercase;
     animation:loadingPulse 1.4s ease infinite;
   }
@@ -2577,7 +2575,7 @@
   .applink-bar-open{
     flex:0 0 auto; padding:9px 14px; border-radius:10px; text-decoration:none;
     font-family:'Oswald', sans-serif; font-weight:600; font-size:13px; letter-spacing:.06em; text-transform:uppercase;
-    background:linear-gradient(135deg, var(--plate-bright), var(--plate) 55%, #ef4c15); color:#191008;
+    background:var(--plate); color:#191008;
   }
   .applink-bar-close{
     flex:0 0 auto; width:32px; height:32px; border-radius:50%; cursor:pointer;
@@ -2658,7 +2656,7 @@
      laufen synchron und damit vor dem DOMContentLoaded, bei dem FlexrI18n die
      data-i18n-Knoten uebersetzt. -->
 <script src="/i18n.js?v=7"></script>
-<script src="/app/i18n-app.js?v=48"></script>
+<script src="/app/i18n-app.js?v=49"></script>
 <a class="skip-link" href="#main-content" data-i18n="common.skipToContent">Zum Inhalt springen</a>
 <div class="app" id="app">
 
@@ -2683,14 +2681,13 @@
 
     <!-- LANDING-HERO (nur sichtbar im Landing-Modus, d.h. ausgeloggt) -->
     <div class="landing-hero">
-      <div class="hero-eyebrow" data-i18n="hero.eyebrow">Dating für Gym-People · Österreich &amp; Deutschland</div>
-      <h1 data-i18n-html="hero.h1">Match.<br>Train.<br><em>Repeat.</em></h1>
+      <h1 data-i18n-html="hero.h1">Dating für<br><em>Gym-People</em></h1>
       <p class="hero-sub" data-i18n="hero.sub">
         Dating für Leute, die auch montags Beintag machen. Finde Menschen,
         die dein Training genauso ernst nehmen wie du — in deinem Gym, in deiner Stadt.
       </p>
       <ul class="hero-usps">
-        <li data-i18n-html="hero.usp1">Matches nach Gym &amp; Stadt — kein Ghosting am anderen Ende des Landes</li>
+        <li data-i18n-html="hero.usp1">Matches nach Gym und Umkreis — nicht am anderen Ende des Landes</li>
         <!-- Beta-Gratisphase: Diese Zeile und der Registrierungstext weiter
              unten stehen fest im Markup, weil sie vor dem Login gezeigt werden
              - da gibt es noch keinen /api/billing/status. Wird die Gebuehr
@@ -2698,7 +2695,7 @@
              backend/app/config.py), gehoeren beide zurueck auf "1 Monat gratis,
              danach 5 EUR/Monat". -->
         <li data-i18n-html="hero.usp2">Dauerhaft gratis — FLEXR Premium (10&nbsp;€/Monat) ist freiwillig</li>
-        <li data-i18n-html="hero.usp3">Echte Profile: Melde- &amp; Blockfunktion inklusive</li>
+        <li data-i18n-html="hero.usp3">Jedes Konto wird vor der Freischaltung von einem Menschen geprüft</li>
       </ul>
       <div class="hero-dl"><a class="ios-dl" href="/app/?ios=installieren" data-i18n-aria="dl.aria" aria-label="FLEXR-App fürs iPhone installieren"><svg class="ios-dl-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="2.5" width="12" height="19" rx="2.6"/><path d="M12 7.5v7M9 11.5l3 3 3-3M10.5 18.5h3"/></svg><span class="ios-dl-text"><small data-i18n="dl.small">Für iPhone</small><b data-i18n="dl.big">App installieren</b></span></a><a class="ios-dl" href="https://play.google.com/store/apps/details?id=flexr.social.app" data-i18n-aria="dl.playAria" aria-label="FLEXR-App für Android bei Google Play installieren"><svg class="ios-dl-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="2.5" width="12" height="19" rx="2.6"/><path d="M10.4 8.6v5.8l4.8-2.9zM10.5 18.5h3"/></svg><span class="ios-dl-text"><small data-i18n="dl.playSmall">Für Android</small><b data-i18n="dl.playBig">Bei Google Play</b></span></a></div>
       <!-- Hier stand bis zum 15.08.2026 ein Demo-Deck mit acht Fotos echter
@@ -2857,7 +2854,6 @@
         <button class="auth-tab active" type="button" data-i18n="login.tabLogin">Einloggen</button>
         <button class="auth-tab" type="button" id="btnGoRegister" data-i18n="login.tabRegister">Registrieren</button>
       </div>
-      <div class="eyebrow" data-i18n="login.eyebrow">Willkommen zurück</div>
       <h1 class="headline" data-i18n-html="login.h1">Zurück ins<br>Gym-Date.</h1>
       <p class="sub" data-i18n="login.sub">Melde dich mit deinen Zugangsdaten an.</p>
 
@@ -2880,7 +2876,6 @@
         <button class="auth-tab" type="button" id="btnGoLogin" data-i18n="login.tabLogin">Einloggen</button>
         <button class="auth-tab active" type="button" data-i18n="login.tabRegister">Registrieren</button>
       </div>
-      <div class="eyebrow reg-intro" data-i18n="reg.eyebrow">Erste Wiederholung</div>
       <h1 class="headline reg-intro" data-i18n-html="reg.h1">Dating für Leute,<br>die auch montags<br>Beintag machen.</h1>
       <!-- Der ganze Weg bis zum ersten Swipe auf einen Blick: Profil, E-Mail,
            Selfie, Ausweis, Pruefung. Der erste Abschnitt fuellt sich mit den
@@ -3051,7 +3046,6 @@
 
     <!-- SWIPE -->
     <section class="screen" id="screen-swipe">
-      <div class="eyebrow" data-i18n="swipe.eyebrow">Heutige Sätze</div>
       <h2 class="headline" style="font-size:22px; margin-bottom:16px;" data-i18n="swipe.h2">Wer trainiert, wo du bist</h2>
       <!-- Fotos noch in Pruefung oder abgelehnt: in der Suche unsichtbar.
            Inhalt setzt renderSichtbarkeitsHinweis(). -->
@@ -3078,7 +3072,6 @@
 
     <!-- MATCHES -->
     <section class="screen" id="screen-matches">
-      <div class="eyebrow" data-i18n="matches.eyebrow">Trefferquote</div>
       <h2 class="headline" style="font-size:22px; margin-bottom:16px;" data-i18n="matches.h2">Deine Matches</h2>
       <!-- "Wer dich geliket hat". Die ZAHL sieht jeder - sie ist die ehrliche
            Antwort auf die Frage und zugleich der beste Grund, sich Premium
@@ -3096,7 +3089,6 @@
 
     <!-- Liste der eingehenden Likes (nur mit Premium befuellt) -->
     <section class="screen" id="screen-incoming">
-      <div class="eyebrow" data-i18n="incoming.eyebrow">Offene Likes</div>
       <h2 class="headline" style="font-size:22px; margin-bottom:16px;" data-i18n="incoming.h2">Wer dich geliked hat</h2>
       <div id="incomingList"><div class="loading" data-i18n="incoming.loading">Lade …</div></div>
       <button class="btn secondary" id="btnIncomingBack" style="margin-top:18px;" data-i18n="common.back">Zurück</button>
@@ -3122,7 +3114,6 @@
 
     <!-- CHATS -->
     <section class="screen" id="screen-chats">
-      <div class="eyebrow" data-i18n="chats.eyebrow">Im Gespräch</div>
       <h2 class="headline" style="font-size:22px; margin-bottom:16px;" data-i18n="chats.h2">Deine Chats</h2>
       <div id="chatList"><div class="loading" data-i18n="chats.loading">Lade Chats …</div></div>
     </section>
@@ -3548,7 +3539,7 @@
 
     <!-- ALTERS- UND IDENTITÄTSPRÜFUNG: Übersicht/Status -->
     <section class="screen" id="screen-verify-gate">
-      <div class="eyebrow" id="vgateEyebrow" data-i18n="vgate.eyebrow">Letzter Satz</div>
+      <div class="eyebrow" id="vgateEyebrow" data-i18n="vgate.eyebrow">Freischaltung</div>
       <h1 class="headline" style="font-size:22px; margin-bottom:14px;" id="vgateTitle" data-i18n="vgate.title">Konto freischalten</h1>
       <div class="journey" id="vgateSteps"></div>
       <div id="vgateStatusWrap"></div>
@@ -4021,7 +4012,7 @@
     fill:none; stroke:var(--plate); stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round;
   }
   .ios-dl-text{ display:flex; flex-direction:column; text-align:left; }
-  .ios-dl-text small{ font-size:11px; color:var(--chalk-dim); letter-spacing:.02em; }
+  .ios-dl-text small{ font-size:12px; color:var(--chalk-dim); letter-spacing:.02em; }
   .ios-dl-text b{ font-size:15px; font-weight:600; }
   /* Vom Home-Bildschirm gestartet: schon installiert. */
   @media (display-mode: standalone){ .ios-dl{ display:none !important; } }
@@ -4155,7 +4146,7 @@
   .beta-bar-tag{
     flex:0 0 auto; padding:2px 8px; border-radius:999px;
     border:1px solid rgba(199,255,74,.45); color:var(--lime);
-    font-family:'Oswald', sans-serif; font-size:11px; letter-spacing:.14em; text-transform:uppercase;
+    font-family:'Oswald', sans-serif; font-size:12px; letter-spacing:.14em; text-transform:uppercase;
   }
   .beta-bar-text{ flex:1; min-width:0; }
   .beta-bar-more{

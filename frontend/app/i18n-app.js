@@ -53,11 +53,11 @@
 
     // ---- Landing-Hero
     'hero.eyebrow': 'Dating für Gym-People · Österreich & Deutschland',
-    'hero.h1': 'Match.<br>Train.<br><em>Repeat.</em>',
+    'hero.h1': 'Dating für<br><em>Gym-People</em>',
     'hero.sub': 'Dating für Leute, die auch montags Beintag machen. Finde Menschen, die dein Training genauso ernst nehmen wie du — in deinem Gym, in deiner Stadt.',
-    'hero.usp1': 'Matches nach Gym &amp; Stadt — kein Ghosting am anderen Ende des Landes',
+    'hero.usp1': 'Matches nach Gym und Umkreis — nicht am anderen Ende des Landes',
     'hero.usp2': 'Dauerhaft gratis — FLEXR Premium (10&nbsp;€/Monat) ist freiwillig',
-    'hero.usp3': 'Echte Profile: Melde- &amp; Blockfunktion inklusive',
+    'hero.usp3': 'Jedes Konto wird vor der Freischaltung von einem Menschen geprüft',
     'hero.demoAria': 'Interaktives Beispiel für das Swipe-Deck',
     'hero.demoPass': 'Beispielprofil ablehnen',
     'hero.demoLike': 'Beispielprofil gefällt mir',
@@ -558,7 +558,7 @@
     'del.done': 'Dein Konto wurde deaktiviert und wird in 30 Tagen endgültig gelöscht.',
 
     // ---- Verifizierungs-Gate
-    'vgate.eyebrow': 'Letzter Satz',
+    'vgate.eyebrow': 'Freischaltung',
     'vgate.title': 'Konto freischalten',
     'vgate.loading': 'Lade Status …',
     'vgate.submittedEyebrow': 'In Prüfung',
@@ -762,11 +762,11 @@
     'nav.account': 'Account',
 
     'hero.eyebrow': 'Dating for gym people · Austria & Germany',
-    'hero.h1': 'Match.<br>Train.<br><em>Repeat.</em>',
+    'hero.h1': 'Dating for<br><em>gym people</em>',
     'hero.sub': 'Dating for people who do leg day on Mondays too. Find people who take their training as seriously as you do — at your gym, in your city.',
-    'hero.usp1': 'Matches by gym &amp; city — no ghosting from the other end of the country',
+    'hero.usp1': 'Matches by gym and radius — not at the other end of the country',
     'hero.usp2': 'Free forever — FLEXR Premium (€10/month) is optional',
-    'hero.usp3': 'Real profiles: reporting &amp; blocking included',
+    'hero.usp3': 'Every account is checked by a person before it is unlocked',
     'hero.demoAria': 'Interactive example of the swipe deck',
     'hero.demoPass': 'Pass on example profile',
     'hero.demoLike': 'Like example profile',
@@ -1230,7 +1230,7 @@
     'del.errPassword': 'Please enter your password to confirm.',
     'del.done': 'Your account has been deactivated and will be permanently deleted in 30 days.',
 
-    'vgate.eyebrow': 'Final set',
+    'vgate.eyebrow': 'Unlock',
     'vgate.title': 'Unlock your account',
     'vgate.loading': 'Loading status …',
     'vgate.submittedEyebrow': 'Under review',

@@ -32,6 +32,33 @@ erwartet, kein kaputter Server — einfach auf `deploy@` umstellen.
 
 ## Wo das Projekt gerade steht
 
+> **Sitzung 24.11.2026 (2): Web-App `/app` nach demselben Review, deployt.**
+> Nur `frontend/app/index.html`, `app/i18n-app.js` (`?v=49`), `sw.js` (`v67`).
+>
+> - **Login-Hero:** „Dating für *Gym-People*“ statt „Match. Train. Repeat.“,
+>   grüne Mono-Vorzeile weg (lief bei 375 px rechts aus dem Bild). H1
+>   `clamp(40px,4.1vw,56px)`, `em` mit `nowrap`; ≤ 360 px 25 px - „GYM-PEOPLE“
+>   ist ~5,04 × Schriftgröße breit und muss neben das Musterdeck passen.
+>   Gemessen bei 320/375/480/800/1000/1100/1366 px ohne Überlauf.
+> - **Keine Leuchteffekte mehr:** alle `linear-gradient(135deg …)` der
+>   Knöpfe/Herz/Sende-Knopf/eigene Chatblasen → `var(--plate)`, orangene
+>   `box-shadow` weg (Fokusring `0 0 0 3px` bleibt), Kartenringe, radiale
+>   Lichtflecken im Hintergrund und Milchglas der Login-Karte entfernt.
+> - **Vorzeilen:** Wortspiel-Zeilen über Swipe/Matches/Likes/Chats/Login/
+>   Registrierung entfernt; funktionale bleiben (Schritt n von 5, In Prüfung,
+>   Passwort vergessen, Match-Overlay). `vgate.eyebrow` „Letzter Satz“ →
+>   „Freischaltung“. Die alten Schlüssel stehen noch im Wörterbuch.
+> - **Schrift:** JetBrains Mono → Work Sans überall; alle Regeln < 12 px auf
+>   12 px, außer Zähl-Badges (`.nav-badge`, `.unread-badge`, `.pos-badge`)
+>   und `.divider::after`.
+> - **Tippflächen:** `.icon-btn`, `.card .flag-btn`, Emoji-Knöpfe 40 px,
+>   Zurück im Chat-Kopf min. 40 × 40.
+> - **Texte:** USP 1 „nach Gym und Umkreis — nicht am anderen Ende des
+>   Landes“, USP 3 „Jedes Konto wird vor der Freischaltung von einem
+>   Menschen geprüft“ (statt „Echte Profile …“, passt zur Landingpage).
+> - Lokale Prüfumgebung: `tools/android-emulator` (Seed-Konten
+>   `@store.example`), Launch-Einträge `review-s3`/`review-backend`.
+
 > **Sitzung 24.11.2026: Design-Runde Website (gegen den „KI-Look“), deployt.**
 > Nur Frontend, SEO-Generator und diese Datei; kein Backend, keine
 > Migration, keine App-Version. Service-Worker-Cache `v65`.
