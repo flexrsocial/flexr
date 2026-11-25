@@ -164,7 +164,7 @@
 // v71: Hero Entwurf B - Kurzfakten statt Aufzaehlung, Studio-Schild an der Karte.
 // v72: Web-App-Startbereich mit derselben Faktenzeile; i18n-app.js ?v=52;
 // Landing-Karte ohne Studio-Schild, Studio wieder unten ("Wien · Fitinn").
-const CACHE = 'flexr-shell-v72';
+const CACHE = 'flexr-shell-v73';
 // Seit dem 15.08.2026 liegt die App unter /app/, an der Wurzel steht die
 // oeffentliche Landingpage. Beide gehoeren in die Shell: die Landingpage,
 // weil sie der Einstieg ist, die App, weil sie offline funktionieren soll.
